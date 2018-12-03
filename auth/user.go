@@ -22,10 +22,10 @@ import (
 	"time"
 
 	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
+	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/drone/drone-go/drone"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
@@ -93,8 +93,8 @@ type User struct {
 	Virtual       bool           `json:"-" gorm:"-"` // Used only internally
 }
 
-//DroneUser struct
-type DroneUser struct {
+//CICDUser struct
+type CICDUser struct {
 	ID     int64  `gorm:"column:user_id;primary_key"`
 	Login  string `gorm:"column:user_login"`
 	Token  string `gorm:"column:user_token"`
@@ -136,8 +136,8 @@ func (org *Organization) IDString() string {
 	return fmt.Sprint(org.ID)
 }
 
-//TableName sets DroneUser's table name
-func (DroneUser) TableName() string {
+//TableName sets CICDUser's table name
+func (CICDUser) TableName() string {
 	return "users"
 }
 
@@ -157,8 +157,8 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 	return nil
 }
 
-func newDroneClient(apiToken string) drone.Client {
-	droneURL := viper.GetString("drone.url")
+func newCICDClient(apiToken string) cicd.Client {
+	cicdURL := viper.GetString("cicd.url")
 	config := new(oauth2.Config)
 	client := config.Client(
 		context.Background(),
@@ -166,46 +166,46 @@ func newDroneClient(apiToken string) drone.Client {
 			AccessToken: apiToken,
 		},
 	)
-	return drone.NewClient(droneURL, client)
+	return cicd.NewClient(cicdURL, client)
 }
 
-// NewTemporaryDroneClient creates an authenticated Drone client for the user specified by login
-func NewTemporaryDroneClient(login string) (drone.Client, error) {
-	// Create a temporary Drone API token
-	claims := &DroneClaims{Type: DroneUserTokenType, Text: login}
+// NewTemporaryCICDClient creates an authenticated CICD client for the user specified by login
+func NewTemporaryCICDClient(login string) (cicd.Client, error) {
+	// Create a temporary CICD API token
+	claims := &CICDClaims{Type: CICDUserTokenType, Text: login}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	droneAPIToken, err := token.SignedString([]byte(signingKeyBase32))
+	cicdAPIToken, err := token.SignedString([]byte(signingKeyBase32))
 	if err != nil {
-		log.Errorln("Failed to create temporary Drone token", err.Error())
+		log.Errorln("Failed to create temporary CICD token", err.Error())
 		return nil, err
 	}
 
-	return newDroneClient(droneAPIToken), nil
+	return newCICDClient(cicdAPIToken), nil
 }
 
-// NewDroneClient creates an authenticated Drone client for the user specified by the JWT in the HTTP request
-func NewDroneClient(request *http.Request) (drone.Client, error) {
-	droneAPIToken, err := parseDroneTokenFromRequest(request)
+// NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
+func NewCICDClient(request *http.Request) (cicd.Client, error) {
+	cicdAPIToken, err := parseCICDTokenFromRequest(request)
 	if err != nil {
-		log.Errorln("Failed to parse Drone token", err.Error())
+		log.Errorln("Failed to parse CICD token", err.Error())
 		return nil, err
 	}
 
-	return newDroneClient(droneAPIToken), nil
+	return newCICDClient(cicdAPIToken), nil
 }
 
 //BanzaiUserStorer struct
 type BanzaiUserStorer struct {
 	auth.UserStorer
-	signingKeyBase32 string // Drone uses base32 Hash
-	droneDB          *gorm.DB
+	signingKeyBase32 string // CICD uses base32 Hash
+	cicdDB           *gorm.DB
 	events           authEvents
 	accessManager    accessManager
 	githubImporter   *GithubImporter
 }
 
 // Save differs from the default UserStorer.Save() in that it
-// extracts Token and Login and saves to Drone DB as well
+// extracts Token and Login and saves to CICD DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (user interface{}, userID string, err error) {
 
 	currentUser := &User{}
@@ -217,13 +217,13 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	// This assumes GitHub auth only right now
 	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
 	currentUser.Login = githubExtraInfo.Login
-	err = bus.createUserInDroneDB(currentUser, githubExtraInfo.Token)
+	err = bus.createUserInCICDDB(currentUser, githubExtraInfo.Token)
 	if err != nil {
 		log.Info(context.Request.RemoteAddr, err.Error())
 		return nil, "", err
 	}
 
-	synchronizeDroneRepos(currentUser.Login)
+	synchronizeCICDRepos(currentUser.Login)
 
 	// When a user registers a default organization is created in which he/she is admin
 	userOrg := Organization{
@@ -284,12 +284,12 @@ func (bus BanzaiUserStorer) Update(schema *auth.Schema, context *auth.Context) e
 		return errors.Wrap(err, "failed to save Github access token")
 	}
 
-	// Also update the new Github token in Drone (TODO Drone should get it from Vault as well)
-	return bus.updateUserInDroneDB(currentUser, githubExtraInfo.Token)
+	// Also update the new Github token in CICD (TODO CICD should get it from Vault as well)
+	return bus.updateUserInCICDDB(currentUser, githubExtraInfo.Token)
 }
 
-func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken string) error {
-	droneUser := &DroneUser{
+func (bus BanzaiUserStorer) createUserInCICDDB(user *User, githubAccessToken string) error {
+	cicdUser := &CICDUser{
 		Login:  user.Login,
 		Email:  user.Email,
 		Token:  githubAccessToken,
@@ -299,29 +299,29 @@ func (bus BanzaiUserStorer) createUserInDroneDB(user *User, githubAccessToken st
 		Admin:  true,
 		Synced: time.Now().Unix(),
 	}
-	return bus.droneDB.Where(droneUser).FirstOrCreate(droneUser).Error
+	return bus.cicdDB.Where(cicdUser).FirstOrCreate(cicdUser).Error
 }
 
-func (bus BanzaiUserStorer) updateUserInDroneDB(user *User, githubAccessToken string) error {
-	where := &DroneUser{
+func (bus BanzaiUserStorer) updateUserInCICDDB(user *User, githubAccessToken string) error {
+	where := &CICDUser{
 		Login: user.Login,
 	}
-	update := &DroneUser{
+	update := &CICDUser{
 		Token:  githubAccessToken,
 		Synced: time.Now().Unix(),
 	}
-	return bus.droneDB.Model(&DroneUser{}).Where(where).Update(update).Error
+	return bus.cicdDB.Model(&CICDUser{}).Where(where).Update(update).Error
 }
 
-// This method tries to call the Drone API on a best effort basis to fetch all repos before the user navigates there.
-func synchronizeDroneRepos(login string) {
-	droneClient, err := NewTemporaryDroneClient(login)
+// This method tries to call the CICD API on a best effort basis to fetch all repos before the user navigates there.
+func synchronizeCICDRepos(login string) {
+	cicdClient, err := NewTemporaryCICDClient(login)
 	if err != nil {
-		log.Warnln("failed to create Drone client", err.Error())
+		log.Warnln("failed to create CICD client", err.Error())
 	}
-	_, err = droneClient.RepoListOpts(true, true)
+	_, err = cicdClient.RepoListOpts(true, true)
 	if err != nil {
-		log.Warnln("failed to sync Drone repositories", err.Error())
+		log.Warnln("failed to sync CICD repositories", err.Error())
 	}
 }
 
@@ -451,7 +451,7 @@ func GetUserNickNameById(userId uint) (userName string) {
 	return
 }
 
-func parseDroneTokenFromRequest(r *http.Request) (string, error) {
+func parseCICDTokenFromRequest(r *http.Request) (string, error) {
 	var token = r.Header.Get("Authorization")
 
 	// first we attempt to get the token from the

@@ -5958,7 +5958,7 @@ components:
             properties:
                 name:
                     type: string
-                    example: "banzaicloud-stable/drone"
+                    example: "banzaicloud-stable/cicd"
                 version:
                     type: string
                     example: "0.1.0"

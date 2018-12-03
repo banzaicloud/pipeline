@@ -55,7 +55,7 @@ func (m *middleware) getUserID(r *http.Request) string {
 	}
 
 	if user.ID == 0 {
-		return user.Login // This is needed for Drone virtual user tokens
+		return user.Login // This is needed for CICD virtual user tokens
 	}
 
 	return user.IDString()
