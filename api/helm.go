@@ -85,6 +85,10 @@ func CreateDeployment(c *gin.Context) {
 		k8sHelm.ValueOverrides(parsedRequest.values),
 	}
 
+	if parsedRequest.timeout > 0 {
+		installOptions = append(installOptions, k8sHelm.InstallTimeout(parsedRequest.timeout))
+	}
+
 	release, err := helm.CreateDeployment(parsedRequest.deploymentName,
 		parsedRequest.deploymentVersion,
 		parsedRequest.deploymentPackage,
@@ -462,6 +466,7 @@ type parsedDeploymentRequest struct {
 	organizationName      string
 	dryRun                bool
 	wait                  bool
+	timeout               int64
 	odPcts                map[string]int
 }
 
@@ -492,6 +497,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 	pdr.namespace = deployment.Namespace
 	pdr.dryRun = deployment.DryRun
 	pdr.wait = deployment.Wait
+	pdr.timeout = deployment.Timeout
 	pdr.odPcts = deployment.OdPcts
 
 	if deployment.Values != nil {
