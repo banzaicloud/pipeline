@@ -153,6 +153,7 @@ func main() {
 	},
 		[]string{"provider", "location", "status", "orgName", "clusterName"},
 	)
+	// Initialise cluster total metric
 	clusterTotalMetric := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "pipeline",
 		Name:      "cluster_total",
@@ -160,6 +161,23 @@ func main() {
 	},
 		[]string{"provider", "location"},
 	)
+	type totalClusterMetric struct {
+		Location string
+		Cloud    string
+		Count    int
+	}
+	totalClusters := make([]totalClusterMetric, 0)
+	//SELECT count(id) as count, location, cloud FROM clusters GROUP BY location, cloud; (init values)
+	if err := db.Raw("SELECT count(id) as count, location, cloud FROM clusters GROUP BY location, cloud").Scan(&totalClusters).Error; err != nil {
+		logger.Error(err)
+	}
+	for _, row := range totalClusters {
+		clusterTotalMetric.With(
+			map[string]string{
+				"location": row.Location,
+				"provider": row.Cloud,
+			}).Add(float64(row.Count))
+	}
 	prometheus.MustRegister(statusChangeDurationMetric, clusterTotalMetric)
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
