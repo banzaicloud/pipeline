@@ -148,6 +148,11 @@ type LoggingParam struct {
 	GenTLSForLogging GenTLSForLogging `json:"tls" binding:"required"`
 }
 
+// AnchoreParam describes the anchore posthook params
+type AnchoreParam struct {
+	AllowAll string `json:"allowAll"`
+}
+
 func (p LoggingParam) String() string {
 	return fmt.Sprintf("bucketName: %s, region: %s, secretId: %s", p.BucketName, p.Region, p.SecretId)
 }

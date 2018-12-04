@@ -17,10 +17,13 @@ package cluster
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Masterminds/semver"
+	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
+	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -250,7 +253,7 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 	var loggingParam pkgCluster.LoggingParam
 	err := castToPostHookParam(&param, &loggingParam)
 	if err != nil {
-		return emperror.Wrap(err, "porthook param failed")
+		return emperror.Wrap(err, "posthook param failed")
 	}
 	// This makes no sense since we can't check if it default false or set false
 	//if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
@@ -823,7 +826,7 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 }
 
 //InstallAnchoreImageValidator installs Anchore image validator
-func InstallAnchoreImageValidator(input interface{}) error {
+func InstallAnchoreImageValidator(input interface{}, param pkgCluster.PostHookParam) error {
 
 	if !anchore.AnchoreEnabled {
 		log.Infof("Anchore integration is not enabled.")
@@ -833,6 +836,12 @@ func InstallAnchoreImageValidator(input interface{}) error {
 	cluster, ok := input.(CommonCluster)
 	if !ok {
 		return errors.Errorf("wrong parameter type: %T", cluster)
+	}
+
+	var anchoreParam pkgCluster.AnchoreParam
+	err := castToPostHookParam(&param, &anchoreParam)
+	if err != nil {
+		return emperror.Wrap(err, "posthook param failed")
 	}
 
 	anchoreUserName := fmt.Sprintf("%v-anchore-user", cluster.GetUID())
@@ -863,6 +872,60 @@ func InstallAnchoreImageValidator(input interface{}) error {
 		return emperror.Wrap(err, "install anchore-policy-validator failed")
 	}
 	cluster.SetSecurityScan(true)
+
+	// parse string as true-default boolean
+	allowAll := true
+	if anchoreParam.AllowAll != "" {
+		allowAll, err = strconv.ParseBool(anchoreParam.AllowAll)
+		if err != nil {
+			return emperror.Wrap(err, "InstallAnchoreImageValidator.AllowAll")
+		}
+	}
+
+	if allowAll {
+		if err := installAllowAllWhitelist(cluster); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func installAllowAllWhitelist(cluster CommonCluster) error {
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
+		return err
+	}
+
+	config, err := k8sclient.NewClientConfig(kubeConfig)
+	if err != nil {
+		return emperror.Wrap(err, "get k8s config")
+	}
+
+	securityClientSet, err := securityClientV1Alpha.SecurityConfig(config)
+	if err != nil {
+		return emperror.Wrap(err, "get SecurityClient")
+	}
+
+	whitelist := securityV1Alpha.WhiteListItem{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "WhiteListItem",
+			APIVersion: fmt.Sprintf("%v/%v", securityV1Alpha.GroupName, securityV1Alpha.GroupVersion),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "allow-all",
+		},
+		Spec: securityV1Alpha.WhiteListSpec{
+			Creator: "pipeline",
+			Reason:  "cluster-wide default",
+			Regexp:  ".*",
+		},
+	}
+
+	_, err = securityClientSet.Whitelists(metav1.NamespaceDefault).Create(&whitelist)
+	if err != nil {
+		return emperror.Wrap(err, "create whitelist")
+	}
 	return nil
 }
 

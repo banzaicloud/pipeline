@@ -80,7 +80,7 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallPVCOperatorPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.InstallAnchoreImageValidator: &BasePostFunction{
+	pkgCluster.InstallAnchoreImageValidator: &PostFunctionWithParam{
 		f:            InstallAnchoreImageValidator,
 		ErrorHandler: ErrorHandler{},
 	},
