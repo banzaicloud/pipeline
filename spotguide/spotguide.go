@@ -45,7 +45,7 @@ import (
 )
 
 const SpotguideGithubTopic = "spotguide"
-const SpotguideGithubOrganization = "banzaicloud" // TODO (andras): migrate to "spotguides" organization
+const SpotguideGithubOrganization = "banzaicloud"
 const SpotguideYAMLPath = ".banzaicloud/spotguide.yaml"
 const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
 const ReadmePath = ".banzaicloud/README.md"
@@ -56,30 +56,11 @@ const SpotguideRepoTableName = "spotguide_repos"
 var IgnoredPaths = []string{".circleci", ".github"}
 
 var ctx = context.Background()
-var githubToken string
 
 func init() {
 	// Subscribe to organization creations and sync spotguides into the newly created organizations
 	// TODO move this to a global place and more visible
 	authEventEmitter.NotifyOrganizationRegistered(internalScrapeSpotguides)
-	githubToken = viper.GetString("github.token")
-}
-
-// TODO (andras): don't use global variables, refactor into a struct
-var spotguideOrganization *auth.Organization
-
-func getSharedSpotguideOrganization() (*auth.Organization, error) {
-	if spotguideOrganization != nil {
-		return spotguideOrganization, nil
-	}
-
-	var err error
-	spotguideOrganization, err = auth.GetOrganizationByName(SpotguideGithubOrganization)
-	if err != nil {
-		return nil, emperror.Wrapf(err, "shared spotguide organization (%s) is not found", SpotguideGithubOrganization)
-	}
-
-	return spotguideOrganization, nil
 }
 
 type SpotguideYAML struct {
@@ -173,42 +154,22 @@ func internalScrapeSpotguides(orgID uint, userID uint) {
 func isSpotguideReleaseAllowed(release *github.RepositoryRelease) bool {
 	version, err := semver.NewVersion(release.GetTagName())
 	if err != nil {
-		log.Warn("failed to parse spotguide release tag: ", err)
+		log.Warn("Failed to parse spotguide release tag: ", err)
 		return false
 	}
-
-	return (version.Prerelease() == "" && !*release.Prerelease) || viper.GetBool(config.SpotguideAllowPrereleases)
-}
-
-func ScrapeSharedSpotguides() error {
-	org, err := getSharedSpotguideOrganization()
-	if err != nil {
-		return emperror.Wrap(err, "failed to scrape shared spotguides")
-	}
-
-	githubClient := auth.NewGithubClient(githubToken)
-	return scrapeSpotguides(org, githubClient)
+	return version.Prerelease() == "" || viper.GetBool(config.SpotguideAllowPrereleases)
 }
 
 func ScrapeSpotguides(orgID uint, userID uint) error {
-	githubClient, err := auth.NewGithubClientForUser(userID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to create GitHub client")
-	}
 
-	org, err := auth.GetOrganizationById(orgID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to resolve organization from id")
-	}
-
-	return scrapeSpotguides(org, githubClient)
-}
-
-func scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error {
 	db := config.DB()
 
+	githubClient, err := auth.NewGithubClientForUser(userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to create GitHub client")
+	}
 	var allRepositories []github.Repository
-	query := fmt.Sprintf("org:%s topic:%s", org.Name, SpotguideGithubTopic)
+	query := fmt.Sprintf("org:%s topic:%s", SpotguideGithubOrganization, SpotguideGithubTopic)
 	listOpts := github.ListOptions{PerPage: 100}
 	for {
 		reposRes, resp, err := githubClient.Search.Repositories(ctx, query, &github.SearchOptions{
@@ -229,7 +190,7 @@ func scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error
 	}
 
 	where := SpotguideRepo{
-		OrganizationID: org.ID,
+		OrganizationID: orgID,
 	}
 
 	var oldSpotguides []SpotguideRepo
@@ -287,7 +248,7 @@ func scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error
 			}
 
 			model := SpotguideRepo{
-				OrganizationID:   org.ID,
+				OrganizationID:   orgID,
 				Name:             repository.GetFullName(),
 				SpotguideYAMLRaw: spotguideRaw,
 				Readme:           string(readme),
@@ -317,14 +278,11 @@ func scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error
 	return nil
 }
 
-func GetSpotguides(orgID uint) (spotguides []*SpotguideRepo, err error) {
+func GetSpotguides(orgID uint) ([]*SpotguideRepo, error) {
 	db := config.DB()
-	query := db.Where(SpotguideRepo{OrganizationID: orgID})
-	if spotguideOrganization != nil {
-		query = query.Or(SpotguideRepo{OrganizationID: spotguideOrganization.ID})
-	}
-
-	err = query.Find(&spotguides).Error
+	where := SpotguideRepo{OrganizationID: orgID}
+	spotguides := []*SpotguideRepo{}
+	err := db.Find(&spotguides, where).Error
 	return spotguides, err
 }
 
