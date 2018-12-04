@@ -22,6 +22,8 @@ type CreateUpdateDeploymentRequest struct {
 	DryRun      bool   `json:"dryRun,omitempty"`
 	// if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful
 	Wait bool `json:"wait,omitempty"`
+	// time in seconds to wait for any individual Kubernetes operation (default 300)
+	Timeout int32 `json:"timeout,omitempty"`
 	// Map of resources in the template where replicas should have a minimum on-demand percentage. Format: <kind.resourceName: min-percentage>
 	OdPcts      map[string]interface{} `json:"odPcts,omitempty"`
 	ReuseValues bool                   `json:"reuseValues,omitempty"`
