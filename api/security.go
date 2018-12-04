@@ -17,8 +17,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 
 	"regexp"
@@ -250,6 +252,7 @@ func GetPolicies(c *gin.Context) {
 	if !ok {
 		return
 	}
+
 	anchoreRequest := anchore.AnchoreRequest{
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
@@ -327,30 +330,54 @@ func UpdatePolicies(c *gin.Context) {
 		return
 	}
 
-	var policyBundle *security.PolicyBundleRecord
-	err := c.BindJSON(&policyBundle)
-	if err != nil {
-		err := errors.Wrap(err, "Error parsing request:")
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during parsing request!",
-			Error:   errors.Cause(err).Error(),
-		})
-		return
-	}
-
 	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
 	}
+
 	anchoreRequest := anchore.AnchoreRequest{
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
 		Method:    http.MethodPut,
 		URL:       path.Join(policyPath, policyId),
-		Body:      policyBundle,
+		Body:      nil,
 	}
+
+	if active, _ := strconv.ParseBool(c.Query("active")); active {
+		anchoreRequest.Method = http.MethodGet
+		response, err := anchore.DoAnchoreRequest(anchoreRequest)
+		if err != nil {
+			log.Error(err)
+			c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Error",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		respBody, _ := ioutil.ReadAll(response.Body)
+		policyBundle := []security.PolicyBundleRecord{}
+		json.Unmarshal(respBody, &policyBundle)
+		policyBundle[0].Active = true
+		anchoreRequest.Method = http.MethodPut
+		anchoreRequest.Body = policyBundle[0]
+	} else {
+		var policyBundle *security.PolicyBundleRecord
+		err := c.BindJSON(&policyBundle)
+		if err != nil {
+			err := errors.Wrap(err, "Error parsing request:")
+			log.Error(err.Error())
+			c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error during parsing request!",
+				Error:   errors.Cause(err).Error(),
+			})
+			return
+		}
+		anchoreRequest.Body = policyBundle
+	}
+
 	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
