@@ -44,13 +44,8 @@ func NewObjectStore(ctx providers.ObjectStoreContext) (cloudprovider.ObjectStore
 		SubscriptionID: ctx.Secret.Values[pkgSecret.AzureSubscriptionId],
 	}
 
-	os, err := azureObjectstore.New(config, credentials)
-	if err != nil {
-		return nil, err
-	}
-
 	return &objectStore{
-		ObjectStore: os,
+		ObjectStore: azureObjectstore.New(config, credentials),
 	}, nil
 }
 

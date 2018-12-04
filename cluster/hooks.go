@@ -28,13 +28,13 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
-	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
@@ -396,7 +396,14 @@ func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
 		}
 	case pkgCluster.Azure:
 
-		sak, err := azure.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, logSecret, log)
+		credentials := azureObjectstore.Credentials{
+			SubscriptionID: logSecret.Values[pkgSecret.AzureSubscriptionId],
+			ClientID:       logSecret.Values[pkgSecret.AzureClientId],
+			ClientSecret:   logSecret.Values[pkgSecret.AzureClientSecret],
+			TenantID:       logSecret.Values[pkgSecret.AzureTenantId],
+		}
+
+		sak, err := azureObjectstore.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, credentials, log)
 		if err != nil {
 			return emperror.Wrap(err, "get storage account key failed")
 		}
