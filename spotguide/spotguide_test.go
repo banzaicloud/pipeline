@@ -114,7 +114,7 @@ pipeline:
     action: EnsureDeployment
     deployment:
       name: ./spotguide-nodejs-mongodb-1.0.0.tgz
-      releaseName: '{{ CICD_REPO_NAME }}'
+      releaseName: '{{ .CICD_REPO_NAME }}'
       reuseValues: true
       values:
         application:
