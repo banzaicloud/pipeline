@@ -68,7 +68,7 @@ func (r *BackupsRepository) Find() (backups []*ClusterBackupsModel, err error) {
 		query.ClusterID = r.cluster.GetID()
 	}
 
-	err = r.db.Where(&query).Preload("Bucket").Preload("Organization").Find(&backups).Error
+	err = r.db.Where(&query).Preload("Bucket").Preload("Bucket.Deployment").Preload("Organization").Find(&backups).Error
 
 	return
 }
