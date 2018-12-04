@@ -289,22 +289,23 @@ func GetSpotguides(orgID uint) ([]*SpotguideRepo, error) {
 	return spotguides, err
 }
 
-func GetSpotguide(orgID uint, name, version string) ([]SpotguideRepo, error) {
+func GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
 	db := config.DB()
 	where := SpotguideRepo{OrganizationID: orgID, Name: name, Version: version}
-	repo := []SpotguideRepo{}
-	err := db.Find(&repo, where).Error
-	return repo, err
+	repo := SpotguideRepo{}
+	err := db.First(&repo, where).Error
+	if err != nil {
+		return nil, err
+	}
+	return &repo, nil
 }
 
 func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
 
-	sourceRepos, err := GetSpotguide(orgID, request.SpotguideName, request.SpotguideVersion)
-	if err != nil || len(sourceRepos) == 0 {
+	sourceRepo, err := GetSpotguide(orgID, request.SpotguideName, request.SpotguideVersion)
+	if err != nil {
 		return errors.Wrap(err, "failed to find spotguide repo")
 	}
-
-	sourceRepo := &sourceRepos[0]
 
 	// LaunchRequest might not have the version
 	request.SpotguideVersion = sourceRepo.Version
