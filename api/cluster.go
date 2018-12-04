@@ -104,7 +104,7 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 
 			log.Infof("posthook function: %s", function)
 			log.Infof("posthook params: %#v", param)
-			if postHookName == "InstallAnchoreImageValidator" {
+			if postHookName == pkgCluster.InstallAnchoreImageValidator {
 				securityScanPosthook = function
 			} else {
 				ph = append(ph, function)
