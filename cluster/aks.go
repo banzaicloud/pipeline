@@ -44,7 +44,6 @@ const (
 
 //CreateAKSClusterFromRequest creates ClusterModel struct from the request
 func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*AKSCluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	var cluster AKSCluster
 
 	var nodePools []*model.AKSNodePoolModel
@@ -439,7 +438,6 @@ func (c *AKSCluster) GetAzureCluster() (*azureType.Value, error) {
 
 //CreateAKSClusterFromModel creates ClusterModel struct from model
 func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	aksCluster := AKSCluster{
 		modelCluster: clusterModel,
 	}

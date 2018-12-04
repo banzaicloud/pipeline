@@ -91,7 +91,7 @@ func main() {
 
 	// Connect to database
 	db := config.DB()
-	droneDb, err := config.DroneDB()
+	cicdDB, err := config.CICDDB()
 	if err != nil {
 		logger.Panic(err.Error())
 	}
@@ -113,7 +113,7 @@ func main() {
 	githubImporter := auth.NewGithubImporter(db, accessManager, config.EventBus)
 
 	// Initialize auth
-	auth.Init(droneDb, accessManager, githubImporter)
+	auth.Init(cicdDB, accessManager, githubImporter)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		log.Info("running automatic schema migrations")

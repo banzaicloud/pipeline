@@ -41,7 +41,7 @@ configRetrySleep = 15
 [statestore]
 path = ""
 
-[drone]
+[cicd]
 url = "http://localhost:8000"
 
 [github]

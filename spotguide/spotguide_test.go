@@ -58,7 +58,7 @@ pipeline:
       secretName: ""
     cluster_secret:
       name: null
-      namespace: '{{ .DRONE_NAMESPACE }}'
+      namespace: '{{ .CICD_NAMESPACE }}'
       spec:
       - name: DOCKER_USERNAME
         source: username
@@ -81,8 +81,8 @@ pipeline:
   build_container:
     image: plugins/docker
     dockerfile: Dockerfile
-    repo: '{{ .DRONE_REPO }}'
-    tags: '{{ trunc 7 .DRONE_COMMIT_SHA }}'
+    repo: '{{ .CICD_REPO }}'
+    tags: '{{ trunc 7 .CICD_COMMIT_SHA }}'
   package_application:
     when:
       branch:
@@ -114,18 +114,18 @@ pipeline:
     action: EnsureDeployment
     deployment:
       name: ./spotguide-nodejs-mongodb-1.0.0.tgz
-      releaseName: '{{ .DRONE_REPO_NAME }}'
+      releaseName: '{{ .CICD_REPO_NAME }}'
       reuseValues: true
       values:
         application:
           deployment:
             image:
               pullPolicy: Always
-              repository: '{{ .DRONE_REPO }}'
-              tag: '{{ trunc 7 .DRONE_COMMIT_SHA }}'
+              repository: '{{ .CICD_REPO }}'
+              tag: '{{ trunc 7 .CICD_COMMIT_SHA }}'
           ingress:
             hosts:
-            - app.{{ .DRONE_REPO_NAME }}.{{ .CLUSTER_NAME }}.{{ .ORG_NAME }}.banzaicloud.io
+            - app.{{ .CICD_REPO_NAME }}.{{ .CLUSTER_NAME }}.{{ .ORG_NAME }}.banzaicloud.io
         mongodb:
           existingSecret:
           mongodbDatabase: null
@@ -174,7 +174,7 @@ pipeline:
       secretName: ""
     cluster_secret:
       name: spotguide-nodejs-mongodb-05-docker-hub
-      namespace: '{{ .DRONE_NAMESPACE }}'
+      namespace: '{{ .CICD_NAMESPACE }}'
       spec:
       - name: DOCKER_USERNAME
         source: username
@@ -188,8 +188,8 @@ pipeline:
   build_container:
     image: plugins/docker
     dockerfile: Dockerfile
-    repo: '{{ .DRONE_REPO }}'
-    tags: '{{ trunc 7 .DRONE_COMMIT_SHA }}'
+    repo: '{{ .CICD_REPO }}'
+    tags: '{{ trunc 7 .CICD_COMMIT_SHA }}'
   package_application:
     when:
       branch:
@@ -221,18 +221,18 @@ pipeline:
     action: EnsureDeployment
     deployment:
       name: ./spotguide-nodejs-mongodb-1.0.0.tgz
-      releaseName: '{{ .DRONE_REPO_NAME }}'
+      releaseName: '{{ .CICD_REPO_NAME }}'
       reuseValues: true
       values:
         application:
           deployment:
             image:
               pullPolicy: Always
-              repository: '{{ .DRONE_REPO }}'
-              tag: '{{ trunc 7 .DRONE_COMMIT_SHA }}'
+              repository: '{{ .CICD_REPO }}'
+              tag: '{{ trunc 7 .CICD_COMMIT_SHA }}'
           ingress:
             hosts:
-            - app.{{ .DRONE_REPO_NAME }}.{{ .CLUSTER_NAME }}.{{ .ORG_NAME }}.banzaicloud.io
+            - app.{{ .CICD_REPO_NAME }}.{{ .CLUSTER_NAME }}.{{ .ORG_NAME }}.banzaicloud.io
         mongodb:
           existingSecret: spotguide-nodejs-mongodb-05-mongodb
           mongodbDatabase: application
@@ -330,7 +330,7 @@ var testLaunchRequestJSON = `{
   }
 }`
 
-func TestDroneRepoConfigPipeline(t *testing.T) {
+func TestCICDRepoConfigPipeline(t *testing.T) {
 
 	launchRequest := LaunchRequest{}
 	err := json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest)
@@ -339,13 +339,13 @@ func TestDroneRepoConfigPipeline(t *testing.T) {
 		t.Fatal("Unmarshal expected to succeed but got error: ", err.Error())
 	}
 
-	droneConfig, err := createDroneRepoConfig([]byte(testPipelineYAML), &launchRequest)
+	cicdConfig, err := createCICDRepoConfig([]byte(testPipelineYAML), &launchRequest)
 
 	if err != nil {
-		t.Fatal("createDroneRepoConfig expected to succeed but got error: ", err.Error())
+		t.Fatal("createCICDRepoConfig expected to succeed but got error: ", err.Error())
 	}
 
-	actualPipelineYAML, err := yaml.Marshal(&droneConfig)
+	actualPipelineYAML, err := yaml.Marshal(&cicdConfig)
 
 	if err != nil {
 		t.Error("Marshal expected to succeed but got error: ", err.Error())
@@ -399,7 +399,7 @@ pipeline:
     action: EnsureDeployment
     deployment:
       name: ./spotguide-nodejs-mongodb-1.0.0.tgz
-      releaseName: '{{ .DRONE_REPO_NAME }}'
+      releaseName: '{{ .CICD_REPO_NAME }}'
       reuseValues: true
       values:
         foo: 3
@@ -445,7 +445,7 @@ pipeline:
     action: EnsureDeployment
     deployment:
       name: ./spotguide-nodejs-mongodb-1.0.0.tgz
-      releaseName: '{{ .DRONE_REPO_NAME }}'
+      releaseName: '{{ .CICD_REPO_NAME }}'
       reuseValues: true
       values:
         foo: 3
@@ -455,20 +455,20 @@ pipeline:
           mongodbUsername: user
 `
 
-func TestDroneRepoConfigPipelineClusterBlock(t *testing.T) {
+func TestCICDRepoConfigPipelineClusterBlock(t *testing.T) {
 
-	config := droneRepoConfig{}
+	config := cicdRepoConfig{}
 	yaml.Unmarshal([]byte(testClusterPipelineYAML), &config)
 
 	launchRequest := LaunchRequest{}
 	json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest)
 
-	droneConfig, err := createDroneRepoConfig([]byte(testClusterPipelineYAML), &launchRequest)
+	cicdConfig, err := createCICDRepoConfig([]byte(testClusterPipelineYAML), &launchRequest)
 	if err != nil {
-		t.Fatal("createDroneRepoConfig expected to succeed but got error: ", err.Error())
+		t.Fatal("createCICDRepoConfig expected to succeed but got error: ", err.Error())
 	}
 
-	actualPipelineYAML, err := yaml.Marshal(&droneConfig)
+	actualPipelineYAML, err := yaml.Marshal(&cicdConfig)
 	if err != nil {
 		t.Error("Marshal expected to succeed but got error: ", err.Error())
 	}

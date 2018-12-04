@@ -30,7 +30,6 @@ type DummyCluster struct {
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
 func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*DummyCluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	var cluster DummyCluster
 
 	cluster.modelCluster = &model.ClusterModel{
@@ -236,7 +235,6 @@ func createDummyConfig() *kubeConfig {
 
 //CreateDummyClusterFromModel creates the cluster from the model
 func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	dummyCluster := DummyCluster{
 		modelCluster: clusterModel,
 	}

@@ -30,11 +30,11 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/Masterminds/sprig"
+	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/drone/drone-go/drone"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
@@ -336,7 +336,7 @@ func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, u
 
 func preparePipelineYAML(request *LaunchRequest, sourceRepo *SpotguideRepo, pipelineYAML []byte) ([]byte, error) {
 	// Create repo config that drives the CICD flow from LaunchRequest
-	repoConfig, err := createDroneRepoConfig(pipelineYAML, request)
+	repoConfig, err := createCICDRepoConfig(pipelineYAML, request)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize repo config")
 	}
@@ -548,22 +548,22 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 
 func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 
-	droneClient, err := auth.NewDroneClient(httpRequest)
+	cicdClient, err := auth.NewCICDClient(httpRequest)
 	if err != nil {
-		return errors.Wrap(err, "failed to create Drone client")
+		return errors.Wrap(err, "failed to create CICD client")
 	}
 
-	_, err = droneClient.RepoListOpts(true, true)
+	_, err = cicdClient.RepoListOpts(true, true)
 	if err != nil {
-		return errors.Wrap(err, "failed to sync Drone repositories")
+		return errors.Wrap(err, "failed to sync CICD repositories")
 	}
 
-	_, err = droneClient.RepoPost(request.RepoOrganization, request.RepoName)
+	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName)
 	if err != nil {
-		return errors.Wrap(err, "failed to enable Drone repository")
+		return errors.Wrap(err, "failed to enable CICD repository")
 	}
 
-	repoPatch := drone.RepoPatch{
+	repoPatch := cicd.RepoPatch{
 		IsSpotguide:     github.Bool(true),
 		SpotguideSource: github.String(request.SpotguideName),
 	}
@@ -573,15 +573,15 @@ func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
 		repoPatch.AllowPush = github.Bool(false)
 		repoPatch.AllowDeploy = github.Bool(false)
 	}
-	_, err = droneClient.RepoPatch(request.RepoOrganization, request.RepoName, &repoPatch)
+	_, err = cicdClient.RepoPatch(request.RepoOrganization, request.RepoName, &repoPatch)
 	if err != nil {
-		return errors.Wrap(err, "failed to patch Drone repository")
+		return errors.Wrap(err, "failed to patch CICD repository")
 	}
 
 	return nil
 }
 
-func createDroneRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*droneRepoConfig, error) {
+func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*cicdRepoConfig, error) {
 	// Pre-process pipeline.yaml
 	yamlTemplate, err := template.New("pipeline.yaml").
 		Delims("{{{{", "}}}}").
@@ -613,30 +613,30 @@ func createDroneRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*droneR
 		return nil, emperror.Wrap(err, "failed to evaluate sprig template for pipeline.yaml")
 	}
 
-	repoConfig := new(droneRepoConfig)
+	repoConfig := new(cicdRepoConfig)
 	if err := yaml.Unmarshal(buffer.Bytes(), repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal initial config")
 	}
 
 	// Configure cluster
-	if err := droneRepoConfigCluster(request, repoConfig); err != nil {
+	if err := cicdRepoConfigCluster(request, repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed to add cluster details")
 	}
 
 	// Configure secrets
-	if err := droneRepoConfigSecrets(request, repoConfig); err != nil {
+	if err := cicdRepoConfigSecrets(request, repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed to add secrets to steps")
 	}
 
 	// Configure pipeline
-	if err := droneRepoConfigPipeline(request, repoConfig); err != nil {
+	if err := cicdRepoConfigPipeline(request, repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed to merge values")
 	}
 
 	return repoConfig, nil
 }
 
-func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig) error {
+func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) error {
 
 	clusterJson, err := json.Marshal(request.Cluster)
 	if err != nil {
@@ -649,7 +649,7 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 		if step.Key == CreateClusterStep {
 			log.Debugf("merge cluster info to %q step", step.Key)
 
-			clusterStep, err := copyToDroneContainer(step.Value)
+			clusterStep, err := copyToCICDContainer(step.Value)
 			if err != nil {
 				return err
 			}
@@ -660,7 +660,7 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 				return err
 			}
 
-			newClusterStep, err := droneContainerToMapSlice(clusterStep)
+			newClusterStep, err := cicdContainerToMapSlice(clusterStep)
 			if err != nil {
 				return err
 			}
@@ -680,7 +680,7 @@ func droneRepoConfigCluster(request *LaunchRequest, repoConfig *droneRepoConfig)
 	return nil
 }
 
-func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig) error {
+func cicdRepoConfigSecrets(request *LaunchRequest, repoConfig *cicdRepoConfig) error {
 
 	if len(request.Secrets) == 0 {
 		return nil
@@ -688,7 +688,7 @@ func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig)
 
 	for _, plugin := range repoConfig.Pipeline {
 		for _, secret := range request.Secrets {
-			step, err := copyToDroneContainer(plugin.Value)
+			step, err := copyToCICDContainer(plugin.Value)
 			if err != nil {
 				return err
 			}
@@ -699,7 +699,7 @@ func droneRepoConfigSecrets(request *LaunchRequest, repoConfig *droneRepoConfig)
 	return nil
 }
 
-func droneRepoConfigPipeline(request *LaunchRequest, repoConfig *droneRepoConfig) error {
+func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) error {
 
 	for i, step := range repoConfig.Pipeline {
 

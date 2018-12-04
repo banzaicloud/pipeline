@@ -70,7 +70,6 @@ const asgWaitLoopSleepSeconds = 5
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
 func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	cluster := EKSCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -157,7 +156,6 @@ func (c *EKSCluster) GetAPIEndpoint() (string, error) {
 
 //CreateEKSClusterFromModel creates ClusterModel struct from the model
 func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, error) {
-	log.Debug("Create ClusterModel struct from the request")
 	eksCluster := EKSCluster{
 		modelCluster: clusterModel,
 		log:          log.WithField("cluster", clusterModel.Name),
