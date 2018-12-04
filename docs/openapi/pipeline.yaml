@@ -5981,6 +5981,10 @@ components:
                     type: boolean
                     description: "if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful"
                     example: false
+                timeout:
+                    type: integer
+                    description: "time in seconds to wait for any individual Kubernetes operation (default 300)"
+                    example: 500
                 odPcts:
                     type: object
                     description: "Map of resources in the template where replicas should have a minimum on-demand percentage. Format: <kind.resourceName: min-percentage>"
