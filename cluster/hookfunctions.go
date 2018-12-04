@@ -32,6 +32,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            SetupPrivileges,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.CreatePipelineNamespacePostHook: &BasePostFunction{
+		f:            CreatePipelineNamespacePostHook,
+		ErrorHandler: ErrorHandler{},
+	},
 	pkgCluster.InstallHelmPostHook: &BasePostFunction{
 		f:            InstallHelmPostHook,
 		ErrorHandler: ErrorHandler{},
@@ -96,6 +100,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.SetupPrivileges],
 	HookMap[pkgCluster.LabelNodes],
 	HookMap[pkgCluster.TaintHeadNodes],
+	HookMap[pkgCluster.CreatePipelineNamespacePostHook],
 	HookMap[pkgCluster.InstallHelmPostHook],
 	HookMap[pkgCluster.RegisterDomainPostHook],
 	HookMap[pkgCluster.InstallIngressControllerPostHook],

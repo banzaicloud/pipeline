@@ -20,8 +20,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// DroneDB returns an initialized DB instance for Drone.
-func DroneDB() (*gorm.DB, error) {
+// CICDDB returns an initialized DB instance for CICDDB.
+func CICDDB() (*gorm.DB, error) {
 	config := NewDBConfig()
 
 	config.Name = "drone"
@@ -33,7 +33,7 @@ func DroneDB() (*gorm.DB, error) {
 
 	db, err := database.Connect(config)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize drone db")
+		return nil, errors.Wrap(err, "failed to initialize CICD db")
 	}
 
 	return db, nil

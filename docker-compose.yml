@@ -63,38 +63,38 @@ services:
         volumes:
             - $HOME:/root
 
-    drone-server:
-        image: banzaicloud/drone:0.4.0
+    cicd-server:
+        image: banzaicloud/cicd:master
         restart: always
         depends_on:
             - db
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
-            - /bin/drone-server
+            - /bin/cicd-server
         environment:
-            DRONE_HOST:                 http://localhost:8000
-            DRONE_DEBUG:                "true"
-            DRONE_GITHUB:               "true"
-            DRONE_GITHUB_CLIENT:
-            DRONE_GITHUB_SECRET:
-            DRONE_OPEN:                 "true"
-            DRONE_ORGS:
-            DRONE_PROVIDER:             github
-            DRONE_DATABASE_DRIVER:      mysql
-            DRONE_DATABASE_DATASOURCE:  root:example@tcp(db:3306)/drone?parseTime=true
-            DRONE_SECRET: "s3cr3t"
-            DRONE_REPO_CONFIG: ".banzaicloud/pipeline.yaml"
+            CICD_HOST:                 http://localhost:8000
+            CICD_DEBUG:                "true"
+            CICD_GITHUB:               "true"
+            CICD_GITHUB_CLIENT:
+            CICD_GITHUB_SECRET:
+            CICD_OPEN:                 "true"
+            CICD_ORGS:
+            CICD_PROVIDER:             github
+            CICD_DATABASE_DRIVER:      mysql
+            CICD_DATABASE_DATASOURCE:  root:example@tcp(db:3306)/drone?parseTime=true
+            CICD_SECRET: "s3cr3t"
+            CICD_REPO_CONFIG: ".banzaicloud/pipeline.yaml"
 
-    drone-agent:
-        image: banzaicloud/drone:0.4.0
+    cicd-agent:
+        image: banzaicloud/cicd:master
         restart: always
         depends_on:
-            - drone-server
+            - cicd-server
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
-            - /bin/drone-agent
+            - /bin/cicd-agent
         environment:
-            DRONE_SERVER: drone-server:9000
-            DRONE_SECRET: "s3cr3t"
+            CICD_SERVER: cicd-server:9000
+            CICD_SECRET: "s3cr3t"

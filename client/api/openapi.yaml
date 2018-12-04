@@ -6195,13 +6195,14 @@ components:
         values:
           ingress:
             enabled: "true"
-        name: banzaicloud-stable/drone
+        name: banzaicloud-stable/cicd
         namespace: default
         reuseValues: true
         version: 0.1.0
+        timeout: 500
       properties:
         name:
-          example: banzaicloud-stable/drone
+          example: banzaicloud-stable/cicd
           type: string
         version:
           description: Version of the deployment. If not specified, the latest version is used.
@@ -6222,6 +6223,11 @@ components:
         wait:
           description: if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful
           type: boolean
+        timeout:
+          description: time in seconds to wait for any individual Kubernetes operation (default 300)
+          example: 500
+          format: int64
+          type: integer
         odPcts:
           description: 'Map of resources in the template where replicas should have
             a minimum on-demand percentage. Format: <kind.resourceName: min-percentage>'

@@ -835,18 +835,20 @@ func InstallAnchoreImageValidator(input interface{}) error {
 		return errors.Errorf("wrong parameter type: %T", cluster)
 	}
 
-	anchoreUser, err := anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
+	anchoreUserName := fmt.Sprintf("%v-anchore-user", cluster.GetUID())
+	anchoreUserSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), anchoreUserName)
 	if err != nil {
-		return emperror.Wrap(err, "setup anchore user failed")
+		return emperror.WrapWith(err, "failed to get anchore secret", "user", anchoreUserName)
 	}
+	anchorePassword := anchoreUserSecret.Values["password"]
 
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	values := map[string]interface{}{
 		"externalAnchore": map[string]string{
 			"anchoreHost": anchore.AnchoreEndpoint,
-			"anchoreUser": anchoreUser.UserId,
-			"anchorePass": anchoreUser.Password,
+			"anchoreUser": anchoreUserName,
+			"anchorePass": anchorePassword,
 		},
 		"affinity":    getHeadNodeAffinity(cluster),
 		"tolerations": getHeadNodeTolerations(),
@@ -861,6 +863,31 @@ func InstallAnchoreImageValidator(input interface{}) error {
 		return emperror.Wrap(err, "install anchore-policy-validator failed")
 	}
 	cluster.SetSecurityScan(true)
+	return nil
+}
+
+func CreatePipelineNamespacePostHook(input interface{}) error {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
+		return err
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		log.Errorf("Could not get kubernetes client: %s", err)
+		return err
+	}
+
+	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	err = k8sutil.EnsureNamespaceWithLabel(client, pipelineSystemNamespace, map[string]string{"scan": "noscan"})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

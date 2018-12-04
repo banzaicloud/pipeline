@@ -119,6 +119,7 @@ type CreateUpdateDeploymentRequest struct {
 	Namespace   string                 `json:"namespace,omitempty" yaml:"namespace,omitempty"`
 	DryRun      bool                   `json:"dryrun,omitempty" yaml:"dryrun,omitempty"`
 	Wait        bool                   `json:"wait,omitempty" yaml:"wait,omitempty"`
+	Timeout     int64                  `json:"timeout,omitempty" yaml:"timeout,omitempty"`
 	Values      map[string]interface{} `json:"values,omitempty" yaml:"values,omitempty"`
 	OdPcts      map[string]int         `json:"odpcts,omitempty" yaml:"odpcts,omitempty"`
 }

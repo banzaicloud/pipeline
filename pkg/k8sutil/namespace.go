@@ -24,9 +24,15 @@ import (
 
 // EnsureNamespace creates a namespace on a cluster if it does not exist.
 func EnsureNamespace(client kubernetes.Interface, namespace string) error {
+	return EnsureNamespaceWithLabel(client, namespace, nil)
+}
+
+// EnsureNamespaceWithLabel creates a namespace with optional labels
+func EnsureNamespaceWithLabel(client kubernetes.Interface, namespace string, labels map[string]string) error {
 	_, err := client.CoreV1().Namespaces().Create(&v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace,
+			Name:   namespace,
+			Labels: labels,
 		},
 	})
 

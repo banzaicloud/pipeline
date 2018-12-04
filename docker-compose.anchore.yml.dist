@@ -25,7 +25,7 @@ services:
     vault-token-helper:
         volumes:
             - ./.docker/volumes/vault/keys:/vault/keys
-    drone-server:
+    cicd-server:
         ports:
             - 8000:8000
             - 9000
