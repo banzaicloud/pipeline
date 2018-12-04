@@ -105,7 +105,7 @@ func GetSpotguideIcon(c *gin.Context) {
 
 	// Return the icon SVG data, and mark it as eligible for caching (for 24 hours)
 	c.Header("Cache-Control", "public, max-age=86400")
-	c.Data(http.StatusOK, "image/svg+xml", spotguideDetails[0].Icon)
+	c.Data(http.StatusOK, "image/svg+xml", spotguideDetails.Icon)
 }
 
 // SyncSpotguidesRateLimit 1 request per 2 minutes
