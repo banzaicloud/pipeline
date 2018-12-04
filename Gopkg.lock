@@ -2325,6 +2325,7 @@
     "k8s.io/kubernetes/pkg/api/v1/resource",
     "k8s.io/kubernetes/pkg/apis/core",
     "k8s.io/kubernetes/pkg/apis/storage/util",
+    "k8s.io/kubernetes/pkg/scheduler/cache",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

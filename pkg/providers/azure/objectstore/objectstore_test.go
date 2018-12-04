@@ -58,10 +58,7 @@ func getObjectStore(t *testing.T) *objectStore {
 		ClientSecret:   clientSecret,
 	}
 
-	ostore, err := New(config, creds)
-	if err != nil {
-		t.Fatal("could not create Azure object storage client: ", err.Error())
-	}
+	ostore := New(config, creds)
 
 	return ostore
 }
