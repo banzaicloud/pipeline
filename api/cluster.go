@@ -89,6 +89,7 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunctioner) {
 
 	log.Info("Get posthook function(s)")
+	var securityScanPosthook cluster.PostFunctioner
 
 	for postHookName, param := range postHooks {
 
@@ -103,10 +104,17 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 
 			log.Infof("posthook function: %s", function)
 			log.Infof("posthook params: %#v", param)
-			ph = append(ph, function)
+			if postHookName == "InstallAnchoreImageValidator" {
+				securityScanPosthook = function
+			} else {
+				ph = append(ph, function)
+			}
 		} else {
 			log.Warnf("there's no function with this name [%s]", postHookName)
 		}
+	}
+	if securityScanPosthook != nil {
+		ph = append(ph, securityScanPosthook)
 	}
 
 	log.Infof("Found posthooks: %v", ph)
