@@ -859,6 +859,31 @@ func InstallAnchoreImageValidator(input interface{}) error {
 	return nil
 }
 
+func CreatePipelineNamespacePostHook(input interface{}) error {
+	cluster, ok := input.(CommonCluster)
+	if !ok {
+		return errors.Errorf("Wrong parameter type: %T", cluster)
+	}
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
+		return err
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		log.Errorf("Could not get kubernetes client: %s", err)
+		return err
+	}
+
+	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	err = k8sutil.EnsureNamespaceWithLabel(client, pipelineSystemNamespace, map[string]string{"scan": "noscan"})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //InstallHelmPostHook this posthook installs the helm related things
 func InstallHelmPostHook(input interface{}) error {
 	cluster, ok := input.(CommonCluster)
