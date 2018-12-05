@@ -48,7 +48,7 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 		return
 	}
 
-	if createClusterRequest.SecretId == "" {
+	if createClusterRequest.SecretId == "" && len(createClusterRequest.SecretIds) == 0 {
 		if createClusterRequest.SecretName == "" {
 			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
@@ -126,7 +126,7 @@ func (a *ClusterAPI) CreateCluster(
 		logger.Infof("modified clusterRequest: %v", createClusterRequest)
 	}
 
-	logger.Info("Creating new entry with cloud type: ", createClusterRequest.Cloud)
+	logger.Infof("Creating new entry with cloud type: %s distribution: %s", createClusterRequest.Cloud, createClusterRequest.Distribution)
 
 	// TODO check validation
 	// This is the common part of cluster flow
@@ -145,6 +145,7 @@ func (a *ClusterAPI) CreateCluster(
 		UserID:         userID,
 		Name:           createClusterRequest.Name,
 		SecretID:       createClusterRequest.SecretId,
+		SecretIDs:      createClusterRequest.SecretIds,
 		Provider:       createClusterRequest.Cloud,
 		PostHooks:      postHooks,
 	}
