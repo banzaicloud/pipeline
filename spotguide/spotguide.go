@@ -126,7 +126,7 @@ func (r LaunchRequest) RepoFullname() string {
 	return r.RepoOrganization + "/" + r.RepoName
 }
 
-type ReleaseBodyYaml struct {
+type ReleaseBody struct {
 	Pipeline string `json:"pipeline" yaml:"pipeline"`
 }
 
@@ -183,12 +183,12 @@ func (s *Spotguide) isSpotguideReleaseAllowed(release *github.RepositoryRelease)
 	prerelease := version.Prerelease() != "" || *release.Prerelease
 
 	// try to parse release body as YAML
-	body := release.GetBody()
-	bodyYaml := ReleaseBodyYaml{}
-	err = yaml2.Unmarshal([]byte(body), &bodyYaml)
+	rawBody := release.GetBody()
+	body := ReleaseBody{}
+	err = yaml2.Unmarshal([]byte(rawBody), &body)
 	if s.pipelineVersion != nil && err == nil {
 		// check whether this release has support for this pipeline version
-		supportedConstraint, err := semver.NewConstraint(bodyYaml.Pipeline)
+		supportedConstraint, err := semver.NewConstraint(body.Pipeline)
 		if err == nil {
 			supported = supportedConstraint.Check(s.pipelineVersion)
 		}
