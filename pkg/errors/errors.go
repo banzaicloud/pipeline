@@ -18,9 +18,10 @@ import "errors"
 
 // ### [ Errors ] ### //
 var (
-	ErrorNotSupportedCloudType    = errors.New("Not supported cloud type")
-	ErrorAmazonImageFieldIsEmpty  = errors.New("Required field 'image' is empty ")
-	ErrorInstancetypeFieldIsEmpty = errors.New("Required field 'instanceType' is empty ")
+	ErrorNotSupportedCloudType        = errors.New("Not supported cloud type")
+	ErrorNotSupportedDistributionType = errors.New("Not supported distribution type")
+	ErrorAmazonImageFieldIsEmpty      = errors.New("Required field 'image' is empty ")
+	ErrorInstancetypeFieldIsEmpty     = errors.New("Required field 'instanceType' is empty ")
 
 	ErrorAmazonEksFieldIsEmpty         = errors.New("Required field 'eks' is empty.")
 	ErrorAmazonEksNodePoolFieldIsEmpty = errors.New("At least one 'nodePool' is required.")
