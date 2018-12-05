@@ -39,6 +39,30 @@ type EC2ClusterBanzaiCloudDistribution struct {
 	CommonClusterBase
 }
 
+func (c *EC2ClusterBanzaiCloudDistribution) GetSecurityScan() bool {
+	panic("implement me")
+}
+
+func (c *EC2ClusterBanzaiCloudDistribution) SetSecurityScan(scan bool) {
+	panic("implement me")
+}
+
+func (c *EC2ClusterBanzaiCloudDistribution) GetLogging() bool {
+	panic("implement me")
+}
+
+func (c *EC2ClusterBanzaiCloudDistribution) SetLogging(l bool) {
+	panic("implement me")
+}
+
+func (c *EC2ClusterBanzaiCloudDistribution) GetMonitoring() bool {
+	panic("implement me")
+}
+
+func (c *EC2ClusterBanzaiCloudDistribution) SetMonitoring(m bool) {
+	panic("implement me")
+}
+
 func (c *EC2ClusterBanzaiCloudDistribution) GetID() uint {
 	return c.model.Cluster.ID
 }
