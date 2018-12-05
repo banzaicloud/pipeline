@@ -102,10 +102,17 @@ func GetSpotguideIcon(c *gin.Context) {
 		})
 		return
 	}
-
+	body := spotguideDetails.Icon
+	if len(body) == 0 {
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "spotguide icon not found",
+		})
+		return
+	}
 	// Return the icon SVG data, and mark it as eligible for caching (for 24 hours)
 	c.Header("Cache-Control", "public, max-age=86400")
-	c.Data(http.StatusOK, "image/svg+xml", spotguideDetails[0].Icon)
+	c.Data(http.StatusOK, "image/svg+xml", body)
 }
 
 // SyncSpotguidesRateLimit 1 request per 2 minutes
