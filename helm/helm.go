@@ -242,10 +242,9 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 		var deployments []releaseWithDeployment
 
 		deploymentsRaw, ok := deploymentCache.Get(deploymentsKey)
-
 		if ok {
 			deployments = deploymentsRaw.([]releaseWithDeployment)
-		} else {
+		} else if resp != nil {
 			for _, release := range resp.Releases {
 				deployment, err := GetDeployment(release.Name, kubeConfig)
 				if err != nil {
