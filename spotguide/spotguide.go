@@ -56,31 +56,6 @@ const SpotguideRepoTableName = "spotguide_repos"
 var IgnoredPaths = []string{".circleci", ".github"}
 
 var ctx = context.Background()
-var githubToken string
-
-func init() {
-	// Subscribe to organization creations and sync spotguides into the newly created organizations
-	// TODO move this to a global place and more visible
-	authEventEmitter.NotifyOrganizationRegistered(internalScrapeSpotguides)
-	githubToken = viper.GetString("github.token")
-}
-
-// TODO (andras): don't use global variables, refactor into a struct
-var spotguideOrganization *auth.Organization
-
-func getSharedSpotguideOrganization() (*auth.Organization, error) {
-	if spotguideOrganization != nil {
-		return spotguideOrganization, nil
-	}
-
-	var err error
-	spotguideOrganization, err = auth.GetOrganizationByName(SpotguideGithubOrganization)
-	if err != nil {
-		return nil, emperror.Wrapf(err, "shared spotguide organization (%s) is not found", SpotguideGithubOrganization)
-	}
-
-	return spotguideOrganization, nil
-}
 
 type SpotguideYAML struct {
 	Name        string                    `json:"name"`
@@ -151,46 +126,93 @@ func (r LaunchRequest) RepoFullname() string {
 	return r.RepoOrganization + "/" + r.RepoName
 }
 
-func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag string) ([]byte, error) {
-	reader, err := githubClient.Repositories.DownloadContents(ctx, owner, repo, file, &github.RepositoryContentGetOptions{
-		Ref: tag,
-	})
+type ReleaseBodyYaml struct {
+	Pipeline string `json:"pipeline" yaml:"pipeline"`
+}
+
+type Spotguide struct {
+	pipelineVersion       *semver.Version
+	githubToken           string
+	spotguideOrganization *auth.Organization
+}
+
+func NewSpotguide(pipelineVersionString string) *Spotguide {
+	githubToken := viper.GetString("github.token")
+
+	spotguideOrganization, err := auth.GetOrganizationByName(SpotguideGithubOrganization)
 	if err != nil {
-		return nil, err
+		log.Errorf("shared spotguide organization (%s) is not found", SpotguideGithubOrganization)
 	}
 
-	defer reader.Close()
+	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
 
-	return ioutil.ReadAll(reader)
-}
-
-func internalScrapeSpotguides(orgID uint, userID uint) {
-	if err := ScrapeSpotguides(orgID, userID); err != nil {
-		log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
+	s := &Spotguide{
+		pipelineVersion:       pipelineVersion,
+		spotguideOrganization: spotguideOrganization,
+		githubToken:           githubToken,
 	}
+
+	// subscribe to organization creations and sync spotguides into the newly created organizations
+	authEventEmitter.NotifyOrganizationRegistered(s.internalScrapeSpotguides)
+
+	// periodically sync shared spotguides
+	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
+	go func() {
+		if err := s.ScrapeSharedSpotguides(); err != nil {
+			log.Errorln("failed to sync shared spotguides", err)
+		}
+
+		for range syncTicker.C {
+			if err := s.ScrapeSharedSpotguides(); err != nil {
+				log.Errorln("failed to sync shared spotguides", err)
+			}
+		}
+	}()
+
+	return s
 }
 
-func isSpotguideReleaseAllowed(release *github.RepositoryRelease) bool {
+func (s *Spotguide) isSpotguideReleaseAllowed(release *github.RepositoryRelease) bool {
 	version, err := semver.NewVersion(release.GetTagName())
 	if err != nil {
 		log.Warn("failed to parse spotguide release tag: ", err)
 		return false
 	}
 
-	return (version.Prerelease() == "" && !*release.Prerelease) || viper.GetBool(config.SpotguideAllowPrereleases)
-}
+	supported := true
+	prerelease := version.Prerelease() != "" || *release.Prerelease
 
-func ScrapeSharedSpotguides() error {
-	org, err := getSharedSpotguideOrganization()
-	if err != nil {
-		return emperror.Wrap(err, "failed to scrape shared spotguides")
+	// try to parse release body as YAML
+	body := release.GetBody()
+	bodyYaml := ReleaseBodyYaml{}
+	err = yaml2.Unmarshal([]byte(body), &bodyYaml)
+	if s.pipelineVersion != nil && err == nil {
+		// check whether this release has support for this pipeline version
+		supportedConstraint, err := semver.NewConstraint(bodyYaml.Pipeline)
+		if err == nil {
+			supported = supportedConstraint.Check(s.pipelineVersion)
+		}
 	}
 
-	githubClient := auth.NewGithubClient(githubToken)
-	return scrapeSpotguides(org, githubClient)
+	return supported && (!prerelease || viper.GetBool(config.SpotguideAllowPrereleases))
 }
 
-func ScrapeSpotguides(orgID uint, userID uint) error {
+func (s *Spotguide) internalScrapeSpotguides(orgID uint, userID uint) {
+	if err := s.ScrapeSpotguides(orgID, userID); err != nil {
+		log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
+	}
+}
+
+func (s *Spotguide) ScrapeSharedSpotguides() error {
+	if s.spotguideOrganization == nil {
+		return errors.New("failed to scrape shared spotguides")
+	}
+
+	githubClient := auth.NewGithubClient(s.githubToken)
+	return s.scrapeSpotguides(s.spotguideOrganization, githubClient)
+}
+
+func (s *Spotguide) ScrapeSpotguides(orgID uint, userID uint) error {
 	githubClient, err := auth.NewGithubClientForUser(userID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create GitHub client")
@@ -201,10 +223,10 @@ func ScrapeSpotguides(orgID uint, userID uint) error {
 		return emperror.Wrap(err, "failed to resolve organization from id")
 	}
 
-	return scrapeSpotguides(org, githubClient)
+	return s.scrapeSpotguides(org, githubClient)
 }
 
-func scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error {
+func (s *Spotguide) scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error {
 	db := config.DB()
 
 	var allRepositories []github.Repository
@@ -255,7 +277,7 @@ func scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error
 
 		for _, release := range releases {
 
-			if !isSpotguideReleaseAllowed(release) {
+			if !s.isSpotguideReleaseAllowed(release) {
 				continue
 			}
 
@@ -317,22 +339,22 @@ func scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error
 	return nil
 }
 
-func GetSpotguides(orgID uint) (spotguides []*SpotguideRepo, err error) {
+func (s *Spotguide) GetSpotguides(orgID uint) (spotguides []*SpotguideRepo, err error) {
 	db := config.DB()
 	query := db.Where(SpotguideRepo{OrganizationID: orgID})
-	if spotguideOrganization != nil {
-		query = query.Or(SpotguideRepo{OrganizationID: spotguideOrganization.ID})
+	if s.spotguideOrganization != nil {
+		query = query.Or(SpotguideRepo{OrganizationID: s.spotguideOrganization.ID})
 	}
 
 	err = query.Find(&spotguides).Error
 	return spotguides, err
 }
 
-func GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
+func (s *Spotguide) GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
 	db := config.DB()
 	query := db.Where(SpotguideRepo{OrganizationID: orgID, Name: name, Version: version})
-	if spotguideOrganization != nil {
-		query = query.Or(SpotguideRepo{OrganizationID: spotguideOrganization.ID, Name: name, Version: version})
+	if s.spotguideOrganization != nil {
+		query = query.Or(SpotguideRepo{OrganizationID: s.spotguideOrganization.ID, Name: name, Version: version})
 	}
 
 	spotguide := SpotguideRepo{}
@@ -343,8 +365,8 @@ func GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
 	return &spotguide, nil
 }
 
-func LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
-	sourceRepo, err := GetSpotguide(orgID, request.SpotguideName, request.SpotguideVersion)
+func (s *Spotguide) LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
+	sourceRepo, err := s.GetSpotguide(orgID, request.SpotguideName, request.SpotguideVersion)
 	if err != nil {
 		return errors.Wrap(err, "failed to find spotguide repo")
 	}
@@ -727,7 +749,6 @@ func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) e
 }
 
 func cicdRepoConfigSecrets(request *LaunchRequest, repoConfig *cicdRepoConfig) error {
-
 	if len(request.Secrets) == 0 {
 		return nil
 	}
@@ -746,14 +767,11 @@ func cicdRepoConfigSecrets(request *LaunchRequest, repoConfig *cicdRepoConfig) e
 }
 
 func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) error {
-
 	for i, step := range repoConfig.Pipeline {
-
 		stepName := step.Key.(string)
 
 		// Find 'stepName' step and transform it if there are any incoming Values
 		if stepToMergeIn, ok := request.Pipeline[stepName]; ok {
-
 			pipelineStep, err := yamlMapSliceToMap(step.Value)
 			if err != nil {
 				return err
@@ -774,6 +792,19 @@ func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) 
 	}
 
 	return nil
+}
+
+func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag string) ([]byte, error) {
+	reader, err := githubClient.Repositories.DownloadContents(ctx, owner, repo, file, &github.RepositoryContentGetOptions{
+		Ref: tag,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	defer reader.Close()
+
+	return ioutil.ReadAll(reader)
 }
 
 func isIgnoredPath(path string) bool {
