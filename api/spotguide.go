@@ -23,18 +23,26 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
+type SpotguideAPI struct {
+	logger       logrus.FieldLogger
+	errorHandler emperror.Handler
+	spotguide    *spotguide.SpotguideManager
+}
+
 // GetSpotguide get detailed information about a spotguide
-func GetSpotguide(c *gin.Context) {
+func (s *SpotguideAPI) GetSpotguide(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 
 	spotguideName := path.Join(c.Param("owner"), c.Param("name"))
 	spotguideVersion := c.Query("version")
-	spotguideDetails, err := spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
+	spotguideDetails, err := s.spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
@@ -59,12 +67,12 @@ func GetSpotguide(c *gin.Context) {
 }
 
 // GetSpotguides lists all available spotguides
-func GetSpotguides(c *gin.Context) {
+func (s *SpotguideAPI) GetSpotguides(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 
-	spotguides, err := spotguide.GetSpotguides(orgID)
+	spotguides, err := s.spotguide.GetSpotguides(orgID)
 	if err != nil {
 		log.Errorln("error listing spotguides:", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
@@ -79,14 +87,14 @@ func GetSpotguides(c *gin.Context) {
 
 // GetSpotguideIcon returns the icon for the last version of the spotguide
 // if not specified otherwise (e.g.: ?version=1.2.3).
-func GetSpotguideIcon(c *gin.Context) {
+func (s *SpotguideAPI) GetSpotguideIcon(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 
 	spotguideName := path.Join(c.Param("owner"), c.Param("name"))
 	spotguideVersion := c.Query("version")
-	spotguideDetails, err := spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
+	spotguideDetails, err := s.spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
@@ -112,13 +120,13 @@ func GetSpotguideIcon(c *gin.Context) {
 const SyncSpotguidesRateLimit = 1.0 / 60 / 2
 
 // SyncSpotguides synchronizes the spotguide repositories from Github to database
-func SyncSpotguides(c *gin.Context) {
+func (s *SpotguideAPI) SyncSpotguides(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	userID := auth.GetCurrentUser(c.Request).ID
 
-	err := spotguide.ScrapeSpotguides(orgID, userID)
+	err := s.spotguide.ScrapeSpotguides(orgID, userID)
 	if err != nil {
 		log.Errorln("failed synchronizing spotguides:", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
@@ -132,7 +140,7 @@ func SyncSpotguides(c *gin.Context) {
 }
 
 // LaunchSpotguide creates a spotguide workflow, all secrets, repositories.
-func LaunchSpotguide(c *gin.Context) {
+func (s *SpotguideAPI) LaunchSpotguide(c *gin.Context) {
 	log := correlationid.Logger(log, c)
 
 	var launchRequest spotguide.LaunchRequest
@@ -148,7 +156,7 @@ func LaunchSpotguide(c *gin.Context) {
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	userID := auth.GetCurrentUser(c.Request).ID
 
-	err := spotguide.LaunchSpotguide(&launchRequest, c.Request, orgID, userID)
+	err := s.spotguide.LaunchSpotguide(&launchRequest, c.Request, orgID, userID)
 	if err != nil {
 		log.Errorf("failed to Launch spotguide %s: %s", launchRequest.RepoFullname(), err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
@@ -160,4 +168,12 @@ func LaunchSpotguide(c *gin.Context) {
 	}
 
 	c.Status(http.StatusAccepted)
+}
+
+func NewSpotguideAPI(logger logrus.FieldLogger, errorHandler emperror.Handler, pipelineVersionString string) *SpotguideAPI {
+	return &SpotguideAPI{
+		logger:       logger,
+		errorHandler: errorHandler,
+		spotguide:    spotguide.NewSpotguideManager(pipelineVersionString),
+	}
 }
