@@ -360,18 +360,19 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 		return nil, errors.Wrap(err, "failed to find source spotguide repository release")
 	}
 
-	resp, err := http.Get(sourceRelease.GetZipballURL())
+	// Support private repositories via downloading with an authenticated client
+	downloadRequest, err := http.NewRequest(http.MethodGet, sourceRelease.GetZipballURL(), nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create source spotguide repository release download request")
+	}
+
+	repoBytes := bytes.NewBuffer(nil)
+	_, err = githubClient.Do(ctx, downloadRequest, repoBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to download source spotguide repository release")
 	}
 
-	defer resp.Body.Close()
-	repoBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to download source spotguide repository release")
-	}
-
-	zipReader, err := zip.NewReader(bytes.NewReader(repoBytes), int64(len(repoBytes)))
+	zipReader, err := zip.NewReader(bytes.NewReader(repoBytes.Bytes()), int64(repoBytes.Len()))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
 	}
