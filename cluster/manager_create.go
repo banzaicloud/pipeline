@@ -19,6 +19,7 @@ import (
 	stderrors "errors"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -32,6 +33,7 @@ type CreationContext struct {
 	Name           string
 	Provider       string
 	SecretID       string
+	SecretIDs      []string
 	PostHooks      []PostFunctioner
 }
 
@@ -62,9 +64,23 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 	}
 
 	logger.Info("validating secret")
-	err := m.secrets.ValidateSecretType(creationCtx.OrganizationID, creationCtx.SecretID, creationCtx.Provider)
-	if err != nil {
-		return nil, err
+	if len(creationCtx.SecretIDs) > 0 {
+		var err error
+		for _, secretID := range creationCtx.SecretIDs {
+			err = m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, creationCtx.Provider)
+			if err == nil {
+				creationCtx.SecretID = secretID
+				break
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := m.secrets.ValidateSecretType(creationCtx.OrganizationID, creationCtx.SecretID, creationCtx.Provider)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	logger.Info("validating creation context")
@@ -79,6 +95,21 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 	cluster, err := creator.Prepare(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	switch c := cluster.(type) {
+	case *EC2ClusterBanzaiCloudDistribution:
+		for _, secretID := range creationCtx.SecretIDs {
+			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, pkgCluster.Amazon) == nil {
+				c.model.Cluster.SecretID = secretID
+			}
+			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, secretTypes.SSHSecretType) == nil {
+				c.model.Cluster.SSHSecretID = secretID
+			}
+			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, pkgCluster.Kubernetes) == nil {
+				c.model.Cluster.ConfigSecretID = secretID
+			}
+		}
 	}
 
 	m.clusterTotalMetric.WithLabelValues(cluster.GetCloud(), cluster.GetLocation()).Inc()

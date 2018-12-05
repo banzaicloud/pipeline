@@ -21,6 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/banzaicloud/pipeline/pkg/cluster/banzaicloud"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
@@ -59,12 +60,13 @@ const (
 
 // Distribution constants
 const (
-	ACSK    = "acsk"
-	EKS     = "eks"
-	AKS     = "aks"
-	GKE     = "gke"
-	OKE     = "oke"
-	Unknown = "unknown"
+	ACSK        = "acsk"
+	EKS         = "eks"
+	AKS         = "aks"
+	GKE         = "gke"
+	OKE         = "oke"
+	BanzaiCloud = "banzaicloud"
+	Unknown     = "unknown"
 )
 
 // constants for posthooks
@@ -105,25 +107,28 @@ const (
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
-	Name        string                   `json:"name" yaml:"name" binding:"required"`
-	Location    string                   `json:"location" yaml:"location"`
-	Cloud       string                   `json:"cloud" yaml:"cloud" binding:"required"`
-	SecretId    string                   `json:"secretId" yaml:"secretId"`
-	SecretName  string                   `json:"secretName" yaml:"secretName"`
-	ProfileName string                   `json:"profileName" yaml:"profileName"`
-	PostHooks   PostHooks                `json:"postHooks" yaml:"postHooks"`
-	Properties  *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
+	Name         string                   `json:"name" yaml:"name" binding:"required"`
+	Location     string                   `json:"location" yaml:"location"`
+	Cloud        string                   `json:"cloud" yaml:"cloud" binding:"required"`
+	Distribution string                   `json:"distribution" yaml:"cloud"`
+	SecretId     string                   `json:"secretId" yaml:"secretId"`
+	SecretIds    []string                 `json:"secretIds" yaml:"secretId"`
+	SecretName   string                   `json:"secretName" yaml:"secretName"`
+	ProfileName  string                   `json:"profileName" yaml:"profileName"`
+	PostHooks    PostHooks                `json:"postHooks" yaml:"postHooks"`
+	Properties   *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
 }
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	CreateClusterACSK       *acsk.CreateClusterACSK             `json:"acsk,omitempty" yaml:"acsk,omitempty"`
-	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
-	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
-	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
-	CreateClusterDummy      *dummy.CreateClusterDummy           `json:"dummy,omitempty" yaml:"dummy,omitempty"`
-	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
-	CreateClusterOKE        *oke.Cluster                        `json:"oke,omitempty" yaml:"oke,omitempty"`
+	CreateClusterACSK        *acsk.CreateClusterACSK               `json:"acsk,omitempty" yaml:"acsk,omitempty"`
+	CreateClusterEKS         *eks.CreateClusterEKS                 `json:"eks,omitempty" yaml:"eks,omitempty"`
+	CreateClusterAKS         *aks.CreateClusterAKS                 `json:"aks,omitempty" yaml:"aks,omitempty"`
+	CreateClusterGKE         *gke.CreateClusterGKE                 `json:"gke,omitempty" yaml:"gke,omitempty"`
+	CreateClusterDummy       *dummy.CreateClusterDummy             `json:"dummy,omitempty" yaml:"dummy,omitempty"`
+	CreateClusterKubernetes  *kubernetes.CreateClusterKubernetes   `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
+	CreateClusterOKE         *oke.Cluster                          `json:"oke,omitempty" yaml:"oke,omitempty"`
+	CreateClusterBanzaiCloud *banzaicloud.CreateClusterBanzaiCloud `json:"clusterTopology,omitempty" yaml:"clusterTopology,omitempty"`
 }
 
 // PostHookParam describes posthook params in create request
@@ -276,6 +281,9 @@ func (r *UpdateClusterRequest) String() string { // todo expand
 
 // AddDefaults puts default values to optional field(s)
 func (r *CreateClusterRequest) AddDefaults() error {
+	if r.Distribution != "" {
+		return nil
+	}
 	switch r.Cloud {
 	case Amazon:
 		return r.Properties.CreateClusterEKS.AddDefaults(r.Location)
@@ -291,6 +299,17 @@ func (r *CreateClusterRequest) Validate() error {
 
 	if err := r.validateMainFields(); err != nil {
 		return err
+	}
+
+	if r.Distribution != "" {
+		switch r.Cloud {
+		case Amazon:
+			// TODO(Ecsy): validation
+			return nil
+		default:
+			// not supported cloud type
+			return pkgErrors.ErrorNotSupportedCloudType
+		}
 	}
 
 	switch r.Cloud {
@@ -560,7 +579,7 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 		Properties:  &CreateClusterProperties{},
 	}
 
-	switch p.Cloud { // todo distribution???
+	switch p.Cloud { // TODO(Ecsy): distribution???
 	case Alibaba:
 		response.Properties.CreateClusterACSK = &acsk.CreateClusterACSK{
 			RegionID:  p.Properties.ACSK.RegionID,
