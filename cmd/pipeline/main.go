@@ -36,6 +36,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
+	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
@@ -400,6 +401,7 @@ func main() {
 	}
 
 	if viper.GetBool(config.ARKSyncEnabled) {
+		arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logger)
 		go arkSync.RunSyncServices(
 			context.Background(),
 			config.DB(),
