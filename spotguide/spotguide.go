@@ -170,6 +170,9 @@ func ScrapeSpotguides(orgID uint, userID uint) error {
 	}
 	var allRepositories []github.Repository
 	query := fmt.Sprintf("org:%s topic:%s", SpotguideGithubOrganization, SpotguideGithubTopic)
+	if !viper.GetBool(config.SpotguideAllowPrivateRepos) {
+		query += " is:public"
+	}
 	listOpts := github.ListOptions{PerPage: 100}
 	for {
 		reposRes, resp, err := githubClient.Search.Repositories(ctx, query, &github.SearchOptions{

@@ -150,6 +150,7 @@ backupSyncInterval = "20s"
 
 [spotguide]
 allowPrereleases = false
+allowPrivateRepos = false
 
 [metrics]
 enabled = false
