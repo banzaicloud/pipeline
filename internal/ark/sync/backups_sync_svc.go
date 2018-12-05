@@ -17,6 +17,7 @@ package sync
 import (
 	"context"
 
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // BackupsSyncService is for syncing backups between Pipeline DB and ARK for an Org
@@ -70,8 +72,19 @@ func (s *BackupsSyncService) SyncBackups(clusterManager *cluster.Manager) error 
 	// iterate through clusters and sync backups for each of them
 	for _, cluster := range clusters {
 		log := s.logger.WithField("clusterID", cluster.GetID())
+
+		status, err := cluster.GetStatus()
+		if err != nil {
+			log.Error(emperror.Wrap(err, "could not get cluster status"))
+			continue
+		}
+
+		if status.Status != pkgCluster.Running && status.Status != pkgCluster.Warning {
+			continue
+		}
+
 		log.Debug("syncing backups for cluster")
-		err := s.SyncBackupsForCluster(cluster)
+		err = s.SyncBackupsForCluster(cluster)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			log.Error(err)
 		}
