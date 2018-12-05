@@ -221,6 +221,12 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	db := config.DB()
 
 	cloudType := modelCluster.Cloud
+	distribution := modelCluster.Distribution
+
+	if distribution != "" {
+		return createCommonClusterWithDistributionFromModel(modelCluster)
+	}
+
 	switch cloudType {
 	case pkgCluster.Alibaba:
 		//Create Alibaba struct
@@ -333,6 +339,10 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		return nil, err
 	}
 
+	if createClusterRequest.Distribution != "" {
+		return createCommonClusterWithDistributionFromRequest(createClusterRequest, orgId, userId)
+	}
+
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case pkgCluster.Alibaba:
@@ -395,6 +405,37 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	}
 
 	return nil, pkgErrors.ErrorNotSupportedCloudType
+}
+
+//createCommonClusterWithDistributionFromRequest creates a CommonCluster from a request
+func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId, userId uint) (*EC2ClusterBanzaiCloudDistribution, error) {
+	// Whitelist supported distribution.
+	if createClusterRequest.Distribution != pkgCluster.BanzaiCloud {
+		return nil, pkgErrors.ErrorNotSupportedDistributionType
+	}
+
+	switch createClusterRequest.Cloud {
+	case pkgCluster.Amazon:
+		return CreateEC2ClusterBanzaiCloudDistributionFromRequest(createClusterRequest, orgId, userId)
+
+	default:
+		return nil, pkgErrors.ErrorNotSupportedCloudType
+	}
+}
+
+func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterModel) (*EC2ClusterBanzaiCloudDistribution, error) {
+	if modelCluster.Distribution != pkgCluster.BanzaiCloud {
+		return nil, pkgErrors.ErrorNotSupportedDistributionType
+	}
+
+	switch modelCluster.Cloud {
+	case pkgCluster.Amazon:
+		return CreateEC2ClusterBanzaiCloudDistributionFromModel(modelCluster)
+
+	default:
+		return nil, pkgErrors.ErrorNotSupportedCloudType
+	}
+	return nil, nil
 }
 
 // CleanStateStore deletes state store folder by cluster name
