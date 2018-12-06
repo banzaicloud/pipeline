@@ -29,12 +29,7 @@ import (
 )
 
 // InstallMonitoring installs monitoring tools (Prometheus, Grafana) to a cluster.
-func InstallMonitoring(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("wrong parameter type: %T", cluster)
-	}
-
+func InstallMonitoring(cluster CommonCluster) error {
 	monitoringNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	clusterNameSecretTag := fmt.Sprintf("cluster:%s", cluster.GetName())
