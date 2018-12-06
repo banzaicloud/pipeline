@@ -8826,7 +8826,7 @@ components:
     CreateGKEProperties_gke_master:
       properties:
         version:
-          example: 1.8.7-gke.1
+          example: "1.10"
           type: string
       type: object
     CreateGKEProperties_gke:
@@ -8836,7 +8836,14 @@ components:
         master:
           $ref: '#/components/schemas/CreateGKEProperties_gke_master'
         nodeVersion:
-          example: 1.8.7-gke.1
+          example: "1.10"
+          type: string
+        vpc:
+          description: Name of the GCP Network (VPC) to deploy the cluster to. If omitted than the "default" VPC is used.
+          example: corp-vpc
+          type: string
+        subnet:
+          description: Name of the GCP Subnet to deploy the cluster to. If "default" VPC is used this field can be omitted. The subnet must be in the same region as the location of the cluster.
           type: string
         nodePools:
           additionalProperties:
@@ -9494,10 +9501,16 @@ components:
             $ref: '#/components/schemas/NodePoolsAzure'
           type: object
       type: object
+    ClusterProfileGKE_gke_master:
+      properties:
+        version:
+          example: 1.8.7-gke.1
+          type: string
+      type: object
     ClusterProfileGKE_gke:
       properties:
         master:
-          $ref: '#/components/schemas/CreateGKEProperties_gke_master'
+          $ref: '#/components/schemas/ClusterProfileGKE_gke_master'
         nodeVersion:
           example: 1.8.7-gke.1
           type: string

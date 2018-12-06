@@ -103,6 +103,8 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		NodeVersion:   request.Properties.CreateClusterGKE.NodeVersion,
 		NodePools:     nodePools,
 		ProjectId:     request.Properties.CreateClusterGKE.ProjectId,
+		Vpc:           request.Properties.CreateClusterGKE.Vpc,
+		Subnet:        request.Properties.CreateClusterGKE.Subnet,
 	}
 
 	return &c, nil
@@ -232,6 +234,8 @@ func (c *GKECluster) CreateCluster() error {
 		Name:          c.model.Cluster.Name,
 		MasterVersion: c.model.MasterVersion,
 		LegacyAbac:    false,
+		Network:       c.model.Vpc,
+		SubNetwork:    c.model.Subnet,
 		NodePools:     nodePools,
 	}
 

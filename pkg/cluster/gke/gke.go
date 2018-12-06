@@ -32,6 +32,8 @@ type CreateClusterGKE struct {
 	NodeVersion string               `json:"nodeVersion,omitempty" yaml:"nodeVersion,omitempty"`
 	NodePools   map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 	Master      *Master              `json:"master,omitempty" yaml:"master,omitempty"`
+	Vpc         string               `json:"vpc,omitempty" yaml:"vpc,omitempty"`
+	Subnet      string               `json:"subnet,omitempty" yaml:"subnet,omitempty"`
 	ProjectId   string               `json:"projectId" yaml:"projectId"`
 }
 
@@ -86,6 +88,10 @@ func (g *CreateClusterGKE) Validate() error {
 
 	if g.Master.Version != g.NodeVersion {
 		return pkgErrors.ErrorDifferentKubernetesVersion
+	}
+
+	if len(g.Vpc) > 0 && g.Vpc != "default" && len(g.Subnet) == 0 {
+		return pkgErrors.ErrorGkeSubnetRequiredFieldIsEmpty
 	}
 
 	for _, nodePool := range g.NodePools {
