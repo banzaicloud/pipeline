@@ -71,8 +71,7 @@ func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) (err error)
 			}
 
 			statusMsg := fmt.Sprintf("Posthook function finished: %s", postHook)
-			err = cluster.UpdateStatus(pkgCluster.Creating, statusMsg)
-			if err != nil {
+			if err := cluster.UpdateStatus(pkgCluster.Creating, statusMsg); err != nil {
 				log.Errorf("Error during posthook status update in db [%s]: %s", postHook, err.Error())
 				return
 			}
@@ -150,12 +149,8 @@ type imageValues struct {
 }
 
 // InstallLogging to install logging deployment
-func InstallLogging(input interface{}, param pkgCluster.PostHookParam) error {
+func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 	var releaseTag = fmt.Sprintf("release:%s", pipConfig.LoggingReleaseName)
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
 
 	var loggingParam pkgCluster.LoggingParam
 	err := castToPostHookParam(&param, &loggingParam)
@@ -490,11 +485,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 }
 
 //InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
-func InstallKubernetesDashboardPostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
+func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 	k8sDashboardNameSpace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	k8sDashboardReleaseName := "dashboard"
@@ -639,11 +630,7 @@ func setAdminRights(client *kubernetes.Clientset, userName string) (err error) {
 }
 
 //InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
-func InstallClusterAutoscalerPostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
+func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
 	return DeployClusterAutoscaler(cluster)
 }
 
@@ -674,11 +661,7 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 }
 
 //InstallHorizontalPodAutoscalerPostHook
-func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
+func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	values := map[string]interface{}{
@@ -712,12 +695,7 @@ func InstallHorizontalPodAutoscalerPostHook(input interface{}) error {
 }
 
 //InstallPVCOperatorPostHook installs the PVC operator
-func InstallPVCOperatorPostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("wrong parameter type: %T", cluster)
-	}
-
+func InstallPVCOperatorPostHook(cluster CommonCluster) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	values := map[string]interface{}{
@@ -733,16 +711,11 @@ func InstallPVCOperatorPostHook(input interface{}) error {
 }
 
 //InstallAnchoreImageValidator installs Anchore image validator
-func InstallAnchoreImageValidator(input interface{}, param pkgCluster.PostHookParam) error {
+func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 
 	if !anchore.AnchoreEnabled {
 		log.Infof("Anchore integration is not enabled.")
 		return nil
-	}
-
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("wrong parameter type: %T", cluster)
 	}
 
 	var anchoreParam pkgCluster.AnchoreParam
@@ -836,11 +809,7 @@ func installAllowAllWhitelist(cluster CommonCluster) error {
 	return nil
 }
 
-func CreatePipelineNamespacePostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
+func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
@@ -862,12 +831,7 @@ func CreatePipelineNamespacePostHook(input interface{}) error {
 }
 
 //InstallHelmPostHook this posthook installs the helm related things
-func InstallHelmPostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
-
+func InstallHelmPostHook(cluster CommonCluster) error {
 	helmInstall := &pkgHelm.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
@@ -905,13 +869,7 @@ func InstallHelmPostHook(input interface{}) error {
 }
 
 // StoreKubeConfig saves kubeconfig into vault
-func StoreKubeConfig(input interface{}) error {
-
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
-
+func StoreKubeConfig(cluster CommonCluster) error {
 	config, err := PollingKubernetesConfig(cluster)
 	if err != nil {
 		log.Errorf("Error downloading kubeconfig: %s", err.Error())
@@ -922,12 +880,7 @@ func StoreKubeConfig(input interface{}) error {
 }
 
 // SetupPrivileges setups privileges
-func SetupPrivileges(input interface{}) error {
-
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
+func SetupPrivileges(cluster CommonCluster) error {
 
 	// set admin rights (if needed)
 	if cluster.NeedAdminRights() {
@@ -958,11 +911,7 @@ func SetupPrivileges(input interface{}) error {
 
 // RegisterDomainPostHook registers a subdomain using the name of the current organization
 // in external Dns service. It ensures that only one domain is registered per organization.
-func RegisterDomainPostHook(input interface{}) error {
-	commonCluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", commonCluster)
-	}
+func RegisterDomainPostHook(commonCluster CommonCluster) error {
 
 	domainBase := viper.GetString(pipConfig.DNSBaseDomain)
 	route53SecretNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
@@ -1043,14 +992,7 @@ func RegisterDomainPostHook(input interface{}) error {
 }
 
 // LabelNodes adds labels for all nodes
-func LabelNodes(input interface{}) error {
-
-	log.Info("start adding labels to nodes")
-
-	commonCluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", commonCluster)
-	}
+func LabelNodes(commonCluster CommonCluster) error {
 
 	switch commonCluster.GetDistribution() {
 	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE:
@@ -1109,17 +1051,12 @@ func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[s
 }
 
 // TaintHeadNodes add taints to the given node in nodepool
-func TaintHeadNodes(input interface{}) error {
+func TaintHeadNodes(commonCluster CommonCluster) error {
 
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 	if len(headNodePoolName) == 0 {
 		log.Infof("headNodePoolName not specified")
 		return nil
-	}
-
-	commonCluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", commonCluster)
 	}
 
 	if !commonCluster.NodePoolExists(headNodePoolName) {
@@ -1230,11 +1167,7 @@ func taintNodes(commonCluster CommonCluster, client *kubernetes.Clientset, nodeP
 }
 
 // RestoreFromBackup restores an ARK backup
-func RestoreFromBackup(input interface{}, param pkgCluster.PostHookParam) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
+func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 
 	var params arkAPI.RestoreFromBackupParams
 	err := castToPostHookParam(&param, &params)
@@ -1246,12 +1179,7 @@ func RestoreFromBackup(input interface{}, param pkgCluster.PostHookParam) error 
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
-func InitSpotConfig(input interface{}) error {
-
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
+func InitSpotConfig(cluster CommonCluster) error {
 
 	spot, err := isSpotCluster(cluster)
 	if err != nil {

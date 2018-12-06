@@ -55,12 +55,7 @@ type sslTraefikValues struct {
 const DefaultCertSecretName = "default-ingress-cert"
 
 // InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
-func InstallIngressControllerPostHook(input interface{}) error {
-	cluster, ok := input.(CommonCluster)
-	if !ok {
-		return errors.Errorf("Wrong parameter type: %T", cluster)
-	}
-
+func InstallIngressControllerPostHook(cluster CommonCluster) error {
 	defaultCertSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), DefaultCertSecretName)
 	if err == secret.ErrSecretNotExists {
 		certGenerator := global.GetCertGenerator()

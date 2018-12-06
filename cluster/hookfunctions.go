@@ -127,13 +127,13 @@ func (*ErrorHandler) Error(c CommonCluster, err error) {
 
 // BasePostFunction describe a default posthook function
 type BasePostFunction struct {
-	f func(interface{}) error
+	f func(CommonCluster) error
 	ErrorHandler
 }
 
 // PostFunctionWithParam describes a posthook function with params
 type PostFunctionWithParam struct {
-	f      func(interface{}, pkgCluster.PostHookParam) error
+	f      func(CommonCluster, pkgCluster.PostHookParam) error
 	params pkgCluster.PostHookParam
 	ErrorHandler
 }
