@@ -68,6 +68,5 @@ var _ sql.Scanner = (*NetworkProvider)(nil)
 // Scan implements the sql.Scanner interface
 func (n *NetworkProvider) Scan(src interface{}) error {
 	*n = NetworkProvider(string(src.([]uint8)))
-
 	return nil
 }

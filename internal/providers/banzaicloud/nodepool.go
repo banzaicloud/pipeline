@@ -19,21 +19,23 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type NodePools []NodePool
 
 type NodePool struct {
-	Model
+	ID        uint `gorm:"primary_key"`
+	CreatedAt time.Time
+	CreatedBy uint
 
-	Name             string                 `yaml:"name" gorm:"unique_index:idx_cluster_id_name"`
-	Roles            Roles                  `yaml:"roles" gorm:"-"`
-	Hosts            Hosts                  `yaml:"hosts" gorm:"foreignkey:Name"`
-	Provider         NodePoolProvider       `yaml:"provider"`
-	ProviderConfig   map[string]interface{} `yaml:"providerConfig" gorm:"-"`
-	ProviderConfigDB string                 `gorm:"column:provider_config;type:text"`
+	ClusterID uint `gorm:"foreignkey:ClusterIDl;association_foreignkey:ClusterID;unique_index:idx_cluster_id_name"`
+
+	Name           string           `yaml:"name" gorm:"unique_index:idx_cluster_id_name"`
+	Roles          Roles            `yaml:"roles" gorm:"type:varchar(255)"`
+	Hosts          Hosts            `yaml:"hosts" gorm:"foreignkey:NodePoolID;association_foreignkey:NodePoolID"`
+	Provider       NodePoolProvider `yaml:"provider"`
+	ProviderConfig Config           `yaml:"providerConfig" gorm:"column:provider_config;type:text"`
 }
 
 // TableName changes the default table name.
@@ -53,30 +55,6 @@ func (n NodePool) String() string {
 		n.Hosts,
 		n.Provider,
 	)
-}
-
-// BeforeCreate marshals fields.
-func (n *NodePool) BeforeCreate(scope *gorm.Scope) error {
-	j, err := json.Marshal(n.ProviderConfig)
-	if err != nil {
-		return err
-	}
-	return scope.SetColumn("ProviderConfigDB", string(j))
-}
-
-func (n *NodePool) BeforeUpdate(scope *gorm.Scope) error {
-	return n.BeforeCreate(scope)
-}
-
-// AfterFind unmarshals fields.
-func (n *NodePool) AfterFind() error {
-	var cfg map[string]interface{}
-	err := json.Unmarshal([]byte(n.ProviderConfigDB), &cfg)
-	if err != nil {
-		return err
-	}
-	n.ProviderConfig = cfg
-	return nil
 }
 
 type NodePoolProvider string
@@ -109,6 +87,24 @@ const (
 	RolePipelineSystem Role = "pipeline-system"
 )
 
+var _ driver.Valuer = (*Roles)(nil)
+
+// Value implements the driver.Valuer interface
+func (n Roles) Value() (driver.Value, error) {
+	r, err := json.Marshal(n)
+	if err != nil {
+		return "", err
+	}
+	return string(r), nil
+}
+
+var _ sql.Scanner = (*Roles)(nil)
+
+// Scan implements the sql.Scanner interface
+func (n *Roles) Scan(src interface{}) error {
+	return json.Unmarshal([]byte(string(src.([]uint8))), &n)
+}
+
 var _ driver.Valuer = (*Role)(nil)
 
 // Value implements the driver.Valuer interface
@@ -126,32 +122,33 @@ func (r *Role) Scan(src interface{}) error {
 
 type Hosts []Host
 type Host struct {
-	Model
+	ID        uint `gorm:"primary_key"`
+	CreatedAt time.Time
+	CreatedBy uint
+
+	NodePoolID uint `gorm:"name:nodepool_id;foreignkey:NodePoolID;association_foreignkey:NodePoolID"`
 
 	Name             string `yaml:"name"`
 	PrivateIP        string `yaml:"privateIP"`
 	NetworkInterface string `yaml:"networkInterface"`
-	Roles            Roles  `yaml:"roles" gorm:"-"`
-	RolesDB          string `gorm:"column:roles;type:varchar(255)"`
-	Labels           Labels `yaml:"labels" gorm:"-"`
-	LabelsDB         string `gorm:"column:labels;type:varchar(255)"`
-	Taints           Taints `yaml:"taint" gorm:"-"`
-	TaintsDB         string `gorm:"column:taints;type:varchar(255)"`
+	Roles            Roles  `yaml:"roles" gorm:"type:varchar(255)"`
+	Labels           Labels `yaml:"labels" gorm:"type:varchar(255)"`
+	Taints           Taints `yaml:"taint" gorm:"type:varchar(255)"`
 }
 
 // TableName changes the default table name.
 func (Host) TableName() string {
-	return "cluster_topology_nodepool_host"
+	return "topology_nodepool_hosts"
 }
 
 // String prints row contents.
 func (h Host) String() string {
 	return fmt.Sprintf(
-		"ID: %d, createdAt: %v, createdBy: %d, ClusterID: %d, Name: %s, PrivateIP: %s, NetworkInterface: %s, Roles: %s, Labels: %s, Taints: %s",
+		"ID: %d, createdAt: %v, createdBy: %d, NodePoolID: %d, Name: %s, PrivateIP: %s, NetworkInterface: %s, Roles: %s, Labels: %s, Taints: %s",
 		h.ID,
 		h.CreatedAt,
 		h.CreatedBy,
-		h.ClusterID,
+		h.NodePoolID,
 		h.Name,
 		h.PrivateIP,
 		h.NetworkInterface,
@@ -161,77 +158,43 @@ func (h Host) String() string {
 	)
 }
 
-// BeforeCreate marshals fields.
-func (h *Host) BeforeCreate(scope *gorm.Scope) error {
-	var (
-		roles, labels, taints []byte
-		err                   error
-	)
-
-	roles, err = json.Marshal(h.Roles)
-	if err != nil {
-		return err
-	}
-	labels, err = json.Marshal(h.Labels)
-	if err != nil {
-		return err
-	}
-	taints, err = json.Marshal(h.Taints)
-	if err != nil {
-		return err
-	}
-
-	err = scope.SetColumn("Roles", string(roles))
-	if err != nil {
-		return err
-	}
-	err = scope.SetColumn("Labels", string(labels))
-	if err != nil {
-		return err
-	}
-	err = scope.SetColumn("Taints", string(taints))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// BeforeUpdate marshals fields.
-func (h *Host) BeforeUpdate(scope *gorm.Scope) error {
-	return h.BeforeCreate(scope)
-}
-
-// AfterFind unmarshals fields.
-func (h *Host) AfterFind() error {
-	var (
-		roles  Roles
-		labels Labels
-		taints Taints
-		err    error
-	)
-
-	err = json.Unmarshal([]byte(h.RolesDB), &roles)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal([]byte(h.LabelsDB), &labels)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal([]byte(h.TaintsDB), &taints)
-	if err != nil {
-		return err
-	}
-
-	h.Roles = roles
-	h.Labels = labels
-	h.Taints = taints
-
-	return nil
-}
-
 type Labels map[string]string
+
+var _ driver.Valuer = (*Labels)(nil)
+
+// Value implements the driver.Valuer interface
+func (n Labels) Value() (driver.Value, error) {
+	r, err := json.Marshal(n)
+	if err != nil {
+		return "", err
+	}
+	return string(r), nil
+}
+
+var _ sql.Scanner = (*Labels)(nil)
+
+// Scan implements the sql.Scanner interface
+func (n *Labels) Scan(src interface{}) error {
+	return json.Unmarshal([]byte(string(src.([]uint8))), &n)
+}
 
 type Taints []Taint
 type Taint string
+
+var _ driver.Valuer = (*Taints)(nil)
+
+// Value implements the driver.Valuer interface
+func (n Taints) Value() (driver.Value, error) {
+	r, err := json.Marshal(n)
+	if err != nil {
+		return "", err
+	}
+	return string(r), nil
+}
+
+var _ sql.Scanner = (*Taints)(nil)
+
+// Scan implements the sql.Scanner interface
+func (n *Taints) Scan(src interface{}) error {
+	return json.Unmarshal([]byte(string(src.([]uint8))), &n)
+}
