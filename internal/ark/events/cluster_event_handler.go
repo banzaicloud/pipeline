@@ -47,8 +47,8 @@ func NewClusterEventHandler(events clusterEvents, db *gorm.DB, logger logrus.Fie
 // RemoveStaleDeployments deletes stale ARK deployment records from database
 func (eh *ClusterEventHandler) DeleteStaleARKDeployments(orgID uint) error {
 	var deployments []*ark.ClusterBackupDeploymentsModel
-
-	eh.logger.WithField("org", orgID).Debug("removing stale ark deployment records")
+	log := eh.logger.WithField("org", orgID)
+	log.Debug("removing stale ark deployment records")
 
 	err := eh.db.Where(ark.ClusterBackupDeploymentsModel{OrganizationID: orgID}).Preload("Cluster").Find(&deployments).Error
 	if err != nil {
@@ -59,7 +59,7 @@ func (eh *ClusterEventHandler) DeleteStaleARKDeployments(orgID uint) error {
 		if deployment.ID > 0 && deployment.Cluster.ID == 0 {
 			err = eh.db.Delete(&deployment).Error
 			if err != nil {
-				eh.logger.Error(emperror.Wrap(err, "could not delete deployment record"))
+				log.Error(emperror.Wrap(err, "could not delete deployment record"))
 			}
 		}
 	}
