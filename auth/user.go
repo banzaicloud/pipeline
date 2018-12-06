@@ -42,6 +42,9 @@ const (
 	// CurrentOrganization current organization key
 	CurrentOrganization utils.ContextKey = "org"
 
+	// SignUp is present if the current request is a signing up
+	SignUp utils.ContextKey = "signUp"
+
 	// GithubTokenID denotes the tokenID for the user's Github token, there can be only one
 	GithubTokenID = "github"
 )
