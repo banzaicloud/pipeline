@@ -111,5 +111,5 @@ func deleteForwardingRule(csv *gkeCompute.Service, project, region, ruleName str
 
 	log.Info("wait for operation complete")
 
-	return waitForOperation(newComputeRegionOperation(csv, project, region), operation.Name)
+	return waitForOperation(newComputeRegionOperation(csv, project, region), operation.Name, log)
 }
