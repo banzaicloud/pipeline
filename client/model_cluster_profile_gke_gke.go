@@ -12,7 +12,7 @@
 package client
 
 type ClusterProfileGkeGke struct {
-	Master      CreateGkePropertiesGkeMaster `json:"master,omitempty"`
-	NodeVersion string                       `json:"nodeVersion,omitempty"`
-	NodePools   map[string]NodePoolsGoogle   `json:"nodePools,omitempty"`
+	Master      ClusterProfileGkeGkeMaster `json:"master,omitempty"`
+	NodeVersion string                     `json:"nodeVersion,omitempty"`
+	NodePools   map[string]NodePoolsGoogle `json:"nodePools,omitempty"`
 }
