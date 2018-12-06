@@ -56,5 +56,6 @@ var (
 	ErrorAlibabaNodePoolFieldLenError  = errors.New("Only one 'nodePool' is supported.")
 	ErrorAlibabaMinNumberOfNodes       = errors.New("'num_of_nodes' must be greater than zero.")
 	ErrorBucketDeleteNotEmpty          = errors.New("non empty buckets can not be deleted")
-	ErrorGkeSubnetRequiredFieldIsEmpty = errors.New("required field 'subnet' missing or empty")
+	ErrorGkeSubnetRequiredFieldIsEmpty = errors.New("'subnet' field required if 'vpc' is set")
+	ErrorGkeVPCRequiredFieldIsEmpty    = errors.New("'vpc' field required if 'subnet' is set")
 )

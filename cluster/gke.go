@@ -1902,6 +1902,63 @@ func (c *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	}
 	log.Info("Validate kubernetesVersion passed")
 
+	// Validate vpc and subnet
+	if r.Properties.CreateClusterGKE.Vpc != "" {
+		log.Info("Validate VPC and subnet names")
+		if err := c.validateVPCAndSubnet(r.Properties.CreateClusterGKE.Vpc, r.Properties.CreateClusterGKE.Subnet); err != nil {
+			return err
+		}
+		log.Info("Validate VPC and subnet names passed")
+	}
+
+	return nil
+}
+
+func (c *GKECluster) validateVPCAndSubnet(VPCName string, subnetName string) error {
+	project, err := c.getProjectId()
+	if err != nil {
+		return emperror.Wrap(err, "could not get project id")
+	}
+
+	svc, err := c.getComputeService()
+	if err != nil {
+		return emperror.Wrap(err, "could not get compute service")
+	}
+
+	network, err := svc.Networks.Get(project, VPCName).Context(context.Background()).Do()
+	if err != nil {
+		if googleErr, ok := errors.Cause(err).(*googleapi.Error); ok {
+			if googleErr.Code == 404 {
+				return emperror.With(errors.New("VPC not found"), "vpc", VPCName)
+			}
+		}
+		return emperror.WrapWith(err, "could not get VPC", "vpc", VPCName)
+	}
+
+	if subnetName == "" {
+		return nil
+	}
+
+	zone := c.GetLocation()
+	region, err := findRegionByZone(svc, project, zone)
+	if err != nil {
+		return emperror.WrapWith(err, "could not find region by zone", "project", project, "zone", zone)
+	}
+
+	subnet, err := svc.Subnetworks.Get(project, region.Name, subnetName).Context(context.Background()).Do()
+	if err != nil {
+		if googleErr, ok := errors.Cause(err).(*googleapi.Error); ok {
+			if googleErr.Code == 404 {
+				return emperror.With(errors.New("subnet not found"), "project", project, "subnet", subnetName, "region", region.Name)
+			}
+		}
+		return err
+	}
+
+	if network.SelfLink != subnet.Network {
+		return emperror.With(errors.New("subnet is in a different VPC"), "project", project, "vpc", network.Name, "subnet", subnet.Name)
+	}
+
 	return nil
 }
 
