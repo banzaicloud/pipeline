@@ -120,5 +120,5 @@ func deleteFirewall(csv *gkeCompute.Service, project, firewallName string) error
 
 	log.Info("wait for operation complete")
 
-	return waitForOperation(newComputeGlobalOperation(csv, project), operation.Name)
+	return waitForOperation(newComputeGlobalOperation(csv, project), operation.Name, log)
 }
