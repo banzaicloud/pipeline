@@ -163,7 +163,7 @@ func init() {
 	viper.SetDefault("auth.whitelistEnabled", false)
 	viper.SetDefault(SetCookieDomain, false)
 
-	viper.SetDefault("pipeline.listenport", 9090)
+	viper.SetDefault("pipeline.bindaddr", "127.0.0.1:9090")
 	viper.SetDefault("pipeline.certfile", "")
 	viper.SetDefault("pipeline.keyfile", "")
 	viper.SetDefault("pipeline.uipath", "/ui")
