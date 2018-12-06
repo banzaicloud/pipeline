@@ -39,6 +39,7 @@ type GKENodePoolProfile struct {
 	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
 	Name             string `gorm:"unique_index:idx_name_node_name"`
 	NodeName         string `gorm:"unique_index:idx_name_node_name"`
+	Preemptible      bool   `gorm:"default:false"`
 }
 
 // TableName overrides GKEProfile's table name
@@ -114,6 +115,7 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 				MaxCount:         np.MaxCount,
 				Count:            np.Count,
 				NodeInstanceType: np.NodeInstanceType,
+				Preemptible:      np.Preemptible,
 			}
 		}
 	}
@@ -159,6 +161,7 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 					NodeInstanceType: np.NodeInstanceType,
 					Name:             d.Name,
 					NodeName:         name,
+					Preemptible:      np.Preemptible,
 				})
 			}
 
