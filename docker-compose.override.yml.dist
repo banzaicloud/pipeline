@@ -3,17 +3,17 @@ version: "3.1"
 services:
     db:
         ports:
-            - 3306:3306
+            - 127.0.0.1:3306:3306
         volumes:
             - ./.docker/volumes/mysql:/var/lib/mysql
 
     adminer:
         ports:
-            - 8080:8080
+            - 127.0.0.1:8080:8080
 
     vault:
         ports:
-            - 8200:8200
+            - 127.0.0.1:8200:8200
         volumes:
             - ./.docker/volumes/vault/file:/vault/file
 
@@ -31,5 +31,5 @@ services:
 
     cicd-server:
         ports:
-            - 8000:8000
-            - 9000
+            - 127.0.0.1:8000:8000
+            - 127.0.0.1:9000:9000
