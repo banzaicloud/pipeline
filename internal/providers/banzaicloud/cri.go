@@ -17,19 +17,15 @@ package banzaicloud
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
-
-	"github.com/jinzhu/gorm"
 )
 
 // CRI is the schema for the DB.
 type CRI struct {
 	Model
 
-	Runtime         Runtime                `yaml:"runtime"`
-	RuntimeConfig   map[string]interface{} `yaml:"runtimeConfig" gorm:"-"`
-	RuntimeConfigDB string                 `gorm:"column:runtime_config;type:text"`
+	Runtime       Runtime `yaml:"runtime"`
+	RuntimeConfig Config  `yaml:"runtimeConfig" gorm:"type:text"`
 }
 
 // TableName changes the default table name.
@@ -46,31 +42,6 @@ func (c CRI) String() string {
 		c.ClusterID,
 		c.Runtime,
 	)
-}
-
-// BeforeCreate marshals fields.
-func (c *CRI) BeforeCreate(scope *gorm.Scope) error {
-	j, err := json.Marshal(c.RuntimeConfig)
-	if err != nil {
-		return err
-	}
-	return scope.SetColumn("RuntimeConfigDB", string(j))
-}
-
-// BeforeUpdate marshals fields.
-func (c *CRI) BeforeUpdate(scope *gorm.Scope) error {
-	return c.BeforeCreate(scope)
-}
-
-// AfterFind unmarshals fields.
-func (c *CRI) AfterFind() error {
-	var cfg map[string]interface{}
-	err := json.Unmarshal([]byte(c.RuntimeConfigDB), &cfg)
-	if err != nil {
-		return err
-	}
-	c.RuntimeConfig = cfg
-	return nil
 }
 
 // Runtime is the schema for the DB.
