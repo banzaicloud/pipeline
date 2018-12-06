@@ -94,6 +94,10 @@ func (g *CreateClusterGKE) Validate() error {
 		return pkgErrors.ErrorGkeSubnetRequiredFieldIsEmpty
 	}
 
+	if len(g.Subnet) > 0 && len(g.Vpc) == 0 {
+		return pkgErrors.ErrorGkeVPCRequiredFieldIsEmpty
+	}
+
 	for _, nodePool := range g.NodePools {
 
 		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
