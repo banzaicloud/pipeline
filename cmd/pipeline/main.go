@@ -50,7 +50,6 @@ import (
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/model/defaults"
-	"github.com/banzaicloud/pipeline/notify"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -426,7 +425,6 @@ func main() {
 	}
 	router.POST(basePath+"/issues", auth.Handler, issueHandler)
 
-	notify.SlackNotify("API is already running")
 	bindAddr := viper.GetString("pipeline.bindaddr")
 	if port := viper.GetInt("pipeline.listenport"); port != 0 {
 		host := strings.Split(bindAddr, ":")[0]
