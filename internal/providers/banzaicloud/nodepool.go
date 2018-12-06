@@ -25,15 +25,15 @@ import (
 type NodePools []NodePool
 
 type NodePool struct {
-	ID        uint `gorm:"primary_key"`
-	CreatedAt time.Time
-	CreatedBy uint
+	NodePoolID uint `gorm:"primary_key;name:id"`
+	CreatedAt  time.Time
+	CreatedBy  uint
 
 	ClusterID uint `gorm:"foreignkey:ClusterIDl;association_foreignkey:ClusterID;unique_index:idx_cluster_id_name"`
 
 	Name           string           `yaml:"name" gorm:"unique_index:idx_cluster_id_name"`
 	Roles          Roles            `yaml:"roles" gorm:"type:varchar(255)"`
-	Hosts          Hosts            `yaml:"hosts" gorm:"foreignkey:NodePoolID;association_foreignkey:NodePoolID"`
+	Hosts          Hosts            `yaml:"hosts" gorm:"foreignkey:NodePoolID"`
 	Provider       NodePoolProvider `yaml:"provider"`
 	ProviderConfig Config           `yaml:"providerConfig" gorm:"column:provider_config;type:text"`
 }
@@ -46,7 +46,7 @@ func (NodePool) TableName() string {
 func (n NodePool) String() string {
 	return fmt.Sprintf(
 		"ID: %d, CreatedAt: %v, CreatedBy: %d, ClusterID: %d, Name: %s, Roles: %s, Hosts: %s, Provider: %s",
-		n.ID,
+		n.NodePoolID,
 		n.CreatedAt,
 		n.CreatedBy,
 		n.ClusterID,
@@ -126,7 +126,7 @@ type Host struct {
 	CreatedAt time.Time
 	CreatedBy uint
 
-	NodePoolID uint `gorm:"name:nodepool_id;foreignkey:NodePoolID;association_foreignkey:NodePoolID"`
+	NodePoolID uint `gorm:"name:nodepool_id;foreignkey:NodePoolID"`
 
 	Name             string `yaml:"name"`
 	PrivateIP        string `yaml:"privateIP"`
