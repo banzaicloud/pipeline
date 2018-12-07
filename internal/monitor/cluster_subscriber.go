@@ -127,7 +127,7 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	query := &pkgSecret.ListSecretsQuery{
 		Type: pkgSecret.TLSSecretType,
 		Tags: []string{
-			fmt.Sprintf("clusterUID:%s", clusterID),
+			fmt.Sprintf("clusterUID:%d", clusterID),
 			"app:prometheus",
 		},
 	}
