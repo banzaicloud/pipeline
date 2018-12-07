@@ -24,7 +24,8 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	pipSecret "github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -123,33 +124,29 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 
 	prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
 
-	kubeConfig, err := c.GetK8sConfig()
-	if err != nil {
-		s.errorHandler.Handle(emperror.With(
-			emperror.Wrap(err, "failed to get cluster config"),
-			"oragnizationId", org.ID,
-			"oragnizationName", org.Name,
-			"clusterId", c.GetID(),
-			"clusterName", c.GetName(),
-		))
-
-		return
+	query := &pkgSecret.ListSecretsQuery{
+		Type: pkgSecret.TLSSecretType,
+		Tags: []string{
+			fmt.Sprintf("clusterUID:%s", clusterID),
+			"app:prometheus",
+		},
 	}
-	config, err := k8sclient.NewClientConfig(kubeConfig)
+	secrets, err := pipSecret.Store.List(org.ID, query)
 	if err != nil {
 		s.errorHandler.Handle(err)
-
 		return
 	}
-
-	secret.StringData[params.caCertFileName] = string(config.CAData)
-	secret.StringData[params.certFileName] = string(config.CertData)
-	secret.StringData[params.keyFileName] = string(config.KeyData)
+	if len(secrets) < 1 {
+		s.errorHandler.Handle(fmt.Errorf("no secret found for clusterUID: %d, app:prometheus", clusterID))
+		return
+	}
+	secret.StringData[params.caCertFileName] = string(secrets[0].Values[pkgSecret.CACert])
+	secret.StringData[params.certFileName] = string(secrets[0].Values[pkgSecret.ClientCert])
+	secret.StringData[params.keyFileName] = string(secrets[0].Values[pkgSecret.ClientKey])
 
 	err = s.save(prometheusConfig, secret)
 	if err != nil {
 		s.errorHandler.Handle(err)
-
 		return
 	}
 }
