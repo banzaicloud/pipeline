@@ -163,6 +163,7 @@ Class | Method | HTTP request | Description
  - [ClusterProfileEks](docs/ClusterProfileEks.md)
  - [ClusterProfileGke](docs/ClusterProfileGke.md)
  - [ClusterProfileGkeGke](docs/ClusterProfileGkeGke.md)
+ - [ClusterProfileGkeGkeMaster](docs/ClusterProfileGkeGkeMaster.md)
  - [ClusterProfileNotFound](docs/ClusterProfileNotFound.md)
  - [Conflict](docs/Conflict.md)
  - [CreateAkcsProperties](docs/CreateAkcsProperties.md)

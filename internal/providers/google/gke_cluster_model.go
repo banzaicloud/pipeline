@@ -33,6 +33,8 @@ type GKEClusterModel struct {
 	Region        string
 	NodePools     []*GKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 	ProjectId     string
+	Vpc           string `gorm:"size:64"`
+	Subnet        string `gorm:"size:64"`
 }
 
 // TableName changes the default table name.

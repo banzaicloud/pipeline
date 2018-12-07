@@ -5282,10 +5282,17 @@ components:
                             properties:
                                 version:
                                     type: string
-                                    example: "1.8.7-gke.1"
+                                    example: "1.10"
                         nodeVersion:
                             type: string
-                            example: "1.8.7-gke.1"
+                            example: "1.10"
+                        vpc:
+                            type: string
+                            description: Name of the GCP Network (VPC) to deploy the cluster to. If omitted than the "default" VPC is used.
+                            example: "corp-vpc"
+                        subnet:
+                            type: string
+                            description: Name of the GCP Subnet to deploy the cluster to. If "default" VPC is used this field can be omitted. The subnet must be in the same region as the location of the cluster.
                         nodePools:
                             type: object
                             additionalProperties:
