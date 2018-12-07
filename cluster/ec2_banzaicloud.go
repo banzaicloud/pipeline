@@ -15,7 +15,6 @@
 package cluster
 
 import (
-	"github.com/aws/aws-sdk-go/service/ec2"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	banzaicloudDB "github.com/banzaicloud/pipeline/internal/providers/banzaicloud"
@@ -23,7 +22,9 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/banzaicloud"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -32,35 +33,35 @@ import (
 var _ CommonCluster = (*EC2ClusterBanzaiCloudDistribution)(nil)
 
 type EC2ClusterBanzaiCloudDistribution struct {
-	db            *gorm.DB
-	model         *banzaicloudDB.EC2BanzaiCloudClusterModel
-	amazonCluster *ec2.EC2 //Don't use this directly
-	APIEndpoint   string
+	db    *gorm.DB
+	model *banzaicloudDB.EC2BanzaiCloudClusterModel
+	//amazonCluster *ec2.EC2 //Don't use this directly
+	APIEndpoint string
 	CommonClusterBase
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetSecurityScan() bool {
-	panic("implement me")
+	return c.model.Cluster.SecurityScan
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) SetSecurityScan(scan bool) {
-	panic("implement me")
+	c.model.Cluster.SecurityScan = scan
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetLogging() bool {
-	panic("implement me")
+	return c.model.Cluster.Logging
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) SetLogging(l bool) {
-	panic("implement me")
+	c.model.Cluster.Logging = l
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetMonitoring() bool {
-	panic("implement me")
+	return c.model.Cluster.Monitoring
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) SetMonitoring(m bool) {
-	panic("implement me")
+	c.model.Cluster.Monitoring = m
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetID() uint {
@@ -116,7 +117,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetConfigSecretId() string {
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
-	panic("implement me")
+	return c.CommonClusterBase.getSecret(c)
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) Persist(string, string) error {
@@ -165,8 +166,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) DeleteCluster() error {
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) DownloadK8sConfig() ([]byte, error) {
-	// TODO(Ecsy): implement me
-	panic("implement me")
+	return nil, pkgError.ErrorFunctionShouldNotBeCalled
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
@@ -174,23 +174,53 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetK8sConfig() ([]byte, error) {
-	panic("implement me")
+	return c.CommonClusterBase.getConfig(c)
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) RbacEnabled() bool {
-	panic("implement me")
+	return c.model.Kubernetes.RBACEnabled
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) NeedAdminRights() bool {
-	panic("implement me")
+	return false
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetKubernetesUserName() (string, error) {
-	panic("implement me")
+	return "", nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	panic("implement me")
+	log.Info("Create cluster status response")
+
+	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
+	for _, np := range c.model.NodePools {
+		providerConfig := banzaicloudDB.NodePoolProviderConfigAmazon{}
+		err := mapstructure.Decode(np.ProviderConfig, &providerConfig)
+		if err != nil {
+			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
+		}
+		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
+			Count:        len(np.Hosts),
+			InstanceType: providerConfig.AutoScalingGroup.InstanceType,
+		}
+	}
+
+	return &pkgCluster.GetClusterStatusResponse{
+		Status:            c.model.Cluster.Status,
+		StatusMessage:     c.model.Cluster.StatusMessage,
+		Name:              c.model.Cluster.Name,
+		Location:          c.model.Cluster.Location,
+		Cloud:             c.model.Cluster.Cloud,
+		Distribution:      c.model.Cluster.Distribution,
+		ResourceID:        c.model.Cluster.ID,
+		Logging:           c.GetLogging(),
+		Monitoring:        c.GetMonitoring(),
+		SecurityScan:      c.GetSecurityScan(),
+		NodePools:         nodePools,
+		Version:           c.model.Kubernetes.Version,
+		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
+		Region:            c.model.Cluster.Location,
+	}, nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
@@ -198,7 +228,13 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetClusterDetails() (*pkgCluster.Det
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) ListNodeNames() (common.NodeNames, error) {
-	panic("implement me")
+	var nodes = make(map[string][]string)
+	for _, nodepool := range c.model.NodePools {
+		for _, host := range nodepool.Hosts {
+			nodes[nodepool.Name] = append(nodes[nodepool.Name], host.Name)
+		}
+	}
+	return nodes, nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) NodePoolExists(nodePoolName string) bool {
