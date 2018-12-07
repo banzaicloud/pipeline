@@ -9,7 +9,8 @@ listenport = 9090
 basepath = ""
 
 # Use to redirect url after login
-uipath = "/account/repos"
+uipath = "/ui"
+signupRedirectPath = "/ui"
 
 [database]
 dialect = "mysql"

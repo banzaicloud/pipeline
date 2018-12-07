@@ -168,6 +168,7 @@ func init() {
 	viper.SetDefault("pipeline.keyfile", "")
 	viper.SetDefault("pipeline.uipath", "/ui")
 	viper.SetDefault("pipeline.basepath", "")
+	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(MetricsEnabled, false)
 	viper.SetDefault(MetricsPort, ":9900")
 	viper.SetDefault(MetricsDebug, true)

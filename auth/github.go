@@ -19,10 +19,9 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-
-	"github.com/google/go-github/github"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
@@ -40,14 +39,14 @@ type GithubExtraInfo struct {
 
 //NewGithubAuthorizeHandler handler for Github auth
 func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context *auth.Context) (*claims.Claims, error) {
-	return func(context *auth.Context) (*claims.Claims, error) {
+	return func(ctx *auth.Context) (*claims.Claims, error) {
 		var (
 			schema       auth.Schema
 			authInfo     auth_identity.Basic
-			authIdentity = reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
-			req          = context.Request
-			db           = context.Auth.GetDB(req)
-			oauthCfg     = provider.OAuthConfig(context)
+			authIdentity = reflect.New(utils.ModelType(ctx.Auth.Config.AuthIdentityModel)).Interface()
+			req          = ctx.Request
+			db           = ctx.Auth.GetDB(req)
+			oauthCfg     = provider.OAuthConfig(ctx)
 			token        *oauth2.Token
 		)
 
@@ -57,7 +56,7 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 
 		if token.AccessToken == "" {
 			state := req.URL.Query().Get("state")
-			claims, err := context.Auth.SessionStorer.ValidateClaims(state)
+			claims, err := ctx.Auth.SessionStorer.ValidateClaims(state)
 
 			if err != nil {
 				log.Errorln("failed to validate user claims", err.Error())
@@ -91,8 +90,8 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 
 		// If the user is already registered, just return
 		if tx := db.Model(authIdentity).Where(authInfo).Scan(&authInfo); tx.Error == nil {
-			context.Claims = authInfo.ToClaims()
-			return authInfo.ToClaims(), context.Auth.UserStorer.Update(&schema, context)
+			ctx.Claims = authInfo.ToClaims()
+			return authInfo.ToClaims(), ctx.Auth.UserStorer.Update(&schema, ctx)
 		} else if !tx.RecordNotFound() {
 			log.Errorln("failed to check if user is already registered", tx.Error.Error())
 			return nil, err
@@ -165,6 +164,8 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 			}
 		}
 
+		ctx.Request = req.WithContext(context.WithValue(req.Context(), SignUp, true))
+
 		{
 			schema.Provider = provider.GetName()
 			schema.UID = fmt.Sprint(*user.ID)
@@ -172,7 +173,7 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 			schema.Email = user.GetEmail()
 			schema.Image = user.GetAvatarURL()
 		}
-		if _, userID, err := context.Auth.UserStorer.Save(&schema, context); err == nil {
+		if _, userID, err := ctx.Auth.UserStorer.Save(&schema, ctx); err == nil {
 			if userID != "" {
 				authInfo.UserID = userID
 			}
