@@ -110,9 +110,9 @@ type CreateClusterRequest struct {
 	Name         string                   `json:"name" yaml:"name" binding:"required"`
 	Location     string                   `json:"location" yaml:"location"`
 	Cloud        string                   `json:"cloud" yaml:"cloud" binding:"required"`
-	Distribution string                   `json:"distribution" yaml:"cloud"`
+	Distribution string                   `json:"distribution,omitempty" yaml:"distribution,omitempty"`
 	SecretId     string                   `json:"secretId" yaml:"secretId"`
-	SecretIds    []string                 `json:"secretIds" yaml:"secretId"`
+	SecretIds    []string                 `json:"secretIds,omitempty" yaml:"secretIds,omitempty"`
 	SecretName   string                   `json:"secretName" yaml:"secretName"`
 	ProfileName  string                   `json:"profileName" yaml:"profileName"`
 	PostHooks    PostHooks                `json:"postHooks" yaml:"postHooks"`
