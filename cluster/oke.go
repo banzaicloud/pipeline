@@ -405,13 +405,9 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	// todo needs to add other fields
 	return &pkgCluster.DetailsResponse{
-		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
-		Name:              status.Name,
-		Id:                status.ResourceID,
-		Location:          status.Location,
-		MasterVersion:     o.modelCluster.OKE.Version,
-		NodePools:         nodePools,
-		Status:            o.modelCluster.Status,
+		Id:            status.ResourceID,
+		MasterVersion: o.modelCluster.OKE.Version,
+		NodePools:     nodePools,
 	}, nil
 }
 

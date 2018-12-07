@@ -7463,43 +7463,64 @@ components:
         ClusterDetailsResponse:
             type: object
             properties:
+                status:
+                    type: string
+                    example: "RUNNING"
+                statusMessage:
+                    type: string
+                    example: "Cluster is running"
+                name:
+                    type: string
+                    example: "myClusterName"
+                cloud:
+                    type: string
+                    example: "google"
+                distribution:
+                    type: string
+                    example: "gke"
+                spot:
+                    type: boolean
+                    example: false
+                location:
+                    type: string
+                    example: "us-central1-a"
+                id:
+                    type: integer
+                    example: 1
+                logging:
+                    type: boolean
+                    example: false
+                monitoring:
+                    type: boolean
+                    example: false
+                securityscan:
+                    type: boolean
+                    example: false
                 createdAt:
                     type: string
-                    example: "2018-07-03T14:19:26+02:00"
+                    example: "2018-07-03T14:23:19+02:00"
                 creatorName:
                     type: string
                     example: "userName"
                 creatorId:
                     type: integer
                     example: 1
-                name:
+                region:
                     type: string
-                    example: "my-google-cluster"
-                id:
-                    type: integer
-                    example: 1
+                    example: "us-central1"
+                nodePools:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/NodePoolStatus'
                 secretId:
                     type: string
                     example: "c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae"
                 secretName:
                     type: string
                     example: "paas-dev"
-                location:
-                    type: string
-                    example: "eu-west-1"
                 endpoint:
                     type: string
                     example: "34.240.231.134"
-                region:
-                    type: string
-                    example: "us-central1"
-                status:
-                    type: string
-                    example: "RUNNING"
-                nodePools:
-                    type: object
-                    additionalProperties:
-                        $ref: '#/components/schemas/NodePoolStatus'
                 master:
                     $ref: '#/components/schemas/ResourceSummaryItem'
                 totalSummary:

@@ -601,13 +601,9 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		}
 
 		return &pkgCluster.DetailsResponse{
-			CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
-			Name:              c.modelCluster.Name,
-			Id:                c.modelCluster.ID,
-			Location:          c.modelCluster.Location,
-			MasterVersion:     c.modelCluster.AKS.KubernetesVersion,
-			NodePools:         nodePools,
-			Status:            c.modelCluster.Status,
+			Id:            c.modelCluster.ID,
+			MasterVersion: c.modelCluster.AKS.KubernetesVersion,
+			NodePools:     nodePools,
 		}, nil
 
 	}
