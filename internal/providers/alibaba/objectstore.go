@@ -42,6 +42,7 @@ func (bucketNotFoundError) NotFound() bool { return true }
 
 type alibabaObjectStore interface {
 	commonObjectstore.ObjectStore
+	GetLocation(bucket string) (string, error)
 }
 
 type objectStore struct {
@@ -194,8 +195,14 @@ func (os *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 		if idx < len(managedBuckets) && strings.Compare(managedBuckets[idx].Name, bucket) == 0 {
 			bucketInfo.Managed = true
 		}
-
-		bucketList = append(bucketList, bucketInfo)
+		if location, err := os.objectStore.GetLocation(bucket); err == nil {
+			// Removing oss- from the beginning of the location because we are storing and using it
+			// without oss- prefix
+			bucketInfo.Location = strings.TrimPrefix(location, "oss-")
+			bucketList = append(bucketList, bucketInfo)
+		} else {
+			return nil, err
+		}
 	}
 
 	return bucketList, nil
