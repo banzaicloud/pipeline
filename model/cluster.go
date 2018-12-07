@@ -43,6 +43,7 @@ const (
 	TableNameAzureNodePools       = "azure_aks_node_pools"
 	TableNameDummyProperties      = "dummy_clusters"
 	TableNameKubernetesProperties = "kubernetes_clusters"
+	TableNameEKSSubnets           = "amazon_eks_subnets"
 )
 
 //ClusterModel describes the common cluster model
@@ -69,7 +70,7 @@ type ClusterModel struct {
 	StatusMessage  string                 `sql:"type:text;"`
 	ACSK           ACSKClusterModel       `gorm:"foreignkey:ID"`
 	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
-	EKS            EKSClusterModel        `gorm:"foreignkey:ID"`
+	EKS            EKSClusterModel        `gorm:"foreignkey:ClusterID"`
 	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
@@ -121,13 +122,28 @@ type AmazonNodePoolsModel struct {
 	Delete           bool `gorm:"-"`
 }
 
-//EKSClusterModel describes the eks cluster model
+// EKSSubnetModel describes the model of subnets used for creating an EKS cluster
+type EKSSubnetModel struct {
+	ID         uint `gorm:"primary_key"`
+	CreatedAt  time.Time
+	EKSCluster EKSClusterModel
+	ClusterID  uint    `gorm:"index:idx_cluster_id"`
+	SubnetId   *string `gorm:"size:32"`
+	Cidr       *string `gorm:"size:18"`
+}
+
+//EKSClusterModel describes the EKS cluster model
 type EKSClusterModel struct {
-	ID uint `gorm:"primary_key"`
+	ID        uint `gorm:"primary_key"`
+	ClusterID uint `gorm:"unique_index:ux_cluster_id"`
 
 	//kubernetes "1.10"
-	Version   string
-	NodePools []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
+	Version      string
+	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
+	VpcId        *string                 `gorm:"size:32"`
+	VpcCidr      *string                 `gorm:"size:18"`
+	RouteTableId *string                 `gorm:"size:32"`
+	Subnets      []*EKSSubnetModel       `gorm:"foreignkey:ClusterID"`
 }
 
 //AKSClusterModel describes the aks cluster model
@@ -301,6 +317,11 @@ func (AmazonNodePoolsModel) TableName() string {
 // TableName sets EKSClusterModel's table name
 func (EKSClusterModel) TableName() string {
 	return TableNameAmazonEksProperties
+}
+
+// TableName sets database table name for EKSSubnetModel
+func (EKSSubnetModel) TableName() string {
+	return TableNameEKSSubnets
 }
 
 // TableName sets AzureClusterModel's table name

@@ -198,7 +198,7 @@
   revision = "d46933a9"
 
 [[projects]]
-  digest = "1:91db69c6eaea8ef25cc7f56a06b0aa2de886de091c100b2bea0936bbe90c55a3"
+  digest = "1:e4d963b5dd19108d62db3d7afe209d28655c12afad56a4e5d1912ce92e894a1c"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -237,6 +237,7 @@
     "service/autoscaling",
     "service/cloudformation",
     "service/ec2",
+    "service/ec2/ec2iface",
     "service/eks",
     "service/elb",
     "service/iam",
@@ -2204,6 +2205,7 @@
     "github.com/aws/aws-sdk-go/service/autoscaling",
     "github.com/aws/aws-sdk-go/service/cloudformation",
     "github.com/aws/aws-sdk-go/service/ec2",
+    "github.com/aws/aws-sdk-go/service/ec2/ec2iface",
     "github.com/aws/aws-sdk-go/service/eks",
     "github.com/aws/aws-sdk-go/service/elb",
     "github.com/aws/aws-sdk-go/service/iam",

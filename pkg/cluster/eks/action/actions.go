@@ -62,10 +62,12 @@ type EksClusterCreateUpdateContext struct {
 	NodeInstanceRoleArn        string
 	SecurityGroupID            *string
 	NodeSecurityGroupID        *string
+	SubnetBlocks               []*string
 	SubnetIDs                  []*string
 	SSHKeyName                 string
 	SSHKey                     *secret.SSHKeyPair
 	VpcID                      *string
+	VpcCidr                    *string
 	ProvidedRoleArn            string
 	APIEndpoint                *string
 	CertificateAuthorityData   *string
@@ -73,6 +75,7 @@ type EksClusterCreateUpdateContext struct {
 	ClusterUserArn             string
 	ClusterUserAccessKeyId     string
 	ClusterUserSecretAccessKey string
+	RouteTableID               *string
 }
 
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
@@ -149,14 +152,13 @@ func (a *CreateVPCAndRolesAction) GetName() string {
 }
 
 // ExecuteAction executes this CreateVPCAndRolesAction
-func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{}, error) {
 	a.log.Infoln("EXECUTE CreateVPCAndRolesAction, stack name:", a.stackName)
 
 	a.log.Infoln("Getting CloudFormation template for creating VPC for EKS cluster")
 	templateBody, err := pkgEks.GetVPCTemplate()
 	if err != nil {
-		a.log.Errorln("Getting CloudFormation template for VPC failed:", err.Error())
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to get CloudFormation template for VPC")
 	}
 
 	stackParams := []*cloudformation.Parameter{
@@ -166,12 +168,70 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output inter
 		},
 	}
 
+	if aws.StringValue(a.context.VpcID) != "" {
+		a.log.Infoln("skip creating new VPC, using VPC: ", *a.context.VpcID)
+
+		stackParams = append(stackParams,
+			&cloudformation.Parameter{
+				ParameterKey:   aws.String("VpcId"),
+				ParameterValue: a.context.VpcID,
+			})
+
+		if aws.StringValue(a.context.RouteTableID) != "" {
+			stackParams = append(stackParams,
+				&cloudformation.Parameter{
+					ParameterKey:   aws.String("RouteTableId"),
+					ParameterValue: a.context.RouteTableID,
+				})
+		}
+
+	} else if aws.StringValue(a.context.VpcCidr) != "" {
+		stackParams = append(stackParams,
+			&cloudformation.Parameter{
+				ParameterKey:   aws.String("VpcBlock"),
+				ParameterValue: a.context.VpcCidr,
+			})
+	}
+
+	if len(a.context.SubnetIDs) > 0 {
+		var subnetIds []string
+		if aws.StringValue(a.context.SubnetIDs[0]) != "" {
+			a.log.Infoln("skip creating subnet01, using subnet=", *a.context.SubnetIDs[0])
+			subnetIds = append(subnetIds, aws.StringValue(a.context.SubnetIDs[0]))
+		}
+
+		if aws.StringValue(a.context.SubnetIDs[1]) != "" {
+			a.log.Infoln("skip creating subnet02, using subnet=", *a.context.SubnetIDs[1])
+			subnetIds = append(subnetIds, aws.StringValue(a.context.SubnetIDs[1]))
+
+		}
+
+		stackParams = append(stackParams, &cloudformation.Parameter{
+			ParameterKey:   aws.String("Subnets"),
+			ParameterValue: aws.String(strings.Join(subnetIds, ",")),
+		})
+
+	} else if len(a.context.SubnetBlocks) > 0 {
+		if aws.StringValue(a.context.SubnetBlocks[0]) != "" {
+			stackParams = append(stackParams, &cloudformation.Parameter{
+				ParameterKey:   aws.String("Subnet01Block"),
+				ParameterValue: a.context.SubnetBlocks[0],
+			})
+		}
+
+		if aws.StringValue(a.context.SubnetBlocks[1]) != "" {
+			stackParams = append(stackParams, &cloudformation.Parameter{
+				ParameterKey:   aws.String("Subnet02Block"),
+				ParameterValue: a.context.SubnetBlocks[1],
+			})
+		}
+	}
+
 	cloudformationSrv := cloudformation.New(a.context.Session)
 
 	createStackInput := &cloudformation.CreateStackInput{
-		//Capabilities:       []*string{},
 		ClientRequestToken: aws.String(uuid.NewV4().String()),
-		DisableRollback:    aws.Bool(false),
+		DisableRollback:    aws.Bool(true),
 		Capabilities: []*string{
 			aws.String(cloudformation.CapabilityCapabilityIam),
 			aws.String(cloudformation.CapabilityCapabilityNamedIam),
@@ -184,7 +244,7 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output inter
 	}
 	_, err = cloudformationSrv.CreateStack(createStackInput)
 	if err != nil {
-		return
+		return nil, emperror.Wrap(err, "create stack failed")
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
@@ -192,7 +252,7 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (output inter
 	if err != nil {
 		return nil, onAwsStackFailure(a.log, err, a.stackName, cloudformationSrv)
 	}
-	return nil, err
+	return nil, nil
 }
 
 type awsStackFailedError struct {
@@ -367,7 +427,7 @@ func (a *GenerateVPCConfigRequestAction) GetName() string {
 }
 
 // ExecuteAction executes this GenerateVPCConfigRequestAction
-func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (interface{}, error) {
 	a.log.Infoln("EXECUTE GenerateVPCConfigRequestAction, stack name:", a.stackName)
 	cloudformationSrv := cloudformation.New(a.context.Session)
 
@@ -377,7 +437,7 @@ func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (outpu
 
 	stackResources, err := cloudformationSrv.DescribeStackResources(describeStackResourcesInput)
 	if err != nil {
-		return nil, err
+		return nil, emperror.WrapWith(err, "failed to get stack resources", "stack", a.stackName)
 	}
 	stackResourceMap := make(map[string]cloudformation.StackResource)
 	for _, res := range stackResources.StackResources {
@@ -386,44 +446,32 @@ func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (outpu
 
 	securityGroupResource, found := stackResourceMap["ControlPlaneSecurityGroup"]
 	if !found {
-		return nil, errors.New("Unable to find ControlPlaneSecurityGroup resource")
+		return nil, errors.New("unable to find ControlPlaneSecurityGroup resource")
 	}
 	nodeSecurityGroup, found := stackResourceMap["NodeSecurityGroup"]
 	if !found {
-		return nil, errors.New("Unable to find NodeSecurityGroup resource")
-	}
-	subnet01resource, found := stackResourceMap["Subnet01"]
-	if !found {
-		return nil, errors.New("Unable to find Subnet02 resource")
-	}
-	subnet02resource, found := stackResourceMap["Subnet02"]
-	if !found {
-		return nil, errors.New("Unable to find Subnet01 resource")
-	}
-	vpcResource, found := stackResourceMap["VPC"]
-	if !found {
-		return nil, errors.New("Unable to find VPC resource")
+		return nil, errors.New("unable to find NodeSecurityGroup resource")
 	}
 	nodeInstanceProfileResource, found := stackResourceMap["NodeInstanceRole"]
 	if !found {
-		return nil, errors.New("Unable to find NodeInstanceRole resource")
+		return nil, errors.New("unable to find NodeInstanceRole resource")
 	}
 
 	a.log.Infof("Stack resources: %v", stackResources)
 
-	a.context.VpcID = vpcResource.PhysicalResourceId
 	a.context.SecurityGroupID = securityGroupResource.PhysicalResourceId
-	a.context.SubnetIDs = []*string{subnet01resource.PhysicalResourceId, subnet02resource.PhysicalResourceId}
 	a.context.NodeInstanceRoleID = nodeInstanceProfileResource.PhysicalResourceId
 	a.context.NodeSecurityGroupID = nodeSecurityGroup.PhysicalResourceId
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
 	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
 	if err != nil {
-		return nil, errors.New("Unable to find stack " + a.stackName)
+		return nil, emperror.WrapWith(err, "failed to get stack details", "stack", a.stackName)
 	}
 
 	var clusterRoleArn, nodeInstanceRoleArn, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string
+	var vpcId *string
+
 	for _, output := range describeStacksOutput.Stacks[0].Outputs {
 		switch aws.StringValue(output.OutputKey) {
 		case "ClusterRoleArn":
@@ -432,14 +480,33 @@ func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (outpu
 			nodeInstanceRoleArn = aws.StringValue(output.OutputValue)
 		case "ClusterUserArn":
 			clusterUserArn = aws.StringValue(output.OutputValue)
+		case "VpcId":
+			vpcId = output.OutputValue
+		case "SubnetIds":
+			if output.OutputValue == nil {
+				return nil, errors.New("no Subnets found")
+			}
+			subnetIds := strings.Split(aws.StringValue(output.OutputValue), ",")
+			a.context.SubnetIDs = nil
+
+			for i := range subnetIds {
+				a.context.SubnetIDs = append(a.context.SubnetIDs, &subnetIds[i])
+			}
 		}
+	}
+
+	if len(a.context.SubnetIDs) == 0 {
+		return nil, errors.New("no subnets available for EKS cluster creation")
 	}
 
 	clusterUserAccessKeyId, clusterUserSecretAccessKey, err = GetClusterUserAccessKeyIdAndSecretVault(a.organizationID, a.context.ClusterName)
 
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to retrieve EKS cluster user access key")
 	}
+
+	a.log.Infof("cluster role ARN: %v", clusterRoleArn)
+	a.context.VpcID = vpcId
 
 	a.log.Infof("cluster role ARN: %v", clusterRoleArn)
 	a.context.ClusterRoleArn = clusterRoleArn
@@ -961,7 +1028,7 @@ func GetClusterUserAccessKeyIdAndSecretVault(organizationID uint, userName strin
 	secretName := getSecretName(userName)
 	secretItem, err := secret.Store.GetByName(organizationID, secretName)
 	if err != nil {
-		return "", "", errors.Wrapf(err, "retrieving secret with name '%s' from Vault failed", secretName)
+		return "", "", emperror.WrapWith(err, "failed to get secret from Vault", "secret", secretName)
 	}
 	clusterUserAccessKeyId := secretItem.GetValue(pkgSecret.AwsAccessKeyId)
 	clusterUserSecretAccessKey := secretItem.GetValue(pkgSecret.AwsSecretAccessKey)
@@ -1193,7 +1260,7 @@ func (a *DeleteClusterUserAccessKeyAction) ExecuteAction(input interface{}) (out
 				return nil, nil
 			}
 		}
-		a.log.Errorf("querying IAM user '%s' access keys failed: %s", clusterUserName, err)
+		a.log.Errorf("querying IAM user '%s' access keys failed: %s", *clusterUserName, err)
 		return nil, errors.Wrapf(err, "querying IAM user '%s' access keys failed", *clusterUserName)
 	}
 

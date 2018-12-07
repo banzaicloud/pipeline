@@ -6808,7 +6808,7 @@ components:
     ClusterProfileEKS:
       properties:
         eks:
-          $ref: '#/components/schemas/CreateEKSProperties_eks'
+          $ref: '#/components/schemas/ClusterProfileEKS_eks'
       type: object
     ClusterProfileAKS:
       properties:
@@ -6864,7 +6864,7 @@ components:
     AddClusterProfileEKS:
       properties:
         eks:
-          $ref: '#/components/schemas/CreateEKSProperties_eks'
+          $ref: '#/components/schemas/ClusterProfileEKS_eks'
       type: object
     AddClusterProfileAKS:
       properties:
@@ -8966,6 +8966,25 @@ components:
         lifecycleState:
           type: string
       type: object
+    EKSVpc:
+      properties:
+        vpcId:
+          description: The identifier of existing VPC to be used for creating the EKS cluster. If not provided a new VPC is created for the cluster.
+          type: string
+        cidr:
+          default: 192.168.0.0/16
+          description: The CIDR range for the VPC in case new VPC is created.
+          type: string
+      type: object
+    EKSSubnet:
+      properties:
+        subnetId:
+          description: Id of existing subnet to use for creating the EKS cluster. If not provided new subnet will be created.
+          type: string
+        cidr:
+          description: The CIDR range for the subnet in case new Subnet is created.
+          type: string
+      type: object
     CreateEKSProperties_eks:
       properties:
         version:
@@ -8975,6 +8994,17 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsAmazon'
           type: object
+        vpc:
+          additionalProperties:
+            $ref: '#/components/schemas/EKSVpc'
+          type: object
+        routeTableId:
+          description: Id of the RouteTable of the VPC to be used by subnets. This is used only when subnets are created into existing VPC.
+          type: string
+        subnets:
+          items:
+            $ref: '#/components/schemas/EKSSubnet'
+          type: array
       type: object
     CreateAKCSProperties_akcs:
       properties:
@@ -9725,6 +9755,16 @@ components:
           items:
             type: string
           type: array
+      type: object
+    ClusterProfileEKS_eks:
+      properties:
+        version:
+          example: "1.10"
+          type: string
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolsAmazon'
+          type: object
       type: object
     ClusterProfileAKS_aks:
       properties:

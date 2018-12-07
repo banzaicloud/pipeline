@@ -5208,6 +5208,20 @@ components:
                             type: object
                             additionalProperties:
                                 $ref: '#/components/schemas/NodePoolsAmazon'
+                        vpc:
+                            type: object
+                            additionalProperties:
+                                $ref: '#/components/schemas/EKSVpc'
+                        routeTableId:
+                            type: string
+                            description: Id of the RouteTable of the VPC to be used by subnets. This is used only when subnets are created into existing VPC.
+                        subnets:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/EKSSubnet'
+                                minItems: 2
+
+
 
         CreateAKCSProperties:
             type: object
@@ -8502,4 +8516,24 @@ components:
                 lifecycleState:
                     type: string
 
+        EKSVpc:
+            type: object
+            properties:
+                vpcId:
+                    type: string
+                    description: The identifier of existing VPC to be used for creating the EKS cluster. If not provided a new VPC is created for the cluster.
+                cidr:
+                    type: string
+                    default: 192.168.0.0/16
+                    description: The CIDR range for the VPC in case new VPC is created.
+
+        EKSSubnet:
+            type: object
+            properties:
+                subnetId:
+                    type: string
+                    description: Id of existing subnet to use for creating the EKS cluster. If not provided new subnet will be created.
+                cidr:
+                    type: string
+                    description: The CIDR range for the subnet in case new Subnet is created.
 

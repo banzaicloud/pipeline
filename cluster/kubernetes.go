@@ -23,6 +23,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/goph/emperror"
 	"gopkg.in/yaml.v2"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -92,7 +93,7 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provision
 
 	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
 
-	return err
+	return emperror.Wrap(err, "create storage class failed")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud

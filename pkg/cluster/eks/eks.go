@@ -21,8 +21,11 @@ import (
 
 // CreateClusterEKS describes Pipeline's Amazon EKS fields of a CreateCluster request
 type CreateClusterEKS struct {
-	Version   string               `json:"version,omitempty" yaml:"version,omitempty"`
-	NodePools map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
+	Version      string               `json:"version,omitempty" yaml:"version,omitempty"`
+	NodePools    map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
+	Vpc          *ClusterVPC          `json:"vpc,omitempty" yaml:"vpc,omitempty"`
+	RouteTableId string               `json:"routeTableId,omitempty" yaml:"routeTableId,omitempty"`
+	Subnets      []*ClusterSubnet     `json:"subnets,omitempty" yaml:"subnets,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
@@ -39,6 +42,18 @@ type NodePool struct {
 	MaxCount     int    `json:"maxCount" yaml:"maxCount"`
 	Count        int    `json:"count" yaml:"count"`
 	Image        string `json:"image" yaml:"image"`
+}
+
+// ClusterVPC describes the VPC for creating an EKS cluster
+type ClusterVPC struct {
+	VpcId string `json:"vpcId,omitempty" yaml:"vpcId,omitempty"`
+	Cidr  string `json:"cidr,omitempty" yaml:"cidr,omitempty"`
+}
+
+// ClusterSubnet describes a subnet for EKS cluster
+type ClusterSubnet struct {
+	SubnetId string `json:"subnetId,omitempty" yaml:"subnetId,omitempty"`
+	Cidr     string `json:"cidr,omitemnpty" yaml:"cidr,omitempty"`
 }
 
 // Validate checks Amazon's node fields
@@ -173,6 +188,23 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 		if len(np.Image) == 0 {
 			eks.NodePools[i].Image = defaultImage
 		}
+	}
+
+	if eks.Vpc == nil {
+		eks.Vpc = &ClusterVPC{
+			Cidr: "192.168.0.0/16",
+		}
+	}
+
+	if len(eks.Subnets) == 0 {
+		eks.Subnets = append(eks.Subnets,
+			&ClusterSubnet{
+				Cidr: "192.168.64.0/20",
+			},
+			&ClusterSubnet{
+				Cidr: "192.168.80.0/20",
+			},
+		)
 	}
 
 	return nil

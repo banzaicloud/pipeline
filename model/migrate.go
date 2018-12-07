@@ -30,6 +30,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&ACSKNodePoolModel{},
 		&AmazonNodePoolsModel{},
 		&EKSClusterModel{},
+		&EKSSubnetModel{},
 		&AKSClusterModel{},
 		&AKSNodePoolModel{},
 		&DummyClusterModel{},
@@ -45,5 +46,41 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating model tables")
 
-	return db.AutoMigrate(tables...).Error
+	err := db.AutoMigrate(tables...).Error
+	if err != nil {
+		return err
+	}
+
+	// setup FKs
+	err = addForeignKey(db, logger, &ClusterModel{}, &EKSClusterModel{}, "ClusterID")
+	if err != nil {
+		return err
+	}
+
+	err = addForeignKey(db, logger, &EKSClusterModel{}, &EKSSubnetModel{}, "ClusterID")
+	return err
+}
+
+func addForeignKey(db *gorm.DB, logger logrus.FieldLogger, parentTable, childTable interface{}, foreignKeyField string) error {
+	parentTableScope := db.NewScope(parentTable)
+	childTableScope := db.NewScope(childTable)
+
+	log := logger.WithFields(logrus.Fields{
+		"parent_table": strings.TrimSpace(parentTableScope.TableName()),
+		"child_table":  strings.TrimSpace(childTableScope.TableName()),
+	})
+
+	f, ok := childTableScope.FieldByName(foreignKeyField)
+	if !ok {
+		return fmt.Errorf("field %q found", foreignKeyField)
+	}
+	if !f.IsForeignKey {
+		return fmt.Errorf("%q is not a foreign key field", foreignKeyField)
+	}
+
+	parentIdField := parentTableScope.PrimaryKey()
+	references := fmt.Sprintf("%s(%s)", parentTableScope.TableName(), parentIdField)
+
+	log.Infof("adding foreign key constraint: %s -> %s", f.DBName, references)
+	return db.Model(childTable).AddForeignKey(f.DBName, references, "RESTRICT", "RESTRICT").Error
 }
