@@ -504,6 +504,8 @@ func addNodeSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.D
 		log.Infof("summary added to node [%s] in nodepool [%s]", node.Name, nodePoolName)
 	}
 
+	details.NodePools[nodePoolName].Count = len(nodes.Items)
+
 	return nil
 }
 
