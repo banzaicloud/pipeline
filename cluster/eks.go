@@ -924,10 +924,10 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
-	nodePools := make(map[string]*pkgCluster.NodeDetails)
+	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil {
-			nodePools[np.Name] = &pkgCluster.NodeDetails{
+			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 				Version:           aws.StringValue(clusterDesc.Cluster.Version),
 				Count:             np.Count,
