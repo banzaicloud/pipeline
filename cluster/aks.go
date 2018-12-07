@@ -580,7 +580,12 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	log.Info("Get cluster success")
+
+	status, err := c.GetStatus()
+	if err != nil {
+		return nil, err
+	}
+
 	stage := resp.Value.Properties.ProvisioningState
 	log.Info("Cluster stage is", stage)
 	if stage == statusSucceeded {
@@ -592,18 +597,16 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					Version:           c.modelCluster.AKS.KubernetesVersion,
-					Count:             np.Count,
-					MinCount:          np.NodeMinCount,
-					MaxCount:          np.NodeMaxCount,
+					NodePoolStatus:    *status.NodePools[np.Name],
 				}
 			}
 		}
 
 		return &pkgCluster.DetailsResponse{
-			Id:            c.modelCluster.ID,
-			MasterVersion: c.modelCluster.AKS.KubernetesVersion,
-			NodePools:     nodePools,
+			Id:                       c.modelCluster.ID,
+			MasterVersion:            c.modelCluster.AKS.KubernetesVersion,
+			NodePools:                nodePools,
+			GetClusterStatusResponse: *status,
 		}, nil
 
 	}

@@ -917,6 +917,11 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
+	status, err := c.GetStatus()
+	if err != nil {
+		return nil, err
+	}
+
 	eksSvc := eks.New(session)
 	describeCluster := &eks.DescribeClusterInput{Name: aws.String(c.GetName())}
 	clusterDesc, err := eksSvc.DescribeCluster(describeCluster)
@@ -929,10 +934,7 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				Version:           aws.StringValue(clusterDesc.Cluster.Version),
-				Count:             np.Count,
-				MinCount:          np.NodeMinCount,
-				MaxCount:          np.NodeMaxCount,
+				NodePoolStatus:    *status.NodePools[np.Name],
 			}
 		}
 	}

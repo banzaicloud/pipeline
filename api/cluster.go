@@ -384,18 +384,6 @@ func GetClusterDetails(c *gin.Context) {
 		return
 	}
 
-	status, err := commonCluster.GetStatus()
-	if err != nil {
-		log.Errorf("Error during getting status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during getting status",
-			Error:   err.Error(),
-		})
-		return
-	}
-	details.GetClusterStatusResponse = *status
-
 	endpoint, err := commonCluster.GetAPIEndpoint()
 	if err != nil {
 		log.Warnf("Error during getting API endpoint: %s", err.Error())

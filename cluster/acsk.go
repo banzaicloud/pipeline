@@ -675,20 +675,24 @@ func (c *ACSKCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, pkgErrors.ErrorClusterNotReady
 	}
 
+	status, err := c.GetStatus()
+	if err != nil {
+		return nil, err
+	}
+
 	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 	for _, np := range c.modelCluster.ACSK.NodePools {
 		nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-			Count:             np.Count,
-			MinCount:          np.Count,
-			MaxCount:          np.Count,
+			NodePoolStatus:    *status.NodePools[np.Name],
 		}
 	}
 
 	return &pkgCluster.DetailsResponse{
-		Id:            c.modelCluster.ID,
-		NodePools:     nodePools,
-		MasterVersion: r.KubernetesVersion,
+		Id:                       c.modelCluster.ID,
+		NodePools:                nodePools,
+		MasterVersion:            r.KubernetesVersion,
+		GetClusterStatusResponse: *status,
 	}, nil
 }
 
