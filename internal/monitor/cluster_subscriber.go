@@ -127,9 +127,10 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	query := &pkgSecret.ListSecretsQuery{
 		Type: pkgSecret.TLSSecretType,
 		Tags: []string{
-			fmt.Sprintf("clusterUID:%d", clusterID),
+			fmt.Sprintf("clusterUID:%s", c.GetUID()),
 			"app:prometheus",
 		},
+		Values: true,
 	}
 	secrets, err := pipSecret.Store.List(org.ID, query)
 	if err != nil {
@@ -338,7 +339,7 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 	return &promconfig.ScrapeConfig{
 		JobName:     fmt.Sprintf("%s-%s", params.orgName, params.clusterName),
 		HonorLabels: true,
-		MetricsPath: fmt.Sprintf("/api/v1/namespaces/%s/services/%s-prometheus-server:80/proxy/prometheus/federate", s.pipelineNamespace, pipConfig.MonitorReleaseName),
+		MetricsPath: fmt.Sprintf("/prometheus/federate", s.pipelineNamespace, pipConfig.MonitorReleaseName),
 		Scheme:      "https",
 		Params: url.Values{
 			"match[]": {

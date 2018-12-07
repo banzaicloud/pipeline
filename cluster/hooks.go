@@ -192,7 +192,7 @@ func InstallMonitoring(input interface{}) error {
 
 	// Generate TLS secret for federated use
 	createTLSRequest := &secret.CreateSecretRequest{
-		Name: "prometheus-federated-tls",
+		Name: fmt.Sprintf("prometheus-tls-%d", cluster.GetID()),
 		Type: pkgSecret.TLSSecretType,
 		Tags: []string{
 			clusterUidTag,
@@ -204,7 +204,7 @@ func InstallMonitoring(input interface{}) error {
 			pkgSecret.TLSHosts: host,
 		},
 	}
-	tlsSecretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &createSecretRequest)
+	tlsSecretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), createTLSRequest)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create tls secret")
 	}
@@ -213,8 +213,8 @@ func InstallMonitoring(input interface{}) error {
 		SourceSecretName: createTLSRequest.Name,
 		Namespace:        grafanaNamespace,
 		Spec: map[string]InstallSecretRequestSpecItem{
-			"tls.crt": {"serverCert", nil},
-			"tls.key": {"serverKey", nil},
+			"tls.crt": {Source: "serverCert"},
+			"tls.key": {Source: "serverKey"},
 		},
 	}
 	installedSecret, err := InstallSecret(cluster, createTLSRequest.Name, installTLSRequest)
@@ -250,7 +250,7 @@ func InstallMonitoring(input interface{}) error {
 				"ingress": map[string]interface{}{
 					"enabled": true,
 					"hosts": []string{
-						host,
+						host + "/prometheus",
 					},
 					"tls": []map[string]interface{}{
 						{
