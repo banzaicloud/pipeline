@@ -392,26 +392,19 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 	for _, np := range o.modelCluster.OKE.NodePools {
 		if np != nil {
-			count := getNodeCount(np)
 			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				Version:           np.Version,
-				Count:             count,
-				MinCount:          count,
-				MaxCount:          count,
+				NodePoolStatus:    *status.NodePools[np.Name],
 			}
 		}
 	}
 
 	// todo needs to add other fields
 	return &pkgCluster.DetailsResponse{
-		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
-		Name:              status.Name,
-		Id:                status.ResourceID,
-		Location:          status.Location,
-		MasterVersion:     o.modelCluster.OKE.Version,
-		NodePools:         nodePools,
-		Status:            o.modelCluster.Status,
+		Id:                       status.ResourceID,
+		MasterVersion:            o.modelCluster.OKE.Version,
+		NodePools:                nodePools,
+		GetClusterStatusResponse: *status,
 	}, nil
 }
 
