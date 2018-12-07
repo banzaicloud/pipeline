@@ -1866,14 +1866,9 @@ func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		}
 
 		response := &pkgCluster.DetailsResponse{
-			CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
-			Name:              c.model.Cluster.Name,
-			Id:                c.model.Cluster.ID,
-			Location:          c.model.Cluster.Location,
-			MasterVersion:     c.model.MasterVersion,
-			NodePools:         nodePools,
-			Region:            c.model.Region,
-			Status:            c.model.Cluster.Status,
+			Id:            c.model.Cluster.ID,
+			MasterVersion: c.model.MasterVersion,
+			NodePools:     nodePools,
 		}
 		return response, nil
 	}
