@@ -160,6 +160,13 @@ func InstallMonitoring(input interface{}) error {
 
 	clusterNameTag := fmt.Sprintf("cluster:%s", cluster.GetName())
 	clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
+	orgId := cluster.GetOrganizationId()
+	org, err := auth.GetOrganizationById(orgId)
+	if err != nil {
+		log.Errorf("Retrieving organization with id %d failed: %s", orgId, err.Error())
+		return err
+	}
+	host := fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, viper.GetString(pipConfig.DNSBaseDomain))
 
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
@@ -176,7 +183,6 @@ func InstallMonitoring(input interface{}) error {
 			fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName),
 		},
 	}
-
 	secretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &createSecretRequest)
 	if err != nil {
 		log.Errorf("Error during storing grafana secret: %s", err.Error())
@@ -184,14 +190,39 @@ func InstallMonitoring(input interface{}) error {
 	}
 	log.Debugf("Grafana Secret Stored id: %s", secretID)
 
-	orgId := cluster.GetOrganizationId()
-	org, err := auth.GetOrganizationById(orgId)
-	if err != nil {
-		log.Errorf("Retrieving organization with id %d failed: %s", orgId, err.Error())
-		return err
+	// Generate TLS secret for federated use
+	createTLSRequest := &secret.CreateSecretRequest{
+		Name: "prometheus-federated-tls",
+		Type: pkgSecret.TLSSecretType,
+		Tags: []string{
+			clusterUidTag,
+			pkgSecret.TagBanzaiReadonly,
+			"app:prometheus",
+			fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName),
+		},
+		Values: map[string]string{
+			pkgSecret.TLSHosts: host,
+		},
 	}
+	tlsSecretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &createSecretRequest)
+	if err != nil {
+		return emperror.Wrap(err, "failed to create tls secret")
+	}
+	log.Debugf("secret created with id: %s", tlsSecretID)
+	installTLSRequest := InstallSecretRequest{
+		SourceSecretName: createTLSRequest.Name,
+		Namespace:        grafanaNamespace,
+		Spec: map[string]InstallSecretRequestSpecItem{
+			"tls.crt": {"serverCert", nil},
+			"tls.key": {"serverKey", nil},
+		},
+	}
+	installedSecret, err := InstallSecret(cluster, createTLSRequest.Name, installTLSRequest)
+	if err != nil {
+		return emperror.Wrap(err, "failed to install tls secret to cluster")
+	}
+	log.Debugf("secret successfully installed to cluster: %s", installedSecret.Name)
 
-	host := fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, viper.GetString(pipConfig.DNSBaseDomain))
 	log.Debugf("grafana ingress host: %s", host)
 	grafanaValues := map[string]interface{}{
 		"grafana": map[string]interface{}{
@@ -221,6 +252,7 @@ func InstallMonitoring(input interface{}) error {
 				"affinity":    getHeadNodeAffinity(cluster),
 				"tolerations": getHeadNodeTolerations(),
 			},
+			//TODO set prometheus ingress fot mTLS
 		},
 	}
 	grafanaValuesJson, err := yaml.Marshal(grafanaValues)
