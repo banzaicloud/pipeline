@@ -1839,12 +1839,12 @@ func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	if statusRunning == cl.Status {
 
 		//userId, userName := GetUserIdAndName(c.modelCluster)
-		nodePools := make(map[string]*pkgCluster.NodeDetails)
+		nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 
 		for _, np := range c.model.NodePools {
 			if np != nil {
 
-				nodePools[np.Name] = &pkgCluster.NodeDetails{
+				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 					Version:           c.model.NodeVersion,
 					Count:             np.NodeCount,

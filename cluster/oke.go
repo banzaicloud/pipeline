@@ -389,11 +389,11 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
-	nodePools := make(map[string]*pkgCluster.NodeDetails)
+	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 	for _, np := range o.modelCluster.OKE.NodePools {
 		if np != nil {
 			count := getNodeCount(np)
-			nodePools[np.Name] = &pkgCluster.NodeDetails{
+			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 				Version:           np.Version,
 				Count:             count,

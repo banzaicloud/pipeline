@@ -585,12 +585,12 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	log.Info("Cluster stage is", stage)
 	if stage == statusSucceeded {
 
-		nodePools := make(map[string]*pkgCluster.NodeDetails)
+		nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 
 		for _, np := range c.modelCluster.AKS.NodePools {
 			if np != nil {
 
-				nodePools[np.Name] = &pkgCluster.NodeDetails{
+				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 					Version:           c.modelCluster.AKS.KubernetesVersion,
 					Count:             np.Count,
