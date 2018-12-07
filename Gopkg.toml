@@ -123,10 +123,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/qor/redirect_back"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/qor/session"
 
 [[constraint]]
