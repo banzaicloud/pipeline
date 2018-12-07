@@ -2259,7 +2259,6 @@
     "github.com/qor/auth/claims",
     "github.com/qor/auth/providers/github",
     "github.com/qor/qor/utils",
-    "github.com/qor/redirect_back",
     "github.com/qor/session",
     "github.com/qor/session/gorilla",
     "github.com/satori/go.uuid",
