@@ -23,7 +23,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -339,7 +338,7 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 	return &promconfig.ScrapeConfig{
 		JobName:     fmt.Sprintf("%s-%s", params.orgName, params.clusterName),
 		HonorLabels: true,
-		MetricsPath: fmt.Sprintf("/prometheus/federate", s.pipelineNamespace, pipConfig.MonitorReleaseName),
+		MetricsPath: "/prometheus/federate",
 		Scheme:      "https",
 		Params: url.Values{
 			"match[]": {
