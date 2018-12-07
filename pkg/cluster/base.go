@@ -183,7 +183,7 @@ type GetClusterStatusResponse struct {
 
 // NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
-	Autoscaling  bool   `json:"autoscaling,omitempty"`
+	Autoscaling  bool   `json:"autoscaling"`
 	Count        int    `json:"count,omitempty"`
 	InstanceType string `json:"instanceType,omitempty"`
 	SpotPrice    string `json:"spotPrice,omitempty"`
@@ -511,11 +511,8 @@ type PodDetailsResponse struct {
 // NodePoolDetails describes a cluster's node details
 type NodePoolDetails struct {
 	pkgCommon.CreatorBaseFields
-	Version         string                     `json:"version,omitempty"`
+	NodePoolStatus
 	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
-	Count           int                        `json:"count,omitempty"`
-	MinCount        int                        `json:"minCount,omitempty"`
-	MaxCount        int                        `json:"maxCount,omitempty"`
 }
 
 // ResourceSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable

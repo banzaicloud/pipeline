@@ -1847,6 +1847,10 @@ func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}
 	c.log.Info("Get cluster success")
 	c.log.Infof("Cluster status is %s", cl.Status)
+	status, err := c.GetStatus()
+	if err != nil {
+		return nil, err
+	}
 
 	if statusRunning == cl.Status {
 
@@ -1858,18 +1862,16 @@ func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					Version:           c.model.NodeVersion,
-					Count:             np.NodeCount,
-					MinCount:          np.NodeMinCount,
-					MaxCount:          np.NodeMaxCount,
+					NodePoolStatus:    *status.NodePools[np.Name],
 				}
 			}
 		}
 
 		response := &pkgCluster.DetailsResponse{
-			Id:            c.model.Cluster.ID,
-			MasterVersion: c.model.MasterVersion,
-			NodePools:     nodePools,
+			Id:                       c.model.Cluster.ID,
+			MasterVersion:            c.model.MasterVersion,
+			NodePools:                nodePools,
+			GetClusterStatusResponse: *status,
 		}
 		return response, nil
 	}
