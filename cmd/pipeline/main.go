@@ -429,7 +429,7 @@ func main() {
 	if port := viper.GetInt("pipeline.listenport"); port != 0 {
 		host := strings.Split(bindAddr, ":")[0]
 		bindAddr = fmt.Sprintf("%s:%d", host, port)
-		logger.Errorf("pipeline.port=%d setting is deprecated! Falling back to pipeline.bindaddr=%s", port, bindAddr)
+		logger.Errorf("pipeline.listenport=%d setting is deprecated! Falling back to pipeline.bindaddr=%s", port, bindAddr)
 	}
 	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
 	if certFile != "" && keyFile != "" {
