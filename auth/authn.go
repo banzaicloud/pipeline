@@ -35,7 +35,6 @@ import (
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	"github.com/qor/auth/providers/github"
-	"github.com/qor/redirect_back"
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
 	"github.com/satori/go.uuid"
@@ -70,8 +69,7 @@ var (
 
 	cicdDB *gorm.DB
 
-	redirectBack *redirect_back.RedirectBack
-	Auth         *auth.Auth
+	Auth *auth.Auth
 
 	signingKey       string
 	signingKeyBase32 string
@@ -131,6 +129,19 @@ type accessManager interface {
 	RevokeAllAccessFromUser(userID string)
 }
 
+type redirector struct {
+}
+
+func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action string) {
+	var url string
+	if req.Context().Value(SignUp) != nil {
+		url = viper.GetString("pipeline.signupRedirectPath")
+	} else {
+		url = viper.GetString("pipeline.uipath")
+	}
+	http.Redirect(w, req, url, http.StatusSeeOther)
+}
+
 // Init initializes the auth
 func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImporter) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
@@ -161,16 +172,6 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 
 	SessionManager = gorilla.New(PipelineSessionCookie, cookieStore)
 
-	// A RedirectBack instance which constantly redirects to /ui
-	redirectBack = redirect_back.New(&redirect_back.Config{
-		SessionManager:  SessionManager,
-		IgnoredPrefixes: []string{"/"},
-		IgnoreFunc: func(r *http.Request) bool {
-			return true
-		},
-		FallbackPath: viper.GetString("pipeline.uipath"),
-	})
-
 	cicdDB = db
 
 	sessionStorer := &BanzaiSessionStorer{
@@ -185,7 +186,7 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
 		DB:                config.DB(),
-		Redirector:        auth.Redirector{RedirectBack: redirectBack},
+		Redirector:        redirector{},
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},
 		ViewPaths:         []string{"views"},
@@ -242,7 +243,6 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 	// We have to make the raw net/http handlers a bit Gin-ish
 	authHandler := gin.WrapH(Auth.NewServeMux())
 	engine.Use(gin.WrapH(SessionManager.Middleware(utils.NopHandler{})))
-	engine.Use(gin.WrapH(redirectBack.Middleware(utils.NopHandler{})))
 
 	authGroup := engine.Group("/auth/")
 	{
