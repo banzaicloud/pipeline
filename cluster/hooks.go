@@ -34,6 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -90,8 +91,8 @@ func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) (err error)
 	return
 }
 
-// PollingKubernetesConfig polls kubeconfig from the cloud
-func PollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
+// pollingKubernetesConfig polls kubeconfig from the cloud
+func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 
 	var err error
 
@@ -101,7 +102,7 @@ func PollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 	var kubeConfig []byte
 	for i := 0; i < retryCount; i++ {
 		kubeConfig, err = cluster.DownloadK8sConfig()
-		if err != nil {
+		if err != nil && err != pkgError.ErrorFunctionShouldNotBeCalled {
 			log.Infof("Error getting kubernetes config attempt %d/%d: %s. Waiting %d seconds", i, retryCount, err.Error(), retrySleepTime)
 			time.Sleep(time.Duration(retrySleepTime) * time.Second)
 			continue
@@ -1004,8 +1005,12 @@ func StoreKubeConfig(input interface{}) error {
 	if !ok {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
+	if cluster.GetConfigSecretId() != "" {
+		log.Info("Config already present in Vault")
+		return nil
+	}
 
-	config, err := PollingKubernetesConfig(cluster)
+	config, err := pollingKubernetesConfig(cluster)
 	if err != nil {
 		log.Errorf("Error downloading kubeconfig: %s", err.Error())
 		return err
@@ -1168,8 +1173,6 @@ func LabelNodes(input interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	log.Debugf("node names: %v", nodeNames)
 
 	for name, nodes := range nodeNames {
 

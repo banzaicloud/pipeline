@@ -57,4 +57,6 @@ var (
 	ErrorAlibabaNodePoolFieldLenError = errors.New("Only one 'nodePool' is supported.")
 	ErrorAlibabaMinNumberOfNodes      = errors.New("'num_of_nodes' must be greater than zero.")
 	ErrorBucketDeleteNotEmpty         = errors.New("non empty buckets can not be deleted")
+
+	ErrorFunctionShouldNotBeCalled = errors.New("error function should not be called")
 )

@@ -223,7 +223,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	cloudType := modelCluster.Cloud
 	distribution := modelCluster.Distribution
 
-	if distribution != "" {
+	if distribution == "banzaicloud" {
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}
 
@@ -435,7 +435,6 @@ func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterMod
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
-	return nil, nil
 }
 
 // CleanStateStore deletes state store folder by cluster name
