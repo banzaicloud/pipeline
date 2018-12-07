@@ -247,12 +247,25 @@ func InstallMonitoring(input interface{}) error {
 			"server": map[string]interface{}{
 				"affinity":    getHeadNodeAffinity(cluster),
 				"tolerations": getHeadNodeTolerations(),
+				"ingress": map[string]interface{}{
+					"enabled": true,
+					"hosts": []string{
+						host,
+					},
+					"tls": []map[string]interface{}{
+						{
+							"secretName": installedSecret.Name,
+							"hosts": []string{
+								host,
+							},
+						},
+					},
+				},
 			},
 			"pushgateway": map[string]interface{}{
 				"affinity":    getHeadNodeAffinity(cluster),
 				"tolerations": getHeadNodeTolerations(),
 			},
-			//TODO set prometheus ingress fot mTLS
 		},
 	}
 	grafanaValuesJson, err := yaml.Marshal(grafanaValues)
