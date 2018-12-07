@@ -1,9 +1,10 @@
-# ClusterProfileEks
+# ClusterProfileEksEks
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Eks** | [**ClusterProfileEksEks**](ClusterProfileEKS_eks.md) |  | [optional] 
+**Version** | **string** |  | [optional] 
+**NodePools** | [**map[string]NodePoolsAmazon**](NodePoolsAmazon.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

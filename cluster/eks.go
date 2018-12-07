@@ -28,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/pipeline/config"
@@ -39,6 +40,7 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	pgkEc2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -84,8 +86,12 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.EKS,
 		EKS: model.EKSClusterModel{
-			Version:   request.Properties.CreateClusterEKS.Version,
-			NodePools: modelNodePools,
+			Version:      request.Properties.CreateClusterEKS.Version,
+			NodePools:    modelNodePools,
+			VpcId:        &request.Properties.CreateClusterEKS.Vpc.VpcId,
+			VpcCidr:      &request.Properties.CreateClusterEKS.Vpc.Cidr,
+			RouteTableId: &request.Properties.CreateClusterEKS.RouteTableId,
+			Subnets:      createSubnetsFromRequest(request.Properties.CreateClusterEKS.Subnets),
 		},
 		CreatedBy: userId,
 	}
@@ -111,6 +117,19 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 		i++
 	}
 	return modelNodePools
+}
+
+func createSubnetsFromRequest(subnets []*pkgEks.ClusterSubnet) []*model.EKSSubnetModel {
+	var modelSubnets []*model.EKSSubnetModel
+	for _, subnet := range subnets {
+		if subnet != nil {
+			modelSubnets = append(modelSubnets, &model.EKSSubnetModel{
+				SubnetId: &subnet.SubnetId,
+				Cidr:     &subnet.Cidr,
+			})
+		}
+	}
+	return modelSubnets
 }
 
 //EKSCluster struct for EKS cluster
@@ -177,7 +196,7 @@ func (c *EKSCluster) CreateCluster() error {
 
 	awsCred, err := c.createAWSCredentialsFromSecret()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to retrieve AWS credentials from secret")
 	}
 
 	session, err := session.NewSession(&aws.Config{
@@ -185,7 +204,7 @@ func (c *EKSCluster) CreateCluster() error {
 		Credentials: awsCred,
 	})
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to create AWS session")
 	}
 
 	// role that controls access to resources for creating an EKS cluster
@@ -197,8 +216,7 @@ func (c *EKSCluster) CreateCluster() error {
 	log.Infoln("Getting CloudFormation template for creating node pools for EKS cluster")
 	nodePoolTemplate, err := pkgEks.GetNodePoolTemplate()
 	if err != nil {
-		log.Errorln("Getting CloudFormation template for node pools failed: ", err.Error())
-		return err
+		return emperror.Wrap(err, "failed to get CloudFormation template for node pools")
 	}
 
 	creationContext := action.NewEksClusterCreationContext(
@@ -210,7 +228,17 @@ func (c *EKSCluster) CreateCluster() error {
 
 	sshSecret, err := c.getSshSecret(c)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to get ssh secret")
+	}
+
+	creationContext.VpcID = c.modelCluster.EKS.VpcId
+	creationContext.RouteTableID = c.modelCluster.EKS.RouteTableId
+	for _, subnet := range c.modelCluster.EKS.Subnets {
+		if aws.StringValue(subnet.SubnetId) != "" {
+			creationContext.SubnetIDs = append(creationContext.SubnetIDs, subnet.SubnetId)
+		} else if aws.StringValue(subnet.Cidr) != "" {
+			creationContext.SubnetBlocks = append(creationContext.SubnetBlocks, subnet.Cidr)
+		}
 	}
 
 	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFulfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
@@ -227,16 +255,14 @@ func (c *EKSCluster) CreateCluster() error {
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		c.log.Errorln("EKS cluster create error:", err.Error())
-		return err
+		return emperror.Wrap(err, "failed to create EKS cluster")
 	}
 
 	c.APIEndpoint = aws.StringValue(creationContext.APIEndpoint)
 	c.CertificateAuthorityData, err = base64.StdEncoding.DecodeString(aws.StringValue(creationContext.CertificateAuthorityData))
 
 	if err != nil {
-		c.log.Errorf("Decoding base64 format EKS K8S certificate authority data failed: %s", err.Error())
-		return err
+		return emperror.Wrap(err, "failed to base64 decode EKS K8S certificate authority data")
 	}
 
 	// Create the aws-auth ConfigMap for letting other nodes join, and users access the API
@@ -254,26 +280,26 @@ func (c *EKSCluster) CreateCluster() error {
 
 	kubeConfig, err := c.DownloadK8sConfig()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to retrieve K8S config")
 	}
 
 	restKubeConfig, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to create K8S config object")
 	}
 
 	kubeClient, err := kubernetes.NewForConfig(restKubeConfig)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to create K8S client")
 	}
 
 	constraint, err := semver.NewConstraint(">= 1.12")
 	if err != nil {
-		return emperror.Wrap(err, "Could not set  1.12 constraint for semver")
+		return emperror.Wrap(err, "could not set  1.12 constraint for semver")
 	}
 	kubeVersion, err := semver.NewVersion(c.modelCluster.EKS.Version)
 	if err != nil {
-		return emperror.Wrap(err, "Could not set eks version for semver check")
+		return emperror.Wrap(err, "could not set eks version for semver check")
 	}
 	var volumeBindingMode storagev1.VolumeBindingMode
 	if constraint.Check(kubeVersion) {
@@ -284,7 +310,9 @@ func (c *EKSCluster) CreateCluster() error {
 	// create default storage class
 	err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode)
 	if err != nil {
-		return err
+		return emperror.WrapWith(err, "failed to create default storage class",
+			"provisioner", "kubernetes.io/aws-ebs",
+			"bindingMode", volumeBindingMode)
 	}
 
 	awsAuthConfigMap := v1.ConfigMap{
@@ -296,12 +324,12 @@ func (c *EKSCluster) CreateCluster() error {
 	}
 	_, err = kubeClient.CoreV1().ConfigMaps("kube-system").Create(&awsAuthConfigMap)
 	if err != nil {
-		return err
+		return emperror.WrapWith(err, "failed to create config map", "configmap", awsAuthConfigMap.Name)
 	}
 
 	err = c.modelCluster.Save()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to persist cluster to database")
 	}
 
 	c.log.Info("EKS cluster created.")
@@ -956,8 +984,7 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	regions, err := ListEksRegions(c.GetOrganizationId(), c.GetSecretId())
 	if err != nil {
-		c.log.Errorf("Listing regions where EKS service is available failed: %s", err.Error())
-		return err
+		return emperror.Wrap(err, "failed to list regions where EKS service is enabled")
 	}
 
 	regionFound := false
@@ -974,24 +1001,126 @@ func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 
 	imagesInRegion, err := ListEksImages(r.Location)
 	if err != nil {
-		c.log.Errorf("Listing AMIs that that support EKS failed: %s", err.Error())
-		return err
+		return emperror.Wrap(err, "failed to list AMIs that that support EKS")
 	}
 
 	for name, nodePool := range r.Properties.CreateClusterEKS.NodePools {
 		images, ok := imagesInRegion[r.Location]
 		if !ok {
-			c.log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)
-			return pkgErrors.ErrorNotValidNodeImage
+			return emperror.With(pkgErrors.ErrorNotValidNodeImage, "image", nodePool.Image, "nodePool", name, "region", r.Location)
 		}
 
 		for _, image := range images {
 			if image != nodePool.Image {
-				c.log.Errorf("Image %q provided for node pool %q is not valid", name, nodePool.Image)
-				return pkgErrors.ErrorNotValidNodeImage
+				return emperror.With(pkgErrors.ErrorNotValidNodeImage, "image", nodePool.Image, "nodePool", name, "region", r.Location)
 			}
 		}
 
+	}
+
+	// validate VPC
+	awsCred, err := c.createAWSCredentialsFromSecret()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cluster AWS credentials")
+	}
+
+	session, err := session.NewSession(&aws.Config{
+		Region:      aws.String(c.modelCluster.Location),
+		Credentials: awsCred,
+	})
+	if err != nil {
+		return emperror.Wrap(err, "failed to create AWS session")
+	}
+
+	netSvc := pgkEc2.NewNetworkSvc(ec2.New(session), c.log)
+	if r.Properties.CreateClusterEKS.Vpc != nil {
+
+		if r.Properties.CreateClusterEKS.Vpc.VpcId != "" && r.Properties.CreateClusterEKS.Vpc.Cidr != "" {
+			return errors.New("specifying both CIDR and ID for VPC is not allowed")
+		}
+
+		if r.Properties.CreateClusterEKS.Vpc.VpcId == "" && r.Properties.CreateClusterEKS.Vpc.Cidr == "" {
+			return errors.New("either CIDR or ID is required for VPC")
+		}
+
+		if r.Properties.CreateClusterEKS.Vpc.VpcId != "" {
+			// verify that the provided VPC exists and is in available state
+			exists, err := netSvc.VpcAvailable(r.Properties.CreateClusterEKS.Vpc.VpcId)
+
+			if err != nil {
+				return emperror.WrapWith(err, "failed to check if VPC is available", "vpcId", r.Properties.CreateClusterEKS.Vpc.VpcId)
+			}
+
+			if !exists {
+				return errors.New("VPC not found or it's not in 'available' state")
+			}
+		}
+	}
+
+	// subnets
+	if len(r.Properties.CreateClusterEKS.Subnets) != 2 {
+		return errors.New("2 Subnets in 2 different AZs are required")
+	}
+
+	subnetCidrUsed := r.Properties.CreateClusterEKS.Subnets[0].Cidr != ""
+
+	if !subnetCidrUsed && r.Properties.CreateClusterEKS.Vpc.Cidr != "" {
+		return errors.New("if Subnet ID is specified than VPC ID must be provided as well")
+	}
+
+	for _, subnet := range r.Properties.CreateClusterEKS.Subnets {
+		if subnet.Cidr != "" && subnet.SubnetId != "" {
+			return errors.New("specifying both CIDR and ID for a Subnet is not allowed")
+		}
+
+		if subnet.Cidr == "" && subnet.SubnetId == "" {
+			return errors.New("either CIDR or ID is required for Subnet")
+		}
+
+		if subnetCidrUsed {
+			if subnet.SubnetId != "" && subnet.Cidr == "" {
+				return errors.New("specify either CIDR or ID for all Subnets")
+			}
+		} else {
+			if subnet.SubnetId == "" && subnet.Cidr != "" {
+				return errors.New("specify either CIDR or ID for all Subnets")
+			}
+		}
+
+		if subnet.SubnetId != "" {
+			exists, err := netSvc.SubnetAvailable(subnet.SubnetId, r.Properties.CreateClusterEKS.Vpc.VpcId)
+			if err != nil {
+				return emperror.WrapWith(err, "failed to check if Subnet is available in VPC")
+			}
+			if !exists {
+				return fmt.Errorf("subnet '%s' not found in VPC or it's not in 'available' state", subnet.SubnetId)
+			}
+		}
+	}
+
+	// route table
+	// if VPC ID and Subnet CIDR is provided than Route Table ID is required as well.
+
+	if r.Properties.CreateClusterEKS.Vpc.VpcId != "" && subnetCidrUsed {
+		if r.Properties.CreateClusterEKS.RouteTableId == "" {
+			return errors.New("if VPC ID specified and CIDR for Subnets, Route Table ID must be provided as well")
+		}
+
+		// verify if provided route table exists
+		exists, err := netSvc.RouteTableAvailable(r.Properties.CreateClusterEKS.RouteTableId, r.Properties.CreateClusterEKS.Vpc.VpcId)
+		if err != nil {
+			return emperror.WrapWith(err, "failed to check if RouteTable is available",
+				"vpcId", r.Properties.CreateClusterEKS.Vpc.VpcId,
+				"routeTableId", r.Properties.CreateClusterEKS.RouteTableId)
+		}
+		if !exists {
+			return errors.New("Route Table not found in the given VPC or it's not in 'active' state")
+		}
+
+	} else {
+		if r.Properties.CreateClusterEKS.RouteTableId != "" {
+			return errors.New("Route Table ID should be provided only when VPC ID and CIDR for Subnets are specified")
+		}
 	}
 
 	return nil
@@ -1166,16 +1295,18 @@ func (c *EKSCluster) loadEksMasterSettings(context *action.EksClusterCreateUpdat
 func (c *EKSCluster) loadClusterUserCredentials(context *action.EksClusterCreateUpdateContext) error {
 	// Get IAM user access key id and secret
 	if c.awsAccessKeyID == "" || c.awsSecretAccessKey == "" {
-		eksStackName := c.generateStackNameForCluster()
-		getVPCConfig := action.NewGenerateVPCConfigRequestAction(c.log, context, eksStackName, c.GetOrganizationId())
 
-		_, err := getVPCConfig.ExecuteAction(nil)
+		clusterUserAccessKeyId, clusterUserSecretAccessKey, err := action.GetClusterUserAccessKeyIdAndSecretVault(c.GetOrganizationId(), context.ClusterName)
+
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "getting user access key and secret failed")
 		}
 
-		c.awsAccessKeyID = context.ClusterUserAccessKeyId
-		c.awsSecretAccessKey = context.ClusterUserSecretAccessKey
+		context.ClusterUserAccessKeyId = clusterUserAccessKeyId
+		context.ClusterUserSecretAccessKey = clusterUserSecretAccessKey
+
+		c.awsAccessKeyID = clusterUserAccessKeyId
+		c.awsSecretAccessKey = clusterUserSecretAccessKey
 	}
 
 	return nil
