@@ -17,6 +17,7 @@ package backups
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -40,6 +41,13 @@ func GetLogs(c *gin.Context) {
 	backup, err := svc.GetBackupsService().GetByID(backupID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backup")
+		logger.Error(err)
+		common.ErrorResponse(c, err)
+		return
+	}
+
+	if backup.Bucket == nil {
+		err = errors.New("could not find the related bucket")
 		logger.Error(err)
 		common.ErrorResponse(c, err)
 		return
