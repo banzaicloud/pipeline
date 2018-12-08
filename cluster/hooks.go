@@ -150,9 +150,9 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
+	// Generating Grafana credentials
 	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
 	grafanaNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
-	// Grafana password generator
 	grafanaAdminPass, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
 		return errors.Errorf("Grafana admin user password generator failed: %T", err)
@@ -161,7 +161,7 @@ func InstallMonitoring(input interface{}) error {
 	clusterNameTag := fmt.Sprintf("cluster:%s", cluster.GetName())
 	clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
 
-	createSecretRequest := secret.CreateSecretRequest{
+	grafanaSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
 		Type: pkgSecret.PasswordSecretType,
 		Values: map[string]string{
@@ -176,13 +176,51 @@ func InstallMonitoring(input interface{}) error {
 			fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName),
 		},
 	}
-
-	secretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &createSecretRequest)
+	grafanaSecretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &grafanaSecretRequest)
 	if err != nil {
-		log.Errorf("Error during storing grafana secret: %s", err.Error())
-		return err
+		return emperror.Wrap(err, "error store prometheus secret")
 	}
-	log.Debugf("Grafana Secret Stored id: %s", secretID)
+	log.Debugf("Grafana Secret Stored id: %s", grafanaSecretID)
+
+	// Generating Prometheus credentials
+	prometheusSecretName := fmt.Sprintf("cluster-%d-prometheus", cluster.GetID())
+	prometheusAdminPass, err := secret.RandomString("randAlphaNum", 12)
+	if err != nil {
+		return emperror.Wrap(err, "prometheus password generation failed")
+	}
+	prometheusSecretRequest := secret.CreateSecretRequest{
+		Name: prometheusSecretName,
+		Type: pkgSecret.HtpasswdSecretType,
+		Values: map[string]string{
+			pkgSecret.Username: "prometheus",
+			pkgSecret.Password: prometheusAdminPass,
+		},
+		Tags: []string{
+			clusterNameTag,
+			clusterUidTag,
+			pkgSecret.TagBanzaiReadonly,
+			"app:grafana",
+			fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName),
+		},
+	}
+	prometheusSecretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &prometheusSecretRequest)
+	if err != nil {
+		return emperror.Wrap(err, "error store prometheus secret")
+	}
+	log.Debugf("Grafana Secret Stored id: %s", prometheusSecretID)
+	installPromSecretRequest := InstallSecretRequest{
+		SourceSecretName: prometheusSecretName,
+		Namespace:        grafanaNamespace,
+		Spec: map[string]InstallSecretRequestSpecItem{
+			"tls.crt": {Source: "serverCert"},
+			"tls.key": {Source: "serverKey"},
+		},
+	}
+	prometheusK8Secret, err := InstallSecret(cluster, prometheusSecretName, installPromSecretRequest)
+	if err != nil {
+		return emperror.Wrap(err, "failed to install tls secret to cluster")
+	}
+	log.Debugf("installed secret on cluster: %s", prometheusK8Secret)
 
 	orgId := cluster.GetOrganizationId()
 	org, err := auth.GetOrganizationById(orgId)
@@ -191,6 +229,8 @@ func InstallMonitoring(input interface{}) error {
 		return err
 	}
 
+	// traefik.ingress.kubernetes.io/auth-type: "basic"
+	//traefik.ingress.kubernetes.io/auth-secret: "mysecret"
 	host := fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, viper.GetString(pipConfig.DNSBaseDomain))
 	log.Debugf("grafana ingress host: %s", host)
 	grafanaValues := map[string]interface{}{
@@ -216,6 +256,16 @@ func InstallMonitoring(input interface{}) error {
 			"server": map[string]interface{}{
 				"affinity":    getHeadNodeAffinity(cluster),
 				"tolerations": getHeadNodeTolerations(),
+				"ingress": map[string]interface{}{
+					"enabled": true,
+					"annotations": map[string]string{
+						"traefik.ingress.kubernetes.io/auth-type":   "basic",
+						"traefik.ingress.kubernetes.io/auth-secret": prometheusSecretName,
+					},
+					"hosts": []string{
+						host + "/prometheus",
+					},
+				},
 			},
 			"pushgateway": map[string]interface{}{
 				"affinity":    getHeadNodeAffinity(cluster),
