@@ -39,7 +39,7 @@ func Get(c *gin.Context) {
 	backup, err := common.GetARKService(c.Request).GetBackupsService().GetByID(backupID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backup")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

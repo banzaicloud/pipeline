@@ -33,7 +33,7 @@ func Status(c *gin.Context) {
 	_, err := schedulesSvc.List()
 	if err != nil {
 		err = errors.New("backup service not deployed")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponseWithStatus(c, http.StatusNotFound, err)
 		return
 	}

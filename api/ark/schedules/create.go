@@ -34,7 +34,7 @@ func Create(c *gin.Context) {
 	var request api.CreateScheduleRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		err = emperror.Wrap(err, "could not parse request")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -57,7 +57,7 @@ func Create(c *gin.Context) {
 	err := svc.GetSchedulesService().Create(spec, request.Schedule)
 	if err != nil {
 		err = emperror.Wrap(err, "could not create schedule")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

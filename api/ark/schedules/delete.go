@@ -35,7 +35,7 @@ func Delete(c *gin.Context) {
 	err := common.GetARKService(c.Request).GetSchedulesService().DeleteByName(scheduleName)
 	if err != nil {
 		err = emperror.Wrap(err, "could not delete schedule")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

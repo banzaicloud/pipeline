@@ -46,7 +46,7 @@ func Delete(c *gin.Context) {
 	err := bs.DeleteByID(bucketID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not delete bucket")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

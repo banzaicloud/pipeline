@@ -32,7 +32,7 @@ func List(c *gin.Context) {
 	schedules, err := common.GetARKService(c.Request).GetSchedulesService().List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get schedules")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

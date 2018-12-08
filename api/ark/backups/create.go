@@ -33,14 +33,14 @@ func Create(c *gin.Context) {
 	var req arkAPI.CreateBackupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		err = emperror.Wrap(err, "could not parse request")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
 
 	err := common.GetARKService(c.Request).GetClusterBackupsService().Create(req)
 	if err != nil {
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

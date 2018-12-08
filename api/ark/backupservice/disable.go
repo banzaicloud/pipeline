@@ -33,7 +33,7 @@ func Disable(c *gin.Context) {
 	err := common.GetARKService(c.Request).GetDeploymentsService().Remove()
 	if err != nil {
 		err = emperror.Wrap(err, "could not remove backup service")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
