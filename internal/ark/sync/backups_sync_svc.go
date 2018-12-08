@@ -79,7 +79,7 @@ func (s *BackupsSyncService) SyncBackups(clusterManager *cluster.Manager) error 
 			continue
 		}
 
-		if status.Status != pkgCluster.Running && status.Status != pkgCluster.Warning {
+		if status.Status == pkgCluster.Deleting {
 			continue
 		}
 

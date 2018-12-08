@@ -69,7 +69,7 @@ func (s *RestoresSyncService) SyncRestores(clusterManager *cluster.Manager) erro
 			continue
 		}
 
-		if status.Status != pkgCluster.Running && status.Status != pkgCluster.Warning {
+		if status.Status == pkgCluster.Deleting {
 			continue
 		}
 
