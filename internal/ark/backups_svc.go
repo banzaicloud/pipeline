@@ -105,8 +105,6 @@ func (s *BackupsService) List() ([]*api.Backup, error) {
 	}
 
 	for _, item := range items {
-		// overwrite ClusterID to the id of the active deployment, 0 if there is no active deployment
-		item.ClusterID = item.Bucket.Deployment.ClusterID
 		backup := item.ConvertModelToEntity()
 		backups = append(backups, backup)
 	}

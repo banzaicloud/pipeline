@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	IDParamName = "backupId"
+	IDParamName        = "backupId"
+	ClusterIDParamName = "id"
 )
 
 // AddOrgRoutes adds routes for managing ARK backups within an organization
