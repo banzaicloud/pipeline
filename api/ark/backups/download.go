@@ -40,14 +40,14 @@ func Download(c *gin.Context) {
 	backup, err := svc.GetBackupsService().GetByID(backupID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backup")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
 
 	if backup.Bucket == nil {
 		err = errors.New("could not find the related bucket")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -58,7 +58,7 @@ func Download(c *gin.Context) {
 	err = svc.GetBucketsService().StreamBackupContentsFromObjectStore(backup.Bucket, backup.Name, c.Writer)
 	if err != nil {
 		err = emperror.Wrap(err, "could not stream backup contents")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

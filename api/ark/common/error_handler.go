@@ -12,30 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package restores
+package common
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/goph/emperror"
-
-	"github.com/banzaicloud/pipeline/api/ark/common"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
-// List lists ARK restores
-func List(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
-	logger.Info("getting restores")
+var ErrorHandler emperror.Handler
 
-	restores, err := common.GetARKService(c.Request).GetRestoresService().List()
-	if err != nil {
-		err = emperror.Wrap(err, "could not get restores")
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, restores)
+func init() {
+	ErrorHandler = config.ErrorHandler()
 }

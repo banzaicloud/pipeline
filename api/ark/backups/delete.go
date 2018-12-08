@@ -41,7 +41,7 @@ func Delete(c *gin.Context) {
 	err := common.GetARKService(c.Request).GetClusterBackupsService().DeleteByID(backupID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not delete backup")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
