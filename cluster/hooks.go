@@ -1328,7 +1328,7 @@ func RestoreFromBackup(input interface{}, param pkgCluster.PostHookParam) error 
 		return err
 	}
 
-	return ark.RestoreFromBackup(params, cluster, pipConfig.DB(), log)
+	return ark.RestoreFromBackup(params, cluster, pipConfig.DB(), log, errorHandler, viper.GetDuration(pipConfig.ARKRestoreWaitTimeout))
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts
