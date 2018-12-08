@@ -27,8 +27,6 @@ type BackupsRepository struct {
 	org    *auth.Organization
 	db     *gorm.DB
 	logger logrus.FieldLogger
-
-	cluster api.Cluster
 }
 
 // NewBackupsRepository returns a new BackupsRepository instance
@@ -41,31 +39,11 @@ func NewBackupsRepository(org *auth.Organization, db *gorm.DB, logger logrus.Fie
 	}
 }
 
-// NewClusterBackupsRepository returns a new BackupsRepository instance
-func NewClusterBackupsRepository(
-	org *auth.Organization,
-	cluster api.Cluster,
-	db *gorm.DB,
-	logger logrus.FieldLogger,
-) *BackupsRepository {
-
-	return &BackupsRepository{
-		org:    org,
-		logger: logger,
-		db:     db,
-
-		cluster: cluster,
-	}
-}
-
 // Find returns ClusterBackupsModel instances
 func (r *BackupsRepository) Find() (backups []*ClusterBackupsModel, err error) {
 
 	query := ClusterBackupsModel{
 		OrganizationID: r.org.ID,
-	}
-	if r.cluster != nil {
-		query.ClusterID = r.cluster.GetID()
 	}
 
 	err = r.db.Where(&query).Preload("Bucket").Preload("Bucket.Deployment").Preload("Organization").Find(&backups).Error
@@ -81,11 +59,8 @@ func (r *BackupsRepository) FindOneByName(name string) (*ClusterBackupsModel, er
 		OrganizationID: r.org.ID,
 		Name:           name,
 	}
-	if r.cluster != nil {
-		query.ClusterID = r.cluster.GetID()
-	}
 
-	err := r.db.Where(&query).Preload("Bucket").First(&backup).Error
+	err := r.db.Where(&query).Preload("Bucket").Preload("Bucket.Deployment").First(&backup).Error
 
 	return &backup, err
 }
@@ -98,11 +73,8 @@ func (r *BackupsRepository) FindOneByID(id uint) (*ClusterBackupsModel, error) {
 		OrganizationID: r.org.ID,
 		ID:             id,
 	}
-	if r.cluster != nil {
-		query.ClusterID = r.cluster.GetID()
-	}
 
-	err := r.db.Where(&query).Preload("Bucket").First(&backup).Error
+	err := r.db.Where(&query).Preload("Bucket").Preload("Bucket.Deployment").First(&backup).Error
 
 	return &backup, err
 }
@@ -118,9 +90,6 @@ func (r *BackupsRepository) FindByPersistRequest(req *api.PersistBackupRequest) 
 		BucketID:       req.BucketID,
 		OrganizationID: r.org.ID,
 	}
-	if r.cluster != nil {
-		query.ClusterID = r.cluster.GetID()
-	}
 
 	err := r.db.First(&backup, &query).Error
 
@@ -134,9 +103,6 @@ func (r *BackupsRepository) Persist(req *api.PersistBackupRequest) (backup Clust
 		Name:           req.Backup.Name,
 		BucketID:       req.BucketID,
 		OrganizationID: r.org.ID,
-	}
-	if r.cluster != nil {
-		query.ClusterID = r.cluster.GetID()
 	}
 
 	err = r.db.FirstOrInit(&backup, &query).Error
@@ -169,9 +135,6 @@ func (r *BackupsRepository) DeleteBackupsNotInKeys(bucketID uint, keys []int) er
 
 	query := ClusterBackupsModel{
 		OrganizationID: r.org.ID,
-	}
-	if r.cluster != nil {
-		query.ClusterID = r.cluster.GetID()
 	}
 
 	return r.db.Not(keys).Where(&query).Where(&ClusterBackupsModel{

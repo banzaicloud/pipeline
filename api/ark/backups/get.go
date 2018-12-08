@@ -36,8 +36,7 @@ func Get(c *gin.Context) {
 
 	logger = logger.WithField("backup", backupID)
 	logger.Info("getting backup")
-
-	backup, err := common.GetARKService(c.Request).GetClusterBackupsService().GetByID(backupID)
+	backup, err := common.GetARKService(c.Request).GetBackupsService().GetByID(backupID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backup")
 		logger.Error(err.Error())

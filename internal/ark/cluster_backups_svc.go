@@ -17,6 +17,7 @@ package ark
 import (
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/labels"
 
@@ -39,7 +40,7 @@ func ClusterBackupsServiceFactory(
 	logger logrus.FieldLogger,
 ) *ClusterBackupsService {
 
-	repository := NewClusterBackupsRepository(org, deployments.GetCluster(), db, logger)
+	repository := NewBackupsRepository(org, db, logger)
 	backups := NewBackupsService(org, repository, logger)
 
 	return NewClusterBackupsService(backups, deployments)
@@ -73,6 +74,10 @@ func (s *ClusterBackupsService) DeleteByName(name string) error {
 		return emperror.Wrap(err, "backup not found")
 	}
 
+	if backup.Bucket.Deployment.ClusterID != s.cluster.GetID() {
+		return errors.New("backup not available for delete")
+	}
+
 	err = s.repository.UpdateStatus(backup, "Deleting", "deleting backup...")
 	if err != nil {
 		return emperror.Wrap(err, "cannot update backup status")
@@ -102,6 +107,10 @@ func (s *ClusterBackupsService) DeleteByID(id uint) error {
 	backup, err := s.repository.FindOneByID(id)
 	if err != nil {
 		return emperror.Wrap(err, "backup not found")
+	}
+
+	if backup.Bucket.Deployment.ClusterID != s.cluster.GetID() {
+		return errors.New("backup not available for delete")
 	}
 
 	err = s.repository.UpdateStatus(backup, "Deleting", "deleting backup...")
