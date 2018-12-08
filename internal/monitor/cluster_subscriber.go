@@ -18,13 +18,13 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"path/filepath"
 	"sync"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	pipSecret "github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -34,6 +34,7 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"path/filepath"
 )
 
 type clusterSubscriber struct {
@@ -87,20 +88,29 @@ func (s *clusterSubscriber) Register(events clusterEvents) {
 }
 
 type scrapeConfigParameters struct {
-	orgName     string
-	clusterName string
-	endpoint    string
+	orgName         string
+	clusterName     string
+	endpoint        string
+	tlsConfig       *scrapeTLSConfig
+	basicAuthConfig *basicAuthConfig
+}
 
+type scrapeTLSConfig struct {
 	caCertFileName string
 	certFileName   string
 	keyFileName    string
+}
+
+type basicAuthConfig struct {
+	username string
+	password string
 }
 
 func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	c, org, prometheusConfig, secret, err := s.init(clusterID)
+	c, org, prometheusConfig, _, err := s.init(clusterID)
 	if err != nil {
 		s.errorHandler.Handle(err)
 
@@ -112,44 +122,45 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		s.errorHandler.Handle(errors.WithMessage(err, "failed to get kubernetes API endpoint"))
 	}
 
+	//		scrapeTLSConfig{
+	//			aCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
+	//			certFileName:  fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, c.GetName()),
+	//			keyFileName:   fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, c.GetName()),
+	//		}
+
+	query := &pkgSecret.ListSecretsQuery{
+		Type: pkgSecret.TLSSecretType,
+		Tags: []string{
+			fmt.Sprintf("clusterUID:%s", c.GetUID()),
+			"app:prometheus",
+		},
+		Values: true,
+	}
+	secrets, err := pipSecret.Store.List(org.ID, query)
+	if err != nil {
+		s.errorHandler.Handle(err)
+		return
+	}
+	if len(secrets) < 1 {
+		s.errorHandler.Handle(fmt.Errorf("no secret found for clusterUID: %d, app:prometheus", clusterID))
+		return
+	}
+
 	params := scrapeConfigParameters{
-		orgName:        org.Name,
-		clusterName:    c.GetName(),
-		endpoint:       apiEndpoint,
-		caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
-		certFileName:   fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, c.GetName()),
-		keyFileName:    fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, c.GetName()),
+		orgName:     org.Name,
+		clusterName: c.GetName(),
+		endpoint:    apiEndpoint,
+		basicAuthConfig: &basicAuthConfig{
+			username: secrets[0].Values[pkgSecret.Username],
+			password: secrets[0].Values[pkgSecret.Password],
+		},
 	}
 
 	prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
 
-	kubeConfig, err := c.GetK8sConfig()
-	if err != nil {
-		s.errorHandler.Handle(emperror.With(
-			emperror.Wrap(err, "failed to get cluster config"),
-			"oragnizationId", org.ID,
-			"oragnizationName", org.Name,
-			"clusterId", c.GetID(),
-			"clusterName", c.GetName(),
-		))
-
-		return
-	}
-	config, err := k8sclient.NewClientConfig(kubeConfig)
+	err = s.save(prometheusConfig, nil)
 	if err != nil {
 		s.errorHandler.Handle(err)
-
-		return
-	}
-
-	secret.StringData[params.caCertFileName] = string(config.CAData)
-	secret.StringData[params.certFileName] = string(config.CertData)
-	secret.StringData[params.keyFileName] = string(config.KeyData)
-
-	err = s.save(prometheusConfig, secret)
-	if err != nil {
-		s.errorHandler.Handle(err)
-
 		return
 	}
 }
@@ -165,7 +176,7 @@ func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID uint, cluste
 		return
 	}
 
-	prometheusConfig, secret, err := s.getPrometheusConfigAndSecret()
+	prometheusConfig, _, err := s.getPrometheusConfigAndSecret()
 	if err != nil {
 		s.errorHandler.Handle(err)
 
@@ -184,14 +195,14 @@ func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID uint, cluste
 
 	prometheusConfig.ScrapeConfigs = scrapeConfigs
 
-	delete(secret.StringData, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, clusterName))
-	delete(secret.StringData, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, clusterName))
-	delete(secret.StringData, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, clusterName))
-	delete(secret.Data, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, clusterName))
-	delete(secret.Data, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, clusterName))
-	delete(secret.Data, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, clusterName))
+	//delete(secret.StringData, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, clusterName))
+	//delete(secret.StringData, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, clusterName))
+	//delete(secret.StringData, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, clusterName))
+	//delete(secret.Data, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, clusterName))
+	//delete(secret.Data, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, clusterName))
+	//delete(secret.Data, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, clusterName))
 
-	err = s.save(prometheusConfig, secret)
+	err = s.save(prometheusConfig, nil)
 	if err != nil {
 		s.errorHandler.Handle(err)
 
@@ -265,16 +276,17 @@ func (s *clusterSubscriber) getPrometheusConfigAndSecret() (*promconfig.Config, 
 }
 
 func (s *clusterSubscriber) save(prometheusConfig *promconfig.Config, secret *v1.Secret) error {
-	_, err := s.client.CoreV1().Secrets(s.controlPlaneNamespace).Update(secret)
-	if err != nil {
-		return emperror.With(
-			emperror.Wrap(err, "failed to update secret"),
-			"secret", s.certSecret,
-			"namespace", s.controlPlaneNamespace,
-		)
+	if secret != nil {
+		_, err := s.client.CoreV1().Secrets(s.controlPlaneNamespace).Update(secret)
+		if err != nil {
+			return emperror.With(
+				emperror.Wrap(err, "failed to update secret"),
+				"secret", s.certSecret,
+				"namespace", s.controlPlaneNamespace,
+			)
+		}
 	}
-
-	err = s.savePrometheusConfig(prometheusConfig)
+	err := s.savePrometheusConfig(prometheusConfig)
 	if err != nil {
 		return emperror.Wrap(err, "failed to save prometheus config")
 	}
@@ -338,10 +350,10 @@ func (s *clusterSubscriber) savePrometheusConfig(config *promconfig.Config) erro
 }
 
 func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParameters) *promconfig.ScrapeConfig {
-	return &promconfig.ScrapeConfig{
+	scrapeConfig := &promconfig.ScrapeConfig{
 		JobName:     fmt.Sprintf("%s-%s", params.orgName, params.clusterName),
 		HonorLabels: true,
-		MetricsPath: fmt.Sprintf("/api/v1/namespaces/%s/services/%s-prometheus-server:80/proxy/prometheus/federate", s.pipelineNamespace, pipConfig.MonitorReleaseName),
+		MetricsPath: fmt.Sprintf("/prometheus/federate", s.pipelineNamespace, pipConfig.MonitorReleaseName),
 		Scheme:      "https",
 		Params: url.Values{
 			"match[]": {
@@ -365,14 +377,7 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 				TargetLabel: "cluster",
 			},
 		},
-		HTTPClientConfig: promconfig.HTTPClientConfig{
-			TLSConfig: promconfig.TLSConfig{
-				CAFile:             filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_certificate-authority-data.pem", params.orgName, params.clusterName)),
-				CertFile:           filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_client-certificate-data.pem", params.orgName, params.clusterName)),
-				KeyFile:            filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_client-key-data.pem", params.orgName, params.clusterName)),
-				InsecureSkipVerify: true,
-			},
-		},
+		HTTPClientConfig: promconfig.HTTPClientConfig{},
 		ServiceDiscoveryConfig: promconfig.ServiceDiscoveryConfig{
 			StaticConfigs: []*promconfig.TargetGroup{
 				{
@@ -386,4 +391,20 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 			},
 		},
 	}
+	if params.basicAuthConfig != nil {
+		scrapeConfig.HTTPClientConfig.BasicAuth = &promconfig.BasicAuth{
+			Username: params.basicAuthConfig.username,
+			Password: promconfig.Secret(params.basicAuthConfig.password),
+		}
+	}
+	if params.tlsConfig != nil {
+		scrapeConfig.HTTPClientConfig.TLSConfig = promconfig.TLSConfig{
+			CAFile:             filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_certificate-authority-data.pem", params.orgName, params.clusterName)),
+			CertFile:           filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_client-certificate-data.pem", params.orgName, params.clusterName)),
+			KeyFile:            filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_client-key-data.pem", params.orgName, params.clusterName)),
+			InsecureSkipVerify: true,
+		}
+	}
+
+	return scrapeConfig
 }
