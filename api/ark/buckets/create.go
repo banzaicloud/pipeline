@@ -39,7 +39,7 @@ func Create(c *gin.Context) {
 	var request api.CreateBucketRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		err = emperror.Wrap(err, "could not parse request")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -57,7 +57,7 @@ func Create(c *gin.Context) {
 	}
 	if err != nil && err != gorm.ErrRecordNotFound {
 		err = emperror.Wrap(err, "could not create bucket")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -70,7 +70,7 @@ func Create(c *gin.Context) {
 	})
 	if err != nil {
 		err = emperror.Wrap(err, "could not persist bucket")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

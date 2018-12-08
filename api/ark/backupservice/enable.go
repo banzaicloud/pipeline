@@ -39,7 +39,7 @@ func Enable(c *gin.Context) {
 	var request api.EnableBackupServiceRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		err = emperror.Wrap(err, "could not parse request")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -47,7 +47,7 @@ func Enable(c *gin.Context) {
 	scheduleTTL, err := time.ParseDuration(request.TTL)
 	if err != nil {
 		err = emperror.Wrap(err, "could not parse request")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -55,7 +55,7 @@ func Enable(c *gin.Context) {
 	_, err = svc.GetDeploymentsService().GetActiveDeployment()
 	if err == nil {
 		err = errors.New("backup service already deployed")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -73,14 +73,14 @@ func Enable(c *gin.Context) {
 	})
 	if err != nil {
 		err = emperror.Wrap(err, "could not persist bucket")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
 
 	err = bucketService.IsBucketInUse(bucket)
 	if err != nil {
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -88,7 +88,7 @@ func Enable(c *gin.Context) {
 	err = svc.GetDeploymentsService().Deploy(bucket, false)
 	if err != nil {
 		err = emperror.Wrap(err, "could not deploy backup service")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
@@ -110,7 +110,7 @@ func Enable(c *gin.Context) {
 	err = svc.GetSchedulesService().Create(spec, request.Schedule)
 	if err != nil {
 		err = emperror.Wrap(err, "could not create schedule")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

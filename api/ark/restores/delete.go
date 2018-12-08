@@ -41,7 +41,7 @@ func Delete(c *gin.Context) {
 	err := common.GetARKService(c.Request).GetRestoresService().DeleteByID(restoreID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not delete restore")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

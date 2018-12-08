@@ -38,7 +38,7 @@ func ListAll(c *gin.Context) {
 	backups, err := bs.List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backups")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

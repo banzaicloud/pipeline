@@ -37,7 +37,7 @@ func List(c *gin.Context) {
 	buckets, err := bs.List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get buckets")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

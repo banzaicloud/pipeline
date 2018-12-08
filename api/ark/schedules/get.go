@@ -34,7 +34,7 @@ func Get(c *gin.Context) {
 	schedule, err := common.GetARKService(c.Request).GetSchedulesService().GetByName(scheduleName)
 	if err != nil {
 		err = emperror.Wrap(err, "could not get schedule")
-		logger.Error(err.Error())
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

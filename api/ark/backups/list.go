@@ -39,7 +39,7 @@ func List(c *gin.Context) {
 	orgBackups, err := common.GetARKService(c.Request).GetBackupsService().List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backups")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

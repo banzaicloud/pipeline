@@ -52,14 +52,14 @@ func ARKMiddleware(db *gorm.DB, logger logrus.FieldLogger) gin.HandlerFunc {
 		if org == nil {
 			err := errors.New("invalid organization")
 			ErrorResponse(c, err)
-			logger.Error(err)
+			ErrorHandler.Handle(err)
 			return
 		}
 		cl, err := clusters.FindOneByID(org.ID, clusterID)
 		if err != nil {
 			err = emperror.Wrap(err, "could not find cluster")
 			ErrorResponse(c, err)
-			logger.Error(err)
+			ErrorHandler.Handle(err)
 			return
 		}
 
@@ -67,7 +67,7 @@ func ARKMiddleware(db *gorm.DB, logger logrus.FieldLogger) gin.HandlerFunc {
 		if err != nil {
 			err = emperror.Wrap(err, "could not get cluster from model")
 			ErrorResponse(c, err)
-			logger.Error(err)
+			ErrorHandler.Handle(err)
 			return
 		}
 
