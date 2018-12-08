@@ -66,6 +66,9 @@ func NewBucketsService(
 
 // GetObjectStoreForBucket create an initialized ObjectStore
 func (s *BucketsService) GetObjectStoreForBucket(bucket *api.Bucket) (cloudprovider.ObjectStore, error) {
+	if bucket == nil {
+		return nil, errors.New("could not get object store, bucket is nil")
+	}
 
 	secret, err := GetSecretWithValidation(bucket.SecretID, s.org.ID, bucket.Cloud)
 	if err != nil {
