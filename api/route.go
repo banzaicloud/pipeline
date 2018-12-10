@@ -28,7 +28,7 @@ func RedirectRoot(c *gin.Context) {
 	if currentUser != nil {
 		c.Redirect(http.StatusTemporaryRedirect, viper.GetString("pipeline.uipath"))
 	} else {
-		c.Redirect(http.StatusTemporaryRedirect, "/auth/github/login")
+		c.Redirect(http.StatusTemporaryRedirect, viper.GetString("pipeline.uipath"))
 	}
 	return
 }
