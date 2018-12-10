@@ -6,6 +6,7 @@
 listenport = 9090
 
 # Url basepath, default is empty
+# Change it to "/pipeline" to use the UI locally
 basepath = ""
 
 # Use to redirect url after login
@@ -37,7 +38,9 @@ loglevel = "debug"
 configRetryCount = 30
 configRetrySleep = 15
 
-#[cors]
+[cors]
+AllowAllOrigins = false
+AllowOrigins = ["http://localhost:4200"]
 
 [statestore]
 path = ""

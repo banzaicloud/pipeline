@@ -33,3 +33,14 @@ services:
         ports:
             - 127.0.0.1:8000:8000
             - 127.0.0.1:9000:9000
+        environment:
+            CICD_CORS_ALLOW_ALL_ORIGINS: "false"
+            CICD_CORS_ALLOW_ORIGINS: "http://localhost:4200"
+
+    ui:
+        image: banzaicloud/pipeline-web:latest
+        ports:
+            - 127.0.0.1:4200:80
+        environment:
+            API_URL: http://localhost:9090
+            CICD_URL: http://localhost:8000
