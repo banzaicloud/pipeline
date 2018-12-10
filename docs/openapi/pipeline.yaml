@@ -3739,6 +3739,30 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/User'
 
+    '/api/v1/me':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - users
+            summary: Get current user
+            operationId: GetCurrentUser
+            description: Get current user
+            responses:
+                '200':
+                    description: "Getting current user succeeded"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+                '401':
+                    description: "Unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+
     '/api/v1/orgs/{orgId}/cloudinfo':
         get:
             security:

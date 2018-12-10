@@ -42,6 +42,20 @@ func NewUserAPI(accessManager userAccessManager) *UserAPI {
 	}
 }
 
+// GetCurrentUser responds with the authenticated user
+func (a *UserAPI) GetCurrentUser(c *gin.Context) {
+	user := auth.GetCurrentUser(c.Request)
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, common.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: "failed to get current user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
 // GetUsers gets a user or lists all users from an organization depending on the presence of the id parameter.
 func (a *UserAPI) GetUsers(c *gin.Context) {
 

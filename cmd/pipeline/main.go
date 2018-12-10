@@ -266,6 +266,7 @@ func main() {
 	v1.GET("/securityscan", api.SecurytiScanEnabled)
 	{
 		v1.Use(auth.Handler)
+		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.Use(authorizationMiddleware)
 		orgs := v1.Group("/orgs")
 		{
