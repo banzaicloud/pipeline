@@ -4,7 +4,6 @@ services:
     db:
         image: mysql:5.7
         command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-        restart: always
         environment:
             MYSQL_ROOT_PASSWORD: example
             MYSQL_DATABASE: pipeline
@@ -15,11 +14,9 @@ services:
 
     adminer:
         image: adminer
-        restart: always
 
     vault:
         image: vault:0.11.5
-        restart: always
         command: server
         cap_add:
             - IPC_LOCK
@@ -65,7 +62,6 @@ services:
 
     cicd-server:
         image: banzaicloud/cicd:master
-        restart: always
         depends_on:
             - db
         volumes:
@@ -88,7 +84,6 @@ services:
 
     cicd-agent:
         image: banzaicloud/cicd:master
-        restart: always
         depends_on:
             - cicd-server
         volumes:
