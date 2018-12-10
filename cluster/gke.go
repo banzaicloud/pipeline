@@ -1171,6 +1171,7 @@ func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (st
 			Config: map[string]string{
 				"access-token": tokenResp.GetAccessToken(),
 				"expiry":       tokenExpiry.Format(time.RFC3339Nano),
+				"cmd-path":     "/bin/true",
 			},
 		},
 	}
