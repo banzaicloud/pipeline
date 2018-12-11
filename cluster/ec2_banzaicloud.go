@@ -140,7 +140,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) UpdateStatus(status, statusMessage s
 func (c *EC2ClusterBanzaiCloudDistribution) DeleteFromDatabase() error {
 
 	// dependencies are deleted using a GORM hook!
-	if e := c.db.Delete(c.model).Error;s e != nil {
+	if e := c.db.Delete(c.model).Error; e != nil {
 		return emperror.WrapWith(e, "failed to delete EC2BanzaiCloudCluster", "network", c.model.ID)
 	}
 
