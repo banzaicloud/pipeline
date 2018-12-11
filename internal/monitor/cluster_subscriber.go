@@ -134,7 +134,7 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		s.errorHandler.Handle(err)
 		return
 	}
-	if len(secrets) < 1 {
+	if len(secrets) == 0 {
 		s.errorHandler.Handle(fmt.Errorf("no secret found for clusterUID: %d, app:prometheus", clusterID))
 		return
 	}
@@ -147,11 +147,6 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 			username: secrets[0].Values[pkgSecret.Username],
 			password: secrets[0].Values[pkgSecret.Password],
 		},
-		// tlsConfig: &scrapeTLSConfig{
-		// 	caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
-		// 	certFileName:   fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, c.GetName()),
-		// 	keyFileName:    fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, c.GetName()),
-		// },
 	}
 
 	prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
@@ -192,13 +187,6 @@ func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID uint, cluste
 	}
 
 	prometheusConfig.ScrapeConfigs = scrapeConfigs
-
-	//delete(secret.StringData, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, clusterName))
-	//delete(secret.StringData, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, clusterName))
-	//delete(secret.StringData, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, clusterName))
-	//delete(secret.Data, fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, clusterName))
-	//delete(secret.Data, fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, clusterName))
-	//delete(secret.Data, fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, clusterName))
 
 	err = s.save(prometheusConfig, nil)
 	if err != nil {
