@@ -242,7 +242,7 @@ func main() {
 	if viper.GetBool(config.MetricsEnabled) {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
 		p.SetListenAddress(viper.GetString(config.MetricsPort))
-		p.Use(router)
+		p.Use(router, "/metrics")
 	}
 
 	generateTokenHandler := auth.NewTokenHandler(accessManager)
