@@ -287,7 +287,6 @@ func ClusterHEAD(c *gin.Context) {
 		return
 	}
 
-	log.Info("getting cluster")
 	_, err := commonCluster.GetClusterDetails()
 	if err != nil {
 		log.Errorf("Error getting cluster: %s", err.Error())
@@ -372,7 +371,8 @@ func GetClusterDetails(c *gin.Context) {
 	if ok != true {
 		return
 	}
-	log.Info("getting cluster details")
+	log.Debugf("getting cluster details for %v", commonCluster)
+
 	details, err := commonCluster.GetClusterDetails()
 	if err != nil {
 		log.Errorf("Error getting cluster: %s", err.Error())
@@ -384,14 +384,12 @@ func GetClusterDetails(c *gin.Context) {
 		return
 	}
 
-	log.Info("Start getting API endpoint")
 	endpoint, err := commonCluster.GetAPIEndpoint()
 	if err != nil {
 		log.Warnf("Error during getting API endpoint: %s", err.Error())
 	}
 	details.Endpoint = endpoint
 
-	log.Info("Add resource summary to node(s)")
 	if err := addResourceSummaryToDetails(commonCluster, details); err != nil {
 		log.Warnf("Error during adding summary: %s", err.Error())
 	}

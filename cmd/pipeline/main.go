@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	evbus "github.com/asaskevich/EventBus"
@@ -424,18 +425,18 @@ func main() {
 	}
 	router.POST(basePath+"/issues", auth.Handler, issueHandler)
 
-	var listenPort string
-	port := viper.GetInt("pipeline.listenport")
-	if port != 0 {
-		listenPort = fmt.Sprintf(":%d", port)
+	bindAddr := viper.GetString("pipeline.bindaddr")
+	if port := viper.GetInt("pipeline.listenport"); port != 0 {
+		host := strings.Split(bindAddr, ":")[0]
+		bindAddr = fmt.Sprintf("%s:%d", host, port)
+		logger.Errorf("pipeline.listenport=%d setting is deprecated! Falling back to pipeline.bindaddr=%s", port, bindAddr)
 	}
-
 	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
 	if certFile != "" && keyFile != "" {
-		logger.Info("Pipeline API listening on TLS port ", listenPort)
-		router.RunTLS(listenPort, certFile, keyFile)
+		logger.Infof("Pipeline API listening on https://%s", bindAddr)
+		router.RunTLS(bindAddr, certFile, keyFile)
 	} else {
-		logger.Info("Pipeline API listening on port ", listenPort)
-		router.Run(listenPort)
+		logger.Infof("Pipeline API listening on http://%s", bindAddr)
+		router.Run(bindAddr)
 	}
 }
