@@ -93,3 +93,10 @@ services:
         environment:
             CICD_SERVER: cicd-server:9000
             CICD_SECRET: "s3cr3t"
+
+    ui:
+        image: banzaicloud/pipeline-web:latest
+        environment:
+            CLOUDINFO_URL: https://beta.banzaicloud.io/cloudinfo
+            RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
+            TAG: local
