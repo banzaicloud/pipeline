@@ -3848,6 +3848,28 @@ paths:
       summary: Get user
       tags:
       - users
+  /api/v1/me:
+    get:
+      description: Get current user
+      operationId: GetCurrentUser
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: Getting current user succeeded
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Get current user
+      tags:
+      - users
   /api/v1/orgs/{orgId}/cloudinfo:
     get:
       description: Get supported cloud types
