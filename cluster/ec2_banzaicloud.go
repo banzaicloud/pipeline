@@ -141,7 +141,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) DeleteFromDatabase() error {
 
 	// dependencies are deleted using a GORM hook!
 	if e := c.db.Delete(c.model).Error; e != nil {
-		return emperror.WrapWith(e, "failed to delete EC2BanzaiCloudCluster", "network", c.model.ID)
+		return emperror.WrapWith(e, "failed to delete EC2BanzaiCloudCluster", "distro", c.model.ID)
 	}
 
 	return nil
