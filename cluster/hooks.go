@@ -150,16 +150,17 @@ func InstallMonitoring(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
+	monitoringNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	clusterNameSecretTag := fmt.Sprintf("cluster:%s", cluster.GetName())
+	clusterUidSecretTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
+	releaseSecretTag := fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName)
+
 	// Generating Grafana credentials
 	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
-	grafanaNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	grafanaAdminPass, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
 		return errors.Errorf("Grafana admin user password generator failed: %T", err)
 	}
-
-	clusterNameTag := fmt.Sprintf("cluster:%s", cluster.GetName())
-	clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
 
 	grafanaSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
@@ -169,21 +170,32 @@ func InstallMonitoring(input interface{}) error {
 			pkgSecret.Password: grafanaAdminPass,
 		},
 		Tags: []string{
-			clusterNameTag,
-			clusterUidTag,
+			clusterNameSecretTag,
+			clusterUidSecretTag,
 			pkgSecret.TagBanzaiReadonly,
 			"app:grafana",
-			fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName),
+			releaseSecretTag,
 		},
 	}
 	grafanaSecretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &grafanaSecretRequest)
 	if err != nil {
 		return emperror.Wrap(err, "error store prometheus secret")
 	}
-	log.Debugf("Grafana Secret Stored id: %s", grafanaSecretID)
+	log.WithField("secretId", grafanaSecretID).Debugf("grafana secret stored")
 
 	// Generating Prometheus credentials
 	prometheusSecretName := fmt.Sprintf("cluster-%d-prometheus", cluster.GetID())
+
+	// In order to regenerate a this secret we need to delete it first,
+	// because updating will overwrite the htpasswd file in the secret
+	_, err = secret.Store.GetByName(cluster.GetOrganizationId(), prometheusSecretName)
+	if err != secret.ErrSecretNotExists {
+		err := secret.Store.Delete(cluster.GetOrganizationId(), secret.GenerateSecretIDFromName(prometheusSecretName))
+		if err != nil {
+			return emperror.Wrap(err, "failed to regenerate prometheus credentials")
+		}
+	}
+
 	prometheusAdminPass, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
 		return emperror.Wrap(err, "prometheus password generation failed")
@@ -196,27 +208,28 @@ func InstallMonitoring(input interface{}) error {
 			pkgSecret.Password: prometheusAdminPass,
 		},
 		Tags: []string{
-			clusterNameTag,
-			clusterUidTag,
+			clusterNameSecretTag,
+			clusterUidSecretTag,
 			pkgSecret.TagBanzaiReadonly,
-			"app:grafana",
-			fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName),
+			releaseSecretTag,
 		},
 	}
 	prometheusSecretID, err := secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), &prometheusSecretRequest)
 	if err != nil {
 		return emperror.Wrap(err, "error store prometheus secret")
 	}
-	log.Debugf("Grafana Secret Stored id: %s", prometheusSecretID)
+	log.WithField("secretId", prometheusSecretID).Debugf("prometheus secret stored")
+
+	const kubePrometheusSecretName = "prometheus-basic-auth"
+
 	installPromSecretRequest := InstallSecretRequest{
 		SourceSecretName: prometheusSecretName,
-		Namespace:        grafanaNamespace,
+		Namespace:        monitoringNamespace,
 		Spec: map[string]InstallSecretRequestSpecItem{
-			"tls.crt": {Source: "serverCert"},
-			"tls.key": {Source: "serverKey"},
+			"auth": {Source: pkgSecret.HtpasswdFile},
 		},
 	}
-	prometheusK8Secret, err := InstallSecret(cluster, prometheusSecretName, installPromSecretRequest)
+	prometheusK8Secret, err := InstallSecret(cluster, kubePrometheusSecretName, installPromSecretRequest)
 	if err != nil {
 		return emperror.Wrap(err, "failed to install tls secret to cluster")
 	}
@@ -228,11 +241,9 @@ func InstallMonitoring(input interface{}) error {
 		log.Errorf("Retrieving organization with id %d failed: %s", orgId, err.Error())
 		return err
 	}
-
-	// traefik.ingress.kubernetes.io/auth-type: "basic"
-	//traefik.ingress.kubernetes.io/auth-secret: "mysecret"
 	host := fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, viper.GetString(pipConfig.DNSBaseDomain))
 	log.Debugf("grafana ingress host: %s", host)
+
 	grafanaValues := map[string]interface{}{
 		"grafana": map[string]interface{}{
 			"adminUser":     grafanaAdminUsername,
@@ -260,7 +271,7 @@ func InstallMonitoring(input interface{}) error {
 					"enabled": true,
 					"annotations": map[string]string{
 						"traefik.ingress.kubernetes.io/auth-type":   "basic",
-						"traefik.ingress.kubernetes.io/auth-secret": prometheusSecretName,
+						"traefik.ingress.kubernetes.io/auth-secret": kubePrometheusSecretName,
 					},
 					"hosts": []string{
 						host + "/prometheus",
@@ -273,16 +284,19 @@ func InstallMonitoring(input interface{}) error {
 			},
 		},
 	}
+
 	grafanaValuesJson, err := yaml.Marshal(grafanaValues)
 	if err != nil {
 		return errors.Errorf("Json Convert Failed : %s", err.Error())
 	}
 
-	err = installDeployment(cluster, grafanaNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "", false)
+	err = installDeployment(cluster, monitoringNamespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor", pipConfig.MonitorReleaseName, grafanaValuesJson, "", false)
 	if err != nil {
-		return emperror.Wrap(err, "install pipeline-cluster-monito failed")
+		return emperror.Wrap(err, "install pipeline-cluster-monitor failed")
 	}
+
 	cluster.SetMonitoring(true)
+
 	return nil
 }
 
