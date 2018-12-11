@@ -124,6 +124,8 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	basicAuthSecret, err := pipSecret.Store.GetByName(org.ID, fmt.Sprintf("cluster-%d-prometheus", clusterID))
 	if err != nil {
 		s.errorHandler.Handle(emperror.Wrap(err, "failed to get prometheus secret"))
+
+		return
 	}
 
 	params := scrapeConfigParameters{
