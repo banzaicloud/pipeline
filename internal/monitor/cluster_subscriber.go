@@ -121,22 +121,9 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		s.errorHandler.Handle(errors.WithMessage(err, "failed to get kubernetes API endpoint"))
 	}
 
-	query := &pkgSecret.ListSecretsQuery{
-		Type: pkgSecret.TLSSecretType,
-		Tags: []string{
-			fmt.Sprintf("clusterUID:%s", c.GetUID()),
-			"app:prometheus",
-		},
-		Values: true,
-	}
-	secrets, err := pipSecret.Store.List(org.ID, query)
+	basicAuthSecret, err := pipSecret.Store.GetByName(org.ID, fmt.Sprintf("cluster-%d-prometheus", clusterID))
 	if err != nil {
-		s.errorHandler.Handle(err)
-		return
-	}
-	if len(secrets) == 0 {
-		s.errorHandler.Handle(fmt.Errorf("no secret found for clusterUID: %d, app:prometheus", clusterID))
-		return
+		s.errorHandler.Handle(emperror.Wrap(err, "failed to get prometheus secret"))
 	}
 
 	params := scrapeConfigParameters{
@@ -144,8 +131,8 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		clusterName: c.GetName(),
 		endpoint:    apiEndpoint,
 		basicAuthConfig: &basicAuthConfig{
-			username: secrets[0].Values[pkgSecret.Username],
-			password: secrets[0].Values[pkgSecret.Password],
+			username: basicAuthSecret.Values[pkgSecret.Username],
+			password: basicAuthSecret.Values[pkgSecret.Password],
 		},
 	}
 
