@@ -1179,6 +1179,7 @@ func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (st
 			Config: map[string]string{
 				"access-token": tokenResp.GetAccessToken(),
 				"expiry":       tokenExpiry.Format(time.RFC3339Nano),
+				"cmd-path":     "/bin/true",
 			},
 		},
 	}
@@ -1846,6 +1847,10 @@ func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}
 	c.log.Info("Get cluster success")
 	c.log.Infof("Cluster status is %s", cl.Status)
+	status, err := c.GetStatus()
+	if err != nil {
+		return nil, err
+	}
 
 	if statusRunning == cl.Status {
 
@@ -1857,23 +1862,16 @@ func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					Version:           c.model.NodeVersion,
-					Count:             np.NodeCount,
-					MinCount:          np.NodeMinCount,
-					MaxCount:          np.NodeMaxCount,
+					NodePoolStatus:    *status.NodePools[np.Name],
 				}
 			}
 		}
 
 		response := &pkgCluster.DetailsResponse{
-			CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
-			Name:              c.model.Cluster.Name,
-			Id:                c.model.Cluster.ID,
-			Location:          c.model.Cluster.Location,
-			MasterVersion:     c.model.MasterVersion,
-			NodePools:         nodePools,
-			Region:            c.model.Region,
-			Status:            c.model.Cluster.Status,
+			Id:                       c.model.Cluster.ID,
+			MasterVersion:            c.model.MasterVersion,
+			NodePools:                nodePools,
+			GetClusterStatusResponse: *status,
 		}
 		return response, nil
 	}

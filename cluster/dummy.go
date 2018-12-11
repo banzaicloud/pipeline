@@ -259,11 +259,8 @@ func (c *DummyCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) 
 	}
 
 	return &pkgCluster.DetailsResponse{
-		CreatorBaseFields: pkgCommon.CreatorBaseFields{},
-		Name:              status.Name,
-		Id:                status.ResourceID,
-		Location:          status.Location,
-		MasterVersion:     "1.9.4",
+		Id:            status.ResourceID,
+		MasterVersion: "1.9.4",
 	}, nil
 }
 
