@@ -23,7 +23,7 @@ import (
 	"time"
 
 	evbus "github.com/asaskevich/EventBus"
-	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
 	"github.com/banzaicloud/pipeline/api/ark/backupservice"
@@ -53,7 +53,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	gormadapter "github.com/casbin/gorm-adapter"
+	"github.com/casbin/gorm-adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -213,10 +213,6 @@ func main() {
 	//Initialise Gin router
 	router := gin.New()
 
-	router.GET("/version", VersionHandler)
-
-	router.GET(path.Join(basePath, "notifications"), notification.GetNotifications)
-
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())
@@ -234,6 +230,9 @@ func main() {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
 		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
 	}
+
+	router.GET("/version", VersionHandler)
+	router.GET(path.Join(basePath, "notifications"), notification.GetNotifications)
 
 	root := router.Group("/")
 	{
