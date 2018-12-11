@@ -22,7 +22,7 @@ import (
 	"time"
 
 	evbus "github.com/asaskevich/EventBus"
-	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
 	"github.com/banzaicloud/pipeline/api/ark/backupservice"
@@ -52,7 +52,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	gormadapter "github.com/casbin/gorm-adapter"
+	"github.com/casbin/gorm-adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -207,7 +207,7 @@ func main() {
 		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, log, errorHandler)
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, log, errorHandler)
 
 	//Initialise Gin router
 	router := gin.New()

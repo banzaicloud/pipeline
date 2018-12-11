@@ -136,8 +136,15 @@ func (c *EC2ClusterBanzaiCloudDistribution) UpdateStatus(status, statusMessage s
 	return nil
 }
 
+// DeleteFromDatabase deletes the distribution related entities from the database
 func (c *EC2ClusterBanzaiCloudDistribution) DeleteFromDatabase() error {
-	panic("implement me")
+
+	// dependencies are deleted using a GORM hook!
+	if e := c.db.Delete(c.model).Error;s e != nil {
+		return emperror.WrapWith(e, "failed to delete EC2BanzaiCloudCluster", "network", c.model.ID)
+	}
+
+	return nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) CreateCluster() error {
@@ -162,7 +169,8 @@ func (c *EC2ClusterBanzaiCloudDistribution) AddDefaultsToUpdate(*pkgCluster.Upda
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) DeleteCluster() error {
-	panic("implement me")
+	// do nothing (the cluster should be left on the provider for now
+	return nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) DownloadK8sConfig() ([]byte, error) {

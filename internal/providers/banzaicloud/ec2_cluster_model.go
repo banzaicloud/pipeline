@@ -14,7 +14,11 @@
 
 package banzaicloud
 
-import "github.com/banzaicloud/pipeline/internal/cluster"
+import (
+	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
+)
 
 type EC2BanzaiCloudClusterModel struct {
 	ID                 uint                 `gorm:"primary_key"`
@@ -33,4 +37,37 @@ type EC2BanzaiCloudClusterModel struct {
 // TableName changes the default table name.
 func (EC2BanzaiCloudClusterModel) TableName() string {
 	return "amazon_ec2_clusters"
+}
+
+// BeforeDelete callback / hook to delete related entries from the database
+func (m *EC2BanzaiCloudClusterModel) BeforeDelete(db *gorm.DB) error {
+	var e error
+
+	if e = db.Delete(m.Network).Error; e != nil {
+		return emperror.WrapWith(e, "failed to delete network", "network", m.Network.ID)
+	}
+
+	if e = db.Delete(m.CRI).Error; e != nil {
+		return emperror.WrapWith(e, "failed to delete cri", "cri", m.CRI.ID)
+	}
+
+	for _, np := range m.NodePools {
+		if e = db.Delete(np.Hosts).Error; e != nil {
+			return emperror.WrapWith(e, "failed to delete nodepool hosts", "nodepool", np.Name)
+		}
+	}
+
+	if e = db.Delete(m.NodePools).Error; e != nil {
+		return emperror.WrapWith(e, "failed to delete nodepools", "nodepools", m.NodePools)
+	}
+
+	if e = db.Delete(m.KubeADM).Error; e != nil {
+		return emperror.WrapWith(e, "failed to delete KubeADM", "KubeADM", m.KubeADM.ID)
+	}
+
+	if e = db.Delete(m.Kubernetes).Error; e != nil {
+		return emperror.WrapWith(e, "failed to delete Kubernetes", "network", m.Kubernetes.ID)
+	}
+
+	return e
 }
