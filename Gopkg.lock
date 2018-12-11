@@ -308,11 +308,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8647feebcdfccaf639607c9924970a3528136aabc113ff896d5e8124705dcfd5"
+  digest = "1:17424ff1cfa4812069df3e4e60c9acc98bd4110ffd9a259d0fa9addba9b0f811"
   name = "github.com/banzaicloud/go-gin-prometheus"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "aa5178c7c3c52ad970fd36dc2653fe2ae60f9281"
+  revision = "8145dbf524191ea7f59cff2224c0fab02e4aef9a"
 
 [[projects]]
   branch = "master"
