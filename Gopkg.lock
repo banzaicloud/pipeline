@@ -254,15 +254,15 @@
   version = "v1.15.26"
 
 [[projects]]
-  digest = "1:094b04381c4e5b2c4068d5f997efa5bf2c7e16beaa3826f1c2654b5c5a2c2dde"
+  digest = "1:3b7b11566c32ac403529049c7d6e6c309607aeb8fa06c8cfa819312d0dedca19"
   name = "github.com/banzaicloud/anchore-image-validator"
   packages = [
     "pkg/apis/security/v1alpha1",
     "pkg/clientset/v1alpha1",
   ]
   pruneopts = "NUT"
-  revision = "20ccee5584f72d8c2e3e38a23d9d9cb5ba9fc0a6"
-  version = "0.1.0"
+  revision = "bf9806201a4e327939eb4a5743bc4b3d37c3c62c"
+  version = "0.1.2"
 
 [[projects]]
   digest = "1:ee95a455921cb078b002d0067bac8558ad0c45659b8a6ba6e42634ac30b1990b"
@@ -2259,7 +2259,6 @@
     "github.com/qor/auth/claims",
     "github.com/qor/auth/providers/github",
     "github.com/qor/qor/utils",
-    "github.com/qor/redirect_back",
     "github.com/qor/session",
     "github.com/qor/session/gorilla",
     "github.com/satori/go.uuid",

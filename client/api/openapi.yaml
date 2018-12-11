@@ -3848,6 +3848,28 @@ paths:
       summary: Get user
       tags:
       - users
+  /api/v1/me:
+    get:
+      description: Get current user
+      operationId: GetCurrentUser
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: Getting current user succeeded
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Get current user
+      tags:
+      - users
   /api/v1/orgs/{orgId}/cloudinfo:
     get:
       description: Get supported cloud types
@@ -7628,14 +7650,21 @@ components:
     ClusterDetailsResponse:
       example:
         secretName: paas-dev
+        securityscan: true
         creatorName: userName
         creatorId: 1
         secretId: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
+        distribution: gke
+        monitoring: true
+        statusMessage: Cluster is running
         master:
           ip-10-0-100-180.eu-west-1.compute.internal: '{}'
-        createdAt: 2018-07-03T14:19:26+02:00
+        cloud: google
+        createdAt: 2018-07-03T14:23:19+02:00
         endpoint: 34.240.231.134
-        name: my-google-cluster
+        spot: true
+        name: myClusterName
+        logging: true
         totalSummary:
           memory:
             allocatable: "4"
@@ -7647,7 +7676,7 @@ components:
             request: 380m
             limit: 100m
             capacity: "4"
-        location: eu-west-1
+        location: us-central1-a
         id: 1
         nodePools:
           key:
@@ -7656,8 +7685,38 @@ components:
         region: us-central1
         status: RUNNING
       properties:
+        status:
+          example: RUNNING
+          type: string
+        statusMessage:
+          example: Cluster is running
+          type: string
+        name:
+          example: myClusterName
+          type: string
+        cloud:
+          example: google
+          type: string
+        distribution:
+          example: gke
+          type: string
+        spot:
+          type: boolean
+        location:
+          example: us-central1-a
+          type: string
+        id:
+          example: 1
+          format: int32
+          type: integer
+        logging:
+          type: boolean
+        monitoring:
+          type: boolean
+        securityscan:
+          type: boolean
         createdAt:
-          example: 2018-07-03T14:19:26+02:00
+          example: 2018-07-03T14:23:19+02:00
           type: string
         creatorName:
           example: userName
@@ -7666,35 +7725,22 @@ components:
           example: 1
           format: int32
           type: integer
-        name:
-          example: my-google-cluster
+        region:
+          example: us-central1
           type: string
-        id:
-          example: 1
-          format: int32
-          type: integer
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/NodePoolStatus'
+          type: object
         secretId:
           example: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
           type: string
         secretName:
           example: paas-dev
           type: string
-        location:
-          example: eu-west-1
-          type: string
         endpoint:
           example: 34.240.231.134
           type: string
-        region:
-          example: us-central1
-          type: string
-        status:
-          example: RUNNING
-          type: string
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolStatus'
-          type: object
         master:
           $ref: '#/components/schemas/ResourceSummaryItem'
         totalSummary:
@@ -8826,7 +8872,7 @@ components:
     CreateGKEProperties_gke_master:
       properties:
         version:
-          example: 1.8.7-gke.1
+          example: "1.10"
           type: string
       type: object
     CreateGKEProperties_gke:
@@ -8836,7 +8882,14 @@ components:
         master:
           $ref: '#/components/schemas/CreateGKEProperties_gke_master'
         nodeVersion:
-          example: 1.8.7-gke.1
+          example: "1.10"
+          type: string
+        vpc:
+          description: Name of the GCP Network (VPC) to deploy the cluster to. If omitted than the "default" VPC is used.
+          example: corp-vpc
+          type: string
+        subnet:
+          description: Name of the GCP Subnet to deploy the cluster to. If "default" VPC is used this field can be omitted. The subnet must be in the same region as the location of the cluster.
           type: string
         nodePools:
           additionalProperties:
@@ -9494,10 +9547,16 @@ components:
             $ref: '#/components/schemas/NodePoolsAzure'
           type: object
       type: object
+    ClusterProfileGKE_gke_master:
+      properties:
+        version:
+          example: 1.8.7-gke.1
+          type: string
+      type: object
     ClusterProfileGKE_gke:
       properties:
         master:
-          $ref: '#/components/schemas/CreateGKEProperties_gke_master'
+          $ref: '#/components/schemas/ClusterProfileGKE_gke_master'
         nodeVersion:
           example: 1.8.7-gke.1
           type: string

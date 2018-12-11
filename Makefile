@@ -11,7 +11,7 @@ OPENAPI_DESCRIPTOR = docs/openapi/pipeline.yaml
 # Build variables
 BUILD_DIR ?= build
 BUILD_PACKAGE = ${PACKAGE}/cmd/pipeline
-VERSION ?= $(shell git symbolic-ref -q --short HEAD || git describe --tags --exact-match)
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.Version=${VERSION} -X main.CommitHash=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE}
@@ -57,6 +57,7 @@ docker-compose.anchore.yml: ## Create docker compose override file with anchore
 
 .PHONY: start
 start: docker-compose.override.yml ## Start docker development environment
+	@ if [ docker-compose.override.yml -ot docker-compose.override.yml.dist ]; then diff -u docker-compose.override.yml* || echo "!!! The distributed docker-compose.override.yml example changed. Please update your file accordingly (or at least touch it). !!!" && false; fi
 	docker-compose up -d
 
 .PHONY: anchorestart

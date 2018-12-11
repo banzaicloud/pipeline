@@ -15,20 +15,11 @@
 package azure
 
 import (
-	"context"
 	"fmt"
-	"net/http"
-	"net/url"
 	"regexp"
 	"sort"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/Azure/go-autorest/autorest/to"
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
@@ -38,18 +29,18 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	alfanumericRegexp = regexp.MustCompile(`[^a-zA-Z0-9]`)
 )
 
 // Default storage account name when none is provided.
 // This must between 3-23 letters and can only contain small letters and numbers.
 const defaultStorageAccountName = "pipelinegenstorageacc"
-
-var (
-	alfanumericRegexp = regexp.MustCompile(`[^a-zA-Z0-9]`)
-	falseVal          = false
-	trueVal           = true
-)
+const defaultResourceGroupName = "pipelinegenresourcegroup"
 
 type azureObjectStore interface {
 	commonObjectstore.ObjectStore
@@ -64,6 +55,8 @@ func (bucketNotFoundError) NotFound() bool { return true }
 //
 // Note: calling methods on this struct is not thread safe currently.
 type ObjectStore struct {
+	objectStore azureObjectStore
+
 	storageAccount string
 	resourceGroup  string
 	location       string
@@ -87,7 +80,16 @@ func NewObjectStore(
 	logger logrus.FieldLogger,
 	force bool,
 ) (*ObjectStore, error) {
+	storageAccount = getStorageAccount(storageAccount)
+	resourceGroup = getResourceGroup(resourceGroup)
+	location = getLocation(location)
+	ostore, err := getProviderObjectStore(secret, resourceGroup, storageAccount, location, logger)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not create Azure object storage client")
+	}
+
 	return &ObjectStore{
+		objectStore:    ostore,
 		location:       location,
 		resourceGroup:  resourceGroup,
 		storageAccount: storageAccount,
@@ -99,54 +101,51 @@ func NewObjectStore(
 	}, nil
 }
 
-func getProviderObjectStore(secret *secret.SecretItemResponse, resourceGroup, storageAccount, location string) (azureObjectStore, error) {
+// getResourceGroup returns the given resource group or generates one.
+func getResourceGroup(resourceGroup string) string {
+	// generate a default resource group name if none given
+	if resourceGroup == "" {
+		resourceGroup = defaultResourceGroupName
+	}
+
+	return resourceGroup
+}
+
+// GetStorageAccount returns the given storage account or falls back to a default one.
+func getStorageAccount(storageAccount string) string {
+	if storageAccount == "" {
+		storageAccount = defaultStorageAccountName
+	}
+
+	return storageAccount
+}
+
+// getLocation returns the given location or falls back to a default one.
+func getLocation(location string) string {
+	if location == "" {
+		location = "westeurope"
+	}
+
+	return location
+}
+
+func getProviderObjectStore(secret *secret.SecretItemResponse, resourceGroup, storageAccount, location string, logger logrus.FieldLogger) (azureObjectStore, error) {
 	// when no secrets provided build an object store with no provider client/session setup
 	// eg. usage: list managed buckets
 	if secret == nil {
 		return azureObjectstore.NewPlainObjectStore()
 	}
 
-	credentials := azureObjectstore.Credentials{
-		SubscriptionID: secret.Values[pkgSecret.AzureSubscriptionId],
-		ClientID:       secret.Values[pkgSecret.AzureClientId],
-		ClientSecret:   secret.Values[pkgSecret.AzureClientSecret],
-		TenantID:       secret.Values[pkgSecret.AzureTenantId],
-	}
+	credentials := getCredentials(secret)
 
 	config := azureObjectstore.Config{
 		ResourceGroup:  resourceGroup,
 		StorageAccount: storageAccount,
+		Location:       location,
+		Logger:         logger,
 	}
 
-	ostore, err := azureObjectstore.New(config, credentials)
-	if err != nil {
-		return nil, err
-	}
-
-	return ostore, nil
-}
-
-// getResourceGroup returns the given resource group or generates one.
-func (s *ObjectStore) getResourceGroup() string {
-	resourceGroup := s.resourceGroup
-
-	// generate a default resource group name if none given
-	if resourceGroup == "" {
-		resourceGroup = fmt.Sprintf("pipeline-auto-%s", s.location)
-	}
-
-	return resourceGroup
-}
-
-// getStorageAccount returns the given storage account or falls back to a default one.
-func (s *ObjectStore) getStorageAccount() string {
-	storageAccount := s.storageAccount
-
-	if storageAccount == "" {
-		storageAccount = defaultStorageAccountName
-	}
-
-	return storageAccount
+	return azureObjectstore.New(config, credentials), nil
 }
 
 func (s *ObjectStore) getLogger() logrus.FieldLogger {
@@ -160,9 +159,21 @@ func (s *ObjectStore) getLogger() logrus.FieldLogger {
 	return s.logger.WithFields(logrus.Fields{
 		"organization":    s.org.ID,
 		"secret":          sId,
-		"resource_group":  s.getResourceGroup(),
-		"storage_account": s.getStorageAccount(),
+		"resource_group":  s.resourceGroup,
+		"storage_account": s.storageAccount,
+		"location":        s.location,
 	})
+}
+
+func getCredentials(secret *secret.SecretItemResponse) azureObjectstore.Credentials {
+	credentials := azureObjectstore.Credentials{
+		SubscriptionID: secret.Values[pkgSecret.AzureSubscriptionId],
+		ClientID:       secret.Values[pkgSecret.AzureClientId],
+		ClientSecret:   secret.Values[pkgSecret.AzureClientSecret],
+		TenantID:       secret.Values[pkgSecret.AzureTenantId],
+	}
+
+	return credentials
 }
 
 // CreateBucket creates an Azure Object Store Blob with the provided name
@@ -185,11 +196,12 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	}
 
 	bucket.Name = bucketName
-	bucket.ResourceGroup = s.getResourceGroup()
-	bucket.StorageAccount = s.getStorageAccount()
+	bucket.ResourceGroup = s.resourceGroup
+	bucket.StorageAccount = s.storageAccount
 	bucket.Organization = *s.org
 	bucket.SecretRef = s.secret.ID
 	bucket.Status = providers.BucketCreating
+	bucket.Location = s.location
 
 	logger.Info("creating bucket...")
 
@@ -197,47 +209,13 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucketName)
 	}
 
-	if err := s.createResourceGroup(s.getResourceGroup()); err != nil {
-		return s.createFailed(bucket, emperror.Wrap(err, "failed to create resource group"))
+	if err := s.objectStore.CreateBucket(bucketName); err != nil {
+		return s.createFailed(bucket, emperror.Wrap(err, "failed to create the bucket"))
 	}
 
-	// update here so the bucket list does not get inconsistent
-	updateField := &ObjectStoreBucketModel{StorageAccount: s.storageAccount}
-	if err := s.db.Model(bucket).Update(updateField).Error; err != nil {
-		return s.createFailed(bucket, emperror.Wrap(err, "could not update bucket with storage account"))
-	}
-
-	exists, err := s.checkStorageAccountExistence(s.getResourceGroup(), s.getStorageAccount())
-	if err != nil {
-		return s.createFailed(bucket, emperror.Wrap(err, "failed to check storage account"))
-	}
-
-	if !*exists {
-		if err = s.createStorageAccount(s.getResourceGroup(), s.getStorageAccount()); err != nil {
-			return s.createFailed(bucket, emperror.Wrap(err, "failed to create storage account"))
-		}
-	}
-
-	key, err := GetStorageAccountKey(s.getResourceGroup(), s.getStorageAccount(), s.secret, s.logger)
+	key, err := azureObjectstore.GetStorageAccountKey(s.resourceGroup, s.storageAccount, getCredentials(s.secret), logger)
 	if err != nil {
 		return s.createFailed(bucket, emperror.Wrap(err, "failed to retrieve storage account"))
-	}
-
-	// update here so the bucket list does not get inconsistent
-	updateField = &ObjectStoreBucketModel{Name: bucketName, Location: s.location}
-	if err = s.db.Model(bucket).Update(updateField).Error; err != nil {
-		return s.createFailed(bucket, emperror.WrapWith(err, "failed to update bucket", "fields", []string{"Name", "Location"}))
-	}
-
-	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(s.getStorageAccount(), key), azblob.PipelineOptions{})
-	URL, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net/%s", s.getStorageAccount(), bucketName))
-	containerURL := azblob.NewContainerURL(*URL, p)
-
-	_, err = containerURL.GetPropertiesAndMetadata(context.TODO(), azblob.LeaseAccessConditions{})
-	if err != nil && err.(azblob.StorageError).ServiceCode() == azblob.ServiceCodeContainerNotFound {
-		if _, err = containerURL.Create(context.TODO(), azblob.Metadata{}, azblob.PublicAccessNone); err != nil {
-			return s.createFailed(bucket, emperror.Wrap(err, "failed to access bucket"))
-		}
 	}
 
 	accSecretId, accSecretName, err := s.createUpdateStorageAccountSecret(key)
@@ -260,18 +238,18 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string, string, error) {
 
 	var secretId string
-	storageAccountName := alfanumericRegexp.ReplaceAllString(s.getStorageAccount(), "-")
+	storageAccountName := alfanumericRegexp.ReplaceAllString(s.storageAccount, "-")
 	secretName := fmt.Sprintf("%v-key", storageAccountName)
 
 	secretRequest := secret.CreateSecretRequest{
 		Name: secretName,
 		Type: "azureStorageAccount",
 		Values: map[string]string{
-			"storageAccount": s.getStorageAccount(),
+			"storageAccount": s.storageAccount,
 			"accessKey":      accesskey,
 		},
 		Tags: []string{
-			fmt.Sprintf("azureStorageAccount:%v", s.getStorageAccount()),
+			fmt.Sprintf("azureStorageAccount:%v", s.storageAccount),
 		},
 	}
 	secretId, err := secret.Store.CreateOrUpdate(s.org.ID, &secretRequest)
@@ -300,113 +278,6 @@ func (s *ObjectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error)
 	}
 
 	return reason
-}
-
-func (s *ObjectStore) createResourceGroup(resourceGroup string) error {
-	logger := s.getLogger()
-	gclient := resources.NewGroupsClient(s.secret.Values[pkgSecret.AzureSubscriptionId])
-
-	logger.Info("creating resource group")
-
-	authorizer, err := newAuthorizer(s.secret)
-	if err != nil {
-		return fmt.Errorf("authentication failed: %s", err.Error())
-	}
-
-	gclient.Authorizer = authorizer
-	res, _ := gclient.Get(context.TODO(), resourceGroup)
-
-	if res.StatusCode == http.StatusNotFound {
-		result, err := gclient.CreateOrUpdate(
-			context.TODO(),
-			resourceGroup,
-			resources.Group{Location: to.StringPtr(s.location)},
-		)
-		if err != nil {
-			return err
-		}
-
-		logger.Info(result.Status)
-	}
-
-	logger.Info("resource group created")
-
-	return nil
-}
-
-func (s *ObjectStore) checkStorageAccountExistence(resourceGroup string, storageAccount string) (*bool, error) {
-	storageAccountsClient, err := createStorageAccountClient(s.secret)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create storage account client")
-	}
-
-	logger := s.getLogger()
-
-	logger.Info("retrieving storage account name availability...")
-	result, err := storageAccountsClient.CheckNameAvailability(
-		context.TODO(),
-		storage.AccountCheckNameAvailabilityParameters{
-			Name: to.StringPtr(storageAccount),
-			Type: to.StringPtr("Microsoft.Storage/storageAccounts"),
-		},
-	)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve storage account name availability")
-	}
-
-	if *result.NameAvailable == false {
-		// account name is already taken or it is invalid
-		// retrieve the storage account
-		if _, err = storageAccountsClient.GetProperties(context.TODO(), resourceGroup, storageAccount); err != nil {
-			logger.Errorf("could not retrieve storage account, %s", *result.Message)
-			return nil, emperror.WrapWith(err, *result.Message, "storage_account", storageAccount, "resource_group", resourceGroup)
-		}
-		// storage name exists, available
-		return &trueVal, nil
-	}
-
-	// storage name doesn't exist
-	return &falseVal, nil
-}
-
-func (s *ObjectStore) createStorageAccount(resourceGroup string, storageAccount string) error {
-	storageAccountsClient, err := createStorageAccountClient(s.secret)
-	if err != nil {
-		return err
-	}
-
-	logger := s.getLogger()
-
-	logger.Info("creating storage account")
-
-	future, err := storageAccountsClient.Create(
-		context.TODO(),
-		resourceGroup,
-		storageAccount,
-		storage.AccountCreateParameters{
-			Sku: &storage.Sku{
-				Name: storage.StandardLRS,
-			},
-			Kind:     storage.BlobStorage,
-			Location: to.StringPtr(s.location),
-			AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-				AccessTier: storage.Hot,
-			},
-		},
-	)
-
-	if err != nil {
-		return fmt.Errorf("cannot create storage account: %v", err)
-	}
-
-	logger.Info("storage account creation request sent")
-	if future.WaitForCompletion(context.TODO(), storageAccountsClient.Client) != nil {
-		return err
-	}
-
-	logger.Info("storage account created")
-
-	return nil
 }
 
 // DeleteBucket deletes the Azure storage container identified by the specified name
@@ -456,12 +327,7 @@ func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 		return emperror.WrapWith(err, "failed to update bucket", "bucket", bucket.Name)
 	}
 
-	objectStore, err := getProviderObjectStore(s.secret, s.resourceGroup, s.storageAccount, bucket.Location)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to create object store", "bucket", bucket.Name)
-	}
-
-	if err := objectStore.DeleteBucket(bucket.Name); err != nil {
+	if err := s.objectStore.DeleteBucket(bucket.Name); err != nil {
 		return emperror.WrapWith(err, "failed to delete bucket from provider", "bucket", bucket.Name)
 	}
 
@@ -470,27 +336,11 @@ func (s *ObjectStore) deleteFromProvider(bucket *ObjectStoreBucketModel) error {
 
 // CheckBucket checks the status of the given Azure blob.
 func (s *ObjectStore) CheckBucket(bucketName string) error {
-	resourceGroup := s.getResourceGroup()
-	storageAccount := s.getStorageAccount()
-
 	logger := s.getLogger().WithField("bucket", bucketName)
-	logger.Info("looking up the bucket")
+	logger.Info("looking up the bucket...")
 
-	if _, err := s.checkStorageAccountExistence(resourceGroup, storageAccount); err != nil {
-		return emperror.WrapWith(err, "failed to check storage account", "bucket", bucketName)
-	}
-
-	key, err := GetStorageAccountKey(resourceGroup, storageAccount, s.secret, s.logger)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to get storage account key", "bucket", bucketName)
-	}
-
-	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(s.storageAccount, key), azblob.PipelineOptions{})
-	URL, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net/%s", s.storageAccount, bucketName))
-	containerURL := azblob.NewContainerURL(*URL, p)
-
-	if _, err = containerURL.GetPropertiesAndMetadata(context.TODO(), azblob.LeaseAccessConditions{}); err != nil {
-		return emperror.WrapWith(err, "failed to get container metadata", "bucket", bucketName)
+	if err := s.objectStore.CheckBucket(bucketName); err != nil {
+		return emperror.WrapWith(err, "failed to check the bucket", "bucket", bucketName)
 	}
 
 	return nil
@@ -507,17 +357,17 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	logger.Info("getting all resource groups for subscription")
 
-	resourceGroups, err := getAllResourceGroups(s.secret)
+	resourceGroups, err := azureObjectstore.GetAllResourceGroups(getCredentials(s.secret))
 	if err != nil {
 		return nil, fmt.Errorf("getting all resource groups failed: %s", err.Error())
 	}
 
-	var buckets []*objectstore.BucketInfo
+	buckets := make([]*objectstore.BucketInfo, 0)
 
 	for _, rg := range resourceGroups {
 		logger.WithField("resource_group", *(rg.Name)).Info("getting all storage accounts under resource group")
 
-		storageAccounts, err := getAllStorageAccounts(s.secret, *rg.Name)
+		storageAccounts, err := azureObjectstore.GetAllStorageAccounts(getCredentials(s.secret), *rg.Name)
 		if err != nil {
 			return nil, fmt.Errorf("getting all storage accounts under resource group=%s failed: %s", *(rg.Name), err.Error())
 		}
@@ -531,31 +381,29 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 				"storage_account": accountName,
 			}).Info("getting all blob containers under storage account")
 
-			accountKey, err := GetStorageAccountKey(*rg.Name, accountName, s.secret, s.logger)
+			objectStore, err := getProviderObjectStore(s.secret, *(rg.Name), accountName, s.location, s.logger)
 			if err != nil {
-				return nil, fmt.Errorf("getting all storage accounts under resource group=%s, storage account=%s failed: %s", *(rg.Name), accountName, err.Error())
+				return nil, emperror.Wrap(err, "failed to create object store")
 			}
 
-			blobContainers, err := getAllBlobContainers(accountName, accountKey)
+			blobContainers, err := objectStore.ListBuckets()
 			if err != nil {
-				return nil, fmt.Errorf("getting all storage accounts under resource group=%s, storage account=%s failed: %s", *(rg.Name), accountName, err.Error())
+				return nil, emperror.Wrap(err, "failed to retrieve buckets")
 			}
 
 			for i := 0; i < len(blobContainers); i++ {
 				blobContainer := blobContainers[i]
 
 				bucketInfo := &objectstore.BucketInfo{
-					Name:    blobContainer.Name,
+					Name:    blobContainer,
 					Managed: false,
 					Azure: &objectstore.BlobStoragePropsForAzure{
 						StorageAccount: accountName,
 						ResourceGroup:  *rg.Name,
 					},
 				}
-
 				buckets = append(buckets, bucketInfo)
 			}
-
 		}
 	}
 
@@ -617,127 +465,14 @@ func (s *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 	return bucketList, nil
 }
 
-func GetStorageAccountKey(resourceGroup string, storageAccount string, s *secret.SecretItemResponse, log logrus.FieldLogger) (string, error) {
-	client, err := createStorageAccountClient(s)
-	if err != nil {
-		return "", emperror.WrapWith(err, "failed to create storage accounts client", "storageaccount", storageAccount)
-	}
-
-	logger := log.WithFields(logrus.Fields{
-		"resource_group":  resourceGroup,
-		"storage_account": storageAccount,
-	})
-
-	logger.Info("getting key for storage account")
-
-	keys, err := client.ListKeys(context.TODO(), resourceGroup, storageAccount)
-	if err != nil {
-		return "", emperror.WrapWith(err, "failed to retrieve keys  for storage account", "storageaccount", storageAccount)
-	}
-
-	key := (*keys.Keys)[0].Value
-
-	return *key, nil
-}
-
-func createStorageAccountClient(s *secret.SecretItemResponse) (*storage.AccountsClient, error) {
-	accountClient := storage.NewAccountsClient(s.Values[pkgSecret.AzureSubscriptionId])
-
-	authorizer, err := newAuthorizer(s)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to authenticate")
-	}
-
-	accountClient.Authorizer = authorizer
-
-	return &accountClient, nil
-}
-
-// getAllResourceGroups returns all resource groups using
-// the Azure credentials referenced by the provided secret.
-func getAllResourceGroups(s *secret.SecretItemResponse) ([]*resources.Group, error) {
-	rgClient := resources.NewGroupsClient(s.GetValue(pkgSecret.AzureSubscriptionId))
-	authorizer, err := newAuthorizer(s)
-	if err != nil {
-		return nil, err
-	}
-
-	rgClient.Authorizer = authorizer
-
-	resourceGroupsPages, err := rgClient.List(context.TODO(), "", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var groups []*resources.Group
-	for resourceGroupsPages.NotDone() {
-		resourceGroupsChunk := resourceGroupsPages.Values()
-
-		for i := 0; i < len(resourceGroupsChunk); i++ {
-			groups = append(groups, &resourceGroupsChunk[i])
-		}
-
-		if err = resourceGroupsPages.Next(); err != nil {
-			return nil, err
-		}
-	}
-
-	return groups, nil
-}
-
-// getAllStorageAccounts returns all storage accounts under the specified resource group
-// using the Azure credentials referenced by the provided secret.
-func getAllStorageAccounts(s *secret.SecretItemResponse, resourceGroup string) (*[]storage.Account, error) {
-	client, err := createStorageAccountClient(s)
-	if err != nil {
-		return nil, err
-	}
-
-	storageAccountList, err := client.ListByResourceGroup(context.TODO(), resourceGroup)
-	if err != nil {
-		return nil, err
-	}
-
-	return storageAccountList.Value, nil
-}
-
-// getAllBlobContainers returns all blob container that belong to the specified storage account using
-// the given storage account key.
-func getAllBlobContainers(storageAccount string, storageAccountKey string) ([]azblob.Container, error) {
-	u, _ := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net", storageAccount))
-
-	p := azblob.NewPipeline(azblob.NewSharedKeyCredential(storageAccount, storageAccountKey), azblob.PipelineOptions{})
-	serviceURL := azblob.NewServiceURL(*u, p)
-
-	resp, err := serviceURL.ListContainers(context.TODO(), azblob.Marker{}, azblob.ListContainersOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Containers, nil
-}
-
-func newAuthorizer(s *secret.SecretItemResponse) (autorest.Authorizer, error) {
-	authorizer, err := auth.NewClientCredentialsConfig(
-		s.Values[pkgSecret.AzureClientId],
-		s.Values[pkgSecret.AzureClientSecret],
-		s.Values[pkgSecret.AzureTenantId]).Authorizer()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return authorizer, nil
-}
-
 // searchCriteria returns the database search criteria to find a bucket with the given name
 // within the scope of the specified resource group and storage account.
 func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel {
 	return &ObjectStoreBucketModel{
 		OrganizationID: s.org.ID,
 		Name:           bucketName,
-		ResourceGroup:  s.getResourceGroup(),
-		StorageAccount: s.getStorageAccount(),
+		ResourceGroup:  s.resourceGroup,
+		StorageAccount: s.storageAccount,
 		//Location:       s.location,
 	}
 }

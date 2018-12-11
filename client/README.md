@@ -121,6 +121,7 @@ Class | Method | HTTP request | Description
 *StorageApi* | [**GetBucket**](docs/StorageApi.md#getbucket) | **Get** /api/v1/orgs/{orgId}/buckets/{name} | Get object store bucket details
 *StorageApi* | [**GetObjectStoreBucketStatus**](docs/StorageApi.md#getobjectstorebucketstatus) | **Head** /api/v1/orgs/{orgId}/buckets/{name} | Get object store bucket status
 *StorageApi* | [**ListObjectStoreBuckets**](docs/StorageApi.md#listobjectstorebuckets) | **Get** /api/v1/orgs/{orgId}/buckets | List object storage buckets
+*UsersApi* | [**GetCurrentUser**](docs/UsersApi.md#getcurrentuser) | **Get** /api/v1/me | Get current user
 *UsersApi* | [**GetUsers**](docs/UsersApi.md#getusers) | **Get** /api/v1/orgs/{orgId}/users/{userId} | Get user
 *UsersApi* | [**ListUsers**](docs/UsersApi.md#listusers) | **Get** /api/v1/orgs/{orgId}/users | List users
 *WhitelistApi* | [**CreateWhitelists**](docs/WhitelistApi.md#createwhitelists) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/whitelists | Create Whitelisted deployment
@@ -163,6 +164,7 @@ Class | Method | HTTP request | Description
  - [ClusterProfileEks](docs/ClusterProfileEks.md)
  - [ClusterProfileGke](docs/ClusterProfileGke.md)
  - [ClusterProfileGkeGke](docs/ClusterProfileGkeGke.md)
+ - [ClusterProfileGkeGkeMaster](docs/ClusterProfileGkeGkeMaster.md)
  - [ClusterProfileNotFound](docs/ClusterProfileNotFound.md)
  - [Conflict](docs/Conflict.md)
  - [CreateAkcsProperties](docs/CreateAkcsProperties.md)

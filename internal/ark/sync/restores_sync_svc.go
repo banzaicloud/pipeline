@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // RestoresSyncService is for syncing restores from ARK
@@ -60,9 +61,21 @@ func (s *RestoresSyncService) SyncRestores(clusterManager *cluster.Manager) erro
 	}
 
 	for _, cluster := range clusters {
-		err := s.syncRestoresForCluster(cluster)
+		log := s.logger.WithField("clusterID", cluster.GetID())
+
+		status, err := cluster.GetStatus()
+		if err != nil {
+			log.Error(emperror.Wrap(err, "could not get cluster status"))
+			continue
+		}
+
+		if status.Status != pkgCluster.Running && status.Status != pkgCluster.Warning {
+			continue
+		}
+
+		err = s.syncRestoresForCluster(cluster)
 		if err != nil && err != gorm.ErrRecordNotFound {
-			s.logger.WithField("clusterID", cluster.GetID()).Error(err)
+			log.Error(err)
 		}
 	}
 

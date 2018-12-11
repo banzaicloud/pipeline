@@ -79,7 +79,9 @@ const (
 
 // CreateGKEClusterFromRequest creates ClusterModel struct from the request
 func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID, userID uint) (*GKECluster, error) {
-	var c GKECluster
+	c := GKECluster{
+		log: log.WithField("cluster", request.Name),
+	}
 
 	c.db = pipConfig.DB()
 
@@ -103,6 +105,8 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		NodeVersion:   request.Properties.CreateClusterGKE.NodeVersion,
 		NodePools:     nodePools,
 		ProjectId:     request.Properties.CreateClusterGKE.ProjectId,
+		Vpc:           request.Properties.CreateClusterGKE.Vpc,
+		Subnet:        request.Properties.CreateClusterGKE.Subnet,
 	}
 
 	return &c, nil
@@ -114,6 +118,7 @@ type GKECluster struct {
 	model         *google.GKEClusterModel
 	googleCluster *gke.Cluster //Don't use this directly
 	APIEndpoint   string
+	log           logrus.FieldLogger
 	CommonClusterBase
 }
 
@@ -193,7 +198,7 @@ func (c *GKECluster) GetAPIEndpoint() (string, error) {
 //CreateCluster creates a new cluster
 func (c *GKECluster) CreateCluster() error {
 
-	log.Info("Start create cluster (Google)")
+	c.log.Info("Start create cluster (Google)")
 
 	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
@@ -208,18 +213,18 @@ func (c *GKECluster) CreateCluster() error {
 	// set region
 	c.model.Region, err = c.getRegionByZone(c.model.ProjectId, c.model.Cluster.Location)
 	if err != nil {
-		log.Warnf("error during getting region: %s", err.Error())
+		c.log.Warnf("error during getting region: %s", err.Error())
 	}
 
 	c.model.Cluster.RbacEnabled = true
 
-	log.Info("Get Google Service Client")
+	c.log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return emperror.Wrap(err, "getting gke service client failed")
 	}
 
-	log.Info("Get Google Service Client succeeded")
+	c.log.Info("Get Google Service Client succeeded")
 
 	nodePools, err := createNodePoolsFromClusterModel(c.model)
 	if err != nil {
@@ -232,15 +237,17 @@ func (c *GKECluster) CreateCluster() error {
 		Name:          c.model.Cluster.Name,
 		MasterVersion: c.model.MasterVersion,
 		LegacyAbac:    false,
+		Network:       c.model.Vpc,
+		SubNetwork:    c.model.Subnet,
 		NodePools:     nodePools,
 	}
 
 	ccr := generateClusterCreateRequest(cc)
 
-	log.Infof("Cluster request: %v", ccr)
+	c.log.Infof("Cluster request: %v", ccr)
 	createCall, err := svc.Projects.Zones.Clusters.Create(cc.ProjectID, cc.Zone, ccr).Context(context.Background()).Do()
 
-	log.Infof("Cluster request submitted: %v", ccr)
+	c.log.Infof("Cluster request submitted: %v", ccr)
 
 	if err != nil && !strings.Contains(err.Error(), "alreadyExists") {
 		be := getBanzaiErrorFromError(err)
@@ -249,14 +256,14 @@ func (c *GKECluster) CreateCluster() error {
 	}
 
 	if createCall != nil {
-		log.Infof("Cluster %s create is called for project %s and zone %s", cc.Name, cc.ProjectID, cc.Zone)
-		log.Info("Waiting for cluster...")
+		c.log.Infof("Cluster %s create is called for project %s and zone %s", cc.Name, cc.ProjectID, cc.Zone)
+		c.log.Info("Waiting for cluster...")
 
-		if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), createCall.Name); err != nil {
+		if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), createCall.Name, c.log); err != nil {
 			return emperror.Wrap(err, "waiting for cluster creation to complete failed")
 		}
 	} else {
-		log.Info("Cluster %s already exists.", c.model.Cluster.Name)
+		c.log.Info("Cluster %s already exists.", c.model.Cluster.Name)
 	}
 
 	gkeCluster, err := getClusterGoogle(svc, cc)
@@ -284,7 +291,7 @@ func (c *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
 
 //Persist save the cluster model
 func (c *GKECluster) Persist(status, statusMessage string) error {
-	log.Infof("Model before save: %v", c.model)
+	c.log.Infof("Model before save: %v", c.model)
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
@@ -304,7 +311,7 @@ func (c *GKECluster) DownloadK8sConfig() ([]byte, error) {
 		return nil, emperror.Wrap(err, "retrieving kubernetes config failed")
 	}
 	// get config succeeded
-	log.Info("Get k8s config succeeded")
+	c.log.Info("Get k8s config succeeded")
 
 	return config, nil
 
@@ -327,7 +334,7 @@ func (c *GKECluster) GetDistribution() string {
 
 //GetStatus gets cluster status
 func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	log.Info("Create cluster status response")
+	c.log.Info("Create cluster status response")
 
 	var hasSpotNodePool bool
 
@@ -375,7 +382,7 @@ func (c *GKECluster) DeleteCluster() error {
 		return err
 	}
 
-	log.Info("Start delete gke cluster")
+	c.log.Info("Start delete gke cluster")
 
 	if c == nil {
 		return pkgErrors.ErrorNilCluster
@@ -401,7 +408,7 @@ func (c *GKECluster) DeleteCluster() error {
 		// TODO status code !?
 		return errors.New(be.Message)
 	}
-	log.Info("Delete succeeded")
+	c.log.Info("Delete succeeded")
 	return nil
 
 }
@@ -409,7 +416,7 @@ func (c *GKECluster) DeleteCluster() error {
 // waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
 func (c *GKECluster) waitForResourcesDelete() error {
 
-	log := log.WithFields(logrus.Fields{"cluster": c.model.Cluster.Name, "zone": c.model.Cluster.Location})
+	log := c.log.WithFields(logrus.Fields{"zone": c.model.Cluster.Location})
 
 	log.Info("Waiting for deleting cluster resources")
 
@@ -490,7 +497,7 @@ func listRegions(csv *gkeCompute.Service, project string) ([]*gkeCompute.Region,
 
 func (c *GKECluster) getRegionByZone(project string, zone string) (string, error) {
 
-	log.Infof("start getting region by zone[%s]", zone)
+	c.log.Infof("start getting region by zone[%s]", zone)
 	csv, err := c.getComputeService()
 	if err != nil {
 		return "", errors.Wrap(err, "error during creating compute service")
@@ -567,7 +574,7 @@ func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) er
 // UpdateCluster updates GKE cluster in cloud
 func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
 
-	log.Info("Start updating cluster (gke)")
+	c.log.Info("Start updating cluster (gke)")
 
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
@@ -613,7 +620,7 @@ func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		// TODO status code !?
 		return errors.New(be.Message)
 	}
-	log.Info("Cluster update succeeded")
+	c.log.Info("Cluster update succeeded")
 	c.googleCluster = res
 
 	c.updateCurrentVersions(res)
@@ -829,30 +836,31 @@ func (c *GKECluster) callDeleteCluster(cc *googleCluster) error {
 	if err != nil {
 		return emperror.Wrap(err, "creating google service client failed")
 	}
-	log.Info("Get Google Service Client succeeded")
+	c.log.Info("Get Google Service Client succeeded")
 
-	log.Infof("Removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
+	c.log.Infof("Removing cluster %v from project %v, zone %v", cc.Name, cc.ProjectID, cc.Zone)
 	deleteCall, err := svc.Projects.Zones.Clusters.Delete(cc.ProjectID, cc.Zone, cc.Name).Context(context.Background()).Do()
 	if err != nil && !strings.Contains(err.Error(), "notFound") {
 		return emperror.Wrap(err, "initiating cluster deletion failed")
 	} else if err == nil {
-		log.Infof("Cluster %v delete is called. Status Code %v", cc.Name, deleteCall.HTTPStatusCode)
+		c.log.Infof("Cluster %v delete is called. Status Code %v", cc.Name, deleteCall.HTTPStatusCode)
 
 		if deleteCall != nil {
-			log.Info("Waiting for cluster...")
+			c.log.Info("Waiting for cluster...")
 
-			if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), deleteCall.Name); err != nil {
+			if err := waitForOperation(newContainerOperation(svc, c.model.ProjectId, c.model.Cluster.Location), deleteCall.Name, c.log); err != nil {
 				return emperror.Wrap(err, "waiting for cluster deletion to complete failed")
 			}
 		}
 	} else {
-		log.Infof("Cluster %s doesn't exist", cc.Name)
+		c.log.Infof("Cluster %s doesn't exist", cc.Name)
 	}
 	os.RemoveAll(cc.TempCredentialPath)
 	return nil
 }
 
 func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, projectId string) (*gke.Cluster, error) {
+	log := log.WithField("cluster", cc.Name)
 
 	log.Infof("Updating cluster: %#v", cc)
 
@@ -872,7 +880,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 			return nil, err
 		}
 		log.Infof("Cluster %s update is called for project %s and zone %s. Status Code %v", cc.Name, cc.ProjectID, cc.Zone, updateCall.HTTPStatusCode)
-		if err = waitForOperation(newContainerOperation(svc, projectId, location), updateCall.Name); err != nil {
+		if err = waitForOperation(newContainerOperation(svc, projectId, location), updateCall.Name, log); err != nil {
 			return nil, err
 		}
 
@@ -928,7 +936,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 						return nil, err
 					}
 					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
-					if err := waitForOperation(newContainerOperation(svc, projectId, location), updateCall.Name); err != nil {
+					if err := waitForOperation(newContainerOperation(svc, projectId, location), updateCall.Name, log); err != nil {
 						return nil, err
 					}
 				}
@@ -961,7 +969,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 					}
 
 					log.Infof("Node pool %s update is called for project %s, zone %s and cluster %s", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name)
-					if err = waitForOperation(newContainerOperation(svc, projectId, location), operation.Name); err != nil {
+					if err = waitForOperation(newContainerOperation(svc, projectId, location), operation.Name, log); err != nil {
 						return nil, err
 					}
 
@@ -981,7 +989,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 						return nil, err
 					}
 					log.Infof("Node pool %s size change is called for project %s, zone %s and cluster %s. Status Code %v", nodePool.Name, cc.ProjectID, cc.Zone, cc.Name, updateCall.HTTPStatusCode)
-					if err = waitForOperation(newContainerOperation(svc, projectId, location), updateCall.Name); err != nil {
+					if err = waitForOperation(newContainerOperation(svc, projectId, location), updateCall.Name, log); err != nil {
 						return nil, err
 					}
 
@@ -1009,7 +1017,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 			return nil, err
 		}
 		log.Infof("Node pool %s create is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolToCreate.Name, cc.ProjectID, cc.Zone, cc.Name, createCall.HTTPStatusCode)
-		if err = waitForOperation(newContainerOperation(svc, projectId, location), createCall.Name); err != nil {
+		if err = waitForOperation(newContainerOperation(svc, projectId, location), createCall.Name, log); err != nil {
 			return nil, err
 		}
 
@@ -1032,7 +1040,7 @@ func callUpdateClusterGoogle(svc *gke.Service, cc googleCluster, location, proje
 			return nil, err
 		}
 		log.Infof("Node pool %s delete is called for project %s, zone %s and cluster %s. Status Code %v", nodePoolName, cc.ProjectID, cc.Zone, cc.Name, deleteCall.HTTPStatusCode)
-		if err = waitForOperation(newContainerOperation(svc, projectId, location), deleteCall.Name); err != nil {
+		if err = waitForOperation(newContainerOperation(svc, projectId, location), deleteCall.Name, log); err != nil {
 			return nil, err
 		}
 		updatedCluster, err = getClusterGoogle(svc, cc)
@@ -1064,19 +1072,19 @@ func autoscalingHasBeenUpdated(updatedNodePool *gke.NodePool, actualNodePool *gk
 
 func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 
-	log.Info("Get Google Service Client")
+	c.log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return nil, emperror.Wrap(err, "creating google service client failed")
 	}
-	log.Info("Get Google Service Client succeeded")
+	c.log.Info("Get Google Service Client succeeded")
 
 	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, emperror.Wrap(err, "retrieving cluster credentials secret failed")
 	}
 
-	log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
+	c.log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
 	cl, err := getClusterGoogle(svc, googleCluster{
 		Name:      c.model.Cluster.Name,
 		ProjectID: secretItem.GetValue(pkgSecret.ProjectId),
@@ -1087,7 +1095,7 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 		return nil, emperror.Wrap(err, "retrieving GKE cluster provider failed")
 	}
 
-	log.Info("Generate Service Account token")
+	c.log.Info("Generate Service Account token")
 	serviceAccountToken, err := c.generateServiceAccountTokenForGke(cl)
 	if err != nil {
 		return nil, emperror.Wrap(err, "getting service account for GKE cluster failed")
@@ -1171,6 +1179,7 @@ func (c *GKECluster) generateServiceAccountTokenForGke(cluster *gke.Cluster) (st
 			Config: map[string]string{
 				"access-token": tokenResp.GetAccessToken(),
 				"expiry":       tokenExpiry.Format(time.RFC3339Nano),
+				"cmd-path":     "/bin/true",
 			},
 		},
 	}
@@ -1471,7 +1480,9 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 		ClusterID: clusterModel.ID,
 	}
 
+	log := log.WithField("cluster", clusterModel.Name)
 	log.Debug("Load Google props from database")
+
 	err := db.Where(m).Preload("Cluster").Preload("NodePools").First(&m).Error
 	if err != nil {
 		return nil, err
@@ -1480,6 +1491,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	gkeCluster := GKECluster{
 		db:    db,
 		model: &m,
+		log:   log,
 	}
 	return &gkeCluster, nil
 }
@@ -1566,7 +1578,7 @@ func (c *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 		NodePools:   nodePools,
 	}
 
-	log.Info("Check stored & updated cluster equals")
+	c.log.Info("Check stored & updated cluster equals")
 
 	// check equality
 	return isDifferent(r.GKE, preCl)
@@ -1596,9 +1608,9 @@ func (c *GKECluster) DeleteFromDatabase() error {
 // GetGkeServerConfig returns configuration info about the Kubernetes Engine service.
 func (c *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) {
 
-	log.Info("Start getting configuration info")
+	c.log.Info("Start getting configuration info")
 
-	log.Info("Get Google service client")
+	c.log.Info("Get Google service client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		return nil, err
@@ -1614,7 +1626,7 @@ func (c *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) 
 		return nil, err
 	}
 
-	log.Info("Getting server config succeeded")
+	c.log.Info("Getting server config succeeded")
 
 	serverConfig.ValidMasterVersions = updateVersions(serverConfig.ValidMasterVersions)
 	serverConfig.ValidNodeVersions = updateVersions(serverConfig.ValidNodeVersions)
@@ -1814,55 +1826,52 @@ func (c *GKECluster) NodePoolExists(nodePoolName string) bool {
 
 // GetClusterDetails gets cluster details from cloud
 func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	log.Info("Get Google Service Client")
+	c.log.Info("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		return nil, errors.New(be.Message)
 	}
-	log.Info("Get Google Service Client success")
+	c.log.Info("Get Google Service Client success")
 
 	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
+	c.log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
 	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pkgSecret.ProjectId), c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
 	if err != nil {
 		apiError := getBanzaiErrorFromError(err)
 		return nil, errors.New(apiError.Message)
 	}
-	log.Info("Get cluster success")
-	log.Infof("Cluster status is %s", cl.Status)
+	c.log.Info("Get cluster success")
+	c.log.Infof("Cluster status is %s", cl.Status)
+	status, err := c.GetStatus()
+	if err != nil {
+		return nil, err
+	}
 
 	if statusRunning == cl.Status {
 
 		//userId, userName := GetUserIdAndName(c.modelCluster)
-		nodePools := make(map[string]*pkgCluster.NodeDetails)
+		nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 
 		for _, np := range c.model.NodePools {
 			if np != nil {
 
-				nodePools[np.Name] = &pkgCluster.NodeDetails{
+				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					Version:           c.model.NodeVersion,
-					Count:             np.NodeCount,
-					MinCount:          np.NodeMinCount,
-					MaxCount:          np.NodeMaxCount,
+					NodePoolStatus:    *status.NodePools[np.Name],
 				}
 			}
 		}
 
 		response := &pkgCluster.DetailsResponse{
-			CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
-			Name:              c.model.Cluster.Name,
-			Id:                c.model.Cluster.ID,
-			Location:          c.model.Cluster.Location,
-			MasterVersion:     c.model.MasterVersion,
-			NodePools:         nodePools,
-			Region:            c.model.Region,
-			Status:            c.model.Cluster.Status,
+			Id:                       c.model.Cluster.ID,
+			MasterVersion:            c.model.MasterVersion,
+			NodePools:                nodePools,
+			GetClusterStatusResponse: *status,
 		}
 		return response, nil
 	}
@@ -1875,41 +1884,98 @@ func (c *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	location := r.Location
 
 	// Validate location
-	log.Info("Validate location")
+	c.log.Info("Validate location")
 	if err := c.validateLocation(location); err != nil {
 		return err
 	}
-	log.Info("Validate location passed")
+	c.log.Info("Validate location passed")
 
 	// Validate machine types
 	nodePools := r.Properties.CreateClusterGKE.NodePools
-	log.Info("Validate nodePools")
+	c.log.Info("Validate nodePools")
 	if err := c.validateMachineType(nodePools, location); err != nil {
 		return err
 	}
-	log.Info("Validate nodePools passed")
+	c.log.Info("Validate nodePools passed")
 
 	// Validate kubernetes version
-	log.Info("Validate kubernetesVersion")
+	c.log.Info("Validate kubernetesVersion")
 	masterVersion := r.Properties.CreateClusterGKE.Master.Version
 	nodeVersion := r.Properties.CreateClusterGKE.NodeVersion
 	if err := c.validateKubernetesVersion(masterVersion, nodeVersion, location); err != nil {
 		return err
 	}
-	log.Info("Validate kubernetesVersion passed")
+	c.log.Info("Validate kubernetesVersion passed")
+
+	// Validate vpc and subnet
+	if r.Properties.CreateClusterGKE.Vpc != "" {
+		log.Info("Validate VPC and subnet names")
+		if err := c.validateVPCAndSubnet(r.Properties.CreateClusterGKE.Vpc, r.Properties.CreateClusterGKE.Subnet); err != nil {
+			return err
+		}
+		log.Info("Validate VPC and subnet names passed")
+	}
+
+	return nil
+}
+
+func (c *GKECluster) validateVPCAndSubnet(VPCName string, subnetName string) error {
+	project, err := c.getProjectId()
+	if err != nil {
+		return emperror.Wrap(err, "could not get project id")
+	}
+
+	svc, err := c.getComputeService()
+	if err != nil {
+		return emperror.Wrap(err, "could not get compute service")
+	}
+
+	network, err := svc.Networks.Get(project, VPCName).Context(context.Background()).Do()
+	if err != nil {
+		if googleErr, ok := errors.Cause(err).(*googleapi.Error); ok {
+			if googleErr.Code == http.StatusNotFound {
+				return emperror.With(errors.New("VPC not found"), "vpc", VPCName)
+			}
+		}
+		return emperror.WrapWith(err, "could not get VPC", "vpc", VPCName)
+	}
+
+	if subnetName == "" {
+		return nil
+	}
+
+	zone := c.GetLocation()
+	region, err := findRegionByZone(svc, project, zone)
+	if err != nil {
+		return emperror.WrapWith(err, "could not find region by zone", "project", project, "zone", zone)
+	}
+
+	subnet, err := svc.Subnetworks.Get(project, region.Name, subnetName).Context(context.Background()).Do()
+	if err != nil {
+		if googleErr, ok := errors.Cause(err).(*googleapi.Error); ok {
+			if googleErr.Code == http.StatusNotFound {
+				return emperror.With(errors.New("subnet not found"), "project", project, "subnet", subnetName, "region", region.Name)
+			}
+		}
+		return err
+	}
+
+	if network.SelfLink != subnet.Network {
+		return emperror.With(errors.New("subnet is in a different VPC"), "project", project, "vpc", network.Name, "subnet", subnet.Name)
+	}
 
 	return nil
 }
 
 // validateLocation validates location
 func (c *GKECluster) validateLocation(location string) error {
-	log.Infof("Location: %s", location)
+	c.log.Infof("Location: %s", location)
 	validLocations, err := c.GetZones()
 	if err != nil {
 		return err
 	}
 
-	log.Infof("Valid locations: %v", validLocations)
+	c.log.Infof("Valid locations: %v", validLocations)
 
 	if isOk := utils.Contains(validLocations, location); !isOk {
 		return pkgErrors.ErrorNotValidLocation
@@ -1928,13 +1994,13 @@ func (c *GKECluster) validateMachineType(nodePools map[string]*pkgClusterGoogle.
 		}
 	}
 
-	log.Infof("NodeInstanceTypes: %v", machineTypes)
+	c.log.Infof("NodeInstanceTypes: %v", machineTypes)
 
 	validMachineTypes, err := c.GetAllMachineTypesByZone(location)
 	if err != nil {
 		return err
 	}
-	log.Infof("Valid NodeInstanceTypes: %v", validMachineTypes[location])
+	c.log.Infof("Valid NodeInstanceTypes: %v", validMachineTypes[location])
 
 	for _, mt := range machineTypes {
 		if isOk := utils.Contains(validMachineTypes[location], mt); !isOk {
@@ -1948,8 +2014,8 @@ func (c *GKECluster) validateMachineType(nodePools map[string]*pkgClusterGoogle.
 // validateKubernetesVersion validates k8s versions
 func (c *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, location string) error {
 
-	log.Infof("Master version: %s", masterVersion)
-	log.Infof("Node version: %s", nodeVersion)
+	c.log.Infof("Master version: %s", masterVersion)
+	c.log.Infof("Node version: %s", nodeVersion)
 	config, err := c.GetGkeServerConfig(location)
 	if err != nil {
 		return err
@@ -1963,7 +2029,7 @@ func (c *GKECluster) validateKubernetesVersion(masterVersion, nodeVersion, locat
 	}
 
 	validMasterVersions := config.ValidMasterVersions
-	log.Infof("Valid master versions: %s", validMasterVersions)
+	c.log.Infof("Valid master versions: %s", validMasterVersions)
 
 	if isOk := utils.Contains(validMasterVersions, masterVersion); !isOk {
 		return pkgErrors.ErrorNotValidMasterVersion
@@ -2000,9 +2066,9 @@ func (c *GKECluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
-func waitForOperation(getter operationInfoer, operationName string) error {
+func waitForOperation(getter operationInfoer, operationName string, logger logrus.FieldLogger) error {
 
-	log := log.WithFields(logrus.Fields{"operation": operationName})
+	log := logger.WithFields(logrus.Fields{"operation": operationName})
 
 	log.Info("start checking operation status")
 

@@ -917,6 +917,11 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
+	status, err := c.GetStatus()
+	if err != nil {
+		return nil, err
+	}
+
 	eksSvc := eks.New(session)
 	describeCluster := &eks.DescribeClusterInput{Name: aws.String(c.GetName())}
 	clusterDesc, err := eksSvc.DescribeCluster(describeCluster)
@@ -924,29 +929,22 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
-	nodePools := make(map[string]*pkgCluster.NodeDetails)
+	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil {
-			nodePools[np.Name] = &pkgCluster.NodeDetails{
+			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				Version:           aws.StringValue(clusterDesc.Cluster.Version),
-				Count:             np.Count,
-				MinCount:          np.NodeMinCount,
-				MaxCount:          np.NodeMaxCount,
+				NodePoolStatus:    *status.NodePools[np.Name],
 			}
 		}
 	}
 
 	if aws.StringValue(clusterDesc.Cluster.Status) == eks.ClusterStatusActive {
 		return &pkgCluster.DetailsResponse{
-			CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
-			Name:              c.modelCluster.Name,
-			Id:                c.modelCluster.ID,
-			Location:          c.modelCluster.Location,
-			MasterVersion:     aws.StringValue(clusterDesc.Cluster.Version),
-			NodePools:         nodePools,
-			Endpoint:          c.APIEndpoint,
-			Status:            c.modelCluster.Status,
+			Id:            c.modelCluster.ID,
+			MasterVersion: aws.StringValue(clusterDesc.Cluster.Version),
+			NodePools:     nodePools,
+			Endpoint:      c.APIEndpoint,
 		}, nil
 	}
 

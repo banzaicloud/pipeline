@@ -148,6 +148,11 @@ type LoggingParam struct {
 	GenTLSForLogging GenTLSForLogging `json:"tls" binding:"required"`
 }
 
+// AnchoreParam describes the anchore posthook params
+type AnchoreParam struct {
+	AllowAll string `json:"allowAll"`
+}
+
 func (p LoggingParam) String() string {
 	return fmt.Sprintf("bucketName: %s, region: %s, secretId: %s", p.BucketName, p.Region, p.SecretId)
 }
@@ -178,7 +183,7 @@ type GetClusterStatusResponse struct {
 
 // NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
-	Autoscaling  bool   `json:"autoscaling,omitempty"`
+	Autoscaling  bool   `json:"autoscaling"`
 	Count        int    `json:"count,omitempty"`
 	InstanceType string `json:"instanceType,omitempty"`
 	SpotPrice    string `json:"spotPrice,omitempty"`
@@ -481,21 +486,15 @@ type CreateClusterResponse struct {
 
 // DetailsResponse describes Pipeline's GetClusterDetails API response
 type DetailsResponse struct {
-	pkgCommon.CreatorBaseFields
-	Name          string                     `json:"name"`
-	Id            uint                       `json:"id"`
-	SecretId      string                     `json:"secretId"`
-	SecretName    string                     `json:"secretName"`
-	Location      string                     `json:"location"`
-	MasterVersion string                     `json:"masterVersion,omitempty"`
-	Endpoint      string                     `json:"endpoint,omitempty"`
-	NodePools     map[string]*NodeDetails    `json:"nodePools,omitempty"`
-	Master        map[string]ResourceSummary `json:"master,omitempty"`
-	TotalSummary  *ResourceSummary           `json:"totalSummary,omitempty"`
-	Status        string                     `json:"status"`
-
-	// ONLY in case of GKE
-	Region string `json:"region,omitempty"`
+	GetClusterStatusResponse
+	Id            uint                        `json:"id"`
+	SecretId      string                      `json:"secretId"`
+	SecretName    string                      `json:"secretName"`
+	MasterVersion string                      `json:"masterVersion,omitempty"`
+	Endpoint      string                      `json:"endpoint,omitempty"`
+	NodePools     map[string]*NodePoolDetails `json:"nodePools,omitempty"`
+	Master        map[string]ResourceSummary  `json:"master,omitempty"`
+	TotalSummary  *ResourceSummary            `json:"totalSummary,omitempty"`
 }
 
 // PodDetailsResponse describes a pod
@@ -509,14 +508,11 @@ type PodDetailsResponse struct {
 	Summary       *ResourceSummary  `json:"resourceSummary,omitempty"`
 }
 
-// NodeDetails describes a cluster's node details
-type NodeDetails struct {
+// NodePoolDetails describes a cluster's node details
+type NodePoolDetails struct {
 	pkgCommon.CreatorBaseFields
-	Version         string                     `json:"version,omitempty"`
+	NodePoolStatus
 	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
-	Count           int                        `json:"count,omitempty"`
-	MinCount        int                        `json:"minCount,omitempty"`
-	MaxCount        int                        `json:"maxCount,omitempty"`
 }
 
 // ResourceSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable

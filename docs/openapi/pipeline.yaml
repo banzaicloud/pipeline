@@ -3739,6 +3739,30 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/User'
 
+    '/api/v1/me':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - users
+            summary: Get current user
+            operationId: GetCurrentUser
+            description: Get current user
+            responses:
+                '200':
+                    description: "Getting current user succeeded"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+                '401':
+                    description: "Unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+
     '/api/v1/orgs/{orgId}/cloudinfo':
         get:
             security:
@@ -5282,10 +5306,17 @@ components:
                             properties:
                                 version:
                                     type: string
-                                    example: "1.8.7-gke.1"
+                                    example: "1.10"
                         nodeVersion:
                             type: string
-                            example: "1.8.7-gke.1"
+                            example: "1.10"
+                        vpc:
+                            type: string
+                            description: Name of the GCP Network (VPC) to deploy the cluster to. If omitted than the "default" VPC is used.
+                            example: "corp-vpc"
+                        subnet:
+                            type: string
+                            description: Name of the GCP Subnet to deploy the cluster to. If "default" VPC is used this field can be omitted. The subnet must be in the same region as the location of the cluster.
                         nodePools:
                             type: object
                             additionalProperties:
@@ -7456,43 +7487,64 @@ components:
         ClusterDetailsResponse:
             type: object
             properties:
+                status:
+                    type: string
+                    example: "RUNNING"
+                statusMessage:
+                    type: string
+                    example: "Cluster is running"
+                name:
+                    type: string
+                    example: "myClusterName"
+                cloud:
+                    type: string
+                    example: "google"
+                distribution:
+                    type: string
+                    example: "gke"
+                spot:
+                    type: boolean
+                    example: false
+                location:
+                    type: string
+                    example: "us-central1-a"
+                id:
+                    type: integer
+                    example: 1
+                logging:
+                    type: boolean
+                    example: false
+                monitoring:
+                    type: boolean
+                    example: false
+                securityscan:
+                    type: boolean
+                    example: false
                 createdAt:
                     type: string
-                    example: "2018-07-03T14:19:26+02:00"
+                    example: "2018-07-03T14:23:19+02:00"
                 creatorName:
                     type: string
                     example: "userName"
                 creatorId:
                     type: integer
                     example: 1
-                name:
+                region:
                     type: string
-                    example: "my-google-cluster"
-                id:
-                    type: integer
-                    example: 1
+                    example: "us-central1"
+                nodePools:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/NodePoolStatus'
                 secretId:
                     type: string
                     example: "c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae"
                 secretName:
                     type: string
                     example: "paas-dev"
-                location:
-                    type: string
-                    example: "eu-west-1"
                 endpoint:
                     type: string
                     example: "34.240.231.134"
-                region:
-                    type: string
-                    example: "us-central1"
-                status:
-                    type: string
-                    example: "RUNNING"
-                nodePools:
-                    type: object
-                    additionalProperties:
-                        $ref: '#/components/schemas/NodePoolStatus'
                 master:
                     $ref: '#/components/schemas/ResourceSummaryItem'
                 totalSummary:

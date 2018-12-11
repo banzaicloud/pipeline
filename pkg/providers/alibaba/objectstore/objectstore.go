@@ -104,6 +104,15 @@ func (o *objectStore) ListBuckets() ([]string, error) {
 	return buckets, nil
 }
 
+// GetRegion gets the region of the given bucket
+func (o *objectStore) GetLocation(bucketName string) (string, error) {
+	location, err := o.client.GetBucketLocation(bucketName)
+	if err != nil {
+		return "", emperror.WrapWith(err, "failed to fetch bucket location", "bucketname", bucketName)
+	}
+	return location, nil
+}
+
 // CheckBucket checks the status of the given bucket
 func (o *objectStore) CheckBucket(bucketName string) error {
 	client, err := o.getClientForBucket(bucketName)
