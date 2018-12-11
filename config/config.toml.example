@@ -5,9 +5,9 @@
 
 listenport = 9090
 
-# Url basepath, default is empty
-# Change it to "/pipeline" to use the UI locally
-basepath = ""
+# Url basepath
+# Default is "/pipeline" in the development environment to use the with UI locally
+basepath = "/pipeline"
 
 # Use to redirect url after login
 uipath = "/ui"
