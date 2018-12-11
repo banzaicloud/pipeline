@@ -3,10 +3,11 @@
 [pipeline]
 # Pipeline configs
 
-listenport = 9090
+bindaddr = "127.0.0.1:9090"
 
-# Url basepath, default is empty
-basepath = ""
+# Url basepath
+# Default is "/pipeline" in the development environment to allow using the UI locally
+basepath = "/pipeline"
 
 # Use to redirect url after login
 uipath = "/ui"
@@ -37,7 +38,9 @@ loglevel = "debug"
 configRetryCount = 30
 configRetrySleep = 15
 
-#[cors]
+[cors]
+AllowAllOrigins = false
+AllowOrigins = ["http://localhost:4200"]
 
 [statestore]
 path = ""

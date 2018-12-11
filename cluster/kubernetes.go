@@ -256,10 +256,7 @@ func (c *KubeCluster) NodePoolExists(nodePoolName string) bool {
 func (c *KubeCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	return &pkgCluster.DetailsResponse{
-		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
-		Name:              c.modelCluster.Name,
-		Id:                c.modelCluster.ID,
-		Location:          c.modelCluster.Location,
+		Id: c.modelCluster.ID,
 	}, nil
 }
 
