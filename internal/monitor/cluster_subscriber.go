@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"path"
+	"path/filepath"
 	"sync"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -34,7 +36,6 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"path/filepath"
 )
 
 type clusterSubscriber struct {
@@ -122,12 +123,6 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		s.errorHandler.Handle(errors.WithMessage(err, "failed to get kubernetes API endpoint"))
 	}
 
-	//		scrapeTLSConfig{
-	//			aCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
-	//			certFileName:  fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, c.GetName()),
-	//			keyFileName:   fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, c.GetName()),
-	//		}
-
 	query := &pkgSecret.ListSecretsQuery{
 		Type: pkgSecret.TLSSecretType,
 		Tags: []string{
@@ -154,6 +149,11 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 			username: secrets[0].Values[pkgSecret.Username],
 			password: secrets[0].Values[pkgSecret.Password],
 		},
+		// tlsConfig: &scrapeTLSConfig{
+		// 	caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
+		// 	certFileName:   fmt.Sprintf("%s_%s_client-certificate-data.pem", org.Name, c.GetName()),
+		// 	keyFileName:    fmt.Sprintf("%s_%s_client-key-data.pem", org.Name, c.GetName()),
+		// },
 	}
 
 	prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
@@ -353,7 +353,7 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 	scrapeConfig := &promconfig.ScrapeConfig{
 		JobName:     fmt.Sprintf("%s-%s", params.orgName, params.clusterName),
 		HonorLabels: true,
-		MetricsPath: fmt.Sprintf("/prometheus/federate", s.pipelineNamespace, pipConfig.MonitorReleaseName),
+		MetricsPath: path.Join("/prometheus/federate", s.pipelineNamespace, pipConfig.MonitorReleaseName),
 		Scheme:      "https",
 		Params: url.Values{
 			"match[]": {
@@ -399,9 +399,9 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 	}
 	if params.tlsConfig != nil {
 		scrapeConfig.HTTPClientConfig.TLSConfig = promconfig.TLSConfig{
-			CAFile:             filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_certificate-authority-data.pem", params.orgName, params.clusterName)),
-			CertFile:           filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_client-certificate-data.pem", params.orgName, params.clusterName)),
-			KeyFile:            filepath.Join(s.certMountPath, fmt.Sprintf("%s_%s_client-key-data.pem", params.orgName, params.clusterName)),
+			CAFile:             filepath.Join(s.certMountPath, params.tlsConfig.caCertFileName),
+			CertFile:           filepath.Join(s.certMountPath, params.tlsConfig.certFileName),
+			KeyFile:            filepath.Join(s.certMountPath, params.tlsConfig.keyFileName),
 			InsecureSkipVerify: true,
 		}
 	}
