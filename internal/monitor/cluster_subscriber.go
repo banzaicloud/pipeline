@@ -41,6 +41,7 @@ type clusterSubscriber struct {
 	manager *cluster.Manager
 	db      *gorm.DB
 
+	dnsBaseDomain          string
 	controlPlaneNamespace  string
 	pipelineNamespace      string
 	configMap              string
@@ -57,6 +58,7 @@ func NewClusterSubscriber(
 	client kubernetes.Interface,
 	manager *cluster.Manager,
 	db *gorm.DB,
+	dnsBaseDomain string,
 	controlPlaneNamespace string,
 	pipelineNamespace string,
 	configMap string,
@@ -66,10 +68,10 @@ func NewClusterSubscriber(
 	errorHandler emperror.Handler,
 ) *clusterSubscriber {
 	return &clusterSubscriber{
-		client:  client,
-		manager: manager,
-		db:      db,
-
+		client:                 client,
+		manager:                manager,
+		db:                     db,
+		dnsBaseDomain:          dnsBaseDomain,
 		controlPlaneNamespace:  controlPlaneNamespace,
 		pipelineNamespace:      pipelineNamespace,
 		configMap:              configMap,
@@ -78,6 +80,65 @@ func NewClusterSubscriber(
 		certMountPath:          certMountPath,
 
 		errorHandler: errorHandler,
+	}
+}
+
+func (s *clusterSubscriber) Init() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	prometheusConfig, _, err := s.getPrometheusConfigAndSecret()
+	if err != nil {
+		s.errorHandler.Handle(err)
+
+		return
+	}
+	clusters, err := s.manager.GetAllClusters(context.Background())
+	if err != nil {
+		s.errorHandler.Handle(err)
+
+		return
+	}
+	prometheusConfig.ScrapeConfigs = []*promconfig.ScrapeConfig{}
+	for _, c := range clusters {
+		details, err := c.GetClusterDetails()
+		if err != nil {
+			s.errorHandler.Handle(err)
+
+			return
+		}
+		if details.Monitoring {
+			org, err := s.getOrganization(c.GetOrganizationId())
+			if err != nil {
+				s.errorHandler.Handle(err)
+
+				return
+			}
+			basicAuthSecret, err := pipSecret.Store.GetByName(org.ID, fmt.Sprintf("cluster-%d-prometheus", c.GetID()))
+			if err != nil {
+				s.errorHandler.Handle(emperror.Wrap(err, "failed to get prometheus secret"))
+
+				return
+			}
+
+			params := scrapeConfigParameters{
+				orgName:     org.Name,
+				clusterName: c.GetName(),
+				endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
+				basicAuthConfig: &basicAuthConfig{
+					username: basicAuthSecret.Values[pkgSecret.Username],
+					password: basicAuthSecret.Values[pkgSecret.Password],
+				},
+			}
+			prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
+		}
+
+	}
+	err = s.save(prometheusConfig, nil)
+	if err != nil {
+		s.errorHandler.Handle(err)
+
+		return
 	}
 }
 
@@ -116,11 +177,6 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		return
 	}
 
-	apiEndpoint, err := c.GetAPIEndpoint()
-	if err != nil {
-		s.errorHandler.Handle(errors.WithMessage(err, "failed to get kubernetes API endpoint"))
-	}
-
 	basicAuthSecret, err := pipSecret.Store.GetByName(org.ID, fmt.Sprintf("cluster-%d-prometheus", clusterID))
 	if err != nil {
 		s.errorHandler.Handle(emperror.Wrap(err, "failed to get prometheus secret"))
@@ -131,7 +187,7 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	params := scrapeConfigParameters{
 		orgName:     org.Name,
 		clusterName: c.GetName(),
-		endpoint:    apiEndpoint,
+		endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
 		basicAuthConfig: &basicAuthConfig{
 			username: basicAuthSecret.Values[pkgSecret.Username],
 			password: basicAuthSecret.Values[pkgSecret.Password],
