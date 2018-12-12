@@ -56,37 +56,35 @@ import (
 )
 
 //RunPostHooks calls posthook functions with created cluster
-func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) (err error) {
+func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) error {
 
 	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "org": cluster.GetOrganizationId()})
 
 	for _, postHook := range postHooks {
 		if postHook != nil {
-			log.Infof("Start posthook function[%s]", postHook)
-			err = postHook.Do(cluster)
-			if err != nil {
-				log.Errorf("Error during posthook function[%s]: %s", postHook, err.Error())
+			log := log.WithField("postHook", postHook)
+			log.Info("starting posthook function")
+			statusMsg := fmt.Sprintf("running %s", postHook)
+			if err := postHook.Do(cluster); err != nil {
+				err := emperror.Wrap(err, "posthook failed")
 				postHook.Error(cluster, err)
-				return
+				return err
 			}
 
-			statusMsg := fmt.Sprintf("Posthook function finished: %s", postHook)
 			if err := cluster.UpdateStatus(pkgCluster.Creating, statusMsg); err != nil {
-				log.Errorf("Error during posthook status update in db [%s]: %s", postHook, err.Error())
-				return
+				return emperror.Wrap(err, "failed to write status to db")
 			}
 		}
 	}
 
-	log.Info("Run all posthooks for cluster successfully.")
+	log.Info("all posthooks ran successfully")
 
-	err = cluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage)
-
-	if err != nil {
+	if err := cluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
 		log.Errorf("Error during posthook status update in db: %s", err.Error())
+		return err
 	}
 
-	return
+	return nil
 }
 
 // PollingKubernetesConfig polls kubeconfig from the cloud

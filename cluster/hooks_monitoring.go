@@ -24,7 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 

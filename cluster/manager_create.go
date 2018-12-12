@@ -48,7 +48,7 @@ type clusterCreator interface {
 	Create(ctx context.Context) error
 }
 
-// CreateCluster creates a new cluster.
+// CreateCluster creates a new cluster in the background.
 func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext, creator clusterCreator) (CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": creationCtx.OrganizationID,
@@ -56,26 +56,21 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		"cluster":      creationCtx.Name,
 	})
 
-	logger.Info("looking for existing cluster")
+	logger.Debug("looking for existing cluster")
 	if err := m.assertNotExists(creationCtx); err != nil {
 		return nil, err
 	}
 
-	logger.Info("validating secret")
-	err := m.secrets.ValidateSecretType(creationCtx.OrganizationID, creationCtx.SecretID, creationCtx.Provider)
-	if err != nil {
+	if err := m.secrets.ValidateSecretType(creationCtx.OrganizationID, creationCtx.SecretID, creationCtx.Provider); err != nil {
 		return nil, err
 	}
 
-	logger.Info("validating creation context")
-
+	logger.Debug("validating creation context")
 	if err := creator.Validate(ctx); err != nil {
 		return nil, errors.Wrap(&invalidError{err}, "validation failed")
 	}
 
-	logger.Info("creation context is valid")
-	logger.Info("preparing cluster creation")
-
+	logger.Debug("preparing cluster creation")
 	cluster, err := creator.Prepare(ctx)
 	if err != nil {
 		return nil, err
@@ -92,7 +87,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		return nil, err
 	}
 
-	logger.Info("creating cluster")
+	logger.Infof("creating cluster")
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
@@ -121,6 +116,8 @@ func (m *Manager) assertNotExists(ctx CreationContext) error {
 	return nil
 }
 
+// createCluster creates the cluster blockingly given an initially validated context
+// updates cluster status, but the caller logs the returned error
 func (m *Manager) createCluster(
 	ctx context.Context,
 	cluster CommonCluster,
@@ -130,41 +127,38 @@ func (m *Manager) createCluster(
 ) error {
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
 	if len(cluster.GetSshSecretId()) == 0 && cluster.RequiresSshPublicKey() {
-		logger.Info("generating SSH Key for the cluster")
+		logger.Debug("generating SSH Key for the cluster")
 
 		sshKey, err := secret.GenerateSSHKeyPair()
 		if err != nil {
-			return errors.Wrap(err, "key generator failed")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
+			return emperror.Wrap(err, "failed to generate SSH key")
 		}
 
 		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
 		if err != nil {
-			return errors.Wrap(err, "key store failed")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
+			return emperror.Wrap(err, "failed to store SSH key")
 		}
 
 		if err := cluster.SaveSshSecretId(sshSecretId); err != nil {
-			return errors.Wrap(err, "saving SSH key secret failed")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
+			return emperror.Wrap(err, "failed to save SSH key secret ID")
 		}
 	}
 
-	err := creator.Create(ctx)
-	if err != nil {
+	if err := creator.Create(ctx); err != nil {
 		cluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 
-	// Apply PostHooks
-	// These are hardcoded posthooks maybe we will want a bit more dynamic
 	postHookFunctions := BasePostHookFunctions
-
 	if postHooks != nil && len(postHooks) != 0 {
 		postHookFunctions = append(postHookFunctions, postHooks...)
 	}
 
-	err = RunPostHooks(postHookFunctions, cluster)
-
-	if err != nil {
-		return errors.Wrap(err, "error during running cluster posthooks")
+	if err := RunPostHooks(postHookFunctions, cluster); err != nil {
+		return emperror.Wrap(err, "posthook failed")
 	}
 
 	m.events.ClusterCreated(cluster.GetID())
