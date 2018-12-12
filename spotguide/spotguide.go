@@ -39,6 +39,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/imdario/mergo"
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
@@ -132,14 +133,13 @@ type ReleaseBody struct {
 
 // SpotguideManager is responsible to scrape spotguides on GitHub and persist them to database
 type SpotguideManager struct {
+	db                    *gorm.DB
 	pipelineVersion       *semver.Version
 	githubToken           string
 	spotguideOrganization *auth.Organization
 }
 
-func NewSpotguideManager(pipelineVersionString string) *SpotguideManager {
-	githubToken := viper.GetString("github.token")
-
+func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken string) *SpotguideManager {
 	spotguideOrganization, err := auth.GetOrganizationByName(SpotguideGithubOrganization)
 	if err != nil {
 		log.Errorf("shared spotguide organization (%s) is not found", SpotguideGithubOrganization)
@@ -147,30 +147,12 @@ func NewSpotguideManager(pipelineVersionString string) *SpotguideManager {
 
 	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
 
-	s := &SpotguideManager{
+	return &SpotguideManager{
+		db:                    db,
 		pipelineVersion:       pipelineVersion,
-		spotguideOrganization: spotguideOrganization,
 		githubToken:           githubToken,
+		spotguideOrganization: spotguideOrganization,
 	}
-
-	// subscribe to organization creations and sync spotguides into the newly created organizations
-	authEventEmitter.NotifyOrganizationRegistered(s.internalScrapeSpotguides)
-
-	// periodically sync shared spotguides
-	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
-	go func() {
-		if err := s.ScrapeSharedSpotguides(); err != nil {
-			log.Errorf("failed to sync shared spotguides: %v", err)
-		}
-
-		for range syncTicker.C {
-			if err := s.ScrapeSharedSpotguides(); err != nil {
-				log.Errorf("failed to sync shared spotguides: %v", err)
-			}
-		}
-	}()
-
-	return s
 }
 
 func (s *SpotguideManager) isSpotguideReleaseAllowed(release *github.RepositoryRelease) bool {
@@ -198,12 +180,6 @@ func (s *SpotguideManager) isSpotguideReleaseAllowed(release *github.RepositoryR
 	return supported && (!prerelease || viper.GetBool(config.SpotguideAllowPrereleases))
 }
 
-func (s *SpotguideManager) internalScrapeSpotguides(orgID uint, userID uint) {
-	if err := s.ScrapeSpotguides(orgID, userID); err != nil {
-		log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
-	}
-}
-
 func (s *SpotguideManager) ScrapeSharedSpotguides() error {
 	if s.spotguideOrganization == nil {
 		return errors.New("failed to scrape shared spotguides")
@@ -228,8 +204,6 @@ func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 }
 
 func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error {
-	db := config.DB()
-
 	var allRepositories []github.Repository
 	query := fmt.Sprintf("org:%s topic:%s", SpotguideGithubOrganization, SpotguideGithubTopic)
 	if !viper.GetBool(config.SpotguideAllowPrivateRepos) {
@@ -259,7 +233,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 	}
 
 	var oldSpotguides []SpotguideRepo
-	if err := db.Where(&where).Find(&oldSpotguides).Error; err != nil {
+	if err := s.db.Where(&where).Find(&oldSpotguides).Error; err != nil {
 		if err != nil {
 			return emperror.Wrap(err, "failed to list old spotguides")
 		}
@@ -323,7 +297,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 
 			where := model.Key()
 
-			err = db.Where(&where).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
+			err = s.db.Where(&where).Assign(&model).FirstOrCreate(&SpotguideRepo{}).Error
 
 			if err != nil {
 				return err
@@ -334,7 +308,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 	}
 
 	for spotguideRepoKey := range oldSpotguidesIndexed {
-		err := db.Where(&spotguideRepoKey).Delete(SpotguideRepo{}).Error
+		err := s.db.Where(&spotguideRepoKey).Delete(SpotguideRepo{}).Error
 		if err != nil {
 			return err
 		}
@@ -344,8 +318,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 }
 
 func (s *SpotguideManager) GetSpotguides(orgID uint) (spotguides []*SpotguideRepo, err error) {
-	db := config.DB()
-	query := db.Where(SpotguideRepo{OrganizationID: orgID})
+	query := s.db.Where(SpotguideRepo{OrganizationID: orgID})
 	if s.spotguideOrganization != nil {
 		query = query.Or(SpotguideRepo{OrganizationID: s.spotguideOrganization.ID})
 	}
@@ -355,8 +328,7 @@ func (s *SpotguideManager) GetSpotguides(orgID uint) (spotguides []*SpotguideRep
 }
 
 func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
-	db := config.DB()
-	query := db.Where(SpotguideRepo{OrganizationID: orgID, Name: name, Version: version})
+	query := s.db.Where(SpotguideRepo{OrganizationID: orgID, Name: name, Version: version})
 	if s.spotguideOrganization != nil {
 		query = query.Or(SpotguideRepo{OrganizationID: s.spotguideOrganization.ID, Name: name, Version: version})
 	}
@@ -364,8 +336,9 @@ func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*Spot
 	spotguide := SpotguideRepo{}
 	err := query.First(&spotguide).Error
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to find spotguide")
 	}
+
 	return &spotguide, nil
 }
 
@@ -804,12 +777,13 @@ func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag stri
 		Ref: tag,
 	})
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to download file from GitHub")
 	}
 
 	defer reader.Close()
 
-	return ioutil.ReadAll(reader)
+	data, err := ioutil.ReadAll(reader)
+	return data, emperror.Wrap(err, "failed to download file from GitHub")
 }
 
 func isIgnoredPath(path string) bool {

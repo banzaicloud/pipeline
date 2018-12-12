@@ -170,10 +170,10 @@ func (s *SpotguideAPI) LaunchSpotguide(c *gin.Context) {
 	c.Status(http.StatusAccepted)
 }
 
-func NewSpotguideAPI(logger logrus.FieldLogger, errorHandler emperror.Handler, pipelineVersionString string) *SpotguideAPI {
+func NewSpotguideAPI(logger logrus.FieldLogger, errorHandler emperror.Handler, spotguideManager *spotguide.SpotguideManager) *SpotguideAPI {
 	return &SpotguideAPI{
 		logger:       logger,
 		errorHandler: errorHandler,
-		spotguide:    spotguide.NewSpotguideManager(pipelineVersionString),
+		spotguide:    spotguideManager,
 	}
 }
