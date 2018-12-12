@@ -52,7 +52,7 @@ type sslTraefikValues struct {
 	DefaultKey     string   `json:"defaultKey"`
 }
 
-const defaultCertSecretName = "default-ingress-cert"
+const DefaultCertSecretName = "default-ingress-cert"
 
 // InstallIngressControllerPostHook post hooks can't return value, they can log error and/or update state?
 func InstallIngressControllerPostHook(input interface{}) error {
@@ -61,7 +61,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		return errors.Errorf("Wrong parameter type: %T", cluster)
 	}
 
-	defaultCertSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), defaultCertSecretName)
+	defaultCertSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), DefaultCertSecretName)
 	if err == secret.ErrSecretNotExists {
 		certGenerator := global.GetCertGenerator()
 
@@ -87,7 +87,7 @@ func InstallIngressControllerPostHook(input interface{}) error {
 		}
 
 		defaultCertSecretRequest := &secret.CreateSecretRequest{
-			Name: defaultCertSecretName,
+			Name: DefaultCertSecretName,
 			Type: pkgSecret.TLSSecretType,
 			Values: map[string]string{
 				pkgSecret.CACert:     string(rootCA),

@@ -23,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
+	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -87,7 +88,7 @@ func (s *clusterSubscriber) Init() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	prometheusConfig, _, err := s.getPrometheusConfigAndSecret()
+	prometheusConfig, prometheusSecret, err := s.getPrometheusConfigAndSecret()
 	if err != nil {
 		s.errorHandler.Handle(err)
 
@@ -120,6 +121,12 @@ func (s *clusterSubscriber) Init() {
 
 				return
 			}
+			tlsSecret, err := pipSecret.Store.GetByName(org.ID, pipCluster.DefaultCertSecretName)
+			if err != nil {
+				s.errorHandler.Handle(emperror.Wrap(err, "failed to get ingress secret"))
+
+				return
+			}
 
 			params := scrapeConfigParameters{
 				orgName:     org.Name,
@@ -129,12 +136,16 @@ func (s *clusterSubscriber) Init() {
 					username: basicAuthSecret.Values[pkgSecret.Username],
 					password: basicAuthSecret.Values[pkgSecret.Password],
 				},
+				tlsConfig: &scrapeTLSConfig{
+					caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
+				},
 			}
 			prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
+			prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
 		}
 
 	}
-	err = s.save(prometheusConfig, nil)
+	err = s.save(prometheusConfig, prometheusSecret)
 	if err != nil {
 		s.errorHandler.Handle(err)
 
@@ -170,7 +181,7 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	c, org, prometheusConfig, _, err := s.init(clusterID)
+	c, org, prometheusConfig, prometheusSecret, err := s.init(clusterID)
 	if err != nil {
 		s.errorHandler.Handle(err)
 
@@ -192,11 +203,21 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 			username: basicAuthSecret.Values[pkgSecret.Username],
 			password: basicAuthSecret.Values[pkgSecret.Password],
 		},
+		tlsConfig: &scrapeTLSConfig{
+			caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
+		},
+	}
+	tlsSecret, err := pipSecret.Store.GetByName(org.ID, pipCluster.DefaultCertSecretName)
+	if err != nil {
+		s.errorHandler.Handle(emperror.Wrap(err, "failed to get ingress secret"))
+
+		return
 	}
 
 	prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
+	prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
 
-	err = s.save(prometheusConfig, nil)
+	err = s.save(prometheusConfig, prometheusSecret)
 	if err != nil {
 		s.errorHandler.Handle(err)
 		return
@@ -427,14 +448,17 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 			Username: params.basicAuthConfig.username,
 			Password: promconfig.Secret(params.basicAuthConfig.password),
 		}
-		scrapeConfig.HTTPClientConfig.TLSConfig.InsecureSkipVerify = true
+		if params.tlsConfig == nil || params.tlsConfig.certFileName == "" {
+			scrapeConfig.HTTPClientConfig.TLSConfig.InsecureSkipVerify = true
+		}
 	}
-	if params.tlsConfig != nil {
+	if params.tlsConfig != nil && params.tlsConfig.caCertFileName != "" {
 		scrapeConfig.HTTPClientConfig.TLSConfig = promconfig.TLSConfig{
-			CAFile:             filepath.Join(s.certMountPath, params.tlsConfig.caCertFileName),
-			CertFile:           filepath.Join(s.certMountPath, params.tlsConfig.certFileName),
-			KeyFile:            filepath.Join(s.certMountPath, params.tlsConfig.keyFileName),
-			InsecureSkipVerify: true,
+			CAFile: filepath.Join(s.certMountPath, params.tlsConfig.caCertFileName),
+		}
+		if params.tlsConfig.certFileName != "" && params.tlsConfig.keyFileName != "" {
+			scrapeConfig.HTTPClientConfig.TLSConfig.CertFile = filepath.Join(s.certMountPath, params.tlsConfig.certFileName)
+			scrapeConfig.HTTPClientConfig.TLSConfig.KeyFile = filepath.Join(s.certMountPath, params.tlsConfig.keyFileName)
 		}
 	}
 
