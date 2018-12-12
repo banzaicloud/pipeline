@@ -97,6 +97,12 @@ services:
     ui:
         image: banzaicloud/pipeline-web:latest
         environment:
+            TAG: local
+
+    uiproxy:
+        build: etc/docker/uiproxy
+        depends_on:
+            - ui
+        environment:
             CLOUDINFO_URL: https://beta.banzaicloud.io/cloudinfo
             RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
-            TAG: local
