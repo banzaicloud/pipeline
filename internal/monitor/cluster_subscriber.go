@@ -427,6 +427,7 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 			Username: params.basicAuthConfig.username,
 			Password: promconfig.Secret(params.basicAuthConfig.password),
 		}
+		scrapeConfig.HTTPClientConfig.TLSConfig.InsecureSkipVerify = true
 	}
 	if params.tlsConfig != nil {
 		scrapeConfig.HTTPClientConfig.TLSConfig = promconfig.TLSConfig{
