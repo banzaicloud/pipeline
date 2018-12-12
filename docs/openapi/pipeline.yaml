@@ -5113,6 +5113,11 @@ components:
                 secretId:
                     type: string
                     example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
+                secretIds:
+                    type: array
+                    items:
+                        type: string
+                    example: ["62bc3c75-91fb-4670-bad4-24b401a9deac", "4378ae32-2355-12ed-b984-1234567804ed"]
                 secretName:
                     type: string
                     example: "my-aws-secret"
@@ -5144,6 +5149,8 @@ components:
                             $ref: '#/components/schemas/CreateUpdateOKEProperties'
                         -
                             $ref: '#/components/schemas/CreateAKCSProperties'
+                        -
+                            $ref: '#/components/schemas/CreatePKEProperties'
                     example:
                         gke:
                             master:
@@ -5389,6 +5396,188 @@ components:
             type: string
             example: "labelValue"
 
+        CreatePKEProperties:
+            type: object
+            required:
+                - clusterTopology
+            properties:
+                clusterTopology:
+                    type: object
+                    required:
+                        - network
+                        - nodePools
+                        - kubernetes
+                        - cri
+                    properties:
+                        network:
+                            type: object
+                            required:
+                                - apiServerAddress
+                                - serviceCIDR
+                                - podCIDR
+                                - provider
+                            properties:
+                                apiServerAddress:
+                                    type: string
+                                    example: "10.240.0.204"
+                                serviceCIDR:
+                                    type: string
+                                    example: "10.32.0.0/24"
+                                podCIDR:
+                                    type: string
+                                    example: 10.200.0.0/16"
+                                provider:
+                                    type: string
+                                    example: "weave"
+                        nodePools:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/NodePoolsPKE'
+                        kubernetes:
+                            type: object
+                            required:
+                                - version
+                                - rbac
+                            properties:
+                                version:
+                                    type: string
+                                    example:  "v1.12.2"
+                                rbac:
+                                    type: object
+                                    required:
+                                        - enabled
+                                    properties:
+                                        enabled:
+                                            type: boolean
+                                            example: true
+                        cri:
+                            type: object
+                            required:
+                                - runtime
+                            properties:
+                                runtime:
+                                    type: string
+                                    example: "containerd"
+
+        NodePoolsPKE:
+            type: object
+            required:
+                - name
+                - roles
+                - provider
+                - providerConfig
+                - hosts
+            properties:
+                name:
+                    type: string
+                    example: "distrMaster"
+                roles:
+                    type: array
+                    items:
+                        type: string
+                    example: ["master", "pipeline-system"]
+                provider:
+                    type: string
+                    example: "amazon"
+                providerConfig:
+                    type: object
+                    oneOf:
+                        -
+                            $ref: '#/components/schemas/AmazonPoviderConfig'
+                hosts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PKEHosts'
+
+        AmazonPoviderConfig:
+            type: object
+            required:
+                - autoScalingGroup
+            properties:
+                autoScalingGroup:
+                    $ref: '#/components/schemas/AmazonAutoScalingGroup'
+
+        PKEHosts:
+            type: object
+            required:
+                - name
+                - privateIP
+                - roles
+            properties:
+                name:
+                    type: string
+                    example: "ip-10-240-0-204.eu-central-1.compute.internal"
+                privateIP:
+                    type: string
+                    example: "10.240.0.204"
+                roles:
+                    type: array
+                    items:
+                        type: string
+                    example: ["master", "pipeline-system"]
+
+        AmazonAutoScalingGroup:
+            type: object
+            required:
+                - name
+                - image
+                - zones
+                - instanceType
+                - launchConfigurationName
+                - vpcID
+                - securityGroupID
+                - subnets
+                - tags
+                - size
+            properties:
+                name:
+                    type: string
+                    example: "distrMaster"
+                image:
+                    type: string
+                    example: "ami-dd3c0f36"
+                zones:
+                    type: array
+                    items:
+                        type: string
+                    example: ["eu-central-1b"]
+                instanceType:
+                    type: string
+                    example: "t2.medium"
+                launchConfigurationName:
+                    type: string
+                    example: "distrMaster"
+                launchTemplate:
+                    $ref: '#/components/schemas/AmazonLaunchTemplate'
+                vpcID:
+                    type: string
+                    example: "vpc-0deb755857f5ef79d"
+                securityGroupID:
+                    type: string
+                    example: "sg-0b3ddd7bef209c1d0"
+                subnets:
+                    type: array
+                    items:
+                        type: string
+                    example: ["subnet-0d16a21e9655486af"]
+                tags:
+                    type: object
+                    additionalProperties: true
+                size:
+                    type: object
+                    required:
+                        - min
+                        - max
+                    properties:
+                        min:
+                            type: integer
+                            example: 1
+                        max:
+                            type: integer
+                            example: 1
+
+        AmazonLaunchTemplate:
+            type: object
 
         CreateClusterResponse_202:
             type: object
