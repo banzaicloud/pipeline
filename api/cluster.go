@@ -59,15 +59,17 @@ const (
 // ClusterAPI implements the Cluster API actions.
 type ClusterAPI struct {
 	clusterManager *cluster.Manager
+	clusterGetter  common.ClusterGetter
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
 }
 
 // NewClusterAPI returns a new ClusterAPI instance.
-func NewClusterAPI(clusterManager *cluster.Manager, logger logrus.FieldLogger, errorHandler emperror.Handler) *ClusterAPI {
+func NewClusterAPI(clusterManager *cluster.Manager, clusterGetter common.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *ClusterAPI {
 	return &ClusterAPI{
 		clusterManager: clusterManager,
+		clusterGetter:  clusterGetter,
 
 		logger:       logger,
 		errorHandler: errorHandler,

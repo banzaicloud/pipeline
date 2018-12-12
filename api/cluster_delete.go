@@ -33,7 +33,7 @@ type DeleteClusterResponse struct {
 
 // DeleteCluster deletes a K8S cluster from the cloud
 func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
-	commonCluster, ok := getClusterFromRequest(c)
+	commonCluster, ok := a.clusterGetter.GetClusterFromRequest(c)
 	if ok != true {
 		return
 	}

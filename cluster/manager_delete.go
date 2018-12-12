@@ -264,6 +264,20 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		)
 	}
 
+	switch cls := cluster.(type) {
+	case *EC2ClusterBanzaiCloudDistribution:
+		// the cluster is only deleted from the database for now
+		if err = cls.DeleteFromDatabase(); err != nil {
+			err = emperror.Wrap(err, "failed to delete from the database")
+			if !force {
+				cls.UpdateStatus(pkgCluster.Error, err.Error())
+				return err
+			}
+			logger.Error(err)
+		}
+		return nil
+	}
+
 	// By default we try to delete resources from the cluster,
 	// but in certain cases we want to skip that step
 	deleteResources := true
