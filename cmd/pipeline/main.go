@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/pipeline/spotguide"
+
 	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
@@ -263,6 +265,30 @@ func main() {
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(githubImporter)
 	userAPI := api.NewUserAPI(accessManager)
+	spotguideManager := spotguide.NewSpotguideManager(config.DB(), Version, viper.GetString("github.token"))
+
+	// subscribe to organization creations and sync spotguides into the newly created organizations
+	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
+		if err := spotguideManager.ScrapeSpotguides(orgID, userID); err != nil {
+			log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
+		}
+	})
+
+	// periodically sync shared spotguides
+	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
+	go func() {
+		if err := spotguideManager.ScrapeSharedSpotguides(); err != nil {
+			log.Errorf("failed to sync shared spotguides: %v", err)
+		}
+
+		for range syncTicker.C {
+			if err := spotguideManager.ScrapeSharedSpotguides(); err != nil {
+				log.Errorf("failed to sync shared spotguides: %v", err)
+			}
+		}
+	}()
+
+	spotguideAPI := api.NewSpotguideAPI(logger, errorHandler, spotguideManager)
 
 	v1 := router.Group(path.Join(basePath, "api", "v1/"))
 	v1.GET("/functions", api.ListFunctions)
@@ -275,13 +301,13 @@ func main() {
 		{
 			orgs.Use(api.OrganizationMiddleware)
 
-			orgs.GET("/:orgid/spotguides", api.GetSpotguides)
-			orgs.PUT("/:orgid/spotguides", middleware.NewRateLimiterByOrgID(api.SyncSpotguidesRateLimit), api.SyncSpotguides)
-			orgs.POST("/:orgid/spotguides", api.LaunchSpotguide)
+			orgs.GET("/:orgid/spotguides", spotguideAPI.GetSpotguides)
+			orgs.PUT("/:orgid/spotguides", middleware.NewRateLimiterByOrgID(api.SyncSpotguidesRateLimit), spotguideAPI.SyncSpotguides)
+			orgs.POST("/:orgid/spotguides", spotguideAPI.LaunchSpotguide)
 			// Spotguide name may contain '/'s so we have to use :owner/:name
-			orgs.GET("/:orgid/spotguides/:owner/:name", api.GetSpotguide)
-			orgs.HEAD("/:orgid/spotguides/:owner/:name", api.GetSpotguide)
-			orgs.GET("/:orgid/spotguides/:owner/:name/icon", api.GetSpotguideIcon)
+			orgs.GET("/:orgid/spotguides/:owner/:name", spotguideAPI.GetSpotguide)
+			orgs.HEAD("/:orgid/spotguides/:owner/:name", spotguideAPI.GetSpotguide)
+			orgs.GET("/:orgid/spotguides/:owner/:name/icon", spotguideAPI.GetSpotguideIcon)
 
 			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
 
