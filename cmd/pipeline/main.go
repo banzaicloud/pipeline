@@ -192,6 +192,7 @@ func main() {
 				client,
 				clusterManager,
 				db,
+				viper.GetString(config.DNSBaseDomain),
 				viper.GetString(config.ControlPlaneNamespace),
 				viper.GetString(config.PipelineSystemNamespace),
 				viper.GetString(config.MonitorConfigMap),
@@ -200,6 +201,7 @@ func main() {
 				viper.GetString(config.MonitorCertMountPath),
 				errorHandler,
 			)
+			monitorClusterSubscriber.Init()
 			monitorClusterSubscriber.Register(monitor.NewClusterEvents(clusterEventBus))
 		}
 	}
