@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **Location** | **string** |  | 
 **Cloud** | **string** |  | 
 **SecretId** | **string** |  | [optional] 
+**SecretIds** | **[]string** |  | [optional] 
 **SecretName** | **string** |  | [optional] 
 **PostHooks** | [**map[string]interface{}**](map[string]interface{}.md) |  | [optional] 
 **ProfileName** | **string** |  | [optional] 

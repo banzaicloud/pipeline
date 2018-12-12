@@ -5123,6 +5123,9 @@ components:
           cloud: google
           profileName: profileName
           secretName: my-aws-secret
+          secretIds:
+          - 62bc3c75-91fb-4670-bad4-24b401a9deac
+          - 4378ae32-2355-12ed-b984-1234567804ed
           name: gkecluster-pipelineuser-123
           secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
@@ -5375,6 +5378,9 @@ components:
         cloud: google
         profileName: profileName
         secretName: my-aws-secret
+        secretIds:
+        - 62bc3c75-91fb-4670-bad4-24b401a9deac
+        - 4378ae32-2355-12ed-b984-1234567804ed
         name: gkecluster-pipelineuser-123
         secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
@@ -5405,6 +5411,13 @@ components:
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string
+        secretIds:
+          example:
+          - 62bc3c75-91fb-4670-bad4-24b401a9deac
+          - 4378ae32-2355-12ed-b984-1234567804ed
+          items:
+            type: string
+          type: array
         secretName:
           example: my-aws-secret
           type: string
@@ -5436,6 +5449,7 @@ components:
           - $ref: '#/components/schemas/CreateEKSProperties'
           - $ref: '#/components/schemas/CreateUpdateOKEProperties'
           - $ref: '#/components/schemas/CreateAKCSProperties'
+          - $ref: '#/components/schemas/CreatePKEProperties'
           type: object
       required:
       - cloud
@@ -5598,6 +5612,123 @@ components:
     LabelsOracle:
       example: labelValue
       type: string
+    CreatePKEProperties:
+      properties:
+        clusterTopology:
+          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology'
+      required:
+      - clusterTopology
+      type: object
+    NodePoolsPKE:
+      properties:
+        name:
+          example: distrMaster
+          type: string
+        roles:
+          example:
+          - master
+          - pipeline-system
+          items:
+            type: string
+          type: array
+        provider:
+          example: amazon
+          type: string
+        providerConfig:
+          oneOf:
+          - $ref: '#/components/schemas/AmazonPoviderConfig'
+          type: object
+        hosts:
+          items:
+            $ref: '#/components/schemas/PKEHosts'
+          type: array
+      required:
+      - hosts
+      - name
+      - provider
+      - providerConfig
+      - roles
+      type: object
+    AmazonPoviderConfig:
+      properties:
+        autoScalingGroup:
+          $ref: '#/components/schemas/AmazonAutoScalingGroup'
+      required:
+      - autoScalingGroup
+      type: object
+    PKEHosts:
+      properties:
+        name:
+          example: ip-10-240-0-204.eu-central-1.compute.internal
+          type: string
+        privateIP:
+          example: 10.240.0.204
+          type: string
+        roles:
+          example:
+          - master
+          - pipeline-system
+          items:
+            type: string
+          type: array
+      required:
+      - name
+      - privateIP
+      - roles
+      type: object
+    AmazonAutoScalingGroup:
+      properties:
+        name:
+          example: distrMaster
+          type: string
+        image:
+          example: ami-dd3c0f36
+          type: string
+        zones:
+          example:
+          - eu-central-1b
+          items:
+            type: string
+          type: array
+        instanceType:
+          example: t2.medium
+          type: string
+        launchConfigurationName:
+          example: distrMaster
+          type: string
+        launchTemplate:
+          $ref: '#/components/schemas/AmazonLaunchTemplate'
+        vpcID:
+          example: vpc-0deb755857f5ef79d
+          type: string
+        securityGroupID:
+          example: sg-0b3ddd7bef209c1d0
+          type: string
+        subnets:
+          example:
+          - subnet-0d16a21e9655486af
+          items:
+            type: string
+          type: array
+        tags:
+          additionalProperties: true
+          type: object
+        size:
+          $ref: '#/components/schemas/AmazonAutoScalingGroup_size'
+      required:
+      - image
+      - instanceType
+      - launchConfigurationName
+      - name
+      - securityGroupID
+      - size
+      - subnets
+      - tags
+      - vpcID
+      - zones
+      type: object
+    AmazonLaunchTemplate:
+      type: object
     CreateClusterResponse_202:
       example:
         name: gkecluster-pipelineuser-123
@@ -8905,6 +9036,64 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsOracle'
           type: object
+      type: object
+    CreatePKEProperties_clusterTopology_network:
+      properties:
+        apiServerAddress:
+          example: 10.240.0.204
+          type: string
+        serviceCIDR:
+          example: 10.32.0.0/24
+          type: string
+        podCIDR:
+          example: 10.200.0.0/16"
+          type: string
+        provider:
+          example: weave
+          type: string
+      type: object
+    CreatePKEProperties_clusterTopology_kubernetes_rbac:
+      properties:
+        enabled:
+          type: boolean
+      type: object
+    CreatePKEProperties_clusterTopology_kubernetes:
+      properties:
+        version:
+          example: v1.12.2
+          type: string
+        rbac:
+          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_kubernetes_rbac'
+      type: object
+    CreatePKEProperties_clusterTopology_cri:
+      properties:
+        runtime:
+          example: containerd
+          type: string
+      type: object
+    CreatePKEProperties_clusterTopology:
+      properties:
+        network:
+          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_network'
+        nodePools:
+          items:
+            $ref: '#/components/schemas/NodePoolsPKE'
+          type: array
+        kubernetes:
+          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_kubernetes'
+        cri:
+          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_cri'
+      type: object
+    AmazonAutoScalingGroup_size:
+      properties:
+        min:
+          example: 1
+          format: int32
+          type: integer
+        max:
+          example: 1
+          format: int32
+          type: integer
       type: object
     UpdateEksProperties_eks:
       properties:
