@@ -28,4 +28,5 @@ const (
 	AlibabaStartScaleClusterLog     = "start to scale kubernetes cluster"
 	AlibabaScaleClusterFailedLog    = "start to update cluster status update_failed"
 	AlibabaApiDomain                = "cs.aliyuncs.com"
+	AlibabaInstanceHealthyStatus    = "Healthy"
 )

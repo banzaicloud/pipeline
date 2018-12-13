@@ -62,12 +62,12 @@ func (c *CreateClusterACSK) AddDefaults() error {
 		if np.InstanceType == "" {
 			c.NodePools[i].InstanceType = DefaultWorkerInstanceType
 		}
-		if np.SystemDiskCategory == "" {
-			c.NodePools[i].SystemDiskCategory = DefaultWorkerSystemDiskCategory
-		}
-		if np.SystemDiskSize < DefaultWorkerSystemDiskSize {
-			c.NodePools[i].SystemDiskSize = DefaultWorkerSystemDiskSize
-		}
+		//if np.SystemDiskCategory == "" {
+		//	c.NodePools[i].SystemDiskCategory = DefaultWorkerSystemDiskCategory
+		//}
+		//if np.SystemDiskSize < DefaultWorkerSystemDiskSize {
+		//	c.NodePools[i].SystemDiskSize = DefaultWorkerSystemDiskSize
+		//}
 	}
 
 	return nil
@@ -79,7 +79,7 @@ func ValidateNodePools(nps NodePools) error {
 	}
 
 	// Alibaba only supports 20 nodepools
-	if len(nps) > 201 {
+	if len(nps) > 20 {
 		return pkgErrors.ErrorAlibabaNodePoolFieldLenError
 	}
 

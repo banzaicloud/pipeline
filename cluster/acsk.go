@@ -186,7 +186,7 @@ func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.N
 
 	updatedNodePools := make([]*model.ACSKNodePoolModel, 0, len(pools))
 
-	for nodePoolName, nodePool := range pools {
+	for nodePoolName := range pools {
 		if currentNodePoolMap[nodePoolName] != nil {
 			updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
 				ID:           currentNodePoolMap[nodePoolName].ID,
@@ -195,7 +195,7 @@ func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.N
 				ClusterID:    currentNodePoolMap[nodePoolName].ClusterID,
 				Name:         nodePoolName,
 				InstanceType: currentNodePoolMap[nodePoolName].InstanceType,
-				Count:        nodePool.Count,
+				//Count:        nodePool.Count,
 			})
 		}
 	}
@@ -263,7 +263,8 @@ func (c *ACSKCluster) CreateCluster() error {
 		return err
 	}
 
-	// All worker related fields are
+	// All worker related fields are same as master ones to avoid instance is not available in that region
+	// worker related fields are unused ones because we are asking 0 worker node with that request
 	creationContext := action.NewACSKClusterCreationContext(
 		csClient,
 		ecsClient,
@@ -284,6 +285,7 @@ func (c *ACSKCluster) CreateCluster() error {
 			SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
 			DisableRollback:          true,
 		},
+		c.modelCluster.ACSK.NodePools,
 	)
 
 	clusterSshSecret, err := c.getSshSecret(c)
@@ -489,7 +491,6 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 	for _, np := range c.modelCluster.ACSK.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Count:             np.Count,
 				InstanceType:      np.InstanceType,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
@@ -628,9 +629,9 @@ func (c *ACSKCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) 
 	for _, preNp := range c.modelCluster.ACSK.NodePools {
 		preNodePools[preNp.Name] = &acsk.NodePool{
 			InstanceType:       preNp.InstanceType,
-			SystemDiskCategory: preNp.SystemDiskCategory,
-			SystemDiskSize:     preNp.SystemDiskSize,
-			Count:              preNp.Count,
+			//SystemDiskCategory: preNp.SystemDiskCategory,
+			//SystemDiskSize:     preNp.SystemDiskSize,
+			//Count:              preNp.Count,
 		}
 	}
 
@@ -894,7 +895,7 @@ func (c *ACSKCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest)
 	for _, np := range r.Properties.CreateClusterACSK.NodePools {
 		var (
 			instanceType = np.InstanceType
-			diskCategory = np.SystemDiskCategory
+			//diskCategory = np.SystemDiskCategory
 		)
 
 		err = c.validateInstanceType(region, zone, instanceType)

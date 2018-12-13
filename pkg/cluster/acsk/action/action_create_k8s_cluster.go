@@ -72,6 +72,7 @@ func NewACSKClusterCreationContext(
 	ecsClient *ecs.Client,
 	essClient *ess.Client,
 	clusterCreateParams acsk.AlibabaClusterCreateParams,
+	nodepools []*model.ACSKNodePoolModel,
 ) *ACSKClusterCreateContext {
 	return &ACSKClusterCreateContext{
 		ACSKClusterContext: ACSKClusterContext{
@@ -80,6 +81,7 @@ func NewACSKClusterCreationContext(
 			ESSClient: essClient,
 		},
 		AlibabaClusterCreateParams: clusterCreateParams,
+		NodePools: nodepools,
 	}
 }
 
