@@ -56,7 +56,7 @@ func (a *UpdateACSKClusterAction) ExecuteAction(input interface{}) (interface{},
 		DisableRollback:    true,
 		TimeoutMins:        60,
 		WorkerInstanceType: a.nodePools[0].InstanceType,
-		NumOfNodes:         a.nodePools[0].Count,
+		//NumOfNodes:         a.nodePools[0].Count,
 	}
 	p, err := json.Marshal(&params)
 	if err != nil {

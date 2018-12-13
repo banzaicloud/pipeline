@@ -24,6 +24,7 @@ import (
 	aliErrors "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -56,6 +57,37 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 	}
 
 	return nil
+}
+
+func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Client, regionId, scalingGroupID, scalingConfID string) ([]string, error) {
+	log.Info("Waiting for instances to get ready")
+	for {
+		describeScalingInstancesrequest := ess.CreateDescribeScalingInstancesRequest()
+		describeScalingInstancesrequest.SetScheme(requests.HTTPS)
+		describeScalingInstancesrequest.SetDomain(acsk.AlibabaApiDomain)
+		describeScalingInstancesrequest.SetContentType(requests.Json)
+
+		describeScalingInstancesrequest.RegionId = regionId
+		describeScalingInstancesrequest.ScalingGroupId = scalingGroupID
+		describeScalingInstancesrequest.ScalingConfigurationId = scalingConfID
+
+		describeScalingInstancesResponse, err := essClient.DescribeScalingInstances(describeScalingInstancesrequest)
+		if err != nil {
+			return nil, err
+		}
+
+		var instanceIds []string
+		for _, instance := range describeScalingInstancesResponse.ScalingInstances.ScalingInstance {
+			if instance.HealthStatus == acsk.AlibabaInstanceHealthyStatus {
+				instanceIds = append(instanceIds, instance.InstanceId)
+				continue
+			} else {
+				time.Sleep(time.Second * 5)
+				break
+			}
+		}
+		return instanceIds, err
+	}
 }
 
 func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client, isClusterCreate bool) (*acsk.AlibabaDescribeClusterResponse, error) {
