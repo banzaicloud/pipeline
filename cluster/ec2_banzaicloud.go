@@ -104,12 +104,26 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) SaveSshSecretId(string) error {
-	panic("implement me")
+func (c *EC2ClusterBanzaiCloudDistribution) SaveSshSecretId(sshSecretId string) error {
+	c.model.Cluster.SSHSecretID = sshSecretId
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return errors.Wrap(err, "failed to save ssh secret id")
+	}
+
+	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) SaveConfigSecretId(string) error {
-	panic("implement me")
+func (c *EC2ClusterBanzaiCloudDistribution) SaveConfigSecretId(configSecretId string) error {
+	c.model.Cluster.ConfigSecretID = configSecretId
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return errors.Wrap(err, "failed to save config secret id")
+	}
+
+	return nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetConfigSecretId() string {
@@ -246,7 +260,12 @@ func (c *EC2ClusterBanzaiCloudDistribution) ListNodeNames() (common.NodeNames, e
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) NodePoolExists(nodePoolName string) bool {
-	panic("implement me")
+	for _, np := range c.model.NodePools {
+		if np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
 }
 
 func CreateEC2ClusterBanzaiCloudDistributionFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterBanzaiCloudDistribution, error) {
