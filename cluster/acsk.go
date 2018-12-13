@@ -28,6 +28,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
@@ -146,6 +147,15 @@ func (c *ACSKCluster) GetAlibabaECSClient(cfg *sdk.Config) (*ecs.Client, error) 
 	return createAlibabaECSClient(cred, c.modelCluster.ACSK.RegionID, cfg)
 }
 
+// GetAlibabaESSClient creates an Alibaba Auto Scaling Service client with credentials
+func (c *ACSKCluster) GetAlibabaESSClient(cfg *sdk.Config) (*ess.Client, error) {
+	cred, err := c.createAlibabaCredentialsFromSecret()
+	if err != nil {
+		return nil, err
+	}
+	return createAlibabaESSClient(cred, c.modelCluster.ACSK.RegionID, cfg)
+}
+
 func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
 	nodePoolsCount := len(pools)
 	if nodePoolsCount == 0 {
@@ -159,9 +169,8 @@ func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model
 			CreatedBy:          userId,
 			Name:               name,
 			InstanceType:       pool.InstanceType,
-			SystemDiskCategory: pool.SystemDiskCategory,
-			SystemDiskSize:     pool.SystemDiskSize,
-			Count:              pool.Count,
+			MinCount:           pool.MinCount,
+			MaxCount:           pool.MaxCount,
 		}
 		i++
 	}
@@ -236,7 +245,8 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 	return &cluster, nil
 }
 func (c *ACSKCluster) CreateCluster() error {
-	log.Info("Start create cluster (Alibaba)")
+	c.log.WithField("clusterName", c.modelCluster.Name)
+	c.log.Info("Start create cluster (Alibaba)")
 
 	csClient, err := c.GetAlibabaCSClient(nil)
 	if err != nil {
@@ -247,9 +257,17 @@ func (c *ACSKCluster) CreateCluster() error {
 	if err != nil {
 		return err
 	}
+
+	essClient, err := c.GetAlibabaESSClient(nil)
+	if err != nil {
+		return err
+	}
+
+	// All worker related fields are
 	creationContext := action.NewACSKClusterCreationContext(
 		csClient,
 		ecsClient,
+		essClient,
 		acsk.AlibabaClusterCreateParams{
 			ClusterType:              "Kubernetes",
 			Name:                     c.modelCluster.Name,
@@ -258,16 +276,14 @@ func (c *ACSKCluster) CreateCluster() error {
 			MasterInstanceType:       c.modelCluster.ACSK.MasterInstanceType,              // "ecs.sn1.large",
 			MasterSystemDiskCategory: c.modelCluster.ACSK.MasterSystemDiskCategory,        // "cloud_efficiency",
 			MasterSystemDiskSize:     c.modelCluster.ACSK.MasterSystemDiskSize,            // 40,
-			WorkerInstanceType:       c.modelCluster.ACSK.NodePools[0].InstanceType,       // "ecs.sn1.large",
-			WorkerSystemDiskCategory: c.modelCluster.ACSK.NodePools[0].SystemDiskCategory, // "cloud_efficiency",
-			WorkerSystemDiskSize:     c.modelCluster.ACSK.NodePools[0].SystemDiskSize,     // 40,
+			WorkerInstanceType:       c.modelCluster.ACSK.MasterInstanceType,              // "ecs.sn1.large",
+			WorkerSystemDiskCategory: "cloud_efficiency",                                  // "cloud_efficiency",
 			KeyPair:                  c.modelCluster.Name,                                 // uploaded keyPair name
 			NumOfNodes:               0,                                                   // 0 (to make sure node pools are created properly),
 			SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
 			SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
 			DisableRollback:          true,
 		},
-		c.modelCluster.ACSK.NodePools,
 	)
 
 	clusterSshSecret, err := c.getSshSecret(c)
@@ -284,8 +300,7 @@ func (c *ACSKCluster) CreateCluster() error {
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	c.modelCluster.ACSK.ProviderClusterID = creationContext.ClusterID
 	if err != nil {
-		errors.Wrap(err, "ACSK cluster create error")
-		return err
+		return errors.Wrap(err, "ACSK cluster create error")
 	}
 	castedValue, ok := resp.(*acsk.AlibabaDescribeClusterResponse)
 	if !ok {
@@ -523,8 +538,7 @@ func (c *ACSKCluster) DeleteCluster() error {
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		errors.Wrap(err, "ACSK cluster delete error")
-		return err
+		return errors.Wrap(err, "ACSK cluster delete error")
 	}
 
 	return nil
@@ -953,6 +967,14 @@ func createAlibabaECSClient(auth *credentials.AccessKeyCredential, regionID stri
 
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	return ecs.NewClientWithOptions(regionID, cfg, cred)
+}
+
+func createAlibabaESSClient(auth *credentials.AccessKeyCredential, regionID string, cfg *sdk.Config) (*ess.Client, error) {
+	if cfg == nil {
+		cfg = createAlibabaConfig()
+	}
+	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
+	return ess.NewClientWithOptions(regionID, cfg, cred)
 }
 
 // GetCreatedBy returns cluster create userID.

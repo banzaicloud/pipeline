@@ -7,6 +7,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/pkg/errors"
@@ -43,16 +44,36 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		return
 	}
 
-	output = input
-
 	errChan := make(chan error, len(a.context.NodePools))
 	defer close(errChan)
 
 	for _, nodePool := range a.context.NodePools {
 		go func(nodePool *model.ACSKNodePoolModel) {
+			request := ess.CreateCreateScalingGroupRequest()
+			request.SetScheme(requests.HTTPS)
+
+			a.log.WithFields(logrus.Fields{
+				"region":        cluster.RegionID,
+				"zone":          cluster.ZoneID,
+				"instance_type": nodePool.InstanceType,
+			}).Info("creating scaling group")
+
+			request.RegionId = cluster.RegionID
+			request.MinSize = requests.NewInteger(nodePool.MinCount)
+			request.MaxSize = requests.NewInteger(nodePool.MaxCount)
+
+			response, err := a.context.ESSClient.CreateScalingGroup(request)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+
+
+
 			var instanceIds []string
 			for i := 0; i < nodePool.Count; i++ {
-				request := ecs.CreateCreateInstanceRequest()
+				request := ecs.CreateRunInstancesRequest()
 				request.SetScheme(requests.HTTPS)
 
 				a.log.WithFields(logrus.Fields{
@@ -72,10 +93,10 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 				request.ImageId = "centos_7_04_64_20G_alibase_20180419.vhd"
 				request.InstanceType = nodePool.InstanceType
 				request.SystemDiskCategory = nodePool.SystemDiskCategory
-				request.SystemDiskSize = requests.NewInteger(30)
+				request.SystemDiskSize = "30"
 				request.IoOptimized = "optimized"
 				//request.Password = "Hello1234"
-				request.Tag = &[]ecs.CreateInstanceTag{
+				request.Tag = &[]ecs.RunInstancesTag{
 					{
 						Key:   "pipeline-created",
 						Value: "true",
@@ -90,13 +111,13 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 					},
 				}
 
-				response, err := a.context.ECSClient.CreateInstance(request)
+				response, err := a.context.ECSClient.RunInstances(request)
 				if err != nil {
 					errChan <- err
 					return
 				}
 
-				instanceIds = append(instanceIds, response.InstanceId)
+				instanceIds =response.InstanceIdSets.InstanceIdSet
 			}
 
 			// TODO: implement proper node checking
@@ -110,7 +131,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 			request.SetContentType("application/json")
 			content := map[string]interface{}{
 				"instances": instanceIds,
-				//"password":  "Hello1234",
+				"password":  "Hello1234",
 			}
 			contentJSON, err := json.Marshal(content)
 			if err != nil {
@@ -119,7 +140,8 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 			}
 			request.SetContent(contentJSON)
 
-			_, err = a.context.CSClient.AttachInstances(request)
+			resp, err := a.context.CSClient.AttachInstances(request)
+			a.log.Info(resp)
 			if err != nil {
 				errChan <- err
 				return

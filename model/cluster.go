@@ -85,10 +85,8 @@ type ACSKNodePoolModel struct {
 	ClusterID          uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name               string `gorm:"unique_index:idx_cluster_id_name"`
 	InstanceType       string
-	SystemDiskCategory string
-	SystemDiskSize     int
-	Image              string
-	Count              int
+	MinCount           int
+	MaxCount           int
 }
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model

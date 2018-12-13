@@ -32,7 +32,6 @@ type AlibabaClusterCreateParams struct {
 	MasterSystemDiskSize     int    `json:"master_system_disk_size"`       // Master node system disk size.
 	WorkerInstanceType       string `json:"worker_instance_type"`          // Worker node ECS specification type code.
 	WorkerSystemDiskCategory string `json:"worker_system_disk_category"`   // Worker node system disk type.
-	WorkerSystemDiskSize     int    `json:"worker_system_disk_size"`       // Worker node system disk size.
 	KeyPair                  string `json:"key_pair"`                      // Keypair name. Choose one with login_password
 	NumOfNodes               int    `json:"num_of_nodes"`                  // Worker node number. The range is [0,300].
 	SNATEntry                bool   `json:"snat_entry"`                    // Whether to configure SNAT for the network. If it is automatically created VPC must be set to true. If you are using an existing VPC, set it according to whether you have network access capability
