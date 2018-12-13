@@ -21,9 +21,8 @@ import (
 // NodePool describes Alibaba's node fields of a CreateCluster/Update request
 type NodePool struct {
 	InstanceType       string `json:"instanceType"`
-	SystemDiskCategory string `json:"systemDiskCategory,omitempty"`
-	SystemDiskSize     int    `json:"systemDiskSize,omitempty"`
-	Count              int    `json:"count"`
+	MinCount           int    `json:"minCount"`
+	MaxCount           int    `json:"maxCount"`
 }
 
 type NodePools map[string]*NodePool
@@ -79,13 +78,13 @@ func ValidateNodePools(nps NodePools) error {
 		return pkgErrors.ErrorAlibabaNodePoolFieldIsEmpty
 	}
 
-	// Alibaba only supports one type for nodes in a cluster.
-	if len(nps) > 1 {
+	// Alibaba only supports 20 nodepools
+	if len(nps) > 201 {
 		return pkgErrors.ErrorAlibabaNodePoolFieldLenError
 	}
 
 	for _, np := range nps {
-		if np.Count < 1 {
+		if np.MinCount < 1 {
 			return pkgErrors.ErrorAlibabaMinNumberOfNodes
 		}
 	}
