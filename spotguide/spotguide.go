@@ -205,7 +205,7 @@ func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 
 func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error {
 	var allRepositories []github.Repository
-	query := fmt.Sprintf("org:%s topic:%s", SpotguideGithubOrganization, SpotguideGithubTopic)
+	query := fmt.Sprintf("org:%s topic:%s fork:true", org.Name, SpotguideGithubTopic)
 	if !viper.GetBool(config.SpotguideAllowPrivateRepos) {
 		query += " is:public"
 	}

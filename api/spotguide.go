@@ -25,6 +25,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -44,7 +45,7 @@ func (s *SpotguideAPI) GetSpotguide(c *gin.Context) {
 	spotguideVersion := c.Query("version")
 	spotguideDetails, err := s.spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if gorm.IsRecordNotFoundError(errors.Cause(err)) {
 			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Message: "spotguide not found",
@@ -96,7 +97,7 @@ func (s *SpotguideAPI) GetSpotguideIcon(c *gin.Context) {
 	spotguideVersion := c.Query("version")
 	spotguideDetails, err := s.spotguide.GetSpotguide(orgID, spotguideName, spotguideVersion)
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if gorm.IsRecordNotFoundError(errors.Cause(err)) {
 			c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 				Code:    http.StatusNotFound,
 				Message: "spotguide not found",

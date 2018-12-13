@@ -10,8 +10,8 @@ bindaddr = "127.0.0.1:9090"
 basepath = "/pipeline"
 
 # Use to redirect url after login
-uipath = "/ui"
-signupRedirectPath = "/ui"
+uipath = "http://localhost:4200/ui"
+signupRedirectPath = "http://localhost:4200/ui"
 
 [database]
 dialect = "mysql"
