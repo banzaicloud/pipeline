@@ -26,11 +26,12 @@ import (
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
+	promconfig "github.com/banzaicloud/prometheus-config"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	promCommon "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
-	promconfig "github.com/prometheus/prometheus/config"
 	"gopkg.in/yaml.v2"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -429,9 +430,9 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 				TargetLabel: "cluster",
 			},
 		},
-		HTTPClientConfig: promconfig.HTTPClientConfig{},
+		HTTPClientConfig: promCommon.HTTPClientConfig{},
 		ServiceDiscoveryConfig: promconfig.ServiceDiscoveryConfig{
-			StaticConfigs: []*promconfig.TargetGroup{
+			StaticConfigs: []*promconfig.TargetgroupGroup{
 				{
 					Targets: []model.LabelSet{
 						{
@@ -444,9 +445,9 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 		},
 	}
 	if params.basicAuthConfig != nil {
-		scrapeConfig.HTTPClientConfig.BasicAuth = &promconfig.BasicAuth{
+		scrapeConfig.HTTPClientConfig.BasicAuth = &promCommon.BasicAuth{
 			Username: params.basicAuthConfig.username,
-			Password: promconfig.Secret(params.basicAuthConfig.password),
+			Password: promCommon.Secret(params.basicAuthConfig.password),
 		}
 		if params.tlsConfig == nil || params.tlsConfig.certFileName == "" {
 			scrapeConfig.HTTPClientConfig.TLSConfig.InsecureSkipVerify = true
