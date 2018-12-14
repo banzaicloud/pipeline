@@ -16,7 +16,13 @@ package verify
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
+	"strings"
+
+	"github.com/goph/emperror"
+	"github.com/sirupsen/logrus"
 
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/gin-gonic/gin/json"
@@ -24,6 +30,15 @@ import (
 	"golang.org/x/oauth2/jwt"
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
+	serviceusagev1beta1 "google.golang.org/api/serviceusage/v1beta1"
+)
+
+const (
+	ComputeEngineAPI                = "compute.googleapis.com"
+	KubernetesEngineAPI             = "container.googleapis.com"
+	GoogleCloudStorage              = "storage-component.googleapis.com"
+	IAMServiceAccountCredentialsAPI = "iamcredentials.googleapis.com"
+	CloudResourceManagerAPI         = "cloudresourcemanager.googleapis.com"
 )
 
 // gkeVerify for validation GKE credentials
@@ -64,6 +79,19 @@ func checkProject(client *http.Client, projectId string) error {
 	}
 
 	_, err = getProject(service, projectId)
+	if err != nil {
+		return err
+	}
+
+	missing, err := checkRequiredServices(client, projectId)
+	if err != nil {
+		return err
+	}
+	if missing != nil {
+		errorMessage := fmt.Sprintf("required API services are disabled: %s", strings.Join(missing, ","))
+		err = errors.New(errorMessage)
+	}
+
 	return err
 }
 
@@ -130,4 +158,58 @@ func CreateOath2Client(credentials *ServiceAccount) (*http.Client, error) {
 
 	// Create oauth2 client with credential
 	return config.Client(context.TODO()), nil
+}
+
+func listServiceUsage(client *http.Client, projectID string) ([]string, error) {
+	serviceUsageServiceBeta, err := serviceusagev1beta1.New(client)
+	if err != nil {
+		return nil, emperror.Wrap(err, "cannot create serviceusage client for checking enabled services")
+	}
+	enabledServiceCall := serviceUsageServiceBeta.Services.List("projects/" + projectID)
+	var enabledServices []string
+	nextPageToken := ""
+	for {
+		resp, err := enabledServiceCall.Context(context.Background()).PageToken(nextPageToken).Do()
+		if err != nil {
+			return nil, emperror.Wrap(err, "enabled services call failed")
+		}
+		for _, allServices := range resp.Services {
+			if allServices.State == "ENABLED" {
+				enabledServices = append(enabledServices, allServices.Name)
+			}
+		}
+		if resp.NextPageToken == "" {
+			return enabledServices, nil
+		}
+		nextPageToken = resp.NextPageToken
+	}
+}
+
+func checkRequiredServices(client *http.Client, projectID string) ([]string, error) {
+	type mustEnabledServices map[string]string
+	requiredServices := mustEnabledServices{
+		"Compute Engine API":                 ComputeEngineAPI,
+		"Kubernetes Engine API":              KubernetesEngineAPI,
+		"Google Cloud Storage":               GoogleCloudStorage,
+		"IAM ServiceAccount Credentials API": IAMServiceAccountCredentialsAPI,
+		"Cloud Resource Manager API":         CloudResourceManagerAPI,
+	}
+
+	enabledServices, err := listServiceUsage(client, projectID)
+	if err != nil {
+		logrus.Error(err)
+		return nil, errors.New("list enabled services failed")
+	}
+	var missingServices []string
+Loop:
+	for required, value := range requiredServices {
+		for _, enabled := range enabledServices {
+			if strings.Contains(enabled, value) {
+				continue Loop
+			}
+		}
+		missingServices = append(missingServices, required)
+	}
+
+	return missingServices, nil
 }

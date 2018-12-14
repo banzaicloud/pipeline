@@ -1594,7 +1594,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1ff143e45b8b5091553efc5fcdb22d1687ad24752b5fe577e564b3e0c7c2185a"
+  digest = "1:520057c3aedda5b5432a0923a9e0501b53c5516f98f5863771dfa7d3f036973c"
   name = "google.golang.org/api"
   packages = [
     "cloudresourcemanager/v1",
@@ -1607,6 +1607,7 @@
     "internal",
     "iterator",
     "option",
+    "serviceusage/v1beta1",
     "storage/v1",
     "support/bundler",
     "transport",
@@ -2290,6 +2291,7 @@
     "google.golang.org/api/googleapi",
     "google.golang.org/api/iterator",
     "google.golang.org/api/option",
+    "google.golang.org/api/serviceusage/v1beta1",
     "google.golang.org/api/storage/v1",
     "google.golang.org/genproto/googleapis/iam/credentials/v1",
     "gopkg.in/yaml.v2",
