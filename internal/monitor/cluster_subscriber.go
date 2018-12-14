@@ -134,13 +134,17 @@ func (s *clusterSubscriber) Init() {
 				clusterName: c.GetName(),
 				endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
 				basicAuthConfig: &basicAuthConfig{
-					username: basicAuthSecret.Values[pkgSecret.Username],
-					password: basicAuthSecret.Values[pkgSecret.Password],
+					username:     basicAuthSecret.Values[pkgSecret.Username],
+					password:     basicAuthSecret.Values[pkgSecret.Password],
+					passwordFile: fmt.Sprintf("%s_%s_basic_auth.conf", org.Name, c.GetName()),
 				},
 				tlsConfig: &scrapeTLSConfig{
 					caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
 				},
 			}
+
+			secret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[pkgSecret.Password])
+
 			prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
 			prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
 		}
@@ -174,8 +178,9 @@ type scrapeTLSConfig struct {
 }
 
 type basicAuthConfig struct {
-	username string
-	password string
+	username     string
+	password     string
+	passwordFile string
 }
 
 func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
@@ -202,7 +207,8 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
 		basicAuthConfig: &basicAuthConfig{
 			username: basicAuthSecret.Values[pkgSecret.Username],
-			password: basicAuthSecret.Values[pkgSecret.Password],
+			// password:     basicAuthSecret.Values[pkgSecret.Password],
+			passwordFile: fmt.Sprintf("%s_%s_basic_auth.conf", org.Name, c.GetName()),
 		},
 		tlsConfig: &scrapeTLSConfig{
 			caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
@@ -217,6 +223,8 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 
 	prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
 	prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
+
+	prometheusSecret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[pkgSecret.Password])
 
 	err = s.save(prometheusConfig, prometheusSecret)
 	if err != nil {
@@ -446,8 +454,7 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 	}
 	if params.basicAuthConfig != nil {
 		scrapeConfig.HTTPClientConfig.BasicAuth = &promCommon.BasicAuth{
-			Username: params.basicAuthConfig.username,
-			Password: promCommon.Secret(params.basicAuthConfig.password),
+			PasswordFile: filepath.Join(s.certMountPath, params.basicAuthConfig.passwordFile),
 		}
 		if params.tlsConfig == nil || params.tlsConfig.certFileName == "" {
 			scrapeConfig.HTTPClientConfig.TLSConfig.InsecureSkipVerify = true
