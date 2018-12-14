@@ -324,11 +324,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7560d4dbe1eb9e5ff075b4ad4121405420b8da996841ee4ab4883b272eb6ca4d"
+  digest = "1:885f38164e4f602ca74fb9c353d3e6a54efcc8b659da3a6087d052420fdd7f8c"
   name = "github.com/banzaicloud/prometheus-config"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "2d0b0fdc5bfae2ada6189daa9fb81519f1012318"
+  revision = "245649d8bce2be566432a625c64585adb102bb5f"
 
 [[projects]]
   branch = "master"
