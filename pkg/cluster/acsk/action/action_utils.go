@@ -61,22 +61,21 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 
 func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Client, regionId, scalingGroupID, scalingConfID string) ([]string, error) {
 	log.Info("Waiting for instances to get ready")
+	var instanceIds []string
+	describeScalingInstancesrequest := ess.CreateDescribeScalingInstancesRequest()
+	describeScalingInstancesrequest.SetScheme(requests.HTTPS)
+	describeScalingInstancesrequest.SetDomain("ess."+ regionId +".aliyuncs.com")
+	describeScalingInstancesrequest.SetContentType(requests.Json)
+
+	describeScalingInstancesrequest.ScalingGroupId = scalingGroupID
+	describeScalingInstancesrequest.ScalingConfigurationId = scalingConfID
+
 	for {
-		describeScalingInstancesrequest := ess.CreateDescribeScalingInstancesRequest()
-		describeScalingInstancesrequest.SetScheme(requests.HTTPS)
-		describeScalingInstancesrequest.SetDomain(acsk.AlibabaApiDomain)
-		describeScalingInstancesrequest.SetContentType(requests.Json)
-
-		describeScalingInstancesrequest.RegionId = regionId
-		describeScalingInstancesrequest.ScalingGroupId = scalingGroupID
-		describeScalingInstancesrequest.ScalingConfigurationId = scalingConfID
-
 		describeScalingInstancesResponse, err := essClient.DescribeScalingInstances(describeScalingInstancesrequest)
 		if err != nil {
 			return nil, err
 		}
 
-		var instanceIds []string
 		for _, instance := range describeScalingInstancesResponse.ScalingInstances.ScalingInstance {
 			if instance.HealthStatus == acsk.AlibabaInstanceHealthyStatus {
 				instanceIds = append(instanceIds, instance.InstanceId)
@@ -86,7 +85,9 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 				break
 			}
 		}
-		return instanceIds, err
+		if len(instanceIds) == len(describeScalingInstancesResponse.ScalingInstances.ScalingInstance){
+			return instanceIds, nil
+		}
 	}
 }
 
