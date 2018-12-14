@@ -134,8 +134,8 @@ func (s *clusterSubscriber) Init() {
 				clusterName: c.GetName(),
 				endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
 				basicAuthConfig: &basicAuthConfig{
-					username:     basicAuthSecret.Values[pkgSecret.Username],
-					password:     basicAuthSecret.Values[pkgSecret.Password],
+					username:     string(basicAuthSecret.Values[pkgSecret.Username]),
+					password:     string(basicAuthSecret.Values[pkgSecret.Password]),
 					passwordFile: fmt.Sprintf("%s_%s_basic_auth.conf", org.Name, c.GetName()),
 				},
 				tlsConfig: &scrapeTLSConfig{
@@ -454,6 +454,7 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 	}
 	if params.basicAuthConfig != nil {
 		scrapeConfig.HTTPClientConfig.BasicAuth = &promCommon.BasicAuth{
+			Username:     params.basicAuthConfig.username,
 			PasswordFile: filepath.Join(s.certMountPath, params.basicAuthConfig.passwordFile),
 		}
 		if params.tlsConfig == nil || params.tlsConfig.certFileName == "" {
