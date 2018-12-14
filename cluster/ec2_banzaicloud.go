@@ -246,7 +246,27 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterS
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	panic("implement me")
+	log.Info("Getting cluster details")
+
+	status, err := c.GetStatus()
+	if err != nil {
+		return nil, err
+	}
+
+	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
+	for _, np := range c.model.NodePools {
+		nodePools[np.Name] = &pkgCluster.NodePoolDetails{
+			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+			NodePoolStatus:    *status.NodePools[np.Name],
+		}
+	}
+	//TODO implement cluster running state check if it is ready
+	return &pkgCluster.DetailsResponse{
+		Id:                       c.model.Cluster.ID,
+		MasterVersion:            c.model.Kubernetes.Version,
+		NodePools:                nodePools,
+		GetClusterStatusResponse: *status,
+	}, nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) ListNodeNames() (common.NodeNames, error) {

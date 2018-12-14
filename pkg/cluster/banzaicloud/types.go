@@ -14,20 +14,22 @@
 
 package banzaicloud
 
+//TODO add required field to KubeADM if applicable
+
 // CreateClusterBanzaiCloud describes Pipeline's EC2/BanzaiCloud fields of a CreateCluster request
 type CreateClusterBanzaiCloud struct {
-	Network    Network    `json:"network,omitempty" yaml:"network,omitempty"`
-	NodePools  NodePools  `json:"nodepools,omitempty" yaml:"nodepools,omitempty"`
-	Kubernetes Kubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
+	Network    Network    `json:"network,omitempty" yaml:"network,omitempty" binding:"required"`
+	NodePools  NodePools  `json:"nodepools,omitempty" yaml:"nodepools,omitempty" binding:"required"`
+	Kubernetes Kubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty" binding:"required"`
 	KubeADM    KubeADM    `json:"kubeadm,omitempty" yaml:"kubeadm,omitempty"`
-	CRI        CRI        `json:"cri,omitempty" yaml:"cri,omitempty"`
+	CRI        CRI        `json:"cri,omitempty" yaml:"cri,omitempty" binding:"required"`
 }
 
 type Network struct {
-	ServiceCIDR      string          `json:"serviceCIDR" yaml:"serviceCIDR"`
-	PodCIDR          string          `json:"podCIDR" yaml:"podCIDR"`
-	Provider         NetworkProvider `json:"provider" yaml:"provider"`
-	APIServerAddress string          `json:"apiServerAddress" yaml:"apiServerAddress"`
+	ServiceCIDR      string          `json:"serviceCIDR" yaml:"serviceCIDR" binding:"required"`
+	PodCIDR          string          `json:"podCIDR" yaml:"podCIDR" binding:"required"`
+	Provider         NetworkProvider `json:"provider" yaml:"provider" binding:"required"`
+	APIServerAddress string          `json:"apiServerAddress" yaml:"apiServerAddress" binding:"required"`
 }
 
 type NetworkProvider string
@@ -39,11 +41,11 @@ const (
 type NodePools []NodePool
 
 type NodePool struct {
-	Name           string                 `json:"name" yaml:"name"`
-	Roles          Roles                  `json:"roles" yaml:"roles"`
-	Hosts          Hosts                  `json:"hosts" yaml:"hosts"`
-	Provider       NodePoolProvider       `json:"provider" yaml:"provider"`
-	ProviderConfig map[string]interface{} `json:"providerConfig" yaml:"providerConfig"`
+	Name           string                 `json:"name" yaml:"name" binding:"required"`
+	Roles          Roles                  `json:"roles" yaml:"roles" binding:"required"`
+	Hosts          Hosts                  `json:"hosts" yaml:"hosts" binding:"required"`
+	Provider       NodePoolProvider       `json:"provider" yaml:"provider" binding:"required"`
+	ProviderConfig map[string]interface{} `json:"providerConfig" yaml:"providerConfig" binding:"required"`
 }
 
 type NodePoolProvider string
@@ -63,12 +65,12 @@ const (
 
 type Hosts []Host
 type Host struct {
-	Name             string `json:"name" yaml:"name"`
-	PrivateIP        string `json:"privateIP" yaml:"privateIP"`
-	NetworkInterface string `json:"networkInterface" yaml:"networkInterface"`
-	Roles            Roles  `json:"roles" yaml:"roles"`
-	Labels           Labels `json:"labels" yaml:"labels"`
-	Taints           Taints `json:"taints" yaml:"taints"`
+	Name             string `json:"name" yaml:"name" binding:"required"`
+	PrivateIP        string `json:"privateIP" yaml:"privateIP" binding:"required"`
+	NetworkInterface string `json:"networkInterface" yaml:"networkInterface" binding:"required"`
+	Roles            Roles  `json:"roles" yaml:"roles" binding:"required"`
+	Labels           Labels `json:"labels" yaml:"labels" binding:"required"`
+	Taints           Taints `json:"taints" yaml:"taints" binding:"required"`
 }
 
 type Labels map[string]string
@@ -76,23 +78,24 @@ type Labels map[string]string
 type Taints []Taint
 type Taint string
 
+//TODO add required field to LaunchTemplate if applicable
 type AmazonProviderConfig struct {
 	AutoScalingGroup struct {
-		Name                    string  `json:"name" yaml:"name"`
-		Image                   string  `json:"image" yaml:"image"`
-		Zones                   Zones   `json:"zones" yaml:"zones"`
-		InstanceType            string  `json:"instanceType" yaml:"instanceType"`
-		LaunchConfigurationName string  `json:"launchConfigurationName" yaml:"launchConfigurationName"`
+		Name                    string  `json:"name" yaml:"name" binding:"required"`
+		Image                   string  `json:"image" yaml:"image" binding:"required"`
+		Zones                   Zones   `json:"zones" yaml:"zones" binding:"required"`
+		InstanceType            string  `json:"instanceType" yaml:"instanceType" binding:"required"`
+		LaunchConfigurationName string  `json:"launchConfigurationName" yaml:"launchConfigurationName" binding:"required"`
 		LaunchTemplate          string  `json:"launchTemplate" yaml:"launchTemplate"`
-		VPCID                   string  `json:"vpcID" yaml:"vpcID"`
-		SecurityGroupID         string  `json:"securityGroupID" yaml:"securityGroupID"`
-		Subnets                 Subnets `json:"subnets" yaml:"subnets"`
-		Tags                    Tags    `json:"tags" yaml:"tags"`
+		VPCID                   string  `json:"vpcID" yaml:"vpcID" binding:"required"`
+		SecurityGroupID         string  `json:"securityGroupID" yaml:"securityGroupID" binding:"required"`
+		Subnets                 Subnets `json:"subnets" yaml:"subnets" binding:"required"`
+		Tags                    Tags    `json:"tags" yaml:"tags" binding:"required"`
 		Size                    struct {
-			Min int `json:"min" yaml:"min"`
-			Max int `json:"max" yaml:"max"`
-		} `json:"size" yaml:"size"`
-	} `json:"autoScalingGroup" yaml:"autoScalingGroup"`
+			Min int `json:"min" yaml:"min" binding:"required"`
+			Max int `json:"max" yaml:"max" binding:"required"`
+		} `json:"size" yaml:"size" binding:"required"`
+	} `json:"autoScalingGroup" yaml:"autoScalingGroup" binding:"required"`
 }
 
 type Zones []Zone
@@ -104,16 +107,17 @@ type Subnet string
 type Tags map[string]string
 
 type Kubernetes struct {
-	Version string `json:"version" yaml:"version"`
-	RBAC    RBAC   `json:"rbac" yaml:"rbac"`
+	Version string `json:"version" yaml:"version" binding:"required"`
+	RBAC    RBAC   `json:"rbac" yaml:"rbac" binding:"required"`
 }
 
 type RBAC struct {
-	Enabled bool `json:"enabled" yaml:"enabled"`
+	Enabled bool `json:"enabled" yaml:"enabled" binding:"required"`
 }
 
+//TODO add required field to RuntimeConfig if applicable
 type CRI struct {
-	Runtime       Runtime                `json:"runtime" yaml:"runtime"`
+	Runtime       Runtime                `json:"runtime" yaml:"runtime" binding:"required"`
 	RuntimeConfig map[string]interface{} `json:"runtimeConfig" yaml:"runtimeConfig"`
 }
 type Runtime string
@@ -123,6 +127,7 @@ const (
 	CRIContainerd Runtime = "containerd"
 )
 
+////TODO add required field to ExtraArgs if applicable
 type KubeADM struct {
 	ExtraArgs ExtraArgs `json:"extraArgs" yaml:"extraArgs"`
 }
