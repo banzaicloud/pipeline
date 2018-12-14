@@ -366,7 +366,7 @@ func (r *CreateClusterRequest) Validate() error {
 
 // validateMainFields checks the request's main fields
 func (r *CreateClusterRequest) validateMainFields() error {
-	if r.Cloud != Kubernetes {
+	if r.Cloud != Kubernetes && r.Cloud != Alibaba {
 		if len(r.Location) == 0 {
 			return pkgErrors.ErrorLocationEmpty
 		}

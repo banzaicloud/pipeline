@@ -75,6 +75,9 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 		if err != nil {
 			return nil, err
 		}
+		if describeScalingInstancesResponse.TotalCount == 0 {
+			continue
+		}
 
 		for _, instance := range describeScalingInstancesResponse.ScalingInstances.ScalingInstance {
 			if instance.HealthStatus == acsk.AlibabaInstanceHealthyStatus {
