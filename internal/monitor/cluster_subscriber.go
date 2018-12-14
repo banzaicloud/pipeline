@@ -26,11 +26,12 @@ import (
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
+	promconfig "github.com/banzaicloud/prometheus-config"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	promCommon "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
-	promconfig "github.com/prometheus/prometheus/config"
 	"gopkg.in/yaml.v2"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -133,13 +134,17 @@ func (s *clusterSubscriber) Init() {
 				clusterName: c.GetName(),
 				endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
 				basicAuthConfig: &basicAuthConfig{
-					username: basicAuthSecret.Values[pkgSecret.Username],
-					password: basicAuthSecret.Values[pkgSecret.Password],
+					username:     string(basicAuthSecret.Values[pkgSecret.Username]),
+					password:     string(basicAuthSecret.Values[pkgSecret.Password]),
+					passwordFile: fmt.Sprintf("%s_%s_basic_auth.conf", org.Name, c.GetName()),
 				},
 				tlsConfig: &scrapeTLSConfig{
 					caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
 				},
 			}
+
+			prometheusSecret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[pkgSecret.Password])
+
 			prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
 			prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
 		}
@@ -173,8 +178,9 @@ type scrapeTLSConfig struct {
 }
 
 type basicAuthConfig struct {
-	username string
-	password string
+	username     string
+	password     string
+	passwordFile string
 }
 
 func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
@@ -201,7 +207,8 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
 		basicAuthConfig: &basicAuthConfig{
 			username: basicAuthSecret.Values[pkgSecret.Username],
-			password: basicAuthSecret.Values[pkgSecret.Password],
+			// password:     basicAuthSecret.Values[pkgSecret.Password],
+			passwordFile: fmt.Sprintf("%s_%s_basic_auth.conf", org.Name, c.GetName()),
 		},
 		tlsConfig: &scrapeTLSConfig{
 			caCertFileName: fmt.Sprintf("%s_%s_certificate-authority-data.pem", org.Name, c.GetName()),
@@ -216,6 +223,8 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 
 	prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
 	prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
+
+	prometheusSecret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[pkgSecret.Password])
 
 	err = s.save(prometheusConfig, prometheusSecret)
 	if err != nil {
@@ -429,9 +438,9 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 				TargetLabel: "cluster",
 			},
 		},
-		HTTPClientConfig: promconfig.HTTPClientConfig{},
+		HTTPClientConfig: promCommon.HTTPClientConfig{},
 		ServiceDiscoveryConfig: promconfig.ServiceDiscoveryConfig{
-			StaticConfigs: []*promconfig.TargetGroup{
+			StaticConfigs: []*promconfig.TargetgroupGroup{
 				{
 					Targets: []model.LabelSet{
 						{
@@ -444,16 +453,16 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 		},
 	}
 	if params.basicAuthConfig != nil {
-		scrapeConfig.HTTPClientConfig.BasicAuth = &promconfig.BasicAuth{
-			Username: params.basicAuthConfig.username,
-			Password: promconfig.Secret(params.basicAuthConfig.password),
+		scrapeConfig.HTTPClientConfig.BasicAuth = &promCommon.BasicAuth{
+			Username:     params.basicAuthConfig.username,
+			PasswordFile: filepath.Join(s.certMountPath, params.basicAuthConfig.passwordFile),
 		}
 		if params.tlsConfig == nil || params.tlsConfig.certFileName == "" {
 			scrapeConfig.HTTPClientConfig.TLSConfig.InsecureSkipVerify = true
 		}
 	}
 	if params.tlsConfig != nil && params.tlsConfig.caCertFileName != "" {
-		scrapeConfig.HTTPClientConfig.TLSConfig = promconfig.TLSConfig{
+		scrapeConfig.HTTPClientConfig.TLSConfig = promCommon.TLSConfig{
 			CAFile: filepath.Join(s.certMountPath, params.tlsConfig.caCertFileName),
 		}
 		if params.tlsConfig.certFileName != "" && params.tlsConfig.keyFileName != "" {

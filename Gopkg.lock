@@ -324,6 +324,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:b9fda76e0977f62618cf20fedf2240dab0a8228e702e4fd37de860bb678ec59b"
+  name = "github.com/banzaicloud/prometheus-config"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "fc6ae4756a29a5d41aacfa335f8a235b714be814"
+
+[[projects]]
+  branch = "master"
   digest = "1:707ebe952a8b3d00b343c01536c79c73771d100f63ec6babeaed5c79e2b8a8dd"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
@@ -1092,6 +1100,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:f6c57c5afc27401e2a22a1959b62e20517797c74858d21adfb3a2b85182dead7"
+  name = "github.com/mwitkow/go-conntrack"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "cc309e4a22231782e8893f3c35ced0967807a33e"
+
+[[projects]]
+  branch = "master"
   digest = "1:a6156889b651cc0bf3d9bef82b6ba8fbb9eb19aefd7bc5718357c38b67297cbc"
   name = "github.com/mxk/go-flowrate"
   packages = ["flowrate"]
@@ -1200,15 +1216,16 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c5d42ef4adf65e7f285781909ee3798fef7fec57f9c018cf96d6a4104f483feb"
+  digest = "1:68734f61c5add9347b1e8fb826615f6ef36315190c02c2619a46098030b820b6"
   name = "github.com/prometheus/common"
   packages = [
+    "config",
     "expfmt",
     "internal/bitbucket.org/ww/goautoneg",
     "model",
   ]
   pruneopts = "NUT"
-  revision = "38c53a9f4bfcd932d1b00bfc65e256a7fba6b37a"
+  revision = "4724e9255275ce38f7179b2478abeae4e28c904f"
 
 [[projects]]
   branch = "master"
@@ -1222,14 +1239,6 @@
   ]
   pruneopts = "NUT"
   revision = "780932d4fbbe0e69b84c34c20f5c8d0981e109ea"
-
-[[projects]]
-  digest = "1:509b8be5375c3848d58fc5d605efea30e0c1c7de40e31d1e742e34f75fd5b489"
-  name = "github.com/prometheus/prometheus"
-  packages = ["config"]
-  pruneopts = "NUT"
-  revision = "0a74f98628a0463dddc90528220c94de5032d1a0"
-  version = "v2.0.0"
 
 [[projects]]
   branch = "master"
@@ -2215,6 +2224,7 @@
     "github.com/banzaicloud/cicd-go/cicd",
     "github.com/banzaicloud/go-gin-prometheus",
     "github.com/banzaicloud/logrus-runtime-formatter",
+    "github.com/banzaicloud/prometheus-config",
     "github.com/casbin/casbin",
     "github.com/casbin/casbin/persist",
     "github.com/casbin/gorm-adapter",
@@ -2252,8 +2262,8 @@
     "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/prometheus",
+    "github.com/prometheus/common/config",
     "github.com/prometheus/common/model",
-    "github.com/prometheus/prometheus/config",
     "github.com/qor/auth",
     "github.com/qor/auth/auth_identity",
     "github.com/qor/auth/claims",
