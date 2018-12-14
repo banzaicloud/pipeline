@@ -143,7 +143,7 @@ func (s *clusterSubscriber) Init() {
 				},
 			}
 
-			secret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[pkgSecret.Password])
+			prometheusSecret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[pkgSecret.Password])
 
 			prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
 			prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
@@ -461,7 +461,7 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 		}
 	}
 	if params.tlsConfig != nil && params.tlsConfig.caCertFileName != "" {
-		scrapeConfig.HTTPClientConfig.TLSConfig = promconfig.TLSConfig{
+		scrapeConfig.HTTPClientConfig.TLSConfig = promCommon.TLSConfig{
 			CAFile: filepath.Join(s.certMountPath, params.tlsConfig.caCertFileName),
 		}
 		if params.tlsConfig.certFileName != "" && params.tlsConfig.keyFileName != "" {
