@@ -52,7 +52,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		go func(nodePool *model.ACSKNodePoolModel) {
 			scalingGroupRequest := ess.CreateCreateScalingGroupRequest()
 			scalingGroupRequest.SetScheme(requests.HTTPS)
-			scalingGroupRequest.SetDomain("ess.aliyuncs.com")
+			scalingGroupRequest.SetDomain("ess."+ cluster.RegionID +".aliyuncs.com")
 			scalingGroupRequest.SetContentType(requests.Json)
 
 			a.log.WithFields(logrus.Fields{
@@ -61,7 +61,6 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 				"instance_type": nodePool.InstanceType,
 			}).Info("creating scaling group")
 
-			scalingGroupRequest.RegionId = cluster.RegionID
 			scalingGroupRequest.MinSize = requests.NewInteger(nodePool.MinCount)
 			scalingGroupRequest.MaxSize = requests.NewInteger(nodePool.MaxCount)
 			scalingGroupRequest.VSwitchId = cluster.VSwitchID
@@ -77,13 +76,15 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 			scalingConfigurationRequest := ess.CreateCreateScalingConfigurationRequest()
 			scalingConfigurationRequest.SetScheme(requests.HTTPS)
-			scalingConfigurationRequest.SetDomain("ess.aliyuncs.com")
+			scalingConfigurationRequest.SetDomain("ess."+ cluster.RegionID +".aliyuncs.com")
 			scalingConfigurationRequest.SetContentType(requests.Json)
 
 			scalingConfigurationRequest.ScalingGroupId = scalingGroupID
 			scalingConfigurationRequest.SecurityGroupId = cluster.SecurityGroupID
 			scalingConfigurationRequest.KeyPairName = a.context.Name
 			scalingConfigurationRequest.InstanceType = nodePool.InstanceType
+			scalingConfigurationRequest.SystemDiskCategory = "cloud_efficiency"
+			scalingConfigurationRequest.ImageId = "centos_7_04_64_20G_alibase_20180419.vhd"
 
 			createConfigurationResponse, err := a.context.ESSClient.CreateScalingConfiguration(scalingConfigurationRequest)
 			if err != nil {
@@ -93,6 +94,21 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 			}
 
 			scalingConfID := createConfigurationResponse.ScalingConfigurationId
+
+			enableSGRequest := ess.CreateEnableScalingGroupRequest()
+			enableSGRequest.SetScheme(requests.HTTPS)
+			enableSGRequest.SetDomain("ess."+ cluster.RegionID +".aliyuncs.com")
+			enableSGRequest.SetContentType(requests.Json)
+
+			enableSGRequest.ScalingGroupId = scalingGroupID
+			enableSGRequest.ActiveScalingConfigurationId = scalingConfID
+
+			_, err = a.context.ESSClient.EnableScalingGroup(enableSGRequest)
+			if err != nil {
+				errChan <- err
+				instanceIdsChan <- nil
+				return
+			}
 
 			instanceIds, err := waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, cluster.RegionID, scalingGroupID, scalingConfID)
 			if err != nil {
