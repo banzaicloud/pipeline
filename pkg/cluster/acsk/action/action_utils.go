@@ -64,7 +64,7 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 	var instanceIds []string
 	describeScalingInstancesrequest := ess.CreateDescribeScalingInstancesRequest()
 	describeScalingInstancesrequest.SetScheme(requests.HTTPS)
-	describeScalingInstancesrequest.SetDomain("ess."+ regionId +".aliyuncs.com")
+	describeScalingInstancesrequest.SetDomain("ess." + regionId + ".aliyuncs.com")
 	describeScalingInstancesrequest.SetContentType(requests.Json)
 
 	describeScalingInstancesrequest.ScalingGroupId = scalingGroupID
@@ -88,7 +88,7 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 				break
 			}
 		}
-		if len(instanceIds) == len(describeScalingInstancesResponse.ScalingInstances.ScalingInstance){
+		if len(instanceIds) == len(describeScalingInstancesResponse.ScalingInstances.ScalingInstance) {
 			return instanceIds, nil
 		}
 	}

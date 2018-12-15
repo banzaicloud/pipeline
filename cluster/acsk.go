@@ -39,6 +39,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/goph/emperror"
 	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -57,8 +58,8 @@ type ACSKCluster struct {
 	CommonClusterBase
 }
 
-func (*ACSKCluster) RbacEnabled() bool {
-	return true
+func (c *ACSKCluster) RbacEnabled() bool {
+	return c.modelCluster.RbacEnabled
 }
 
 // GetSecurityScan returns true if security scan enabled on the cluster
@@ -101,6 +102,7 @@ func (c *ACSKCluster) ListNodeNames() (nodes pkgCommon.NodeNames, err error) {
 		return
 	}
 
+	//TODO get nodeinstances differently because manually added workers are not appearing in the response
 	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
 	for _, v := range r.Outputs {
 		if v.OutputKey == "NodeInstanceIDs" {
@@ -166,11 +168,11 @@ func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model
 	var i int
 	for name, pool := range pools {
 		res[i] = &model.ACSKNodePoolModel{
-			CreatedBy:          userId,
-			Name:               name,
-			InstanceType:       pool.InstanceType,
-			MinCount:           pool.MinCount,
-			MaxCount:           pool.MaxCount,
+			CreatedBy:    userId,
+			Name:         name,
+			InstanceType: pool.InstanceType,
+			MinCount:     pool.MinCount,
+			MaxCount:     pool.MaxCount,
 		}
 		i++
 	}
@@ -263,6 +265,8 @@ func (c *ACSKCluster) CreateCluster() error {
 		return err
 	}
 
+	c.modelCluster.RbacEnabled = true
+
 	// All worker related fields are same as master ones to avoid instance is not available in that region
 	// worker related fields are unused ones because we are asking 0 worker node with that request
 	creationContext := action.NewACSKClusterCreationContext(
@@ -272,17 +276,17 @@ func (c *ACSKCluster) CreateCluster() error {
 		acsk.AlibabaClusterCreateParams{
 			ClusterType:              "Kubernetes",
 			Name:                     c.modelCluster.Name,
-			RegionID:                 c.modelCluster.ACSK.RegionID,                        // "eu-central-1"
-			ZoneID:                   c.modelCluster.ACSK.ZoneID,                          // "eu-central-1a"
-			MasterInstanceType:       c.modelCluster.ACSK.MasterInstanceType,              // "ecs.sn1.large",
-			MasterSystemDiskCategory: c.modelCluster.ACSK.MasterSystemDiskCategory,        // "cloud_efficiency",
-			MasterSystemDiskSize:     c.modelCluster.ACSK.MasterSystemDiskSize,            // 40,
-			WorkerInstanceType:       c.modelCluster.ACSK.MasterInstanceType,              // "ecs.sn1.large",
-			WorkerSystemDiskCategory: "cloud_efficiency",                                  // "cloud_efficiency",
-			KeyPair:                  c.modelCluster.Name,                                 // uploaded keyPair name
-			NumOfNodes:               0,                                                   // 0 (to make sure node pools are created properly),
-			SNATEntry:                c.modelCluster.ACSK.SNATEntry,                       // true,
-			SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                        // true,
+			RegionID:                 c.modelCluster.ACSK.RegionID,                 // "eu-central-1"
+			ZoneID:                   c.modelCluster.ACSK.ZoneID,                   // "eu-central-1a"
+			MasterInstanceType:       c.modelCluster.ACSK.MasterInstanceType,       // "ecs.sn1.large",
+			MasterSystemDiskCategory: c.modelCluster.ACSK.MasterSystemDiskCategory, // "cloud_efficiency",
+			MasterSystemDiskSize:     c.modelCluster.ACSK.MasterSystemDiskSize,     // 40,
+			WorkerInstanceType:       c.modelCluster.ACSK.MasterInstanceType,       // "ecs.sn1.large",
+			WorkerSystemDiskCategory: "cloud_efficiency",                           // "cloud_efficiency",
+			KeyPair:                  c.modelCluster.Name,                          // uploaded keyPair name
+			NumOfNodes:               0,                                            // 0 (to make sure node pools are created properly),
+			SNATEntry:                c.modelCluster.ACSK.SNATEntry,                // true,
+			SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                 // true,
 			DisableRollback:          true,
 		},
 		c.modelCluster.ACSK.NodePools,
@@ -299,7 +303,7 @@ func (c *ACSKCluster) CreateCluster() error {
 		action.NewCreateACSKNodePoolAction(c.log, creationContext),
 	}
 
-	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
+	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
 	c.modelCluster.ACSK.ProviderClusterID = creationContext.ClusterID
 	if err != nil {
 		return errors.Wrap(err, "ACSK cluster create error")
@@ -628,7 +632,7 @@ func (c *ACSKCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) 
 	preNodePools := make(map[string]*acsk.NodePool)
 	for _, preNp := range c.modelCluster.ACSK.NodePools {
 		preNodePools[preNp.Name] = &acsk.NodePool{
-			InstanceType:       preNp.InstanceType,
+			InstanceType: preNp.InstanceType,
 			//SystemDiskCategory: preNp.SystemDiskCategory,
 			//SystemDiskSize:     preNp.SystemDiskSize,
 			//Count:              preNp.Count,
@@ -931,7 +935,7 @@ func (c *ACSKCluster) GetK8sConfig() ([]byte, error) {
 func (c *ACSKCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKeyCredential, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, err
+		return nil, emperror.WrapWith(err, "failed to create alibaba creds from secret", "cluster", c.modelCluster.Name)
 	}
 	return verify.CreateAlibabaCredentials(clusterSecret.Values), nil
 }
