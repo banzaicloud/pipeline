@@ -81,7 +81,7 @@ func NewACSKClusterCreationContext(
 			ESSClient: essClient,
 		},
 		AlibabaClusterCreateParams: clusterCreateParams,
-		NodePools: nodepools,
+		NodePools:                  nodepools,
 	}
 }
 
@@ -156,8 +156,12 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 }
 
 // UndoAction rolls back this CreateACSKClusterAction
-func (a *CreateACSKClusterAction) UndoAction() (err error) {
+func (a *CreateACSKClusterAction) UndoAction() error {
 	a.log.Info("EXECUTE UNDO CreateACSKClusterAction")
 
+	_, err := waitUntilClusterCreateOrScaleComplete(a.log, a.context.ClusterID, a.context.CSClient, true)
+	if err != nil {
+		a.log.Warn("Error happened during waiting for cluster state to be deleted ", err)
+	}
 	return deleteCluster(a.context.ClusterID, a.context.CSClient)
 }

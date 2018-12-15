@@ -79,14 +79,16 @@ type ClusterModel struct {
 
 // ACSKNodePoolModel describes Alibaba Cloud CS node groups model of a cluster
 type ACSKNodePoolModel struct {
-	ID                 uint `gorm:"primary_key"`
-	CreatedAt          time.Time
-	CreatedBy          uint
-	ClusterID          uint   `gorm:"unique_index:idx_cluster_id_name"`
-	Name               string `gorm:"unique_index:idx_cluster_id_name"`
-	InstanceType       string
-	MinCount           int
-	MaxCount           int
+	ID            uint `gorm:"primary_key"`
+	CreatedAt     time.Time
+	CreatedBy     uint
+	ClusterID     uint   `gorm:"unique_index:idx_cluster_id_name"`
+	Name          string `gorm:"unique_index:idx_cluster_id_name"`
+	InstanceType  string
+	MinCount      int
+	MaxCount      int
+	AsgId         string
+	ScalingConfId string
 }
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model

@@ -2,6 +2,7 @@ package action
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
@@ -52,7 +53,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		go func(nodePool *model.ACSKNodePoolModel) {
 			scalingGroupRequest := ess.CreateCreateScalingGroupRequest()
 			scalingGroupRequest.SetScheme(requests.HTTPS)
-			scalingGroupRequest.SetDomain("ess."+ cluster.RegionID +".aliyuncs.com")
+			scalingGroupRequest.SetDomain("ess." + cluster.RegionID + ".aliyuncs.com")
 			scalingGroupRequest.SetContentType(requests.Json)
 
 			a.log.WithFields(logrus.Fields{
@@ -64,6 +65,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 			scalingGroupRequest.MinSize = requests.NewInteger(nodePool.MinCount)
 			scalingGroupRequest.MaxSize = requests.NewInteger(nodePool.MaxCount)
 			scalingGroupRequest.VSwitchId = cluster.VSwitchID
+			scalingGroupRequest.ScalingGroupName = fmt.Sprintf("asg-%s-%s", nodePool.Name, cluster.ClusterID)
 
 			createScalingGroupResponse, err := a.context.ESSClient.CreateScalingGroup(scalingGroupRequest)
 			if err != nil {
@@ -74,9 +76,13 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 			scalingGroupID := createScalingGroupResponse.ScalingGroupId
 
+			nodePool.AsgId = scalingGroupID
+			a.log.Infof("Scaling Group with id %s successfully created", scalingGroupID)
+			a.log.Infof("Creating scaling configuration for group %s", scalingGroupID)
+
 			scalingConfigurationRequest := ess.CreateCreateScalingConfigurationRequest()
 			scalingConfigurationRequest.SetScheme(requests.HTTPS)
-			scalingConfigurationRequest.SetDomain("ess."+ cluster.RegionID +".aliyuncs.com")
+			scalingConfigurationRequest.SetDomain("ess." + cluster.RegionID + ".aliyuncs.com")
 			scalingConfigurationRequest.SetContentType(requests.Json)
 
 			scalingConfigurationRequest.ScalingGroupId = scalingGroupID
@@ -85,6 +91,9 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 			scalingConfigurationRequest.InstanceType = nodePool.InstanceType
 			scalingConfigurationRequest.SystemDiskCategory = "cloud_efficiency"
 			scalingConfigurationRequest.ImageId = "centos_7_04_64_20G_alibase_20180419.vhd"
+			scalingConfigurationRequest.Tags =
+				fmt.Sprintf(`{"pipeline-created":"true","pipeline-cluster":"%s","pipeline-nodepool":"%s"`,
+					a.context.AlibabaClusterCreateParams.Name, nodePool.Name)
 
 			createConfigurationResponse, err := a.context.ESSClient.CreateScalingConfiguration(scalingConfigurationRequest)
 			if err != nil {
@@ -95,9 +104,13 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 			scalingConfID := createConfigurationResponse.ScalingConfigurationId
 
+			nodePool.ScalingConfId = scalingConfID
+
+			a.log.Infof("Scaling Configuration successfully created for group %s", scalingGroupID)
+
 			enableSGRequest := ess.CreateEnableScalingGroupRequest()
 			enableSGRequest.SetScheme(requests.HTTPS)
-			enableSGRequest.SetDomain("ess."+ cluster.RegionID +".aliyuncs.com")
+			enableSGRequest.SetDomain("ess." + cluster.RegionID + ".aliyuncs.com")
 			enableSGRequest.SetContentType(requests.Json)
 
 			enableSGRequest.ScalingGroupId = scalingGroupID
@@ -137,6 +150,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		return
 	}
 
+	a.log.Info("Attaching nodepools to cluster")
 	attachInstanceRequest := cs.CreateAttachInstancesRequest()
 	attachInstanceRequest.SetScheme(requests.HTTPS)
 	attachInstanceRequest.SetDomain(acsk.AlibabaApiDomain)
@@ -146,7 +160,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 	content := map[string]interface{}{
 		"instances": instanceIds,
-		"password":  "Hello1234", // Dummy password should be used  here otherwise the api will fail
+		"password":  "Hello1234", // Dummy password should be used here otherwise the api will fail
 	}
 	contentJSON, err := json.Marshal(content)
 	if err != nil {
@@ -158,6 +172,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 	if err != nil {
 		return
 	}
+	a.log.Info("Wait for nodepool attach")
 	clusterWithPools, err := waitUntilClusterCreateOrScaleComplete(a.log, cluster.ClusterID, a.context.CSClient, false)
 	if err != nil {
 		return nil, emperror.WrapWith(err, "nodepool creation failed", "clusterName", a.context.Name)
@@ -169,74 +184,44 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 // UndoAction rolls back this CreateACSKNodePoolAction
 func (a *CreateACSKNodePoolAction) UndoAction() (err error) {
 	a.log.Info("EXECUTE UNDO CreateACSKNodePoolAction")
-	//
-	//errChan := make(chan error, len(a.context.NodePools))
-	//defer close(errChan)
-	//
-	//for _, nodePool := range a.context.NodePools {
-	//	go func(nodePool *model.ACSKNodePoolModel) {
-	//		for i := 0; i < nodePool.Count; i++ {
-	//			listRequest := ecs.CreateDescribeInstancesRequest()
-	//			listRequest.Tag = &[]ecs.DescribeInstancesTag{
-	//				{
-	//					Key:   "pipeline-created",
-	//					Value: "true",
-	//				},
-	//				{
-	//					Key:   "pipeline-cluster",
-	//					Value: a.context.AlibabaClusterCreateParams.Name,
-	//				},
-	//				{
-	//					Key:   "pipeline-nodepool",
-	//					Value: nodePool.Name,
-	//				},
-	//			}
-	//
-	//			listResponse, err := a.context.ECSClient.DescribeInstances(listRequest)
-	//			if err != nil {
-	//				errChan <- err
-	//				return
-	//			}
-	//
-	//			// TODO: handle pagination
-	//			for _, instance := range listResponse.Instances.Instance {
-	//				stopRequest := ecs.CreateStopInstanceRequest()
-	//				stopRequest.InstanceId = instance.InstanceId
-	//
-	//				_, err := a.context.ECSClient.StopInstance(stopRequest)
-	//				if err != nil {
-	//					errChan <- err
-	//					return
-	//				}
-	//
-	//				// TODO: check if the instance is stopped
-	//				// this timeout is an optimistic estimation
-	//				time.Sleep(10 * time.Second)
-	//
-	//				deleteRequest := ecs.CreateDeleteInstanceRequest()
-	//				deleteRequest.InstanceId = instance.InstanceId
-	//
-	//				_, err = a.context.ECSClient.DeleteInstance(deleteRequest)
-	//				if err != nil {
-	//					errChan <- err
-	//					return
-	//				}
-	//			}
-	//		}
-	//
-	//		errChan <- nil
-	//	}(nodePool)
-	//}
-	//
-	//for i := 0; i < len(a.context.NodePools); i++ {
-	//	e := <-errChan
-	//	if e != nil {
-	//		a.log.Error(e)
-	//
-	//		err = e
-	//	}
-	//}
-	//
-	//return err
+
+	errChan := make(chan error, len(a.context.NodePools))
+	defer close(errChan)
+
+	for _, nodePool := range a.context.NodePools {
+		go func(nodePool *model.ACSKNodePoolModel) {
+
+			deleteSGRequest := ess.CreateDeleteScalingGroupRequest()
+			deleteSGRequest.SetScheme(requests.HTTPS)
+			deleteSGRequest.SetDomain("ess." + a.context.AlibabaClusterCreateParams.RegionID + ".aliyuncs.com")
+			deleteSGRequest.SetContentType(requests.Json)
+			if nodePool.AsgId == "" {
+				// Asg could not be created nothing to remove
+				errChan <- nil
+				return
+			}
+
+			deleteSGRequest.ScalingGroupId = nodePool.AsgId
+			deleteSGRequest.ForceDelete = requests.NewBoolean(true)
+
+			_, err := a.context.ESSClient.DeleteScalingGroup(deleteSGRequest)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			errChan <- nil
+		}(nodePool)
+	}
+
+	for i := 0; i < len(a.context.NodePools); i++ {
+		e := <-errChan
+		if e != nil {
+			a.log.Error(e)
+
+			err = e
+		}
+	}
+
 	return err
 }

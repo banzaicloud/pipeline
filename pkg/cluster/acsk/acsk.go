@@ -20,9 +20,9 @@ import (
 
 // NodePool describes Alibaba's node fields of a CreateCluster/Update request
 type NodePool struct {
-	InstanceType       string `json:"instanceType"`
-	MinCount           int    `json:"minCount"`
-	MaxCount           int    `json:"maxCount"`
+	InstanceType string `json:"instanceType"`
+	MinCount     int    `json:"minCount"`
+	MaxCount     int    `json:"maxCount"`
 }
 
 type NodePools map[string]*NodePool
@@ -62,12 +62,6 @@ func (c *CreateClusterACSK) AddDefaults() error {
 		if np.InstanceType == "" {
 			c.NodePools[i].InstanceType = DefaultWorkerInstanceType
 		}
-		//if np.SystemDiskCategory == "" {
-		//	c.NodePools[i].SystemDiskCategory = DefaultWorkerSystemDiskCategory
-		//}
-		//if np.SystemDiskSize < DefaultWorkerSystemDiskSize {
-		//	c.NodePools[i].SystemDiskSize = DefaultWorkerSystemDiskSize
-		//}
 	}
 
 	return nil
