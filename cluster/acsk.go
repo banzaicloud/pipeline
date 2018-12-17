@@ -96,27 +96,30 @@ func (*ACSKCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-func (c *ACSKCluster) ListNodeNames() (nodes pkgCommon.NodeNames, err error) {
-	client, err := c.GetAlibabaCSClient(nil)
+func (c *ACSKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
+	essClient, err := c.GetAlibabaESSClient(nil)
 	if err != nil {
-		return
+		return nil, err
 	}
-
-	//TODO get nodeinstances differently because manually added workers are not appearing in the response
-	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
-	for _, v := range r.Outputs {
-		if v.OutputKey == "NodeInstanceIDs" {
-			var result []string
-			convertedValue := v.OutputValue.([]interface{})
-			for _, v := range convertedValue {
-				result = append(result, fmt.Sprint(c.modelCluster.ACSK.RegionID, ".", v.(string)))
-			}
-			nodes = map[string][]string{
-				c.modelCluster.ACSK.NodePools[0].Name: result,
-			}
+	request := ess.CreateDescribeScalingInstancesRequest()
+	request.SetScheme(requests.HTTPS)
+	request.SetDomain("ess." + c.modelCluster.ACSK.RegionID + ".aliyuncs.com")
+	request.SetContentType(requests.Json)
+	nodes := make(pkgCommon.NodeNames, 0)
+	for _, nodepool := range c.modelCluster.ACSK.NodePools {
+		request.ScalingGroupId = nodepool.AsgId
+		request.ScalingConfigurationId = nodepool.ScalingConfId
+		response, err := essClient.DescribeScalingInstances(request)
+		if err != nil {
+			return nil, emperror.WrapWith(err, "error listing nodepool instances", "scalingGroupName", nodepool.AsgId)
 		}
+		var instances []string
+		for _, instance := range response.ScalingInstances.ScalingInstance {
+			instances = append(instances, fmt.Sprint(c.modelCluster.ACSK.RegionID, ".", instance.InstanceId))
+		}
+		nodes[nodepool.Name] = instances
 	}
-	return
+	return nodes, nil
 }
 
 // NodePoolExists returns true if node pool with nodePoolName exists
@@ -575,8 +578,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		errors.Wrap(err, "ACSK cluster create error")
-		return err
+		return errors.Wrap(err, "ACSK cluster create error")
 	}
 
 	castedValue, ok := resp.(*acsk.AlibabaDescribeClusterResponse)
