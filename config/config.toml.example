@@ -152,6 +152,7 @@ backupSyncInterval = "20s"
 allowPrereleases = false
 allowPrivateRepos = false
 syncInterval = "5m"
+sharedLibraryGitHubOrganization = "spotguides"
 
 [metrics]
 enabled = false

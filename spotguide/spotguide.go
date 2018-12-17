@@ -46,7 +46,6 @@ import (
 )
 
 const SpotguideGithubTopic = "spotguide"
-const SpotguideGithubOrganization = "banzaicloud" // TODO (andras): migrate to "spotguides" organization
 const SpotguideYAMLPath = ".banzaicloud/spotguide.yaml"
 const PipelineYAMLPath = ".banzaicloud/pipeline.yaml"
 const ReadmePath = ".banzaicloud/README.md"
@@ -133,25 +132,25 @@ type ReleaseBody struct {
 
 // SpotguideManager is responsible to scrape spotguides on GitHub and persist them to database
 type SpotguideManager struct {
-	db                    *gorm.DB
-	pipelineVersion       *semver.Version
-	githubToken           string
-	spotguideOrganization *auth.Organization
+	db                        *gorm.DB
+	pipelineVersion           *semver.Version
+	githubToken               string
+	sharedLibraryOrganization *auth.Organization
 }
 
-func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken string) *SpotguideManager {
-	spotguideOrganization, err := auth.GetOrganizationByName(SpotguideGithubOrganization)
+func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken string, sharedLibraryGitHubOrganization string) *SpotguideManager {
+	sharedLibraryOrganization, err := auth.GetOrganizationByName(sharedLibraryGitHubOrganization)
 	if err != nil {
-		log.Errorf("shared spotguide organization (%s) is not found", SpotguideGithubOrganization)
+		log.Errorf("shared spotguide organization (%s) is not found", sharedLibraryGitHubOrganization)
 	}
 
 	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
 
 	return &SpotguideManager{
-		db:                    db,
-		pipelineVersion:       pipelineVersion,
-		githubToken:           githubToken,
-		spotguideOrganization: spotguideOrganization,
+		db:                        db,
+		pipelineVersion:           pipelineVersion,
+		githubToken:               githubToken,
+		sharedLibraryOrganization: sharedLibraryOrganization,
 	}
 }
 
@@ -181,12 +180,12 @@ func (s *SpotguideManager) isSpotguideReleaseAllowed(release *github.RepositoryR
 }
 
 func (s *SpotguideManager) ScrapeSharedSpotguides() error {
-	if s.spotguideOrganization == nil {
+	if s.sharedLibraryOrganization == nil {
 		return errors.New("failed to scrape shared spotguides")
 	}
 
 	githubClient := auth.NewGithubClient(s.githubToken)
-	return s.scrapeSpotguides(s.spotguideOrganization, githubClient)
+	return s.scrapeSpotguides(s.sharedLibraryOrganization, githubClient)
 }
 
 func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
@@ -319,8 +318,8 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 
 func (s *SpotguideManager) GetSpotguides(orgID uint) (spotguides []*SpotguideRepo, err error) {
 	query := s.db.Where(SpotguideRepo{OrganizationID: orgID})
-	if s.spotguideOrganization != nil {
-		query = query.Or(SpotguideRepo{OrganizationID: s.spotguideOrganization.ID})
+	if s.sharedLibraryOrganization != nil {
+		query = query.Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID})
 	}
 
 	err = query.Find(&spotguides).Error
@@ -329,8 +328,8 @@ func (s *SpotguideManager) GetSpotguides(orgID uint) (spotguides []*SpotguideRep
 
 func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
 	query := s.db.Where(SpotguideRepo{OrganizationID: orgID, Name: name, Version: version})
-	if s.spotguideOrganization != nil {
-		query = query.Or(SpotguideRepo{OrganizationID: s.spotguideOrganization.ID, Name: name, Version: version})
+	if s.sharedLibraryOrganization != nil {
+		query = query.Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID, Name: name, Version: version})
 	}
 
 	spotguide := SpotguideRepo{}
@@ -510,7 +509,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 		return errors.Wrap(err, "failed to create spotguide repository")
 	}
 
-	log.Infof("Created spotguide repository: %s", request.RepoFullname())
+	log.Infof("created spotguide repository: %s", request.RepoFullname())
 	return nil
 }
 
@@ -587,7 +586,7 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 		}
 	}
 
-	log.Infof("Created secrets for spotguide: %s", request.RepoFullname())
+	log.Infof("created secrets for spotguide: %s", request.RepoFullname())
 
 	return nil
 }
