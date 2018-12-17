@@ -265,7 +265,7 @@ func main() {
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(githubImporter)
 	userAPI := api.NewUserAPI(accessManager)
-	spotguideManager := spotguide.NewSpotguideManager(config.DB(), Version, viper.GetString("github.token"))
+	spotguideManager := spotguide.NewSpotguideManager(config.DB(), Version, viper.GetString("github.token"), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {

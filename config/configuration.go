@@ -122,9 +122,10 @@ const (
 	LoggingOperatorImageTag     = "loggingOperator.imageTag"
 
 	// Spotguides constants
-	SpotguideAllowPrereleases  = "spotguide.allowPrereleases"
-	SpotguideAllowPrivateRepos = "spotguide.allowPrivateRepos"
-	SpotguideSyncInterval      = "spotguide.syncInterval"
+	SpotguideAllowPrereleases                = "spotguide.allowPrereleases"
+	SpotguideAllowPrivateRepos               = "spotguide.allowPrivateRepos"
+	SpotguideSyncInterval                    = "spotguide.syncInterval"
+	SpotguideSharedLibraryGitHubOrganization = "spotguide.sharedLibraryGitHubOrganization"
 )
 
 //Init initializes the configurations
@@ -235,6 +236,7 @@ func init() {
 	viper.SetDefault(SpotguideAllowPrereleases, false)
 	viper.SetDefault(SpotguideAllowPrivateRepos, false)
 	viper.SetDefault(SpotguideSyncInterval, 5*time.Minute)
+	viper.SetDefault(SpotguideSharedLibraryGitHubOrganization, "spotguides")
 
 	viper.SetDefault("issue.type", "github")
 	viper.SetDefault("issue.githubLabels", []string{"community"})
