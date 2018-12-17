@@ -90,6 +90,7 @@ const (
 	ARKBucketSyncInterval  = "ark.bucketSyncInterval"
 	ARKRestoreSyncInterval = "ark.restoreSyncInterval"
 	ARKBackupSyncInterval  = "ark.backupSyncInterval"
+	ARKRestoreWaitTimeout  = "ark.restoreWaitTimeout"
 
 	// Spot Metrics
 	SpotMetricsEnabled            = "spotmetrics.enabled"
@@ -211,6 +212,7 @@ func init() {
 	viper.SetDefault(ARKBucketSyncInterval, "10m")
 	viper.SetDefault(ARKRestoreSyncInterval, "20s")
 	viper.SetDefault(ARKBackupSyncInterval, "20s")
+	viper.SetDefault(ARKRestoreWaitTimeout, "5m")
 
 	viper.SetDefault(SpotMetricsEnabled, false)
 	viper.SetDefault(SpotMetricsCollectionInterval, "30s")

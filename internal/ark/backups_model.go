@@ -84,6 +84,7 @@ func (backup *ClusterBackupsModel) ConvertModelToEntity() *api.Backup {
 		VolumeBackups:    state.Status.VolumeBackups,
 		ValidationErrors: state.Status.ValidationErrors,
 		ClusterID:        backup.ClusterID,
+		ActiveClusterID:  backup.Bucket.Deployment.ClusterID,
 		Options: api.BackupOptions{
 			IncludedNamespaces:      state.Spec.IncludedNamespaces,
 			IncludedResources:       state.Spec.IncludedResources,

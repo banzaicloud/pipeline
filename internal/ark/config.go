@@ -66,7 +66,7 @@ type secretContents struct {
 type configuration struct {
 	PersistentVolumeProvider persistentVolumeProvider `json:"persistentVolumeProvider"`
 	BackupStorageProvider    backupStorageProvider    `json:"backupStorageProvider"`
-	RestoreOnlyMode          bool
+	RestoreOnlyMode          bool                     `json:"restoreOnlyMode"`
 }
 
 type persistentVolumeProvider struct {

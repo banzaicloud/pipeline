@@ -40,7 +40,7 @@ func Get(c *gin.Context) {
 	restore, err := common.GetARKService(c.Request).GetRestoresService().GetByID(restoreID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not get restore")
-		logger.Error(err)
+		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}

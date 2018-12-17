@@ -17,6 +17,7 @@ package ark
 import (
 	"time"
 
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -27,7 +28,6 @@ import (
 )
 
 const (
-	retryAttempts        = 200
 	retrySleepSeconds    = 15
 	restoredByLabelKey   = "restored-by"
 	restoredByLabelValue = "pipeline"
@@ -45,6 +45,8 @@ func RestoreFromBackup(
 	cluster api.Cluster,
 	db *gorm.DB,
 	logger logrus.FieldLogger,
+	errorHandler emperror.Handler,
+	waitTimeout time.Duration,
 ) error {
 
 	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
@@ -76,10 +78,11 @@ func RestoreFromBackup(
 			ExcludedNamespaces: nonRestorableNamespaces,
 		},
 	})
+	if err == nil {
+		err = WaitingForRestoreToFinish(restoresSvc, restore, logger, waitTimeout)
+	}
 	if err != nil {
-		logger.Error(err)
-	} else {
-		WaitingForRestoreToFinish(restoresSvc, restore, logger)
+		errorHandler.Handle(emperror.Wrap(err, "could not restore"))
 	}
 
 	err = svc.GetDeploymentsService().Remove()
@@ -91,7 +94,8 @@ func RestoreFromBackup(
 }
 
 // WaitingForRestoreToFinish waits until restoration process finishes
-func WaitingForRestoreToFinish(restoresSvc *RestoresService, restore *api.Restore, logger logrus.FieldLogger) error {
+func WaitingForRestoreToFinish(restoresSvc *RestoresService, restore *api.Restore, logger logrus.FieldLogger, waitTimeout time.Duration) error {
+	retryAttempts := int(waitTimeout.Seconds() / retrySleepSeconds)
 
 	for i := 0; i <= retryAttempts; i++ {
 		r, _ := restoresSvc.GetByName(restore.Name)
