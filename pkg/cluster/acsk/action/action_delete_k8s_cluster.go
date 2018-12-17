@@ -17,23 +17,30 @@ package action
 import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/sirupsen/logrus"
 )
 
 // ACSKClusterDeleteContext describes the fields used across ACSK cluster delete operation
 type ACSKClusterDeleteContext struct {
 	ACSKClusterContext
+	RegionId  string
+	NodePools []*model.ACSKNodePoolModel
 }
 
 // NewACSKClusterDeletionContext creates a new ACSKClusterDeleteContext
 func NewACSKClusterDeletionContext(csClient *cs.Client,
-	ecsClient *ecs.Client, clusterID string) *ACSKClusterDeleteContext {
+	ecsClient *ecs.Client, essClient *ess.Client, clusterID string, nodePools []*model.ACSKNodePoolModel, regionID string) *ACSKClusterDeleteContext {
 	return &ACSKClusterDeleteContext{
 		ACSKClusterContext: ACSKClusterContext{
 			CSClient:  csClient,
 			ECSClient: ecsClient,
+			ESSClient: essClient,
 			ClusterID: clusterID,
 		},
+		RegionId:  regionID,
+		NodePools: nodePools,
 	}
 }
 
