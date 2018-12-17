@@ -192,7 +192,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) DownloadK8sConfig() ([]byte, error) 
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
-	panic("implement me")
+	return "", nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetK8sConfig() ([]byte, error) {
