@@ -534,13 +534,22 @@ func (c *ACSKCluster) DeleteCluster() error {
 		return err
 	}
 
+	essClient, err := c.GetAlibabaESSClient(nil)
+	if err != nil {
+		return err
+	}
+
 	deleteContext := action.NewACSKClusterDeletionContext(
 		csClient,
 		ecsClient,
-		c.modelCluster.ACSK.ProviderClusterID)
+		essClient,
+		c.modelCluster.ACSK.ProviderClusterID,
+		c.modelCluster.ACSK.NodePools,
+		c.modelCluster.ACSK.RegionID)
 
 	actions := []utils.Action{
 		action.NewDeleteACSKClusterAction(c.log, deleteContext),
+		action.NewDeleteACSKNodePoolAction(c.log, deleteContext),
 		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.modelCluster.Name, c.modelCluster.ACSK.RegionID),
 	}
 

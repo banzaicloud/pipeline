@@ -25,6 +25,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -57,6 +58,48 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 	}
 
 	return nil
+}
+
+func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolModel, essClient *ess.Client, regionId string) (err error) {
+	errChan := make(chan error, len(nodePools))
+	defer close(errChan)
+
+	for _, nodePool := range nodePools {
+		go func(nodePool *model.ACSKNodePoolModel) {
+
+			deleteSGRequest := ess.CreateDeleteScalingGroupRequest()
+			deleteSGRequest.SetScheme(requests.HTTPS)
+			deleteSGRequest.SetDomain("ess." + regionId + ".aliyuncs.com")
+			deleteSGRequest.SetContentType(requests.Json)
+			if nodePool.AsgId == "" {
+				// Asg could not be created nothing to remove
+				errChan <- nil
+				return
+			}
+
+			deleteSGRequest.ScalingGroupId = nodePool.AsgId
+			deleteSGRequest.ForceDelete = requests.NewBoolean(true)
+
+			_, err := essClient.DeleteScalingGroup(deleteSGRequest)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
+			errChan <- nil
+		}(nodePool)
+	}
+
+	for i := 0; i < len(nodePools); i++ {
+		e := <-errChan
+		if e != nil {
+			log.Error(e)
+
+			err = e
+		}
+	}
+
+	return
 }
 
 func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Client, regionId, scalingGroupID, scalingConfID string) ([]string, error) {

@@ -198,44 +198,5 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 // UndoAction rolls back this CreateACSKNodePoolAction
 func (a *CreateACSKNodePoolAction) UndoAction() (err error) {
 	a.log.Info("EXECUTE UNDO CreateACSKNodePoolAction")
-
-	errChan := make(chan error, len(a.context.NodePools))
-	defer close(errChan)
-
-	for _, nodePool := range a.context.NodePools {
-		go func(nodePool *model.ACSKNodePoolModel) {
-
-			deleteSGRequest := ess.CreateDeleteScalingGroupRequest()
-			deleteSGRequest.SetScheme(requests.HTTPS)
-			deleteSGRequest.SetDomain("ess." + a.context.AlibabaClusterCreateParams.RegionID + ".aliyuncs.com")
-			deleteSGRequest.SetContentType(requests.Json)
-			if nodePool.AsgId == "" {
-				// Asg could not be created nothing to remove
-				errChan <- nil
-				return
-			}
-
-			deleteSGRequest.ScalingGroupId = nodePool.AsgId
-			deleteSGRequest.ForceDelete = requests.NewBoolean(true)
-
-			_, err := a.context.ESSClient.DeleteScalingGroup(deleteSGRequest)
-			if err != nil {
-				errChan <- err
-				return
-			}
-
-			errChan <- nil
-		}(nodePool)
-	}
-
-	for i := 0; i < len(a.context.NodePools); i++ {
-		e := <-errChan
-		if e != nil {
-			a.log.Error(e)
-
-			err = e
-		}
-	}
-
-	return err
+	return deleteNodepools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionID)
 }
