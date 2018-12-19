@@ -109,7 +109,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) SaveSshSecretId(sshSecretId string) 
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return errors.Wrap(err, "failed to save ssh secret id")
+		return emperror.WrapWith(err, "failed to save ssh secret", "secret", sshSecretId)
 	}
 
 	return nil
