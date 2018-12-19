@@ -294,30 +294,14 @@ func CreateEC2ClusterBanzaiCloudDistributionFromRequest(request *pkgCluster.Crea
 	c := &EC2ClusterBanzaiCloudDistribution{}
 
 	c.db = pipConfig.DB()
-	network, err := createEC2BanzaiCloudNetworkFromRequest(request.Properties.CreateClusterBanzaiCloud.Network, userId)
-	if err != nil {
-		return nil, err
-	}
 
-	nodepools, err := createEC2BanzaiCloudNodePoolsFromRequest(request.Properties.CreateClusterBanzaiCloud.NodePools, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	kubernetes, err := createEC2BanzaiCloudKubernetesFromRequest(request.Properties.CreateClusterBanzaiCloud.Kubernetes, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeADM, err := createEC2BanzaiCloudKubeADMFromRequest(request.Properties.CreateClusterBanzaiCloud.KubeADM, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	cri, err := createEC2BanzaiCloudCRIFromRequest(request.Properties.CreateClusterBanzaiCloud.CRI, userId)
-	if err != nil {
-		return nil, err
-	}
+	var (
+		network    = createEC2BanzaiCloudNetworkFromRequest(request.Properties.CreateClusterBanzaiCloud.Network, userId)
+		nodepools  = createEC2BanzaiCloudNodePoolsFromRequest(request.Properties.CreateClusterBanzaiCloud.NodePools, userId)
+		kubernetes = createEC2BanzaiCloudKubernetesFromRequest(request.Properties.CreateClusterBanzaiCloud.Kubernetes, userId)
+		kubeADM    = createEC2BanzaiCloudKubeADMFromRequest(request.Properties.CreateClusterBanzaiCloud.KubeADM, userId)
+		cri        = createEC2BanzaiCloudCRIFromRequest(request.Properties.CreateClusterBanzaiCloud.CRI, userId)
+	)
 
 	instanceType, image, err := getMasterInstanceTypeAndImageFromNodePools(nodepools)
 	if err != nil {
@@ -375,7 +359,7 @@ func CreateEC2ClusterBanzaiCloudDistributionFromModel(modelCluster *model.Cluste
 	return c, nil
 }
 
-func createEC2BanzaiCloudNodePoolsFromRequest(pools banzaicloud.NodePools, userId uint) (banzaicloudDB.NodePools, error) {
+func createEC2BanzaiCloudNodePoolsFromRequest(pools banzaicloud.NodePools, userId uint) banzaicloudDB.NodePools {
 	var nps banzaicloudDB.NodePools
 
 	for _, pool := range pools {
@@ -389,7 +373,7 @@ func createEC2BanzaiCloudNodePoolsFromRequest(pools banzaicloud.NodePools, userI
 		np.CreatedBy = userId
 		nps = append(nps, np)
 	}
-	return nps, nil
+	return nps
 }
 
 func convertRoles(roles banzaicloud.Roles) (result banzaicloudDB.Roles) {
@@ -433,7 +417,7 @@ func convertTaints(taints banzaicloud.Taints) (result banzaicloudDB.Taints) {
 	return
 }
 
-func createEC2BanzaiCloudNetworkFromRequest(network banzaicloud.Network, userId uint) (banzaicloudDB.Network, error) {
+func createEC2BanzaiCloudNetworkFromRequest(network banzaicloud.Network, userId uint) banzaicloudDB.Network {
 	n := banzaicloudDB.Network{
 		ServiceCIDR:      network.ServiceCIDR,
 		PodCIDR:          network.PodCIDR,
@@ -441,28 +425,28 @@ func createEC2BanzaiCloudNetworkFromRequest(network banzaicloud.Network, userId 
 		APIServerAddress: network.APIServerAddress,
 	}
 	n.CreatedBy = userId
-	return n, nil
+	return n
 }
 
 func convertNetworkProvider(provider banzaicloud.NetworkProvider) (result banzaicloudDB.NetworkProvider) {
 	return banzaicloudDB.NetworkProvider(provider)
 }
 
-func createEC2BanzaiCloudKubernetesFromRequest(kubernetes banzaicloud.Kubernetes, userId uint) (banzaicloudDB.Kubernetes, error) {
+func createEC2BanzaiCloudKubernetesFromRequest(kubernetes banzaicloud.Kubernetes, userId uint) banzaicloudDB.Kubernetes {
 	k := banzaicloudDB.Kubernetes{
 		Version: kubernetes.Version,
 		RBAC:    banzaicloudDB.RBAC{Enabled: kubernetes.RBAC.Enabled},
 	}
 	k.CreatedBy = userId
-	return k, nil
+	return k
 }
 
-func createEC2BanzaiCloudKubeADMFromRequest(kubernetes banzaicloud.KubeADM, userId uint) (banzaicloudDB.KubeADM, error) {
+func createEC2BanzaiCloudKubeADMFromRequest(kubernetes banzaicloud.KubeADM, userId uint) banzaicloudDB.KubeADM {
 	a := banzaicloudDB.KubeADM{
 		ExtraArgs: convertExtraArgs(kubernetes.ExtraArgs),
 	}
 	a.CreatedBy = userId
-	return a, nil
+	return a
 }
 
 func convertExtraArgs(extraArgs banzaicloud.ExtraArgs) banzaicloudDB.ExtraArgs {
@@ -473,13 +457,13 @@ func convertExtraArgs(extraArgs banzaicloud.ExtraArgs) banzaicloudDB.ExtraArgs {
 	return res
 }
 
-func createEC2BanzaiCloudCRIFromRequest(cri banzaicloud.CRI, userId uint) (banzaicloudDB.CRI, error) {
+func createEC2BanzaiCloudCRIFromRequest(cri banzaicloud.CRI, userId uint) banzaicloudDB.CRI {
 	c := banzaicloudDB.CRI{
 		Runtime:       banzaicloudDB.Runtime(cri.Runtime),
 		RuntimeConfig: cri.RuntimeConfig,
 	}
 	c.CreatedBy = userId
-	return c, nil
+	return c
 }
 
 func getMasterInstanceTypeAndImageFromNodePools(nodepools banzaicloudDB.NodePools) (masterInstanceType string, masterImage string, err error) {
