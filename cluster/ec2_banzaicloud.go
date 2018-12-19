@@ -469,7 +469,7 @@ func createEC2BanzaiCloudCRIFromRequest(cri banzaicloud.CRI, userId uint) banzai
 func getMasterInstanceTypeAndImageFromNodePools(nodepools banzaicloudDB.NodePools) (masterInstanceType string, masterImage string, err error) {
 	for _, nodepool := range nodepools {
 		for _, role := range nodepool.Roles {
-			if banzaicloudDB.RoleMaster == role {
+			if role == banzaicloudDB.RoleMaster {
 				switch nodepool.Provider {
 				case banzaicloudDB.NPPAmazon:
 					providerConfig := banzaicloudDB.NodePoolProviderConfigAmazon{}
