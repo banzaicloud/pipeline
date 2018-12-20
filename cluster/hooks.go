@@ -1080,12 +1080,12 @@ func TaintHeadNodes(commonCluster CommonCluster) error {
 		return err
 	}
 
-	clusterDetails, err := commonCluster.GetClusterDetails()
+	clusterStatus, err := commonCluster.GetStatus()
 	if err != nil {
 		return err
 	}
 
-	nodePoolDetails, isOk := clusterDetails.NodePools[headNodePoolName]
+	nodePoolDetails, isOk := clusterStatus.NodePools[headNodePoolName]
 	if !isOk {
 		return errors.Errorf("Wrong pool name: %v, configured as head node pool", headNodePoolName)
 	}
