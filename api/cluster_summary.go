@@ -19,6 +19,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/client-go/kubernetes"
 )
 
 func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceName]resource.Quantity) *pkgCluster.ResourceSummary {
@@ -34,8 +35,11 @@ func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceN
 	}
 }
 
-func getNodeResourceSummary(node *v1.Node, requests, limits map[v1.ResourceName]resource.Quantity) *pkgCluster.ResourceSummary {
-	summary := resourcesummary.GetNodeSummary(node, requests, limits)
+func getNodeResourceSummary(client kubernetes.Interface, node v1.Node) (*pkgCluster.ResourceSummary, error) {
+	summary, err := resourcesummary.GetNodeSummary(client, node)
+	if err != nil {
+		return nil, err
+	}
 
 	return &pkgCluster.ResourceSummary{
 		Cpu: &pkgCluster.CPU{
@@ -45,5 +49,5 @@ func getNodeResourceSummary(node *v1.Node, requests, limits map[v1.ResourceName]
 			ResourceSummaryItem: pkgCluster.ResourceSummaryItem(summary.Memory),
 		},
 		Status: summary.Status,
-	}
+	}, nil
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -37,9 +38,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
-	resourceHelper "k8s.io/kubernetes/pkg/api/v1/resource"
 )
 
 // ClusterAPI implements the Cluster API actions.
@@ -479,7 +478,7 @@ func addNodeSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.D
 
 		log.Infof("add summary to node [%s] in nodepool [s]", node.Name, nodePoolName)
 
-		resourceSummary, err := getResourceSummaryFromNode(client, &node)
+		resourceSummary, err := getNodeResourceSummary(client, node)
 		if err != nil {
 			return err
 		}
@@ -490,37 +489,6 @@ func addNodeSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.D
 	details.NodePools[nodePoolName].Count = len(nodes.Items)
 
 	return nil
-}
-
-// getResourceSummaryFromNode return resource summary for the given node
-func getResourceSummaryFromNode(client *kubernetes.Clientset, node *v1.Node) (*pkgCluster.ResourceSummary, error) {
-
-	fieldSelector, err := fields.ParseSelector("spec.nodeName=" + node.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Infof("start getting requests and limits of all pods in all namespace")
-	requests, limits, err := getAllPodsRequestsAndLimitsInAllNamespace(client, fieldSelector.String())
-	if err != nil {
-		return nil, err
-	}
-
-	return getNodeResourceSummary(node, requests, limits), nil
-}
-
-func getAllPodsRequestsAndLimitsInAllNamespace(client *kubernetes.Clientset, fieldSelector string) (map[v1.ResourceName]resource.Quantity, map[v1.ResourceName]resource.Quantity, error) {
-
-	log.Infof("list pods with field selector: %s", fieldSelector)
-	podList, err := listPods(client, fieldSelector, "")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	log.Infof("pods [%d]", len(podList))
-	log.Infof("calculate requests and limits")
-	req, limits := calculatePodsTotalRequestsAndLimits(podList)
-	return req, limits, nil
 }
 
 // listPods returns list of pods in all namespaces
@@ -599,28 +567,8 @@ func nodeCapacityAndAllocatable(node *v1.Node) (caps map[v1.ResourceName]resourc
 }
 
 // calculatePodsTotalRequestsAndLimits calculates requests and limits of all the given pods
-func calculatePodsTotalRequestsAndLimits(podList []v1.Pod) (reqs map[v1.ResourceName]resource.Quantity, limits map[v1.ResourceName]resource.Quantity) {
-	reqs, limits = map[v1.ResourceName]resource.Quantity{}, map[v1.ResourceName]resource.Quantity{}
-	for _, pod := range podList {
-		podReqs, podLimits := resourceHelper.PodRequestsAndLimits(&pod)
-		for podReqName, podReqValue := range podReqs {
-			if value, ok := reqs[podReqName]; !ok {
-				reqs[podReqName] = *podReqValue.Copy()
-			} else {
-				value.Add(podReqValue)
-				reqs[podReqName] = value
-			}
-		}
-		for podLimitName, podLimitValue := range podLimits {
-			if value, ok := limits[podLimitName]; !ok {
-				limits[podLimitName] = *podLimitValue.Copy()
-			} else {
-				value.Add(podLimitValue)
-				limits[podLimitName] = value
-			}
-		}
-	}
-	return
+func calculatePodsTotalRequestsAndLimits(podList []v1.Pod) (map[v1.ResourceName]resource.Quantity, map[v1.ResourceName]resource.Quantity) {
+	return resourcesummary.CalculatePodsTotalRequestsAndLimits(podList)
 }
 
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo

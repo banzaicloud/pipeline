@@ -27,7 +27,7 @@ const (
 )
 
 // GetNodeStatus returns the node's actual status.
-func GetNodeStatus(node *v1.Node) string {
+func GetNodeStatus(node v1.Node) string {
 	for _, condition := range node.Status.Conditions {
 		if condition.Type == conditionTypeReady {
 			switch condition.Status {
