@@ -314,8 +314,8 @@ func main() {
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateClusterRequest)
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
-			orgs.GET("/:orgid/clusters/:id", api.GetClusterStatus)
-			orgs.GET("/:orgid/clusters/:id/details", api.GetClusterDetails)
+			orgs.GET("/:orgid/clusters/:id", clusterAPI.GetCluster)
+			orgs.GET("/:orgid/clusters/:id/details", clusterAPI.GetCluster) // Deprecated: use /:orgid/clusters/:id instead
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
 			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)

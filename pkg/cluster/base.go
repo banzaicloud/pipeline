@@ -197,6 +197,8 @@ type NodePoolStatus struct {
 	MaxCount     int    `json:"maxCount,omitempty"`
 	Image        string `json:"image,omitempty"`
 	Version      string `json:"version,omitempty"`
+
+	pkgCommon.CreatorBaseFields
 }
 
 // GetClusterConfigResponse describes Pipeline's GetConfig API response

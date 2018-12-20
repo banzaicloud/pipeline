@@ -11,7 +11,7 @@
 
 package client
 
-type ResourceItem struct {
+type Resource struct {
 	Capacity    string `json:"capacity,omitempty"`
 	Allocatable string `json:"allocatable,omitempty"`
 	Limit       string `json:"limit,omitempty"`

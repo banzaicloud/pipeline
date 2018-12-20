@@ -526,7 +526,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClusterDetailsResponse'
+                $ref: '#/components/schemas/GetClusterResponse'
           description: Getting cluster succeeded
         400:
           content:
@@ -7762,7 +7762,7 @@ components:
             $ref: '#/components/schemas/PodCondition'
           type: array
         resourceSummary:
-          $ref: '#/components/schemas/PodItem_resourceSummary'
+          $ref: '#/components/schemas/ResourceSummary'
       type: object
     PodCondition:
       properties:
@@ -7778,18 +7778,18 @@ components:
           example: 2018-08-01T07:04:37Z
           type: string
       type: object
-    ClusterDetailsResponse:
+    GetClusterResponse:
       example:
         secretName: paas-dev
+        masterVersion: "1.10"
         securityscan: true
         creatorName: userName
         creatorId: 1
         secretId: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
         distribution: gke
         monitoring: true
+        version: "1.10"
         statusMessage: Cluster is running
-        master:
-          ip-10-0-100-180.eu-west-1.compute.internal: '{}'
         cloud: google
         createdAt: 2018-07-03T14:23:19+02:00
         endpoint: 34.240.231.134
@@ -7811,11 +7811,38 @@ components:
         id: 1
         nodePools:
           key:
+            image: ami-4d485ca7
+            spotPrice: "0.2"
+            instanceType: m4.xlarge
+            resourceSummary:
+              key:
+                memory:
+                  allocatable: "4"
+                  request: 380m
+                  limit: 100m
+                  capacity: "4"
+                cpu:
+                  allocatable: "4"
+                  request: 380m
+                  limit: 100m
+                  capacity: "4"
+                status: Ready
             count: 1
-            instanceType: n1-standard-1
+            creatorName: userName
+            creatorId: 1
+            maxCount: 2
+            version: "1.10"
+            createdAt: 2018-07-03T14:23:19+02:00
+            preemptible: true
+            minCount: 1
+            autoscaling: true
         region: us-central1
         status: RUNNING
       properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
         status:
           example: RUNNING
           type: string
@@ -7825,6 +7852,12 @@ components:
         name:
           example: myClusterName
           type: string
+        region:
+          example: us-central1
+          type: string
+        location:
+          example: us-central1-a
+          type: string
         cloud:
           example: google
           type: string
@@ -7833,19 +7866,33 @@ components:
           type: string
         spot:
           type: boolean
-        location:
-          example: us-central1-a
-          type: string
-        id:
-          example: 1
-          format: int32
-          type: integer
         logging:
           type: boolean
         monitoring:
           type: boolean
         securityscan:
           type: boolean
+        version:
+          example: "1.10"
+          type: string
+        masterVersion:
+          example: "1.10"
+          type: string
+        secretId:
+          example: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
+          type: string
+        secretName:
+          example: paas-dev
+          type: string
+        endpoint:
+          example: 34.240.231.134
+          type: string
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/GetClusterNodePool'
+          type: object
+        totalSummary:
+          $ref: '#/components/schemas/ResourceSummary'
         createdAt:
           example: 2018-07-03T14:23:19+02:00
           type: string
@@ -7856,35 +7903,119 @@ components:
           example: 1
           format: int32
           type: integer
-        region:
-          example: us-central1
-          type: string
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolStatus'
-          type: object
-        secretId:
-          example: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
-          type: string
-        secretName:
-          example: paas-dev
-          type: string
-        endpoint:
-          example: 34.240.231.134
-          type: string
-        master:
-          $ref: '#/components/schemas/ResourceSummaryItem'
-        totalSummary:
-          $ref: '#/components/schemas/PodItem_resourceSummary'
       type: object
-    ResourceSummaryItem:
+    GetClusterNodePool:
       example:
-        ip-10-0-100-180.eu-west-1.compute.internal: '{}'
+        image: ami-4d485ca7
+        spotPrice: "0.2"
+        instanceType: m4.xlarge
+        resourceSummary:
+          key:
+            memory:
+              allocatable: "4"
+              request: 380m
+              limit: 100m
+              capacity: "4"
+            cpu:
+              allocatable: "4"
+              request: 380m
+              limit: 100m
+              capacity: "4"
+            status: Ready
+        count: 1
+        creatorName: userName
+        creatorId: 1
+        maxCount: 2
+        version: "1.10"
+        createdAt: 2018-07-03T14:23:19+02:00
+        preemptible: true
+        minCount: 1
+        autoscaling: true
       properties:
-        ip-10-0-100-180.eu-west-1.compute.internal:
-          $ref: ResourceSummaryItem_ip100100180.euwest1.compute.internal
+        autoscaling:
+          type: boolean
+        count:
+          example: 1
+          format: int32
+          type: integer
+        instanceType:
+          example: m4.xlarge
+          type: string
+        spotPrice:
+          example: "0.2"
+          type: string
+        preemptible:
+          type: boolean
+        minCount:
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          example: 2
+          format: int32
+          type: integer
+        image:
+          example: ami-4d485ca7
+          type: string
+        version:
+          example: "1.10"
+          type: string
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/NodeResourceSummary'
+          type: object
+        createdAt:
+          example: 2018-07-03T14:23:19+02:00
+          type: string
+        creatorName:
+          example: userName
+          type: string
+        creatorId:
+          example: 1
+          format: int32
+          type: integer
       type: object
-    ResourceItem:
+    ResourceSummary:
+      example:
+        memory:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+        cpu:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+      properties:
+        cpu:
+          $ref: '#/components/schemas/Resource'
+        memory:
+          $ref: '#/components/schemas/Resource'
+      type: object
+    NodeResourceSummary:
+      example:
+        memory:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+        cpu:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+        status: Ready
+      properties:
+        status:
+          example: Ready
+          type: string
+        cpu:
+          $ref: '#/components/schemas/Resource'
+        memory:
+          $ref: '#/components/schemas/Resource'
+      type: object
+    Resource:
       example:
         allocatable: "4"
         request: 380m
@@ -9972,34 +10103,6 @@ components:
         release:
           example: pipeline
           type: string
-      type: object
-    PodItem_resourceSummary:
-      example:
-        memory:
-          allocatable: "4"
-          request: 380m
-          limit: 100m
-          capacity: "4"
-        cpu:
-          allocatable: "4"
-          request: 380m
-          limit: 100m
-          capacity: "4"
-      properties:
-        cpu:
-          $ref: '#/components/schemas/ResourceItem'
-        memory:
-          $ref: '#/components/schemas/ResourceItem'
-      type: object
-    ResourceSummaryItem_ip100100180.euwest1.compute.internal:
-      properties:
-        status:
-          example: Ready
-          type: string
-        cpu:
-          $ref: '#/components/schemas/ResourceItem'
-        memory:
-          $ref: '#/components/schemas/ResourceItem'
       type: object
     LoggingPostHook_InstallLogging:
       properties:

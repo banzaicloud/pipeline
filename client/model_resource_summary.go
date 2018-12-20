@@ -11,6 +11,7 @@
 
 package client
 
-type ResourceSummaryItem struct {
-	Ip100100180EuWest1ComputeInternal map[string]interface{} `json:"ip-10-0-100-180.eu-west-1.compute.internal,omitempty"`
+type ResourceSummary struct {
+	Cpu    Resource `json:"cpu,omitempty"`
+	Memory Resource `json:"memory,omitempty"`
 }

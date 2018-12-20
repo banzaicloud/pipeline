@@ -11,8 +11,8 @@
 
 package client
 
-type ResourceSummaryItemIp100100180Euwest1ComputeInternal struct {
-	Status string       `json:"status,omitempty"`
-	Cpu    ResourceItem `json:"cpu,omitempty"`
-	Memory ResourceItem `json:"memory,omitempty"`
+type NodeResourceSummary struct {
+	Status string   `json:"status,omitempty"`
+	Cpu    Resource `json:"cpu,omitempty"`
+	Memory Resource `json:"memory,omitempty"`
 }

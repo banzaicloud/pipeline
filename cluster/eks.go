@@ -810,13 +810,14 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Count:        np.Count,
-				InstanceType: np.NodeInstanceType,
-				SpotPrice:    np.NodeSpotPrice,
-				MinCount:     np.NodeMinCount,
-				MaxCount:     np.NodeMaxCount,
-				Image:        np.NodeImage,
+				Autoscaling:       np.Autoscaling,
+				Count:             np.Count,
+				InstanceType:      np.NodeInstanceType,
+				SpotPrice:         np.NodeSpotPrice,
+				MinCount:          np.NodeMinCount,
+				MaxCount:          np.NodeMaxCount,
+				Image:             np.NodeImage,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 			if np.NodeSpotPrice != "" && np.NodeSpotPrice != "0" {
 				hasSpotNodePool = true

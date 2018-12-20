@@ -250,11 +250,12 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Count:        np.Count,
-				InstanceType: np.NodeInstanceType,
-				MinCount:     np.NodeMinCount,
-				MaxCount:     np.NodeMaxCount,
+				Autoscaling:       np.Autoscaling,
+				Count:             np.Count,
+				InstanceType:      np.NodeInstanceType,
+				MinCount:          np.NodeMinCount,
+				MaxCount:          np.NodeMaxCount,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 		}
 	}

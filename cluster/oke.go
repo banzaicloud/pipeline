@@ -215,13 +215,14 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		if np != nil {
 			count := getNodeCount(np)
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Count:        count,
-				Autoscaling:  false,
-				MinCount:     count,
-				MaxCount:     count,
-				InstanceType: np.Shape,
-				Image:        np.Image,
-				Version:      np.Version,
+				Count:             count,
+				Autoscaling:       false,
+				MinCount:          count,
+				MaxCount:          count,
+				InstanceType:      np.Shape,
+				Image:             np.Image,
+				Version:           np.Version,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 		}
 	}
