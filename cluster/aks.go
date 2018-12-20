@@ -567,42 +567,6 @@ func (c *AKSCluster) NodePoolExists(nodePoolName string) bool {
 	return false
 }
 
-// GetClusterDetails gets cluster details from cloud
-func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	ready, err := c.IsReady()
-	if err != nil {
-		return nil, err
-	}
-
-	if !ready {
-		return nil, pkgErrors.ErrorClusterNotReady
-	}
-
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
-	}
-
-	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-
-	for _, np := range c.modelCluster.AKS.NodePools {
-		if np != nil {
-
-			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				NodePoolStatus:    *status.NodePools[np.Name],
-			}
-		}
-	}
-
-	return &pkgCluster.DetailsResponse{
-		Id:                       c.modelCluster.ID,
-		MasterVersion:            c.modelCluster.AKS.KubernetesVersion,
-		NodePools:                nodePools,
-		GetClusterStatusResponse: *status,
-	}, nil
-}
-
 // IsReady checks if the cluster is running according to the cloud provider.
 func (c *AKSCluster) IsReady() (bool, error) {
 	client, err := c.GetAKSClient()

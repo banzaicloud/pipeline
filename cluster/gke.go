@@ -1825,44 +1825,6 @@ func (c *GKECluster) NodePoolExists(nodePoolName string) bool {
 	return false
 }
 
-// GetClusterDetails gets cluster details from cloud
-func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	ready, err := c.IsReady()
-	if err != nil {
-		return nil, err
-	}
-
-	if !ready {
-		return nil, pkgErrors.ErrorClusterNotReady
-	}
-
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
-	}
-
-	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-
-	for _, np := range c.model.NodePools {
-		if np != nil {
-
-			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				NodePoolStatus:    *status.NodePools[np.Name],
-			}
-		}
-	}
-
-	response := &pkgCluster.DetailsResponse{
-		Id:                       c.model.Cluster.ID,
-		MasterVersion:            c.model.MasterVersion,
-		NodePools:                nodePools,
-		GetClusterStatusResponse: *status,
-	}
-
-	return response, nil
-}
-
 // IsReady checks if the cluster is running according to the cloud provider.
 func (c *GKECluster) IsReady() (bool, error) {
 	c.log.Debug("Get Google Service Client")
