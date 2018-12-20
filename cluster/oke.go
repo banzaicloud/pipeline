@@ -364,23 +364,12 @@ func (o *OKECluster) NodePoolExists(nodePoolName string) bool {
 
 // GetClusterDetails gets cluster details from cloud
 func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-
-	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
+	ready, err := o.IsReady()
 	if err != nil {
 		return nil, err
 	}
 
-	ce, err := oci.NewContainerEngineClient()
-	if err != nil {
-		return nil, err
-	}
-
-	cluster, err := ce.GetClusterByID(&o.modelCluster.OKE.OCID)
-	if err != nil {
-		return nil, err
-	}
-
-	if cluster.LifecycleState != "ACTIVE" {
+	if !ready {
 		return nil, pkgErrors.ErrorClusterNotReady
 	}
 

@@ -568,17 +568,13 @@ func (c *AKSCluster) NodePoolExists(nodePoolName string) bool {
 
 // GetClusterDetails gets cluster details from cloud
 func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-
-	client, err := c.GetAKSClient()
+	ready, err := c.IsReady()
 	if err != nil {
 		return nil, err
 	}
 
-	client.With(log)
-
-	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
-	if err != nil {
-		return nil, errors.WithStack(err)
+	if !ready {
+		return nil, pkgErrors.ErrorClusterNotReady
 	}
 
 	status, err := c.GetStatus()
@@ -586,31 +582,24 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		return nil, err
 	}
 
-	stage := resp.Value.Properties.ProvisioningState
-	log.Info("Cluster stage is", stage)
-	if stage == statusSucceeded {
+	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 
-		nodePools := make(map[string]*pkgCluster.NodePoolDetails)
+	for _, np := range c.modelCluster.AKS.NodePools {
+		if np != nil {
 
-		for _, np := range c.modelCluster.AKS.NodePools {
-			if np != nil {
-
-				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					NodePoolStatus:    *status.NodePools[np.Name],
-				}
+			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				NodePoolStatus:    *status.NodePools[np.Name],
 			}
 		}
-
-		return &pkgCluster.DetailsResponse{
-			Id:                       c.modelCluster.ID,
-			MasterVersion:            c.modelCluster.AKS.KubernetesVersion,
-			NodePools:                nodePools,
-			GetClusterStatusResponse: *status,
-		}, nil
-
 	}
-	return nil, pkgErrors.ErrorClusterNotReady
+
+	return &pkgCluster.DetailsResponse{
+		Id:                       c.modelCluster.ID,
+		MasterVersion:            c.modelCluster.AKS.KubernetesVersion,
+		NodePools:                nodePools,
+		GetClusterStatusResponse: *status,
+	}, nil
 }
 
 // IsReady checks if the cluster is running according to the cloud provider.
