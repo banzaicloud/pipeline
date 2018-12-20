@@ -15,8 +15,14 @@
 package resourcesummary
 
 import (
+	"fmt"
+
+	"github.com/goph/emperror"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/client-go/kubernetes"
 )
 
 // NodeSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable.
@@ -26,8 +32,27 @@ type NodeSummary struct {
 	Status string
 }
 
-// GetNodeSummary returns NodeSummary type with the given data.
-func GetNodeSummary(node *v1.Node, requests, limits map[v1.ResourceName]resource.Quantity) NodeSummary {
+// GetNodeSummary returns resource summary for the given node.
+func GetNodeSummary(client kubernetes.Interface, node v1.Node) (*NodeSummary, error) {
+	fieldSelector, err := fields.ParseSelector(fmt.Sprintf("spec.nodeName=%s", node.Name))
+	if err != nil {
+		return nil, emperror.WrapWith(err, "cannot parse field selector for node", "node", node.Name)
+	}
+
+	podList, err := client.CoreV1().Pods("").List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
+	if err != nil {
+		return nil, emperror.WrapWith(err, "cannot parse list pods for node", "node", node.Name)
+	}
+
+	requests, limits := CalculatePodsTotalRequestsAndLimits(podList.Items)
+
+	summary := CalculateNodeSummary(node, requests, limits)
+
+	return &summary, nil
+}
+
+// CalculateNodeSummary returns NodeSummary type with the given data.
+func CalculateNodeSummary(node v1.Node, requests, limits map[v1.ResourceName]resource.Quantity) NodeSummary {
 	capacity := map[v1.ResourceName]resource.Quantity{
 		v1.ResourceCPU:    {},
 		v1.ResourceMemory: {},
