@@ -103,13 +103,13 @@ func (s *clusterSubscriber) Init() {
 	}
 	prometheusConfig.ScrapeConfigs = []*promconfig.ScrapeConfig{}
 	for _, c := range clusters {
-		details, err := c.GetClusterDetails()
+		clusterStatus, err := c.GetStatus()
 		if err != nil {
 			s.errorHandler.Handle(err)
 
 			return
 		}
-		if details.Monitoring {
+		if clusterStatus.Monitoring {
 			org, err := s.getOrganization(c.GetOrganizationId())
 			if err != nil {
 				s.errorHandler.Handle(err)
