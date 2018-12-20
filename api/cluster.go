@@ -516,43 +516,17 @@ func getResourceSummaryFromNode(client *kubernetes.Clientset, node *v1.Node) (*p
 		return nil, err
 	}
 
-	var capCPU resource.Quantity
-	var capMemory resource.Quantity
-	var allocCPU resource.Quantity
-	var allocMemory resource.Quantity
-	if cpu := node.Status.Capacity.Cpu(); cpu != nil {
-		capCPU = *cpu
-	}
+	nodeSummary := resourcesummary.GetNodeSummary(node, requests, limits)
 
-	if mem := node.Status.Capacity.Memory(); mem != nil {
-		capMemory = *mem
-	}
-
-	if cpu := node.Status.Allocatable.Cpu(); cpu != nil {
-		allocCPU = *cpu
-	}
-
-	if mem := node.Status.Allocatable.Memory(); mem != nil {
-		allocMemory = *mem
-	}
-
-	// set capacity map
-	capacity := map[v1.ResourceName]resource.Quantity{
-		v1.ResourceCPU:    capCPU,
-		v1.ResourceMemory: capMemory,
-	}
-
-	// set allocatable map
-	allocatable := map[v1.ResourceName]resource.Quantity{
-		v1.ResourceCPU:    allocCPU,
-		v1.ResourceMemory: allocMemory,
-	}
-
-	resourceSummary := getResourceSummary(capacity, allocatable, requests, limits)
-	resourceSummary.Status = resourcesummary.GetNodeStatus(node)
-
-	return resourceSummary, nil
-
+	return &pkgCluster.ResourceSummary{
+		Cpu: &pkgCluster.CPU{
+			ResourceSummaryItem: pkgCluster.ResourceSummaryItem(nodeSummary.CPU),
+		},
+		Memory: &pkgCluster.Memory{
+			ResourceSummaryItem: pkgCluster.ResourceSummaryItem(nodeSummary.Memory),
+		},
+		Status: nodeSummary.Status,
+	}, nil
 }
 
 // getResourceSummary returns ResourceSummary type with the given data
