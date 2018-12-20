@@ -20,7 +20,7 @@ import (
 	resourcev1 "k8s.io/kubernetes/pkg/api/v1/resource"
 )
 
-// CalculatePodsTotalRequestsAndLimits calculates requests and limits of all the given pods.
+// CalculatePodsTotalRequestsAndLimits calculates resource requests and limits of the given pods.
 func CalculatePodsTotalRequestsAndLimits(pods []v1.Pod) (map[v1.ResourceName]resource.Quantity, map[v1.ResourceName]resource.Quantity) {
 	reqs, limits := map[v1.ResourceName]resource.Quantity{}, map[v1.ResourceName]resource.Quantity{}
 
