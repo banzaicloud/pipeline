@@ -1826,56 +1826,40 @@ func (c *GKECluster) NodePoolExists(nodePoolName string) bool {
 
 // GetClusterDetails gets cluster details from cloud
 func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	c.log.Info("Get Google Service Client")
-	svc, err := c.getGoogleServiceClient()
-	if err != nil {
-		be := getBanzaiErrorFromError(err)
-		return nil, errors.New(be.Message)
-	}
-	c.log.Info("Get Google Service Client success")
-
-	secretItem, err := c.GetSecretWithValidation()
+	ready, err := c.IsReady()
 	if err != nil {
 		return nil, err
 	}
 
-	c.log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
-	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pkgSecret.ProjectId), c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
-	if err != nil {
-		apiError := getBanzaiErrorFromError(err)
-		return nil, errors.New(apiError.Message)
+	if !ready {
+		return nil, pkgErrors.ErrorClusterNotReady
 	}
-	c.log.Info("Get cluster success")
-	c.log.Infof("Cluster status is %s", cl.Status)
+
 	status, err := c.GetStatus()
 	if err != nil {
 		return nil, err
 	}
 
-	if statusRunning == cl.Status {
+	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
 
-		//userId, userName := GetUserIdAndName(c.modelCluster)
-		nodePools := make(map[string]*pkgCluster.NodePoolDetails)
+	for _, np := range c.model.NodePools {
+		if np != nil {
 
-		for _, np := range c.model.NodePools {
-			if np != nil {
-
-				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					NodePoolStatus:    *status.NodePools[np.Name],
-				}
+			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				NodePoolStatus:    *status.NodePools[np.Name],
 			}
 		}
-
-		response := &pkgCluster.DetailsResponse{
-			Id:                       c.model.Cluster.ID,
-			MasterVersion:            c.model.MasterVersion,
-			NodePools:                nodePools,
-			GetClusterStatusResponse: *status,
-		}
-		return response, nil
 	}
-	return nil, pkgErrors.ErrorClusterNotReady
+
+	response := &pkgCluster.DetailsResponse{
+		Id:                       c.model.Cluster.ID,
+		MasterVersion:            c.model.MasterVersion,
+		NodePools:                nodePools,
+		GetClusterStatusResponse: *status,
+	}
+
+	return response, nil
 }
 
 // IsReady checks if the cluster is running according to the cloud provider.
