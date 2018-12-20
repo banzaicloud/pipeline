@@ -261,6 +261,11 @@ func (c *KubeCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}, nil
 }
 
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *KubeCluster) IsReady() (bool, error) {
+	return true, nil
+}
+
 // ValidateCreationFields validates all field
 func (c *KubeCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	return nil

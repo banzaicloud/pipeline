@@ -1878,6 +1878,32 @@ func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	return nil, pkgErrors.ErrorClusterNotReady
 }
 
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *GKECluster) IsReady() (bool, error) {
+	c.log.Debug("Get Google Service Client")
+	svc, err := c.getGoogleServiceClient()
+	if err != nil {
+		be := getBanzaiErrorFromError(err)
+		return false, errors.New(be.Message)
+	}
+	c.log.Debug("Get Google Service Client success")
+
+	secretItem, err := c.GetSecretWithValidation()
+	if err != nil {
+		return false, err
+	}
+
+	c.log.Debug("Get gke cluster with name %s", c.model.Cluster.Name)
+	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pkgSecret.ProjectId), c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
+	if err != nil {
+		apiError := getBanzaiErrorFromError(err)
+		return false, errors.New(apiError.Message)
+	}
+	c.log.Debug("Get cluster success")
+
+	return statusRunning == cl.Status, nil
+}
+
 // ValidateCreationFields validates all field
 func (c *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 

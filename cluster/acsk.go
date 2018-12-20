@@ -697,6 +697,21 @@ func (c *ACSKCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}, nil
 }
 
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *ACSKCluster) IsReady() (bool, error) {
+	client, err := c.GetAlibabaCSClient(nil)
+	if err != nil {
+		return false, err
+	}
+
+	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
+	if err != nil {
+		return false, err
+	}
+
+	return r.State != acsk.AlibabaClusterStateRunning, nil
+}
+
 func interfaceArrayToStringArray(in []interface{}) (out []string) {
 	out = make([]string, len(in))
 	for i, v := range in {

@@ -270,6 +270,12 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetClusterDetails() (*pkgCluster.Det
 	}, nil
 }
 
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *EC2ClusterBanzaiCloudDistribution) IsReady() (bool, error) {
+	// TODO: is this a correct implementation?
+	return true, nil
+}
+
 func (c *EC2ClusterBanzaiCloudDistribution) ListNodeNames() (common.NodeNames, error) {
 	var nodes = make(map[string][]string)
 	for _, nodepool := range c.model.NodePools {
