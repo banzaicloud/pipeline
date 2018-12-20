@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -41,14 +42,6 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	resourceHelper "k8s.io/kubernetes/pkg/api/v1/resource"
-)
-
-const (
-	statusReady    = "Ready"
-	statusNotReady = "Not ready"
-	statusUnknown  = "Unknown"
-	readyTrue      = "True"
-	readyFalse     = "False"
 )
 
 const (
@@ -556,30 +549,9 @@ func getResourceSummaryFromNode(client *kubernetes.Clientset, node *v1.Node) (*p
 	}
 
 	resourceSummary := getResourceSummary(capacity, allocatable, requests, limits)
-	resourceSummary.Status = getNodeStatus(node)
+	resourceSummary.Status = resourcesummary.GetNodeStatus(node)
 
 	return resourceSummary, nil
-
-}
-
-// getNodeStatus returns the node actual status
-func getNodeStatus(node *v1.Node) string {
-
-	for _, condition := range node.Status.Conditions {
-		if condition.Type == statusReady {
-			switch condition.Status {
-			case readyTrue:
-				return statusReady
-			case readyFalse:
-				return statusNotReady
-			default:
-				return statusUnknown
-
-			}
-		}
-	}
-
-	return ""
 
 }
 
