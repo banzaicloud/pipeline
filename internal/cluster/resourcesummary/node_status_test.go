@@ -25,11 +25,11 @@ func TestGetNodeStatus(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		node   *v1.Node
+		node   v1.Node
 		status string
 	}{
 		"ready": {
-			node: &v1.Node{
+			node: v1.Node{
 				Status: v1.NodeStatus{
 					Conditions: []v1.NodeCondition{
 						{
@@ -42,7 +42,7 @@ func TestGetNodeStatus(t *testing.T) {
 			status: StatusReady,
 		},
 		"not_ready": {
-			node: &v1.Node{
+			node: v1.Node{
 				Status: v1.NodeStatus{
 					Conditions: []v1.NodeCondition{
 						{
@@ -55,7 +55,7 @@ func TestGetNodeStatus(t *testing.T) {
 			status: StatusNotReady,
 		},
 		"unknown": {
-			node: &v1.Node{
+			node: v1.Node{
 				Status: v1.NodeStatus{
 					Conditions: []v1.NodeCondition{
 						{
