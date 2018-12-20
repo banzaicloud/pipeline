@@ -613,6 +613,26 @@ func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	return nil, pkgErrors.ErrorClusterNotReady
 }
 
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *AKSCluster) IsReady() (bool, error) {
+	client, err := c.GetAKSClient()
+	if err != nil {
+		return false, err
+	}
+
+	client.With(log)
+
+	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
+	if err != nil {
+		return false, errors.WithStack(err)
+	}
+
+	stage := resp.Value.Properties.ProvisioningState
+	log.Debug("Cluster stage is", stage)
+
+	return stage == statusSucceeded, nil
+}
+
 // ValidateCreationFields validates all field
 func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 

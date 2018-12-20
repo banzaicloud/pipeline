@@ -980,6 +980,31 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	return nil, pkgErrors.ErrorClusterNotReady
 }
 
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *EKSCluster) IsReady() (bool, error) {
+	awsCred, err := c.createAWSCredentialsFromSecret()
+	if err != nil {
+		return false, err
+	}
+
+	session, err := session.NewSession(&aws.Config{
+		Region:      aws.String(c.modelCluster.Location),
+		Credentials: awsCred,
+	})
+	if err != nil {
+		return false, err
+	}
+
+	eksSvc := eks.New(session)
+	describeCluster := &eks.DescribeClusterInput{Name: aws.String(c.GetName())}
+	clusterDesc, err := eksSvc.DescribeCluster(describeCluster)
+	if err != nil {
+		return false, err
+	}
+
+	return aws.StringValue(clusterDesc.Cluster.Status) == eks.ClusterStatusActive, nil
+}
+
 // ValidateCreationFields validates all fields
 func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	regions, err := ListEksRegions(c.GetOrganizationId(), c.GetSecretId())

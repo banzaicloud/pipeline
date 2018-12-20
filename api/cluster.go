@@ -265,23 +265,27 @@ func ReRunPostHooks(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// ClusterHEAD checks the cluster ready
-func ClusterHEAD(c *gin.Context) {
-
-	commonCluster, ok := getClusterFromRequest(c)
+// ClusterCheck checks the cluster ready
+func (a *ClusterAPI) ClusterCheck(c *gin.Context) {
+	commonCluster, ok := a.clusterGetter.GetClusterFromRequest(c)
 	if ok != true {
 		return
 	}
 
-	_, err := commonCluster.GetClusterDetails()
+	ok, err := commonCluster.IsReady()
 	if err != nil {
-		log.Errorf("Error getting cluster: %s", err.Error())
-		c.Status(http.StatusBadRequest)
+		errorHandler.Handle(err)
+
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	if !ok {
+		c.Status(http.StatusNotFound)
 		return
 	}
 
 	c.Status(http.StatusOK)
-
 }
 
 // GetPodDetails returns all pods with details

@@ -264,6 +264,11 @@ func (c *DummyCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) 
 	}, nil
 }
 
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *DummyCluster) IsReady() (bool, error) {
+	return true, nil
+}
+
 // ValidateCreationFields validates all field
 func (c *DummyCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	return nil

@@ -408,6 +408,27 @@ func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	}, nil
 }
 
+// IsReady checks if the cluster is running according to the cloud provider.
+func (o *OKECluster) IsReady() (bool, error) {
+
+	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
+	if err != nil {
+		return false, err
+	}
+
+	ce, err := oci.NewContainerEngineClient()
+	if err != nil {
+		return false, err
+	}
+
+	cluster, err := ce.GetClusterByID(&o.modelCluster.OKE.OCID)
+	if err != nil {
+		return false, err
+	}
+
+	return cluster.LifecycleState == "ACTIVE", nil
+}
+
 // ValidateCreationFields validates all field
 func (o *OKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 
