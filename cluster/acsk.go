@@ -663,41 +663,6 @@ func (c *ACSKCluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-func (c *ACSKCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	client, err := c.GetAlibabaCSClient(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
-	if err != nil {
-		return nil, err
-	}
-	if r.State != acsk.AlibabaClusterStateRunning {
-		return nil, pkgErrors.ErrorClusterNotReady
-	}
-
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
-	}
-
-	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-	for _, np := range c.modelCluster.ACSK.NodePools {
-		nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-			NodePoolStatus:    *status.NodePools[np.Name],
-		}
-	}
-
-	return &pkgCluster.DetailsResponse{
-		Id:                       c.modelCluster.ID,
-		NodePools:                nodePools,
-		MasterVersion:            c.modelCluster.ACSK.KubernetesVersion,
-		GetClusterStatusResponse: *status,
-	}, nil
-}
-
 // IsReady checks if the cluster is running according to the cloud provider.
 func (c *ACSKCluster) IsReady() (bool, error) {
 	client, err := c.GetAlibabaCSClient(nil)

@@ -247,30 +247,6 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterS
 	}, nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	log.Info("Getting cluster details")
-
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
-	}
-
-	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-	for _, np := range c.model.NodePools {
-		nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-			NodePoolStatus:    *status.NodePools[np.Name],
-		}
-	}
-	//TODO implement cluster running state check if it is ready
-	return &pkgCluster.DetailsResponse{
-		Id:                       c.model.Cluster.ID,
-		MasterVersion:            c.model.Kubernetes.Version,
-		NodePools:                nodePools,
-		GetClusterStatusResponse: *status,
-	}, nil
-}
-
 // IsReady checks if the cluster is running according to the cloud provider.
 func (c *EC2ClusterBanzaiCloudDistribution) IsReady() (bool, error) {
 	// TODO: is this a correct implementation?

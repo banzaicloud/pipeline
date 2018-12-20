@@ -251,19 +251,6 @@ func (c *DummyCluster) NodePoolExists(nodePoolName string) bool {
 	return false
 }
 
-// GetClusterDetails gets cluster details from cloud
-func (c *DummyCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
-	}
-
-	return &pkgCluster.DetailsResponse{
-		Id:            status.ResourceID,
-		MasterVersion: "1.9.4",
-	}, nil
-}
-
 // IsReady checks if the cluster is running according to the cloud provider.
 func (c *DummyCluster) IsReady() (bool, error) {
 	return true, nil

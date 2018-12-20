@@ -36,8 +36,6 @@ import (
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 // ClusterAPI implements the Cluster API actions.
@@ -105,28 +103,6 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 
 	log.Infof("Found posthooks: %v", ph)
 
-	return
-}
-
-// GetClusterStatus retrieves the cluster status
-func GetClusterStatus(c *gin.Context) {
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-
-	response, err := commonCluster.GetStatus()
-	if err != nil {
-		log.Errorf("Error during getting status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during getting status",
-			Error:   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
 	return
 }
 
@@ -338,6 +314,8 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 	for _, pod := range pods {
 		req, limits := resourcesummary.CalculatePodsTotalRequestsAndLimits([]v1.Pod{pod})
 
+		summary := resourcesummary.GetSummary(nil, nil, req, limits)
+
 		items = append(items, pkgCluster.PodDetailsResponse{
 			Name:          pod.Name,
 			Namespace:     pod.Namespace,
@@ -345,153 +323,19 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 			Labels:        pod.Labels,
 			RestartPolicy: string(pod.Spec.RestartPolicy),
 			Conditions:    pod.Status.Conditions,
-			Summary:       getResourceSummary(nil, nil, req, limits),
+			Summary: &pkgCluster.ResourceSummary{
+				Cpu: &pkgCluster.CPU{
+					ResourceSummaryItem: pkgCluster.ResourceSummaryItem(summary.CPU),
+				},
+				Memory: &pkgCluster.Memory{
+					ResourceSummaryItem: pkgCluster.ResourceSummaryItem(summary.Memory),
+				},
+			},
 		})
 	}
 
 	return
 
-}
-
-// GetClusterDetails fetch a K8S cluster in the cloud
-func GetClusterDetails(c *gin.Context) {
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-	log.Debugf("getting cluster details for %v", commonCluster)
-
-	details, err := commonCluster.GetClusterDetails()
-	if err != nil {
-		log.Errorf("Error getting cluster: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error getting cluster",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	endpoint, err := commonCluster.GetAPIEndpoint()
-	if err != nil {
-		log.Warnf("Error during getting API endpoint: %s", err.Error())
-	}
-	details.Endpoint = endpoint
-
-	if err := addResourceSummaryToDetails(commonCluster, details); err != nil {
-		log.Warnf("Error during adding summary: %s", err.Error())
-	}
-
-	secret, err := commonCluster.GetSecretWithValidation()
-	if err != nil {
-		log.Errorf("Error getting cluster secret: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error getting cluster secret",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	details.SecretId = secret.ID
-	details.SecretName = secret.Name
-
-	c.JSON(http.StatusOK, details)
-}
-
-// addResourceSummaryToDetails adds resource summary to all node in each pool
-func addResourceSummaryToDetails(commonCluster cluster.CommonCluster, details *pkgCluster.DetailsResponse) error {
-
-	log.Info("get K8S config")
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		return err
-	}
-
-	log.Info("get k8S connection")
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-
-	// add node summary
-	log.Info("Add summary to nodes")
-	for name := range details.NodePools {
-
-		if err := addNodeSummaryToDetails(client, details, name); err != nil {
-			return err
-		}
-
-	}
-
-	// add total summary
-	log.Info("add total summary")
-	return addTotalSummaryToDetails(client, details)
-}
-
-// addTotalSummaryToDetails calculate all resource summary
-func addTotalSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.DetailsResponse) (err error) {
-
-	log.Info("list nodes")
-	var nodeList *v1.NodeList
-	nodeList, err = client.CoreV1().Nodes().List(meta_v1.ListOptions{})
-	if err != nil {
-		return
-	}
-
-	log.Infof("nodes [%d]", len(nodeList.Items))
-
-	log.Info("list pods")
-	var pods []v1.Pod
-	pods, err = listPods(client, "", "")
-	if err != nil {
-		return
-	}
-
-	log.Infof("pods [%d]", len(pods))
-
-	log.Info("Calculate total requests/limits/capacity/allocatable")
-	requests, limits := resourcesummary.CalculatePodsTotalRequestsAndLimits(pods)
-	capacity, allocatable := resourcesummary.CalculateNodesTotalCapacityAndAllocatable(nodeList.Items)
-
-	details.TotalSummary = getResourceSummary(capacity, allocatable, requests, limits)
-
-	return
-}
-
-// addNodeSummaryToDetails adds node resource summary
-func addNodeSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.DetailsResponse, nodePoolName string) error {
-
-	selector := fmt.Sprintf("%s=%s", pkgCommon.LabelKey, nodePoolName)
-
-	log.Infof("List nodes with selector: %s", selector)
-
-	nodes, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{
-		LabelSelector: selector,
-	})
-	if err != nil {
-		return err
-	}
-
-	log.Infof("nodes [%d]", len(nodes.Items))
-
-	details.NodePools[nodePoolName].ResourceSummary = make(map[string]pkgCluster.ResourceSummary)
-
-	for _, node := range nodes.Items {
-
-		log.Infof("add summary to node [%s] in nodepool [s]", node.Name, nodePoolName)
-
-		resourceSummary, err := getNodeResourceSummary(client, node)
-		if err != nil {
-			return err
-		}
-		details.NodePools[nodePoolName].ResourceSummary[node.Name] = *resourceSummary
-		log.Infof("summary added to node [%s] in nodepool [%s]", node.Name, nodePoolName)
-	}
-
-	details.NodePools[nodePoolName].Count = len(nodes.Items)
-
-	return nil
 }
 
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo
