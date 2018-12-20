@@ -53,31 +53,7 @@ func GetNodeSummary(client kubernetes.Interface, node v1.Node) (*NodeSummary, er
 
 // CalculateNodeSummary returns NodeSummary type with the given data.
 func CalculateNodeSummary(node v1.Node, requests, limits map[v1.ResourceName]resource.Quantity) NodeSummary {
-	capacity := map[v1.ResourceName]resource.Quantity{
-		v1.ResourceCPU:    {},
-		v1.ResourceMemory: {},
-	}
-
-	allocatable := map[v1.ResourceName]resource.Quantity{
-		v1.ResourceCPU:    {},
-		v1.ResourceMemory: {},
-	}
-
-	if cpu := node.Status.Capacity.Cpu(); cpu != nil {
-		capacity[v1.ResourceCPU] = *cpu
-	}
-
-	if cpu := node.Status.Allocatable.Cpu(); cpu != nil {
-		allocatable[v1.ResourceCPU] = *cpu
-	}
-
-	if mem := node.Status.Capacity.Memory(); mem != nil {
-		capacity[v1.ResourceMemory] = *mem
-	}
-
-	if mem := node.Status.Allocatable.Memory(); mem != nil {
-		allocatable[v1.ResourceMemory] = *mem
-	}
+	capacity, allocatable := NodeCapacityAndAllocatable(node)
 
 	summary := NodeSummary{
 		Summary: GetSummary(capacity, allocatable, requests, limits),

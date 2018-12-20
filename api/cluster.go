@@ -36,7 +36,6 @@ import (
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -333,7 +332,7 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 	log.Infof("pods: %d", len(pods))
 
 	for _, pod := range pods {
-		req, limits := calculatePodsTotalRequestsAndLimits([]v1.Pod{pod})
+		req, limits := resourcesummary.CalculatePodsTotalRequestsAndLimits([]v1.Pod{pod})
 
 		items = append(items, pkgCluster.PodDetailsResponse{
 			Name:          pod.Name,
@@ -448,8 +447,8 @@ func addTotalSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.
 	log.Infof("pods [%d]", len(pods))
 
 	log.Info("Calculate total requests/limits/capacity/allocatable")
-	requests, limits := calculatePodsTotalRequestsAndLimits(pods)
-	capacity, allocatable := calculateNodesTotalCapacityAndAllocatable(nodeList.Items)
+	requests, limits := resourcesummary.CalculatePodsTotalRequestsAndLimits(pods)
+	capacity, allocatable := resourcesummary.CalculateNodesTotalCapacityAndAllocatable(nodeList.Items)
 
 	details.TotalSummary = getResourceSummary(capacity, allocatable, requests, limits)
 
@@ -489,86 +488,6 @@ func addNodeSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.D
 	details.NodePools[nodePoolName].Count = len(nodes.Items)
 
 	return nil
-}
-
-// listPods returns list of pods in all namespaces
-func listPods(client *kubernetes.Clientset, fieldSelector string, labelSelector string) ([]v1.Pod, error) {
-
-	log := log.WithFields(logrus.Fields{
-		"fieldSelector": fieldSelector,
-		"labelSelector": labelSelector,
-	})
-
-	log.Info("List pods")
-	podList, err := client.CoreV1().Pods("").List(meta_v1.ListOptions{
-		FieldSelector: fieldSelector,
-		LabelSelector: labelSelector,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return podList.Items, nil
-}
-
-// calculateNodesTotalCapacityAndAllocatable calculates capacity and allocatable of the given nodes
-func calculateNodesTotalCapacityAndAllocatable(nodeList []v1.Node) (caps map[v1.ResourceName]resource.Quantity, allocs map[v1.ResourceName]resource.Quantity) {
-
-	caps, allocs = map[v1.ResourceName]resource.Quantity{}, map[v1.ResourceName]resource.Quantity{}
-	for _, node := range nodeList {
-
-		nodeCaps, nodeAllocs := nodeCapacityAndAllocatable(&node)
-		for nodeCapName, nodeCapValue := range nodeCaps {
-			if value, ok := caps[nodeCapName]; !ok {
-				caps[nodeCapName] = *nodeCapValue.Copy()
-			} else {
-				value.Add(nodeCapValue)
-				caps[nodeCapName] = value
-			}
-		}
-
-		for nodeAllocName, nodeAllocValue := range nodeAllocs {
-			if value, ok := allocs[nodeAllocName]; !ok {
-				allocs[nodeAllocName] = *nodeAllocValue.Copy()
-			} else {
-				value.Add(nodeAllocValue)
-				allocs[nodeAllocName] = value
-			}
-		}
-	}
-
-	return
-}
-
-// nodeCapacityAndAllocatable returns the given node's capacity and allocatable
-func nodeCapacityAndAllocatable(node *v1.Node) (caps map[v1.ResourceName]resource.Quantity, allocs map[v1.ResourceName]resource.Quantity) {
-	caps, allocs = make(map[v1.ResourceName]resource.Quantity), make(map[v1.ResourceName]resource.Quantity)
-
-	nodeCap := node.Status.Capacity
-	nodeAlloc := node.Status.Allocatable
-
-	if nodeCap.Memory() != nil {
-		caps[v1.ResourceMemory] = *nodeCap.Memory()
-	}
-
-	if nodeCap.Cpu() != nil {
-		caps[v1.ResourceCPU] = *nodeCap.Cpu()
-	}
-
-	if nodeAlloc.Memory() != nil {
-		allocs[v1.ResourceMemory] = *nodeAlloc.Memory()
-	}
-
-	if nodeAlloc.Cpu() != nil {
-		allocs[v1.ResourceCPU] = *nodeAlloc.Cpu()
-	}
-
-	return
-}
-
-// calculatePodsTotalRequestsAndLimits calculates requests and limits of all the given pods
-func calculatePodsTotalRequestsAndLimits(podList []v1.Pod) (map[v1.ResourceName]resource.Quantity, map[v1.ResourceName]resource.Quantity) {
-	return resourcesummary.CalculatePodsTotalRequestsAndLimits(podList)
 }
 
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo
