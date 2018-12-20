@@ -821,7 +821,6 @@ func (a *ClusterAPI) ProxyToCluster(c *gin.Context) {
 
 // ListClusterSecrets returns
 func ListClusterSecrets(c *gin.Context) {
-
 	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
@@ -838,19 +837,28 @@ func ListClusterSecrets(c *gin.Context) {
 
 	log.Info("Start filtering secrets")
 
+	var query pkgSecret.ListSecretsQuery
+	err := c.BindQuery(&query)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Failed to parse query",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	log.Debugln("secret query ", "type:", query.Type, "tags:", query.Tags, "values:", query.Values)
+
 	clusterUidTag := fmt.Sprintf("clusterUID:%s", commonCluster.GetUID())
 	releaseTag := fmt.Sprintf("release:%s", releaseName)
 
-	tags := []string{clusterUidTag}
+	query.Tags = append(query.Tags, clusterUidTag)
 	if len(releaseName) != 0 {
-		tags = append(tags, releaseTag)
+		query.Tags = append(query.Tags, releaseTag)
 	}
 
-	log.Infof("tags: %v", tags)
-
-	secrets, err := secret.RestrictedStore.List(organizationID, &pkgSecret.ListSecretsQuery{
-		Tags: tags,
-	})
+	secrets, err := secret.RestrictedStore.List(organizationID, &query)
 	if err != nil {
 		log.Errorf("Error during listing secrets: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
@@ -864,5 +872,4 @@ func ListClusterSecrets(c *gin.Context) {
 	log.Info("Listing secrets succeeded")
 
 	c.JSON(http.StatusOK, secrets)
-
 }
