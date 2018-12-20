@@ -12,11 +12,11 @@
 package client
 
 type PodItem struct {
-	Name            string                 `json:"name,omitempty"`
-	Namespace       string                 `json:"namespace,omitempty"`
-	CreatedAt       string                 `json:"createdAt,omitempty"`
-	Labels          PodItemLabels          `json:"labels,omitempty"`
-	RestartPolicy   string                 `json:"restartPolicy,omitempty"`
-	Conditions      []PodCondition         `json:"conditions,omitempty"`
-	ResourceSummary PodItemResourceSummary `json:"resourceSummary,omitempty"`
+	Name            string          `json:"name,omitempty"`
+	Namespace       string          `json:"namespace,omitempty"`
+	CreatedAt       string          `json:"createdAt,omitempty"`
+	Labels          PodItemLabels   `json:"labels,omitempty"`
+	RestartPolicy   string          `json:"restartPolicy,omitempty"`
+	Conditions      []PodCondition  `json:"conditions,omitempty"`
+	ResourceSummary ResourceSummary `json:"resourceSummary,omitempty"`
 }

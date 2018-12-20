@@ -1,11 +1,12 @@
-# ResourceSummaryItemIp100100180Euwest1ComputeInternal
+# Resource
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Status** | **string** |  | [optional] 
-**Cpu** | [**ResourceItem**](ResourceItem.md) |  | [optional] 
-**Memory** | [**ResourceItem**](ResourceItem.md) |  | [optional] 
+**Capacity** | **string** |  | [optional] 
+**Allocatable** | **string** |  | [optional] 
+**Limit** | **string** |  | [optional] 
+**Request** | **string** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

@@ -223,8 +223,9 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterS
 			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 		}
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-			Count:        len(np.Hosts),
-			InstanceType: providerConfig.AutoScalingGroup.InstanceType,
+			Count:             len(np.Hosts),
+			InstanceType:      providerConfig.AutoScalingGroup.InstanceType,
+			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 		}
 	}
 

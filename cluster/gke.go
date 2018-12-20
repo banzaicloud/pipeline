@@ -342,13 +342,14 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.model.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Preemptible:  np.Preemptible,
-				Count:        np.NodeCount,
-				InstanceType: np.NodeInstanceType,
-				MinCount:     np.NodeMinCount,
-				MaxCount:     np.NodeMaxCount,
-				Version:      c.model.NodeVersion,
+				Autoscaling:       np.Autoscaling,
+				Preemptible:       np.Preemptible,
+				Count:             np.NodeCount,
+				InstanceType:      np.NodeInstanceType,
+				MinCount:          np.NodeMinCount,
+				MaxCount:          np.NodeMaxCount,
+				Version:           c.model.NodeVersion,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 			if np.Preemptible {
 				hasSpotNodePool = true

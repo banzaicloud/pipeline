@@ -16,8 +16,11 @@ package resourcesummary
 
 import (
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/pkg/errors"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -51,10 +54,30 @@ func NewSummary() Summary {
 
 // Resource describes a resource with capacity/request/limit/allocatable.
 type Resource struct {
-	Capacity    string `json:"capacity,omitempty"`
-	Allocatable string `json:"allocatable,omitempty"`
-	Limit       string `json:"limit,omitempty"`
-	Request     string `json:"request,omitempty"`
+	Capacity    string
+	Allocatable string
+	Limit       string
+	Request     string
+}
+
+// GetTotalSummary calculates all resource summary for a cluster.
+func GetTotalSummary(client kubernetes.Interface) (*Summary, error) {
+	nodeList, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list nodes")
+	}
+
+	podList, err := client.CoreV1().Pods("").List(metav1.ListOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list pods")
+	}
+
+	requests, limits := CalculatePodsTotalRequestsAndLimits(podList.Items)
+	capacity, allocatable := CalculateNodesTotalCapacityAndAllocatable(nodeList.Items)
+
+	summary := GetSummary(capacity, allocatable, requests, limits)
+
+	return &summary, nil
 }
 
 // GetSummary returns Summary type with the given data.

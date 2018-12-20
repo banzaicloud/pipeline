@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **Labels** | [**PodItemLabels**](PodItem_labels.md) |  | [optional] 
 **RestartPolicy** | **string** |  | [optional] 
 **Conditions** | [**[]PodCondition**](PodCondition.md) |  | [optional] 
-**ResourceSummary** | [**PodItemResourceSummary**](PodItem_resourceSummary.md) |  | [optional] 
+**ResourceSummary** | [**ResourceSummary**](ResourceSummary.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

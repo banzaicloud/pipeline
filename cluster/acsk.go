@@ -471,8 +471,9 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 	for _, np := range c.modelCluster.ACSK.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Count:        np.Count,
-				InstanceType: np.InstanceType,
+				Count:             np.Count,
+				InstanceType:      np.InstanceType,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 		}
 	}
