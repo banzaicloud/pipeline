@@ -25,11 +25,9 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -42,11 +40,6 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 	resourceHelper "k8s.io/kubernetes/pkg/api/v1/resource"
-)
-
-const (
-	zeroCPU    = "0 CPU"
-	zeroMemory = "0 B"
 )
 
 // ClusterAPI implements the Cluster API actions.
@@ -343,8 +336,6 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 	for _, pod := range pods {
 		req, limits := calculatePodsTotalRequestsAndLimits([]v1.Pod{pod})
 
-		summary := getResourceSummary(nil, nil, req, limits)
-
 		items = append(items, pkgCluster.PodDetailsResponse{
 			Name:          pod.Name,
 			Namespace:     pod.Namespace,
@@ -352,7 +343,7 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 			Labels:        pod.Labels,
 			RestartPolicy: string(pod.Spec.RestartPolicy),
 			Conditions:    pod.Status.Conditions,
-			Summary:       summary,
+			Summary:       getResourceSummary(nil, nil, req, limits),
 		})
 	}
 
@@ -461,8 +452,7 @@ func addTotalSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.
 	requests, limits := calculatePodsTotalRequestsAndLimits(pods)
 	capacity, allocatable := calculateNodesTotalCapacityAndAllocatable(nodeList.Items)
 
-	resourceSummary := getResourceSummary(capacity, allocatable, requests, limits)
-	details.TotalSummary = resourceSummary
+	details.TotalSummary = getResourceSummary(capacity, allocatable, requests, limits)
 
 	return
 }
@@ -516,81 +506,7 @@ func getResourceSummaryFromNode(client *kubernetes.Clientset, node *v1.Node) (*p
 		return nil, err
 	}
 
-	nodeSummary := resourcesummary.GetNodeSummary(node, requests, limits)
-
-	return &pkgCluster.ResourceSummary{
-		Cpu: &pkgCluster.CPU{
-			ResourceSummaryItem: pkgCluster.ResourceSummaryItem(nodeSummary.CPU),
-		},
-		Memory: &pkgCluster.Memory{
-			ResourceSummaryItem: pkgCluster.ResourceSummaryItem(nodeSummary.Memory),
-		},
-		Status: nodeSummary.Status,
-	}, nil
-}
-
-// getResourceSummary returns ResourceSummary type with the given data
-func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceName]resource.Quantity) *pkgCluster.ResourceSummary {
-
-	var capMem = zeroMemory
-	var capCPU = zeroCPU
-	var allMem = zeroMemory
-	var allCPU = zeroCPU
-	var reqMem = zeroMemory
-	var reqCPU = zeroCPU
-	var limitMem = zeroMemory
-	var limitCPU = zeroCPU
-
-	if cpu, ok := capacity[v1.ResourceCPU]; ok {
-		capCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &cpu)
-	}
-
-	if memory, ok := capacity[v1.ResourceMemory]; ok {
-		capMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &memory)
-	}
-
-	if cpu, ok := allocatable[v1.ResourceCPU]; ok {
-		allCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &cpu)
-	}
-
-	if memory, ok := allocatable[v1.ResourceMemory]; ok {
-		allMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &memory)
-	}
-
-	if value, ok := requests[v1.ResourceCPU]; ok {
-		reqCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &value)
-	}
-
-	if value, ok := requests[v1.ResourceMemory]; ok {
-		reqMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &value)
-	}
-
-	if value, ok := limits[v1.ResourceCPU]; ok {
-		limitCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &value)
-	}
-
-	if value, ok := limits[v1.ResourceMemory]; ok {
-		limitMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &value)
-	}
-
-	return &pkgCluster.ResourceSummary{
-		Cpu: &pkgCluster.CPU{
-			ResourceSummaryItem: pkgCluster.ResourceSummaryItem{
-				Capacity:    capCPU,
-				Allocatable: allCPU,
-				Limit:       limitCPU,
-				Request:     reqCPU,
-			},
-		},
-		Memory: &pkgCluster.Memory{
-			ResourceSummaryItem: pkgCluster.ResourceSummaryItem{
-				Capacity:    capMem,
-				Allocatable: allMem,
-				Limit:       limitMem,
-				Request:     reqMem,
-			},
-		},
-	}
+	return getNodeResourceSummary(node, requests, limits), nil
 }
 
 func getAllPodsRequestsAndLimitsInAllNamespace(client *kubernetes.Clientset, fieldSelector string) (map[v1.ResourceName]resource.Quantity, map[v1.ResourceName]resource.Quantity, error) {
