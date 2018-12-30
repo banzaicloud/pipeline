@@ -959,10 +959,11 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 
 	if aws.StringValue(clusterDesc.Cluster.Status) == eks.ClusterStatusActive {
 		return &pkgCluster.DetailsResponse{
-			Id:            c.modelCluster.ID,
-			MasterVersion: aws.StringValue(clusterDesc.Cluster.Version),
-			NodePools:     nodePools,
-			Endpoint:      c.APIEndpoint,
+			Id:                       c.modelCluster.ID,
+			MasterVersion:            aws.StringValue(clusterDesc.Cluster.Version),
+			NodePools:                nodePools,
+			Endpoint:                 c.APIEndpoint,
+			GetClusterStatusResponse: *status,
 		}, nil
 	}
 
