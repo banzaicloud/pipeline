@@ -661,7 +661,7 @@ func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(nodePool *mode
 		asGroup, err := m.GetAutoscalingGroupByStackName(asgName)
 		if err != nil {
 			if aerr, ok := err.(awserr.Error); ok {
-				if aerr.Code() == "ValidationError" {
+				if aerr.Code() == "ValidationError" || aerr.Code() == "ASGNotFoundInResponse" {
 					time.Sleep(a.waitInterval)
 					continue
 				}
