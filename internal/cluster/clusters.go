@@ -31,7 +31,7 @@ func NewClusters(db *gorm.DB) *Clusters {
 	return &Clusters{db: db}
 }
 
-// VpcAvailable checks if a given cluster exists within an organization.
+// Exists checks if a given cluster exists within an organization.
 func (c *Clusters) Exists(organizationID uint, name string) (bool, error) {
 	var existingCluster ClusterModel
 
