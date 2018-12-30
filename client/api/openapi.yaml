@@ -8995,9 +8995,7 @@ components:
             $ref: '#/components/schemas/NodePoolsAmazon'
           type: object
         vpc:
-          additionalProperties:
-            $ref: '#/components/schemas/EKSVpc'
-          type: object
+          $ref: '#/components/schemas/EKSVpc'
         routeTableId:
           description: Id of the RouteTable of the VPC to be used by subnets. This is used only when subnets are created into existing VPC.
           type: string
