@@ -16,6 +16,7 @@ package autoscaling
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -113,6 +114,10 @@ func (m *Manager) GetAutoscalingGroupByStackName(stackName string) (*Group, erro
 	describeAutoScalingGroupsOutput, err := m.asSvc.DescribeAutoScalingGroups(&describeAutoScalingGroupsInput)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(describeAutoScalingGroupsOutput.AutoScalingGroups) == 0 {
+		return nil, awserr.New("ASGNotFoundInResponse", "could not find ASG in response", nil)
 	}
 
 	return NewGroup(m, describeAutoScalingGroupsOutput.AutoScalingGroups[0]), nil
