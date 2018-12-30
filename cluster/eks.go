@@ -309,7 +309,7 @@ func (c *EKSCluster) CreateCluster() error {
 	return nil
 }
 
-var stackNameSchemaChangeTime = time.Date(2018, time.December, 30, 15, 22, 0, 0, time.UTC)
+var stackNameSchemaChangeTime = time.Date(2018, time.December, 30, 17, 05, 0, 0, time.UTC)
 
 func (c *EKSCluster) generateSSHKeyNameForCluster() string {
 	if c.modelCluster.CreatedAt.Before(stackNameSchemaChangeTime) {
