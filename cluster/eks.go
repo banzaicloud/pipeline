@@ -310,7 +310,7 @@ func (c *EKSCluster) CreateCluster() error {
 }
 
 func (c *EKSCluster) generateSSHKeyNameForCluster() string {
-	return c.modelCluster.Name + "-pipeline-eks-ssh"
+	return "pipeline-eks-ssh-" + c.modelCluster.Name
 }
 
 func (c *EKSCluster) generateNodePoolStackName(nodePool *model.AmazonNodePoolsModel) string {
@@ -318,11 +318,11 @@ func (c *EKSCluster) generateNodePoolStackName(nodePool *model.AmazonNodePoolsMo
 }
 
 func (c *EKSCluster) generateStackNameForCluster() string {
-	return c.modelCluster.Name + "-pipeline-eks"
+	return "pipeline-eks-" + c.modelCluster.Name
 }
 
 func (c *EKSCluster) generateIAMRoleNameForCluster() string {
-	return c.modelCluster.Name + "-pipeline-eks"
+	return "pipeline-eks-" + c.modelCluster.Name
 }
 
 // Persist saves the cluster model
