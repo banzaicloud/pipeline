@@ -309,20 +309,38 @@ func (c *EKSCluster) CreateCluster() error {
 	return nil
 }
 
+var stackNameSchemaChangeTime = time.Date(2018, time.December, 30, 15, 22, 0, 0, time.UTC)
+
 func (c *EKSCluster) generateSSHKeyNameForCluster() string {
-	return c.modelCluster.Name + "-pipeline-eks-ssh"
+	if c.modelCluster.CreatedAt.Before(stackNameSchemaChangeTime) {
+		return c.modelCluster.Name + "-pipeline-eks-ssh"
+	}
+
+	return "pipeline-eks-ssh-" + c.modelCluster.Name
 }
 
 func (c *EKSCluster) generateNodePoolStackName(nodePool *model.AmazonNodePoolsModel) string {
+	if c.modelCluster.CreatedAt.Before(stackNameSchemaChangeTime) {
+		return c.modelCluster.Name + "-pipeline-eks-nodepool-" + nodePool.Name
+	}
+
 	return action.GenerateNodePoolStackName(c.modelCluster.Name, nodePool.Name)
 }
 
 func (c *EKSCluster) generateStackNameForCluster() string {
-	return c.modelCluster.Name + "-pipeline-eks"
+	if c.modelCluster.CreatedAt.Before(stackNameSchemaChangeTime) {
+		return c.modelCluster.Name + "-pipeline-eks"
+	}
+
+	return "pipeline-eks-" + c.modelCluster.Name
 }
 
 func (c *EKSCluster) generateIAMRoleNameForCluster() string {
-	return c.modelCluster.Name + "-pipeline-eks"
+	if c.modelCluster.CreatedAt.Before(stackNameSchemaChangeTime) {
+		return c.modelCluster.Name + "-pipeline-eks"
+	}
+
+	return "pipeline-eks-" + c.modelCluster.Name
 }
 
 // Persist saves the cluster model
