@@ -14,7 +14,7 @@ package client
 type CreateEksPropertiesEks struct {
 	Version   string                     `json:"version,omitempty"`
 	NodePools map[string]NodePoolsAmazon `json:"nodePools,omitempty"`
-	Vpc       map[string]EksVpc          `json:"vpc,omitempty"`
+	Vpc       EksVpc                     `json:"vpc,omitempty"`
 	// Id of the RouteTable of the VPC to be used by subnets. This is used only when subnets are created into existing VPC.
 	RouteTableId string      `json:"routeTableId,omitempty"`
 	Subnets      []EksSubnet `json:"subnets,omitempty"`
