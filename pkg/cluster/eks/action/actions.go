@@ -1550,5 +1550,5 @@ func (a *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 
 // GenerateNodePoolStackName returns the CF Stack name for a node pool
 func GenerateNodePoolStackName(clusterName, nodePoolName string) string {
-	return clusterName + "-pipeline-eks-nodepool-" + nodePoolName
+	return "pipeline-eks-nodepool-" + clusterName + "-" + nodePoolName
 }
