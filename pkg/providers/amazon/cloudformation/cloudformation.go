@@ -32,7 +32,7 @@ func GetExistingTaggedStackNames(cfSvc *cloudformation.CloudFormation, tags map[
 					break
 				}
 			}
-			if ok {
+			if ok && stack.StackName != nil {
 				names = append(names, *stack.StackName)
 			}
 		}
@@ -47,7 +47,9 @@ func getFlattenedTags(tags []*cloudformation.Tag) map[string]string {
 	t := make(map[string]string, 0)
 
 	for _, tag := range tags {
-		t[*tag.Key] = *tag.Value
+		if tag.Key != nil && tag.Value != nil {
+			t[*tag.Key] = *tag.Value
+		}
 	}
 
 	return t

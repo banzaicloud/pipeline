@@ -17,6 +17,8 @@ package autoscaling
 import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	awsEC2 "github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
@@ -53,7 +55,12 @@ func (group *Group) IsHealthy() (bool, error) {
 		}
 	}
 
-	if group.DesiredCapacity != nil && int(*group.DesiredCapacity) > 0 && ok == int(*group.DesiredCapacity) {
+	desiredCapacity := 0
+	if group.DesiredCapacity != nil {
+		desiredCapacity = int(*group.DesiredCapacity)
+	}
+
+	if desiredCapacity > 0 && desiredCapacity == ok {
 		return true, nil
 	}
 
@@ -63,7 +70,7 @@ func (group *Group) IsHealthy() (bool, error) {
 	}
 
 	if len(spotRequests) == 0 {
-		return false, NewAutoscalingGroupNotHealthyError(int(*group.DesiredCapacity), ok)
+		return false, NewAutoscalingGroupNotHealthyError(desiredCapacity, ok)
 	}
 
 	for _, spotRequest := range spotRequests {
@@ -72,7 +79,7 @@ func (group *Group) IsHealthy() (bool, error) {
 		}
 	}
 
-	return false, NewAutoscalingGroupNotHealthyError(int(*group.DesiredCapacity), ok)
+	return false, NewAutoscalingGroupNotHealthyError(desiredCapacity, ok)
 }
 
 func (group *Group) getInstances() []*Instance {
@@ -97,6 +104,10 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 		return nil, err
 	}
 
+	if lc == nil {
+		return nil, nil
+	}
+
 	if lc.SpotPrice != nil && *lc.SpotPrice == "" {
 		return nil, nil
 	}
@@ -116,6 +127,15 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 }
 
 func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, error) {
+	var asgName string
+	if group.AutoScalingGroupName != nil {
+		asgName = *group.AutoScalingGroupName
+	}
+
+	if group.LaunchConfigurationName == nil {
+		return nil, emperror.With(errors.New("could not find launch configuration for ASG"), "asg", asgName)
+	}
+
 	input := &autoscaling.DescribeLaunchConfigurationsInput{
 		LaunchConfigurationNames: []*string{
 			group.LaunchConfigurationName,
@@ -131,5 +151,5 @@ func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, 
 		return result.LaunchConfigurations[0], nil
 	}
 
-	return nil, nil
+	return nil, emperror.With(errors.New("could not get launch configuration for ASG"), "asg", asgName)
 }
