@@ -72,7 +72,10 @@ func (e *SpotMetricsExporter) SetSpotRequestMetrics(requests map[string]*SpotIns
 	e.ec2SpotRequest.Reset()
 
 	for _, request := range requests {
-		if request.LaunchSpecification.Placement.AvailabilityZone != nil {
+		if request.LaunchSpecification == nil {
+			continue
+		}
+		if request.LaunchSpecification.Placement != nil && request.LaunchSpecification.Placement.AvailabilityZone != nil {
 			availabilityZone = *request.LaunchSpecification.Placement.AvailabilityZone
 			if len(availabilityZone) > 1 {
 				region = availabilityZone[:len(availabilityZone)-1]
@@ -88,11 +91,15 @@ func (e *SpotMetricsExporter) SetSpotRequestMetrics(requests map[string]*SpotIns
 		}
 
 		// increment gauge
-		e.ec2SpotRequest.WithLabelValues(*request.Status.Code, region, availabilityZone, instanceType).Inc()
+		var statusCode string
+		if request.Status != nil && request.Status.Code != nil {
+			statusCode = *request.Status.Code
+		}
+		e.ec2SpotRequest.WithLabelValues(statusCode, region, availabilityZone, instanceType).Inc()
 
 		// observe state duration
-		if e.needsMeasure(request, e.lastRun) {
-			e.ec2SpotRequestDuration.WithLabelValues(*request.Status.Code, region, availabilityZone, instanceType, instanceId).Observe(request.Status.UpdateTime.Sub(*request.CreateTime).Seconds())
+		if e.needsMeasure(request, e.lastRun) && request.CreateTime != nil {
+			e.ec2SpotRequestDuration.WithLabelValues(statusCode, region, availabilityZone, instanceType, instanceId).Observe(request.Status.UpdateTime.Sub(*request.CreateTime).Seconds())
 		}
 	}
 
@@ -109,6 +116,9 @@ func (e *SpotMetricsExporter) GetSpotRequests(client *ec2.EC2) (map[string]*Spot
 
 	requests := make(map[string]*SpotInstanceRequest)
 	for _, sr := range result.SpotInstanceRequests {
+		if sr.SpotInstanceRequestId == nil {
+			continue
+		}
 		if requests[*sr.SpotInstanceRequestId] == nil {
 			requests[*sr.SpotInstanceRequestId] = e.addPipelineCreatedInstanceTag(client, &SpotInstanceRequest{SpotInstanceRequest: sr})
 		}
@@ -124,7 +134,6 @@ func (e *SpotMetricsExporter) addPipelineCreatedInstanceTag(client *ec2.EC2, req
 
 	i, err := DescribeInstanceById(client, *request.InstanceId)
 	if err != nil {
-		e.logger.Error(emperror.Wrap(err, "cannot describe ec2 instance"))
 		return request
 	}
 
@@ -144,16 +153,15 @@ func (e *SpotMetricsExporter) addPipelineCreatedInstanceTag(client *ec2.EC2, req
 }
 
 func (e *SpotMetricsExporter) needsMeasure(request *SpotInstanceRequest, lastRun time.Time) bool {
-
-	if request.Status.UpdateTime.Before(lastRun) {
+	if request.Status == nil || request.Status.UpdateTime == nil || request.Status.UpdateTime.Before(lastRun) {
 		return false
 	}
 
-	if *request.State == "open" {
+	if request.GetState() == "open" {
 		return true
 	}
 
-	switch *request.Status.Code {
+	switch request.GetStatusCode() {
 	case "fulfilled", "request-canceled-and-instance-running", "marked-for-stop", "marked-for-termination", "instance-stopped-by-price", "instance-stopped-by-user", "instance-stopped-capacity-oversubscribed", "instance-stopped-no-capacity", "instance-terminated-by-price", "instance-terminated-by-schedule", "instance-terminated-by-service", "instance-terminated-no-capacity", "instance-terminated-capacity-oversubscribed", "instance-terminated-launch-group-constraint":
 		return true
 	}

@@ -54,6 +54,10 @@ func (m *Manager) StartMetricTimer(instance *Instance) *prometheus.Timer {
 		return nil
 	}
 
+	if instance.InstanceId == nil {
+		return nil
+	}
+
 	key := *instance.InstanceId
 	if timers[key] != nil {
 		return timers[key]
@@ -71,9 +75,12 @@ func (m *Manager) StartMetricTimer(instance *Instance) *prometheus.Timer {
 			priceType = "spot"
 		}
 	}
-	availabilityZone = *instance.AvailabilityZone
-	if len(availabilityZone) > 1 {
-		region = availabilityZone[:len(availabilityZone)-1]
+
+	if instance.AvailabilityZone != nil {
+		availabilityZone = *instance.AvailabilityZone
+		if len(availabilityZone) > 1 {
+			region = availabilityZone[:len(availabilityZone)-1]
+		}
 	}
 
 	timers[key] = prometheus.NewTimer(ec2InstanceStartupDuration.WithLabelValues(amazon.Provider, region, availabilityZone, instanceType, priceType))
@@ -83,13 +90,17 @@ func (m *Manager) StartMetricTimer(instance *Instance) *prometheus.Timer {
 
 // StopMetricTimer stops an existing timer of a node instance
 func (m *Manager) StopMetricTimer(instance *Instance) bool {
+	if instance.InstanceId == nil {
+		return false
+	}
+
 	key := *instance.InstanceId
 
 	if timers[key] == nil {
 		return false
 	}
 
-	m.logger.WithField("instance-id", *instance.InstanceId).Debug("stop metric timer")
+	m.logger.WithField("instance-id", key).Debug("stop metric timer")
 	timers[key].ObserveDuration()
 	timers[key] = nil
 
@@ -105,19 +116,25 @@ func (m *Manager) RegisterSpotFulfillmentDuration(instance *Instance, group *Gro
 		return
 	}
 
+	if instance.InstanceId == nil {
+		return
+	}
+
 	instanceDetails, err := instance.Describe()
-	if err == nil {
+	if err == nil && instanceDetails.InstanceType != nil {
 		instanceType = *instanceDetails.InstanceType
 	}
-	availabilityZone = *instance.AvailabilityZone
-	if len(availabilityZone) > 1 {
-		region = availabilityZone[:len(availabilityZone)-1]
+	if instance.AvailabilityZone != nil {
+		availabilityZone = *instance.AvailabilityZone
+		if len(availabilityZone) > 1 {
+			region = availabilityZone[:len(availabilityZone)-1]
+		}
 	}
 
 	spotRequests, err := group.getSpotRequests()
 	if err == nil {
 		for _, sr := range spotRequests {
-			if sr.InstanceId != nil && *sr.InstanceId == *instance.InstanceId && sr.IsFulfilled() {
+			if sr.InstanceId != nil && sr.CreateTime != nil && *sr.InstanceId == *instance.InstanceId && sr.IsFulfilled() {
 				m.logger.WithFields(logrus.Fields{
 					"instance-id": *instance.InstanceId,
 					"seconds":     sr.Status.UpdateTime.Sub(*sr.CreateTime).Seconds(),

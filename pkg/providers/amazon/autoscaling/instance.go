@@ -17,6 +17,7 @@ package autoscaling
 import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pkg/errors"
 
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
@@ -37,10 +38,24 @@ func NewInstance(manager *Manager, instance *autoscaling.Instance) *Instance {
 
 // IsHealthyAndInService is true if the instance is healthy and in InService state
 func (i *Instance) IsHealthyAndInService() bool {
-	return *i.HealthStatus == "Healthy" && *i.LifecycleState == "InService"
+	var healthStatus, lifecycleState string
+
+	if i.HealthStatus != nil {
+		healthStatus = *i.HealthStatus
+	}
+
+	if i.LifecycleState != nil {
+		lifecycleState = *i.LifecycleState
+	}
+
+	return healthStatus == "Healthy" && lifecycleState == "InService"
 }
 
 // Describe returns detailed information about the instance
 func (i *Instance) Describe() (*ec2.Instance, error) {
+	if i.InstanceId == nil {
+		return nil, errors.New("instance id is nil")
+	}
+
 	return pkgEC2.DescribeInstanceById(i.manager.ec2Svc, *i.InstanceId)
 }

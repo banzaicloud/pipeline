@@ -15,12 +15,16 @@
 package autoscaling
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -87,11 +91,11 @@ func (m *Manager) GetAutoscalingGroupByID(id string) (*Group, error) {
 		return nil, err
 	}
 
-	if len(result.AutoScalingGroups) > 0 {
+	if len(result.AutoScalingGroups) == 1 {
 		return NewGroup(m, result.AutoScalingGroups[0]), nil
 	}
 
-	return nil, nil
+	return nil, emperror.With(errors.New("ASG not found"), "id", id)
 }
 
 // GetAutoscalingGroupByStackName gets and auto scaling group by the name of the stack which created it and gives back as an initialised Group
@@ -106,6 +110,10 @@ func (m *Manager) GetAutoscalingGroupByStackName(stackName string) (*Group, erro
 		return nil, err
 	}
 
+	if describeStacksOutput.StackResourceDetail == nil || describeStacksOutput.StackResourceDetail.PhysicalResourceId == nil {
+		return nil, awserr.New("ValidationError", fmt.Sprintf("Stack '%s' doest not exist", stackName), nil)
+	}
+
 	describeAutoScalingGroupsInput := autoscaling.DescribeAutoScalingGroupsInput{
 		AutoScalingGroupNames: []*string{
 			describeStacksOutput.StackResourceDetail.PhysicalResourceId,
@@ -116,7 +124,7 @@ func (m *Manager) GetAutoscalingGroupByStackName(stackName string) (*Group, erro
 		return nil, err
 	}
 
-	if len(describeAutoScalingGroupsOutput.AutoScalingGroups) == 0 {
+	if len(describeAutoScalingGroupsOutput.AutoScalingGroups) != 1 {
 		return nil, awserr.New("ASGNotFoundInResponse", "could not find ASG in response", nil)
 	}
 
