@@ -1,0 +1,50 @@
+version: "3.1"
+
+services:
+    db:
+        ports:
+            - 127.0.0.1:3306:3306
+        volumes:
+            - ./.docker/volumes/mysql:/var/lib/mysql
+
+    adminer:
+        ports:
+            - 127.0.0.1:8080:8080
+
+    vault:
+        ports:
+            - 127.0.0.1:8200:8200
+        volumes:
+            - ./.docker/volumes/vault/file:/vault/file
+
+    vault-unsealer:
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    vault-configurer:
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    vault-token-helper:
+        volumes:
+            - ./.docker/volumes/vault/keys:/vault/keys
+
+    cicd-server:
+        ports:
+            - 127.0.0.1:8000:8000
+            - 127.0.0.1:9000:9000
+        environment:
+            CICD_CORS_ALLOW_ALL_ORIGINS: "false"
+            CICD_CORS_ALLOW_ORIGINS: "http://localhost:4200"
+    ui:
+        image: banzaicloud/pipeline-web:latest
+        environment:
+            CLOUDINFO_URL: http://localhost:4200/cloudinfo
+            RECOMMENDER_URL: http://localhost:4200/recommender
+            API_URL: http://localhost:9090
+            CICD_URL: http://localhost:8000
+
+    uiproxy:
+        build: etc/docker/uiproxy
+        ports:
+            - 127.0.0.1:4200:80
