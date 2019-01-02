@@ -286,7 +286,7 @@
   version = "0.4.0"
 
 [[projects]]
-  digest = "1:6220949cfe4dd44b6a6d90583447313a53ff606726b31e256aafd8e63f51782d"
+  digest = "1:4e2fa4bb232653f7be048a1b07d25b3b569e8368381bfcc39750f6103f5e114f"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
     "pkg/auth",
@@ -296,8 +296,8 @@
     "pkg/vault",
   ]
   pruneopts = "NUT"
-  revision = "94c1f06f8a88a505ea6caa0b739ee7086bad81cf"
-  version = "0.3.15"
+  revision = "8f1348d7821a0ec69a66c50d10893df4fed65da9"
+  version = "0.3.27"
 
 [[projects]]
   branch = "master"
@@ -876,7 +876,7 @@
   revision = "f40e974e75af4e271d97ce0fc917af5898ae7bda"
 
 [[projects]]
-  digest = "1:dbef1dda9aa352f3e62bcaa87be4e33d5e1736416aec983a7868d219249e919d"
+  digest = "1:ac52144f192f9c6a37ac9d0abdb9c837da80446a25a881db2b63c04e1259bd8a"
   name = "github.com/hashicorp/vault"
   packages = [
     "api",
@@ -888,8 +888,8 @@
     "helper/strutil",
   ]
   pruneopts = "NUT"
-  revision = "87492f9258e0227f3717e3883c6a8be5716bf564"
-  version = "v0.11.0"
+  revision = "08df121c8b9adcc2b8fd55fc8506c3f9714c7e61"
+  version = "v1.0.1"
 
 [[projects]]
   digest = "1:8215593844310df4da1a168989c8882a67c54e3c367bffc7c62b7a7299286fa8"
@@ -1179,6 +1179,17 @@
   pruneopts = "NUT"
   revision = "5f041e8faa004a95c88a202771f4cc3e991971e6"
   version = "v2.0.1"
+
+[[projects]]
+  digest = "1:1d920dce8e11bfff65b5709e883a8ece131b63a5bc4b2cd404f9ef7eb445f73f"
+  name = "github.com/pierrec/lz4"
+  packages = [
+    ".",
+    "internal/xxh32",
+  ]
+  pruneopts = "NUT"
+  revision = "635575b42742856941dbc767b44905bb9ba083f6"
+  version = "v2.0.7"
 
 [[projects]]
   digest = "1:5cf3f025cbee5951a4ee961de067c8a89fc95a5adabead774f82822efabab121"
