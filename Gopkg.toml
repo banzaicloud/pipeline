@@ -70,7 +70,7 @@
 
 [[constraint]]
   name = "github.com/banzaicloud/bank-vaults"
-  version = "0.3.15"
+  version = "0.3.27"
 
 [[constraint]]
   name = "github.com/dgrijalva/jwt-go"
@@ -277,7 +277,3 @@
 [[constraint]]
   branch = "master"
   name = "github.com/banzaicloud/prometheus-config"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/datacratic/aws-sdk-go"
