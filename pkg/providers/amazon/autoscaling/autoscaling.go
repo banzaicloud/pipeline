@@ -100,12 +100,11 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 	}
 
 	lc, err := group.getLaunchConfiguration()
+	if lc == nil {
+		err = emperror.With(errors.New("could not find launch configuration for ASG"), "asg", group.getName())
+	}
 	if err != nil {
 		return nil, err
-	}
-
-	if lc == nil {
-		return nil, nil
 	}
 
 	if lc.SpotPrice != nil && *lc.SpotPrice == "" {
@@ -127,10 +126,7 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 }
 
 func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, error) {
-	var asgName string
-	if group.AutoScalingGroupName != nil {
-		asgName = *group.AutoScalingGroupName
-	}
+	asgName := group.getName()
 
 	if group.LaunchConfigurationName == nil {
 		return nil, emperror.With(errors.New("could not find launch configuration for ASG"), "asg", asgName)
@@ -147,9 +143,17 @@ func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, 
 		return nil, err
 	}
 
-	if len(result.LaunchConfigurations) > 0 {
+	if len(result.LaunchConfigurations) == 1 {
 		return result.LaunchConfigurations[0], nil
 	}
 
 	return nil, emperror.With(errors.New("could not get launch configuration for ASG"), "asg", asgName)
+}
+
+func (group *Group) getName() string {
+	var name string
+	if group.AutoScalingGroupName != nil {
+		name = *group.AutoScalingGroupName
+	}
+	return name
 }
