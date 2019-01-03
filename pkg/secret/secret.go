@@ -104,6 +104,20 @@ const (
 	ClientCert  = "clientCert"
 )
 
+// Distribution keys
+const (
+	ClusterUID = "clusterUid"
+
+	KubernetesCACert = "kubernetesCaCert"
+	KubernetesCAKey  = "kubernetesCaKey"
+
+	EtcdCACert = "etcdCaCert"
+	EtcdCAKey  = "etcdCaKey"
+
+	FrontProxyCACert = "frontProxyCaCert"
+	FrontProxyCAKey  = "frontProxyCaKey"
+)
+
 // Fn keys
 const (
 	MasterToken = "master_token"
@@ -141,6 +155,8 @@ const (
 	SSHSecretType = "ssh"
 	// TLSSecretType marks secrets as of type "tls"
 	TLSSecretType = "tls"
+	// DistributionSecretType marks secrets as of type "distribution"
+	DistributionSecretType = "distribution"
 	// FnSecretType marks secrets as of type "fn"
 	FnSecretType = "fn"
 	// PasswordSecretType marks secrets as of type "password"
@@ -227,6 +243,24 @@ var DefaultRules = map[string]Meta{
 			{Name: ServerCert, Required: false},
 			{Name: ClientKey, Required: false},
 			{Name: ClientCert, Required: false},
+		},
+		Sourcing: Volume,
+	},
+	DistributionSecretType: {
+		Fields: []FieldMeta{
+			{Name: ClusterUID, Required: true},
+
+			{Name: CACert, Required: false},
+			{Name: CAKey, Required: false},
+
+			{Name: KubernetesCACert, Required: false},
+			{Name: KubernetesCAKey, Required: false},
+
+			{Name: EtcdCACert, Required: false},
+			{Name: EtcdCAKey, Required: false},
+
+			{Name: FrontProxyCACert, Required: false},
+			{Name: FrontProxyCAKey, Required: false},
 		},
 		Sourcing: Volume,
 	},
