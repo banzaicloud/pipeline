@@ -38,8 +38,8 @@ up: vendor start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
-	docker-compose down
-	rm -rf .docker/
+	uid=$(shell id -u) gid=$(shell id -g) docker-compose down
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf .docker/; else rm -rf .docker/; fi
 
 .PHONY: reset
 reset: down up ## Reset the development environment
@@ -55,18 +55,23 @@ docker-compose.override.yml: ## Create docker compose override file
 docker-compose.anchore.yml: ## Create docker compose override file with anchore
 	cp docker-compose.anchore.yml.dist docker-compose.override.yml
 
+create-docker-dirs: ## Create .docker directories with your user
+	mkdir -p .docker/volumes/mysql
+	mkdir -p .docker/volumes/vault/file
+	mkdir -p .docker/volumes/vault/keys
+
 .PHONY: start
-start: docker-compose.override.yml ## Start docker development environment
+start: docker-compose.override.yml create-docker-dirs ## Start docker development environment
 	@ if [ docker-compose.override.yml -ot docker-compose.override.yml.dist ]; then diff -u docker-compose.override.yml* || (echo "!!! The distributed docker-compose.override.yml example changed. Please update your file accordingly (or at least touch it). !!!" && false); fi
-	docker-compose up -d
+	uid=$(shell id -u) gid=$(shell id -g) docker-compose up -d
 
 .PHONY: anchorestart
-anchorestart: docker-compose.anchore.yml  ## Start docker development environment with anchore
-	docker-compose up -d
+anchorestart: docker-compose.anchore.yml create-docker-dirs ## Start docker development environment with anchore
+	uid=$(shell id -u) gid=$(shell id -g) docker-compose up -d
 
 .PHONY: stop
 stop: ## Stop docker development environment
-	docker-compose stop
+	uid=$(shell id -u) gid=$(shell id -g) docker-compose stop
 
 bin/dep: bin/dep-${DEP_VERSION}
 	@ln -sf dep-${DEP_VERSION} bin/dep
