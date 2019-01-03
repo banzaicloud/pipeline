@@ -97,7 +97,7 @@ Error 1146: Table 'pipeline.amazon_eks_profiles' doesn't exist
 
 You should set `autoMigrateEnabled = true` in the database section in the `config/config.toml` file.
 
-You should now be able to login on the Pipeline UI: http://localhost:4200/ui
+You should now be able to log in on the Pipeline UI: http://localhost:4200/ui
 
 #### Route53 credentials in Vault
 
