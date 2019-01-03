@@ -143,11 +143,11 @@ func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, 
 		return nil, err
 	}
 
-	if len(result.LaunchConfigurations) == 1 {
-		return result.LaunchConfigurations[0], nil
+	if len(result.LaunchConfigurations) != 1 {
+		return nil, emperror.WrapWith(emperror.With(errors.New("invalid response count"), "count", len(result.LaunchConfigurations)), "could not get launch configuration for ASG", "asg", asgName)
 	}
 
-	return nil, emperror.With(errors.New("could not get launch configuration for ASG"), "asg", asgName)
+	return result.LaunchConfigurations[0], nil
 }
 
 func (group *Group) getName() string {
