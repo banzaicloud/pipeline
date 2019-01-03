@@ -24,13 +24,11 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/pricing"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -1225,49 +1223,9 @@ func ListEksRegions(orgId uint, secretId string) ([]string, error) {
 
 	// TODO revisit this later when https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ starts supporting AmazonEKS
 
-	secret, err := secret.Store.Get(orgId, secretId)
-	if err != nil {
-		return nil, err
-	}
-
-	credentials := verify.CreateAWSCredentials(secret.Values)
-	session, err := session.NewSession(&aws.Config{
-		Region:      aws.String(pkgEks.UsEast1), // pricing API available in us-east-1
-		Credentials: credentials,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	svc := pricing.New(session)
-
-	getAttrValuesInput := &pricing.GetAttributeValuesInput{
-		AttributeName: aws.String(pkgCluster.KeyWordLocation),
-		ServiceCode:   aws.String("AmazonEKS"),
-	}
-	attributeValues, err := svc.GetAttributeValues(getAttrValuesInput)
-	if err != nil {
-		return nil, err
-	}
-
-	var eksLocations []string
-	for _, attrValue := range attributeValues.AttributeValues {
-		eksLocations = append(eksLocations, aws.StringValue(attrValue.Value))
-	}
-
-	resolver := endpoints.DefaultResolver()
-	partitions := resolver.(endpoints.EnumPartitions).Partitions()
-
-	var eksRegionIds []string
-	for _, p := range partitions {
-		for _, r := range p.Regions() {
-			for _, eksLocation := range eksLocations {
-				if r.Description() == eksLocation {
-					eksRegionIds = append(eksRegionIds, r.ID())
-				}
-			}
-		}
-
+	eksRegionIds := make([]string, 0)
+	for region := range pkgEks.DefaultImages {
+		eksRegionIds = append(eksRegionIds, region)
 	}
 
 	return eksRegionIds, nil
