@@ -4,6 +4,7 @@ secrets:
     description: General secrets.
     options:
       version: 2
+
   - type: database
     description: MySQL Database secret engine.
     configuration:

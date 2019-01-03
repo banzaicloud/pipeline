@@ -263,6 +263,8 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 		return errors.Wrap(err, "Error during deleting secret")
 	}
 
+	// TODO if type is distribution, unmount all pki engines
+
 	return nil
 }
 
@@ -277,7 +279,7 @@ func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) 
 	secretID := GenerateSecretID(request)
 	path := secretDataPath(organizationID, secretID)
 
-	if err := generateValuesIfNeeded(request); err != nil {
+	if err := ss.generateValuesIfNeeded(request); err != nil {
 		return "", err
 	}
 
@@ -543,10 +545,10 @@ func (m MismatchError) Error() string {
 
 // IsCASError detects if the underlying Vault error is caused by a CAS failure
 func IsCASError(err error) bool {
-	return strings.HasSuffix(err.Error(), "check-and-set parameter did not match the current version")
+	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version")
 }
 
-func generateValuesIfNeeded(value *CreateSecretRequest) error {
+func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error {
 	if value.Type == secretTypes.TLSSecretType && len(value.Values) <= 2 {
 		// If we are not storing a full TLS secret instead of it's a request to generate one
 
@@ -606,6 +608,138 @@ func generateValuesIfNeeded(value *CreateSecretRequest) error {
 
 			value.Values[secretTypes.HtpasswdFile] = fmt.Sprintf("%s:%s", username, string(passwordHash))
 		}
+
+	} else if value.Type == secretTypes.DistributionSecretType {
+
+		clusterUID := value.Values[secretTypes.ClusterUID]
+
+		// TODO  Warnings:[The expiration time for the signed certificate is after the CA's expiration time. If the new certificate is not treated as a root, validation paths with the certificate past the issuing CA's expiration time will fail.
+		mountConfig := vaultapi.MountConfigInput{
+			MaxLeaseTTL:     "43801h",
+			DefaultLeaseTTL: "43801h",
+		}
+
+		mountInput := vaultapi.MountInput{
+			Type:        "pki",
+			Description: fmt.Sprintf("root PKI engine for cluster %s", clusterUID),
+			Config:      mountConfig,
+			Options:     mountConfig.Options, // options needs to be sent here first time
+		}
+
+		// Mount a separate PKI engine for the cluster
+		basePath := fmt.Sprintf("clusters/%s/pki", clusterUID)
+		path := fmt.Sprintf("%s/ca", basePath)
+
+		err := ss.Client.Vault().Sys().Mount(path, &mountInput)
+		if err != nil {
+			return errors.Wrapf(err, "Error mounting pki engine for cluster %s", clusterUID)
+		}
+
+		// Generate the root CA
+		rootCAData := map[string]interface{}{
+			"common_name": fmt.Sprintf("cluster-%s-ca", clusterUID),
+		}
+
+		_, err = ss.Logical.Write(fmt.Sprintf("%s/root/generate/internal", path), rootCAData)
+		if err != nil {
+			// Unmount the pki engine first
+			ss.Client.Vault().Sys().Unmount(path) // TODO err
+
+			return errors.Wrapf(err, "Error generating root CA for cluster %s", clusterUID)
+		}
+
+		// Generate the intermediate CAs
+		kubernetesCA, err := ss.generateIntermediateCert(clusterUID, basePath, "kubernetes-ca")
+		if err != nil {
+			// Unmount the pki backend first
+			ss.Client.Vault().Sys().Unmount(path) // TODO err
+			return err
+		}
+
+		etcdCA, err := ss.generateIntermediateCert(clusterUID, basePath, "etcd-ca")
+		if err != nil {
+			// Unmount the pki backend first
+			ss.Client.Vault().Sys().Unmount(path) // TODO err
+			return err
+		}
+
+		frontProxyCA, err := ss.generateIntermediateCert(clusterUID, basePath, "kubernetes-front-proxy-ca")
+		if err != nil {
+			// Unmount the pki backend first
+			ss.Client.Vault().Sys().Unmount(path) // TODO err
+			return err
+		}
+
+		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA["private_key"]
+		value.Values[secretTypes.KubernetesCACert] = kubernetesCA["certificate"]
+
+		value.Values[secretTypes.EtcdCAKey] = etcdCA["private_key"]
+		value.Values[secretTypes.EtcdCACert] = etcdCA["certificate"]
+
+		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA["private_key"]
+		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA["certificate"]
+
+		// append cluster tag
+		clusterUIDTag := fmt.Sprintf("clusterUID:%s", clusterUID)
+		value.Tags = append(value.Tags, clusterUIDTag)
 	}
+
 	return nil
+}
+
+func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName string) (map[string]string, error) {
+	mountConfig := vaultapi.MountConfigInput{
+		MaxLeaseTTL:     "43800h",
+		DefaultLeaseTTL: "43800h",
+	}
+
+	mountInput := vaultapi.MountInput{
+		Type:        "pki",
+		Description: fmt.Sprintf("%s intermediate PKI engine for cluster %s", commonName, clusterUID),
+		Config:      mountConfig,
+		Options:     mountConfig.Options, // options needs to be sent here first time
+	}
+
+	path := fmt.Sprintf("%s/%s", basePath, commonName)
+
+	// Each intermediate and ca cert needs it's own pki mount, see:
+	// https://github.com/hashicorp/vault/issues/1586#issuecomment-230300216
+	err := ss.Client.Vault().Sys().Mount(path, &mountInput)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error mounting %s intermediate pki engine for cluster %s", commonName, clusterUID)
+	}
+
+	caData := map[string]interface{}{
+		"common_name": commonName,
+	}
+
+	caSecret, err := ss.Logical.Write(fmt.Sprintf("%s/intermediate/generate/exported", path), caData)
+	if err != nil {
+		// Unmount the pki backend first
+		ss.Client.Vault().Sys().Unmount(path) // TODO err
+
+		return nil, errors.Wrapf(err, "error generating %s intermediate cert for cluster %s", commonName, clusterUID)
+	}
+
+	fmt.Printf("%s caSecret: %+v\n", commonName, caSecret)
+
+	caSignData := map[string]interface{}{
+		"csr":    caSecret.Data["csr"],
+		"format": "pem_bundle",
+	}
+
+	caCertSecret, err := ss.Logical.Write(fmt.Sprintf("%s/ca/root/sign-intermediate", basePath), caSignData)
+	if err != nil {
+		// Unmount the pki backend first
+		ss.Client.Vault().Sys().Unmount(path) // TODO err
+
+		return nil, errors.Wrapf(err, "error signing %s intermediate cert for cluster %s", commonName, clusterUID)
+	}
+
+	fmt.Printf("caCertSecret: %+v\n", caCertSecret)
+
+	return map[string]string{
+		"private_key": caSecret.Data["private_key"].(string),
+		"certificate": caCertSecret.Data["certificate"].(string),
+	}, nil
 }
