@@ -1,5 +1,11 @@
 ## GitHub OAuth App setup
 
+### Create a personal access token on GitHub
+
+Create a [personal access token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/) on GitHub.
+
+Take note of the generated GitHub access token as it will be needed.
+
 ### Register the OAuth application on GitHub
 
 Register an [OAuth](https://developer.github.com/apps/building-integrations/setting-up-and-registering-oauth-apps/registering-oauth-apps/) application on GitHub for the Pipeline API and CI/CD workflow.
