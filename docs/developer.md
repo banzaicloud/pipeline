@@ -48,9 +48,9 @@ As of now the example config enables OAuth2 based authentication. It can be chan
 
 OAuth2 based authentication requires GitHub application, this can be created by following this 
 [tutorial](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/).
-Please set the `clientid` and the `clientsecret` in the auth section, with the GitHub generated values.
+Please set the `token` in the github section and the `clientid` and the `clientsecret` in the auth section, with the GitHub generated values.
 
-> If you are not using HTTPS set auth.secureCookie = false, otherwise you won't be able to login via HTTP.
+> If you are not using HTTPS set auth.secureCookie = false, otherwise you won't be able to login via HTTP and you might be getting 401 errors.
 
 
 ### Environment
@@ -80,6 +80,24 @@ For accessing Vault the `VAULT_ADDR` env var has to be set, Pipeline stores JWT 
 export VAULT_ADDR=http://127.0.0.1:8200
 ```
 
+#### Start Pipeline
+
+Once you have the docker containers running for the development environment, you should be able to start the pipeline platform.
+
+You can install and then run it with:
+```bash
+$ go install ./cmd/pipeline/
+$ pipeline
+```
+
+If you happen to get an error similar to this on the first run:
+```
+Error 1146: Table 'pipeline.amazon_eks_profiles' doesn't exist
+```
+
+You should set `autoMigrateEnabled = true` in the database section in the `config/config.toml` file.
+
+You should now be able to login on the Pipeline UI: http://localhost:4200/ui
 
 #### Route53 credentials in Vault
 
