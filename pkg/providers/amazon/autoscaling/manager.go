@@ -91,11 +91,11 @@ func (m *Manager) GetAutoscalingGroupByID(id string) (*Group, error) {
 		return nil, err
 	}
 
-	if len(result.AutoScalingGroups) == 1 {
-		return NewGroup(m, result.AutoScalingGroups[0]), nil
+	if len(result.AutoScalingGroups) != 1 {
+		return nil, emperror.WrapWith(emperror.With(errors.New("invalid response count"), "count", len(result.AutoScalingGroups)), "could not get ASG", "id", id)
 	}
 
-	return nil, emperror.With(errors.New("ASG not found"), "id", id)
+	return NewGroup(m, result.AutoScalingGroups[0]), nil
 }
 
 // GetAutoscalingGroupByStackName gets and auto scaling group by the name of the stack which created it and gives back as an initialised Group
@@ -125,7 +125,7 @@ func (m *Manager) GetAutoscalingGroupByStackName(stackName string) (*Group, erro
 	}
 
 	if len(describeAutoScalingGroupsOutput.AutoScalingGroups) != 1 {
-		return nil, awserr.New("ASGNotFoundInResponse", "could not find ASG in response", nil)
+		return nil, awserr.New("ASGNotFoundInResponse", "could not find ASG in response", emperror.WrapWith(emperror.With(errors.New("invalid response count"), "count", len(describeAutoScalingGroupsOutput.AutoScalingGroups)), "could not get ASG for stack", "stackName", stackName))
 	}
 
 	return NewGroup(m, describeAutoScalingGroupsOutput.AutoScalingGroups[0]), nil
