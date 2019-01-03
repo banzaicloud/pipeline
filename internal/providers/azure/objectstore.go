@@ -209,11 +209,21 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucketName)
 	}
 
+	err := s.createStorageAccountAndResourceGroup()
+	if err != nil {
+		return emperror.WrapWith(err, "failed to create storage account or resource group", "bucket", bucketName)
+	}
+
 	if err := s.objectStore.CreateBucket(bucketName); err != nil {
 		return s.createFailed(bucket, emperror.Wrap(err, "failed to create the bucket"))
 	}
 
-	key, err := azureObjectstore.GetStorageAccountKey(s.resourceGroup, s.storageAccount, getCredentials(s.secret), logger)
+	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(getCredentials(s.secret))
+	if err != nil {
+		return emperror.Wrap(err, "failed to create storage account client")
+	}
+
+	key, err := storageAccountClient.GetStorageAccountKey(s.resourceGroup, s.storageAccount)
 	if err != nil {
 		return s.createFailed(bucket, emperror.Wrap(err, "failed to retrieve storage account"))
 	}
@@ -346,6 +356,35 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 	return nil
 }
 
+// createStorageAccountAndResourceGroup create storage account and resource group
+func (s *ObjectStore) createStorageAccountAndResourceGroup() error {
+	resourceGroupClient, err := azureObjectstore.NewAuthorizedResourceGroupClientFromSecret(getCredentials(s.secret))
+	if err != nil {
+		return errors.Wrap(err, "failed to create resource group client")
+	}
+	if err := resourceGroupClient.CreateResourceGroup(s.resourceGroup, s.location, s.logger); err != nil {
+		return emperror.Wrap(err, "failed to create resource group")
+	}
+
+	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(getCredentials(s.secret))
+	if err != nil {
+		return errors.Wrap(err, "failed to create storage account client")
+	}
+
+	exists, err := storageAccountClient.CheckStorageAccountExistence(s.resourceGroup, s.storageAccount, s.logger)
+	if err != nil {
+		return emperror.Wrap(err, "failed to check storage account")
+	}
+
+	if !*exists {
+		if err = storageAccountClient.CreateStorageAccount(s.resourceGroup, s.storageAccount, s.location, s.logger); err != nil {
+			return emperror.Wrap(err, "failed to create storage account")
+		}
+	}
+
+	return nil
+}
+
 // ListBuckets returns a list of Azure storage containers buckets that can be accessed with the credentials
 // referenced by the secret field. Azure storage containers buckets that were created by a user in the current
 // org are marked as 'managed'.
@@ -357,9 +396,14 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	logger.Info("getting all resource groups for subscription")
 
-	resourceGroups, err := azureObjectstore.GetAllResourceGroups(getCredentials(s.secret))
+	resourceGroupClient, err := azureObjectstore.NewAuthorizedResourceGroupClientFromSecret(getCredentials(s.secret))
 	if err != nil {
-		return nil, fmt.Errorf("getting all resource groups failed: %s", err.Error())
+		return nil, errors.Wrap(err, "failed to create resource group client")
+	}
+
+	resourceGroups, err := resourceGroupClient.GetAllResourceGroups()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting all resource groups failed")
 	}
 
 	buckets := make([]*objectstore.BucketInfo, 0)
@@ -367,9 +411,14 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	for _, rg := range resourceGroups {
 		logger.WithField("resource_group", *(rg.Name)).Info("getting all storage accounts under resource group")
 
-		storageAccounts, err := azureObjectstore.GetAllStorageAccounts(getCredentials(s.secret), *rg.Name)
+		storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(getCredentials(s.secret))
 		if err != nil {
-			return nil, fmt.Errorf("getting all storage accounts under resource group=%s failed: %s", *(rg.Name), err.Error())
+			return nil, emperror.Wrap(err, "failed to create storage account client")
+		}
+
+		storageAccounts, err := storageAccountClient.GetAllStorageAccounts(*rg.Name)
+		if err != nil {
+			return nil, errors.Wrapf(err, "getting all storage accounts under resource group=%s failed", *(rg.Name))
 		}
 
 		// get all Blob containers under the storage account
@@ -411,7 +460,7 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	err = s.db.Where(&ObjectStoreBucketModel{OrganizationID: s.org.ID}).Order("resource_group asc, storage_account asc, name asc").Find(&objectStores).Error
 	if err != nil {
-		return nil, fmt.Errorf("retrieving managed buckets failed: %s", err.Error())
+		return nil, errors.Wrap(err, "retrieving managed buckets failed")
 	}
 
 	for _, bucketInfo := range buckets {
