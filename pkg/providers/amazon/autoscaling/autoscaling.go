@@ -40,7 +40,7 @@ func NewGroup(manager *Manager, group *autoscaling.Group) *Group {
 // IsHealthy checks whether an ASG is in a healthy state
 // which means it has as many healthy instances as desired
 func (group *Group) IsHealthy() (bool, error) {
-	ok := 0
+	healthyInstanceCount := 0
 
 	instances := group.getInstances()
 	for _, instance := range instances {
@@ -48,7 +48,7 @@ func (group *Group) IsHealthy() (bool, error) {
 			if group.manager.StopMetricTimer(instance) {
 				group.manager.RegisterSpotFulfillmentDuration(instance, group)
 			}
-			ok++
+			healthyInstanceCount++
 		}
 		if instance.LifecycleState != nil && *instance.LifecycleState == "Pending" {
 			group.manager.StartMetricTimer(instance)
@@ -60,7 +60,7 @@ func (group *Group) IsHealthy() (bool, error) {
 		desiredCapacity = int(*group.DesiredCapacity)
 	}
 
-	if desiredCapacity > 0 && desiredCapacity == ok {
+	if desiredCapacity > 0 && desiredCapacity == healthyInstanceCount {
 		return true, nil
 	}
 
@@ -70,7 +70,7 @@ func (group *Group) IsHealthy() (bool, error) {
 	}
 
 	if len(spotRequests) == 0 {
-		return false, NewAutoscalingGroupNotHealthyError(desiredCapacity, ok)
+		return false, NewAutoscalingGroupNotHealthyError(desiredCapacity, healthyInstanceCount)
 	}
 
 	for _, spotRequest := range spotRequests {
@@ -79,7 +79,7 @@ func (group *Group) IsHealthy() (bool, error) {
 		}
 	}
 
-	return false, NewAutoscalingGroupNotHealthyError(desiredCapacity, ok)
+	return false, NewAutoscalingGroupNotHealthyError(desiredCapacity, healthyInstanceCount)
 }
 
 func (group *Group) getInstances() []*Instance {
@@ -100,7 +100,7 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 	}
 
 	lc, err := group.getLaunchConfiguration()
-	if lc == nil {
+	if err == nil && lc == nil {
 		err = emperror.With(errors.New("could not find launch configuration for ASG"), "asg", group.getName())
 	}
 	if err != nil {
