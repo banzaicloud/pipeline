@@ -53,6 +53,21 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
+	db := config.DB()
+
+	err := db.Find(user).Error
+
+	if err != nil {
+		message := "failed to fetch user"
+		log.Info(message + ": " + err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, user)
 }
 
