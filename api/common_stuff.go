@@ -29,7 +29,7 @@ func listPods(client *kubernetes.Clientset, fieldSelector string, labelSelector 
 	})
 
 	log.Debug("List pods")
-	podList, err := client.CoreV1().Pods("").List(metav1.ListOptions{
+	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{
 		FieldSelector: fieldSelector,
 		LabelSelector: labelSelector,
 	})

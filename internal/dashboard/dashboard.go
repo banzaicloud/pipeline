@@ -35,7 +35,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/scheduler/cache"
 )
 
@@ -220,7 +220,7 @@ func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonClust
 	cluster.CreatedAt = clusterStatus.CreatedAt
 	cluster.Region = clusterStatus.Location
 
-	nodes, err := client.CoreV1().Nodes().List(v12.ListOptions{})
+	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		cluster.Status = "ERROR"
 		cluster.StatusMessage = err.Error()
@@ -229,7 +229,7 @@ func getClusterDashboard(logger *logrus.Entry, commonCluster cluster.CommonClust
 	}
 
 	log.Info("List pods")
-	podList, err := client.CoreV1().Pods("").List(v12.ListOptions{})
+	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
 		cluster.Status = "ERROR"
 		cluster.StatusMessage = err.Error()
