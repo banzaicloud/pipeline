@@ -349,6 +349,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MinCount:     np.NodeMinCount,
 				MaxCount:     np.NodeMaxCount,
 				Version:      c.model.NodeVersion,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 			if np.Preemptible {
 				hasSpotNodePool = true
