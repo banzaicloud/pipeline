@@ -253,12 +253,9 @@ func (c *KubeCluster) NodePoolExists(nodePoolName string) bool {
 	return false
 }
 
-// GetClusterDetails gets cluster details from cloud
-func (c *KubeCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-
-	return &pkgCluster.DetailsResponse{
-		Id: c.modelCluster.ID,
-	}, nil
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *KubeCluster) IsReady() (bool, error) {
+	return true, nil
 }
 
 // ValidateCreationFields validates all field

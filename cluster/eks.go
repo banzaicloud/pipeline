@@ -810,13 +810,14 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Count:        np.Count,
-				InstanceType: np.NodeInstanceType,
-				SpotPrice:    np.NodeSpotPrice,
-				MinCount:     np.NodeMinCount,
-				MaxCount:     np.NodeMaxCount,
-				Image:        np.NodeImage,
+				Autoscaling:       np.Autoscaling,
+				Count:             np.Count,
+				InstanceType:      np.NodeInstanceType,
+				SpotPrice:         np.NodeSpotPrice,
+				MinCount:          np.NodeMinCount,
+				MaxCount:          np.NodeMaxCount,
+				Image:             np.NodeImage,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 			if np.NodeSpotPrice != "" && np.NodeSpotPrice != "0" {
 				hasSpotNodePool = true
@@ -928,13 +929,11 @@ func (c *EKSCluster) NodePoolExists(nodePoolName string) bool {
 	return false
 }
 
-// GetClusterDetails gets cluster details from cloud
-func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	c.log.Infoln("Getting cluster details")
-
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *EKSCluster) IsReady() (bool, error) {
 	awsCred, err := c.createAWSCredentialsFromSecret()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	session, err := session.NewSession(&aws.Config{
@@ -942,42 +941,17 @@ func (c *EKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 		Credentials: awsCred,
 	})
 	if err != nil {
-		return nil, err
-	}
-
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	eksSvc := eks.New(session)
 	describeCluster := &eks.DescribeClusterInput{Name: aws.String(c.GetName())}
 	clusterDesc, err := eksSvc.DescribeCluster(describeCluster)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-	for _, np := range c.modelCluster.EKS.NodePools {
-		if np != nil {
-			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				NodePoolStatus:    *status.NodePools[np.Name],
-			}
-		}
-	}
-
-	if aws.StringValue(clusterDesc.Cluster.Status) == eks.ClusterStatusActive {
-		return &pkgCluster.DetailsResponse{
-			Id:                       c.modelCluster.ID,
-			MasterVersion:            aws.StringValue(clusterDesc.Cluster.Version),
-			NodePools:                nodePools,
-			Endpoint:                 c.APIEndpoint,
-			GetClusterStatusResponse: *status,
-		}, nil
-	}
-
-	return nil, pkgErrors.ErrorClusterNotReady
+	return aws.StringValue(clusterDesc.Cluster.Status) == eks.ClusterStatusActive, nil
 }
 
 // ValidateCreationFields validates all fields

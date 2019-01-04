@@ -25,10 +25,10 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -36,24 +36,6 @@ import (
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/client-go/kubernetes"
-	resourceHelper "k8s.io/kubernetes/pkg/api/v1/resource"
-)
-
-const (
-	statusReady    = "Ready"
-	statusNotReady = "Not ready"
-	statusUnknown  = "Unknown"
-	readyTrue      = "True"
-	readyFalse     = "False"
-)
-
-const (
-	zeroCPU    = "0 CPU"
-	zeroMemory = "0 B"
 )
 
 // ClusterAPI implements the Cluster API actions.
@@ -121,28 +103,6 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 
 	log.Infof("Found posthooks: %v", ph)
 
-	return
-}
-
-// GetClusterStatus retrieves the cluster status
-func GetClusterStatus(c *gin.Context) {
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-
-	response, err := commonCluster.GetStatus()
-	if err != nil {
-		log.Errorf("Error during getting status: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during getting status",
-			Error:   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
 	return
 }
 
@@ -281,23 +241,27 @@ func ReRunPostHooks(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// ClusterHEAD checks the cluster ready
-func ClusterHEAD(c *gin.Context) {
-
-	commonCluster, ok := getClusterFromRequest(c)
+// ClusterCheck checks the cluster ready
+func (a *ClusterAPI) ClusterCheck(c *gin.Context) {
+	commonCluster, ok := a.clusterGetter.GetClusterFromRequest(c)
 	if ok != true {
 		return
 	}
 
-	_, err := commonCluster.GetClusterDetails()
+	ok, err := commonCluster.IsReady()
 	if err != nil {
-		log.Errorf("Error getting cluster: %s", err.Error())
-		c.Status(http.StatusBadRequest)
+		errorHandler.Handle(err)
+
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	if !ok {
+		c.Status(http.StatusNotFound)
 		return
 	}
 
 	c.Status(http.StatusOK)
-
 }
 
 // GetPodDetails returns all pods with details
@@ -348,9 +312,9 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 	log.Infof("pods: %d", len(pods))
 
 	for _, pod := range pods {
-		req, limits := calculatePodsTotalRequestsAndLimits([]v1.Pod{pod})
+		req, limits := resourcesummary.CalculatePodsTotalRequestsAndLimits([]v1.Pod{pod})
 
-		summary := getResourceSummary(nil, nil, req, limits)
+		summary := resourcesummary.GetSummary(nil, nil, req, limits)
 
 		items = append(items, pkgCluster.PodDetailsResponse{
 			Name:          pod.Name,
@@ -359,406 +323,19 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 			Labels:        pod.Labels,
 			RestartPolicy: string(pod.Spec.RestartPolicy),
 			Conditions:    pod.Status.Conditions,
-			Summary:       summary,
-		})
-	}
-
-	return
-
-}
-
-// GetClusterDetails fetch a K8S cluster in the cloud
-func GetClusterDetails(c *gin.Context) {
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-	log.Debugf("getting cluster details for %v", commonCluster)
-
-	details, err := commonCluster.GetClusterDetails()
-	if err != nil {
-		log.Errorf("Error getting cluster: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error getting cluster",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	endpoint, err := commonCluster.GetAPIEndpoint()
-	if err != nil {
-		log.Warnf("Error during getting API endpoint: %s", err.Error())
-	}
-	details.Endpoint = endpoint
-
-	if err := addResourceSummaryToDetails(commonCluster, details); err != nil {
-		log.Warnf("Error during adding summary: %s", err.Error())
-	}
-
-	secret, err := commonCluster.GetSecretWithValidation()
-	if err != nil {
-		log.Errorf("Error getting cluster secret: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error getting cluster secret",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	details.SecretId = secret.ID
-	details.SecretName = secret.Name
-
-	c.JSON(http.StatusOK, details)
-}
-
-// addResourceSummaryToDetails adds resource summary to all node in each pool
-func addResourceSummaryToDetails(commonCluster cluster.CommonCluster, details *pkgCluster.DetailsResponse) error {
-
-	log.Info("get K8S config")
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		return err
-	}
-
-	log.Info("get k8S connection")
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-
-	// add node summary
-	log.Info("Add summary to nodes")
-	for name := range details.NodePools {
-
-		if err := addNodeSummaryToDetails(client, details, name); err != nil {
-			return err
-		}
-
-	}
-
-	// add total summary
-	log.Info("add total summary")
-	return addTotalSummaryToDetails(client, details)
-}
-
-// addTotalSummaryToDetails calculate all resource summary
-func addTotalSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.DetailsResponse) (err error) {
-
-	log.Info("list nodes")
-	var nodeList *v1.NodeList
-	nodeList, err = client.CoreV1().Nodes().List(meta_v1.ListOptions{})
-	if err != nil {
-		return
-	}
-
-	log.Infof("nodes [%d]", len(nodeList.Items))
-
-	log.Info("list pods")
-	var pods []v1.Pod
-	pods, err = listPods(client, "", "")
-	if err != nil {
-		return
-	}
-
-	log.Infof("pods [%d]", len(pods))
-
-	log.Info("Calculate total requests/limits/capacity/allocatable")
-	requests, limits := calculatePodsTotalRequestsAndLimits(pods)
-	capacity, allocatable := calculateNodesTotalCapacityAndAllocatable(nodeList.Items)
-
-	resourceSummary := getResourceSummary(capacity, allocatable, requests, limits)
-	details.TotalSummary = resourceSummary
-
-	return
-}
-
-// addNodeSummaryToDetails adds node resource summary
-func addNodeSummaryToDetails(client *kubernetes.Clientset, details *pkgCluster.DetailsResponse, nodePoolName string) error {
-
-	selector := fmt.Sprintf("%s=%s", pkgCommon.LabelKey, nodePoolName)
-
-	log.Infof("List nodes with selector: %s", selector)
-
-	nodes, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{
-		LabelSelector: selector,
-	})
-	if err != nil {
-		return err
-	}
-
-	log.Infof("nodes [%d]", len(nodes.Items))
-
-	details.NodePools[nodePoolName].ResourceSummary = make(map[string]pkgCluster.ResourceSummary)
-
-	for _, node := range nodes.Items {
-
-		log.Infof("add summary to node [%s] in nodepool [s]", node.Name, nodePoolName)
-
-		resourceSummary, err := getResourceSummaryFromNode(client, &node)
-		if err != nil {
-			return err
-		}
-		details.NodePools[nodePoolName].ResourceSummary[node.Name] = *resourceSummary
-		log.Infof("summary added to node [%s] in nodepool [%s]", node.Name, nodePoolName)
-	}
-
-	details.NodePools[nodePoolName].Count = len(nodes.Items)
-
-	return nil
-}
-
-// getResourceSummaryFromNode return resource summary for the given node
-func getResourceSummaryFromNode(client *kubernetes.Clientset, node *v1.Node) (*pkgCluster.ResourceSummary, error) {
-
-	fieldSelector, err := fields.ParseSelector("spec.nodeName=" + node.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Infof("start getting requests and limits of all pods in all namespace")
-	requests, limits, err := getAllPodsRequestsAndLimitsInAllNamespace(client, fieldSelector.String())
-	if err != nil {
-		return nil, err
-	}
-
-	var capCPU resource.Quantity
-	var capMemory resource.Quantity
-	var allocCPU resource.Quantity
-	var allocMemory resource.Quantity
-	if cpu := node.Status.Capacity.Cpu(); cpu != nil {
-		capCPU = *cpu
-	}
-
-	if mem := node.Status.Capacity.Memory(); mem != nil {
-		capMemory = *mem
-	}
-
-	if cpu := node.Status.Allocatable.Cpu(); cpu != nil {
-		allocCPU = *cpu
-	}
-
-	if mem := node.Status.Allocatable.Memory(); mem != nil {
-		allocMemory = *mem
-	}
-
-	// set capacity map
-	capacity := map[v1.ResourceName]resource.Quantity{
-		v1.ResourceCPU:    capCPU,
-		v1.ResourceMemory: capMemory,
-	}
-
-	// set allocatable map
-	allocatable := map[v1.ResourceName]resource.Quantity{
-		v1.ResourceCPU:    allocCPU,
-		v1.ResourceMemory: allocMemory,
-	}
-
-	resourceSummary := getResourceSummary(capacity, allocatable, requests, limits)
-	resourceSummary.Status = getNodeStatus(node)
-
-	return resourceSummary, nil
-
-}
-
-// getNodeStatus returns the node actual status
-func getNodeStatus(node *v1.Node) string {
-
-	for _, condition := range node.Status.Conditions {
-		if condition.Type == statusReady {
-			switch condition.Status {
-			case readyTrue:
-				return statusReady
-			case readyFalse:
-				return statusNotReady
-			default:
-				return statusUnknown
-
-			}
-		}
-	}
-
-	return ""
-
-}
-
-// getResourceSummary returns ResourceSummary type with the given data
-func getResourceSummary(capacity, allocatable, requests, limits map[v1.ResourceName]resource.Quantity) *pkgCluster.ResourceSummary {
-
-	var capMem = zeroMemory
-	var capCPU = zeroCPU
-	var allMem = zeroMemory
-	var allCPU = zeroCPU
-	var reqMem = zeroMemory
-	var reqCPU = zeroCPU
-	var limitMem = zeroMemory
-	var limitCPU = zeroCPU
-
-	if cpu, ok := capacity[v1.ResourceCPU]; ok {
-		capCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &cpu)
-	}
-
-	if memory, ok := capacity[v1.ResourceMemory]; ok {
-		capMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &memory)
-	}
-
-	if cpu, ok := allocatable[v1.ResourceCPU]; ok {
-		allCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &cpu)
-	}
-
-	if memory, ok := allocatable[v1.ResourceMemory]; ok {
-		allMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &memory)
-	}
-
-	if value, ok := requests[v1.ResourceCPU]; ok {
-		reqCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &value)
-	}
-
-	if value, ok := requests[v1.ResourceMemory]; ok {
-		reqMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &value)
-	}
-
-	if value, ok := limits[v1.ResourceCPU]; ok {
-		limitCPU = k8sutil.FormatResourceQuantity(v1.ResourceCPU, &value)
-	}
-
-	if value, ok := limits[v1.ResourceMemory]; ok {
-		limitMem = k8sutil.FormatResourceQuantity(v1.ResourceMemory, &value)
-	}
-
-	return &pkgCluster.ResourceSummary{
-		Cpu: &pkgCluster.CPU{
-			ResourceSummaryItem: pkgCluster.ResourceSummaryItem{
-				Capacity:    capCPU,
-				Allocatable: allCPU,
-				Limit:       limitCPU,
-				Request:     reqCPU,
+			Summary: &pkgCluster.ResourceSummary{
+				Cpu: &pkgCluster.CPU{
+					ResourceSummaryItem: pkgCluster.ResourceSummaryItem(summary.CPU),
+				},
+				Memory: &pkgCluster.Memory{
+					ResourceSummaryItem: pkgCluster.ResourceSummaryItem(summary.Memory),
+				},
 			},
-		},
-		Memory: &pkgCluster.Memory{
-			ResourceSummaryItem: pkgCluster.ResourceSummaryItem{
-				Capacity:    capMem,
-				Allocatable: allMem,
-				Limit:       limitMem,
-				Request:     reqMem,
-			},
-		},
-	}
-}
-
-func getAllPodsRequestsAndLimitsInAllNamespace(client *kubernetes.Clientset, fieldSelector string) (map[v1.ResourceName]resource.Quantity, map[v1.ResourceName]resource.Quantity, error) {
-
-	log.Infof("list pods with field selector: %s", fieldSelector)
-	podList, err := listPods(client, fieldSelector, "")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	log.Infof("pods [%d]", len(podList))
-	log.Infof("calculate requests and limits")
-	req, limits := calculatePodsTotalRequestsAndLimits(podList)
-	return req, limits, nil
-}
-
-// listPods returns list of pods in all namespaces
-func listPods(client *kubernetes.Clientset, fieldSelector string, labelSelector string) ([]v1.Pod, error) {
-
-	log := log.WithFields(logrus.Fields{
-		"fieldSelector": fieldSelector,
-		"labelSelector": labelSelector,
-	})
-
-	log.Info("List pods")
-	podList, err := client.CoreV1().Pods("").List(meta_v1.ListOptions{
-		FieldSelector: fieldSelector,
-		LabelSelector: labelSelector,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return podList.Items, nil
-}
-
-// calculateNodesTotalCapacityAndAllocatable calculates capacity and allocatable of the given nodes
-func calculateNodesTotalCapacityAndAllocatable(nodeList []v1.Node) (caps map[v1.ResourceName]resource.Quantity, allocs map[v1.ResourceName]resource.Quantity) {
-
-	caps, allocs = map[v1.ResourceName]resource.Quantity{}, map[v1.ResourceName]resource.Quantity{}
-	for _, node := range nodeList {
-
-		nodeCaps, nodeAllocs := nodeCapacityAndAllocatable(&node)
-		for nodeCapName, nodeCapValue := range nodeCaps {
-			if value, ok := caps[nodeCapName]; !ok {
-				caps[nodeCapName] = *nodeCapValue.Copy()
-			} else {
-				value.Add(nodeCapValue)
-				caps[nodeCapName] = value
-			}
-		}
-
-		for nodeAllocName, nodeAllocValue := range nodeAllocs {
-			if value, ok := allocs[nodeAllocName]; !ok {
-				allocs[nodeAllocName] = *nodeAllocValue.Copy()
-			} else {
-				value.Add(nodeAllocValue)
-				allocs[nodeAllocName] = value
-			}
-		}
+		})
 	}
 
 	return
-}
 
-// nodeCapacityAndAllocatable returns the given node's capacity and allocatable
-func nodeCapacityAndAllocatable(node *v1.Node) (caps map[v1.ResourceName]resource.Quantity, allocs map[v1.ResourceName]resource.Quantity) {
-	caps, allocs = make(map[v1.ResourceName]resource.Quantity), make(map[v1.ResourceName]resource.Quantity)
-
-	nodeCap := node.Status.Capacity
-	nodeAlloc := node.Status.Allocatable
-
-	if nodeCap.Memory() != nil {
-		caps[v1.ResourceMemory] = *nodeCap.Memory()
-	}
-
-	if nodeCap.Cpu() != nil {
-		caps[v1.ResourceCPU] = *nodeCap.Cpu()
-	}
-
-	if nodeAlloc.Memory() != nil {
-		allocs[v1.ResourceMemory] = *nodeAlloc.Memory()
-	}
-
-	if nodeAlloc.Cpu() != nil {
-		allocs[v1.ResourceCPU] = *nodeAlloc.Cpu()
-	}
-
-	return
-}
-
-// calculatePodsTotalRequestsAndLimits calculates requests and limits of all the given pods
-func calculatePodsTotalRequestsAndLimits(podList []v1.Pod) (reqs map[v1.ResourceName]resource.Quantity, limits map[v1.ResourceName]resource.Quantity) {
-	reqs, limits = map[v1.ResourceName]resource.Quantity{}, map[v1.ResourceName]resource.Quantity{}
-	for _, pod := range podList {
-		podReqs, podLimits := resourceHelper.PodRequestsAndLimits(&pod)
-		for podReqName, podReqValue := range podReqs {
-			if value, ok := reqs[podReqName]; !ok {
-				reqs[podReqName] = *podReqValue.Copy()
-			} else {
-				value.Add(podReqValue)
-				reqs[podReqName] = value
-			}
-		}
-		for podLimitName, podLimitValue := range podLimits {
-			if value, ok := limits[podLimitName]; !ok {
-				limits[podLimitName] = *podLimitValue.Copy()
-			} else {
-				value.Add(podLimitValue)
-				limits[podLimitName] = value
-			}
-		}
-	}
-	return
 }
 
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo

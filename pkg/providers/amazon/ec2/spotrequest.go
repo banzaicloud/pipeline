@@ -74,10 +74,18 @@ func (r *SpotInstanceRequest) IsPending() bool {
 
 // GetState gives back the state of the request
 func (r *SpotInstanceRequest) GetState() string {
-	return *r.State
+	var state string
+	if r.State != nil {
+		state = *r.State
+	}
+	return state
 }
 
 // GetStatusCode gives back the status code of the request
 func (r *SpotInstanceRequest) GetStatusCode() string {
-	return *r.Status.Code
+	var status string
+	if r.Status != nil && r.Status.Code != nil {
+		status = *r.Status.Code
+	}
+	return status
 }

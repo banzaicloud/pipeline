@@ -20,7 +20,6 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 	oracleClusterManager "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster/manager"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
@@ -215,13 +214,14 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		if np != nil {
 			count := getNodeCount(np)
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Count:        count,
-				Autoscaling:  false,
-				MinCount:     count,
-				MaxCount:     count,
-				InstanceType: np.Shape,
-				Image:        np.Image,
-				Version:      np.Version,
+				Count:             count,
+				Autoscaling:       false,
+				MinCount:          count,
+				MaxCount:          count,
+				InstanceType:      np.Shape,
+				Image:             np.Image,
+				Version:           np.Version,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 		}
 	}
@@ -362,50 +362,25 @@ func (o *OKECluster) NodePoolExists(nodePoolName string) bool {
 	return false
 }
 
-// GetClusterDetails gets cluster details from cloud
-func (o *OKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
+// IsReady checks if the cluster is running according to the cloud provider.
+func (o *OKECluster) IsReady() (bool, error) {
 
 	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	ce, err := oci.NewContainerEngineClient()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	cluster, err := ce.GetClusterByID(&o.modelCluster.OKE.OCID)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	if cluster.LifecycleState != "ACTIVE" {
-		return nil, pkgErrors.ErrorClusterNotReady
-	}
-
-	status, err := o.GetStatus()
-	if err != nil {
-		return nil, err
-	}
-
-	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-	for _, np := range o.modelCluster.OKE.NodePools {
-		if np != nil {
-			nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				NodePoolStatus:    *status.NodePools[np.Name],
-			}
-		}
-	}
-
-	// todo needs to add other fields
-	return &pkgCluster.DetailsResponse{
-		Id:                       status.ResourceID,
-		MasterVersion:            o.modelCluster.OKE.Version,
-		NodePools:                nodePools,
-		GetClusterStatusResponse: *status,
-	}, nil
+	return cluster.LifecycleState == "ACTIVE", nil
 }
 
 // ValidateCreationFields validates all field

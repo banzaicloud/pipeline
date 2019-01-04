@@ -27,7 +27,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/apis/core"
 )
 
@@ -65,7 +65,7 @@ func ListEndpoints(c *gin.Context) {
 		return
 	}
 
-	serviceList, err := client.CoreV1().Services("").List(meta_v1.ListOptions{})
+	serviceList, err := client.CoreV1().Services(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing services: %s", err.Error())
 		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
@@ -76,7 +76,7 @@ func ListEndpoints(c *gin.Context) {
 		return
 	}
 
-	ingressList, err := client.ExtensionsV1beta1().Ingresses("").List(meta_v1.ListOptions{})
+	ingressList, err := client.ExtensionsV1beta1().Ingresses(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing ingresses: %s", err)
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
@@ -287,7 +287,7 @@ func GetClusterNodes(c *gin.Context) {
 		return
 	}
 
-	response, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	response, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		log.Errorf("Error listing nodes: %s", err.Error())
 		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{

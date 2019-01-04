@@ -197,6 +197,8 @@ type NodePoolStatus struct {
 	MaxCount     int    `json:"maxCount,omitempty"`
 	Image        string `json:"image,omitempty"`
 	Version      string `json:"version,omitempty"`
+
+	pkgCommon.CreatorBaseFields
 }
 
 // GetClusterConfigResponse describes Pipeline's GetConfig API response
@@ -503,19 +505,6 @@ type CreateClusterResponse struct {
 	ResourceID uint   `json:"id"`
 }
 
-// DetailsResponse describes Pipeline's GetClusterDetails API response
-type DetailsResponse struct {
-	GetClusterStatusResponse
-	Id            uint                        `json:"id"`
-	SecretId      string                      `json:"secretId"`
-	SecretName    string                      `json:"secretName"`
-	MasterVersion string                      `json:"masterVersion,omitempty"`
-	Endpoint      string                      `json:"endpoint,omitempty"`
-	NodePools     map[string]*NodePoolDetails `json:"nodePools,omitempty"`
-	Master        map[string]ResourceSummary  `json:"master,omitempty"`
-	TotalSummary  *ResourceSummary            `json:"totalSummary,omitempty"`
-}
-
 // PodDetailsResponse describes a pod
 type PodDetailsResponse struct {
 	Name          string            `json:"name"`
@@ -525,13 +514,6 @@ type PodDetailsResponse struct {
 	RestartPolicy string            `json:"restartPolicy,omitempty"`
 	Conditions    []v1.PodCondition `json:"conditions,omitempty"`
 	Summary       *ResourceSummary  `json:"resourceSummary,omitempty"`
-}
-
-// NodePoolDetails describes a cluster's node details
-type NodePoolDetails struct {
-	pkgCommon.CreatorBaseFields
-	NodePoolStatus
-	ResourceSummary map[string]ResourceSummary `json:"resourceSummary,omitempty"`
 }
 
 // ResourceSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable

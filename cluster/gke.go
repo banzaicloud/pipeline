@@ -342,13 +342,14 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.model.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Preemptible:  np.Preemptible,
-				Count:        np.NodeCount,
-				InstanceType: np.NodeInstanceType,
-				MinCount:     np.NodeMinCount,
-				MaxCount:     np.NodeMaxCount,
-				Version:      c.model.NodeVersion,
+				Autoscaling:       np.Autoscaling,
+				Preemptible:       np.Preemptible,
+				Count:             np.NodeCount,
+				InstanceType:      np.NodeInstanceType,
+				MinCount:          np.NodeMinCount,
+				MaxCount:          np.NodeMaxCount,
+				Version:           c.model.NodeVersion,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 			if np.Preemptible {
 				hasSpotNodePool = true
@@ -1824,58 +1825,30 @@ func (c *GKECluster) NodePoolExists(nodePoolName string) bool {
 	return false
 }
 
-// GetClusterDetails gets cluster details from cloud
-func (c *GKECluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-	c.log.Info("Get Google Service Client")
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *GKECluster) IsReady() (bool, error) {
+	c.log.Debug("Get Google Service Client")
 	svc, err := c.getGoogleServiceClient()
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
-		return nil, errors.New(be.Message)
+		return false, errors.New(be.Message)
 	}
-	c.log.Info("Get Google Service Client success")
+	c.log.Debug("Get Google Service Client success")
 
 	secretItem, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	c.log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
+	c.log.Debug("Get gke cluster with name %s", c.model.Cluster.Name)
 	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pkgSecret.ProjectId), c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
 	if err != nil {
 		apiError := getBanzaiErrorFromError(err)
-		return nil, errors.New(apiError.Message)
+		return false, errors.New(apiError.Message)
 	}
-	c.log.Info("Get cluster success")
-	c.log.Infof("Cluster status is %s", cl.Status)
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
-	}
+	c.log.Debug("Get cluster success")
 
-	if statusRunning == cl.Status {
-
-		//userId, userName := GetUserIdAndName(c.modelCluster)
-		nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-
-		for _, np := range c.model.NodePools {
-			if np != nil {
-
-				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					NodePoolStatus:    *status.NodePools[np.Name],
-				}
-			}
-		}
-
-		response := &pkgCluster.DetailsResponse{
-			Id:                       c.model.Cluster.ID,
-			MasterVersion:            c.model.MasterVersion,
-			NodePools:                nodePools,
-			GetClusterStatusResponse: *status,
-		}
-		return response, nil
-	}
-	return nil, pkgErrors.ErrorClusterNotReady
+	return statusRunning == cl.Status, nil
 }
 
 // ValidateCreationFields validates all field

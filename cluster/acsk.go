@@ -288,6 +288,7 @@ func (c *ACSKCluster) CreateCluster() error {
 	if !ok {
 		return errors.New("could not cast cluster create response")
 	}
+	c.modelCluster.ACSK.KubernetesVersion = castedValue.KubernetesVersion
 	c.alibabaCluster = castedValue
 
 	kubeConfig, err := c.DownloadK8sConfig()
@@ -470,8 +471,9 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 	for _, np := range c.modelCluster.ACSK.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Count:        np.Count,
-				InstanceType: np.InstanceType,
+				Count:             np.Count,
+				InstanceType:      np.InstanceType,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 		}
 	}
@@ -661,39 +663,19 @@ func (c *ACSKCluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
-func (c *ACSKCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *ACSKCluster) IsReady() (bool, error) {
 	client, err := c.GetAlibabaCSClient(nil)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
-		return nil, err
-	}
-	if r.State != acsk.AlibabaClusterStateRunning {
-		return nil, pkgErrors.ErrorClusterNotReady
+		return false, err
 	}
 
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
-	}
-
-	nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-	for _, np := range c.modelCluster.ACSK.NodePools {
-		nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-			NodePoolStatus:    *status.NodePools[np.Name],
-		}
-	}
-
-	return &pkgCluster.DetailsResponse{
-		Id:                       c.modelCluster.ID,
-		NodePools:                nodePools,
-		MasterVersion:            r.KubernetesVersion,
-		GetClusterStatusResponse: *status,
-	}, nil
+	return r.State != acsk.AlibabaClusterStateRunning, nil
 }
 
 func interfaceArrayToStringArray(in []interface{}) (out []string) {

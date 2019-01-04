@@ -823,16 +823,16 @@ Getting cluster details
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
-@return ClusterDetailsResponse
+@return GetClusterResponse
 */
-func (a *ClustersApiService) GetClusterDetails(ctx context.Context, orgId int32, id int32) (ClusterDetailsResponse, *http.Response, error) {
+func (a *ClustersApiService) GetClusterDetails(ctx context.Context, orgId int32, id int32) (GetClusterResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  ClusterDetailsResponse
+		localVarReturnValue  GetClusterResponse
 	)
 
 	// create path and map variables
@@ -891,7 +891,7 @@ func (a *ClustersApiService) GetClusterDetails(ctx context.Context, orgId int32,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v ClusterDetailsResponse
+			var v GetClusterResponse
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

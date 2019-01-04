@@ -17,6 +17,8 @@ package autoscaling
 import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	awsEC2 "github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
@@ -38,7 +40,7 @@ func NewGroup(manager *Manager, group *autoscaling.Group) *Group {
 // IsHealthy checks whether an ASG is in a healthy state
 // which means it has as many healthy instances as desired
 func (group *Group) IsHealthy() (bool, error) {
-	ok := 0
+	healthyInstanceCount := 0
 
 	instances := group.getInstances()
 	for _, instance := range instances {
@@ -46,14 +48,19 @@ func (group *Group) IsHealthy() (bool, error) {
 			if group.manager.StopMetricTimer(instance) {
 				group.manager.RegisterSpotFulfillmentDuration(instance, group)
 			}
-			ok++
+			healthyInstanceCount++
 		}
 		if instance.LifecycleState != nil && *instance.LifecycleState == "Pending" {
 			group.manager.StartMetricTimer(instance)
 		}
 	}
 
-	if group.DesiredCapacity != nil && int(*group.DesiredCapacity) > 0 && ok == int(*group.DesiredCapacity) {
+	desiredCapacity := 0
+	if group.DesiredCapacity != nil {
+		desiredCapacity = int(*group.DesiredCapacity)
+	}
+
+	if desiredCapacity > 0 && desiredCapacity == healthyInstanceCount {
 		return true, nil
 	}
 
@@ -63,7 +70,7 @@ func (group *Group) IsHealthy() (bool, error) {
 	}
 
 	if len(spotRequests) == 0 {
-		return false, NewAutoscalingGroupNotHealthyError(int(*group.DesiredCapacity), ok)
+		return false, NewAutoscalingGroupNotHealthyError(desiredCapacity, healthyInstanceCount)
 	}
 
 	for _, spotRequest := range spotRequests {
@@ -72,7 +79,7 @@ func (group *Group) IsHealthy() (bool, error) {
 		}
 	}
 
-	return false, NewAutoscalingGroupNotHealthyError(int(*group.DesiredCapacity), ok)
+	return false, NewAutoscalingGroupNotHealthyError(desiredCapacity, healthyInstanceCount)
 }
 
 func (group *Group) getInstances() []*Instance {
@@ -93,6 +100,9 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 	}
 
 	lc, err := group.getLaunchConfiguration()
+	if err == nil && lc == nil {
+		err = emperror.With(errors.New("could not find launch configuration for ASG"), "asg", group.getName())
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -116,6 +126,12 @@ func (group *Group) getSpotRequests() ([]*ec2.SpotInstanceRequest, error) {
 }
 
 func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, error) {
+	asgName := group.getName()
+
+	if group.LaunchConfigurationName == nil {
+		return nil, emperror.With(errors.New("could not find launch configuration for ASG"), "asg", asgName)
+	}
+
 	input := &autoscaling.DescribeLaunchConfigurationsInput{
 		LaunchConfigurationNames: []*string{
 			group.LaunchConfigurationName,
@@ -127,9 +143,17 @@ func (group *Group) getLaunchConfiguration() (*autoscaling.LaunchConfiguration, 
 		return nil, err
 	}
 
-	if len(result.LaunchConfigurations) > 0 {
-		return result.LaunchConfigurations[0], nil
+	if len(result.LaunchConfigurations) != 1 {
+		return nil, emperror.WrapWith(emperror.With(errors.New("invalid response count"), "count", len(result.LaunchConfigurations)), "could not get launch configuration for ASG", "asg", asgName)
 	}
 
-	return nil, nil
+	return result.LaunchConfigurations[0], nil
+}
+
+func (group *Group) getName() string {
+	var name string
+	if group.AutoScalingGroupName != nil {
+		name = *group.AutoScalingGroupName
+	}
+	return name
 }

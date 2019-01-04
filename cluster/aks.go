@@ -250,11 +250,12 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:  np.Autoscaling,
-				Count:        np.Count,
-				InstanceType: np.NodeInstanceType,
-				MinCount:     np.NodeMinCount,
-				MaxCount:     np.NodeMaxCount,
+				Autoscaling:       np.Autoscaling,
+				Count:             np.Count,
+				InstanceType:      np.NodeInstanceType,
+				MinCount:          np.NodeMinCount,
+				MaxCount:          np.NodeMaxCount,
+				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 			}
 		}
 	}
@@ -566,51 +567,24 @@ func (c *AKSCluster) NodePoolExists(nodePoolName string) bool {
 	return false
 }
 
-// GetClusterDetails gets cluster details from cloud
-func (c *AKSCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
-
+// IsReady checks if the cluster is running according to the cloud provider.
+func (c *AKSCluster) IsReady() (bool, error) {
 	client, err := c.GetAKSClient()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	client.With(log)
 
 	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	status, err := c.GetStatus()
-	if err != nil {
-		return nil, err
+		return false, errors.WithStack(err)
 	}
 
 	stage := resp.Value.Properties.ProvisioningState
-	log.Info("Cluster stage is", stage)
-	if stage == statusSucceeded {
+	log.Debug("Cluster stage is", stage)
 
-		nodePools := make(map[string]*pkgCluster.NodePoolDetails)
-
-		for _, np := range c.modelCluster.AKS.NodePools {
-			if np != nil {
-
-				nodePools[np.Name] = &pkgCluster.NodePoolDetails{
-					CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-					NodePoolStatus:    *status.NodePools[np.Name],
-				}
-			}
-		}
-
-		return &pkgCluster.DetailsResponse{
-			Id:                       c.modelCluster.ID,
-			MasterVersion:            c.modelCluster.AKS.KubernetesVersion,
-			NodePools:                nodePools,
-			GetClusterStatusResponse: *status,
-		}, nil
-
-	}
-	return nil, pkgErrors.ErrorClusterNotReady
+	return stage == statusSucceeded, nil
 }
 
 // ValidateCreationFields validates all field
