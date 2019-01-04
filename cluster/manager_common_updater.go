@@ -106,5 +106,17 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 
 // Update implements the clusterUpdater interface.
 func (c *commonUpdater) Update(ctx context.Context) error {
-	return c.cluster.UpdateCluster(c.request, c.userID)
+	err := c.cluster.UpdateCluster(c.request, c.userID)
+	if err != nil {
+		return nil
+	}
+
+	if err := DeployClusterAutoscaler(c.cluster); err != nil {
+		return emperror.Wrap(err, "deploying cluster autoscaler failed")
+	}
+
+	if err := LabelNodes(c.cluster); err != nil {
+		return emperror.Wrap(err, "adding labels to nodes failed")
+	}
+	return nil
 }

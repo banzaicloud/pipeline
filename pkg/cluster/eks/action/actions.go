@@ -714,22 +714,34 @@ func (a *CreateUpdateNodePoolStackAction) GetName() string {
 
 // WaitForASGToBeFulfilled waits until an ASG has the desired amount of healthy nodes
 func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(nodePool *model.AmazonNodePoolsModel) error {
-	m := autoscaling.NewManager(a.context.Session, autoscaling.MetricsEnabled(true), autoscaling.Logger{
-		FieldLogger: a.log,
+	return WaitForASGToBeFulfilled(a.context.Session, a.log, a.context.ClusterName, nodePool.Name, a.waitAttempts, a.waitInterval)
+}
+
+// WaitForASGToBeFulfilled waits until an ASG has the desired amount of healthy nodes
+func WaitForASGToBeFulfilled(
+	awsSession *session.Session,
+	logger logrus.FieldLogger,
+	clusterName string,
+	nodePoolName string,
+	waitAttempts int,
+	waitInterval time.Duration) error {
+
+	m := autoscaling.NewManager(awsSession, autoscaling.MetricsEnabled(true), autoscaling.Logger{
+		FieldLogger: logger,
 	})
-	asgName := a.generateStackName(nodePool)
-	log := a.log.WithField("asg-name", asgName)
+	asgName := GenerateNodePoolStackName(clusterName, nodePoolName)
+	log := logger.WithField("asg-name", asgName)
 	log.WithFields(logrus.Fields{
-		"attempts": a.waitAttempts,
-		"interval": a.waitInterval,
+		"attempts": waitAttempts,
+		"interval": waitInterval,
 	}).Info("EXECUTE WaitForASGToBeFulfilled")
 
-	for i := 0; i <= a.waitAttempts; i++ {
+	for i := 0; i <= waitAttempts; i++ {
 		asGroup, err := m.GetAutoscalingGroupByStackName(asgName)
 		if err != nil {
 			if aerr, ok := err.(awserr.Error); ok {
 				if aerr.Code() == "ValidationError" || aerr.Code() == "ASGNotFoundInResponse" {
-					time.Sleep(a.waitInterval)
+					time.Sleep(waitInterval)
 					continue
 				}
 			}
@@ -739,7 +751,7 @@ func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(nodePool *mode
 		ok, err := asGroup.IsHealthy()
 		if err != nil {
 			if autoscaling.IsErrorFinal(err) {
-				return emperror.WrapWith(err, nodePool.Name, "nodePoolName", nodePool.Name, "asgName", *asGroup.AutoScalingGroupName)
+				return emperror.WrapWith(err, nodePoolName, "nodePoolName", nodePoolName, "asgName", *asGroup.AutoScalingGroupName)
 			}
 			log.Debug(err)
 		}
@@ -747,9 +759,8 @@ func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(nodePool *mode
 			log.Debug("ASG is healthy")
 			break
 		}
-		time.Sleep(a.waitInterval)
+		time.Sleep(waitInterval)
 	}
-
 	return nil
 }
 

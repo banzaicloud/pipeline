@@ -174,6 +174,10 @@ func (c *EC2ClusterBanzaiCloudDistribution) UpdateCluster(*pkgCluster.UpdateClus
 	panic("implement me")
 }
 
+func (c *EC2ClusterBanzaiCloudDistribution) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error {
+	panic("implement me")
+}
+
 func (c *EC2ClusterBanzaiCloudDistribution) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
 	panic("implement me")
 }

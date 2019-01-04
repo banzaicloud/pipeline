@@ -41,7 +41,7 @@ type NodeNames map[string][]string
 
 // ### [ Constants to common cluster default values ] ### //
 const (
-	DefaultNodeMinCount = 1
+	DefaultNodeMinCount = 0
 	DefaultNodeMaxCount = 2
 )
 

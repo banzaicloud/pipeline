@@ -702,6 +702,73 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	return nil
 }
 
+// UpdateNodePools updates nodes pools of a cluster
+func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+	c.log.Info("Start updating nodepools")
+
+	awsCred, err := c.createAWSCredentialsFromSecret()
+	if err != nil {
+		return emperror.Wrap(err, "Error retrieving AWS credentials")
+	}
+
+	session, err := session.NewSession(&aws.Config{
+		Region:      aws.String(c.modelCluster.Location),
+		Credentials: awsCred,
+	})
+	if err != nil {
+		return emperror.Wrap(err, "Error creating AWS session")
+	}
+
+	autoscalingSrv := autoscaling.New(session)
+	cloudformationSrv := cloudformation.New(session)
+
+	waitRoutines := 0
+	waitChan := make(chan error)
+	defer close(waitChan)
+
+	caughtErrors := emperror.NewMultiErrorBuilder()
+	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFulfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
+
+	for poolName, nodePool := range request.NodePools {
+
+		asgName, err := c.getAutoScalingGroupName(cloudformationSrv, autoscalingSrv, poolName)
+		if err != nil {
+			c.log.Errorf("Error ASG not found for node pool %v. %v", poolName, err.Error())
+			continue
+		}
+		params := &autoscaling.SetDesiredCapacityInput{
+			AutoScalingGroupName: aws.String(*asgName),
+			DesiredCapacity:      aws.Int64(int64(nodePool.Count)),
+			HonorCooldown:        aws.Bool(false),
+		}
+		c.log.Infof("Setting node pool %s size to %d", poolName, nodePool.Count)
+		_, err = autoscalingSrv.SetDesiredCapacity(params)
+		if err != nil {
+			c.log.Errorf("Error setting node pool %s size: %v", poolName, err)
+			caughtErrors.Add(err)
+			continue
+		}
+		c.setNodePoolSize(poolName, nodePool.Count)
+
+		waitRoutines++
+		go func(poolName string) {
+			waitChan <- action.WaitForASGToBeFulfilled(session, c.log, c.modelCluster.Name,
+				poolName, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second)
+		}(poolName)
+
+	}
+
+	// wait for goroutines to finish
+	for i := 0; i < waitRoutines; i++ {
+		waitErr := <-waitChan
+		if waitErr != nil {
+			caughtErrors.Add(waitErr)
+		}
+	}
+
+	return caughtErrors.ErrOrNil()
+}
+
 func getAutoScalingGroup(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, stackName string) (*autoscaling.Group, error) {
 	logResourceId := "NodeGroup"
 	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{
@@ -723,6 +790,20 @@ func getAutoScalingGroup(cloudformationSrv *cloudformation.CloudFormation, autos
 	}
 
 	return describeAutoScalingGroupsOutput.AutoScalingGroups[0], nil
+}
+
+func (c *EKSCluster) getAutoScalingGroupName(cloudformationSrv *cloudformation.CloudFormation, autoscalingSrv *autoscaling.AutoScaling, nodePoolName string) (*string, error) {
+	logResourceId := "NodeGroup"
+	stackName := action.GenerateNodePoolStackName(c.modelCluster.Name, nodePoolName)
+	describeStackResourceInput := &cloudformation.DescribeStackResourceInput{
+		LogicalResourceId: &logResourceId,
+		StackName:         aws.String(stackName)}
+	describeStacksOutput, err := cloudformationSrv.DescribeStackResource(describeStackResourceInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return describeStacksOutput.StackResourceDetail.PhysicalResourceId, nil
 }
 
 // GenerateK8sConfig generates kube config for this EKS cluster which authenticates through the aws-iam-authenticator,
@@ -924,6 +1005,15 @@ func (c *EKSCluster) NodePoolExists(nodePoolName string) bool {
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil && np.Name == nodePoolName {
 			return true
+		}
+	}
+	return false
+}
+
+func (c *EKSCluster) setNodePoolSize(nodePoolName string, count int) bool {
+	for _, np := range c.modelCluster.EKS.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			np.Count = count
 		}
 	}
 	return false

@@ -92,3 +92,62 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		Status: http.StatusAccepted,
 	})
 }
+
+// UpdateNodePools updates node pools
+func (a *ClusterAPI) UpdateNodePools(c *gin.Context) {
+	// bind request body to UpdateNodePoolsRequest struct
+	var updateRequest *pkgCluster.UpdateNodePoolsRequest
+	if err := c.BindJSON(&updateRequest); err != nil {
+		a.logger.Errorf("Error parsing request: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing request",
+			Error:   err.Error(),
+		})
+		return
+	}
+	commonCluster, ok := getClusterFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	updateCtx := cluster.UpdateContext{
+		OrganizationID: auth.GetCurrentOrganization(c.Request).ID,
+		UserID:         auth.GetCurrentUser(c.Request).ID,
+		ClusterID:      commonCluster.GetID(),
+	}
+
+	updater := cluster.NewCommonNodepoolUpdater(updateRequest, commonCluster, updateCtx.UserID)
+	ctx := ginutils.Context(context.Background(), c)
+	err := a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
+	if err != nil {
+		if isInvalid(err) {
+			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: errors.Cause(err).Error(),
+			})
+
+			return
+		} else if isPreconditionFailed(err) {
+			c.JSON(http.StatusPreconditionFailed, pkgCommon.ErrorResponse{
+				Code:    http.StatusPreconditionFailed,
+				Message: errors.Cause(err).Error(),
+			})
+
+			return
+		} else {
+			errorHandler.Handle(err)
+
+			c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "cluster update failed",
+			})
+
+			return
+		}
+	}
+
+	c.JSON(http.StatusAccepted, UpdateClusterResponse{
+		Status: http.StatusAccepted,
+	})
+}

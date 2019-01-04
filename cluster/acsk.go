@@ -570,6 +570,11 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 	return nil
 }
 
+// UpdateNodePools updates nodes pools of a cluster
+func (c *ACSKCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+	return nil
+}
+
 func (c *ACSKCluster) GetID() uint {
 	return c.modelCluster.ID
 }

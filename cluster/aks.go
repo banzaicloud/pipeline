@@ -375,6 +375,11 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 	return nil
 }
 
+// UpdateNodePools updates nodes pools of a cluster
+func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+	return nil
+}
+
 // getExistingNodePoolByName returns saved NodePool by name
 func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AKSNodePoolModel {
 
