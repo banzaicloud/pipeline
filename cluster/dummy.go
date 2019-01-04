@@ -104,6 +104,11 @@ func (c *DummyCluster) DeleteCluster() error {
 	return nil
 }
 
+// UpdateNodePools updates nodes pools of a cluster
+func (c *DummyCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+	return nil
+}
+
 // UpdateCluster updates the dummy cluster
 func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint) error {
 	c.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion

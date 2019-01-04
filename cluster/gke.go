@@ -342,14 +342,13 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.model.NodePools {
 		if np != nil {
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-				Autoscaling:       np.Autoscaling,
-				Preemptible:       np.Preemptible,
-				Count:             np.NodeCount,
-				InstanceType:      np.NodeInstanceType,
-				MinCount:          np.NodeMinCount,
-				MaxCount:          np.NodeMaxCount,
-				Version:           c.model.NodeVersion,
-				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Autoscaling:  np.Autoscaling,
+				Preemptible:  np.Preemptible,
+				Count:        np.NodeCount,
+				InstanceType: np.NodeInstanceType,
+				MinCount:     np.NodeMinCount,
+				MaxCount:     np.NodeMaxCount,
+				Version:      c.model.NodeVersion,
 			}
 			if np.Preemptible {
 				hasSpotNodePool = true
@@ -569,6 +568,44 @@ func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) er
 		}
 	}
 
+	return nil
+}
+
+// UpdateNodePools updates nodes pools of a cluster
+func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+
+	c.log.Info("Start updating cluster (gke) nodepools")
+
+	svc, err := c.getGoogleServiceClient()
+	if err != nil {
+		return emperror.Wrap(err, "Unable to retrieve GoogleServiceClient")
+	}
+
+	secretItem, err := c.GetSecretWithValidation()
+	if err != nil {
+		return emperror.Wrap(err, "Unable to retrieve secret")
+	}
+
+	projectId := secretItem.GetValue(pkgSecret.ProjectId)
+
+	// Update node pools
+	for poolName, nodePool := range request.NodePools {
+
+		log.Infof("Updating node size to %v for node pool %s", nodePool.Count, poolName)
+		updateCall, err := svc.Projects.Zones.Clusters.NodePools.SetSize(projectId, c.model.Cluster.Location, c.GetName(), poolName, &gke.SetNodePoolSizeRequest{
+			NodeCount: int64(nodePool.Count),
+		}).Context(context.Background()).Do()
+		if err != nil {
+			return emperror.Wrap(err, "Updating nodepool size failed")
+		}
+
+		if err = waitForOperation(newContainerOperation(svc, projectId, c.model.Cluster.Location), updateCall.Name, log); err != nil {
+			return emperror.Wrap(err, "Error while waiting for nodepool size update")
+		}
+
+		log.Infof("Node pool %s size change is called for project %s, zone %s and cluster %s. Status Code %v", poolName, projectId, c.model.Cluster.Location, c.GetName(), updateCall.HTTPStatusCode)
+		c.setNodePoolSize(poolName, nodePool.Count)
+	}
 	return nil
 }
 
@@ -1820,6 +1857,15 @@ func (c *GKECluster) NodePoolExists(nodePoolName string) bool {
 	for _, np := range c.model.NodePools {
 		if np != nil && np.Name == nodePoolName {
 			return true
+		}
+	}
+	return false
+}
+
+func (c *GKECluster) setNodePoolSize(nodePoolName string, count int) bool {
+	for _, np := range c.model.NodePools {
+		if np != nil && np.Name == nodePoolName {
+			np.NodeCount = count
 		}
 	}
 	return false

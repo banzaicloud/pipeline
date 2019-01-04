@@ -127,6 +127,9 @@ const (
 	SpotguideAllowPrivateRepos               = "spotguide.allowPrivateRepos"
 	SpotguideSyncInterval                    = "spotguide.syncInterval"
 	SpotguideSharedLibraryGitHubOrganization = "spotguide.sharedLibraryGitHubOrganization"
+
+	// full endpoint url of CloudInfo for ex: https://alpha.dev.banzaicloud.com/cloudinfo/api/v1
+	CloudInfoEndPoint = "cloudinfo.endpointUrl"
 )
 
 //Init initializes the configurations

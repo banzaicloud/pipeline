@@ -83,9 +83,9 @@ func (azure *CreateClusterAKS) Validate() error {
 			if err != nil {
 				return err
 			}
-			if np.MinCount == 0 {
-				return pkgErrors.ErrorMinFieldRequiredError
-			}
+			//if np.MinCount == 0 {
+			//	return pkgErrors.ErrorMinFieldRequiredError
+			//}
 			if np.MaxCount == 0 {
 				return pkgErrors.ErrorMaxFieldRequiredError
 			}

@@ -60,7 +60,7 @@ func (group *Group) IsHealthy() (bool, error) {
 		desiredCapacity = int(*group.DesiredCapacity)
 	}
 
-	if desiredCapacity > 0 && desiredCapacity == healthyInstanceCount {
+	if desiredCapacity == healthyInstanceCount {
 		return true, nil
 	}
 
