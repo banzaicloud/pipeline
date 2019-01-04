@@ -67,7 +67,7 @@ func GetTotalSummary(client kubernetes.Interface) (*Summary, error) {
 		return nil, errors.Wrap(err, "failed to list nodes")
 	}
 
-	podList, err := client.CoreV1().Pods("").List(metav1.ListOptions{})
+	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list pods")
 	}
