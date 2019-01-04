@@ -103,6 +103,7 @@ type ACSKClusterModel struct {
 	SNATEntry                bool
 	SSHFlags                 bool
 	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterID"`
+	KubernetesVersion        string
 }
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster

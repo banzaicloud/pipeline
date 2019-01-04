@@ -288,6 +288,7 @@ func (c *ACSKCluster) CreateCluster() error {
 	if !ok {
 		return errors.New("could not cast cluster create response")
 	}
+	c.modelCluster.ACSK.KubernetesVersion = castedValue.KubernetesVersion
 	c.alibabaCluster = castedValue
 
 	kubeConfig, err := c.DownloadK8sConfig()
@@ -691,7 +692,7 @@ func (c *ACSKCluster) GetClusterDetails() (*pkgCluster.DetailsResponse, error) {
 	return &pkgCluster.DetailsResponse{
 		Id:                       c.modelCluster.ID,
 		NodePools:                nodePools,
-		MasterVersion:            r.KubernetesVersion,
+		MasterVersion:            c.modelCluster.ACSK.KubernetesVersion,
 		GetClusterStatusResponse: *status,
 	}, nil
 }
