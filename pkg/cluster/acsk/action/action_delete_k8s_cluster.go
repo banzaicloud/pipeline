@@ -22,9 +22,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ACSKClusterDeleteContext describes the fields used across ACSK cluster delete operation
+// ACSKClusterDeleteContext describes the fields used across ACK cluster delete operation
 type ACSKClusterDeleteContext struct {
-	ACSKClusterContext
+	ACKContext
 	RegionId  string
 	NodePools []*model.ACSKNodePoolModel
 }
@@ -33,7 +33,7 @@ type ACSKClusterDeleteContext struct {
 func NewACSKClusterDeletionContext(csClient *cs.Client,
 	ecsClient *ecs.Client, essClient *ess.Client, clusterID string, nodePools []*model.ACSKNodePoolModel, regionID string) *ACSKClusterDeleteContext {
 	return &ACSKClusterDeleteContext{
-		ACSKClusterContext: ACSKClusterContext{
+		ACKContext: ACKContext{
 			CSClient:  csClient,
 			ECSClient: ecsClient,
 			ESSClient: essClient,

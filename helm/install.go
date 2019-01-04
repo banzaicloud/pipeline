@@ -340,6 +340,9 @@ func Install(helmInstall *phelm.Install, kubeConfig []byte) error {
 			if err := installer.Upgrade(kubeClient, &opts); err != nil {
 				return errors.Wrap(err, "error when upgrading")
 			}
+
+			//TODO wait until the running pod stops
+			time.Sleep(5 * time.Second)
 			log.Info("Tiller (the Helm server-side component) has been upgraded to the current version.")
 		} else {
 			log.Info("Warning: Tiller is already installed in the cluster.")

@@ -25,13 +25,13 @@ import (
 
 // UploadSSHKeyAction describes how to upload an SSH key
 type UploadSSHKeyAction struct {
-	context   *ACSKClusterCreateContext
+	context   *ACKClusterCreateContext
 	sshSecret *secret.SecretItemResponse
 	log       logrus.FieldLogger
 }
 
 // NewUploadSSHKeyAction creates a new UploadSSHKeyAction
-func NewUploadSSHKeyAction(log logrus.FieldLogger, context *ACSKClusterCreateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
+func NewUploadSSHKeyAction(log logrus.FieldLogger, context *ACKClusterCreateContext, sshSecret *secret.SecretItemResponse) *UploadSSHKeyAction {
 	return &UploadSSHKeyAction{
 		context:   context,
 		sshSecret: sshSecret,

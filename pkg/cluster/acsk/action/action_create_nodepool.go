@@ -30,15 +30,19 @@ import (
 
 // CreateACSKNodePoolAction describes the properties of an Alibaba cluster creation
 type CreateACSKNodePoolAction struct {
-	context *ACSKClusterCreateContext
-	log     logrus.FieldLogger
+	log       logrus.FieldLogger
+	nodePools []*model.ACSKNodePoolModel
+	context   *ACKContext
+	region    string
 }
 
 // NewCreateACSKNodePoolAction creates a new CreateACSKNodePoolAction
-func NewCreateACSKNodePoolAction(log logrus.FieldLogger, creationContext *ACSKClusterCreateContext) *CreateACSKNodePoolAction {
+func NewCreateACSKNodePoolAction(log logrus.FieldLogger, nodepools []*model.ACSKNodePoolModel, clusterContext *ACKContext, region string) *CreateACSKNodePoolAction {
 	return &CreateACSKNodePoolAction{
-		context: creationContext,
-		log:     log,
+		log:       log,
+		nodePools: nodepools,
+		context:   clusterContext,
+		region:    region,
 	}
 }
 
@@ -49,21 +53,30 @@ func (a *CreateACSKNodePoolAction) GetName() string {
 
 // ExecuteAction executes this CreateACSKNodePoolAction
 func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	a.log.Infoln("EXECUTE CreateACSKNodePoolAction, cluster name", a.context.Name)
-
 	cluster, ok := input.(*acsk.AlibabaDescribeClusterResponse)
 	if !ok {
 		err = errors.New("invalid input")
 
 		return
 	}
+	a.log.Infoln("EXECUTE CreateACSKNodePoolAction, cluster name", cluster.Name)
 
-	errChan := make(chan error, len(a.context.NodePools))
-	instanceIdsChan := make(chan []string, len(a.context.NodePools))
+	if len(a.nodePools) == 0 {
+		a.log.Info("no new nodepools in the request")
+		r, err := getClusterDetails(a.context.ClusterID, a.context.CSClient)
+		if err != nil {
+			return nil, err
+		}
+
+		return r, nil
+	}
+
+	errChan := make(chan error, len(a.nodePools))
+	instanceIdsChan := make(chan []string, len(a.nodePools))
 	defer close(errChan)
 	defer close(instanceIdsChan)
 
-	for _, nodePool := range a.context.NodePools {
+	for _, nodePool := range a.nodePools {
 		go func(nodePool *model.ACSKNodePoolModel) {
 			scalingGroupRequest := ess.CreateCreateScalingGroupRequest()
 			scalingGroupRequest.SetScheme(requests.HTTPS)
@@ -88,26 +101,24 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 				return
 			}
 
-			scalingGroupID := createScalingGroupResponse.ScalingGroupId
-
-			nodePool.AsgId = scalingGroupID
-			a.log.Infof("Scaling Group with id %s successfully created", scalingGroupID)
-			a.log.Infof("Creating scaling configuration for group %s", scalingGroupID)
+			nodePool.AsgId = createScalingGroupResponse.ScalingGroupId
+			a.log.Infof("Scaling Group with id %s successfully created", nodePool.AsgId)
+			a.log.Infof("Creating scaling configuration for group %s", nodePool.AsgId)
 
 			scalingConfigurationRequest := ess.CreateCreateScalingConfigurationRequest()
 			scalingConfigurationRequest.SetScheme(requests.HTTPS)
 			scalingConfigurationRequest.SetDomain("ess." + cluster.RegionID + ".aliyuncs.com")
 			scalingConfigurationRequest.SetContentType(requests.Json)
 
-			scalingConfigurationRequest.ScalingGroupId = scalingGroupID
+			scalingConfigurationRequest.ScalingGroupId = nodePool.AsgId
 			scalingConfigurationRequest.SecurityGroupId = cluster.SecurityGroupID
-			scalingConfigurationRequest.KeyPairName = a.context.Name
+			scalingConfigurationRequest.KeyPairName = cluster.Name
 			scalingConfigurationRequest.InstanceType = nodePool.InstanceType
 			scalingConfigurationRequest.SystemDiskCategory = "cloud_efficiency"
 			scalingConfigurationRequest.ImageId = "centos_7_04_64_20G_alibase_20180419.vhd"
 			scalingConfigurationRequest.Tags =
 				fmt.Sprintf(`{"pipeline-created":"true","pipeline-cluster":"%s","pipeline-nodepool":"%s"`,
-					a.context.AlibabaClusterCreateParams.Name, nodePool.Name)
+					cluster.Name, nodePool.Name)
 
 			createConfigurationResponse, err := a.context.ESSClient.CreateScalingConfiguration(scalingConfigurationRequest)
 			if err != nil {
@@ -116,19 +127,17 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 				return
 			}
 
-			scalingConfID := createConfigurationResponse.ScalingConfigurationId
+			nodePool.ScalingConfId = createConfigurationResponse.ScalingConfigurationId
 
-			nodePool.ScalingConfId = scalingConfID
-
-			a.log.Infof("Scaling Configuration successfully created for group %s", scalingGroupID)
+			a.log.Infof("Scaling Configuration successfully created for group %s", nodePool.AsgId)
 
 			enableSGRequest := ess.CreateEnableScalingGroupRequest()
 			enableSGRequest.SetScheme(requests.HTTPS)
 			enableSGRequest.SetDomain("ess." + cluster.RegionID + ".aliyuncs.com")
 			enableSGRequest.SetContentType(requests.Json)
 
-			enableSGRequest.ScalingGroupId = scalingGroupID
-			enableSGRequest.ActiveScalingConfigurationId = scalingConfID
+			enableSGRequest.ScalingGroupId = nodePool.AsgId
+			enableSGRequest.ActiveScalingConfigurationId = nodePool.ScalingConfId
 
 			_, err = a.context.ESSClient.EnableScalingGroup(enableSGRequest)
 			if err != nil {
@@ -137,7 +146,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 				return
 			}
 
-			instanceIds, err := waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, cluster.RegionID, scalingGroupID, scalingConfID)
+			instanceIds, err := waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, cluster.RegionID, nodePool)
 			if err != nil {
 				errChan <- err
 				instanceIdsChan <- nil
@@ -150,7 +159,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 	}
 
 	var instanceIds []string
-	for i := 0; i < len(a.context.NodePools); i++ {
+	for i := 0; i < len(a.nodePools); i++ {
 		e := <-errChan
 		ids := <-instanceIdsChan
 		if e != nil {
@@ -189,7 +198,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 	a.log.Info("Wait for nodepool attach")
 	clusterWithPools, err := waitUntilClusterCreateOrScaleComplete(a.log, cluster.ClusterID, a.context.CSClient, false)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "nodepool creation failed", "clusterName", a.context.Name)
+		return nil, emperror.WrapWith(err, "nodepool creation failed", "clusterName", cluster.Name)
 	}
 
 	return clusterWithPools, err
@@ -198,5 +207,5 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 // UndoAction rolls back this CreateACSKNodePoolAction
 func (a *CreateACSKNodePoolAction) UndoAction() (err error) {
 	a.log.Info("EXECUTE UNDO CreateACSKNodePoolAction")
-	return deleteNodepools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionID)
+	return deleteNodepools(a.log, a.nodePools, a.context.ESSClient, a.region)
 }

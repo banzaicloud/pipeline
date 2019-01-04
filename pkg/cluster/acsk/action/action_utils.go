@@ -102,25 +102,25 @@ func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 	return
 }
 
-func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Client, regionId, scalingGroupID, scalingConfID string) ([]string, error) {
+func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACSKNodePoolModel) ([]string, error) {
 	log.Info("Waiting for instances to get ready")
-	var instanceIds []string
-	describeScalingInstancesrequest := ess.CreateDescribeScalingInstancesRequest()
-	describeScalingInstancesrequest.SetScheme(requests.HTTPS)
-	describeScalingInstancesrequest.SetDomain("ess." + regionId + ".aliyuncs.com")
-	describeScalingInstancesrequest.SetContentType(requests.Json)
+	describeScalingInstancesRequest := ess.CreateDescribeScalingInstancesRequest()
+	describeScalingInstancesRequest.SetScheme(requests.HTTPS)
+	describeScalingInstancesRequest.SetDomain("ess." + regionId + ".aliyuncs.com")
+	describeScalingInstancesRequest.SetContentType(requests.Json)
 
-	describeScalingInstancesrequest.ScalingGroupId = scalingGroupID
-	describeScalingInstancesrequest.ScalingConfigurationId = scalingConfID
+	describeScalingInstancesRequest.ScalingGroupId = nodePool.AsgId
+	describeScalingInstancesRequest.ScalingConfigurationId = nodePool.ScalingConfId
 
 	for {
-		describeScalingInstancesResponse, err := essClient.DescribeScalingInstances(describeScalingInstancesrequest)
+		describeScalingInstancesResponse, err := essClient.DescribeScalingInstances(describeScalingInstancesRequest)
 		if err != nil {
 			return nil, err
 		}
-		if describeScalingInstancesResponse.TotalCount == 0 {
+		if describeScalingInstancesResponse.TotalCount < nodePool.MinCount || describeScalingInstancesResponse.TotalCount > nodePool.MaxCount {
 			continue
 		}
+		instanceIds := make([]string, 0)
 
 		for _, instance := range describeScalingInstancesResponse.ScalingInstances.ScalingInstance {
 			if instance.HealthStatus == acsk.AlibabaInstanceHealthyStatus {
@@ -135,6 +135,15 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 			return instanceIds, nil
 		}
 	}
+}
+
+func contains(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }
 
 func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client, isClusterCreate bool) (*acsk.AlibabaDescribeClusterResponse, error) {

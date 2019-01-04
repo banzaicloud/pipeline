@@ -22,36 +22,34 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
-// ACSKClusterContext describes the common fields used across ACSK cluster create/update/delete operations
-type ACSKClusterContext struct {
+// ACKContext describes the common fields used across ACK cluster create/update/delete operations
+type ACKContext struct {
 	ClusterID string
 	CSClient  *cs.Client
 	ECSClient *ecs.Client
 	ESSClient *ess.Client
 }
 
-// NewACSKClusterContext creates a new ACSKClusterContext
-func NewACSKClusterContext(csClient *cs.Client,
-	ecsClient *ecs.Client, clusterID string) *ACSKClusterContext {
-	return &ACSKClusterContext{
+// NewACKContext creates a new ACKContext
+func NewACKContext(clusterID string, csClient *cs.Client, ecsClient *ecs.Client, essClient *ess.Client) *ACKContext {
+	return &ACKContext{
+		ClusterID: clusterID,
 		CSClient:  csClient,
 		ECSClient: ecsClient,
-		ClusterID: clusterID,
+		ESSClient: essClient,
 	}
 }
 
-// ACSKClusterCreateContext describes the fields used across ACSK cluster create operation
-type ACSKClusterCreateContext struct {
-	ACSKClusterContext
+// ACKClusterCreateContext describes the fields used across ACK cluster create operation
+type ACKClusterCreateContext struct {
+	ACKContext
 	acsk.AlibabaClusterCreateParams
-	NodePools []*model.ACSKNodePoolModel
 }
 
 type AlibabaClusterFailureLogsError struct {
@@ -66,33 +64,22 @@ func (e AlibabaClusterFailureLogsError) Error() string {
 	return ""
 }
 
-// NewACSKClusterCreationContext creates a new ACSKClusterCreateContext
-func NewACSKClusterCreationContext(
-	csClient *cs.Client,
-	ecsClient *ecs.Client,
-	essClient *ess.Client,
-	clusterCreateParams acsk.AlibabaClusterCreateParams,
-	nodepools []*model.ACSKNodePoolModel,
-) *ACSKClusterCreateContext {
-	return &ACSKClusterCreateContext{
-		ACSKClusterContext: ACSKClusterContext{
-			CSClient:  csClient,
-			ECSClient: ecsClient,
-			ESSClient: essClient,
-		},
-		AlibabaClusterCreateParams: clusterCreateParams,
-		NodePools:                  nodepools,
+// NewACKClusterCreationContext creates a new ACKClusterCreateContext
+func NewACKClusterCreationContext(context ACKContext, params acsk.AlibabaClusterCreateParams) *ACKClusterCreateContext {
+	return &ACKClusterCreateContext{
+		ACKContext:                 context,
+		AlibabaClusterCreateParams: params,
 	}
 }
 
 // CreateACSKClusterAction describes the properties of an Alibaba cluster creation
 type CreateACSKClusterAction struct {
-	context *ACSKClusterCreateContext
+	context *ACKClusterCreateContext
 	log     logrus.FieldLogger
 }
 
 // NewCreateACSKClusterAction creates a new CreateACSKClusterAction
-func NewCreateACSKClusterAction(log logrus.FieldLogger, creationContext *ACSKClusterCreateContext) *CreateACSKClusterAction {
+func NewCreateACSKClusterAction(log logrus.FieldLogger, creationContext *ACKClusterCreateContext) *CreateACSKClusterAction {
 	return &CreateACSKClusterAction{
 		context: creationContext,
 		log:     log,
@@ -140,10 +127,10 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 		return nil, err
 	}
 
-	a.log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
-
 	// We need this field to be able to implement the UndoAction for ClusterCreate
 	a.context.ClusterID = r.ClusterID
+
+	a.log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
 
 	// wait for cluster created
 	a.log.Info("Waiting for cluster...")
