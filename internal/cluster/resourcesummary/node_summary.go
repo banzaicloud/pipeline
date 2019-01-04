@@ -39,7 +39,7 @@ func GetNodeSummary(client kubernetes.Interface, node v1.Node) (*NodeSummary, er
 		return nil, emperror.WrapWith(err, "cannot parse field selector for node", "node", node.Name)
 	}
 
-	podList, err := client.CoreV1().Pods("").List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
+	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{FieldSelector: fieldSelector.String()})
 	if err != nil {
 		return nil, emperror.WrapWith(err, "cannot parse list pods for node", "node", node.Name)
 	}
