@@ -86,9 +86,11 @@ Once you have the docker containers running for the development environment, you
 
 You can install and then run it with:
 ```bash
-$ go install ./cmd/pipeline/
-$ pipeline
+$ make build
+$ build/pipeline
 ```
+
+(Optionally, you could also build and run with VSCode or Goland.)
 
 If you happen to get an error similar to this on the first run:
 ```
