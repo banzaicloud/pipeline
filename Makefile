@@ -56,9 +56,7 @@ docker-compose.anchore.yml: ## Create docker compose override file with anchore
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then cat docker-compose.anchore.yml.dist | sed -e 's/# user: "$${uid}:$${gid}"/user: "$(shell id -u):$(shell id -g)"/' > docker-compose.override.yml; else cp docker-compose.anchore.yml.dist docker-compose.override.yml; fi
 
 create-docker-dirs: ## Create .docker directories with your user
-	mkdir -p .docker/volumes/mysql
-	mkdir -p .docker/volumes/vault/file
-	mkdir -p .docker/volumes/vault/keys
+	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
 
 .PHONY: start
 start: docker-compose.override.yml create-docker-dirs ## Start docker development environment
