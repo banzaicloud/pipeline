@@ -2,7 +2,8 @@ version: "3.1"
 
 services:
     db:
-        user: "${uid}:${gid}"
+        # needed for Linux users
+        # user: "${uid}:${gid}"
         ports:
             - 127.0.0.1:3306:3306
         volumes:
@@ -19,17 +20,20 @@ services:
             - ./.docker/volumes/vault/file:/vault/file
 
     vault-unsealer:
-        user: "${uid}:${gid}"
+        # needed for Linux users
+        # user: "${uid}:${gid}"
         volumes:
             - ./.docker/volumes/vault/keys:/vault/keys
 
     vault-configurer:
-        user: "${uid}:${gid}"
+        # needed for Linux users
+        # user: "${uid}:${gid}"
         volumes:
             - ./.docker/volumes/vault/keys:/vault/keys
 
     vault-token-helper:
-        user: "${uid}:${gid}"
+        # needed for Linux users
+        # user: "${uid}:${gid}"
         volumes:
             - ./.docker/volumes/vault/keys:/vault/keys
 
