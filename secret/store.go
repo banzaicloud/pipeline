@@ -273,7 +273,7 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 		clusterUID := secret.Values[secretTypes.ClusterUID]
 		basePath := fmt.Sprintf("clusters/%s/pki", clusterUID)
 
-		path = basePath
+		path = fmt.Sprintf("%s/%s", basePath, "ca")
 		err = ss.Client.Vault().Sys().Unmount(path)
 		if err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
