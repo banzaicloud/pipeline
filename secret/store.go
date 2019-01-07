@@ -656,7 +656,6 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			Type:        "pki",
 			Description: fmt.Sprintf("root PKI engine for cluster %s", clusterUID),
 			Config:      mountConfig,
-			Options:     mountConfig.Options, // options needs to be sent here first time
 		}
 
 		// Mount a separate PKI engine for the cluster
@@ -741,7 +740,6 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 		Type:        "pki",
 		Description: fmt.Sprintf("%s intermediate PKI engine for cluster %s", commonName, clusterUID),
 		Config:      mountConfig,
-		Options:     mountConfig.Options, // options needs to be sent here first time
 	}
 
 	path := fmt.Sprintf("%s/%s", basePath, commonName)
@@ -767,8 +765,6 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 		return nil, errors.Wrapf(err, "error generating %s intermediate cert for cluster %s", commonName, clusterUID)
 	}
 
-	fmt.Printf("%s caSecret: %+v\n", commonName, caSecret)
-
 	caSignData := map[string]interface{}{
 		"csr":    caSecret.Data["csr"],
 		"format": "pem_bundle",
@@ -783,8 +779,6 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 
 		return nil, errors.Wrapf(err, "error signing %s intermediate cert for cluster %s", commonName, clusterUID)
 	}
-
-	fmt.Printf("caCertSecret: %+v\n", caCertSecret)
 
 	return &certificate{
 		Key:  caSecret.Data["private_key"].(string),
