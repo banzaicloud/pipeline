@@ -36,7 +36,6 @@ import (
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	"github.com/qor/auth/providers/dex"
-	"github.com/qor/auth/providers/github"
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
 	uuid "github.com/satori/go.uuid"
@@ -204,26 +203,12 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
 	})
 
-	githubProvider := github.New(&github.Config{
-		// ClientID and ClientSecret is validated inside github.New()
-		ClientID:     viper.GetString("auth.clientid"),
-		ClientSecret: viper.GetString("auth.clientsecret"),
-
-		// The same as CICD's scopes
-		Scopes: []string{
-			"repo",
-			"user:email",
-			"read:org",
-		},
-	})
-	githubProvider.AuthorizeHandler = NewGithubAuthorizeHandler(githubProvider)
-	Auth.RegisterProvider(githubProvider)
-
 	dexProvider := dex.New(&dex.Config{
 		ClientID:     viper.GetString("auth.clientid"),
 		ClientSecret: viper.GetString("auth.clientsecret"),
 		IssuerURL:    "http://127.0.0.1:5556/dex",
 	})
+	// dexProvider.AuthorizeHandler = NewDexAuthorizeHandler(dexProvider)
 	Auth.RegisterProvider(dexProvider)
 
 	TokenStore = bauth.NewVaultTokenStore("pipeline")
