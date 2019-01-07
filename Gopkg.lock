@@ -198,7 +198,7 @@
   revision = "d46933a9"
 
 [[projects]]
-  digest = "1:e4d963b5dd19108d62db3d7afe209d28655c12afad56a4e5d1912ce92e894a1c"
+  digest = "1:02db0f50f72a931eae68c1d69c4226aed737316c46051dd147351d0bcb127aff"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -210,6 +210,7 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
     "aws/credentials/stscreds",
     "aws/csm",
     "aws/defaults",
@@ -218,6 +219,8 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/ini",
+    "internal/s3err",
     "internal/sdkio",
     "internal/sdkrand",
     "internal/sdkuri",
@@ -242,7 +245,6 @@
     "service/elb",
     "service/iam",
     "service/iam/iamiface",
-    "service/pricing",
     "service/route53",
     "service/route53/route53iface",
     "service/s3",
@@ -251,8 +253,8 @@
     "service/sts",
   ]
   pruneopts = "NUT"
-  revision = "04abd557eeaab3cfdded45467eea00fc03db9cb9"
-  version = "v1.15.26"
+  revision = "3991042237b45cf58c9d5f34295942d5533c28c6"
+  version = "v1.16.11"
 
 [[projects]]
   digest = "1:3b7b11566c32ac403529049c7d6e6c309607aeb8fa06c8cfa819312d0dedca19"
@@ -573,14 +575,6 @@
   ]
   pruneopts = "NUT"
   revision = "65a65c2edd4e86f96634a553f07a25c38f2b1c75"
-
-[[projects]]
-  digest = "1:27b7ff77d8f9de0ca6f1e821e09246aaa83132d07b8606ca0ed1dcacdcc1dded"
-  name = "github.com/go-ini/ini"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "6333e38ac20b8949a8dd68baa3650f4dee8f39f0"
-  version = "v1.33.0"
 
 [[projects]]
   branch = "master"
@@ -2221,7 +2215,6 @@
     "github.com/aws/aws-sdk-go/service/elb",
     "github.com/aws/aws-sdk-go/service/iam",
     "github.com/aws/aws-sdk-go/service/iam/iamiface",
-    "github.com/aws/aws-sdk-go/service/pricing",
     "github.com/aws/aws-sdk-go/service/route53",
     "github.com/aws/aws-sdk-go/service/route53/route53iface",
     "github.com/aws/aws-sdk-go/service/s3",

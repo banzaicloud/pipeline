@@ -14,25 +14,24 @@
 
 package eks
 
+import "github.com/aws/aws-sdk-go/aws/endpoints"
+
 // ### [ Constants to EKS cluster default values ] ### //
 const (
 	DefaultInstanceType = "m4.xlarge"
 	DefaultSpotPrice    = "0.0" // 0 spot price stands for on-demand instances
-	DefaultRegion       = UsWest2
+	DefaultRegion       = endpoints.UsWest2RegionID
 )
 
 // DefaultImages in each supported location in EC2 (from https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
 var DefaultImages = map[string]string{
-	UsEast1: "ami-0a0b913ef3249b655",
-	UsEast2: "ami-0958a76db2d150238",
-	UsWest2: "ami-0f54a2f7d2e9c88b3",
-	EuWest1: "ami-00c3b2d35bddd4f5c",
+	endpoints.UsEast1RegionID:      "ami-027792c3cc6de7b5b",
+	endpoints.UsEast2RegionID:      "ami-036130f4127a367f7",
+	endpoints.UsWest2RegionID:      "ami-07af9511082779ae7",
+	endpoints.EuWest1RegionID:      "ami-03612357ac9da2c7d",
+	endpoints.EuNorth1RegionID:     "ami-04b0f84e5a05e0b30",
+	endpoints.EuCentral1RegionID:   "ami-06d069282a5fea248",
+	endpoints.ApNortheast1RegionID: "ami-06f4af3742fca5998",
+	endpoints.ApSoutheast1RegionID: "ami-0bc97856f0dd86d41",
+	endpoints.ApSoutheast2RegionID: "ami-05d25b3f16e685c2e",
 }
-
-// EC2 regions
-const (
-	UsEast1 = "us-east-1"
-	UsEast2 = "us-east-2"
-	UsWest2 = "us-west-2"
-	EuWest1 = "eu-west-1"
-)

@@ -226,7 +226,6 @@ func isValidVersion(version string) bool {
 		return true
 	}
 
-	// currently only Kubernetes version 1.10 is supported by EKS
 	// TODO check if there is an AWS API that can tell us supported Kubernetes versions
 	return "1.10" == version
 
