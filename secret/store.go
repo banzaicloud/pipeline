@@ -259,11 +259,44 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 	log.Debugln("Delete secret:", path)
 
+	secret, err := ss.Get(organizationID, secretID)
+	if err != nil {
+		return errors.Wrap(err, "Error during querying secret before deletion")
+	}
+
 	if _, err := ss.Logical.Delete(path); err != nil {
 		return errors.Wrap(err, "Error during deleting secret")
 	}
 
-	// TODO if type is distribution, unmount all pki engines
+	// if type is distribution, unmount all pki engines
+	if secret.Type == secretTypes.DistributionSecretType {
+		clusterUID := secret.Values[secretTypes.ClusterUID]
+		basePath := fmt.Sprintf("clusters/%s/pki", clusterUID)
+
+		path = basePath
+		err = ss.Client.Vault().Sys().Unmount(path)
+		if err != nil {
+			log.Warnf("failed to unmount %s: %s", path, err)
+		}
+
+		path = fmt.Sprintf("%s/%s", basePath, "kubernetes-ca")
+		err = ss.Client.Vault().Sys().Unmount(path)
+		if err != nil {
+			log.Warnf("failed to unmount %s: %s", path, err)
+		}
+
+		path = fmt.Sprintf("%s/%s", basePath, "etcd-ca")
+		err = ss.Client.Vault().Sys().Unmount(path)
+		if err != nil {
+			log.Warnf("failed to unmount %s: %s", path, err)
+		}
+
+		path = fmt.Sprintf("%s/%s", basePath, "kubernetes-front-proxy-ca")
+		err = ss.Client.Vault().Sys().Unmount(path)
+		if err != nil {
+			log.Warnf("failed to unmount %s: %s", path, err)
+		}
+	}
 
 	return nil
 }
@@ -643,7 +676,9 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		_, err = ss.Logical.Write(fmt.Sprintf("%s/root/generate/internal", path), rootCAData)
 		if err != nil {
 			// Unmount the pki engine first
-			ss.Client.Vault().Sys().Unmount(path) // TODO err
+			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
+				log.Warnf("failed to unmount %s: %s", path, err)
+			}
 
 			return errors.Wrapf(err, "Error generating root CA for cluster %s", clusterUID)
 		}
@@ -652,32 +687,41 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		kubernetesCA, err := ss.generateIntermediateCert(clusterUID, basePath, "kubernetes-ca")
 		if err != nil {
 			// Unmount the pki backend first
-			ss.Client.Vault().Sys().Unmount(path) // TODO err
+			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
+				log.Warnf("failed to unmount %s: %s", path, err)
+			}
+
 			return err
 		}
 
 		etcdCA, err := ss.generateIntermediateCert(clusterUID, basePath, "etcd-ca")
 		if err != nil {
 			// Unmount the pki backend first
-			ss.Client.Vault().Sys().Unmount(path) // TODO err
+			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
+				log.Warnf("failed to unmount %s: %s", path, err)
+			}
+
 			return err
 		}
 
 		frontProxyCA, err := ss.generateIntermediateCert(clusterUID, basePath, "kubernetes-front-proxy-ca")
 		if err != nil {
 			// Unmount the pki backend first
-			ss.Client.Vault().Sys().Unmount(path) // TODO err
+			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
+				log.Warnf("failed to unmount %s: %s", path, err)
+			}
+
 			return err
 		}
 
-		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA["private_key"]
-		value.Values[secretTypes.KubernetesCACert] = kubernetesCA["certificate"]
+		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA.Key
+		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert
 
-		value.Values[secretTypes.EtcdCAKey] = etcdCA["private_key"]
-		value.Values[secretTypes.EtcdCACert] = etcdCA["certificate"]
+		value.Values[secretTypes.EtcdCAKey] = etcdCA.Key
+		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert
 
-		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA["private_key"]
-		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA["certificate"]
+		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA.Key
+		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert
 
 		// append cluster tag
 		clusterUIDTag := fmt.Sprintf("clusterUID:%s", clusterUID)
@@ -687,7 +731,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 	return nil
 }
 
-func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName string) (map[string]string, error) {
+func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName string) (*certificate, error) {
 	mountConfig := vaultapi.MountConfigInput{
 		MaxLeaseTTL:     "43800h",
 		DefaultLeaseTTL: "43800h",
@@ -738,8 +782,13 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 
 	fmt.Printf("caCertSecret: %+v\n", caCertSecret)
 
-	return map[string]string{
-		"private_key": caSecret.Data["private_key"].(string),
-		"certificate": caCertSecret.Data["certificate"].(string),
+	return &certificate{
+		Key:  caSecret.Data["private_key"].(string),
+		Cert: caCertSecret.Data["certificate"].(string),
 	}, nil
+}
+
+type certificate struct {
+	Cert string
+	Key  string
 }
