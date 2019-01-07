@@ -760,7 +760,9 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 	caSecret, err := ss.Logical.Write(fmt.Sprintf("%s/intermediate/generate/exported", path), caData)
 	if err != nil {
 		// Unmount the pki backend first
-		ss.Client.Vault().Sys().Unmount(path) // TODO err
+		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
+			log.Warnf("failed to unmount %s: %s", path, err)
+		}
 
 		return nil, errors.Wrapf(err, "error generating %s intermediate cert for cluster %s", commonName, clusterUID)
 	}
@@ -775,7 +777,9 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 	caCertSecret, err := ss.Logical.Write(fmt.Sprintf("%s/ca/root/sign-intermediate", basePath), caSignData)
 	if err != nil {
 		// Unmount the pki backend first
-		ss.Client.Vault().Sys().Unmount(path) // TODO err
+		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
+			log.Warnf("failed to unmount %s: %s", path, err)
+		}
 
 		return nil, errors.Wrapf(err, "error signing %s intermediate cert for cluster %s", commonName, clusterUID)
 	}
