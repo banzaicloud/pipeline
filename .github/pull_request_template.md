@@ -3,11 +3,12 @@
 Describe what is this change, why is it needed. Mention the issue this PR resolves (`Closes ###`).
 
 This change:
-[ ] Fixes a bug
-[ ] Adds new feature
-[ ] Breaks (removes, changes the behavior of) an existing feature
-[ ] Breaks existing REST API
-[ ] Contains DB migrations
+
+- [ ] Fixes a bug
+- [ ] Adds new feature
+- [ ] Breaks (removes, changes the behavior of) an existing feature
+- [ ] Breaks existing REST API
+- [ ] Contains DB migrations
 
 
 Give an overview about the implementation, which decisions were made and why.
@@ -18,8 +19,8 @@ Describe what automatic tests were added, modified, and what manual tests were e
 
 ## Checklist
 
-[ ] User guide and development docs updated if needed
-[ ] OpenAPI description and Postman files updated if needed
-[ ] Error handling code touched meets [guideline](/docs/error-handling-guide.md)
-[ ] Logging code touched meets guideline (TODO)
-[ ] The change is ready to merge (dependencies, remaining tasks: )
+- [ ] User guide and development docs updated if needed
+- [ ] OpenAPI description and Postman files updated if needed
+- [ ] Error handling code touched meets [guideline](/docs/error-handling-guide.md)
+- [ ] Logging code touched meets guideline (TODO)
+- [ ] The change is ready to merge (dependencies, remaining tasks: )
