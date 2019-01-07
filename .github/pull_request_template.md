@@ -25,7 +25,8 @@ Describe what automatic tests were added, modified, and what manual tests were e
 - [ ] Logging code touched meets guideline (TODO)
 - [ ] The change is ready to merge (dependencies, remaining tasks: )
 
-## Commits
+## Meta
 
 - [ ] The commits should be squashed before merge
 - [ ] The commits should be manually rebased before merge
+- [x] The PR is ready for review
