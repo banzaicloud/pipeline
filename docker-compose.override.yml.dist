@@ -56,3 +56,10 @@ services:
         build: etc/docker/uiproxy
         ports:
             - 127.0.0.1:4200:80
+
+    dex:
+        ports:
+            - 5556:5556
+            - 5558:5558
+        volumes:
+            - ./.docker/volumes/dex:/dex

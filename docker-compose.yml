@@ -106,3 +106,9 @@ services:
         environment:
             CLOUDINFO_URL: https://beta.banzaicloud.io/cloudinfo
             RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
+
+    dex:
+        command: serve /dex-config.yml
+        image: quay.io/dexidp/dex:v2.13.0
+        volumes:
+            - ./scripts/dex-config.yml:/dex-config.yml

@@ -27,7 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
@@ -35,10 +35,11 @@ import (
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
+	"github.com/qor/auth/providers/dex"
 	"github.com/qor/auth/providers/github"
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -218,6 +219,13 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 	githubProvider.AuthorizeHandler = NewGithubAuthorizeHandler(githubProvider)
 	Auth.RegisterProvider(githubProvider)
 
+	dexProvider := dex.New(&dex.Config{
+		ClientID:     viper.GetString("auth.clientid"),
+		ClientSecret: viper.GetString("auth.clientsecret"),
+		IssuerURL:    "http://127.0.0.1:5556/dex",
+	})
+	Auth.RegisterProvider(dexProvider)
+
 	TokenStore = bauth.NewVaultTokenStore("pipeline")
 
 	Handler = bauth.JWTAuth(TokenStore, signingKey, claimConverter, cookieExtractor{sessionStorer})
@@ -255,6 +263,10 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 		authGroup.GET("/github/logout", authHandler)
 		authGroup.GET("/github/register", authHandler)
 		authGroup.GET("/github/callback", authHandler)
+		authGroup.GET("/dex/login", authHandler)
+		authGroup.GET("/dex/logout", authHandler)
+		authGroup.GET("/dex/register", authHandler)
+		authGroup.GET("/dex/callback", authHandler)
 		authGroup.POST("/tokens", generateTokenHandler)
 		authGroup.GET("/tokens", GetTokens)
 		authGroup.GET("/tokens/:id", GetTokens)

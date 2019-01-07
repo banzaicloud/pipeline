@@ -109,7 +109,7 @@
   name = "github.com/prometheus/common"
 
 [[constraint]]
-  branch = "master"
+  branch = "dex"
   source = "github.com/banzaicloud/auth"
   name = "github.com/qor/auth"
 

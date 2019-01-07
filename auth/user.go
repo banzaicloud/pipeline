@@ -217,16 +217,17 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return nil, "", err
 	}
 
+	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	// This assumes GitHub auth only right now
-	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
-	currentUser.Login = githubExtraInfo.Login
-	err = bus.createUserInCICDDB(currentUser, githubExtraInfo.Token)
-	if err != nil {
-		log.Info(context.Request.RemoteAddr, err.Error())
-		return nil, "", err
-	}
+	// githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
+	// currentUser.Login = githubExtraInfo.Login
+	// err = bus.createUserInCICDDB(currentUser, githubExtraInfo.Token)
+	// if err != nil {
+	// 	log.Info(context.Request.RemoteAddr, err.Error())
+	// 	return nil, "", err
+	// }
 
-	synchronizeCICDRepos(currentUser.Login)
+	// synchronizeCICDRepos(currentUser.Login)
 
 	// When a user registers a default organization is created in which he/she is admin
 	userOrg := Organization{
@@ -247,19 +248,21 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 
 	bus.accessManager.GrantDefaultAccessToUser(currentUser.IDString())
 
+	// TODO
 	// Save the Github token to Vault
-	token := bauth.NewToken(GithubTokenID, "Github access token")
-	token.Value = githubExtraInfo.Token
-	err = TokenStore.Store(fmt.Sprint(currentUser.ID), token)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to store Github access token: %s", err.Error())
-	}
+	// token := bauth.NewToken(GithubTokenID, "Github access token")
+	// token.Value = githubExtraInfo.Token
+	// err = TokenStore.Store(fmt.Sprint(currentUser.ID), token)
+	// if err != nil {
+	// 	return "", "", fmt.Errorf("failed to store Github access token: %s", err.Error())
+	// }
 
 	bus.accessManager.AddOrganizationPolicies(currentUser.Organizations[0].ID)
 	bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
-	err = bus.githubImporter.ImportOrganizations(currentUser, githubExtraInfo.Token)
+	// TODO from where to sync orgs?
+	// err = bus.githubImporter.ImportOrganizations(currentUser, githubExtraInfo.Token)
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }

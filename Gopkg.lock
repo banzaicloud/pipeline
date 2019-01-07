@@ -394,6 +394,14 @@
   revision = "bf70f2a70fb1b1f36d90d671a72795984eab0fcb"
 
 [[projects]]
+  digest = "1:c91a5363a19174cb0181832821a7bb9da0aeefb5e2180724614b1005c2269712"
+  name = "github.com/coreos/go-oidc"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "1180514eaf4d9f38d0d19eef639a1d695e066e72"
+  version = "v2.0.0"
+
+[[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -1203,6 +1211,17 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:e91bc1b1cfb1a99107ad015ff3803071d13dc12924ed1fdf9c9d54346bcbbf6e"
+  name = "github.com/pquerna/cachecontrol"
+  packages = [
+    ".",
+    "cacheobject",
+  ]
+  pruneopts = "NUT"
+  revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
+
+[[projects]]
   digest = "1:167888737cd5a7d9cac6422e1216be91a687d5c6c752dfb88ba6879d179159e7"
   name = "github.com/prometheus/client_golang"
   packages = [
@@ -1256,17 +1275,18 @@
   revision = "ff57fdc13a148d39c3e930cb27c7eaf82e376891"
 
 [[projects]]
-  branch = "master"
-  digest = "1:3db2dcbe1390b0e84ba452cd3f5d3c2731f452ae21433ae819bd9cda6e1ec3fb"
+  branch = "dex"
+  digest = "1:1f2de23e82f5379bcd9bbfa1100a37627602fbce15a5215c15bdd60c0ca68540"
   name = "github.com/qor/auth"
   packages = [
     ".",
     "auth_identity",
     "claims",
+    "providers/dex",
     "providers/github",
   ]
   pruneopts = "NUT"
-  revision = "1bff4585d99aba219bcdc81e9ba63788835e99e9"
+  revision = "4142893de58fdf9a667cdcd32aa2c8dcad09e6f4"
   source = "github.com/banzaicloud/auth"
 
 [[projects]]
@@ -2299,6 +2319,7 @@
     "github.com/qor/auth",
     "github.com/qor/auth/auth_identity",
     "github.com/qor/auth/claims",
+    "github.com/qor/auth/providers/dex",
     "github.com/qor/auth/providers/github",
     "github.com/qor/qor/utils",
     "github.com/qor/session",
