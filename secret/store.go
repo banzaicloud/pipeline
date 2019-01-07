@@ -224,15 +224,15 @@ func (r *CreateSecretRequest) ValidateAsNew(verifier verify.Verifier) error {
 // DeleteByClusterUID Delete secrets by ClusterUID
 func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 	if clusterUID == "" {
-		return errors.New("ClusterUID is empty.")
+		return errors.New("clusterUID is empty")
 	}
 
 	log := log.WithFields(logrus.Fields{"organization": orgID, "clusterUID": clusterUID})
 
-	clusterIdTag := fmt.Sprintf("clusterUID:%s", clusterUID)
+	clusterUIDTag := clusterUIDTag(clusterUID)
 	secrets, err := Store.List(orgID,
 		&secretTypes.ListSecretsQuery{
-			Tags: []string{clusterIdTag},
+			Tags: []string{clusterUIDTag},
 		})
 
 	if err != nil {
@@ -271,9 +271,9 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 	// if type is distribution, unmount all pki engines
 	if secret.Type == secretTypes.DistributionSecretType {
 		clusterUID := secret.Values[secretTypes.ClusterUID]
-		basePath := fmt.Sprintf("clusters/%s/pki", clusterUID)
+		basePath := clusterPKIPath(clusterUID)
 
-		path = fmt.Sprintf("%s/%s", basePath, "ca")
+		path = fmt.Sprintf("%s/ca", basePath)
 		err = ss.Client.Vault().Sys().Unmount(path)
 		if err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
@@ -659,7 +659,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		}
 
 		// Mount a separate PKI engine for the cluster
-		basePath := fmt.Sprintf("clusters/%s/pki", clusterUID)
+		basePath := clusterPKIPath(clusterUID)
 		path := fmt.Sprintf("%s/ca", basePath)
 
 		err := ss.Client.Vault().Sys().Mount(path, &mountInput)
@@ -723,7 +723,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert
 
 		// append cluster tag
-		clusterUIDTag := fmt.Sprintf("clusterUID:%s", clusterUID)
+		clusterUIDTag := clusterUIDTag(clusterUID)
 		value.Tags = append(value.Tags, clusterUIDTag)
 	}
 
@@ -789,4 +789,12 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 type certificate struct {
 	Cert string
 	Key  string
+}
+
+func clusterUIDTag(clusterUID string) string {
+	return fmt.Sprintf("clusterUID:%s", clusterUID)
+}
+
+func clusterPKIPath(clusterUID string) string {
+	return fmt.Sprintf("clusters/%s/pki", clusterUID)
 }
