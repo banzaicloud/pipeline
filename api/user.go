@@ -246,3 +246,63 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+type updateUserRequest struct {
+	GitHubToken string `json:"gitHubToken,omitempty"`
+}
+
+// UpdateCurrentUser responds with the authenticated user
+func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
+	user := auth.GetCurrentUser(c.Request)
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, common.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: "failed to get current user",
+		})
+		return
+	}
+
+	var updateUserRequest updateUserRequest
+	err := c.BindJSON(&updateUserRequest)
+
+	if err != nil {
+		message := "failed to bind update user request"
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	db := config.DB()
+
+	err = db.Find(user).Error
+
+	if err != nil {
+		message := "failed to fetch user"
+		log.Info(message + ": " + err.Error())
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	if updateUserRequest.GitHubToken != "" {
+		err = auth.SaveUserGitHubToken(user, updateUserRequest.GitHubToken)
+		if err != nil {
+			message := "failed to update user's github token"
+			log.Info(message + ": " + err.Error())
+			c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: message,
+				Error:   message,
+			})
+			return
+		}
+	}
+
+	c.Status(http.StatusNoContent)
+}

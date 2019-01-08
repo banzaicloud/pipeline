@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"time"
 
+	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
 	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
@@ -220,13 +221,11 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	currentUser.Login = schema.Email
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
-	// err = bus.createUserInCICDDB(currentUser, githubExtraInfo.Token)
-	// if err != nil {
-	// 	log.Info(context.Request.RemoteAddr, err.Error())
-	// 	return nil, "", err
-	// }
-
-	// synchronizeCICDRepos(currentUser.Login)
+	err = bus.createUserInCICDDB(currentUser)
+	if err != nil {
+		log.Info(context.Request.RemoteAddr, err.Error())
+		return nil, "", err
+	}
 
 	// When a user registers a default organization is created in which he/she is admin
 	userOrg := Organization{
@@ -246,16 +245,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	}
 
 	bus.accessManager.GrantDefaultAccessToUser(currentUser.IDString())
-
-	// TODO
-	// Save the Github token to Vault
-	// token := bauth.NewToken(GithubTokenID, "Github access token")
-	// token.Value = githubExtraInfo.Token
-	// err = TokenStore.Store(fmt.Sprint(currentUser.ID), token)
-	// if err != nil {
-	// 	return "", "", fmt.Errorf("failed to store Github access token: %s", err.Error())
-	// }
-
 	bus.accessManager.AddOrganizationPolicies(currentUser.Organizations[0].ID)
 	bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
@@ -269,35 +258,39 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 // Update differs from the default UserStorer.Update() in that it
 // updates the GitHub access token of the given user
 // func (bus BanzaiUserStorer) Update(schema *auth.Schema, context *auth.Context) error {
-
-// 	// This assumes GitHub auth only right now
-// 	currentUser := &User{}
-// 	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
-// 	currentUser.Login = githubExtraInfo.Login
-
-// 	// Revoke the old Github token from Vault
-// 	err := TokenStore.Revoke(context.Claims.UserID, GithubTokenID)
-// 	if err != nil {
-// 		return errors.Wrap(err, "failed to revoke old Github access token")
-// 	}
-
-// 	// Save the new Github token to Vault
-// 	token := bauth.NewToken(GithubTokenID, "Github access token")
-// 	token.Value = githubExtraInfo.Token
-// 	err = TokenStore.Store(context.Claims.UserID, token)
-// 	if err != nil {
-// 		return errors.Wrap(err, "failed to save Github access token")
-// 	}
-
-// 	// Also update the new Github token in CICD (TODO CICD should get it from Vault as well)
-// 	return bus.updateUserInCICDDB(currentUser, githubExtraInfo.Token)
+// // This will run on every login
 // }
 
-func (bus BanzaiUserStorer) createUserInCICDDB(user *User, githubAccessToken string) error {
+// SaveUserGitHubToken saves a GitHub personal access token specified for a user
+func SaveUserGitHubToken(user *User, githubToken string) error {
+	// Revoke the old Github token from Vault if any
+	err := TokenStore.Revoke(user.IDString(), GithubTokenID)
+	if err != nil {
+		return errors.Wrap(err, "failed to revoke old Github access token")
+	}
+
+	token := bauth.NewToken(GithubTokenID, "Github access token")
+	token.Value = githubToken
+	err = TokenStore.Store(user.IDString(), token)
+	if err != nil {
+		return errors.Wrapf(err, "failed to store Github access token for user: %s", user.Login)
+	}
+
+	// TODO CICD should use Vault as well, and this should be removed by then
+	err = updateUserInCICDDB(user, githubToken)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update Github access token for user in CICD: %s", user.Login)
+	}
+
+	synchronizeCICDRepos(user.Login)
+
+	return nil
+}
+
+func (bus BanzaiUserStorer) createUserInCICDDB(user *User) error {
 	cicdUser := &CICDUser{
 		Login:  user.Login,
 		Email:  user.Email,
-		Token:  githubAccessToken,
 		Hash:   bus.signingKeyBase32,
 		Image:  user.Image,
 		Active: true,
@@ -307,7 +300,7 @@ func (bus BanzaiUserStorer) createUserInCICDDB(user *User, githubAccessToken str
 	return bus.cicdDB.Where(cicdUser).FirstOrCreate(cicdUser).Error
 }
 
-func (bus BanzaiUserStorer) updateUserInCICDDB(user *User, githubAccessToken string) error {
+func updateUserInCICDDB(user *User, githubAccessToken string) error {
 	where := &CICDUser{
 		Login: user.Login,
 	}
@@ -315,7 +308,7 @@ func (bus BanzaiUserStorer) updateUserInCICDDB(user *User, githubAccessToken str
 		Token:  githubAccessToken,
 		Synced: time.Now().Unix(),
 	}
-	return bus.cicdDB.Model(&CICDUser{}).Where(where).Update(update).Error
+	return cicdDB.Model(&CICDUser{}).Where(where).Update(update).Error
 }
 
 // This method tries to call the CICD API on a best effort basis to fetch all repos before the user navigates there.

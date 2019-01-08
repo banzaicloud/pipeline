@@ -309,6 +309,7 @@ func main() {
 	{
 		v1.Use(auth.Handler)
 		v1.GET("/me", userAPI.GetCurrentUser)
+		v1.PATCH("/me", userAPI.UpdateCurrentUser)
 		v1.Use(authorizationMiddleware)
 		orgs := v1.Group("/orgs")
 		{
