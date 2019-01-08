@@ -70,7 +70,7 @@ CREATE TABLE `amazon_ec2_profile_node_pools` (
   `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT 'ami-4d485ca7',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name_node_name` (`name`,`node_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `amazon_ec2_profiles` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE `amazon_eks_profile_node_pools` (
   `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT 'ami-0a54c984b9f908c81',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name_node_name` (`name`,`node_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `amazon_eks_profiles` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -292,7 +292,7 @@ CREATE TABLE `azure_aks_profile_node_pools` (
   `node_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name_node_name` (`name`,`node_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `azure_aks_profiles` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -410,7 +410,7 @@ CREATE TABLE `google_gke_profile_node_pools` (
   `node_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name_node_name` (`name`,`node_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `google_gke_profiles` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -518,7 +518,7 @@ CREATE TABLE `oracle_oke_profile_node_pools` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name_profile_id` (`name`,`profile_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `oracle_oke_profiles` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -529,7 +529,7 @@ CREATE TABLE `oracle_oke_profiles` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `organizations` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
