@@ -6,6 +6,7 @@ This change:
 
 - [ ] Fixes a bug
 - [ ] Adds new feature
+- [ ] Enhancement
 - [ ] Breaks (removes, changes the behavior of) an existing feature
 - [ ] Breaks existing REST API
 - [ ] Contains DB migrations
