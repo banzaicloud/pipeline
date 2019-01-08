@@ -442,7 +442,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\":\"okecluster-demo-{{$randomInt}}\",\n    \"location\": \"eu-frankfurt-1\",\n    \"cloud\": \"oracle\",\n    \"secretId\": \"{{secretIdOracle}}\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.10.3\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.10.3\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.5\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"general\"\n                \t}\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\":\"okecluster-demo-{{$randomInt}}\",\n    \"location\": \"eu-frankfurt-1\",\n    \"cloud\": \"oracle\",\n    \"secretId\": \"{{secretIdOracle}}\",\n    \"properties\": {\n        \"oke\": {\n            \"version\":\"v1.10.11\",\n            \"nodePools\": {\n                \"pool1\": {\n                \t\"version\":\"v1.10.11\",\n                \t\"count\": 1,\n                \t\"image\": \"Oracle-Linux-7.5\",\n                \t\"shape\": \"VM.Standard1.1\",\n                \t\"labels\": {\n                \t\t\"type\": \"general\"\n                \t}\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
