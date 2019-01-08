@@ -185,6 +185,18 @@ jobs:
                     name: Test database schema diff
                     command: mysqldiff --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
 
+            -
+                run:
+                    name: Test database migrations are reversible
+                    command: |
+                        migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" down
+                        migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
+
+            -
+                run:
+                    name: Test database schema diff again
+                    command: mysqldiff --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+
 workflows:
     version: 2
     build:
