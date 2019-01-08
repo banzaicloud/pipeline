@@ -132,6 +132,8 @@ jobs:
                 run:
                     name: Test database auto migrations
                     command: |
+                        mkdir -p /tmp/migrations
+                        bin/migrate -source "file:///tmp/migrations" -database "mysql://pipeline:pipeline123@tcp(automigrate:3306)/pipeline?multiStatements=true&charset=utf8mb4" drop
                         go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go -o ${BUILD_DIR}/automigrate
                         sudo apt-get update
                         sudo apt-get install -y mysql-utilities
