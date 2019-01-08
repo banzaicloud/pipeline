@@ -74,6 +74,7 @@ connectors:
     clientID: "xxxxxxxxxxxxx"
     clientSecret: "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
     redirectURI: http://127.0.0.1:5556/dex/callback
+    loadAllGroups: true
 
 # Let dex keep a list of passwords which can be used to login to dex.
 enablePasswordDB: true
