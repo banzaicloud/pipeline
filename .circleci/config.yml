@@ -14,6 +14,15 @@ jobs:
                     MYSQL_USER: pipeline
                     MYSQL_PASSWORD: pipeline123
             -
+                image: mysql:5.7
+                name: automigrate
+                command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+                environment:
+                    MYSQL_ROOT_PASSWORD: example
+                    MYSQL_DATABASE: pipeline
+                    MYSQL_USER: pipeline
+                    MYSQL_PASSWORD: pipeline123
+            -
                 image: vault:0.11.5
                 environment:
                     SKIP_SETCAP: true
@@ -118,6 +127,20 @@ jobs:
                     command: |
                         make bin/migrate
                         bin/migrate -source "file://database/migrations" -database "mysql://pipeline:pipeline123@tcp(127.0.0.1:3306)/pipeline?multiStatements=true&charset=utf8mb4" up
+
+            -
+                run:
+                    name: Test database auto migrations
+                    command: |
+                        go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go -o ${BUILD_DIR}/automigrate
+                    environment:
+                        PIPELINE_DATABASE_HOST: automigrate
+                        PIPELINE_DATABASE_USER: pipeline
+                        PIPELINE_DATABASE_PASSWORD: pipeline123
+                        PIPELINE_DATABASE_ROLE: ""
+                        PIPELINE_DATABASE_DBNAME: pipeline
+                        VAULT_ADDR: http://localhost:8200
+                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             -
                 save_cache:
