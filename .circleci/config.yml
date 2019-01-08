@@ -14,15 +14,6 @@ jobs:
                     MYSQL_USER: pipeline
                     MYSQL_PASSWORD: pipeline123
             -
-                image: mysql:5.7
-                name: automigrate
-                command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-                environment:
-                    MYSQL_ROOT_PASSWORD: example
-                    MYSQL_DATABASE: pipeline
-                    MYSQL_USER: pipeline
-                    MYSQL_PASSWORD: pipeline123
-            -
                 image: vault:0.11.5
                 environment:
                     SKIP_SETCAP: true
@@ -98,6 +89,11 @@ jobs:
 
             -
                 run:
+                    name: Build automigrate
+                    command: go build -tags automigrate -o build/automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go
+
+            -
+                run:
                     name: Run linter
                     command: make lint
 
@@ -122,32 +118,6 @@ jobs:
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             -
-                run:
-                    name: Test database migrations
-                    command: |
-                        make bin/migrate
-                        bin/migrate -source "file://database/migrations" -database "mysql://pipeline:pipeline123@tcp(127.0.0.1:3306)/pipeline?multiStatements=true&charset=utf8mb4" up
-
-            -
-                run:
-                    name: Test database auto migrations
-                    command: |
-                        mkdir -p /tmp/migrations
-                        bin/migrate -source "file:///tmp/migrations" -database "mysql://pipeline:pipeline123@tcp(automigrate:3306)/pipeline?multiStatements=true&charset=utf8mb4" drop
-                        go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go -o ${BUILD_DIR}/automigrate
-                        sudo apt-get update
-                        sudo apt-get install -y mysql-utilities
-                        mysqldiff --server1=root:example@127.0.0.1:3306 --server2=root:example@automigrate:3306 pipeline:pipeline
-                    environment:
-                        PIPELINE_DATABASE_HOST: automigrate
-                        PIPELINE_DATABASE_USER: pipeline
-                        PIPELINE_DATABASE_PASSWORD: pipeline123
-                        PIPELINE_DATABASE_ROLE: ""
-                        PIPELINE_DATABASE_DBNAME: pipeline
-                        VAULT_ADDR: http://localhost:8200
-                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
-
-            -
                 save_cache:
                     name: Save build dependencies
                     key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
@@ -160,3 +130,75 @@ jobs:
             -
                 store_artifacts:
                     path: build/
+
+            -
+                persist_to_workspace:
+                    root: .
+                    paths:
+                        - build
+
+    database:
+        docker:
+            -
+                image: webplates/mysql-tools:0.1.0
+            -
+                image: mysql:5.7
+                command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+                environment:
+                    MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+            -
+                image: vault:0.11.5
+                environment:
+                    SKIP_SETCAP: true
+                    VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+        working_directory: /go/src/github.com/banzaicloud/pipeline
+
+        steps:
+            - checkout
+
+            -
+                attach_workspace:
+                    at: .
+
+            -
+                run:
+                    name: Create databases
+                    command: |
+                        mysql -h 127.0.0.1 -e "CREATE DATABASE pipeline_migrations;"
+                        mysql -h 127.0.0.1 -e 'CREATE DATABASE pipeline_automigrate; USE pipeline_automigrate; CREATE TABLE `schema_migrations` (`version` bigint(20) NOT NULL, `dirty` tinyint(1) NOT NULL, PRIMARY KEY (`version`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
+
+            -
+                run:
+                    name: Test database migrations
+                    command: migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
+
+            -
+                run:
+                    name: Test database auto migrations
+                    command: |
+                        cp config/config.toml.example config/config.toml
+                        build/automigrate
+                    environment:
+                        PIPELINE_DATABASE_HOST: 127.0.0.1
+                        PIPELINE_DATABASE_USER: root
+                        PIPELINE_DATABASE_PASSWORD: ""
+                        PIPELINE_DATABASE_ROLE: ""
+                        PIPELINE_DATABASE_DBNAME: pipeline_automigrate
+                        VAULT_ADDR: http://localhost:8200
+                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+            -
+                run:
+                    name: Test database schema diff
+                    command: mysqldiff --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+
+workflows:
+    version: 2
+    build:
+        jobs:
+            - build
+            -
+                database:
+                    requires:
+                        - build
