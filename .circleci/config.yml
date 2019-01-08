@@ -133,6 +133,9 @@ jobs:
                     name: Test database auto migrations
                     command: |
                         go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go -o ${BUILD_DIR}/automigrate
+                        sudo apt-get update
+                        sudo apt-get install -y mysql-utilities
+                        mysqldiff --server1=root:example@127.0.0.1:3306 --server2=root:example@automigrate:3306 pipeline:pipeline
                     environment:
                         PIPELINE_DATABASE_HOST: automigrate
                         PIPELINE_DATABASE_USER: pipeline
