@@ -1,5 +1,4 @@
 // +build automigrate
-
 // Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

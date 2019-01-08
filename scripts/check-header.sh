@@ -19,14 +19,14 @@ EOF
 STATUS=0
 FILES=$(find . -name "*.go" -not -path "./vendor/*" -not -path "./client/*") # TODO: remove client
 
-for FILE in $FILES; do
+for FILE in ${FILES}; do
     # Replace the actual year with DATE so we can ignore the year when
     # checking for the license header.
-    HEADER=$(head -n 13 $FILE | sed -E -e 's/Copyright © [0-9]+/Copyright © DATE/')
-    if [ "$HEADER" != "$EXPECTED" ]; then
+    HEADER=$(cat ${FILE} | grep -v '^// +build' | head -n 13 | sed -E -e 's/Copyright © [0-9]+/Copyright © DATE/')
+    if [[ "$HEADER" != "$EXPECTED" ]]; then
         echo "incorrect license header: $FILE"
         STATUS=1
     fi
 done
 
-exit $STATUS
+exit ${STATUS}
