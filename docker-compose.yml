@@ -109,6 +109,6 @@ services:
 
     dex:
         command: serve /dex-config.yml
-        image: quay.io/dexidp/dex:v2.13.0
+        image: quay.io/dexidp/dex:latest
         volumes:
             - ./scripts/dex-config.yml:/dex-config.yml
