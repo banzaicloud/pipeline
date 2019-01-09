@@ -668,7 +668,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 
 	castedValue, ok := resp.(*acsk.AlibabaDescribeClusterResponse)
 	if !ok {
-		return errors.New("could not cast cluster create response")
+		return errors.New("could not cast cluster update response")
 	}
 
 	c.modelCluster.ACSK.NodePools = nodePoolModels
