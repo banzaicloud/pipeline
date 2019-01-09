@@ -56,10 +56,8 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 		return
 	}
-	a.log.Infoln("EXECUTE CreateACSKNodePoolAction, cluster name", cluster.Name)
 
 	if len(a.nodePools) == 0 {
-		a.log.Info("no nodepools in the request")
 		r, err := getClusterDetails(a.context.ClusterID, a.context.CSClient)
 		if err != nil {
 			return nil, err
@@ -67,6 +65,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 		return r, nil
 	}
+	a.log.Infoln("EXECUTE CreateACSKNodePoolAction, cluster name", cluster.Name)
 
 	errChan := make(chan error, len(a.nodePools))
 	instanceIdsChan := make(chan []string, len(a.nodePools))

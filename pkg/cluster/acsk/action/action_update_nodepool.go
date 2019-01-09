@@ -17,14 +17,7 @@ package action
 import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
-	//"encoding/json"
-	//
-	//"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	//"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
-	//"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
-	//"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
-	//"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -78,7 +71,7 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		for _, nodePool := range a.nodePools {
 			go func(nodePool *model.ACSKNodePoolModel) {
 				describeScalingInstancesResponseBeforeModify, err :=
-					describeScalingInstances(a.log, a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
+					describeScalingInstances(a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
 				if err != nil {
 					errChan <- err
 					createdInstanceIdsChan <- nil
@@ -108,7 +101,7 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 				}
 
 				describeScalingInstancesResponseAfterModify, err :=
-					describeScalingInstances(a.log, a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
+					describeScalingInstances(a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
 				if err != nil {
 					errChan <- err
 					createdInstanceIdsChan <- nil

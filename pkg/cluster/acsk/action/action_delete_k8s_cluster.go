@@ -66,5 +66,5 @@ func (a *DeleteACSKClusterAction) GetName() string {
 // ExecuteAction executes this DeleteACSKClusterAction
 func (a *DeleteACSKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	a.log.Info("EXECUTE DeleteClusterAction")
-	return nil, deleteCluster(a.context.ClusterID, a.context.CSClient)
+	return nil, deleteCluster(a.log, a.context.ClusterID, a.context.CSClient)
 }

@@ -32,10 +32,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func deleteCluster(clusterID string, csClient *cs.Client) error {
+func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client) error {
 
 	if len(clusterID) == 0 {
 		return nil
+	}
+
+	_, err := waitUntilClusterCreateOrScaleComplete(log, clusterID, csClient, true)
+	if err != nil {
+		log.Warn("Error happened during waiting for cluster state to be deleted ", err)
+		return emperror.WrapWith(err, "could not delete cluster!")
 	}
 
 	req := cs.CreateDeleteClusterRequest()
@@ -61,7 +67,7 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 	return nil
 }
 
-func describeScalingInstances(log logrus.FieldLogger, essClient *ess.Client, asgId, scalingConfId, regionId string) (*ess.DescribeScalingInstancesResponse, error) {
+func describeScalingInstances(essClient *ess.Client, asgId, scalingConfId, regionId string) (*ess.DescribeScalingInstancesResponse, error) {
 	describeScalingInstancesRequest := ess.CreateDescribeScalingInstancesRequest()
 	describeScalingInstancesRequest.SetScheme(requests.HTTPS)
 	describeScalingInstancesRequest.SetDomain("ess." + regionId + ".aliyuncs.com")
@@ -160,7 +166,7 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 	log.Info("Waiting for instances to get ready")
 
 	for {
-		describeScalingInstancesResponse, err := describeScalingInstances(log, essClient, nodePool.AsgId, nodePool.ScalingConfId, regionId)
+		describeScalingInstancesResponse, err := describeScalingInstances(essClient, nodePool.AsgId, nodePool.ScalingConfId, regionId)
 		if err != nil {
 			return nil, err
 		}
@@ -182,15 +188,6 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 			return instanceIds, nil
 		}
 	}
-}
-
-func contains(slice []string, str string) bool {
-	for _, s := range slice {
-		if s == str {
-			return true
-		}
-	}
-	return false
 }
 
 func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client, isClusterCreate bool) (*acsk.AlibabaDescribeClusterResponse, error) {
@@ -248,7 +245,7 @@ func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID str
 
 			return nil, AlibabaClusterFailureLogsError{clusterEventLogs: logs}
 		default:
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 20)
 		}
 	}
 }
