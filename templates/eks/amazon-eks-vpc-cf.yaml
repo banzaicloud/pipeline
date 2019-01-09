@@ -237,6 +237,11 @@ Resources:
               - autoscaling:DescribeLaunchConfigurations
               - autoscaling:SetDesiredCapacity
               - autoscaling:TerminateInstanceInAutoScalingGroup
+              - autoscaling:PutLifecycleHook
+              - autoscaling:RecordLifecycleActionHeartbeat
+              - autoscaling:DescribeLifecycleHooks
+              - autoscaling:CompleteLifecycleAction
+              - autoscaling:DeleteLifecycleHook
               Resource: "*"
 
 Outputs:
