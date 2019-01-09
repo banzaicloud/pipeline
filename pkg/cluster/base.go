@@ -413,6 +413,7 @@ func (r *UpdateClusterRequest) preValidate() {
 		r.AKS = nil
 		r.GKE = nil
 		r.OKE = nil
+		r.EKS = nil
 		break
 	case Amazon:
 		// reset other fields
@@ -426,17 +427,20 @@ func (r *UpdateClusterRequest) preValidate() {
 		r.ACSK = nil
 		r.GKE = nil
 		r.OKE = nil
+		r.EKS = nil
 		break
 	case Google:
 		// reset other fields
 		r.ACSK = nil
 		r.AKS = nil
 		r.OKE = nil
+		r.EKS = nil
 	case Oracle:
 		// reset other fields
 		r.ACSK = nil
 		r.AKS = nil
 		r.GKE = nil
+		r.EKS = nil
 	}
 }
 

@@ -89,6 +89,7 @@ type ACSKNodePoolModel struct {
 	MaxCount      int
 	AsgId         string
 	ScalingConfId string
+	Delete        bool `gorm:"-"`
 }
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
@@ -347,6 +348,23 @@ func (KubernetesClusterModel) TableName() string {
 
 // AfterUpdate removes marked node pool(s)
 func (a *EKSClusterModel) AfterUpdate(scope *gorm.Scope) error {
+	log.Info("Remove node pools marked for deletion")
+
+	for _, nodePoolModel := range a.NodePools {
+		if nodePoolModel.Delete {
+			err := scope.DB().Delete(nodePoolModel).Error
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// AfterUpdate removes marked node pool(s)
+func (a *ACSKClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log.Info("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {
