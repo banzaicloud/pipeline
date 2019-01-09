@@ -995,6 +995,16 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "dns", externalDnsValuesJson, chartVersion, false)
 }
 
+func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
+	if p, err := strconv.ParseFloat(nodePool.SpotPrice, 64); err == nil && p > 0.0 {
+		return "false"
+	}
+	if nodePool.Preemptible {
+		return "false"
+	}
+	return "true"
+}
+
 // LabelNodes adds labels for all nodes
 func LabelNodes(commonCluster CommonCluster) error {
 
@@ -1022,12 +1032,25 @@ func LabelNodes(commonCluster CommonCluster) error {
 		return err
 	}
 
-	for name, nodes := range nodeNames {
+	clusterStatus, err := commonCluster.GetStatus()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cluster status")
+	}
 
-		log.Debugf("nodepool: [%s]", name)
+	for poolName, nodes := range nodeNames {
+
+		log.Debugf("nodepool: [%s]", poolName)
 		for _, nodeName := range nodes {
 			log.Infof("add label to node [%s]", nodeName)
-			if err := addLabelsToNode(client, nodeName, map[string]string{pkgCommon.LabelKey: name}); err != nil {
+			labels := map[string]string{pkgCommon.LabelKey: poolName}
+
+			// add spot labels, in case of a Spot cluster. This is only needed for ec2_banzaicloud as in case of
+			// EKS & GKE labels are added by provider
+			if clusterStatus.Spot {
+				labels[pkgCommon.OnDemandLabelKey] = getOnDemandLabel(clusterStatus.NodePools[poolName])
+			}
+
+			if err := addLabelsToNode(client, nodeName, labels); err != nil {
 				log.Warnf("error during adding label to node [%s]: %s", nodeName, err.Error())
 			}
 		}
