@@ -5541,6 +5541,7 @@ components:
                 - securityGroupID
                 - subnets
                 - tags
+                - spotPrice
                 - size
             properties:
                 name:
@@ -5576,6 +5577,9 @@ components:
                 tags:
                     type: object
                     additionalProperties: true
+                spotPrice:
+                    type: string
+                    example: "0.2"
                 size:
                     type: object
                     required:

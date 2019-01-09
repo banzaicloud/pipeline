@@ -30,6 +30,7 @@ type NodePoolProviderConfigAmazon struct {
 			Min int `yaml:"min"`
 			Max int `yaml:"max"`
 		} `yaml:"size"`
+		SpotPrice string `yaml:"spotPrice"`
 	} `yaml:"autoScalingGroup"`
 }
 
