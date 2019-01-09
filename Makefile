@@ -209,17 +209,6 @@ ifeq (${OS}, Linux)
 	sha256sum ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
 endif
 
-bin/jq: bin/jq-${JQ_VERSION}
-	@ln -sf jq-${JQ_VERSION} bin/jq
-bin/jq-${JQ_VERSION}:
-	@mkdir -p bin
-ifeq (${OS}, Darwin)
-	curl -L https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-osx-amd64 > ./bin/jq-${JQ_VERSION} && chmod +x ./bin/jq-${JQ_VERSION}
-endif
-ifeq (${OS}, Linux)
-	curl -L https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 > ./bin/jq-${JQ_VERSION} && chmod +x ./bin/jq-${JQ_VERSION}
-endif
-
 bin/migrate: bin/migrate-${MIGRATE_VERSION}
 	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
 bin/migrate-${MIGRATE_VERSION}: PLATFORM := $(shell echo ${OS} | tr '[:upper:]' '[:lower:]')
@@ -227,18 +216,6 @@ bin/migrate-${MIGRATE_VERSION}:
 	@mkdir -p bin
 	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${PLATFORM}-amd64.tar.gz | tar xvz -C bin
 	@mv bin/migrate.${PLATFORM}-amd64 $@
-
-.PHONY: create-cluster
-create-cluster: ## Curl call to pipeline api to create a cluster with your username
-	curl -i -X POST http://localhost:9090/api/v1/clusters -H "Accept: application/json" -H "Content-Type: application/json" -d '{"name":"test-$(USER)","location":"eu-west-1","node":{"instanceType":"m4.large","spotPrice":"0.2","minCount":2,"maxCount":4,"image":"ami-34b6764d"},"master":{"instanceType":"m4.large","image":"ami-34b6764d"}}'
-
-.PHONY: delete-cluster
-delete-cluster: bin/jq ## Curl call to pipeline api to delete a cluster with your username
-	curl -X DELETE http://localhost:9090/api/v1/clusters/$(shell curl -s localhost:9090/api/v1/clusters|bin/jq '.data[]|select(.name=="test-$(USER)")|.ID')
-
-.PHONY: ec2-list-instances
-ec2-list-instances: ## Lists aws ec2 instances, for alternative regions use: AWS_DEFAULT_REGION=us-west-2 make ec2-list-instances
-	aws ec2 describe-instances --query 'Reservations[].Instances[].{ip:PublicIpAddress,id:InstanceId,state:State.Name,name:Tags[?Key==`Name`].Value|[0]}' --filters "Name=instance-state-name,Values=pending,running,shutting-down,stopping,stopped" --out table
 
 .PHONY: list
 list: ## List all make targets
