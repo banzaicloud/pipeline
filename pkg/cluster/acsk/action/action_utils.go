@@ -27,6 +27,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -60,6 +61,53 @@ func deleteCluster(clusterID string, csClient *cs.Client) error {
 	return nil
 }
 
+func describeScalingInstances(log logrus.FieldLogger, essClient *ess.Client, asgId, scalingConfId, regionId string) (*ess.DescribeScalingInstancesResponse, error) {
+	describeScalingInstancesRequest := ess.CreateDescribeScalingInstancesRequest()
+	describeScalingInstancesRequest.SetScheme(requests.HTTPS)
+	describeScalingInstancesRequest.SetDomain("ess." + regionId + ".aliyuncs.com")
+	describeScalingInstancesRequest.SetContentType(requests.Json)
+
+	describeScalingInstancesRequest.ScalingGroupId = asgId
+	describeScalingInstancesRequest.ScalingConfigurationId = scalingConfId
+
+	describeScalingInstancesResponse, err := essClient.DescribeScalingInstances(describeScalingInstancesRequest)
+	if err != nil {
+		return nil, err
+	}
+	return describeScalingInstancesResponse, nil
+}
+
+func attachInstancesToCluster(log logrus.FieldLogger, clusterID string, instanceIds []string, csClient *cs.Client) (*acsk.AlibabaDescribeClusterResponse, error) {
+	log.Info("Attaching nodepools to cluster")
+	attachInstanceRequest := cs.CreateAttachInstancesRequest()
+	attachInstanceRequest.SetScheme(requests.HTTPS)
+	attachInstanceRequest.SetDomain(acsk.AlibabaApiDomain)
+	attachInstanceRequest.SetContentType(requests.Json)
+
+	attachInstanceRequest.ClusterId = clusterID
+
+	content := map[string]interface{}{
+		"instances": instanceIds,
+		"password":  "Hello1234", // Dummy password should be used here otherwise the api will fail
+	}
+	contentJSON, err := json.Marshal(content)
+	if err != nil {
+		return nil, err
+	}
+	attachInstanceRequest.SetContent(contentJSON)
+
+	_, err = csClient.AttachInstances(attachInstanceRequest)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("Wait for nodepool attach")
+	clusterWithPools, err := waitUntilClusterCreateOrScaleComplete(log, clusterID, csClient, false)
+	if err != nil {
+		return nil, emperror.WrapWith(err, "nodepool creation failed", "clusterId", clusterID)
+	}
+	return clusterWithPools, nil
+}
+
 func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolModel, essClient *ess.Client, regionId string) (err error) {
 	errChan := make(chan error, len(nodePools))
 	defer close(errChan)
@@ -86,6 +134,12 @@ func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 				return
 			}
 
+			_, err = waitUntilScalingInstanceCreated(log, essClient, regionId, nodePool)
+			if err != nil {
+				errChan <- err
+				return
+			}
+
 			errChan <- nil
 		}(nodePool)
 	}
@@ -104,16 +158,9 @@ func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 
 func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACSKNodePoolModel) ([]string, error) {
 	log.Info("Waiting for instances to get ready")
-	describeScalingInstancesRequest := ess.CreateDescribeScalingInstancesRequest()
-	describeScalingInstancesRequest.SetScheme(requests.HTTPS)
-	describeScalingInstancesRequest.SetDomain("ess." + regionId + ".aliyuncs.com")
-	describeScalingInstancesRequest.SetContentType(requests.Json)
-
-	describeScalingInstancesRequest.ScalingGroupId = nodePool.AsgId
-	describeScalingInstancesRequest.ScalingConfigurationId = nodePool.ScalingConfId
 
 	for {
-		describeScalingInstancesResponse, err := essClient.DescribeScalingInstances(describeScalingInstancesRequest)
+		describeScalingInstancesResponse, err := describeScalingInstances(log, essClient, nodePool.AsgId, nodePool.ScalingConfId, regionId)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +174,7 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 				instanceIds = append(instanceIds, instance.InstanceId)
 				continue
 			} else {
-				time.Sleep(time.Second * 5)
+				time.Sleep(time.Second * 20)
 				break
 			}
 		}

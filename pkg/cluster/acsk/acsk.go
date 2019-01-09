@@ -81,6 +81,9 @@ func ValidateNodePools(nps NodePools) error {
 		if np.MinCount < 1 {
 			return pkgErrors.ErrorAlibabaMinNumberOfNodes
 		}
+		if np.MaxCount < np.MinCount && np.MaxCount > 1000 {
+			return pkgErrors.ErrorAlibabaMaxNumberOfNodes
+		}
 	}
 	return nil
 }

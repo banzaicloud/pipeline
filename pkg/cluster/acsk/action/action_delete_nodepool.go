@@ -37,6 +37,9 @@ func (a *DeleteACSKNodePoolAction) GetName() string {
 
 // ExecuteAction executes this DeleteACSKNodePoolAction
 func (a *DeleteACSKNodePoolAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	if len(a.context.NodePools) == 0 {
+		return nil, nil
+	}
 	a.log.Info("EXECUTE DeleteNodePoolAction")
 	return nil, deleteNodepools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionId)
 }

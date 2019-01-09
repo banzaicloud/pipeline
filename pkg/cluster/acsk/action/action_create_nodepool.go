@@ -15,15 +15,12 @@
 package action
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -62,7 +59,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 	a.log.Infoln("EXECUTE CreateACSKNodePoolAction, cluster name", cluster.Name)
 
 	if len(a.nodePools) == 0 {
-		a.log.Info("no new nodepools in the request")
+		a.log.Info("no nodepools in the request")
 		r, err := getClusterDetails(a.context.ClusterID, a.context.CSClient)
 		if err != nil {
 			return nil, err
@@ -173,35 +170,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		return
 	}
 
-	a.log.Info("Attaching nodepools to cluster")
-	attachInstanceRequest := cs.CreateAttachInstancesRequest()
-	attachInstanceRequest.SetScheme(requests.HTTPS)
-	attachInstanceRequest.SetDomain(acsk.AlibabaApiDomain)
-	attachInstanceRequest.SetContentType(requests.Json)
-
-	attachInstanceRequest.ClusterId = cluster.ClusterID
-
-	content := map[string]interface{}{
-		"instances": instanceIds,
-		"password":  "Hello1234", // Dummy password should be used here otherwise the api will fail
-	}
-	contentJSON, err := json.Marshal(content)
-	if err != nil {
-		return
-	}
-	attachInstanceRequest.SetContent(contentJSON)
-
-	_, err = a.context.CSClient.AttachInstances(attachInstanceRequest)
-	if err != nil {
-		return
-	}
-	a.log.Info("Wait for nodepool attach")
-	clusterWithPools, err := waitUntilClusterCreateOrScaleComplete(a.log, cluster.ClusterID, a.context.CSClient, false)
-	if err != nil {
-		return nil, emperror.WrapWith(err, "nodepool creation failed", "clusterName", cluster.Name)
-	}
-
-	return clusterWithPools, err
+	return attachInstancesToCluster(a.log, cluster.ClusterID, instanceIds, a.context.CSClient)
 }
 
 // UndoAction rolls back this CreateACSKNodePoolAction

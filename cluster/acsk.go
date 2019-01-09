@@ -183,45 +183,73 @@ func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model
 	return res, nil
 }
 
-func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, []*model.ACSKNodePoolModel, error) {
+func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
 	currentNodePoolMap := make(map[string]*model.ACSKNodePoolModel, len(c.modelCluster.ACSK.NodePools))
-	for _, nodePool := range c.modelCluster.ACSK.NodePools {
-		currentNodePoolMap[nodePool.Name] = nodePool
-	}
-
 	updatedNodePools := make([]*model.ACSKNodePoolModel, 0, len(pools))
-	createdNodePools := make([]*model.ACSKNodePoolModel, 0, len(pools))
+
+	for _, nodePool := range c.modelCluster.ACSK.NodePools {
+		//Collect stored node pool info from DB
+		currentNodePoolMap[nodePool.Name] = nodePool
+
+		// Delete node pool stored in the DB but deleted with Update
+		if pools[nodePool.Name] == nil {
+			updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
+				ID:            nodePool.ID,
+				CreatedBy:     nodePool.CreatedBy,
+				CreatedAt:     nodePool.CreatedAt,
+				ClusterID:     nodePool.ClusterID,
+				Name:          nodePool.Name,
+				AsgId:         nodePool.AsgId,
+				ScalingConfId: nodePool.ScalingConfId,
+				Delete:        true,
+			})
+		}
+	}
 
 	for nodePoolName, nodePool := range pools {
 		if currentNodePoolMap[nodePoolName] != nil {
-			updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
-				ID:            currentNodePoolMap[nodePoolName].ID,
-				CreatedBy:     currentNodePoolMap[nodePoolName].CreatedBy,
-				CreatedAt:     currentNodePoolMap[nodePoolName].CreatedAt,
-				ClusterID:     currentNodePoolMap[nodePoolName].ClusterID,
-				Name:          nodePoolName,
-				InstanceType:  nodePool.InstanceType,
-				MinCount:      nodePool.MinCount,
-				MaxCount:      nodePool.MaxCount,
-				AsgId:         currentNodePoolMap[nodePoolName].AsgId,
-				ScalingConfId: currentNodePoolMap[nodePoolName].ScalingConfId,
-			})
+			if currentNodePoolMap[nodePoolName].MinCount != nodePool.MinCount ||
+				currentNodePoolMap[nodePoolName].MaxCount != nodePool.MaxCount ||
+				currentNodePoolMap[nodePoolName].InstanceType != nodePool.InstanceType {
+				updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
+					ID:            currentNodePoolMap[nodePoolName].ID,
+					CreatedBy:     currentNodePoolMap[nodePoolName].CreatedBy,
+					CreatedAt:     currentNodePoolMap[nodePoolName].CreatedAt,
+					ClusterID:     currentNodePoolMap[nodePoolName].ClusterID,
+					Name:          nodePoolName,
+					InstanceType:  nodePool.InstanceType,
+					MinCount:      nodePool.MinCount,
+					MaxCount:      nodePool.MaxCount,
+					AsgId:         currentNodePoolMap[nodePoolName].AsgId,
+					ScalingConfId: currentNodePoolMap[nodePoolName].ScalingConfId,
+					Delete:        false,
+				})
+			}
 		} else {
-			createdNodePools = append(createdNodePools, &model.ACSKNodePoolModel{
+			// add new node pool
+
+			// ---- [ Node instanceType check ] ---- //
+			if len(nodePool.InstanceType) == 0 {
+				c.log.Errorf("instanceType is missing for nodePool %v", nodePoolName)
+				return nil, pkgErrors.ErrorInstancetypeFieldIsEmpty
+			}
+
+			updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
 				CreatedBy:    userId,
 				Name:         nodePoolName,
 				InstanceType: nodePool.InstanceType,
 				MinCount:     nodePool.MinCount,
 				MaxCount:     nodePool.MaxCount,
+				Delete:       false,
 			})
 		}
+
 	}
-	return updatedNodePools, createdNodePools, nil
+	return updatedNodePools, nil
 }
 
 //CreateACSKClusterFromModel creates ClusterModel struct from the Alibaba model
 func CreateACSKClusterFromModel(clusterModel *model.ClusterModel) (*ACSKCluster, error) {
-	log.Debug("Create ClusterModel struct from the model")
 	alibabaCluster := ACSKCluster{
 		modelCluster: clusterModel,
 		log:          log.WithField("cluster", clusterModel.Name),
@@ -241,7 +269,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 
 	cluster.modelCluster = &model.ClusterModel{
 		Name:           request.Name,
-		Location:       request.Location,
+		Location:       request.Properties.CreateClusterACSK.RegionID,
 		Cloud:          request.Cloud,
 		Distribution:   pkgCluster.ACSK,
 		OrganizationId: orgId,
@@ -426,7 +454,7 @@ func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnecti
 }
 
 func (c *ACSKCluster) Persist(status, statusMessage string) error {
-	log.Infof("Model before save: %v", c.modelCluster)
+	c.log.Infof("Model before save: %v", c.modelCluster)
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
@@ -502,7 +530,6 @@ func (c *ACSKCluster) GetType() string {
 }
 
 func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.ACSK.NodePools {
@@ -532,7 +559,8 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 }
 
 func (c *ACSKCluster) DeleteCluster() error {
-	log.Info("Start deleting cluster (alibaba)")
+	c.log.WithField("clusterName", c.modelCluster.Name)
+	c.log.Info("Start deleting cluster (Alibaba)")
 
 	csClient, err := c.GetAlibabaCSClient(nil)
 	if err != nil {
@@ -558,21 +586,22 @@ func (c *ACSKCluster) DeleteCluster() error {
 		c.modelCluster.ACSK.RegionID)
 
 	actions := []utils.Action{
-		action.NewDeleteACSKClusterAction(c.log, deleteContext),
 		action.NewDeleteACSKNodePoolAction(c.log, deleteContext),
+		action.NewDeleteACSKClusterAction(c.log, deleteContext),
 		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.modelCluster.Name, c.modelCluster.ACSK.RegionID),
 	}
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		return errors.Wrap(err, "ACK cluster delete error")
+		return errors.Wrap(err, "Alibaba cluster delete error")
 	}
 
 	return nil
 }
 
 func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
-	log.Info("Start updating cluster (Alibaba)")
+	c.log.WithField("clusterName", c.modelCluster.Name)
+	c.log.Info("Start updating cluster (Alibaba)")
 
 	csClient, err := c.GetAlibabaCSClient(nil)
 	if err != nil {
@@ -589,21 +618,52 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 		return err
 	}
 
-	updatedNodePoolModels, createdNodePoolModels, err := c.createACSKNodePoolsModelFromUpdateRequestData(request.ACSK.NodePools, userId)
+	nodePoolModels, err := c.createACSKNodePoolsModelFromUpdateRequestData(request.ACSK.NodePools, userId)
 	if err != nil {
 		return err
 	}
 
+	var nodePoolsToCreate []*model.ACSKNodePoolModel
+	var nodePoolsToUpdate []*model.ACSKNodePoolModel
+	var nodePoolsToDelete []*model.ACSKNodePoolModel
+
+	for _, nodePool := range nodePoolModels {
+		// delete nodePool
+		if nodePool.Delete {
+			c.log.Infof("nodePool %v will be deleted", nodePool.Name)
+			nodePoolsToDelete = append(nodePoolsToDelete, nodePool)
+			continue
+		}
+		// create nodePool
+		if nodePool.ScalingConfId == "" && nodePool.AsgId == "" {
+			c.log.Infof("nodePool %v will be created", nodePool.Name)
+			nodePoolsToCreate = append(nodePoolsToCreate, nodePool)
+			continue
+		} else {
+			// update nodePool
+			c.log.Infof("nodePool %v will be updated", nodePool.Name)
+			nodePoolsToUpdate = append(nodePoolsToUpdate, nodePool)
+		}
+	}
+
 	context := action.NewACKContext(c.modelCluster.ACSK.ProviderClusterID, csClient, ecsClient, essClient)
+	deleteContext := action.NewACSKClusterDeletionContext(
+		csClient,
+		ecsClient,
+		essClient,
+		c.modelCluster.ACSK.ProviderClusterID,
+		nodePoolsToDelete,
+		c.modelCluster.ACSK.RegionID)
 
 	actions := []utils.Action{
-		action.NewUpdateACSKClusterAction(c.log, updatedNodePoolModels, context, c.modelCluster.ACSK.RegionID),
-		action.NewCreateACSKNodePoolAction(c.log, createdNodePoolModels, context, c.modelCluster.ACSK.RegionID),
+		action.NewDeleteACSKNodePoolAction(c.log, deleteContext),
+		action.NewUpdateACSKNodePoolAction(c.log, nodePoolsToUpdate, context, c.modelCluster.ACSK.RegionID),
+		action.NewCreateACSKNodePoolAction(c.log, nodePoolsToCreate, context, c.modelCluster.ACSK.RegionID),
 	}
 
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		return errors.Wrap(err, "ACK cluster create error")
+		return errors.Wrap(err, "ACK cluster update error")
 	}
 
 	castedValue, ok := resp.(*acsk.AlibabaDescribeClusterResponse)
@@ -611,10 +671,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 		return errors.New("could not cast cluster create response")
 	}
 
-	updatedNodePools := make([]*model.ACSKNodePoolModel, 0, len(request.ACSK.NodePools))
-	updatedNodePools = append(updatedNodePools, updatedNodePoolModels...)
-	updatedNodePools = append(updatedNodePools, createdNodePoolModels...)
-	c.modelCluster.ACSK.NodePools = updatedNodePools
+	c.modelCluster.ACSK.NodePools = nodePoolModels
 	c.alibabaCluster = castedValue
 
 	return nil
@@ -670,7 +727,7 @@ func (c *ACSKCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) 
 		NodePools: preNodePools,
 	}
 
-	log.Info("Check stored & updated cluster equals")
+	c.log.Info("Check stored & updated cluster equals")
 
 	// check equality
 	return isDifferent(r.ACSK, preCl)
