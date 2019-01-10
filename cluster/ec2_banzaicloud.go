@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"strconv"
+
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	banzaicloudDB "github.com/banzaicloud/pipeline/internal/providers/banzaicloud"
@@ -219,6 +221,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetKubernetesUserName() (string, err
 func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Create cluster status response")
 
+	hasSpotNodePool := false
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.model.NodePools {
 		providerConfig := banzaicloudDB.NodePoolProviderConfigAmazon{}
@@ -229,7 +232,12 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterS
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 			Count:             len(np.Hosts),
 			InstanceType:      providerConfig.AutoScalingGroup.InstanceType,
+			SpotPrice:         providerConfig.AutoScalingGroup.SpotPrice,
 			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+		}
+
+		if p, err := strconv.ParseFloat(providerConfig.AutoScalingGroup.SpotPrice, 64); err == nil && p > 0.0 {
+			hasSpotNodePool = true
 		}
 	}
 
@@ -240,6 +248,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterS
 		Location:          c.model.Cluster.Location,
 		Cloud:             c.model.Cluster.Cloud,
 		Distribution:      c.model.Cluster.Distribution,
+		Spot:              hasSpotNodePool,
 		ResourceID:        c.model.Cluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
