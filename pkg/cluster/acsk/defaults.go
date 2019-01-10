@@ -27,4 +27,5 @@ const (
 	AlibabaScaleClusterFailedLog    = "start to update cluster status update_failed"
 	AlibabaApiDomain                = "cs.aliyuncs.com"
 	AlibabaInstanceHealthyStatus    = "Healthy"
+	AlibabaESSEndPointFmt           = "ess.%s.aliyuncs.com"
 )

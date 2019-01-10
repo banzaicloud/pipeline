@@ -20,7 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/goph/emperror"
-	"github.com/goph/emperror/errorlogrus"
+	"github.com/goph/emperror/handler/logrushandler"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -43,7 +43,7 @@ func newErrorHandler() emperror.Handler {
 		Format: viper.GetString("logging.logformat"),
 	})
 
-	loggerHandler := errorlogrus.NewHandler(logger)
+	loggerHandler := logrushandler.New(logger)
 
 	return emperror.HandlerFunc(func(err error) {
 		if stackTrace, ok := emperror.StackTrace(err); ok && len(stackTrace) > 0 {

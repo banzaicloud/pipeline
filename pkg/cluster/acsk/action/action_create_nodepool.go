@@ -60,7 +60,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 	if len(a.nodePools) == 0 {
 		r, err := getClusterDetails(a.context.ClusterID, a.context.CSClient)
 		if err != nil {
-			return nil, emperror.With(err, "clusterName", cluster.Name)
+			return nil, emperror.With(err, "cluster", cluster.Name)
 		}
 
 		return r, nil
@@ -76,7 +76,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 		go func(nodePool *model.ACSKNodePoolModel) {
 			scalingGroupRequest := ess.CreateCreateScalingGroupRequest()
 			scalingGroupRequest.SetScheme(requests.HTTPS)
-			scalingGroupRequest.SetDomain("ess." + cluster.RegionID + ".aliyuncs.com")
+			scalingGroupRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
 			scalingGroupRequest.SetContentType(requests.Json)
 
 			a.log.WithFields(logrus.Fields{
@@ -92,7 +92,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 
 			createScalingGroupResponse, err := a.context.ESSClient.CreateScalingGroup(scalingGroupRequest)
 			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not create Scaling Group", "nodePoolName", nodePool.Name, "clusterName", cluster.Name)
+				errChan <- emperror.WrapWith(err, "could not create Scaling Group", "nodePoolName", nodePool.Name, "cluster", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
@@ -103,7 +103,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 
 			scalingConfigurationRequest := ess.CreateCreateScalingConfigurationRequest()
 			scalingConfigurationRequest.SetScheme(requests.HTTPS)
-			scalingConfigurationRequest.SetDomain("ess." + cluster.RegionID + ".aliyuncs.com")
+			scalingConfigurationRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
 			scalingConfigurationRequest.SetContentType(requests.Json)
 
 			scalingConfigurationRequest.ScalingGroupId = nodePool.AsgId
@@ -118,7 +118,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 
 			createConfigurationResponse, err := a.context.ESSClient.CreateScalingConfiguration(scalingConfigurationRequest)
 			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgId, "clusterName", cluster.Name)
+				errChan <- emperror.WrapWith(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgId, "cluster", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
@@ -129,7 +129,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 
 			enableSGRequest := ess.CreateEnableScalingGroupRequest()
 			enableSGRequest.SetScheme(requests.HTTPS)
-			enableSGRequest.SetDomain("ess." + cluster.RegionID + ".aliyuncs.com")
+			enableSGRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
 			enableSGRequest.SetContentType(requests.Json)
 
 			enableSGRequest.ScalingGroupId = nodePool.AsgId
@@ -137,14 +137,14 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 
 			_, err = a.context.ESSClient.EnableScalingGroup(enableSGRequest)
 			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not enable Scaling Group", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgId, "clusterName", cluster.Name)
+				errChan <- emperror.WrapWith(err, "could not enable Scaling Group", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgId, "cluster", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
 
 			instanceIds, err := waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, cluster.RegionID, nodePool)
 			if err != nil {
-				errChan <- emperror.With(err, "clusterName", cluster.Name)
+				errChan <- emperror.With(err, "cluster", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
@@ -169,8 +169,9 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 			instanceIds = append(instanceIds, ids...)
 		}
 	}
+	err = caughtErrors.ErrOrNil()
 	if err != nil {
-		return nil, pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
+		return nil, pkgErrors.NewMultiErrorWithFormatter(err)
 	}
 
 	return attachInstancesToCluster(a.log, cluster.ClusterID, instanceIds, a.context.CSClient)

@@ -46,7 +46,7 @@ func (a *DeleteSSHKeyAction) GetName() string {
 	return "DeleteSSHKeyAction"
 }
 
-// ExecuteAction executes this UploadSSHKeyAction
+// ExecuteAction executes this DeleteSSHKeyAction
 func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, error) {
 	a.log.Info("EXECUTE DeleteSSHKeyAction")
 	ecsClient := a.context.ECSClient
@@ -56,7 +56,7 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 	jsonData := []string{a.sshKeyName}
 	marshaledValue, err := json.Marshal(jsonData)
 	if err != nil {
-		return nil, err
+		return nil, emperror.With(err, "sshKeyName", a.sshKeyName)
 	}
 	req.KeyPairNames = string(marshaledValue)
 	req.RegionId = a.sshKeyRegionID

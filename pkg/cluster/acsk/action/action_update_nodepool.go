@@ -15,9 +15,12 @@
 package action
 
 import (
+	"fmt"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
@@ -77,13 +80,13 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 				describeScalingInstancesResponseBeforeModify, err :=
 					describeScalingInstances(a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
 				if err != nil {
-					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "clusterName", a.clusterName)
+					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
 
 				modifyScalingGroupReq := ess.CreateModifyScalingGroupRequest()
-				modifyScalingGroupReq.SetDomain("ess." + a.region + ".aliyuncs.com")
+				modifyScalingGroupReq.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, a.region))
 				modifyScalingGroupReq.SetScheme(requests.HTTPS)
 				modifyScalingGroupReq.RegionId = a.region
 				modifyScalingGroupReq.ScalingGroupId = nodePool.AsgId
@@ -92,14 +95,14 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 
 				_, err = a.context.ESSClient.ModifyScalingGroup(modifyScalingGroupReq)
 				if err != nil {
-					errChan <- emperror.WrapWith(err, "could not modify ScalingGroup", "scalingGroupId", nodePool.AsgId, "nodePoolName", nodePool.Name, "clusterName", a.clusterName)
+					errChan <- emperror.WrapWith(err, "could not modify ScalingGroup", "scalingGroupId", nodePool.AsgId, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
 
 				_, err = waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, a.region, nodePool)
 				if err != nil {
-					errChan <- emperror.With(err, "clusterName", a.clusterName)
+					errChan <- emperror.With(err, "cluster", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
@@ -107,7 +110,7 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 				describeScalingInstancesResponseAfterModify, err :=
 					describeScalingInstances(a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
 				if err != nil {
-					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "clusterName", a.clusterName)
+					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
@@ -145,21 +148,22 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 				createdInstanceIds = append(createdInstanceIds, ids...)
 			}
 		}
+		err = caughtErrors.ErrOrNil()
 		if err != nil {
-			return nil, pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
+			return nil, pkgErrors.NewMultiErrorWithFormatter(err)
 		}
 
 		if len(createdInstanceIds) != 0 {
 			_, err = attachInstancesToCluster(a.log, a.context.ClusterID, createdInstanceIds, a.context.CSClient)
 			if err != nil {
-				return nil, emperror.With(err, "clusterName", a.clusterName)
+				return nil, emperror.With(err, "cluster", a.clusterName)
 			}
 		}
 	}
 
 	r, err := getClusterDetails(a.context.ClusterID, a.context.CSClient)
 	if err != nil {
-		return nil, emperror.With(err, "clusterName", a.clusterName)
+		return nil, emperror.With(err, "cluster", a.clusterName)
 	}
 
 	return r, nil

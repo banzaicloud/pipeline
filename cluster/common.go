@@ -132,13 +132,13 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretI
 	if c.sshSecret == nil {
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSshSecretId())
 		if err != nil {
-			return nil, emperror.With(err, "clusterName", cluster.GetName())
+			return nil, emperror.With(err, "cluster", cluster.GetName())
 		}
 		c.sshSecret = s
 
 		err = c.sshSecret.ValidateSecretType(pkgSecret.SSHSecretType)
 		if err != nil {
-			return nil, emperror.With(err, "clusterName", cluster.GetName())
+			return nil, emperror.With(err, "cluster", cluster.GetName())
 		}
 	}
 

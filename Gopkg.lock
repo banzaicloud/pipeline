@@ -738,16 +738,16 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:717148b6740b587de2403f7576cc97859f898c8ac4ed3633faab46c7ea59f081"
+  digest = "1:623a0a318f50e13f8bec4f82d83fca486c8af23fe6d0f54638b61619a3d1cfff"
   name = "github.com/goph/emperror"
   packages = [
     ".",
-    "errorlogrus",
+    "handler/logrushandler",
     "internal/keyvals",
   ]
   pruneopts = "NUT"
-  revision = "9870ade6f413fe7fbddcb3eb8a735822deeef874"
-  version = "v0.12.0"
+  revision = "4cdd86c173cfed1f47be88bd88327140f81bcede"
+  version = "v0.16.0"
 
 [[projects]]
   digest = "1:dbd86d229eacaa86a98b10f8fb3e3fc69a1913e0f4e010e7cc1f92bf12edca92"
@@ -2247,7 +2247,7 @@
     "github.com/golang/protobuf/ptypes/duration",
     "github.com/google/go-github/github",
     "github.com/goph/emperror",
-    "github.com/goph/emperror/errorlogrus",
+    "github.com/goph/emperror/handler/logrushandler",
     "github.com/gorilla/sessions",
     "github.com/hashicorp/vault/api",
     "github.com/heptio/ark/pkg/apis/ark/v1",

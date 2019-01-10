@@ -58,6 +58,13 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		"cluster":      creationCtx.Name,
 	})
 
+	errorHandler := emperror.HandlerWith(
+		m.getErrorHandler(ctx),
+		"organization", creationCtx.OrganizationID,
+		"user", creationCtx.UserID,
+		"cluster", creationCtx.Name,
+	)
+
 	logger.Debug("looking for existing cluster")
 	if err := m.assertNotExists(creationCtx); err != nil {
 		return nil, err
@@ -126,7 +133,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
-			logger.Errorf("failed to create cluster: %s", err.Error())
+			errorHandler.Handle(err)
 			return
 		}
 		timer.ObserveDuration()
