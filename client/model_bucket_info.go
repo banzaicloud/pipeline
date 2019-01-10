@@ -14,9 +14,9 @@ package client
 type BucketInfo struct {
 	// the name of the object storage / bucket
 	Name string `json:"name"`
-	// true if the bucket has been created via piepeline
+	// true if the bucket has been created via pipeline
 	Managed bool `json:"managed"`
-	// true if the bucket has been created via piepeline
+	// true if the bucket has been created via pipeline
 	Notes  string                `json:"notes,omitempty"`
 	Secret BucketInfoSecret      `json:"secret,omitempty"`
 	Azure  AzureBlobStorageProps `json:"azure,omitempty"`

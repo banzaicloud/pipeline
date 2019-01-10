@@ -85,6 +85,9 @@ Class | Method | HTTP request | Description
 *InfoApi* | [**GetGoogleConfig**](docs/InfoApi.md#getgoogleconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
 *InfoApi* | [**GetResourceGroup**](docs/InfoApi.md#getresourcegroup) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
 *InfoApi* | [**GetSupportedClouds**](docs/InfoApi.md#getsupportedclouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
+*NetworkApi* | [**ListRouteTables**](docs/NetworkApi.md#listroutetables) | **Get** /api/v1/orgs/{orgId}/networks/{networkId}/routeTables | List VPC route tables
+*NetworkApi* | [**ListVPCNetworks**](docs/NetworkApi.md#listvpcnetworks) | **Get** /api/v1/orgs/{orgId}/networks | List VPC networks
+*NetworkApi* | [**ListVPCSubnets**](docs/NetworkApi.md#listvpcsubnets) | **Get** /api/v1/orgs/{orgId}/networks/{networkId}/subnets | List VPC subnetworks
 *OrganizationsApi* | [**GetOrg**](docs/OrganizationsApi.md#getorg) | **Get** /api/v1/orgs/{orgId} | Get organization
 *OrganizationsApi* | [**ListOrgs**](docs/OrganizationsApi.md#listorgs) | **Get** /api/v1/orgs | List organizations
 *OrganizationsApi* | [**SyncOrgs**](docs/OrganizationsApi.md#syncorgs) | **Put** /api/v1/orgs | Synchronize Github organizations
@@ -257,9 +260,12 @@ Class | Method | HTTP request | Description
  - [ListNodesResponse](docs/ListNodesResponse.md)
  - [ListNodesResponseMetadata](docs/ListNodesResponseMetadata.md)
  - [ListProjectsResponse](docs/ListProjectsResponse.md)
+ - [ListRouteTablesResponse](docs/ListRouteTablesResponse.md)
  - [ListSpotguidesResponse](docs/ListSpotguidesResponse.md)
  - [ListStorageBucketsResponse](docs/ListStorageBucketsResponse.md)
  - [ListUserResponse](docs/ListUserResponse.md)
+ - [ListVpcNetworksResponse](docs/ListVpcNetworksResponse.md)
+ - [ListVpcSubnetsResponse](docs/ListVpcSubnetsResponse.md)
  - [LoggingPostHook](docs/LoggingPostHook.md)
  - [LoggingPostHookInstallLogging](docs/LoggingPostHookInstallLogging.md)
  - [MappingRule](docs/MappingRule.md)
@@ -313,6 +319,7 @@ Class | Method | HTTP request | Description
  - [ResourceMetric](docs/ResourceMetric.md)
  - [ResourceMetricStatus](docs/ResourceMetricStatus.md)
  - [ResourceSummary](docs/ResourceSummary.md)
+ - [RouteTableInfo](docs/RouteTableInfo.md)
  - [ScanLogItem](docs/ScanLogItem.md)
  - [ScanLogItemImage](docs/ScanLogItemImage.md)
  - [ScanLogList](docs/ScanLogList.md)
@@ -332,6 +339,7 @@ Class | Method | HTTP request | Description
  - [SpotguideOptionsMysqlDatabaseName](docs/SpotguideOptionsMysqlDatabaseName.md)
  - [SpotguideOptionsMysqlDatabaseSize](docs/SpotguideOptionsMysqlDatabaseSize.md)
  - [SpotguideOptionsMysqlVersion](docs/SpotguideOptionsMysqlVersion.md)
+ - [SubnetInfo](docs/SubnetInfo.md)
  - [SupportedCloudItem](docs/SupportedCloudItem.md)
  - [SupportedCloudsResponse](docs/SupportedCloudsResponse.md)
  - [TokenCreateRequest](docs/TokenCreateRequest.md)
@@ -352,6 +360,7 @@ Class | Method | HTTP request | Description
  - [UpdateNodePoolsGoogle](docs/UpdateNodePoolsGoogle.md)
  - [UrlItem](docs/UrlItem.md)
  - [User](docs/User.md)
+ - [VpcNetworkInfo](docs/VpcNetworkInfo.md)
  - [Vulnerability](docs/Vulnerability.md)
  - [VulnerabilityList](docs/VulnerabilityList.md)
  - [VulnerabilityResponse](docs/VulnerabilityResponse.md)
