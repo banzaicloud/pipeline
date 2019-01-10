@@ -22,5 +22,6 @@ type AmazonAutoScalingGroup struct {
 	SecurityGroupID         string                            `json:"securityGroupID"`
 	Subnets                 []string                          `json:"subnets"`
 	Tags                    map[string]map[string]interface{} `json:"tags"`
+	SpotPrice               string                            `json:"spotPrice"`
 	Size                    AmazonAutoScalingGroupSize        `json:"size"`
 }
