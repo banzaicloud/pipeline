@@ -1,4 +1,3 @@
-ALTER TABLE `alibaba_acsk_node_pools` DROP COLUMN `count`;
 ALTER TABLE `alibaba_acsk_node_pools` DROP COLUMN `image`;
 ALTER TABLE `alibaba_acsk_node_pools` DROP COLUMN `system_disk_category`;
 ALTER TABLE `alibaba_acsk_node_pools` DROP COLUMN `system_disk_size`;

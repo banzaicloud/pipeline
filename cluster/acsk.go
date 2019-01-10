@@ -179,6 +179,7 @@ func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model
 			InstanceType: pool.InstanceType,
 			MinCount:     pool.MinCount,
 			MaxCount:     pool.MaxCount,
+			Count:        pool.MinCount,
 		}
 		i++
 	}
@@ -223,6 +224,7 @@ func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.N
 					InstanceType:  nodePool.InstanceType,
 					MinCount:      nodePool.MinCount,
 					MaxCount:      nodePool.MaxCount,
+					Count:         currentNodePoolMap[nodePoolName].Count,
 					AsgId:         currentNodePoolMap[nodePoolName].AsgId,
 					ScalingConfId: currentNodePoolMap[nodePoolName].ScalingConfId,
 					Delete:        false,
@@ -243,6 +245,7 @@ func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.N
 				InstanceType: nodePool.InstanceType,
 				MinCount:     nodePool.MinCount,
 				MaxCount:     nodePool.MaxCount,
+				Count:        nodePool.MinCount,
 				Delete:       false,
 			})
 		}
@@ -292,7 +295,6 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 	return &cluster, nil
 }
 func (c *ACSKCluster) CreateCluster() error {
-	c.log.WithField("clusterName", c.modelCluster.Name)
 	c.log.Info("Start create cluster (Alibaba)")
 
 	csClient, err := c.GetAlibabaCSClient(nil)

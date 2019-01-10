@@ -87,6 +87,7 @@ type ACSKNodePoolModel struct {
 	InstanceType  string
 	MinCount      int
 	MaxCount      int
+	Count         int
 	AsgId         string
 	ScalingConfId string
 	Delete        bool `gorm:"-"`

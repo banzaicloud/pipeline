@@ -118,11 +118,14 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 					for _, a := range createdInstaces {
 						createdInstaceIds = append(createdInstaceIds, a.InstanceId)
 					}
+					// update running instance count for nodePool in DB
+					nodePool.Count = describeScalingInstancesResponseAfterModify.TotalCount
 					errChan <- nil
 					createdInstanceIdsChan <- createdInstaceIds
 					return
 				}
-				// instances removed from nodepool so we don't need to do anything
+				// instances removed from nodepool so we only need to set the count properly in the DB
+				nodePool.Count = describeScalingInstancesResponseAfterModify.TotalCount
 				errChan <- nil
 				createdInstanceIdsChan <- nil
 				return
