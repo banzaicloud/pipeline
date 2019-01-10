@@ -1,9 +1,11 @@
-# UpdateAkcsProperties
+# CreateAckPropertiesAcsk
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Akcs** | [**UpdateAkcsPropertiesAkcs**](UpdateAKCSProperties_akcs.md) |  | 
+**RegionId** | **string** |  | [optional] 
+**ZoneId** | **string** |  | [optional] 
+**NodePools** | [**map[string]NodePoolsAck**](NodePoolsACK.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

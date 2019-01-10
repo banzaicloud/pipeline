@@ -11,6 +11,8 @@
 
 package client
 
-type CreateAkcsProperties struct {
-	Akcs CreateAkcsPropertiesAkcs `json:"akcs"`
+type NodePoolsAck struct {
+	InstanceType string `json:"instanceType"`
+	MinCount     int32  `json:"minCount,omitempty"`
+	MaxCount     int32  `json:"maxCount,omitempty"`
 }

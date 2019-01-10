@@ -11,6 +11,6 @@
 
 package client
 
-type UpdateAkcsProperties struct {
-	Akcs UpdateAkcsPropertiesAkcs `json:"akcs"`
+type UpdateAckPropertiesAcsk struct {
+	NodePools map[string]NodePoolsAck `json:"nodePools,omitempty"`
 }
