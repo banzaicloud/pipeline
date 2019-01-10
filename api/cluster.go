@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -35,7 +36,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ClusterAPI implements the Cluster API actions.
@@ -310,7 +313,6 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 	}
 
 	log.Infof("pods: %d", len(pods))
-
 	for _, pod := range pods {
 		req, limits := resourcesummary.CalculatePodsTotalRequestsAndLimits([]v1.Pod{pod})
 
@@ -336,6 +338,97 @@ func describePods(commonCluster cluster.CommonCluster) (items []pkgCluster.PodDe
 
 	return
 
+}
+
+// GetNodePools fetch node pool info for a cluster
+func GetNodePools(c *gin.Context) {
+	commonCluster, ok := getClusterFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	clusterStatus, err := commonCluster.GetStatus()
+	if err != nil {
+		log.Error(emperror.Wrap(err, "Error getting cluster"))
+		c.JSON(http.StatusServiceUnavailable, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting cluster",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	clusterTotalResources := make(map[string]float64)
+	nodePoolCounts, err := getActualNodeCounts(commonCluster)
+	if err != nil {
+		log.Error(emperror.Wrap(err, "Error getting actual node count for node pool info"))
+		c.JSON(http.StatusServiceUnavailable, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting actual node count for node pool info",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	nodePoolStatus := make(map[string]*pkgCluster.ActualNodePoolStatus)
+
+	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
+	for nodePoolName, nodePool := range clusterStatus.NodePools {
+		nodePoolStatus[nodePoolName] = &pkgCluster.ActualNodePoolStatus{
+			NodePoolStatus: *nodePool,
+			ActualCount:    nodePoolCounts[nodePoolName],
+		}
+
+		if nodePoolName == headNodePoolName {
+			continue
+		}
+		machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
+			clusterStatus.Distribution,
+			clusterStatus.Region,
+			nodePool.InstanceType)
+		if err != nil {
+			log.Warn(err.Error())
+		} else if machineDetails != nil {
+			clusterTotalResources["cpu"] += float64(nodePool.Count) * machineDetails.Cpus
+			clusterTotalResources["gpu"] += float64(nodePool.Count) * machineDetails.Gpus
+			clusterTotalResources["mem"] += float64(nodePool.Count) * machineDetails.Mem
+		}
+	}
+
+	response := pkgCluster.GetNodePoolsResponse{
+		NodePools:             nodePoolStatus,
+		ClusterTotalResources: clusterTotalResources,
+		ClusterStatus:         clusterStatus.Status,
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func getActualNodeCounts(commonCluster cluster.CommonCluster) (map[string]int, error) {
+	nodePoolCounts := make(map[string]int)
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	nodes, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, node := range nodes.Items {
+		nodePoolName := node.Labels[pkgCommon.LabelKey]
+		if len(nodePoolName) > 0 {
+			nodePoolCounts[nodePoolName] += 1
+		}
+	}
+
+	return nodePoolCounts, nil
 }
 
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo

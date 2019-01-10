@@ -100,6 +100,11 @@ func (o *OKECluster) CreateCluster() error {
 	return cm.ManageOKECluster(&o.modelCluster.OKE)
 }
 
+// UpdateNodePools updates nodes pools of a cluster
+func (o *OKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+	return nil
+}
+
 // UpdateCluster updates the cluster
 func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId uint) error {
 

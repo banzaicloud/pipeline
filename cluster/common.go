@@ -63,6 +63,7 @@ type CommonCluster interface {
 	CreateCluster() error
 	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
 	UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
+	UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error
 	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
 	DeleteCluster() error

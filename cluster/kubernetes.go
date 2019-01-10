@@ -153,6 +153,11 @@ func (c *KubeCluster) DeleteCluster() error {
 	return nil
 }
 
+// UpdateNodePools updates nodes pools of a cluster
+func (c *KubeCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+	return nil
+}
+
 // UpdateCluster updates cluster in cloud, in this case no update function
 func (c *KubeCluster) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
 	return nil

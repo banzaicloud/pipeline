@@ -188,13 +188,13 @@ type GetClusterStatusResponse struct {
 
 // NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
-	Autoscaling  bool   `json:"autoscaling"`
-	Count        int    `json:"count,omitempty"`
+	Autoscaling  bool   `json:"autoscaling,omitempty"`
+	Count        int    `json:"count"`
 	InstanceType string `json:"instanceType,omitempty"`
 	SpotPrice    string `json:"spotPrice,omitempty"`
 	Preemptible  bool   `json:"preemptible,omitempty"`
-	MinCount     int    `json:"minCount,omitempty"`
-	MaxCount     int    `json:"maxCount,omitempty"`
+	MinCount     int    `json:"minCount"`
+	MaxCount     int    `json:"maxCount"`
 	Image        string `json:"image,omitempty"`
 	Version      string `json:"version,omitempty"`
 
@@ -205,6 +205,28 @@ type NodePoolStatus struct {
 type GetClusterConfigResponse struct {
 	Status int    `json:"status"`
 	Data   string `json:"data"`
+}
+
+// GetNodePoolsResponse describes node pools of a cluster
+type GetNodePoolsResponse struct {
+	NodePools             map[string]*ActualNodePoolStatus `json:"nodePools,omitempty"`
+	ClusterTotalResources map[string]float64               `json:"clusterTotalResources,omitempty"`
+	ClusterStatus         string                           `json:"string,omitempty"`
+}
+
+type ActualNodePoolStatus struct {
+	NodePoolStatus
+	ActualCount int `json:"actualCount"`
+}
+
+// UpdateNodePoolsRequest describes an update node pools request
+type UpdateNodePoolsRequest struct {
+	NodePools map[string]*NodePoolData `json:"nodePools,omitempty"`
+}
+
+// NodePoolData describes node pool size
+type NodePoolData struct {
+	Count int `json:"count"`
 }
 
 // UpdateClusterRequest describes an update cluster request

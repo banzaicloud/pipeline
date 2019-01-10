@@ -318,6 +318,9 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id/details", clusterAPI.GetCluster) // Deprecated: use /:orgid/clusters/:id instead
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
 			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
+			orgs.GET("/:orgid/clusters/:id/nodepools", api.GetNodePools)
+			orgs.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
+
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
 			orgs.POST("/:orgid/clusters/:id/secrets/:secretName", api.InstallSecretToCluster)

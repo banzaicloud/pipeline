@@ -100,11 +100,8 @@ func (g *CreateClusterGKE) Validate() error {
 
 	for _, nodePool := range g.NodePools {
 
-		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
+		// ---- [ Min & Max count fields are required in case of auto scaling ] ---- //
 		if nodePool.Autoscaling {
-			if nodePool.MinCount == 0 {
-				return pkgErrors.ErrorMinFieldRequiredError
-			}
 			if nodePool.MaxCount == 0 {
 				return pkgErrors.ErrorMaxFieldRequiredError
 			}

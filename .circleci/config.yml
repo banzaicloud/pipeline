@@ -9,10 +9,7 @@ jobs:
                 image: mysql:5.7
                 command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
                 environment:
-                    MYSQL_ROOT_PASSWORD: example
-                    MYSQL_DATABASE: pipeline
-                    MYSQL_USER: pipeline
-                    MYSQL_PASSWORD: pipeline123
+                    MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
             -
                 image: vault:0.11.5
                 environment:
@@ -43,6 +40,11 @@ jobs:
                 run:
                     name: Install dependencies
                     command: make vendor
+
+            -
+                run:
+                    name: Install build dependencies
+                    command: sudo apt-get install -y mysql-client mysql-utilities
 
             -
                 save_cache:
@@ -114,10 +116,47 @@ jobs:
 
             -
                 run:
+                    name: Create databases
+                    command: |
+                        mysql -h 127.0.0.1 -u root -e "CREATE DATABASE pipeline_migrations;"
+                        mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_automigrate; USE pipeline_automigrate; CREATE TABLE `schema_migrations` (`version` bigint(20) NOT NULL, `dirty` tinyint(1) NOT NULL, PRIMARY KEY (`version`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
+
+            -
+                run:
                     name: Test database migrations
                     command: |
                         make bin/migrate
-                        bin/migrate -source "file://database/migrations" -database "mysql://pipeline:pipeline123@tcp(127.0.0.1:3306)/pipeline?multiStatements=true&charset=utf8mb4" up
+                        bin/migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
+
+            -
+                run:
+                    name: Test database auto migrations
+                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go
+                    environment:
+                        PIPELINE_DATABASE_HOST: 127.0.0.1
+                        PIPELINE_DATABASE_USER: root
+                        PIPELINE_DATABASE_PASSWORD: ""
+                        PIPELINE_DATABASE_ROLE: ""
+                        PIPELINE_DATABASE_DBNAME: pipeline_automigrate
+                        VAULT_ADDR: http://localhost:8200
+                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+            -
+                run:
+                    name: Test database schema diff
+                    command: mysqldiff --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+
+            -
+                run:
+                    name: Test database migrations are reversible
+                    command: |
+                        bin/migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" down
+                        bin/migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
+
+            -
+                run:
+                    name: Test database schema diff again
+                    command: mysqldiff --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
 
             -
                 save_cache:
@@ -129,6 +168,7 @@ jobs:
             -
                 store_test_results:
                     path: build/test_results/
+
             -
                 store_artifacts:
                     path: build/

@@ -117,16 +117,6 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 		return emperror.Wrap(err, "could not update cluster status")
 	}
 
-	logger.Info("deploying cluster autoscaler")
-	if err := DeployClusterAutoscaler(cluster); err != nil {
-		return emperror.Wrap(err, "deploying cluster autoscaler failed")
-	}
-
-	logger.Info("adding labels to nodes")
-	if err := LabelNodes(cluster); err != nil {
-		return emperror.Wrap(err, "adding labels to nodes failed")
-	}
-
 	logger.Info("cluster updated successfully")
 
 	return nil
