@@ -5148,7 +5148,7 @@ components:
                         -
                             $ref: '#/components/schemas/CreateUpdateOKEProperties'
                         -
-                            $ref: '#/components/schemas/CreateAKCSProperties'
+                            $ref: '#/components/schemas/CreateACKProperties'
                         -
                             $ref: '#/components/schemas/CreatePKEProperties'
                     example:
@@ -5222,12 +5222,12 @@ components:
 
 
 
-        CreateAKCSProperties:
+        CreateACKProperties:
             type: object
             required:
-                - akcs
+                - acsk
             properties:
-                akcs:
+                acsk:
                     type: object
                     required:
                         - regionId
@@ -5243,26 +5243,23 @@ components:
                         nodePools:
                             type: object
                             additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAKCS'
+                                $ref: '#/components/schemas/NodePoolsACK'
 
-        NodePoolsAKCS:
+        NodePoolsACK:
             type: object
             required:
                 - count
                 - instanceType
             properties:
-                count:
-                    type: integer
-                    example: 1
                 instanceType:
                     type: string
                     example: ""
-                systemDiskSize:
+                minCount:
                     type: integer
-                    example: 8
-                systemDiskCategory:
-                    type: string
-                    example: cloud
+                    example: 1
+                maxCount:
+                    type: integer
+                    example: 1
 
         CreateAKSProperties:
             type: object
@@ -5740,7 +5737,7 @@ components:
                         -
                             $ref: '#/components/schemas/CreateUpdateOKEProperties'
                         -
-                            $ref: '#/components/schemas/UpdateAKCSProperties'
+                            $ref: '#/components/schemas/UpdateACKProperties'
                     example:
                         google:
                             master:
@@ -5790,12 +5787,12 @@ components:
                     type: string
                     example: "ami-4d485ca7"
 
-        UpdateAKCSProperties:
+        UpdateACKProperties:
             type: object
             required:
-                - akcs
+                - acsk
             properties:
-                akcs:
+                acsk:
                     type: object
                     required:
                         - nodePools
@@ -5803,7 +5800,7 @@ components:
                         nodePools:
                             type: object
                             additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAKCS'
+                                $ref: '#/components/schemas/NodePoolsACK'
 
         UpdateAzureProperties:
             type: object

@@ -5448,7 +5448,7 @@ components:
           - $ref: '#/components/schemas/CreateGKEProperties'
           - $ref: '#/components/schemas/CreateEKSProperties'
           - $ref: '#/components/schemas/CreateUpdateOKEProperties'
-          - $ref: '#/components/schemas/CreateAKCSProperties'
+          - $ref: '#/components/schemas/CreateACKProperties'
           - $ref: '#/components/schemas/CreatePKEProperties'
           type: object
       required:
@@ -5495,28 +5495,25 @@ components:
       required:
       - eks
       type: object
-    CreateAKCSProperties:
+    CreateACKProperties:
       properties:
-        akcs:
-          $ref: '#/components/schemas/CreateAKCSProperties_akcs'
+        acsk:
+          $ref: '#/components/schemas/CreateACKProperties_acsk'
       required:
-      - akcs
+      - acsk
       type: object
-    NodePoolsAKCS:
+    NodePoolsACK:
       properties:
-        count:
+        instanceType:
+          type: string
+        minCount:
           example: 1
           format: int32
           type: integer
-        instanceType:
-          type: string
-        systemDiskSize:
-          example: 8
+        maxCount:
+          example: 1
           format: int32
           type: integer
-        systemDiskCategory:
-          example: cloud
-          type: string
       required:
       - count
       - instanceType
@@ -5894,7 +5891,7 @@ components:
           - $ref: '#/components/schemas/UpdateGoogleProperties'
           - $ref: '#/components/schemas/UpdateEksProperties'
           - $ref: '#/components/schemas/CreateUpdateOKEProperties'
-          - $ref: '#/components/schemas/UpdateAKCSProperties'
+          - $ref: '#/components/schemas/UpdateACKProperties'
           type: object
       required:
       - cloud
@@ -5933,12 +5930,12 @@ components:
           example: ami-4d485ca7
           type: string
       type: object
-    UpdateAKCSProperties:
+    UpdateACKProperties:
       properties:
-        akcs:
-          $ref: '#/components/schemas/UpdateAKCSProperties_akcs'
+        acsk:
+          $ref: '#/components/schemas/UpdateACKProperties_acsk'
       required:
-      - akcs
+      - acsk
       type: object
     UpdateAzureProperties:
       properties:
@@ -9139,7 +9136,7 @@ components:
             $ref: '#/components/schemas/EKSSubnet'
           type: array
       type: object
-    CreateAKCSProperties_akcs:
+    CreateACKProperties_acsk:
       properties:
         regionId:
           type: string
@@ -9147,7 +9144,7 @@ components:
           type: string
         nodePools:
           additionalProperties:
-            $ref: '#/components/schemas/NodePoolsAKCS'
+            $ref: '#/components/schemas/NodePoolsACK'
           type: object
       type: object
     CreateAKSProperties_aks:
@@ -9265,11 +9262,11 @@ components:
             $ref: '#/components/schemas/UpdateNodePoolsEks'
           type: object
       type: object
-    UpdateAKCSProperties_akcs:
+    UpdateACKProperties_acsk:
       properties:
         nodePools:
           additionalProperties:
-            $ref: '#/components/schemas/NodePoolsAKCS'
+            $ref: '#/components/schemas/NodePoolsACK'
           type: object
       type: object
     UpdateAzureProperties_azure:
