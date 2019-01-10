@@ -21,20 +21,21 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
 	githubauth "github.com/qor/auth/providers/github"
 	"github.com/qor/qor/utils"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
-//GithubExtraInfo struct for github credentials
-type GithubExtraInfo struct {
-	Login string
-	Token string
+type githubUserMeta struct {
+	Login     string
+	AvatarURL string
 }
 
 //NewGithubAuthorizeHandler handler for Github auth
@@ -86,7 +87,7 @@ func NewGithubAuthorizeHandler(provider *githubauth.GithubProvider) func(context
 		authInfo.Provider = provider.GetName()
 		authInfo.UID = fmt.Sprint(user.GetID())
 
-		schema.RawInfo = &GithubExtraInfo{Login: user.GetLogin(), Token: token.AccessToken}
+		schema.RawInfo = &githubUserMeta{Login: user.GetLogin()}
 
 		// If the user is already registered, just return
 		if tx := db.Model(authIdentity).Where(authInfo).Scan(&authInfo); tx.Error == nil {
@@ -256,4 +257,28 @@ func getGithubOrganizations(token string) ([]githubOrganization, error) {
 	}
 
 	return orgs, nil
+}
+
+func getGithubUserMeta(schema *auth.Schema) (*githubUserMeta, error) {
+	githubClient := NewGithubClient(viper.GetString("github.token"))
+
+	var dexClaims struct {
+		FederatedClaims map[string]string
+	}
+
+	if err := mapstructure.Decode(schema.RawInfo, &dexClaims); err != nil {
+		return nil, nil
+	}
+
+	githubUserID := cast.ToInt64(dexClaims.FederatedClaims["user_id"])
+
+	githubUser, _, err := githubClient.Users.GetByID(context.Background(), githubUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &githubUserMeta{
+		Login:     *githubUser.Login,
+		AvatarURL: githubUser.GetAvatarURL(),
+	}, nil
 }

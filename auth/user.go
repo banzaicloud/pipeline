@@ -209,7 +209,7 @@ type BanzaiUserStorer struct {
 
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to CICD DB as well
-func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (user interface{}, userID string, err error) {
+func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (user interface{}, userID string, err error) {
 
 	currentUser := &User{}
 	err = copier.Copy(currentUser, schema)
@@ -217,13 +217,27 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return nil, "", err
 	}
 
-	// Login will be the email for new users from 2019. 01. 07.
-	currentUser.Login = schema.Email
+	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
+	// GitHub API query to get the user login and image to retain compatibility for now
+	if schema.Provider == "dex:github" {
+		githubUserMeta, err := getGithubUserMeta(schema)
+
+		if err != nil {
+			log.Errorln("failed to query github login name:", err)
+			return nil, "", err
+		}
+
+		currentUser.Login = githubUserMeta.Login
+		currentUser.Image = githubUserMeta.AvatarURL
+	} else {
+		// Login will be the email for new users from 2019. 01. 07.
+		currentUser.Login = schema.Email
+	}
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	err = bus.createUserInCICDDB(currentUser)
 	if err != nil {
-		log.Info(context.Request.RemoteAddr, err.Error())
+		log.Info(authCtx.Request.RemoteAddr, err.Error())
 		return nil, "", err
 	}
 
@@ -233,7 +247,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	}
 	currentUser.Organizations = []Organization{userOrg}
 
-	db := context.Auth.GetDB(context.Request)
+	db := authCtx.Auth.GetDB(authCtx.Request)
 	err = db.Create(currentUser).Error
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create user organization: %s", err.Error())
