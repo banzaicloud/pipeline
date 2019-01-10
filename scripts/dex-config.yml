@@ -61,9 +61,6 @@ staticClients:
   secret: ZXhhbXBsZS1hcHAtc2VjcmV0
 
 connectors:
-- type: mockCallback
-  id: mock
-  name: Example
 - type: github
   # Required field for connector id.
   id: github
