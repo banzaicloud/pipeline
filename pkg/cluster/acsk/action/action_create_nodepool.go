@@ -21,6 +21,8 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -49,18 +51,16 @@ func (a *CreateACSKNodePoolAction) GetName() string {
 }
 
 // ExecuteAction executes this CreateACSKNodePoolAction
-func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}, error) {
 	cluster, ok := input.(*acsk.AlibabaDescribeClusterResponse)
 	if !ok {
-		err = errors.New("invalid input")
-
-		return
+		return nil, errors.New("invalid input")
 	}
 
 	if len(a.nodePools) == 0 {
 		r, err := getClusterDetails(a.context.ClusterID, a.context.CSClient)
 		if err != nil {
-			return nil, err
+			return nil, emperror.With(err, "clusterName", cluster.Name)
 		}
 
 		return r, nil
@@ -92,7 +92,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 			createScalingGroupResponse, err := a.context.ESSClient.CreateScalingGroup(scalingGroupRequest)
 			if err != nil {
-				errChan <- err
+				errChan <- emperror.WrapWith(err, "could not create Scaling Group", "nodePoolName", nodePool.Name, "clusterName", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
@@ -118,7 +118,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 			createConfigurationResponse, err := a.context.ESSClient.CreateScalingConfiguration(scalingConfigurationRequest)
 			if err != nil {
-				errChan <- err
+				errChan <- emperror.WrapWith(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgId, "clusterName", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
@@ -137,14 +137,14 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 			_, err = a.context.ESSClient.EnableScalingGroup(enableSGRequest)
 			if err != nil {
-				errChan <- err
+				errChan <- emperror.WrapWith(err, "could not enable Scaling Group", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgId, "clusterName", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
 
 			instanceIds, err := waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, cluster.RegionID, nodePool)
 			if err != nil {
-				errChan <- err
+				errChan <- emperror.With(err, "clusterName", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
@@ -154,19 +154,21 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		}(nodePool)
 	}
 
+	caughtErrors := emperror.NewMultiErrorBuilder()
+
 	var instanceIds []string
+	var err error
 	for i := 0; i < len(a.nodePools); i++ {
-		e := <-errChan
+		err = <-errChan
 		ids := <-instanceIdsChan
-		if e != nil {
-			a.log.Error(e)
-			err = e
+		if err != nil {
+			caughtErrors.Add(err)
 		} else {
 			instanceIds = append(instanceIds, ids...)
 		}
 	}
 	if err != nil {
-		return
+		return nil, pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
 	}
 
 	return attachInstancesToCluster(a.log, cluster.ClusterID, instanceIds, a.context.CSClient)

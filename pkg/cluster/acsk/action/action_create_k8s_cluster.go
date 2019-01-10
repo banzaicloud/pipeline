@@ -100,7 +100,7 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	params := a.context.AlibabaClusterCreateParams
 	p, err := json.Marshal(&params)
 	if err != nil {
-		return nil, err
+		return nil, emperror.WrapWith(err, "could not marshal cluster create params", "clusterName", a.context.Name)
 	}
 
 	req := cs.CreateCreateClusterRequest()
@@ -112,19 +112,17 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	// do a cluster creation
 	resp, err := csClient.CreateCluster(req)
 	if err != nil {
-		a.log.Errorf("CreateCluster error: %s", err)
-		return nil, err
+		return nil, emperror.WrapWith(err, "could not create cluster", "clusterName", a.context.Name)
 	}
 	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
-		a.log.Errorf("CreateCluster error status code is: %d", resp.GetHttpStatus())
-		return nil, errors.Errorf("create cluster error the returned status code is %d", resp.GetHttpStatus())
+		return nil, emperror.With(errors.Errorf("create cluster error the returned status code is %d", resp.GetHttpStatus()), "clusterName", a.context.Name)
 	}
 
 	// parse response
 	var r acsk.AlibabaClusterCreateResponse
 	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
 	if err != nil {
-		return nil, err
+		return nil, emperror.With(err, "clusterName", a.context.Name)
 	}
 
 	// We need this field to be able to implement the UndoAction for ClusterCreate
@@ -133,7 +131,7 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	a.log.Infof("Alibaba cluster creating with id %s", r.ClusterID)
 
 	// wait for cluster created
-	a.log.Info("Waiting for cluster...")
+	a.log.Info("Waiting for cluster to get ready...")
 	cluster, err := waitUntilClusterCreateOrScaleComplete(a.log, r.ClusterID, csClient, true)
 	if err != nil {
 		return nil, emperror.WrapWith(err, "cluster create failed", "clusterName", a.context.Name)
@@ -146,5 +144,5 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 func (a *CreateACSKClusterAction) UndoAction() error {
 	a.log.Info("EXECUTE UNDO CreateACSKClusterAction")
 
-	return deleteCluster(a.log, a.context.ClusterID, a.context.CSClient)
+	return emperror.With(deleteCluster(a.log, a.context.ClusterID, a.context.CSClient), "clusterName", a.context.Name)
 }

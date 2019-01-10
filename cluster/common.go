@@ -31,6 +31,7 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
 
@@ -131,13 +132,13 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretI
 	if c.sshSecret == nil {
 		s, err := getSecret(cluster.GetOrganizationId(), cluster.GetSshSecretId())
 		if err != nil {
-			return nil, err
+			return nil, emperror.With(err, "clusterName", cluster.GetName())
 		}
 		c.sshSecret = s
 
 		err = c.sshSecret.ValidateSecretType(pkgSecret.SSHSecretType)
 		if err != nil {
-			return nil, err
+			return nil, emperror.With(err, "clusterName", cluster.GetName())
 		}
 	}
 
