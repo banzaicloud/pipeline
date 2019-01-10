@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"strconv"
+
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	banzaicloudDB "github.com/banzaicloud/pipeline/internal/providers/banzaicloud"
@@ -234,7 +236,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterS
 			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
 		}
 
-		if providerConfig.AutoScalingGroup.SpotPrice != "" && providerConfig.AutoScalingGroup.SpotPrice != "0" {
+		if p, err := strconv.ParseFloat(providerConfig.AutoScalingGroup.SpotPrice, 64); err == nil && p > 0.0 {
 			hasSpotNodePool = true
 		}
 	}
