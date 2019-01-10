@@ -5713,6 +5713,9 @@ components:
         tags:
           additionalProperties: true
           type: object
+        spotPrice:
+          example: "0.2"
+          type: string
         size:
           $ref: '#/components/schemas/AmazonAutoScalingGroup_size'
       required:
@@ -5722,6 +5725,7 @@ components:
       - name
       - securityGroupID
       - size
+      - spotPrice
       - subnets
       - tags
       - vpcID
