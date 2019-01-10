@@ -4,8 +4,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | the name of the object storage / bucket | 
-**Managed** | **bool** | true if the bucket has been created via piepeline | 
-**Notes** | **string** | true if the bucket has been created via piepeline | [optional] 
+**Managed** | **bool** | true if the bucket has been created via pipeline | 
+**Notes** | **string** | true if the bucket has been created via pipeline | [optional] 
 **Secret** | [**BucketInfoSecret**](BucketInfo_secret.md) |  | [optional] 
 **Azure** | [**AzureBlobStorageProps**](AzureBlobStorageProps.md) |  | [optional] 
 **Status** | **string** | the status of the bucket | 
