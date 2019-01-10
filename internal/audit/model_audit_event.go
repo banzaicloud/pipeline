@@ -34,6 +34,9 @@ type AuditEvent struct {
 	StatusCode    int
 	Body          *string `gorm:"type:json"`
 	Headers       string  `gorm:"type:json"`
+	ResponseTime  int
+	ResponseSize  int
+	Errors        *string `gorm:"type:json"`
 }
 
 // TableName specifies a database table name for the model.

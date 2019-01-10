@@ -126,7 +126,6 @@ func LogWriter(
 		clientIP := c.ClientIP()
 		method := c.Request.Method
 		userAgent := c.Request.UserAgent()
-		statusCode := c.Writer.Status()
 
 		if raw != "" {
 			path = path + "?" + raw
@@ -159,19 +158,38 @@ func LogWriter(
 			ClientIP:      clientIP,
 			UserAgent:     userAgent,
 			UserID:        userID,
-			StatusCode:    statusCode,
 			Method:        method,
 			Path:          path,
 			Body:          body,
 			Headers:       string(headers),
 		}
 
-		err = db.Save(&event).Error
-		if err != nil {
+		if err := db.Save(&event).Error; err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
-			logger.Errorln(err)
+			logger.Errorf("audit: failed to write request to db: %v", err)
 
 			return
+		}
+
+		c.Next() // process request
+
+		responseEvent := AuditEvent{
+			StatusCode:   c.Writer.Status(),
+			ResponseSize: c.Writer.Size(),
+			ResponseTime: int(time.Since(start).Nanoseconds() / 1000 / 1000), // ms
+		}
+
+		if c.IsAborted() {
+			if marshalled, err := json.Marshal(c.Errors); err != nil {
+				logger.Errorf("audit: failed to marshal c.Errors: %v", err)
+			} else {
+				errors := string(marshalled)
+				responseEvent.Errors = &errors
+			}
+		}
+
+		if err := db.Model(&event).Updates(responseEvent).Error; err != nil {
+			logger.Errorf("audit: failed to write response details: %v", err)
 		}
 	}
 }
