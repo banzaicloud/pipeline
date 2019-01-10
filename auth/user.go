@@ -25,7 +25,7 @@ import (
 	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
@@ -383,25 +383,28 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 			Role:     org.role,
 		}
 
+		needsCreation := true
 		err := tx.Where(o).First(&o).Error
 		if err == nil {
 			orgIDs[o.ID] = false
+			needsCreation = false
 
-			continue
 		} else if !gorm.IsRecordNotFoundError(err) {
 			tx.Rollback()
 
 			return nil, errors.Wrap(err, "failed to check if organization exists")
 		}
 
-		err = tx.Where(o).Create(&o).Error
-		if err != nil {
-			tx.Rollback()
+		if needsCreation {
+			err = tx.Where(o).Create(&o).Error
+			if err != nil {
+				tx.Rollback()
 
-			return nil, errors.Wrap(err, "failed to create organization")
+				return nil, errors.Wrap(err, "failed to create organization")
+			}
+
+			orgIDs[o.ID] = true
 		}
-
-		orgIDs[o.ID] = true
 
 		err = tx.Model(currentUser).Association("Organizations").Append(o).Error
 		if err != nil {
