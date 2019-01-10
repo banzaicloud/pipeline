@@ -148,6 +148,8 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 				instanceIdsChan <- nil
 				return
 			}
+			// set running instance count for nodePool in DB
+			nodePool.Count = len(instanceIds)
 
 			errChan <- nil
 			instanceIdsChan <- instanceIds
