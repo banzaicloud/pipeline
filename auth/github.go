@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
@@ -34,8 +35,9 @@ import (
 )
 
 type githubUserMeta struct {
-	Login     string
-	AvatarURL string
+	Login         string
+	AvatarURL     string
+	Organizations []string
 }
 
 //NewGithubAuthorizeHandler handler for Github auth
@@ -263,6 +265,7 @@ func getGithubUserMeta(schema *auth.Schema) (*githubUserMeta, error) {
 	githubClient := NewGithubClient(viper.GetString("github.token"))
 
 	var dexClaims struct {
+		Groups          []string
 		FederatedClaims map[string]string
 	}
 
@@ -277,8 +280,16 @@ func getGithubUserMeta(schema *auth.Schema) (*githubUserMeta, error) {
 		return nil, err
 	}
 
+	var organizations []string
+	for _, group := range dexClaims.Groups {
+		if !strings.Contains(group, ":") {
+			organizations = append(organizations, group)
+		}
+	}
+
 	return &githubUserMeta{
-		Login:     *githubUser.Login,
-		AvatarURL: githubUser.GetAvatarURL(),
+		Login:         *githubUser.Login,
+		AvatarURL:     githubUser.GetAvatarURL(),
+		Organizations: organizations,
 	}, nil
 }

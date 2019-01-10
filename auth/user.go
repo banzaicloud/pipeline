@@ -121,10 +121,10 @@ type UserOrganization struct {
 //Organization struct
 type Organization struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
-	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
-	Name      string    `gorm:"unique;not null" json:"name"`
+	Name      string    `gorm:"unique_index:provider_name;not null" json:"name"`
+	Provider  string    `gorm:"unique_index:provider_name;not null" json:"provider"`
 	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
 	Role      string    `json:"-" gorm:"-"` // Used only internally
 }
@@ -219,8 +219,9 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
 	// GitHub API query to get the user login and image to retain compatibility for now
+	var githubUserMeta *githubUserMeta
 	if schema.Provider == "dex:github" {
-		githubUserMeta, err := getGithubUserMeta(schema)
+		githubUserMeta, err = getGithubUserMeta(schema)
 
 		if err != nil {
 			log.Errorln("failed to query github login name:", err)
@@ -230,7 +231,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		currentUser.Login = githubUserMeta.Login
 		currentUser.Image = githubUserMeta.AvatarURL
 	} else {
-		// Login will be the email for new users from 2019. 01. 07.
+		// Login will be the email for new users coming from an other provider than GitHub
 		currentUser.Login = schema.Email
 	}
 
@@ -263,8 +264,10 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
-	// TODO from where to sync orgs?
-	// err = bus.githubImporter.ImportOrganizations(currentUser, githubExtraInfo.Token)
+	// Import Github organizations in case of GitHub
+	if schema.Provider == "dex:github" {
+		err = bus.githubImporter.ImportOrganizationsFromDex(currentUser, githubUserMeta.Organizations)
+	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
@@ -357,8 +360,28 @@ func NewGithubImporter(
 	}
 }
 
-func (i *GithubImporter) ImportOrganizations(currentUser *User, githubToken string) error {
-	githubOrgIDs, err := importGithubOrganizations(i.db, currentUser, githubToken)
+func (i *GithubImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
+
+	orgs, err := getGithubOrganizations(githubToken)
+	if err != nil {
+		return emperror.With(err, "failed to get organizations")
+	}
+
+	return i.ImportGithubOrganizations(currentUser, orgs)
+}
+
+func (i *GithubImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string) error {
+
+	var orgs []githubOrganization
+	for _, org := range organizations {
+		orgs = append(orgs, githubOrganization{name: org})
+	}
+
+	return i.ImportGithubOrganizations(currentUser, orgs)
+}
+
+func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []githubOrganization) error {
+	githubOrgIDs, err := importGithubOrganizationsToDB(i.db, currentUser, orgs)
 
 	if err != nil {
 		return emperror.With(err, "failed to import organizations")
@@ -376,20 +399,15 @@ func (i *GithubImporter) ImportOrganizations(currentUser *User, githubToken stri
 	return nil
 }
 
-func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken string) (map[uint]bool, error) {
-	orgs, err := getGithubOrganizations(githubToken)
-	if err != nil {
-		return nil, err
-	}
+func importGithubOrganizationsToDB(db *gorm.DB, currentUser *User, orgs []githubOrganization) (map[uint]bool, error) {
 
 	orgIDs := make(map[uint]bool, len(orgs))
 
 	tx := db.Begin()
 	for _, org := range orgs {
 		o := Organization{
-			Name:     org.name,
-			GithubID: &org.id,
-			Role:     org.role,
+			Name: org.name,
+			Role: org.role,
 		}
 
 		needsCreation := true
@@ -434,7 +452,7 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 		}
 	}
 
-	err = tx.Commit().Error
+	err := tx.Commit().Error
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to save organizations")
 	}

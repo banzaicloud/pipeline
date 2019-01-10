@@ -160,7 +160,7 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 		return
 	}
 
-	err = a.githubImporter.ImportOrganizations(user, token)
+	err = a.githubImporter.ImportOrganizationsFromGithub(user, token)
 	if err != nil {
 		errorHandler.Handle(err)
 
