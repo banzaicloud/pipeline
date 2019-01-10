@@ -18,24 +18,28 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 )
 
 // UpdateACSKNodePoolAction describes the fields used across ACK cluster update operation
 type UpdateACSKNodePoolAction struct {
-	log       logrus.FieldLogger
-	nodePools []*model.ACSKNodePoolModel
-	context   *ACKContext
-	region    string
+	clusterName string
+	log         logrus.FieldLogger
+	nodePools   []*model.ACSKNodePoolModel
+	context     *ACKContext
+	region      string
 }
 
 // NewUpdateACSKNodePoolAction creates a new UpdateACSKNodePoolAction
-func NewUpdateACSKNodePoolAction(log logrus.FieldLogger, nodepools []*model.ACSKNodePoolModel, clusterContext *ACKContext, region string) *UpdateACSKNodePoolAction {
+func NewUpdateACSKNodePoolAction(log logrus.FieldLogger, clusterName string, nodepools []*model.ACSKNodePoolModel, clusterContext *ACKContext, region string) *UpdateACSKNodePoolAction {
 	return &UpdateACSKNodePoolAction{
-		log:       log,
-		nodePools: nodepools,
-		context:   clusterContext,
-		region:    region,
+		log:         log,
+		clusterName: clusterName,
+		nodePools:   nodepools,
+		context:     clusterContext,
+		region:      region,
 	}
 }
 
@@ -60,7 +64,7 @@ func difference(a, b []ess.ScalingInstance) []ess.ScalingInstance {
 }
 
 // ExecuteAction executes this UpdateACSKNodePoolAction
-func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}, error) {
 	if len(a.nodePools) != 0 {
 		a.log.Infof("EXECUTE UpdateACSKNodePoolAction on cluster, %s", a.context.ClusterID)
 		errChan := make(chan error, len(a.nodePools))
@@ -73,7 +77,7 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 				describeScalingInstancesResponseBeforeModify, err :=
 					describeScalingInstances(a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
 				if err != nil {
-					errChan <- err
+					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "clusterName", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
@@ -88,14 +92,14 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 
 				_, err = a.context.ESSClient.ModifyScalingGroup(modifyScalingGroupReq)
 				if err != nil {
-					errChan <- err
+					errChan <- emperror.WrapWith(err, "could not modify ScalingGroup", "scalingGroupId", nodePool.AsgId, "nodePoolName", nodePool.Name, "clusterName", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
 
 				_, err = waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, a.region, nodePool)
 				if err != nil {
-					errChan <- err
+					errChan <- emperror.With(err, "clusterName", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
@@ -103,7 +107,7 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 				describeScalingInstancesResponseAfterModify, err :=
 					describeScalingInstances(a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
 				if err != nil {
-					errChan <- err
+					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "clusterName", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
@@ -125,32 +129,34 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 			}(nodePool)
 		}
 
+		caughtErrors := emperror.NewMultiErrorBuilder()
 		var createdInstanceIds []string
+		var err error
+
 		for i := 0; i < len(a.nodePools); i++ {
-			e := <-errChan
+			err = <-errChan
 			ids := <-createdInstanceIdsChan
-			if e != nil {
-				a.log.Error(e)
-				err = e
+			if err != nil {
+				caughtErrors.Add(err)
 			} else {
 				createdInstanceIds = append(createdInstanceIds, ids...)
 			}
 		}
 		if err != nil {
-			return
+			return nil, pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
 		}
 
 		if len(createdInstanceIds) != 0 {
 			_, err = attachInstancesToCluster(a.log, a.context.ClusterID, createdInstanceIds, a.context.CSClient)
 			if err != nil {
-				return nil, err
+				return nil, emperror.With(err, "clusterName", a.clusterName)
 			}
 		}
 	}
 
 	r, err := getClusterDetails(a.context.ClusterID, a.context.CSClient)
 	if err != nil {
-		return nil, err
+		return nil, emperror.With(err, "clusterName", a.clusterName)
 	}
 
 	return r, nil

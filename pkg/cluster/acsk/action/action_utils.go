@@ -27,6 +27,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -41,7 +42,7 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 	_, err := waitUntilClusterCreateOrScaleComplete(log, clusterID, csClient, true)
 	if err != nil {
 		log.Warn("Error happened during waiting for cluster state to be deleted ", err)
-		return emperror.WrapWith(err, "could not delete cluster!")
+		return emperror.Wrap(err, "could not delete cluster!")
 	}
 
 	req := cs.CreateDeleteClusterRequest()
@@ -78,7 +79,7 @@ func describeScalingInstances(essClient *ess.Client, asgId, scalingConfId, regio
 
 	describeScalingInstancesResponse, err := essClient.DescribeScalingInstances(describeScalingInstancesRequest)
 	if err != nil {
-		return nil, err
+		return nil, emperror.WrapWith(err, "could not describe scaling instances", "scalingGroupId", asgId)
 	}
 	return describeScalingInstancesResponse, nil
 }
@@ -104,17 +105,17 @@ func attachInstancesToCluster(log logrus.FieldLogger, clusterID string, instance
 
 	_, err = csClient.AttachInstances(attachInstanceRequest)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "could not attach instances to cluster")
 	}
 	log.Info("Wait for nodepool attach")
 	clusterWithPools, err := waitUntilClusterCreateOrScaleComplete(log, clusterID, csClient, false)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "nodepool creation failed", "clusterId", clusterID)
+		return nil, emperror.Wrap(err, "attaching nodepool failed")
 	}
 	return clusterWithPools, nil
 }
 
-func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolModel, essClient *ess.Client, regionId string) (err error) {
+func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolModel, essClient *ess.Client, regionId string) error {
 	errChan := make(chan error, len(nodePools))
 	defer close(errChan)
 
@@ -136,7 +137,7 @@ func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 
 			_, err := essClient.DeleteScalingGroup(deleteSGRequest)
 			if err != nil {
-				errChan <- err
+				errChan <- emperror.WrapWith(err, "could not delete scaling group", "scalingGroupId", nodePool.AsgId, "nodePoolName", nodePool.Name)
 				return
 			}
 
@@ -149,26 +150,26 @@ func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 			errChan <- nil
 		}(nodePool)
 	}
+	var err error
+	caughtErrors := emperror.NewMultiErrorBuilder()
 
 	for i := 0; i < len(nodePools); i++ {
-		e := <-errChan
-		if e != nil {
-			log.Error(e)
-
-			err = e
+		err = <-errChan
+		if err != nil {
+			caughtErrors.Add(err)
 		}
 	}
 
-	return
+	return pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
 }
 
 func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACSKNodePoolModel) ([]string, error) {
-	log.Info("Waiting for instances to get ready")
+	log.Infof("Waiting for instances to get ready in NodePool: %s", nodePool.Name)
 
 	for {
 		describeScalingInstancesResponse, err := describeScalingInstances(essClient, nodePool.AsgId, nodePool.ScalingConfId, regionId)
 		if err != nil {
-			return nil, err
+			return nil, emperror.With(err, "nodePoolName", nodePool.Name)
 		}
 		if describeScalingInstancesResponse.TotalCount < nodePool.MinCount || describeScalingInstancesResponse.TotalCount > nodePool.MaxCount {
 			continue

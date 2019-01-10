@@ -19,6 +19,7 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,5 +61,7 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 	req.KeyPairNames = string(marshaledValue)
 	req.RegionId = a.sshKeyRegionID
 
-	return ecsClient.DeleteKeyPairs(req)
+	resp, err := ecsClient.DeleteKeyPairs(req)
+
+	return resp, emperror.WrapWith(err, "could not delete ssh key from Alibaba", "sshKeyName", a.sshKeyName)
 }

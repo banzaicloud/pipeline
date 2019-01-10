@@ -20,6 +20,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 )
 
@@ -55,7 +56,8 @@ func (a *UploadSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 	req.PublicKeyBody = strings.TrimSpace(secret.NewSSHKeyPair(a.sshSecret).PublicKeyData)
 	req.RegionId = a.context.AlibabaClusterCreateParams.RegionID
 
-	return ecsClient.ImportKeyPair(req)
+	resp, err := ecsClient.ImportKeyPair(req)
+	return resp, emperror.WrapWith(err, "could not upload ssh key to Alibaba", "sshKeyName", a.context.AlibabaClusterCreateParams.Name, "clusterName", a.context.Name)
 }
 
 // UndoAction rolls back this UploadSSHKeyAction
@@ -70,5 +72,5 @@ func (a *UploadSSHKeyAction) UndoAction() (err error) {
 	req.RegionId = a.context.AlibabaClusterCreateParams.RegionID
 
 	_, err = ecsClient.DeleteKeyPairs(req)
-	return
+	return emperror.WrapWith(err, "could not delete ssh key from Alibaba", "sshKeyName", a.context.AlibabaClusterCreateParams.Name, "clusterName", a.context.Name)
 }

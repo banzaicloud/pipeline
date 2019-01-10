@@ -19,19 +19,21 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 )
 
 // ACSKClusterDeleteContext describes the fields used across ACK cluster delete operation
 type ACSKClusterDeleteContext struct {
 	ACKContext
-	RegionId  string
-	NodePools []*model.ACSKNodePoolModel
+	RegionId    string
+	ClusterName string
+	NodePools   []*model.ACSKNodePoolModel
 }
 
 // NewACSKClusterDeletionContext creates a new ACSKClusterDeleteContext
 func NewACSKClusterDeletionContext(csClient *cs.Client,
-	ecsClient *ecs.Client, essClient *ess.Client, clusterID string, nodePools []*model.ACSKNodePoolModel, regionID string) *ACSKClusterDeleteContext {
+	ecsClient *ecs.Client, essClient *ess.Client, clusterID string, nodePools []*model.ACSKNodePoolModel, clusterName, regionID string) *ACSKClusterDeleteContext {
 	return &ACSKClusterDeleteContext{
 		ACKContext: ACKContext{
 			CSClient:  csClient,
@@ -39,8 +41,9 @@ func NewACSKClusterDeletionContext(csClient *cs.Client,
 			ESSClient: essClient,
 			ClusterID: clusterID,
 		},
-		RegionId:  regionID,
-		NodePools: nodePools,
+		RegionId:    regionID,
+		ClusterName: clusterName,
+		NodePools:   nodePools,
 	}
 }
 
@@ -66,5 +69,5 @@ func (a *DeleteACSKClusterAction) GetName() string {
 // ExecuteAction executes this DeleteACSKClusterAction
 func (a *DeleteACSKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	a.log.Info("EXECUTE DeleteClusterAction")
-	return nil, deleteCluster(a.log, a.context.ClusterID, a.context.CSClient)
+	return nil, emperror.With(deleteCluster(a.log, a.context.ClusterID, a.context.CSClient), "clusterName", a.context.ClusterName)
 }

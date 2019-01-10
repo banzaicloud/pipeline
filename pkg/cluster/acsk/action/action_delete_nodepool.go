@@ -14,7 +14,10 @@
 
 package action
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/goph/emperror"
+	"github.com/sirupsen/logrus"
+)
 
 // DeleteACSKNodePoolAction describes the properties of an Alibaba cluster deletion
 type DeleteACSKNodePoolAction struct {
@@ -41,5 +44,5 @@ func (a *DeleteACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		return nil, nil
 	}
 	a.log.Info("EXECUTE DeleteNodePoolAction")
-	return nil, deleteNodepools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionId)
+	return nil, emperror.With(deleteNodepools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionId), "clusterName", a.context.ClusterName)
 }
