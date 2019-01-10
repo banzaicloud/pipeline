@@ -381,7 +381,7 @@ func (i *GithubImporter) ImportOrganizationsFromDex(currentUser *User, organizat
 }
 
 func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []githubOrganization) error {
-	githubOrgIDs, err := importGithubOrganizationsToDB(i.db, currentUser, orgs)
+	githubOrgIDs, err := importGithubOrganizations(i.db, currentUser, orgs)
 
 	if err != nil {
 		return emperror.With(err, "failed to import organizations")
@@ -399,7 +399,7 @@ func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []git
 	return nil
 }
 
-func importGithubOrganizationsToDB(db *gorm.DB, currentUser *User, orgs []githubOrganization) (map[uint]bool, error) {
+func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []githubOrganization) (map[uint]bool, error) {
 
 	orgIDs := make(map[uint]bool, len(orgs))
 
