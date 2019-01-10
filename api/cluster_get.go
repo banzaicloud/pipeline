@@ -39,7 +39,7 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 	errorHandler = emperror.HandlerWith(
 		errorHandler,
 		"clusterId", commonCluster.GetID(),
-		"clusterName", commonCluster.GetName(),
+		"cluster", commonCluster.GetName(),
 	)
 
 	clusterStatus, err := commonCluster.GetStatus()

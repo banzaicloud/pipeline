@@ -71,7 +71,7 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 func describeScalingInstances(essClient *ess.Client, asgId, scalingConfId, regionId string) (*ess.DescribeScalingInstancesResponse, error) {
 	describeScalingInstancesRequest := ess.CreateDescribeScalingInstancesRequest()
 	describeScalingInstancesRequest.SetScheme(requests.HTTPS)
-	describeScalingInstancesRequest.SetDomain("ess." + regionId + ".aliyuncs.com")
+	describeScalingInstancesRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, regionId))
 	describeScalingInstancesRequest.SetContentType(requests.Json)
 
 	describeScalingInstancesRequest.ScalingGroupId = asgId
@@ -124,7 +124,7 @@ func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 
 			deleteSGRequest := ess.CreateDeleteScalingGroupRequest()
 			deleteSGRequest.SetScheme(requests.HTTPS)
-			deleteSGRequest.SetDomain("ess." + regionId + ".aliyuncs.com")
+			deleteSGRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, regionId))
 			deleteSGRequest.SetContentType(requests.Json)
 			if nodePool.AsgId == "" {
 				// Asg could not be created nothing to remove

@@ -139,7 +139,7 @@ func (c *ACSKCluster) GetAlibabaCSClient(cfg *sdk.Config) (*cs.Client, error) {
 		return nil, err
 	}
 	client, err := createAlibabaCSClient(cred, c.modelCluster.ACSK.RegionID, cfg)
-	return client, emperror.With(err, "clusterName", c.modelCluster.Name)
+	return client, emperror.With(err, "cluster", c.modelCluster.Name)
 }
 
 // GetAlibabaECSClient creates an Alibaba Elastic Compute Service client with the credentials
@@ -150,7 +150,7 @@ func (c *ACSKCluster) GetAlibabaECSClient(cfg *sdk.Config) (*ecs.Client, error) 
 	}
 
 	client, err := createAlibabaECSClient(cred, c.modelCluster.ACSK.RegionID, cfg)
-	return client, emperror.With(err, "clusterName", c.modelCluster.Name)
+	return client, emperror.With(err, "cluster", c.modelCluster.Name)
 }
 
 // GetAlibabaESSClient creates an Alibaba Auto Scaling Service client with credentials
@@ -161,7 +161,7 @@ func (c *ACSKCluster) GetAlibabaESSClient(cfg *sdk.Config) (*ess.Client, error) 
 	}
 
 	client, err := createAlibabaESSClient(cred, c.modelCluster.ACSK.RegionID, cfg)
-	return client, emperror.With(err, "clusterName", c.modelCluster.Name)
+	return client, emperror.With(err, "cluster", c.modelCluster.Name)
 }
 
 func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
@@ -352,11 +352,11 @@ func (c *ACSKCluster) CreateCluster() error {
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, true)
 	c.modelCluster.ACSK.ProviderClusterID = clusterContext.ClusterID
 	if err != nil {
-		return emperror.WrapWith(err, "ACK cluster create error", "clusterName", c.modelCluster.Name)
+		return emperror.WrapWith(err, "failed to create ACK cluster", "cluster", c.modelCluster.Name)
 	}
 	castedValue, ok := resp.(*acsk.AlibabaDescribeClusterResponse)
 	if !ok {
-		return emperror.With(errors.New("could not cast cluster create response"), "clusterName", c.modelCluster.Name)
+		return emperror.With(errors.New("could not cast cluster create response"), "cluster", c.modelCluster.Name)
 	}
 	c.modelCluster.ACSK.KubernetesVersion = castedValue.KubernetesVersion
 	c.alibabaCluster = castedValue
@@ -368,12 +368,12 @@ func (c *ACSKCluster) CreateCluster() error {
 
 	restKubeConfig, err := k8sclient.NewClientConfig(kubeConfig)
 	if err != nil {
-		return emperror.With(err, "clusterName", c.modelCluster.Name)
+		return emperror.With(err, "cluster", c.modelCluster.Name)
 	}
 
 	kubeClient, err := kubernetes.NewForConfig(restKubeConfig)
 	if err != nil {
-		return emperror.WrapWith(err, "could not generate kubeClient from config", "clusterName", c.modelCluster.Name)
+		return emperror.WrapWith(err, "could not generate kubeClient from config", "cluster", c.modelCluster.Name)
 	}
 
 	// create default storage class
@@ -381,7 +381,7 @@ func (c *ACSKCluster) CreateCluster() error {
 	// when Alibaba supports this feature
 	err = createDefaultStorageClass(kubeClient, "alicloud/disk", storagev1.VolumeBindingImmediate)
 	if err != nil {
-		return emperror.With(err, "clusterName", c.modelCluster.Name)
+		return emperror.With(err, "cluster", c.modelCluster.Name)
 	}
 
 	return c.modelCluster.Save()
@@ -475,7 +475,7 @@ func (c *ACSKCluster) DownloadK8sConfig() ([]byte, error) {
 
 	info, err := getConnectionInfo(csClient, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
-		return nil, emperror.With(err, "clusterName", c.modelCluster.Name)
+		return nil, emperror.With(err, "cluster", c.modelCluster.Name)
 	}
 	sshHost := info.JumpHost
 
@@ -487,7 +487,7 @@ func (c *ACSKCluster) DownloadK8sConfig() ([]byte, error) {
 
 	signer, err := ssh.ParsePrivateKey([]byte(sshKey.PrivateKeyData))
 	if err != nil {
-		return nil, emperror.With(err, "clusterName", c.modelCluster.Name)
+		return nil, emperror.With(err, "cluster", c.modelCluster.Name)
 	}
 	clientConfig := ssh.ClientConfig{
 		User: "root",
@@ -498,20 +498,20 @@ func (c *ACSKCluster) DownloadK8sConfig() ([]byte, error) {
 	}
 	sshClient, err := ssh.Dial("tcp", fmt.Sprint(sshHost, ":22"), &clientConfig)
 	if err != nil {
-		return nil, emperror.With(err, "clusterName", c.modelCluster.Name)
+		return nil, emperror.With(err, "cluster", c.modelCluster.Name)
 	}
 	defer sshClient.Close()
 	var buff bytes.Buffer
 	w := bufio.NewWriter(&buff)
 	sshSession, err := sshClient.NewSession()
 	if err != nil {
-		return nil, emperror.With(err, "clusterName", c.modelCluster.Name)
+		return nil, emperror.With(err, "cluster", c.modelCluster.Name)
 	}
 	defer sshSession.Close()
 	sshSession.Stdout = w
 	sshSession.Run(fmt.Sprintf("cat %s", "/etc/kubernetes/kube.conf"))
 	w.Flush()
-	return buff.Bytes(), emperror.With(err, "clusterName", c.modelCluster.Name)
+	return buff.Bytes(), emperror.With(err, "cluster", c.modelCluster.Name)
 
 }
 
@@ -597,7 +597,7 @@ func (c *ACSKCluster) DeleteCluster() error {
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		return emperror.WrapWith(err, "could not delete Alibaba cluster", "clusterName", c.modelCluster.Name)
+		return emperror.WrapWith(err, "could not delete Alibaba cluster", "cluster", c.modelCluster.Name)
 	}
 
 	return nil
@@ -667,12 +667,12 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 
 	resp, err := utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to update ACK cluster", "clusterName", c.modelCluster.Name)
+		return emperror.WrapWith(err, "failed to update ACK cluster", "cluster", c.modelCluster.Name)
 	}
 
 	castedValue, ok := resp.(*acsk.AlibabaDescribeClusterResponse)
 	if !ok {
-		return emperror.With(errors.New("could not cast cluster update response"), "clusterName", c.modelCluster.Name)
+		return emperror.With(errors.New("could not cast cluster update response"), "cluster", c.modelCluster.Name)
 	}
 
 	c.modelCluster.ACSK.NodePools = nodePoolModels
@@ -1023,7 +1023,7 @@ func (c *ACSKCluster) GetK8sConfig() ([]byte, error) {
 func (c *ACSKCluster) createAlibabaCredentialsFromSecret() (*credentials.AccessKeyCredential, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to create alibaba creds from secret", "clusterName", c.modelCluster.Name)
+		return nil, emperror.WrapWith(err, "failed to create alibaba creds from secret", "cluster", c.modelCluster.Name)
 	}
 	return verify.CreateAlibabaCredentials(clusterSecret.Values), nil
 }
