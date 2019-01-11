@@ -28,4 +28,5 @@ const (
 	AlibabaApiDomain                = "cs.aliyuncs.com"
 	AlibabaInstanceHealthyStatus    = "Healthy"
 	AlibabaESSEndPointFmt           = "ess.%s.aliyuncs.com"
+	AlibabaMaxNodePoolSize          = 20
 )

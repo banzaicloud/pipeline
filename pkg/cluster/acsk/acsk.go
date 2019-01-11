@@ -72,8 +72,7 @@ func ValidateNodePools(nps NodePools) error {
 		return pkgErrors.ErrorAlibabaNodePoolFieldIsEmpty
 	}
 
-	// Alibaba only supports 20 nodepools
-	if len(nps) > 20 {
+	if len(nps) > AlibabaMaxNodePoolSize {
 		return pkgErrors.ErrorAlibabaNodePoolFieldLenError
 	}
 
