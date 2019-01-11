@@ -138,20 +138,22 @@ func CreateServiceAccount(values map[string]string) *ServiceAccount {
 }
 
 // createJWTConfig parses credentials from JSON
-func createJWTConfig(credentials *ServiceAccount) (*jwt.Config, error) {
+func createJWTConfig(credentials *ServiceAccount, scope ...string) (*jwt.Config, error) {
 	jsonConfig, err := json.Marshal(credentials)
 	if err != nil {
 		return nil, err
 	}
-
+	if len(scope) == 0 {
+		scope = []string{gke.CloudPlatformScope}
+	}
 	// Parse credentials from JSON
-	return google.JWTConfigFromJSON(jsonConfig, gke.CloudPlatformScope)
+	return google.JWTConfigFromJSON(jsonConfig, scope...)
 }
 
 // CreateOath2Client creates a new OAuth2 client with credentials
-func CreateOath2Client(credentials *ServiceAccount) (*http.Client, error) {
+func CreateOath2Client(credentials *ServiceAccount, scope ...string) (*http.Client, error) {
 
-	config, err := createJWTConfig(credentials)
+	config, err := createJWTConfig(credentials, scope...)
 	if err != nil {
 		return nil, err
 	}
