@@ -112,7 +112,11 @@ func ListSubnets(secret *secret.SecretItemResponse, networkID string, logger log
 	if err != nil {
 		return nil, err
 	}
-	subnetList, err := svc.Subnetworks.AggregatedList(projectID).Filter(fmt.Sprintf("network = %s", networkID)).Do()
+	net, err := svc.Networks.Get(projectID, networkID).Do()
+	if err != nil {
+		return nil, err
+	}
+	subnetList, err := svc.Subnetworks.AggregatedList(projectID).Filter(fmt.Sprintf(`network = "%s"`, net.SelfLink)).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +141,11 @@ func ListRouteTables(secret *secret.SecretItemResponse, networkID string, logger
 	if err != nil {
 		return nil, err
 	}
-	routeList, err := svc.Routes.List(projectID).Filter(fmt.Sprintf("network = %s", networkID)).Do()
+	net, err := svc.Networks.Get(projectID, networkID).Do()
+	if err != nil {
+		return nil, err
+	}
+	routeList, err := svc.Routes.List(projectID).Filter(fmt.Sprintf(`network = "%s"`, net.SelfLink)).Do()
 	if err != nil {
 		return nil, err
 	}
