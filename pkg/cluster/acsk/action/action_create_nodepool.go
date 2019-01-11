@@ -111,7 +111,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 			scalingConfigurationRequest.KeyPairName = cluster.Name
 			scalingConfigurationRequest.InstanceType = nodePool.InstanceType
 			scalingConfigurationRequest.SystemDiskCategory = "cloud_efficiency"
-			scalingConfigurationRequest.ImageId = "centos_7_04_64_20G_alibase_20180419.vhd"
+			scalingConfigurationRequest.ImageId = acsk.AlibabaDefaultImageId
 			scalingConfigurationRequest.Tags =
 				fmt.Sprintf(`{"pipeline-created":"true","pipeline-cluster":"%s","pipeline-nodepool":"%s"`,
 					cluster.Name, nodePool.Name)
