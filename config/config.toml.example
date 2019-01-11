@@ -60,6 +60,7 @@ clientsecret = "ZXhhbXBsZS1hcHAtc2VjcmV0"
 tokensigningkey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 jwtissueer = "https://banzaicloud.com/"
 jwtaudience = "https://pipeline.banzaicloud.com"
+dexURL = "http://127.0.0.1:5556/dex"
 
 secureCookie = true
 

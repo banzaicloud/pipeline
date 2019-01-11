@@ -206,7 +206,7 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 	dexProvider := dex.New(&dex.Config{
 		ClientID:     viper.GetString("auth.clientid"),
 		ClientSecret: viper.GetString("auth.clientsecret"),
-		IssuerURL:    "http://127.0.0.1:5556/dex",
+		IssuerURL:    viper.GetString("auth.dexURL"),
 	})
 	// dexProvider.AuthorizeHandler = NewDexAuthorizeHandler(dexProvider)
 	Auth.RegisterProvider(dexProvider)
