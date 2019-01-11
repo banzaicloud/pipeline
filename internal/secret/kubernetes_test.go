@@ -149,6 +149,26 @@ func TestCreateKubeSecret(t *testing.T) {
 				},
 			},
 		},
+		"secret with plain values": {
+			v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "secret",
+					Namespace: "namespace",
+				},
+				StringData: map[string]string{
+					"key": "value",
+				},
+			},
+			secret.KubeSecretRequest{
+				Name:      "secret",
+				Namespace: "namespace",
+				Spec: map[string]secret.KubeSecretSpecItem{
+					"key": {
+						Value: "value",
+					},
+				},
+			},
+		},
 	}
 
 	for name, test := range tests {
