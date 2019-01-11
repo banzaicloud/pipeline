@@ -23,6 +23,7 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/banzaicloud/pipeline/internal/network"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/sirupsen/logrus"
@@ -98,7 +99,7 @@ func ListNetworks(secret *secret.SecretItemResponse, logger logrus.FieldLogger) 
 	for idx, item := range networkList.Items {
 		networks[idx] = &googleNetwork{
 			cidr: item.IPv4Range,
-			id:   strconv.FormatUint(item.Id, 10),
+			id:   idToString(item.Id),
 			name: item.Name,
 		}
 	}
@@ -125,7 +126,7 @@ func ListSubnets(secret *secret.SecretItemResponse, networkID string, logger log
 		for _, item := range list.Subnetworks {
 			subnets = append(subnets, &googleSubnet{
 				cidr:     item.IpCidrRange,
-				id:       strconv.FormatUint(item.Id, 10),
+				id:       idToString(item.Id),
 				location: item.Region,
 				name:     item.Name,
 			})
@@ -152,7 +153,7 @@ func ListRouteTables(secret *secret.SecretItemResponse, networkID string, logger
 	routeTables := make([]network.RouteTable, len(routeList.Items))
 	for idx, item := range routeList.Items {
 		routeTables[idx] = &googleRouteTable{
-			id:   strconv.FormatUint(item.Id, 10),
+			id:   idToString(item.Id),
 			name: item.Name,
 		}
 	}
@@ -174,5 +175,9 @@ func newComputeServiceFromSecret(secret *secret.SecretItemResponse) (*compute.Se
 }
 
 func getProjectIDFromSecret(secret *secret.SecretItemResponse) string {
-	return secret.GetValue("project_id")
+	return secret.GetValue(pkgSecret.ProjectId)
+}
+
+func idToString(id uint64) string {
+	return strconv.FormatUint(id, 10)
 }
