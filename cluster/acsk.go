@@ -103,7 +103,7 @@ func (c *ACSKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 	}
 	request := ess.CreateDescribeScalingInstancesRequest()
 	request.SetScheme(requests.HTTPS)
-	request.SetDomain("ess." + c.modelCluster.ACSK.RegionID + ".aliyuncs.com")
+	request.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, c.modelCluster.ACSK.RegionID))
 	request.SetContentType(requests.Json)
 	nodes := make(pkgCommon.NodeNames, 0)
 	for _, nodepool := range c.modelCluster.ACSK.NodePools {
