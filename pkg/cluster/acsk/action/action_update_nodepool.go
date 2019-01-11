@@ -78,7 +78,7 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 		for _, nodePool := range a.nodePools {
 			go func(nodePool *model.ACSKNodePoolModel) {
 				describeScalingInstancesResponseBeforeModify, err :=
-					describeScalingInstances(a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
+					describeScalingInstances(a.context.ESSClient, nodePool.AsgID, nodePool.ScalingConfigID, a.region)
 				if err != nil {
 					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
 					createdInstanceIdsChan <- nil
@@ -89,13 +89,13 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 				modifyScalingGroupReq.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, a.region))
 				modifyScalingGroupReq.SetScheme(requests.HTTPS)
 				modifyScalingGroupReq.RegionId = a.region
-				modifyScalingGroupReq.ScalingGroupId = nodePool.AsgId
+				modifyScalingGroupReq.ScalingGroupId = nodePool.AsgID
 				modifyScalingGroupReq.MinSize = requests.NewInteger(nodePool.MinCount)
 				modifyScalingGroupReq.MaxSize = requests.NewInteger(nodePool.MaxCount)
 
 				_, err = a.context.ESSClient.ModifyScalingGroup(modifyScalingGroupReq)
 				if err != nil {
-					errChan <- emperror.WrapWith(err, "could not modify ScalingGroup", "scalingGroupId", nodePool.AsgId, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
+					errChan <- emperror.WrapWith(err, "could not modify ScalingGroup", "scalingGroupId", nodePool.AsgID, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
 					createdInstanceIdsChan <- nil
 					return
 				}
@@ -108,7 +108,7 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 				}
 
 				describeScalingInstancesResponseAfterModify, err :=
-					describeScalingInstances(a.context.ESSClient, nodePool.AsgId, nodePool.ScalingConfId, a.region)
+					describeScalingInstances(a.context.ESSClient, nodePool.AsgID, nodePool.ScalingConfigID, a.region)
 				if err != nil {
 					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
 					createdInstanceIdsChan <- nil

@@ -128,18 +128,18 @@ func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 			deleteSGRequest.SetScheme(requests.HTTPS)
 			deleteSGRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, regionId))
 			deleteSGRequest.SetContentType(requests.Json)
-			if nodePool.AsgId == "" {
+			if nodePool.AsgID == "" {
 				// Asg could not be created nothing to remove
 				errChan <- nil
 				return
 			}
 
-			deleteSGRequest.ScalingGroupId = nodePool.AsgId
+			deleteSGRequest.ScalingGroupId = nodePool.AsgID
 			deleteSGRequest.ForceDelete = requests.NewBoolean(true)
 
 			_, err := essClient.DeleteScalingGroup(deleteSGRequest)
 			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not delete scaling group", "scalingGroupId", nodePool.AsgId, "nodePoolName", nodePool.Name)
+				errChan <- emperror.WrapWith(err, "could not delete scaling group", "scalingGroupId", nodePool.AsgID, "nodePoolName", nodePool.Name)
 				return
 			}
 
@@ -169,7 +169,7 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 	log.Infof("Waiting for instances to get ready in NodePool: %s", nodePool.Name)
 
 	for {
-		describeScalingInstancesResponse, err := describeScalingInstances(essClient, nodePool.AsgId, nodePool.ScalingConfId, regionId)
+		describeScalingInstancesResponse, err := describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
 		if err != nil {
 			return nil, emperror.With(err, "nodePoolName", nodePool.Name)
 		}
