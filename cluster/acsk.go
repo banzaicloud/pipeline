@@ -107,11 +107,11 @@ func (c *ACSKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 	request.SetContentType(requests.Json)
 	nodes := make(pkgCommon.NodeNames, 0)
 	for _, nodepool := range c.modelCluster.ACSK.NodePools {
-		request.ScalingGroupId = nodepool.AsgId
-		request.ScalingConfigurationId = nodepool.ScalingConfId
+		request.ScalingGroupId = nodepool.AsgID
+		request.ScalingConfigurationId = nodepool.ScalingConfigID
 		response, err := essClient.DescribeScalingInstances(request)
 		if err != nil {
-			return nil, emperror.WrapWith(err, "error listing nodepool instances", "scalingGroupName", nodepool.AsgId)
+			return nil, emperror.WrapWith(err, "error listing nodepool instances", "scalingGroupName", nodepool.AsgID)
 		}
 		var instances []string
 		for _, instance := range response.ScalingInstances.ScalingInstance {
@@ -198,14 +198,14 @@ func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.N
 		// Delete node pool stored in the DB but deleted with Update
 		if pools[nodePool.Name] == nil {
 			updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
-				ID:            nodePool.ID,
-				CreatedBy:     nodePool.CreatedBy,
-				CreatedAt:     nodePool.CreatedAt,
-				ClusterID:     nodePool.ClusterID,
-				Name:          nodePool.Name,
-				AsgId:         nodePool.AsgId,
-				ScalingConfId: nodePool.ScalingConfId,
-				Delete:        true,
+				ID:              nodePool.ID,
+				CreatedBy:       nodePool.CreatedBy,
+				CreatedAt:       nodePool.CreatedAt,
+				ClusterID:       nodePool.ClusterID,
+				Name:            nodePool.Name,
+				AsgID:           nodePool.AsgID,
+				ScalingConfigID: nodePool.ScalingConfigID,
+				Delete:          true,
 			})
 		}
 	}
@@ -216,18 +216,18 @@ func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.N
 				currentNodePoolMap[nodePoolName].MaxCount != nodePool.MaxCount ||
 				currentNodePoolMap[nodePoolName].InstanceType != nodePool.InstanceType {
 				updatedNodePools = append(updatedNodePools, &model.ACSKNodePoolModel{
-					ID:            currentNodePoolMap[nodePoolName].ID,
-					CreatedBy:     currentNodePoolMap[nodePoolName].CreatedBy,
-					CreatedAt:     currentNodePoolMap[nodePoolName].CreatedAt,
-					ClusterID:     currentNodePoolMap[nodePoolName].ClusterID,
-					Name:          nodePoolName,
-					InstanceType:  nodePool.InstanceType,
-					MinCount:      nodePool.MinCount,
-					MaxCount:      nodePool.MaxCount,
-					Count:         currentNodePoolMap[nodePoolName].Count,
-					AsgId:         currentNodePoolMap[nodePoolName].AsgId,
-					ScalingConfId: currentNodePoolMap[nodePoolName].ScalingConfId,
-					Delete:        false,
+					ID:              currentNodePoolMap[nodePoolName].ID,
+					CreatedBy:       currentNodePoolMap[nodePoolName].CreatedBy,
+					CreatedAt:       currentNodePoolMap[nodePoolName].CreatedAt,
+					ClusterID:       currentNodePoolMap[nodePoolName].ClusterID,
+					Name:            nodePoolName,
+					InstanceType:    nodePool.InstanceType,
+					MinCount:        nodePool.MinCount,
+					MaxCount:        nodePool.MaxCount,
+					Count:           currentNodePoolMap[nodePoolName].Count,
+					AsgID:           currentNodePoolMap[nodePoolName].AsgID,
+					ScalingConfigID: currentNodePoolMap[nodePoolName].ScalingConfigID,
+					Delete:          false,
 				})
 			}
 		} else {
@@ -638,7 +638,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 			continue
 		}
 		// create nodePool
-		if nodePool.ScalingConfId == "" && nodePool.AsgId == "" {
+		if nodePool.ScalingConfigID == "" && nodePool.AsgID == "" {
 			c.log.Infof("nodePool %v will be created", nodePool.Name)
 			nodePoolsToCreate = append(nodePoolsToCreate, nodePool)
 			continue

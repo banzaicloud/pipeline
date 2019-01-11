@@ -97,16 +97,16 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 				return
 			}
 
-			nodePool.AsgId = createScalingGroupResponse.ScalingGroupId
-			a.log.Infof("Scaling Group with id %s successfully created", nodePool.AsgId)
-			a.log.Infof("Creating scaling configuration for group %s", nodePool.AsgId)
+			nodePool.AsgID = createScalingGroupResponse.ScalingGroupId
+			a.log.Infof("Scaling Group with id %s successfully created", nodePool.AsgID)
+			a.log.Infof("Creating scaling configuration for group %s", nodePool.AsgID)
 
 			scalingConfigurationRequest := ess.CreateCreateScalingConfigurationRequest()
 			scalingConfigurationRequest.SetScheme(requests.HTTPS)
 			scalingConfigurationRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
 			scalingConfigurationRequest.SetContentType(requests.Json)
 
-			scalingConfigurationRequest.ScalingGroupId = nodePool.AsgId
+			scalingConfigurationRequest.ScalingGroupId = nodePool.AsgID
 			scalingConfigurationRequest.SecurityGroupId = cluster.SecurityGroupID
 			scalingConfigurationRequest.KeyPairName = cluster.Name
 			scalingConfigurationRequest.InstanceType = nodePool.InstanceType
@@ -118,26 +118,26 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 
 			createConfigurationResponse, err := a.context.ESSClient.CreateScalingConfiguration(scalingConfigurationRequest)
 			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgId, "cluster", cluster.Name)
+				errChan <- emperror.WrapWith(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
 
-			nodePool.ScalingConfId = createConfigurationResponse.ScalingConfigurationId
+			nodePool.ScalingConfigID = createConfigurationResponse.ScalingConfigurationId
 
-			a.log.Infof("Scaling Configuration successfully created for group %s", nodePool.AsgId)
+			a.log.Infof("Scaling Configuration successfully created for group %s", nodePool.AsgID)
 
 			enableSGRequest := ess.CreateEnableScalingGroupRequest()
 			enableSGRequest.SetScheme(requests.HTTPS)
 			enableSGRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
 			enableSGRequest.SetContentType(requests.Json)
 
-			enableSGRequest.ScalingGroupId = nodePool.AsgId
-			enableSGRequest.ActiveScalingConfigurationId = nodePool.ScalingConfId
+			enableSGRequest.ScalingGroupId = nodePool.AsgID
+			enableSGRequest.ActiveScalingConfigurationId = nodePool.ScalingConfigID
 
 			_, err = a.context.ESSClient.EnableScalingGroup(enableSGRequest)
 			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not enable Scaling Group", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgId, "cluster", cluster.Name)
+				errChan <- emperror.WrapWith(err, "could not enable Scaling Group", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
 				instanceIdsChan <- nil
 				return
 			}
