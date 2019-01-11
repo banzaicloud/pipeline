@@ -181,7 +181,6 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 		for _, instance := range describeScalingInstancesResponse.ScalingInstances.ScalingInstance {
 			if instance.HealthStatus == acsk.AlibabaInstanceHealthyStatus {
 				instanceIds = append(instanceIds, instance.InstanceId)
-				continue
 			} else {
 				time.Sleep(time.Second * 20)
 				break
