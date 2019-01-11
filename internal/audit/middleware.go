@@ -17,7 +17,6 @@ package audit
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -48,138 +47,149 @@ func LogWriter(
 	}
 
 	return func(c *gin.Context) {
-		// Start timer
 		start := time.Now()
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
 
 		// Log only when path is not being skipped
-		if _, ok := skip[path]; !ok {
-			// Copy request body into a new buffer, so other handlers can use it safely
-			bodyBuffer := bytes.NewBuffer(nil)
+		if _, ok := skip[path]; ok {
+			return
+		}
 
-			written, err := io.Copy(bodyBuffer, c.Request.Body)
-			if err != nil {
-				c.AbortWithError(http.StatusInternalServerError, err)
-				logger.Errorln(err)
+		// Copy request body into a new buffer, so other handlers can use it safely
+		bodyBuffer := bytes.NewBuffer(nil)
 
+		if _, err := io.Copy(bodyBuffer, c.Request.Body); err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			logger.Errorf("audit: failed to copy body: %v", err)
+
+			return
+		}
+
+		// We can close the old Body right now, it is fully read
+		c.Request.Body.Close()
+
+		rawBody := bodyBuffer.Bytes()
+		c.Request.Body = ioutil.NopCloser(bodyBuffer)
+
+		// Filter out sensitive data from body
+		var body *string
+
+		if len(rawBody) > 0 {
+
+			if !json.Valid(rawBody) {
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error ": "invalid JSON in body"})
 				return
 			}
 
-			// We can close the old Body right now, it is fully read
-			c.Request.Body.Close()
+			if strings.Contains(path, "/secrets") || strings.Contains(path, "/spotguides") {
 
-			if written != c.Request.ContentLength {
-				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to copy request body correctly"))
-				logger.Errorln(err)
+				var request struct {
+					*secret.CreateSecretRequest
+					*spotguide.LaunchRequest
+				}
 
-				return
-			}
+				err := json.Unmarshal(rawBody, &request)
+				if err != nil {
+					c.AbortWithError(http.StatusInternalServerError, err)
+					logger.Errorln(err)
 
-			rawBody := bodyBuffer.Bytes()
-			c.Request.Body = ioutil.NopCloser(bodyBuffer)
-
-			// Filter out sensitive data from body
-			var body *string
-
-			if len(rawBody) > 0 {
-
-				if !json.Valid(rawBody) {
-					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error ": "invalid JSON in body"})
 					return
 				}
 
-				if strings.Contains(path, "/secrets") || strings.Contains(path, "/spotguides") {
+				newBody := rawBody
 
-					var request struct {
-						*secret.CreateSecretRequest
-						*spotguide.LaunchRequest
-					}
-
-					err := json.Unmarshal(rawBody, &request)
-					if err != nil {
-						c.AbortWithError(http.StatusInternalServerError, err)
-						logger.Errorln(err)
-
-						return
-					}
-
-					newBody := rawBody
-
-					if request.CreateSecretRequest != nil {
-						newBody, err = json.Marshal(&request.CreateSecretRequest)
-					} else if request.LaunchRequest != nil {
-						newBody, err = json.Marshal(&request.LaunchRequest)
-					}
-
-					if err != nil {
-						c.AbortWithError(http.StatusInternalServerError, err)
-						logger.Errorln(err)
-
-						return
-					}
-
-					newBodyString := string(newBody)
-					body = &newBodyString
-
-				} else {
-
-					newBodyString := string(rawBody)
-					body = &newBodyString
+				if request.CreateSecretRequest != nil {
+					newBody, err = json.Marshal(&request.CreateSecretRequest)
+				} else if request.LaunchRequest != nil {
+					newBody, err = json.Marshal(&request.LaunchRequest)
 				}
-			}
 
-			correlationID := c.GetString(correlationid.ContextKey)
-			clientIP := c.ClientIP()
-			method := c.Request.Method
-			userAgent := c.Request.UserAgent()
-			statusCode := c.Writer.Status()
+				if err != nil {
+					c.AbortWithError(http.StatusInternalServerError, err)
+					logger.Errorln(err)
 
-			if raw != "" {
-				path = path + "?" + raw
-			}
-
-			user := auth.GetCurrentUser(c.Request)
-			var userID uint
-			if user != nil {
-				userID = user.ID
-			}
-
-			filteredHeaders := http.Header{}
-			for _, header := range whitelistedHeaders {
-				if values := c.Request.Header[textproto.CanonicalMIMEHeaderKey(header)]; len(values) != 0 {
-					filteredHeaders[header] = values
+					return
 				}
+
+				newBodyString := string(newBody)
+				body = &newBodyString
+
+			} else {
+
+				newBodyString := string(rawBody)
+				body = &newBodyString
 			}
+		}
 
-			headers, err := json.Marshal(filteredHeaders)
-			if err != nil {
-				c.AbortWithError(http.StatusInternalServerError, err)
-				logger.Errorln(err)
+		correlationID := c.GetString(correlationid.ContextKey)
+		clientIP := c.ClientIP()
+		method := c.Request.Method
+		userAgent := c.Request.UserAgent()
 
-				return
+		if raw != "" {
+			path = path + "?" + raw
+		}
+
+		user := auth.GetCurrentUser(c.Request)
+		var userID uint
+		if user != nil {
+			userID = user.ID
+		}
+
+		filteredHeaders := http.Header{}
+		for _, header := range whitelistedHeaders {
+			if values := c.Request.Header[textproto.CanonicalMIMEHeaderKey(header)]; len(values) != 0 {
+				filteredHeaders[header] = values
 			}
+		}
 
-			event := AuditEvent{
-				Time:          start,
-				CorrelationID: correlationID,
-				ClientIP:      clientIP,
-				UserAgent:     userAgent,
-				UserID:        userID,
-				StatusCode:    statusCode,
-				Method:        method,
-				Path:          path,
-				Body:          body,
-				Headers:       string(headers),
+		headers, err := json.Marshal(filteredHeaders)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			logger.Errorf("audit: failed to marshal headers: %v", err)
+
+			return
+		}
+
+		event := AuditEvent{
+			Time:          start,
+			CorrelationID: correlationID,
+			ClientIP:      clientIP,
+			UserAgent:     userAgent,
+			UserID:        userID,
+			Method:        method,
+			Path:          path,
+			Body:          body,
+			Headers:       string(headers),
+		}
+
+		if err := db.Save(&event).Error; err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			logger.Errorf("audit: failed to write request to db: %v", err)
+
+			return
+		}
+
+		c.Next() // process request
+
+		responseEvent := AuditEvent{
+			StatusCode:   c.Writer.Status(),
+			ResponseSize: c.Writer.Size(),
+			ResponseTime: int(time.Since(start).Nanoseconds() / 1000 / 1000), // ms
+		}
+
+		if c.IsAborted() {
+			if marshalled, err := json.Marshal(c.Errors); err != nil {
+				logger.Errorf("audit: failed to marshal c.Errors: %v", err)
+			} else {
+				errors := string(marshalled)
+				responseEvent.Errors = &errors
 			}
+		}
 
-			err = db.Save(&event).Error
-			if err != nil {
-				c.AbortWithError(http.StatusInternalServerError, err)
-				logger.Errorln(err)
-
-				return
-			}
+		if err := db.Model(&event).Updates(responseEvent).Error; err != nil {
+			logger.Errorf("audit: failed to write response details: %v", err)
 		}
 	}
 }
