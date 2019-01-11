@@ -121,10 +121,11 @@ type UserOrganization struct {
 //Organization struct
 type Organization struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
+	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
-	Name      string    `gorm:"unique_index:provider_name;not null" json:"name"`
-	Provider  string    `gorm:"unique_index:provider_name;not null" json:"provider"`
+	Name      string    `gorm:"unique;not null" json:"name"`
+	Provider  string    `gorm:"not null" json:"provider"`
 	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
 	Role      string    `json:"-" gorm:"-"` // Used only internally
 }
@@ -372,15 +373,15 @@ func (i *GithubImporter) ImportOrganizationsFromGithub(currentUser *User, github
 
 func (i *GithubImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string) error {
 
-	var orgs []githubOrganization
+	var orgs []organization
 	for _, org := range organizations {
-		orgs = append(orgs, githubOrganization{name: org})
+		orgs = append(orgs, organization{name: org, provider: "github"})
 	}
 
 	return i.ImportGithubOrganizations(currentUser, orgs)
 }
 
-func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []githubOrganization) error {
+func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []organization) error {
 	githubOrgIDs, err := importGithubOrganizations(i.db, currentUser, orgs)
 
 	if err != nil {
@@ -399,15 +400,16 @@ func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []git
 	return nil
 }
 
-func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []githubOrganization) (map[uint]bool, error) {
+func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
 
 	orgIDs := make(map[uint]bool, len(orgs))
 
 	tx := db.Begin()
 	for _, org := range orgs {
 		o := Organization{
-			Name: org.name,
-			Role: org.role,
+			Name:     org.name,
+			Role:     org.role,
+			Provider: org.provider,
 		}
 
 		needsCreation := true

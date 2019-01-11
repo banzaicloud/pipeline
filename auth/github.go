@@ -232,13 +232,14 @@ func NewGithubClientForUser(userID uint) (*github.Client, error) {
 	return NewGithubClient(accessToken), nil
 }
 
-type githubOrganization struct {
-	name string
-	id   int64
-	role string
+type organization struct {
+	name     string
+	id       int64
+	role     string
+	provider string
 }
 
-func getGithubOrganizations(token string) ([]githubOrganization, error) {
+func getGithubOrganizations(token string) ([]organization, error) {
 	httpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
 	githubClient := github.NewClient(httpClient)
 
@@ -247,12 +248,13 @@ func getGithubOrganizations(token string) ([]githubOrganization, error) {
 		return nil, errors.Wrap(err, "failed to list organization memberships")
 	}
 
-	var orgs []githubOrganization
+	var orgs []organization
 	for _, membership := range memberships {
-		org := githubOrganization{
-			name: membership.GetOrganization().GetLogin(),
-			id:   membership.GetOrganization().GetID(),
-			role: membership.GetRole(),
+		org := organization{
+			name:     membership.GetOrganization().GetLogin(),
+			id:       membership.GetOrganization().GetID(),
+			role:     membership.GetRole(),
+			provider: "github",
 		}
 
 		orgs = append(orgs, org)
