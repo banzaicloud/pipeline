@@ -26,7 +26,7 @@ import (
 	"github.com/jinzhu/gorm"
 
 	evbus "github.com/asaskevich/EventBus"
-	"github.com/banzaicloud/go-gin-prometheus"
+	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
 	"github.com/banzaicloud/pipeline/api/ark/backupservice"
@@ -56,7 +56,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/casbin/gorm-adapter"
+	gormadapter "github.com/casbin/gorm-adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -267,6 +267,7 @@ func main() {
 	organizationAPI := api.NewOrganizationAPI(githubImporter)
 	userAPI := api.NewUserAPI(accessManager)
 	spotguideManager := spotguide.NewSpotguideManager(config.DB(), Version, viper.GetString("github.token"), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+	networkAPI := api.NewNetworkAPI()
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
@@ -397,6 +398,10 @@ func main() {
 			orgs.HEAD("/:orgid/buckets/:name", api.CheckBucket)
 			orgs.GET("/:orgid/buckets/:name", api.GetBucket)
 			orgs.DELETE("/:orgid/buckets/:name", api.DeleteBucket)
+
+			orgs.GET("/:orgid/networks", networkAPI.ListVPCNetworks)
+			orgs.GET("/:orgid/networks/:id/subnets", networkAPI.ListVPCSubnets)
+			orgs.GET("/:orgid/networks/:id/routeTables", networkAPI.ListRouteTables)
 
 			orgs.GET("/:orgid/azure/resourcegroups", api.GetResourceGroups)
 			orgs.POST("/:orgid/azure/resourcegroups", api.AddResourceGroups)
