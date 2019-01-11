@@ -15,8 +15,6 @@
 package google
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -27,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/oauth2/google"
 )
 
 type googleNetwork struct {
@@ -162,15 +159,10 @@ func ListRouteTables(secret *secret.SecretItemResponse, networkID string, logger
 
 func newComputeServiceFromSecret(secret *secret.SecretItemResponse) (*compute.Service, error) {
 	serviceAccount := verify.CreateServiceAccount(secret.Values)
-	jsonConfig, err := json.Marshal(serviceAccount)
+	client, err := verify.CreateOath2Client(serviceAccount, compute.ComputeReadonlyScope)
 	if err != nil {
 		return nil, err
 	}
-	jwtConf, err := google.JWTConfigFromJSON(jsonConfig, compute.ComputeReadonlyScope)
-	if err != nil {
-		return nil, err
-	}
-	client := jwtConf.Client(context.Background())
 	return compute.New(client)
 }
 
