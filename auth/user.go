@@ -389,6 +389,9 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 			orgIDs[o.ID] = false
 			needsCreation = false
 
+			// We don't need to create the organization again imported from the provider
+			// however we need to associate the user with this organization already in db
+
 		} else if !gorm.IsRecordNotFoundError(err) {
 			tx.Rollback()
 
