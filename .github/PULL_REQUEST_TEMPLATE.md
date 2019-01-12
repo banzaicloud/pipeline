@@ -17,11 +17,12 @@
 
 
 ### Additional context
-<!-- Additional information we should know about (eg. edge cases) (remove this section if you don't need it) -->
+<!-- Additional information we should know about (eg. edge cases, steps you followed to test the implementation) (remove this section if you don't need it) -->
 
 
 ### Checklist
 
+- [ ] Implementation tested (with at least one cloud provider)
 - [ ] Error handling code meets the [guideline](https://github.com/banzaicloud/pipeline/blob/master/docs/error-handling-guide.md)
 - [ ] Logging code meets the guideline (TODO)
 - [ ] OpenAPI Postman files updated, client regenerated (`make generate-client`) (if needed)
