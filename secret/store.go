@@ -646,16 +646,13 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 
 		clusterUID := value.Values[secretTypes.ClusterUID]
 
-		// TODO  Warnings:[The expiration time for the signed certificate is after the CA's expiration time. If the new certificate is not treated as a root, validation paths with the certificate past the issuing CA's expiration time will fail.
-		mountConfig := vaultapi.MountConfigInput{
-			MaxLeaseTTL:     "43801h",
-			DefaultLeaseTTL: "43801h",
-		}
-
 		mountInput := vaultapi.MountInput{
 			Type:        "pki",
 			Description: fmt.Sprintf("root PKI engine for cluster %s", clusterUID),
-			Config:      mountConfig,
+			Config: vaultapi.MountConfigInput{
+				MaxLeaseTTL:     "43801h",
+				DefaultLeaseTTL: "43801h",
+			},
 		}
 
 		// Mount a separate PKI engine for the cluster
@@ -678,7 +675,6 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 				log.Warnf("failed to unmount %s: %s", path, err)
 			}
-
 			return errors.Wrapf(err, "Error generating root CA for cluster %s", clusterUID)
 		}
 
@@ -689,7 +685,6 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 				log.Warnf("failed to unmount %s: %s", path, err)
 			}
-
 			return err
 		}
 
@@ -699,7 +694,6 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 				log.Warnf("failed to unmount %s: %s", path, err)
 			}
-
 			return err
 		}
 
@@ -709,16 +703,13 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 				log.Warnf("failed to unmount %s: %s", path, err)
 			}
-
 			return err
 		}
 
 		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA.Key
 		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert
-
 		value.Values[secretTypes.EtcdCAKey] = etcdCA.Key
 		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert
-
 		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA.Key
 		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert
 
@@ -731,15 +722,13 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 }
 
 func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName string) (*certificate, error) {
-	mountConfig := vaultapi.MountConfigInput{
-		MaxLeaseTTL:     "43800h",
-		DefaultLeaseTTL: "43800h",
-	}
-
 	mountInput := vaultapi.MountInput{
 		Type:        "pki",
 		Description: fmt.Sprintf("%s intermediate PKI engine for cluster %s", commonName, clusterUID),
-		Config:      mountConfig,
+		Config: vaultapi.MountConfigInput{
+			MaxLeaseTTL:     "43800h",
+			DefaultLeaseTTL: "43800h",
+		},
 	}
 
 	path := fmt.Sprintf("%s/%s", basePath, commonName)
@@ -761,7 +750,6 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
 		}
-
 		return nil, errors.Wrapf(err, "error generating %s intermediate cert for cluster %s", commonName, clusterUID)
 	}
 
@@ -776,7 +764,6 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
 		}
-
 		return nil, errors.Wrapf(err, "error signing %s intermediate cert for cluster %s", commonName, clusterUID)
 	}
 
