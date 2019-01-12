@@ -1,32 +1,24 @@
-## Overview
-
-Describe what is this change, why is it needed. Mention the issue this PR resolves (`Closes ###`).
-
-This change:
-
-- [ ] Fixes a bug
-- [ ] Adds new feature
-- [ ] Breaks (removes, changes the behavior of) an existing feature
-- [ ] Breaks existing REST API
-- [ ] Contains DB migrations
+| Q               | A
+| --------------- | ---
+| Bug fix?        | no|yes
+| New feature?    | no|yes
+| BC breaks?      | no|yes
+| Deprecations?   | no|yes
+| Related tickets | fixes #X, partially #Y, mentioned in #Z
+| License         | Apache 2.0
 
 
-Give an overview about the implementation, which decisions were made and why.
+## What's in this PR?
+<!-- Explain the contents of the PR. Give an overview about the implementation, which decisions were made and why. -->
 
-## Testing
 
-Describe what automatic tests were added, modified, and what manual tests were executed.
+## Why?
+<!-- Which problem does the PR fix? (remove this section if you linked an issue above) -->
+
 
 ## Checklist
 
-- [ ] User guide and development docs updated if needed
-- [ ] OpenAPI description and Postman files updated if needed
-- [ ] Error handling code touched meets [guideline](/docs/error-handling-guide.md)
-- [ ] Logging code touched meets guideline (TODO)
-- [ ] The change is ready to merge (dependencies, remaining tasks: )
-
-## Meta
-
-- [ ] The commits should be squashed before merge
-- [ ] The commits should be manually rebased before merge
-- [x] The PR is ready for review
+- [ ] User guide and development docs updated (if needed)
+- [ ] OpenAPI Postman files updated, client regenerated (`make generate-client`) (if needed)
+- [ ] Error handling code meets the [guideline](https://github.com/banzaicloud/pipeline/blob/master/docs/error-handling-guide.md)
+- [ ] Logging code meets the guideline (TODO)
