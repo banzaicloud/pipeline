@@ -35,7 +35,7 @@ func NewVerifier(cloudType string, values map[string]string) Verifier {
 	case pkgCluster.Azure:
 		return CreateAKSSecret(values)
 	case pkgCluster.Google:
-		return CreateGKESecret(values)
+		return CreateGCPSecretVerifier(values)
 	case pkgCluster.Oracle:
 		return oracle.CreateOCISecret(values)
 	default:
