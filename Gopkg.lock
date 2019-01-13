@@ -1461,12 +1461,11 @@
   version = "v1.1"
 
 [[projects]]
-  digest = "1:4a4427e16f52f54ca6eb18e2883735f4afe0179d366d25f7ac8ce6c30387ff5a"
+  digest = "1:d5d481cbc5ac153e21efaa65b382b8b464ddc1f089a640ff17479a2fe29a7b9e"
   name = "go.opencensus.io"
   packages = [
     ".",
     "exemplar",
-    "exporter/stackdriver/propagation",
     "internal",
     "internal/tagencoding",
     "plugin/ocgrpc",
@@ -1609,7 +1608,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:520057c3aedda5b5432a0923a9e0501b53c5516f98f5863771dfa7d3f036973c"
+  digest = "1:6b547a976d2c066d65f19e0f546288e2d9f9d71455516ac4b57f17081e4b657a"
   name = "google.golang.org/api"
   packages = [
     "cloudresourcemanager/v1",
@@ -1622,15 +1621,16 @@
     "internal",
     "iterator",
     "option",
-    "serviceusage/v1beta1",
+    "serviceusage/v1",
     "storage/v1",
     "support/bundler",
     "transport",
     "transport/grpc",
     "transport/http",
+    "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "a213db537ac9b393526194a5c85ad6e546f7923f"
+  revision = "455dee39f703f70d67ceea7c56a61041712c1447"
 
 [[projects]]
   digest = "1:626ac4e70ef18262989f8c52503259109e1a2e5580d23aeae0f0e0349819dade"
@@ -2309,7 +2309,7 @@
     "google.golang.org/api/googleapi",
     "google.golang.org/api/iterator",
     "google.golang.org/api/option",
-    "google.golang.org/api/serviceusage/v1beta1",
+    "google.golang.org/api/serviceusage/v1",
     "google.golang.org/api/storage/v1",
     "google.golang.org/genproto/googleapis/iam/credentials/v1",
     "gopkg.in/yaml.v2",
