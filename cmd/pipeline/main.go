@@ -315,7 +315,6 @@ func main() {
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 			orgs.GET("/:orgid/clusters/:id", clusterAPI.GetCluster)
-			orgs.GET("/:orgid/clusters/:id/details", clusterAPI.GetCluster) // Deprecated: use /:orgid/clusters/:id instead
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
 			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
 			orgs.GET("/:orgid/clusters/:id/nodepools", api.GetNodePools)
