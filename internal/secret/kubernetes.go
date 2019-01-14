@@ -37,6 +37,7 @@ type KubeSecretSpec map[string]KubeSecretSpecItem
 type KubeSecretSpecItem struct {
 	Source    string
 	SourceMap map[string]string
+	Value     string
 }
 
 // CreateKubeSecret creates a Kubernetes Secret object from a Secret.
@@ -77,7 +78,7 @@ func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 
 				// TODO: error handling (missing secret key)?
 				kubeSecret.StringData[key] = req.Values[specItem.Source]
-			} else { // Map multiple secrets
+			} else if specItem.Value == "" { // Map multiple secrets
 				sourceMap := make(map[string]string)
 				if len(specItem.SourceMap) > 0 { // Map certain secrets
 					sourceMap = specItem.SourceMap
@@ -104,6 +105,8 @@ func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 				}
 
 				kubeSecret.StringData[key] = string(rawData)
+			} else { // Map value directly
+				kubeSecret.StringData[key] = specItem.Value
 			}
 		}
 	}
