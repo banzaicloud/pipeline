@@ -116,6 +116,11 @@ const (
 
 	FrontProxyCACert = "frontProxyCaCert"
 	FrontProxyCAKey  = "frontProxyCaKey"
+
+	// some useful helpers
+	KubernetesCACommonName           = "kubernetes-ca"
+	EtcdCACommonName                 = "etcd-ca"
+	KubernetesFrontProxyCACommonName = "kubernetes-front-proxy-ca"
 )
 
 // Fn keys
