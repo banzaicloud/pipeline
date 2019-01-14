@@ -173,7 +173,13 @@ func LogWriter(
 
 		c.Next() // process request
 
+		user = auth.GetCurrentUser(c.Request)
+		if user != nil {
+			userID = user.ID
+		}
+
 		responseEvent := AuditEvent{
+			UserID:       userID,
 			StatusCode:   c.Writer.Status(),
 			ResponseSize: c.Writer.Size(),
 			ResponseTime: int(time.Since(start).Nanoseconds() / 1000 / 1000), // ms

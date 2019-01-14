@@ -315,7 +315,6 @@ func main() {
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 			orgs.GET("/:orgid/clusters/:id", clusterAPI.GetCluster)
-			orgs.GET("/:orgid/clusters/:id/details", clusterAPI.GetCluster) // Deprecated: use /:orgid/clusters/:id instead
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
 			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
 			orgs.GET("/:orgid/clusters/:id/nodepools", api.GetNodePools)
@@ -399,9 +398,6 @@ func main() {
 			orgs.HEAD("/:orgid/buckets/:name", api.CheckBucket)
 			orgs.GET("/:orgid/buckets/:name", api.GetBucket)
 			orgs.DELETE("/:orgid/buckets/:name", api.DeleteBucket)
-
-			orgs.GET("/:orgid/cloudinfo", api.GetSupportedClusterList)
-			orgs.GET("/:orgid/cloudinfo/:cloudtype", api.GetCloudInfo)
 
 			orgs.GET("/:orgid/azure/resourcegroups", api.GetResourceGroups)
 			orgs.POST("/:orgid/azure/resourcegroups", api.AddResourceGroups)

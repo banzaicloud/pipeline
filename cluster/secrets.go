@@ -140,6 +140,7 @@ type InstallSecretRequest struct {
 type InstallSecretRequestSpecItem struct {
 	Source    string
 	SourceMap map[string]string
+	Value     string
 }
 
 var ErrSecretNotFound = stderrors.New("secret not found")
@@ -164,25 +165,36 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 		return nil, errors.Wrap(err, "failed to create kubernetes client")
 	}
 
-	secretItem, err := secret.Store.GetByName(orgID, req.SourceSecretName)
-	if err == secret.ErrSecretNotExists {
-		return nil, ErrSecretNotFound
-	} else if err != nil {
-		return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
-	}
-
 	kubeSecretRequest := intSecret.KubeSecretRequest{
 		Name:      secretName,
 		Namespace: req.Namespace,
-		Type:      secretItem.Type,
-		Values:    secretItem.Values,
-		Spec:      intSecret.KubeSecretSpec{},
+		Spec:      make(intSecret.KubeSecretSpec, len(req.Spec)),
+	}
+
+	sourceMeta := secretTypes.K8SSourceMeta{
+		Name:     secretName,
+		Sourcing: secretTypes.EnvVar,
+	}
+
+	if req.SourceSecretName != "" {
+		secretItem, err := secret.Store.GetByName(orgID, req.SourceSecretName)
+		if err == secret.ErrSecretNotExists {
+			return nil, ErrSecretNotFound
+		} else if err != nil {
+			return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
+		}
+
+		kubeSecretRequest.Type = secretItem.Type
+		kubeSecretRequest.Values = secretItem.Values
+
+		sourceMeta = secretItem.K8SSourceMeta()
 	}
 
 	for key, spec := range req.Spec {
 		kubeSecretRequest.Spec[key] = intSecret.KubeSecretSpecItem{
 			Source:    spec.Source,
 			SourceMap: spec.SourceMap,
+			Value:     spec.Value,
 		}
 	}
 
@@ -201,8 +213,6 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "failed to create secret")
 	}
-
-	sourceMeta := secretItem.K8SSourceMeta()
 
 	return &sourceMeta, nil
 }
@@ -225,11 +235,29 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 		return nil, errors.Wrap(err, "failed to create kubernetes client")
 	}
 
-	secretItem, err := secret.Store.GetByName(orgID, req.SourceSecretName)
-	if err == secret.ErrSecretNotExists {
-		return nil, ErrSecretNotFound
-	} else if err != nil {
-		return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
+	kubeSecretRequest := intSecret.KubeSecretRequest{
+		Name:      secretName,
+		Namespace: req.Namespace,
+		Spec:      make(intSecret.KubeSecretSpec, len(req.Spec)),
+	}
+
+	sourceMeta := secretTypes.K8SSourceMeta{
+		Name:     secretName,
+		Sourcing: secretTypes.EnvVar,
+	}
+
+	if req.SourceSecretName != "" {
+		secretItem, err := secret.Store.GetByName(orgID, req.SourceSecretName)
+		if err == secret.ErrSecretNotExists {
+			return nil, ErrSecretNotFound
+		} else if err != nil {
+			return nil, emperror.With(errors.Wrap(err, "failed to get secret"), "secret", req.SourceSecretName)
+		}
+
+		kubeSecretRequest.Type = secretItem.Type
+		kubeSecretRequest.Values = secretItem.Values
+
+		sourceMeta = secretItem.K8SSourceMeta()
 	}
 
 	clusterSecret, err := clusterClient.CoreV1().Secrets(req.Namespace).Get(secretName, metav1.GetOptions{})
@@ -239,18 +267,11 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 		return nil, emperror.With(errors.Wrap(err, "failed to get kubernetes secret"), "secret", secretName)
 	}
 
-	kubeSecretRequest := intSecret.KubeSecretRequest{
-		Name:      secretName,
-		Namespace: req.Namespace,
-		Type:      secretItem.Type,
-		Values:    secretItem.Values,
-		Spec:      intSecret.KubeSecretSpec{},
-	}
-
 	for key, spec := range req.Spec {
 		kubeSecretRequest.Spec[key] = intSecret.KubeSecretSpecItem{
 			Source:    spec.Source,
 			SourceMap: spec.SourceMap,
+			Value:     spec.Value,
 		}
 	}
 
@@ -273,8 +294,6 @@ func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, re
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "failed to update secret")
 	}
-
-	sourceMeta := secretItem.K8SSourceMeta()
 
 	return &sourceMeta, nil
 }

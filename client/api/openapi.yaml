@@ -498,59 +498,6 @@ paths:
       summary: Update cluster
       tags:
       - clusters
-  /api/v1/orgs/{orgId}/clusters/{id}/details:
-    get:
-      description: Getting cluster details
-      operationId: GetClusterDetails
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      - description: Selected cluster identification (number)
-        explode: false
-        in: path
-        name: id
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetClusterResponse'
-          description: Getting cluster succeeded
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-          description: Error during getting cluster details
-        401:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
-        404:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterNotFound'
-          description: Cluster not found
-      security:
-      - bearerAuth: []
-      summary: Get cluster details
-      tags:
-      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/pods:
     get:
       description: Getting pod details
@@ -6722,6 +6669,7 @@ components:
             sourceMap:
               key: sourceMap
             source: source
+            value: value
       properties:
         sourceSecretName:
           example: my-secret
@@ -6741,6 +6689,7 @@ components:
         sourceMap:
           key: sourceMap
         source: source
+        value: value
       properties:
         source:
           type: string
@@ -6748,6 +6697,8 @@ components:
           additionalProperties:
             type: string
           type: object
+        value:
+          type: string
       type: object
     InstallSecretResponse:
       example:
@@ -7780,65 +7731,6 @@ components:
           type: string
       type: object
     GetClusterResponse:
-      example:
-        secretName: paas-dev
-        masterVersion: "1.10"
-        securityscan: true
-        creatorName: userName
-        creatorId: 1
-        secretId: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
-        distribution: gke
-        monitoring: true
-        version: "1.10"
-        statusMessage: Cluster is running
-        cloud: google
-        createdAt: 2018-07-03T14:23:19+02:00
-        endpoint: 34.240.231.134
-        spot: true
-        name: myClusterName
-        logging: true
-        totalSummary:
-          memory:
-            allocatable: "4"
-            request: 380m
-            limit: 100m
-            capacity: "4"
-          cpu:
-            allocatable: "4"
-            request: 380m
-            limit: 100m
-            capacity: "4"
-        location: us-central1-a
-        id: 1
-        nodePools:
-          key:
-            image: ami-4d485ca7
-            spotPrice: "0.2"
-            instanceType: m4.xlarge
-            resourceSummary:
-              key:
-                memory:
-                  allocatable: "4"
-                  request: 380m
-                  limit: 100m
-                  capacity: "4"
-                cpu:
-                  allocatable: "4"
-                  request: 380m
-                  limit: 100m
-                  capacity: "4"
-                status: Ready
-            count: 1
-            creatorName: userName
-            creatorId: 1
-            maxCount: 2
-            version: "1.10"
-            createdAt: 2018-07-03T14:23:19+02:00
-            preemptible: true
-            minCount: 1
-            autoscaling: true
-        region: us-central1
-        status: RUNNING
       properties:
         id:
           example: 1
@@ -7906,32 +7798,6 @@ components:
           type: integer
       type: object
     GetClusterNodePool:
-      example:
-        image: ami-4d485ca7
-        spotPrice: "0.2"
-        instanceType: m4.xlarge
-        resourceSummary:
-          key:
-            memory:
-              allocatable: "4"
-              request: 380m
-              limit: 100m
-              capacity: "4"
-            cpu:
-              allocatable: "4"
-              request: 380m
-              limit: 100m
-              capacity: "4"
-            status: Ready
-        count: 1
-        creatorName: userName
-        creatorId: 1
-        maxCount: 2
-        version: "1.10"
-        createdAt: 2018-07-03T14:23:19+02:00
-        preemptible: true
-        minCount: 1
-        autoscaling: true
       properties:
         autoscaling:
           type: boolean
@@ -7977,17 +7843,6 @@ components:
           type: integer
       type: object
     ResourceSummary:
-      example:
-        memory:
-          allocatable: "4"
-          request: 380m
-          limit: 100m
-          capacity: "4"
-        cpu:
-          allocatable: "4"
-          request: 380m
-          limit: 100m
-          capacity: "4"
       properties:
         cpu:
           $ref: '#/components/schemas/Resource'
@@ -7995,18 +7850,6 @@ components:
           $ref: '#/components/schemas/Resource'
       type: object
     NodeResourceSummary:
-      example:
-        memory:
-          allocatable: "4"
-          request: 380m
-          limit: 100m
-          capacity: "4"
-        cpu:
-          allocatable: "4"
-          request: 380m
-          limit: 100m
-          capacity: "4"
-        status: Ready
       properties:
         status:
           example: Ready
@@ -8017,11 +7860,6 @@ components:
           $ref: '#/components/schemas/Resource'
       type: object
     Resource:
-      example:
-        allocatable: "4"
-        request: 380m
-        limit: 100m
-        capacity: "4"
       properties:
         capacity:
           example: "4"
