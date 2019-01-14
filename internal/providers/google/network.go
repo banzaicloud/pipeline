@@ -17,6 +17,7 @@ package google
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"google.golang.org/api/compute/v1"
 
@@ -86,7 +87,7 @@ type googleNetworkService struct {
 	serviceAccount *verify.ServiceAccount
 }
 
-// NewNetworkService returns a new network Service
+// NewNetworkService returns a new Google network Service
 func NewNetworkService(secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
 	sa := verify.CreateServiceAccount(secret.Values)
 	svc, err := newComputeServiceFromServiceAccount(sa)
@@ -102,7 +103,7 @@ func NewNetworkService(secret *secret.SecretItemResponse, logger logrus.FieldLog
 }
 
 // ListNetworks returns VPC networks of the project at Google
-func (ns googleNetworkService) ListNetworks() ([]network.Network, error) {
+func (ns *googleNetworkService) ListNetworks() ([]network.Network, error) {
 	networkList, err := ns.computeService.Networks.List(ns.serviceAccount.ProjectId).Do()
 	if err != nil {
 		return nil, err
@@ -119,7 +120,7 @@ func (ns googleNetworkService) ListNetworks() ([]network.Network, error) {
 }
 
 // ListSubnets returns VPC subnetworks of the organization in the specified VPC network at Google
-func (ns googleNetworkService) ListSubnets(networkID string) ([]network.Subnet, error) {
+func (ns *googleNetworkService) ListSubnets(networkID string) ([]network.Subnet, error) {
 	projectID := ns.serviceAccount.ProjectId
 	net, err := ns.computeService.Networks.Get(projectID, networkID).Do()
 	if err != nil {
@@ -130,12 +131,13 @@ func (ns googleNetworkService) ListSubnets(networkID string) ([]network.Subnet, 
 		return nil, err
 	}
 	var subnets []network.Subnet
-	for _, list := range subnetList.Items {
+	for region, list := range subnetList.Items {
+		location := strings.TrimPrefix(region, "regions/")
 		for _, item := range list.Subnetworks {
 			subnets = append(subnets, &googleSubnet{
 				cidr:     item.IpCidrRange,
 				id:       idToString(item.Id),
-				location: item.Region,
+				location: location,
 				name:     item.Name,
 			})
 		}
@@ -144,7 +146,7 @@ func (ns googleNetworkService) ListSubnets(networkID string) ([]network.Subnet, 
 }
 
 // ListRouteTables returns the VPC route tables of the organization in the specified VPC network at Google
-func (ns googleNetworkService) ListRouteTables(networkID string) ([]network.RouteTable, error) {
+func (ns *googleNetworkService) ListRouteTables(networkID string) ([]network.RouteTable, error) {
 	projectID := ns.serviceAccount.ProjectId
 	net, err := ns.computeService.Networks.Get(projectID, networkID).Do()
 	if err != nil {
