@@ -40,7 +40,6 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**GetAPIEndpoint**](docs/ClustersApi.md#getapiendpoint) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint | Get API endpoint
 *ClustersApi* | [**GetCluster**](docs/ClustersApi.md#getcluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
-*ClustersApi* | [**GetClusterDetails**](docs/ClustersApi.md#getclusterdetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/details | Get cluster details
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 *ClustersApi* | [**HelmInit**](docs/ClustersApi.md#helminit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
