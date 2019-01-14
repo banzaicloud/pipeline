@@ -499,57 +499,6 @@ paths:
                 '404':
                     description: Cluster not found
 
-    '/api/v1/orgs/{orgId}/clusters/{id}/details':
-        get:
-            security:
-                -
-                    bearerAuth: []
-            tags:
-                - clusters
-            summary: Get cluster details
-            description: Getting cluster details
-            operationId: GetClusterDetails
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization identification
-                    schema:
-                        type: integer
-                -
-                    name: id
-                    in: path
-                    description: Selected cluster identification (number)
-                    required: true
-                    schema:
-                        type: integer
-            responses:
-                '200':
-                    description: Getting cluster succeeded
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/GetClusterResponse'
-                '400':
-                    description: Error during getting cluster details
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/BaseError_400'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
-                '404':
-                    description: Cluster not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-
     '/api/v1/orgs/{orgId}/clusters/{id}/pods':
         get:
             security:

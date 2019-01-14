@@ -11,7 +11,6 @@ Method | HTTP request | Description
 [**GetAPIEndpoint**](ClustersApi.md#GetAPIEndpoint) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint | Get API endpoint
 [**GetCluster**](ClustersApi.md#GetCluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 [**GetClusterConfig**](ClustersApi.md#GetClusterConfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
-[**GetClusterDetails**](ClustersApi.md#GetClusterDetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/details | Get cluster details
 [**GetClusterStatus**](ClustersApi.md#GetClusterStatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 [**GetPodDetails**](ClustersApi.md#GetPodDetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 [**HelmInit**](ClustersApi.md#HelmInit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
@@ -229,35 +228,6 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**ClusterConfig**](ClusterConfig.md)
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **GetClusterDetails**
-> GetClusterResponse GetClusterDetails(ctx, orgId, id)
-Get cluster details
-
-Getting cluster details
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization identification | 
-  **id** | **int32**| Selected cluster identification (number) | 
-
-### Return type
-
-[**GetClusterResponse**](GetClusterResponse.md)
 
 ### Authorization
 
