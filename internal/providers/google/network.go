@@ -130,7 +130,7 @@ func (ns *googleNetworkService) ListSubnets(networkID string) ([]network.Subnet,
 	if err != nil {
 		return nil, err
 	}
-	var subnets []network.Subnet
+	subnets := make([]network.Subnet, 0, len(net.Subnetworks))
 	for region, list := range subnetList.Items {
 		location := strings.TrimPrefix(region, "regions/")
 		for _, item := range list.Subnetworks {
