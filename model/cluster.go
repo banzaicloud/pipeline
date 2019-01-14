@@ -140,7 +140,6 @@ type EKSClusterModel struct {
 	ID        uint `gorm:"primary_key"`
 	ClusterID uint `gorm:"unique_index:ux_cluster_id"`
 
-	//kubernetes "1.10"
 	Version      string
 	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 	VpcId        *string                 `gorm:"size:32"`
