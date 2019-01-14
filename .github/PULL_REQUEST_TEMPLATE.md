@@ -25,7 +25,7 @@
 - [ ] Implementation tested (with at least one cloud provider)
 - [ ] Error handling code meets the [guideline](https://github.com/banzaicloud/pipeline/blob/master/docs/error-handling-guide.md)
 - [ ] Logging code meets the guideline (TODO)
-- [ ] OpenAPI Postman files updated, client regenerated (`make generate-client`) (if needed)
+- [ ] OpenAPI anf Postman files updated, client regenerated (`make generate-client`) (if needed)
 - [ ] User guide and development docs updated (if needed)
 
 
