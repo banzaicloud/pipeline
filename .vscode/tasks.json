@@ -1,0 +1,49 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "process",
+            "command": "make",
+            "args": [
+                "build"
+            ],
+            "problemMatcher": "$go",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "run",
+            "type": "process",
+            "command": "build/pipeline",
+            "options": {
+                "cwd": "${workspaceRoot}",
+                "env": {
+                    "VAULT_ADDR": "http://localhost:8200"
+                }
+            }
+        },
+        {
+            "label": "test",
+            "type": "process",
+            "command": "make",
+            "args": [
+                "test"
+            ],
+            "options": {
+                "env": {
+                    "PIPELINE_CONFIG_DIR": "${workspaceRoot}/config",
+                    "VAULT_ADDR": "http://localhost:8200"
+                }
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        }
+    ]
+}
