@@ -34,3 +34,10 @@ type RouteTable interface {
 	ID() string
 	Name() string
 }
+
+// Service defines the interface of provider specific network service implementations
+type Service interface {
+	ListNetworks() ([]Network, error)
+	ListRouteTables(networkID string) ([]RouteTable, error)
+	ListSubnets(networkID string) ([]Subnet, error)
+}

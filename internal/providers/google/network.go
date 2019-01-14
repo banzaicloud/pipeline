@@ -21,7 +21,6 @@ import (
 	"google.golang.org/api/compute/v1"
 
 	"github.com/banzaicloud/pipeline/internal/network"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/sirupsen/logrus"
@@ -81,14 +80,30 @@ func (g googleRouteTable) Name() string {
 	return g.name
 }
 
-// ListNetworks returns VPC networks of the organization at Google
-func ListNetworks(secret *secret.SecretItemResponse, logger logrus.FieldLogger) ([]network.Network, error) {
-	projectID := getProjectIDFromSecret(secret)
-	svc, err := newComputeServiceFromSecret(secret)
+type googleNetworkService struct {
+	computeService *compute.Service
+	logger         logrus.FieldLogger
+	serviceAccount *verify.ServiceAccount
+}
+
+// NewNetworkService returns a new network Service
+func NewNetworkService(secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
+	sa := verify.CreateServiceAccount(secret.Values)
+	svc, err := newComputeServiceFromServiceAccount(sa)
 	if err != nil {
 		return nil, err
 	}
-	networkList, err := svc.Networks.List(projectID).Do()
+	ns := &googleNetworkService{
+		computeService: svc,
+		logger:         logger,
+		serviceAccount: sa,
+	}
+	return ns, nil
+}
+
+// ListNetworks returns VPC networks of the project at Google
+func (ns googleNetworkService) ListNetworks() ([]network.Network, error) {
+	networkList, err := ns.computeService.Networks.List(ns.serviceAccount.ProjectId).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -104,17 +119,13 @@ func ListNetworks(secret *secret.SecretItemResponse, logger logrus.FieldLogger) 
 }
 
 // ListSubnets returns VPC subnetworks of the organization in the specified VPC network at Google
-func ListSubnets(secret *secret.SecretItemResponse, networkID string, logger logrus.FieldLogger) ([]network.Subnet, error) {
-	projectID := getProjectIDFromSecret(secret)
-	svc, err := newComputeServiceFromSecret(secret)
+func (ns googleNetworkService) ListSubnets(networkID string) ([]network.Subnet, error) {
+	projectID := ns.serviceAccount.ProjectId
+	net, err := ns.computeService.Networks.Get(projectID, networkID).Do()
 	if err != nil {
 		return nil, err
 	}
-	net, err := svc.Networks.Get(projectID, networkID).Do()
-	if err != nil {
-		return nil, err
-	}
-	subnetList, err := svc.Subnetworks.AggregatedList(projectID).Filter(fmt.Sprintf(`network = "%s"`, net.SelfLink)).Do()
+	subnetList, err := ns.computeService.Subnetworks.AggregatedList(projectID).Filter(fmt.Sprintf(`network = "%s"`, net.SelfLink)).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -133,17 +144,13 @@ func ListSubnets(secret *secret.SecretItemResponse, networkID string, logger log
 }
 
 // ListRouteTables returns the VPC route tables of the organization in the specified VPC network at Google
-func ListRouteTables(secret *secret.SecretItemResponse, networkID string, logger logrus.FieldLogger) ([]network.RouteTable, error) {
-	projectID := getProjectIDFromSecret(secret)
-	svc, err := newComputeServiceFromSecret(secret)
+func (ns googleNetworkService) ListRouteTables(networkID string) ([]network.RouteTable, error) {
+	projectID := ns.serviceAccount.ProjectId
+	net, err := ns.computeService.Networks.Get(projectID, networkID).Do()
 	if err != nil {
 		return nil, err
 	}
-	net, err := svc.Networks.Get(projectID, networkID).Do()
-	if err != nil {
-		return nil, err
-	}
-	routeList, err := svc.Routes.List(projectID).Filter(fmt.Sprintf(`network = "%s"`, net.SelfLink)).Do()
+	routeList, err := ns.computeService.Routes.List(projectID).Filter(fmt.Sprintf(`network = "%s"`, net.SelfLink)).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -157,17 +164,12 @@ func ListRouteTables(secret *secret.SecretItemResponse, networkID string, logger
 	return routeTables, nil
 }
 
-func newComputeServiceFromSecret(secret *secret.SecretItemResponse) (*compute.Service, error) {
-	serviceAccount := verify.CreateServiceAccount(secret.Values)
+func newComputeServiceFromServiceAccount(serviceAccount *verify.ServiceAccount) (*compute.Service, error) {
 	client, err := verify.CreateOath2Client(serviceAccount, compute.ComputeReadonlyScope)
 	if err != nil {
 		return nil, err
 	}
 	return compute.New(client)
-}
-
-func getProjectIDFromSecret(secret *secret.SecretItemResponse) string {
-	return secret.GetValue(pkgSecret.ProjectId)
 }
 
 func idToString(id uint64) string {

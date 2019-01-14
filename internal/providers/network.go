@@ -23,38 +23,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// NetworkContext describes all parameters necessary to create cloud provider agnostic VPC network queries
-type NetworkContext struct {
+// ServiceParams describes all parameters necessary to create cloud provider agnostic VPC network queries
+type ServiceParams struct {
 	Logger   logrus.FieldLogger
 	Provider string
 	Secret   *secret.SecretItemResponse
 }
 
-// ListNetworks returns the VPC networks of the organization at the specified provider
-func ListNetworks(networkCtx NetworkContext) ([]network.Network, error) {
-	switch networkCtx.Provider {
+// NewNetworkService returns a new network Service instance of the specified provider
+func NewNetworkService(params ServiceParams) (network.Service, error) {
+	switch params.Provider {
 	case providers.Google:
-		return google.ListNetworks(networkCtx.Secret, networkCtx.Logger)
-	default:
-		return nil, pkgErrors.ErrorNotSupportedCloudType
-	}
-}
-
-// ListSubnets returns the VPC subnetworks of the organization in the specified VPC network at the specified provider
-func ListSubnets(networkCtx NetworkContext, networkID string) ([]network.Subnet, error) {
-	switch networkCtx.Provider {
-	case providers.Google:
-		return google.ListSubnets(networkCtx.Secret, networkID, networkCtx.Logger)
-	default:
-		return nil, pkgErrors.ErrorNotSupportedCloudType
-	}
-}
-
-// ListRouteTables returns the VPC route tables of the organization in the specified VPC network at the specified provider
-func ListRouteTables(networkCtx NetworkContext, networkID string) ([]network.RouteTable, error) {
-	switch networkCtx.Provider {
-	case providers.Google:
-		return google.ListRouteTables(networkCtx.Secret, networkID, networkCtx.Logger)
+		return google.NewNetworkService(params.Secret, params.Logger)
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
