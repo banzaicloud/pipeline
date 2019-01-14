@@ -83,13 +83,14 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 		return
 	}
 
-	networkCtx := providers.NetworkContext{
+	svcParams := providers.ServiceParams{
 		Logger:   logger,
 		Provider: provider,
 		Secret:   sir,
 	}
+	svc, err := providers.NewNetworkService(svcParams)
 
-	networks, err := providers.ListNetworks(networkCtx)
+	networks, err := svc.ListNetworks()
 	if err != nil {
 		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
 		return
@@ -133,13 +134,14 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 		return
 	}
 
-	networkCtx := providers.NetworkContext{
+	svcParams := providers.ServiceParams{
 		Logger:   logger,
 		Provider: provider,
 		Secret:   sir,
 	}
+	svc, err := providers.NewNetworkService(svcParams)
 
-	subnets, err := providers.ListSubnets(networkCtx, networkID)
+	subnets, err := svc.ListSubnets(networkID)
 	if err != nil {
 		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
 		return
@@ -184,13 +186,14 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 		return
 	}
 
-	networkCtx := providers.NetworkContext{
+	svcParams := providers.ServiceParams{
 		Logger:   logger,
 		Provider: provider,
 		Secret:   sir,
 	}
+	svc, err := providers.NewNetworkService(svcParams)
 
-	routeTables, err := providers.ListRouteTables(networkCtx, networkID)
+	routeTables, err := svc.ListRouteTables(networkID)
 	if err != nil {
 		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
 		return
