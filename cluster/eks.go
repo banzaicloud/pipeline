@@ -965,7 +965,7 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 // AddDefaultsToUpdate adds defaults to update request
 func (c *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-	defaultImage := pkgEks.DefaultImages[c.modelCluster.Location]
+	defaultImage := pkgEks.DefaultImages[c.modelCluster.EKS.Version][c.modelCluster.Location]
 
 	// add default node image(s) if needed
 	if r != nil && r.EKS != nil && r.EKS.NodePools != nil {
@@ -1061,7 +1061,7 @@ func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return pkgErrors.ErrorNotValidLocation
 	}
 
-	imagesInRegion, err := ListEksImages(r.Location)
+	imagesInRegion, err := ListEksImages(r.Properties.CreateClusterEKS.Version, r.Location)
 	if err != nil {
 		return emperror.Wrap(err, "failed to list AMIs that that support EKS")
 	}
@@ -1224,7 +1224,7 @@ func ListEksRegions(orgId uint, secretId string) ([]string, error) {
 	// TODO revisit this later when https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ starts supporting AmazonEKS
 
 	eksRegionIds := make([]string, 0)
-	for region := range pkgEks.DefaultImages {
+	for region := range pkgEks.DefaultImages[pkgEks.DefaultK8sVersion] {
 		eksRegionIds = append(eksRegionIds, region)
 	}
 
@@ -1232,10 +1232,10 @@ func ListEksRegions(orgId uint, secretId string) ([]string, error) {
 }
 
 // ListEksImages returns AMIs for EKS
-func ListEksImages(region string) (map[string][]string, error) {
+func ListEksImages(version, region string) (map[string][]string, error) {
 	// currently there are only two AMIs for EKS.
 	// TODO: revise this once there is AWS API for retrieving EKS AMIs dynamically at runtime
-	ami, ok := pkgEks.DefaultImages[region]
+	ami, ok := pkgEks.DefaultImages[version][region]
 	if ok {
 		return map[string][]string{
 			region: {ami},
