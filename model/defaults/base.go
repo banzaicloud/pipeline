@@ -98,7 +98,7 @@ func GetDefaultProfiles() []ClusterProfile {
 					NodeName:  DefaultNodeName,
 					SpotPrice: eks.DefaultSpotPrice,
 				},
-				Image: eks.DefaultImages[eks.DefaultRegion],
+				Image: eks.DefaultImages[eks.DefaultK8sVersion][eks.DefaultRegion],
 			}},
 		},
 		&AKSProfile{
