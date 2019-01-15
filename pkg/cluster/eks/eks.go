@@ -170,7 +170,7 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	defaultImage := DefaultImages[location]
+	defaultImage := DefaultImages[eks.Version][location]
 
 	if len(eks.NodePools) == 0 {
 		return pkgErrors.ErrorAmazonEksNodePoolFieldIsEmpty
@@ -227,7 +227,7 @@ func isValidVersion(version string) bool {
 	}
 
 	// TODO check if there is an AWS API that can tell us supported Kubernetes versions
-	return "1.10" == version
+	return version == "1.10" || version == "1.11"
 
 }
 

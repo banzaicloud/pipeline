@@ -118,5 +118,5 @@ There is one exception from this rule: when the error message is known to be ret
 (which itself should happen in very special cases only). Even then information should still be added as context as well:
 
 ```go
-    return emperror.With(emperror.Wrapf(err, "something %s failed"), "what", important)
+    return emperror.With(emperror.Wrapf(err, "something %s failed", important), "what", important)
 ```

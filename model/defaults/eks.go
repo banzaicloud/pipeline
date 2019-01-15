@@ -105,7 +105,7 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 		d.Region = r.Location
 		regionChanged = true
 	}
-	image := eks.DefaultImages[d.Region] // the image is fixed for a region
+	image := eks.DefaultImages[d.Version][d.Region] // the image is fixed for a region
 
 	if regionChanged && (r.Properties.EKS == nil || len(r.Properties.EKS.NodePools) == 0) {
 		for _, np := range d.NodePools {
