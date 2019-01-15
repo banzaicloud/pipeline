@@ -1,6 +1,6 @@
 ---
 name: ⛔ Support request
-about: See https://github.com/banzaicloud/pipeline/blob/master/.github/SUPPORT.md for support channels
+about: See https://banzaicloud.com/support/ for support channels
 ---
 
 We use GitHub issues to discuss Pipeline bugs and new features.
