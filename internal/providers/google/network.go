@@ -17,7 +17,6 @@ package google
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"google.golang.org/api/compute/v1"
 
@@ -84,11 +83,12 @@ func (g googleRouteTable) Name() string {
 type googleNetworkService struct {
 	computeService *compute.Service
 	logger         logrus.FieldLogger
+	region         string
 	serviceAccount *verify.ServiceAccount
 }
 
 // NewNetworkService returns a new Google network Service
-func NewNetworkService(secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
+func NewNetworkService(region string, secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
 	sa := verify.CreateServiceAccount(secret.Values)
 	svc, err := newComputeServiceFromServiceAccount(sa)
 	if err != nil {
@@ -97,6 +97,7 @@ func NewNetworkService(secret *secret.SecretItemResponse, logger logrus.FieldLog
 	ns := &googleNetworkService{
 		computeService: svc,
 		logger:         logger,
+		region:         region,
 		serviceAccount: sa,
 	}
 	return ns, nil
@@ -126,21 +127,18 @@ func (ns *googleNetworkService) ListSubnets(networkID string) ([]network.Subnet,
 	if err != nil {
 		return nil, err
 	}
-	subnetList, err := ns.computeService.Subnetworks.AggregatedList(projectID).Filter(fmt.Sprintf(`network = "%s"`, net.SelfLink)).Do()
+	subnetList, err := ns.computeService.Subnetworks.List(projectID, ns.region).Filter(fmt.Sprintf(`network = "%s"`, net.SelfLink)).Do()
 	if err != nil {
 		return nil, err
 	}
-	subnets := make([]network.Subnet, 0, len(net.Subnetworks))
-	for region, list := range subnetList.Items {
-		location := strings.TrimPrefix(region, "regions/")
-		for _, item := range list.Subnetworks {
-			subnets = append(subnets, &googleSubnet{
-				cidr:     item.IpCidrRange,
-				id:       idToString(item.Id),
-				location: location,
-				name:     item.Name,
-			})
-		}
+	subnets := make([]network.Subnet, 0, len(subnetList.Items))
+	for _, item := range subnetList.Items {
+		subnets = append(subnets, &googleSubnet{
+			cidr:     item.IpCidrRange,
+			id:       idToString(item.Id),
+			location: ns.region,
+			name:     item.Name,
+		})
 	}
 	return subnets, nil
 }

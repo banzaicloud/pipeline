@@ -79,18 +79,20 @@ func (a amazonRouteTable) Name() string {
 type amazonNetworkService struct {
 	client *ec2.EC2
 	logger logrus.FieldLogger
+	region string
 }
 
 // NewNetworkService returns a new Amazon network Service
-func NewNetworkService(secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
+func NewNetworkService(region string, secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
 	cred := verify.CreateAWSCredentials(secret.Values)
-	client, err := verify.CreateEC2Client(cred, verify.DefaultRegion)
+	client, err := verify.CreateEC2Client(cred, region)
 	if err != nil {
 		return nil, err
 	}
 	ns := amazonNetworkService{
 		client: client,
 		logger: logger,
+		region: region,
 	}
 	return &ns, nil
 }
