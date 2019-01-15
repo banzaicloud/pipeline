@@ -16,6 +16,7 @@ package providers
 
 import (
 	"github.com/banzaicloud/pipeline/internal/network"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -33,6 +34,8 @@ type ServiceParams struct {
 // NewNetworkService returns a new network Service instance of the specified provider
 func NewNetworkService(params ServiceParams) (network.Service, error) {
 	switch params.Provider {
+	case providers.Amazon:
+		return amazon.NewNetworkService(params.Secret, params.Logger)
 	case providers.Google:
 		return google.NewNetworkService(params.Secret, params.Logger)
 	default:
