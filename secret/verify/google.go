@@ -178,7 +178,7 @@ func createJWTConfig(credentials *ServiceAccount, scope ...string) (*jwt.Config,
 // CreateOath2Client creates a new OAuth2 client with credentials
 func CreateOath2Client(serviceAccount *ServiceAccount, scope ...string) (*http.Client, error) {
 	if len(scope) == 0 {
-		// This is here for backward compatibility, but it should probably be explicitely stated everywhere
+		// This is here for backward compatibility, but it should probably be explicitly stated everywhere
 		scope = []string{serviceusage.CloudPlatformScope}
 	}
 	config, err := createJWTConfig(serviceAccount, scope...)
