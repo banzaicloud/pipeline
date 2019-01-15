@@ -144,7 +144,7 @@ jobs:
             -
                 run:
                     name: Test database schema diff
-                    command: mysqldiff --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+                    command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
 
             -
                 run:
@@ -156,7 +156,7 @@ jobs:
             -
                 run:
                     name: Test database schema diff again
-                    command: mysqldiff --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+                    command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
 
             -
                 save_cache:
