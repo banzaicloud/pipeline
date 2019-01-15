@@ -26,8 +26,8 @@ func NewConstantBackoffPolicy(config *ConstantBackoffConfig) *backoff.Constant {
 	return backoff.NewConstant(config.Delay, backoff.WithMaxRetries(config.MaxRetries), backoff.WithMaxElapsedTime(config.MaxElapsedTime))
 }
 
-// RetryConstant retries the given function using constant backoff policy
-func RetryConstant(function func() error, backoffPolicy *backoff.Constant) (err error) {
+// Retry retries the given function using constant backoff policy
+func Retry(function func() error, backoffPolicy backoff.Policy) (err error) {
 	b, cancel := backoffPolicy.Start(context.Background())
 
 	defer cancel()

@@ -23,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
+	"github.com/banzaicloud/pipeline/pkg/aks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -66,12 +67,11 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	}
 	log.Info("create serviceaccount")
 
-	err = backoff.RetryConstant(func() error {
-		_, err = client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount)
-		if err != nil {
+	err = backoff.Retry(func() error {
+		if _, err := client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount); err != nil {
 			if k8sapierrors.IsAlreadyExists(err) {
 				return nil
-			} else if !strings.Contains(err.Error(), "etcdserver: request timed out") {
+			} else if !aks.EtcdTimedOutError(err) {
 				return backoff.MarkErrorPermanent(err)
 			}
 		}
@@ -106,13 +106,11 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	log.Info("create clusterroles")
 
 	clusterRoleName := helmInstall.ServiceAccount
-	err = backoff.RetryConstant(func() error {
-		_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
-		if err != nil {
-
+	err = backoff.Retry(func() error {
+		if _, err = client.RbacV1().ClusterRoles().Create(clusterRole); err != nil {
 			if k8sapierrors.IsAlreadyExists(err) {
 				return nil
-			} else if !strings.Contains(err.Error(), "etcdserver: request timed out") || strings.Contains(err.Error(), "is forbidden") {
+			} else if !aks.EtcdTimedOutError(err) || strings.Contains(err.Error(), "is forbidden") {
 				return backoff.MarkErrorPermanent(err)
 			}
 		}
@@ -147,12 +145,11 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	}
 	log.Info("create clusterrolebinding")
 
-	err = backoff.RetryConstant(func() error {
-		_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
-		if err != nil {
+	err = backoff.Retry(func() error {
+		if _, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil {
 			if k8sapierrors.IsAlreadyExists(err) {
 				return nil
-			} else if !strings.Contains(err.Error(), "etcdserver: request timed out") {
+			} else if !aks.EtcdTimedOutError(err) {
 				return backoff.MarkErrorPermanent(err)
 			}
 		}
