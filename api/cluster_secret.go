@@ -168,13 +168,23 @@ func MergeSecretInCluster(c *gin.Context) {
 		secretRequest.Spec[key] = cluster.InstallSecretRequestSpecItem{
 			Source:    spec.Source,
 			SourceMap: spec.SourceMap,
+			Value:     spec.Value,
 		}
 	}
 
 	secretName := c.Param("secretName")
 
+	// Either spec is not defined (empty) or at least one spec is not a value
+	needsSecret := len(secretRequest.Spec) == 0
+	for _, spec := range secretRequest.Spec {
+		if spec.Source != "" || len(spec.SourceMap) != 0 {
+			needsSecret = true
+			break
+		}
+	}
+
 	// If there is no separate pipeline secret name use the same as the cluster request name
-	if secretRequest.SourceSecretName == "" {
+	if needsSecret && secretRequest.SourceSecretName == "" {
 		secretRequest.SourceSecretName = secretName
 	}
 

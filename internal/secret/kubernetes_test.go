@@ -169,6 +169,33 @@ func TestCreateKubeSecret(t *testing.T) {
 				},
 			},
 		},
+		"secret with plain value and empty spec items": {
+			v1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "secret",
+					Namespace: "namespace",
+				},
+				StringData: map[string]string{
+					"key":         "value",
+					"google.json": "{\"password\":\"password\",\"username\":\"username\"}",
+				},
+			},
+			secret.KubeSecretRequest{
+				Name:      "secret",
+				Namespace: "namespace",
+				Type:      "generic",
+				Values: map[string]string{
+					"username": "username",
+					"password": "password",
+				},
+				Spec: map[string]secret.KubeSecretSpecItem{
+					"key": {
+						Value: "value",
+					},
+					"google.json": {},
+				},
+			},
+		},
 	}
 
 	for name, test := range tests {
