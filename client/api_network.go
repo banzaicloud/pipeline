@@ -32,12 +32,13 @@ NetworkApiService List VPC route tables
 List route tables of the given VPC network
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
+ * @param networkId VPC network identification
  * @param secretId Secret identification
  * @param cloudType Identifies the cloud provider
- * @param networkId VPC network identification
+ * @param region Identifies the region of the VPC network
 @return ListRouteTablesResponse
 */
-func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, secretId string, cloudType string, networkId string) (ListRouteTablesResponse, *http.Response, error) {
+func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, region string) (ListRouteTablesResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -57,6 +58,7 @@ func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, se
 	localVarFormParams := url.Values{}
 
 	localVarQueryParams.Add("cloudType", parameterToString(cloudType, ""))
+	localVarQueryParams.Add("region", parameterToString(region, ""))
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 
@@ -157,9 +159,10 @@ List VPC networks accessible by the organization.
  * @param orgId Organization identification
  * @param secretId Secret identification
  * @param cloudType Identifies the cloud provider
+ * @param region Identifies the region of the VPC network
 @return ListVpcNetworksResponse
 */
-func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, secretId string, cloudType string) (ListVpcNetworksResponse, *http.Response, error) {
+func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, secretId string, cloudType string, region string) (ListVpcNetworksResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -178,6 +181,7 @@ func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, se
 	localVarFormParams := url.Values{}
 
 	localVarQueryParams.Add("cloudType", parameterToString(cloudType, ""))
+	localVarQueryParams.Add("region", parameterToString(region, ""))
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 
@@ -276,12 +280,13 @@ NetworkApiService List VPC subnetworks
 List subnetworks of the given VPC network
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
+ * @param networkId VPC network identification
  * @param secretId Secret identification
  * @param cloudType Identifies the cloud provider
- * @param networkId VPC network identification
+ * @param region Identifies the region of the VPC network
 @return ListVpcSubnetsResponse
 */
-func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, secretId string, cloudType string, networkId string) (ListVpcSubnetsResponse, *http.Response, error) {
+func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, region string) (ListVpcSubnetsResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -301,6 +306,7 @@ func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, sec
 	localVarFormParams := url.Values{}
 
 	localVarQueryParams.Add("cloudType", parameterToString(cloudType, ""))
+	localVarQueryParams.Add("region", parameterToString(region, ""))
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 

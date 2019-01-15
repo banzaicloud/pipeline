@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 
 # **ListRouteTables**
-> ListRouteTablesResponse ListRouteTables(ctx, orgId, secretId, cloudType, networkId)
+> ListRouteTablesResponse ListRouteTables(ctx, orgId, networkId, secretId, cloudType, region)
 List VPC route tables
 
 List route tables of the given VPC network
@@ -21,9 +21,10 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
+  **networkId** | **string**| VPC network identification | 
   **secretId** | **string**| Secret identification | 
   **cloudType** | **string**| Identifies the cloud provider | 
-  **networkId** | **string**| VPC network identification | 
+  **region** | **string**| Identifies the region of the VPC network | 
 
 ### Return type
 
@@ -41,7 +42,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListVPCNetworks**
-> ListVpcNetworksResponse ListVPCNetworks(ctx, orgId, secretId, cloudType)
+> ListVpcNetworksResponse ListVPCNetworks(ctx, orgId, secretId, cloudType, region)
 List VPC networks
 
 List VPC networks accessible by the organization.
@@ -54,6 +55,7 @@ Name | Type | Description  | Notes
   **orgId** | **int32**| Organization identification | 
   **secretId** | **string**| Secret identification | 
   **cloudType** | **string**| Identifies the cloud provider | 
+  **region** | **string**| Identifies the region of the VPC network | 
 
 ### Return type
 
@@ -71,7 +73,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListVPCSubnets**
-> ListVpcSubnetsResponse ListVPCSubnets(ctx, orgId, secretId, cloudType, networkId)
+> ListVpcSubnetsResponse ListVPCSubnets(ctx, orgId, networkId, secretId, cloudType, region)
 List VPC subnetworks
 
 List subnetworks of the given VPC network
@@ -82,9 +84,10 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
+  **networkId** | **string**| VPC network identification | 
   **secretId** | **string**| Secret identification | 
   **cloudType** | **string**| Identifies the cloud provider | 
-  **networkId** | **string**| VPC network identification | 
+  **region** | **string**| Identifies the region of the VPC network | 
 
 ### Return type
 
