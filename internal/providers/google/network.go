@@ -94,6 +94,13 @@ func NewNetworkService(region string, secret *secret.SecretItemResponse, logger 
 	if err != nil {
 		return nil, err
 	}
+
+	// check region exists
+	_, err = svc.Regions.Get(sa.ProjectId, region).Do()
+	if err != nil {
+		return nil, err
+	}
+
 	ns := &googleNetworkService{
 		computeService: svc,
 		logger:         logger,
