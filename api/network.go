@@ -83,8 +83,15 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
-		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
+		replyWithError(ctx, err)
 		logger.Debug("no secret stored for ID")
+		return
+	}
+
+	err = sir.ValidateSecretType(provider)
+	if err != nil {
+		replyWithError(ctx, err)
+		logger.Debug("secret type mismatch")
 		return
 	}
 
@@ -95,10 +102,13 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 		Secret:   sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
-
+	if err != nil {
+		replyWithError(ctx, err)
+		return
+	}
 	networks, err := svc.ListNetworks()
 	if err != nil {
-		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
+		replyWithError(ctx, err)
 		return
 	}
 
@@ -140,8 +150,15 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
-		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
+		replyWithError(ctx, err)
 		logger.Debug("no secret stored for ID")
+		return
+	}
+
+	err = sir.ValidateSecretType(provider)
+	if err != nil {
+		replyWithError(ctx, err)
+		logger.Debug("secret type mismatch")
 		return
 	}
 
@@ -152,10 +169,13 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 		Secret:   sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
-
+	if err != nil {
+		replyWithError(ctx, err)
+		return
+	}
 	subnets, err := svc.ListSubnets(networkID)
 	if err != nil {
-		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
+		replyWithError(ctx, err)
 		return
 	}
 
@@ -198,8 +218,15 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
-		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
+		replyWithError(ctx, err)
 		logger.Debug("no secret stored for ID")
+		return
+	}
+
+	err = sir.ValidateSecretType(provider)
+	if err != nil {
+		replyWithError(ctx, err)
+		logger.Debug("secret type mismatch")
 		return
 	}
 
@@ -210,10 +237,13 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 		Secret:   sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
-
+	if err != nil {
+		replyWithError(ctx, err)
+		return
+	}
 	routeTables, err := svc.ListRouteTables(networkID)
 	if err != nil {
-		ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
+		replyWithError(ctx, err)
 		return
 	}
 
@@ -247,4 +277,8 @@ func getRequiredSecretIDFromContext(ctx *gin.Context, logger logrus.FieldLogger)
 		logger.Debug("missing secret ID")
 	}
 	return secretID, ok
+}
+
+func replyWithError(ctx *gin.Context, err error) {
+	ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
 }
