@@ -148,7 +148,7 @@ func errorResponseFrom(err error) *pkgCommon.ErrorResponse {
 	}
 
 	switch err.(type) {
-	case SecretNotFoundError, secret.MissmatchError:
+	case SecretNotFoundError, secret.MismatchError:
 		return &pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   err.Error(),

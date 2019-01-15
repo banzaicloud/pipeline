@@ -117,7 +117,7 @@ func (s *SecretItemResponse) GetValue(key string) string {
 func (s *SecretItemResponse) ValidateSecretType(validType string) error {
 	if string(s.Type) != validType {
 
-		return MissmatchError{
+		return MismatchError{
 			SecretType: s.Type,
 			ValidType:  validType,
 		}
@@ -527,14 +527,14 @@ func hasTags(tags []string, searchingTag []string) bool {
 	return true
 }
 
-// MissmatchError describe a secret error where the given and expected secret type is not equal
-type MissmatchError struct {
+// MismatchError describe a secret error where the given and expected secret type is not equal
+type MismatchError struct {
 	Err        error
 	SecretType string
 	ValidType  string
 }
 
-func (m MissmatchError) Error() string {
+func (m MismatchError) Error() string {
 	if m.Err == nil {
 		return fmt.Sprintf("missmatch secret type %s versus %s", m.SecretType, m.ValidType)
 	}

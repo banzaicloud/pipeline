@@ -36,7 +36,7 @@ func isInvalid(err error) bool {
 	}
 
 	switch err.(type) {
-	case secret.MissmatchError:
+	case secret.MismatchError:
 		return true
 	}
 
