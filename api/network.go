@@ -65,6 +65,10 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 	if !ok {
 		return
 	}
+	region, ok := getRequiredRegionFromContext(ctx, logger)
+	if !ok {
+		return
+	}
 	secretID, ok := getRequiredSecretIDFromContext(ctx, logger)
 	if !ok {
 		return
@@ -73,6 +77,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 	logger = logger.WithFields(logrus.Fields{
 		"organization": organization.ID,
 		"provider":     provider,
+		"region":       region,
 		"secretID":     secretID,
 	})
 
@@ -86,6 +91,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 	svcParams := providers.ServiceParams{
 		Logger:   logger,
 		Provider: provider,
+		Region:   region,
 		Secret:   sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
@@ -114,6 +120,10 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 	if !ok {
 		return
 	}
+	region, ok := getRequiredRegionFromContext(ctx, logger)
+	if !ok {
+		return
+	}
 	secretID, ok := getRequiredSecretIDFromContext(ctx, logger)
 	if !ok {
 		return
@@ -123,6 +133,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 	logger = logger.WithFields(logrus.Fields{
 		"organization": organization.ID,
 		"provider":     provider,
+		"region":       region,
 		"secretID":     secretID,
 		"networkID":    networkID,
 	})
@@ -137,6 +148,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 	svcParams := providers.ServiceParams{
 		Logger:   logger,
 		Provider: provider,
+		Region:   region,
 		Secret:   sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
@@ -166,6 +178,10 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 	if !ok {
 		return
 	}
+	region, ok := getRequiredRegionFromContext(ctx, logger)
+	if !ok {
+		return
+	}
 	secretID, ok := getRequiredSecretIDFromContext(ctx, logger)
 	if !ok {
 		return
@@ -175,6 +191,7 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 	logger = logger.WithFields(logrus.Fields{
 		"organization": organization.ID,
 		"provider":     provider,
+		"region":       region,
 		"secretID":     secretID,
 		"networkID":    networkID,
 	})
@@ -189,6 +206,7 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 	svcParams := providers.ServiceParams{
 		Logger:   logger,
 		Provider: provider,
+		Region:   region,
 		Secret:   sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
@@ -213,6 +231,14 @@ func getRequiredProviderFromContext(ctx *gin.Context, logger logrus.FieldLogger)
 		logger.Debug("missing provider")
 	}
 	return provider, ok
+}
+
+func getRequiredRegionFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
+	region, ok := ginutils.RequiredQueryOrAbort(ctx, "region")
+	if !ok {
+		logger.Debug("missing region")
+	}
+	return region, ok
 }
 
 func getRequiredSecretIDFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {

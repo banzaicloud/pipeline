@@ -28,6 +28,7 @@ import (
 type ServiceParams struct {
 	Logger   logrus.FieldLogger
 	Provider string
+	Region   string
 	Secret   *secret.SecretItemResponse
 }
 
@@ -35,9 +36,9 @@ type ServiceParams struct {
 func NewNetworkService(params ServiceParams) (network.Service, error) {
 	switch params.Provider {
 	case providers.Amazon:
-		return amazon.NewNetworkService(params.Secret, params.Logger)
+		return amazon.NewNetworkService(params.Region, params.Secret, params.Logger)
 	case providers.Google:
-		return google.NewNetworkService(params.Secret, params.Logger)
+		return google.NewNetworkService(params.Region, params.Secret, params.Logger)
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
