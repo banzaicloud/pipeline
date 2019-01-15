@@ -4653,6 +4653,14 @@ paths:
           - alibaba
           type: string
         style: form
+      - description: Identifies the region of the VPC network
+        explode: true
+        in: query
+        name: region
+        required: true
+        schema:
+          type: string
+        style: form
       responses:
         200:
           content:
@@ -4697,6 +4705,14 @@ paths:
           format: int32
           type: integer
         style: simple
+      - description: VPC network identification
+        explode: false
+        in: path
+        name: networkId
+        required: true
+        schema:
+          type: string
+        style: simple
       - description: Secret identification
         explode: false
         in: header
@@ -4719,14 +4735,14 @@ paths:
           - alibaba
           type: string
         style: form
-      - description: VPC network identification
-        explode: false
-        in: path
-        name: networkId
+      - description: Identifies the region of the VPC network
+        explode: true
+        in: query
+        name: region
         required: true
         schema:
           type: string
-        style: simple
+        style: form
       responses:
         200:
           content:
@@ -4773,6 +4789,14 @@ paths:
           format: int32
           type: integer
         style: simple
+      - description: VPC network identification
+        explode: false
+        in: path
+        name: networkId
+        required: true
+        schema:
+          type: string
+        style: simple
       - description: Secret identification
         explode: false
         in: header
@@ -4795,14 +4819,14 @@ paths:
           - alibaba
           type: string
         style: form
-      - description: VPC network identification
-        explode: false
-        in: path
-        name: networkId
+      - description: Identifies the region of the VPC network
+        explode: true
+        in: query
+        name: region
         required: true
         schema:
           type: string
-        style: simple
+        style: form
       responses:
         200:
           content:

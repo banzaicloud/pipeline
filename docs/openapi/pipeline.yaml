@@ -4465,6 +4465,13 @@ paths:
                     schema:
                         type: string
                         enum: [amazon, google, azure, oracle, alibaba]
+                -
+                    name: region
+                    description: Identifies the region of the VPC network
+                    in: query
+                    required: true
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: List of VPC networks
@@ -4510,6 +4517,13 @@ paths:
                     schema:
                         type: integer
                 -
+                    name: networkId
+                    description: VPC network identification
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                -
                     name: secretId
                     description: Secret identification
                     in: header
@@ -4525,9 +4539,9 @@ paths:
                         type: string
                         enum: [amazon, google, azure, oracle, alibaba]
                 -
-                    name: networkId
-                    description: VPC network identification
-                    in: path
+                    name: region
+                    description: Identifies the region of the VPC network
+                    in: query
                     required: true
                     schema:
                         type: string
@@ -4578,6 +4592,13 @@ paths:
                     schema:
                         type: integer
                 -
+                    name: networkId
+                    description: VPC network identification
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                -
                     name: secretId
                     description: Secret identification
                     in: header
@@ -4593,9 +4614,9 @@ paths:
                         type: string
                         enum: [amazon, google, azure, oracle, alibaba]
                 -
-                    name: networkId
-                    description: VPC network identification
-                    in: path
+                    name: region
+                    description: Identifies the region of the VPC network
+                    in: query
                     required: true
                     schema:
                         type: string
