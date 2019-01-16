@@ -26,7 +26,7 @@ func NewConstantBackoffPolicy(config *ConstantBackoffConfig) *backoff.Constant {
 	return backoff.NewConstant(config.Delay, backoff.WithMaxRetries(config.MaxRetries), backoff.WithMaxElapsedTime(config.MaxElapsedTime))
 }
 
-// Retry retries the given function using constant backoff policy
+// Retry retries the given function using a backoff policy
 func Retry(function func() error, backoffPolicy backoff.Policy) (err error) {
 	b, cancel := backoffPolicy.Start(context.Background())
 
@@ -47,7 +47,7 @@ func Retry(function func() error, backoffPolicy backoff.Policy) (err error) {
 	}
 }
 
-// MarkErrorPermanent marks an error permanent error so the retry will bail when this error happens
+// MarkErrorPermanent marks an error permanent error so it won't be retried (unlike with non-marked errors considered as transient)
 func MarkErrorPermanent(err error) error {
 	return backoff.MarkPermanent(err)
 }
