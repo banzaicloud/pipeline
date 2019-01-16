@@ -68,6 +68,7 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 
 		Logging:      clusterStatus.Logging,
 		Monitoring:   clusterStatus.Monitoring,
+		ServiceMesh:  clusterStatus.ServiceMesh,
 		SecurityScan: clusterStatus.SecurityScan,
 
 		// TODO: keep one of the following?
@@ -227,6 +228,7 @@ type GetClusterResponse struct {
 
 	Logging      bool `json:"logging"`
 	Monitoring   bool `json:"monitoring"`
+	ServiceMesh  bool `json:"servicemesh"`
 	SecurityScan bool `json:"securityscan"`
 
 	// TODO: keep one of the following?

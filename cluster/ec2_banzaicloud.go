@@ -66,6 +66,14 @@ func (c *EC2ClusterBanzaiCloudDistribution) SetMonitoring(m bool) {
 	c.model.Cluster.Monitoring = m
 }
 
+func (c *EC2ClusterBanzaiCloudDistribution) GetServiceMesh() bool {
+	return c.model.Cluster.ServiceMesh
+}
+
+func (c *EC2ClusterBanzaiCloudDistribution) SetServiceMesh(m bool) {
+	c.model.Cluster.ServiceMesh = m
+}
+
 func (c *EC2ClusterBanzaiCloudDistribution) GetID() uint {
 	return c.model.Cluster.ID
 }
@@ -252,6 +260,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterS
 		ResourceID:        c.model.Cluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
+		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.model.Kubernetes.Version,

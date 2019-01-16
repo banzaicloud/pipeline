@@ -271,6 +271,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        c.modelCluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
+		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
@@ -792,6 +793,16 @@ func (c *AKSCluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (c *AKSCluster) SetMonitoring(l bool) {
 	c.modelCluster.Monitoring = l
+}
+
+// GetServiceMesh returns true if service mesh is enabled on the cluster
+func (c *AKSCluster) GetServiceMesh() bool {
+	return c.modelCluster.ServiceMesh
+}
+
+// SetServiceMesh sets service mesh flag on the cluster
+func (c *AKSCluster) SetServiceMesh(m bool) {
+	c.modelCluster.ServiceMesh = m
 }
 
 // ListResourceGroups returns all resource group

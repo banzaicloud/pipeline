@@ -91,6 +91,8 @@ type CommonCluster interface {
 	SetLogging(l bool)
 	GetMonitoring() bool
 	SetMonitoring(m bool)
+	GetServiceMesh() bool
+	SetServiceMesh(m bool)
 }
 
 // CommonClusterBase holds the fields that is common to all cluster types

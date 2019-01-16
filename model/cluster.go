@@ -49,16 +49,16 @@ const (
 //ClusterModel describes the common cluster model
 // Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
 type ClusterModel struct {
-	ID             uint   `gorm:"primary_key"`
-	UID            string `gorm:"unique_index:idx_uid"`
+	ID             uint                   `gorm:"primary_key"`
+	UID            string                 `gorm:"unique_index:idx_uid"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-	DeletedAt      *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
-	Name           string     `gorm:"unique_index:idx_unique_id"`
+	DeletedAt      *time.Time             `gorm:"unique_index:idx_unique_id" sql:"index"`
+	Name           string                 `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
 	Distribution   string
-	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
+	OrganizationId uint                   `gorm:"unique_index:idx_unique_id"`
 	SecretId       string
 	ConfigSecretId string
 	SshSecretId    string
@@ -66,6 +66,7 @@ type ClusterModel struct {
 	RbacEnabled    bool
 	Monitoring     bool
 	Logging        bool
+	ServiceMesh    bool
 	SecurityScan   bool
 	StatusMessage  string                 `sql:"type:text;"`
 	ACSK           ACSKClusterModel       `gorm:"foreignkey:ID"`
@@ -98,7 +99,7 @@ type ACSKNodePoolModel struct {
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
 type ACSKClusterModel struct {
-	ID                       uint `gorm:"primary_key"`
+	ID                       uint                 `gorm:"primary_key"`
 	ProviderClusterID        string
 	RegionID                 string
 	ZoneID                   string
@@ -113,7 +114,7 @@ type ACSKClusterModel struct {
 
 //AmazonNodePoolsModel describes Amazon node groups model of a cluster
 type AmazonNodePoolsModel struct {
-	ID               uint `gorm:"primary_key"`
+	ID               uint   `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
@@ -125,12 +126,12 @@ type AmazonNodePoolsModel struct {
 	Count            int
 	NodeImage        string
 	NodeInstanceType string
-	Delete           bool `gorm:"-"`
+	Delete           bool   `gorm:"-"`
 }
 
 // EKSSubnetModel describes the model of subnets used for creating an EKS cluster
 type EKSSubnetModel struct {
-	ID         uint `gorm:"primary_key"`
+	ID         uint    `gorm:"primary_key"`
 	CreatedAt  time.Time
 	EKSCluster EKSClusterModel
 	ClusterID  uint    `gorm:"index:idx_cluster_id"`
@@ -153,7 +154,7 @@ type EKSClusterModel struct {
 
 //AKSClusterModel describes the aks cluster model
 type AKSClusterModel struct {
-	ID                uint `gorm:"primary_key"`
+	ID                uint                `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
 	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterID"`
@@ -161,7 +162,7 @@ type AKSClusterModel struct {
 
 // AKSNodePoolModel describes AKS node pools model of a cluster
 type AKSNodePoolModel struct {
-	ID               uint `gorm:"primary_key"`
+	ID               uint   `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`

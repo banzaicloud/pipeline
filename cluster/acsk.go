@@ -92,6 +92,16 @@ func (c *ACSKCluster) SetMonitoring(l bool) {
 	c.modelCluster.Monitoring = l
 }
 
+// GetServiceMesh returns true if service mesh is enabled on the cluster
+func (c *ACSKCluster) GetServiceMesh() bool {
+	return c.modelCluster.ServiceMesh
+}
+
+// SetServiceMesh sets service mesh flag on the cluster
+func (c *ACSKCluster) SetServiceMesh(m bool) {
+	c.modelCluster.ServiceMesh = m
+}
+
 func (*ACSKCluster) RequiresSshPublicKey() bool {
 	return true
 }
@@ -555,6 +565,7 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		ResourceID:        c.modelCluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
+		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
