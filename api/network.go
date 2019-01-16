@@ -28,11 +28,15 @@ import (
 )
 
 // NetworkAPI implements network functions
-type NetworkAPI struct{}
+type NetworkAPI struct {
+	logger logrus.FieldLogger
+}
 
 // NewNetworkAPI returns a new NetworkAPI instance
-func NewNetworkAPI() *NetworkAPI {
-	return &NetworkAPI{}
+func NewNetworkAPI(logger logrus.FieldLogger) *NetworkAPI {
+	return &NetworkAPI{
+		logger: logger,
+	}
 }
 
 // NetworkInfo encapsulates VPC network information to be returned
@@ -58,7 +62,7 @@ type RouteTableInfo struct {
 
 // ListVPCNetworks lists all VPC networks of the specified organization
 func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
-	logger := correlationid.Logger(log, ctx)
+	logger := correlationid.Logger(a.logger, ctx)
 
 	organization := auth.GetCurrentOrganization(ctx.Request)
 	provider, ok := getRequiredProviderFromContext(ctx, logger)
@@ -123,7 +127,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 
 // ListVPCSubnets lists all subnetworks of the specified VPC network
 func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
-	logger := correlationid.Logger(log, ctx)
+	logger := correlationid.Logger(a.logger, ctx)
 
 	organization := auth.GetCurrentOrganization(ctx.Request)
 	provider, ok := getRequiredProviderFromContext(ctx, logger)
@@ -191,7 +195,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 
 // ListRouteTables lists all route tables of the specified VPC network
 func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
-	logger := correlationid.Logger(log, ctx)
+	logger := correlationid.Logger(a.logger, ctx)
 
 	organization := auth.GetCurrentOrganization(ctx.Request)
 	provider, ok := getRequiredProviderFromContext(ctx, logger)
