@@ -22,6 +22,7 @@ type GetClusterStatusResponse struct {
 	Id            int32                     `json:"id,omitempty"`
 	Logging       bool                      `json:"logging,omitempty"`
 	Monitoring    bool                      `json:"monitoring,omitempty"`
+	Servicemesh   bool                      `json:"servicemesh,omitempty"`
 	Securityscan  bool                      `json:"securityscan,omitempty"`
 	CreatedAt     string                    `json:"createdAt,omitempty"`
 	CreatorName   string                    `json:"creatorName,omitempty"`

@@ -5619,6 +5619,7 @@ components:
           oneOf:
           - $ref: '#/components/schemas/LoggingPostHook'
           - $ref: '#/components/schemas/BasePostHook'
+          - $ref: '#/components/schemas/ServiceMeshPostHook'
           type: object
         profileName:
           type: string
@@ -7643,6 +7644,7 @@ components:
         createdAt: 2018-07-03T14:23:19+02:00
         spot: true
         name: myClusterName
+        servicemesh: true
         logging: true
         location: us-central1-a
         id: 1
@@ -7680,6 +7682,8 @@ components:
         logging:
           type: boolean
         monitoring:
+          type: boolean
+        servicemesh:
           type: boolean
         securityscan:
           type: boolean
@@ -8070,6 +8074,8 @@ components:
           type: boolean
         monitoring:
           type: boolean
+        servicemesh:
+          type: boolean
         securityscan:
           type: boolean
         version:
@@ -8191,6 +8197,11 @@ components:
         InstallLogging:
           $ref: '#/components/schemas/LoggingPostHook_InstallLogging'
       type: object
+    ServiceMeshPostHook:
+      properties:
+        InstallServiceMesh:
+          $ref: '#/components/schemas/ServiceMeshPostHook_InstallServiceMesh'
+      type: object
     ReRunPostHook:
       example:
         InstallLogging:
@@ -8205,6 +8216,7 @@ components:
       oneOf:
       - $ref: '#/components/schemas/LoggingPostHook'
       - $ref: '#/components/schemas/BasePostHook'
+      - $ref: '#/components/schemas/ServiceMeshPostHook'
       type: object
     GenTLSForLogging:
       properties:
@@ -10272,6 +10284,11 @@ components:
           type: string
         tls:
           $ref: '#/components/schemas/GenTLSForLogging'
+      type: object
+    ServiceMeshPostHook_InstallServiceMesh:
+      properties:
+        mtls:
+          type: boolean
       type: object
     DeploymentScalingResponse_inner:
       properties:

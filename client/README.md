@@ -333,6 +333,8 @@ Class | Method | HTTP request | Description
  - [SecretKeyValueTls](docs/SecretKeyValueTls.md)
  - [SecretTags](docs/SecretTags.md)
  - [SecretsNotFound](docs/SecretsNotFound.md)
+ - [ServiceMeshPostHook](docs/ServiceMeshPostHook.md)
+ - [ServiceMeshPostHookInstallServiceMesh](docs/ServiceMeshPostHookInstallServiceMesh.md)
  - [SpotguideDetailsResponse](docs/SpotguideDetailsResponse.md)
  - [SpotguideNotFound](docs/SpotguideNotFound.md)
  - [SpotguideOptionsMonitor](docs/SpotguideOptionsMonitor.md)

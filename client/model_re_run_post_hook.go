@@ -12,6 +12,7 @@
 package client
 
 type ReRunPostHook struct {
-	InstallLogging       LoggingPostHookInstallLogging `json:"InstallLogging,omitempty"`
-	PostHookFunctionName map[string]interface{}        `json:"PostHookFunctionName,omitempty"`
+	InstallLogging       LoggingPostHookInstallLogging         `json:"InstallLogging,omitempty"`
+	PostHookFunctionName map[string]interface{}                `json:"PostHookFunctionName,omitempty"`
+	InstallServiceMesh   ServiceMeshPostHookInstallServiceMesh `json:"InstallServiceMesh,omitempty"`
 }

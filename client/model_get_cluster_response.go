@@ -23,6 +23,7 @@ type GetClusterResponse struct {
 	Spot          bool                          `json:"spot,omitempty"`
 	Logging       bool                          `json:"logging,omitempty"`
 	Monitoring    bool                          `json:"monitoring,omitempty"`
+	Servicemesh   bool                          `json:"servicemesh,omitempty"`
 	Securityscan  bool                          `json:"securityscan,omitempty"`
 	Version       string                        `json:"version,omitempty"`
 	MasterVersion string                        `json:"masterVersion,omitempty"`

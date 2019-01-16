@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **Spot** | **bool** |  | [optional] 
 **Logging** | **bool** |  | [optional] 
 **Monitoring** | **bool** |  | [optional] 
+**Servicemesh** | **bool** |  | [optional] 
 **Securityscan** | **bool** |  | [optional] 
 **Version** | **string** |  | [optional] 
 **MasterVersion** | **string** |  | [optional] 
