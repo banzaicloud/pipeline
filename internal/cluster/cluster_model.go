@@ -45,7 +45,7 @@ type ClusterModel struct {
 	Location       string
 	Cloud          string
 	Distribution   string
-	OrganizationID uint   `gorm:"unique_index:idx_unique_id"`
+	OrganizationID uint `gorm:"unique_index:idx_unique_id"`
 	SecretID       string
 	ConfigSecretID string
 	SSHSecretID    string

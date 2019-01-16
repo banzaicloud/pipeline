@@ -598,13 +598,13 @@ func (o *OKECluster) SetMonitoring(l bool) {
 }
 
 // GetServiceMesh returns true if service mesh is enabled on the cluster
-func (c *OKECluster) GetServiceMesh() bool {
-	return c.modelCluster.ServiceMesh
+func (o *OKECluster) GetServiceMesh() bool {
+	return o.modelCluster.ServiceMesh
 }
 
 // SetServiceMesh sets service mesh flag on the cluster
-func (c *OKECluster) SetServiceMesh(m bool) {
-	c.modelCluster.ServiceMesh = m
+func (o *OKECluster) SetServiceMesh(m bool) {
+	o.modelCluster.ServiceMesh = m
 }
 
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
