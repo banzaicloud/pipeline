@@ -2262,7 +2262,6 @@
     "github.com/heptio/ark/pkg/apis/ark/v1",
     "github.com/heptio/ark/pkg/cloudprovider",
     "github.com/heptio/ark/pkg/generated/clientset/versioned",
-    "github.com/imdario/mergo",
     "github.com/jinzhu/copier",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",

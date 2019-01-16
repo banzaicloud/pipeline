@@ -65,18 +65,20 @@ pipeline:
       - name: DOCKER_PASSWORD
         source: password
     image: banzaicloud/ci-pipeline-client:latest
-{{{{ if eq .cluster.cloud "aws" }}}}
+{{{{ if .cluster.cloud }}}}
+  {{{{ if eq .cluster.cloud "aws" }}}}
   env:
     image: node:10
     commands:
     - env
     - find .
-{{{{ end }}}}
-{{{{ if eq .cluster.cloud "google" }}}}
+  {{{{ end }}}}
+  {{{{ if eq .cluster.cloud "google" }}}}
   test:
     image: node:10
     commands:
     - npm version
+  {{{{ end }}}}
 {{{{ end }}}}
   build_container:
     image: plugins/docker
@@ -106,6 +108,23 @@ pipeline:
       - name: mongodb-root-password
         source: password
     image: banzaicloud/ci-pipeline-client:latest
+    when:
+      branch:
+        include:
+        - master
+  install_backup_secret:
+    action: InstallSecret
+    clusterSecret:
+      merge: true
+      name: '{{ .CICD_REPO_NAME }}-backup'
+      namespace: default
+      spec:
+      - name: AWS_ACCESS_KEY_ID
+        source: AWS_ACCESS_KEY_ID
+      - name: AWS_SECRET_KEY
+        source: AWS_SECRET_ACCESS_KEY
+      - name: AWS_REGION
+    image: banzaicloud/ci-pipeline-client:0.9.0-dev.2
     when:
       branch:
         include:
@@ -217,6 +236,25 @@ pipeline:
       branch:
         include:
         - master
+  install_backup_secret:
+    action: InstallSecret
+    clusterSecret:
+      merge: true
+      name: '{{ .CICD_REPO_NAME }}-backup'
+      namespace: default
+      sourceSecretName: aws
+      spec:
+      - name: AWS_ACCESS_KEY_ID
+        source: AWS_ACCESS_KEY_ID
+      - name: AWS_SECRET_KEY
+        source: AWS_SECRET_ACCESS_KEY
+      - name: AWS_REGION
+        value: eu-west-1
+    image: banzaicloud/ci-pipeline-client:0.9.0-dev.2
+    when:
+      branch:
+        include:
+        - master
   deploy_application:
     action: EnsureDeployment
     deployment:
@@ -316,6 +354,18 @@ var testLaunchRequestJSON = `{
                   }
               }
           }
+      },
+      "install_backup_secret": {
+        "clusterSecret": {
+          "spec": [
+            null,
+            null,
+            {
+              "value": "eu-west-1"
+            }
+          ],
+          "sourceSecretName": "aws"
+        }
       },
       "install_application_secret": {
           "cluster_secret": {
