@@ -47,7 +47,7 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	log.Info("start pre-install")
 
 	var backoffConfig = backoff.ConstantBackoffConfig{
-		Delay:      time.Duration(10) * time.Second,
+		Delay:      10 * time.Second,
 		MaxRetries: 5,
 	}
 	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
