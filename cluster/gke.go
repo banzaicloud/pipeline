@@ -1626,17 +1626,7 @@ func (c *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 //DeleteFromDatabase deletes model from the database
 func (c *GKECluster) DeleteFromDatabase() error {
-	if err := c.db.Delete(&c.model.Cluster).Error; err != nil {
-		return err
-	}
-
-	for _, nodePool := range c.model.NodePools {
-		if err := c.db.Delete(nodePool).Error; err != nil {
-			return err
-		}
-	}
-
-	if err := c.db.Delete(c.model).Error; err != nil {
+	if err := c.db.Delete(&c.model).Error; err != nil {
 		return err
 	}
 

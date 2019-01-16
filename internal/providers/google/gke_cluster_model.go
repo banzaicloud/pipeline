@@ -73,6 +73,26 @@ func (m *GKEClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	return nil
 }
 
+// BeforeDelete deletes all nodepools that belongs to GKEClusterModel
+func (m *GKEClusterModel) BeforeDelete(tx *gorm.DB) error {
+	for _, nodePool := range m.NodePools {
+		if err := tx.Delete(nodePool).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AfterDelete deletes Cluster that belongs to GKEClusterModel
+func (m *GKEClusterModel) AfterDelete(tx *gorm.DB) error {
+	if err := tx.Delete(m.Cluster).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m GKEClusterModel) String() string {
 	return fmt.Sprintf("%s, Master version: %s, Node version: %s, Node pools: %s",
 		m.Cluster,
@@ -104,6 +124,17 @@ type GKENodePoolModel struct {
 // TableName changes the default table name.
 func (GKENodePoolModel) TableName() string {
 	return GKENodePoolModelTableName
+}
+
+// BeforeDelete deletes all nodepoollabels that belongs to GKENodePoolModel
+func (m *GKENodePoolModel) BeforeDelete(tx *gorm.DB) error {
+	for _, label := range m.Labels {
+		if err := tx.Delete(label).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (m GKENodePoolModel) String() string {
