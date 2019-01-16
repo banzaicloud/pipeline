@@ -23,10 +23,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
-	"github.com/banzaicloud/pipeline/pkg/aks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -69,9 +69,7 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 
 	err = backoff.Retry(func() error {
 		if _, err := client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount); err != nil {
-			if k8sapierrors.IsAlreadyExists(err) {
-				return nil
-			} else if !aks.EtcdTimedOutError(err) {
+			if k8sutil.IsK8sErrorPermanent(err) {
 				return backoff.MarkErrorPermanent(err)
 			}
 		}
@@ -107,10 +105,8 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 
 	clusterRoleName := helmInstall.ServiceAccount
 	err = backoff.Retry(func() error {
-		if _, err = client.RbacV1().ClusterRoles().Create(clusterRole); err != nil {
-			if k8sapierrors.IsAlreadyExists(err) {
-				return nil
-			} else if !aks.EtcdTimedOutError(err) || strings.Contains(err.Error(), "is forbidden") {
+		if _, err := client.RbacV1().ClusterRoles().Create(clusterRole); err != nil {
+			if k8sutil.IsK8sErrorPermanent(err) {
 				return backoff.MarkErrorPermanent(err)
 			}
 		}
@@ -146,10 +142,8 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	log.Info("create clusterrolebinding")
 
 	err = backoff.Retry(func() error {
-		if _, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil {
-			if k8sapierrors.IsAlreadyExists(err) {
-				return nil
-			} else if !aks.EtcdTimedOutError(err) {
+		if _, err := client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil {
+			if k8sutil.IsK8sErrorPermanent(err) {
 				return backoff.MarkErrorPermanent(err)
 			}
 		}

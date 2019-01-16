@@ -18,10 +18,12 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
+	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -257,4 +259,16 @@ func formatCPUQuantity(q *resource.Quantity) string {
 
 	return fmt.Sprintf("%s CPU", string(number))
 
+}
+
+// IsK8sErrorPermanent checks if the given error is permanent error or not
+func IsK8sErrorPermanent(err error) bool {
+	if k8sapierrors.IsAlreadyExists(err) {
+		return false
+		// Newly instantiated AKS cluster's ETCD is flaky
+	} else if strings.Contains(err.Error(), "etcdserver: request timed out") {
+		return false
+	}
+
+	return true
 }

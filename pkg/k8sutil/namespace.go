@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/backoff"
-	"github.com/banzaicloud/pipeline/pkg/aks"
 	"github.com/goph/emperror"
 	"k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -58,7 +57,7 @@ func EnsureNamespaceWithLabelWithRetry(client kubernetes.Interface, namespace st
 	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
 	err = backoff.Retry(func() error {
 		if err := EnsureNamespaceWithLabel(client, namespace, labels); err != nil {
-			if !aks.EtcdTimedOutError(err) {
+			if IsK8sErrorPermanent(err) {
 				return backoff.MarkErrorPermanent(err)
 			}
 		}
