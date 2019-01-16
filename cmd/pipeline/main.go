@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/spotguide"
+	"github.com/jinzhu/gorm"
 
 	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/go-gin-prometheus"
@@ -317,8 +318,6 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id", clusterAPI.GetCluster)
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
 			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
-			orgs.GET("/:orgid/clusters/:id/nodepools", api.GetNodePools)
-			orgs.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
 
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
@@ -452,6 +451,10 @@ func main() {
 	}
 	router.POST(basePath+"/issues", auth.Handler, issueHandler)
 
+	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
+	logger.Infof("Pipeline internal API listening on http://%s", internalBindAddr)
+	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI).Run(internalBindAddr)
+
 	bindAddr := viper.GetString("pipeline.bindaddr")
 	if port := viper.GetInt("pipeline.listenport"); port != 0 {
 		host := strings.Split(bindAddr, ":")[0]
@@ -466,4 +469,22 @@ func main() {
 		logger.Infof("Pipeline API listening on http://%s", bindAddr)
 		router.Run(bindAddr)
 	}
+}
+
+func createInternalAPIRouter(skipPaths []string, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI) *gin.Engine {
+	//Initialise Gin router for Internal API
+	internalRouter := gin.New()
+	internalRouter.Use(correlationid.Middleware())
+	internalRouter.Use(ginlog.Middleware(log, skipPaths...))
+	internalRouter.Use(gin.Recovery())
+	if viper.GetBool("audit.enabled") {
+		log.Infoln("Audit enabled, installing Gin audit middleware to internal router")
+		internalRouter.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
+	}
+	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
+	internalGroup.Use(auth.InternalUserHandler)
+	internalGroup.Use(api.OrganizationMiddleware)
+	internalGroup.GET("/:orgid/clusters/:id/nodepools", api.GetNodePools)
+	internalGroup.PUT("/:orgid/clusters/:id/nodepools", clusterAPI.UpdateNodePools)
+	return internalRouter
 }

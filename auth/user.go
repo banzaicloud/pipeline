@@ -457,6 +457,14 @@ func GetUserById(userId uint) (*User, error) {
 	return &user, err
 }
 
+// GetUserByLoginName returns user
+func GetUserByLoginName(login string) (*User, error) {
+	db := config.DB()
+	var user User
+	err := db.Find(&user, User{Login: login}).Error
+	return &user, err
+}
+
 // GetUserNickNameById returns user's login name
 func GetUserNickNameById(userId uint) (userName string) {
 	if user, err := GetUserById(userId); err != nil {

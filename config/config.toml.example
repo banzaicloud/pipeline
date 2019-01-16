@@ -2,8 +2,9 @@
 
 [pipeline]
 # Pipeline configs
-
 bindaddr = "127.0.0.1:9090"
+# Bind address for Internal API
+internalBindaddr = "127.0.0.1:9091"
 
 # Url basepath
 # Default is "/pipeline" in the development environment to allow using the UI locally
