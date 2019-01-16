@@ -40,15 +40,6 @@ Download the `golang-migrate` tool to the `./bin` directory.
 make bin/migrate
 ```
 
-Create a migration script with a unix timestamp, and a title (example: `title="add_service_mesh"`).
-The command should create 2 files in the `database/migrations` directory: `$timestamp_$title.up.sql` and `$timestamp_$title.down.sql`).
-```
-bin/migrate create  -ext sql -dir database/migrations/ -format "unix" "$title"
-```
-
-Write your migration scripts in the generated files.
-Disable auto-migrate in Pipeline's `config.toml` file.
-
 Check the version of your database.
 ```
 bin/migrate  -source "file://$(pwd)/database/migrations" -database "mysql://$MYSQL_USER:$MYSQL_PW@tcp(127.0.0.1:3306)/pipeline" version
@@ -62,6 +53,15 @@ Find the latest timestamp in `database/migrations` and force that version (if th
 find database/migrations -type f -exec basename {} ';' | cut -d_ -f1 | sort -r | head -1
 bin/migrate  -source "file://$(pwd)/database/migrations" -database "mysql://$MYSQL_USER:$MYSQL_PW@tcp(127.0.0.1:3306)/pipeline" force $last_version
 ```
+
+Create a migration script with a unix timestamp, and a title (example: `title="add_service_mesh"`).
+The command should create 2 files in the `database/migrations` directory: `$timestamp_$title.up.sql` and `$timestamp_$title.down.sql`).
+```
+bin/migrate create  -ext sql -dir database/migrations/ -format "unix" "$title"
+```
+
+Write your migration scripts in the generated files.
+Disable auto-migrate in Pipeline's `config.toml` file.
 
 To apply your new migration script on the database, run the `up` command (1 means moving up one version):
 ```
