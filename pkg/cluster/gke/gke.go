@@ -44,12 +44,13 @@ type Master struct {
 
 // NodePool describes Google's node fields of a CreateCluster/Update request
 type NodePool struct {
-	Autoscaling      bool   `json:"autoscaling" yaml:"autoscaling"`
-	MinCount         int    `json:"minCount" yaml:"minCount"`
-	MaxCount         int    `json:"maxCount" yaml:"maxCount"`
-	Count            int    `json:"count,omitempty" yaml:"count,omitempty"`
-	NodeInstanceType string `json:"instanceType,omitempty" yaml:"instanceType,omitempty"`
-	Preemptible      bool   `json:"preemptible,omitempty" yaml:"preemptible,omitempty"`
+	Autoscaling      bool              `json:"autoscaling" yaml:"autoscaling"`
+	MinCount         int               `json:"minCount" yaml:"minCount"`
+	MaxCount         int               `json:"maxCount" yaml:"maxCount"`
+	Count            int               `json:"count,omitempty" yaml:"count,omitempty"`
+	NodeInstanceType string            `json:"instanceType,omitempty" yaml:"instanceType,omitempty"`
+	Preemptible      bool              `json:"preemptible,omitempty" yaml:"preemptible,omitempty"`
+	Labels           map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 // UpdateClusterGoogle describes Google's node fields of an UpdateCluster request
