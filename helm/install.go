@@ -22,19 +22,22 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/backoff"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/cmd/helm/installer"
 	"k8s.io/helm/pkg/downloader"
 	"k8s.io/helm/pkg/getter"
-	helm_env "k8s.io/helm/pkg/helm/environment"
+	helmEnv "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
 )
@@ -42,6 +45,12 @@ import (
 //PreInstall create's serviceAccount and AccountRoleBinding
 func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	log.Info("start pre-install")
+
+	var backoffConfig = backoff.ConstantBackoffConfig{
+		Delay:      10 * time.Second,
+		MaxRetries: 5,
+	}
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
@@ -56,20 +65,18 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 	serviceAccount := &apiv1.ServiceAccount{
 		ObjectMeta: v1MetaData,
 	}
-	log.Info("create service account")
-	for i := 0; i <= 5; i++ {
-		_, err = client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount)
-		if err != nil {
-			log.Warnf("create service account failed: %s", err.Error())
-			if strings.Contains(err.Error(), "etcdserver: request timed out") {
-				time.Sleep(time.Duration(10) * time.Second)
-				continue
-			}
-			if !strings.Contains(err.Error(), "already exists") {
-				return errors.Wrap(err, fmt.Sprintf("create service account failed: %s", err))
+	log.Info("create serviceaccount")
+
+	err = backoff.Retry(func() error {
+		if _, err := client.CoreV1().ServiceAccounts(helmInstall.Namespace).Create(serviceAccount); err != nil {
+			if k8sutil.IsK8sErrorPermanent(err) {
+				return backoff.MarkErrorPermanent(err)
 			}
 		}
-		break
+		return nil
+	}, backoffPolicy)
+	if err != nil {
+		return emperror.WrapWith(err, "could not create serviceaccount", "serviceaccount", serviceAccount, "namespace", helmInstall.Namespace)
 	}
 
 	clusterRole := &v1.ClusterRole{
@@ -94,28 +101,26 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 				},
 			}},
 	}
-	log.Info("create cluster roles")
+	log.Info("create clusterroles")
+
 	clusterRoleName := helmInstall.ServiceAccount
-	for i := 0; i <= 5; i++ {
-		_, err = client.RbacV1().ClusterRoles().Create(clusterRole)
-		if err != nil {
-			if strings.Contains(err.Error(), "etcdserver: request timed out") {
-				time.Sleep(time.Duration(10) * time.Second)
-				continue
-			} else if strings.Contains(err.Error(), "is forbidden") {
-				_, errGet := client.RbacV1().ClusterRoles().Get("cluster-admin", metav1.GetOptions{})
-				if errGet != nil {
-					return errors.Wrap(err, fmt.Sprintf("clusterrole create error: %s cluster-admin not found: %s", err, errGet))
-				}
-				clusterRoleName = "cluster-admin"
-				break
-			}
-			log.Warnf("create roles failed: %s", err.Error())
-			if !strings.Contains(err.Error(), "already exists") {
-				return errors.Wrap(err, fmt.Sprintf("create roles failed: %s", err))
+	err = backoff.Retry(func() error {
+		if _, err := client.RbacV1().ClusterRoles().Create(clusterRole); err != nil {
+			if k8sutil.IsK8sErrorPermanent(err) {
+				return backoff.MarkErrorPermanent(err)
 			}
 		}
-		break
+		return nil
+	}, backoffPolicy)
+	if err != nil && strings.Contains(err.Error(), "is forbidden") {
+		_, errGet := client.RbacV1().ClusterRoles().Get("cluster-admin", metav1.GetOptions{})
+		if errGet != nil {
+			return emperror.Wrap(errGet, "cluster-admin clusterrole not found")
+		}
+		clusterRoleName = "cluster-admin"
+	}
+	if err != nil {
+		return emperror.WrapWith(err, "could not create clusterrole", "clusterrole", clusterRole.Name)
 	}
 
 	log.Debugf("ClusterRole Name: %s", clusterRoleName)
@@ -134,21 +139,19 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 				Namespace: helmInstall.Namespace,
 			}},
 	}
-	log.Info("create cluster role bindings")
-	for i := 0; i <= 5; i++ {
+	log.Info("create clusterrolebinding")
 
-		_, err = client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding)
-		if err != nil {
-			log.Warnf("create role bindings failed: %s", err.Error())
-			if strings.Contains(err.Error(), "etcdserver: request timed out") {
-				time.Sleep(time.Duration(10) * time.Second)
-				continue
-			}
-			if !strings.Contains(err.Error(), "already exists") {
-				return errors.Wrap(err, fmt.Sprintf("create role bindings failed: %s", err))
+	err = backoff.Retry(func() error {
+		if _, err := client.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil {
+			if k8sutil.IsK8sErrorPermanent(err) {
+				return backoff.MarkErrorPermanent(err)
 			}
 		}
-		break
+		return nil
+	}, backoffPolicy)
+
+	if err != nil {
+		return emperror.WrapWith(err, "could not create clusterrolebinding", "clusterrolebinding", clusterRoleBinding.Name)
 	}
 
 	return nil
@@ -175,14 +178,14 @@ func RetryHelmInstall(helmInstall *phelm.Install, kubeconfig []byte) error {
 }
 
 // CreateEnvSettings Create env settings on a given path
-func CreateEnvSettings(helmRepoHome string) helm_env.EnvSettings {
-	var settings helm_env.EnvSettings
+func CreateEnvSettings(helmRepoHome string) helmEnv.EnvSettings {
+	var settings helmEnv.EnvSettings
 	settings.Home = helmpath.Home(helmRepoHome)
 	return settings
 }
 
 // GenerateHelmRepoEnv Generate helm path based on orgName
-func GenerateHelmRepoEnv(orgName string) (env helm_env.EnvSettings) {
+func GenerateHelmRepoEnv(orgName string) (env helmEnv.EnvSettings) {
 	var helmPath = config.GetHelmPath(orgName)
 	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
 
@@ -196,7 +199,7 @@ func GenerateHelmRepoEnv(orgName string) (env helm_env.EnvSettings) {
 }
 
 // DownloadChartFromRepo download a given chart
-func DownloadChartFromRepo(name, version string, env helm_env.EnvSettings) (string, error) {
+func DownloadChartFromRepo(name, version string, env helmEnv.EnvSettings) (string, error) {
 	dl := downloader.ChartDownloader{
 		HelmHome: env.Home,
 		Getters:  getter.All(env),
@@ -221,7 +224,7 @@ func DownloadChartFromRepo(name, version string, env helm_env.EnvSettings) (stri
 }
 
 // InstallHelmClient Installs helm client on a given path
-func InstallHelmClient(env helm_env.EnvSettings) error {
+func InstallHelmClient(env helmEnv.EnvSettings) error {
 	if err := EnsureDirectories(env); err != nil {
 		return errors.Wrap(err, "Initializing helm directories failed!")
 	}
@@ -231,7 +234,7 @@ func InstallHelmClient(env helm_env.EnvSettings) error {
 }
 
 // EnsureDirectories for helm repo local install
-func EnsureDirectories(env helm_env.EnvSettings) error {
+func EnsureDirectories(env helmEnv.EnvSettings) error {
 	home := env.Home
 	configDirectories := []string{
 		home.String(),
@@ -258,7 +261,7 @@ func EnsureDirectories(env helm_env.EnvSettings) error {
 	return nil
 }
 
-func ensureDefaultRepos(env helm_env.EnvSettings) error {
+func ensureDefaultRepos(env helmEnv.EnvSettings) error {
 
 	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
 	banzaiRepositoryURL := viper.GetString("helm.banzaiRepositoryURL")
@@ -289,7 +292,7 @@ func ensureDefaultRepos(env helm_env.EnvSettings) error {
 }
 
 // InstallLocalHelm install helm into the given path
-func InstallLocalHelm(env helm_env.EnvSettings) error {
+func InstallLocalHelm(env helmEnv.EnvSettings) error {
 	if err := InstallHelmClient(env); err != nil {
 		return err
 	}
@@ -332,7 +335,7 @@ func Install(helmInstall *phelm.Install, kubeConfig []byte) error {
 		return err
 	}
 	if err := installer.Install(kubeClient, &opts); err != nil {
-		if !apierrors.IsAlreadyExists(err) {
+		if !k8sapierrors.IsAlreadyExists(err) {
 			//TODO shouldn'T we just skipp?
 			return err
 		}

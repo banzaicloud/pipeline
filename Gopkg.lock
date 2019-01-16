@@ -985,6 +985,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:63cbd270f64b72d49029bfd7111746cb56ebfc822f4587dabc73b8de873b1530"
+  name = "github.com/lestrrat-go/backoff"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "0bc2a4274cd0f8baa49f2d598df5ef0cc3069c80"
+
+[[projects]]
+  branch = "master"
   digest = "1:7a1e592f0349d56fac8ce47f28469e4e7f4ce637cb26f40c88da9dff25db1c98"
   name = "github.com/lib/pq"
   packages = [
@@ -1739,12 +1747,13 @@
   version = "v2.1.6"
 
 [[projects]]
-  digest = "1:fce34a1f223e699309074fdf79bd08b083f681b237ba117cada55870ec2f0ff9"
+  branch = "v2"
+  digest = "1:4d1165c27ecf2232b84e04fd5653e5e55883d2920fc550b1fa5f6f209c1f0052"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "86f5ed62f8a0ee96bd888d2efdfd6d4fb100a4eb"
-  version = "v2.2.0"
+  revision = "02e17e901182d6917c2de9befcadc28efb2ab6ef"
+  source = "github.com/banzaicloud/go-yaml"
 
 [[projects]]
   digest = "1:f11e5753e619f411a51a49d60d39b2bc4da6766f5f0af2e2291daa6a3d9385d5"
@@ -2260,6 +2269,7 @@
     "github.com/jinzhu/gorm/dialects/sqlite",
     "github.com/jinzhu/now",
     "github.com/jmespath/go-jmespath",
+    "github.com/lestrrat-go/backoff",
     "github.com/microcosm-cc/bluemonday",
     "github.com/mitchellh/mapstructure",
     "github.com/oracle/oci-go-sdk/common",

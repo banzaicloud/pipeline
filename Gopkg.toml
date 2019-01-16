@@ -155,7 +155,8 @@
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
-  version = "2.2.0"
+  source = "github.com/banzaicloud/go-yaml"
+  branch = "v2"
 
 [[override]]
   name = "k8s.io/kubernetes"
@@ -277,3 +278,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/banzaicloud/prometheus-config"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/lestrrat-go/backoff"

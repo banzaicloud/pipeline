@@ -822,7 +822,7 @@ func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 	}
 
 	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
-	err = k8sutil.EnsureNamespaceWithLabel(client, pipelineSystemNamespace, map[string]string{"scan": "noscan"})
+	err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace, map[string]string{"scan": "noscan"})
 	if err != nil {
 		return err
 	}
