@@ -73,5 +73,3 @@ To revert back to the previous version, use the `down` command:
 ```
 bin/migrate  -source "file://$(pwd)/database/migrations" -database "mysql://$MYSQL_USER:$MYSQL_PW@tcp(127.0.0.1:3306)/pipeline" down 1  
 ```
-
-TODO: write acceptance tests with migrations?
