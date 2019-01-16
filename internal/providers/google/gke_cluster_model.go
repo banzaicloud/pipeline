@@ -22,6 +22,13 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// TableName constants
+const (
+	GKEClusterModelTableName  = "google_gke_clusters"
+	GKENodePoolModelTableName = "google_gke_node_pools"
+	GKENodePoolLabelTableName = "google_gke_node_pool_labels"
+)
+
 // GKEClusterModel is the schema for the DB.
 type GKEClusterModel struct {
 	ID        uint                 `gorm:"primary_key"`
@@ -39,7 +46,7 @@ type GKEClusterModel struct {
 
 // TableName changes the default table name.
 func (GKEClusterModel) TableName() string {
-	return "google_gke_clusters"
+	return GKEClusterModelTableName
 }
 
 // BeforeCreate sets some initial values for the cluster.
@@ -90,12 +97,13 @@ type GKENodePoolModel struct {
 	NodeMaxCount     int
 	NodeCount        int
 	NodeInstanceType string
-	Delete           bool `gorm:"-"`
+	Labels           []*GKENodePoolLabelModel `gorm:"foreignkey:NodePoolID"`
+	Delete           bool                     `gorm:"-"`
 }
 
 // TableName changes the default table name.
 func (GKENodePoolModel) TableName() string {
-	return "google_gke_node_pools"
+	return GKENodePoolModelTableName
 }
 
 func (m GKENodePoolModel) String() string {
@@ -109,5 +117,32 @@ func (m GKENodePoolModel) String() string {
 		m.NodeMinCount,
 		m.NodeMaxCount,
 		m.NodeCount,
+	)
+}
+
+// GKENodePoolLabelModel stores labels for node pools
+type GKENodePoolLabelModel struct {
+	ID         uint   `gorm:"primary_key"`
+	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
+	Value      string
+	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+// TableName changes the default table name.
+func (GKENodePoolLabelModel) TableName() string {
+	return GKENodePoolLabelTableName
+}
+
+func (m GKENodePoolLabelModel) String() string {
+	return fmt.Sprintf(
+		"ID: %d, Name: %s, Value: %s, NodePoolID: %d, createdAt: %v, UpdatedAt: %v",
+		m.ID,
+		m.Name,
+		m.Value,
+		m.NodePoolID,
+		m.CreatedAt,
+		m.UpdatedAt,
 	)
 }
