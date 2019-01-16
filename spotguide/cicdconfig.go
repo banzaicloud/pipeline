@@ -187,7 +187,7 @@ func yamlMapSliceToMap(v interface{}) (map[string]interface{}, error) {
 	return config, nil
 }
 
-func mapToYamlMapSlice(container map[string]interface{}) (yaml.MapSlice, error) {
+func mapToYamlMapSlice(container interface{}) (yaml.MapSlice, error) {
 	bytes, err := yaml.Marshal(container)
 	if err != nil {
 		return nil, err

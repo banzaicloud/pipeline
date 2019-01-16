@@ -38,8 +38,8 @@ import (
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
-	"github.com/imdario/mergo"
 	"github.com/jinzhu/gorm"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
@@ -641,13 +641,24 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*cicdRep
 	cluster := map[string]interface{}{}
 	pipeline := map[string]interface{}{}
 
-	err = mergo.Map(&cluster, request.Cluster)
+	clusterDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{TagName: "json", Result: &cluster})
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to merge cluster into sprig template data")
 	}
-	err = mergo.Merge(&pipeline, request.Pipeline)
+
+	err = clusterDecoder.Decode(request.Cluster)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to merge pipline into sprig template data")
+		return nil, emperror.Wrap(err, "failed to merge cluster into sprig template data")
+	}
+
+	pipelineDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{TagName: "json", Result: &pipeline})
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to merge pipeline into sprig template data")
+	}
+
+	err = pipelineDecoder.Decode(request.Pipeline)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to merge pipeline into sprig template data")
 	}
 
 	data["cluster"] = cluster
@@ -754,12 +765,12 @@ func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) 
 				return err
 			}
 
-			err = mergo.Merge(&pipelineStep, stepToMergeIn)
+			merged, err := merge(pipelineStep, stepToMergeIn)
 			if err != nil {
 				return err
 			}
 
-			newPipelineStep, err := mapToYamlMapSlice(pipelineStep)
+			newPipelineStep, err := mapToYamlMapSlice(merged)
 			if err != nil {
 				return err
 			}
