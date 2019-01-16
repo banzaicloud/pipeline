@@ -88,6 +88,7 @@ const (
 	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
+	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
 )
 
 // Provider name regexp
