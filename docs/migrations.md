@@ -56,9 +56,10 @@ bin/migrate  -source "file://$(pwd)/database/migrations" -database "mysql://$MYS
 
 When using the migrate tool for the first time, you probably have a dirty version: use the `force` command to go to the latest version before your migration script.
 `version` is a unix timestamp that's generated for the migration scripts (example: 1547126472).
-Find the latest timestamp in `database/migrations` and run this command:
+Find the latest timestamp in `database/migrations` and force that version (if the `find` command doesn't work for some reason, find the latest timestamp manually):
 
 ```
+find database/migrations -type f -exec basename {} ';' | cut -d_ -f1 | sort -r | head -1
 bin/migrate  -source "file://$(pwd)/database/migrations" -database "mysql://$MYSQL_USER:$MYSQL_PW@tcp(127.0.0.1:3306)/pipeline" force $last_version
 ```
 
