@@ -5530,6 +5530,13 @@ components:
                 instanceType:
                     type: string
                     example: "n1-standard-2"
+                labels:
+                    additionalProperties:
+                        $ref: '#/components/schemas/LabelsGoogle'
+
+        LabelsGoogle:
+            type: string
+            example: "labelValue"
 
         CreateUpdateOKEProperties:
             type: object
