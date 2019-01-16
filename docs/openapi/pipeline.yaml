@@ -5293,6 +5293,8 @@ components:
                             $ref: '#/components/schemas/LoggingPostHook'
                         -
                             $ref: '#/components/schemas/BasePostHook'
+                        -
+                            $ref: '#/components/schemas/ServiceMeshPostHook'
                     example:
                         InstallLogging:
                             bucketName: "mybucketname"
@@ -7516,6 +7518,9 @@ components:
                 monitoring:
                     type: boolean
                     example: false
+                servicemesh:
+                    type: boolean
+                    example: false
                 securityscan:
                     type: boolean
                     example: false
@@ -7956,6 +7961,9 @@ components:
                 monitoring:
                     type: boolean
                     example: false
+                servicemesh:
+                    type: boolean
+                    example: false
                 securityscan:
                     type: boolean
                     example: false
@@ -8106,6 +8114,16 @@ components:
                         tls:
                             $ref: '#/components/schemas/GenTLSForLogging'
 
+        ServiceMeshPostHook:
+            type: object
+            properties:
+                InstallServiceMesh:
+                    type: object
+                    properties:
+                        mtls:
+                            type: boolean
+                            example: false
+
         ReRunPostHook:
             type: object
             oneOf:
@@ -8113,6 +8131,8 @@ components:
                     $ref: '#/components/schemas/LoggingPostHook'
                 -
                     $ref: '#/components/schemas/BasePostHook'
+                -
+                    $ref: '#/components/schemas/ServiceMeshPostHook'
             example:
                 InstallLogging:
                     bucketName: "mybucketname"
