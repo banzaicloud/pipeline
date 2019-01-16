@@ -115,6 +115,15 @@ func (g *CreateClusterGKE) Validate() error {
 			nodePool.Count = pkgCommon.DefaultNodeMinCount
 		}
 
+		if nodePool.Labels != nil {
+			if _, ok := nodePool.Labels[pkgCommon.LabelKey]; ok {
+				return pkgErrors.ErrorNodePoolLabelClashesWithPipelineLabel
+			}
+
+			if _, ok := nodePool.Labels[pkgCommon.OnDemandLabelKey]; ok {
+				return pkgErrors.ErrorNodePoolLabelClashesWithPipelineLabel
+			}
+		}
 	}
 
 	return nil
