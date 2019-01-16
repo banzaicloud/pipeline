@@ -985,6 +985,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:63cbd270f64b72d49029bfd7111746cb56ebfc822f4587dabc73b8de873b1530"
+  name = "github.com/lestrrat-go/backoff"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "0bc2a4274cd0f8baa49f2d598df5ef0cc3069c80"
+
+[[projects]]
+  branch = "master"
   digest = "1:7a1e592f0349d56fac8ce47f28469e4e7f4ce637cb26f40c88da9dff25db1c98"
   name = "github.com/lib/pq"
   packages = [
@@ -2260,6 +2268,7 @@
     "github.com/jinzhu/gorm/dialects/sqlite",
     "github.com/jinzhu/now",
     "github.com/jmespath/go-jmespath",
+    "github.com/lestrrat-go/backoff",
     "github.com/microcosm-cc/bluemonday",
     "github.com/mitchellh/mapstructure",
     "github.com/oracle/oci-go-sdk/common",
