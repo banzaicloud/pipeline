@@ -15,6 +15,7 @@
 package auth
 
 import (
+	"context"
 	"encoding/base32"
 	"fmt"
 	"net/http"
@@ -602,4 +603,19 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 // GetOrgNameFromVirtualUser returns the organization name for which the virtual user has access
 func GetOrgNameFromVirtualUser(virtualUser string) string {
 	return strings.Split(virtualUser, "/")[0]
+}
+
+const internalUserLoginName = "internal"
+
+func InternalUserHandler(ctx *gin.Context) {
+	user, err := GetUserByLoginName(internalUserLoginName)
+	if err != nil {
+		err = errors.Wrap(err, "failed to retrieve internal user")
+		errorHandler.Handle(err)
+		http.Error(ctx.Writer, err.Error(), http.StatusInternalServerError)
+		ctx.Abort()
+		return
+	}
+	newContext := context.WithValue(ctx.Request.Context(), bauth.CurrentUser, user)
+	ctx.Request = ctx.Request.WithContext(newContext)
 }
