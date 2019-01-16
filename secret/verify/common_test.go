@@ -51,9 +51,7 @@ func TestNewVerifier(t *testing.T) {
 			name:      "gke validator",
 			cloudType: pkgCluster.Google,
 			values:    gkeCredentialsMap,
-			verifier: &gkeVerify{
-				svc: CreateServiceAccount(gkeCredentialsMap),
-			},
+			verifier:  CreateGCPSecretVerifier(gkeCredentialsMap),
 		},
 		{
 			name:      "oci validator",

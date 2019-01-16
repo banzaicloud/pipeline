@@ -1461,12 +1461,11 @@
   version = "v1.1"
 
 [[projects]]
-  digest = "1:4a4427e16f52f54ca6eb18e2883735f4afe0179d366d25f7ac8ce6c30387ff5a"
+  digest = "1:d5d481cbc5ac153e21efaa65b382b8b464ddc1f089a640ff17479a2fe29a7b9e"
   name = "go.opencensus.io"
   packages = [
     ".",
     "exemplar",
-    "exporter/stackdriver/propagation",
     "internal",
     "internal/tagencoding",
     "plugin/ocgrpc",
@@ -1609,7 +1608,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:520057c3aedda5b5432a0923a9e0501b53c5516f98f5863771dfa7d3f036973c"
+  digest = "1:6b547a976d2c066d65f19e0f546288e2d9f9d71455516ac4b57f17081e4b657a"
   name = "google.golang.org/api"
   packages = [
     "cloudresourcemanager/v1",
@@ -1622,15 +1621,16 @@
     "internal",
     "iterator",
     "option",
-    "serviceusage/v1beta1",
+    "serviceusage/v1",
     "storage/v1",
     "support/bundler",
     "transport",
     "transport/grpc",
     "transport/http",
+    "transport/http/internal/propagation",
   ]
   pruneopts = "NUT"
-  revision = "a213db537ac9b393526194a5c85ad6e546f7923f"
+  revision = "455dee39f703f70d67ceea7c56a61041712c1447"
 
 [[projects]]
   digest = "1:626ac4e70ef18262989f8c52503259109e1a2e5580d23aeae0f0e0349819dade"
@@ -1747,12 +1747,13 @@
   version = "v2.1.6"
 
 [[projects]]
-  digest = "1:fce34a1f223e699309074fdf79bd08b083f681b237ba117cada55870ec2f0ff9"
+  branch = "v2"
+  digest = "1:4d1165c27ecf2232b84e04fd5653e5e55883d2920fc550b1fa5f6f209c1f0052"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "86f5ed62f8a0ee96bd888d2efdfd6d4fb100a4eb"
-  version = "v2.2.0"
+  revision = "02e17e901182d6917c2de9befcadc28efb2ab6ef"
+  source = "github.com/banzaicloud/go-yaml"
 
 [[projects]]
   digest = "1:f11e5753e619f411a51a49d60d39b2bc4da6766f5f0af2e2291daa6a3d9385d5"
@@ -2308,7 +2309,7 @@
     "google.golang.org/api/googleapi",
     "google.golang.org/api/iterator",
     "google.golang.org/api/option",
-    "google.golang.org/api/serviceusage/v1beta1",
+    "google.golang.org/api/serviceusage/v1",
     "google.golang.org/api/storage/v1",
     "google.golang.org/genproto/googleapis/iam/credentials/v1",
     "gopkg.in/yaml.v2",

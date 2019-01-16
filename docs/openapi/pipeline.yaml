@@ -4432,6 +4432,222 @@ paths:
                 '500':
                     description: Internal server error
 
+    '/api/v1/orgs/{orgId}/networks':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - network
+            summary: List VPC networks
+            operationId: ListVPCNetworks
+            description: List VPC networks accessible by the organization.
+            parameters:
+                -
+                    name: orgId
+                    description: Organization identification
+                    in: path
+                    required: true
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    description: Secret identification
+                    in: header
+                    required: true
+                    schema:
+                        type: string
+                -
+                    name: cloudType
+                    description: Identifies the cloud provider
+                    in: query
+                    required: true
+                    schema:
+                        type: string
+                        enum: [amazon, google, azure, oracle, alibaba]
+                -
+                    name: region
+                    description: Identifies the region of the VPC network
+                    in: query
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: List of VPC networks
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListVPCNetworksResponse'
+                '400':
+                    description: "Bad request"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: "Unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
+    '/api/v1/orgs/{orgId}/networks/{networkId}/subnets':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - network
+            summary: List VPC subnetworks
+            operationId: ListVPCSubnets
+            description: List subnetworks of the given VPC network
+            parameters:
+                -
+                    name: orgId
+                    description: Organization identification
+                    in: path
+                    required: true
+                    schema:
+                        type: integer
+                -
+                    name: networkId
+                    description: VPC network identification
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                -
+                    name: secretId
+                    description: Secret identification
+                    in: header
+                    required: true
+                    schema:
+                        type: string
+                -
+                    name: cloudType
+                    description: Identifies the cloud provider
+                    in: query
+                    required: true
+                    schema:
+                        type: string
+                        enum: [amazon, google, azure, oracle, alibaba]
+                -
+                    name: region
+                    description: Identifies the region of the VPC network
+                    in: query
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: List of VPC network subnets
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListVPCSubnetsResponse'
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: VPC network not found
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
+    '/api/v1/orgs/{orgId}/networks/{networkId}/routeTables':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - network
+            summary: List VPC route tables
+            operationId: ListRouteTables
+            description: List route tables of the given VPC network
+            parameters:
+                -
+                    name: orgId
+                    description: Organization identification
+                    in: path
+                    required: true
+                    schema:
+                        type: integer
+                -
+                    name: networkId
+                    description: VPC network identification
+                    in: path
+                    required: true
+                    schema:
+                        type: string
+                -
+                    name: secretId
+                    description: Secret identification
+                    in: header
+                    required: true
+                    schema:
+                        type: string
+                -
+                    name: cloudType
+                    description: Identifies the cloud provider
+                    in: query
+                    required: true
+                    schema:
+                        type: string
+                        enum: [amazon, google, azure, oracle, alibaba]
+                -
+                    name: region
+                    description: Identifies the region of the VPC network
+                    in: query
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: List of VPC network route tables
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListRouteTablesResponse'
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: VPC network not found
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
 
     '/api/v1/orgs/{orgId}/clusters/{id}/images':
         get:
@@ -7526,11 +7742,11 @@ components:
                     type: string
                     example: "mybucket"
                 managed:
-                    description: "true if the bucket has been created via piepeline"
+                    description: "true if the bucket has been created via pipeline"
                     type: boolean
                     example: true
                 notes:
-                    description: "true if the bucket has been created via piepeline"
+                    description: "true if the bucket has been created via pipeline"
                     type: string
                     example: "There's no secret with this ID"
                 secret:
@@ -7566,6 +7782,77 @@ components:
             type: array
             items:
                 $ref: '#/components/schemas/BucketInfo'
+
+        SubnetInfo:
+            type: object
+            required:
+                - cidr
+                - id
+            properties:
+                cidr:
+                    description: "The IPv4 CIDR block assigned to the subnet"
+                    type: string
+                    example: "10.0.1.0/24"
+                id:
+                    description: "Identifier of the subnetwork"
+                    type: string
+                    example: "subnet-9d4a7b6c"
+                location:
+                    description: "The location of the subnetwork."
+                    type: string
+                    example: "us-central1-a"
+                name:
+                    description: "Name of the subnetwork"
+                    type: string
+                    example: "MySubnet"
+
+        ListVPCSubnetsResponse:
+            type: array
+            items:
+                $ref: '#/components/schemas/SubnetInfo'
+
+        RouteTableInfo:
+            type: object
+            required:
+                - id
+            properties:
+                id:
+                    description: "Identifier of the route table"
+                    type: string
+                    example: "rtb-12345678"
+                name:
+                    description: "Name of the route table"
+                    type: string
+                    example: "My little route table"
+
+        ListRouteTablesResponse:
+            type: array
+            items:
+                $ref: '#/components/schemas/RouteTableInfo'
+
+        VPCNetworkInfo:
+            type: object
+            required:
+                - cidr
+                - id
+            properties:
+                cidr:
+                    description: "The primary IPv4 CIDR block of the VPC network"
+                    type: string
+                    example: "10.50.0.0/16"
+                id:
+                    description: "Identifier of the VPC network"
+                    type: string
+                    example: "vpc-a01106c2"
+                name:
+                    description: "Name of the VPC network"
+                    type: string
+                    example: "MyVPC"
+                
+        ListVPCNetworksResponse:
+            type: array
+            items:
+                $ref: '#/components/schemas/VPCNetworkInfo'
 
         AzureBlobStorageProps:
             type: object

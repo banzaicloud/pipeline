@@ -20,15 +20,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -40,7 +35,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/api/googleapi"
 )
 
 const (
@@ -564,115 +558,6 @@ func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) 
 		return pkgCluster.Oracle, nil
 	}
 	return "", pkgErrors.ErrorNotSupportedCloudType
-}
-
-// errorResponseFrom translates the given error into a components.ErrorResponse
-func errorResponseFrom(err error) *pkgCommon.ErrorResponse {
-	if objectstore.IsNotFoundError(err) {
-		return &pkgCommon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Error:   err.Error(),
-			Message: err.Error(),
-		}
-	}
-
-	// google specific errors
-	if googleApiErr, ok := err.(*googleapi.Error); ok {
-		return &pkgCommon.ErrorResponse{
-			Code:    googleApiErr.Code,
-			Error:   googleApiErr.Error(),
-			Message: googleApiErr.Message,
-		}
-	}
-
-	// aws specific errors
-	if awsErr, ok := err.(awserr.Error); ok {
-		code := http.StatusBadRequest
-		if awsReqFailure, ok := err.(awserr.RequestFailure); ok {
-			code = awsReqFailure.StatusCode()
-		}
-
-		return &pkgCommon.ErrorResponse{
-			Code:    code,
-			Error:   awsErr.Error(),
-			Message: awsErr.Message(),
-		}
-	}
-
-	// azure specific errors
-	if azureErr, ok := err.(validation.Error); ok {
-		return &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Error:   azureErr.Error(),
-			Message: azureErr.Message,
-		}
-	}
-
-	if azureErr, ok := err.(azblob.StorageError); ok {
-		serviceCode := fmt.Sprint(azureErr.ServiceCode())
-
-		return &pkgCommon.ErrorResponse{
-			Code:    azureErr.Response().StatusCode,
-			Error:   azureErr.Error(),
-			Message: serviceCode,
-		}
-	}
-
-	if azureErr, ok := err.(autorest.DetailedError); ok {
-		if azureErr.Original != nil {
-			if azureOrigErr, ok := azureErr.Original.(*azure.RequestError); ok {
-				return &pkgCommon.ErrorResponse{
-					Code:    azureErr.Response.StatusCode,
-					Error:   azureOrigErr.ServiceError.Error(),
-					Message: azureOrigErr.ServiceError.Message,
-				}
-			}
-
-			return &pkgCommon.ErrorResponse{
-				Code:    azureErr.Response.StatusCode,
-				Error:   azureErr.Original.Error(),
-				Message: azureErr.Message,
-			}
-		}
-
-		return &pkgCommon.ErrorResponse{
-			Code:    azureErr.Response.StatusCode,
-			Error:   azureErr.Error(),
-			Message: azureErr.Message,
-		}
-	}
-
-	// pipeline specific errors
-	if err == pkgErrors.ErrorNotSupportedCloudType {
-		return &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Error:   err.Error(),
-			Message: err.Error(),
-		}
-	}
-
-	if errors.Cause(err) == pkgErrors.ErrorBucketDeleteNotEmpty {
-		return &pkgCommon.ErrorResponse{
-			Code:    http.StatusConflict,
-			Error:   err.Error(),
-			Message: err.Error(),
-		}
-	}
-
-	switch err.(type) {
-	case SecretNotFoundError, secret.MissmatchError:
-		return &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Error:   err.Error(),
-			Message: err.Error(),
-		}
-	default:
-		return &pkgCommon.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Error:   err.Error(),
-			Message: err.Error(),
-		}
-	}
 }
 
 // bucketsResponse decorates and formats the list of buckets to be returned

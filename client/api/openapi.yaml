@@ -4617,6 +4617,248 @@ paths:
       summary: Get object store bucket status
       tags:
       - storage
+  /api/v1/orgs/{orgId}/networks:
+    get:
+      description: List VPC networks accessible by the organization.
+      operationId: ListVPCNetworks
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: header
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifies the cloud provider
+        explode: true
+        in: query
+        name: cloudType
+        required: true
+        schema:
+          enum:
+          - amazon
+          - google
+          - azure
+          - oracle
+          - alibaba
+          type: string
+        style: form
+      - description: Identifies the region of the VPC network
+        explode: true
+        in: query
+        name: region
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListVPCNetworksResponse'
+          description: List of VPC networks
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Bad request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List VPC networks
+      tags:
+      - network
+  /api/v1/orgs/{orgId}/networks/{networkId}/subnets:
+    get:
+      description: List subnetworks of the given VPC network
+      operationId: ListVPCSubnets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: VPC network identification
+        explode: false
+        in: path
+        name: networkId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: header
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifies the cloud provider
+        explode: true
+        in: query
+        name: cloudType
+        required: true
+        schema:
+          enum:
+          - amazon
+          - google
+          - azure
+          - oracle
+          - alibaba
+          type: string
+        style: form
+      - description: Identifies the region of the VPC network
+        explode: true
+        in: query
+        name: region
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListVPCSubnetsResponse'
+          description: List of VPC network subnets
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Bad request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          description: VPC network not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List VPC subnetworks
+      tags:
+      - network
+  /api/v1/orgs/{orgId}/networks/{networkId}/routeTables:
+    get:
+      description: List route tables of the given VPC network
+      operationId: ListRouteTables
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: VPC network identification
+        explode: false
+        in: path
+        name: networkId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Secret identification
+        explode: false
+        in: header
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Identifies the cloud provider
+        explode: true
+        in: query
+        name: cloudType
+        required: true
+        schema:
+          enum:
+          - amazon
+          - google
+          - azure
+          - oracle
+          - alibaba
+          type: string
+        style: form
+      - description: Identifies the region of the VPC network
+        explode: true
+        in: query
+        name: region
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRouteTablesResponse'
+          description: List of VPC network route tables
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Bad request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          description: VPC network not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List VPC route tables
+      tags:
+      - network
   /api/v1/orgs/{orgId}/clusters/{id}/images:
     get:
       description: List Images used in cluster
@@ -7644,10 +7886,10 @@ components:
           example: mybucket
           type: string
         managed:
-          description: true if the bucket has been created via piepeline
+          description: true if the bucket has been created via pipeline
           type: boolean
         notes:
-          description: true if the bucket has been created via piepeline
+          description: true if the bucket has been created via pipeline
           example: There's no secret with this ID
           type: string
         secret:
@@ -7675,6 +7917,71 @@ components:
     ListStorageBucketsResponse:
       items:
         $ref: '#/components/schemas/BucketInfo'
+      type: array
+    SubnetInfo:
+      properties:
+        cidr:
+          description: The IPv4 CIDR block assigned to the subnet
+          example: 10.0.1.0/24
+          type: string
+        id:
+          description: Identifier of the subnetwork
+          example: subnet-9d4a7b6c
+          type: string
+        location:
+          description: The location of the subnetwork.
+          example: us-central1-a
+          type: string
+        name:
+          description: Name of the subnetwork
+          example: MySubnet
+          type: string
+      required:
+      - cidr
+      - id
+      type: object
+    ListVPCSubnetsResponse:
+      items:
+        $ref: '#/components/schemas/SubnetInfo'
+      type: array
+    RouteTableInfo:
+      properties:
+        id:
+          description: Identifier of the route table
+          example: rtb-12345678
+          type: string
+        name:
+          description: Name of the route table
+          example: My little route table
+          type: string
+      required:
+      - id
+      type: object
+    ListRouteTablesResponse:
+      items:
+        $ref: '#/components/schemas/RouteTableInfo'
+      type: array
+    VPCNetworkInfo:
+      properties:
+        cidr:
+          description: The primary IPv4 CIDR block of the VPC network
+          example: 10.50.0.0/16
+          type: string
+        id:
+          description: Identifier of the VPC network
+          example: vpc-a01106c2
+          type: string
+        name:
+          description: Name of the VPC network
+          example: MyVPC
+          type: string
+      required:
+      - cidr
+      - id
+      type: object
+    ListVPCNetworksResponse:
+      items:
+        $ref: '#/components/schemas/VPCNetworkInfo'
       type: array
     AzureBlobStorageProps:
       example:

@@ -74,7 +74,7 @@ var (
 )
 
 var (
-	errAzureAmazon = secret.MissmatchError{
+	errAzureAmazon = secret.MismatchError{
 		SecretType: pkgCluster.Azure,
 		ValidType:  pkgCluster.Amazon,
 	}
