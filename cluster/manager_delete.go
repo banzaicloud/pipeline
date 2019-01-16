@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -247,6 +248,17 @@ func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 	return nil
 }
 
+func deleteUnusedSecrets(cluster CommonCluster) error {
+	log := log.WithFields(logrus.Fields{"organization": cluster.GetOrganizationId(), "cluster": cluster.GetID()})
+
+	log.Info("Delete unused cluster secrets")
+	if err := secret.Store.DeleteByClusterUID(cluster.GetOrganizationId(), cluster.GetUID()); err != nil {
+		return emperror.Wrap(err, "Error during deleting secret")
+	}
+
+	return nil
+}
+
 func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
@@ -351,6 +363,11 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	// delete from proxy from kubeProxyCache if any
 	m.DeleteKubeProxy(cluster)
+
+	err = deleteUnusedSecrets(cluster)
+	if err != nil {
+		logger.Error(err)
+	}
 
 	// delete cluster from database
 	orgID := cluster.GetOrganizationId()
