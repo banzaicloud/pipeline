@@ -1293,7 +1293,6 @@ func (c *EKSCluster) SetServiceMesh(m bool) {
 	c.modelCluster.ServiceMesh = m
 }
 
-
 // GetEKSNodePools returns EKS node pools from a common cluster.
 func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {
 	ekscluster, ok := cluster.(*EKSCluster)
