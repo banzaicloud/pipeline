@@ -368,6 +368,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        c.model.Cluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
+		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		Version:           c.model.MasterVersion,
 		NodePools:         nodePools,
@@ -2148,6 +2149,16 @@ func (c *GKECluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (c *GKECluster) SetMonitoring(l bool) {
 	c.model.Cluster.Monitoring = l
+}
+
+// GetServiceMesh returns true if service mesh is enabled on the cluster
+func (c *GKECluster) GetServiceMesh() bool {
+	return c.model.Cluster.ServiceMesh
+}
+
+// SetServiceMesh sets service mesh flag on the cluster
+func (c *GKECluster) SetServiceMesh(m bool) {
+	c.model.Cluster.ServiceMesh = m
 }
 
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user

@@ -92,6 +92,7 @@ func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 		ResourceID:        c.GetID(),
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
+		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
@@ -326,6 +327,16 @@ func (c *DummyCluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (c *DummyCluster) SetMonitoring(l bool) {
 	c.modelCluster.Monitoring = l
+}
+
+// GetServiceMesh returns true if service mesh is enabled on the cluster
+func (c *DummyCluster) GetServiceMesh() bool {
+	return c.modelCluster.ServiceMesh
+}
+
+// SetServiceMesh sets service mesh flag on the cluster
+func (c *DummyCluster) SetServiceMesh(m bool) {
+	c.modelCluster.ServiceMesh = m
 }
 
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user

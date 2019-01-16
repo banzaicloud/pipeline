@@ -915,6 +915,7 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        c.modelCluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
+		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.modelCluster.EKS.Version,
@@ -1281,6 +1282,17 @@ func (c *EKSCluster) GetMonitoring() bool {
 func (c *EKSCluster) SetMonitoring(l bool) {
 	c.modelCluster.Monitoring = l
 }
+
+// GetServiceMesh returns true if service mesh is enabled on the cluster
+func (c *EKSCluster) GetServiceMesh() bool {
+	return c.modelCluster.ServiceMesh
+}
+
+// SetServiceMesh sets service mesh flag on the cluster
+func (c *EKSCluster) SetServiceMesh(m bool) {
+	c.modelCluster.ServiceMesh = m
+}
+
 
 // GetEKSNodePools returns EKS node pools from a common cluster.
 func GetEKSNodePools(cluster CommonCluster) ([]*model.AmazonNodePoolsModel, error) {

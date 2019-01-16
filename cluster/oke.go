@@ -242,6 +242,7 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        o.GetID(),
 		Logging:           o.GetLogging(),
 		Monitoring:        o.GetMonitoring(),
+		ServiceMesh:       o.GetServiceMesh(),
 		SecurityScan:      o.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,
@@ -594,6 +595,16 @@ func (o *OKECluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (o *OKECluster) SetMonitoring(l bool) {
 	o.modelCluster.Monitoring = l
+}
+
+// GetServiceMesh returns true if service mesh is enabled on the cluster
+func (c *OKECluster) GetServiceMesh() bool {
+	return c.modelCluster.ServiceMesh
+}
+
+// SetServiceMesh sets service mesh flag on the cluster
+func (c *OKECluster) SetServiceMesh(m bool) {
+	c.modelCluster.ServiceMesh = m
 }
 
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user

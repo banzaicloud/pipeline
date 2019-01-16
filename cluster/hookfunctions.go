@@ -64,6 +64,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallLogging,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.InstallServiceMesh: &PostFunctionWithParam{
+		f:            InstallServiceMesh,
+		ErrorHandler: ErrorHandler{},
+	},
 	pkgCluster.RegisterDomainPostHook: &BasePostFunction{
 		f:            RegisterDomainPostHook,
 		ErrorHandler: ErrorHandler{},
