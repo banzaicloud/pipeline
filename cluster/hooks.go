@@ -1257,7 +1257,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 	distribution := cluster.GetDistribution()
 
-	if distribution != pkgCluster.GKE && distribution != pkgCluster.Amazon {
+	if distribution != pkgCluster.GKE && distribution != pkgCluster.EKS {
 		return nil
 	}
 
