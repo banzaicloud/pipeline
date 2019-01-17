@@ -249,9 +249,9 @@ func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 }
 
 func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
-	logger.Infof("Delete unused secrets of cluster %s", cluster.GetName())
+	logger.Info("deleting unused cluster secrets")
 	if err := secret.Store.DeleteByClusterUID(cluster.GetOrganizationId(), cluster.GetUID()); err != nil {
-		return emperror.Wrap(err, "Error during deleting secret")
+		return emperror.Wrap(err, "deleting cluster secret failed")
 	}
 
 	return nil
@@ -364,6 +364,11 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	err = deleteUnusedSecrets(cluster, logger)
 	if err != nil {
+		err = emperror.Wrap(err, "failed to delete unused cluster secrets")
+		if !force {
+			cluster.UpdateStatus(pkgCluster.Error, err.Error())
+			return err
+		}
 		logger.Error(err)
 	}
 
