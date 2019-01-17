@@ -242,6 +242,7 @@ Resources:
               - autoscaling:DescribeLifecycleHooks
               - autoscaling:CompleteLifecycleAction
               - autoscaling:DeleteLifecycleHook
+              - autoscaling:DetachInstances
               Resource: "*"
 
 Outputs:

@@ -1250,43 +1250,23 @@ func InitSpotConfig(cluster CommonCluster) error {
 	if err != nil {
 		return emperror.Wrap(err, "failed to install the spot-config-webhook deployment")
 	}
-	err = deploySpotTerminationHandler(cluster, pipelineSystemNamespace)
-	if err != nil {
-		return emperror.Wrap(err, "failed to install spot-termination-handler deployment")
-	}
 	return nil
 }
 
-func deploySpotTerminationHandler(cluster CommonCluster, namespace string) error {
+// DeployInstanceTerminationHandler deploys the instance termination handler
+func DeployInstanceTerminationHandler(cluster CommonCluster) error {
+	distribution := cluster.GetDistribution()
+
+	if distribution != pkgCluster.GKE && distribution != pkgCluster.EKS {
+		return nil
+	}
+
+	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	values := map[string]interface{}{
 		"tolerations": []v1.Toleration{
 			{
 				Operator: v1.TolerationOpExists,
-				Effect:   v1.TaintEffectNoExecute,
-			},
-			{
-				Operator: v1.TolerationOpExists,
-				Effect:   v1.TaintEffectNoSchedule,
-			},
-		},
-		"affinity": v1.Affinity{
-			NodeAffinity: &v1.NodeAffinity{
-				RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
-					NodeSelectorTerms: []v1.NodeSelectorTerm{
-						{
-							MatchExpressions: []v1.NodeSelectorRequirement{
-								{
-									Key:      pkgCommon.OnDemandLabelKey,
-									Operator: v1.NodeSelectorOpIn,
-									Values: []string{
-										"false",
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 		},
 	}
@@ -1296,7 +1276,7 @@ func deploySpotTerminationHandler(cluster CommonCluster, namespace string) error
 		return emperror.Wrap(err, "failed to marshal yaml values")
 	}
 
-	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/spot-termination-handler", "sth", marshalledValues, "", false)
+	return installDeployment(cluster, pipelineSystemNamespace, pkgHelm.BanzaiRepository+"/instance-termination-handler", "ith", marshalledValues, "", false)
 }
 
 func isSpotCluster(cluster CommonCluster) (bool, error) {

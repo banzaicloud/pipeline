@@ -92,6 +92,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            InitSpotConfig,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.DeployInstanceTerminationHandler: &BasePostFunction{
+		f:            DeployInstanceTerminationHandler,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
@@ -109,6 +113,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallHorizontalPodAutoscalerPostHook],
 	HookMap[pkgCluster.InstallPVCOperator],
 	HookMap[pkgCluster.InitSpotConfig],
+	HookMap[pkgCluster.DeployInstanceTerminationHandler],
 }
 
 // PostFunctioner manages posthook functions
