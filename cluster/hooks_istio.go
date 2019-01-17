@@ -15,12 +15,32 @@
 package cluster
 
 import (
+	"fmt"
+
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/utils"
+	prometheus "github.com/banzaicloud/prometheus-config"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
+	"github.com/prometheus/common/model"
+	"github.com/spf13/viper"
+	yamlv2 "gopkg.in/yaml.v2"
+)
+
+const (
+	promConfigEntry   = "prometheus.yml"
+	cmName            = "-prometheus-server"
+	istioNamespace    = "istio-system"
+	istioMeshJob      = "istio-mesh"
+	envoyStatsJob     = "envoy-stats"
+	istioPolicyJob    = "istio-policy"
+	istioTelemetryJob = "istio-telemetry"
+	pilotJob          = "pilot"
+	galleyJob         = "galley"
 )
 
 var nsLabels = map[string]string{
@@ -54,7 +74,7 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 
 	err = installDeployment(
 		cluster,
-		"istio-system",
+		istioNamespace,
 		pkgHelm.BanzaiRepository+"/istio",
 		"istio",
 		marshalledValues,
@@ -70,6 +90,14 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 		return emperror.Wrap(err, "failed to label namespace")
 	}
 
+	if cluster.GetMonitoring() {
+		err = addPrometheusTargets(cluster)
+		if err != nil {
+			log.WithError(err).Infof("wat")
+			return emperror.Wrap(err, "failed to add prometheus targets")
+		}
+	}
+
 	cluster.SetServiceMesh(true)
 	return nil
 }
@@ -77,13 +105,11 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 func labelNamespaces(cluster CommonCluster, namespaces []string) error {
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		log.Errorf("Unable to fetch config for posthook: %s", err.Error())
 		return emperror.Wrap(err, "failed to get kubeconfig")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		log.Errorf("Could not get kubernetes client: %s", err)
 		return emperror.Wrap(err, "failed to create client from kubeconfig")
 	}
 
@@ -94,4 +120,222 @@ func labelNamespaces(cluster CommonCluster, namespaces []string) error {
 		}
 	}
 	return nil
+}
+
+func addPrometheusTargets(cluster CommonCluster) error {
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get kubeconfig")
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return emperror.Wrap(err, "failed to create client from kubeconfig")
+	}
+
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+
+	currPromConfStr, err := k8sutil.GetConfigMapEntry(client, pipelineSystemNamespace, config.MonitorReleaseName+cmName, promConfigEntry)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get Prometheus config")
+	}
+
+	var currPromConf prometheus.Config
+	err = yamlv2.Unmarshal([]byte(currPromConfStr), &currPromConf)
+	if err != nil {
+		return emperror.Wrap(err, "failed to patch Prometheus config")
+	}
+
+	scrapeConfigs := currPromConf.ScrapeConfigs
+	jobNames := collectJobNames(scrapeConfigs)
+
+	istioScrapeConfigs := []*prometheus.ScrapeConfig{
+		istioServiceScrapeConfig(istioMeshJob, "istio-telemetry;prometheus"),
+		istioServiceScrapeConfig(istioPolicyJob, "istio-policy;http-monitoring"),
+		istioServiceScrapeConfig(istioTelemetryJob, "istio-telemetry;http-monitoring"),
+		istioServiceScrapeConfig(pilotJob, "istio-pilot;http-monitoring"),
+		istioServiceScrapeConfig(galleyJob, "istio-galley;http-monitoring"),
+		envoyStatsScrapeConfig(),
+	}
+
+	for _, sc := range istioScrapeConfigs {
+		if !utils.Contains(jobNames, sc.JobName) {
+			scrapeConfigs = append(scrapeConfigs, sc)
+		}
+	}
+
+	newPromConf := currPromConf
+	newPromConf.ScrapeConfigs = scrapeConfigs
+
+	newPromConfStr, err := yamlv2.Marshal(newPromConf)
+	if err != nil {
+		return emperror.Wrap(err, "failed to patch Prometheus config")
+	}
+
+	err = k8sutil.PatchConfigMap(log, client, pipelineSystemNamespace, config.MonitorReleaseName+cmName, promConfigEntry, string(newPromConfStr))
+	if err != nil {
+		return emperror.Wrap(err, "failed to patch Prometheus config")
+	}
+	return nil
+}
+
+func collectJobNames(scrapeConfigs []*prometheus.ScrapeConfig) []string {
+	var jobNames []string
+	for _, sc := range scrapeConfigs {
+		if sc.JobName == envoyStatsJob {
+			for _, rc := range sc.RelabelConfigs {
+				fmt.Println("*2**", rc.Regex.String())
+			}
+		}
+		jobNames = append(jobNames, sc.JobName)
+	}
+	return jobNames
+}
+
+var kubernetesSDEndpointsRole = prometheus.ServiceDiscoveryConfig{
+	KubernetesSDConfigs: []*prometheus.KubernetesSDConfig{
+		{
+			Role: "endpoints",
+			NamespaceDiscovery: prometheus.NamespaceDiscovery{
+				Names: []string{istioNamespace},
+			},
+		},
+	},
+}
+
+func endpointsRoleRelabelConfigs(regex string) []*prometheus.RelabelConfig {
+	return []*prometheus.RelabelConfig{
+		{
+			Action: "keep",
+			Regex:  prometheus.MustNewRegexp(regex),
+			SourceLabels: model.LabelNames{
+				"__meta_kubernetes_service_name",
+				"__meta_kubernetes_endpoint_port_name",
+			},
+		},
+	}
+}
+
+func istioServiceScrapeConfig(jobName string, relabelConfigRegex string) *prometheus.ScrapeConfig {
+	return &prometheus.ScrapeConfig{
+		JobName:                jobName,
+		ServiceDiscoveryConfig: kubernetesSDEndpointsRole,
+		RelabelConfigs:         endpointsRoleRelabelConfigs(relabelConfigRegex),
+	}
+}
+
+func envoyStatsScrapeConfig() *prometheus.ScrapeConfig {
+	return &prometheus.ScrapeConfig{
+		JobName:     envoyStatsJob,
+		MetricsPath: "/stats/prometheus",
+		ServiceDiscoveryConfig: prometheus.ServiceDiscoveryConfig{
+			KubernetesSDConfigs: []*prometheus.KubernetesSDConfig{
+				{
+					Role: "pod",
+				},
+			},
+		},
+		RelabelConfigs: []*prometheus.RelabelConfig{
+			{
+				Action: "keep",
+				Regex:  prometheus.MustNewRegexp(".*-envoy-prom"),
+				SourceLabels: model.LabelNames{
+					"__meta_kubernetes_pod_container_port_name",
+				},
+			},
+			{
+				Action: "replace",
+				Regex:  prometheus.MustNewRegexp("([^:]+)(?::\\d+)?;(\\d+)"),
+				SourceLabels: model.LabelNames{
+					"__address__",
+					"__meta_kubernetes_pod_annotation_prometheus_io_port",
+				},
+				Replacement: "$1:15090",
+				TargetLabel: "__address__",
+			},
+			{
+				Action: "labelmap",
+				Regex:  prometheus.MustNewRegexp("__meta_kubernetes_pod_label_(.+)"),
+			},
+			{
+				Action:      "replace",
+				TargetLabel: "namespace",
+				SourceLabels: model.LabelNames{
+					"__meta_kubernetes_namespace",
+				},
+			},
+			{
+				Action:      "replace",
+				TargetLabel: "pod_name",
+				SourceLabels: model.LabelNames{
+					"__meta_kubernetes_pod_name",
+				},
+			},
+		},
+		MetricRelabelConfigs: []*prometheus.RelabelConfig{
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("(outbound|inbound|prometheus_stats).*"),
+				SourceLabels: model.LabelNames{
+					"cluster_name",
+				},
+			},
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("(outbound|inbound|prometheus_stats).*"),
+				SourceLabels: model.LabelNames{
+					"tcp_prefix",
+				},
+			},
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("(.+)"),
+				SourceLabels: model.LabelNames{
+					"listener_address",
+				},
+			},
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("(.+)"),
+				SourceLabels: model.LabelNames{
+					"http_conn_manager_listener_prefix",
+				},
+			},
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("(.+)"),
+				SourceLabels: model.LabelNames{
+					"http_conn_manager_prefix",
+				},
+			},
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("envoy_tls.*"),
+				SourceLabels: model.LabelNames{
+					"__name__",
+				},
+			},
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("envoy_tcp_downstream.*"),
+				SourceLabels: model.LabelNames{
+					"__name__",
+				},
+			},
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("envoy_http_(stats|admin).*"),
+				SourceLabels: model.LabelNames{
+					"__name__",
+				},
+			},
+			{
+				Action: "drop",
+				Regex:  prometheus.MustNewRegexp("envoy_cluster_(lb|retry|bind|internal|max|original).*"),
+				SourceLabels: model.LabelNames{
+					"__name__",
+				},
+			},
+		},
+	}
 }
