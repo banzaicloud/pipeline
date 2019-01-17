@@ -28,12 +28,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type patchOperation struct {
-	Op    string      `json:"op"`
-	Path  string      `json:"path"`
-	Value interface{} `json:"value,omitempty"`
-}
-
 // EnsureNamespace creates a namespace on a cluster if it does not exist.
 func EnsureNamespace(client kubernetes.Interface, namespace string) error {
 	return EnsureNamespaceWithLabel(client, namespace, nil)
@@ -76,7 +70,7 @@ func EnsureNamespaceWithLabelWithRetry(client kubernetes.Interface, namespace st
 }
 
 // LabelNamespaceIgnoreNotFound patches a namespace by adding new labels, returns without error if namespace is not found
-func LabelNamespaceIgnoreNotFound(log logrus.FieldLogger, client kubernetes.Interface, namespace string, labels map[string]string) (err error) {
+func LabelNamespaceIgnoreNotFound(log logrus.FieldLogger, client kubernetes.Interface, namespace string, labels map[string]string) error {
 
 	log.Debugf("labels to add: %v", labels)
 
