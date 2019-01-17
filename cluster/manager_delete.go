@@ -248,10 +248,8 @@ func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 	return nil
 }
 
-func deleteUnusedSecrets(cluster CommonCluster) error {
-	log := log.WithFields(logrus.Fields{"organization": cluster.GetOrganizationId(), "cluster": cluster.GetID()})
-
-	log.Info("Delete unused cluster secrets")
+func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
+	logger.Infof("Delete unused secrets of cluster %s", cluster.GetName())
 	if err := secret.Store.DeleteByClusterUID(cluster.GetOrganizationId(), cluster.GetUID()); err != nil {
 		return emperror.Wrap(err, "Error during deleting secret")
 	}
@@ -364,7 +362,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	// delete from proxy from kubeProxyCache if any
 	m.DeleteKubeProxy(cluster)
 
-	err = deleteUnusedSecrets(cluster)
+	err = deleteUnusedSecrets(cluster, logger)
 	if err != nil {
 		logger.Error(err)
 	}
