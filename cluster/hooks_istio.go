@@ -16,6 +16,8 @@ package cluster
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
@@ -29,18 +31,14 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/spf13/viper"
 	yamlv2 "gopkg.in/yaml.v2"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	promConfigEntry   = "prometheus.yml"
-	cmName            = "-prometheus-server"
-	istioNamespace    = "istio-system"
-	istioMeshJob      = "istio-mesh"
-	envoyStatsJob     = "envoy-stats"
-	istioPolicyJob    = "istio-policy"
-	istioTelemetryJob = "istio-telemetry"
-	pilotJob          = "pilot"
-	galleyJob         = "galley"
+	promConfigEntry = "prometheus.yml"
+	cmName          = "-prometheus-server"
+	istioNamespace  = "istio-system"
 )
 
 var nsLabels = map[string]string{
@@ -93,8 +91,11 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 	if cluster.GetMonitoring() {
 		err = addPrometheusTargets(cluster)
 		if err != nil {
-			log.WithError(err).Infof("wat")
 			return emperror.Wrap(err, "failed to add prometheus targets")
+		}
+		err = addGrafanaDashboards(cluster)
+		if err != nil {
+			return emperror.Wrap(err, "failed to add grafana dashboards")
 		}
 	}
 
@@ -150,11 +151,11 @@ func addPrometheusTargets(cluster CommonCluster) error {
 	jobNames := collectJobNames(scrapeConfigs)
 
 	istioScrapeConfigs := []*prometheus.ScrapeConfig{
-		istioServiceScrapeConfig(istioMeshJob, "istio-telemetry;prometheus"),
-		istioServiceScrapeConfig(istioPolicyJob, "istio-policy;http-monitoring"),
-		istioServiceScrapeConfig(istioTelemetryJob, "istio-telemetry;http-monitoring"),
-		istioServiceScrapeConfig(pilotJob, "istio-pilot;http-monitoring"),
-		istioServiceScrapeConfig(galleyJob, "istio-galley;http-monitoring"),
+		istioServiceScrapeConfig("istio-mesh", "istio-telemetry;prometheus"),
+		istioServiceScrapeConfig("istio-policy", "istio-policy;http-monitoring"),
+		istioServiceScrapeConfig("istio-telemetry", "istio-telemetry;http-monitoring"),
+		istioServiceScrapeConfig("pilot", "istio-pilot;http-monitoring"),
+		istioServiceScrapeConfig("galley", "istio-galley;http-monitoring"),
 		envoyStatsScrapeConfig(),
 	}
 
@@ -172,9 +173,46 @@ func addPrometheusTargets(cluster CommonCluster) error {
 		return emperror.Wrap(err, "failed to patch Prometheus config")
 	}
 
-	err = k8sutil.PatchConfigMap(log, client, pipelineSystemNamespace, config.MonitorReleaseName+cmName, promConfigEntry, string(newPromConfStr))
+	err = k8sutil.PatchConfigMapDataEntry(log, client, pipelineSystemNamespace, config.MonitorReleaseName+cmName, promConfigEntry, string(newPromConfStr))
 	if err != nil {
 		return emperror.Wrap(err, "failed to patch Prometheus config")
+	}
+	return nil
+}
+
+func addGrafanaDashboards(cluster CommonCluster) error {
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get kubeconfig")
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return emperror.Wrap(err, "failed to create client from kubeconfig")
+	}
+
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+
+	for _, dashboard := range []string{"galley", "istio-mesh", "istio-performance", "istio-service", "istio-workload", "mixer", "pilot"} {
+		dashboardJson, err := getDashboardJsonFromURL(fmt.Sprintf("https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards/%s-dashboard.json", dashboard))
+		if err != nil {
+			return emperror.Wrapf(err, "couldn't add Istio grafana dashboard: %s", dashboard)
+		}
+
+		_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Create(&v1.ConfigMap{
+			Data: map[string]string{
+				fmt.Sprintf("%s.json", dashboard): dashboardJson,
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: fmt.Sprintf("%s-grafana-dashboard", dashboard),
+				Labels: map[string]string{
+					"pipeline_grafana_dashboard": "1",
+				},
+			},
+		})
+		if err != nil {
+			return emperror.Wrapf(err, "couldn't add Istio grafana dashboard: %s", dashboard)
+		}
 	}
 	return nil
 }
@@ -182,11 +220,6 @@ func addPrometheusTargets(cluster CommonCluster) error {
 func collectJobNames(scrapeConfigs []*prometheus.ScrapeConfig) []string {
 	var jobNames []string
 	for _, sc := range scrapeConfigs {
-		if sc.JobName == envoyStatsJob {
-			for _, rc := range sc.RelabelConfigs {
-				fmt.Println("*2**", rc.Regex.String())
-			}
-		}
 		jobNames = append(jobNames, sc.JobName)
 	}
 	return jobNames
@@ -226,7 +259,7 @@ func istioServiceScrapeConfig(jobName string, relabelConfigRegex string) *promet
 
 func envoyStatsScrapeConfig() *prometheus.ScrapeConfig {
 	return &prometheus.ScrapeConfig{
-		JobName:     envoyStatsJob,
+		JobName:     "envoy-stats",
 		MetricsPath: "/stats/prometheus",
 		ServiceDiscoveryConfig: prometheus.ServiceDiscoveryConfig{
 			KubernetesSDConfigs: []*prometheus.KubernetesSDConfig{
@@ -338,4 +371,23 @@ func envoyStatsScrapeConfig() *prometheus.ScrapeConfig {
 			},
 		},
 	}
+}
+
+func getDashboardJsonFromURL(url string) (string, error) {
+	var client http.Client
+	resp, err := client.Get(url)
+	if err != nil {
+		return "", emperror.Wrapf(err, "Failed to get dashboard.json from url %s", url)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", emperror.Wrapf(err, "Failed to get dashboard.json from url %s, status code: %v", url, resp.StatusCode)
+	}
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", emperror.Wrapf(err, "Failed to get dashboard.json from url %s", url)
+	}
+	return string(bodyBytes), nil
+
 }

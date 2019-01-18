@@ -37,7 +37,7 @@ func GetConfigMapEntry(client kubernetes.Interface, namespace string, name strin
 	return "", errors.Errorf("no entry with key %s", key)
 }
 
-func PatchConfigMap(log logrus.FieldLogger, client kubernetes.Interface, namespace string, name string, key string, newValue string) error {
+func PatchConfigMapDataEntry(log logrus.FieldLogger, client kubernetes.Interface, namespace string, name string, key string, newValue string) error {
 	log.Debugf("new value to add to configmap: %s=%s", key, newValue)
 	patch := []patchOperation{{
 		Op:    "add",
