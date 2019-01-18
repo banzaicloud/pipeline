@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"encoding/base64"
+	"errors"
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
@@ -282,6 +283,11 @@ func (c *KubeCluster) SaveConfigSecretId(configSecretId string) error {
 // GetConfigSecretId return config secret id
 func (c *KubeCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
+}
+
+func (c *KubeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+	// can't use apiserver to return service CIDR as it's not exposed: https://github.com/kubernetes/kubernetes/issues/46508
+	return nil, errors.New("not implemented")
 }
 
 // GetK8sConfig returns the Kubernetes config

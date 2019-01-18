@@ -1204,6 +1204,11 @@ func (c *EKSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
+func (c *EKSCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+	//TODO
+	return nil, errors.New("not implemented")
+}
+
 // GetK8sConfig returns the Kubernetes config
 func (c *EKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)

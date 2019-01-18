@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"errors"
+
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -282,6 +284,11 @@ func (c *DummyCluster) SaveConfigSecretId(configSecretId string) error {
 // GetConfigSecretId return config secret id
 func (c *DummyCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
+}
+
+func (c *DummyCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+	//TODO
+	return nil, errors.New("not implemented")
 }
 
 // GetK8sConfig returns the Kubernetes config

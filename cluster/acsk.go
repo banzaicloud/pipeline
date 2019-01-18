@@ -1027,6 +1027,11 @@ func (c *ACSKCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
+func (c *ACSKCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+	//TODO
+	return nil, errors.New("not implemented")
+}
+
 func (c *ACSKCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }

@@ -712,6 +712,11 @@ func (c *AKSCluster) SaveSshSecretId(sshSecretId string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
+func (c *AKSCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+	//TODO
+	return nil, errors.New("not implemented")
+}
+
 // GetK8sConfig returns the Kubernetes config
 func (c *AKSCluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)

@@ -210,6 +210,11 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
 	return "", nil
 }
 
+func (c *EC2ClusterBanzaiCloudDistribution) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+	//TODO
+	return nil, errors.New("not implemented")
+}
+
 func (c *EC2ClusterBanzaiCloudDistribution) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }

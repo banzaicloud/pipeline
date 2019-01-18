@@ -424,6 +424,11 @@ func (o *OKECluster) GetConfigSecretId() string {
 	return o.modelCluster.ConfigSecretId
 }
 
+func (o *OKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+	//TODO
+	return nil, errors.New("not implemented")
+}
+
 // GetK8sConfig returns the Kubernetes config
 func (o *OKECluster) GetK8sConfig() ([]byte, error) {
 	return o.CommonClusterBase.getConfig(o)
