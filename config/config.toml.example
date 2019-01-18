@@ -91,6 +91,9 @@ grafanaAdminUsername = "admin"
 chartVersion = ""
 imageTag = "0.0.4"
 
+[servicemesh]
+istioChartVersion = "1.0.5"
+
 # DNS service settings
 [dns]
 # base domain under which organisation level subdomains will be registered

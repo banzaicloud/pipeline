@@ -130,6 +130,8 @@ const (
 
 	// full endpoint url of CloudInfo for ex: https://alpha.dev.banzaicloud.com/cloudinfo/api/v1
 	CloudInfoEndPoint = "cloudinfo.endpointUrl"
+
+	IstioChartVersion = "servicemesh.istioChartVersion"
 )
 
 //Init initializes the configurations
