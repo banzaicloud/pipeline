@@ -15,14 +15,20 @@
 package cluster
 
 import (
+	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-09-01/insights"
 	azureClient "github.com/banzaicloud/azure-aks-client/client"
 	azureCluster "github.com/banzaicloud/azure-aks-client/cluster"
+	azureErrors "github.com/banzaicloud/azure-aks-client/errors"
 	azureType "github.com/banzaicloud/azure-aks-client/types"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
@@ -31,7 +37,9 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -75,6 +83,10 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			NodePools:         nodePools,
 		},
 	}
+
+	log := log.WithField("cluster", request.Name)
+	cluster.log = log
+
 	return &cluster, nil
 }
 
@@ -84,6 +96,25 @@ type AKSCluster struct {
 	modelCluster *model.ClusterModel
 	APIEndpoint  string
 	CommonClusterBase
+
+	log logrus.FieldLogger
+}
+
+type aksClusterCreateUpdateFailedError struct {
+	clusterCreateUpdateError error
+	failedEventsMsg          []string
+}
+
+func (e aksClusterCreateUpdateFailedError) Error() string {
+	if len(e.failedEventsMsg) > 0 {
+		return e.clusterCreateUpdateError.Error() + "\n" + strings.Join(e.failedEventsMsg, "\n")
+	}
+
+	return e.clusterCreateUpdateError.Error()
+}
+
+func (e aksClusterCreateUpdateFailedError) Cause() error {
+	return e.clusterCreateUpdateError
 }
 
 // GetOrganizationId gets org where the cluster belongs
@@ -100,10 +131,17 @@ func (c *AKSCluster) GetLocation() string {
 func (c *AKSCluster) GetAKSClient() (azureClient.ClusterManager, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "couldn't get cluster secret")
 	}
 	creds := verify.CreateAKSCredentials(clusterSecret.Values)
-	return azureClient.GetAKSClient(creds)
+	aksClient, err := azureClient.GetAKSClient(creds)
+
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create AKS client")
+	}
+	aksClient.With(c.log)
+
+	return aksClient, nil
 }
 
 // GetSecretId retrieves the secret id
@@ -118,7 +156,7 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 	}
 	cluster, err := c.GetAzureCluster()
 	if err != nil {
-		return "", err
+		return "", emperror.Wrap(err, "failed to get AKS cluster from Azure")
 	}
 	c.APIEndpoint = cluster.Properties.Fqdn
 	return c.APIEndpoint, nil
@@ -146,7 +184,7 @@ func (c *AKSCluster) CreateCluster() error {
 
 	clusterSshSecret, err := c.getSshSecret(c)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to retrieve SSH secret")
 	}
 
 	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
@@ -162,39 +200,44 @@ func (c *AKSCluster) CreateCluster() error {
 	}
 	client, err := c.GetAKSClient()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to create AKS client")
 	}
 
-	client.With(log)
+	client.With(c.log)
 
+	clusterCreateInitTime := time.Now()
 	// call creation
 	createdCluster, err := azureClient.CreateUpdateCluster(client, &r)
 	if err != nil {
-		// creation failed
-		// todo status code!??
-		return err
+		// initiating cluster create failed
+		return emperror.WrapWith(err, "failed to initiate cluster creation", "cluster", c.modelCluster.Name)
 	}
 	// creation success
-	log.Info("Cluster created successfully!")
+	c.log.Info("Cluster create initiated!")
 
 	c.azureCluster = &createdCluster.Value
 
 	// polling cluster
 	pollingResult, err := azureClient.PollingCluster(client, r.Name, r.ResourceGroup)
 	if err != nil {
+		if err == azureErrors.ErrClusterStageFailed {
+			// allow some time as there is some latency until all activity logs generated from the cluster create operation become available
+			time.Sleep(1 * time.Minute)
+			return emperror.Wrap(c.onClusterCreateFailure(err, clusterCreateInitTime, r.ResourceGroup, r.Name), "create cluster failed")
+		}
+
 		// polling error
-		// todo status code!??
-		return err
+		return emperror.Wrap(err, "failed to poll cluster status")
 	}
-	log.Info("Cluster is ready...")
+	c.log.Info("Cluster is ready...")
 	c.azureCluster = &pollingResult.Value
 
-	log.Info("Assign Storage Account Contributor role for all VM")
+	c.log.Info("Assign Storage Account Contributor role for all VM")
 	err = azureClient.AssignStorageAccountContributorRole(client, c.modelCluster.AKS.ResourceGroup, c.modelCluster.Name, c.modelCluster.Location)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to assign storage account contributor role to cluster nodes")
 	}
-	log.Info("Role assign succeeded")
+	c.log.Info("Role assign succeeded")
 
 	return nil
 }
@@ -208,10 +251,10 @@ func (c *AKSCluster) Persist(status, statusMessage string) error {
 func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 	client, err := c.GetAKSClient()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create AKS client")
 	}
 
-	client.With(log)
+	client.With(c.log)
 
 	database := config.DB()
 	database.Where(model.AKSClusterModel{ID: c.modelCluster.ID}).First(&c.modelCluster.AKS)
@@ -221,7 +264,7 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 		// TODO status code !?
 		return nil, err
 	}
-	log.Info("Get k8s config succeeded")
+	c.log.Info("Get k8s config succeeded")
 	kubeConfig := []byte(config.Properties.KubeConfig)
 	return kubeConfig, nil
 }
@@ -244,7 +287,7 @@ func (c *AKSCluster) GetDistribution() string {
 //GetStatus gets cluster status
 func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
-	log.Info("Create cluster status response")
+	c.log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.AKS.NodePools {
@@ -283,10 +326,10 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 func (c *AKSCluster) DeleteCluster() error {
 	client, err := c.GetAKSClient()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to create AKS client")
 	}
 
-	client.With(log)
+	client.With(c.log)
 
 	// set aks props
 	database := config.DB()
@@ -294,7 +337,7 @@ func (c *AKSCluster) DeleteCluster() error {
 
 	err = azureClient.DeleteCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
-		log.Info("Delete succeeded")
+		c.log.Info("Delete succeeded")
 		return nil
 	}
 	// todo status code !?
@@ -305,14 +348,14 @@ func (c *AKSCluster) DeleteCluster() error {
 func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
 	client, err := c.GetAKSClient()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to create AKS client")
 	}
 
-	client.With(log)
+	client.With(c.log)
 
 	clusterSshSecret, err := c.getSshSecret(c)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to retrieve SSH secret")
 	}
 
 	sshKey := secret.NewSSHKeyPair(clusterSshSecret)
@@ -324,7 +367,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 	if requestNodes := request.AKS.NodePools; requestNodes != nil {
 		for name, np := range requestNodes {
 			if existNodePool := c.getExistingNodePoolByName(name); np != nil && existNodePool != nil {
-				log.Infof("NodePool is exists[%s], update...", name)
+				c.log.Infof("NodePool is exists[%s], update...", name)
 
 				count := int32(np.Count)
 
@@ -360,10 +403,10 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 
 				updatedCluster, err = c.updateWithPolling(client, &ccr)
 				if err != nil {
-					return err
+					return emperror.Wrap(err, "cluster update failed")
 				}
 			} else {
-				log.Infof("There's no nodepool with this name[%s]", name)
+				c.log.Infof("There's no nodepool with this name[%s]", name)
 			}
 		}
 	}
@@ -398,20 +441,29 @@ func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AKSNodePoolMo
 // updateWithPolling sends update request to cloud and polling until it's not ready
 func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *azureCluster.CreateClusterRequest) (*azureType.ResponseWithValue, error) {
 
-	log.Info("Send update request to aks")
+	c.log.Info("Send update request to aks")
+
+	clusterUpdateInitTime := time.Now()
 	_, err := azureClient.CreateUpdateCluster(manager, ccr)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to initiate cluster update")
 	}
 
-	log.Info("Polling to check update")
+	c.log.Info("Polling to check update")
 	// polling to check cluster updated
 	updatedCluster, err := azureClient.PollingCluster(manager, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
-		return nil, err
+		if err == azureErrors.ErrClusterStageFailed {
+			// allow some time as there is some latency until all activity logs generated from the cluster create operation become available
+			time.Sleep(1 * time.Minute)
+			return nil, c.onClusterUpdateFailure(err, clusterUpdateInitTime, ccr.Location, ccr.ResourceGroup, ccr.Name)
+		}
+
+		// polling error
+		return nil, emperror.Wrap(err, "failed to poll cluster status")
 	}
 
-	log.Info("Cluster updated successfully")
+	c.log.Info("Cluster updated successfully")
 	return updatedCluster, nil
 }
 
@@ -433,7 +485,7 @@ func (c *AKSCluster) GetModel() *model.ClusterModel {
 func (c *AKSCluster) GetAzureCluster() (*azureType.Value, error) {
 	client, err := c.GetAKSClient()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create AKS client")
 	}
 	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
@@ -445,8 +497,11 @@ func (c *AKSCluster) GetAzureCluster() (*azureType.Value, error) {
 
 //CreateAKSClusterFromModel creates ClusterModel struct from model
 func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, error) {
+	log := log.WithField("cluster", clusterModel.Name)
+
 	aksCluster := AKSCluster{
 		modelCluster: clusterModel,
+		log:          log,
 	}
 	return &aksCluster, nil
 }
@@ -455,7 +510,7 @@ func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, e
 func (c *AKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 	if r.AKS == nil {
-		log.Info("'aks' field is empty.")
+		c.log.Info("'aks' field is empty.")
 		r.AKS = &pkgAzure.UpdateClusterAzure{}
 	}
 
@@ -495,7 +550,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 		NodePools: preProfiles,
 	}
 
-	log.Info("Check stored & updated cluster equals")
+	c.log.Info("Check stored & updated cluster equals")
 
 	// check equality
 	return isDifferent(r.AKS, preCl)
@@ -515,7 +570,7 @@ func (c *AKSCluster) DeleteFromDatabase() error {
 func GetLocations(orgId uint, secretId string) ([]string, error) {
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create AKS client")
 	}
 
 	return azureClient.GetLocations(client)
@@ -525,7 +580,7 @@ func GetLocations(orgId uint, secretId string) ([]string, error) {
 func GetMachineTypes(orgId uint, secretId, location string) (response map[string]pkgCluster.MachineType, err error) {
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create AKS client")
 	}
 
 	response = make(map[string]pkgCluster.MachineType)
@@ -539,7 +594,7 @@ func GetMachineTypes(orgId uint, secretId, location string) (response map[string
 func GetKubernetesVersion(orgId uint, secretId, location string) ([]string, error) {
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create AKS client")
 	}
 
 	return azureClient.GetKubernetesVersions(client, location)
@@ -577,10 +632,10 @@ func (c *AKSCluster) NodePoolExists(nodePoolName string) bool {
 func (c *AKSCluster) IsReady() (bool, error) {
 	client, err := c.GetAKSClient()
 	if err != nil {
-		return false, err
+		return false, emperror.Wrap(err, "failed to create AKS client")
 	}
 
-	client.With(log)
+	client.With(c.log)
 
 	resp, err := azureClient.GetCluster(client, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
@@ -588,7 +643,7 @@ func (c *AKSCluster) IsReady() (bool, error) {
 	}
 
 	stage := resp.Value.Properties.ProvisioningState
-	log.Debug("Cluster stage is", stage)
+	c.log.Debug("Cluster stage is", stage)
 
 	return stage == statusSucceeded, nil
 }
@@ -599,27 +654,27 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	location := r.Location
 
 	// Validate location
-	log.Info("Validate location")
+	c.log.Info("Validate location")
 	if err := c.validateLocation(location); err != nil {
 		return err
 	}
-	log.Info("Validate location passed")
+	c.log.Info("Validate location passed")
 
 	// Validate machine types
 	nodePools := r.Properties.CreateClusterAKS.NodePools
-	log.Info("Validate nodePools")
+	c.log.Info("Validate nodePools")
 	if err := c.validateMachineType(nodePools, location); err != nil {
 		return err
 	}
-	log.Info("Validate nodePools passed")
+	c.log.Info("Validate nodePools passed")
 
 	// Validate kubernetes version
-	log.Info("Validate kubernetesVersion")
+	c.log.Info("Validate kubernetesVersion")
 	k8sVersion := r.Properties.CreateClusterAKS.KubernetesVersion
 	if err := c.validateKubernetesVersion(k8sVersion, location); err != nil {
 		return err
 	}
-	log.Info("Validate kubernetesVersion passed")
+	c.log.Info("Validate kubernetesVersion passed")
 
 	return nil
 
@@ -627,13 +682,13 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 
 // validateLocation validates location
 func (c *AKSCluster) validateLocation(location string) error {
-	log.Infof("Location: %s", location)
+	c.log.Infof("Location: %s", location)
 	validLocations, err := GetLocations(c.GetOrganizationId(), c.GetSecretId())
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "could not get locations from Azure")
 	}
 
-	log.Infof("Valid locations: %#v", validLocations)
+	c.log.Infof("Valid locations: %#v", validLocations)
 
 	if isOk := utils.Contains(validLocations, location); !isOk {
 		return pkgErrors.ErrorNotValidLocation
@@ -652,13 +707,13 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgAzure.NodePool
 		}
 	}
 
-	log.Infof("NodeInstanceTypes: %v", machineTypes)
+	c.log.Infof("NodeInstanceTypes: %v", machineTypes)
 
 	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
-		return err
+		return emperror.WrapWith(err, "could not get VM types from Azure", "location", location)
 	}
-	log.Infof("Valid NodeInstanceTypes: %v", validMachineTypes[location])
+	c.log.Infof("Valid NodeInstanceTypes: %v", validMachineTypes[location])
 
 	for _, mt := range machineTypes {
 		if isOk := utils.Contains(validMachineTypes[location], mt); !isOk {
@@ -672,7 +727,7 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgAzure.NodePool
 // validateKubernetesVersion validates k8s version
 func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) error {
 
-	log.Infof("K8SVersion: %s", k8sVersion)
+	c.log.Infof("K8SVersion: %s", k8sVersion)
 	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
 		return err
@@ -739,10 +794,10 @@ func (c *AKSCluster) ListNodeNames() (labels pkgCommon.NodeNames, err error) {
 	var client azureClient.ClusterManager
 	client, err = c.GetAKSClient()
 	if err != nil {
-		return
+		return nil, emperror.Wrap(err, "failed to create AKS client")
 	}
 
-	client.With(log)
+	client.With(c.log)
 
 	labels = make(map[string][]string)
 
@@ -815,14 +870,14 @@ func ListResourceGroups(orgId uint, secretId string) ([]string, error) {
 
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to create AKS client")
 	}
 
 	client.With(log)
 
 	groups, err := azureClient.ListGroups(client)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "could not get resource groups from Azure")
 	}
 
 	var groupNames []string
@@ -840,7 +895,7 @@ func CreateOrUpdateResourceGroup(orgId uint, secretId, rgName, location string) 
 
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to create AKS client")
 	}
 
 	client.With(log)
@@ -855,7 +910,7 @@ func DeleteResourceGroup(orgId uint, secretId, rgName string) error {
 
 	client, err := getAKSClient(orgId, secretId)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to create AKS client")
 	}
 
 	client.With(log)
@@ -896,4 +951,118 @@ func (c *AKSCluster) GetKubernetesUserName() (string, error) {
 // GetCreatedBy returns cluster create userID.
 func (c *AKSCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
+}
+
+func (c *AKSCluster) onClusterCreateFailure(createUpdateError error, operationStartTime time.Time, resourceGroup, clusterName string) error {
+	// collect error details from activity log
+	clusterSecret, err := c.GetSecretWithValidation()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cluster secret")
+	}
+	creds := verify.CreateAKSCredentials(clusterSecret.Values)
+
+	clusterResourceUri := fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.ContainerService/managedClusters/%s",
+		creds.SubscriptionId,
+		resourceGroup,
+		clusterName,
+	)
+
+	toTimeStamp := time.Now()
+
+	filter := fmt.Sprintf("eventTimestamp ge '%s' and eventTimestamp le '%s' and resourceUri eq '%s'",
+		operationStartTime.UTC().Format(time.RFC3339Nano),
+		toTimeStamp.UTC().Format(time.RFC3339Nano),
+		clusterResourceUri,
+	)
+
+	errorEvents, err := c.collectActivityLogsWithErrors(filter)
+	if err != nil {
+		c.log.Errorln("retrieving activity logs failed: ", err.Error())
+		return createUpdateError
+	}
+
+	return createClusterCreateUpdateFailedError(createUpdateError, errorEvents)
+}
+
+func (c *AKSCluster) onClusterUpdateFailure(createUpdateError error, operationStartTime time.Time, location, resourceGroup, clusterName string) error {
+	// collect error details from activity log
+	toTimeStamp := time.Now()
+
+	filter := fmt.Sprintf("eventTimestamp ge '%s' and eventTimestamp le '%s' and resourceGroupName eq '%s'",
+		operationStartTime.UTC().Format(time.RFC3339Nano),
+		toTimeStamp.UTC().Format(time.RFC3339Nano),
+		fmt.Sprintf("MC_%s_%s_%s", resourceGroup, clusterName, location),
+	)
+
+	errorEvents, err := c.collectActivityLogsWithErrors(filter)
+	if err != nil {
+		c.log.Errorln("retrieving activity logs failed: ", err.Error())
+		return createUpdateError
+	}
+
+	return createClusterCreateUpdateFailedError(createUpdateError, errorEvents)
+}
+
+func createClusterCreateUpdateFailedError(createUpdateError error, errorEvents []insights.EventData) error {
+	if len(errorEvents) > 0 {
+		var failedEventsMsg []string
+
+		for _, event := range errorEvents {
+			if msg, ok := event.Properties["statusMessage"]; ok {
+				failedEventsMsg = append(failedEventsMsg, *msg)
+			}
+		}
+
+		return aksClusterCreateUpdateFailedError{
+			clusterCreateUpdateError: createUpdateError,
+			failedEventsMsg:          failedEventsMsg,
+		}
+
+	}
+
+	return createUpdateError
+}
+
+// collectActivityLogsWithErrors collects cluster activity logs that denotes errors and matches the passed filter
+func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.EventData, error) {
+	clusterSecret, err := c.GetSecretWithValidation()
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to get cluster secret")
+	}
+	creds := verify.CreateAKSCredentials(clusterSecret.Values)
+
+	activityLogClient, err := azure.NewActivityLogsClient(creds)
+
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create activity log client")
+	}
+
+	c.log.Debug("query activity log with filter: ", filter)
+
+	result, err := activityLogClient.List(
+		context.TODO(),
+		filter,
+		"")
+
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to query activity log")
+	}
+
+	var errEvents []insights.EventData
+
+	for result.NotDone() {
+		events := result.Values()
+		for _, event := range events {
+			if (event.Level == insights.Critical || event.Level == insights.Error) && *event.Status.LocalizedValue == "Failed" {
+				errEvents = append(errEvents, event)
+			}
+		}
+
+		err := result.Next()
+		if err != nil {
+			return nil, emperror.Wrap(err, "failed to get next activity log page")
+		}
+	}
+
+	return errEvents, nil
 }

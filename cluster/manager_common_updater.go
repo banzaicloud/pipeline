@@ -108,7 +108,7 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 func (c *commonUpdater) Update(ctx context.Context) error {
 	err := c.cluster.UpdateCluster(c.request, c.userID)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if err := DeployClusterAutoscaler(c.cluster); err != nil {
