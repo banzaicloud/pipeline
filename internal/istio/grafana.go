@@ -24,6 +24,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -34,7 +35,7 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 	for _, dashboard := range []string{"galley", "istio-mesh", "istio-performance", "istio-service", "istio-workload", "mixer", "pilot"} {
 		dashboardJson, err := getDashboardJsonFromURL(fmt.Sprintf("https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards/%s-dashboard.json", dashboard))
 		if err != nil {
-			return emperror.Wrapf(err, "couldn't add Istio grafana dashboard: %s", dashboard)
+			return emperror.Wrapf(err, "couldn't add Istio Grafana dashboard: %s", dashboard)
 		}
 
 		_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Create(&v1.ConfigMap{
@@ -49,9 +50,14 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 			},
 		})
 		if err != nil {
-			return emperror.Wrapf(err, "couldn't add Istio grafana dashboard: %s", dashboard)
+			if errors.IsAlreadyExists(err) {
+				log.Warnf("Istio Grafana dashboard %s already exists", dashboard)
+				continue
+			} else {
+				return emperror.Wrapf(err, "couldn't add Istio grafana dashboard: %s", dashboard)
+			}
 		}
-		log.Debugf("created Istio grafana dashboard %s", dashboard)
+		log.Debugf("created Istio Grafana dashboard %s", dashboard)
 	}
 	return nil
 }
