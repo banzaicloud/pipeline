@@ -27,7 +27,7 @@
 - [ ] Logging code meets the guideline (TODO)
 - [ ] OpenAPI and Postman files updated, client regenerated (`make generate-client`) (if needed)
 - [ ] User guide and development docs updated (if needed)
-
+- [ ] Related Helm chart(s) updated (if needed)
 
 ### To Do
 <!-- (remove this section if you don't need it) -->
