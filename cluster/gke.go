@@ -2082,6 +2082,17 @@ func (c *GKECluster) GetConfigSecretId() string {
 	return c.model.Cluster.ConfigSecretID
 }
 
+func (c *GKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+	cluster, err := c.GetGoogleCluster()
+	if err != nil {
+		return nil, emperror.Wrap(err, "couldn't get GKE cluster")
+	}
+	return &pkgCluster.Ipv4Cidrs{
+		ServiceClusterIPRange: cluster.ServicesIpv4Cidr,
+		PodIPRange:            cluster.ClusterIpv4Cidr,
+	}, nil
+}
+
 // GetK8sConfig returns the Kubernetes config
 func (c *GKECluster) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)

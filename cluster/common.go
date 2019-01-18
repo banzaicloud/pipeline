@@ -72,6 +72,7 @@ type CommonCluster interface {
 	// Kubernetes
 	DownloadK8sConfig() ([]byte, error)
 	GetAPIEndpoint() (string, error)
+	GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error)
 	GetK8sConfig() ([]byte, error)
 	RequiresSshPublicKey() bool
 	RbacEnabled() bool

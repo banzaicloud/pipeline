@@ -27,6 +27,8 @@ import (
 type InstallServiceMeshParams struct {
 	// AutoSidecarInjectNamespaces list of namespaces that will be labelled with istio-injection=enabled
 	AutoSidecarInjectNamespaces []string `json:"autoSidecarInjectNamespaces,omitempty"`
+	// BypassEgressTraffic prevents Envoy sidecars from intercepting external requests
+	BypassEgressTraffic bool `json:"bypassEgressTraffic,omitempty"`
 	// EnableMtls signals if mutual TLS is enabled in the service mesh
 	EnableMtls bool `json:"mtls,omitempty"`
 }
@@ -42,6 +44,19 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 	log.Infof("istio params: %#v", params)
 
 	values := map[string]interface{}{}
+
+	if params.BypassEgressTraffic {
+		ipRanges, err := cluster.GetK8sIpv4Cidrs()
+		if err != nil {
+			log.Warnf("couldn't set included IP ranges in Envoy config, external requests will be intercepted")
+		} else {
+			values["global"] = map[string]interface{}{
+				"proxy": map[string]interface{}{
+					"includeIPRanges": ipRanges.PodIPRange + "," + ipRanges.ServiceClusterIPRange,
+				},
+			}
+		}
+	}
 
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
