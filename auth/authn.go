@@ -208,7 +208,6 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 		ClientSecret: viper.GetString("auth.clientsecret"),
 		IssuerURL:    viper.GetString("auth.dexURL"),
 	})
-	// dexProvider.AuthorizeHandler = NewDexAuthorizeHandler(dexProvider)
 	Auth.RegisterProvider(dexProvider)
 
 	TokenStore = bauth.NewVaultTokenStore("pipeline")

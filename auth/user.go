@@ -19,6 +19,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
@@ -30,6 +31,7 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // blank import is used here for sql driver inclusion
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
@@ -208,6 +210,65 @@ type BanzaiUserStorer struct {
 	githubImporter   *GithubImporter
 }
 
+func checkWhiteList(db *gorm.DB, user *User, userSchema *auth.Schema, userOrgs []string) (bool, error) {
+
+	whitelistedCandidates := []*WhitelistedAuthIdentity{}
+
+	// Check here that a user login name is in the whitelisted_auth_identities table
+	userWhitelisted := WhitelistedAuthIdentity{
+		Provider: userSchema.Provider,
+		Login:    user.Login,
+		Type:     UserType,
+	}
+
+	whitelistedCandidates = append(whitelistedCandidates, &userWhitelisted)
+
+	// Also check if the user is member of one of the whitelisted organizations
+	for _, userOrg := range userOrgs {
+
+		orgWhitelisted := WhitelistedAuthIdentity{
+			Provider: userSchema.Provider,
+			Login:    userOrg,
+			Type:     OrganizationType,
+		}
+
+		whitelistedCandidates = append(whitelistedCandidates, &orgWhitelisted)
+	}
+
+	var userIsWhitelisted bool
+	for _, whitelistedCandidate := range whitelistedCandidates {
+
+		if tx := db.Where(&whitelistedCandidate).Find(&WhitelistedAuthIdentity{}); tx.Error == nil {
+			userIsWhitelisted = true
+			break
+		} else if !tx.RecordNotFound() {
+			log.Errorln("failed to check whitelist in db", tx.Error.Error())
+			return false, tx.Error
+		}
+	}
+
+	return userIsWhitelisted, nil
+}
+
+func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
+	var dexClaims struct {
+		Groups []string
+	}
+
+	if err := mapstructure.Decode(schema.RawInfo, &dexClaims); err != nil {
+		return nil, nil
+	}
+
+	var organizations []string
+	for _, group := range dexClaims.Groups {
+		if !strings.Contains(group, ":") {
+			organizations = append(organizations, group)
+		}
+	}
+
+	return organizations, nil
+}
+
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to CICD DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (user interface{}, userID string, err error) {
@@ -215,6 +276,12 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	currentUser := &User{}
 	err = copier.Copy(currentUser, schema)
 	if err != nil {
+		return nil, "", err
+	}
+
+	organizations, err := getOrganizationsFromDex(schema)
+	if err != nil {
+		log.Errorln("failed to parse groups/organizations:", err)
 		return nil, "", err
 	}
 
@@ -236,6 +303,18 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		currentUser.Login = schema.Email
 	}
 
+	db := authCtx.Auth.GetDB(authCtx.Request)
+
+	if viper.GetBool("auth.whitelistEnabled") {
+
+		if ok, err := checkWhiteList(db, currentUser, schema, organizations); err != nil {
+			log.Errorln("failed to check whitelist:", err)
+			return nil, "", err
+		} else if !ok {
+			return nil, "", errors.New("user is not enabled")
+		}
+	}
+
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	err = bus.createUserInCICDDB(currentUser)
 	if err != nil {
@@ -250,7 +329,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	}
 	currentUser.Organizations = []Organization{userOrg}
 
-	db := authCtx.Auth.GetDB(authCtx.Request)
 	err = db.Create(currentUser).Error
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create user organization: %s", err.Error())
@@ -268,7 +346,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	// Import Github organizations in case of GitHub
 	if schema.Provider == "dex:github" {
-		err = bus.githubImporter.ImportOrganizationsFromDex(currentUser, githubUserMeta.Organizations)
+		err = bus.githubImporter.ImportOrganizationsFromDex(currentUser, organizations)
 	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
