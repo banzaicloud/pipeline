@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/goph/emperror"
@@ -33,7 +34,7 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
 
 	for _, dashboard := range []string{"galley", "istio-mesh", "istio-performance", "istio-service", "istio-workload", "mixer", "pilot"} {
-		dashboardJson, err := getDashboardJsonFromURL(fmt.Sprintf("https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards/%s-dashboard.json", dashboard))
+		dashboardJson, err := getDashboardJson(log, dashboard)
 		if err != nil {
 			return emperror.Wrapf(err, "couldn't add Istio Grafana dashboard: %s", dashboard)
 		}
@@ -62,21 +63,36 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 	return nil
 }
 
-func getDashboardJsonFromURL(url string) (string, error) {
-	var client http.Client
-	resp, err := client.Get(url)
+func getDashboardJson(log logrus.FieldLogger, name string) (string, error) {
+	templatePath := viper.GetString(config.IstioGrafanaDashboardLocation) + "/" + name + "-dashboard.json"
+	log.Infof("Getting Istio dashboard from %s", templatePath)
+	u, err := url.Parse(templatePath)
 	if err != nil {
-		return "", emperror.Wrapf(err, "Failed to get dashboard.json from url %s", url)
+		return "", emperror.Wrapf(err, "getting Istio dashboard JSON from %s failed", templatePath)
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", emperror.Wrapf(err, "Failed to get dashboard.json from url %s, status code: %v", url, resp.StatusCode)
+	var content []byte
+	switch u.Scheme {
+	case "file", "":
+		content, err = ioutil.ReadFile(u.String())
+		if err != nil {
+			return "", emperror.Wrapf(err, "failed to get dashboard.json from %s", u.String())
+		}
+	case "http", "https":
+		var client http.Client
+		resp, err := client.Get(u.String())
+		if err != nil {
+			return "", emperror.Wrapf(err, "failed to get dashboard.json from %s", u.String())
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return "", emperror.Wrapf(err, "failed to get dashboard.json from %s, status code: %v", u.String(), resp.StatusCode)
+		}
+		content, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", emperror.Wrapf(err, "failed to get dashboard.json from %s", u.String())
+		}
+	default:
+		return "", fmt.Errorf("unsupported scheme: %s", u.Scheme)
 	}
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", emperror.Wrapf(err, "Failed to get dashboard.json from url %s", url)
-	}
-	return string(bodyBytes), nil
-
+	return string(content), nil
 }

@@ -93,6 +93,7 @@ imageTag = "0.0.4"
 
 [servicemesh]
 istioChartVersion = "1.0.5"
+grafanaDashboardLocation = "https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards"
 
 # DNS service settings
 [dns]
