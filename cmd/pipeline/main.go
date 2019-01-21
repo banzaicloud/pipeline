@@ -276,6 +276,12 @@ func main() {
 		}
 	})
 
+	// insert shared organization to DB if not exists
+	sharedOrg := auth.Organization{Name: viper.GetString(config.SpotguideSharedLibraryGitHubOrganization)}
+	if err := db.Where(sharedOrg).FirstOrCreate(&sharedOrg).Error; err != nil {
+		log.Errorf("failed to create shared organization: %s", err.Error())
+	}
+
 	// periodically sync shared spotguides
 	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
 	go func() {
