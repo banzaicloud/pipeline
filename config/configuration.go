@@ -131,7 +131,8 @@ const (
 	// full endpoint url of CloudInfo for ex: https://alpha.dev.banzaicloud.com/cloudinfo/api/v1
 	CloudInfoEndPoint = "cloudinfo.endpointUrl"
 
-	IstioChartVersion = "servicemesh.istioChartVersion"
+	IstioChartVersion             = "servicemesh.istioChartVersion"
+	IstioGrafanaDashboardLocation = "servicemesh.grafanaDashboardLocation"
 )
 
 //Init initializes the configurations
@@ -252,6 +253,9 @@ func init() {
 
 	viper.SetDefault("cert.source", "file")
 	viper.SetDefault("cert.path", "config/certs")
+
+	viper.SetDefault(IstioChartVersion, "1.0.5")
+	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "dashboards", "istio"))
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
