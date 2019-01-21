@@ -276,13 +276,11 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 			readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
 			if err != nil {
 				log.Warnf("failed to scrape the readme of '%s/%s' at version '%s': %s", owner, name, tag, err)
-				continue
 			}
 
 			icon, err := downloadGithubFile(githubClient, owner, name, IconPath, tag)
 			if err != nil {
 				log.Warnf("failed to scrape the icon of '%s/%s' at version '%s': %s", owner, name, tag, err)
-				continue
 			}
 
 			model := SpotguideRepo{
