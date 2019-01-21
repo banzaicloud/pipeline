@@ -366,8 +366,9 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 	var updatedCluster *azureType.ResponseWithValue
 	if requestNodes := request.AKS.NodePools; requestNodes != nil {
 		for name, np := range requestNodes {
+			log := c.log.WithField("nodePool", name)
 			if existNodePool := c.getExistingNodePoolByName(name); np != nil && existNodePool != nil {
-				c.log.Infof("NodePool is exists[%s], update...", name)
+				log.Debug("Updating nodepool")
 
 				count := int32(np.Count)
 
@@ -406,7 +407,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 					return emperror.Wrap(err, "cluster update failed")
 				}
 			} else {
-				c.log.Infof("There's no nodepool with this name[%s]", name)
+				log.Warning("No such nodepool found")
 			}
 		}
 	}
@@ -441,7 +442,7 @@ func (c *AKSCluster) getExistingNodePoolByName(name string) *model.AKSNodePoolMo
 // updateWithPolling sends update request to cloud and polling until it's not ready
 func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *azureCluster.CreateClusterRequest) (*azureType.ResponseWithValue, error) {
 
-	c.log.Info("Send update request to aks")
+	c.log.Debug("Send update request to aks")
 
 	clusterUpdateInitTime := time.Now()
 	_, err := azureClient.CreateUpdateCluster(manager, ccr)
@@ -449,7 +450,7 @@ func (c *AKSCluster) updateWithPolling(manager azureClient.ClusterManager, ccr *
 		return nil, emperror.Wrap(err, "failed to initiate cluster update")
 	}
 
-	c.log.Info("Polling to check update")
+	c.log.Debug("Polling to check update")
 	// polling to check cluster updated
 	updatedCluster, err := azureClient.PollingCluster(manager, c.modelCluster.Name, c.modelCluster.AKS.ResourceGroup)
 	if err != nil {
@@ -510,7 +511,7 @@ func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, e
 func (c *AKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 	if r.AKS == nil {
-		c.log.Info("'aks' field is empty.")
+		c.log.Warn("'aks' field is empty.")
 		r.AKS = &pkgAzure.UpdateClusterAzure{}
 	}
 
@@ -550,7 +551,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 		NodePools: preProfiles,
 	}
 
-	c.log.Info("Check stored & updated cluster equals")
+	c.log.Debug("Check stored & updated cluster equals")
 
 	// check equality
 	return isDifferent(r.AKS, preCl)
@@ -643,7 +644,7 @@ func (c *AKSCluster) IsReady() (bool, error) {
 	}
 
 	stage := resp.Value.Properties.ProvisioningState
-	c.log.Debug("Cluster stage is", stage)
+	c.log.Debugln("Cluster stage is", stage)
 
 	return stage == statusSucceeded, nil
 }
@@ -654,27 +655,27 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	location := r.Location
 
 	// Validate location
-	c.log.Info("Validate location")
+	c.log.Debug("Validate location")
 	if err := c.validateLocation(location); err != nil {
 		return err
 	}
-	c.log.Info("Validate location passed")
+	c.log.Debug("Validate location passed")
 
 	// Validate machine types
 	nodePools := r.Properties.CreateClusterAKS.NodePools
-	c.log.Info("Validate nodePools")
+	c.log.Debug("Validate nodePools")
 	if err := c.validateMachineType(nodePools, location); err != nil {
 		return err
 	}
-	c.log.Info("Validate nodePools passed")
+	c.log.Debug("Validate nodePools passed")
 
 	// Validate kubernetes version
-	c.log.Info("Validate kubernetesVersion")
+	c.log.Debug("Validate kubernetesVersion")
 	k8sVersion := r.Properties.CreateClusterAKS.KubernetesVersion
 	if err := c.validateKubernetesVersion(k8sVersion, location); err != nil {
 		return err
 	}
-	c.log.Info("Validate kubernetesVersion passed")
+	c.log.Debug("Validate kubernetesVersion passed")
 
 	return nil
 
@@ -682,13 +683,13 @@ func (c *AKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 
 // validateLocation validates location
 func (c *AKSCluster) validateLocation(location string) error {
-	c.log.Infof("Location: %s", location)
+	c.log.Debugln("Location:", location)
 	validLocations, err := GetLocations(c.GetOrganizationId(), c.GetSecretId())
 	if err != nil {
 		return emperror.Wrap(err, "could not get locations from Azure")
 	}
 
-	c.log.Infof("Valid locations: %#v", validLocations)
+	c.log.Debugf("Valid locations: %#v", validLocations)
 
 	if isOk := utils.Contains(validLocations, location); !isOk {
 		return pkgErrors.ErrorNotValidLocation
@@ -707,13 +708,13 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgAzure.NodePool
 		}
 	}
 
-	c.log.Infof("NodeInstanceTypes: %v", machineTypes)
+	c.log.Debugf("NodeInstanceTypes: %v", machineTypes)
 
 	validMachineTypes, err := GetMachineTypes(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
 		return emperror.WrapWith(err, "could not get VM types from Azure", "location", location)
 	}
-	c.log.Infof("Valid NodeInstanceTypes: %v", validMachineTypes[location])
+	c.log.Debugf("Valid NodeInstanceTypes: %v", validMachineTypes[location])
 
 	for _, mt := range machineTypes {
 		if isOk := utils.Contains(validMachineTypes[location], mt); !isOk {
@@ -727,12 +728,12 @@ func (c *AKSCluster) validateMachineType(nodePools map[string]*pkgAzure.NodePool
 // validateKubernetesVersion validates k8s version
 func (c *AKSCluster) validateKubernetesVersion(k8sVersion, location string) error {
 
-	c.log.Infof("K8SVersion: %s", k8sVersion)
+	c.log.Debugln("K8SVersion:", k8sVersion)
 	validVersions, err := GetKubernetesVersion(c.GetOrganizationId(), c.GetSecretId(), location)
 	if err != nil {
 		return err
 	}
-	log.Infof("Valid K8SVersions: %s", validVersions)
+	log.Debugln("Valid K8SVersions:", validVersions)
 
 	if isOk := utils.Contains(validVersions, k8sVersion); !isOk {
 		return pkgErrors.ErrorNotValidKubernetesVersion
@@ -1037,7 +1038,7 @@ func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.Ev
 		return nil, emperror.Wrap(err, "failed to create activity log client")
 	}
 
-	c.log.Debug("query activity log with filter: ", filter)
+	c.log.Debugln("query activity log with filter:", filter)
 
 	result, err := activityLogClient.List(
 		context.TODO(),
