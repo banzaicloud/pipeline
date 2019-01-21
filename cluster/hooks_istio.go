@@ -43,17 +43,22 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 
 	log.Infof("istio params: %#v", params)
 
-	values := map[string]interface{}{}
+	values := map[string]interface{}{
+		"global": map[string]interface{}{
+			"mtls": map[string]interface{}{
+				"enabled": params.EnableMtls,
+			},
+		},
+	}
 
 	if params.BypassEgressTraffic {
 		ipRanges, err := cluster.GetK8sIpv4Cidrs()
 		if err != nil {
 			log.Warnf("couldn't set included IP ranges in Envoy config, external requests will be intercepted")
 		} else {
-			values["global"] = map[string]interface{}{
-				"proxy": map[string]interface{}{
-					"includeIPRanges": ipRanges.PodIPRange + "," + ipRanges.ServiceClusterIPRange,
-				},
+			globalValues := values["global"].(map[string]interface{})
+			globalValues["proxy"] = map[string]interface{}{
+				"includeIPRanges": ipRanges.PodIPRange + "," + ipRanges.ServiceClusterIPRange,
 			}
 		}
 	}
