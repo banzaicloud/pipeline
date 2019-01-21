@@ -43,10 +43,10 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 
 	log.Infof("istio params: %#v", params)
 
-	values := map[string]interface{}{
-		"global": map[string]interface{}{
-			"mtls": map[string]interface{}{
-				"enabled": params.EnableMtls,
+	config := istio.Config{
+		Global: istio.Global{
+			Mtls: istio.MTLS{
+				Enabled: params.EnableMtls,
 			},
 		},
 	}
@@ -56,19 +56,18 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 		if err != nil {
 			log.Warnf("couldn't set included IP ranges in Envoy config, external requests will be intercepted")
 		} else {
-			globalValues := values["global"].(map[string]interface{})
-			globalValues["proxy"] = map[string]interface{}{
-				"includeIPRanges": ipRanges.PodIPRange + "," + ipRanges.ServiceClusterIPRange,
+			config.Global.Proxy = istio.Proxy{
+				IncludeIPRanges: ipRanges.PodIPRange + "," + ipRanges.ServiceClusterIPRange,
 			}
 		}
 	}
 
-	marshalledValues, err := yaml.Marshal(values)
+	overrideValues, err := yaml.Marshal(config)
 	if err != nil {
 		return emperror.Wrap(err, "failed to marshal yaml values")
 	}
 
-	err = installDeployment(cluster, istio.Namespace, pkgHelm.BanzaiRepository+"/istio", "istio", marshalledValues, "", false)
+	err = installDeployment(cluster, istio.Namespace, pkgHelm.BanzaiRepository+"/istio", "istio", overrideValues, "", false)
 	if err != nil {
 		return emperror.Wrap(err, "installing Istio failed")
 	}
