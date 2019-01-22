@@ -30,15 +30,19 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+const (
+	getJsonFailed      = "failed to get Istio Grafana dashboard.json"
+	addDashboardFailed = "couldn't add Istio Grafana dashboard"
+)
+
 func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) error {
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
 
 	for _, dashboard := range []string{"galley", "istio-mesh", "istio-performance", "istio-service", "istio-workload", "mixer", "pilot"} {
 		dashboardJson, err := getDashboardJson(log, dashboard)
 		if err != nil {
-			return emperror.Wrapf(err, "couldn't add Istio Grafana dashboard: %s", dashboard)
+			return emperror.WrapWith(err, addDashboardFailed, "dashboard", dashboard)
 		}
-
 		_, err = client.CoreV1().ConfigMaps(pipelineSystemNamespace).Create(&v1.ConfigMap{
 			Data: map[string]string{
 				fmt.Sprintf("%s.json", dashboard): dashboardJson,
@@ -55,7 +59,7 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 				log.Warnf("Istio Grafana dashboard %s already exists", dashboard)
 				continue
 			} else {
-				return emperror.Wrapf(err, "couldn't add Istio grafana dashboard: %s", dashboard)
+				return emperror.WrapWith(err, addDashboardFailed, "dashboard", dashboard)
 			}
 		}
 		log.Debugf("created Istio Grafana dashboard %s", dashboard)
@@ -68,28 +72,28 @@ func getDashboardJson(log logrus.FieldLogger, name string) (string, error) {
 	log.Infof("Getting Istio dashboard from %s", templatePath)
 	u, err := url.Parse(templatePath)
 	if err != nil {
-		return "", emperror.Wrapf(err, "getting Istio dashboard JSON from %s failed", templatePath)
+		return "", emperror.WrapWith(err, getJsonFailed, "url", templatePath)
 	}
 	var content []byte
 	switch u.Scheme {
 	case "file", "":
 		content, err = ioutil.ReadFile(u.String())
 		if err != nil {
-			return "", emperror.Wrapf(err, "failed to get dashboard.json from %s", u.String())
+			return "", emperror.WrapWith(err, getJsonFailed, "url", u.String())
 		}
 	case "http", "https":
 		var client http.Client
 		resp, err := client.Get(u.String())
 		if err != nil {
-			return "", emperror.Wrapf(err, "failed to get dashboard.json from %s", u.String())
+			return "", emperror.WrapWith(err, getJsonFailed, "url", u.String())
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", emperror.Wrapf(err, "failed to get dashboard.json from %s, status code: %v", u.String(), resp.StatusCode)
+			return "", emperror.WrapWith(err, getJsonFailed, "url", u.String(), "statusCode", resp.StatusCode)
 		}
 		content, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return "", emperror.Wrapf(err, "failed to get dashboard.json from %s", u.String())
+			return "", emperror.WrapWith(err, getJsonFailed, "url", u.String())
 		}
 	default:
 		return "", fmt.Errorf("unsupported scheme: %s", u.Scheme)
