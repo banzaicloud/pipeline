@@ -87,6 +87,7 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	log := log.WithField("cluster", request.Name)
 	cluster.log = log
 
+	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 	return &cluster, nil
 }
 
@@ -854,6 +855,16 @@ func (c *AKSCluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (c *AKSCluster) SetMonitoring(l bool) {
 	c.modelCluster.Monitoring = l
+}
+
+// getScaleOptionsFromModelV1 returns scale options for the cluster
+func (c *AKSCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
+	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
+}
+
+// SetScaleOptions sets scale options for the cluster
+func (c *AKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
 }
 
 // GetServiceMesh returns true if service mesh is enabled on the cluster

@@ -336,6 +336,16 @@ func (c *DummyCluster) SetMonitoring(l bool) {
 	c.modelCluster.Monitoring = l
 }
 
+// getScaleOptionsFromModelV1 returns scale options for the cluster
+func (c *DummyCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
+	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
+}
+
+// SetScaleOptions sets scale options for the cluster
+func (c *DummyCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
+}
+
 // GetServiceMesh returns true if service mesh is enabled on the cluster
 func (c *DummyCluster) GetServiceMesh() bool {
 	return c.modelCluster.ServiceMesh

@@ -119,6 +119,7 @@ type CreateClusterRequest struct {
 	ProfileName  string                   `json:"profileName" yaml:"profileName"`
 	PostHooks    PostHooks                `json:"postHooks" yaml:"postHooks"`
 	Properties   *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
+	ScaleOptions *ScaleOptions            `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
 }
 
 // CreateClusterProperties contains the cluster flavor specific properties.
@@ -131,6 +132,17 @@ type CreateClusterProperties struct {
 	CreateClusterKubernetes  *kubernetes.CreateClusterKubernetes   `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
 	CreateClusterOKE         *oke.Cluster                          `json:"oke,omitempty" yaml:"oke,omitempty"`
 	CreateClusterBanzaiCloud *banzaicloud.CreateClusterBanzaiCloud `json:"clusterTopology,omitempty" yaml:"clusterTopology,omitempty"`
+}
+
+// ScaleOptions describes scale options
+type ScaleOptions struct {
+	Enabled             bool     `json:"enabled"`
+	DesiredCpu          float64  `json:"desiredCpu" binding:"min=1"`
+	DesiredMem          float64  `json:"desiredMem" binding:"min=1"`
+	DesiredGpu          int      `json:"desiredGpu" binding:"min=0"`
+	OnDemandPct         int      `json:"onDemandPct,omitempty" binding:"min=0,max=100"`
+	Excludes            []string `json:"excludes,omitempty"`
+	KeepDesiredCapacity bool     `json:"keepDesiredCapacity"`
 }
 
 // PostHookParam describes posthook params in create request
@@ -212,9 +224,10 @@ type GetClusterConfigResponse struct {
 
 // GetNodePoolsResponse describes node pools of a cluster
 type GetNodePoolsResponse struct {
-	NodePools             map[string]*ActualNodePoolStatus `json:"nodePools,omitempty"`
-	ClusterTotalResources map[string]float64               `json:"clusterTotalResources,omitempty"`
-	ClusterStatus         string                           `json:"string,omitempty"`
+	NodePools               map[string]*ActualNodePoolStatus `json:"nodePools,omitempty"`
+	ClusterTotalResources   map[string]float64               `json:"clusterTotalResources,omitempty"`
+	ClusterDesiredResources map[string]float64               `json:"clusterDesiredResources,omitempty"`
+	ClusterStatus           string                           `json:"string,omitempty"`
 }
 
 type ActualNodePoolStatus struct {
@@ -236,6 +249,7 @@ type NodePoolData struct {
 type UpdateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
+	ScaleOptions     *ScaleOptions `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
 }
 
 // Ipv4Cidrs describes the service and pod IPv4 ranges
@@ -376,6 +390,11 @@ func (r *CreateClusterRequest) Validate() error {
 // validateMainFields checks the request's main fields
 func (r *CreateClusterRequest) validateMainFields() error {
 	if r.Cloud != Kubernetes && r.Cloud != Alibaba {
+		if len(r.Location) == 0 {
+			return pkgErrors.ErrorLocationEmpty
+		}
+	}
+	if r.ScaleOptions != nil && r.ScaleOptions.Enabled {
 		if len(r.Location) == 0 {
 			return pkgErrors.ErrorLocationEmpty
 		}

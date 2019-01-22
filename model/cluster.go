@@ -65,6 +65,7 @@ type ClusterModel struct {
 	Monitoring     bool
 	Logging        bool
 	ServiceMesh    bool
+	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
 	SecurityScan   bool
 	StatusMessage  string                 `sql:"type:text;"`
 	ACSK           ACSKClusterModel       `gorm:"foreignkey:ID"`
@@ -74,6 +75,19 @@ type ClusterModel struct {
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
+}
+
+// ScaleOptions describes scale options
+type ScaleOptions struct {
+	ID                  uint `gorm:"primary_key"`
+	ClusterID           uint `gorm:"unique_index:ux_cluster_id"`
+	Enabled             bool
+	DesiredCpu          float64
+	DesiredMem          float64
+	DesiredGpu          int
+	OnDemandPct         int
+	Excludes            string `sql:"type:text;"`
+	KeepDesiredCapacity bool
 }
 
 // ACSKNodePoolModel describes Alibaba Cloud CS node groups model of a cluster

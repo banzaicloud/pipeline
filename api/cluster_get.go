@@ -21,6 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
@@ -70,6 +71,7 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		Monitoring:   clusterStatus.Monitoring,
 		ServiceMesh:  clusterStatus.ServiceMesh,
 		SecurityScan: clusterStatus.SecurityScan,
+		ScaleOptions: commonCluster.GetScaleOptions(),
 
 		// TODO: keep one of the following?
 		// TODO: is this correct?
@@ -226,10 +228,11 @@ type GetClusterResponse struct {
 	Distribution string `json:"distribution"`
 	Spot         bool   `json:"spot,omitempty"`
 
-	Logging      bool `json:"logging"`
-	Monitoring   bool `json:"monitoring"`
-	ServiceMesh  bool `json:"servicemesh"`
-	SecurityScan bool `json:"securityscan"`
+	Logging      bool                     `json:"logging"`
+	Monitoring   bool                     `json:"monitoring"`
+	ServiceMesh  bool                     `json:"servicemesh"`
+	SecurityScan bool                     `json:"securityscan"`
+	ScaleOptions *pkgCluster.ScaleOptions `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
 
 	// TODO: keep one of the following?
 	Version       string `json:"version,omitempty"`

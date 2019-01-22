@@ -26,6 +26,7 @@ import (
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ClusterModel{},
+		&ScaleOptions{},
 		&ACSKClusterModel{},
 		&ACSKNodePoolModel{},
 		&AmazonNodePoolsModel{},
@@ -53,6 +54,11 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 	// setup FKs
 	err = AddForeignKey(db, logger, &ClusterModel{}, &EKSClusterModel{}, "ClusterID")
+	if err != nil {
+		return err
+	}
+
+	err = AddForeignKey(db, logger, &ClusterModel{}, &ScaleOptions{}, "ClusterID")
 	if err != nil {
 		return err
 	}
