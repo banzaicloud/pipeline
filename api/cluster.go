@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/banzaicloud/pipeline/api/common"
@@ -76,7 +77,6 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunctioner) {
 
 	log.Info("Get posthook function(s)")
-	var securityScanPosthook cluster.PostFunctioner
 
 	for postHookName, param := range postHooks {
 
@@ -91,19 +91,13 @@ func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunc
 
 			log.Infof("posthook function: %s", function)
 			log.Infof("posthook params: %#v", param)
-			if postHookName == pkgCluster.InstallAnchoreImageValidator {
-				securityScanPosthook = function
-			} else {
-				ph = append(ph, function)
-			}
+			ph = append(ph, function)
 		} else {
 			log.Warnf("there's no function with this name [%s]", postHookName)
 		}
 	}
-	if securityScanPosthook != nil {
-		ph = append(ph, securityScanPosthook)
-	}
 
+	sort.Sort(cluster.ByPriority(ph))
 	log.Infof("Found posthooks: %v", ph)
 
 	return
