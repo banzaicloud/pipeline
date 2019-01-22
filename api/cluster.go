@@ -556,3 +556,17 @@ func ListClusterSecrets(c *gin.Context) {
 
 	c.JSON(http.StatusOK, secrets)
 }
+
+func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
+	// Fetch cluster information
+
+	// Get an active token
+
+	// TODO create response
+	response := pkgCluster.ClusterBootstrapInfo{
+		Token:                    "",
+		DiscoveryTokenCaCertHash: "",
+		MasterAddress:            "",
+	}
+	c.JSON(http.StatusOK, response)
+}
