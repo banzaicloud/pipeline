@@ -66,6 +66,7 @@ var HookMap = map[string]PostFunctioner{
 	},
 	pkgCluster.InstallServiceMesh: &PostFunctionWithParam{
 		f:            InstallServiceMesh,
+		Priority:     Priority{10},
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.RegisterDomainPostHook: &BasePostFunction{
@@ -86,6 +87,7 @@ var HookMap = map[string]PostFunctioner{
 	},
 	pkgCluster.InstallAnchoreImageValidator: &PostFunctionWithParam{
 		f:            InstallAnchoreImageValidator,
+		Priority:     Priority{20},
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.RestoreFromBackup: &PostFunctionWithParam{
@@ -123,7 +125,16 @@ var BasePostHookFunctions = []PostFunctioner{
 // PostFunctioner manages posthook functions
 type PostFunctioner interface {
 	Do(CommonCluster) error
+	GetPriority() int
 	Error(CommonCluster, error)
+}
+
+type ByPriority []PostFunctioner
+
+func (p ByPriority) Len() int      { return len(p) }
+func (p ByPriority) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p ByPriority) Less(i, j int) bool {
+	return p[i].GetPriority() < p[j].GetPriority()
 }
 
 // ErrorHandler is the common struct which implement Error function
@@ -134,9 +145,20 @@ func (*ErrorHandler) Error(c CommonCluster, err error) {
 	c.UpdateStatus(pkgCluster.Error, err.Error())
 }
 
+// Priority can be used to run post hooks in a specific order
+type Priority struct {
+	priority int
+}
+
+// Priority returns the priority value of a posthook - the lower the value, the sooner the posthook will run
+func (p *Priority) GetPriority() int {
+	return p.priority
+}
+
 // BasePostFunction describe a default posthook function
 type BasePostFunction struct {
 	f func(CommonCluster) error
+	Priority
 	ErrorHandler
 }
 
@@ -144,6 +166,7 @@ type BasePostFunction struct {
 type PostFunctionWithParam struct {
 	f      func(CommonCluster, pkgCluster.PostHookParam) error
 	params pkgCluster.PostHookParam
+	Priority
 	ErrorHandler
 }
 
