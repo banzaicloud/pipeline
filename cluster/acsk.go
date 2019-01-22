@@ -102,6 +102,16 @@ func (c *ACSKCluster) SetServiceMesh(m bool) {
 	c.modelCluster.ServiceMesh = m
 }
 
+// getScaleOptionsFromModelV1 returns scale options for the cluster
+func (c *ACSKCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
+	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
+}
+
+// SetScaleOptions sets scale options for the cluster
+func (c *ACSKCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
+}
+
 func (*ACSKCluster) RequiresSshPublicKey() bool {
 	return true
 }
@@ -302,6 +312,8 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 		},
 		CreatedBy: userId,
 	}
+	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
+
 	return &cluster, nil
 }
 func (c *ACSKCluster) CreateCluster() error {

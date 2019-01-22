@@ -389,10 +389,20 @@ func GetNodePools(c *gin.Context) {
 		}
 	}
 
+	clusterDesiredResources := make(map[string]float64)
+	autoScaleEnabled := commonCluster.GetScaleOptions() != nil && commonCluster.GetScaleOptions().Enabled
+	if autoScaleEnabled {
+		clusterDesiredResources["cpu"] += commonCluster.GetScaleOptions().DesiredCpu
+		clusterDesiredResources["gpu"] += float64(commonCluster.GetScaleOptions().DesiredGpu)
+		clusterDesiredResources["mem"] += commonCluster.GetScaleOptions().DesiredMem
+		clusterDesiredResources["onDemandPct"] += float64(commonCluster.GetScaleOptions().OnDemandPct)
+	}
+
 	response := pkgCluster.GetNodePoolsResponse{
-		NodePools:             nodePoolStatus,
-		ClusterTotalResources: clusterTotalResources,
-		ClusterStatus:         clusterStatus.Status,
+		NodePools:               nodePoolStatus,
+		ClusterDesiredResources: clusterDesiredResources,
+		ClusterTotalResources:   clusterTotalResources,
+		ClusterStatus:           clusterStatus.Status,
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -416,6 +426,15 @@ func getActualNodeCounts(commonCluster cluster.CommonCluster) (map[string]int, e
 	}
 
 	for _, node := range nodes.Items {
+		// don't count cordoned nodes (Unschedulable and tainted with node.banzaicloud.io/draining)
+		if node.Spec.Unschedulable {
+			continue
+		}
+		for _, taint := range node.Spec.Taints {
+			if taint.Key == "node.banzaicloud.io/draining" {
+				continue
+			}
+		}
 		nodePoolName := node.Labels[pkgCommon.LabelKey]
 		if len(nodePoolName) > 0 {
 			nodePoolCounts[nodePoolName] += 1

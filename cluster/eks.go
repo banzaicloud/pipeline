@@ -93,6 +93,8 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		},
 		CreatedBy: userId,
 	}
+
+	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 	return &cluster, nil
 }
 
@@ -1294,6 +1296,16 @@ func (c *EKSCluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (c *EKSCluster) SetMonitoring(l bool) {
 	c.modelCluster.Monitoring = l
+}
+
+// GetScaleOptions returns scale options for the cluster
+func (c *EKSCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
+	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
+}
+
+// SetScaleOptions sets scale options for the cluster
+func (c *EKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
 }
 
 // GetServiceMesh returns true if service mesh is enabled on the cluster
