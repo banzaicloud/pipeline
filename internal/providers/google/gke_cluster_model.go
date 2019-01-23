@@ -24,9 +24,9 @@ import (
 
 // TableName constants
 const (
-	GKEClusterModelTableName  = "google_gke_clusters"
-	GKENodePoolModelTableName = "google_gke_node_pools"
-	GKENodePoolLabelTableName = "google_gke_node_pool_labels"
+	gkeClusterModelTableName  = "google_gke_clusters"
+	gkeNodePoolModelTableName = "google_gke_node_pools"
+	gkeNodePoolLabelTableName = "google_gke_node_pool_labels"
 )
 
 // GKEClusterModel is the schema for the DB.
@@ -46,7 +46,7 @@ type GKEClusterModel struct {
 
 // TableName changes the default table name.
 func (GKEClusterModel) TableName() string {
-	return GKEClusterModelTableName
+	return gkeClusterModelTableName
 }
 
 // BeforeCreate sets some initial values for the cluster.
@@ -123,7 +123,7 @@ type GKENodePoolModel struct {
 
 // TableName changes the default table name.
 func (GKENodePoolModel) TableName() string {
-	return GKENodePoolModelTableName
+	return gkeNodePoolModelTableName
 }
 
 // BeforeDelete deletes all nodepoollabels that belongs to GKENodePoolModel
@@ -163,7 +163,7 @@ type GKENodePoolLabelModel struct {
 
 // TableName changes the default table name.
 func (GKENodePoolLabelModel) TableName() string {
-	return GKENodePoolLabelTableName
+	return gkeNodePoolLabelTableName
 }
 
 func (m GKENodePoolLabelModel) String() string {
