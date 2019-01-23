@@ -551,6 +551,9 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				InstanceType:      np.InstanceType,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				MinCount:          np.MinCount,
+				MaxCount:          np.MaxCount,
+				Count:             np.Count,
 			}
 		}
 	}
