@@ -25,10 +25,10 @@ import (
 
 // TableName constants
 const (
-	ClustersTableName                = "oracle_oke_clusters"
-	ClustersNodePoolsTableName       = "oracle_oke_node_pools"
-	ClustersNodePoolSubnetsTableName = "oracle_oke_node_pool_subnets"
-	ClustersNodePoolLabelsTableName  = "oracle_oke_node_pool_labels"
+	clustersTableName                = "oracle_oke_clusters"
+	clustersNodePoolsTableName       = "oracle_oke_node_pools"
+	clustersNodePoolSubnetsTableName = "oracle_oke_node_pool_subnets"
+	clustersNodePoolLabelsTableName  = "oracle_oke_node_pool_labels"
 )
 
 // Cluster describes the Oracle cluster model
@@ -89,22 +89,22 @@ type NodePoolLabel struct {
 
 // TableName sets the Clusters table name
 func (Cluster) TableName() string {
-	return ClustersTableName
+	return clustersTableName
 }
 
 // TableName sets the NodePools table name
 func (NodePool) TableName() string {
-	return ClustersNodePoolsTableName
+	return clustersNodePoolsTableName
 }
 
 // TableName sets the NodePoolSubnets table name
 func (NodePoolSubnet) TableName() string {
-	return ClustersNodePoolSubnetsTableName
+	return clustersNodePoolSubnetsTableName
 }
 
 // TableName sets the NodePoolLabels table name
 func (NodePoolLabel) TableName() string {
-	return ClustersNodePoolLabelsTableName
+	return clustersNodePoolLabelsTableName
 }
 
 // CreateModelFromCreateRequest create model from create request
