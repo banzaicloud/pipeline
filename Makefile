@@ -95,7 +95,7 @@ endif
 
 .PHONY: docker-build
 docker-build: ## Builds go binary in docker image
-	docker run -it -v $$(PWD):/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
+	docker run -it -v $${PWD}:/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
 
 .PHONY: debug
 debug: export GOOS = linux
