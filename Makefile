@@ -95,7 +95,7 @@ endif
 
 .PHONY: docker-build
 docker-build: ## Builds go binary in docker image
-	docker run -it -v $(PWD):/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
+	docker run -it -v $${PWD}:/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
 
 .PHONY: debug
 debug: export GOOS = linux
@@ -189,17 +189,18 @@ test-integration: ## Run integration tests
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
-	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:v${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:v${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
 
 .PHONY: generate-client
 generate-client: validate-openapi ## Generate go client based on openapi description
-	rm -rf ./client
-	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:v${OPENAPI_GENERATOR_VERSION} generate \
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./client; else rm -rf ./client/; fi
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:v${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=client \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/${OPENAPI_DESCRIPTOR} \
 	-g go \
 	-o /local/client
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) client/; fi
 	gofmt -s -w client/
 
 ifeq (${OS}, Darwin)

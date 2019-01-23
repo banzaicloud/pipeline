@@ -12,10 +12,11 @@
 package client
 
 type NodePoolsGoogle struct {
-	Autoscaling  bool   `json:"autoscaling,omitempty"`
-	Preemptible  bool   `json:"preemptible,omitempty"`
-	Count        int32  `json:"count"`
-	MinCount     int32  `json:"minCount,omitempty"`
-	MaxCount     int32  `json:"maxCount,omitempty"`
-	InstanceType string `json:"instanceType"`
+	Autoscaling  bool              `json:"autoscaling,omitempty"`
+	Preemptible  bool              `json:"preemptible,omitempty"`
+	Count        int32             `json:"count"`
+	MinCount     int32             `json:"minCount,omitempty"`
+	MaxCount     int32             `json:"maxCount,omitempty"`
+	InstanceType string            `json:"instanceType"`
+	Labels       map[string]string `json:"labels,omitempty"`
 }

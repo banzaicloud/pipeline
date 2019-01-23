@@ -314,7 +314,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secretIdGoogle}}\",\n    \"properties\": {\n        \"gke\": {\n            \"master\":{\n                \"version\":\"1.10\"\n            },\n            \"nodeVersion\":\"1.10\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n                    \"count\": 1,\n                    \"instanceType\": \"n1-standard-2\"\n                }\n            }\n        }\n    }\n}"
+							"raw": "{\n    \"name\":\"gkecluster-{{username}}-{{$randomInt}}\",\n    \"location\": \"us-central1-a\",\n    \"cloud\": \"google\",\n    \"secretId\": \"{{secretIdGoogle}}\",\n    \"properties\": {\n        \"gke\": {\n            \"master\":{\n                \"version\":\"1.10\"\n            },\n            \"nodeVersion\":\"1.10\",\n            \"nodePools\": {\n                \"pool1\": {\n                    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n                    \"count\": 1,\n                    \"instanceType\": \"n1-standard-2\",\n                \t\"labels\": {\n                \t\t\"custom\": \"value\"\n                \t}\n                }\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
