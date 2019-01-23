@@ -49,6 +49,7 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
 		},
 	}
+	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 	return &cluster, nil
 
 }
@@ -161,7 +162,7 @@ func (c *KubeCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest
 }
 
 // UpdateCluster updates cluster in cloud, in this case no update function
-func (c *KubeCluster) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
+func (c *KubeCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, _ uint) error {
 	return nil
 }
 
@@ -333,6 +334,16 @@ func (c *KubeCluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (c *KubeCluster) SetMonitoring(l bool) {
 	c.modelCluster.Monitoring = l
+}
+
+// getScaleOptionsFromModelV1 returns scale options for the cluster
+func (c *KubeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
+	return getScaleOptionsFromModel(c.modelCluster.ScaleOptions)
+}
+
+// SetScaleOptions sets scale options for the cluster
+func (c *KubeCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
 }
 
 // GetServiceMesh returns true if service mesh is enabled on the cluster

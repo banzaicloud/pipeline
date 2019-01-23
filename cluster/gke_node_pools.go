@@ -132,6 +132,7 @@ func createNodePoolsRequestDataFromNodePoolModel(nodePoolsModel []*google.GKENod
 			MaxCount:         nodePoolModel.NodeMaxCount,
 			Count:            nodePoolModel.NodeCount,
 			NodeInstanceType: nodePoolModel.NodeInstanceType,
+			Preemptible:      nodePoolModel.Preemptible,
 		}
 	}
 
