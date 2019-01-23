@@ -36,7 +36,7 @@ func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, e
 }
 
 // GetAllMachineTypesByZone returns all supported machine type by zone
-func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]pkgCluster.MachineType, error) {
+func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]pkgCluster.MachineTypes, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{
@@ -50,7 +50,7 @@ func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]pkg
 }
 
 // GetAllMachineTypes returns all supported machine types
-func GetAllMachineTypes(orgId uint, secretId string) (map[string]pkgCluster.MachineType, error) {
+func GetAllMachineTypes(orgId uint, secretId string) (map[string]pkgCluster.MachineTypes, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{

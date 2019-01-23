@@ -18,6 +18,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/pkg/errors"
@@ -29,12 +31,12 @@ type resourceGroup struct {
 }
 
 // NewResourceGroupClientFromSecret returns an Azure resource groups client from a secret.
-func NewResourceGroupClientFromSecret(credentials Credentials) resources.GroupsClient {
+func NewResourceGroupClientFromSecret(credentials azure.Credentials) resources.GroupsClient {
 	return resources.NewGroupsClient(credentials.SubscriptionID)
 }
 
 // NewAuthorizedResourceGroupClientFromSecret returns an authorized Azure resource groups client from a secret.
-func NewAuthorizedResourceGroupClientFromSecret(credentials Credentials) (resourceGroup, error) {
+func NewAuthorizedResourceGroupClientFromSecret(credentials azure.Credentials) (resourceGroup, error) {
 	cred := NewClientCredentialsConfigFromSecret(credentials)
 
 	client := NewResourceGroupClientFromSecret(credentials)

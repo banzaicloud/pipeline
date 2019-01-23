@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+
 	"github.com/Masterminds/semver"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
@@ -31,7 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
-	"github.com/banzaicloud/pipeline/internal/security"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
@@ -46,7 +48,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -300,12 +302,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		}
 	case pkgCluster.Azure:
 
-		credentials := azureObjectstore.Credentials{
-			SubscriptionID: logSecret.Values[pkgSecret.AzureSubscriptionId],
-			ClientID:       logSecret.Values[pkgSecret.AzureClientId],
-			ClientSecret:   logSecret.Values[pkgSecret.AzureClientSecret],
-			TenantID:       logSecret.Values[pkgSecret.AzureTenantId],
-		}
+		credentials := *azure.NewCredentials(logSecret.Values)
 
 		storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(credentials)
 		if err != nil {

@@ -26,6 +26,7 @@ import (
 	azurePipeline "github.com/Azure/azure-pipeline-go/pipeline"
 	"github.com/Azure/azure-storage-blob-go/azblob"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/goph/emperror"
 )
 
@@ -37,7 +38,7 @@ const (
 
 type objectStore struct {
 	config      Config
-	credentials Credentials
+	credentials azure.Credentials
 }
 
 // Config defines configuration
@@ -47,14 +48,6 @@ type Config struct {
 	Location       string
 }
 
-// Credentials represents credentials necessary for access
-type Credentials struct {
-	SubscriptionID string
-	TenantID       string
-	ClientID       string
-	ClientSecret   string
-}
-
 // NewPlainObjectStore creates an objectstore with no configuration.
 // Instances created with this function may be used to access methods that don't explicitly access external (cloud) resources
 func NewPlainObjectStore() (*objectStore, error) {
@@ -62,7 +55,7 @@ func NewPlainObjectStore() (*objectStore, error) {
 }
 
 // New returns an Object Store instance that manages Azure object store
-func New(config Config, credentials Credentials) *objectStore {
+func New(config Config, credentials azure.Credentials) *objectStore {
 	return &objectStore{
 		config:      config,
 		credentials: credentials,

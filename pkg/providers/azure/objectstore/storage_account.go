@@ -17,6 +17,8 @@ package objectstore
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
@@ -36,12 +38,12 @@ var (
 )
 
 // NewStorageAccountClientFromSecret returns an Azure resource groups client from a secret.
-func NewStorageAccountClientFromSecret(credentials Credentials) storage.AccountsClient {
+func NewStorageAccountClientFromSecret(credentials azure.Credentials) storage.AccountsClient {
 	return storage.NewAccountsClient(credentials.SubscriptionID)
 }
 
 // NewAuthorizedStorageAccountClientFromSecret returns an authorized Azure resource groups client from a secret.
-func NewAuthorizedStorageAccountClientFromSecret(credentials Credentials) (storageAccount, error) {
+func NewAuthorizedStorageAccountClientFromSecret(credentials azure.Credentials) (storageAccount, error) {
 	cred := NewClientCredentialsConfigFromSecret(credentials)
 
 	client := NewStorageAccountClientFromSecret(credentials)

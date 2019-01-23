@@ -16,12 +16,13 @@ package objectstore
 
 import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
 
 // NewClientCredentialsConfigFromSecret returns an Azure client credential config from a secret.
 //
 // TODO: implement validation for the secret?
-func NewClientCredentialsConfigFromSecret(credentials Credentials) auth.ClientCredentialsConfig {
+func NewClientCredentialsConfigFromSecret(credentials azure.Credentials) auth.ClientCredentialsConfig {
 	return auth.NewClientCredentialsConfig(
 		credentials.ClientID,
 		credentials.ClientSecret,

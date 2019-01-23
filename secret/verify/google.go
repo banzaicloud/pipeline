@@ -42,17 +42,18 @@ const (
 )
 
 // GCPSecretVerifier represents a secret verifier for Google Cloud Platform secrets
-type GCPSecretVerifier ServiceAccount
+type GCPSecretVerifier struct {
+	*ServiceAccount
+}
 
 // CreateGCPSecretVerifier creates a new Google Cloud Platform secret verifier
 func CreateGCPSecretVerifier(values map[string]string) GCPSecretVerifier {
-	return GCPSecretVerifier(*CreateServiceAccount(values))
+	return GCPSecretVerifier{CreateServiceAccount(values)}
 }
 
 // VerifySecret validates GCP credentials
 func (sv GCPSecretVerifier) VerifySecret() error {
-	sa := ServiceAccount(sv)
-	return checkProject(&sa)
+	return checkProject(sv.ServiceAccount)
 }
 
 func checkProject(serviceAccount *ServiceAccount) error {
@@ -61,19 +62,18 @@ func checkProject(serviceAccount *ServiceAccount) error {
 		return err
 	}
 	if len(missing) != 0 {
-		errorMessage := fmt.Sprintf("required API services are disabled: %s", strings.Join(missing, ","))
-		return errors.New(errorMessage)
+		return fmt.Errorf("required API services are disabled: %s", strings.Join(missing, ","))
 	}
 	return nil
 }
 
 func checkRequiredServices(serviceAccount *ServiceAccount) ([]string, error) {
 	requiredServices := map[string]string{
-		"Compute Engine API":                 ComputeEngineAPI,
-		"Kubernetes Engine API":              KubernetesEngineAPI,
-		"Google Cloud Storage":               GoogleCloudStorage,
-		"IAM ServiceAccount Credentials API": IAMServiceAccountCredentialsAPI,
-		"Cloud Resource Manager API":         CloudResourceManagerAPI,
+		ComputeEngineAPI:                "Compute Engine API",
+		KubernetesEngineAPI:             "Kubernetes Engine API",
+		GoogleCloudStorage:              "Google Cloud Storage",
+		IAMServiceAccountCredentialsAPI: "IAM ServiceAccount Credentials API",
+		CloudResourceManagerAPI:         "Cloud Resource Manager API",
 	}
 
 	enabledServices, err := listEnabledServices(serviceAccount)
@@ -83,9 +83,9 @@ func checkRequiredServices(serviceAccount *ServiceAccount) ([]string, error) {
 	}
 
 	var missingServices []string
-	for required, value := range requiredServices {
-		if !contains(enabledServices, value) {
-			missingServices = append(missingServices, required)
+	for service, readableName := range requiredServices {
+		if !contains(enabledServices, service) {
+			missingServices = append(missingServices, readableName)
 		}
 	}
 	return missingServices, nil

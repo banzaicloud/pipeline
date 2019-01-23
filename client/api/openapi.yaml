@@ -4122,7 +4122,7 @@ paths:
   /api/v1/orgs/{orgId}/azure/resourcegroups:
     get:
       description: Get all resource groups
-      operationId: GetResourceGroup
+      operationId: GetResourceGroups
       parameters:
       - description: Organization identification
         explode: false
