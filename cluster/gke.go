@@ -1523,7 +1523,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	log := log.WithField("cluster", clusterModel.Name)
 	log.Debug("Load Google props from database")
 
-	err := db.Where(m).Preload("Cluster").Preload("NodePools").First(&m).Error
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("NodePools.Labels").First(&m).Error
 	if err != nil {
 		return nil, err
 	}
@@ -1626,17 +1626,7 @@ func (c *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 //DeleteFromDatabase deletes model from the database
 func (c *GKECluster) DeleteFromDatabase() error {
-	if err := c.db.Delete(&c.model.Cluster).Error; err != nil {
-		return err
-	}
-
-	for _, nodePool := range c.model.NodePools {
-		if err := c.db.Delete(nodePool).Error; err != nil {
-			return err
-		}
-	}
-
-	if err := c.db.Delete(c.model).Error; err != nil {
+	if err := c.db.Delete(&c.model).Error; err != nil {
 		return err
 	}
 

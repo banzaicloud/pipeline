@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -247,6 +248,15 @@ func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
 	return nil
 }
 
+func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
+	logger.Info("deleting unused cluster secrets")
+	if err := secret.Store.DeleteByClusterUID(cluster.GetOrganizationId(), cluster.GetUID()); err != nil {
+		return emperror.Wrap(err, "deleting cluster secret failed")
+	}
+
+	return nil
+}
+
 func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
@@ -351,6 +361,16 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	// delete from proxy from kubeProxyCache if any
 	m.DeleteKubeProxy(cluster)
+
+	err = deleteUnusedSecrets(cluster, logger)
+	if err != nil {
+		err = emperror.Wrap(err, "failed to delete unused cluster secrets")
+		if !force {
+			cluster.UpdateStatus(pkgCluster.Error, err.Error())
+			return err
+		}
+		logger.Error(err)
+	}
 
 	// delete cluster from database
 	orgID := cluster.GetOrganizationId()
