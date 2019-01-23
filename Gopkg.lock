@@ -2236,6 +2236,7 @@
     "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1",
     "github.com/banzaicloud/azure-aks-client/client",
     "github.com/banzaicloud/azure-aks-client/cluster",
+    "github.com/banzaicloud/azure-aks-client/errors",
     "github.com/banzaicloud/azure-aks-client/types",
     "github.com/banzaicloud/bank-vaults/pkg/auth",
     "github.com/banzaicloud/bank-vaults/pkg/db",
