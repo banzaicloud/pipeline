@@ -305,12 +305,20 @@ func (c *EKSCluster) CreateCluster() error {
 	} else {
 		volumeBindingMode = storagev1.VolumeBindingImmediate
 	}
-	// create default storage class
-	err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode)
+
+	storageClassConstraint, err := semver.NewConstraint("< 1.11")
 	if err != nil {
-		return emperror.WrapWith(err, "failed to create default storage class",
-			"provisioner", "kubernetes.io/aws-ebs",
-			"bindingMode", volumeBindingMode)
+		return emperror.Wrap(err, "could not set  1.11 constraint for semver")
+	}
+
+	if storageClassConstraint.Check(kubeVersion) {
+		// create default storage class
+		err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode)
+		if err != nil {
+			return emperror.WrapWith(err, "failed to create default storage class",
+				"provisioner", "kubernetes.io/aws-ebs",
+				"bindingMode", volumeBindingMode)
+		}
 	}
 
 	awsAuthConfigMap := v1.ConfigMap{
