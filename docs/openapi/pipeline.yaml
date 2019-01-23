@@ -4002,7 +4002,7 @@ paths:
             tags:
                 - info
             summary: Get all resource groups
-            operationId: GetResourceGroup
+            operationId: GetResourceGroups
             description: Get all resource groups
             parameters:
                 -

@@ -9,7 +9,7 @@ Method | HTTP request | Description
 [**GetAmazonConfig**](InfoApi.md#GetAmazonConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
 [**GetAzureConfig**](InfoApi.md#GetAzureConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/azure | Get all azure config
 [**GetGoogleConfig**](InfoApi.md#GetGoogleConfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
-[**GetResourceGroup**](InfoApi.md#GetResourceGroup) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
+[**GetResourceGroups**](InfoApi.md#GetResourceGroups) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
 [**GetSupportedClouds**](InfoApi.md#GetSupportedClouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
 
 
@@ -166,8 +166,8 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **GetResourceGroup**
-> []string GetResourceGroup(ctx, orgId, secretId)
+# **GetResourceGroups**
+> []string GetResourceGroups(ctx, orgId, secretId)
 Get all resource groups
 
 Get all resource groups

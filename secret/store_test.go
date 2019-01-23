@@ -97,10 +97,10 @@ const (
 )
 
 const (
-	AzureClientId       = "AZURE_CLIENT_ID"
+	AzureClientID       = "AZURE_CLIENT_ID"
 	AzureClientSecret   = "AZURE_CLIENT_SECRET"
-	AzureTenantId       = "AZURE_TENANT_ID"
-	AzureSubscriptionId = "AZURE_SUBSCRIPTION_ID"
+	AzureTenantID       = "AZURE_TENANT_ID"
+	AzureSubscriptionID = "AZURE_SUBSCRIPTION_ID"
 )
 
 const (
@@ -146,10 +146,10 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Azure,
 		Values: map[string]string{
-			pkgSecret.AzureClientId:       AzureClientId,
+			pkgSecret.AzureClientID:       AzureClientID,
 			pkgSecret.AzureClientSecret:   AzureClientSecret,
-			pkgSecret.AzureTenantId:       AzureTenantId,
-			pkgSecret.AzureSubscriptionId: AzureSubscriptionId,
+			pkgSecret.AzureTenantID:       AzureTenantID,
+			pkgSecret.AzureSubscriptionID: AzureSubscriptionID,
 		},
 	}
 
@@ -157,8 +157,8 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Azure,
 		Values: map[string]string{
-			pkgSecret.AzureClientId:       AzureClientId,
-			pkgSecret.AzureSubscriptionId: AzureSubscriptionId,
+			pkgSecret.AzureClientID:       AzureClientID,
+			pkgSecret.AzureSubscriptionID: AzureSubscriptionID,
 		},
 	}
 
