@@ -42,7 +42,7 @@ var (
 	ErrorRequiredSecretId                      = errors.New("Secret id is required")
 	ErrorCloudInfoK8SNotSupported              = errors.New("Not supported key in case of amazon")
 	ErrorNodePoolNotProvided                   = errors.New("At least one 'nodepool' is required for creating or updating a cluster")
-	ErrorNodePoolLabelClashesWithPipelineLabel = errors.New("NodePool label cannot be set to Pipeline specific label")
+	ErrorNodePoolLabelClashesWithPipelineLabel = errors.New("NodePool label conflicts with Pipeline reserved label name")
 	ErrorNotValidLocation                      = errors.New("not valid location")
 	ErrorNotValidNodeImage                     = errors.New("not valid node image")
 	ErrorNotValidNodeInstanceType              = errors.New("not valid nodeInstanceType")
