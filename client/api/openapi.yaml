@@ -5766,10 +5766,16 @@ components:
         instanceType:
           example: n1-standard-2
           type: string
+        labels:
+          additionalProperties:
+            $ref: '#/components/schemas/LabelsGoogle'
       required:
       - count
       - instanceType
       type: object
+    LabelsGoogle:
+      example: labelValue
+      type: string
     CreateUpdateOKEProperties:
       properties:
         oke:

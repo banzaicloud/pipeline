@@ -23,11 +23,9 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
 )
 
 const unknown = "unknown"
@@ -242,21 +240,8 @@ func (cs *ClusterModel) Save() error {
 	return nil
 }
 
-func (cs *ClusterModel) preDelete() {
-	log := log.WithFields(logrus.Fields{"organization": cs.OrganizationId, "cluster": cs.ID})
-
-	log.Info("Delete unused cluster secrets")
-	if err := secret.Store.DeleteByClusterUID(cs.OrganizationId, cs.UID); err != nil {
-		log.Errorf("Error during deleting secret: %s", err.Error())
-	}
-}
-
 //Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
-
-	log.Info("Delete config secret")
-	cs.preDelete()
-
 	db := config.DB()
 	return db.Delete(&cs).Error
 }
