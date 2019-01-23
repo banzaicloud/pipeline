@@ -66,6 +66,16 @@ func (c *EC2ClusterBanzaiCloudDistribution) SetMonitoring(m bool) {
 	c.model.Cluster.Monitoring = m
 }
 
+// GetScaleOptions returns scale options for the cluster
+func (c *EC2ClusterBanzaiCloudDistribution) GetScaleOptions() *pkgCluster.ScaleOptions {
+	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
+}
+
+// SetScaleOptions sets scale options for the cluster
+func (c *EC2ClusterBanzaiCloudDistribution) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
+}
+
 func (c *EC2ClusterBanzaiCloudDistribution) GetServiceMesh() bool {
 	return c.model.Cluster.ServiceMesh
 }
