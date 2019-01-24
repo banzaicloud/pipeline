@@ -647,7 +647,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		clusterUID := value.Values[secretTypes.ClusterUID]
 
 		var orgID, clusterID uint
-		_, err := fmt.Sscanf(clusterUID, "%d-%d", orgID, clusterID)
+		_, err := fmt.Sscanf(clusterUID, "%d-%d", &orgID, &clusterID)
 		if err != nil {
 			return errors.Wrapf(err, "clusterUID is not in the proper format")
 		}
