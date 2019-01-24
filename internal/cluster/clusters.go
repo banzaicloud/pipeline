@@ -42,7 +42,7 @@ func (c *Clusters) Exists(organizationID uint, name string) (bool, error) {
 		return false, errors.Wrap(err, "could not check cluster existence")
 	}
 
-	return existingCluster.ID == 0, nil
+	return existingCluster.ID != 0, nil
 }
 
 // All returns all cluster instances for an organization.

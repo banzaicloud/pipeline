@@ -43,7 +43,7 @@ func getObjectStore(t *testing.T) *objectStore {
 	storageAccount := strings.TrimSpace(os.Getenv("AZURE_STORAGE_ACCOUNT"))
 
 	if clientID == "" || clientSecret == "" || tenantID == "" || subscriptionID == "" || resourceGroup == "" || storageAccount == "" {
-		t.Skip("missing necesseary env variables")
+		t.Skip("missing necessary env variables")
 	}
 
 	config := Config{

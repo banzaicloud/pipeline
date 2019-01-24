@@ -103,9 +103,10 @@ type ConfigRequest struct {
 }
 
 type clusterConfig struct {
-	Name     string
-	Provider string
-	Location string
+	Name        string
+	Provider    string
+	Location    string
+	RBACEnabled bool
 
 	azureClusterConfig
 }
@@ -156,11 +157,6 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		return values, err
 	}
 
-	rbacEnabled := true
-	if req.Cluster.Provider == providers.Azure {
-		rbacEnabled = false
-	}
-
 	return ValueOverrides{
 		Configuration: configuration{
 			PersistentVolumeProvider: pvp,
@@ -168,7 +164,7 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 			RestoreOnlyMode:          req.RestoreMode,
 		},
 		RBAC: rbac{
-			Create: rbacEnabled,
+			Create: req.Cluster.RBACEnabled,
 		},
 		Credentials: cred,
 		Image: image{

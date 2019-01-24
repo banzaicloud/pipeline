@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package objectstore
 
 import (
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/Azure/go-autorest/autorest/azure/auth"
 )
 
-type AKSCluster interface {
-	Cluster
-	GetResourceGroup() string
-}
-
-// Cluster interface for cluster implementations
-type Cluster interface {
-	GetID() uint
-	GetName() string
-	GetOrganizationId() uint
-	GetCloud() string
-	GetDistribution() string
-	GetK8sConfig() ([]byte, error)
-	GetSecretWithValidation() (*secret.SecretItemResponse, error)
-	GetLocation() string
-	RbacEnabled() bool
+// NewClientCredentialsConfigFromSecret returns an Azure client credential config from a secret.
+//
+// TODO: implement validation for the secret?
+func NewClientCredentialsConfigFromSecret(credentials Credentials) auth.ClientCredentialsConfig {
+	return auth.NewClientCredentialsConfig(
+		credentials.ClientID,
+		credentials.ClientSecret,
+		credentials.TenantID,
+	)
 }
