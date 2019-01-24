@@ -31,6 +31,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	pkgUtil "github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -559,14 +560,51 @@ func ListClusterSecrets(c *gin.Context) {
 
 func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	// Fetch cluster information
-
-	// Get an active token
-
-	// TODO create response
-	response := pkgCluster.ClusterBootstrapInfo{
-		Token:                    "",
-		DiscoveryTokenCaCertHash: "",
-		MasterAddress:            "",
+	cluster, ok := a.clusterGetter.GetClusterFromRequest(c)
+	if !ok {
+		return
 	}
-	c.JSON(http.StatusOK, response)
+	masterAddress, err := cluster.GetAPIEndpoint()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error fetching kubernetes API address",
+			Error:   err.Error(),
+		})
+		return
+	}
+	config, err := cluster.GetK8sConfig()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error fetching Kubernetes config",
+			Error:   err.Error(),
+		})
+		return
+	}
+	client, err := k8sclient.NewClientFromKubeConfig(config)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid Kubernetes config",
+			Error:   err.Error(),
+		})
+		return
+	}
+	// Get an active token
+	token, err := pkgUtil.GetOrCreateBootstrapToken(log, client)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error Get or Create bootstrap token",
+			Error:   err.Error(),
+		})
+		return
+	}
+	bootstrapInfo := &pkgCluster.ClusterBootstrapInfo{
+		Token:                    token,
+		DiscoveryTokenCaCertHash: "TODO",
+		MasterAddress:            masterAddress,
+	}
+	c.JSON(http.StatusOK, bootstrapInfo)
 }
