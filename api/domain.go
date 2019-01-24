@@ -16,6 +16,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -64,7 +65,7 @@ func (a *DomainAPI) GetDomain(c *gin.Context) {
 		// TODO implement cluster based domain separation
 	}
 	// TODO implement org based domain separation
-	baseDomain = viper.GetString(pipConfig.DNSBaseDomain)
+	baseDomain = strings.ToLower(viper.GetString(pipConfig.DNSBaseDomain))
 
 	c.JSON(http.StatusOK, GetDomainResponse{DomainName: baseDomain})
 }

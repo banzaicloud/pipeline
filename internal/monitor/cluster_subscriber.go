@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -132,7 +133,7 @@ func (s *clusterSubscriber) Init() {
 			params := scrapeConfigParameters{
 				orgName:     org.Name,
 				clusterName: c.GetName(),
-				endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
+				endpoint:    strings.ToLower(fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain)),
 				basicAuthConfig: &basicAuthConfig{
 					username:     string(basicAuthSecret.Values[pkgSecret.Username]),
 					password:     string(basicAuthSecret.Values[pkgSecret.Password]),
@@ -204,7 +205,7 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	params := scrapeConfigParameters{
 		orgName:     org.Name,
 		clusterName: c.GetName(),
-		endpoint:    fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain),
+		endpoint:    strings.ToLower(fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain)),
 		basicAuthConfig: &basicAuthConfig{
 			username: basicAuthSecret.Values[pkgSecret.Username],
 			// password:     basicAuthSecret.Values[pkgSecret.Password],

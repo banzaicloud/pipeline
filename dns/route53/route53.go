@@ -16,6 +16,7 @@ package route53
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -145,7 +146,7 @@ type awsRoute53 struct {
 func NewAwsRoute53(region, awsSecretId, awsSecretKey string, notifications chan interface{}) (*awsRoute53, error) {
 	log := loggerWithFields(logrus.Fields{"region": region})
 
-	baseDomain := viper.GetString(config.DNSBaseDomain)
+	baseDomain := strings.ToLower(viper.GetString(config.DNSBaseDomain))
 	if len(baseDomain) == 0 {
 		log.Errorf("base domain is not configured !")
 		return nil, errors.New("base domain is not configured !")

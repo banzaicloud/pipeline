@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
@@ -122,7 +123,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 		return emperror.WrapWith(err, "failed to get organization", "organizationId", orgId)
 	}
 
-	host := fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, viper.GetString(pipConfig.DNSBaseDomain))
+	host := strings.ToLower(fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, viper.GetString(pipConfig.DNSBaseDomain)))
 	log.Debugf("grafana ingress host: %s", host)
 
 	values := map[string]interface{}{
