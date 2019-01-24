@@ -3749,6 +3749,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
+        patch:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - users
+            summary: Update current user's settings
+            operationId: UpdateCurrentUser
+            description: Update current user
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateUserRequest'
+            responses:
+                '204':
+                    description: "Modifiying current user's settings succeeded"
+                '401':
+                    description: "Unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
 
     '/api/v1/orgs/{orgId}/cloudinfo':
         get:
@@ -5066,6 +5090,13 @@ components:
             bearerFormat: JWT
 
     schemas:
+        UpdateUserRequest:
+            type: object
+            properties:
+                gitHubToken:
+                    type: string
+                    example: "b8d9cfb5df15fd513bf3351719876ffff4b310d2"
+
         SpotguideDetailsResponse:
             type: object
             properties:

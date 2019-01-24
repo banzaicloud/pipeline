@@ -3858,6 +3858,29 @@ paths:
       summary: Get current user
       tags:
       - users
+    patch:
+      description: Update current user
+      operationId: UpdateCurrentUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        required: true
+      responses:
+        204:
+          description: Modifiying current user's settings succeeded
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Update current user's settings
+      tags:
+      - users
   /api/v1/orgs/{orgId}/cloudinfo:
     get:
       description: Get supported cloud types
@@ -5288,6 +5311,14 @@ paths:
       - projects
 components:
   schemas:
+    UpdateUserRequest:
+      example:
+        gitHubToken: b8d9cfb5df15fd513bf3351719876ffff4b310d2
+      properties:
+        gitHubToken:
+          example: b8d9cfb5df15fd513bf3351719876ffff4b310d2
+          type: string
+      type: object
     SpotguideDetailsResponse:
       example:
         createdAt: 2018-06-11T14:28:13Z
