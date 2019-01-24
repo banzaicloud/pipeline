@@ -1873,7 +1873,7 @@
   revision = "f4a9d31325865f18b8023622a564578f079d582b"
 
 [[projects]]
-  digest = "1:bee4c3962ff00d97ed072c20f02ea764f5e8493754eed231e66fb3145e3df7c4"
+  digest = "1:670c271f42a5d6f1e7d82342ab0412c4c914b4010ff18ecc7e65a0d2451157cc"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -1930,6 +1930,8 @@
     "scale/scheme/extensionsv1beta1",
     "third_party/forked/golang/template",
     "tools/auth",
+    "tools/bootstrap/token/api",
+    "tools/bootstrap/token/util",
     "tools/cache",
     "tools/clientcmd",
     "tools/clientcmd/api",
@@ -1956,6 +1958,17 @@
   pruneopts = "NUT"
   revision = "59698c7d9724b0f95f9dc9e7f7dfdcc3dfeceb82"
   version = "kubernetes-1.11.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:28fd6a61b5220aab30c6f7344676ff5aaea4a5f14407d95f33e238b13da2d2ef"
+  name = "k8s.io/cluster-bootstrap"
+  packages = [
+    "token/api",
+    "token/util",
+  ]
+  pruneopts = "NUT"
+  revision = "c71be3de9a2f32e792bdcaf95d5a705c4188dcec"
 
 [[projects]]
   branch = "release-2.11"
@@ -2007,9 +2020,10 @@
 
 [[projects]]
   branch = "release-1.11"
-  digest = "1:e8198935d1f22db752772a00debacb30e58068d5c4f2c35557dcb1151d67efc1"
+  digest = "1:9475f5a33c3f3bc5e2c453236e9acfcd37a6bd5e4000e873c5b627156147bdb8"
   name = "k8s.io/kubernetes"
   packages = [
+    "cmd/kubeadm/app/apis/kubeadm",
     "pkg/api/events",
     "pkg/api/legacyscheme",
     "pkg/api/pod",
@@ -2057,6 +2071,7 @@
     "pkg/apis/core/pods",
     "pkg/apis/core/v1",
     "pkg/apis/core/v1/helper",
+    "pkg/apis/core/v1/helper/qos",
     "pkg/apis/core/validation",
     "pkg/apis/events",
     "pkg/apis/events/install",
@@ -2131,10 +2146,15 @@
     "pkg/kubectl/util/term",
     "pkg/kubectl/validation",
     "pkg/kubelet/apis",
+    "pkg/kubelet/apis/kubeletconfig",
+    "pkg/kubelet/apis/kubeletconfig/v1beta1",
+    "pkg/kubelet/qos",
     "pkg/kubelet/types",
     "pkg/master/ports",
     "pkg/printers",
     "pkg/printers/internalversion",
+    "pkg/proxy/apis/kubeproxyconfig",
+    "pkg/proxy/apis/kubeproxyconfig/v1alpha1",
     "pkg/registry/rbac/validation",
     "pkg/scheduler/algorithm",
     "pkg/scheduler/algorithm/priorities/util",
@@ -2330,6 +2350,8 @@
     "k8s.io/client-go/tools/clientcmd/api",
     "k8s.io/client-go/tools/clientcmd/api/v1",
     "k8s.io/client-go/transport",
+    "k8s.io/cluster-bootstrap/token/api",
+    "k8s.io/cluster-bootstrap/token/util",
     "k8s.io/helm/cmd/helm/installer",
     "k8s.io/helm/pkg/chartutil",
     "k8s.io/helm/pkg/downloader",
@@ -2343,6 +2365,7 @@
     "k8s.io/helm/pkg/proto/hapi/release",
     "k8s.io/helm/pkg/proto/hapi/services",
     "k8s.io/helm/pkg/repo",
+    "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm",
     "k8s.io/kubernetes/pkg/api/v1/resource",
     "k8s.io/kubernetes/pkg/apis/core",
     "k8s.io/kubernetes/pkg/apis/storage/util",

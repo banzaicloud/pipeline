@@ -282,3 +282,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/lestrrat-go/backoff"
+
+[[constraint]]
+  branch = "master"
+  name = "k8s.io/cluster-bootstrap"
