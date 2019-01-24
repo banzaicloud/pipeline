@@ -140,9 +140,10 @@ func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMo
 
 	config, err := s.getChartConfig(ConfigRequest{
 		Cluster: clusterConfig{
-			Name:     s.cluster.GetName(),
-			Provider: s.cluster.GetCloud(),
-			Location: s.cluster.GetLocation(),
+			Name:        s.cluster.GetName(),
+			Provider:    s.cluster.GetCloud(),
+			Location:    s.cluster.GetLocation(),
+			RBACEnabled: s.cluster.RbacEnabled(),
 			azureClusterConfig: azureClusterConfig{
 				ResourceGroup: resourceGroup,
 			},
