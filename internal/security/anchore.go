@@ -28,6 +28,7 @@ import (
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -260,30 +261,40 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 }
 
 func RemoveAnchoreUser(orgId uint, clusterId string) {
-	if !AnchoreEnabled {
-		return
-	}
+
 	anchorUserName := fmt.Sprintf("%v-anchore-user", clusterId)
 
 	secretItem, err := secret.Store.GetByName(orgId, anchorUserName)
 	if err != nil {
-		logger.Errorf("error fetching Anchore user secret: %v", err.Error())
+		logger.WithFields(logrus.Fields{
+			"organization": orgId,
+			"user":         anchorUserName,
+		}).Info("error fetching Anchore user secret")
 		return
 	}
 	err = secret.Store.Delete(orgId, secretItem.ID)
 	if err != nil {
-		logger.Errorf("error deleting Anchore user secret: %v", err.Error())
+		logger.Error(emperror.WrapWith(err, "error deleting Anchore user secret", "organization", orgId, "user", anchorUserName))
 	} else {
-		logger.Infof("Anchore user secret %v deleted.", anchorUserName)
+		logger.WithFields(logrus.Fields{
+			"organization": orgId,
+			"user":         anchorUserName,
+		}).Debug("Anchore user secret deleted")
 	}
 	if checkAnchoreUser(anchorUserName, http.MethodDelete) != http.StatusNoContent {
-		logger.Errorf("error deleting Anchore user: %v", anchorUserName)
+		logger.Error(emperror.WrapWith(err, "error deleting Anchore user", "organization", orgId, "user", anchorUserName))
 	}
-	logger.Debugf("Anchore user %v deleted.", anchorUserName)
+	logger.WithFields(logrus.Fields{
+		"organization": orgId,
+		"user":         anchorUserName,
+	}).Debug("Anchore user secret deleted")
 	if deleteAnchoreAccount(anchorUserName) != http.StatusNoContent {
-		logger.Errorf("error deleting Anchore account: %v", anchorUserName)
+		logger.Error(emperror.WrapWith(err, "error deleting Anchore account", "organization", orgId, "account", anchorUserName))
 	}
-	logger.Debugf("Anchore account %v deleting.", anchorUserName)
+	logger.WithFields(logrus.Fields{
+		"organization": orgId,
+		"account":      anchorUserName,
+	}).Debug("Anchore account deleted")
 }
 
 // DoAnchoreRequest do anchore api call

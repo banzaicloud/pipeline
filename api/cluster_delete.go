@@ -47,7 +47,9 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 
 	a.clusterManager.DeleteCluster(ctx, commonCluster, force)
 
-	anchore.RemoveAnchoreUser(commonCluster.GetOrganizationId(), commonCluster.GetUID())
+	if anchore.AnchoreEnabled && commonCluster.GetSecurityScan() {
+		anchore.RemoveAnchoreUser(commonCluster.GetOrganizationId(), commonCluster.GetUID())
+	}
 
 	c.JSON(http.StatusAccepted, DeleteClusterResponse{
 		Status:     http.StatusAccepted,

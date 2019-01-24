@@ -21,7 +21,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	"github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -169,13 +168,6 @@ func (a *ClusterAPI) CreateCluster(
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
 			Error:   err.Error(),
-		}
-	}
-
-	if anchore.AnchoreEnabled {
-		_, err := anchore.SetupAnchoreUser(commonCluster.GetOrganizationId(), commonCluster.GetUID())
-		if err != nil {
-			log.Errorf("error creating anchore user: %s", err.Error())
 		}
 	}
 
