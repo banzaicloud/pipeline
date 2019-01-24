@@ -1,14 +1,14 @@
 package k8sutil
 
 import (
-	"fmt"
+	"time"
+
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/bootstrap/token/util"
 	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
-	"time"
 )
 
 // GetOrCreateBootstrapToken
@@ -21,7 +21,7 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 	}
 	secrets, err := client.CoreV1().Secrets(namespace).List(options)
 	if err != nil {
-		return "", emperror.Wrap(err, fmt.Sprintf("couldn't get bootokens %s.%s", namespace))
+		return "", emperror.Wrapf(err, "couldn't get boot-tokens from %s", namespace)
 	}
 	for _, s := range secrets.Items {
 		token, err := kubeadm.BootstrapTokenFromSecret(&s)
@@ -42,6 +42,9 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 		emperror.Wrap(err, "generate bootstrap token failed")
 	}
 	tokenString, err := kubeadm.NewBootstrapTokenString(tokenValue)
+	if err != nil {
+		emperror.Wrap(err, "generate bootstrap token failed")
+	}
 	token := kubeadm.BootstrapToken{
 		Token:       tokenString,
 		TTL:         &metav1.Duration{Duration: time.Hour * 1},
