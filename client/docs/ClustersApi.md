@@ -10,6 +10,7 @@ Method | HTTP request | Description
 [**DeleteNamespace**](ClustersApi.md#DeleteNamespace) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace} | Delete namespace from a cluster
 [**GetAPIEndpoint**](ClustersApi.md#GetAPIEndpoint) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint | Get API endpoint
 [**GetCluster**](ClustersApi.md#GetCluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
+[**GetClusterBootstrap**](ClustersApi.md#GetClusterBootstrap) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/bootstrap | Get cluster bootstrap info
 [**GetClusterConfig**](ClustersApi.md#GetClusterConfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 [**GetClusterStatus**](ClustersApi.md#GetClusterStatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 [**GetPodDetails**](ClustersApi.md#GetPodDetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
@@ -199,6 +200,35 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**GetClusterStatusResponse**](GetClusterStatusResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetClusterBootstrap**
+> GetClusterBootstrapResponse GetClusterBootstrap(ctx, orgId, id)
+Get cluster bootstrap info
+
+Get cluster bootstrap info
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+
+### Return type
+
+[**GetClusterBootstrapResponse**](GetClusterBootstrapResponse.md)
 
 ### Authorization
 

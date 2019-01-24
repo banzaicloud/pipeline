@@ -288,6 +288,47 @@ paths:
       summary: Create cluster
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/bootstrap:
+    get:
+      description: Get cluster bootstrap info
+      operationId: GetClusterBootstrap
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetClusterBootstrapResponse'
+          description: Getting bootstrap succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting cluster bootstrap
+      security:
+      - bearerAuth: []
+      summary: Get cluster bootstrap info
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}:
     delete:
       description: Deleting a K8S cluster
@@ -9278,6 +9319,21 @@ components:
           type: string
         cidr:
           description: The CIDR range for the subnet in case new Subnet is created.
+          type: string
+      type: object
+    GetClusterBootstrapResponse:
+      example:
+        masterAddress: https://8.9.10.11:443
+        discoveryTokenCaCertHash: discoveryTokenCaCertHash
+        token: r6pyrk.6n1wv3twavjcnevr
+      properties:
+        token:
+          example: r6pyrk.6n1wv3twavjcnevr
+          type: string
+        discoveryTokenCaCertHash:
+          type: string
+        masterAddress:
+          example: https://8.9.10.11:443
           type: string
       type: object
     CreateEKSProperties_eks:

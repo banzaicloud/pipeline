@@ -39,6 +39,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**DeleteNamespace**](docs/ClustersApi.md#deletenamespace) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace} | Delete namespace from a cluster
 *ClustersApi* | [**GetAPIEndpoint**](docs/ClustersApi.md#getapiendpoint) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint | Get API endpoint
 *ClustersApi* | [**GetCluster**](docs/ClustersApi.md#getcluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
+*ClustersApi* | [**GetClusterBootstrap**](docs/ClustersApi.md#getclusterbootstrap) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/bootstrap | Get cluster bootstrap info
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
@@ -220,6 +221,7 @@ Class | Method | HTTP request | Description
  - [EksVpc](docs/EksVpc.md)
  - [EndpointItem](docs/EndpointItem.md)
  - [GenTlsForLogging](docs/GenTlsForLogging.md)
+ - [GetClusterBootstrapResponse](docs/GetClusterBootstrapResponse.md)
  - [GetClusterNodePool](docs/GetClusterNodePool.md)
  - [GetClusterResponse](docs/GetClusterResponse.md)
  - [GetClusterStatusResponse](docs/GetClusterStatusResponse.md)
