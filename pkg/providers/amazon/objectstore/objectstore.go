@@ -314,7 +314,7 @@ func (s *objectStore) DeleteObject(bucketName string, key string) error {
 	})
 	if err != nil {
 		err = s.convertError(err)
-		emperror.WrapWith(err, "error deleting object", "bucket", bucketName, "object", key)
+		return emperror.WrapWith(err, "error deleting object", "bucket", bucketName, "object", key)
 	}
 
 	if s.waitForCompletion {

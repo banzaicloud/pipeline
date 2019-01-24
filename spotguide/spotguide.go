@@ -215,9 +215,16 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 			Order:       "asc",
 			ListOptions: listOpts,
 		})
+
 		if err != nil {
+			// Empty organization, no repositories
+			if resp.StatusCode == http.StatusUnprocessableEntity {
+				return nil
+			}
+
 			return emperror.Wrap(err, "failed to list github repositories")
 		}
+
 		allRepositories = append(allRepositories, reposRes.Repositories...)
 
 		if resp.NextPage == 0 {

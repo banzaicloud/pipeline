@@ -6922,7 +6922,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"secretId\": \"{{secretIdAzure}}\",\n\t\"name\": \"\",\n\t\"properties\": {\n\t\t\"azure\": {\n\t\t\t\"location\": \"\",\n\t\t\t\"storageAccount\": \"\",\n\t\t\t\"resourceGroup\": \"\"\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"secretId\": \"{{secretIdAzure}}\",\n\t\"name\": \"{{bucketName}}\",\n\t\"properties\": {\n\t\t\"azure\": {\n\t\t\t\"location\": \"{{azLocation}}\",\n\t\t\t\"storageAccount\": \"{{azStorageAccount}}\",\n\t\t\t\"resourceGroup\": \"{{azResourceGroup}}\"\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/buckets",
