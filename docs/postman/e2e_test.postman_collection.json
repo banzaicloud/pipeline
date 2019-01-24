@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e68318ef-62bf-4cfa-b2bc-a17d2a47fe12",
+		"_postman_id": "261b0089-ea1a-440d-b835-a3742f152de7",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1682,6 +1682,80 @@
 									"key": "clusterId",
 									"value": "{{clusterId}}",
 									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Get cluster details"
+					},
+					"response": []
+				},
+				{
+					"name": "Get bootstrap token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7f6aa4f0-6b6d-4b49-a50e-170897f158f3",
+								"exec": [
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+									"",
+									"    tests[\"Valid id\"] = dataJSON.id == environment.clusterId;",
+									"",
+									"    postman.setNextRequest(\"Cluster Status\");",
+									"}",
+									"else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/bootstrap",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"bootstrap"
+							],
+							"variable": [
+								{
+									"description": "Organization identifier",
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"description": "Cluster identifier",
+									"key": "clusterId",
+									"value": "{{clusterId}}"
 								}
 							]
 						},
@@ -9216,12 +9290,26 @@
 			"response": []
 		}
 	],
-	"variable": [
+	"event": [
 		{
-			"id": "056d83c0-003d-4ba4-bea7-e649650e6f80",
-			"key": "eksNodeImage",
-			"value": "ami-0a54c984b9f908c81",
-			"type": "string"
+			"listen": "prerequest",
+			"script": {
+				"id": "26f20bb1-5ac6-458e-80be-b9fcf661cc56",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "271a7622-2015-4790-a3ab-bd1e345c9746",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }
