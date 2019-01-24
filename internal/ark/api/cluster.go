@@ -33,4 +33,5 @@ type Cluster interface {
 	GetK8sConfig() ([]byte, error)
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 	GetLocation() string
+	RbacEnabled() bool
 }
