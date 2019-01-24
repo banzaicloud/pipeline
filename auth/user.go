@@ -232,10 +232,15 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	userOrg := Organization{
 		Name: currentUser.Login,
 	}
-	currentUser.Organizations = []Organization{userOrg}
 
 	db := context.Auth.GetDB(context.Request)
-	err = db.Create(currentUser).Error
+	err = db.Where(userOrg).Assign(&userOrg).FirstOrCreate(&userOrg).Error
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to create user organization: %s", err.Error())
+	}
+
+	currentUser.Organizations = []Organization{userOrg}
+	err = db.Where(User{Login: currentUser.Login}).Assign(&currentUser).FirstOrCreate(&currentUser).Error
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create user organization: %s", err.Error())
 	}
@@ -292,6 +297,9 @@ func (bus BanzaiUserStorer) Update(schema *auth.Schema, context *auth.Context) e
 }
 
 func (bus BanzaiUserStorer) createUserInCICDDB(user *User, githubAccessToken string) error {
+	where := &CICDUser{
+		Login: user.Login,
+	}
 	cicdUser := &CICDUser{
 		Login:  user.Login,
 		Email:  user.Email,
@@ -302,7 +310,8 @@ func (bus BanzaiUserStorer) createUserInCICDDB(user *User, githubAccessToken str
 		Admin:  true,
 		Synced: time.Now().Unix(),
 	}
-	return bus.cicdDB.Where(cicdUser).FirstOrCreate(cicdUser).Error
+
+	return bus.cicdDB.Where(where).Assign(cicdUser).FirstOrCreate(cicdUser).Error
 }
 
 func (bus BanzaiUserStorer) updateUserInCICDDB(user *User, githubAccessToken string) error {
@@ -377,6 +386,7 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 
 	tx := db.Begin()
 	for _, org := range orgs {
+		where := Organization{Name: org.name}
 		o := Organization{
 			Name:     org.name,
 			GithubID: &org.id,
@@ -384,7 +394,7 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 		}
 
 		needsCreation := true
-		err := tx.Where(o).First(&o).Error
+		err := tx.Where(where).First(&o).Error
 		if err == nil {
 			orgIDs[o.ID] = false
 			needsCreation = false
@@ -399,7 +409,7 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 		}
 
 		if needsCreation {
-			err = tx.Where(o).Create(&o).Error
+			err = tx.Create(&o).Error
 			if err != nil {
 				tx.Rollback()
 
@@ -407,6 +417,14 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 			}
 
 			orgIDs[o.ID] = true
+		} else {
+			o.GithubID = &org.id
+			err = tx.Save(&o).Error
+			if err != nil {
+				tx.Rollback()
+
+				return nil, errors.Wrap(err, "failed to update organization")
+			}
 		}
 
 		err = tx.Model(currentUser).Association("Organizations").Append(o).Error
