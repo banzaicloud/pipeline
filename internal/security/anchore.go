@@ -260,30 +260,28 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 }
 
 func RemoveAnchoreUser(orgId uint, clusterId string) {
-	if !AnchoreEnabled {
-		return
-	}
+
 	anchorUserName := fmt.Sprintf("%v-anchore-user", clusterId)
 
 	secretItem, err := secret.Store.GetByName(orgId, anchorUserName)
 	if err != nil {
-		logger.Errorf("error fetching Anchore user secret: %v", err.Error())
+		logger.Errorf("error fetching Anchore user secret: %d/%s error: %v", orgId, anchorUserName, err.Error())
 		return
 	}
 	err = secret.Store.Delete(orgId, secretItem.ID)
 	if err != nil {
-		logger.Errorf("error deleting Anchore user secret: %v", err.Error())
+		logger.Errorf("error deleting Anchore user secret: %d/%s error: %v", orgId, anchorUserName, err.Error())
 	} else {
-		logger.Infof("Anchore user secret %v deleted.", anchorUserName)
+		logger.Infof("Anchore user secret %d/%s deleted.", orgId, anchorUserName)
 	}
 	if checkAnchoreUser(anchorUserName, http.MethodDelete) != http.StatusNoContent {
-		logger.Errorf("error deleting Anchore user: %v", anchorUserName)
+		logger.Errorf("error deleting Anchore user: %d/%s", orgId, anchorUserName)
 	}
-	logger.Debugf("Anchore user %v deleted.", anchorUserName)
+	logger.Debugf("Anchore user %d/%s deleted.", orgId, anchorUserName)
 	if deleteAnchoreAccount(anchorUserName) != http.StatusNoContent {
-		logger.Errorf("error deleting Anchore account: %v", anchorUserName)
+		logger.Errorf("error deleting Anchore account: %d/%s", orgId, anchorUserName)
 	}
-	logger.Debugf("Anchore account %v deleting.", anchorUserName)
+	logger.Debugf("Anchore account %d/%s deleting.", orgId, anchorUserName)
 }
 
 // DoAnchoreRequest do anchore api call

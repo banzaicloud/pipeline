@@ -724,6 +724,13 @@ func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHo
 	}
 
 	anchoreUserName := fmt.Sprintf("%v-anchore-user", cluster.GetUID())
+
+	_, err = anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
+	if err != nil {
+		return emperror.WrapWith(err, "error creating anchore user", "organiztion", cluster.GetOrganizationId(), "anchoreuser", anchoreUserName)
+	}
+	cluster.SetSecurityScan(true)
+
 	anchoreUserSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), anchoreUserName)
 	if err != nil {
 		return emperror.WrapWith(err, "failed to get anchore secret", "user", anchoreUserName)
@@ -750,7 +757,6 @@ func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHo
 	if err != nil {
 		return emperror.Wrap(err, "install anchore-policy-validator failed")
 	}
-	cluster.SetSecurityScan(true)
 
 	// parse string as true-default boolean
 	allowAll := true
