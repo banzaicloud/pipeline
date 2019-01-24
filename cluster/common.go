@@ -18,10 +18,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -68,6 +70,8 @@ type CommonCluster interface {
 	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
 	DeleteCluster() error
+	GetScaleOptions() *pkgCluster.ScaleOptions
+	SetScaleOptions(*pkgCluster.ScaleOptions)
 
 	// Kubernetes
 	DownloadK8sConfig() ([]byte, error)
@@ -218,6 +222,39 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse, error) {
 	return secret.Store.Get(organizationId, secretId)
+}
+
+func updateScaleOptions(scaleOptions *model.ScaleOptions, requestScaleOptions *pkgCluster.ScaleOptions) {
+	if scaleOptions == nil || requestScaleOptions == nil {
+		return
+	}
+	excludes := strings.Join(requestScaleOptions.Excludes, cluster.InstanceTypeSeparator)
+	scaleOptions.Enabled = true
+	scaleOptions.DesiredCpu = requestScaleOptions.DesiredCpu
+	scaleOptions.DesiredMem = requestScaleOptions.DesiredMem
+	scaleOptions.DesiredGpu = requestScaleOptions.DesiredGpu
+	scaleOptions.OnDemandPct = requestScaleOptions.OnDemandPct
+	scaleOptions.Excludes = excludes
+	scaleOptions.KeepDesiredCapacity = requestScaleOptions.KeepDesiredCapacity
+}
+
+func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.ScaleOptions {
+	if scaleOptions.ID != 0 {
+		scaleOpt := &pkgCluster.ScaleOptions{
+			Enabled:             scaleOptions.Enabled,
+			DesiredCpu:          scaleOptions.DesiredCpu,
+			DesiredMem:          scaleOptions.DesiredMem,
+			DesiredGpu:          scaleOptions.DesiredGpu,
+			OnDemandPct:         scaleOptions.OnDemandPct,
+			KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
+		}
+		if len(scaleOptions.Excludes) > 0 {
+			scaleOpt.Excludes = strings.Split(scaleOptions.Excludes, cluster.InstanceTypeSeparator)
+		}
+		return scaleOpt
+
+	}
+	return nil
 }
 
 // GetCommonClusterFromModel extracts CommonCluster from a ClusterModel

@@ -43,6 +43,14 @@ func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.
 			NodeCount:        nodePoolData.Count,
 			NodeInstanceType: nodePoolData.NodeInstanceType,
 			Preemptible:      nodePoolData.Preemptible,
+			Labels:           make([]*google.GKENodePoolLabelModel, 0),
+		}
+
+		for name, value := range nodePoolData.Labels {
+			nodePoolsModel[i].Labels = append(nodePoolsModel[i].Labels, &google.GKENodePoolLabelModel{
+				Name:  name,
+				Value: value,
+			})
 		}
 
 		i++
@@ -63,13 +71,19 @@ func createNodePoolsFromClusterModel(clusterModel *google.GKEClusterModel) ([]*g
 	for i := 0; i < nodePoolsCount; i++ {
 		nodePoolModel := clusterModel.NodePools[i]
 
+		labels := map[string]string{
+			pkgCommon.LabelKey:         nodePoolModel.Name,
+			pkgCommon.OnDemandLabelKey: strconv.FormatBool(!nodePoolModel.Preemptible),
+		}
+
+		for _, label := range nodePoolModel.Labels {
+			labels[label.Name] = label.Value
+		}
+
 		nodePools[i] = &gke.NodePool{
 			Name: nodePoolModel.Name,
 			Config: &gke.NodeConfig{
-				Labels: map[string]string{
-					pkgCommon.LabelKey:         nodePoolModel.Name,
-					pkgCommon.OnDemandLabelKey: strconv.FormatBool(!nodePoolModel.Preemptible),
-				},
+				Labels:      labels,
 				MachineType: nodePoolModel.NodeInstanceType,
 				OauthScopes: []string{
 					"https://www.googleapis.com/auth/logging.write",
@@ -118,6 +132,7 @@ func createNodePoolsRequestDataFromNodePoolModel(nodePoolsModel []*google.GKENod
 			MaxCount:         nodePoolModel.NodeMaxCount,
 			Count:            nodePoolModel.NodeCount,
 			NodeInstanceType: nodePoolModel.NodeInstanceType,
+			Preemptible:      nodePoolModel.Preemptible,
 		}
 	}
 

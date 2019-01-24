@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
@@ -55,8 +56,11 @@ type ClusterModel struct {
 	Logging        bool
 	ServiceMesh    bool
 	SecurityScan   bool
-	StatusMessage  string `sql:"type:text;"`
+	StatusMessage  string             `sql:"type:text;"`
+	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
 }
+
+const InstanceTypeSeparator = " "
 
 // TableName changes the default table name.
 func (ClusterModel) TableName() string {

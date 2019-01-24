@@ -123,7 +123,7 @@ func (c *Clusters) findOneBy(organizationID uint, field string, criteria interfa
 		cluster.Name = name
 	}
 
-	err := c.db.Where(cluster).First(&cluster).Error
+	err := c.db.Where(cluster).Preload("ScaleOptions").First(&cluster).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return nil, errors.WithStack(&clusterModelNotFoundError{
 			cluster:        criteria,

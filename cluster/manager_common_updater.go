@@ -23,9 +23,11 @@ import (
 )
 
 type commonUpdater struct {
-	request *cluster.UpdateClusterRequest
-	cluster CommonCluster
-	userID  uint
+	request                  *cluster.UpdateClusterRequest
+	cluster                  CommonCluster
+	userID                   uint
+	scaleOptionsChanged      bool
+	clusterPropertiesChanged bool
 }
 
 type commonUpdateValidationError struct {
@@ -87,10 +89,16 @@ func (c *commonUpdater) Validate(ctx context.Context) error {
 func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 	c.cluster.AddDefaultsToUpdate(c.request)
 
+	c.scaleOptionsChanged = isDifferent(c.request.ScaleOptions, c.cluster.GetScaleOptions()) == nil
+	c.clusterPropertiesChanged = true
+
 	if err := c.cluster.CheckEqualityToUpdate(c.request); err != nil {
-		return nil, &commonUpdateValidationError{
-			msg:            err.Error(),
-			invalidRequest: true,
+		c.clusterPropertiesChanged = false
+		if !c.scaleOptionsChanged {
+			return nil, &commonUpdateValidationError{
+				msg:            err.Error(),
+				invalidRequest: true,
+			}
 		}
 	}
 
@@ -106,6 +114,14 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 
 // Update implements the clusterUpdater interface.
 func (c *commonUpdater) Update(ctx context.Context) error {
+	if c.scaleOptionsChanged {
+		c.cluster.SetScaleOptions(c.request.ScaleOptions)
+	}
+
+	if !c.clusterPropertiesChanged {
+		return nil
+	}
+
 	err := c.cluster.UpdateCluster(c.request, c.userID)
 	if err != nil {
 		return err

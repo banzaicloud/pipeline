@@ -201,7 +201,11 @@
 
 [[constraint]]
   name = "github.com/Azure/azure-storage-blob-go"
-  version = "0.1.4"
+  version = "0.3.0"
+
+[[constraint]]
+  name = "github.com/Azure/azure-pipeline-go"
+  version = "0.1.8"
 
 [[constraint]]
   name = "github.com/technosophos/moniker"

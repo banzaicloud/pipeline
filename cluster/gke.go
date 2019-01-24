@@ -109,6 +109,8 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		Subnet:        request.Properties.CreateClusterGKE.Subnet,
 	}
 
+	updateScaleOptions(&c.model.Cluster.ScaleOptions, request.ScaleOptions)
+
 	return &c, nil
 }
 
@@ -1523,7 +1525,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	log := log.WithField("cluster", clusterModel.Name)
 	log.Debug("Load Google props from database")
 
-	err := db.Where(m).Preload("Cluster").Preload("NodePools").First(&m).Error
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").Preload("NodePools.Labels").First(&m).Error
 	if err != nil {
 		return nil, err
 	}
@@ -2160,6 +2162,16 @@ func (c *GKECluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (c *GKECluster) SetMonitoring(l bool) {
 	c.model.Cluster.Monitoring = l
+}
+
+// GetScaleOptions returns scale options for the cluster
+func (c *GKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
+	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
+}
+
+// SetScaleOptions sets scale options for the cluster
+func (c *GKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
 }
 
 // GetServiceMesh returns true if service mesh is enabled on the cluster

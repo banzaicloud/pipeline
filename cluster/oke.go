@@ -60,6 +60,7 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		CreatedBy:      userId,
 		Distribution:   pkgCluster.OKE,
 	}
+	updateScaleOptions(&oke.modelCluster.ScaleOptions, request.ScaleOptions)
 
 	VCNID, err := oke.CreatePreconfiguredVCN(request.Name)
 	if err != nil {
@@ -600,6 +601,16 @@ func (o *OKECluster) GetMonitoring() bool {
 // SetMonitoring returns true if monitoring enabled on the cluster
 func (o *OKECluster) SetMonitoring(l bool) {
 	o.modelCluster.Monitoring = l
+}
+
+// getScaleOptionsFromModelV1 returns scale options for the cluster
+func (o *OKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
+	return getScaleOptionsFromModel(o.modelCluster.ScaleOptions)
+}
+
+// SetScaleOptions sets scale options for the cluster
+func (o *OKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+	updateScaleOptions(&o.modelCluster.ScaleOptions, scaleOptions)
 }
 
 // GetServiceMesh returns true if service mesh is enabled on the cluster

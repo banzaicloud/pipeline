@@ -23,11 +23,9 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
 )
 
 const unknown = "unknown"
@@ -67,6 +65,7 @@ type ClusterModel struct {
 	Monitoring     bool
 	Logging        bool
 	ServiceMesh    bool
+	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
 	SecurityScan   bool
 	StatusMessage  string                 `sql:"type:text;"`
 	ACSK           ACSKClusterModel       `gorm:"foreignkey:ID"`
@@ -76,6 +75,19 @@ type ClusterModel struct {
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
+}
+
+// ScaleOptions describes scale options
+type ScaleOptions struct {
+	ID                  uint `gorm:"primary_key"`
+	ClusterID           uint `gorm:"unique_index:ux_cluster_id"`
+	Enabled             bool
+	DesiredCpu          float64
+	DesiredMem          float64
+	DesiredGpu          int
+	OnDemandPct         int
+	Excludes            string `sql:"type:text;"`
+	KeepDesiredCapacity bool
 }
 
 // ACSKNodePoolModel describes Alibaba Cloud CS node groups model of a cluster
@@ -242,21 +254,8 @@ func (cs *ClusterModel) Save() error {
 	return nil
 }
 
-func (cs *ClusterModel) preDelete() {
-	log := log.WithFields(logrus.Fields{"organization": cs.OrganizationId, "cluster": cs.ID})
-
-	log.Info("Delete unused cluster secrets")
-	if err := secret.Store.DeleteByClusterUID(cs.OrganizationId, cs.UID); err != nil {
-		log.Errorf("Error during deleting secret: %s", err.Error())
-	}
-}
-
 //Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
-
-	log.Info("Delete config secret")
-	cs.preDelete()
-
 	db := config.DB()
 	return db.Delete(&cs).Error
 }

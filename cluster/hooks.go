@@ -307,7 +307,11 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			TenantID:       logSecret.Values[pkgSecret.AzureTenantId],
 		}
 
-		sak, err := azureObjectstore.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount, credentials, log)
+		storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(credentials)
+		if err != nil {
+			return emperror.Wrap(err, "failed to create storage account client")
+		}
+		sak, err := storageAccountClient.GetStorageAccountKey(loggingParam.ResourceGroup, loggingParam.StorageAccount)
 		if err != nil {
 			return emperror.Wrap(err, "get storage account key failed")
 		}

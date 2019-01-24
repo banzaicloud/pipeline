@@ -34,6 +34,8 @@ const (
 	pool2Count            = 2
 	pool2NodeInstanceType = "instanceType2"
 	nodeVersion           = "gke-1.9"
+	labelName             = "custom"
+	labelValue            = "value"
 
 	userId = 1
 )
@@ -60,13 +62,17 @@ func TestCreateNodePoolsModelFromRequest(t *testing.T) {
 	emptyNodePoolsData := map[string]*pkgClusterGoogle.NodePool{}
 
 	modePoolsData := map[string]*pkgClusterGoogle.NodePool{
-		pool1Name: {Count: pool1Count, NodeInstanceType: pool1NodeInstanceType},
-		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType},
+		pool1Name: {Count: pool1Count, NodeInstanceType: pool1NodeInstanceType, Labels: map[string]string{labelName: labelValue}},
+		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType, Labels: map[string]string{labelName: labelValue}},
+	}
+
+	labels := []*google.GKENodePoolLabelModel{
+		{Name: labelName, Value: labelValue},
 	}
 
 	nodePoolsModel := []*google.GKENodePoolModel{
-		{CreatedBy: userId, Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType},
-		{CreatedBy: userId, Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType},
+		{CreatedBy: userId, Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType, Labels: labels},
+		{CreatedBy: userId, Name: pool2Name, NodeCount: pool2Count, NodeInstanceType: pool2NodeInstanceType, Labels: labels},
 	}
 
 	testCases := []struct {

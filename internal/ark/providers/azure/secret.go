@@ -15,13 +15,10 @@
 package azure
 
 import (
-	"context"
 	"fmt"
 
-	mgmtStorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure/auth"
-	"github.com/pkg/errors"
+	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
+	"github.com/goph/emperror"
 
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -47,10 +44,22 @@ func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string
 	s.StorageAccount = storageAccount
 	s.ResourceGroup = resourceGroup
 
-	key, err := s.getStorageAccountKey()
+	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(
+		azureObjectstore.Credentials{
+			ClientID:       s.ClientID,
+			ClientSecret:   s.ClientSecret,
+			SubscriptionID: s.SubscriptionID,
+			TenantID:       s.TenantID,
+		})
+	if err != nil {
+		return Secret{}, emperror.Wrap(err, "failed to create storage account client")
+	}
+
+	key, err := storageAccountClient.GetStorageAccountKey(resourceGroup, storageAccount)
 	if err != nil {
 		return Secret{}, err
 	}
+
 	s.StorageKey = key
 
 	return s, nil
@@ -72,49 +81,4 @@ func getSecret(secret *secret.SecretItemResponse) Secret {
 		SubscriptionID: secret.Values[pkgSecret.AzureSubscriptionId],
 		TenantID:       secret.Values[pkgSecret.AzureTenantId],
 	}
-}
-
-func (s Secret) getStorageAccountKey() (string, error) {
-	client, err := s.createStorageAccountClient()
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	keys, err := client.ListKeys(context.TODO(), s.ResourceGroup, s.StorageAccount)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	key := (*keys.Keys)[0].Value
-	if key != nil {
-		return *key, nil
-	}
-
-	return "", nil
-}
-
-func (s Secret) createStorageAccountClient() (*mgmtStorage.AccountsClient, error) {
-	accountClient := mgmtStorage.NewAccountsClient(s.SubscriptionID)
-
-	authorizer, err := s.newAuthorizer()
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	accountClient.Authorizer = authorizer
-
-	return &accountClient, nil
-}
-
-func (s Secret) newAuthorizer() (autorest.Authorizer, error) {
-	authorizer, err := auth.NewClientCredentialsConfig(
-		s.ClientID,
-		s.ClientSecret,
-		s.TenantID).Authorizer()
-
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return authorizer, nil
 }

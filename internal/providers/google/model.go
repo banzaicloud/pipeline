@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/providers/google"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -30,6 +31,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 		&GKEClusterModel{},
 		&GKENodePoolModel{},
+		&GKENodePoolLabelModel{},
 	}
 
 	var tableNames string
@@ -42,5 +44,25 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating provider tables")
 
-	return db.AutoMigrate(tables...).Error
+	err := db.AutoMigrate(tables...).Error
+	if err != nil {
+		return err
+	}
+
+	err = model.AddForeignKey(db, logger, &model.ClusterModel{}, &GKEClusterModel{}, "ClusterID")
+	if err != nil {
+		return err
+	}
+
+	err = model.AddForeignKeyAndReferencedKey(db, logger, &GKEClusterModel{}, &GKENodePoolModel{}, "ClusterID", "ClusterID")
+	if err != nil {
+		return err
+	}
+
+	err = model.AddForeignKey(db, logger, &GKENodePoolModel{}, &GKENodePoolLabelModel{}, "NodePoolID")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

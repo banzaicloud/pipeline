@@ -45,6 +45,11 @@ const (
 	DefaultNodeMaxCount = 2
 )
 
+// Constant for the common part of all possible Pipeline specific label name
+const (
+	PipelineSpecificLabelsCommonPart = "banzaicloud.io"
+)
+
 // Constants for labeling cluster nodes
 const (
 	LabelKey         = "nodepool.banzaicloud.io/name"
