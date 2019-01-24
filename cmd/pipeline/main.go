@@ -280,7 +280,7 @@ func main() {
 	// insert shared organization to DB if not exists
 	sharedOrgName := viper.GetString(config.SpotguideSharedLibraryGitHubOrganization)
 	if org, _, err := github.NewClient(nil).Organizations.Get(context.Background(), sharedOrgName); err != nil {
-		log.Errorf("failed to create shared organization: %s", err.Error())
+		log.Errorf("failed to query shared Github organization: %s", err.Error())
 	} else {
 		sharedOrg := auth.Organization{Name: *org.Login, GithubID: org.ID}
 		if err := db.Where(sharedOrg).FirstOrCreate(&sharedOrg).Error; err != nil {
