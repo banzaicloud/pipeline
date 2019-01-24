@@ -15,7 +15,6 @@
 package objectstore
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -24,13 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	azurePipeline "github.com/Azure/azure-pipeline-go/pipeline"
 	"github.com/Azure/azure-storage-blob-go/azblob"
-	"github.com/Azure/azure-storage-file-go/2017-07-29/azfile"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -49,7 +45,6 @@ type Config struct {
 	ResourceGroup  string
 	StorageAccount string
 	Location       string
-	Logger         logrus.FieldLogger
 }
 
 // Credentials represents credentials necessary for access
@@ -76,7 +71,7 @@ func New(config Config, credentials Credentials) *objectStore {
 
 // CreateBucket creates a new bucket in the object store
 func (o *objectStore) CreateBucket(bucketName string) error {
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -92,21 +87,21 @@ func (o *objectStore) CreateBucket(bucketName string) error {
 		if err.(azblob.StorageError).ServiceCode() == azblob.ServiceCodeContainerNotFound { // Bucket not found, so create it
 			_, err = containerURL.Create(context.TODO(), azblob.Metadata{}, azblob.PublicAccessNone)
 			if err != nil {
-				return emperror.With(
-					errors.Wrap(err, "failed to create bucket"),
-					"resource-group", o.config.ResourceGroup,
-					"bucket", bucketName,
+				return emperror.WrapWith(err, "failed to create bucket",
+					"resource-group", o.config.ResourceGroup, "bucket", bucketName,
 				)
 			}
 		} else {
 			return err
 		}
+	} else {
+		return errBucketAlreadyExists{}
 	}
 
 	return nil
 }
 
-func (o *objectStore) createPipeline() (pipeline.Pipeline, error) {
+func (o *objectStore) createAzurePipeline() (azurePipeline.Pipeline, error) {
 	storageAccountClient, err := NewAuthorizedStorageAccountClientFromSecret(o.credentials)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create storage account client")
@@ -114,8 +109,7 @@ func (o *objectStore) createPipeline() (pipeline.Pipeline, error) {
 
 	key, err := storageAccountClient.GetStorageAccountKey(o.config.ResourceGroup, o.config.StorageAccount)
 	if err != nil {
-		return nil, emperror.With(
-			errors.Wrap(err, "failed to get storage account key"),
+		return nil, emperror.WrapWith(err, "failed to get storage account key",
 			"resource-group", o.config.ResourceGroup,
 		)
 	}
@@ -132,7 +126,7 @@ func (o *objectStore) createPipeline() (pipeline.Pipeline, error) {
 func (o *objectStore) ListBuckets() ([]string, error) {
 	buckets := make([]string, 0)
 
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -158,7 +152,7 @@ func (o *objectStore) ListBuckets() ([]string, error) {
 
 // CheckBucket checks the status of the given bucket
 func (o *objectStore) CheckBucket(bucketName string) error {
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -172,7 +166,7 @@ func (o *objectStore) CheckBucket(bucketName string) error {
 	_, err = containerURL.GetProperties(context.TODO(), azblob.LeaseAccessConditions{})
 	if err != nil {
 		if err.(azblob.StorageError).ServiceCode() == azblob.ServiceCodeContainerNotFound {
-			return emperror.With(errors.New("failed to find bucket"), "bucket", bucketName)
+			return emperror.With(errBucketNotFound{}, "bucket", bucketName)
 		}
 		return emperror.WrapWith(err, "checking bucket failed", "bucket", bucketName)
 	}
@@ -191,7 +185,7 @@ func (o *objectStore) DeleteBucket(bucketName string) error {
 		return emperror.With(pkgErrors.ErrorBucketDeleteNotEmpty, "bucket", bucketName)
 	}
 
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -204,10 +198,8 @@ func (o *objectStore) DeleteBucket(bucketName string) error {
 
 	_, err = containerURL.Delete(context.TODO(), azblob.ContainerAccessConditions{})
 	if err != nil {
-		return emperror.With(
-			errors.Wrap(err, "failed to delete bucket"),
-			"resource-group", o.config.ResourceGroup,
-			"bucket", bucketName,
+		return emperror.WrapWith(err, "failed to delete bucket",
+			"resource-group", o.config.ResourceGroup, "bucket", bucketName,
 		)
 	}
 
@@ -218,7 +210,7 @@ func (o *objectStore) DeleteBucket(bucketName string) error {
 func (o *objectStore) ListObjects(bucketName string) ([]string, error) {
 	blobs := make([]string, 0)
 
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -244,7 +236,7 @@ func (o *objectStore) ListObjects(bucketName string) ([]string, error) {
 func (o *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string, error) {
 	blobs := make([]string, 0)
 
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -272,7 +264,7 @@ func (o *objectStore) ListObjectsWithPrefix(bucketName, prefix string) ([]string
 func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string) ([]string, error) {
 	var prefixes []string
 
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -298,7 +290,7 @@ func (o *objectStore) ListObjectKeyPrefixes(bucketName string, delimiter string)
 
 // GetObject retrieves the object by it's key from the given bucket
 func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, error) {
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -307,20 +299,21 @@ func (o *objectStore) GetObject(bucketName string, key string) (io.ReadCloser, e
 	if err != nil {
 		return nil, err
 	}
-	fileURL := azfile.NewFileURL(*URL, p)
 
-	fileProperties, err := fileURL.GetProperties(context.TODO())
+	blobURL := azblob.NewBlobURL(*URL, p)
+
+	downloadResponse, err := blobURL.Download(context.TODO(), 0, azblob.CountToEnd, azblob.BlobAccessConditions{}, false)
 	if err != nil {
 		err = o.convertError(err)
 		return nil, emperror.WrapWith(err, "error getting object", "bucket", bucketName, "object", key)
 	}
 
-	return fileProperties.Response().Body, nil
+	return downloadResponse.Body(azblob.RetryReaderOptions{MaxRetryRequests: 3}), nil
 }
 
 // PutObject creates a new object using the data in body with the given key
 func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) error {
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -329,14 +322,14 @@ func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 	if err != nil {
 		return err
 	}
-	fileURL := azfile.NewFileURL(*URL, p)
+	blobURL := azblob.NewBlockBlobURL(*URL, p)
 
 	b, err := ioutil.ReadAll(body)
 	if err != nil {
 		return err
 	}
 
-	_, err = fileURL.UploadRange(context.TODO(), 0, bytes.NewReader(b))
+	_, err = azblob.UploadBufferToBlockBlob(context.TODO(), b, blobURL, azblob.UploadToBlockBlobOptions{})
 	if err != nil {
 		err = o.convertError(err)
 		return emperror.WrapWith(err, "error putting object", "bucket", bucketName, "object", key)
@@ -347,7 +340,7 @@ func (o *objectStore) PutObject(bucketName string, key string, body io.Reader) e
 
 // DeleteObject deletes the object from the given bucket by it's key
 func (o *objectStore) DeleteObject(bucketName string, key string) error {
-	p, err := o.createPipeline()
+	p, err := o.createAzurePipeline()
 	if err != nil {
 		return emperror.Wrap(err, "failed to create azure pipeline")
 	}
@@ -356,9 +349,9 @@ func (o *objectStore) DeleteObject(bucketName string, key string) error {
 	if err != nil {
 		return err
 	}
-	fileURL := azfile.NewFileURL(*URL, p)
+	blobURL := azblob.NewBlobURL(*URL, p)
 
-	_, err = fileURL.Delete(context.TODO())
+	_, err = blobURL.Delete(context.TODO(), "", azblob.BlobAccessConditions{})
 	if err != nil {
 		err = o.convertError(err)
 		return emperror.WrapWith(err, "error deleting object", "bucket", bucketName, "object", key)
@@ -376,27 +369,29 @@ func (o *objectStore) GetSignedURL(bucketName, key string, ttl time.Duration) (s
 
 	skey, err := storageAccountClient.GetStorageAccountKey(o.config.ResourceGroup, o.config.StorageAccount)
 	if err != nil {
-		return "", emperror.With(
-			errors.Wrap(err, "failed to get storage account key"),
+		return "", emperror.WrapWith(err, "failed to get storage account key",
 			"resource-group", o.config.ResourceGroup,
 		)
 	}
 
-	credential, err := azfile.NewSharedKeyCredential(o.config.StorageAccount, skey)
+	credential, err := azblob.NewSharedKeyCredential(o.config.StorageAccount, skey)
 	if err != nil {
 		return "", err
 	}
 
-	sasQueryParams := azfile.AccountSASSignatureValues{
-		Protocol:      azfile.SASProtocolHTTPS,
+	sasQueryParams, err := azblob.BlobSASSignatureValues{
+		Protocol:      azblob.SASProtocolHTTPS,
 		ExpiryTime:    time.Now().Add(ttl),
-		Permissions:   azfile.AccountSASPermissions{Read: true, List: true}.String(),
-		Services:      azfile.AccountSASServices{File: true}.String(),
-		ResourceTypes: azfile.AccountSASResourceTypes{Container: true, Object: true}.String(),
+		Permissions:   azblob.BlobSASPermissions{Add: true, Read: true, Write: true}.String(),
+		ContainerName: bucketName,
+		BlobName:      key,
 	}.NewSASQueryParameters(credential)
+	if err != nil {
+		return "", err
+	}
 
 	qp := sasQueryParams.Encode()
-	signedUrl := fmt.Sprintf("https://%s.file.core.windows.net?%s", o.config.StorageAccount, qp)
+	signedUrl := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s?%s", o.config.StorageAccount, bucketName, key, qp)
 
 	return signedUrl, nil
 }

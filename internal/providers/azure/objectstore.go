@@ -142,7 +142,6 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, resourceGroup, st
 		ResourceGroup:  resourceGroup,
 		StorageAccount: storageAccount,
 		Location:       location,
-		Logger:         logger,
 	}
 
 	return azureObjectstore.New(config, credentials), nil
@@ -360,7 +359,7 @@ func (s *ObjectStore) CheckBucket(bucketName string) error {
 func (s *ObjectStore) createStorageAccountAndResourceGroup() error {
 	resourceGroupClient, err := azureObjectstore.NewAuthorizedResourceGroupClientFromSecret(getCredentials(s.secret))
 	if err != nil {
-		return errors.Wrap(err, "failed to create resource group client")
+		return emperror.Wrap(err, "failed to create resource group client")
 	}
 	if err := resourceGroupClient.CreateResourceGroup(s.resourceGroup, s.location, s.logger); err != nil {
 		return emperror.Wrap(err, "failed to create resource group")
@@ -368,7 +367,7 @@ func (s *ObjectStore) createStorageAccountAndResourceGroup() error {
 
 	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(getCredentials(s.secret))
 	if err != nil {
-		return errors.Wrap(err, "failed to create storage account client")
+		return emperror.With(err, "failed to create storage account client")
 	}
 
 	exists, err := storageAccountClient.CheckStorageAccountExistence(s.resourceGroup, s.storageAccount, s.logger)
@@ -398,7 +397,7 @@ func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 
 	resourceGroupClient, err := azureObjectstore.NewAuthorizedResourceGroupClientFromSecret(getCredentials(s.secret))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create resource group client")
+		return nil, emperror.Wrap(err, "failed to create resource group client")
 	}
 
 	resourceGroups, err := resourceGroupClient.GetAllResourceGroups()

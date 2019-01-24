@@ -35,7 +35,7 @@
   version = "v0.1.8"
 
 [[projects]]
-  digest = "1:af4b364a2bbf29ec2d241efca2cae36993494f1f8d6a544fbcf2cc1f878423cb"
+  digest = "1:17f64e919e61f0d0e09f84f1603af12d0a3965fff868a01f89cdbf035d4a9668"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "services/authorization/mgmt/2015-07-01/authorization",
@@ -58,14 +58,6 @@
   packages = ["azblob"]
   pruneopts = "NUT"
   revision = "5152f14ace1c6db66bd9cb57840703a8358fa7bc"
-  version = "0.3.0"
-
-[[projects]]
-  digest = "1:3f214eb8ffe5f850fc836f90852772b3bbe2b28ed9cfe140ad94d0e0eefef2b1"
-  name = "github.com/Azure/azure-storage-file-go"
-  packages = ["2017-07-29/azfile"]
-  pruneopts = "NUT"
-  revision = "1f1f8b681a24cd73cf5fc01ff15ab81245c259d4"
   version = "0.3.0"
 
 [[projects]]
@@ -2195,7 +2187,6 @@
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
     "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
     "github.com/Azure/azure-storage-blob-go/azblob",
-    "github.com/Azure/azure-storage-file-go/2017-07-29/azfile",
     "github.com/Azure/go-autorest/autorest",
     "github.com/Azure/go-autorest/autorest/azure",
     "github.com/Azure/go-autorest/autorest/azure/auth",

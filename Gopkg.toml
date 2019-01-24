@@ -204,8 +204,8 @@
   version = "0.3.0"
 
 [[constraint]]
-  version = "0.3.0"
-  name = "github.com/Azure/azure-storage-file-go"
+  name = "github.com/Azure/azure-pipeline-go"
+  version = "0.1.8"
 
 [[constraint]]
   name = "github.com/technosophos/moniker"
