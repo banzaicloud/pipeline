@@ -330,6 +330,7 @@ func main() {
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 			orgs.GET("/:orgid/clusters/:id", clusterAPI.GetCluster)
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
+			orgs.GET("/:orgid/clusters/:id/bootstrap", clusterAPI.GetBootstrapInfo)
 			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
 
 			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
