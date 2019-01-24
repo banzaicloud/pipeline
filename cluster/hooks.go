@@ -947,7 +947,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		return emperror.Wrapf(err, "Retrieving organization with id %d failed", orgId)
 	}
 
-	domain := fmt.Sprintf("%s.%s", org.Name, domainBase)
+	domain := strings.ToLower(fmt.Sprintf("%s.%s", org.Name, domainBase))
 
 	registered, err := dnsSvc.IsDomainRegistered(orgId, domain)
 	if err != nil {

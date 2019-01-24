@@ -18,6 +18,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/base64"
 	"fmt"
+	"strings"
 
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
 	"github.com/banzaicloud/pipeline/auth"
@@ -66,7 +67,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 			return emperror.WrapWith(err, "failed to get organization", "organizationId", orgID)
 		}
 
-		orgDomainName := fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain))
+		orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain)))
 		wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
 
 		certRequest := tls.ServerCertificateRequest{
