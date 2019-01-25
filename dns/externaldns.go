@@ -92,8 +92,15 @@ func newExternalDnsServiceClientInstance() {
 		return
 	}
 
+	baseDomain, err := GetBaseDomain()
+	if err != nil {
+		errCreate = err
+
+		return
+	}
+
 	dnsNotificationsChannel = make(chan interface{})
-	awsRoute53, err := route53.NewAwsRoute53(region, awsSecretId, awsSecretKey, dnsNotificationsChannel)
+	awsRoute53, err := route53.NewAwsRoute53(region, awsSecretId, awsSecretKey, baseDomain, dnsNotificationsChannel)
 	if err != nil {
 		errCreate = err
 

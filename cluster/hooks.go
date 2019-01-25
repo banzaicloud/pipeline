@@ -927,7 +927,11 @@ func SetupPrivileges(cluster CommonCluster) error {
 // in external Dns service. It ensures that only one domain is registered per organization.
 func RegisterDomainPostHook(commonCluster CommonCluster) error {
 
-	domainBase := viper.GetString(pipConfig.DNSBaseDomain)
+	domainBase, err := dns.GetBaseDomain()
+	if err != nil {
+		return err
+	}
+
 	route53SecretNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	orgId := commonCluster.GetOrganizationId()

@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -67,8 +68,22 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 			return emperror.WrapWith(err, "failed to get organization", "organizationId", orgID)
 		}
 
-		orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.Name, viper.GetString(pipConfig.DNSBaseDomain)))
+		baseDomain, err := dns.GetBaseDomain()
+		if err != nil {
+			return emperror.Wrap(err, "failed to get base domain")
+		}
+
+		orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.Name, baseDomain))
+		err = dns.ValidateSubdomain(orgDomainName)
+		if err != nil {
+			return emperror.Wrap(err, "invalid domain for TLS cert")
+		}
+
 		wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
+		err = dns.ValidateWildcardSubdomain(wildcardOrgDomainName)
+		if err != nil {
+			return emperror.Wrap(err, "invalid wildcard domain for TLS cert")
+		}
 
 		certRequest := tls.ServerCertificateRequest{
 			Subject: pkix.Name{

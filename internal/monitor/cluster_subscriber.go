@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/dns"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
 	promconfig "github.com/banzaicloud/prometheus-config"
@@ -130,10 +131,18 @@ func (s *clusterSubscriber) Init() {
 				return
 			}
 
+			endPoint := strings.ToLower(fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain))
+			err = dns.ValidateSubdomain(endPoint)
+			if err != nil {
+				s.errorHandler.Handle(emperror.Wrap(err, "invalid endpoint"))
+
+				return
+			}
+
 			params := scrapeConfigParameters{
 				orgName:     org.Name,
 				clusterName: c.GetName(),
-				endpoint:    strings.ToLower(fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain)),
+				endpoint:    endPoint,
 				basicAuthConfig: &basicAuthConfig{
 					username:     string(basicAuthSecret.Values[pkgSecret.Username]),
 					password:     string(basicAuthSecret.Values[pkgSecret.Password]),
@@ -202,10 +211,18 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		return
 	}
 
+	endPoint := strings.ToLower(fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain))
+	err = dns.ValidateSubdomain(endPoint)
+	if err != nil {
+		s.errorHandler.Handle(emperror.Wrap(err, "invalid endpoint"))
+
+		return
+	}
+
 	params := scrapeConfigParameters{
 		orgName:     org.Name,
 		clusterName: c.GetName(),
-		endpoint:    strings.ToLower(fmt.Sprintf("%s.%s.%s", c.GetName(), org.Name, s.dnsBaseDomain)),
+		endpoint:    endPoint,
 		basicAuthConfig: &basicAuthConfig{
 			username: basicAuthSecret.Values[pkgSecret.Username],
 			// password:     basicAuthSecret.Values[pkgSecret.Password],

@@ -20,6 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -123,7 +124,17 @@ func InstallMonitoring(cluster CommonCluster) error {
 		return emperror.WrapWith(err, "failed to get organization", "organizationId", orgId)
 	}
 
-	host := strings.ToLower(fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, viper.GetString(pipConfig.DNSBaseDomain)))
+	baseDomain, err := dns.GetBaseDomain()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get base domain")
+	}
+
+	host := strings.ToLower(fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, baseDomain))
+	err = dns.ValidateSubdomain(host)
+	if err != nil {
+		return emperror.Wrap(err, "invalid grafana ingress host")
+	}
+
 	log.Debugf("grafana ingress host: %s", host)
 
 	values := map[string]interface{}{

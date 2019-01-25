@@ -16,7 +16,6 @@ package route53
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -35,7 +34,6 @@ import (
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/jinzhu/now"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -143,14 +141,8 @@ type awsRoute53 struct {
 }
 
 // NewAwsRoute53 creates a new awsRoute53 using the provided region and route53 credentials
-func NewAwsRoute53(region, awsSecretId, awsSecretKey string, notifications chan interface{}) (*awsRoute53, error) {
+func NewAwsRoute53(region, awsSecretId, awsSecretKey, baseDomain string, notifications chan interface{}) (*awsRoute53, error) {
 	log := loggerWithFields(logrus.Fields{"region": region})
-
-	baseDomain := strings.ToLower(viper.GetString(config.DNSBaseDomain))
-	if len(baseDomain) == 0 {
-		log.Errorf("base domain is not configured !")
-		return nil, errors.New("base domain is not configured !")
-	}
 
 	creds := credentials.NewStaticCredentials(awsSecretId, awsSecretKey, "")
 
