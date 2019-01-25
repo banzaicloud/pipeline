@@ -16,7 +16,7 @@ const TokenSecretTypeFieldSelector = "type=bootstrap.kubernetes.io/token"
 
 // GetOrCreateBootstrapToken
 // This function will ensure to have at least 1 token that expire at least 1 hour from now
-// If this token not exists it will create one and returns ClusterBootstrapInfo
+// If the token does not exist it will create one and returns ClusterBootstrapInfo.
 func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interface) (string, error) {
 	namespace := KubeSystemNamespace
 	options := metav1.ListOptions{
