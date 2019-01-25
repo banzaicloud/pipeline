@@ -604,7 +604,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error Get or Create bootstrap token",
+			Message: "Failed to create bootstrap token",
 			Error:   err.Error(),
 		})
 		return
