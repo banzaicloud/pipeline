@@ -609,7 +609,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 		})
 		return
 	}
-	bootstrapInfo := &pkgCluster.ClusterBootstrapInfo{
+	bootstrapInfo := &ClusterBootstrapInfo{
 		Token:                    token,
 		DiscoveryTokenCaCertHash: "TODO",
 		MasterAddress:            masterAddress,
