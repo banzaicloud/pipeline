@@ -22,7 +22,7 @@ FILES=$(find . -name "*.go" -not -path "./vendor/*" -not -path "./client/*") # T
 for FILE in ${FILES}; do
     # Replace the actual year with DATE so we can ignore the year when
     # checking for the license header.
-    HEADER=$(cat ${FILE} | grep -v '^// +build' | head -n 13 | sed -E -e 's/Copyright © [-, 0-9]+ /Copyright © DATE /')
+    HEADER=$(cat ${FILE} | grep -v '^// +build' | grep -v '^// nolint' | head -n 13 | sed -E -e 's/Copyright © [-, 0-9]+ /Copyright © DATE /')
     if [[ "$HEADER" != "$EXPECTED" ]]; then
         echo "incorrect license header: $FILE"
         STATUS=1
