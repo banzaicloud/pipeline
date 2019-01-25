@@ -223,7 +223,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
 
 	config, err := c.GetK8sConfig()
 	if err != nil {
-		return "", err
+		return "", emperror.Wrap(err, "failed to get cluster's Kubeconfig")
 	}
 
 	kubeConf := kubeConfig{}
