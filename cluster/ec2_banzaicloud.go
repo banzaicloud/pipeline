@@ -229,7 +229,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
 	kubeConf := kubeConfig{}
 	err = yaml.Unmarshal(config, &kubeConf)
 	if err != nil {
-		return "", err
+		return "", emperror.Wrap(err, "failed to parse cluster's Kubeconfig")
 	}
 
 	c.APIEndpoint = kubeConf.Clusters[0].Cluster.Server
