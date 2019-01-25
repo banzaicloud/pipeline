@@ -11,16 +11,20 @@ import (
 	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 )
 
-// GetOrCreateBootstrapToken ensures having at least 1 token that expires at least 1 hour after being issued.
+const KubeSystemNamespace = "kube-system"
+const TokenSecretTypeFieldSelector = "type=bootstrap.kubernetes.io/token"
+
+// GetOrCreateBootstrapToken
+// This function will ensure to have at least 1 token that expire at least 1 hour from now
 // If this token not exists it will create one and returns ClusterBootstrapInfo
 func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interface) (string, error) {
-	namespace := "kube-system"
+	namespace := KubeSystemNamespace
 	options := metav1.ListOptions{
-		FieldSelector: "type=bootstrap.kubernetes.io/token",
+		FieldSelector: TokenSecretTypeFieldSelector,
 	}
 	secrets, err := client.CoreV1().Secrets(namespace).List(options)
 	if err != nil {
-		return "", emperror.Wrapf(err, "couldn't get boot-tokens from %s", namespace)
+		return "", emperror.WrapWith(err, "namespace", namespace)
 	}
 	for _, s := range secrets.Items {
 		token, err := kubeadm.BootstrapTokenFromSecret(&s)

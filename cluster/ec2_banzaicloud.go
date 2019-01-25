@@ -220,15 +220,18 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
 	}
+
 	config, err := c.GetK8sConfig()
 	if err != nil {
 		return "", err
 	}
+
 	kubeConf := kubeConfig{}
 	err = yaml.Unmarshal(config, &kubeConf)
 	if err != nil {
 		return "", err
 	}
+
 	c.APIEndpoint = kubeConf.Clusters[0].Cluster.Server
 	return c.APIEndpoint, nil
 }
