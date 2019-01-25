@@ -1276,14 +1276,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:265552e1d4b6a02d6363b038e9372cac8696ed63ad330693596c6f3aab90508d"
+  digest = "1:e0eae01a988e0c777d3052096374fceadb4ae59096487791403f6d1c31b0c0a8"
   name = "github.com/qor/auth"
   packages = [
     ".",
     "auth_identity",
     "claims",
     "providers/dex",
-    "providers/github",
   ]
   pruneopts = "NUT"
   revision = "8f7ae8f95c98449e6d96113603c614e40610730c"
@@ -2320,7 +2319,6 @@
     "github.com/qor/auth/auth_identity",
     "github.com/qor/auth/claims",
     "github.com/qor/auth/providers/dex",
-    "github.com/qor/auth/providers/github",
     "github.com/qor/qor/utils",
     "github.com/qor/session",
     "github.com/qor/session/gorilla",
