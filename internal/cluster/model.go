@@ -26,6 +26,7 @@ import (
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ClusterModel{},
+		&StatusHistoryModel{},
 	}
 
 	var tableNames string

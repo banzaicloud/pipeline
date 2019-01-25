@@ -25,6 +25,7 @@ import (
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
 
@@ -385,6 +386,25 @@ func (a *ACSKClusterModel) AfterUpdate(scope *gorm.Scope) error {
 
 // UpdateStatus updates the model's status and status message in database
 func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
+	if cs.ID != 0 && cs.Status != status {
+		statusHistory := &StatusHistoryModel{
+			ClusterID:   cs.ID,
+			ClusterName: cs.Name,
+
+			FromStatus:        cs.Status,
+			FromStatusMessage: cs.StatusMessage,
+			ToStatus:          status,
+			ToStatusMessage:   statusMessage,
+		}
+
+		db := config.DB()
+
+		err := db.Save(&statusHistory).Error
+		if err != nil {
+			return errors.Wrap(err, "failed to update cluster status history")
+		}
+	}
+
 	cs.Status = status
 	cs.StatusMessage = statusMessage
 	return cs.Save()
