@@ -192,11 +192,16 @@ func main() {
 		if err != nil {
 			errorHandler.Handle(emperror.Wrap(err, "failed to enable monitoring"))
 		} else {
+			dnsBaseDomain, err := dns.GetBaseDomain()
+			if err != nil {
+				errorHandler.Handle(emperror.Wrap(err, "failed to enable monitoring"))
+			}
+
 			monitorClusterSubscriber := monitor.NewClusterSubscriber(
 				client,
 				clusterManager,
 				db,
-				viper.GetString(config.DNSBaseDomain),
+				dnsBaseDomain,
 				viper.GetString(config.ControlPlaneNamespace),
 				viper.GetString(config.PipelineSystemNamespace),
 				viper.GetString(config.MonitorConfigMap),
