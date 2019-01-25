@@ -11,7 +11,7 @@ import (
 	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 )
 
-// This function will ensure to have at least 1 token that expire at least 1 hour from now
+// GetOrCreateBootstrapToken ensures having at least 1 token that expires at least 1 hour after being issued.
 // If this token not exists it will create one and returns ClusterBootstrapInfo
 func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interface) (string, error) {
 	namespace := "kube-system"
