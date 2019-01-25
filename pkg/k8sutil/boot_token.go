@@ -38,7 +38,7 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 	}
 	tokenValue, err := util.GenerateBootstrapToken()
 	if err != nil {
-		emperror.Wrap(err, "generate bootstrap token failed")
+		emperror.Wrap(err, "bootstrap token generation failed")
 	}
 	tokenString, err := kubeadm.NewBootstrapTokenString(tokenValue)
 	if err != nil {
