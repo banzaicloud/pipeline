@@ -299,6 +299,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
+    '/api/v1/orgs/{orgId}/clusters/{id}/bootstrap':
+            get:
+                security:
+                    -
+                        bearerAuth: []
+                tags:
+                    - clusters
+                summary: Get cluster bootstrap info
+                description: Get cluster bootstrap info
+                operationId: GetClusterBootstrap
+                parameters:
+                    -
+                        name: orgId
+                        in: path
+                        required: true
+                        description: Organization identification
+                        schema:
+                            type: integer
+                    -
+                        name: id
+                        in: path
+                        description: Selected cluster identification (number)
+                        required: true
+                        schema:
+                            type: integer
+                responses:
+                    '200':
+                        description: Getting bootstrap succeeded
+                        content:
+                            application/json:
+                                schema:
+                                    $ref: '#/components/schemas/GetClusterBootstrapResponse'
+                    '400':
+                        description: Error during getting cluster bootstrap
+                        content:
+                            application/json:
+                                schema:
+                                    $ref: '#/components/schemas/BaseError_400'
     '/api/v1/orgs/{orgId}/clusters/{id}':
         get:
             security:
@@ -7860,7 +7898,7 @@ components:
                     description: "Name of the VPC network"
                     type: string
                     example: "MyVPC"
-                
+
         ListVPCNetworksResponse:
             type: array
             items:
@@ -8844,4 +8882,15 @@ components:
                 cidr:
                     type: string
                     description: The CIDR range for the subnet in case new Subnet is created.
+        GetClusterBootstrapResponse:
+            type: object
+            properties:
+                token:
+                    type: string
+                    example: "r6pyrk.6n1wv3twavjcnevr"
+                discoveryTokenCaCertHash:
+                    type: string
+                masterAddress:
+                    type: string
+                    example: "https://8.9.10.11:443"
 

@@ -31,6 +31,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -555,4 +556,62 @@ func ListClusterSecrets(c *gin.Context) {
 	log.Info("Listing secrets succeeded")
 
 	c.JSON(http.StatusOK, secrets)
+}
+
+type clusterBootstrapInfo struct {
+	Token                    string `json:"token"`
+	DiscoveryTokenCaCertHash string `json:"discoveryTokenCaCertHash"`
+	MasterAddress            string `json:"masterAddress"`
+}
+
+// GetBootstrapInfo
+func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
+	// Fetch cluster information
+	cluster, ok := a.clusterGetter.GetClusterFromRequest(c)
+	if !ok {
+		return
+	}
+	masterAddress, err := cluster.GetAPIEndpoint()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error fetching kubernetes API address",
+			Error:   err.Error(),
+		})
+		return
+	}
+	config, err := cluster.GetK8sConfig()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error fetching Kubernetes config",
+			Error:   err.Error(),
+		})
+		return
+	}
+	client, err := k8sclient.NewClientFromKubeConfig(config)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid Kubernetes config",
+			Error:   err.Error(),
+		})
+		return
+	}
+	// Get an active token
+	token, err := k8sutil.GetOrCreateBootstrapToken(log, client)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Failed to create bootstrap token",
+			Error:   err.Error(),
+		})
+		return
+	}
+	bootstrapInfo := &clusterBootstrapInfo{
+		Token:                    token,
+		DiscoveryTokenCaCertHash: "TODO",
+		MasterAddress:            masterAddress,
+	}
+	c.JSON(http.StatusOK, bootstrapInfo)
 }

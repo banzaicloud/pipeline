@@ -30,6 +30,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 )
 
 var _ CommonCluster = (*EC2ClusterBanzaiCloudDistribution)(nil)
@@ -216,8 +217,23 @@ func (c *EC2ClusterBanzaiCloudDistribution) DownloadK8sConfig() ([]byte, error) 
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
-	// TODO: endpoint url
-	return "", nil
+	if c.APIEndpoint != "" {
+		return c.APIEndpoint, nil
+	}
+
+	config, err := c.GetK8sConfig()
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to get cluster's Kubeconfig")
+	}
+
+	kubeConf := kubeConfig{}
+	err = yaml.Unmarshal(config, &kubeConf)
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to parse cluster's Kubeconfig")
+	}
+
+	c.APIEndpoint = kubeConf.Clusters[0].Cluster.Server
+	return c.APIEndpoint, nil
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
