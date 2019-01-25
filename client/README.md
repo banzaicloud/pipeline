@@ -222,6 +222,7 @@ Class | Method | HTTP request | Description
  - [EksVpc](docs/EksVpc.md)
  - [EndpointItem](docs/EndpointItem.md)
  - [GenTlsForLogging](docs/GenTlsForLogging.md)
+ - [GetClusterBootstrapResponse](docs/GetClusterBootstrapResponse.md)
  - [GetClusterStatusResponse](docs/GetClusterStatusResponse.md)
  - [GetDeploymentResourcesResponse](docs/GetDeploymentResourcesResponse.md)
  - [GetDeploymentResourcesResponseInner](docs/GetDeploymentResourcesResponseInner.md)
