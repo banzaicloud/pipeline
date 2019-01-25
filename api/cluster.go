@@ -31,7 +31,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	pkgUtil "github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -558,6 +558,14 @@ func ListClusterSecrets(c *gin.Context) {
 	c.JSON(http.StatusOK, secrets)
 }
 
+// ClusterBootstrapInfo for PKE provisioning
+type ClusterBootstrapInfo struct {
+	Token                    string `json:"token"`
+	DiscoveryTokenCaCertHash string `json:"discoveryTokenCaCertHash"`
+	MasterAddress            string `json:"masterAddress"`
+}
+
+// GetBootstrapInfo
 func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	// Fetch cluster information
 	cluster, ok := a.clusterGetter.GetClusterFromRequest(c)
@@ -592,7 +600,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 		return
 	}
 	// Get an active token
-	token, err := pkgUtil.GetOrCreateBootstrapToken(log, client)
+	token, err := k8sutil.GetOrCreateBootstrapToken(log, client)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,

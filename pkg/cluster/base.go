@@ -143,6 +143,7 @@ type ScaleOptions struct {
 	OnDemandPct         int      `json:"onDemandPct,omitempty" binding:"min=0,max=100"`
 	Excludes            []string `json:"excludes,omitempty"`
 	KeepDesiredCapacity bool     `json:"keepDesiredCapacity"`
+}
 
 // PostHookParam describes posthook params in create request
 type PostHookParam interface{}
