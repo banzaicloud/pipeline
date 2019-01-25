@@ -71,5 +71,5 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 	if err != nil {
 		emperror.Wrap(err, "unable to create token")
 	}
-	return token.Token.String(), nil
+	return tokenString.String(), nil
 }
