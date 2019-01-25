@@ -558,8 +558,7 @@ func ListClusterSecrets(c *gin.Context) {
 	c.JSON(http.StatusOK, secrets)
 }
 
-// ClusterBootstrapInfo for PKE provisioning
-type ClusterBootstrapInfo struct {
+type clusterBootstrapInfo struct {
 	Token                    string `json:"token"`
 	DiscoveryTokenCaCertHash string `json:"discoveryTokenCaCertHash"`
 	MasterAddress            string `json:"masterAddress"`
@@ -609,7 +608,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 		})
 		return
 	}
-	bootstrapInfo := &ClusterBootstrapInfo{
+	bootstrapInfo := &clusterBootstrapInfo{
 		Token:                    token,
 		DiscoveryTokenCaCertHash: "TODO",
 		MasterAddress:            masterAddress,
