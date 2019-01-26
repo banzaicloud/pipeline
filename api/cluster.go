@@ -41,6 +41,7 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net/url"
 )
 
 // ClusterAPI implements the Cluster API actions.
@@ -580,6 +581,15 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 		})
 		return
 	}
+	url, err := url.Parse(masterAddress)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing kubernetes API address",
+			Error:   err.Error(),
+		})
+		return
+	}
 	config, err := cluster.GetK8sConfig()
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
@@ -611,7 +621,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	bootstrapInfo := &clusterBootstrapInfo{
 		Token:                    token,
 		DiscoveryTokenCaCertHash: "TODO",
-		MasterAddress:            masterAddress,
+		MasterAddress:            url.Host,
 	}
 	c.JSON(http.StatusOK, bootstrapInfo)
 }
