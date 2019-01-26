@@ -21,6 +21,8 @@ import (
 	"sort"
 	"strings"
 
+	"net/url"
+
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -41,7 +43,6 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"net/url"
 )
 
 // ClusterAPI implements the Cluster API actions.
