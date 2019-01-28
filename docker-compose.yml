@@ -111,4 +111,4 @@ services:
         image: banzaicloud/dex-shim:master
         command: serve /dex-config.yml
         volumes:
-            - ./scripts/dex-config.yml:/dex-config.yml
+            - ./config/dex-config.yml:/dex-config.yml

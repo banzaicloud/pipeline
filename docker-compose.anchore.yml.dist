@@ -33,6 +33,14 @@ services:
         # user: "${uid}:${gid}"
         volumes:
             - ./.docker/volumes/vault/keys:/vault/keys
+
+    dex:
+        ports:
+            - 5556:5556
+            - 5558:5558
+        volumes:
+            - ./.docker/volumes/dex:/dex
+
     cicd-server:
         ports:
             - 8000:8000
