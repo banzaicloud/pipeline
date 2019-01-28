@@ -61,8 +61,8 @@ func (m *AccessManager) AddOrganizationPolicies(orgID uint) {
 	m.enforcer.AddPolicy(orgRoleName(orgID), fmt.Sprintf("%s/dashboard/orgs/%d/*", m.basePath, orgID), "*")
 }
 
-// GrantOganizationAccessToUser adds a user to an organization by adding the associated organization role.
-func (m *AccessManager) GrantOganizationAccessToUser(userID string, orgID uint) {
+// GrantOrganizationAccessToUser adds a user to an organization by adding the associated organization role.
+func (m *AccessManager) GrantOrganizationAccessToUser(userID string, orgID uint) {
 	m.enforcer.AddRoleForUser(userID, orgRoleName(orgID))
 }
 

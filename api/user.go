@@ -20,25 +20,27 @@ import (
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 )
 
 type userAccessManager interface {
-	GrantOganizationAccessToUser(userID string, orgID uint)
+	GrantOrganizationAccessToUser(userID string, orgID uint)
 	RevokeOrganizationAccessFromUser(userID string, orgID uint)
 }
 
 // UserAPI implements user functions.
 type UserAPI struct {
 	accessManager userAccessManager
+	db            *gorm.DB
 }
 
 // NewUserAPI returns a new UserAPI instance.
-func NewUserAPI(accessManager userAccessManager) *UserAPI {
+func NewUserAPI(accessManager userAccessManager, db *gorm.DB) *UserAPI {
 	return &UserAPI{
 		accessManager: accessManager,
+		db:            db,
 	}
 }
 
@@ -53,9 +55,7 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	db := config.DB()
-
-	err := db.Find(user).Error
+	err := a.db.Find(user).Error
 
 	if err != nil {
 		message := "failed to fetch user"
@@ -92,9 +92,8 @@ func (a *UserAPI) GetUsers(c *gin.Context) {
 	}
 
 	var users []auth.User
-	db := config.DB()
 
-	err = db.Model(organization).Where(&auth.User{ID: uint(id)}).Related(&users, "Users").Error
+	err = a.db.Model(organization).Where(&auth.User{ID: uint(id)}).Related(&users, "Users").Error
 	if err != nil {
 		message := "failed to fetch users"
 		log.Info(message + ": " + err.Error())
@@ -166,7 +165,7 @@ func (a *UserAPI) AddUser(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 	user := &auth.User{ID: uint(id)}
 
-	err = addUserToOrgInDb(organization, user, role.Role)
+	err = a.addUserToOrgInDb(organization, user, role.Role)
 
 	if err != nil {
 		message := "failed to add user: " + err.Error()
@@ -180,13 +179,13 @@ func (a *UserAPI) AddUser(c *gin.Context) {
 		return
 	}
 
-	a.accessManager.GrantOganizationAccessToUser(user.IDString(), organization.ID)
+	a.accessManager.GrantOrganizationAccessToUser(user.IDString(), organization.ID)
 
 	c.Status(http.StatusNoContent)
 }
 
-func addUserToOrgInDb(organization *auth.Organization, user *auth.User, role string) error {
-	tx := config.DB().Begin()
+func (a *UserAPI) addUserToOrgInDb(organization *auth.Organization, user *auth.User, role string) error {
+	tx := a.db.Begin()
 	err := tx.Error
 	if err != nil {
 		tx.Rollback()
@@ -226,8 +225,7 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 		return
 	}
 
-	db := config.DB()
-	err = db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
+	err = a.db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
 	if err != nil {
 		message := "failed to delete user: " + err.Error()
 		log.Info(message)
@@ -275,9 +273,7 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 		return
 	}
 
-	db := config.DB()
-
-	err = db.Find(user).Error
+	err = a.db.Find(user).Error
 
 	if err != nil {
 		message := "failed to fetch user"

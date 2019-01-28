@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/casbin/gorm-adapter"
+	gormadapter "github.com/casbin/gorm-adapter"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
 )
@@ -110,11 +110,11 @@ func TestAccessManager_OrganizationPolicies(t *testing.T) {
 	enforcer.ClearPolicy()
 
 	accessManager.AddOrganizationPolicies(1)
-	accessManager.GrantOganizationAccessToUser("user", 1)
+	accessManager.GrantOrganizationAccessToUser("user", 1)
 
 	// Granting the same access twice should be idempotent
 	accessManager.AddOrganizationPolicies(1)
-	accessManager.GrantOganizationAccessToUser("user", 1)
+	accessManager.GrantOrganizationAccessToUser("user", 1)
 
 	tests := []struct {
 		path           string
@@ -164,8 +164,8 @@ func TestAccessManager_RevokeOrganizationAccessFromUser(t *testing.T) {
 	accessManager.AddOrganizationPolicies(1)
 	accessManager.AddOrganizationPolicies(2)
 
-	accessManager.GrantOganizationAccessToUser("user", 1)
-	accessManager.GrantOganizationAccessToUser("user", 2)
+	accessManager.GrantOrganizationAccessToUser("user", 1)
+	accessManager.GrantOrganizationAccessToUser("user", 2)
 	accessManager.RevokeOrganizationAccessFromUser("user", 1)
 
 	tests := []struct {
@@ -226,7 +226,7 @@ func TestAccessManager_RevokeAllAccessFromUser(t *testing.T) {
 	accessManager.AddDefaultPolicies()
 	accessManager.AddOrganizationPolicies(1)
 
-	accessManager.GrantOganizationAccessToUser("user", 1)
+	accessManager.GrantOrganizationAccessToUser("user", 1)
 
 	accessManager.RevokeAllAccessFromUser("user")
 

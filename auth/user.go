@@ -341,7 +341,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	bus.accessManager.GrantDefaultAccessToUser(currentUser.IDString())
 	bus.accessManager.AddOrganizationPolicies(currentUser.Organizations[0].ID)
-	bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
+	bus.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
 	// Import Github organizations in case of GitHub
@@ -469,7 +469,7 @@ func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []org
 
 	for id, created := range githubOrgIDs {
 		i.accessManager.AddOrganizationPolicies(id)
-		i.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), id)
+		i.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), id)
 
 		if created {
 			i.events.OrganizationRegistered(id, currentUser.ID)

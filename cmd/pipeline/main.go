@@ -270,7 +270,7 @@ func main() {
 
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(githubImporter)
-	userAPI := api.NewUserAPI(accessManager)
+	userAPI := api.NewUserAPI(accessManager, db)
 	networkAPI := api.NewNetworkAPI(log)
 
 	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))

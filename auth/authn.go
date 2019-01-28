@@ -125,7 +125,7 @@ type accessManager interface {
 	GrantDefaultAccessToUser(userID string)
 	GrantDefaultAccessToVirtualUser(userID string)
 	AddOrganizationPolicies(orgID uint)
-	GrantOganizationAccessToUser(userID string, orgID uint)
+	GrantOrganizationAccessToUser(userID string, orgID uint)
 	RevokeOrganizationAccessFromUser(userID string, orgID uint)
 	RevokeAllAccessFromUser(userID string)
 }
@@ -347,7 +347,7 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		}
 
 		h.accessManager.GrantDefaultAccessToVirtualUser(userID)
-		h.accessManager.GrantOganizationAccessToUser(userID, organization.ID)
+		h.accessManager.GrantOrganizationAccessToUser(userID, organization.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
