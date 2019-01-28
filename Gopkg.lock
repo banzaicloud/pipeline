@@ -1979,17 +1979,6 @@
   version = "kubernetes-1.11.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:28fd6a61b5220aab30c6f7344676ff5aaea4a5f14407d95f33e238b13da2d2ef"
-  name = "k8s.io/cluster-bootstrap"
-  packages = [
-    "token/api",
-    "token/util",
-  ]
-  pruneopts = "NUT"
-  revision = "c71be3de9a2f32e792bdcaf95d5a705c4188dcec"
-
-[[projects]]
   branch = "release-2.11"
   digest = "1:1c35a38b90cb260f18ab081c52b896fe96bf7573075d56a5b3893d4eefeb6f2b"
   name = "k8s.io/helm"
@@ -2365,12 +2354,11 @@
     "k8s.io/client-go/kubernetes/scheme",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/client-go/rest",
+    "k8s.io/client-go/tools/bootstrap/token/util",
     "k8s.io/client-go/tools/clientcmd",
     "k8s.io/client-go/tools/clientcmd/api",
     "k8s.io/client-go/tools/clientcmd/api/v1",
     "k8s.io/client-go/transport",
-    "k8s.io/cluster-bootstrap/token/api",
-    "k8s.io/cluster-bootstrap/token/util",
     "k8s.io/helm/cmd/helm/installer",
     "k8s.io/helm/pkg/chartutil",
     "k8s.io/helm/pkg/downloader",
