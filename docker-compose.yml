@@ -109,6 +109,6 @@ services:
 
     dex:
         image: banzaicloud/dex-shim:master
-        command: serve /dex-config.yml
+        command: serve /dex.yml
         volumes:
-            - ./config/dex-config.yml:/dex-config.yml
+            - ./config/dex.yml:/dex.yml
