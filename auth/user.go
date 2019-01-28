@@ -435,17 +435,15 @@ func NewGithubImporter(
 }
 
 func (i *GithubImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
-
 	orgs, err := getGithubOrganizations(githubToken)
 	if err != nil {
-		return emperror.With(err, "failed to get organizations")
+		return emperror.Wrap(err, "failed to get organizations")
 	}
 
 	return i.ImportGithubOrganizations(currentUser, orgs)
 }
 
 func (i *GithubImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string) error {
-
 	var orgs []organization
 	for _, org := range organizations {
 		orgs = append(orgs, organization{name: org, provider: "github"})
@@ -458,7 +456,7 @@ func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []org
 	githubOrgIDs, err := importGithubOrganizations(i.db, currentUser, orgs)
 
 	if err != nil {
-		return emperror.With(err, "failed to import organizations")
+		return emperror.Wrap(err, "failed to import organizations")
 	}
 
 	for id, created := range githubOrgIDs {
