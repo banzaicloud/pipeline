@@ -386,13 +386,23 @@ func (a *ACSKClusterModel) AfterUpdate(scope *gorm.Scope) error {
 
 // UpdateStatus updates the model's status and status message in database
 func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
-	if cs.ID != 0 && cs.Status != status {
+	originalStatus := cs.Status
+	originalStatusMessage := cs.StatusMessage
+
+	cs.Status = status
+	cs.StatusMessage = statusMessage
+	err := cs.Save()
+	if err != nil {
+		return errors.Wrap(err, "failed to update cluster status")
+	}
+
+	if cs.Status != status {
 		statusHistory := &StatusHistoryModel{
 			ClusterID:   cs.ID,
 			ClusterName: cs.Name,
 
-			FromStatus:        cs.Status,
-			FromStatusMessage: cs.StatusMessage,
+			FromStatus:        originalStatus,
+			FromStatusMessage: originalStatusMessage,
 			ToStatus:          status,
 			ToStatusMessage:   statusMessage,
 		}
@@ -405,9 +415,7 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 		}
 	}
 
-	cs.Status = status
-	cs.StatusMessage = statusMessage
-	return cs.Save()
+	return nil
 }
 
 // UpdateConfigSecret updates the model's config secret id in database
