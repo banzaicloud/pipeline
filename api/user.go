@@ -22,7 +22,9 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 type userAccessManager interface {
@@ -34,13 +36,17 @@ type userAccessManager interface {
 type UserAPI struct {
 	accessManager userAccessManager
 	db            *gorm.DB
+	log           logrus.FieldLogger
+	errorHandler  emperror.Handler
 }
 
 // NewUserAPI returns a new UserAPI instance.
-func NewUserAPI(accessManager userAccessManager, db *gorm.DB) *UserAPI {
+func NewUserAPI(accessManager userAccessManager, db *gorm.DB, log logrus.FieldLogger, errorHandler emperror.Handler) *UserAPI {
 	return &UserAPI{
 		accessManager: accessManager,
 		db:            db,
+		log:           log,
+		errorHandler:  errorHandler,
 	}
 }
 
@@ -59,7 +65,7 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 
 	if err != nil {
 		message := "failed to fetch user"
-		log.Info(message + ": " + err.Error())
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
@@ -81,8 +87,8 @@ func (a *UserAPI) GetUsers(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if idParam != "" && err != nil {
-		message := fmt.Sprintf("error parsing user id: %s", err)
-		log.Info(message)
+		message := "error parsing user id"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
@@ -96,7 +102,7 @@ func (a *UserAPI) GetUsers(c *gin.Context) {
 	err = a.db.Model(organization).Where(&auth.User{ID: uint(id)}).Related(&users, "Users").Error
 	if err != nil {
 		message := "failed to fetch users"
-		log.Info(message + ": " + err.Error())
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
@@ -168,8 +174,8 @@ func (a *UserAPI) AddUser(c *gin.Context) {
 	err = a.addUserToOrgInDb(organization, user, role.Role)
 
 	if err != nil {
-		message := "failed to add user: " + err.Error()
-		log.Info(message)
+		message := "failed to add user"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		statusCode := auth.GormErrorToStatusCode(err)
 		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
@@ -227,8 +233,8 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 
 	err = a.db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
 	if err != nil {
-		message := "failed to delete user: " + err.Error()
-		log.Info(message)
+		message := "failed to delete user"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		statusCode := auth.GormErrorToStatusCode(err)
 		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
@@ -277,7 +283,7 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 
 	if err != nil {
 		message := "failed to fetch user"
-		log.Info(message + ": " + err.Error())
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
@@ -290,7 +296,7 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 		err = auth.SaveUserGitHubToken(user, updateUserRequest.GitHubToken)
 		if err != nil {
 			message := "failed to update user's github token"
-			log.Info(message + ": " + err.Error())
+			a.errorHandler.Handle(emperror.Wrap(err, message))
 			c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 				Code:    http.StatusInternalServerError,
 				Message: message,

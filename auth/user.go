@@ -281,8 +281,8 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	organizations, err := getOrganizationsFromDex(schema)
 	if err != nil {
-		log.Errorln("failed to parse groups/organizations:", err)
-		return nil, "", err
+		return nil, "", emperror.Wrap(err, "failed to parse groups/organizations")
+
 	}
 
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
@@ -292,8 +292,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		githubUserMeta, err = getGithubUserMeta(schema)
 
 		if err != nil {
-			log.Errorln("failed to query github login name:", err)
-			return nil, "", err
+			return nil, "", emperror.Wrap(err, "failed to query github login name")
 		}
 
 		currentUser.Login = githubUserMeta.Login
@@ -308,8 +307,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	if viper.GetBool("auth.whitelistEnabled") {
 
 		if ok, err := checkWhiteList(db, currentUser, schema, organizations); err != nil {
-			log.Errorln("failed to check whitelist:", err)
-			return nil, "", err
+			return nil, "", emperror.Wrap(err, "failed to check whitelist")
 		} else if !ok {
 			return nil, "", errors.New("user is not enabled")
 		}
@@ -318,8 +316,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	err = bus.createUserInCICDDB(currentUser)
 	if err != nil {
-		log.Info(authCtx.Request.RemoteAddr, err.Error())
-		return nil, "", err
+		return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
 	}
 
 	// When a user registers a default organization is created in which he/she is admin
@@ -331,7 +328,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	err = db.Create(currentUser).Error
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to create user organization: %s", err.Error())
+		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
 	err = helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(currentUser.Organizations[0].Name))
