@@ -249,7 +249,7 @@ type updateUserRequest struct {
 	GitHubToken string `json:"gitHubToken,omitempty"`
 }
 
-// UpdateCurrentUser responds with the authenticated user
+// UpdateCurrentUser updates the authenticated user's settings
 func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 	user := auth.GetCurrentUser(c.Request)
 	if user == nil {
@@ -266,7 +266,7 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 	if err != nil {
 		message := "failed to bind update user request"
 		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
+			Code:    http.StatusBadRequest,
 			Message: message,
 			Error:   message,
 		})
