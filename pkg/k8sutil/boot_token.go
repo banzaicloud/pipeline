@@ -66,6 +66,8 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 		Token:       tokenString,
 		TTL:         &metav1.Duration{Duration: time.Hour * 1},
 		Description: "Pipeline Node bootstrap token",
+		Usages:      []string{"authentication", "signing"},
+		Groups:      []string{"system:bootstrappers:kubeadm:default-node-token"},
 	}
 	_, err = client.CoreV1().Secrets(namespace).Create(token.ToSecret())
 	if err != nil {

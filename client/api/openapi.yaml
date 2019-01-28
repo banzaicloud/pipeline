@@ -9323,7 +9323,7 @@ components:
       type: object
     GetClusterBootstrapResponse:
       example:
-        masterAddress: https://8.9.10.11:443
+        masterAddress: 8.9.10.11:443
         discoveryTokenCaCertHash: discoveryTokenCaCertHash
         token: r6pyrk.6n1wv3twavjcnevr
       properties:
@@ -9333,7 +9333,7 @@ components:
         discoveryTokenCaCertHash:
           type: string
         masterAddress:
-          example: https://8.9.10.11:443
+          example: 8.9.10.11:443
           type: string
       type: object
     CreateEKSProperties_eks:

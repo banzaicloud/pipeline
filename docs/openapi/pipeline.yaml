@@ -8892,5 +8892,5 @@ components:
                     type: string
                 masterAddress:
                     type: string
-                    example: "https://8.9.10.11:443"
+                    example: "8.9.10.11:443"
 
