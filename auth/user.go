@@ -352,12 +352,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
-// Update differs from the default UserStorer.Update() in that it
-// updates the GitHub access token of the given user
-// func (bus BanzaiUserStorer) Update(schema *auth.Schema, context *auth.Context) error {
-// // This will run on every login
-// }
-
 // SaveUserGitHubToken saves a GitHub personal access token specified for a user
 func SaveUserGitHubToken(user *User, githubToken string) error {
 	// Revoke the old Github token from Vault if any
