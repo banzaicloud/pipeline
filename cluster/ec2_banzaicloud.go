@@ -161,13 +161,24 @@ func (c *EC2ClusterBanzaiCloudDistribution) Persist(string, string) error {
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) UpdateStatus(status, statusMessage string) error {
-	if c.model.Cluster.ID != 0 && c.model.Cluster.Status != status {
+	originalStatus := c.model.Cluster.Status
+	originalStatusMessage := c.model.Cluster.StatusMessage
+
+	c.model.Cluster.Status = status
+	c.model.Cluster.StatusMessage = statusMessage
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return errors.Wrap(err, "failed to update status")
+	}
+
+	if originalStatus != status {
 		statusHistory := &cluster.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
 
-			FromStatus:        c.model.Cluster.Status,
-			FromStatusMessage: c.model.Cluster.StatusMessage,
+			FromStatus:        originalStatus,
+			FromStatusMessage: originalStatusMessage,
 			ToStatus:          status,
 			ToStatusMessage:   statusMessage,
 		}
@@ -178,13 +189,6 @@ func (c *EC2ClusterBanzaiCloudDistribution) UpdateStatus(status, statusMessage s
 		}
 	}
 
-	c.model.Cluster.Status = status
-	c.model.Cluster.StatusMessage = statusMessage
-
-	err := c.db.Save(&c.model).Error
-	if err != nil {
-		return errors.Wrap(err, "failed to update status")
-	}
 	return nil
 }
 
