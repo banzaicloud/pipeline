@@ -34,6 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/api/ark/restores"
 	"github.com/banzaicloud/pipeline/api/ark/schedules"
 	"github.com/banzaicloud/pipeline/api/cluster/namespace"
+	"github.com/banzaicloud/pipeline/api/cluster/pke"
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/api/middleware"
 	"github.com/banzaicloud/pipeline/auth"
@@ -383,8 +384,12 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
 
 			clusters := orgs.Group("/:orgid/clusters/:id")
+
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
+
+			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL)
+			pkeAPI.RegisterRoutes(clusters.Group("/pke"))
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)

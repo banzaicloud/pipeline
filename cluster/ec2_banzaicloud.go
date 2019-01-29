@@ -333,6 +333,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) IsReady() (bool, error) {
 func (c *EC2ClusterBanzaiCloudDistribution) ListNodeNames() (common.NodeNames, error) {
 	var nodes = make(map[string][]string)
 	for _, nodepool := range c.model.NodePools {
+		nodes[nodepool.Name] = []string{}
 		for _, host := range nodepool.Hosts {
 			nodes[nodepool.Name] = append(nodes[nodepool.Name], host.Name)
 		}
