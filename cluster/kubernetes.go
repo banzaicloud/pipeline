@@ -63,7 +63,7 @@ type KubeCluster struct {
 }
 
 // CreateCluster creates a new cluster
-func (c *KubeCluster) CreateCluster(*Manager) error {
+func (c *KubeCluster) CreateCluster() error {
 
 	// check secret type
 	_, err := c.GetSecretWithValidation()

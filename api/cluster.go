@@ -46,18 +46,22 @@ import (
 
 // ClusterAPI implements the Cluster API actions.
 type ClusterAPI struct {
-	clusterManager *cluster.Manager
-	clusterGetter  common.ClusterGetter
+	clusterManager  *cluster.Manager
+	clusterGetter   common.ClusterGetter
+	tokenGenerator  cluster.TokenGenerator
+	externalBaseURL string
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
 }
 
 // NewClusterAPI returns a new ClusterAPI instance.
-func NewClusterAPI(clusterManager *cluster.Manager, clusterGetter common.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *ClusterAPI {
+func NewClusterAPI(clusterManager *cluster.Manager, clusterGetter common.ClusterGetter, tokenGenerator cluster.TokenGenerator, externalBaseURL string, logger logrus.FieldLogger, errorHandler emperror.Handler) *ClusterAPI {
 	return &ClusterAPI{
-		clusterManager: clusterManager,
-		clusterGetter:  clusterGetter,
+		clusterManager:  clusterManager,
+		clusterGetter:   clusterGetter,
+		tokenGenerator:  tokenGenerator,
+		externalBaseURL: externalBaseURL,
 
 		logger:       logger,
 		errorHandler: errorHandler,
@@ -70,7 +74,7 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	// TODO: move these to a struct and create them only once upon application init
 	clusters := intCluster.NewClusters(config.DB())
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, "", log, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, cluster.NewNopClusterEvents(), nil, nil, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, log, errorHandler)
 
 	return clusterGetter.GetClusterFromRequest(c)

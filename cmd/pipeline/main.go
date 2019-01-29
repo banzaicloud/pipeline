@@ -192,7 +192,7 @@ func main() {
 		log.Errorf("no pipeline.external_url set. falling back to %q", externalBaseURL)
 	}
 
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, tokenHandler, externalBaseURL, log, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
 
 	if viper.GetBool(config.MonitorEnabled) {
@@ -227,7 +227,7 @@ func main() {
 		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, log, errorHandler)
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, tokenHandler, externalBaseURL, log, errorHandler)
 
 	//Initialise Gin router
 	router := gin.New()

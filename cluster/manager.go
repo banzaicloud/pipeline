@@ -52,10 +52,6 @@ type goCacheKubeProxyCache struct {
 	cache *cache.Cache
 }
 
-type TokenGenerator interface {
-	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
-}
-
 type Manager struct {
 	clusters                   clusterRepository
 	secrets                    secretValidator
@@ -63,8 +59,6 @@ type Manager struct {
 	statusChangeDurationMetric *prometheus.SummaryVec
 	clusterTotalMetric         *prometheus.CounterVec
 	kubeProxyCache             kubeProxyCache
-	externalBaseURL            string
-	tokenGenerator             TokenGenerator
 	logger                     logrus.FieldLogger
 	errorHandler               emperror.Handler
 }
@@ -74,8 +68,6 @@ func NewManager(clusters clusterRepository,
 	events clusterEvents,
 	statusChangeDurationMetric *prometheus.SummaryVec,
 	clusterTotalMetric *prometheus.CounterVec,
-	tokenGenerator TokenGenerator,
-	externalBaseURL string,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler) *Manager {
 	return &Manager{
@@ -85,8 +77,6 @@ func NewManager(clusters clusterRepository,
 		statusChangeDurationMetric: statusChangeDurationMetric,
 		clusterTotalMetric:         clusterTotalMetric,
 		kubeProxyCache:             &goCacheKubeProxyCache{cache: cache.New(defaultProxyExpirationMinutes*time.Minute, 1*time.Minute)},
-		tokenGenerator:             tokenGenerator,
-		externalBaseURL:            externalBaseURL,
 		logger:                     logger,
 		errorHandler:               errorHandler,
 	}

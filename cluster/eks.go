@@ -191,7 +191,7 @@ func (c *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials,
 }
 
 // CreateCluster creates an EKS cluster with cloudformation templates.
-func (c *EKSCluster) CreateCluster(*Manager) error {
+func (c *EKSCluster) CreateCluster() error {
 	c.log.Info("Start creating EKS cluster")
 
 	awsCred, err := c.createAWSCredentialsFromSecret()
