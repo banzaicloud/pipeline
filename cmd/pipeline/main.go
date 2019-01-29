@@ -115,6 +115,7 @@ func main() {
 	accessManager.AddDefaultPolicies()
 
 	githubImporter := auth.NewGithubImporter(db, accessManager, config.EventBus)
+	tokenHandler := auth.NewTokenHandler(accessManager)
 
 	// Initialize auth
 	auth.Init(cicdDB, accessManager, githubImporter)
@@ -255,9 +256,7 @@ func main() {
 		p.Use(router, "/metrics")
 	}
 
-	generateTokenHandler := auth.NewTokenHandler(accessManager)
-
-	auth.Install(router, generateTokenHandler)
+	auth.Install(router, tokenHandler.GenerateToken)
 	auth.StartTokenStoreGC()
 
 	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath)
@@ -324,7 +323,6 @@ func main() {
 			orgs.GET("/:orgid/spotguides/:owner/:name/icon", spotguideAPI.GetSpotguideIcon)
 
 			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
-
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateClusterRequest)
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
@@ -427,8 +425,8 @@ func main() {
 		}
 		v1.GET("/orgs", organizationAPI.GetOrganizations)
 		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
-		v1.GET("/token", generateTokenHandler) // TODO Deprecated, should be removed once the UI has support.
-		v1.POST("/tokens", generateTokenHandler)
+		v1.GET("/token", tokenHandler.GenerateToken) // TODO Deprecated, should be removed once the UI has support.
+		v1.POST("/tokens", tokenHandler.GenerateToken)
 		v1.GET("/tokens", auth.GetTokens)
 		v1.GET("/tokens/:id", auth.GetTokens)
 		v1.DELETE("/tokens/:id", auth.DeleteToken)
