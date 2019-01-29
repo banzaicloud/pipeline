@@ -206,16 +206,21 @@ func (c *EC2ClusterBanzaiCloudDistribution) DeleteFromDatabase() error {
 	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) CreateCluster(manager *Manager) error {
+func (c *EC2ClusterBanzaiCloudDistribution) CreateCluster() error {
+	return errors.New("not implemented")
+}
+
+func (c *EC2ClusterBanzaiCloudDistribution) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
+
 	// prepare input for real AWS flow
-	_, err := c.GetPipelineToken(manager.tokenGenerator)
+	_, err := c.GetPipelineToken(tokenGenerator)
 	if err != nil {
 		return emperror.Wrap(err, "can't generate Pipeline token")
 	}
 	token := "XXX"
 
 	for _, nodePool := range c.model.NodePools {
-		cmd := c.GetBootstrapCommand(nodePool.Name, manager.externalBaseURL, token)
+		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
 	}
 	return nil

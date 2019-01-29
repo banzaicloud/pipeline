@@ -23,15 +23,13 @@ import (
 type commonCreator struct {
 	request *cluster.CreateClusterRequest
 	cluster CommonCluster
-	manager *Manager
 }
 
 // NewCommonClusterCreator returns a new cluster creator instance.
-func NewCommonClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster, manager *Manager) *commonCreator {
+func NewCommonClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster) *commonCreator {
 	return &commonCreator{
 		request: request,
 		cluster: cluster,
-		manager: manager,
 	}
 }
 
@@ -47,5 +45,37 @@ func (c *commonCreator) Prepare(ctx context.Context) (CommonCluster, error) {
 
 // Create implements the clusterCreator interface.
 func (c *commonCreator) Create(ctx context.Context) error {
-	return c.cluster.CreateCluster(c.manager)
+	return c.cluster.CreateCluster()
+}
+
+type pkeCreator struct {
+	externalBaseURL string
+	tokenGenerator  TokenGenerator
+	commonCreator
+}
+
+type createPKEClusterer interface {
+	CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error
+}
+
+type TokenGenerator interface {
+	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
+}
+
+// NewClusterCreator returns a new PKE or Common cluster creator instance depending on the cluster.
+func NewClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster, tokenGenerator TokenGenerator, externalBaseURL string) clusterCreator {
+	common := NewCommonClusterCreator(request, cluster)
+	if _, ok := cluster.(createPKEClusterer); !ok {
+		return common
+	}
+	return &pkeCreator{
+		tokenGenerator:  tokenGenerator,
+		externalBaseURL: externalBaseURL,
+		commonCreator:   *common,
+	}
+}
+
+// Create implements the clusterCreator interface.
+func (c *pkeCreator) Create(ctx context.Context) error {
+	return c.cluster.(createPKEClusterer).CreatePKECluster(c.tokenGenerator, c.externalBaseURL)
 }

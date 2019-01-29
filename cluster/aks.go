@@ -164,7 +164,7 @@ func (c *AKSCluster) GetAPIEndpoint() (string, error) {
 }
 
 //CreateCluster creates a new cluster
-func (c *AKSCluster) CreateCluster(*Manager) error {
+func (c *AKSCluster) CreateCluster() error {
 
 	// create profiles model for the request
 	var profiles []containerservice.ManagedClusterAgentPoolProfile

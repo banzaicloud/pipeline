@@ -63,7 +63,7 @@ type CommonCluster interface {
 	DeleteFromDatabase() error
 
 	// Cluster management
-	CreateCluster(*Manager) error
+	CreateCluster() error
 	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
 	UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
 	UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error

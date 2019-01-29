@@ -198,7 +198,7 @@ func (c *GKECluster) GetAPIEndpoint() (string, error) {
 }
 
 //CreateCluster creates a new cluster
-func (c *GKECluster) CreateCluster(*Manager) error {
+func (c *GKECluster) CreateCluster() error {
 
 	c.log.Info("Start create cluster (Google)")
 
