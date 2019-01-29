@@ -16,7 +16,6 @@ package gke
 
 import (
 	"regexp"
-	"strings"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -116,10 +115,8 @@ func (g *CreateClusterGKE) Validate() error {
 			nodePool.Count = pkgCommon.DefaultNodeMinCount
 		}
 
-		for k := range nodePool.Labels {
-			if strings.Contains(k, pkgCommon.PipelineSpecificLabelsCommonPart) {
-				return pkgErrors.ErrorNodePoolLabelClashesWithPipelineLabel
-			}
+		if err := pkgCommon.ValidateNodePoolLabels(nodePool.Labels); err != nil {
+			return err
 		}
 	}
 

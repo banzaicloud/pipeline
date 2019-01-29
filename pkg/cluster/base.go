@@ -202,15 +202,16 @@ type GetClusterStatusResponse struct {
 
 // NodePoolStatus describes cluster's node status
 type NodePoolStatus struct {
-	Autoscaling  bool   `json:"autoscaling,omitempty"`
-	Count        int    `json:"count"`
-	InstanceType string `json:"instanceType,omitempty"`
-	SpotPrice    string `json:"spotPrice,omitempty"`
-	Preemptible  bool   `json:"preemptible,omitempty"`
-	MinCount     int    `json:"minCount"`
-	MaxCount     int    `json:"maxCount"`
-	Image        string `json:"image,omitempty"`
-	Version      string `json:"version,omitempty"`
+	Autoscaling  bool              `json:"autoscaling,omitempty"`
+	Count        int               `json:"count"`
+	InstanceType string            `json:"instanceType,omitempty"`
+	SpotPrice    string            `json:"spotPrice,omitempty"`
+	Preemptible  bool              `json:"preemptible,omitempty"`
+	MinCount     int               `json:"minCount"`
+	MaxCount     int               `json:"maxCount"`
+	Image        string            `json:"image,omitempty"`
+	Version      string            `json:"version,omitempty"`
+	Labels       map[string]string `json:"labels,omitempty"`
 
 	pkgCommon.CreatorBaseFields
 }

@@ -28,8 +28,9 @@ import (
 
 // cluster profile table names
 const (
-	DefaultEKSProfileTableName         = "amazon_eks_profiles"
-	DefaultEKSNodePoolProfileTableName = "amazon_eks_profile_node_pools"
+	DefaultEKSProfileTableName               = "amazon_eks_profiles"
+	DefaultEKSNodePoolProfileTableName       = "amazon_eks_profile_node_pools"
+	DefaultEKSNodePoolLabelsProfileTableName = "amazon_eks_profile_node_pool_labels"
 
 	DefaultAKSProfileTableName         = "azure_aks_profiles"
 	DefaultAKSNodePoolProfileTableName = "azure_aks_profile_node_pools"
@@ -95,11 +96,13 @@ func GetDefaultProfiles() []ClusterProfile {
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*EKSNodePoolProfile{{
 				AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
+					Name:      GetDefaultProfileName(),
 					NodeName:  DefaultNodeName,
 					SpotPrice: eks.DefaultSpotPrice,
 				},
 				Image: eks.DefaultImages[eks.DefaultK8sVersion][eks.DefaultRegion],
 			}},
+			Version: eks.DefaultK8sVersion,
 		},
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
@@ -132,7 +135,7 @@ func GetAllProfiles(distribution string) ([]ClusterProfile, error) {
 
 	case pkgCluster.EKS:
 		var eksProfiles []EKSProfile
-		db.Find(&eksProfiles)
+		db.Preload("NodePools.Labels").Find(&eksProfiles)
 		for i := range eksProfiles {
 			defaults = append(defaults, &eksProfiles[i])
 		}
@@ -172,7 +175,7 @@ func GetProfile(distribution string, name string) (ClusterProfile, error) {
 	switch distribution {
 	case pkgCluster.EKS:
 		var eksProfile EKSProfile
-		if err := db.Where(EKSProfile{DefaultModel: DefaultModel{Name: name}}).First(&eksProfile).Error; err != nil {
+		if err := db.Where(EKSProfile{DefaultModel: DefaultModel{Name: name}}).Preload("NodePools.Labels").First(&eksProfile).Error; err != nil {
 			return nil, err
 		}
 		return &eksProfile, nil

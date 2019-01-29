@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/model"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -27,6 +28,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&EKSProfile{},
 		&EKSNodePoolProfile{},
+		&EKSNodePoolLabelsProfile{},
 		&AKSProfile{},
 		&AKSNodePoolProfile{},
 		&GKEProfile{},
@@ -42,5 +44,17 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		"table_names": strings.TrimSpace(tableNames),
 	}).Info("migrating defaults tables")
 
-	return db.AutoMigrate(tables...).Error
+	if err := db.AutoMigrate(tables...).Error; err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &EKSProfile{}, &EKSNodePoolProfile{}, "Name"); err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &EKSNodePoolProfile{}, &EKSNodePoolLabelsProfile{}, "NodePoolProfileID"); err != nil {
+		return err
+	}
+
+	return nil
 }
