@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "261b0089-ea1a-440d-b835-a3742f152de7",
+		"_postman_id": "fa3ce42d-0727-4cab-b58b-f81ead31c6ad",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1748,14 +1748,88 @@
 							],
 							"variable": [
 								{
-									"description": "Organization identifier",
 									"key": "orgId",
-									"value": "{{orgId}}"
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
 								},
 								{
-									"description": "Cluster identifier",
 									"key": "clusterId",
-									"value": "{{clusterId}}"
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Get cluster details"
+					},
+					"response": []
+				},
+				{
+					"name": "Get PKE bootstrap command",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7f6aa4f0-6b6d-4b49-a50e-170897f158f3",
+								"exec": [
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+									"",
+									"    tests[\"Valid id\"] = dataJSON.id == environment.clusterId;",
+									"",
+									"    postman.setNextRequest(\"Cluster Status\");",
+									"}",
+									"else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/bootstrap",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"bootstrap"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
 								}
 							]
 						},
