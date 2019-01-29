@@ -84,7 +84,7 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 }
 
 // CreateCluster creates a new cluster
-func (o *OKECluster) CreateCluster() error {
+func (o *OKECluster) CreateCluster(*Manager) error {
 
 	log.Info("Start creating Oracle cluster")
 

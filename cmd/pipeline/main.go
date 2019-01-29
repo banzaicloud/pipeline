@@ -184,7 +184,14 @@ func main() {
 			}).Add(float64(row.Count))
 	}
 	prometheus.MustRegister(statusChangeDurationMetric, clusterTotalMetric)
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, log, errorHandler)
+
+	externalBaseURL := viper.GetString("pipeline.externalURL")
+	if externalBaseURL == "" {
+		externalBaseURL = "http://" + viper.GetString("pipeline.bindaddr")
+		log.Errorf("no pipeline.external_url set. falling back to %q", externalBaseURL)
+	}
+
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, tokenHandler, externalBaseURL, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
 
 	if viper.GetBool(config.MonitorEnabled) {

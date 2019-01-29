@@ -23,13 +23,15 @@ import (
 type commonCreator struct {
 	request *cluster.CreateClusterRequest
 	cluster CommonCluster
+	manager *Manager
 }
 
 // NewCommonClusterCreator returns a new cluster creator instance.
-func NewCommonClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster) *commonCreator {
+func NewCommonClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster, manager *Manager) *commonCreator {
 	return &commonCreator{
 		request: request,
 		cluster: cluster,
+		manager: manager,
 	}
 }
 
@@ -45,5 +47,5 @@ func (c *commonCreator) Prepare(ctx context.Context) (CommonCluster, error) {
 
 // Create implements the clusterCreator interface.
 func (c *commonCreator) Create(ctx context.Context) error {
-	return c.cluster.CreateCluster()
+	return c.cluster.CreateCluster(c.manager)
 }

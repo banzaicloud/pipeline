@@ -51,7 +51,7 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 }
 
 //CreateCluster creates a new cluster
-func (c *DummyCluster) CreateCluster() error {
+func (c *DummyCluster) CreateCluster(*Manager) error {
 	return nil
 }
 
