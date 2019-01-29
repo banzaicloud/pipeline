@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"fmt"
 	"strconv"
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
@@ -30,6 +31,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -40,6 +42,7 @@ type EC2ClusterBanzaiCloudDistribution struct {
 	model *banzaicloudDB.EC2BanzaiCloudClusterModel
 	//amazonCluster *ec2.EC2 //Don't use this directly
 	APIEndpoint string
+	log         logrus.FieldLogger
 	CommonClusterBase
 }
 
@@ -347,8 +350,9 @@ func (c *EC2ClusterBanzaiCloudDistribution) NodePoolExists(nodePoolName string) 
 }
 
 func CreateEC2ClusterBanzaiCloudDistributionFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterBanzaiCloudDistribution, error) {
-	log.Debug("Create ClusterModel struct from the request")
-	c := &EC2ClusterBanzaiCloudDistribution{}
+	c := &EC2ClusterBanzaiCloudDistribution{
+		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
+	}
 
 	c.db = pipConfig.DB()
 
@@ -388,7 +392,8 @@ func CreateEC2ClusterBanzaiCloudDistributionFromRequest(request *pkgCluster.Crea
 }
 
 func CreateEC2ClusterBanzaiCloudDistributionFromModel(modelCluster *model.ClusterModel) (*EC2ClusterBanzaiCloudDistribution, error) {
-	log.Debug("Create ClusterModel struct from the request")
+	log := log.WithField("cluster", modelCluster.Name).WithField("organization", modelCluster.OrganizationId)
+
 	db := pipConfig.DB()
 
 	m := banzaicloudDB.EC2BanzaiCloudClusterModel{
@@ -412,6 +417,7 @@ func CreateEC2ClusterBanzaiCloudDistributionFromModel(modelCluster *model.Cluste
 	c := &EC2ClusterBanzaiCloudDistribution{
 		db:    db,
 		model: &m,
+		log:   log,
 	}
 	return c, nil
 }

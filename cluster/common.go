@@ -263,9 +263,8 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	db := config.DB()
 
 	cloudType := modelCluster.Cloud
-	distribution := modelCluster.Distribution
 
-	if distribution == "banzaicloud" {
+	if modelCluster.Distribution == pkgCluster.BanzaiCloud {
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}
 
