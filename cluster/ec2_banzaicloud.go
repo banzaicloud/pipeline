@@ -207,6 +207,17 @@ func (c *EC2ClusterBanzaiCloudDistribution) DeleteFromDatabase() error {
 }
 
 func (c *EC2ClusterBanzaiCloudDistribution) CreateCluster(manager *Manager) error {
+	// prepare input for real AWS flow
+	_, err := c.GetPipelineToken(manager.tokenGenerator)
+	if err != nil {
+		return emperror.Wrap(err, "can't generate Pipeline token")
+	}
+	token := "XXX"
+
+	for _, nodePool := range c.model.NodePools {
+		cmd := c.GetBootstrapCommand(nodePool.Name, manager.externalBaseURL, token)
+		c.log.Debugf("TODO: start ASG with command %s", cmd)
+	}
 	return nil
 }
 
