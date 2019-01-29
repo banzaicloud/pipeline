@@ -1276,7 +1276,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e0eae01a988e0c777d3052096374fceadb4ae59096487791403f6d1c31b0c0a8"
+  digest = "1:5303c777a0d178f4fde2ae9bafd58cf0bc2429db16fe2f3b152ffb26f34523e9"
   name = "github.com/qor/auth"
   packages = [
     ".",
@@ -1285,7 +1285,7 @@
     "providers/dex",
   ]
   pruneopts = "NUT"
-  revision = "8f7ae8f95c98449e6d96113603c614e40610730c"
+  revision = "922d5048ccd3c69517492ce10c677b3724f96a13"
   source = "github.com/banzaicloud/auth"
 
 [[projects]]
