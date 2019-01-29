@@ -203,7 +203,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) DeleteFromDatabase() error {
 	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) CreateCluster() error {
+func (c *EC2ClusterBanzaiCloudDistribution) CreateCluster(manager *Manager) error {
 	return nil
 }
 

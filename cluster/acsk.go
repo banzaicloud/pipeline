@@ -316,7 +316,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 
 	return &cluster, nil
 }
-func (c *ACSKCluster) CreateCluster() error {
+func (c *ACSKCluster) CreateCluster(*Manager) error {
 	c.log.Info("Start create cluster (Alibaba)")
 
 	csClient, err := c.GetAlibabaCSClient(nil)
