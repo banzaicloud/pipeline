@@ -56,7 +56,7 @@ func GetUserGithubToken(userID uint) (string, error) {
 	}
 
 	if token == nil {
-		return "", errors.New("github token not found for user")
+		return "", nil
 	}
 
 	return token.Value, nil
@@ -66,6 +66,10 @@ func NewGithubClientForUser(userID uint) (*github.Client, error) {
 	accessToken, err := GetUserGithubToken(userID)
 	if err != nil {
 		return nil, err
+	}
+
+	if accessToken == "" {
+		return nil, errors.New("user's github token is not set")
 	}
 
 	return NewGithubClient(accessToken), nil

@@ -160,6 +160,15 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 		return
 	}
 
+	if token == "" {
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "user's github token is not set",
+		})
+
+		return
+	}
+
 	err = a.githubImporter.ImportOrganizationsFromGithub(user, token)
 	if err != nil {
 		errorHandler.Handle(err)

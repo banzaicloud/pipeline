@@ -7406,6 +7406,9 @@ components:
                 organizations:
                     type: object
                     example: null
+                gitHubTokenSet:
+                    type: boolean
+                    example: true
 
         OrganizationNotFound:
             type: object

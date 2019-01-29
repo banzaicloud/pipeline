@@ -7520,6 +7520,7 @@ components:
       example:
         createdAt: 2018-03-09T13:24:49+01:00
         image: githubImageUrl.com/imageId/3
+        gitHubTokenSet: true
         name: myName
         organizations: '{}'
         id: 1
@@ -7551,6 +7552,8 @@ components:
           type: string
         organizations:
           type: object
+        gitHubTokenSet:
+          type: boolean
       type: object
     OrganizationNotFound:
       properties:

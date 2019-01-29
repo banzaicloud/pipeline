@@ -74,7 +74,27 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	githubToken, err := auth.GetUserGithubToken(user.ID)
+
+	if err != nil {
+		message := "failed to fetch user's github token"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	var response struct {
+		*auth.User
+		GitHubTokenSet bool `json:"gitHubTokenSet"`
+	}
+	response.User = user
+	response.GitHubTokenSet = (githubToken != "")
+
+	c.JSON(http.StatusOK, response)
 }
 
 // GetUsers gets a user or lists all users from an organization depending on the presence of the id parameter.
