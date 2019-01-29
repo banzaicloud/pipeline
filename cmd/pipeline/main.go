@@ -59,7 +59,6 @@ import (
 	gormadapter "github.com/casbin/gorm-adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -272,8 +271,9 @@ func main() {
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(githubImporter)
 	userAPI := api.NewUserAPI(accessManager)
-	spotguideManager := spotguide.NewSpotguideManager(config.DB(), Version, viper.GetString("github.token"), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 	networkAPI := api.NewNetworkAPI(log)
+
+	spotguideManager := spotguide.NewSpotguideManager(config.DB(), Version, viper.GetString("github.token"), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
@@ -281,17 +281,6 @@ func main() {
 			log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
 		}
 	})
-
-	// insert shared organization to DB if not exists
-	sharedOrgName := viper.GetString(config.SpotguideSharedLibraryGitHubOrganization)
-	if org, _, err := github.NewClient(nil).Organizations.Get(context.Background(), sharedOrgName); err != nil {
-		log.Errorf("failed to query shared Github organization: %s", err.Error())
-	} else {
-		sharedOrg := auth.Organization{Name: *org.Login, GithubID: org.ID}
-		if err := db.Where(sharedOrg).FirstOrCreate(&sharedOrg).Error; err != nil {
-			log.Errorf("failed to create shared organization: %s", err.Error())
-		}
-	}
 
 	// periodically sync shared spotguides
 	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
