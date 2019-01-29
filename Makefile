@@ -34,7 +34,7 @@ GOLANG_VERSION = 1.11
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: up
-up: vendor start config/config.toml ## Set up the development environment
+up: vendor start config/config.toml config/dex.yml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -84,6 +84,9 @@ vendor: bin/dep ## Install dependencies
 
 config/config.toml:
 	cp config/config.toml.example config/config.toml
+
+config/dex.yml:
+	cp config/dex.yml.example config/dex.yml
 
 .PHONY: build
 build: GOARGS += -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME}

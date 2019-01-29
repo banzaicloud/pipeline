@@ -20,25 +20,33 @@ import (
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 type userAccessManager interface {
-	GrantOganizationAccessToUser(userID string, orgID uint)
+	GrantOrganizationAccessToUser(userID string, orgID uint)
 	RevokeOrganizationAccessFromUser(userID string, orgID uint)
 }
 
 // UserAPI implements user functions.
 type UserAPI struct {
 	accessManager userAccessManager
+	db            *gorm.DB
+	log           logrus.FieldLogger
+	errorHandler  emperror.Handler
 }
 
 // NewUserAPI returns a new UserAPI instance.
-func NewUserAPI(accessManager userAccessManager) *UserAPI {
+func NewUserAPI(accessManager userAccessManager, db *gorm.DB, log logrus.FieldLogger, errorHandler emperror.Handler) *UserAPI {
 	return &UserAPI{
 		accessManager: accessManager,
+		db:            db,
+		log:           log,
+		errorHandler:  errorHandler,
 	}
 }
 
@@ -53,13 +61,11 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	db := config.DB()
-
-	err := db.Find(user).Error
+	err := a.db.Find(user).Error
 
 	if err != nil {
 		message := "failed to fetch user"
-		log.Info(message + ": " + err.Error())
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
@@ -68,7 +74,27 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	githubToken, err := auth.GetUserGithubToken(user.ID)
+
+	if err != nil {
+		message := "failed to fetch user's github token"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	var response struct {
+		*auth.User
+		GitHubTokenSet bool `json:"gitHubTokenSet"`
+	}
+	response.User = user
+	response.GitHubTokenSet = (githubToken != "")
+
+	c.JSON(http.StatusOK, response)
 }
 
 // GetUsers gets a user or lists all users from an organization depending on the presence of the id parameter.
@@ -81,8 +107,8 @@ func (a *UserAPI) GetUsers(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if idParam != "" && err != nil {
-		message := fmt.Sprintf("error parsing user id: %s", err)
-		log.Info(message)
+		message := "error parsing user id"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: message,
@@ -92,12 +118,11 @@ func (a *UserAPI) GetUsers(c *gin.Context) {
 	}
 
 	var users []auth.User
-	db := config.DB()
 
-	err = db.Model(organization).Where(&auth.User{ID: uint(id)}).Related(&users, "Users").Error
+	err = a.db.Model(organization).Where(&auth.User{ID: uint(id)}).Related(&users, "Users").Error
 	if err != nil {
 		message := "failed to fetch users"
-		log.Info(message + ": " + err.Error())
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: message,
@@ -166,11 +191,11 @@ func (a *UserAPI) AddUser(c *gin.Context) {
 	organization := auth.GetCurrentOrganization(c.Request)
 	user := &auth.User{ID: uint(id)}
 
-	err = addUserToOrgInDb(organization, user, role.Role)
+	err = a.addUserToOrgInDb(organization, user, role.Role)
 
 	if err != nil {
-		message := "failed to add user: " + err.Error()
-		log.Info(message)
+		message := "failed to add user"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		statusCode := auth.GormErrorToStatusCode(err)
 		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
@@ -180,13 +205,13 @@ func (a *UserAPI) AddUser(c *gin.Context) {
 		return
 	}
 
-	a.accessManager.GrantOganizationAccessToUser(user.IDString(), organization.ID)
+	a.accessManager.GrantOrganizationAccessToUser(user.IDString(), organization.ID)
 
 	c.Status(http.StatusNoContent)
 }
 
-func addUserToOrgInDb(organization *auth.Organization, user *auth.User, role string) error {
-	tx := config.DB().Begin()
+func (a *UserAPI) addUserToOrgInDb(organization *auth.Organization, user *auth.User, role string) error {
+	tx := a.db.Begin()
 	err := tx.Error
 	if err != nil {
 		tx.Rollback()
@@ -226,11 +251,10 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 		return
 	}
 
-	db := config.DB()
-	err = db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
+	err = a.db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
 	if err != nil {
-		message := "failed to delete user: " + err.Error()
-		log.Info(message)
+		message := "failed to delete user"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
 		statusCode := auth.GormErrorToStatusCode(err)
 		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
 			Code:    statusCode,
@@ -243,6 +267,64 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 	user := auth.GetCurrentUser(c.Request)
 
 	a.accessManager.RevokeOrganizationAccessFromUser(user.IDString(), organization.ID)
+
+	c.Status(http.StatusNoContent)
+}
+
+type updateUserRequest struct {
+	GitHubToken string `json:"gitHubToken,omitempty"`
+}
+
+// UpdateCurrentUser updates the authenticated user's settings
+func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
+	user := auth.GetCurrentUser(c.Request)
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, common.ErrorResponse{
+			Code:    http.StatusUnauthorized,
+			Message: "failed to get current user",
+		})
+		return
+	}
+
+	var updateUserRequest updateUserRequest
+	err := c.BindJSON(&updateUserRequest)
+
+	if err != nil {
+		message := "failed to bind update user request"
+		c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	err = a.db.Find(user).Error
+
+	if err != nil {
+		message := "failed to fetch user"
+		a.errorHandler.Handle(emperror.Wrap(err, message))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
+			Error:   message,
+		})
+		return
+	}
+
+	if updateUserRequest.GitHubToken != "" {
+		err = auth.SaveUserGitHubToken(user, updateUserRequest.GitHubToken)
+		if err != nil {
+			message := "failed to update user's github token"
+			a.errorHandler.Handle(emperror.Wrap(err, message))
+			c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: message,
+				Error:   message,
+			})
+			return
+		}
+	}
 
 	c.Status(http.StatusNoContent)
 }

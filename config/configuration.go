@@ -171,6 +171,7 @@ func init() {
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	viper.SetDefault("auth.secureCookie", true)
 	viper.SetDefault("auth.whitelistEnabled", false)
+	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
 	viper.SetDefault(SetCookieDomain, false)
 
 	viper.SetDefault("pipeline.bindaddr", "127.0.0.1:9090")

@@ -11,8 +11,6 @@
 
 package client
 
-type NodeResourceSummary struct {
-	Status string   `json:"status,omitempty"`
-	Cpu    Resource `json:"cpu,omitempty"`
-	Memory Resource `json:"memory,omitempty"`
+type UpdateUserRequest struct {
+	GitHubToken string `json:"gitHubToken,omitempty"`
 }

@@ -3858,6 +3858,29 @@ paths:
       summary: Get current user
       tags:
       - users
+    patch:
+      description: Update current user
+      operationId: UpdateCurrentUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        required: true
+      responses:
+        204:
+          description: Modifiying current user's settings succeeded
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Update current user's settings
+      tags:
+      - users
   /api/v1/orgs/{orgId}/cloudinfo:
     get:
       description: Get supported cloud types
@@ -5288,6 +5311,14 @@ paths:
       - projects
 components:
   schemas:
+    UpdateUserRequest:
+      example:
+        gitHubToken: b8d9cfb5df15fd513bf3351719876ffff4b310d2
+      properties:
+        gitHubToken:
+          example: b8d9cfb5df15fd513bf3351719876ffff4b310d2
+          type: string
+      type: object
     SpotguideDetailsResponse:
       example:
         createdAt: 2018-06-11T14:28:13Z
@@ -7489,6 +7520,7 @@ components:
       example:
         createdAt: 2018-03-09T13:24:49+01:00
         image: githubImageUrl.com/imageId/3
+        gitHubTokenSet: true
         name: myName
         organizations: '{}'
         id: 1
@@ -7520,6 +7552,8 @@ components:
           type: string
         organizations:
           type: object
+        gitHubTokenSet:
+          type: boolean
       type: object
     OrganizationNotFound:
       properties:
@@ -8088,132 +8122,8 @@ components:
           example: 2018-08-01T07:04:37Z
           type: string
       type: object
-    GetClusterResponse:
-      properties:
-        id:
-          example: 1
-          format: int32
-          type: integer
-        status:
-          example: RUNNING
-          type: string
-        statusMessage:
-          example: Cluster is running
-          type: string
-        name:
-          example: myClusterName
-          type: string
-        region:
-          example: us-central1
-          type: string
-        location:
-          example: us-central1-a
-          type: string
-        cloud:
-          example: google
-          type: string
-        distribution:
-          example: gke
-          type: string
-        spot:
-          type: boolean
-        logging:
-          type: boolean
-        monitoring:
-          type: boolean
-        servicemesh:
-          type: boolean
-        securityscan:
-          type: boolean
-        version:
-          example: "1.10"
-          type: string
-        masterVersion:
-          example: "1.10"
-          type: string
-        secretId:
-          example: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
-          type: string
-        secretName:
-          example: paas-dev
-          type: string
-        endpoint:
-          example: 34.240.231.134
-          type: string
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/GetClusterNodePool'
-          type: object
-        totalSummary:
-          $ref: '#/components/schemas/ResourceSummary'
-        createdAt:
-          example: 2018-07-03T14:23:19+02:00
-          type: string
-        creatorName:
-          example: userName
-          type: string
-        creatorId:
-          example: 1
-          format: int32
-          type: integer
-      type: object
-    GetClusterNodePool:
-      properties:
-        autoscaling:
-          type: boolean
-        count:
-          example: 1
-          format: int32
-          type: integer
-        instanceType:
-          example: m4.xlarge
-          type: string
-        spotPrice:
-          example: "0.2"
-          type: string
-        preemptible:
-          type: boolean
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        image:
-          example: ami-4d485ca7
-          type: string
-        version:
-          example: "1.10"
-          type: string
-        resourceSummary:
-          additionalProperties:
-            $ref: '#/components/schemas/NodeResourceSummary'
-          type: object
-        createdAt:
-          example: 2018-07-03T14:23:19+02:00
-          type: string
-        creatorName:
-          example: userName
-          type: string
-        creatorId:
-          example: 1
-          format: int32
-          type: integer
-      type: object
     ResourceSummary:
       properties:
-        cpu:
-          $ref: '#/components/schemas/Resource'
-        memory:
-          $ref: '#/components/schemas/Resource'
-      type: object
-    NodeResourceSummary:
-      properties:
-        status:
-          example: Ready
-          type: string
         cpu:
           $ref: '#/components/schemas/Resource'
         memory:

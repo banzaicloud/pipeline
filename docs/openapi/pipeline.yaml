@@ -3749,6 +3749,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
+        patch:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - users
+            summary: Update current user's settings
+            operationId: UpdateCurrentUser
+            description: Update current user
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateUserRequest'
+            responses:
+                '204':
+                    description: "Modifiying current user's settings succeeded"
+                '401':
+                    description: "Unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
 
     '/api/v1/orgs/{orgId}/cloudinfo':
         get:
@@ -5066,6 +5090,13 @@ components:
             bearerFormat: JWT
 
     schemas:
+        UpdateUserRequest:
+            type: object
+            properties:
+                gitHubToken:
+                    type: string
+                    example: "b8d9cfb5df15fd513bf3351719876ffff4b310d2"
+
         SpotguideDetailsResponse:
             type: object
             properties:
@@ -7375,6 +7406,9 @@ components:
                 organizations:
                     type: object
                     example: null
+                gitHubTokenSet:
+                    type: boolean
+                    example: true
 
         OrganizationNotFound:
             type: object
@@ -7970,137 +8004,9 @@ components:
                     type: string
                     example: "2018-08-01T07:04:37Z"
 
-        GetClusterResponse:
-            type: object
-            properties:
-                id:
-                    type: integer
-                    example: 1
-                status:
-                    type: string
-                    example: "RUNNING"
-                statusMessage:
-                    type: string
-                    example: "Cluster is running"
-                name:
-                    type: string
-                    example: "myClusterName"
-                region:
-                    type: string
-                    example: "us-central1"
-                location:
-                    type: string
-                    example: "us-central1-a"
-                cloud:
-                    type: string
-                    example: "google"
-                distribution:
-                    type: string
-                    example: "gke"
-                spot:
-                    type: boolean
-                    example: false
-                logging:
-                    type: boolean
-                    example: false
-                monitoring:
-                    type: boolean
-                    example: false
-                servicemesh:
-                    type: boolean
-                    example: false
-                securityscan:
-                    type: boolean
-                    example: false
-                version:
-                    type: string
-                    example: "1.10"
-                masterVersion:
-                    type: string
-                    example: "1.10"
-                secretId:
-                    type: string
-                    example: "c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae"
-                secretName:
-                    type: string
-                    example: "paas-dev"
-                endpoint:
-                    type: string
-                    example: "34.240.231.134"
-                nodePools:
-                    type: object
-                    additionalProperties:
-                        $ref: '#/components/schemas/GetClusterNodePool'
-                totalSummary:
-                    $ref: '#/components/schemas/ResourceSummary'
-                createdAt:
-                    type: string
-                    example: "2018-07-03T14:23:19+02:00"
-                creatorName:
-                    type: string
-                    example: "userName"
-                creatorId:
-                    type: integer
-                    example: 1
-
-        GetClusterNodePool:
-            type: object
-            properties:
-                autoscaling:
-                    type: boolean
-                    example: true
-                count:
-                    type: integer
-                    example: 1
-                instanceType:
-                    type: string
-                    example: "m4.xlarge"
-                spotPrice:
-                    type: string
-                    example: "0.2"
-                preemptible:
-                    type: boolean
-                    example: false
-                minCount:
-                    type: integer
-                    example: 1
-                maxCount:
-                    type: integer
-                    example: 2
-                image:
-                    type: string
-                    example: "ami-4d485ca7"
-                version:
-                    type: string
-                    example: "1.10"
-                resourceSummary:
-                    type: object
-                    additionalProperties:
-                        $ref: '#/components/schemas/NodeResourceSummary'
-                createdAt:
-                    type: string
-                    example: "2018-07-03T14:23:19+02:00"
-                creatorName:
-                    type: string
-                    example: "userName"
-                creatorId:
-                    type: integer
-                    example: 1
-
         ResourceSummary:
             type: object
             properties:
-                cpu:
-                    $ref: '#/components/schemas/Resource'
-                memory:
-                    $ref: '#/components/schemas/Resource'
-
-        NodeResourceSummary:
-            type: object
-            properties:
-                status:
-                    type: string
-                    example: "Ready"
                 cpu:
                     $ref: '#/components/schemas/Resource'
                 memory:

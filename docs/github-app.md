@@ -16,12 +16,12 @@ Fill in `Authorization callback URL`. This field has to be updated once the Cont
 
 - For local usage:
     ```bash
-    http://localhost:9090/auth/github/callback
+    http://127.0.0.1:5556/dex/callback
     ```
 
 - For on-cloud usage:
     ```bash
-    http://{control_plane_public_ip}/auth/github/callback
+    http://{control_plane_public_address}/dex/callback
     ```
 
 Take note of the `Client ID` and `Client Secret` as these will be required for launching the Pipeline Control Plane.
@@ -37,12 +37,12 @@ Tokens can be generated only with a browser (for now), to do that please use the
 
 - For local usage:
     ```bash
-    http://localhost:9090/auth/github/login
+    http://localhost:9090/auth/dex/login
     ```
 
 - For on-cloud usage:
     ```bash
-    http://{control_plane_public_ip}/auth/github/login
+    http://{control_plane_public_ip}/auth/dex/login
     ```
 
 Please authenticate yourself with GitHub. If everything is done correctly you will be redirected.

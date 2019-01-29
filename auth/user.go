@@ -19,6 +19,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
@@ -30,6 +31,7 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // blank import is used here for sql driver inclusion
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
@@ -125,6 +127,7 @@ type Organization struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Name      string    `gorm:"unique;not null" json:"name"`
+	Provider  string    `gorm:"not null" json:"provider"`
 	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
 	Role      string    `json:"-" gorm:"-"` // Used only internally
 }
@@ -207,9 +210,68 @@ type BanzaiUserStorer struct {
 	githubImporter   *GithubImporter
 }
 
+func checkWhiteList(db *gorm.DB, user *User, userSchema *auth.Schema, userOrgs []string) (bool, error) {
+
+	whitelistedCandidates := []*WhitelistedAuthIdentity{}
+
+	// Check here that a user login name is in the whitelisted_auth_identities table
+	userWhitelisted := WhitelistedAuthIdentity{
+		Provider: userSchema.Provider,
+		Login:    user.Login,
+		Type:     UserType,
+	}
+
+	whitelistedCandidates = append(whitelistedCandidates, &userWhitelisted)
+
+	// Also check if the user is member of one of the whitelisted organizations
+	for _, userOrg := range userOrgs {
+
+		orgWhitelisted := WhitelistedAuthIdentity{
+			Provider: userSchema.Provider,
+			Login:    userOrg,
+			Type:     OrganizationType,
+		}
+
+		whitelistedCandidates = append(whitelistedCandidates, &orgWhitelisted)
+	}
+
+	var userIsWhitelisted bool
+	for _, whitelistedCandidate := range whitelistedCandidates {
+
+		if tx := db.Where(&whitelistedCandidate).Find(&WhitelistedAuthIdentity{}); tx.Error == nil {
+			userIsWhitelisted = true
+			break
+		} else if !tx.RecordNotFound() {
+			log.Errorln("failed to check whitelist in db", tx.Error.Error())
+			return false, tx.Error
+		}
+	}
+
+	return userIsWhitelisted, nil
+}
+
+func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
+	var dexClaims struct {
+		Groups []string
+	}
+
+	if err := mapstructure.Decode(schema.RawInfo, &dexClaims); err != nil {
+		return nil, nil
+	}
+
+	var organizations []string
+	for _, group := range dexClaims.Groups {
+		if !strings.Contains(group, ":") {
+			organizations = append(organizations, group)
+		}
+	}
+
+	return organizations, nil
+}
+
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to CICD DB as well
-func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (user interface{}, userID string, err error) {
+func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (user interface{}, userID string, err error) {
 
 	currentUser := &User{}
 	err = copier.Copy(currentUser, schema)
@@ -217,27 +279,56 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 		return nil, "", err
 	}
 
-	// This assumes GitHub auth only right now
-	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
-	currentUser.Login = githubExtraInfo.Login
-	err = bus.createUserInCICDDB(currentUser, githubExtraInfo.Token)
+	organizations, err := getOrganizationsFromDex(schema)
 	if err != nil {
-		log.Info(context.Request.RemoteAddr, err.Error())
-		return nil, "", err
+		return nil, "", emperror.Wrap(err, "failed to parse groups/organizations")
+
 	}
 
-	synchronizeCICDRepos(currentUser.Login)
+	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
+	// GitHub API query to get the user login and image to retain compatibility for now
+	var githubUserMeta *githubUserMeta
+	if schema.Provider == "dex:github" {
+		githubUserMeta, err = getGithubUserMeta(schema)
+
+		if err != nil {
+			return nil, "", emperror.Wrap(err, "failed to query github login name")
+		}
+
+		currentUser.Login = githubUserMeta.Login
+		currentUser.Image = githubUserMeta.AvatarURL
+	} else {
+		// Login will be the email for new users coming from an other provider than GitHub
+		currentUser.Login = schema.Email
+	}
+
+	db := authCtx.Auth.GetDB(authCtx.Request)
+
+	if viper.GetBool("auth.whitelistEnabled") {
+
+		if ok, err := checkWhiteList(db, currentUser, schema, organizations); err != nil {
+			return nil, "", emperror.Wrap(err, "failed to check whitelist")
+		} else if !ok {
+			return nil, "", errors.New("user is not enabled")
+		}
+	}
+
+	// TODO we should call the Drone API instead and insert the token later on manually by the user
+	err = bus.createUserInCICDDB(currentUser)
+	if err != nil {
+		return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
+	}
 
 	// When a user registers a default organization is created in which he/she is admin
 	userOrg := Organization{
-		Name: currentUser.Login,
+		Name:     currentUser.Login,
+		Provider: "user",
 	}
 	currentUser.Organizations = []Organization{userOrg}
 
-	db := context.Auth.GetDB(context.Request)
 	err = db.Create(currentUser).Error
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to create user organization: %s", err.Error())
+		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
 	err = helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(currentUser.Organizations[0].Name))
@@ -246,56 +337,48 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, context *auth.Context) (us
 	}
 
 	bus.accessManager.GrantDefaultAccessToUser(currentUser.IDString())
-
-	// Save the Github token to Vault
-	token := bauth.NewToken(GithubTokenID, "Github access token")
-	token.Value = githubExtraInfo.Token
-	err = TokenStore.Store(fmt.Sprint(currentUser.ID), token)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to store Github access token: %s", err.Error())
-	}
-
 	bus.accessManager.AddOrganizationPolicies(currentUser.Organizations[0].ID)
-	bus.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
+	bus.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
-	err = bus.githubImporter.ImportOrganizations(currentUser, githubExtraInfo.Token)
+	// Import Github organizations in case of GitHub
+	if schema.Provider == "dex:github" {
+		err = bus.githubImporter.ImportOrganizationsFromDex(currentUser, organizations)
+	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
-// Update differs from the default UserStorer.Update() in that it
-// updates the GitHub access token of the given user
-func (bus BanzaiUserStorer) Update(schema *auth.Schema, context *auth.Context) error {
-
-	// This assumes GitHub auth only right now
-	currentUser := &User{}
-	githubExtraInfo := schema.RawInfo.(*GithubExtraInfo)
-	currentUser.Login = githubExtraInfo.Login
-
-	// Revoke the old Github token from Vault
-	err := TokenStore.Revoke(context.Claims.UserID, GithubTokenID)
+// SaveUserGitHubToken saves a GitHub personal access token specified for a user
+func SaveUserGitHubToken(user *User, githubToken string) error {
+	// Revoke the old Github token from Vault if any
+	err := TokenStore.Revoke(user.IDString(), GithubTokenID)
 	if err != nil {
 		return errors.Wrap(err, "failed to revoke old Github access token")
 	}
 
-	// Save the new Github token to Vault
 	token := bauth.NewToken(GithubTokenID, "Github access token")
-	token.Value = githubExtraInfo.Token
-	err = TokenStore.Store(context.Claims.UserID, token)
+	token.Value = githubToken
+	err = TokenStore.Store(user.IDString(), token)
 	if err != nil {
-		return errors.Wrap(err, "failed to save Github access token")
+		return emperror.WrapWith(err, "failed to store Github access token for user", "user", user.Login)
 	}
 
-	// Also update the new Github token in CICD (TODO CICD should get it from Vault as well)
-	return bus.updateUserInCICDDB(currentUser, githubExtraInfo.Token)
+	// TODO CICD should use Vault as well, and this should be removed by then
+	err = updateUserInCICDDB(user, githubToken)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to update Github access token for user in CICD", "user", user.Login)
+	}
+
+	synchronizeCICDRepos(user.Login)
+
+	return nil
 }
 
-func (bus BanzaiUserStorer) createUserInCICDDB(user *User, githubAccessToken string) error {
+func (bus BanzaiUserStorer) createUserInCICDDB(user *User) error {
 	cicdUser := &CICDUser{
 		Login:  user.Login,
 		Email:  user.Email,
-		Token:  githubAccessToken,
 		Hash:   bus.signingKeyBase32,
 		Image:  user.Image,
 		Active: true,
@@ -305,7 +388,7 @@ func (bus BanzaiUserStorer) createUserInCICDDB(user *User, githubAccessToken str
 	return bus.cicdDB.Where(cicdUser).FirstOrCreate(cicdUser).Error
 }
 
-func (bus BanzaiUserStorer) updateUserInCICDDB(user *User, githubAccessToken string) error {
+func updateUserInCICDDB(user *User, githubAccessToken string) error {
 	where := &CICDUser{
 		Login: user.Login,
 	}
@@ -313,7 +396,7 @@ func (bus BanzaiUserStorer) updateUserInCICDDB(user *User, githubAccessToken str
 		Token:  githubAccessToken,
 		Synced: time.Now().Unix(),
 	}
-	return bus.cicdDB.Model(&CICDUser{}).Where(where).Update(update).Error
+	return cicdDB.Model(&CICDUser{}).Where(where).Update(update).Error
 }
 
 // This method tries to call the CICD API on a best effort basis to fetch all repos before the user navigates there.
@@ -348,16 +431,34 @@ func NewGithubImporter(
 	}
 }
 
-func (i *GithubImporter) ImportOrganizations(currentUser *User, githubToken string) error {
-	githubOrgIDs, err := importGithubOrganizations(i.db, currentUser, githubToken)
+func (i *GithubImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
+	orgs, err := getGithubOrganizations(githubToken)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get organizations")
+	}
+
+	return i.ImportGithubOrganizations(currentUser, orgs)
+}
+
+func (i *GithubImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string) error {
+	var orgs []organization
+	for _, org := range organizations {
+		orgs = append(orgs, organization{name: org, provider: "github"})
+	}
+
+	return i.ImportGithubOrganizations(currentUser, orgs)
+}
+
+func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []organization) error {
+	githubOrgIDs, err := importGithubOrganizations(i.db, currentUser, orgs)
 
 	if err != nil {
-		return emperror.With(err, "failed to import organizations")
+		return emperror.Wrap(err, "failed to import organizations")
 	}
 
 	for id, created := range githubOrgIDs {
 		i.accessManager.AddOrganizationPolicies(id)
-		i.accessManager.GrantOganizationAccessToUser(currentUser.IDString(), id)
+		i.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), id)
 
 		if created {
 			i.events.OrganizationRegistered(id, currentUser.ID)
@@ -367,11 +468,7 @@ func (i *GithubImporter) ImportOrganizations(currentUser *User, githubToken stri
 	return nil
 }
 
-func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken string) (map[uint]bool, error) {
-	orgs, err := getGithubOrganizations(githubToken)
-	if err != nil {
-		return nil, err
-	}
+func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
 
 	orgIDs := make(map[uint]bool, len(orgs))
 
@@ -379,8 +476,8 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 	for _, org := range orgs {
 		o := Organization{
 			Name:     org.name,
-			GithubID: &org.id,
 			Role:     org.role,
+			Provider: org.provider,
 		}
 
 		needsCreation := true
@@ -425,7 +522,7 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, githubToken strin
 		}
 	}
 
-	err = tx.Commit().Error
+	err := tx.Commit().Error
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to save organizations")
 	}

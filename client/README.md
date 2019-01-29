@@ -127,6 +127,7 @@ Class | Method | HTTP request | Description
 *UsersApi* | [**GetCurrentUser**](docs/UsersApi.md#getcurrentuser) | **Get** /api/v1/me | Get current user
 *UsersApi* | [**GetUsers**](docs/UsersApi.md#getusers) | **Get** /api/v1/orgs/{orgId}/users/{userId} | Get user
 *UsersApi* | [**ListUsers**](docs/UsersApi.md#listusers) | **Get** /api/v1/orgs/{orgId}/users | List users
+*UsersApi* | [**UpdateCurrentUser**](docs/UsersApi.md#updatecurrentuser) | **Patch** /api/v1/me | Update current user&#39;s settings
 *WhitelistApi* | [**CreateWhitelists**](docs/WhitelistApi.md#createwhitelists) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/whitelists | Create Whitelisted deployment
 *WhitelistApi* | [**DeleteWhitelist**](docs/WhitelistApi.md#deletewhitelist) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/whitelists/{name} | Delete Whitelisted deployment
 *WhitelistApi* | [**ListWhitelists**](docs/WhitelistApi.md#listwhitelists) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/whitelists | List Whitelisted deployments
@@ -222,8 +223,6 @@ Class | Method | HTTP request | Description
  - [EndpointItem](docs/EndpointItem.md)
  - [GenTlsForLogging](docs/GenTlsForLogging.md)
  - [GetClusterBootstrapResponse](docs/GetClusterBootstrapResponse.md)
- - [GetClusterNodePool](docs/GetClusterNodePool.md)
- - [GetClusterResponse](docs/GetClusterResponse.md)
  - [GetClusterStatusResponse](docs/GetClusterStatusResponse.md)
  - [GetDeploymentResourcesResponse](docs/GetDeploymentResourcesResponse.md)
  - [GetDeploymentResourcesResponseInner](docs/GetDeploymentResourcesResponseInner.md)
@@ -295,7 +294,6 @@ Class | Method | HTTP request | Description
  - [NodePoolsGoogle](docs/NodePoolsGoogle.md)
  - [NodePoolsOracle](docs/NodePoolsOracle.md)
  - [NodePoolsPke](docs/NodePoolsPke.md)
- - [NodeResourceSummary](docs/NodeResourceSummary.md)
  - [OrganizationListItemResponse](docs/OrganizationListItemResponse.md)
  - [OrganizationNotFound](docs/OrganizationNotFound.md)
  - [PkeHosts](docs/PkeHosts.md)
@@ -362,6 +360,7 @@ Class | Method | HTTP request | Description
  - [UpdateNodePoolsAzure](docs/UpdateNodePoolsAzure.md)
  - [UpdateNodePoolsEks](docs/UpdateNodePoolsEks.md)
  - [UpdateNodePoolsGoogle](docs/UpdateNodePoolsGoogle.md)
+ - [UpdateUserRequest](docs/UpdateUserRequest.md)
  - [UrlItem](docs/UrlItem.md)
  - [User](docs/User.md)
  - [VpcNetworkInfo](docs/VpcNetworkInfo.md)

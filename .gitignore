@@ -6,6 +6,7 @@ pipeline
 statestore/*
 vault/*
 config/config.toml
+config/dex.yml
 *.swp
 orgs/
 *.pem
