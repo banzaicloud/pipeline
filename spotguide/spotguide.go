@@ -42,7 +42,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 const SpotguideGithubTopic = "spotguide"
@@ -139,9 +139,16 @@ type SpotguideManager struct {
 }
 
 func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken string, sharedLibraryGitHubOrganization string) *SpotguideManager {
-	sharedLibraryOrganization, err := auth.GetOrganizationByName(sharedLibraryGitHubOrganization)
-	if err != nil {
-		log.Errorf("shared spotguide organization (%s) is not found", sharedLibraryGitHubOrganization)
+	// insert shared organization to DB if not exists
+	var sharedOrg *auth.Organization
+	if org, _, err := github.NewClient(nil).Organizations.Get(context.Background(), sharedLibraryGitHubOrganization); err != nil {
+		log.Errorf("failed to query shared Github organization: %s", err.Error())
+	} else {
+		sharedOrg = &auth.Organization{Name: *org.Login, GithubID: org.ID}
+		if err := db.Where(sharedOrg).FirstOrCreate(sharedOrg).Error; err != nil {
+			log.Errorf("failed to create shared organization: %s", err.Error())
+			sharedOrg = nil
+		}
 	}
 
 	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
@@ -150,7 +157,7 @@ func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken 
 		db:                        db,
 		pipelineVersion:           pipelineVersion,
 		githubToken:               githubToken,
-		sharedLibraryOrganization: sharedLibraryOrganization,
+		sharedLibraryOrganization: sharedOrg,
 	}
 }
 
