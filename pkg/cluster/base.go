@@ -227,7 +227,10 @@ type GetNodePoolsResponse struct {
 	NodePools               map[string]*ActualNodePoolStatus `json:"nodePools,omitempty"`
 	ClusterTotalResources   map[string]float64               `json:"clusterTotalResources,omitempty"`
 	ClusterDesiredResources map[string]float64               `json:"clusterDesiredResources,omitempty"`
-	ClusterStatus           string                           `json:"string,omitempty"`
+	ClusterStatus           string                           `json:"status,omitempty"`
+	Cloud                   string                           `json:"cloud"`
+	Distribution            string                           `json:"distribution"`
+	Location                string                           `json:"location"`
 }
 
 type ActualNodePoolStatus struct {

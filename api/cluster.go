@@ -370,14 +370,15 @@ func GetNodePools(c *gin.Context) {
 
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 	for nodePoolName, nodePool := range clusterStatus.NodePools {
+		if nodePoolName == headNodePoolName {
+			continue
+		}
+
 		nodePoolStatus[nodePoolName] = &pkgCluster.ActualNodePoolStatus{
 			NodePoolStatus: *nodePool,
 			ActualCount:    nodePoolCounts[nodePoolName],
 		}
 
-		if nodePoolName == headNodePoolName {
-			continue
-		}
 		machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
 			clusterStatus.Distribution,
 			clusterStatus.Region,
@@ -405,6 +406,9 @@ func GetNodePools(c *gin.Context) {
 		ClusterDesiredResources: clusterDesiredResources,
 		ClusterTotalResources:   clusterTotalResources,
 		ClusterStatus:           clusterStatus.Status,
+		Cloud:                   clusterStatus.Cloud,
+		Distribution:            clusterStatus.Distribution,
+		Location:                clusterStatus.Location,
 	}
 
 	c.JSON(http.StatusOK, response)
