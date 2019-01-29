@@ -52,12 +52,12 @@ telemetry:
 #
 # If this option isn't chosen clients may be added through the gRPC API.
 staticClients:
-- id: example-app
+- id: pipeline
   redirectURIs:
   - 'http://127.0.0.1:5555/callback'
   - 'http://127.0.0.1:9090/auth/dex/callback'
   - 'http://localhost:9090/auth/dex/callback'
-  name: 'Example App'
+  name: 'Pipeline'
   secret: ZXhhbXBsZS1hcHAtc2VjcmV0
 
 connectors:
