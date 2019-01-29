@@ -374,7 +374,7 @@ func (h *tokenHandler) GenerateClusterToken(orgID, clusterID uint) (string, stri
 	tokenID, signedToken, err := createAndStoreAPIToken(userID, userID, ClusterTokenType, userID, nil, true)
 	// TODO: handle access by cluster
 	h.accessManager.GrantDefaultAccessToVirtualUser(userID)
-	h.accessManager.GrantOganizationAccessToUser(userID, orgID)
+	h.accessManager.GrantOrganizationAccessToUser(userID, orgID)
 	return tokenID, signedToken, err
 }
 
