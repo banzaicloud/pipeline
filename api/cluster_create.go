@@ -102,7 +102,25 @@ func (a *ClusterAPI) CreateCluster(
 
 		logger.Info("fill data from profile")
 
-		profile, err := defaults.GetProfile(createClusterRequest.Cloud, createClusterRequest.ProfileName)
+		distribution := ""
+		switch createClusterRequest.Cloud {
+		case pkgCluster.Amazon:
+			distribution = pkgCluster.EKS
+		case pkgCluster.Azure:
+			distribution = pkgCluster.AKS
+		case pkgCluster.Google:
+			distribution = pkgCluster.GKE
+		case pkgCluster.Oracle:
+			distribution = pkgCluster.OKE
+		default:
+			return nil, &pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "unsupported cloud type",
+				Error:   "unsupported cloud type",
+			}
+		}
+
+		profile, err := defaults.GetProfile(distribution, createClusterRequest.ProfileName)
 		if err != nil {
 			return nil, &pkgCommon.ErrorResponse{
 				Code:    http.StatusNotFound,

@@ -35,13 +35,14 @@ type UpdateClusterAmazonEKS struct {
 
 // NodePool describes Amazon's node fields of a CreateCluster/Update request
 type NodePool struct {
-	InstanceType string `json:"instanceType" yaml:"instanceType"`
-	SpotPrice    string `json:"spotPrice" yaml:"spotPrice"`
-	Autoscaling  bool   `json:"autoscaling" yaml:"autoscaling"`
-	MinCount     int    `json:"minCount" yaml:"minCount"`
-	MaxCount     int    `json:"maxCount" yaml:"maxCount"`
-	Count        int    `json:"count" yaml:"count"`
-	Image        string `json:"image" yaml:"image"`
+	InstanceType string            `json:"instanceType" yaml:"instanceType"`
+	SpotPrice    string            `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling  bool              `json:"autoscaling" yaml:"autoscaling"`
+	MinCount     int               `json:"minCount" yaml:"minCount"`
+	MaxCount     int               `json:"maxCount" yaml:"maxCount"`
+	Count        int               `json:"count" yaml:"count"`
+	Image        string            `json:"image" yaml:"image"`
+	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 // ClusterVPC describes the VPC for creating an EKS cluster
@@ -104,6 +105,11 @@ func (a *NodePool) Validate() error {
 		a.SpotPrice = DefaultSpotPrice
 	}
 
+	// --- [Label validation]--- //
+	if err := pkgCommon.ValidateNodePoolLabels(a.Labels); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -139,6 +145,11 @@ func (a *NodePool) ValidateForUpdate() error {
 		if a.Count < a.MinCount || a.Count > a.MaxCount {
 			return pkgErrors.ErrorNodePoolCountFieldError
 		}
+	}
+
+	// --- [Label validation]--- //
+	if err := pkgCommon.ValidateNodePoolLabels(a.Labels); err != nil {
+		return err
 	}
 
 	return nil
