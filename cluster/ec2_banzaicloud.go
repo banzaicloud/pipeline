@@ -349,6 +349,30 @@ func (c *EC2ClusterBanzaiCloudDistribution) NodePoolExists(nodePoolName string) 
 	return false
 }
 
+// GetPipelineToken returns a lazily generated token for Pipeline
+func (c *EC2ClusterBanzaiCloudDistribution) GetPipelineToken(tokenGenerator interface{}) (string, error) {
+	generator, ok := tokenGenerator.(TokenGenerator)
+	if !ok {
+		return "", errors.New(fmt.Sprintf("failed to use %T as TokenGenerator", tokenGenerator))
+	}
+	_, token, err := generator.GenerateClusterToken(c.model.Cluster.OrganizationID, c.model.Cluster.ID)
+	return token, err
+}
+
+// GetBootstrapCommand returns a command line to use to install a node in the given nodepool
+func (c *EC2ClusterBanzaiCloudDistribution) GetBootstrapCommand(nodePoolName, url, token string) string {
+	roles := ""
+	for _, np := range c.model.NodePools {
+		if np.Name == nodePoolName {
+			for _, role := range np.Roles {
+				roles += fmt.Sprintf(" --role=%s", role)
+			}
+		}
+	}
+	return fmt.Sprintf("pke-installer install --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --node-pool=%q%s",
+		url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, roles)
+}
+
 func CreateEC2ClusterBanzaiCloudDistributionFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterBanzaiCloudDistribution, error) {
 	c := &EC2ClusterBanzaiCloudDistribution{
 		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
