@@ -42,6 +42,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**GetClusterBootstrap**](docs/ClustersApi.md#getclusterbootstrap) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/bootstrap | Get cluster bootstrap info
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
+*ClustersApi* | [**GetPKECommands**](docs/ClustersApi.md#getpkecommands) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/commands | List bootstrap commands for namespaces
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 *ClustersApi* | [**HelmInit**](docs/ClustersApi.md#helminit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
 *ClustersApi* | [**InstallSecret**](docs/ClustersApi.md#installsecret) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Install a particular secret into a cluster with optional remapping
@@ -228,6 +229,7 @@ Class | Method | HTTP request | Description
  - [GetDeploymentResourcesResponseInner](docs/GetDeploymentResourcesResponseInner.md)
  - [GetDeploymentResponse](docs/GetDeploymentResponse.md)
  - [GetDomainResponse](docs/GetDomainResponse.md)
+ - [GetPkeCommandsResponse](docs/GetPkeCommandsResponse.md)
  - [GoogleConfigResponse](docs/GoogleConfigResponse.md)
  - [GoogleConfigResponseInstanceType](docs/GoogleConfigResponseInstanceType.md)
  - [GoogleConfigResponseKubernetesVersions](docs/GoogleConfigResponseKubernetesVersions.md)
