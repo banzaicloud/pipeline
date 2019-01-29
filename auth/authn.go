@@ -55,6 +55,9 @@ const CICDUserTokenType bauth.TokenType = "user"
 // CICDHookTokenType is the CICD token type used for API sessions
 const CICDHookTokenType bauth.TokenType = "hook"
 
+// ClusterTokenType is the token given to clusters to manage themselves
+const ClusterTokenType bauth.TokenType = "cluster"
+
 // SessionCookieMaxAge holds long an authenticated session should be valid in seconds
 const SessionCookieMaxAge = 30 * 24 * 60 * 60
 
@@ -258,12 +261,12 @@ type tokenHandler struct {
 	accessManager accessManager
 }
 
-func NewTokenHandler(accessManager accessManager) gin.HandlerFunc {
+func NewTokenHandler(accessManager accessManager) *tokenHandler {
 	handler := &tokenHandler{
 		accessManager: accessManager,
 	}
 
-	return handler.GenerateToken
+	return handler
 }
 
 //GenerateToken generates token from context
@@ -324,7 +327,7 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		tokenType = CICDHookTokenType
 	}
 
-	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name, tokenRequest.ExpiresAt)
+	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name, tokenRequest.ExpiresAt, false)
 
 	if err != nil {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
@@ -351,6 +354,28 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
+}
+
+// getClusterUserID maps cluster to a unique identifier for the cluster's technical user
+func getClusterUserID(orgID, clusterID uint) string {
+	return fmt.Sprintf("clusters/%d/%d", orgID, clusterID)
+}
+
+//GenerateClusterToken looks up, or generates and stores a token for a cluster
+func (h *tokenHandler) GenerateClusterToken(orgID, clusterID uint) (string, string, error) {
+	userID := getClusterUserID(orgID, clusterID)
+	if tokens, err := TokenStore.List(userID); err == nil {
+		for _, token := range tokens {
+			if token.Value != "" && token.ExpiresAt == nil {
+				return token.ID, token.Value, nil
+			}
+		}
+	}
+	tokenID, signedToken, err := createAndStoreAPIToken(userID, userID, ClusterTokenType, userID, nil, true)
+	// TODO: handle access by cluster
+	h.accessManager.GrantDefaultAccessToVirtualUser(userID)
+	h.accessManager.GrantOganizationAccessToUser(userID, orgID)
+	return tokenID, signedToken, err
 }
 
 func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, expiresAt *time.Time) (string, string, error) {
@@ -385,7 +410,7 @@ func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, 
 	return tokenID, signedToken, nil
 }
 
-func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string, expiresAt *time.Time) (string, string, error) {
+func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string, expiresAt *time.Time, storeSecret bool) (string, string, error) {
 	tokenID, signedToken, err := createAPIToken(userID, userLogin, tokenType, expiresAt)
 	if err != nil {
 		return "", "", err
@@ -393,6 +418,9 @@ func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.Tok
 
 	token := bauth.NewToken(tokenID, tokenName)
 	token.ExpiresAt = expiresAt
+	if storeSecret {
+		token.Value = signedToken
+	}
 	err = TokenStore.Store(userID, token)
 	if err != nil {
 		return "", "", errors.Wrap(err, "failed to store user token")
@@ -472,7 +500,7 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	// These tokens are GCd after they expire
 	expiresAt := time.Now().Add(SessionCookieMaxAge * time.Second)
 
-	_, cookieToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, CICDUserTokenType, SessionCookieName, &expiresAt)
+	_, cookieToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, CICDUserTokenType, SessionCookieName, &expiresAt, false)
 	if err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed to create user session cookie"))
 		return err
