@@ -138,18 +138,21 @@ type SpotguideManager struct {
 	sharedLibraryOrganization *auth.Organization
 }
 
-func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken string, sharedLibraryGitHubOrganization string) *SpotguideManager {
+func CreateSharedSpotguideOrganization(db *gorm.DB, sharedLibraryGitHubOrganization string) (*auth.Organization, error) {
 	// insert shared organization to DB if not exists
 	var sharedOrg *auth.Organization
-	if org, _, err := github.NewClient(nil).Organizations.Get(context.Background(), sharedLibraryGitHubOrganization); err != nil {
-		log.Errorf("failed to query shared Github organization: %s", err.Error())
-	} else {
-		sharedOrg = &auth.Organization{Name: *org.Login, GithubID: org.ID}
-		if err := db.Where(sharedOrg).FirstOrCreate(sharedOrg).Error; err != nil {
-			log.Errorf("failed to create shared organization: %s", err.Error())
-			sharedOrg = nil
-		}
+	githubOrg, _, err := github.NewClient(nil).Organizations.Get(context.Background(), sharedLibraryGitHubOrganization)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to query shared Github organization")
 	}
+	sharedOrg = &auth.Organization{Name: *githubOrg.Login, GithubID: githubOrg.ID}
+	if err := db.Where(sharedOrg).FirstOrCreate(sharedOrg).Error; err != nil {
+		return nil, emperror.Wrap(err, "failed to create shared organization")
+	}
+	return sharedOrg, nil
+}
+
+func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken string, sharedLibraryOrganization *auth.Organization) *SpotguideManager {
 
 	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
 
@@ -157,7 +160,7 @@ func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken 
 		db:                        db,
 		pipelineVersion:           pipelineVersion,
 		githubToken:               githubToken,
-		sharedLibraryOrganization: sharedOrg,
+		sharedLibraryOrganization: sharedLibraryOrganization,
 	}
 }
 
