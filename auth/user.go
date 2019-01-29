@@ -361,13 +361,13 @@ func SaveUserGitHubToken(user *User, githubToken string) error {
 	token.Value = githubToken
 	err = TokenStore.Store(user.IDString(), token)
 	if err != nil {
-		return errors.Wrapf(err, "failed to store Github access token for user: %s", user.Login)
+		return emperror.WrapWith(err, "failed to store Github access token for user", "user", user.Login)
 	}
 
 	// TODO CICD should use Vault as well, and this should be removed by then
 	err = updateUserInCICDDB(user, githubToken)
 	if err != nil {
-		return errors.Wrapf(err, "failed to update Github access token for user in CICD: %s", user.Login)
+		return emperror.WrapWith(err, "failed to update Github access token for user in CICD", "user", user.Login)
 	}
 
 	synchronizeCICDRepos(user.Login)

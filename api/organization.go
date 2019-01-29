@@ -161,7 +161,7 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 	}
 
 	if token == "" {
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "user's github token is not set",
 		})
