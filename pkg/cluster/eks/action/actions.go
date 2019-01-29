@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -38,7 +39,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -809,11 +809,6 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				spotPriceParam = nodePool.NodeSpotPrice
 			}
 
-			onDemandLabel := "true"
-			if spotPriceParam != "" {
-				onDemandLabel = "false"
-			}
-
 			stackParams := []*cloudformation.Parameter{
 				{
 					ParameterKey:   aws.String("KeyName"),
@@ -870,15 +865,40 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 					ParameterKey:   aws.String("NodeInstanceRoleId"),
 					ParameterValue: a.context.NodeInstanceRoleID,
 				},
-				{
-					ParameterKey:   aws.String("BootstrapArguments"),
-					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v=%v,%v=%v'", common.LabelKey, nodePool.Name, common.OnDemandLabelKey, onDemandLabel)),
-				},
 			}
 
-			cloudformationSrv := cloudformation.New(a.context.Session)
+			if a.isCreate {
+				// do not update node labels via kubelet boostrap params as that induces node reboot or replacement
+				onDemandLabel := "true"
+				if spotPriceParam != "" {
+					onDemandLabel = "false"
+				}
+
+				nodeLabels := []string{
+					fmt.Sprintf("%v=%v", common.LabelKey, nodePool.Name),
+					fmt.Sprintf("%v=%v", common.OnDemandLabelKey, onDemandLabel),
+				}
+
+				for _, labelModel := range nodePool.Labels {
+					if labelModel != nil {
+						nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", labelModel.Name, labelModel.Value))
+					}
+				}
+
+				stackParams = append(stackParams, &cloudformation.Parameter{
+					ParameterKey:   aws.String("BootstrapArguments"),
+					ParameterValue: aws.String(fmt.Sprintf("--kubelet-extra-args '--node-labels %v'", strings.Join(nodeLabels, ","))),
+				})
+			} else {
+				stackParams = append(stackParams, &cloudformation.Parameter{
+					ParameterKey:     aws.String("BootstrapArguments"),
+					UsePreviousValue: aws.Bool(true),
+				})
+			}
 
 			waitOnCreateUpdate := true
+
+			cloudformationSrv := cloudformation.New(a.context.Session)
 
 			// create stack
 			if a.isCreate {
@@ -946,6 +966,8 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				errorChan <- err
 				return
 			}
+
+			// TODO: updating labels on the nodes (will be addressed in a separte PR)
 
 			errorChan <- nil
 

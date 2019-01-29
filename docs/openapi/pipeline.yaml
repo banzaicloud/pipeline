@@ -14,7 +14,7 @@ servers:
 tags:
     -
         name: clusters
-        description: Clusters realted funtions
+        description: Clusters related funtions
     -
         name: spotguides
         description: Application spotguides
@@ -5533,6 +5533,12 @@ components:
                 maxCount:
                     type: integer
                     example: 2
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                        example:
+                            example.io/label1: value1
                 image:
                     type: string
                     example: "ami-06d1667f"
@@ -7051,7 +7057,7 @@ components:
                     properties:
                         version:
                             type: string
-                            example: "1.10"
+                            example: "1.11"
                         nodePools:
                             type: object
                             additionalProperties:
@@ -7132,7 +7138,7 @@ components:
                     properties:
                         version:
                             type: string
-                            example: "1.10"
+                            example: "1.11"
                         nodePools:
                             type: object
                             additionalProperties:
@@ -7768,6 +7774,12 @@ components:
                 image:
                     type: string
                     example: "ami-4d485ca7"
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                        example:
+                            example.io/label1: value1
 
         NodePoolStatusAzure:
             type: object

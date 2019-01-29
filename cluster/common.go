@@ -295,16 +295,12 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		err = db.Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).First(&eksCluster.modelCluster.EKS).Error
-		if err != nil {
-			return nil, err
-		}
-		err = db.Model(&eksCluster.modelCluster.EKS).Related(&eksCluster.modelCluster.EKS.NodePools, "NodePools").Error
-		if err != nil {
-			return nil, err
-		}
-
-		err = db.Model(&eksCluster.modelCluster.EKS).Related(&eksCluster.modelCluster.EKS.Subnets, "Subnets").Error
+		err = db.
+			Preload("NodePools").
+			Preload("NodePools.Labels").
+			Preload("Subnets").
+			Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).
+			First(&eksCluster.modelCluster.EKS).Error
 
 		return eksCluster, err
 

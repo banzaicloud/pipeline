@@ -17,10 +17,8 @@ package cluster
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // Cluster describes Pipeline's Oracle fields of a Create/Update request
@@ -166,10 +164,8 @@ func (c *Cluster) Validate(update bool) error {
 			return fmt.Errorf("NodePool[%s]: Node shape must be specified", name)
 		}
 
-		for k := range nodePool.Labels {
-			if strings.Contains(k, pkgCommon.PipelineSpecificLabelsCommonPart) {
-				return pkgErrors.ErrorNodePoolLabelClashesWithPipelineLabel
-			}
+		if err := pkgCommon.ValidateNodePoolLabels(nodePool.Labels); err != nil {
+			return err
 		}
 	}
 

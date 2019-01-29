@@ -11,7 +11,7 @@ info:
 servers:
 - url: http://localhost:9090
 tags:
-- description: Clusters realted funtions
+- description: Clusters related funtions
   name: clusters
 - description: Application spotguides
   name: spotguides
@@ -5854,6 +5854,11 @@ components:
           example: 2
           format: int32
           type: integer
+        labels:
+          additionalProperties:
+            example: '{"example.io/label1":"value1"}'
+            type: string
+          type: object
         image:
           example: ami-06d1667f
           type: string
@@ -7933,6 +7938,11 @@ components:
         image:
           example: ami-4d485ca7
           type: string
+        labels:
+          additionalProperties:
+            example: '{"example.io/label1":"value1"}'
+            type: string
+          type: object
       type: object
     NodePoolStatusAzure:
       properties:
@@ -10164,7 +10174,7 @@ components:
     ClusterProfileEKS_eks:
       properties:
         version:
-          example: "1.10"
+          example: "1.11"
           type: string
         nodePools:
           additionalProperties:

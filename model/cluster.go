@@ -24,6 +24,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -33,16 +34,17 @@ const unknown = "unknown"
 
 //TableName constants
 const (
-	TableNameClusters             = "clusters"
-	TableNameAlibabaProperties    = "alibaba_acsk_clusters"
-	TableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
-	TableNameAmazonNodePools      = "amazon_node_pools"
-	TableNameAmazonEksProperties  = "amazon_eks_clusters"
-	TableNameAzureProperties      = "azure_aks_clusters"
-	TableNameAzureNodePools       = "azure_aks_node_pools"
-	TableNameDummyProperties      = "dummy_clusters"
-	TableNameKubernetesProperties = "kubernetes_clusters"
-	TableNameEKSSubnets           = "amazon_eks_subnets"
+	tableNameClusters             = "clusters"
+	tableNameAlibabaProperties    = "alibaba_acsk_clusters"
+	tableNameAlibabaNodePools     = "alibaba_acsk_node_pools"
+	tableNameAmazonNodePools      = "amazon_node_pools"
+	tableNameAmazonEksProperties  = "amazon_eks_clusters"
+	tableNameAzureProperties      = "azure_aks_clusters"
+	tableNameAzureNodePools       = "azure_aks_node_pools"
+	tableNameDummyProperties      = "dummy_clusters"
+	tableNameKubernetesProperties = "kubernetes_clusters"
+	tableNameEKSSubnets           = "amazon_eks_subnets"
+	tableNameAmazonNodePoolLabels = "amazon_node_pool_labels"
 )
 
 //ClusterModel describes the common cluster model
@@ -139,7 +141,78 @@ type AmazonNodePoolsModel struct {
 	Count            int
 	NodeImage        string
 	NodeInstanceType string
-	Delete           bool `gorm:"-"`
+	Labels           []*AmazonNodePoolLabelModel `gorm:"foreignkey:NodePoolID"`
+	Delete           bool                        `gorm:"-"`
+}
+
+// BeforeDelete deletes all nodepool labels that belongs to this AmazonNodePoolsModel
+func (m *AmazonNodePoolsModel) BeforeDelete(tx *gorm.DB) error {
+	for _, label := range m.Labels {
+		err := tx.Model(m).Association("Labels").Delete(label).Error
+		if err != nil {
+			return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", m.ClusterID, "nodePoolName", m.Name)
+		}
+
+		err = tx.Delete(label).Error
+		if err != nil {
+			return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", m.ClusterID, "nodePoolName", m.Name)
+		}
+	}
+
+	return nil
+}
+
+// AfterUpdate removes marked node pool(s)
+func (m *AmazonNodePoolsModel) AfterUpdate(tx *gorm.DB) error {
+	log.WithFields(logrus.Fields{
+		"clusterId":    m.ClusterID,
+		"nodePoolName": m.Name},
+	).Debugln("remove node pool labels marked for deletion")
+
+	for _, labelModel := range m.Labels {
+		if labelModel != nil && labelModel.Delete {
+			err := tx.Model(m).Association("Labels").Delete(labelModel).Error
+			if err != nil {
+				return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", m.ClusterID, "nodePoolName", m.Name)
+			}
+
+			err = tx.Delete(labelModel).Error
+			if err != nil {
+				return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", m.ClusterID, "nodePoolName", m.Name)
+			}
+		}
+	}
+
+	return nil
+}
+
+// AmazonNodePoolLabelModel stores labels for node pools
+type AmazonNodePoolLabelModel struct {
+	ID         uint   `gorm:"primary_key"`
+	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
+	Value      string
+	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+
+	Delete bool `gorm:"-"`
+}
+
+// TableName changes the default table name.
+func (AmazonNodePoolLabelModel) TableName() string {
+	return tableNameAmazonNodePoolLabels
+}
+
+func (m AmazonNodePoolLabelModel) String() string {
+	return fmt.Sprintf(
+		"ID: %d, Name: %s, Value: %s, NodePoolID: %d, createdAt: %v, UpdatedAt: %v",
+		m.ID,
+		m.Name,
+		m.Value,
+		m.NodePoolID,
+		m.CreatedAt,
+		m.UpdatedAt,
+	)
 }
 
 // EKSSubnetModel describes the model of subnets used for creating an EKS cluster
@@ -263,7 +336,7 @@ func (cs *ClusterModel) Delete() error {
 
 // TableName sets ClusterModel's table name
 func (ClusterModel) TableName() string {
-	return TableNameClusters
+	return tableNameClusters
 }
 
 // String method prints formatted cluster fields
@@ -307,57 +380,61 @@ func (cs *ClusterModel) String() string {
 
 // TableName sets ACSKClusterModel's table name
 func (ACSKClusterModel) TableName() string {
-	return TableNameAlibabaProperties
+	return tableNameAlibabaProperties
 }
 
 // TableName sets ACSKNodePoolModel's table name
 func (ACSKNodePoolModel) TableName() string {
-	return TableNameAlibabaNodePools
+	return tableNameAlibabaNodePools
 }
 
 // TableName sets AmazonNodePoolsModel's table name
 func (AmazonNodePoolsModel) TableName() string {
-	return TableNameAmazonNodePools
+	return tableNameAmazonNodePools
 }
 
 // TableName sets EKSClusterModel's table name
 func (EKSClusterModel) TableName() string {
-	return TableNameAmazonEksProperties
+	return tableNameAmazonEksProperties
 }
 
 // TableName sets database table name for EKSSubnetModel
 func (EKSSubnetModel) TableName() string {
-	return TableNameEKSSubnets
+	return tableNameEKSSubnets
 }
 
 // TableName sets AzureClusterModel's table name
 func (AKSClusterModel) TableName() string {
-	return TableNameAzureProperties
+	return tableNameAzureProperties
 }
 
 // TableName sets AzureNodePoolModel's table name
 func (AKSNodePoolModel) TableName() string {
-	return TableNameAzureNodePools
+	return tableNameAzureNodePools
 }
 
 //TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
-	return TableNameDummyProperties
+	return tableNameDummyProperties
 }
 
 //TableName sets the KubernetesClusterModel's table name
 func (KubernetesClusterModel) TableName() string {
-	return TableNameKubernetesProperties
+	return tableNameKubernetesProperties
 }
 
 // AfterUpdate removes marked node pool(s)
-func (a *EKSClusterModel) AfterUpdate(scope *gorm.Scope) error {
-	log.Info("Remove node pools marked for deletion")
+func (a *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
+	log.WithField("clusterId", a.ClusterID).Debugln("remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {
 		if nodePoolModel.Delete {
-			err := scope.DB().Delete(nodePoolModel).Error
+			err := tx.Model(a).Association("NodePools").Delete(nodePoolModel).Error
+			if err != nil {
+				return err
+			}
 
+			err = tx.Delete(nodePoolModel).Error
 			if err != nil {
 				return err
 			}
@@ -369,7 +446,7 @@ func (a *EKSClusterModel) AfterUpdate(scope *gorm.Scope) error {
 
 // AfterUpdate removes marked node pool(s)
 func (a *ACSKClusterModel) AfterUpdate(scope *gorm.Scope) error {
-	log.Info("Remove node pools marked for deletion")
+	log.Debugln("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {
 		if nodePoolModel.Delete {

@@ -15,10 +15,13 @@
 package defaults
 
 import (
+	"time"
+
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/jinzhu/gorm"
 )
 
 // EKSProfile describes an Amazon EKS cluster profile
@@ -32,7 +35,19 @@ type EKSProfile struct {
 // EKSNodePoolProfile describes an EKS cluster profile's nodepools
 type EKSNodePoolProfile struct {
 	AmazonNodePoolProfileBaseFields
-	Image string `gorm:"default:'ami-0a54c984b9f908c81'"`
+	Image  string                      `gorm:"default:'ami-0a54c984b9f908c81'"`
+	Labels []*EKSNodePoolLabelsProfile `gorm:"foreignkey:NodePoolProfileID"`
+}
+
+// EKSNodePoolLabelsProfile describe the labels of a nodepool
+// of an EKS cluster profile
+type EKSNodePoolLabelsProfile struct {
+	ID                uint   `gorm:"primary_key"`
+	Name              string `gorm:"unique_index:idx_node_pool_profile_id_name"`
+	Value             string
+	NodePoolProfileID uint `gorm:"unique_index:idx_node_pool_profile_id_name"`
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 // TableName overrides EKSProfile's table name
@@ -43,6 +58,11 @@ func (EKSProfile) TableName() string {
 // TableName overrides EKSNodePoolProfile's table name
 func (EKSNodePoolProfile) TableName() string {
 	return DefaultEKSNodePoolProfileTableName
+}
+
+// TableName override the EKSNodePoolLabelsProfile's table name
+func (EKSNodePoolLabelsProfile) TableName() string {
+	return DefaultEKSNodePoolLabelsProfileTableName
 }
 
 // SaveInstance saves cluster profile into database
@@ -71,6 +91,14 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	nodePools := make(map[string]*eks.NodePool)
 	for _, np := range d.NodePools {
 		if np != nil {
+
+			labels := make(map[string]string)
+			for _, lbl := range np.Labels {
+				if lbl != nil {
+					labels[lbl.Name] = lbl.Value
+				}
+			}
+
 			nodePools[np.NodeName] = &eks.NodePool{
 				InstanceType: np.InstanceType,
 				SpotPrice:    np.SpotPrice,
@@ -79,6 +107,7 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 				MaxCount:     np.MaxCount,
 				Count:        np.Count,
 				Image:        np.Image,
+				Labels:       labels,
 			}
 		}
 	}
@@ -100,14 +129,9 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
 func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bool) error {
 
-	regionChanged := false
-	if len(r.Location) != 0 && r.Location != d.Region {
-		d.Region = r.Location
-		regionChanged = true
-	}
 	image := eks.DefaultImages[d.Version][d.Region] // the image is fixed for a region
 
-	if regionChanged && (r.Properties.EKS == nil || len(r.Properties.EKS.NodePools) == 0) {
+	if r.Properties.EKS == nil || len(r.Properties.EKS.NodePools) == 0 {
 		for _, np := range d.NodePools {
 			np.Image = image
 		}
@@ -122,6 +146,11 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 		if len(r.Properties.EKS.NodePools) != 0 {
 			var nodePools []*EKSNodePoolProfile
 			for npName, nodePool := range r.Properties.EKS.NodePools {
+
+				err := pkgCommon.ValidateNodePoolLabels(nodePool.Labels)
+				if err != nil {
+					return err
+				}
 
 				spotPrice := eks.DefaultSpotPrice
 				instanceType := eks.DefaultInstanceType
@@ -154,6 +183,15 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 					count = minCount
 				}
 
+				var labels []*EKSNodePoolLabelsProfile
+
+				for lblName, lblValue := range nodePool.Labels {
+					labels = append(labels, &EKSNodePoolLabelsProfile{
+						Name:  lblName,
+						Value: lblValue,
+					})
+				}
+
 				nodePools = append(nodePools, &EKSNodePoolProfile{
 					AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
 						InstanceType: instanceType,
@@ -165,7 +203,8 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 						MaxCount:     maxCount,
 						Count:        count,
 					},
-					Image: image,
+					Image:  image,
+					Labels: labels,
 				})
 
 			}
@@ -185,42 +224,60 @@ func (d *EKSProfile) DeleteProfile() error {
 	return config.DB().Delete(&d).Error
 }
 
-// AfterFind loads nodepools to profile
-func (d *EKSProfile) AfterFind() error {
-	log.Info("AfterFind eks profile... load node pools")
-	return config.DB().Where(EKSNodePoolProfile{
-		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
-			Name: d.Name,
-		},
-	}).Find(&d.NodePools).Error
-}
-
 // BeforeSave clears nodepools
-func (d *EKSProfile) BeforeSave() error {
-	log.Info("BeforeSave eks profile...")
+func (d *EKSProfile) BeforeUpdate(tx *gorm.DB) error {
+	log.Info("BeforeUpdate eks profile...")
 
-	db := config.DB()
+	if d.CreatedAt.IsZero() && d.UpdatedAt.IsZero() {
+		return tx.Create(d).Error
+	}
+
 	var nodePools []*EKSNodePoolProfile
-	err := db.Where(EKSNodePoolProfile{
+
+	err := tx.Where(EKSNodePoolProfile{
 		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
 			Name: d.Name,
 		},
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
-		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+		return err
 	}
 
 	return nil
 }
 
 // BeforeDelete deletes all nodepools to belongs to profile
-func (d *EKSProfile) BeforeDelete() error {
+func (d *EKSProfile) BeforeDelete(tx *gorm.DB) error {
 	log.Info("BeforeDelete eks profile... delete all nodepool")
 
 	var nodePools []*EKSNodePoolProfile
-	return config.DB().Where(EKSNodePoolProfile{
+
+	err := tx.Where(EKSNodePoolProfile{
 		AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
 			Name: d.Name,
 		},
 	}).Find(&nodePools).Delete(&nodePools).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// BeforeDelete deletes all node labels that belong to node pool profile
+func (d *EKSNodePoolProfile) BeforeDelete(tx *gorm.DB) error {
+	log.Info("BeforeDelete eks profile... delete all nodepool")
+
+	if d.ID == 0 {
+		return nil
+	}
+
+	err := tx.Where(EKSNodePoolLabelsProfile{
+		NodePoolProfileID: d.ID,
+	}).Delete(EKSNodePoolLabelsProfile{}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
