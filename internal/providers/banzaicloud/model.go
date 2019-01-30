@@ -35,7 +35,7 @@ type Model struct {
 // Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		EC2BanzaiCloudClusterModel{},
+		EC2PKEClusterModel{},
 		CRI{},
 		KubeADM{},
 		Kubernetes{},
