@@ -272,7 +272,7 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 }
 
 type updateUserRequest struct {
-	GitHubToken string `json:"gitHubToken,omitempty"`
+	GitHubToken *string `json:"gitHubToken,omitempty"`
 }
 
 // UpdateCurrentUser updates the authenticated user's settings
@@ -312,17 +312,31 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 		return
 	}
 
-	if updateUserRequest.GitHubToken != "" {
-		err = auth.SaveUserGitHubToken(user, updateUserRequest.GitHubToken)
-		if err != nil {
-			message := "failed to update user's github token"
-			a.errorHandler.Handle(emperror.Wrap(err, message))
-			c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-				Code:    http.StatusInternalServerError,
-				Message: message,
-				Error:   message,
-			})
-			return
+	if updateUserRequest.GitHubToken != nil {
+		if *updateUserRequest.GitHubToken != "" {
+			err = auth.SaveUserGitHubToken(user, *updateUserRequest.GitHubToken)
+			if err != nil {
+				message := "failed to update user's github token"
+				a.errorHandler.Handle(emperror.Wrap(err, message))
+				c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+					Code:    http.StatusInternalServerError,
+					Message: message,
+					Error:   message,
+				})
+				return
+			}
+		} else {
+			err = auth.RemoveUserGitHubToken(user)
+			if err != nil {
+				message := "failed to remove user's github token"
+				a.errorHandler.Handle(emperror.Wrap(err, message))
+				c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+					Code:    http.StatusInternalServerError,
+					Message: message,
+					Error:   message,
+				})
+				return
+			}
 		}
 	}
 
