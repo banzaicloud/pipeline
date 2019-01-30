@@ -229,7 +229,7 @@ func updateScaleOptions(scaleOptions *model.ScaleOptions, requestScaleOptions *p
 		return
 	}
 	excludes := strings.Join(requestScaleOptions.Excludes, cluster.InstanceTypeSeparator)
-	scaleOptions.Enabled = true
+	scaleOptions.Enabled = requestScaleOptions.Enabled
 	scaleOptions.DesiredCpu = requestScaleOptions.DesiredCpu
 	scaleOptions.DesiredMem = requestScaleOptions.DesiredMem
 	scaleOptions.DesiredGpu = requestScaleOptions.DesiredGpu
