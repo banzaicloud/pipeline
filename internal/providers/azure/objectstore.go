@@ -34,7 +34,8 @@ import (
 )
 
 var (
-	alfanumericRegexp = regexp.MustCompile(`[^a-zA-Z0-9]`)
+	alfanumericRegexp        = regexp.MustCompile(`[^a-zA-Z0-9]`)
+	storageAccountNameRegexp = regexp.MustCompile(`^[a-z0-9]{3,24}$`)
 )
 
 // Default storage account name when none is provided.
@@ -136,6 +137,10 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, resourceGroup, st
 		return azureObjectstore.NewPlainObjectStore()
 	}
 
+	if !isValidStorageAccountName(storageAccount) {
+		return nil, errors.New("storage account must be 3 to 24 characters long, and can contain only lowercase letters and numbers")
+	}
+
 	credentials := getCredentials(secret)
 
 	config := azureObjectstore.Config{
@@ -162,6 +167,13 @@ func (s *ObjectStore) getLogger() logrus.FieldLogger {
 		"storage_account": s.storageAccount,
 		"location":        s.location,
 	})
+}
+
+// https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-manager-storage-account-name-errors
+func isValidStorageAccountName(storageAccount string) bool {
+	match := storageAccountNameRegexp.MatchString(storageAccount)
+
+	return match
 }
 
 func getCredentials(secret *secret.SecretItemResponse) azureObjectstore.Credentials {
@@ -210,7 +222,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 
 	err := s.createStorageAccountAndResourceGroup()
 	if err != nil {
-		return emperror.WrapWith(err, "failed to create storage account or resource group", "bucket", bucketName)
+		return s.createFailed(bucket, emperror.Wrap(err, "failed to create storage account or resource group"))
 	}
 
 	if err := s.objectStore.CreateBucket(bucketName); err != nil {
@@ -219,7 +231,7 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 
 	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(getCredentials(s.secret))
 	if err != nil {
-		return emperror.Wrap(err, "failed to create storage account client")
+		return s.createFailed(bucket, emperror.Wrap(err, "failed to create storage account client"))
 	}
 
 	key, err := storageAccountClient.GetStorageAccountKey(s.resourceGroup, s.storageAccount)

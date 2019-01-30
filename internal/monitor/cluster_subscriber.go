@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -140,7 +141,9 @@ func (s *clusterSubscriber) Init() {
 			}
 
 			params := scrapeConfigParameters{
+				orgID:       org.ID,
 				orgName:     org.Name,
+				clusterID:   c.GetID(),
 				clusterName: c.GetName(),
 				endpoint:    endPoint,
 				basicAuthConfig: &basicAuthConfig{
@@ -174,7 +177,9 @@ func (s *clusterSubscriber) Register(events clusterEvents) {
 }
 
 type scrapeConfigParameters struct {
+	orgID           uint
 	orgName         string
+	clusterID       uint
 	clusterName     string
 	endpoint        string
 	tlsConfig       *scrapeTLSConfig
@@ -220,12 +225,13 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	}
 
 	params := scrapeConfigParameters{
+		orgID:       org.ID,
 		orgName:     org.Name,
+		clusterID:   c.GetID(),
 		clusterName: c.GetName(),
 		endpoint:    endPoint,
 		basicAuthConfig: &basicAuthConfig{
-			username: basicAuthSecret.Values[pkgSecret.Username],
-			// password:     basicAuthSecret.Values[pkgSecret.Password],
+			username:     basicAuthSecret.Values[pkgSecret.Username],
 			passwordFile: fmt.Sprintf("%s_%s_basic_auth.conf", org.Name, c.GetName()),
 		},
 		tlsConfig: &scrapeTLSConfig{
@@ -465,7 +471,11 @@ func (s *clusterSubscriber) getScrapeConfigForCluster(params scrapeConfigParamet
 							model.AddressLabel: model.LabelValue(params.endpoint),
 						},
 					},
-					Labels: model.LabelSet{"cluster_name": model.LabelValue(params.clusterName)},
+					Labels: model.LabelSet{
+						"cluster_name": model.LabelValue(params.clusterName),
+						"cluster_id":   model.LabelValue(strconv.FormatUint(uint64(params.clusterID), 10)),
+						"org_id":       model.LabelValue(strconv.FormatUint(uint64(params.orgID), 10)),
+					},
 				},
 			},
 		},
