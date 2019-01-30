@@ -349,10 +349,11 @@ func GetNodePools(c *gin.Context) {
 
 	clusterStatus, err := commonCluster.GetStatus()
 	if err != nil {
-		log.Error(emperror.Wrap(err, "Error getting cluster"))
+		err = emperror.Wrap(err, "could not get cluster status")
+		errorHandler.Handle(err)
 		c.JSON(http.StatusServiceUnavailable, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error getting cluster",
+			Message: "could not get cluster status",
 			Error:   err.Error(),
 		})
 		return
@@ -364,13 +365,13 @@ func GetNodePools(c *gin.Context) {
 
 	autoScaleEnabled := commonCluster.GetScaleOptions() != nil && commonCluster.GetScaleOptions().Enabled
 	if autoScaleEnabled {
-
 		nodePoolCounts, err := getActualNodeCounts(commonCluster)
 		if err != nil {
-			log.Error(emperror.Wrap(err, "Error getting actual node count for node pool info"))
+			err = emperror.Wrap(err, "could not get actual node count for node pool info")
+			errorHandler.Handle(err)
 			c.JSON(http.StatusServiceUnavailable, pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
-				Message: "Error getting actual node count for node pool info",
+				Message: "could not get actual node count for node pool info",
 				Error:   err.Error(),
 			})
 			return
@@ -392,7 +393,7 @@ func GetNodePools(c *gin.Context) {
 				clusterStatus.Region,
 				nodePool.InstanceType)
 			if err != nil {
-				log.Warn(err.Error())
+				errorHandler.Handle(err)
 			} else if machineDetails != nil {
 				clusterTotalResources["cpu"] += float64(nodePool.Count) * machineDetails.Cpus
 				clusterTotalResources["gpu"] += float64(nodePool.Count) * machineDetails.Gpus
@@ -424,19 +425,20 @@ func getActualNodeCounts(commonCluster cluster.CommonCluster) (map[string]int, e
 	nodePoolCounts := make(map[string]int)
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "could not get k8s config")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "could not create new k8s client")
 	}
 
 	nodes, err := client.CoreV1().Nodes().List(meta_v1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "could not get nodes list from cluster")
 	}
 
+nodesloop:
 	for _, node := range nodes.Items {
 		// don't count cordoned nodes (Unschedulable and tainted with node.banzaicloud.io/draining)
 		if node.Spec.Unschedulable {
@@ -444,7 +446,7 @@ func getActualNodeCounts(commonCluster cluster.CommonCluster) (map[string]int, e
 		}
 		for _, taint := range node.Spec.Taints {
 			if taint.Key == "node.banzaicloud.io/draining" {
-				continue
+				continue nodesloop
 			}
 		}
 		nodePoolName := node.Labels[pkgCommon.LabelKey]
