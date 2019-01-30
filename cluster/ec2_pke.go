@@ -19,6 +19,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -28,7 +31,9 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/banzaicloud"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
@@ -45,6 +50,7 @@ type EC2ClusterPKE struct {
 	//amazonCluster *ec2.EC2 //Don't use this directly
 	APIEndpoint string
 	log         logrus.FieldLogger
+	session     *session.Session
 	CommonClusterBase
 }
 
@@ -209,17 +215,57 @@ func (c *EC2ClusterPKE) DeleteFromDatabase() error {
 }
 
 func (c *EC2ClusterPKE) CreateCluster() error {
-	return nil
+	return errors.New("not implemented")
+}
+
+func (c *EC2ClusterPKE) GetAWSClient() (*session.Session, error) {
+	if c.session != nil {
+		return c.session, nil
+	}
+	secret, err := c.getSecret(c)
+	if err != nil {
+		return nil, err
+	}
+	awsCred := verify.CreateAWSCredentials(secret.Values)
+	return session.NewSession(&aws.Config{
+		Region:      aws.String(c.model.Cluster.Location),
+		Credentials: awsCred,
+	})
 }
 
 func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
+	// Fetch
+
+	// Generate certificates
+	clusterUidTag := fmt.Sprintf("clusterUID:%s", c.GetUID())
+	req := &secret.CreateSecretRequest{
+		Name: fmt.Sprintf("cluster-%d-ca", c.GetID()),
+		Type: pkgSecret.PKESecretType,
+		Tags: []string{
+			clusterUidTag,
+			pkgSecret.TagBanzaiReadonly,
+			pkgSecret.TagBanzaiHidden,
+		},
+	}
+	_, err := secret.Store.GetOrCreate(c.GetOrganizationId(), req)
+	if err != nil {
+		return err
+	}
 	// prepare input for real AWS flow
-	_, err := c.GetPipelineToken(tokenGenerator)
+	_, err = c.GetPipelineToken(tokenGenerator)
 	if err != nil {
 		return emperror.Wrap(err, "can't generate Pipeline token")
 	}
+	//client, err := c.GetAWSClient()
+	//if err != nil {
+	//	return err
+	//}
+	//cloudformationSrv := cloudformation.New(client)
+	//err = CreateMasterCF(cloudformationSrv)
+	//if err != nil {
+	//	return emperror.Wrap(err, "can't create master CF template")
+	//}
 	token := "XXX"
-
 	for _, nodePool := range c.model.NodePools {
 		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
@@ -243,6 +289,11 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	if err != nil {
 		return emperror.Wrap(err, "timeout")
 	}
+	return nil
+}
+
+// Create master CF template
+func CreateMasterCF(formation *cloudformation.CloudFormation) error {
 	return nil
 }
 
