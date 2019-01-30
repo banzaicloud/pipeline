@@ -269,7 +269,7 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 	}
 
 	// if type is distribution, unmount all pki engines
-	if secret.Type == secretTypes.DistributionSecretType {
+	if secret.Type == secretTypes.PKESecretType {
 		clusterUID := secret.Values[secretTypes.ClusterUID]
 		basePath := clusterPKIPath(clusterUID)
 
@@ -642,7 +642,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			value.Values[secretTypes.HtpasswdFile] = fmt.Sprintf("%s:%s", username, string(passwordHash))
 		}
 
-	} else if value.Type == secretTypes.DistributionSecretType {
+	} else if value.Type == secretTypes.PKESecretType {
 
 		clusterUID := value.Values[secretTypes.ClusterUID]
 
