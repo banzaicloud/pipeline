@@ -375,6 +375,23 @@ func SaveUserGitHubToken(user *User, githubToken string) error {
 	return nil
 }
 
+// RemoveUserGitHubToken removes a GitHub personal access token specified for a user
+func RemoveUserGitHubToken(user *User) error {
+	// Revoke the old Github token from Vault if any
+	err := TokenStore.Revoke(user.IDString(), GithubTokenID)
+	if err != nil {
+		return errors.Wrap(err, "failed to revoke Github access token")
+	}
+
+	// TODO CICD should use Vault as well, and this should be removed by then
+	err = updateUserInCICDDB(user, "")
+	if err != nil {
+		return emperror.WrapWith(err, "failed to revoke Github access token for user in CICD", "user", user.Login)
+	}
+
+	return nil
+}
+
 func (bus BanzaiUserStorer) createUserInCICDDB(user *User) error {
 	cicdUser := &CICDUser{
 		Login:  user.Login,
