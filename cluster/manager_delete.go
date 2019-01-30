@@ -275,7 +275,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	}
 
 	switch cls := cluster.(type) {
-	case *EC2ClusterBanzaiCloudDistribution:
+	case *EC2ClusterPKE:
 		// the cluster is only deleted from the database for now
 		if err = cls.DeleteFromDatabase(); err != nil {
 			err = emperror.Wrap(err, "failed to delete from the database")

@@ -112,7 +112,6 @@ type CreateClusterRequest struct {
 	Name         string                   `json:"name" yaml:"name" binding:"required"`
 	Location     string                   `json:"location" yaml:"location"`
 	Cloud        string                   `json:"cloud" yaml:"cloud" binding:"required"`
-	Distribution string                   `json:"distribution,omitempty" yaml:"distribution,omitempty"`
 	SecretId     string                   `json:"secretId" yaml:"secretId"`
 	SecretIds    []string                 `json:"secretIds,omitempty" yaml:"secretIds,omitempty"`
 	SecretName   string                   `json:"secretName" yaml:"secretName"`
@@ -124,14 +123,14 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	CreateClusterACSK        *acsk.CreateClusterACSK               `json:"acsk,omitempty" yaml:"acsk,omitempty"`
-	CreateClusterEKS         *eks.CreateClusterEKS                 `json:"eks,omitempty" yaml:"eks,omitempty"`
-	CreateClusterAKS         *aks.CreateClusterAKS                 `json:"aks,omitempty" yaml:"aks,omitempty"`
-	CreateClusterGKE         *gke.CreateClusterGKE                 `json:"gke,omitempty" yaml:"gke,omitempty"`
-	CreateClusterDummy       *dummy.CreateClusterDummy             `json:"dummy,omitempty" yaml:"dummy,omitempty"`
-	CreateClusterKubernetes  *kubernetes.CreateClusterKubernetes   `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
-	CreateClusterOKE         *oke.Cluster                          `json:"oke,omitempty" yaml:"oke,omitempty"`
-	CreateClusterBanzaiCloud *banzaicloud.CreateClusterBanzaiCloud `json:"clusterTopology,omitempty" yaml:"clusterTopology,omitempty"`
+	CreateClusterACSK       *acsk.CreateClusterACSK             `json:"acsk,omitempty" yaml:"acsk,omitempty"`
+	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
+	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
+	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
+	CreateClusterDummy      *dummy.CreateClusterDummy           `json:"dummy,omitempty" yaml:"dummy,omitempty"`
+	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
+	CreateClusterOKE        *oke.Cluster                        `json:"oke,omitempty" yaml:"oke,omitempty"`
+	CreateClusterPKE        *banzaicloud.CreateClusterPKE       `json:"pke,omitempty" yaml:"pke,omitempty"`
 }
 
 // ScaleOptions describes scale options
@@ -332,11 +331,11 @@ func (r *UpdateClusterRequest) String() string { // todo expand
 
 // AddDefaults puts default values to optional field(s)
 func (r *CreateClusterRequest) AddDefaults() error {
-	if r.Distribution != "" {
-		return nil
-	}
 	switch r.Cloud {
 	case Amazon:
+		if r.Properties.CreateClusterPKE != nil {
+			return nil
+		}
 		return r.Properties.CreateClusterEKS.AddDefaults(r.Location)
 	case Oracle:
 		return r.Properties.CreateClusterOKE.AddDefaults()
@@ -352,23 +351,16 @@ func (r *CreateClusterRequest) Validate() error {
 		return err
 	}
 
-	if r.Distribution != "" {
-		switch r.Cloud {
-		case Amazon:
-			// TODO(Ecsy): validation
-			return nil
-		default:
-			// not supported cloud type
-			return pkgErrors.ErrorNotSupportedCloudType
-		}
-	}
-
 	switch r.Cloud {
 	case Alibaba:
 		// alibaba validate
 		return r.Properties.CreateClusterACSK.Validate()
 	case Amazon:
 		// eks validate
+		if r.Properties.CreateClusterPKE != nil {
+			//r.Properties.CreateClusterPKE.Validate()
+			return nil
+		}
 		return r.Properties.CreateClusterEKS.Validate()
 	case Azure:
 		// aks validate

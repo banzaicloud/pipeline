@@ -16,8 +16,8 @@ package banzaicloud
 
 //TODO add required field to KubeADM if applicable
 
-// CreateClusterBanzaiCloud describes Pipeline's EC2/BanzaiCloud fields of a CreateCluster request
-type CreateClusterBanzaiCloud struct {
+// CreateClusterPKE describes Pipeline's EC2/BanzaiCloud fields of a CreateCluster request
+type CreateClusterPKE struct {
 	Network    Network    `json:"network,omitempty" yaml:"network,omitempty" binding:"required"`
 	NodePools  NodePools  `json:"nodepools,omitempty" yaml:"nodepools,omitempty" binding:"required"`
 	Kubernetes Kubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty" binding:"required"`
