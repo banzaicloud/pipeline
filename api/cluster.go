@@ -358,47 +358,48 @@ func GetNodePools(c *gin.Context) {
 		return
 	}
 
-	clusterTotalResources := make(map[string]float64)
-	nodePoolCounts, err := getActualNodeCounts(commonCluster)
-	if err != nil {
-		log.Error(emperror.Wrap(err, "Error getting actual node count for node pool info"))
-		c.JSON(http.StatusServiceUnavailable, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error getting actual node count for node pool info",
-			Error:   err.Error(),
-		})
-		return
-	}
-
 	nodePoolStatus := make(map[string]*pkgCluster.ActualNodePoolStatus)
-
-	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
-	for nodePoolName, nodePool := range clusterStatus.NodePools {
-		if nodePoolName == headNodePoolName {
-			continue
-		}
-
-		nodePoolStatus[nodePoolName] = &pkgCluster.ActualNodePoolStatus{
-			NodePoolStatus: *nodePool,
-			ActualCount:    nodePoolCounts[nodePoolName],
-		}
-
-		machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
-			clusterStatus.Distribution,
-			clusterStatus.Region,
-			nodePool.InstanceType)
-		if err != nil {
-			log.Warn(err.Error())
-		} else if machineDetails != nil {
-			clusterTotalResources["cpu"] += float64(nodePool.Count) * machineDetails.Cpus
-			clusterTotalResources["gpu"] += float64(nodePool.Count) * machineDetails.Gpus
-			clusterTotalResources["mem"] += float64(nodePool.Count) * machineDetails.Mem
-		}
-	}
-
 	clusterDesiredResources := make(map[string]float64)
+	clusterTotalResources := make(map[string]float64)
+
 	autoScaleEnabled := commonCluster.GetScaleOptions() != nil && commonCluster.GetScaleOptions().Enabled
 	if autoScaleEnabled {
+
+		nodePoolCounts, err := getActualNodeCounts(commonCluster)
+		if err != nil {
+			log.Error(emperror.Wrap(err, "Error getting actual node count for node pool info"))
+			c.JSON(http.StatusServiceUnavailable, pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error getting actual node count for node pool info",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
+		for nodePoolName, nodePool := range clusterStatus.NodePools {
+			if nodePoolName == headNodePoolName {
+				continue
+			}
+
+			nodePoolStatus[nodePoolName] = &pkgCluster.ActualNodePoolStatus{
+				NodePoolStatus: *nodePool,
+				ActualCount:    nodePoolCounts[nodePoolName],
+			}
+
+			machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
+				clusterStatus.Distribution,
+				clusterStatus.Region,
+				nodePool.InstanceType)
+			if err != nil {
+				log.Warn(err.Error())
+			} else if machineDetails != nil {
+				clusterTotalResources["cpu"] += float64(nodePool.Count) * machineDetails.Cpus
+				clusterTotalResources["gpu"] += float64(nodePool.Count) * machineDetails.Gpus
+				clusterTotalResources["mem"] += float64(nodePool.Count) * machineDetails.Mem
+			}
+		}
+
 		clusterDesiredResources["cpu"] += commonCluster.GetScaleOptions().DesiredCpu
 		clusterDesiredResources["gpu"] += float64(commonCluster.GetScaleOptions().DesiredGpu)
 		clusterDesiredResources["mem"] += commonCluster.GetScaleOptions().DesiredMem
@@ -406,6 +407,7 @@ func GetNodePools(c *gin.Context) {
 	}
 
 	response := pkgCluster.GetNodePoolsResponse{
+		ScaleEnabled:            autoScaleEnabled,
 		NodePools:               nodePoolStatus,
 		ClusterDesiredResources: clusterDesiredResources,
 		ClusterTotalResources:   clusterTotalResources,

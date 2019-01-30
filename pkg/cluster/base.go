@@ -224,6 +224,7 @@ type GetClusterConfigResponse struct {
 
 // GetNodePoolsResponse describes node pools of a cluster
 type GetNodePoolsResponse struct {
+	ScaleEnabled            bool                             `json:"scaleEnabled"`
 	NodePools               map[string]*ActualNodePoolStatus `json:"nodePools,omitempty"`
 	ClusterTotalResources   map[string]float64               `json:"clusterTotalResources,omitempty"`
 	ClusterDesiredResources map[string]float64               `json:"clusterDesiredResources,omitempty"`
