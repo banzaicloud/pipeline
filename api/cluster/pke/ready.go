@@ -27,7 +27,7 @@ import (
 
 type ReadyRequest struct {
 	Config   string `json:"config,omitempty"` // kubeconfig in base64 or empty if not a master
-	Name     string `json:"name",required"`   // name of node
+	Name     string `json:"name,required"`    // name of node
 	NodePool string `json:"nodePool"`         // name of nodepool the new node belongs to
 	IP       string `json:"ip,omitempty"`     // ip address of node (where the other nodes can reach it)
 }
