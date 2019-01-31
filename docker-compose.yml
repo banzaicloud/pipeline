@@ -61,13 +61,14 @@ services:
             - $HOME:/root
 
     cicd-server:
-        image: banzaicloud/cicd:master
+        image: banzaicloud/cicd:0.8.1
         depends_on:
             - db
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
             - /bin/cicd-server
+        restart: "always"
         environment:
             CICD_HOST:                 http://localhost:8000
             CICD_DEBUG:                "true"
@@ -83,13 +84,14 @@ services:
             CICD_REPO_CONFIG: ".banzaicloud/pipeline.yaml"
 
     cicd-agent:
-        image: banzaicloud/cicd:master
+        image: banzaicloud/cicd:0.8.1
         depends_on:
             - cicd-server
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
             - /bin/cicd-agent
+        restart: "always"
         environment:
             CICD_SERVER: cicd-server:9000
             CICD_SECRET: "s3cr3t"
