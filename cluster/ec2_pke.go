@@ -299,6 +299,38 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	return nil
 }
 
+// RegisterNode adds a Node to the DB
+func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, worker bool) error {
+
+	db := pipConfig.DB()
+	nodePool := banzaicloudDB.NodePool{
+		Name:      nodePoolName,
+		ClusterID: c.GetID(),
+	}
+
+	roles := banzaicloudDB.Roles{}
+	if err := db.Where(nodePool).Attrs(banzaicloudDB.NodePool{
+		Roles: roles,
+	}).FirstOrCreate(&nodePool).Error; err != nil {
+		return emperror.Wrap(err, "failed to register nodepool")
+	}
+
+	node := banzaicloudDB.Host{
+		NodePoolID: nodePool.NodePoolID,
+		Name:       name,
+	}
+
+	if err := db.Where(node).Attrs(banzaicloudDB.Host{
+		Labels:    make(banzaicloudDB.Labels),
+		PrivateIP: ip,
+	}).FirstOrCreate(&node).Error; err != nil {
+		return emperror.Wrap(err, "failed to register node")
+	}
+	c.log.WithField("node", name).Info("node registered")
+
+	return nil
+}
+
 // Create master CF template
 func CreateMasterCF(formation *cloudformation.CloudFormation) error {
 	return nil
@@ -424,6 +456,7 @@ func (c *EC2ClusterPKE) IsReady() (bool, error) {
 	return true, nil
 }
 
+// ListNodeNames returns node names to label them
 func (c *EC2ClusterPKE) ListNodeNames() (common.NodeNames, error) {
 	var nodes = make(map[string][]string)
 	for _, nodepool := range c.model.NodePools {
