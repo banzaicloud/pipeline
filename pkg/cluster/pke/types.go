@@ -103,7 +103,7 @@ type AmazonProviderConfig struct {
 // AddDefaults puts default values to optional field(s)
 func (pke *CreateClusterPKE) AddDefaults() error {
 	if pke == nil {
-		return errors.New("")
+		return errors.New("Required field 'pke' is empty.")
 	}
 
 	if pke.Network.PodCIDR == "" {

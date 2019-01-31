@@ -276,7 +276,7 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 
 	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
 
-	err := backoff.Retry(func() error {
+	err = backoff.Retry(func() error {
 		id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
 		if err != nil {
 			return err
