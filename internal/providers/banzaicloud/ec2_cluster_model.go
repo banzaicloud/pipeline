@@ -20,7 +20,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type EC2BanzaiCloudClusterModel struct {
+type EC2PKEClusterModel struct {
 	ID                 uint                 `gorm:"primary_key"`
 	Cluster            cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
 	ClusterID          uint
@@ -35,12 +35,12 @@ type EC2BanzaiCloudClusterModel struct {
 }
 
 // TableName changes the default table name.
-func (EC2BanzaiCloudClusterModel) TableName() string {
+func (EC2PKEClusterModel) TableName() string {
 	return "amazon_ec2_clusters"
 }
 
 // BeforeDelete callback / hook to delete related entries from the database
-func (m *EC2BanzaiCloudClusterModel) BeforeDelete(db *gorm.DB) error {
+func (m *EC2PKEClusterModel) BeforeDelete(db *gorm.DB) error {
 	var e error
 
 	if e = db.Delete(m.Network).Error; e != nil {

@@ -23,6 +23,7 @@ Method | HTTP request | Description
 [**ListEndpoints**](ClustersApi.md#ListEndpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 [**ListNodes**](ClustersApi.md#ListNodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 [**MergeSecret**](ClustersApi.md#MergeSecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
+[**PostReadyPKENode**](ClustersApi.md#PostReadyPKENode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | List bootstrap commands for namespaces
 [**UpdateCluster**](ClustersApi.md#UpdateCluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 [**UpdateMonitoring**](ClustersApi.md#UpdateMonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
 
@@ -603,6 +604,36 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**InstallSecretResponse**](InstallSecretResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **PostReadyPKENode**
+> map[string]interface{} PostReadyPKENode(ctx, orgId, id, postReadyPkeNodeRequest)
+List bootstrap commands for namespaces
+
+Report to Pipeline that a new node is ready (to be called by PKE installer)
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+  **postReadyPkeNodeRequest** | [**PostReadyPkeNodeRequest**](PostReadyPkeNodeRequest.md)|  | 
+
+### Return type
+
+[**map[string]interface{}**](map[string]interface{}.md)
 
 ### Authorization
 

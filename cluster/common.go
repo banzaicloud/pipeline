@@ -385,10 +385,6 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		return nil, err
 	}
 
-	if createClusterRequest.Distribution != "" {
-		return createCommonClusterWithDistributionFromRequest(createClusterRequest, orgId, userId)
-	}
-
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case pkgCluster.Alibaba:
@@ -400,6 +396,10 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		return alibabaCluster, nil
 
 	case pkgCluster.Amazon:
+		//Check for PKE
+		if createClusterRequest.Properties.CreateClusterPKE != nil {
+			return createCommonClusterWithDistributionFromRequest(createClusterRequest, orgId, userId)
+		}
 		//Create EKS struct
 		eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
@@ -454,29 +454,24 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 }
 
 //createCommonClusterWithDistributionFromRequest creates a CommonCluster from a request
-func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId, userId uint) (*EC2ClusterBanzaiCloudDistribution, error) {
-	// Whitelist supported distribution.
-	if createClusterRequest.Distribution != pkgCluster.BanzaiCloud {
-		return nil, pkgErrors.ErrorNotSupportedDistributionType
-	}
-
+func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId, userId uint) (*EC2ClusterPKE, error) {
 	switch createClusterRequest.Cloud {
 	case pkgCluster.Amazon:
-		return CreateEC2ClusterBanzaiCloudDistributionFromRequest(createClusterRequest, orgId, userId)
+		return CreateEC2ClusterPKEFromRequest(createClusterRequest, orgId, userId)
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
 }
 
-func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterModel) (*EC2ClusterBanzaiCloudDistribution, error) {
+func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterModel) (*EC2ClusterPKE, error) {
 	if modelCluster.Distribution != pkgCluster.BanzaiCloud {
 		return nil, pkgErrors.ErrorNotSupportedDistributionType
 	}
 
 	switch modelCluster.Cloud {
 	case pkgCluster.Amazon:
-		return CreateEC2ClusterBanzaiCloudDistributionFromModel(modelCluster)
+		return CreateEC2ClusterPKEFromModel(modelCluster)
 
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType

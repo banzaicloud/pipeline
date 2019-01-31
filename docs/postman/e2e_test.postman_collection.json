@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "fa3ce42d-0727-4cab-b58b-f81ead31c6ad",
+		"_postman_id": "ed004db8-2a06-44fa-b4dd-b9c1138c6f8d",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1671,6 +1671,81 @@
 								":orgId",
 								"clusters",
 								":clusterId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						},
+						"description": "Get cluster details"
+					},
+					"response": []
+				},
+				{
+					"name": "Cluster Node Ready",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "09340e49-184c-4bc6-ae8e-abc07c155616",
+								"exec": [
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+									"",
+									"    tests[\"Valid id\"] = dataJSON.id == environment.clusterId;",
+									"",
+									"    postman.setNextRequest(\"Cluster Status\");",
+									"}",
+									"else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"config\": \"{{K8Sconfig}}\",\n\t\"name\": \"master\"\t\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/pke/ready",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId",
+								"pke",
+								"ready"
 							],
 							"variable": [
 								{
