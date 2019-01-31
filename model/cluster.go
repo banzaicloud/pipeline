@@ -27,7 +27,8 @@ import (
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 )
 
 const unknown = "unknown"
@@ -425,7 +426,7 @@ func (KubernetesClusterModel) TableName() string {
 
 // AfterUpdate removes marked node pool(s)
 func (a *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
-	log.WithField("clusterId", a.ClusterID).Debugln("remove node pools marked for deletion")
+	log.WithField("clusterId", a.ClusterID).Debug("remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {
 		if nodePoolModel.Delete {
@@ -446,7 +447,7 @@ func (a *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
 
 // AfterUpdate removes marked node pool(s)
 func (a *ACSKClusterModel) AfterUpdate(scope *gorm.Scope) error {
-	log.Debugln("Remove node pools marked for deletion")
+	log.Debug("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {
 		if nodePoolModel.Delete {

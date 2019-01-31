@@ -11,7 +11,7 @@ CREATE TABLE `amazon_node_pool_labels` (
   CONSTRAINT `fk_amazon_node_pool_labels_node_pool_id` FOREIGN KEY (`node_pool_id`) REFERENCES `amazon_node_pools` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE `amazon_eks_profile_node_pools` ADD CONSTRAINT `fk_amazon_eks_profile_node_pools_name` FOREIGN KEY (`name`) FOREIGN KEY (`name`) REFERENCES `amazon_eks_profiles`(`name`);
+ALTER TABLE `amazon_eks_profile_node_pools` ADD CONSTRAINT `fk_amazon_eks_profile_node_pools_name` FOREIGN KEY (`name`) REFERENCES `amazon_eks_profiles`(`name`);
 
 CREATE TABLE `amazon_eks_profile_node_pool_labels` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
