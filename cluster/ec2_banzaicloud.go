@@ -17,8 +17,10 @@ package cluster
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	banzaicloudDB "github.com/banzaicloud/pipeline/internal/providers/banzaicloud"
 	"github.com/banzaicloud/pipeline/model"
@@ -222,6 +224,25 @@ func (c *EC2ClusterBanzaiCloudDistribution) CreatePKECluster(tokenGenerator Toke
 	for _, nodePool := range c.model.NodePools {
 		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
+	}
+
+	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
+
+	err := backoff.Retry(func() error {
+		id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
+		if err != nil {
+			return err
+		} else if id == "" {
+			return errors.New("no Kubeconfig received from master")
+		}
+		c.model.Cluster.ConfigSecretID = id
+		return nil
+	}, backoff.NewConstantBackoffPolicy(&backoff.ConstantBackoffConfig{
+		Delay:          20 * time.Second,
+		MaxElapsedTime: 30 * time.Minute}))
+
+	if err != nil {
+		return emperror.Wrap(err, "timeout")
 	}
 	return nil
 }

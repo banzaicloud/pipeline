@@ -157,3 +157,14 @@ func (c *Clusters) FindBySecret(organizationID uint, secretID string) ([]*model.
 
 	return clusters, nil
 }
+
+// GetConfigSecretIDByClusterID returns the kubeconfig's secretID stored in DB
+func (c *Clusters) GetConfigSecretIDByClusterID(organizationID, clusterID uint) (string, error) {
+	cluster := model.ClusterModel{ID: clusterID}
+
+	if err := c.db.Where(cluster).Select("config_secret_id").First(&cluster).Error; err != nil {
+		return "", emperror.Wrap(err, "could not get ConfigSecretID")
+	}
+
+	return cluster.ConfigSecretId, nil
+}
