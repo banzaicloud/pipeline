@@ -52,6 +52,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**ListEndpoints**](docs/ClustersApi.md#listendpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 *ClustersApi* | [**ListNodes**](docs/ClustersApi.md#listnodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 *ClustersApi* | [**MergeSecret**](docs/ClustersApi.md#mergesecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
+*ClustersApi* | [**PostReadyPKENode**](docs/ClustersApi.md#postreadypkenode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | List bootstrap commands for namespaces
 *ClustersApi* | [**UpdateCluster**](docs/ClustersApi.md#updatecluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 *ClustersApi* | [**UpdateMonitoring**](docs/ClustersApi.md#updatemonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
@@ -309,6 +310,7 @@ Class | Method | HTTP request | Description
  - [PolicyBundleRecord](docs/PolicyBundleRecord.md)
  - [PolicyRule](docs/PolicyRule.md)
  - [PolicyRuleParams](docs/PolicyRuleParams.md)
+ - [PostReadyPkeNodeRequest](docs/PostReadyPkeNodeRequest.md)
  - [ProfileListResponse](docs/ProfileListResponse.md)
  - [ProjectDetails](docs/ProjectDetails.md)
  - [ReRunPostHook](docs/ReRunPostHook.md)
