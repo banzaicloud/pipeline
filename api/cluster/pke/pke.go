@@ -16,8 +16,10 @@ package pke
 
 import (
 	"github.com/banzaicloud/pipeline/api/common"
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/sirupsen/logrus"
 )
 
 type tokenGenerator interface {
@@ -40,6 +42,16 @@ func NewAPI(clusterGetter common.ClusterGetter, errorHandler emperror.Handler, t
 	}
 }
 
+func (a *API) getCluster(c *gin.Context) (cluster.CommonCluster, logrus.FieldLogger, bool) {
+	cluster, ok := a.clusterGetter.GetClusterFromRequest(c)
+	if !ok {
+		return cluster, nil, ok
+	}
+	log := logrus.WithField("cluster", cluster.GetName()).WithField("organization", cluster.GetOrganizationId())
+	return cluster, log, ok
+}
+
 func (a *API) RegisterRoutes(r gin.IRouter) {
 	r.GET("commands", a.ListCommands)
+	r.POST("ready", a.PostReady)
 }
