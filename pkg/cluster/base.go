@@ -21,11 +21,11 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
-	"github.com/banzaicloud/pipeline/pkg/cluster/banzaicloud"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
+	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oke "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
@@ -130,7 +130,7 @@ type CreateClusterProperties struct {
 	CreateClusterDummy      *dummy.CreateClusterDummy           `json:"dummy,omitempty" yaml:"dummy,omitempty"`
 	CreateClusterKubernetes *kubernetes.CreateClusterKubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty"`
 	CreateClusterOKE        *oke.Cluster                        `json:"oke,omitempty" yaml:"oke,omitempty"`
-	CreateClusterPKE        *banzaicloud.CreateClusterPKE       `json:"pke,omitempty" yaml:"pke,omitempty"`
+	CreateClusterPKE        *pke.CreateClusterPKE               `json:"pke,omitempty" yaml:"pke,omitempty"`
 }
 
 // ScaleOptions describes scale options
@@ -334,7 +334,7 @@ func (r *CreateClusterRequest) AddDefaults() error {
 	switch r.Cloud {
 	case Amazon:
 		if r.Properties.CreateClusterPKE != nil {
-			return nil
+			return r.Properties.CreateClusterPKE.AddDefaults()
 		}
 		return r.Properties.CreateClusterEKS.AddDefaults(r.Location)
 	case Oracle:

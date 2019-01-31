@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package banzaicloud
+package pke
+
+import "github.com/pkg/errors"
 
 //TODO add required field to KubeADM if applicable
 
@@ -26,9 +28,9 @@ type CreateClusterPKE struct {
 }
 
 type Network struct {
-	ServiceCIDR      string          `json:"serviceCIDR" yaml:"serviceCIDR" binding:"required"`
-	PodCIDR          string          `json:"podCIDR" yaml:"podCIDR" binding:"required"`
-	Provider         NetworkProvider `json:"provider" yaml:"provider" binding:"required"`
+	ServiceCIDR      string          `json:"serviceCIDR" yaml:"serviceCIDR"`
+	PodCIDR          string          `json:"podCIDR" yaml:"podCIDR"`
+	Provider         NetworkProvider `json:"provider" yaml:"provider"`
 	APIServerAddress string          `json:"apiServerAddress" yaml:"apiServerAddress" binding:"required"`
 }
 
@@ -96,6 +98,25 @@ type AmazonProviderConfig struct {
 			Max int `json:"max" yaml:"max" binding:"required"`
 		} `json:"size" yaml:"size" binding:"required"`
 	} `json:"autoScalingGroup" yaml:"autoScalingGroup" binding:"required"`
+}
+
+// AddDefaults puts default values to optional field(s)
+func (pke *CreateClusterPKE) AddDefaults() error {
+	if pke == nil {
+		return errors.New("")
+	}
+
+	if pke.Network.PodCIDR == "" {
+		pke.Network.PodCIDR = "10.200.0.0/16"
+	}
+	if pke.Network.ServiceCIDR == "" {
+		pke.Network.ServiceCIDR = "10.32.0.0/24"
+	}
+	if pke.Network.Provider == "" {
+		pke.Network.Provider = NPWeave
+	}
+
+	return nil
 }
 
 type Zones []Zone
