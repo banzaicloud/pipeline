@@ -50,7 +50,7 @@ The browser already contains the generated token. It can be retrieved by issuing
 
 - For local usage:
     ```bash
-    http://localhost:9090/api/v1/token
+    http://localhost:9090/pipeline/api/v1/token
     ```
 
 - For on-cloud usage:
