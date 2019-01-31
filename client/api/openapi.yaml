@@ -5200,6 +5200,66 @@ paths:
       summary: Get vulnerabilities
       tags:
       - imagescan
+  /api/v1/orgs/{orgId}/clusters/{id}/pke/ready:
+    post:
+      description: Report to Pipeline that a new node is ready (to be called by PKE installer)
+      operationId: PostReadyPKENode
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostReadyPKENodeRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                example: {}
+                type: object
+          description: Success
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: No such PKE cluster found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List bootstrap commands for namespaces
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/pke/commands:
     get:
       description: Get the commands to use for bootstrapping nodes of a PKE cluster in each nodepool
@@ -9305,6 +9365,25 @@ components:
       properties:
         additionalProperties:
           example: pke-installer install --pipeline-url="http://127.0.0.1:9090" --pipeline-token=XXX --pipeline-org-id=3 --pipeline-cluster-id=19 --node-pool="distrMaster" --role=master
+          type: string
+      type: object
+    PostReadyPKENodeRequest:
+      properties:
+        config:
+          description: kubeconfig in base64 or empty if not a master
+          example: c3ppYQo=
+          type: string
+        name:
+          description: name of node
+          example: my-node
+          type: string
+        nodePool:
+          description: name of nodepool
+          example: master
+          type: string
+        ip:
+          description: ip address of node (where the other nodes can reach it)
+          example: 127.0.0.1
           type: string
       type: object
     CreateEKSProperties_eks:

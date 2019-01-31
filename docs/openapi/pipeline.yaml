@@ -4975,6 +4975,64 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
 
+    '/api/v1/orgs/{orgId}/clusters/{id}/pke/ready':
+        post:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: List bootstrap commands for namespaces
+            description: Report to Pipeline that a new node is ready (to be called by PKE installer)
+            operationId: PostReadyPKENode
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PostReadyPKENodeRequest'
+            responses:
+                '200':
+                    description: "Success"
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                example: {}
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: No such PKE cluster found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/commands':
         get:
             security:
@@ -8858,3 +8916,23 @@ components:
               additionalProperties:
                 type: string
                 example: "pke-installer install --pipeline-url=\"http://127.0.0.1:9090\" --pipeline-token=XXX --pipeline-org-id=3 --pipeline-cluster-id=19 --node-pool=\"distrMaster\" --role=master"
+
+        PostReadyPKENodeRequest:
+            type: object
+            properties:
+              config:
+                type: string
+                example: c3ppYQo=
+                description: kubeconfig in base64 or empty if not a master
+              name: 
+                type: string
+                example: my-node
+                description: name of node
+              nodePool:
+                type: string
+                example: master
+                description: name of nodepool
+              ip:
+                type: string
+                example: 127.0.0.1
+                description: ip address of node (where the other nodes can reach it)
