@@ -2104,6 +2104,8 @@ func (c *GKECluster) GetConfigSecretId() string {
 	return c.model.Cluster.ConfigSecretID
 }
 
+// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
+// On GKE the services and pods IP ranges can be fetched from Google
 func (c *GKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
 	cluster, err := c.GetGoogleCluster()
 	if err != nil {
