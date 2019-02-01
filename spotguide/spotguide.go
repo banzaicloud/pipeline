@@ -228,7 +228,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 
 		if err != nil {
 			// Empty organization, no repositories
-			if resp.StatusCode == http.StatusUnprocessableEntity {
+			if resp != nil && resp.StatusCode == http.StatusUnprocessableEntity {
 				return nil
 			}
 
