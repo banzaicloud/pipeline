@@ -534,33 +534,36 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 	for name, np := range request.AKS.NodePools {
 		log := c.log.WithField("nodePool", name)
 		// Azure does not allow to create or delete pools when updating, only existing pools' properties can be changed
-		if existingNodePool := c.getNodePoolByName(name); np != nil && existingNodePool != nil {
-			log.Debug("Updating nodepool")
-
+		if app := getAgentPoolProfileByName(cluster, name); np != nil && app != nil {
 			count := int32(np.Count)
-			if app := getAgentPoolProfileByName(cluster, name); app != nil {
-				app.Count = &count
-				app.VMSize = containerservice.VMSizeTypes(existingNodePool.NodeInstanceType)
-			}
-
-			c.log.Info("Sending cluster update request to AKS and waiting for completion")
-			clusterUpdateInitTime := time.Now()
-			cluster, err = client.CreateOrUpdateAndWaitForIt(context.TODO(), c.GetResourceGroupName(), c.GetName(), cluster)
-			if err != nil {
-				return emperror.Wrap(err, "cluster update request failed")
-			}
-			if !isProvisioningSuccessful(cluster) {
-				return c.onClusterUpdateFailure(err, clusterUpdateInitTime)
-			}
-
-			existingNodePool.CreatedAt = clusterUpdateInitTime
-			existingNodePool.CreatedBy = userID
-			existingNodePool.Autoscaling = np.Autoscaling
-			existingNodePool.NodeMinCount = np.MinCount
-			existingNodePool.NodeMaxCount = np.MaxCount
-			existingNodePool.Count = np.Count
+			app.Count = &count
 		} else {
-			c.log.Warning("No such nodepool found")
+			log.Warning("No such nodepool found")
+		}
+	}
+
+	c.log.Info("Sending cluster update request to AKS and waiting for completion")
+	clusterUpdateInitTime := time.Now()
+	cluster, err = client.CreateOrUpdateAndWaitForIt(context.TODO(), c.GetResourceGroupName(), c.GetName(), cluster)
+	if err != nil {
+		return emperror.Wrap(err, "cluster update request failed")
+	}
+	if !isProvisioningSuccessful(cluster) {
+		return c.onClusterUpdateFailure(err, clusterUpdateInitTime)
+	}
+
+	for name, np := range request.AKS.NodePools {
+		if np != nil {
+			app := getAgentPoolProfileByName(cluster, name)
+			npm := c.getNodePoolByName(name)
+			if app != nil && npm != nil {
+				npm.CreatedAt = clusterUpdateInitTime
+				npm.CreatedBy = userID
+				npm.Autoscaling = np.Autoscaling
+				npm.NodeMinCount = np.MinCount
+				npm.NodeMaxCount = np.MaxCount
+				npm.Count = int(*app.Count)
+			}
 		}
 	}
 
@@ -569,7 +572,51 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 
 // UpdateNodePools updates nodes pools of a cluster
 func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userID uint) error {
-	return nil // TODO shouldn't we at least log that this does nothing?
+	cc, err := c.getCloudConnection()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cloud connection")
+	}
+	client := cc.GetManagedClustersClient()
+
+	cluster, err := c.getAzureCluster()
+	if err != nil {
+		return emperror.Wrap(err, "failed to retrieve AKS cluster")
+	}
+
+	for name, np := range request.NodePools {
+		log := c.log.WithField("nodePool", name)
+		// Azure does not allow to create or delete pools when updating, only existing pools' properties can be changed
+		if app := getAgentPoolProfileByName(cluster, name); np != nil && app != nil {
+			count := int32(np.Count)
+			app.Count = &count
+		} else {
+			log.Warning("No such nodepool found")
+		}
+	}
+
+	c.log.Info("Sending cluster update request to AKS and waiting for completion")
+	clusterUpdateInitTime := time.Now()
+	cluster, err = client.CreateOrUpdateAndWaitForIt(context.TODO(), c.GetResourceGroupName(), c.GetName(), cluster)
+	if err != nil {
+		return emperror.Wrap(err, "cluster update request failed")
+	}
+	if !isProvisioningSuccessful(cluster) {
+		return c.onClusterUpdateFailure(err, clusterUpdateInitTime)
+	}
+
+	for name, np := range request.NodePools {
+		if np != nil {
+			app := getAgentPoolProfileByName(cluster, name)
+			npm := c.getNodePoolByName(name)
+			if app != nil && npm != nil {
+				npm.CreatedAt = clusterUpdateInitTime
+				npm.CreatedBy = userID
+				npm.Count = int(*app.Count)
+			}
+		}
+	}
+
+	return nil
 }
 
 // getNodePoolByName returns saved NodePool by name
