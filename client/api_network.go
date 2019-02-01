@@ -14,6 +14,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/antihax/optional"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -35,10 +36,18 @@ List route tables of the given VPC network
  * @param networkId VPC network identification
  * @param secretId Secret identification
  * @param cloudType Identifies the cloud provider
- * @param region Identifies the region of the VPC network
+ * @param optional nil or *ListRouteTablesOpts - Optional Parameters:
+ * @param "Region" (optional.String) -  Identifies the region of the VPC network (required when cloudType != azure)
+ * @param "ResourceGroup" (optional.String) -  Identifies the resource group of the Azure virtual network (required when cloudType == azure)
 @return ListRouteTablesResponse
 */
-func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, region string) (ListRouteTablesResponse, *http.Response, error) {
+
+type ListRouteTablesOpts struct {
+	Region        optional.String
+	ResourceGroup optional.String
+}
+
+func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, localVarOptionals *ListRouteTablesOpts) (ListRouteTablesResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -58,7 +67,12 @@ func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, ne
 	localVarFormParams := url.Values{}
 
 	localVarQueryParams.Add("cloudType", parameterToString(cloudType, ""))
-	localVarQueryParams.Add("region", parameterToString(region, ""))
+	if localVarOptionals != nil && localVarOptionals.Region.IsSet() {
+		localVarQueryParams.Add("region", parameterToString(localVarOptionals.Region.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.ResourceGroup.IsSet() {
+		localVarQueryParams.Add("resourceGroup", parameterToString(localVarOptionals.ResourceGroup.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 
@@ -159,10 +173,18 @@ List VPC networks accessible by the organization.
  * @param orgId Organization identification
  * @param secretId Secret identification
  * @param cloudType Identifies the cloud provider
- * @param region Identifies the region of the VPC network
+ * @param optional nil or *ListVPCNetworksOpts - Optional Parameters:
+ * @param "Region" (optional.String) -  Identifies the region of the VPC network (required when cloudType != azure)
+ * @param "ResourceGroup" (optional.String) -  Identifies the resource group of the Azure virtual network (required when cloudType == azure)
 @return ListVpcNetworksResponse
 */
-func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, secretId string, cloudType string, region string) (ListVpcNetworksResponse, *http.Response, error) {
+
+type ListVPCNetworksOpts struct {
+	Region        optional.String
+	ResourceGroup optional.String
+}
+
+func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, secretId string, cloudType string, localVarOptionals *ListVPCNetworksOpts) (ListVpcNetworksResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -181,7 +203,12 @@ func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, se
 	localVarFormParams := url.Values{}
 
 	localVarQueryParams.Add("cloudType", parameterToString(cloudType, ""))
-	localVarQueryParams.Add("region", parameterToString(region, ""))
+	if localVarOptionals != nil && localVarOptionals.Region.IsSet() {
+		localVarQueryParams.Add("region", parameterToString(localVarOptionals.Region.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.ResourceGroup.IsSet() {
+		localVarQueryParams.Add("resourceGroup", parameterToString(localVarOptionals.ResourceGroup.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 
@@ -283,10 +310,18 @@ List subnetworks of the given VPC network
  * @param networkId VPC network identification
  * @param secretId Secret identification
  * @param cloudType Identifies the cloud provider
- * @param region Identifies the region of the VPC network
+ * @param optional nil or *ListVPCSubnetsOpts - Optional Parameters:
+ * @param "Region" (optional.String) -  Identifies the region of the VPC network (required when cloudType != azure)
+ * @param "ResourceGroup" (optional.String) -  Identifies the resource group of the Azure virtual network (required when cloudType == azure)
 @return ListVpcSubnetsResponse
 */
-func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, region string) (ListVpcSubnetsResponse, *http.Response, error) {
+
+type ListVPCSubnetsOpts struct {
+	Region        optional.String
+	ResourceGroup optional.String
+}
+
+func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, localVarOptionals *ListVPCSubnetsOpts) (ListVpcSubnetsResponse, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
@@ -306,7 +341,12 @@ func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, net
 	localVarFormParams := url.Values{}
 
 	localVarQueryParams.Add("cloudType", parameterToString(cloudType, ""))
-	localVarQueryParams.Add("region", parameterToString(region, ""))
+	if localVarOptionals != nil && localVarOptionals.Region.IsSet() {
+		localVarQueryParams.Add("region", parameterToString(localVarOptionals.Region.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.ResourceGroup.IsSet() {
+		localVarQueryParams.Add("resourceGroup", parameterToString(localVarOptionals.ResourceGroup.Value(), ""))
+	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
 

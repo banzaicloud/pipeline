@@ -3,7 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Cidr** | **string** | The primary IPv4 CIDR block of the VPC network | 
+**Cidrs** | **[]string** | The IPv4 CIDR blocks assigned to the VPC network | 
 **Id** | **string** | Identifier of the VPC network | 
 **Name** | **string** | Name of the VPC network | [optional] 
 

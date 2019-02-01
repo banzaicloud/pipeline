@@ -12,8 +12,8 @@
 package client
 
 type VpcNetworkInfo struct {
-	// The primary IPv4 CIDR block of the VPC network
-	Cidr string `json:"cidr"`
+	// The IPv4 CIDR blocks assigned to the VPC network
+	Cidrs []string `json:"cidrs"`
 	// Identifier of the VPC network
 	Id string `json:"id"`
 	// Name of the VPC network

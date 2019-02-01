@@ -3,7 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Cidr** | **string** | The IPv4 CIDR block assigned to the subnet | 
+**Cidrs** | **[]string** | The IPv4 CIDR blocks assigned to the subnet | 
 **Id** | **string** | Identifier of the subnetwork | 
 **Location** | **string** | The location of the subnetwork. | [optional] 
 **Name** | **string** | Name of the subnetwork | [optional] 
