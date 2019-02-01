@@ -585,7 +585,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	if !ok {
 		return
 	}
-	clusterCommander, ok := cluster.(interface {
+	clusterGetCAHasher, ok := cluster.(interface {
 		GetCAHash() (string, error)
 	})
 	if !ok {
