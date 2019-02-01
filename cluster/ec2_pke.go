@@ -272,19 +272,20 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	//if err != nil {
 	//	return emperror.Wrap(err, "can't create master CF template")
 	//}
-	token := "XXX"
+	token := "XXX" // TODO masked from dumping valid tokens to log
 	for _, nodePool := range c.model.NodePools {
 		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
 	}
 
+	c.UpdateStatus(c.model.Cluster.Status, "Waiting for Kubeconfig from master node.")
 	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
-
 	err = backoff.Retry(func() error {
 		id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
 		if err != nil {
 			return err
 		} else if id == "" {
+			log.Debug("waiting for Kubeconfig (/ready call)")
 			return errors.New("no Kubeconfig received from master")
 		}
 		c.model.Cluster.ConfigSecretID = id
