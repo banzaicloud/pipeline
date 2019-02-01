@@ -48,10 +48,10 @@ const (
 
 // Azure keys
 const (
-	AzureClientId       = "AZURE_CLIENT_ID"
+	AzureClientID       = "AZURE_CLIENT_ID"
 	AzureClientSecret   = "AZURE_CLIENT_SECRET"
-	AzureTenantId       = "AZURE_TENANT_ID"
-	AzureSubscriptionId = "AZURE_SUBSCRIPTION_ID"
+	AzureTenantID       = "AZURE_TENANT_ID"
+	AzureSubscriptionID = "AZURE_SUBSCRIPTION_ID"
 )
 
 // Google keys
@@ -190,10 +190,10 @@ var DefaultRules = map[string]Meta{
 	},
 	cluster.Azure: {
 		Fields: []FieldMeta{
-			{Name: AzureClientId, Required: true},
+			{Name: AzureClientID, Required: true},
 			{Name: AzureClientSecret, Required: true},
-			{Name: AzureTenantId, Required: true},
-			{Name: AzureSubscriptionId, Required: true},
+			{Name: AzureTenantID, Required: true},
+			{Name: AzureSubscriptionID, Required: true},
 		},
 		Sourcing: EnvVar,
 	},

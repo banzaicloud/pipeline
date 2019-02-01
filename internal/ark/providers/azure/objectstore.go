@@ -17,12 +17,13 @@ package azure
 import (
 	"time"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+
 	"github.com/heptio/ark/pkg/cloudprovider"
 
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 type objectStore struct {
@@ -37,15 +38,8 @@ func NewObjectStore(ctx providers.ObjectStoreContext) (cloudprovider.ObjectStore
 		ResourceGroup:  ctx.ResourceGroup,
 	}
 
-	credentials := azureObjectstore.Credentials{
-		ClientID:       ctx.Secret.Values[pkgSecret.AzureClientId],
-		ClientSecret:   ctx.Secret.Values[pkgSecret.AzureClientSecret],
-		TenantID:       ctx.Secret.Values[pkgSecret.AzureTenantId],
-		SubscriptionID: ctx.Secret.Values[pkgSecret.AzureSubscriptionId],
-	}
-
 	return &objectStore{
-		ObjectStore: azureObjectstore.New(config, credentials),
+		ObjectStore: azureObjectstore.New(config, *azure.NewCredentials(ctx.Secret.Values)),
 	}, nil
 }
 

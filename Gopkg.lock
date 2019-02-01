@@ -269,26 +269,6 @@
   version = "0.1.2"
 
 [[projects]]
-  digest = "1:ee95a455921cb078b002d0067bac8558ad0c45659b8a6ba6e42634ac30b1990b"
-  name = "github.com/banzaicloud/azure-aks-client"
-  packages = [
-    "client",
-    "cluster",
-    "errors",
-    "service/authorization",
-    "service/compute",
-    "service/containerservice",
-    "service/network",
-    "service/resources",
-    "service/subscriptions",
-    "types",
-    "utils",
-  ]
-  pruneopts = "NUT"
-  revision = "ddd6cb920f4780529dec6b6d0208018777caa6db"
-  version = "0.4.0"
-
-[[projects]]
   digest = "1:4e2fa4bb232653f7be048a1b07d25b3b569e8368381bfcc39750f6103f5e114f"
   name = "github.com/banzaicloud/bank-vaults"
   packages = [
@@ -2253,10 +2233,6 @@
     "github.com/aws/aws-sdk-go/service/s3/s3manager",
     "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1",
     "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1",
-    "github.com/banzaicloud/azure-aks-client/client",
-    "github.com/banzaicloud/azure-aks-client/cluster",
-    "github.com/banzaicloud/azure-aks-client/errors",
-    "github.com/banzaicloud/azure-aks-client/types",
     "github.com/banzaicloud/bank-vaults/pkg/auth",
     "github.com/banzaicloud/bank-vaults/pkg/db",
     "github.com/banzaicloud/bank-vaults/pkg/tls",

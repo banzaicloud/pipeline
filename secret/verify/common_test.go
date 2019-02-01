@@ -43,9 +43,7 @@ func TestNewVerifier(t *testing.T) {
 			name:      "aks validator",
 			cloudType: pkgCluster.Azure,
 			values:    aksCredentialsMap,
-			verifier: &aksVerify{
-				credential: CreateAKSCredentials(aksCredentialsMap),
-			},
+			verifier:  CreateAzureSecretVerifier(aksCredentialsMap),
 		},
 		{
 			name:      "gke validator",
@@ -77,10 +75,10 @@ const (
 	testAwsAccessKeyId     = "testAwsAccessKeyId"
 	testAwsSecretAccessKey = "testAwsSecretAccessKey"
 
-	testAzureClientId       = "testAzureClientId"
+	testAzureClientID       = "testAzureClientId"
 	testAzureClientSecret   = "testAzureClientSecret"
-	testAzureTenantId       = "testAzureTenantId"
-	testAzureSubscriptionId = "testAzureSubscriptionId"
+	testAzureTenantID       = "testAzureTenantId"
+	testAzureSubscriptionID = "testAzureSubscriptionId"
 
 	testType          = "type"
 	testProjectId     = "testProjectId"
@@ -107,10 +105,10 @@ var (
 	}
 
 	aksCredentialsMap = map[string]string{
-		pkgSecret.AzureClientId:       testAzureClientId,
+		pkgSecret.AzureClientID:       testAzureClientID,
 		pkgSecret.AzureClientSecret:   testAzureClientSecret,
-		pkgSecret.AzureTenantId:       testAzureTenantId,
-		pkgSecret.AzureSubscriptionId: testAzureSubscriptionId,
+		pkgSecret.AzureTenantID:       testAzureTenantID,
+		pkgSecret.AzureSubscriptionID: testAzureSubscriptionID,
 	}
 
 	gkeCredentialsMap = map[string]string{

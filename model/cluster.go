@@ -26,7 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 const unknown = "unknown"

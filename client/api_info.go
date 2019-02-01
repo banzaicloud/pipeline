@@ -577,7 +577,7 @@ Get all resource groups
  * @param secretId Secret identifier
 @return []string
 */
-func (a *InfoApiService) GetResourceGroup(ctx context.Context, orgId int32, secretId string) ([]string, *http.Response, error) {
+func (a *InfoApiService) GetResourceGroups(ctx context.Context, orgId int32, secretId string) ([]string, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}

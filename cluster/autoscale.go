@@ -23,7 +23,7 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sHelm "k8s.io/helm/pkg/helm"
 )
@@ -197,10 +197,10 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 		},
 		Rbac: rbac{Create: true},
 		Azure: azureInfo{
-			ClientID:          clusterSecret.Values[pkgSecret.AzureClientId],
+			ClientID:          clusterSecret.Values[pkgSecret.AzureClientID],
 			ClientSecret:      clusterSecret.Values[pkgSecret.AzureClientSecret],
-			SubscriptionID:    clusterSecret.Values[pkgSecret.AzureSubscriptionId],
-			TenantID:          clusterSecret.Values[pkgSecret.AzureTenantId],
+			SubscriptionID:    clusterSecret.Values[pkgSecret.AzureSubscriptionID],
+			TenantID:          clusterSecret.Values[pkgSecret.AzureTenantID],
 			ResourceGroup:     resourceGroup,
 			NodeResourceGroup: *nodeResourceGroup,
 			ClusterName:       cluster.GetName(),
