@@ -19,6 +19,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-09-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 )
@@ -69,6 +70,18 @@ func (cc *CloudConnection) getInsightsBaseClient() *insights.BaseClient {
 		}
 	}
 	return cc.cache.insightsBaseClient
+}
+
+// getNetwokBaseClient returns a BaseClient instance of the network package
+func (cc *CloudConnection) getNetworkBaseClient() *network.BaseClient {
+	if cc.cache.networkBaseClient == nil {
+		cc.cache.networkBaseClient = &network.BaseClient{
+			Client:         cc.client,
+			BaseURI:        cc.env.ResourceManagerEndpoint,
+			SubscriptionID: cc.creds.SubscriptionID,
+		}
+	}
+	return cc.cache.networkBaseClient
 }
 
 // getResourcesBaseClient returns a BaseClient instance of the resources package
@@ -211,6 +224,7 @@ type SubscriptionsClient struct {
 	subscriptions.Client
 }
 
+// GetSubscriptionsClient returns a SubscriptionsClient instance
 func (cc *CloudConnection) GetSubscriptionsClient() *SubscriptionsClient {
 	return &SubscriptionsClient{
 		subscriptions.Client{
@@ -243,6 +257,20 @@ func (cc *CloudConnection) GetVirtualMachineSizesClient() *VirtualMachineSizesCl
 	return &VirtualMachineSizesClient{
 		compute.VirtualMachineSizesClient{
 			BaseClient: *cc.getComputeBaseClient(),
+		},
+	}
+}
+
+// VirtualNetworksClient extends network.VirtualNetworksClient
+type VirtualNetworksClient struct {
+	network.VirtualNetworksClient
+}
+
+// GetVirtualNetworksClient returns a VirtualNetworksClient instance
+func (cc *CloudConnection) GetVirtualNetworksClient() *VirtualNetworksClient {
+	return &VirtualNetworksClient{
+		network.VirtualNetworksClient{
+			BaseClient: *cc.getNetworkBaseClient(),
 		},
 	}
 }

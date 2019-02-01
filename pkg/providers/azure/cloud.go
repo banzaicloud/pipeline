@@ -19,6 +19,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-09-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest"
@@ -37,6 +38,7 @@ type CloudConnection struct {
 		computeBaseClient          *compute.BaseClient
 		containerServiceBaseClient *containerservice.BaseClient
 		insightsBaseClient         *insights.BaseClient
+		networkBaseClient          *network.BaseClient
 		resourcesBaseClient        *resources.BaseClient
 		subscriptionsBaseClient    *subscriptions.BaseClient
 	}
