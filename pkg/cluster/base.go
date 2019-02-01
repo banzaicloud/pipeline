@@ -193,7 +193,7 @@ type GetClusterStatusResponse struct {
 	SecurityScan  bool                       `json:"securityscan"`
 	Version       string                     `json:"version,omitempty"`
 	ResourceID    uint                       `json:"id"`
-	NodePools     map[string]*NodePoolStatus `json:"nodePools,omitempty"`
+	NodePools     map[string]*NodePoolStatus `json:"nodePools"`
 	pkgCommon.CreatorBaseFields
 
 	// If region not available fall back to Location
