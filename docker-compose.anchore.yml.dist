@@ -46,6 +46,19 @@ services:
             - 8000:8000
             - 9000
 
+    ui:
+        image: banzaicloud/pipeline-web:latest
+        environment:
+            CLOUDINFO_URL: http://localhost:4200/cloudinfo
+            RECOMMENDER_URL: http://localhost:4200/recommender
+            API_URL: http://localhost:9090
+            CICD_URL: http://localhost:8000
+
+    uiproxy:
+        build: etc/docker/uiproxy
+        ports:
+            - 127.0.0.1:4200:80
+
     anchore-engine:
         image: docker.io/anchore/anchore-engine:v0.3.0
         #privileged: true
