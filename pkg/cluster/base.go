@@ -60,13 +60,13 @@ const (
 
 // Distribution constants
 const (
-	ACSK        = "acsk"
-	EKS         = "eks"
-	AKS         = "aks"
-	GKE         = "gke"
-	OKE         = "oke"
-	BanzaiCloud = "banzaicloud"
-	Unknown     = "unknown"
+	ACSK    = "acsk"
+	EKS     = "eks"
+	AKS     = "aks"
+	GKE     = "gke"
+	OKE     = "oke"
+	PKE     = "pke"
+	Unknown = "unknown"
 )
 
 // constants for posthooks

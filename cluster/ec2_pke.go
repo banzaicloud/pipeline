@@ -581,7 +581,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 			Name:           request.Name,
 			Location:       request.Location,
 			Cloud:          request.Cloud,
-			Distribution:   pkgCluster.BanzaiCloud,
+			Distribution:   pkgCluster.PKE,
 			OrganizationID: orgId,
 			RbacEnabled:    kubernetes.RBAC.Enabled,
 			CreatedBy:      userId,
