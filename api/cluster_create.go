@@ -90,6 +90,12 @@ func (a *ClusterAPI) CreateCluster(
 		"cluster":      createClusterRequest.Name,
 	})
 
+	// HACK HACK HACK
+	if createClusterRequest.Cloud == "custom" {
+		createClusterRequest.Cloud = "amazon"
+		createClusterRequest.Location = "custom"
+	}
+
 	// TODO: refactor profile handling as well?
 	if len(createClusterRequest.ProfileName) != 0 {
 		logger = logger.WithField("profile", createClusterRequest.ProfileName)
