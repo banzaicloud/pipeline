@@ -9,13 +9,14 @@
 
 - Make
 - Docker (with Compose)
-- Account on Github
+- Account on Github (optional)
+- Account on Google (optional)
 
+### Authentication setup
 
-### GitHub OAuth App setup
-
-Setup your Pipeline GitHub OAuth application according to [this guide](./github-app.md)
-
+- Setup your Pipeline GitHub OAuth application according to [this guide](./github-app.md)
+- Setup your Pipeline Google OAuth application according to [this guide](./google-app.md)
+- Use static Email/Password authentication following the example in `config/dex.yml.example` (staticPasswords sections)
 
 ### Quick start
 
@@ -36,22 +37,21 @@ which removes everything.
 
 ### Configuration
 
-Create a `config/config.toml` based on `config/config.toml.dist`:
+Create a `config/config.toml` and `config/dex.yml` config file based on their `config/*.dist` counterparts with:
 
 ```bash
-$ make config/config.toml
+$ make config/config.toml config/dex.yml
 ```
 
 **Note:** If you followed the quick start guide this file should already exist.
  
 As of now the example config enables OAuth2 based authentication. It can be changed by modifying the example.
 
-OAuth2 based authentication requires GitHub application, this can be created by following this 
-[tutorial](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/).
-Please set the `token` in the github section and the `clientid` and the `clientsecret` in the auth section, with the GitHub generated values.
+OAuth2 based authentication requires a GitHub/Google OAuth2 application, this can be created by following this 
+[GitHub](./github-app.md) or the [Google](./google-app.md) tutorial.
+Please set the `token` in the `[github]` section in `config.yml`, and the `clientId` and the `clientSecret` in `dex.yml`'s `connectors:` section.
 
-> If you are not using HTTPS set auth.secureCookie = false, otherwise you won't be able to login via HTTP and you might be getting 401 errors.
-
+> If you are not using HTTPS set auth.secureCookie = false, otherwise you won't be able to login via HTTP and you might be getting 401 errors, locally you should set it to `false`.
 
 ### Environment
 
@@ -100,6 +100,38 @@ Error 1146: Table 'pipeline.amazon_eks_profiles' doesn't exist
 You should set `autoMigrateEnabled = true` in the database section in the `config/config.toml` file.
 
 You should now be able to log in on the Pipeline UI: http://localhost:4200/ui
+
+#### Acquiring an access token
+
+For accessing the Pipeline one has to be authenticated and registered via Dex first.
+
+For programmatic API access an access token has to be generated.
+
+Tokens can be generated only with a browser (for now), to do that please use the following URL to login first:
+
+- For local usage:
+    ```bash
+    http://localhost:9090/auth/dex/login
+    ```
+
+- For on-cloud usage:
+    ```bash
+    http://{control_plane_public_ip}/auth/dex/login
+    ```
+
+Please authenticate yourself with Dex. If everything is done correctly you will be redirected.
+The browser session already contains the generated token in a cookie. An API token can be generated via:
+
+- For local usage:
+    ```bash
+    http://localhost:9090/pipeline/api/v1/token
+    ```
+
+- For on-cloud usage:
+    ```bash
+    http://{control_plane_public_ip}/pipeline/api/v1/token
+    ```
+
 
 #### Route53 credentials in Vault
 
