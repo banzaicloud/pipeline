@@ -63,3 +63,22 @@ services:
             - 127.0.0.1:5558:5558
         volumes:
             - ./.docker/volumes/dex:/dex
+
+#     ldap:
+#         image: osixia/openldap:1.2.2
+#         ports:
+#             - 389
+#         volumes:
+#             - ldap-config:/container/service/slapd/assets/config/bootstrap/ldif/custom/
+#         environment:
+#             LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
+#             LDAP_TLS: "false"
+#     ldap-config:
+#         image: osixia/openldap:1.2.2
+#         command: cp /tmp/ldap.ldif /ldap-config/
+#         volumes:
+#             - ./config/ldap.ldif:/tmp/ldap.ldif
+#             - ldap-config:/ldap-config
+
+# volumes:
+#   ldap-config:

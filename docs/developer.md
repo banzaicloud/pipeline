@@ -14,8 +14,11 @@
 
 ### Authentication setup
 
+At least of the followings has to be configured:
+
 - Setup your Pipeline GitHub OAuth application according to [this guide](./github-app.md)
 - Setup your Pipeline Google OAuth application according to [this guide](./google-app.md)
+- Setup your Pipeline with LDAP authentication according to [this guide](./ldap-auth.md)
 - Use static Email/Password authentication following the example in `config/dex.yml.example` (staticPasswords sections)
 
 ### Quick start
