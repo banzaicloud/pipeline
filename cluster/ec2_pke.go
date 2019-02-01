@@ -451,9 +451,9 @@ func (c *EC2ClusterPKE) GetCAHash() (string, error) {
 		return "", err
 	}
 	crt := secret.Values[pkgSecret.KubernetesCACert]
-	block, err := pem.Decode([]byte(crt))
+	block, _ := pem.Decode([]byte(crt))
 	if block == nil {
-		emperror.Wrapf(err, "failed to parse certificate")
+		errors.New("failed to parse certificate")
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
