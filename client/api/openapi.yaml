@@ -9385,6 +9385,12 @@ components:
           description: ip address of node (where the other nodes can reach it)
           example: 127.0.0.1
           type: string
+        master:
+          description: if this node is a master node
+          type: bool
+        worker:
+          description: if this node is a worker node
+          type: bool
       type: object
     CreateEKSProperties_eks:
       properties:

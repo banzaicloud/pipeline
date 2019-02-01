@@ -309,6 +309,13 @@ func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, work
 	}
 
 	roles := banzaicloudDB.Roles{}
+	if master {
+		roles = append(roles, banzaicloudDB.RoleMaster)
+	}
+	if worker {
+		roles = append(roles, banzaicloudDB.RoleWorker)
+	}
+
 	if err := db.Where(nodePool).Attrs(banzaicloudDB.NodePool{
 		Roles: roles,
 	}).FirstOrCreate(&nodePool).Error; err != nil {
