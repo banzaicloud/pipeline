@@ -30,6 +30,8 @@ type ReadyRequest struct {
 	Name     string `json:"name,required"`    // name of node
 	NodePool string `json:"nodePool"`         // name of nodepool the new node belongs to
 	IP       string `json:"ip,omitempty"`     // ip address of node (where the other nodes can reach it)
+	Master   bool
+	Worker   bool
 }
 
 func (a *API) PostReady(c *gin.Context) {
@@ -91,11 +93,11 @@ func (a *API) PostReady(c *gin.Context) {
 	}
 
 	if registerNodeer, ok := commonCluster.(interface {
-		RegisterNode(name, nodePool, ip string) error
+		RegisterNode(name, nodePool, ip string, master, worker bool) error
 	}); !ok {
 		log.Infof("RegisterNode is not implemented in %T", commonCluster)
 	} else {
-		if err := registerNodeer.RegisterNode(request.Name, request.NodePool, request.IP); err != nil {
+		if err := registerNodeer.RegisterNode(request.Name, request.NodePool, request.IP, request.Master, request.Worker); err != nil {
 			err := emperror.Wrap(err, "could not store config")
 			a.errorHandler.Handle(err)
 

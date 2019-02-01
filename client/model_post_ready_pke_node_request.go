@@ -20,4 +20,8 @@ type PostReadyPkeNodeRequest struct {
 	NodePool string `json:"nodePool,omitempty"`
 	// ip address of node (where the other nodes can reach it)
 	Ip string `json:"ip,omitempty"`
+	// if this node is a master node
+	Master bool `json:"master,omitempty"`
+	// if this node is a worker node
+	Worker bool `json:"worker,omitempty"`
 }
