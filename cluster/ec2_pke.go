@@ -538,8 +538,17 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) str
 		}
 	}
 
-	return fmt.Sprintf("pke-installer install --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --node-pool=%q%s",
-		url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, roles)
+	// TODO: use c.model.Network.ServiceCIDR c.model.Network.PodCIDR
+	// TODO: find out how to supply --kubernetes-api-server=10.240.0.11 properly
+
+	if cmd == "master" {
+		return fmt.Sprintf("pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
+			"--kubernetes-version 1.12.2 --kubernetes-network-provider weave --kubernetes-service-cidr 10.32.0.0/24 --kubernetes-pod-network-cidr 10.210.0.0/16 --kubernetes-infrastructure-cidr 10.200.0.0/24",
+			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
+	}
+	return fmt.Sprintf("pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipelin-nodepool=%q "+
+		"--kubernetes-pod-network-cidr 10.210.0.0/24",
+		cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
 }
 
 func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {
