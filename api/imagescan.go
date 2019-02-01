@@ -73,6 +73,16 @@ func ScanImages(c *gin.Context) {
 	if !ok {
 		return
 	}
+
+	if !commonCluster.GetSecurityScan() {
+		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "security scan isn't enabled",
+			Error:   "security scan isn't enabled",
+		})
+		return
+	}
+
 	var anchorePost anchoreImagePostBody
 	for i := range images {
 		anchorePost.Tag = images[i].ImageName + ":" + images[i].ImageTag
@@ -126,6 +136,16 @@ func doAnchoreGetRequest(c *gin.Context, endPoint string) {
 	if !ok {
 		return
 	}
+
+	if !commonCluster.GetSecurityScan() {
+		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "security scan isn't enabled",
+			Error:   "security scan isn't enabled",
+		})
+		return
+	}
+
 	anchoreRequest := anchore.AnchoreRequest{
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),

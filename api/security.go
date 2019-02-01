@@ -253,6 +253,15 @@ func GetPolicies(c *gin.Context) {
 		return
 	}
 
+	if !commonCluster.GetSecurityScan() {
+		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "security scan isn't enabled",
+			Error:   "security scan isn't enabled",
+		})
+		return
+	}
+
 	anchoreRequest := anchore.AnchoreRequest{
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
@@ -275,7 +284,7 @@ func GetPolicies(c *gin.Context) {
 	createResponse(c, *response)
 }
 
-// CreatePolicies returns image scan results for all deployments
+// CreatePolicy returns image scan results for all deployments
 func CreatePolicy(c *gin.Context) {
 
 	var policyBundle *security.PolicyBundle
@@ -295,6 +304,16 @@ func CreatePolicy(c *gin.Context) {
 	if !ok {
 		return
 	}
+
+	if !commonCluster.GetSecurityScan() {
+		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "security scan isn't enabled",
+			Error:   "security scan isn't enabled",
+		})
+		return
+	}
+
 	anchoreRequest := anchore.AnchoreRequest{
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
@@ -332,6 +351,15 @@ func UpdatePolicies(c *gin.Context) {
 
 	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
+		return
+	}
+
+	if !commonCluster.GetSecurityScan() {
+		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "security scan isn't enabled",
+			Error:   "security scan isn't enabled",
+		})
 		return
 	}
 
@@ -410,6 +438,16 @@ func DeletePolicy(c *gin.Context) {
 	if !ok {
 		return
 	}
+
+	if !commonCluster.GetSecurityScan() {
+		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "security scan isn't enabled",
+			Error:   "security scan isn't enabled",
+		})
+		return
+	}
+
 	anchoreRequest := anchore.AnchoreRequest{
 		OrgID:     commonCluster.GetOrganizationId(),
 		ClusterID: commonCluster.GetUID(),
