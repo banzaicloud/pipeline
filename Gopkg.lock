@@ -35,14 +35,13 @@
   version = "v0.1.8"
 
 [[projects]]
-  digest = "1:17f64e919e61f0d0e09f84f1603af12d0a3965fff868a01f89cdbf035d4a9668"
+  digest = "1:d39271d6d7c4b8da215992531266f76ce53aa8d591c71432e73b40417c17694c"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "services/authorization/mgmt/2015-07-01/authorization",
     "services/compute/mgmt/2018-10-01/compute",
     "services/containerservice/mgmt/2018-03-31/containerservice",
     "services/monitor/mgmt/2017-09-01/insights",
-    "services/network/mgmt/2018-01-01/network",
     "services/resources/mgmt/2016-06-01/subscriptions",
     "services/resources/mgmt/2018-02-01/resources",
     "services/storage/mgmt/2017-10-01/storage",
@@ -754,12 +753,11 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:ee5531f1e32c0082a6da68a605bc60284711d99b15d38dfba335a1ec52a58c20"
+  digest = "1:56322ec58012d3b6c57c97c31f82a7634ee179ce0ad019ab9990f59ea9d966d3"
   name = "github.com/gorilla/sessions"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "ca9ada44574153444b00d3fd9c8559e4cc95f896"
-  version = "v1.1"
+  revision = "12bd4761fc66ac946e16fcc2a32b1e0b066f6177"
 
 [[projects]]
   digest = "1:4e771d1c6e15ca4516ad971c34205c822b5cff2747179679d7b321e4e1bfe431"
@@ -2189,13 +2187,16 @@
     "cloud.google.com/go/iam/credentials/apiv1",
     "cloud.google.com/go/storage",
     "github.com/Azure/azure-pipeline-go/pipeline",
+    "github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization",
     "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute",
     "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice",
     "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-09-01/insights",
+    "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
     "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
     "github.com/Azure/azure-storage-blob-go/azblob",
     "github.com/Azure/go-autorest/autorest",
+    "github.com/Azure/go-autorest/autorest/adal",
     "github.com/Azure/go-autorest/autorest/azure",
     "github.com/Azure/go-autorest/autorest/azure/auth",
     "github.com/Azure/go-autorest/autorest/to",
