@@ -105,6 +105,12 @@
   name = "github.com/prometheus/common"
 
 [[constraint]]
+  name = "github.com/gorilla/sessions"
+  # Use this fixed revision until it gets released, see:
+  # https://github.com/gorilla/sessions/commit/12bd4761fc66ac946e16fcc2a32b1e0b066f6177
+  revision = "12bd4761fc66ac946e16fcc2a32b1e0b066f6177"
+
+[[constraint]]
   branch = "master"
   source = "github.com/banzaicloud/auth"
   name = "github.com/qor/auth"
