@@ -2110,8 +2110,8 @@ func (c *GKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
 		return nil, emperror.Wrap(err, "couldn't get GKE cluster")
 	}
 	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRange: cluster.ServicesIpv4Cidr,
-		PodIPRange:            cluster.ClusterIpv4Cidr,
+		ServiceClusterIPRanges: []string{cluster.ServicesIpv4Cidr},
+		PodIPRanges:            []string{cluster.ClusterIpv4Cidr},
 	}, nil
 }
 

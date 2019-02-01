@@ -257,8 +257,8 @@ type UpdateClusterRequest struct {
 
 // Ipv4Cidrs describes the service and pod IPv4 ranges
 type Ipv4Cidrs struct {
-	ServiceClusterIPRange string
-	PodIPRange            string
+	ServiceClusterIPRanges []string
+	PodIPRanges            []string
 }
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties

@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"strings"
+
 	pConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/istio"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
@@ -59,7 +61,7 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 			log.Warnf("couldn't set included IP ranges in Envoy config, external requests will be intercepted")
 		} else {
 			config.Global.Proxy = istio.Proxy{
-				IncludeIPRanges: ipRanges.PodIPRange + "," + ipRanges.ServiceClusterIPRange,
+				IncludeIPRanges: strings.Join(ipRanges.PodIPRanges, ",") + "," + strings.Join(ipRanges.ServiceClusterIPRanges, ","),
 			}
 		}
 	}
