@@ -259,6 +259,7 @@ type AKSNodePoolModel struct {
 	NodeMaxCount     int
 	Count            int
 	NodeInstanceType string
+	VNetSubnetID     string
 }
 
 // DummyClusterModel describes the dummy cluster model

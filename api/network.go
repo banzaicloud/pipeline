@@ -17,6 +17,7 @@ package api
 import (
 	"net/http"
 
+	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -88,14 +89,12 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("no secret stored for ID")
 		return
 	}
 
 	err = sir.ValidateSecretType(provider)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("secret type mismatch")
 		return
 	}
 
@@ -155,14 +154,12 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("no secret stored for ID")
 		return
 	}
 
 	err = sir.ValidateSecretType(provider)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("secret type mismatch")
 		return
 	}
 
@@ -223,14 +220,12 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("no secret stored for ID")
 		return
 	}
 
 	err = sir.ValidateSecretType(provider)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("secret type mismatch")
 		return
 	}
 
@@ -261,25 +256,23 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 
 func getRequiredProviderFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
 	provider, ok := ginutils.RequiredQueryOrAbort(ctx, "cloudType")
-	if !ok {
-		logger.Debug("missing provider")
-	}
 	return provider, ok
 }
 
-func getRequiredRegionFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
-	region, ok := ginutils.RequiredQueryOrAbort(ctx, "region")
-	if !ok {
-		logger.Debug("missing region")
+func getRequiredRegionOrResourceGroupFromContext(ctx *gin.Context, provider string, logger logrus.FieldLogger) (string, string, bool) {
+	switch provider {
+	case pkgProviders.Azure:
+		resourceGroup, ok := ginutils.RequiredQueryOrAbort(ctx, "resourceGroup")
+		return "", resourceGroup, ok
+	default:
+		region, ok := ginutils.RequiredQueryOrAbort(ctx, "region")
+		return region, "", ok
 	}
-	return region, ok
+	return "", region, ok
 }
 
 func getRequiredSecretIDFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
 	secretID, ok := ginutils.GetRequiredHeader(ctx, "secretId")
-	if !ok {
-		logger.Debug("missing secret ID")
-	}
 	return secretID, ok
 }
 
