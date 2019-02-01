@@ -599,7 +599,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 		})
 		return
 	}
-	hash, err := clusterCommander.GetCAHash()
+	hash, err := clusterGetCAHasher.GetCAHash()
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
