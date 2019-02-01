@@ -86,7 +86,7 @@ Class | Method | HTTP request | Description
 *InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
 *InfoApi* | [**GetAzureConfig**](docs/InfoApi.md#getazureconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/azure | Get all azure config
 *InfoApi* | [**GetGoogleConfig**](docs/InfoApi.md#getgoogleconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
-*InfoApi* | [**GetResourceGroup**](docs/InfoApi.md#getresourcegroup) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
+*InfoApi* | [**GetResourceGroups**](docs/InfoApi.md#getresourcegroups) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
 *InfoApi* | [**GetSupportedClouds**](docs/InfoApi.md#getsupportedclouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
 *NetworkApi* | [**ListRouteTables**](docs/NetworkApi.md#listroutetables) | **Get** /api/v1/orgs/{orgId}/networks/{networkId}/routeTables | List VPC route tables
 *NetworkApi* | [**ListVPCNetworks**](docs/NetworkApi.md#listvpcnetworks) | **Get** /api/v1/orgs/{orgId}/networks | List VPC networks

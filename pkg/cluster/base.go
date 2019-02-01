@@ -29,7 +29,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oke "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 // ### [ Cluster statuses ] ### //
@@ -193,7 +193,7 @@ type GetClusterStatusResponse struct {
 	SecurityScan  bool                       `json:"securityscan"`
 	Version       string                     `json:"version,omitempty"`
 	ResourceID    uint                       `json:"id"`
-	NodePools     map[string]*NodePoolStatus `json:"nodePools,omitempty"`
+	NodePools     map[string]*NodePoolStatus `json:"nodePools"`
 	pkgCommon.CreatorBaseFields
 
 	// If region not available fall back to Location
@@ -525,16 +525,16 @@ type KubernetesFilter struct {
 
 // GetCloudInfoResponse describes Pipeline's Cloud info API response
 type GetCloudInfoResponse struct {
-	Type               string                 `json:"type" binding:"required"`
-	NameRegexp         string                 `json:"nameRegexp,omitempty"`
-	Locations          []string               `json:"locations,omitempty"`
-	NodeInstanceType   map[string]MachineType `json:"instanceType,omitempty"`
-	KubernetesVersions interface{}            `json:"kubernetesVersions,omitempty"`
-	Image              map[string][]string    `json:"image,omitempty"`
+	Type               string                  `json:"type" binding:"required"`
+	NameRegexp         string                  `json:"nameRegexp,omitempty"`
+	Locations          []string                `json:"locations,omitempty"`
+	NodeInstanceType   map[string]MachineTypes `json:"instanceType,omitempty"`
+	KubernetesVersions interface{}             `json:"kubernetesVersions,omitempty"`
+	Image              map[string][]string     `json:"image,omitempty"`
 }
 
-// MachineType describes an string slice which contains machine types
-type MachineType []string
+// MachineTypes describes a string slice which contains machine types
+type MachineTypes []string
 
 // SupportedClustersResponse describes the supported cloud providers
 type SupportedClustersResponse struct {

@@ -48,8 +48,8 @@ import (
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi"
-	"gopkg.in/yaml.v2"
-	"k8s.io/api/core/v1"
+	yaml "gopkg.in/yaml.v2"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -1703,7 +1703,7 @@ func updateVersions(validVersions []string) []string {
 }
 
 // GetAllMachineTypesByZone lists supported machine types by zone
-func (c *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]pkgCluster.MachineType, error) {
+func (c *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]pkgCluster.MachineTypes, error) {
 
 	computeService, err := c.getComputeService()
 	if err != nil {
@@ -1719,7 +1719,7 @@ func (c *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]pkgCluste
 }
 
 // GetAllMachineTypes lists all supported machine types
-func (c *GKECluster) GetAllMachineTypes() (map[string]pkgCluster.MachineType, error) {
+func (c *GKECluster) GetAllMachineTypes() (map[string]pkgCluster.MachineTypes, error) {
 
 	computeService, err := c.getComputeService()
 	if err != nil {
@@ -1734,8 +1734,8 @@ func (c *GKECluster) GetAllMachineTypes() (map[string]pkgCluster.MachineType, er
 }
 
 // getMachineTypesWithoutZones lists supported machine types in all zone
-func getMachineTypesWithoutZones(csv *gkeCompute.Service, project string) (map[string]pkgCluster.MachineType, error) {
-	response := make(map[string]pkgCluster.MachineType)
+func getMachineTypesWithoutZones(csv *gkeCompute.Service, project string) (map[string]pkgCluster.MachineTypes, error) {
+	response := make(map[string]pkgCluster.MachineTypes)
 	req := csv.MachineTypes.AggregatedList(project)
 	if err := req.Pages(context.Background(), func(list *gkeCompute.MachineTypeAggregatedList) error {
 		for zone, item := range list.Items {
@@ -1761,7 +1761,7 @@ func getMachineTypesWithoutZones(csv *gkeCompute.Service, project string) (map[s
 const zonePrefix = "zones/"
 
 // getMachineTypes returns supported machine types by zone
-func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]pkgCluster.MachineType, error) {
+func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]pkgCluster.MachineTypes, error) {
 
 	var machineTypes []string
 	req := csv.MachineTypes.List(project, zone)
@@ -1774,7 +1774,7 @@ func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]
 		return nil, err
 	}
 
-	response := make(map[string]pkgCluster.MachineType)
+	response := make(map[string]pkgCluster.MachineTypes)
 	response[zone] = machineTypes
 	return response, nil
 }

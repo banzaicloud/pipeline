@@ -272,19 +272,20 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	//if err != nil {
 	//	return emperror.Wrap(err, "can't create master CF template")
 	//}
-	token := "XXX"
+	token := "XXX" // TODO masked from dumping valid tokens to log
 	for _, nodePool := range c.model.NodePools {
 		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
 	}
 
+	c.UpdateStatus(c.model.Cluster.Status, "Waiting for Kubeconfig from master node.")
 	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
-
 	err = backoff.Retry(func() error {
 		id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
 		if err != nil {
 			return err
 		} else if id == "" {
+			log.Debug("waiting for Kubeconfig (/ready call)")
 			return errors.New("no Kubeconfig received from master")
 		}
 		c.model.Cluster.ConfigSecretID = id
@@ -296,6 +297,45 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	if err != nil {
 		return emperror.Wrap(err, "timeout")
 	}
+	return nil
+}
+
+// RegisterNode adds a Node to the DB
+func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, worker bool) error {
+
+	db := pipConfig.DB()
+	nodePool := banzaicloudDB.NodePool{
+		Name:      nodePoolName,
+		ClusterID: c.GetID(),
+	}
+
+	roles := banzaicloudDB.Roles{}
+	if master {
+		roles = append(roles, banzaicloudDB.RoleMaster)
+	}
+	if worker {
+		roles = append(roles, banzaicloudDB.RoleWorker)
+	}
+
+	if err := db.Where(nodePool).Attrs(banzaicloudDB.NodePool{
+		Roles: roles,
+	}).FirstOrCreate(&nodePool).Error; err != nil {
+		return emperror.Wrap(err, "failed to register nodepool")
+	}
+
+	node := banzaicloudDB.Host{
+		NodePoolID: nodePool.NodePoolID,
+		Name:       name,
+	}
+
+	if err := db.Where(node).Attrs(banzaicloudDB.Host{
+		Labels:    make(banzaicloudDB.Labels),
+		PrivateIP: ip,
+	}).FirstOrCreate(&node).Error; err != nil {
+		return emperror.Wrap(err, "failed to register node")
+	}
+	c.log.WithField("node", name).Info("node registered")
+
 	return nil
 }
 
@@ -424,6 +464,7 @@ func (c *EC2ClusterPKE) IsReady() (bool, error) {
 	return true, nil
 }
 
+// ListNodeNames returns node names to label them
 func (c *EC2ClusterPKE) ListNodeNames() (common.NodeNames, error) {
 	var nodes = make(map[string][]string)
 	for _, nodepool := range c.model.NodePools {
@@ -474,16 +515,40 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
 func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) string {
-	roles := ""
+	cmd := ""
 	for _, np := range c.model.NodePools {
 		if np.Name == nodePoolName {
 			for _, role := range np.Roles {
-				roles += fmt.Sprintf(" --role=%s", role)
+				if role == banzaicloudDB.RoleMaster {
+					cmd = "master"
+					break
+				} else if role == banzaicloudDB.RoleWorker {
+					cmd = "worker"
+				}
 			}
 		}
 	}
-	return fmt.Sprintf("pke-installer install --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --node-pool=%q%s",
-		url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, roles)
+
+	// provide fake command for nonexistent nodepools
+	if cmd == "" {
+		if nodePoolName == "master" { // TODO sorry
+			cmd = "master"
+		} else {
+			cmd = "worker"
+		}
+	}
+
+	// TODO: use c.model.Network.ServiceCIDR c.model.Network.PodCIDR
+	// TODO: find out how to supply --kubernetes-api-server=10.240.0.11 properly
+
+	if cmd == "master" {
+		return fmt.Sprintf("pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
+			"--kubernetes-version 1.12.2 --kubernetes-network-provider weave --kubernetes-service-cidr 10.32.0.0/24 --kubernetes-pod-network-cidr 10.210.0.0/16 --kubernetes-infrastructure-cidr 10.200.0.0/24",
+			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
+	}
+	return fmt.Sprintf("pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipelin-nodepool=%q "+
+		"--kubernetes-pod-network-cidr 10.210.0.0/24",
+		cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
 }
 
 func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {

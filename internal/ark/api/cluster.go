@@ -20,7 +20,7 @@ import (
 
 type AKSCluster interface {
 	Cluster
-	GetResourceGroup() string
+	GetResourceGroupName() string
 }
 
 // Cluster interface for cluster implementations

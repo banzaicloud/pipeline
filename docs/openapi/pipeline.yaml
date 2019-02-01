@@ -4002,7 +4002,7 @@ paths:
             tags:
                 - info
             summary: Get all resource groups
-            operationId: GetResourceGroup
+            operationId: GetResourceGroups
             description: Get all resource groups
             parameters:
                 -
@@ -8936,3 +8936,11 @@ components:
                 type: string
                 example: 127.0.0.1
                 description: ip address of node (where the other nodes can reach it)
+              master:
+                type: bool
+                description: if this node is a master node
+                example: true
+              worker:
+                type: bool
+                description: if this node is a worker node
+                example: false

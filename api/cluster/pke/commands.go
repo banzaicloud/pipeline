@@ -86,5 +86,10 @@ func (a *API) ListCommands(c *gin.Context) {
 		commands[nodePool] = clusterCommander.GetBootstrapCommand(nodePool, a.externalBaseURL, token)
 	}
 
+	if len(commands) == 0 { // give some examples for the user...
+		commands["master"] = clusterCommander.GetBootstrapCommand("master", a.externalBaseURL, token)
+		commands["pool1"] = clusterCommander.GetBootstrapCommand("pool1", a.externalBaseURL, token)
+	}
+
 	c.JSON(http.StatusOK, commands)
 }

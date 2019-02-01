@@ -17,6 +17,8 @@ package azure
 import (
 	"fmt"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 	"github.com/goph/emperror"
 
@@ -44,13 +46,7 @@ func GetSecretForBucket(secret *secret.SecretItemResponse, storageAccount string
 	s.StorageAccount = storageAccount
 	s.ResourceGroup = resourceGroup
 
-	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(
-		azureObjectstore.Credentials{
-			ClientID:       s.ClientID,
-			ClientSecret:   s.ClientSecret,
-			SubscriptionID: s.SubscriptionID,
-			TenantID:       s.TenantID,
-		})
+	storageAccountClient, err := azureObjectstore.NewAuthorizedStorageAccountClientFromSecret(*azure.NewCredentials(secret.Values))
 	if err != nil {
 		return Secret{}, emperror.Wrap(err, "failed to create storage account client")
 	}
@@ -76,9 +72,9 @@ func GetSecretForCluster(secret *secret.SecretItemResponse, clusterName, locatio
 // getSecret gets formatted secret for ARK
 func getSecret(secret *secret.SecretItemResponse) Secret {
 	return Secret{
-		ClientID:       secret.Values[pkgSecret.AzureClientId],
+		ClientID:       secret.Values[pkgSecret.AzureClientID],
 		ClientSecret:   secret.Values[pkgSecret.AzureClientSecret],
-		SubscriptionID: secret.Values[pkgSecret.AzureSubscriptionId],
-		TenantID:       secret.Values[pkgSecret.AzureTenantId],
+		SubscriptionID: secret.Values[pkgSecret.AzureSubscriptionID],
+		TenantID:       secret.Values[pkgSecret.AzureTenantID],
 	}
 }

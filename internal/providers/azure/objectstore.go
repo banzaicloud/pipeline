@@ -20,6 +20,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
@@ -176,15 +178,8 @@ func isValidStorageAccountName(storageAccount string) bool {
 	return match
 }
 
-func getCredentials(secret *secret.SecretItemResponse) azureObjectstore.Credentials {
-	credentials := azureObjectstore.Credentials{
-		SubscriptionID: secret.Values[pkgSecret.AzureSubscriptionId],
-		ClientID:       secret.Values[pkgSecret.AzureClientId],
-		ClientSecret:   secret.Values[pkgSecret.AzureClientSecret],
-		TenantID:       secret.Values[pkgSecret.AzureTenantId],
-	}
-
-	return credentials
+func getCredentials(secret *secret.SecretItemResponse) azure.Credentials {
+	return *azure.NewCredentials(secret.Values)
 }
 
 // CreateBucket creates an Azure Object Store Blob with the provided name
@@ -402,7 +397,7 @@ func (s *ObjectStore) createStorageAccountAndResourceGroup() error {
 func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	logger := s.logger.WithFields(logrus.Fields{
 		"organization":    s.org.ID,
-		"subscription_id": s.secret.GetValue(pkgSecret.AzureSubscriptionId),
+		"subscription_id": s.secret.GetValue(pkgSecret.AzureSubscriptionID),
 	})
 
 	logger.Info("getting all resource groups for subscription")

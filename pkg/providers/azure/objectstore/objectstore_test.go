@@ -26,6 +26,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+
 	"github.com/pkg/errors"
 )
 
@@ -51,11 +53,13 @@ func getObjectStore(t *testing.T) *objectStore {
 		StorageAccount: storageAccount,
 	}
 
-	creds := Credentials{
+	creds := azure.Credentials{
+		ServicePrincipal: azure.ServicePrincipal{
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			TenantID:     tenantID,
+		},
 		SubscriptionID: subscriptionID,
-		TenantID:       tenantID,
-		ClientID:       clientID,
-		ClientSecret:   clientSecret,
 	}
 
 	ostore := New(config, creds)
