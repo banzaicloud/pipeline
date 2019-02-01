@@ -15,14 +15,13 @@
 package cluster
 
 import (
-	"fmt"
-	"strconv"
-	"time"
-
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
+	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
