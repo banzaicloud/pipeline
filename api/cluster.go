@@ -38,6 +38,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
@@ -584,6 +585,30 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	if !ok {
 		return
 	}
+	clusterCommander, ok := cluster.(interface {
+		GetCAHash() (string, error)
+	})
+	if !ok {
+		err := errors.New(fmt.Sprintf("not implemented for this type of cluster (%T)", cluster))
+		a.errorHandler.Handle(err)
+
+		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: "Not implemented",
+			Error:   err.Error(),
+		})
+		return
+	}
+	hash, err := clusterCommander.GetCAHash()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error parsing kubernetes CA certificate",
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	masterAddress, err := cluster.GetAPIEndpoint()
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
@@ -632,7 +657,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	}
 	bootstrapInfo := &clusterBootstrapInfo{
 		Token:                    token,
-		DiscoveryTokenCaCertHash: "TODO",
+		DiscoveryTokenCaCertHash: hash,
 		MasterAddress:            url.Host,
 	}
 	c.JSON(http.StatusOK, bootstrapInfo)

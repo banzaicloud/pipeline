@@ -19,6 +19,11 @@ import (
 	"strconv"
 	"time"
 
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/hex"
+	"encoding/pem"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -438,6 +443,24 @@ func (c *EC2ClusterPKE) NodePoolExists(nodePoolName string) bool {
 		}
 	}
 	return false
+}
+
+func (c *EC2ClusterPKE) GetCAHash() (string, error) {
+	secret, err := secret.Store.GetByName(c.GetOrganizationId(), fmt.Sprintf("cluster-%d-ca", c.GetID()))
+	if err != nil {
+		return "", err
+	}
+	crt := secret.Values[pkgSecret.KubernetesCACert]
+	block, _ := pem.Decode([]byte(crt))
+	if block == nil {
+		emperror.Wrapf(err, "failed to parse certificate")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		emperror.Wrapf(err, "failed to parse certificate")
+	}
+	h := sha256.Sum256(cert.RawSubjectPublicKeyInfo)
+	return fmt.Sprintf("sha256:%s", hex.EncodeToString(h[:])), nil
 }
 
 // GetPipelineToken returns a lazily generated token for Pipeline
