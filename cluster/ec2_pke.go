@@ -514,14 +514,29 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
 func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) string {
-	roles := ""
+	cmd := ""
 	for _, np := range c.model.NodePools {
 		if np.Name == nodePoolName {
 			for _, role := range np.Roles {
-				roles += fmt.Sprintf(" --role=%s", role)
+				if role == banzaicloudDB.RoleMaster {
+					cmd = "master"
+					break
+				} else if role == banzaicloudDB.RoleWorker {
+					cmd = "worker"
+				}
 			}
 		}
 	}
+
+	// provide fake command for nonexistent nodepools
+	if cmd == "" {
+		if nodePoolName == "master" { // TODO sorry
+			cmd = "master"
+		} else {
+			cmd = "worker"
+		}
+	}
+
 	return fmt.Sprintf("pke-installer install --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --node-pool=%q%s",
 		url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, roles)
 }
