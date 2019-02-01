@@ -29,7 +29,7 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	banzaicloudDB "github.com/banzaicloud/pipeline/internal/providers/banzaicloud"
+	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
@@ -50,7 +50,7 @@ var _ CommonCluster = (*EC2ClusterPKE)(nil)
 
 type EC2ClusterPKE struct {
 	db    *gorm.DB
-	model *banzaicloudDB.EC2PKEClusterModel
+	model *internalPke.EC2PKEClusterModel
 	//amazonCluster *ec2.EC2 //Don't use this directly
 	APIEndpoint string
 	log         logrus.FieldLogger
@@ -304,32 +304,32 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, worker bool) error {
 
 	db := pipConfig.DB()
-	nodePool := banzaicloudDB.NodePool{
+	nodePool := internalPke.NodePool{
 		Name:      nodePoolName,
 		ClusterID: c.GetID(),
 	}
 
-	roles := banzaicloudDB.Roles{}
+	roles := internalPke.Roles{}
 	if master {
-		roles = append(roles, banzaicloudDB.RoleMaster)
+		roles = append(roles, internalPke.RoleMaster)
 	}
 	if worker {
-		roles = append(roles, banzaicloudDB.RoleWorker)
+		roles = append(roles, internalPke.RoleWorker)
 	}
 
-	if err := db.Where(nodePool).Attrs(banzaicloudDB.NodePool{
+	if err := db.Where(nodePool).Attrs(internalPke.NodePool{
 		Roles: roles,
 	}).FirstOrCreate(&nodePool).Error; err != nil {
 		return emperror.Wrap(err, "failed to register nodepool")
 	}
 
-	node := banzaicloudDB.Host{
+	node := internalPke.Host{
 		NodePoolID: nodePool.NodePoolID,
 		Name:       name,
 	}
 
-	if err := db.Where(node).Attrs(banzaicloudDB.Host{
-		Labels:    make(banzaicloudDB.Labels),
+	if err := db.Where(node).Attrs(internalPke.Host{
+		Labels:    make(internalPke.Labels),
 		PrivateIP: ip,
 	}).FirstOrCreate(&node).Error; err != nil {
 		return emperror.Wrap(err, "failed to register node")
@@ -425,7 +425,7 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 	hasSpotNodePool := false
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.model.NodePools {
-		providerConfig := banzaicloudDB.NodePoolProviderConfigAmazon{}
+		providerConfig := internalPke.NodePoolProviderConfigAmazon{}
 		err := mapstructure.Decode(np.ProviderConfig, &providerConfig)
 		if err != nil {
 			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
@@ -523,10 +523,10 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) str
 	for _, np := range c.model.NodePools {
 		if np.Name == nodePoolName {
 			for _, role := range np.Roles {
-				if role == banzaicloudDB.RoleMaster {
+				if role == internalPke.RoleMaster {
 					cmd = "master"
 					break
-				} else if role == banzaicloudDB.RoleWorker {
+				} else if role == internalPke.RoleWorker {
 					cmd = "worker"
 				}
 			}
@@ -575,12 +575,12 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		return nil, err
 	}
 
-	c.model = &banzaicloudDB.EC2PKEClusterModel{
+	c.model = &internalPke.EC2PKEClusterModel{
 		Cluster: cluster.ClusterModel{
 			Name:           request.Name,
 			Location:       request.Location,
 			Cloud:          request.Cloud,
-			Distribution:   pkgCluster.BanzaiCloud,
+			Distribution:   pkgCluster.PKE,
 			OrganizationID: orgId,
 			RbacEnabled:    kubernetes.RBAC.Enabled,
 			CreatedBy:      userId,
@@ -602,7 +602,7 @@ func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2Cluster
 
 	db := pipConfig.DB()
 
-	m := banzaicloudDB.EC2PKEClusterModel{
+	m := internalPke.EC2PKEClusterModel{
 		ClusterID: modelCluster.ID,
 	}
 
@@ -628,11 +628,11 @@ func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2Cluster
 	return c, nil
 }
 
-func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId uint) banzaicloudDB.NodePools {
-	var nps banzaicloudDB.NodePools
+func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId uint) internalPke.NodePools {
+	var nps internalPke.NodePools
 
 	for _, pool := range pools {
-		np := banzaicloudDB.NodePool{
+		np := internalPke.NodePool{
 			Name:           pool.Name,
 			Roles:          convertRoles(pool.Roles),
 			Hosts:          convertHosts(pool.Hosts),
@@ -645,16 +645,16 @@ func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId uint) b
 	return nps
 }
 
-func convertRoles(roles pke.Roles) (result banzaicloudDB.Roles) {
+func convertRoles(roles pke.Roles) (result internalPke.Roles) {
 	for _, role := range roles {
-		result = append(result, banzaicloudDB.Role(role))
+		result = append(result, internalPke.Role(role))
 	}
 	return
 }
 
-func convertHosts(hosts pke.Hosts) (result banzaicloudDB.Hosts) {
+func convertHosts(hosts pke.Hosts) (result internalPke.Hosts) {
 	for _, host := range hosts {
-		result = append(result, banzaicloudDB.Host{
+		result = append(result, internalPke.Host{
 			Name:             host.Name,
 			PrivateIP:        host.PrivateIP,
 			NetworkInterface: host.NetworkInterface,
@@ -667,27 +667,27 @@ func convertHosts(hosts pke.Hosts) (result banzaicloudDB.Hosts) {
 	return
 }
 
-func convertNodePoolProvider(provider pke.NodePoolProvider) (result banzaicloudDB.NodePoolProvider) {
-	return banzaicloudDB.NodePoolProvider(provider)
+func convertNodePoolProvider(provider pke.NodePoolProvider) (result internalPke.NodePoolProvider) {
+	return internalPke.NodePoolProvider(provider)
 }
 
-func convertLabels(labels pke.Labels) banzaicloudDB.Labels {
-	res := make(banzaicloudDB.Labels, len(labels))
+func convertLabels(labels pke.Labels) internalPke.Labels {
+	res := make(internalPke.Labels, len(labels))
 	for k, v := range labels {
 		res[k] = v
 	}
 	return res
 }
 
-func convertTaints(taints pke.Taints) (result banzaicloudDB.Taints) {
+func convertTaints(taints pke.Taints) (result internalPke.Taints) {
 	for _, taint := range taints {
-		result = append(result, banzaicloudDB.Taint(taint))
+		result = append(result, internalPke.Taint(taint))
 	}
 	return
 }
 
-func createEC2PKENetworkFromRequest(network pke.Network, userId uint) banzaicloudDB.Network {
-	n := banzaicloudDB.Network{
+func createEC2PKENetworkFromRequest(network pke.Network, userId uint) internalPke.Network {
+	n := internalPke.Network{
 		ServiceCIDR:      network.ServiceCIDR,
 		PodCIDR:          network.PodCIDR,
 		Provider:         convertNetworkProvider(network.Provider),
@@ -697,51 +697,51 @@ func createEC2PKENetworkFromRequest(network pke.Network, userId uint) banzaiclou
 	return n
 }
 
-func convertNetworkProvider(provider pke.NetworkProvider) (result banzaicloudDB.NetworkProvider) {
-	return banzaicloudDB.NetworkProvider(provider)
+func convertNetworkProvider(provider pke.NetworkProvider) (result internalPke.NetworkProvider) {
+	return internalPke.NetworkProvider(provider)
 }
 
-func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId uint) banzaicloudDB.Kubernetes {
-	k := banzaicloudDB.Kubernetes{
+func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId uint) internalPke.Kubernetes {
+	k := internalPke.Kubernetes{
 		Version: kubernetes.Version,
-		RBAC:    banzaicloudDB.RBAC{Enabled: kubernetes.RBAC.Enabled},
+		RBAC:    internalPke.RBAC{Enabled: kubernetes.RBAC.Enabled},
 	}
 	k.CreatedBy = userId
 	return k
 }
 
-func createEC2ClusterPKEKubeADMFromRequest(kubernetes pke.KubeADM, userId uint) banzaicloudDB.KubeADM {
-	a := banzaicloudDB.KubeADM{
+func createEC2ClusterPKEKubeADMFromRequest(kubernetes pke.KubeADM, userId uint) internalPke.KubeADM {
+	a := internalPke.KubeADM{
 		ExtraArgs: convertExtraArgs(kubernetes.ExtraArgs),
 	}
 	a.CreatedBy = userId
 	return a
 }
 
-func convertExtraArgs(extraArgs pke.ExtraArgs) banzaicloudDB.ExtraArgs {
-	res := make(banzaicloudDB.ExtraArgs, len(extraArgs))
+func convertExtraArgs(extraArgs pke.ExtraArgs) internalPke.ExtraArgs {
+	res := make(internalPke.ExtraArgs, len(extraArgs))
 	for k, v := range extraArgs {
-		res[k] = banzaicloudDB.ExtraArg(v)
+		res[k] = internalPke.ExtraArg(v)
 	}
 	return res
 }
 
-func createEC2ClusterPKECRIFromRequest(cri pke.CRI, userId uint) banzaicloudDB.CRI {
-	c := banzaicloudDB.CRI{
-		Runtime:       banzaicloudDB.Runtime(cri.Runtime),
+func createEC2ClusterPKECRIFromRequest(cri pke.CRI, userId uint) internalPke.CRI {
+	c := internalPke.CRI{
+		Runtime:       internalPke.Runtime(cri.Runtime),
 		RuntimeConfig: cri.RuntimeConfig,
 	}
 	c.CreatedBy = userId
 	return c
 }
 
-func getMasterInstanceTypeAndImageFromNodePools(nodepools banzaicloudDB.NodePools) (masterInstanceType string, masterImage string, err error) {
+func getMasterInstanceTypeAndImageFromNodePools(nodepools internalPke.NodePools) (masterInstanceType string, masterImage string, err error) {
 	for _, nodepool := range nodepools {
 		for _, role := range nodepool.Roles {
-			if role == banzaicloudDB.RoleMaster {
+			if role == internalPke.RoleMaster {
 				switch nodepool.Provider {
-				case banzaicloudDB.NPPAmazon:
-					providerConfig := banzaicloudDB.NodePoolProviderConfigAmazon{}
+				case internalPke.NPPAmazon:
+					providerConfig := internalPke.NodePoolProviderConfigAmazon{}
 					err = mapstructure.Decode(nodepool.ProviderConfig, &providerConfig)
 					if err != nil {
 						return

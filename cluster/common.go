@@ -264,7 +264,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	cloudType := modelCluster.Cloud
 
-	if modelCluster.Distribution == pkgCluster.BanzaiCloud {
+	if modelCluster.Distribution == pkgCluster.PKE {
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}
 
@@ -461,7 +461,7 @@ func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgClu
 }
 
 func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterModel) (*EC2ClusterPKE, error) {
-	if modelCluster.Distribution != pkgCluster.BanzaiCloud {
+	if modelCluster.Distribution != pkgCluster.PKE {
 		return nil, pkgErrors.ErrorNotSupportedDistributionType
 	}
 

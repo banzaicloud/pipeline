@@ -31,7 +31,7 @@ type Network struct {
 	ServiceCIDR      string          `json:"serviceCIDR" yaml:"serviceCIDR"`
 	PodCIDR          string          `json:"podCIDR" yaml:"podCIDR"`
 	Provider         NetworkProvider `json:"provider" yaml:"provider"`
-	APIServerAddress string          `json:"apiServerAddress" yaml:"apiServerAddress" binding:"required"`
+	APIServerAddress string          `json:"apiServerAddress" yaml:"apiServerAddress"`
 }
 
 type NetworkProvider string
