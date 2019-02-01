@@ -603,7 +603,7 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error parsing kubernetes CA certificate",
+			Message: "Kubernetes CA certificate (Kubeconfig) is not available yet",
 			Error:   err.Error(),
 		})
 		return
