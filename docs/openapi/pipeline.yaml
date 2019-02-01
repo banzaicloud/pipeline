@@ -4529,9 +4529,16 @@ paths:
                         enum: [amazon, google, azure, oracle, alibaba]
                 -
                     name: region
-                    description: Identifies the region of the VPC network
+                    description: Identifies the region of the VPC network (required when cloudType != azure)
                     in: query
-                    required: true
+                    required: false
+                    schema:
+                        type: string
+                -
+                    name: resourceGroup
+                    description: Identifies the resource group of the Azure virtual network (required when cloudType == azure)
+                    in: query
+                    required: false
                     schema:
                         type: string
             responses:
@@ -4602,9 +4609,16 @@ paths:
                         enum: [amazon, google, azure, oracle, alibaba]
                 -
                     name: region
-                    description: Identifies the region of the VPC network
+                    description: Identifies the region of the VPC network (required when cloudType != azure)
                     in: query
-                    required: true
+                    required: false
+                    schema:
+                        type: string
+                -
+                    name: resourceGroup
+                    description: Identifies the resource group of the Azure virtual network (required when cloudType == azure)
+                    in: query
+                    required: false
                     schema:
                         type: string
             responses:
@@ -4677,9 +4691,16 @@ paths:
                         enum: [amazon, google, azure, oracle, alibaba]
                 -
                     name: region
-                    description: Identifies the region of the VPC network
+                    description: Identifies the region of the VPC network (required when cloudType != azure)
                     in: query
-                    required: true
+                    required: false
+                    schema:
+                        type: string
+                -
+                    name: resourceGroup
+                    description: Identifies the resource group of the Azure virtual network (required when cloudType == azure)
+                    in: query
+                    required: false
                     schema:
                         type: string
             responses:
