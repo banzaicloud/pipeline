@@ -17,16 +17,23 @@ package cluster
 import (
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	banzaicloudDB "github.com/banzaicloud/pipeline/internal/providers/banzaicloud"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/banzaicloud"
+	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
@@ -35,100 +42,101 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var _ CommonCluster = (*EC2ClusterBanzaiCloudDistribution)(nil)
+var _ CommonCluster = (*EC2ClusterPKE)(nil)
 
-type EC2ClusterBanzaiCloudDistribution struct {
+type EC2ClusterPKE struct {
 	db    *gorm.DB
-	model *banzaicloudDB.EC2BanzaiCloudClusterModel
+	model *banzaicloudDB.EC2PKEClusterModel
 	//amazonCluster *ec2.EC2 //Don't use this directly
 	APIEndpoint string
 	log         logrus.FieldLogger
+	session     *session.Session
 	CommonClusterBase
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetSecurityScan() bool {
+func (c *EC2ClusterPKE) GetSecurityScan() bool {
 	return c.model.Cluster.SecurityScan
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) SetSecurityScan(scan bool) {
+func (c *EC2ClusterPKE) SetSecurityScan(scan bool) {
 	c.model.Cluster.SecurityScan = scan
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetLogging() bool {
+func (c *EC2ClusterPKE) GetLogging() bool {
 	return c.model.Cluster.Logging
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) SetLogging(l bool) {
+func (c *EC2ClusterPKE) SetLogging(l bool) {
 	c.model.Cluster.Logging = l
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetMonitoring() bool {
+func (c *EC2ClusterPKE) GetMonitoring() bool {
 	return c.model.Cluster.Monitoring
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) SetMonitoring(m bool) {
+func (c *EC2ClusterPKE) SetMonitoring(m bool) {
 	c.model.Cluster.Monitoring = m
 }
 
 // GetScaleOptions returns scale options for the cluster
-func (c *EC2ClusterBanzaiCloudDistribution) GetScaleOptions() *pkgCluster.ScaleOptions {
+func (c *EC2ClusterPKE) GetScaleOptions() *pkgCluster.ScaleOptions {
 	return getScaleOptionsFromModel(c.model.Cluster.ScaleOptions)
 }
 
 // SetScaleOptions sets scale options for the cluster
-func (c *EC2ClusterBanzaiCloudDistribution) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
+func (c *EC2ClusterPKE) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetServiceMesh() bool {
+func (c *EC2ClusterPKE) GetServiceMesh() bool {
 	return c.model.Cluster.ServiceMesh
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) SetServiceMesh(m bool) {
+func (c *EC2ClusterPKE) SetServiceMesh(m bool) {
 	c.model.Cluster.ServiceMesh = m
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetID() uint {
+func (c *EC2ClusterPKE) GetID() uint {
 	return c.model.Cluster.ID
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetUID() string {
+func (c *EC2ClusterPKE) GetUID() string {
 	return c.model.Cluster.UID
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetOrganizationId() uint {
+func (c *EC2ClusterPKE) GetOrganizationId() uint {
 	return c.model.Cluster.OrganizationID
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetName() string {
+func (c *EC2ClusterPKE) GetName() string {
 	return c.model.Cluster.Name
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetCloud() string {
+func (c *EC2ClusterPKE) GetCloud() string {
 	return c.model.Cluster.Cloud
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetDistribution() string {
+func (c *EC2ClusterPKE) GetDistribution() string {
 	return c.model.Cluster.Distribution
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetLocation() string {
+func (c *EC2ClusterPKE) GetLocation() string {
 	return c.model.Cluster.Location
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetCreatedBy() uint {
+func (c *EC2ClusterPKE) GetCreatedBy() uint {
 	return c.model.Cluster.CreatedBy
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetSecretId() string {
+func (c *EC2ClusterPKE) GetSecretId() string {
 	return c.model.Cluster.SecretID
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetSshSecretId() string {
+func (c *EC2ClusterPKE) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) SaveSshSecretId(sshSecretId string) error {
+func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId string) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -139,7 +147,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) SaveSshSecretId(sshSecretId string) 
 	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) SaveConfigSecretId(configSecretId string) error {
+func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -150,20 +158,20 @@ func (c *EC2ClusterBanzaiCloudDistribution) SaveConfigSecretId(configSecretId st
 	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetConfigSecretId() string {
+func (c *EC2ClusterPKE) GetConfigSecretId() string {
 	return c.model.Cluster.ConfigSecretID
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
+func (c *EC2ClusterPKE) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
 	return c.CommonClusterBase.getSecret(c)
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) Persist(string, string) error {
+func (c *EC2ClusterPKE) Persist(string, string) error {
 	err := c.db.Save(c.model).Error
 	return err
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) UpdateStatus(status, statusMessage string) error {
+func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
 	originalStatus := c.model.Cluster.Status
 	originalStatusMessage := c.model.Cluster.StatusMessage
 
@@ -196,7 +204,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) UpdateStatus(status, statusMessage s
 }
 
 // DeleteFromDatabase deletes the distribution related entities from the database
-func (c *EC2ClusterBanzaiCloudDistribution) DeleteFromDatabase() error {
+func (c *EC2ClusterPKE) DeleteFromDatabase() error {
 
 	// dependencies are deleted using a GORM hook!
 	if e := c.db.Delete(c.model).Error; e != nil {
@@ -206,57 +214,123 @@ func (c *EC2ClusterBanzaiCloudDistribution) DeleteFromDatabase() error {
 	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) CreateCluster() error {
+func (c *EC2ClusterPKE) CreateCluster() error {
 	return errors.New("not implemented")
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
+func (c *EC2ClusterPKE) GetAWSClient() (*session.Session, error) {
+	if c.session != nil {
+		return c.session, nil
+	}
+	secret, err := c.getSecret(c)
+	if err != nil {
+		return nil, err
+	}
+	awsCred := verify.CreateAWSCredentials(secret.Values)
+	return session.NewSession(&aws.Config{
+		Region:      aws.String(c.model.Cluster.Location),
+		Credentials: awsCred,
+	})
+}
 
+func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
+	// Fetch
+
+	// Generate certificates
+	clusterUidTag := fmt.Sprintf("clusterUID:%s", c.GetUID())
+	req := &secret.CreateSecretRequest{
+		Name: fmt.Sprintf("cluster-%d-ca", c.GetID()),
+		Values: map[string]string{
+			pkgSecret.ClusterUID: fmt.Sprintf("%d-%d", c.GetOrganizationId(), c.GetID()),
+		},
+		Type: pkgSecret.PKESecretType,
+		Tags: []string{
+			clusterUidTag,
+			pkgSecret.TagBanzaiReadonly,
+			pkgSecret.TagBanzaiHidden,
+		},
+	}
+	_, err := secret.Store.GetOrCreate(c.GetOrganizationId(), req)
+	if err != nil {
+		return err
+	}
 	// prepare input for real AWS flow
-	_, err := c.GetPipelineToken(tokenGenerator)
+	_, err = c.GetPipelineToken(tokenGenerator)
 	if err != nil {
 		return emperror.Wrap(err, "can't generate Pipeline token")
 	}
+	//client, err := c.GetAWSClient()
+	//if err != nil {
+	//	return err
+	//}
+	//cloudformationSrv := cloudformation.New(client)
+	//err = CreateMasterCF(cloudformationSrv)
+	//if err != nil {
+	//	return emperror.Wrap(err, "can't create master CF template")
+	//}
 	token := "XXX"
-
 	for _, nodePool := range c.model.NodePools {
 		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
 	}
+
+	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
+
+	err = backoff.Retry(func() error {
+		id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
+		if err != nil {
+			return err
+		} else if id == "" {
+			return errors.New("no Kubeconfig received from master")
+		}
+		c.model.Cluster.ConfigSecretID = id
+		return nil
+	}, backoff.NewConstantBackoffPolicy(&backoff.ConstantBackoffConfig{
+		Delay:          20 * time.Second,
+		MaxElapsedTime: 30 * time.Minute}))
+
+	if err != nil {
+		return emperror.Wrap(err, "timeout")
+	}
 	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
+// Create master CF template
+func CreateMasterCF(formation *cloudformation.CloudFormation) error {
+	return nil
+}
+
+func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	// TODO(Ecsy): implement me
 	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
+func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
 	panic("implement me")
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error {
+func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error {
 	panic("implement me")
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
+func (c *EC2ClusterPKE) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
 	panic("implement me")
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
+func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 	panic("implement me")
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) DeleteCluster() error {
+func (c *EC2ClusterPKE) DeleteCluster() error {
 	// do nothing (the cluster should be left on the provider for now
 	return nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) DownloadK8sConfig() ([]byte, error) {
+func (c *EC2ClusterPKE) DownloadK8sConfig() ([]byte, error) {
 	return nil, pkgError.ErrorFunctionShouldNotBeCalled
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
+func (c *EC2ClusterPKE) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
 	}
@@ -276,28 +350,28 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetAPIEndpoint() (string, error) {
 	return c.APIEndpoint, nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
+func (c *EC2ClusterPKE) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
 	//TODO
 	return nil, errors.New("not implemented")
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetK8sConfig() ([]byte, error) {
+func (c *EC2ClusterPKE) GetK8sConfig() ([]byte, error) {
 	return c.CommonClusterBase.getConfig(c)
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) RbacEnabled() bool {
+func (c *EC2ClusterPKE) RbacEnabled() bool {
 	return c.model.Kubernetes.RBACEnabled
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) NeedAdminRights() bool {
+func (c *EC2ClusterPKE) NeedAdminRights() bool {
 	return false
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetKubernetesUserName() (string, error) {
+func (c *EC2ClusterPKE) GetKubernetesUserName() (string, error) {
 	return "", nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
+func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Create cluster status response")
 
 	hasSpotNodePool := false
@@ -341,12 +415,12 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetStatus() (*pkgCluster.GetClusterS
 }
 
 // IsReady checks if the cluster is running according to the cloud provider.
-func (c *EC2ClusterBanzaiCloudDistribution) IsReady() (bool, error) {
+func (c *EC2ClusterPKE) IsReady() (bool, error) {
 	// TODO: is this a correct implementation?
 	return true, nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) ListNodeNames() (common.NodeNames, error) {
+func (c *EC2ClusterPKE) ListNodeNames() (common.NodeNames, error) {
 	var nodes = make(map[string][]string)
 	for _, nodepool := range c.model.NodePools {
 		nodes[nodepool.Name] = []string{}
@@ -357,7 +431,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) ListNodeNames() (common.NodeNames, e
 	return nodes, nil
 }
 
-func (c *EC2ClusterBanzaiCloudDistribution) NodePoolExists(nodePoolName string) bool {
+func (c *EC2ClusterPKE) NodePoolExists(nodePoolName string) bool {
 	for _, np := range c.model.NodePools {
 		if np.Name == nodePoolName {
 			return true
@@ -367,7 +441,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) NodePoolExists(nodePoolName string) 
 }
 
 // GetPipelineToken returns a lazily generated token for Pipeline
-func (c *EC2ClusterBanzaiCloudDistribution) GetPipelineToken(tokenGenerator interface{}) (string, error) {
+func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, error) {
 	generator, ok := tokenGenerator.(TokenGenerator)
 	if !ok {
 		return "", errors.New(fmt.Sprintf("failed to use %T as TokenGenerator", tokenGenerator))
@@ -377,7 +451,7 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetPipelineToken(tokenGenerator inte
 }
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
-func (c *EC2ClusterBanzaiCloudDistribution) GetBootstrapCommand(nodePoolName, url, token string) string {
+func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) string {
 	roles := ""
 	for _, np := range c.model.NodePools {
 		if np.Name == nodePoolName {
@@ -390,19 +464,19 @@ func (c *EC2ClusterBanzaiCloudDistribution) GetBootstrapCommand(nodePoolName, ur
 		url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, roles)
 }
 
-func CreateEC2ClusterBanzaiCloudDistributionFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterBanzaiCloudDistribution, error) {
-	c := &EC2ClusterBanzaiCloudDistribution{
+func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {
+	c := &EC2ClusterPKE{
 		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
 	}
 
 	c.db = pipConfig.DB()
 
 	var (
-		network    = createEC2BanzaiCloudNetworkFromRequest(request.Properties.CreateClusterBanzaiCloud.Network, userId)
-		nodepools  = createEC2BanzaiCloudNodePoolsFromRequest(request.Properties.CreateClusterBanzaiCloud.NodePools, userId)
-		kubernetes = createEC2BanzaiCloudKubernetesFromRequest(request.Properties.CreateClusterBanzaiCloud.Kubernetes, userId)
-		kubeADM    = createEC2BanzaiCloudKubeADMFromRequest(request.Properties.CreateClusterBanzaiCloud.KubeADM, userId)
-		cri        = createEC2BanzaiCloudCRIFromRequest(request.Properties.CreateClusterBanzaiCloud.CRI, userId)
+		network    = createEC2PKENetworkFromRequest(request.Properties.CreateClusterPKE.Network, userId)
+		nodepools  = createEC2ClusterPKENodePoolsFromRequest(request.Properties.CreateClusterPKE.NodePools, userId)
+		kubernetes = createEC2ClusterPKEFromRequest(request.Properties.CreateClusterPKE.Kubernetes, userId)
+		kubeADM    = createEC2ClusterPKEKubeADMFromRequest(request.Properties.CreateClusterPKE.KubeADM, userId)
+		cri        = createEC2ClusterPKECRIFromRequest(request.Properties.CreateClusterPKE.CRI, userId)
 	)
 
 	instanceType, image, err := getMasterInstanceTypeAndImageFromNodePools(nodepools)
@@ -410,7 +484,7 @@ func CreateEC2ClusterBanzaiCloudDistributionFromRequest(request *pkgCluster.Crea
 		return nil, err
 	}
 
-	c.model = &banzaicloudDB.EC2BanzaiCloudClusterModel{
+	c.model = &banzaicloudDB.EC2PKEClusterModel{
 		Cluster: cluster.ClusterModel{
 			Name:           request.Name,
 			Location:       request.Location,
@@ -432,12 +506,12 @@ func CreateEC2ClusterBanzaiCloudDistributionFromRequest(request *pkgCluster.Crea
 	return c, nil
 }
 
-func CreateEC2ClusterBanzaiCloudDistributionFromModel(modelCluster *model.ClusterModel) (*EC2ClusterBanzaiCloudDistribution, error) {
+func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2ClusterPKE, error) {
 	log := log.WithField("cluster", modelCluster.Name).WithField("organization", modelCluster.OrganizationId)
 
 	db := pipConfig.DB()
 
-	m := banzaicloudDB.EC2BanzaiCloudClusterModel{
+	m := banzaicloudDB.EC2PKEClusterModel{
 		ClusterID: modelCluster.ID,
 	}
 
@@ -455,7 +529,7 @@ func CreateEC2ClusterBanzaiCloudDistributionFromModel(modelCluster *model.Cluste
 		return nil, err
 	}
 
-	c := &EC2ClusterBanzaiCloudDistribution{
+	c := &EC2ClusterPKE{
 		db:    db,
 		model: &m,
 		log:   log,
@@ -463,7 +537,7 @@ func CreateEC2ClusterBanzaiCloudDistributionFromModel(modelCluster *model.Cluste
 	return c, nil
 }
 
-func createEC2BanzaiCloudNodePoolsFromRequest(pools banzaicloud.NodePools, userId uint) banzaicloudDB.NodePools {
+func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId uint) banzaicloudDB.NodePools {
 	var nps banzaicloudDB.NodePools
 
 	for _, pool := range pools {
@@ -480,14 +554,14 @@ func createEC2BanzaiCloudNodePoolsFromRequest(pools banzaicloud.NodePools, userI
 	return nps
 }
 
-func convertRoles(roles banzaicloud.Roles) (result banzaicloudDB.Roles) {
+func convertRoles(roles pke.Roles) (result banzaicloudDB.Roles) {
 	for _, role := range roles {
 		result = append(result, banzaicloudDB.Role(role))
 	}
 	return
 }
 
-func convertHosts(hosts banzaicloud.Hosts) (result banzaicloudDB.Hosts) {
+func convertHosts(hosts pke.Hosts) (result banzaicloudDB.Hosts) {
 	for _, host := range hosts {
 		result = append(result, banzaicloudDB.Host{
 			Name:             host.Name,
@@ -502,11 +576,11 @@ func convertHosts(hosts banzaicloud.Hosts) (result banzaicloudDB.Hosts) {
 	return
 }
 
-func convertNodePoolProvider(provider banzaicloud.NodePoolProvider) (result banzaicloudDB.NodePoolProvider) {
+func convertNodePoolProvider(provider pke.NodePoolProvider) (result banzaicloudDB.NodePoolProvider) {
 	return banzaicloudDB.NodePoolProvider(provider)
 }
 
-func convertLabels(labels banzaicloud.Labels) banzaicloudDB.Labels {
+func convertLabels(labels pke.Labels) banzaicloudDB.Labels {
 	res := make(banzaicloudDB.Labels, len(labels))
 	for k, v := range labels {
 		res[k] = v
@@ -514,14 +588,14 @@ func convertLabels(labels banzaicloud.Labels) banzaicloudDB.Labels {
 	return res
 }
 
-func convertTaints(taints banzaicloud.Taints) (result banzaicloudDB.Taints) {
+func convertTaints(taints pke.Taints) (result banzaicloudDB.Taints) {
 	for _, taint := range taints {
 		result = append(result, banzaicloudDB.Taint(taint))
 	}
 	return
 }
 
-func createEC2BanzaiCloudNetworkFromRequest(network banzaicloud.Network, userId uint) banzaicloudDB.Network {
+func createEC2PKENetworkFromRequest(network pke.Network, userId uint) banzaicloudDB.Network {
 	n := banzaicloudDB.Network{
 		ServiceCIDR:      network.ServiceCIDR,
 		PodCIDR:          network.PodCIDR,
@@ -532,11 +606,11 @@ func createEC2BanzaiCloudNetworkFromRequest(network banzaicloud.Network, userId 
 	return n
 }
 
-func convertNetworkProvider(provider banzaicloud.NetworkProvider) (result banzaicloudDB.NetworkProvider) {
+func convertNetworkProvider(provider pke.NetworkProvider) (result banzaicloudDB.NetworkProvider) {
 	return banzaicloudDB.NetworkProvider(provider)
 }
 
-func createEC2BanzaiCloudKubernetesFromRequest(kubernetes banzaicloud.Kubernetes, userId uint) banzaicloudDB.Kubernetes {
+func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId uint) banzaicloudDB.Kubernetes {
 	k := banzaicloudDB.Kubernetes{
 		Version: kubernetes.Version,
 		RBAC:    banzaicloudDB.RBAC{Enabled: kubernetes.RBAC.Enabled},
@@ -545,7 +619,7 @@ func createEC2BanzaiCloudKubernetesFromRequest(kubernetes banzaicloud.Kubernetes
 	return k
 }
 
-func createEC2BanzaiCloudKubeADMFromRequest(kubernetes banzaicloud.KubeADM, userId uint) banzaicloudDB.KubeADM {
+func createEC2ClusterPKEKubeADMFromRequest(kubernetes pke.KubeADM, userId uint) banzaicloudDB.KubeADM {
 	a := banzaicloudDB.KubeADM{
 		ExtraArgs: convertExtraArgs(kubernetes.ExtraArgs),
 	}
@@ -553,7 +627,7 @@ func createEC2BanzaiCloudKubeADMFromRequest(kubernetes banzaicloud.KubeADM, user
 	return a
 }
 
-func convertExtraArgs(extraArgs banzaicloud.ExtraArgs) banzaicloudDB.ExtraArgs {
+func convertExtraArgs(extraArgs pke.ExtraArgs) banzaicloudDB.ExtraArgs {
 	res := make(banzaicloudDB.ExtraArgs, len(extraArgs))
 	for k, v := range extraArgs {
 		res[k] = banzaicloudDB.ExtraArg(v)
@@ -561,7 +635,7 @@ func convertExtraArgs(extraArgs banzaicloud.ExtraArgs) banzaicloudDB.ExtraArgs {
 	return res
 }
 
-func createEC2BanzaiCloudCRIFromRequest(cri banzaicloud.CRI, userId uint) banzaicloudDB.CRI {
+func createEC2ClusterPKECRIFromRequest(cri pke.CRI, userId uint) banzaicloudDB.CRI {
 	c := banzaicloudDB.CRI{
 		Runtime:       banzaicloudDB.Runtime(cri.Runtime),
 		RuntimeConfig: cri.RuntimeConfig,

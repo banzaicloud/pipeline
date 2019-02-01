@@ -125,7 +125,7 @@ func (a *ClusterAPI) CreateCluster(
 		logger.Infof("modified clusterRequest: %v", createClusterRequest)
 	}
 
-	logger.Infof("Creating new entry with cloud type: %s distribution: %s", createClusterRequest.Cloud, createClusterRequest.Distribution)
+	logger.Infof("Creating new entry with cloud type: %s", createClusterRequest.Cloud)
 
 	// TODO check validation
 	// This is the common part of cluster flow

@@ -161,7 +161,7 @@ const (
 	// TLSSecretType marks secrets as of type "tls"
 	TLSSecretType = "tls"
 	// DistributionSecretType marks secrets as of type "distribution"
-	DistributionSecretType = "distribution"
+	PKESecretType = "pkecert"
 	// FnSecretType marks secrets as of type "fn"
 	FnSecretType = "fn"
 	// PasswordSecretType marks secrets as of type "password"
@@ -251,7 +251,7 @@ var DefaultRules = map[string]Meta{
 		},
 		Sourcing: Volume,
 	},
-	DistributionSecretType: {
+	PKESecretType: {
 		Fields: []FieldMeta{
 			{Name: ClusterUID, Required: true},
 
