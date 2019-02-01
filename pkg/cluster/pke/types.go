@@ -45,7 +45,7 @@ type NodePools []NodePool
 type NodePool struct {
 	Name           string                 `json:"name" yaml:"name" binding:"required"`
 	Roles          Roles                  `json:"roles" yaml:"roles" binding:"required"`
-	Hosts          Hosts                  `json:"hosts" yaml:"hosts" binding:"required"`
+	Hosts          Hosts                  `json:"hosts" yaml:"hosts"`
 	Provider       NodePoolProvider       `json:"provider" yaml:"provider" binding:"required"`
 	ProviderConfig map[string]interface{} `json:"providerConfig" yaml:"providerConfig" binding:"required"`
 }
