@@ -19,6 +19,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -269,6 +270,16 @@ func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
 	return organizations, nil
 }
 
+func emailToLoginName(email string) string {
+	filterRegexp := regexp.MustCompile("[^a-zA-Z0-9-]+")
+	replaceRegexp := regexp.MustCompile("[@.]+")
+
+	login := replaceRegexp.ReplaceAllString(email, "-")
+	login = filterRegexp.ReplaceAllString(login, "")
+
+	return login
+}
+
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to CICD DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (user interface{}, userID string, err error) {
@@ -282,15 +293,14 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	organizations, err := getOrganizationsFromDex(schema)
 	if err != nil {
 		return nil, "", emperror.Wrap(err, "failed to parse groups/organizations")
-
 	}
 
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
 	// GitHub API query to get the user login and image to retain compatibility for now
 	var githubUserMeta *githubUserMeta
 	if schema.Provider == "dex:github" {
-		githubUserMeta, err = getGithubUserMeta(schema)
 
+		githubUserMeta, err = getGithubUserMeta(schema)
 		if err != nil {
 			return nil, "", emperror.Wrap(err, "failed to query github login name")
 		}
@@ -298,8 +308,8 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		currentUser.Login = githubUserMeta.Login
 		currentUser.Image = githubUserMeta.AvatarURL
 	} else {
-		// Login will be the email for new users coming from an other provider than GitHub
-		currentUser.Login = schema.Email
+		// Login will be derived from the email for new users coming from an other provider than GitHub
+		currentUser.Login = emailToLoginName(schema.Email)
 	}
 
 	db := authCtx.Auth.GetDB(authCtx.Request)
