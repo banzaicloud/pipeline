@@ -38,8 +38,9 @@ var AnchoreAdminUser string
 var AnchoreAdminPass string
 
 const (
-	anchoreEmail string = "banzai@banzaicloud.com"
-	accountPath  string = "accounts"
+	anchoreEmail                  string = "banzai@banzaicloud.com"
+	accountPath                   string = "accounts"
+	SecurityScanNotEnabledMessage string = "security scan isn't enabled"
 )
 
 //AnchoreError
