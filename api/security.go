@@ -27,6 +27,7 @@ import (
 
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
+	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
@@ -254,11 +255,7 @@ func GetPolicies(c *gin.Context) {
 	}
 
 	if !commonCluster.GetSecurityScan() {
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "security scan isn't enabled",
-			Error:   "security scan isn't enabled",
-		})
+		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
 		return
 	}
 
@@ -306,11 +303,7 @@ func CreatePolicy(c *gin.Context) {
 	}
 
 	if !commonCluster.GetSecurityScan() {
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "security scan isn't enabled",
-			Error:   "security scan isn't enabled",
-		})
+		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
 		return
 	}
 
@@ -355,11 +348,7 @@ func UpdatePolicies(c *gin.Context) {
 	}
 
 	if !commonCluster.GetSecurityScan() {
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "security scan isn't enabled",
-			Error:   "security scan isn't enabled",
-		})
+		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
 		return
 	}
 
@@ -440,11 +429,7 @@ func DeletePolicy(c *gin.Context) {
 	}
 
 	if !commonCluster.GetSecurityScan() {
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "security scan isn't enabled",
-			Error:   "security scan isn't enabled",
-		})
+		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
 		return
 	}
 

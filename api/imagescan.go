@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/banzaicloud/pipeline/api/ark/common"
 	apiclient "github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/internal/security"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
@@ -75,11 +76,7 @@ func ScanImages(c *gin.Context) {
 	}
 
 	if !commonCluster.GetSecurityScan() {
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "security scan isn't enabled",
-			Error:   "security scan isn't enabled",
-		})
+		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
 		return
 	}
 
@@ -138,11 +135,7 @@ func doAnchoreGetRequest(c *gin.Context, endPoint string) {
 	}
 
 	if !commonCluster.GetSecurityScan() {
-		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "security scan isn't enabled",
-			Error:   "security scan isn't enabled",
-		})
+		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
 		return
 	}
 
