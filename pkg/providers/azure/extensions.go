@@ -22,7 +22,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 // ListKubernetesVersions returns available k8s versions at the specified location
@@ -99,7 +99,7 @@ func (client *ManagedClustersClient) DeleteAndWaitForIt(ctx context.Context, res
 
 // AssignRole creates a role assignment featuring the specified role definition and principal and returns the assignment
 func (client *RoleAssignmentsClient) AssignRole(ctx context.Context, scope, roleDefinitionID, principalID string) (authorization.RoleAssignment, error) {
-	roleAssignmentName := uuid.NewV1().String()
+	roleAssignmentName := uuid.Must(uuid.NewV4()).String()
 	return client.Create(ctx, scope, roleAssignmentName, authorization.RoleAssignmentCreateParameters{
 		Properties: &authorization.RoleAssignmentProperties{
 			RoleDefinitionID: &roleDefinitionID,
