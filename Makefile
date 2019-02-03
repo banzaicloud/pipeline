@@ -83,10 +83,10 @@ vendor: bin/dep ## Install dependencies
 	bin/dep ensure -v -vendor-only
 
 config/config.toml:
-	cp config/config.toml.example config/config.toml
+	cp config/config.toml.dist config/config.toml
 
 config/dex.yml:
-	cp config/dex.yml.example config/dex.yml
+	cp config/dex.yml.dist config/dex.yml
 
 .PHONY: build
 build: GOARGS += -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME}
