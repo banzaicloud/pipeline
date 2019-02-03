@@ -59,7 +59,7 @@ services:
 
     dex:
         ports:
-            - 5556:5556
-            - 5558:5558
+            - 127.0.0.1:5556:5556
+            - 127.0.0.1:5558:5558
         volumes:
             - ./.docker/volumes/dex:/dex
