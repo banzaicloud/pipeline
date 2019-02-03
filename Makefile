@@ -34,7 +34,7 @@ GOLANG_VERSION = 1.11
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: up
-up: vendor start config/config.toml config/dex.yml ## Set up the development environment
+up: vendor config/dex.yml start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
