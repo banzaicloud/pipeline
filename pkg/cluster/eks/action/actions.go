@@ -29,21 +29,22 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
-
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -76,6 +77,7 @@ type EksClusterCreateUpdateContext struct {
 	ClusterUserAccessKeyId     string
 	ClusterUserSecretAccessKey string
 	RouteTableID               *string
+	ScaleEnabled               bool
 }
 
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
@@ -773,6 +775,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 	waitRoutines := 0
 	waitChan := make(chan error)
 	defer close(waitChan)
+	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
 	for _, nodePool := range a.nodePools {
 
@@ -800,13 +803,24 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				{Key: aws.String("pipeline-stack-type"), Value: aws.String("nodepool")},
 			}
 
-			if nodePool.Autoscaling {
-				tags = append(tags, &cloudformation.Tag{Key: aws.String("k8s.io/cluster-autoscaler/enabled"), Value: aws.String("true")})
-			}
-
 			spotPriceParam := ""
 			if p, err := strconv.ParseFloat(nodePool.NodeSpotPrice, 64); err == nil && p > 0.0 {
 				spotPriceParam = nodePool.NodeSpotPrice
+			}
+
+			clusterAutoscalerEnabled := false
+			terminationDetachEnabled := false
+
+			if nodePool.Autoscaling {
+				clusterAutoscalerEnabled = true
+			}
+
+			// in Scale is enabled on cluster, ClusterAutoscaler is disabled on all node pools, except head
+			if a.context.ScaleEnabled {
+				if nodePool.Name != headNodePoolName {
+					clusterAutoscalerEnabled = false
+					terminationDetachEnabled = true
+				}
 			}
 
 			stackParams := []*cloudformation.Parameter{
@@ -864,6 +878,14 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				{
 					ParameterKey:   aws.String("NodeInstanceRoleId"),
 					ParameterValue: a.context.NodeInstanceRoleID,
+				},
+				{
+					ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
+					ParameterValue: aws.String(fmt.Sprint(clusterAutoscalerEnabled)),
+				},
+				{
+					ParameterKey:   aws.String("TerminationDetachEnabled"),
+					ParameterValue: aws.String(fmt.Sprint(terminationDetachEnabled)),
 				},
 			}
 

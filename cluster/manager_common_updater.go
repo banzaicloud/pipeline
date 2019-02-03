@@ -118,7 +118,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		c.cluster.SetScaleOptions(c.request.ScaleOptions)
 	}
 
-	if !c.clusterPropertiesChanged {
+	if !c.clusterPropertiesChanged && !c.scaleOptionsChanged {
 		return nil
 	}
 
