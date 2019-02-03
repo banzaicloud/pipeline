@@ -33,9 +33,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
@@ -680,12 +678,13 @@ var _ utils.RevocableAction = (*CreateUpdateNodePoolStackAction)(nil)
 
 // CreateUpdateNodePoolStackAction describes the properties of a nodePool VPC creation
 type CreateUpdateNodePoolStackAction struct {
-	context      *EksClusterCreateUpdateContext
-	isCreate     bool
-	nodePools    []*model.AmazonNodePoolsModel
-	log          logrus.FieldLogger
-	waitAttempts int
-	waitInterval time.Duration
+	context          *EksClusterCreateUpdateContext
+	isCreate         bool
+	nodePools        []*model.AmazonNodePoolsModel
+	log              logrus.FieldLogger
+	waitAttempts     int
+	waitInterval     time.Duration
+	headNodePoolName string
 }
 
 // NewCreateUpdateNodePoolStackAction creates a new CreateUpdateNodePoolStackAction
@@ -695,14 +694,16 @@ func NewCreateUpdateNodePoolStackAction(
 	creationContext *EksClusterCreateUpdateContext,
 	waitAttempts int,
 	waitInterval time.Duration,
+	headNodePoolName string,
 	nodePools ...*model.AmazonNodePoolsModel) *CreateUpdateNodePoolStackAction {
 	return &CreateUpdateNodePoolStackAction{
-		context:      creationContext,
-		isCreate:     isCreate,
-		nodePools:    nodePools,
-		log:          log,
-		waitAttempts: waitAttempts,
-		waitInterval: waitInterval,
+		context:          creationContext,
+		isCreate:         isCreate,
+		nodePools:        nodePools,
+		log:              log,
+		waitAttempts:     waitAttempts,
+		waitInterval:     waitInterval,
+		headNodePoolName: headNodePoolName,
 	}
 }
 
@@ -776,7 +777,6 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 	waitRoutines := 0
 	waitChan := make(chan error)
 	defer close(waitChan)
-	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
 	for _, nodePool := range a.nodePools {
 
@@ -818,7 +818,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 
 			// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools, except head
 			if a.context.ScaleEnabled {
-				if nodePool.Name != headNodePoolName {
+				if nodePool.Name != a.headNodePoolName {
 					clusterAutoscalerEnabled = false
 					terminationDetachEnabled = true
 				}
