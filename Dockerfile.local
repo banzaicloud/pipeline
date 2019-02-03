@@ -10,5 +10,6 @@ RUN apk add --no-cache ca-certificates
 COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
 COPY build/pipeline-debug /
 COPY views /views/
+COPY templates/eks /templates/eks
 
 ENTRYPOINT ["/pipeline-debug"]

@@ -12,5 +12,6 @@ COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=0 /go/bin/dlv /
 COPY build/pipeline-debug /
 COPY views /views/
+COPY templates/eks /templates/eks
 
 ENTRYPOINT ["/dlv", "--listen=:40000", "--headless=true", "--api-version=2", "--log", "exec", "/pipeline-debug"]

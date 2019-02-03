@@ -23,6 +23,7 @@ RUN apk add --update --no-cache tzdata
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=0 /go/src/github.com/banzaicloud/pipeline/views /views/
+COPY --from=0 /go/src/github.com/banzaicloud/pipeline/templates/eks /templates/eks
 COPY --from=0 /pipeline /
 
 ENTRYPOINT ["/pipeline"]
