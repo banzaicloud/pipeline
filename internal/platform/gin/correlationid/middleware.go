@@ -16,7 +16,7 @@ package correlationid
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 // ContextKey is the key the retrieved (or generated) correlation ID is stored under in the gin Context.
@@ -61,7 +61,7 @@ func (m *middleware) Handle(ctx *gin.Context) {
 	if header := ctx.GetHeader(m.header); header != "" {
 		ctx.Set(ContextKey, header)
 	} else {
-		ctx.Set(ContextKey, uuid.NewV4().String())
+		ctx.Set(ContextKey, uuid.Must(uuid.NewV4()).String())
 	}
 
 	ctx.Next()

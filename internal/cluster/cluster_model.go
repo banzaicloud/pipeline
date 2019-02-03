@@ -20,8 +20,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
-	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -69,7 +69,7 @@ func (ClusterModel) TableName() string {
 
 func (m *ClusterModel) BeforeCreate() (err error) {
 	if m.UID == "" {
-		m.UID = uuid.NewV4().String()
+		m.UID = uuid.Must(uuid.NewV4()).String()
 	}
 
 	return

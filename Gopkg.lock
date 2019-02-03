@@ -622,6 +622,14 @@
   version = "v0.2.3"
 
 [[projects]]
+  digest = "1:bde9f189072512ba353f3641d4839cb4c9c7edf421e467f2c03f267b402bd16c"
+  name = "github.com/gofrs/uuid"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "6b08a5c5172ba18946672b49749cde22873dd7c2"
+  version = "v3.2.0"
+
+[[projects]]
   digest = "1:1b3dd24f14a5280710fc7a3aa2480b6e4d20fdfc905841de9a3aa2aa2f1d4ee9"
   name = "github.com/gogo/protobuf"
   packages = [
@@ -2252,6 +2260,7 @@
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/gin",
     "github.com/gin-gonic/gin/json",
+    "github.com/gofrs/uuid",
     "github.com/golang/protobuf/ptypes/duration",
     "github.com/google/go-github/github",
     "github.com/goph/emperror",
@@ -2288,7 +2297,6 @@
     "github.com/qor/qor/utils",
     "github.com/qor/session",
     "github.com/qor/session/gorilla",
-    "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cast",
     "github.com/spf13/viper",

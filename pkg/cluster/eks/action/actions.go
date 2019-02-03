@@ -29,11 +29,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
-
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
@@ -44,6 +39,10 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/gofrs/uuid"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -231,7 +230,7 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{},
 	cloudformationSrv := cloudformation.New(a.context.Session)
 
 	createStackInput := &cloudformation.CreateStackInput{
-		ClientRequestToken: aws.String(uuid.NewV4().String()),
+		ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
 		DisableRollback:    aws.Bool(true),
 		Capabilities: []*string{
 			aws.String(cloudformation.CapabilityCapabilityIam),
@@ -332,7 +331,7 @@ func (a *CreateVPCAndRolesAction) UndoAction() (err error) {
 	a.log.Infoln("EXECUTE UNDO CreateVPCAndRolesAction, deleting stack:", a.stackName)
 	cloudformationSrv := cloudformation.New(a.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
-		ClientRequestToken: aws.String(uuid.NewV4().String()),
+		ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
 		StackName:          aws.String(a.stackName),
 	}
 	_, err = cloudformationSrv.DeleteStack(deleteStackInput)
@@ -572,7 +571,7 @@ func (a *CreateEksClusterAction) ExecuteAction(input interface{}) (output interf
 	roleArn := a.context.ClusterRoleArn
 
 	createClusterInput := &eks.CreateClusterInput{
-		ClientRequestToken: aws.String(uuid.NewV4().String()),
+		ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
 		Name:               aws.String(a.context.ClusterName),
 		ResourcesVpcConfig: vpcConfigRequest,
 		RoleArn:            &roleArn,
@@ -926,7 +925,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 			// create stack
 			if a.isCreate {
 				createStackInput := &cloudformation.CreateStackInput{
-					ClientRequestToken: aws.String(uuid.NewV4().String()),
+					ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
 					DisableRollback:    aws.Bool(false),
 					StackName:          aws.String(stackName),
 					Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
@@ -944,7 +943,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				// update stack
 				reuseTemplate := true
 				updateStackInput := &cloudformation.UpdateStackInput{
-					ClientRequestToken:  aws.String(uuid.NewV4().String()),
+					ClientRequestToken:  aws.String(uuid.Must(uuid.NewV4()).String()),
 					StackName:           aws.String(stackName),
 					Capabilities:        []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 					Parameters:          stackParams,
@@ -1029,7 +1028,7 @@ func (a *CreateUpdateNodePoolStackAction) UndoAction() (err error) {
 		a.log.Info("EXECUTE UNDO CreateUpdateNodePoolStackAction")
 		cloudformationSrv := cloudformation.New(a.context.Session)
 		deleteStackInput := &cloudformation.DeleteStackInput{
-			ClientRequestToken: aws.String(uuid.NewV4().String()),
+			ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
 			StackName:          aws.String(a.generateStackName(nodepool)),
 		}
 		_, deleteErr := cloudformationSrv.DeleteStack(deleteStackInput)
@@ -1421,7 +1420,7 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 		go func(stackName string) {
 			cloudformationSrv := cloudformation.New(a.context.Session)
 			deleteStackInput := &cloudformation.DeleteStackInput{
-				ClientRequestToken: aws.String(uuid.NewV4().String()),
+				ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
 				StackName:          aws.String(stackName),
 			}
 			_, err = cloudformationSrv.DeleteStack(deleteStackInput)
