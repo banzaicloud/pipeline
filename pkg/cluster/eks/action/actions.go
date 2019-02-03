@@ -29,7 +29,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -39,6 +38,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -76,6 +76,7 @@ type EksClusterCreateUpdateContext struct {
 	ClusterUserAccessKeyId     string
 	ClusterUserSecretAccessKey string
 	RouteTableID               *string
+	ScaleEnabled               bool
 }
 
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
@@ -677,12 +678,13 @@ var _ utils.RevocableAction = (*CreateUpdateNodePoolStackAction)(nil)
 
 // CreateUpdateNodePoolStackAction describes the properties of a nodePool VPC creation
 type CreateUpdateNodePoolStackAction struct {
-	context      *EksClusterCreateUpdateContext
-	isCreate     bool
-	nodePools    []*model.AmazonNodePoolsModel
-	log          logrus.FieldLogger
-	waitAttempts int
-	waitInterval time.Duration
+	context          *EksClusterCreateUpdateContext
+	isCreate         bool
+	nodePools        []*model.AmazonNodePoolsModel
+	log              logrus.FieldLogger
+	waitAttempts     int
+	waitInterval     time.Duration
+	headNodePoolName string
 }
 
 // NewCreateUpdateNodePoolStackAction creates a new CreateUpdateNodePoolStackAction
@@ -692,14 +694,16 @@ func NewCreateUpdateNodePoolStackAction(
 	creationContext *EksClusterCreateUpdateContext,
 	waitAttempts int,
 	waitInterval time.Duration,
+	headNodePoolName string,
 	nodePools ...*model.AmazonNodePoolsModel) *CreateUpdateNodePoolStackAction {
 	return &CreateUpdateNodePoolStackAction{
-		context:      creationContext,
-		isCreate:     isCreate,
-		nodePools:    nodePools,
-		log:          log,
-		waitAttempts: waitAttempts,
-		waitInterval: waitInterval,
+		context:          creationContext,
+		isCreate:         isCreate,
+		nodePools:        nodePools,
+		log:              log,
+		waitAttempts:     waitAttempts,
+		waitInterval:     waitInterval,
+		headNodePoolName: headNodePoolName,
 	}
 }
 
@@ -800,13 +804,24 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				{Key: aws.String("pipeline-stack-type"), Value: aws.String("nodepool")},
 			}
 
-			if nodePool.Autoscaling {
-				tags = append(tags, &cloudformation.Tag{Key: aws.String("k8s.io/cluster-autoscaler/enabled"), Value: aws.String("true")})
-			}
-
 			spotPriceParam := ""
 			if p, err := strconv.ParseFloat(nodePool.NodeSpotPrice, 64); err == nil && p > 0.0 {
 				spotPriceParam = nodePool.NodeSpotPrice
+			}
+
+			clusterAutoscalerEnabled := false
+			terminationDetachEnabled := false
+
+			if nodePool.Autoscaling {
+				clusterAutoscalerEnabled = true
+			}
+
+			// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools, except head
+			if a.context.ScaleEnabled {
+				if nodePool.Name != a.headNodePoolName {
+					clusterAutoscalerEnabled = false
+					terminationDetachEnabled = true
+				}
 			}
 
 			stackParams := []*cloudformation.Parameter{
@@ -864,6 +879,14 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				{
 					ParameterKey:   aws.String("NodeInstanceRoleId"),
 					ParameterValue: a.context.NodeInstanceRoleID,
+				},
+				{
+					ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
+					ParameterValue: aws.String(fmt.Sprint(clusterAutoscalerEnabled)),
+				},
+				{
+					ParameterKey:   aws.String("TerminationDetachEnabled"),
+					ParameterValue: aws.String(fmt.Sprint(terminationDetachEnabled)),
 				},
 			}
 
