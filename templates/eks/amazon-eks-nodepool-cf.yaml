@@ -156,6 +156,14 @@ Parameters:
     Description: The role for node IAM profile
     Type: String
 
+  ClusterAutoscalerEnabled:
+    Description: Enable Cluster Autoscaler (true/false)
+    Type: String
+
+  TerminationDetachEnabled:
+    Description: Enable detachment from ASG at instance termination (true/false)
+    Type: String
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -188,6 +196,7 @@ Metadata:
           - Subnets
 Conditions:
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
+  AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
 
 Resources:
   NodeInstanceProfile:
@@ -283,6 +292,12 @@ Resources:
       - Key: !Sub 'kubernetes.io/cluster/${ClusterName}'
         Value: 'owned'
         PropagateAtLaunch: 'true'
+      - Key: !If [ AutoscalerEnabled, 'k8s.io/cluster-autoscaler/enabled', 'k8s.io/cluster-autoscaler/disabled' ]
+        Value: 'true'
+        PropagateAtLaunch: 'false'
+      - Key: 'bzc:detach-asg-instance-on-termination'
+        Value: !Sub "${TerminationDetachEnabled}"
+        PropagateAtLaunch: 'false'
 
     UpdatePolicy:
       AutoScalingRollingUpdate:

@@ -303,6 +303,7 @@ func (c *EKSCluster) CreateCluster() error {
 		}
 	}
 
+	creationContext.ScaleEnabled = c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled
 	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFulfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
 
 	actions := []utils.Action{
@@ -686,6 +687,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		clusterUserAccessKeyId,
 		clusterUserSecretAccessKey,
 	)
+	createUpdateContext.ScaleEnabled = c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled
 
 	deleteContext := action.NewEksClusterDeleteContext(
 		session,
