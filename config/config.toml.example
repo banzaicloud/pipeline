@@ -25,8 +25,8 @@ user = "sparky"
 role = "pipeline"
 password = "sparky123"
 dbname = "pipeline"
-logging = true
-autoMigrateEnabled = false
+logging = false # Turn this to true to see all queries in the log
+autoMigrateEnabled = true # This should be false in production
 
 [anchore]
 enabled = true
