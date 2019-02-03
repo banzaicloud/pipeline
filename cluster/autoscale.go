@@ -15,6 +15,13 @@
 package cluster
 
 import (
+	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
+	v1 "k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sHelm "k8s.io/helm/pkg/helm"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
@@ -22,12 +29,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/ghodss/yaml"
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sHelm "k8s.io/helm/pkg/helm"
 )
 
 const cloudProviderAzure = "azure"
@@ -99,7 +100,7 @@ func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	scaleEnabled := scaleOptions != nil && scaleOptions.Enabled
 
 	for _, nodePool := range nodePools {
-		// in Scale is enabled on cluster, ClusterAutoscaler is disabled on all node pools (except head) on Amazon
+		// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools (except head) on Amazon
 		if nodePool.Autoscaling && (nodePool.Name == headNodePoolName || !scaleEnabled) {
 			nodeGroups = append(nodeGroups, nodeGroup{
 				Name:    cluster.GetName() + ".node." + nodePool.Name,

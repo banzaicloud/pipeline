@@ -29,6 +29,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
@@ -40,11 +46,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -815,7 +816,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				clusterAutoscalerEnabled = true
 			}
 
-			// in Scale is enabled on cluster, ClusterAutoscaler is disabled on all node pools, except head
+			// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools, except head
 			if a.context.ScaleEnabled {
 				if nodePool.Name != headNodePoolName {
 					clusterAutoscalerEnabled = false
