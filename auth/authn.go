@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/utils"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -38,7 +39,6 @@ import (
 	"github.com/qor/auth/providers/dex"
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -379,7 +379,7 @@ func (h *tokenHandler) GenerateClusterToken(orgID, clusterID uint) (string, stri
 }
 
 func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, expiresAt *time.Time) (string, string, error) {
-	tokenID := uuid.NewV4().String()
+	tokenID := uuid.Must(uuid.NewV4()).String()
 
 	var expiresAtUnix int64
 	if expiresAt != nil {

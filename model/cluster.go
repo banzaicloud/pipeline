@@ -24,10 +24,10 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/utils"
+	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -277,7 +277,7 @@ type KubernetesClusterModel struct {
 
 func (cs *ClusterModel) BeforeCreate() (err error) {
 	if cs.UID == "" {
-		cs.UID = uuid.NewV4().String()
+		cs.UID = uuid.Must(uuid.NewV4()).String()
 	}
 
 	return

@@ -22,7 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/dns/route53"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -159,7 +159,7 @@ func SubscribeDnsEvents() *DnsEventsSubscription {
 
 	eventsChannel := make(chan interface{})
 	subscription := DnsEventsSubscription{
-		Id:     uuid.NewV4(),
+		Id:     uuid.Must(uuid.NewV4()),
 		Events: eventsChannel,
 	}
 
