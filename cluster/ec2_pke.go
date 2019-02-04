@@ -443,12 +443,18 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		}
 	}
 
+	// TODO: PKE hack! remove this. For the sake of the UI.
+	cloud := c.model.Cluster.Cloud
+	if c.model.Cluster.Location == pkgCluster.Custom {
+		cloud = pkgCluster.Custom
+	}
+
 	return &pkgCluster.GetClusterStatusResponse{
 		Status:            c.model.Cluster.Status,
 		StatusMessage:     c.model.Cluster.StatusMessage,
 		Name:              c.model.Cluster.Name,
 		Location:          c.model.Cluster.Location,
-		Cloud:             c.model.Cluster.Cloud,
+		Cloud:             cloud,
 		Distribution:      c.model.Cluster.Distribution,
 		Spot:              hasSpotNodePool,
 		ResourceID:        c.model.Cluster.ID,
