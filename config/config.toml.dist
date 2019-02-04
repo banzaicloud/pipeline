@@ -136,7 +136,6 @@ headNodeTaintRetryAttempt=30
 headNodeTaintRetrySleepSeconds=5
 
 [eks]
-templateLocation="https://raw.githubusercontent.com/banzaicloud/pipeline/master/templates/eks"
 ASGFulfillmentTimeout="10m"
 
 [gke]
