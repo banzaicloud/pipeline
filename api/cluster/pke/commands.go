@@ -39,7 +39,7 @@ func (a *API) ListCommands(c *gin.Context) {
 		return
 	}
 	clusterCommander, ok := cluster.(interface {
-		GetBootstrapCommand(nodePool, url, token string) string
+		GetBootstrapCommand(nodePool, url, token, clusterName string) string
 		GetPipelineToken(tokenGenerator interface{}) (string, error)
 	})
 	if !ok {

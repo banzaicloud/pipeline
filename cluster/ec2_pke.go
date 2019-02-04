@@ -554,8 +554,8 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token, clusterNam
 
 	if cmd == "master" {
 		return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\nread -p \"Kubernetes Api IP Address: \" PUBLIC_IP\npke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
-			"--kubernetes-version 1.12.2 --kubernetes-network-provider weave --kubernetes-service-cidr 10.32.0.0/24 --kubernetes-infrastructure-cidr ${KUBERNETES_INFRASTRUCTURE_CIDR} --kubernetes-api-server=${PUBLIC_IP} --kubernetes-cluster-name=%",
-			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
+			"--kubernetes-version 1.12.2 --kubernetes-network-provider weave --kubernetes-service-cidr 10.32.0.0/24 --kubernetes-infrastructure-cidr ${KUBERNETES_INFRASTRUCTURE_CIDR} --kubernetes-api-server=${PUBLIC_IP} --kubernetes-cluster-name=%q",
+			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, clusterName)
 	}
 	return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\npke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
 		" --kubernetes-infrastructure-cidr ${KUBERNETES_INFRASTRUCTURE_CIDR}",
