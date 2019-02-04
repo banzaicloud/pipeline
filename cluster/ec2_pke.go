@@ -264,7 +264,7 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 		return emperror.Wrap(err, "can't generate Pipeline token")
 	}
 
-	// HACK HACK HACK
+	// TODO: PKE hack. remove this.
 	isCustom := c.model.Cluster.Location == pkgCluster.Custom
 	log.Infof("HACK: cluster is custom: %s", isCustom)
 

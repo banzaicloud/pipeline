@@ -48,7 +48,7 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 	}
 
 	if createClusterRequest.SecretId == "" && len(createClusterRequest.SecretIds) == 0 {
-		// TODO: HACK HACK! remove this pkgCluster.Custom hack!
+		// TODO: PKE hack. remove this. pkgCluster.Custom hack!
 		if createClusterRequest.SecretName == "" && createClusterRequest.Cloud != pkgCluster.Custom {
 			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
@@ -91,8 +91,11 @@ func (a *ClusterAPI) CreateCluster(
 		"cluster":      createClusterRequest.Name,
 	})
 
-	// HACK HACK HACK
+	// TODO: PKE hack. remove this.
 	if createClusterRequest.Cloud == pkgCluster.Custom {
+		// TODO: PKE hack. remove this.
+		// This type of cluster will not get any secrets. clusterManager.CreateCluster
+		// ValidateSecretType must not be called.
 		createClusterRequest.Cloud = pkgCluster.Amazon
 		createClusterRequest.Location = pkgCluster.Custom
 	}
