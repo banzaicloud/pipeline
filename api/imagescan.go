@@ -18,10 +18,9 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/banzaicloud/pipeline/api/ark/common"
 	apiclient "github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/internal/security"
-	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -43,7 +42,7 @@ func GetScanResult(c *gin.Context) {
 	} else {
 		log.Error("Missing imageDigest")
 		httpStatusCode := http.StatusNotFound
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+		c.JSON(httpStatusCode, common.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error",
 			Error:   "Missing imageDigest",
@@ -62,7 +61,7 @@ func ScanImages(c *gin.Context) {
 	if err != nil {
 		err := errors.Wrap(err, "Error parsing request:")
 		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
 			Error:   errors.Cause(err).Error(),
@@ -95,7 +94,7 @@ func ScanImages(c *gin.Context) {
 		if err != nil {
 			log.Error(err)
 			httpStatusCode := http.StatusInternalServerError
-			c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+			c.JSON(httpStatusCode, common.ErrorResponse{
 				Code:    httpStatusCode,
 				Message: "Error",
 				Error:   err.Error(),
@@ -117,7 +116,7 @@ func GetImageVulnerabilities(c *gin.Context) {
 	} else {
 		log.Error("Missing imageDigest")
 		httpStatusCode := http.StatusNotFound
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+		c.JSON(httpStatusCode, common.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error",
 			Error:   "Missing imageDigest",
@@ -150,7 +149,7 @@ func doAnchoreGetRequest(c *gin.Context, endPoint string) {
 	if err != nil {
 		log.Error(err)
 		httpStatusCode := http.StatusInternalServerError
-		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+		c.JSON(httpStatusCode, common.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error",
 			Error:   err.Error(),
