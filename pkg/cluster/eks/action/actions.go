@@ -941,14 +941,14 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				}
 			} else {
 				// update stack
-				reuseTemplate := true
+				// we don't reuse the creation time template, since it may have changed
 				updateStackInput := &cloudformation.UpdateStackInput{
-					ClientRequestToken:  aws.String(uuid.Must(uuid.NewV4()).String()),
-					StackName:           aws.String(stackName),
-					Capabilities:        []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
-					Parameters:          stackParams,
-					Tags:                tags,
-					UsePreviousTemplate: &reuseTemplate,
+					ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
+					StackName:          aws.String(stackName),
+					Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
+					Parameters:         stackParams,
+					Tags:               tags,
+					TemplateBody:       aws.String(a.context.NodePoolTemplate),
 				}
 
 				_, err = cloudformationSrv.UpdateStack(updateStackInput)
