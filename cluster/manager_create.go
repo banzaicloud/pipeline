@@ -32,6 +32,7 @@ type CreationContext struct {
 	UserID         uint
 	Name           string
 	Provider       string
+	Location       string // TODO: PKE hack. remove this.
 	SecretID       string
 	SecretIDs      []string
 	PostHooks      []PostFunctioner
@@ -70,22 +71,25 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		return nil, err
 	}
 
-	logger.Info("validating secret")
-	if len(creationCtx.SecretIDs) > 0 {
-		var err error
-		for _, secretID := range creationCtx.SecretIDs {
-			err = m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, creationCtx.Provider)
-			if err == nil {
-				creationCtx.SecretID = secretID
-				break
+	// TODO: PKE hack. remove this. handle custom cluster with no secret.
+	if creationCtx.Provider != pkgCluster.Amazon && creationCtx.Location != pkgCluster.Custom {
+		logger.Info("validating secret")
+		if len(creationCtx.SecretIDs) > 0 {
+			var err error
+			for _, secretID := range creationCtx.SecretIDs {
+				err = m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, creationCtx.Provider)
+				if err == nil {
+					creationCtx.SecretID = secretID
+					break
+				}
 			}
-		}
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		if err := m.secrets.ValidateSecretType(creationCtx.OrganizationID, creationCtx.SecretID, creationCtx.Provider); err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			if err := m.secrets.ValidateSecretType(creationCtx.OrganizationID, creationCtx.SecretID, creationCtx.Provider); err != nil {
+				return nil, err
+			}
 		}
 	}
 

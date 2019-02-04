@@ -171,6 +171,7 @@ func (a *ClusterAPI) CreateCluster(
 		SecretID:       createClusterRequest.SecretId,
 		SecretIDs:      createClusterRequest.SecretIds,
 		Provider:       createClusterRequest.Cloud,
+		Location:       createClusterRequest.Location,
 		PostHooks:      postHooks,
 	}
 
