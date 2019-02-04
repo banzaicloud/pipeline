@@ -644,18 +644,6 @@ func (c *AKSCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
 }
 
-func (c *AKSCluster) retreiveAzureCluster() (*containerservice.ManagedCluster, error) {
-	cc, err := c.getCloudConnection()
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create cloud connection")
-	}
-	cluster, err := cc.GetManagedClustersClient().Get(context.TODO(), c.GetResourceGroupName(), c.GetName())
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get managed cluster")
-	}
-	return &cluster, nil
-}
-
 // getAzureCluster returns cluster from cloud
 func (c *AKSCluster) getAzureCluster() (*containerservice.ManagedCluster, error) {
 	cc, err := c.getCloudConnection()
