@@ -579,6 +579,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 	c.model = &banzaicloudDB.EC2PKEClusterModel{
 		Cluster: cluster.ClusterModel{
 			Name:           request.Name,
+			SecretID:       request.SecretId,
 			Location:       request.Location,
 			Cloud:          request.Cloud,
 			Distribution:   pkgCluster.PKE,
