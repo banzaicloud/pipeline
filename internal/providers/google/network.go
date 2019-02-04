@@ -27,13 +27,13 @@ import (
 )
 
 type googleNetwork struct {
-	cidr string
-	id   string
-	name string
+	cidrs []string
+	id    string
+	name  string
 }
 
-func (g googleNetwork) CIDR() string {
-	return g.cidr
+func (g googleNetwork) CIDRs() []string {
+	return g.cidrs
 }
 
 func (g googleNetwork) ID() string {
@@ -45,14 +45,14 @@ func (g googleNetwork) Name() string {
 }
 
 type googleSubnet struct {
-	cidr     string
+	cidrs    []string
 	id       string
 	location string
 	name     string
 }
 
-func (g googleSubnet) CIDR() string {
-	return g.cidr
+func (g googleSubnet) CIDRs() []string {
+	return g.cidrs
 }
 
 func (g googleSubnet) ID() string {
@@ -119,9 +119,9 @@ func (ns *googleNetworkService) ListNetworks() ([]network.Network, error) {
 	networks := make([]network.Network, len(networkList.Items))
 	for idx, item := range networkList.Items {
 		networks[idx] = &googleNetwork{
-			cidr: item.IPv4Range,
-			id:   idToString(item.Id),
-			name: item.Name,
+			cidrs: []string{item.IPv4Range},
+			id:    idToString(item.Id),
+			name:  item.Name,
 		}
 	}
 	return networks, nil
@@ -141,7 +141,7 @@ func (ns *googleNetworkService) ListSubnets(networkID string) ([]network.Subnet,
 	subnets := make([]network.Subnet, 0, len(subnetList.Items))
 	for _, item := range subnetList.Items {
 		subnets = append(subnets, &googleSubnet{
-			cidr:     item.IpCidrRange,
+			cidrs:    []string{item.IpCidrRange},
 			id:       idToString(item.Id),
 			location: ns.region,
 			name:     item.Name,

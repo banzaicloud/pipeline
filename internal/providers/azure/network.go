@@ -16,7 +16,6 @@ package azure
 
 import (
 	"context"
-	"strings"
 
 	"github.com/goph/emperror"
 
@@ -31,13 +30,13 @@ import (
 )
 
 type azureNetwork struct {
-	cidr string
-	id   string
-	name string
+	cidrs []string
+	id    string
+	name  string
 }
 
-func (a azureNetwork) CIDR() string {
-	return a.cidr
+func (a azureNetwork) CIDRs() []string {
+	return a.cidrs
 }
 
 func (a azureNetwork) ID() string {
@@ -49,14 +48,14 @@ func (a azureNetwork) Name() string {
 }
 
 type azureSubnet struct {
-	cidr     string
+	cidrs    []string
 	id       string
 	location string
 	name     string
 }
 
-func (a azureSubnet) CIDR() string {
-	return a.cidr
+func (a azureSubnet) CIDRs() []string {
+	return a.cidrs
 }
 
 func (a azureSubnet) ID() string {
@@ -103,10 +102,6 @@ func NewNetworkService(resourceGroupName string, sir *secret.SecretItemResponse,
 	}, nil
 }
 
-func getCIDR(addressPrefixes []string) string {
-	return strings.Join(addressPrefixes, ", ")
-}
-
 func (ns *azureNetworkService) ListNetworks() ([]intNetwork.Network, error) {
 	rp, err := ns.client.List(context.TODO(), ns.resourceGroupName)
 	if err != nil {
@@ -116,9 +111,9 @@ func (ns *azureNetworkService) ListNetworks() ([]intNetwork.Network, error) {
 	for rp.NotDone() {
 		for _, vn := range rp.Values() {
 			res = append(res, &azureNetwork{
-				cidr: getCIDR(*vn.AddressSpace.AddressPrefixes),
-				id:   *vn.Name, // this is what we want as ID
-				name: *vn.Name,
+				cidrs: *vn.AddressSpace.AddressPrefixes,
+				id:    *vn.Name, // this is what we want as ID
+				name:  *vn.Name,
 			})
 		}
 		err = rp.NextWithContext(context.TODO())
@@ -144,7 +139,7 @@ func (ns *azureNetworkService) ListSubnets(networkID string) ([]intNetwork.Subne
 	res := make([]intNetwork.Subnet, 0, len(*vn.Subnets))
 	for _, s := range *vn.Subnets {
 		res = append(res, &azureSubnet{
-			cidr:     *s.AddressPrefix,
+			cidrs:    []string{*s.AddressPrefix},
 			id:       *s.ID,
 			name:     *s.Name,
 			location: *vn.Location,

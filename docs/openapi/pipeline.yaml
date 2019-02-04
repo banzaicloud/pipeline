@@ -8016,13 +8016,15 @@ components:
         SubnetInfo:
             type: object
             required:
-                - cidr
+                - cidrs
                 - id
             properties:
-                cidr:
-                    description: "The IPv4 CIDR block assigned to the subnet"
-                    type: string
-                    example: "10.0.1.0/24"
+                cidrs:
+                    description: "The IPv4 CIDR blocks assigned to the subnet"
+                    type: array
+                    items:
+                        type: string
+                        example: "10.0.1.0/24"
                 id:
                     description: "Identifier of the subnetwork"
                     type: string
@@ -8063,13 +8065,15 @@ components:
         VPCNetworkInfo:
             type: object
             required:
-                - cidr
+                - cidrs
                 - id
             properties:
-                cidr:
-                    description: "The primary IPv4 CIDR block of the VPC network"
-                    type: string
-                    example: "10.50.0.0/16"
+                cidrs:
+                    description: "The IPv4 CIDR blocks assigned to the VPC network"
+                    type: array
+                    items:
+                        type: string
+                        example: "10.50.0.0/16"
                 id:
                     description: "Identifier of the VPC network"
                     type: string

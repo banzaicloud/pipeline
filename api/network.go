@@ -41,17 +41,17 @@ func NewNetworkAPI(logger logrus.FieldLogger) *NetworkAPI {
 
 // NetworkInfo encapsulates VPC network information to be returned
 type NetworkInfo struct {
-	CIDR string `json:"cidr" binding:"required"`
-	ID   string `json:"id" binding:"required"`
-	Name string `json:"name,omitempty"`
+	CIDRs []string `json:"cidrs" binding:"required"`
+	ID    string   `json:"id" binding:"required"`
+	Name  string   `json:"name,omitempty"`
 }
 
 // SubnetInfo encapsulates VPC subnetwork information to be returned
 type SubnetInfo struct {
-	CIDR     string `json:"cidr" binding:"required"`
-	ID       string `json:"id" binding:"required"`
-	Location string `json:"location,omitempty"`
-	Name     string `json:"name,omitempty"`
+	CIDRs    []string `json:"cidrs" binding:"required"`
+	ID       string   `json:"id" binding:"required"`
+	Location string   `json:"location,omitempty"`
+	Name     string   `json:"name,omitempty"`
 }
 
 // RouteTableInfo encapsulates VPC route table information to be returned
@@ -118,7 +118,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 
 	networkInfos := make([]NetworkInfo, len(networks))
 	for i := range networks {
-		networkInfos[i].CIDR = networks[i].CIDR()
+		networkInfos[i].CIDRs = networks[i].CIDRs()
 		networkInfos[i].ID = networks[i].ID()
 		networkInfos[i].Name = networks[i].Name()
 	}
@@ -185,7 +185,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 
 	subnetInfos := make([]SubnetInfo, len(subnets))
 	for i := range subnets {
-		subnetInfos[i].CIDR = subnets[i].CIDR()
+		subnetInfos[i].CIDRs = subnets[i].CIDRs()
 		subnetInfos[i].ID = subnets[i].ID()
 		subnetInfos[i].Location = subnets[i].Location()
 		subnetInfos[i].Name = subnets[i].Name()
