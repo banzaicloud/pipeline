@@ -557,7 +557,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) str
 			"--kubernetes-version 1.12.2 --kubernetes-network-provider weave --kubernetes-service-cidr 10.32.0.0/24 --kubernetes-pod-network-cidr 10.210.0.0/16 --kubernetes-infrastructure-cidr 10.200.0.0/24 --kubernetes-infrastructure-cidr ${KUBERNETES_INFRASTRUCTURE_CIDR} --kubernetes-api-server=${PUBLIC_IP}",
 			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
 	}
-	return fmt.Sprintf("pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipelin-nodepool=%q "+
+	return fmt.Sprintf("pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
 		"--kubernetes-pod-network-cidr 10.210.0.0/24",
 		cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
 }
