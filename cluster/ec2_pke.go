@@ -279,7 +279,7 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	//}
 	token := "XXX" // TODO masked from dumping valid tokens to log
 	for _, nodePool := range c.model.NodePools {
-		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
+		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token, c.model.Cluster.Name)
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
 	}
 
@@ -525,7 +525,7 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 }
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
-func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) string {
+func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token, clusterName string) string {
 	cmd := ""
 	for _, np := range c.model.NodePools {
 		if np.Name == nodePoolName {
@@ -554,7 +554,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) str
 
 	if cmd == "master" {
 		return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\nread -p \"Kubernetes Api IP Address: \" PUBLIC_IP\npke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
-			"--kubernetes-version 1.12.2 --kubernetes-network-provider weave --kubernetes-service-cidr 10.32.0.0/24 --kubernetes-infrastructure-cidr ${KUBERNETES_INFRASTRUCTURE_CIDR} --kubernetes-api-server=${PUBLIC_IP}",
+			"--kubernetes-version 1.12.2 --kubernetes-network-provider weave --kubernetes-service-cidr 10.32.0.0/24 --kubernetes-infrastructure-cidr ${KUBERNETES_INFRASTRUCTURE_CIDR} --kubernetes-api-server=${PUBLIC_IP} --kubernetes-cluster-name=%",
 			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
 	}
 	return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\npke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
