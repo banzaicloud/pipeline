@@ -23,13 +23,13 @@ import (
 )
 
 type amazonNetwork struct {
-	cidr string
-	id   string
-	name string
+	cidrs []string
+	id    string
+	name  string
 }
 
-func (a amazonNetwork) CIDR() string {
-	return a.cidr
+func (a amazonNetwork) CIDRs() []string {
+	return a.cidrs
 }
 
 func (a amazonNetwork) ID() string {
@@ -41,14 +41,14 @@ func (a amazonNetwork) Name() string {
 }
 
 type amazonSubnet struct {
-	cidr     string
+	cidrs    []string
 	id       string
 	location string
 	name     string
 }
 
-func (a amazonSubnet) CIDR() string {
-	return a.cidr
+func (a amazonSubnet) CIDRs() []string {
+	return a.cidrs
 }
 
 func (a amazonSubnet) ID() string {
@@ -105,9 +105,9 @@ func (ns *amazonNetworkService) ListNetworks() ([]network.Network, error) {
 	networks := make([]network.Network, len(res.Vpcs))
 	for idx, vpc := range res.Vpcs {
 		networks[idx] = &amazonNetwork{
-			cidr: *vpc.CidrBlock,
-			id:   *vpc.VpcId,
-			name: getNameFromTags(vpc.Tags),
+			cidrs: []string{*vpc.CidrBlock},
+			id:    *vpc.VpcId,
+			name:  getNameFromTags(vpc.Tags),
 		}
 	}
 	return networks, nil
@@ -125,7 +125,7 @@ func (ns *amazonNetworkService) ListSubnets(networkID string) ([]network.Subnet,
 	subnets := make([]network.Subnet, len(res.Subnets))
 	for idx, subnet := range res.Subnets {
 		subnets[idx] = &amazonSubnet{
-			cidr:     *subnet.CidrBlock,
+			cidrs:    []string{*subnet.CidrBlock},
 			id:       *subnet.SubnetId,
 			location: *subnet.AvailabilityZone,
 			name:     getNameFromTags(subnet.Tags),

@@ -16,14 +16,14 @@ package network
 
 // Network is an interface that cloud specific VPC network implementations must implement
 type Network interface {
-	CIDR() string
+	CIDRs() []string
 	ID() string
 	Name() string
 }
 
 // Subnet is an interface that cloud specific VPC subnetwork implementations must implement
 type Subnet interface {
-	CIDR() string
+	CIDRs() []string
 	ID() string
 	Location() string
 	Name() string
