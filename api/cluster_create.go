@@ -91,9 +91,9 @@ func (a *ClusterAPI) CreateCluster(
 	})
 
 	// HACK HACK HACK
-	if createClusterRequest.Cloud == "custom" {
-		createClusterRequest.Cloud = "amazon"
-		createClusterRequest.Location = "custom"
+	if createClusterRequest.Cloud == pkgCluster.Custom {
+		createClusterRequest.Cloud = pkgCluster.Amazon
+		createClusterRequest.Location = pkgCluster.Custom
 	}
 
 	// TODO: refactor profile handling as well?

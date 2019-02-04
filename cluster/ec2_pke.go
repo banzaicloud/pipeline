@@ -265,7 +265,7 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	}
 
 	// HACK HACK HACK
-	isCustom := c.model.Cluster.Location == "custom"
+	isCustom := c.model.Cluster.Location == pkgCluster.Custom
 	log.Infof("HACK: cluster is custom: %s", isCustom)
 
 	//client, err := c.GetAWSClient()
