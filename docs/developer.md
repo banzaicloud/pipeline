@@ -14,7 +14,7 @@
 
 ### Authentication setup
 
-At least of the followings has to be configured:
+At least one of the followings has to be configured:
 
 - Setup your Pipeline GitHub OAuth application according to [this guide](./github-app.md)
 - Setup your Pipeline Google OAuth application according to [this guide](./google-app.md)
