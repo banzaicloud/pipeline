@@ -83,12 +83,12 @@ func (a *API) ListCommands(c *gin.Context) {
 	}
 
 	for nodePool := range nodePools {
-		commands[nodePool] = clusterCommander.GetBootstrapCommand(nodePool, a.externalBaseURL, token)
+		commands[nodePool] = clusterCommander.GetBootstrapCommand(nodePool, a.externalBaseURL, token, cluster.GetName())
 	}
 
 	if len(commands) == 0 { // give some examples for the user...
-		commands["master"] = clusterCommander.GetBootstrapCommand("master", a.externalBaseURL, token)
-		commands["pool1"] = clusterCommander.GetBootstrapCommand("pool1", a.externalBaseURL, token)
+		commands["master"] = clusterCommander.GetBootstrapCommand("master", a.externalBaseURL, token, cluster.GetName())
+		commands["pool1"] = clusterCommander.GetBootstrapCommand("pool1", a.externalBaseURL, token, cluster.GetName())
 	}
 
 	c.JSON(http.StatusOK, commands)
