@@ -34,20 +34,6 @@ func init() {
 	Log = config.Logger()
 }
 
-// ErrorResponseWithStatus aborts the http request with a JSON error response with the given status code and error
-func ErrorResponseWithStatus(c *gin.Context, status int, err error) {
-
-	if c.Writer.Status() != http.StatusOK {
-		return
-	}
-
-	c.AbortWithStatusJSON(status, pkgCommon.ErrorResponse{
-		Code:    status,
-		Message: err.Error(),
-		Error:   errors.Cause(err).Error(),
-	})
-}
-
 // ErrorResponse aborts the http request with a JSON error response with a status code and error
 func ErrorResponse(c *gin.Context, err error) {
 
@@ -57,5 +43,5 @@ func ErrorResponse(c *gin.Context, err error) {
 		status = http.StatusNotFound
 	}
 
-	ErrorResponseWithStatus(c, status, err)
+	pkgCommon.ErrorResponseWithStatus(c, status, err)
 }

@@ -22,6 +22,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // Status gets an ARK backup deployment status by trying to create ARK client
@@ -34,7 +35,7 @@ func Status(c *gin.Context) {
 	if err != nil {
 		err = errors.New("backup service not deployed")
 		common.ErrorHandler.Handle(err)
-		common.ErrorResponseWithStatus(c, http.StatusNotFound, err)
+		pkgCommon.ErrorResponseWithStatus(c, http.StatusNotFound, err)
 		return
 	}
 

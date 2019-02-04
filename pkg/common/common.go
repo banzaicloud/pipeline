@@ -15,12 +15,14 @@
 package common
 
 import (
-	"errors"
+	"net/http"
 	"strings"
 	"time"
 
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
@@ -96,3 +98,17 @@ const (
 const (
 	SpotConfigMapKey = "spot-deploy-config"
 )
+
+// ErrorResponseWithStatus aborts the http request with a JSON error response with the given status code and error
+func ErrorResponseWithStatus(c *gin.Context, status int, err error) {
+
+	if c.Writer.Status() != http.StatusOK {
+		return
+	}
+
+	c.AbortWithStatusJSON(status, ErrorResponse{
+		Code:    status,
+		Message: err.Error(),
+		Error:   errors.Cause(err).Error(),
+	})
+}
