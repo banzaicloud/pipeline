@@ -112,8 +112,8 @@ connectors:
     loadAllGroups: true
 
 - type: ldap
-  name: OpenLDAP
   id: ldap
+  name: OpenLDAP
   config:
     host: ldap:389
     # No TLS for this setup.

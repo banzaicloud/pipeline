@@ -172,7 +172,7 @@ the Pipeline will limit which users can register, this list is stored in the `wh
     Get the `banzaicloud` organization information from: https://api.github.com/orgs/banzaicloud
 
     ```sql
-    INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "github", "Organization", "banzaicloud", 32848483)
+    INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "dex:github", "Organization", "banzaicloud", 32848483)
     ```
 
 - Add `bonifaido` user for example:
@@ -180,7 +180,7 @@ the Pipeline will limit which users can register, this list is stored in the `wh
     Get the `bonifaido` user information from: https://api.github.com/users/bonifaido
 
     ```sql
-    INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "github", "User", "bonifaido", 23779)
+    INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "dex:github", "User", "bonifaido", 23779)
     ```
 
 #### Anchore Engine
