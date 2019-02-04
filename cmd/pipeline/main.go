@@ -250,7 +250,7 @@ func main() {
 		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
 	}
 
-	router.GET("/version", VersionHandler)
+	router.GET(path.Join(basePath, "/version"), VersionHandler)
 	router.GET(path.Join(basePath, "notifications"), notification.GetNotifications)
 
 	root := router.Group("/")
