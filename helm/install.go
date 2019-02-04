@@ -327,7 +327,7 @@ func Install(helmInstall *phelm.Install, kubeConfig []byte) error {
 			"spec.template.spec.tolerations[0].operator=Equal",
 			fmt.Sprintf("spec.template.spec.tolerations[0].value=%v", helmInstall.TargetNodePool),
 		}
-		opts.NodeSelectors = fmt.Sprintf("%s=%s", pkgCommon.LabelKey, helmInstall.TargetNodePool)
+		//opts.NodeSelectors = fmt.Sprintf("%s=%s", pkgCommon.LabelKey, helmInstall.TargetNodePool)
 	}
 
 	kubeClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
