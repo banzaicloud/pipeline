@@ -48,7 +48,8 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 	}
 
 	if createClusterRequest.SecretId == "" && len(createClusterRequest.SecretIds) == 0 {
-		if createClusterRequest.SecretName == "" {
+		// TODO: HACK HACK! remove this pkgCluster.Custom hack!
+		if createClusterRequest.SecretName == "" && createClusterRequest.Cloud != pkgCluster.Custom {
 			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "either secretId or secretName has to be set",
