@@ -34,7 +34,7 @@ GOLANG_VERSION = 1.11
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: up
-up: vendor start config/config.toml config/dex.yml ## Set up the development environment
+up: vendor config/dex.yml start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -83,18 +83,22 @@ vendor: bin/dep ## Install dependencies
 	bin/dep ensure -v -vendor-only
 
 config/config.toml:
-	cp config/config.toml.example config/config.toml
+	cp config/config.toml.dist config/config.toml
 
 config/dex.yml:
-	cp config/dex.yml.example config/dex.yml
+	cp config/dex.yml.dist config/dex.yml
+
+.PHONY: run
+run: GOTAGS += dev
+run: build ## Build and execute a binary
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
 
 .PHONY: build
-build: GOARGS += -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME}
 build: ## Build a binary
 ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
 	@printf "${GOLANG_VERSION}\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^${GOLANG_VERSION}$$" || (printf "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
 endif
-	go build ${GOARGS} ${BUILD_PACKAGE}
+	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME} ${BUILD_PACKAGE}
 
 .PHONY: docker-build
 docker-build: ## Builds go binary in docker image

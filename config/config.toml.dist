@@ -3,6 +3,7 @@
 [pipeline]
 # Pipeline configs
 bindaddr = "127.0.0.1:9090"
+
 # Bind address for Internal API
 internalBindaddr = "127.0.0.1:9091"
 
@@ -25,8 +26,11 @@ user = "sparky"
 role = "pipeline"
 password = "sparky123"
 dbname = "pipeline"
-logging = true
-autoMigrateEnabled = false
+
+# Turn this to true to see all queries in the log
+logging = false
+
+autoMigrateEnabled = true
 
 [anchore]
 enabled = true
@@ -65,7 +69,7 @@ tokensigningkey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 jwtissueer = "https://banzaicloud.com/"
 jwtaudience = "https://pipeline.banzaicloud.com"
 
-secureCookie = true
+secureCookie = false
 
 # Domain field for cookies
 cookieDomain = ""

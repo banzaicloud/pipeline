@@ -36,7 +36,7 @@ which removes everything.
 
 ### Configuration
 
-Create a `config/config.toml` based on `config/config.toml.example`:
+Create a `config/config.toml` based on `config/config.toml.dist`:
 
 ```bash
 $ make config/config.toml
