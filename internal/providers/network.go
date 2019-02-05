@@ -19,6 +19,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
+	"github.com/banzaicloud/pipeline/internal/providers/oracle"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -43,6 +44,8 @@ func NewNetworkService(params ServiceParams) (network.Service, error) {
 		return azure.NewNetworkService(params.ResourceGroupName, params.Secret, params.Logger)
 	case providers.Google:
 		return google.NewNetworkService(params.Region, params.Secret, params.Logger)
+	case providers.Oracle:
+		return oracle.NewNetworkService(params.Secret, params.Logger)
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
