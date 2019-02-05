@@ -42,6 +42,7 @@
     "services/compute/mgmt/2018-10-01/compute",
     "services/containerservice/mgmt/2018-03-31/containerservice",
     "services/monitor/mgmt/2017-09-01/insights",
+    "services/network/mgmt/2018-01-01/network",
     "services/resources/mgmt/2016-06-01/subscriptions",
     "services/resources/mgmt/2018-02-01/resources",
     "services/storage/mgmt/2017-10-01/storage",

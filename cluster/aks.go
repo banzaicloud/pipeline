@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -68,6 +69,7 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			NodeMaxCount:     np.MaxCount,
 			Count:            np.Count,
 			NodeInstanceType: np.NodeInstanceType,
+			VNetSubnetID:     np.VNetSubnetID,
 		})
 	}
 
@@ -179,19 +181,35 @@ func isProvisioningSuccessful(cluster *containerservice.ManagedCluster) bool {
 	return *cluster.ProvisioningState == "Succeeded"
 }
 
+func getVNetSubnetID(np *model.AKSNodePoolModel) *string {
+	if len(np.VNetSubnetID) == 0 {
+		return nil
+	}
+	return &np.VNetSubnetID
+}
+
 // CreateCluster creates a new cluster
 func (c *AKSCluster) CreateCluster() error {
 	c.log.Info("Creating cluster...")
 
+	cc, err := c.getCloudConnection()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cloud connection")
+	}
+
 	var profiles []containerservice.ManagedClusterAgentPoolProfile
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
+			if err := validateVNetSubnet(cc, c.GetResourceGroupName(), np.VNetSubnetID); err != nil {
+				return emperror.Wrap(err, "virtual network subnet validation failed")
+			}
 			count := int32(np.Count)
 			name := np.Name
 			profiles = append(profiles, containerservice.ManagedClusterAgentPoolProfile{
-				Name:   &name,
-				Count:  &count,
-				VMSize: containerservice.VMSizeTypes(np.NodeInstanceType),
+				Name:         &name,
+				Count:        &count,
+				VMSize:       containerservice.VMSizeTypes(np.NodeInstanceType),
+				VnetSubnetID: getVNetSubnetID(np),
 			})
 		}
 	}
@@ -233,11 +251,6 @@ func (c *AKSCluster) CreateCluster() error {
 				Secret:   &creds.ClientSecret,
 			},
 		},
-	}
-
-	cc, err := c.getCloudConnection()
-	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
 	}
 
 	c.log.Info("Sending cluster creation request to AKS and waiting for completion")
@@ -1202,4 +1215,26 @@ func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.Ev
 	}
 
 	return errEvents, nil
+}
+
+var vnetSubnetIDRegexp = regexp.MustCompile("/subscriptions/([^/]+)/resourceGroups/([^/]+)/providers/Microsoft.Network/virtualNetworks/([^/]+)/subnets/([^/]+)")
+
+func validateVNetSubnet(cc *pkgAzure.CloudConnection, resourceGroupName, vnetSubnetID string) error {
+	if len(vnetSubnetID) != 0 {
+		matches := vnetSubnetIDRegexp.FindStringSubmatch(vnetSubnetID)
+		if matches == nil {
+			return errors.New("virtual network subnet ID format is invalid")
+		}
+		if matches[0] != cc.GetSubscriptionID() {
+			return errors.New("virtual network subnet is not from same subscription")
+		}
+		if matches[1] != resourceGroupName {
+			return errors.New("virtual network subnet is not from same resource group")
+		}
+		_, err := cc.GetSubnetsClient().Get(context.TODO(), matches[1], matches[2], matches[3], "")
+		if err != nil {
+			return emperror.Wrap(err, "request to retreive subnet failed")
+		}
+	}
+	return nil
 }

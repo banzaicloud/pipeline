@@ -17,12 +17,12 @@ package api
 import (
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/secret"
-
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -41,17 +41,17 @@ func NewNetworkAPI(logger logrus.FieldLogger) *NetworkAPI {
 
 // NetworkInfo encapsulates VPC network information to be returned
 type NetworkInfo struct {
-	CIDR string `json:"cidr" binding:"required"`
-	ID   string `json:"id" binding:"required"`
-	Name string `json:"name,omitempty"`
+	CIDRs []string `json:"cidrs" binding:"required"`
+	ID    string   `json:"id" binding:"required"`
+	Name  string   `json:"name,omitempty"`
 }
 
 // SubnetInfo encapsulates VPC subnetwork information to be returned
 type SubnetInfo struct {
-	CIDR     string `json:"cidr" binding:"required"`
-	ID       string `json:"id" binding:"required"`
-	Location string `json:"location,omitempty"`
-	Name     string `json:"name,omitempty"`
+	CIDRs    []string `json:"cidrs" binding:"required"`
+	ID       string   `json:"id" binding:"required"`
+	Location string   `json:"location,omitempty"`
+	Name     string   `json:"name,omitempty"`
 }
 
 // RouteTableInfo encapsulates VPC route table information to be returned
@@ -69,7 +69,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 	if !ok {
 		return
 	}
-	region, ok := getRequiredRegionFromContext(ctx, logger)
+	region, resourceGroup, ok := getRequiredRegionOrResourceGroupFromContext(ctx, provider, logger)
 	if !ok {
 		return
 	}
@@ -79,31 +79,31 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 	}
 
 	logger = logger.WithFields(logrus.Fields{
-		"organization": organization.ID,
-		"provider":     provider,
-		"region":       region,
-		"secretID":     secretID,
+		"organization":  organization.ID,
+		"provider":      provider,
+		"region":        region,
+		"resourceGroup": resourceGroup,
+		"secretID":      secretID,
 	})
 
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("no secret stored for ID")
 		return
 	}
 
 	err = sir.ValidateSecretType(provider)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("secret type mismatch")
 		return
 	}
 
 	svcParams := providers.ServiceParams{
-		Logger:   logger,
-		Provider: provider,
-		Region:   region,
-		Secret:   sir,
+		Logger:            logger,
+		Provider:          provider,
+		Region:            region,
+		ResourceGroupName: resourceGroup,
+		Secret:            sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
 	if err != nil {
@@ -118,7 +118,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 
 	networkInfos := make([]NetworkInfo, len(networks))
 	for i := range networks {
-		networkInfos[i].CIDR = networks[i].CIDR()
+		networkInfos[i].CIDRs = networks[i].CIDRs()
 		networkInfos[i].ID = networks[i].ID()
 		networkInfos[i].Name = networks[i].Name()
 	}
@@ -134,7 +134,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 	if !ok {
 		return
 	}
-	region, ok := getRequiredRegionFromContext(ctx, logger)
+	region, resourceGroup, ok := getRequiredRegionOrResourceGroupFromContext(ctx, provider, logger)
 	if !ok {
 		return
 	}
@@ -145,32 +145,32 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 	networkID := ctx.Param("id")
 
 	logger = logger.WithFields(logrus.Fields{
-		"organization": organization.ID,
-		"provider":     provider,
-		"region":       region,
-		"secretID":     secretID,
-		"networkID":    networkID,
+		"organization":  organization.ID,
+		"provider":      provider,
+		"region":        region,
+		"resourceGroup": resourceGroup,
+		"secretID":      secretID,
+		"networkID":     networkID,
 	})
 
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("no secret stored for ID")
 		return
 	}
 
 	err = sir.ValidateSecretType(provider)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("secret type mismatch")
 		return
 	}
 
 	svcParams := providers.ServiceParams{
-		Logger:   logger,
-		Provider: provider,
-		Region:   region,
-		Secret:   sir,
+		Logger:            logger,
+		Provider:          provider,
+		Region:            region,
+		ResourceGroupName: resourceGroup,
+		Secret:            sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
 	if err != nil {
@@ -185,7 +185,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 
 	subnetInfos := make([]SubnetInfo, len(subnets))
 	for i := range subnets {
-		subnetInfos[i].CIDR = subnets[i].CIDR()
+		subnetInfos[i].CIDRs = subnets[i].CIDRs()
 		subnetInfos[i].ID = subnets[i].ID()
 		subnetInfos[i].Location = subnets[i].Location()
 		subnetInfos[i].Name = subnets[i].Name()
@@ -202,7 +202,7 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 	if !ok {
 		return
 	}
-	region, ok := getRequiredRegionFromContext(ctx, logger)
+	region, resourceGroup, ok := getRequiredRegionOrResourceGroupFromContext(ctx, provider, logger)
 	if !ok {
 		return
 	}
@@ -213,32 +213,32 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 	networkID := ctx.Param("id")
 
 	logger = logger.WithFields(logrus.Fields{
-		"organization": organization.ID,
-		"provider":     provider,
-		"region":       region,
-		"secretID":     secretID,
-		"networkID":    networkID,
+		"organization":  organization.ID,
+		"provider":      provider,
+		"region":        region,
+		"resourceGroup": resourceGroup,
+		"secretID":      secretID,
+		"networkID":     networkID,
 	})
 
 	sir, err := secret.Store.Get(organization.ID, secretID)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("no secret stored for ID")
 		return
 	}
 
 	err = sir.ValidateSecretType(provider)
 	if err != nil {
 		replyWithError(ctx, err)
-		logger.Debug("secret type mismatch")
 		return
 	}
 
 	svcParams := providers.ServiceParams{
-		Logger:   logger,
-		Provider: provider,
-		Region:   region,
-		Secret:   sir,
+		Logger:            logger,
+		Provider:          provider,
+		Region:            region,
+		ResourceGroupName: resourceGroup,
+		Secret:            sir,
 	}
 	svc, err := providers.NewNetworkService(svcParams)
 	if err != nil {
@@ -261,25 +261,22 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 
 func getRequiredProviderFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
 	provider, ok := ginutils.RequiredQueryOrAbort(ctx, "cloudType")
-	if !ok {
-		logger.Debug("missing provider")
-	}
 	return provider, ok
 }
 
-func getRequiredRegionFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
-	region, ok := ginutils.RequiredQueryOrAbort(ctx, "region")
-	if !ok {
-		logger.Debug("missing region")
+func getRequiredRegionOrResourceGroupFromContext(ctx *gin.Context, provider string, logger logrus.FieldLogger) (string, string, bool) {
+	switch provider {
+	case pkgProviders.Azure:
+		resourceGroup, ok := ginutils.RequiredQueryOrAbort(ctx, "resourceGroup")
+		return "", resourceGroup, ok
+	default:
+		region, ok := ginutils.RequiredQueryOrAbort(ctx, "region")
+		return region, "", ok
 	}
-	return region, ok
 }
 
 func getRequiredSecretIDFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
 	secretID, ok := ginutils.GetRequiredHeader(ctx, "secretId")
-	if !ok {
-		logger.Debug("missing secret ID")
-	}
 	return secretID, ok
 }
 

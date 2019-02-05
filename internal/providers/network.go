@@ -17,6 +17,7 @@ package providers
 import (
 	"github.com/banzaicloud/pipeline/internal/network"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
+	"github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -26,10 +27,11 @@ import (
 
 // ServiceParams describes all parameters necessary to create cloud provider agnostic VPC network queries
 type ServiceParams struct {
-	Logger   logrus.FieldLogger
-	Provider string
-	Region   string
-	Secret   *secret.SecretItemResponse
+	Logger            logrus.FieldLogger
+	Provider          string
+	Region            string
+	ResourceGroupName string
+	Secret            *secret.SecretItemResponse
 }
 
 // NewNetworkService returns a new network Service instance of the specified provider
@@ -37,6 +39,8 @@ func NewNetworkService(params ServiceParams) (network.Service, error) {
 	switch params.Provider {
 	case providers.Amazon:
 		return amazon.NewNetworkService(params.Region, params.Secret, params.Logger)
+	case providers.Azure:
+		return azure.NewNetworkService(params.ResourceGroupName, params.Secret, params.Logger)
 	case providers.Google:
 		return google.NewNetworkService(params.Region, params.Secret, params.Logger)
 	default:

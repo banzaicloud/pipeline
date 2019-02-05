@@ -4717,11 +4717,19 @@ paths:
           - alibaba
           type: string
         style: form
-      - description: Identifies the region of the VPC network
+      - description: Identifies the region of the VPC network (required when cloudType != azure)
         explode: true
         in: query
         name: region
-        required: true
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Identifies the resource group of the Azure virtual network (required when cloudType == azure)
+        explode: true
+        in: query
+        name: resourceGroup
+        required: false
         schema:
           type: string
         style: form
@@ -4799,11 +4807,19 @@ paths:
           - alibaba
           type: string
         style: form
-      - description: Identifies the region of the VPC network
+      - description: Identifies the region of the VPC network (required when cloudType != azure)
         explode: true
         in: query
         name: region
-        required: true
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Identifies the resource group of the Azure virtual network (required when cloudType == azure)
+        explode: true
+        in: query
+        name: resourceGroup
+        required: false
         schema:
           type: string
         style: form
@@ -4883,11 +4899,19 @@ paths:
           - alibaba
           type: string
         style: form
-      - description: Identifies the region of the VPC network
+      - description: Identifies the region of the VPC network (required when cloudType != azure)
         explode: true
         in: query
         name: region
-        required: true
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Identifies the resource group of the Azure virtual network (required when cloudType == azure)
+        explode: true
+        in: query
+        name: resourceGroup
+        required: false
         schema:
           type: string
         style: form
@@ -8128,10 +8152,12 @@ components:
       type: array
     SubnetInfo:
       properties:
-        cidr:
-          description: The IPv4 CIDR block assigned to the subnet
-          example: 10.0.1.0/24
-          type: string
+        cidrs:
+          description: The IPv4 CIDR blocks assigned to the subnet
+          items:
+            example: 10.0.1.0/24
+            type: string
+          type: array
         id:
           description: Identifier of the subnetwork
           example: subnet-9d4a7b6c
@@ -8145,7 +8171,7 @@ components:
           example: MySubnet
           type: string
       required:
-      - cidr
+      - cidrs
       - id
       type: object
     ListVPCSubnetsResponse:
@@ -8171,10 +8197,12 @@ components:
       type: array
     VPCNetworkInfo:
       properties:
-        cidr:
-          description: The primary IPv4 CIDR block of the VPC network
-          example: 10.50.0.0/16
-          type: string
+        cidrs:
+          description: The IPv4 CIDR blocks assigned to the VPC network
+          items:
+            example: 10.50.0.0/16
+            type: string
+          type: array
         id:
           description: Identifier of the VPC network
           example: vpc-a01106c2
@@ -8184,7 +8212,7 @@ components:
           example: MyVPC
           type: string
       required:
-      - cidr
+      - cidrs
       - id
       type: object
     ListVPCNetworksResponse:
@@ -9444,6 +9472,9 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsAzure'
           type: object
+        vnetSubnetID:
+          example: /subscriptions/12345678-1234-5678-1234-123456789abc/resourceGroups/your-resource-group-name/providers/Microsoft.Network/virtualNetworks/your-vnet-name/subnets/your-vnet-subnet-name
+          type: string
       type: object
     CreateGKEProperties_gke_master:
       properties:

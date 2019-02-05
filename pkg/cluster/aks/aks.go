@@ -44,6 +44,7 @@ type NodePoolCreate struct {
 	MaxCount         int    `json:"maxCount" yaml:"maxCount"`
 	Count            int    `json:"count" yaml:"count"`
 	NodeInstanceType string `json:"instanceType" yaml:"instanceType"`
+	VNetSubnetID     string `json:"vnetSubnetID,omitempty" yaml:"vnetSubnetID,omitempty"`
 }
 
 // NodePoolUpdate describes Azure's node count of a UpdateCluster request

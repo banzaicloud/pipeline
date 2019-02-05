@@ -12,8 +12,8 @@
 package client
 
 type SubnetInfo struct {
-	// The IPv4 CIDR block assigned to the subnet
-	Cidr string `json:"cidr"`
+	// The IPv4 CIDR blocks assigned to the subnet
+	Cidrs []string `json:"cidrs"`
 	// Identifier of the subnetwork
 	Id string `json:"id"`
 	// The location of the subnetwork.
