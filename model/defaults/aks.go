@@ -15,6 +15,8 @@
 package defaults
 
 import (
+	"time"
+
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
@@ -38,6 +40,17 @@ type AKSNodePoolProfile struct {
 	NodeInstanceType string `gorm:"default:'Standard_D4_v2'"`
 	Name             string `gorm:"unique_index:idx_name_node_name"`
 	NodeName         string `gorm:"unique_index:idx_name_node_name"`
+	Labels           []*AKSNodePoolLabelsProfile
+}
+
+// AKSNodePoolLabelsProfile stores labels for Azure cluster profile's nodepools
+type AKSNodePoolLabelsProfile struct {
+	ID                uint   `gorm:"primary_key"`
+	Name              string `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	Value             string
+	ProfileNodePoolID uint `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 // TableName overrides AKSNodePoolProfile's table name
@@ -48,6 +61,11 @@ func (AKSNodePoolProfile) TableName() string {
 // TableName overrides AKSProfile's table name
 func (AKSProfile) TableName() string {
 	return DefaultAKSProfileTableName
+}
+
+// TableName overrides AKSProfile's table name
+func (AKSNodePoolLabelsProfile) TableName() string {
+	return DefaultAKSNodePoolProfileLabelsTableName
 }
 
 // AfterFind loads nodepools to profile
@@ -82,6 +100,17 @@ func (d *AKSProfile) BeforeDelete() error {
 	}).Find(&nodePools).Delete(&nodePools).Error
 }
 
+// BeforeDelete deletes all labels belongs to the nodepool
+func (d *AKSNodePoolProfile) BeforeDelete() error {
+	log.Info("BeforeDelete aks nodepool... delete all labels")
+
+	var nodePoolLabels []*AKSNodePoolLabelsProfile
+
+	return config.DB().Where(AKSNodePoolLabelsProfile{
+		ProfileNodePoolID: d.ID,
+	}).Find(&nodePoolLabels).Delete(&nodePoolLabels).Error
+}
+
 // SaveInstance saves cluster profile into database
 func (d *AKSProfile) SaveInstance() error {
 	return save(d)
@@ -108,12 +137,21 @@ func (d *AKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	nodePools := make(map[string]*aks.NodePoolCreate)
 	for _, np := range d.NodePools {
 		if np != nil {
+
+			labels := make(map[string]string)
+			for _, lbl := range np.Labels {
+				if lbl != nil {
+					labels[lbl.Name] = lbl.Value
+				}
+			}
+
 			nodePools[np.NodeName] = &aks.NodePoolCreate{
 				Autoscaling:      np.Autoscaling,
 				MinCount:         np.MinCount,
 				MaxCount:         np.MaxCount,
 				Count:            np.Count,
 				NodeInstanceType: np.NodeInstanceType,
+				Labels:           labels,
 			}
 		}
 	}
@@ -147,6 +185,14 @@ func (d *AKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 			var nodePools []*AKSNodePoolProfile
 			for name, np := range r.Properties.AKS.NodePools {
+
+				labels := make([]*AKSNodePoolLabelsProfile, 0)
+				for name, value := range np.Labels {
+					labels = append(labels, &AKSNodePoolLabelsProfile{
+						Name:  name,
+						Value: value,
+					})
+				}
 				nodePools = append(nodePools, &AKSNodePoolProfile{
 					Autoscaling:      np.Autoscaling,
 					MinCount:         np.MinCount,
@@ -155,6 +201,7 @@ func (d *AKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 					NodeInstanceType: np.NodeInstanceType,
 					Name:             d.Name,
 					NodeName:         name,
+					Labels:           labels,
 				})
 			}
 

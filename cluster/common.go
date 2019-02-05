@@ -311,11 +311,8 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		err = db.Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
-		if err != nil {
-			return nil, err
-		}
-		err = db.Model(&aksCluster.modelCluster.AKS).Related(&aksCluster.modelCluster.AKS.NodePools, "NodePools").Error
+		err = db.Preload("NodePools").Preload("NodePools.Labels").
+			Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 
 		return aksCluster, err
 

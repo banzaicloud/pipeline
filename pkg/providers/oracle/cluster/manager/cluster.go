@@ -15,11 +15,10 @@
 package manager
 
 import (
-	"fmt"
-
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
+	"github.com/pkg/errors"
 )
 
 // CreateCluster creates a new cluster
@@ -38,7 +37,7 @@ func (cm *ClusterManager) CreateCluster(clusterModel *model.Cluster) error {
 	clusters = ce.FilterClustersByNotInState(clusters, containerengine.ClusterSummaryLifecycleStateDeleted)
 
 	if len(clusters) > 0 {
-		return fmt.Errorf("Cluster[%s] already exists", clusterModel.Name)
+		return errors.Errorf("cluster[%s] already exists", clusterModel.Name)
 	}
 
 	req := containerengine.CreateClusterRequest{}
@@ -70,7 +69,7 @@ func (cm *ClusterManager) UpdateCluster(clusterModel *model.Cluster) error {
 	}
 
 	if cluster.LifecycleState == containerengine.ClusterLifecycleStateDeleted {
-		return fmt.Errorf("Cluster[%s] was deleted", *cluster.Name)
+		return errors.Errorf("cluster[%s] was deleted", *cluster.Name)
 	}
 
 	ce, err := cm.oci.NewContainerEngineClient()
@@ -119,7 +118,7 @@ func (cm *ClusterManager) DeleteCluster(clusterModel *model.Cluster) error {
 	}
 
 	if cluster.LifecycleState == containerengine.ClusterLifecycleStateDeleted {
-		return fmt.Errorf("Cluster[%s] was already deleted", *cluster.Name)
+		return errors.Errorf("cluster[%s] was already deleted", *cluster.Name)
 	}
 
 	req := containerengine.DeleteClusterRequest{

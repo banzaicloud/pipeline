@@ -343,6 +343,12 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.model.NodePools {
 		if np != nil {
+
+			labels := make(map[string]string)
+			for _, nodePoolLabels := range np.Labels {
+				labels[nodePoolLabels.Name] = nodePoolLabels.Value
+			}
+
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
 				Preemptible:       np.Preemptible,
@@ -352,6 +358,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MaxCount:          np.NodeMaxCount,
 				Version:           c.model.NodeVersion,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Labels:            labels,
 			}
 			if np.Preemptible {
 				hasSpotNodePool = true

@@ -119,7 +119,7 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 	}
 	err = retry(func() error {
 		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-		left := []string{}
+		left := make([]string, 0)
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining namespaces")
 		}
@@ -210,7 +210,7 @@ func deleteServices(kubeConfig []byte, ns string, logger *logrus.Entry) error {
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining services")
 		}
-		left := []string{}
+		left := make([]string, 0)
 		for _, svc := range services.Items {
 			switch svc.Name {
 			case "kubernetes":

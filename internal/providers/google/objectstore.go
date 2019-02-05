@@ -186,7 +186,7 @@ func (s *ObjectStore) createFailed(bucket *ObjectStoreBucketModel, err error) er
 		return emperror.WrapWith(e, "failed to save bucket", "bucket", bucket.Name)
 	}
 
-	return emperror.With(err, "create failed")
+	return emperror.With(err, "bucket", bucket.Name)
 }
 
 // DeleteBucket deletes the GS bucket identified by the specified name

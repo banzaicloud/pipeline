@@ -33,7 +33,7 @@ import (
 // GetCluster fetches a K8S cluster in the cloud
 func (a *ClusterAPI) GetCluster(c *gin.Context) {
 	commonCluster, ok := a.clusterGetter.GetClusterFromRequest(c)
-	if ok != true {
+	if !ok {
 		return
 	}
 

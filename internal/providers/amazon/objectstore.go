@@ -177,7 +177,7 @@ func (s *objectStore) createFailed(bucket *ObjectStoreBucketModel, err error) er
 		return emperror.WrapWith(e, "failed to save bucket", "bucket", bucket.Name)
 	}
 
-	return emperror.With(err, "create failed")
+	return emperror.With(err, "bucket", bucket.Name)
 }
 
 // DeleteBucket deletes the S3 bucket identified by the specified name

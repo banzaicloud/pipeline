@@ -61,6 +61,13 @@ type AKSCluster struct {
 func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID, userID uint) (*AKSCluster, error) {
 	var nodePools = make([]*model.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
 	for name, np := range request.Properties.CreateClusterAKS.NodePools {
+		labels := make([]*model.AKSNodePoolLabelModel, 0)
+		for name, value := range np.Labels {
+			labels = append(labels, &model.AKSNodePoolLabelModel{
+				Name:  name,
+				Value: value,
+			})
+		}
 		nodePools = append(nodePools, &model.AKSNodePoolModel{
 			CreatedBy:        userID,
 			Name:             name,
@@ -70,6 +77,7 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			Count:            np.Count,
 			NodeInstanceType: np.NodeInstanceType,
 			VNetSubnetID:     np.VNetSubnetID,
+			Labels:           labels,
 		})
 	}
 
@@ -473,6 +481,12 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
+
+			labels := make(map[string]string)
+			for _, nodePoolLabels := range np.Labels {
+				labels[nodePoolLabels.Name] = nodePoolLabels.Value
+			}
+
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
 				Count:             np.Count,
@@ -480,6 +494,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MinCount:          np.NodeMinCount,
 				MaxCount:          np.NodeMaxCount,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Labels:            labels,
 			}
 		}
 	}

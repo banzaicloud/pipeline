@@ -5948,6 +5948,11 @@ components:
         instanceType:
           example: Standard_B2ms
           type: string
+        labels:
+          additionalProperties:
+            example: '{"example.io/label1":"value1"}'
+            type: string
+          type: object
       required:
       - count
       - instanceType

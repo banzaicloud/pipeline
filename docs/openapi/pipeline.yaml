@@ -5681,6 +5681,12 @@ components:
                 instanceType:
                     type: string
                     example: "Standard_B2ms"
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                        example:
+                            example.io/label1: value1
 
         CreateGKEProperties:
             type: object

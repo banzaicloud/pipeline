@@ -1049,11 +1049,17 @@ func LabelNodes(commonCluster CommonCluster) error {
 	}
 
 	for poolName, nodes := range nodeNames {
+		labels := make(map[string]string, 0)
+		for name, np := range clusterStatus.NodePools {
+			if poolName == name {
+				labels = np.Labels
+			}
+		}
 
 		log.Debugf("nodepool: [%s]", poolName)
 		for _, nodeName := range nodes {
 			log.Infof("add label to node [%s]", nodeName)
-			labels := map[string]string{pkgCommon.LabelKey: poolName}
+			labels[pkgCommon.LabelKey] = poolName
 
 			// add spot labels, in case of a Spot cluster. This is only needed for ec2_banzaicloud as in case of
 			// EKS & GKE labels are added by provider

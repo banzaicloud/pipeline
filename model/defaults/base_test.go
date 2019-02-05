@@ -133,6 +133,7 @@ var (
 					agentName: {
 						Count:            nodeCount,
 						NodeInstanceType: nodeInstanceType,
+						Labels:           map[string]string{"testname": "testvalue"},
 					},
 				},
 			},
@@ -162,6 +163,12 @@ var (
 				NodeInstanceType: nodeInstanceType,
 				Count:            nodeCount,
 				NodeName:         agentName,
+				Labels: []*defaults.AKSNodePoolLabelsProfile{
+					{
+						Name:  "testname",
+						Value: "testvalue",
+					},
+				},
 			},
 		},
 	}

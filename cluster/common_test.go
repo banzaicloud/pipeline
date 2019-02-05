@@ -38,7 +38,7 @@ const (
 	clusterRequestNodeInstance  = "testInstance"
 	clusterRequestNodeCount     = 1
 	clusterRequestRG            = "testResourceGroup"
-	clusterRequestKubernetes    = "1.9.6"
+	clusterRequestKubernetes    = "1.11.5"
 	clusterRequestKubernetesEKS = "1.10"
 	clusterRequestAgentName     = "testAgent"
 	clusterRequestSpotPrice     = "1.2"
@@ -54,7 +54,10 @@ const (
 )
 
 var (
-	clusterRequestSecretId = fmt.Sprintf("%x", sha256.Sum256([]byte(secretName)))
+	clusterRequestSecretId   = fmt.Sprintf("%x", sha256.Sum256([]byte(secretName)))
+	clusterRequestNodeLabels = map[string]string{
+		"testname": "testvalue",
+	}
 
 	amazonSecretRequest = secret.CreateSecretRequest{
 		Name: secretName,
@@ -243,6 +246,7 @@ var (
 						MaxCount:         clusterRequestNodeMaxCount,
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
+						Labels:           clusterRequestNodeLabels,
 					},
 				},
 			},
@@ -364,6 +368,12 @@ var (
 					Count:            clusterRequestNodeCount,
 					NodeInstanceType: clusterRequestNodeInstance,
 					Name:             clusterRequestAgentName,
+					Labels: []*model.AKSNodePoolLabelModel{
+						{
+							Name:  "testname",
+							Value: "testvalue",
+						},
+					},
 				},
 			},
 		},

@@ -30,11 +30,18 @@ func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided
 	}
-	nodePoolsModel := make([]*google.GKENodePoolModel, nodePoolsCount)
+	nodePoolsModel := make([]*google.GKENodePoolModel, 0)
 
-	i := 0
 	for nodePoolName, nodePoolData := range nodePoolsData {
-		nodePoolsModel[i] = &google.GKENodePoolModel{
+		labels := make([]*google.GKENodePoolLabelModel, 0)
+		for name, value := range nodePoolData.Labels {
+			labels = append(labels, &google.GKENodePoolLabelModel{
+				Name:  name,
+				Value: value,
+			})
+		}
+
+		nodePoolsModel = append(nodePoolsModel, &google.GKENodePoolModel{
 			CreatedBy:        userID,
 			Name:             nodePoolName,
 			Autoscaling:      nodePoolData.Autoscaling,
@@ -43,17 +50,8 @@ func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.
 			NodeCount:        nodePoolData.Count,
 			NodeInstanceType: nodePoolData.NodeInstanceType,
 			Preemptible:      nodePoolData.Preemptible,
-			Labels:           make([]*google.GKENodePoolLabelModel, 0),
-		}
-
-		for name, value := range nodePoolData.Labels {
-			nodePoolsModel[i].Labels = append(nodePoolsModel[i].Labels, &google.GKENodePoolLabelModel{
-				Name:  name,
-				Value: value,
-			})
-		}
-
-		i++
+			Labels:           labels,
+		})
 	}
 
 	return nodePoolsModel, nil

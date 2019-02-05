@@ -42,6 +42,7 @@ const (
 	tableNameAmazonEksProperties  = "amazon_eks_clusters"
 	tableNameAzureProperties      = "azure_aks_clusters"
 	tableNameAzureNodePools       = "azure_aks_node_pools"
+	tableNameAzureNodePoolLabels  = "azure_aks_node_pool_labels"
 	tableNameDummyProperties      = "dummy_clusters"
 	tableNameKubernetesProperties = "kubernetes_clusters"
 	tableNameEKSSubnets           = "amazon_eks_subnets"
@@ -260,6 +261,17 @@ type AKSNodePoolModel struct {
 	Count            int
 	NodeInstanceType string
 	VNetSubnetID     string
+	Labels           []*AKSNodePoolLabelModel `gorm:"foreignkey:NodePoolID"`
+}
+
+// AKSNodePoolLabelModel stores labels for node pools
+type AKSNodePoolLabelModel struct {
+	ID         uint   `gorm:"primary_key"`
+	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
+	Value      string
+	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 // DummyClusterModel describes the dummy cluster model
@@ -415,6 +427,11 @@ func (AKSNodePoolModel) TableName() string {
 	return tableNameAzureNodePools
 }
 
+// TableName sets AzureNodePoolLabelModel's table name
+func (AKSNodePoolLabelModel) TableName() string {
+	return tableNameAzureNodePoolLabels
+}
+
 //TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
 	return tableNameDummyProperties
@@ -507,4 +524,15 @@ func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
 func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
+}
+
+// BeforeDelete deletes all labels belongs to the nodepool
+func (np *AKSNodePoolModel) BeforeDelete() error {
+	log.Info("BeforeDelete azure nodepool... delete all labels")
+
+	var aksNodePoolLabels []*AKSNodePoolLabelModel
+
+	return config.DB().Where(AKSNodePoolLabelModel{
+		NodePoolID: np.ID,
+	}).Find(&aksNodePoolLabels).Delete(&aksNodePoolLabels).Error
 }

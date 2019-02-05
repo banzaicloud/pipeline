@@ -15,6 +15,8 @@
 package defaults
 
 import (
+	"time"
+
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
@@ -40,6 +42,17 @@ type GKENodePoolProfile struct {
 	Name             string `gorm:"unique_index:idx_name_node_name"`
 	NodeName         string `gorm:"unique_index:idx_name_node_name"`
 	Preemptible      bool   `gorm:"default:false"`
+	Labels           []*GKENodePoolLabelsProfile
+}
+
+// GKENodePoolLabelsProfile stores labels for Google cluster profile's nodepools
+type GKENodePoolLabelsProfile struct {
+	ID                uint   `gorm:"primary_key"`
+	Name              string `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	Value             string
+	ProfileNodePoolID uint `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 // TableName overrides GKEProfile's table name
@@ -50,6 +63,11 @@ func (GKEProfile) TableName() string {
 // TableName overrides GKENodePoolProfile's table name
 func (GKENodePoolProfile) TableName() string {
 	return DefaultGKENodePoolProfileTableName
+}
+
+// TableName overrides GKENodePoolLabelsProfile's table name
+func (GKENodePoolLabelsProfile) TableName() string {
+	return DefaultGKENodePoolProfileLabelsTableName
 }
 
 // AfterFind loads nodepools to profile
@@ -83,6 +101,17 @@ func (d *GKEProfile) BeforeDelete() error {
 	}).Find(&nodePools).Delete(&nodePools).Error
 }
 
+// BeforeDelete deletes all labels belongs to the nodepool
+func (d *GKENodePoolProfile) BeforeDelete() error {
+	log.Info("BeforeDelete gke nodepool... delete all labels")
+
+	var nodePoolLabels []*GKENodePoolLabelsProfile
+
+	return config.DB().Where(GKENodePoolLabelsProfile{
+		ProfileNodePoolID: d.ID,
+	}).Find(&nodePoolLabels).Delete(&nodePoolLabels).Error
+}
+
 // SaveInstance saves cluster profile into database
 func (d *GKEProfile) SaveInstance() error {
 	return save(d)
@@ -109,6 +138,14 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	nodePools := make(map[string]*gke.NodePool)
 	if d.NodePools != nil {
 		for _, np := range d.NodePools {
+
+			labels := make(map[string]string)
+			for _, label := range np.Labels {
+				if label != nil {
+					labels[label.Name] = label.Value
+				}
+			}
+
 			nodePools[np.NodeName] = &gke.NodePool{
 				Autoscaling:      np.Autoscaling,
 				MinCount:         np.MinCount,
@@ -116,6 +153,7 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 				Count:            np.Count,
 				NodeInstanceType: np.NodeInstanceType,
 				Preemptible:      np.Preemptible,
+				Labels:           labels,
 			}
 		}
 	}
@@ -153,7 +191,7 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 			var nodePools []*GKENodePoolProfile
 			for name, np := range r.Properties.GKE.NodePools {
-				nodePools = append(nodePools, &GKENodePoolProfile{
+				nodePool := &GKENodePoolProfile{
 					Autoscaling:      np.Autoscaling,
 					MinCount:         np.MinCount,
 					MaxCount:         np.MaxCount,
@@ -162,7 +200,14 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 					Name:             d.Name,
 					NodeName:         name,
 					Preemptible:      np.Preemptible,
-				})
+				}
+				for name, value := range np.Labels {
+					nodePool.Labels = append(nodePool.Labels, &GKENodePoolLabelsProfile{
+						Name:  name,
+						Value: value,
+					})
+				}
+				nodePools = append(nodePools, nodePool)
 			}
 
 			d.NodePools = nodePools

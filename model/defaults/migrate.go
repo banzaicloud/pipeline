@@ -31,8 +31,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&EKSNodePoolLabelsProfile{},
 		&AKSProfile{},
 		&AKSNodePoolProfile{},
+		&AKSNodePoolLabelsProfile{},
 		&GKEProfile{},
 		&GKENodePoolProfile{},
+		&GKENodePoolLabelsProfile{},
 	}
 
 	var tableNames string

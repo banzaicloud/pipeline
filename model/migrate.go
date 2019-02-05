@@ -35,6 +35,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&EKSSubnetModel{},
 		&AKSClusterModel{},
 		&AKSNodePoolModel{},
+		&AKSNodePoolLabelModel{},
 		&DummyClusterModel{},
 		&KubernetesClusterModel{},
 	}

@@ -15,11 +15,13 @@
 package cluster
 
 import (
-	"fmt"
 	"regexp"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/pkg/errors"
 )
+
+var versionRegexp = regexp.MustCompile("^v\\d+\\.\\d+\\.\\d+")
 
 // Cluster describes Pipeline's Oracle fields of a Create/Update request
 type Cluster struct {
@@ -126,7 +128,6 @@ func (c *Cluster) AddDefaults() error {
 		if len(np.Version) == 0 {
 			np.Version = defaultVersion
 		}
-
 	}
 
 	return nil
@@ -136,26 +137,26 @@ func (c *Cluster) AddDefaults() error {
 func (c *Cluster) Validate(update bool) error {
 
 	if c == nil {
-		return fmt.Errorf("Oracle is <nil>")
+		return errors.New("oracle is <nil>")
 	}
 
 	if !isValidVersion(c.Version) {
-		return fmt.Errorf("Invalid k8s version: %s", c.Version)
+		return errors.Errorf("invalid k8s version: %s", c.Version)
 	}
 
 	if len(c.NodePools) < 1 {
-		return fmt.Errorf("At least 1 node pool must be specified")
+		return errors.Errorf("at least 1 node pool must be specified")
 	}
 
 	for name, nodePool := range c.NodePools {
 		if nodePool.Version != c.Version {
-			return fmt.Errorf("NodePool[%s]: Different k8s versions were specified for master and nodes", name)
+			return errors.Errorf("NodePool[%s]: Different k8s versions were specified for master and nodes", name)
 		}
 		if nodePool.Image == "" && !update {
-			return fmt.Errorf("NodePool[%s]: Node image must be specified", name)
+			return errors.Errorf("NodePool[%s]: Node image must be specified", name)
 		}
 		if nodePool.Shape == "" && !update {
-			return fmt.Errorf("NodePool[%s]: Node shape must be specified", name)
+			return errors.Errorf("NodePool[%s]: Node shape must be specified", name)
 		}
 
 		if err := pkgCommon.ValidateNodePoolLabels(nodePool.Labels); err != nil {
@@ -168,7 +169,7 @@ func (c *Cluster) Validate(update bool) error {
 
 // isValidVersion validates the given K8S version
 func isValidVersion(version string) bool {
+	isOk := versionRegexp.MatchString(version)
 
-	isOk, _ := regexp.MatchString("^v\\d+\\.\\d+\\.\\d+", version)
 	return isOk
 }
