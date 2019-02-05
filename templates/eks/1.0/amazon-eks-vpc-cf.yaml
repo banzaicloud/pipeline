@@ -1,0 +1,349 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EKS VPC'
+
+Parameters:
+
+  ClusterName:
+    Description: The cluster name provided when the cluster was created.  If it is incorrect, nodes will not be able to join the cluster.
+    Type: String
+
+  VpcId:
+    Type: String
+    Description: The VPC to be used instead of creating a new one.
+    Default: ""
+
+  RouteTableId:
+    Type: String
+    Default: ""
+    Description: Id of the RouteTable of the VPC to be used by subnets. This is used only when subnets are created into existing VPC.
+
+  VpcBlock:
+    Type: String
+    Default: 192.168.0.0/16
+    Description: The CIDR range for the VPC. This should be a valid private (RFC 1918) CIDR range. Used only when new VPC is created.
+
+  Subnet01Block:
+    Type: String
+    Default: 192.168.64.0/20
+    Description: CidrBlock for subnet 01 within the VPC
+
+  Subnet02Block:
+    Type: String
+    Default: 192.168.80.0/20
+    Description: CidrBlock for subnet 02 within the VPC
+
+  Subnets:
+    Description: The subnets where workers can be created.
+    Type: String
+    Default: ""
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "EKS Cluster"
+        Parameters:
+          - ClusterName
+      -
+        Label:
+          default: "Worker Network Configuration"
+        Parameters:
+          - VpcId
+          - RouteTableId
+          - VpcBlock
+          - Subnet01Block
+          - Subnet02Block
+          - Subnets
+Conditions:
+  CreateVpc: !Equals [ !Ref VpcId, "" ]
+  CreateSubnets: !Equals [ !Ref Subnets, "" ]
+
+Resources:
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Condition: CreateVpc
+    Properties:
+      CidrBlock:  !Ref VpcBlock
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: !Sub '${AWS::StackName}-VPC'
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Condition: CreateVpc
+
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Condition: CreateVpc
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Condition: CreateVpc
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Public Subnets
+      - Key: Network
+        Value: Public
+
+  Route:
+    DependsOn: VPCGatewayAttachment
+    Condition: CreateVpc
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet01:
+    Type: "AWS::EC2::Subnet"
+    Condition: CreateSubnets
+    Metadata:
+      Comment: Subnet 01
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '0'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: Subnet01Block
+      VpcId: !If [ CreateVpc, !Ref VPC,  !Ref VpcId ]
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-Subnet01"
+
+  Subnet02:
+    Type: "AWS::EC2::Subnet"
+    Condition: CreateSubnets
+    Metadata:
+      Comment: Subnet 02
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs:
+            Ref: AWS::Region
+      CidrBlock:
+        Ref: Subnet02Block
+      VpcId: !If [ CreateVpc, !Ref VPC,  !Ref VpcId ]
+      Tags:
+      - Key: Name
+        Value: !Sub "${AWS::StackName}-Subnet02"
+
+  Subnet01RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Condition: CreateSubnets
+    Properties:
+      SubnetId: !Ref Subnet01
+      RouteTableId: !If [ CreateVpc, !Ref RouteTable,  !Ref RouteTableId ]
+
+  Subnet02RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Condition: CreateSubnets
+    Properties:
+      SubnetId: !Ref Subnet02
+      RouteTableId: !If [ CreateVpc, !Ref RouteTable,  !Ref RouteTableId ]
+
+  ControlPlaneSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Cluster communication with worker nodes
+      VpcId: !If [ CreateVpc, !Ref VPC,  !Ref VpcId ]
+
+  NodeSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Security group for all nodes in the cluster
+      VpcId: !If [ CreateVpc,  !Ref VPC,  !Ref VpcId ]
+      Tags:
+      - Key: !Sub "kubernetes.io/cluster/${ClusterName}"
+        Value: 'owned'
+
+  NodeSecurityGroupIngress:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+          Description: Allow node to communicate with each other
+          GroupId: !Ref NodeSecurityGroup
+          SourceSecurityGroupId: !Ref NodeSecurityGroup
+          IpProtocol: '-1'
+          FromPort: 0
+          ToPort: 65535
+
+  NodeSecurityGroupFromControlPlaneIngress:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+          Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
+          GroupId: !Ref NodeSecurityGroup
+          SourceSecurityGroupId: !Ref ControlPlaneSecurityGroup
+          IpProtocol: tcp
+          FromPort: 1025
+          ToPort: 65535
+
+  ControlPlaneEgressToNodeSecurityGroup:
+      Type: AWS::EC2::SecurityGroupEgress
+      Properties:
+          Description: Allow the cluster control plane to communicate with worker Kubelet and pods
+          GroupId: !Ref ControlPlaneSecurityGroup
+          DestinationSecurityGroupId: !Ref NodeSecurityGroup
+          IpProtocol: tcp
+          FromPort: 1025
+          ToPort: 65535
+
+  NodeSecurityGroupFromControlPlaneOn443Ingress:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+          Description: Allow pods running extension API servers on port 443 to receive communication from cluster control plane
+          GroupId: !Ref NodeSecurityGroup
+          SourceSecurityGroupId: !Ref ControlPlaneSecurityGroup
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+
+  ControlPlaneEgressToNodeSecurityGroupOn443:
+      Type: AWS::EC2::SecurityGroupEgress
+      Properties:
+          Description: Allow the cluster control plane to communicate with pods running extension API servers on port 443
+          GroupId: !Ref ControlPlaneSecurityGroup
+          DestinationSecurityGroupId: !Ref NodeSecurityGroup
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+
+  ClusterControlPlaneSecurityGroupIngress:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+          Description: Allow pods to communicate with the cluster API Server
+          GroupId: !Ref ControlPlaneSecurityGroup
+          SourceSecurityGroupId: !Ref NodeSecurityGroup
+          IpProtocol: tcp
+          ToPort: 443
+          FromPort: 443
+
+  NodeSecurityGroupSsh:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+          Description: Allow SSH access to node
+          GroupId: !Ref NodeSecurityGroup
+          CidrIp: '0.0.0.0/0'
+          IpProtocol: tcp
+          ToPort: 22
+          FromPort: 22
+
+  ClusterUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub "${ClusterName}"
+
+  ClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - eks.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+      MaxSessionDuration: 3600
+
+  NodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Policies:
+        -
+          PolicyName: NodePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            -
+              Effect: "Allow"
+              Action:
+              - ec2:Describe*
+              - ecr:GetAuthorizationToken
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:GetRepositoryPolicy
+              - ecr:DescribeRepositories
+              - ecr:ListImages
+              - ecr:BatchGetImage
+              - s3:ListBucket
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+              - autoscaling:DescribeAutoScalingGroups
+              - autoscaling:UpdateAutoScalingGroup
+              - autoscaling:DescribeAutoScalingInstances
+              - autoscaling:DescribeTags
+              - autoscaling:DescribeLaunchConfigurations
+              - autoscaling:SetDesiredCapacity
+              - autoscaling:TerminateInstanceInAutoScalingGroup
+              - autoscaling:PutLifecycleHook
+              - autoscaling:RecordLifecycleActionHeartbeat
+              - autoscaling:DescribeLifecycleHooks
+              - autoscaling:CompleteLifecycleAction
+              - autoscaling:DeleteLifecycleHook
+              - autoscaling:DetachInstances
+              Resource: "*"
+
+Outputs:
+
+  SubnetIds:
+    Description: All subnets in the VPC
+    Value:  !If [ CreateSubnets, !Join [ ",", [ !Ref Subnet01, !Ref Subnet02 ] ], !Ref Subnets ]
+
+  SecurityGroups:
+    Description: Security group for the cluster control plane communication with worker nodes
+    Value: !Join [ ",", [ !Ref ControlPlaneSecurityGroup ] ]
+
+  NodeSecurityGroup:
+    Description: Security group for all nodes in the cluster
+    Value:  !Ref NodeSecurityGroup
+
+  VpcId:
+    Description: The VPC Id
+    Value: !If [ CreateVpc, !Ref VPC,  !Ref VpcId ]
+
+  ClusterRoleArn:
+    Description: The ClusterRole ARN
+    Value: !GetAtt ClusterRole.Arn
+
+  NodeInstanceRoleId:
+    Description: The NodeInstanceRole Id
+    Value: !Ref NodeInstanceRole
+
+  NodeInstanceRoleArn:
+    Description: The NodeInstanceRole ARN
+    Value: !GetAtt NodeInstanceRole.Arn
+
+  ClusterUserArn:
+    Description: Cluster user's ARN
+    Value: !GetAtt ClusterUser.Arn

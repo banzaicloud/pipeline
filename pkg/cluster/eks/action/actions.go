@@ -70,7 +70,7 @@ type EksClusterCreateUpdateContext struct {
 	ProvidedRoleArn            string
 	APIEndpoint                *string
 	CertificateAuthorityData   *string
-	NodePoolTemplate           string
+	NodePoolTemplate           *pkgEks.CFTemplate
 	ClusterUserArn             string
 	ClusterUserAccessKeyId     string
 	ClusterUserSecretAccessKey string
@@ -79,7 +79,7 @@ type EksClusterCreateUpdateContext struct {
 }
 
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
-func NewEksClusterCreationContext(session *session.Session, clusterName, sshKeyName, nodePoolTemplate string) *EksClusterCreateUpdateContext {
+func NewEksClusterCreationContext(session *session.Session, clusterName, sshKeyName string, nodePoolTemplate *pkgEks.CFTemplate) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
 		EksClusterContext: EksClusterContext{
 			Session:     session,
@@ -92,7 +92,7 @@ func NewEksClusterCreationContext(session *session.Session, clusterName, sshKeyN
 
 // NewEksClusterUpdateContext creates a new EksClusterCreateUpdateContext
 func NewEksClusterUpdateContext(session *session.Session, clusterName string,
-	securityGroupID *string, nodeSecurityGroupID *string, subnetIDs []*string, sshKeyName, nodePoolTemplate string, vpcID *string, nodeInstanceRoleId *string, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string) *EksClusterCreateUpdateContext {
+	securityGroupID *string, nodeSecurityGroupID *string, subnetIDs []*string, sshKeyName string, nodePoolTemplate *pkgEks.CFTemplate, vpcID *string, nodeInstanceRoleId *string, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
 		EksClusterContext: EksClusterContext{
 			Session:     session,
@@ -156,7 +156,7 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{},
 	a.log.Infoln("EXECUTE CreateVPCAndRolesAction, stack name:", a.stackName)
 
 	a.log.Infoln("Getting CloudFormation template for creating VPC for EKS cluster")
-	templateBody, err := pkgEks.GetVPCTemplate()
+	template, err := pkgEks.GetVPCTemplate()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get CloudFormation template for VPC")
 	}
@@ -236,10 +236,19 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{},
 			aws.String(cloudformation.CapabilityCapabilityIam),
 			aws.String(cloudformation.CapabilityCapabilityNamedIam),
 		},
-		StackName:        aws.String(a.stackName),
-		Parameters:       stackParams,
-		Tags:             []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
-		TemplateBody:     aws.String(templateBody),
+		StackName:  aws.String(a.stackName),
+		Parameters: stackParams,
+		Tags: []*cloudformation.Tag{
+			{
+				Key:   aws.String("pipeline-created"),
+				Value: aws.String("true"),
+			},
+			{
+				Key:   aws.String("version"),
+				Value: aws.String(template.Version),
+			},
+		},
+		TemplateBody:     aws.String(template.Content),
 		TimeoutInMinutes: aws.Int64(10),
 	}
 	_, err = cloudformationSrv.CreateStack(createStackInput)
@@ -801,6 +810,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				{Key: aws.String("pipeline-created"), Value: aws.String("true")},
 				{Key: aws.String("pipeline-cluster-name"), Value: aws.String(a.context.ClusterName)},
 				{Key: aws.String("pipeline-stack-type"), Value: aws.String("nodepool")},
+				{Key: aws.String("version"), Value: aws.String(a.context.NodePoolTemplate.Version)},
 			}
 
 			spotPriceParam := ""
@@ -931,7 +941,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 					Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 					Parameters:         stackParams,
 					Tags:               tags,
-					TemplateBody:       aws.String(a.context.NodePoolTemplate),
+					TemplateBody:       aws.String(a.context.NodePoolTemplate.Content),
 					TimeoutInMinutes:   aws.Int64(10),
 				}
 				_, err = cloudformationSrv.CreateStack(createStackInput)
@@ -948,7 +958,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 					Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
 					Parameters:         stackParams,
 					Tags:               tags,
-					TemplateBody:       aws.String(a.context.NodePoolTemplate),
+					TemplateBody:       aws.String(a.context.NodePoolTemplate.Content),
 				}
 
 				_, err = cloudformationSrv.UpdateStack(updateStackInput)

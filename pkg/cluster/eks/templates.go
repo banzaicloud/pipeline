@@ -19,6 +19,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
+	"strings"
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/spf13/viper"
@@ -29,18 +31,37 @@ const (
 	eksNodePoolTemplateName = "amazon-eks-nodepool-cf.yaml"
 )
 
+type CFTemplate struct {
+	Content string
+	Version string
+}
+
+const Version0_1 = "0.1"
+const Version0_2 = "0.2"
+const Version1_0 = "1.0"
+
+const MajorVersionSeparator = "."
+
+func (c *CFTemplate) MinorVersionChange(version *CFTemplate) bool {
+	version1A := strings.Split(c.Version, MajorVersionSeparator)
+	version2A := strings.Split(version.Version, MajorVersionSeparator)
+	return version1A[0] == version2A[0]
+}
+
 // getEksCloudFormationTemplate returns CloudFormation template with given name
-func getEksCloudFormationTemplate(name string) (string, error) {
+func getEksCloudFormationTemplate(name string) (*CFTemplate, error) {
+	cfTemplate := CFTemplate{}
 
 	// location to retrieve the Cloud Formation template from
-	templatePath := viper.GetString(config.EksTemplateLocation) + "/" + name
+	cfTemplate.Version = viper.GetString(config.EksTemplateVersion)
+	templatePath := path.Join(viper.GetString(config.EksTemplateLocation), cfTemplate.Version, name)
 
 	log.Infof("Getting CloudFormation template from %q", templatePath)
 
 	u, err := url.Parse(templatePath)
 	if err != nil {
 		log.Errorf("Getting CloudFormation template from %q failed: %s", templatePath, err.Error())
-		return "", err
+		return &cfTemplate, err
 	}
 
 	var content []byte
@@ -59,18 +80,19 @@ func getEksCloudFormationTemplate(name string) (string, error) {
 
 	if err != nil {
 		log.Errorf("Reading CloudFormation template content from %q failed: %s", templatePath, err.Error())
-		return "", err
+		return &cfTemplate, err
 	}
+	cfTemplate.Content = string(content)
 
-	return string(content), nil
+	return &cfTemplate, nil
 }
 
 // GetVPCTemplate returns the CloudFormation template for creating VPC for EKS cluster
-func GetVPCTemplate() (string, error) {
+func GetVPCTemplate() (*CFTemplate, error) {
 	return getEksCloudFormationTemplate(eksVPCTemplateName)
 }
 
 // GetNodePoolTemplate returns the CloudFormation template for creating node pools for EKS cluster
-func GetNodePoolTemplate() (string, error) {
+func GetNodePoolTemplate() (*CFTemplate, error) {
 	return getEksCloudFormationTemplate(eksNodePoolTemplateName)
 }

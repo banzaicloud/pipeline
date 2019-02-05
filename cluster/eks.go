@@ -944,7 +944,7 @@ func (c *EKSCluster) DownloadK8sConfig() ([]byte, error) {
 			return nil, err
 		}
 
-		context := action.NewEksClusterCreationContext(session, c.modelCluster.Name, "", "")
+		context := action.NewEksClusterCreationContext(session, c.modelCluster.Name, "", nil)
 
 		if err := c.loadEksMasterSettings(context); err != nil {
 			return nil, err

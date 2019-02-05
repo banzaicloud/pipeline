@@ -59,6 +59,8 @@ const (
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"
+	EksTemplateVersion  = "eks.templateVersion"
+
 	// EksASGFulfillmentTimeout configuration key for the timeout of EKS ASG instance fulfillments
 	EksASGFulfillmentTimeout = "eks.ASGFulfillmentTimeout"
 
