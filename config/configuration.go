@@ -275,7 +275,7 @@ func GetCORS() cors.Config {
 	viper.SetDefault("cors.AllowAllOrigins", true)
 	viper.SetDefault("cors.AllowOrigins", []string{})
 	viper.SetDefault("cors.AllowOriginsRegexp", "")
-	viper.SetDefault("cors.AllowMethods", []string{"PUT", "DELETE", "GET", "POST", "OPTIONS"})
+	viper.SetDefault("cors.AllowMethods", []string{"PUT", "DELETE", "GET", "POST", "OPTIONS", "PATCH"})
 	viper.SetDefault("cors.AllowHeaders", []string{"Origin", "Authorization", "Content-Type", "secretId"})
 	viper.SetDefault("cors.ExposeHeaders", []string{"Content-Length"})
 	viper.SetDefault("cors.AllowCredentials", true)
