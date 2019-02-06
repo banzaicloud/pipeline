@@ -312,6 +312,50 @@ func (m *VCNManager) createWorkerNodesSecurityList(name string, CIDR string) (li
 				},
 			},
 		},
+		{
+			Source:      common.String("134.70.0.0/17"),
+			Protocol:    common.String("6"),
+			IsStateless: common.Bool(false),
+			TcpOptions: &core.TcpOptions{
+				DestinationPortRange: &core.PortRange{
+					Min: common.Int(22),
+					Max: common.Int(22),
+				},
+			},
+		},
+		{
+			Source:      common.String("140.91.0.0/17"),
+			Protocol:    common.String("6"),
+			IsStateless: common.Bool(false),
+			TcpOptions: &core.TcpOptions{
+				DestinationPortRange: &core.PortRange{
+					Min: common.Int(22),
+					Max: common.Int(22),
+				},
+			},
+		},
+		{
+			Source:      common.String("147.154.0.0/16"),
+			Protocol:    common.String("6"),
+			IsStateless: common.Bool(false),
+			TcpOptions: &core.TcpOptions{
+				DestinationPortRange: &core.PortRange{
+					Min: common.Int(22),
+					Max: common.Int(22),
+				},
+			},
+		},
+		{
+			Source:      common.String("192.29.0.0/16"),
+			Protocol:    common.String("6"),
+			IsStateless: common.Bool(false),
+			TcpOptions: &core.TcpOptions{
+				DestinationPortRange: &core.PortRange{
+					Min: common.Int(22),
+					Max: common.Int(22),
+				},
+			},
+		},
 	}
 
 	return m.createSecurityList(name, egress, ingress)
