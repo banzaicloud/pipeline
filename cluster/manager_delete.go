@@ -285,6 +285,8 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			}
 			logger.Error(err)
 		}
+		// Send delete event before finish
+		m.events.ClusterDeleted(cluster.GetOrganizationId(), cluster.GetName())
 		return nil
 	}
 
