@@ -45,7 +45,7 @@ func NewNetworkService(params ServiceParams) (network.Service, error) {
 	case providers.Google:
 		return google.NewNetworkService(params.Region, params.Secret, params.Logger)
 	case providers.Oracle:
-		return oracle.NewNetworkService(params.Secret, params.Logger)
+		return oracle.NewNetworkService(params.Region, params.Secret, params.Logger)
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
