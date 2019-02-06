@@ -43,6 +43,10 @@ func (EC2PKEClusterModel) TableName() string {
 func (m *EC2PKEClusterModel) BeforeDelete(db *gorm.DB) error {
 	var e error
 
+	if e = db.Delete(m.Cluster).Error; e != nil {
+		return emperror.WrapWith(e, "failed to delete cluster", "cluster", m.Cluster.ID)
+	}
+
 	if e = db.Delete(m.Network).Error; e != nil {
 		return emperror.WrapWith(e, "failed to delete network", "network", m.Network.ID)
 	}
