@@ -83,10 +83,14 @@ type oracleNetworkService struct {
 }
 
 // NewNetworkService returns a new Oracle network Service
-func NewNetworkService(secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
+func NewNetworkService(region string, secret *secret.SecretItemResponse, logger logrus.FieldLogger) (network.Service, error) {
 	o, err := oci.NewOCI(secretOracle.CreateOCICredential(secret.Values))
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create OCI credential")
+	}
+	err = o.ChangeRegion(region)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to change OCI region")
 	}
 	client, err := o.NewVirtualNetworkClient()
 	if err != nil {
