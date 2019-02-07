@@ -6,8 +6,8 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     go install ./cmd/aws-iam-authenticator
 RUN go get github.com/derekparker/delve/cmd/dlv
 
-FROM alpine:3.7
-RUN apk add --no-cache ca-certificates libc6-compat
+FROM alpine:3.8
+RUN apk add --no-cache ca-certificates tzdata libc6-compat
 COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=0 /go/bin/dlv /
 COPY build/pipeline-debug /
