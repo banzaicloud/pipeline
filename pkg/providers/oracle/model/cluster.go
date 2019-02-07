@@ -19,6 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
@@ -160,6 +161,13 @@ func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID uint) (clu
 			nodePool.Subnets = append(nodePool.Subnets, &NodePoolSubnet{
 				SubnetID: subnetID,
 			})
+		}
+
+		nodePool.Labels = []*NodePoolLabel{
+			{
+				Name:  pkgCommon.LabelKey,
+				Value: nodePool.Name,
+			},
 		}
 
 		for name, value := range data.Labels {
