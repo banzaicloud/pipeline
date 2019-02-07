@@ -16,7 +16,7 @@ ADD . /go/src/github.com/banzaicloud/pipeline
 RUN BUILD_DIR=/ make build
 
 
-FROM alpine:3.7
+FROM alpine:3.8
 
 RUN apk add --update --no-cache tzdata
 
