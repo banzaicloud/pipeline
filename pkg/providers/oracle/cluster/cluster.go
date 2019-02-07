@@ -115,13 +115,7 @@ func (c *Cluster) AddDefaults() error {
 		c.Version = defaultVersion
 	}
 
-	for name, np := range c.NodePools {
-
-		if len(np.Labels) == 0 {
-			np.Labels = make(map[string]string)
-		}
-
-		np.Labels[pkgCommon.LabelKey] = name
+	for _, np := range c.NodePools {
 
 		// set default image
 		if len(np.Image) == 0 {
