@@ -81,10 +81,10 @@ func InstallSecretToCluster(c *gin.Context) {
 
 	secretName := c.Param("secretName")
 
-	// Either spec is not defined (empty) or at least one spec is not a value
+	// Either spec is not defined (empty) or at least one spec is not a value or empty
 	needsSecret := len(secretRequest.Spec) == 0
 	for _, spec := range secretRequest.Spec {
-		if spec.Source != "" || len(spec.SourceMap) != 0 {
+		if spec.Source != "" || len(spec.SourceMap) != 0 || spec.Value == "" {
 			needsSecret = true
 			break
 		}
@@ -174,10 +174,10 @@ func MergeSecretInCluster(c *gin.Context) {
 
 	secretName := c.Param("secretName")
 
-	// Either spec is not defined (empty) or at least one spec is not a value
+	// Either spec is not defined (empty) or at least one spec is not a value or empty
 	needsSecret := len(secretRequest.Spec) == 0
 	for _, spec := range secretRequest.Spec {
-		if spec.Source != "" || len(spec.SourceMap) != 0 {
+		if spec.Source != "" || len(spec.SourceMap) != 0 || spec.Value == "" {
 			needsSecret = true
 			break
 		}
