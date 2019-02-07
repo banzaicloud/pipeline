@@ -260,7 +260,7 @@ func main() {
 	// Add prometheus metric endpoint
 	if viper.GetBool(config.MetricsEnabled) {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
-		p.SetListenAddress(viper.GetString(config.MetricsPort))
+		p.SetListenAddress(viper.GetString(config.MetricsAddress) + ":" + viper.GetString(config.MetricsPort))
 		p.Use(router, "/metrics")
 	}
 

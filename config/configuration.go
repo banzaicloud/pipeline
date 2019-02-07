@@ -111,6 +111,7 @@ const (
 	// Metrics
 	MetricsEnabled = "metrics.enabled"
 	MetricsPort    = "metrics.port"
+	MetricsAddress = "metrics.address"
 	MetricsDebug   = "metrics.debug"
 
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
@@ -142,9 +143,7 @@ func init() {
 	viper.AddConfigPath("./")
 	viper.AddConfigPath("./config")
 	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
-
 	viper.SetConfigName("config")
-	//viper.SetConfigType("toml")
 
 	// Set defaults TODO expand defaults
 	viper.SetDefault("cicd.url", "http://localhost:8000")
@@ -181,7 +180,8 @@ func init() {
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(MetricsEnabled, false)
-	viper.SetDefault(MetricsPort, ":9900")
+	viper.SetDefault(MetricsPort, "9900")
+	viper.SetDefault(MetricsAddress, "0.0.0.0")
 	viper.SetDefault(MetricsDebug, true)
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
