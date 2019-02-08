@@ -394,9 +394,13 @@ func (c *EC2ClusterPKE) GetAPIEndpoint() (string, error) {
 	return c.APIEndpoint, nil
 }
 
+// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
+// On PKE the services and pods IP ranges can be fetched from the model of the cluster
 func (c *EC2ClusterPKE) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	//TODO
-	return nil, errors.New("not implemented")
+	return &pkgCluster.Ipv4Cidrs{
+		ServiceClusterIPRanges: []string{c.model.Network.ServiceCIDR},
+		PodIPRanges:            []string{c.model.Network.PodCIDR},
+	}, nil
 }
 
 func (c *EC2ClusterPKE) GetK8sConfig() ([]byte, error) {

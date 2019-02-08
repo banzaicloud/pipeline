@@ -287,7 +287,6 @@ func (c *DummyCluster) GetConfigSecretId() string {
 }
 
 func (c *DummyCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	//TODO
 	return nil, errors.New("not implemented")
 }
 
