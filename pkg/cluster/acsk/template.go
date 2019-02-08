@@ -63,12 +63,18 @@ type AlibabaDescribeClusterResponse struct {
 	ZoneID                 string       `json:"zone_id"`                  // Zone ID.
 	Outputs                []outputItem `json:"outputs,omitempty"`
 	KubernetesVersion      string       `json:"current_version"`
+	SubnetCIDR             string       `json:"subnet_cidr"` // Subnet CIDR (Kubernetes pods are assigned from this range).
+	Parameters             Parameters   `json:"parameters,omitempty"`
 }
 
 type outputItem struct {
 	Description string
 	OutputKey   string
 	OutputValue interface{}
+}
+
+type Parameters struct {
+	ServiceCIDR string // Service CIDR (Kubernetes services are assigned from this range).
 }
 
 type AlibabaScaleClusterParams struct {
