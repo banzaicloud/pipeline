@@ -28,6 +28,7 @@ import (
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/oracle/oci-go-sdk/containerengine"
 	"github.com/pkg/errors"
 )
 
@@ -287,18 +288,7 @@ func (o *OKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 //GetAPIEndpoint returns the Kubernetes Api endpoint
 func (o *OKECluster) GetAPIEndpoint() (string, error) {
-
-	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
-	if err != nil {
-		return o.APIEndpoint, err
-	}
-
-	ce, err := oci.NewContainerEngineClient()
-	if err != nil {
-		return o.APIEndpoint, err
-	}
-
-	cluster, err := ce.GetClusterByID(&o.modelCluster.OKE.OCID)
+	cluster, err := o.GetCluster()
 	if err != nil {
 		return o.APIEndpoint, err
 	}
@@ -371,18 +361,7 @@ func (o *OKECluster) NodePoolExists(nodePoolName string) bool {
 
 // IsReady checks if the cluster is running according to the cloud provider.
 func (o *OKECluster) IsReady() (bool, error) {
-
-	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
-	if err != nil {
-		return false, err
-	}
-
-	ce, err := oci.NewContainerEngineClient()
-	if err != nil {
-		return false, err
-	}
-
-	cluster, err := ce.GetClusterByID(&o.modelCluster.OKE.OCID)
+	cluster, err := o.GetCluster()
 	if err != nil {
 		return false, err
 	}
@@ -425,9 +404,18 @@ func (o *OKECluster) GetConfigSecretId() string {
 	return o.modelCluster.ConfigSecretId
 }
 
+// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
+// On OKE the services and pods IP ranges can be fetched from Oracle
 func (o *OKECluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	//TODO
-	return nil, errors.New("not implemented")
+	cluster, err := o.GetCluster()
+	if err != nil {
+		return nil, err
+	}
+
+	return &pkgCluster.Ipv4Cidrs{
+		ServiceClusterIPRanges: []string{*cluster.Options.KubernetesNetworkConfig.ServicesCidr},
+		PodIPRanges:            []string{*cluster.Options.KubernetesNetworkConfig.PodsCidr},
+	}, nil
 }
 
 // GetK8sConfig returns the Kubernetes config
@@ -444,6 +432,26 @@ func (o *OKECluster) GetClusterManager() (manager *oracleClusterManager.ClusterM
 	}
 
 	return oracleClusterManager.NewClusterManager(oci), nil
+}
+
+// GetCluster returns the Kubernetes cluster
+func (o *OKECluster) GetCluster() (cluster containerengine.Cluster, err error) {
+	oci, err := o.GetOCIWithRegion(o.modelCluster.Location)
+	if err != nil {
+		return cluster, err
+	}
+
+	ce, err := oci.NewContainerEngineClient()
+	if err != nil {
+		return cluster, err
+	}
+
+	cluster, err = ce.GetClusterByID(&o.modelCluster.OKE.OCID)
+	if err != nil {
+		return cluster, err
+	}
+
+	return cluster, nil
 }
 
 // GetOCI creates a new oci.OCI

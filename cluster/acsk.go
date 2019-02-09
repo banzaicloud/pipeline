@@ -1042,9 +1042,23 @@ func (c *ACSKCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
+// GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
+// On ACK the services and pods IP ranges can be fetched from Alibaba
 func (c *ACSKCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	//TODO
-	return nil, errors.New("not implemented")
+	client, err := c.GetAlibabaCSClient(nil)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to get alibaba CS client")
+	}
+
+	cluster, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to get cluster details")
+	}
+
+	return &pkgCluster.Ipv4Cidrs{
+		ServiceClusterIPRanges: []string{cluster.Parameters.ServiceCIDR},
+		PodIPRanges:            []string{cluster.SubnetCIDR},
+	}, nil
 }
 
 func (c *ACSKCluster) GetK8sConfig() ([]byte, error) {
