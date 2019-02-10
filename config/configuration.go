@@ -137,7 +137,6 @@ const (
 
 	// NodePool LabelSet Operator
 	NodePoolLabelSetOperatorChartVersion = "nodepools.labelSetOperatorChartVersion"
-
 )
 
 //Init initializes the configurations

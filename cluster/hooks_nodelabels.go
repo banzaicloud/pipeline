@@ -15,18 +15,17 @@
 package cluster
 
 import (
+	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
-	"github.com/banzaicloud/pipeline/pkg/helm"
 	"k8s.io/api/core/v1"
 )
 import "github.com/banzaicloud/pipeline/config"
 
-
 type nodePoolLabelSetOperatorConfig struct {
-	Tolerations []v1.Toleration `json: "tolerations,omitempty"`
-	Affinity    v1.Affinity     `json: "affinity,omitempty"`
+	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+	Affinity    v1.Affinity     `json:"affinity,omitempty"`
 }
 
 // InstallNodePoolLabelSetOperator deploys node pool label set operator.
@@ -35,7 +34,7 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	headNodeAffinity := getHeadNodeAffinity(cluster)
 	headNodeTolerations := getHeadNodeTolerations()
 
-	chartName := helm.BanzaiRepository+"/nodepool-labels-operator"
+	chartName := helm.BanzaiRepository + "/nodepool-labels-operator"
 	chartVersion := viper.GetString(config.NodePoolLabelSetOperatorChartVersion)
 
 	config := nodePoolLabelSetOperatorConfig{
@@ -56,7 +55,7 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 		overrideValues,
 		chartVersion,
 		true,
-		)
+	)
 
 	if err != nil {
 		return emperror.Wrap(err, "installing node pool labelset operator failed")
@@ -64,4 +63,3 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 
 	return nil
 }
-
