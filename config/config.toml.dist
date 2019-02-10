@@ -186,3 +186,6 @@ collectionInterval = "30s"
 [cert]
 source = "file"
 path = "config/certs"
+
+[nodepools]
+labelSetOperatorChartVersion = "0.0.1"

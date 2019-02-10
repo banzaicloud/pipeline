@@ -101,6 +101,7 @@ const (
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
+	InstallNodePoolLabelSetOperator		   = "InstallNodePoolLabelSetOperator"
 )
 
 // Provider name regexp
