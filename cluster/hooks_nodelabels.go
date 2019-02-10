@@ -35,7 +35,7 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	headNodeAffinity := getHeadNodeAffinity(cluster)
 	headNodeTolerations := getHeadNodeTolerations()
 
-	chartName := helm.BanzaiRepository+"/nodepool-labels-ctrl"
+	chartName := helm.BanzaiRepository+"/nodepool-labels-operator"
 	chartVersion := viper.GetString(config.NodePoolLabelSetOperatorChartVersion)
 
 	config := nodePoolLabelSetOperatorConfig{
