@@ -542,12 +542,15 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) str
 	// TODO: find out how to supply --kubernetes-api-server=10.240.0.11 properly
 
 	if cmd == "master" {
-		return fmt.Sprintf("pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
-			"--kubernetes-version 1.12.2 --kubernetes-network-provider weave --kubernetes-service-cidr 10.32.0.0/24 --kubernetes-pod-network-cidr 10.210.0.0/16 --kubernetes-infrastructure-cidr 10.200.0.0/24",
-			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
+		return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\nread -p \"Kubernetes Api IP Address: \" PUBLIC_IP\n"+
+			"pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
+			"--kubernetes-version=1.12.2 --kubernetes-network-provider=weave --kubernetes-service-cidr=10.32.0.0/24 --kubernetes-pod-network-cidr=192.168.0.0/16 "+
+			"--kubernetes-infrastructure-cidr=\"${KUBERNETES_INFRASTRUCTURE_CIDR}\" --kubernetes-api-server=\"${PUBLIC_IP}\" --kubernetes-cluster-name=%q",
+			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, c.GetName())
 	}
-	return fmt.Sprintf("pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipelin-nodepool=%q "+
-		"--kubernetes-pod-network-cidr 10.210.0.0/24",
+	return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\n"+
+		"pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
+		"--kubernetes-infrastructure-cidr=\"${KUBERNETES_INFRASTRUCTURE_CIDR}\"",
 		cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
 }
 
