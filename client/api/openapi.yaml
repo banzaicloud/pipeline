@@ -7295,6 +7295,7 @@ components:
       example:
         virtualUser: banzaicloud/pipeline
         name: my API token
+        expiresAt: 2000-01-23T04:56:07.000+00:00
       properties:
         name:
           example: my API token
@@ -7302,8 +7303,9 @@ components:
         virtualUser:
           example: banzaicloud/pipeline
           type: string
-      required:
-      - name
+        expiresAt:
+          format: date-time
+          type: string
       type: object
     TokenCreateResponse:
       example:
