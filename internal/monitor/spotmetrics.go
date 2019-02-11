@@ -88,11 +88,13 @@ func (e *spotMetricsExporter) collectMetrics() error {
 
 	requests := make(map[string]*pkgEC2.SpotInstanceRequest)
 	for _, cluster := range clusters {
-		log := e.logger.WithField("cluster", cluster.GetName())
+		clusterName := cluster.GetName()
+		clusterID := cluster.GetID()
+		log := e.logger.WithField("cluster", clusterName)
 
 		status, err := cluster.GetStatus()
 		if err != nil {
-			e.errorHandler.Handle(emperror.Wrap(err, "could not get cluster status"))
+			e.errorHandler.Handle(emperror.WrapWith(err, "could not get cluster status", "clusterID", clusterID, "clusterName", clusterName))
 		}
 		if status.Status != pkgCluster.Running || cluster.GetDistribution() != pkgCluster.EKS {
 			continue
@@ -101,7 +103,7 @@ func (e *spotMetricsExporter) collectMetrics() error {
 		log.Debug("collecting metrics from cluster")
 		clusterSecret, err := cluster.GetSecretWithValidation()
 		if err != nil {
-			e.errorHandler.Handle(emperror.Wrap(err, "could not get secret"))
+			e.errorHandler.Handle(emperror.WrapWith(err, "could not get secret", "clusterID", clusterID, "clusterName", clusterName))
 			continue
 		}
 
@@ -110,13 +112,13 @@ func (e *spotMetricsExporter) collectMetrics() error {
 			Credentials: verify.CreateAWSCredentials(clusterSecret.Values),
 		})
 		if err != nil {
-			e.errorHandler.Handle(emperror.Wrap(err, "could not get EC2 service"))
+			e.errorHandler.Handle(emperror.WrapWith(err, "could not get EC2 service", "clusterID", clusterID, "clusterName", clusterName))
 			continue
 		}
 
 		srs, err := e.exporter.GetSpotRequests(client)
 		if err != nil {
-			e.errorHandler.Handle(emperror.Wrap(err, "could not get spot requests"))
+			e.errorHandler.Handle(emperror.WrapWith(err, "could not get spot requests", "clusterID", clusterID, "clusterName", clusterName))
 			continue
 		}
 		for key, request := range srs {
