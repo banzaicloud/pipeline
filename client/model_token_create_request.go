@@ -11,7 +11,12 @@
 
 package client
 
+import (
+	"time"
+)
+
 type TokenCreateRequest struct {
-	Name        string `json:"name"`
-	VirtualUser string `json:"virtualUser,omitempty"`
+	Name        string    `json:"name,omitempty"`
+	VirtualUser string    `json:"virtualUser,omitempty"`
+	ExpiresAt   time.Time `json:"expiresAt,omitempty"`
 }
