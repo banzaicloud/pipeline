@@ -162,6 +162,7 @@
     "services/cs",
     "services/ecs",
     "services/ess",
+    "services/vpc"
   ]
   pruneopts = "NUT"
   revision = "1c5a1c93a9c1e3da49ea0aa1f095a204b075c6b8"
