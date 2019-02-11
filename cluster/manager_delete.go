@@ -119,10 +119,10 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 	}
 	err = retry(func() error {
 		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-		left := make([]string, 0)
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining namespaces")
 		}
+		left := []string{}
 		for _, ns := range namespaces.Items {
 			switch ns.Name {
 			case "default", "kube-system", "kube-public":
@@ -210,7 +210,7 @@ func deleteServices(kubeConfig []byte, ns string, logger *logrus.Entry) error {
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining services")
 		}
-		left := make([]string, 0)
+		left := []string{}
 		for _, svc := range services.Items {
 			switch svc.Name {
 			case "kubernetes":

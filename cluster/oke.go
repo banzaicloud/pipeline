@@ -220,7 +220,7 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range o.modelCluster.OKE.NodePools {
 		if np != nil {
 
-			labels := make(map[string]string)
+			labels := make(map[string]string, len(np.Labels))
 			for _, nodePoolLabels := range np.Labels {
 				labels[nodePoolLabels.Name] = nodePoolLabels.Value
 			}

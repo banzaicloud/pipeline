@@ -70,6 +70,11 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
+	err = AddForeignKey(db, logger, &AKSNodePoolModel{}, &AKSNodePoolLabelModel{}, "NodePoolID")
+	if err != nil {
+		return err
+	}
+
 	err = AddForeignKey(db, logger, &AmazonNodePoolsModel{}, &AmazonNodePoolLabelModel{}, "NodePoolID")
 	return err
 }

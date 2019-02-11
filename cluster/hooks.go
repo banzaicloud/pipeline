@@ -1049,9 +1049,10 @@ func LabelNodes(commonCluster CommonCluster) error {
 	}
 
 	for poolName, nodes := range nodeNames {
-		labels := make(map[string]string, 0)
+		labels := make(map[string]string)
 		for name, np := range clusterStatus.NodePools {
 			if poolName == name {
+
 				labels = np.Labels
 			}
 		}

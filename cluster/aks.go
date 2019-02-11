@@ -61,7 +61,7 @@ type AKSCluster struct {
 func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID, userID uint) (*AKSCluster, error) {
 	var nodePools = make([]*model.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
 	for name, np := range request.Properties.CreateClusterAKS.NodePools {
-		labels := make([]*model.AKSNodePoolLabelModel, 0)
+		labels := make([]*model.AKSNodePoolLabelModel, len(np.Labels))
 		for name, value := range np.Labels {
 			labels = append(labels, &model.AKSNodePoolLabelModel{
 				Name:  name,
@@ -482,7 +482,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
 
-			labels := make(map[string]string)
+			labels := make(map[string]string, len(np.Labels))
 			for _, nodePoolLabels := range np.Labels {
 				labels[nodePoolLabels.Name] = nodePoolLabels.Value
 			}

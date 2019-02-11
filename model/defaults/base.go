@@ -109,12 +109,14 @@ func GetDefaultProfiles() []ClusterProfile {
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*AKSNodePoolProfile{{
+				Name:     GetDefaultProfileName(),
 				NodeName: DefaultNodeName,
 			}},
 		},
 		&GKEProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*GKENodePoolProfile{{
+				Name:     GetDefaultProfileName(),
 				NodeName: DefaultNodeName,
 			}},
 		},

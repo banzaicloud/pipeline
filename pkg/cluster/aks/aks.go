@@ -38,12 +38,12 @@ type CreateClusterAKS struct {
 
 // NodePoolCreate describes Azure's node fields of a CreateCluster request
 type NodePoolCreate struct {
-	Autoscaling      bool   `json:"autoscaling" yaml:"autoscaling"`
-	MinCount         int    `json:"minCount" yaml:"minCount"`
-	MaxCount         int    `json:"maxCount" yaml:"maxCount"`
-	Count            int    `json:"count" yaml:"count"`
-	NodeInstanceType string `json:"instanceType" yaml:"instanceType"`
-	VNetSubnetID     string `json:"vnetSubnetID,omitempty" yaml:"vnetSubnetID,omitempty"`
+	Autoscaling      bool              `json:"autoscaling" yaml:"autoscaling"`
+	MinCount         int               `json:"minCount" yaml:"minCount"`
+	MaxCount         int               `json:"maxCount" yaml:"maxCount"`
+	Count            int               `json:"count" yaml:"count"`
+	NodeInstanceType string            `json:"instanceType" yaml:"instanceType"`
+	VNetSubnetID     string            `json:"vnetSubnetID,omitempty" yaml:"vnetSubnetID,omitempty"`
 	Labels           map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 

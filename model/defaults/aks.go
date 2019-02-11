@@ -20,6 +20,8 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
+	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
 )
 
 // AKSProfile describes an Azure cluster profile
@@ -32,15 +34,15 @@ type AKSProfile struct {
 
 // AKSNodePoolProfile describes an Azure cluster profile's nodepools
 type AKSNodePoolProfile struct {
-	ID               uint   `gorm:"primary_key"`
-	Autoscaling      bool   `gorm:"default:false"`
-	MinCount         int    `gorm:"default:1"`
-	MaxCount         int    `gorm:"default:2"`
-	Count            int    `gorm:"default:1"`
-	NodeInstanceType string `gorm:"default:'Standard_D4_v2'"`
-	Name             string `gorm:"unique_index:idx_name_node_name"`
-	NodeName         string `gorm:"unique_index:idx_name_node_name"`
-	Labels           []*AKSNodePoolLabelsProfile
+	ID               uint                        `gorm:"primary_key"`
+	Autoscaling      bool                        `gorm:"default:false"`
+	MinCount         int                         `gorm:"default:1"`
+	MaxCount         int                         `gorm:"default:2"`
+	Count            int                         `gorm:"default:1"`
+	NodeInstanceType string                      `gorm:"default:'Standard_D4_v2'"`
+	Name             string                      `gorm:"unique_index:idx_name_node_name"`
+	NodeName         string                      `gorm:"unique_index:idx_name_node_name"`
+	Labels           []*AKSNodePoolLabelsProfile `gorm:"foreignkey:NodePoolProfileID"`
 }
 
 // AKSNodePoolLabelsProfile stores labels for Azure cluster profile's nodepools
@@ -48,7 +50,7 @@ type AKSNodePoolLabelsProfile struct {
 	ID                uint   `gorm:"primary_key"`
 	Name              string `gorm:"unique_index:idx_name_profile_node_pool_id"`
 	Value             string
-	ProfileNodePoolID uint `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	NodePoolProfileID uint `gorm:"unique_index:idx_name_profile_node_pool_id"`
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }
@@ -74,41 +76,56 @@ func (d *AKSProfile) AfterFind() error {
 	return config.DB().Where(AKSNodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
 }
 
-// BeforeSave clears nodepools
-func (d *AKSProfile) BeforeSave() error {
-	log.Info("BeforeSave aks profile...")
+// BeforeUpdate clears nodepools
+func (d *AKSProfile) BeforeUpdate(tx *gorm.DB) error {
+	log.Info("BeforeUpdate aks profile...")
 
-	db := config.DB()
+	if d.CreatedAt.IsZero() && d.UpdatedAt.IsZero() {
+		return tx.Create(d).Error
+	}
+
 	var nodePools []*AKSNodePoolProfile
-	err := db.Where(AKSNodePoolProfile{
+	err := tx.Where(AKSNodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
-		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+		return err
 	}
 
 	return nil
 }
 
 // BeforeDelete deletes all nodepools to belongs to profile
-func (d *AKSProfile) BeforeDelete() error {
+func (d *AKSProfile) BeforeDelete(tx *gorm.DB) error {
 	log.Info("BeforeDelete aks profile... delete all nodepool")
 
 	var nodePools []*AKSNodePoolProfile
-	return config.DB().Where(AKSNodePoolProfile{
+
+	err := tx.Where(AKSNodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // BeforeDelete deletes all labels belongs to the nodepool
-func (d *AKSNodePoolProfile) BeforeDelete() error {
-	log.Info("BeforeDelete aks nodepool... delete all labels")
+func (d *AKSNodePoolProfile) BeforeDelete(tx *gorm.DB) error {
+	for _, label := range d.Labels {
+		err := tx.Model(d).Association("Labels").Delete(label).Error
+		if err != nil {
+			return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", d.ID, "nodePoolName", d.Name)
+		}
 
-	var nodePoolLabels []*AKSNodePoolLabelsProfile
+		err = tx.Delete(label).Error
+		if err != nil {
+			return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", d.ID, "nodePoolName", d.Name)
+		}
+	}
 
-	return config.DB().Where(AKSNodePoolLabelsProfile{
-		ProfileNodePoolID: d.ID,
-	}).Find(&nodePoolLabels).Delete(&nodePoolLabels).Error
+	return nil
 }
 
 // SaveInstance saves cluster profile into database
@@ -186,7 +203,7 @@ func (d *AKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 			var nodePools []*AKSNodePoolProfile
 			for name, np := range r.Properties.AKS.NodePools {
 
-				labels := make([]*AKSNodePoolLabelsProfile, 0)
+				labels := make([]*AKSNodePoolLabelsProfile, len(np.Labels))
 				for name, value := range np.Labels {
 					labels = append(labels, &AKSNodePoolLabelsProfile{
 						Name:  name,

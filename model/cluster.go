@@ -527,12 +527,18 @@ func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
 }
 
 // BeforeDelete deletes all labels belongs to the nodepool
-func (np *AKSNodePoolModel) BeforeDelete() error {
-	log.Info("BeforeDelete azure nodepool... delete all labels")
+func (np *AKSNodePoolModel) BeforeDelete(tx *gorm.DB) error {
+	for _, label := range np.Labels {
+		err := tx.Model(np).Association("Labels").Delete(label).Error
+		if err != nil {
+			return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", np.ClusterID, "nodePoolName", np.Name)
+		}
 
-	var aksNodePoolLabels []*AKSNodePoolLabelModel
+		err = tx.Delete(label).Error
+		if err != nil {
+			return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", np.ClusterID, "nodePoolName", np.Name)
+		}
+	}
 
-	return config.DB().Where(AKSNodePoolLabelModel{
-		NodePoolID: np.ID,
-	}).Find(&aksNodePoolLabels).Delete(&aksNodePoolLabels).Error
+	return nil
 }

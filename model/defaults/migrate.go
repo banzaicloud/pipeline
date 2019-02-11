@@ -58,5 +58,21 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
+	if err := model.AddForeignKey(db, logger, &AKSProfile{}, &AKSNodePoolProfile{}, "Name"); err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &AKSNodePoolProfile{}, &AKSNodePoolLabelsProfile{}, "NodePoolProfileID"); err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &GKEProfile{}, &GKENodePoolProfile{}, "Name"); err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &GKENodePoolProfile{}, &GKENodePoolLabelsProfile{}, "NodePoolProfileID"); err != nil {
+		return err
+	}
+
 	return nil
 }

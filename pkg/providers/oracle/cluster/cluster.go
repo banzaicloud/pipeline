@@ -18,6 +18,7 @@ import (
 	"regexp"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
 
@@ -141,22 +142,22 @@ func (c *Cluster) Validate(update bool) error {
 	}
 
 	if !isValidVersion(c.Version) {
-		return errors.Errorf("invalid k8s version: %s", c.Version)
+		return emperror.With(errors.New("invalid k8s version"), "version", c.Version)
 	}
 
 	if len(c.NodePools) < 1 {
-		return errors.Errorf("at least 1 node pool must be specified")
+		return errors.New("at least 1 node pool must be specified")
 	}
 
 	for name, nodePool := range c.NodePools {
 		if nodePool.Version != c.Version {
-			return errors.Errorf("NodePool[%s]: Different k8s versions were specified for master and nodes", name)
+			return emperror.With(errors.New("different k8s versions were specified for master and nodes"), "nodepool", name)
 		}
 		if nodePool.Image == "" && !update {
-			return errors.Errorf("NodePool[%s]: Node image must be specified", name)
+			return emperror.With(errors.New("node image must be specified"), "nodepool", name)
 		}
 		if nodePool.Shape == "" && !update {
-			return errors.Errorf("NodePool[%s]: Node shape must be specified", name)
+			return emperror.With(errors.New("node shape must be specified"), "nodepool", name)
 		}
 
 		if err := pkgCommon.ValidateNodePoolLabels(nodePool.Labels); err != nil {

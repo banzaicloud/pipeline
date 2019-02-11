@@ -344,7 +344,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.model.NodePools {
 		if np != nil {
 
-			labels := make(map[string]string)
+			labels := make(map[string]string, len(np.Labels))
 			for _, nodePoolLabels := range np.Labels {
 				labels[nodePoolLabels.Name] = nodePoolLabels.Value
 			}

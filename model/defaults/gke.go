@@ -20,6 +20,8 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
+	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
 )
 
 // GKEProfile describes a Google cluster profile
@@ -33,16 +35,16 @@ type GKEProfile struct {
 
 // GKENodePoolProfile describes a Google cluster profile's nodepools
 type GKENodePoolProfile struct {
-	ID               uint   `gorm:"primary_key"`
-	Autoscaling      bool   `gorm:"default:false"`
-	MinCount         int    `gorm:"default:1"`
-	MaxCount         int    `gorm:"default:2"`
-	Count            int    `gorm:"default:1"`
-	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
-	Name             string `gorm:"unique_index:idx_name_node_name"`
-	NodeName         string `gorm:"unique_index:idx_name_node_name"`
-	Preemptible      bool   `gorm:"default:false"`
-	Labels           []*GKENodePoolLabelsProfile
+	ID               uint                        `gorm:"primary_key"`
+	Autoscaling      bool                        `gorm:"default:false"`
+	MinCount         int                         `gorm:"default:1"`
+	MaxCount         int                         `gorm:"default:2"`
+	Count            int                         `gorm:"default:1"`
+	NodeInstanceType string                      `gorm:"default:'n1-standard-1'"`
+	Name             string                      `gorm:"unique_index:idx_name_node_name"`
+	NodeName         string                      `gorm:"unique_index:idx_name_node_name"`
+	Preemptible      bool                        `gorm:"default:false"`
+	Labels           []*GKENodePoolLabelsProfile `gorm:"foreignkey:NodePoolProfileID"`
 }
 
 // GKENodePoolLabelsProfile stores labels for Google cluster profile's nodepools
@@ -50,7 +52,7 @@ type GKENodePoolLabelsProfile struct {
 	ID                uint   `gorm:"primary_key"`
 	Name              string `gorm:"unique_index:idx_name_profile_node_pool_id"`
 	Value             string
-	ProfileNodePoolID uint `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	NodePoolProfileID uint `gorm:"unique_index:idx_name_profile_node_pool_id"`
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }
@@ -76,40 +78,56 @@ func (d *GKEProfile) AfterFind() error {
 	return config.DB().Where(GKENodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
 }
 
-// BeforeSave clears nodepools
-func (d *GKEProfile) BeforeSave() error {
-	log.Info("BeforeSave gke profile...")
+// BeforeUpdate clears nodepools
+func (d *GKEProfile) BeforeUpdate(tx *gorm.DB) error {
+	log.Info("BeforeUpdate gke profile...")
+
+	if d.CreatedAt.IsZero() && d.UpdatedAt.IsZero() {
+		return tx.Create(d).Error
+	}
 
 	var nodePools []*GKENodePoolProfile
-	err := config.DB().Where(GKENodePoolProfile{
+	err := tx.Where(GKENodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
-		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+		return err
 	}
 
 	return nil
 }
 
 // BeforeDelete deletes all nodepools to belongs to profile
-func (d *GKEProfile) BeforeDelete() error {
+func (d *GKEProfile) BeforeDelete(tx *gorm.DB) error {
 	log.Info("BeforeDelete gke profile... delete all nodepool")
 
 	var nodePools []*GKENodePoolProfile
-	return config.DB().Where(GKENodePoolProfile{
+
+	err := tx.Where(GKENodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // BeforeDelete deletes all labels belongs to the nodepool
-func (d *GKENodePoolProfile) BeforeDelete() error {
-	log.Info("BeforeDelete gke nodepool... delete all labels")
+func (d *GKENodePoolProfile) BeforeDelete(tx *gorm.DB) error {
+	for _, label := range d.Labels {
+		err := tx.Model(d).Association("Labels").Delete(label).Error
+		if err != nil {
+			return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", d.ID, "nodePoolName", d.Name)
+		}
 
-	var nodePoolLabels []*GKENodePoolLabelsProfile
+		err = tx.Delete(label).Error
+		if err != nil {
+			return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", d.ID, "nodePoolName", d.Name)
+		}
+	}
 
-	return config.DB().Where(GKENodePoolLabelsProfile{
-		ProfileNodePoolID: d.ID,
-	}).Find(&nodePoolLabels).Delete(&nodePoolLabels).Error
+	return nil
 }
 
 // SaveInstance saves cluster profile into database
@@ -189,7 +207,7 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 		if len(r.Properties.GKE.NodePools) != 0 {
 
-			var nodePools []*GKENodePoolProfile
+			nodePools := make([]*GKENodePoolProfile, len(r.Properties.GKE.NodeVersion))
 			for name, np := range r.Properties.GKE.NodePools {
 				nodePool := &GKENodePoolProfile{
 					Autoscaling:      np.Autoscaling,
