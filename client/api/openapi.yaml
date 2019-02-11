@@ -9457,6 +9457,9 @@ components:
           type: string
         zoneId:
           type: string
+        vswitchId:
+          example: vsw-zysrfslpfhasklu338qys
+          type: string
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsACK'
