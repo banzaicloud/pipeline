@@ -5613,6 +5613,9 @@ components:
                         zoneId:
                             type: string
                             example: ""
+                        vswitchId:
+                            type: string
+                            example: "vsw-zysrfslpfhasklu338qys"
                         nodePools:
                             type: object
                             additionalProperties:

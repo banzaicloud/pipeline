@@ -321,6 +321,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 			SNATEntry:                true,
 			SSHFlags:                 true,
 			NodePools:                nodePools,
+			VSwitchID:                request.Properties.CreateClusterACSK.VSwitchID,
 		},
 		CreatedBy: userId,
 	}

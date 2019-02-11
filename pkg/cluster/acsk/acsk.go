@@ -36,6 +36,7 @@ type CreateClusterACSK struct {
 	MasterSystemDiskSize     int       `json:"masterSystemDiskSize,omitempty" yaml:"masterSystemDiskSize,omitempty"`
 	KeyPair                  string    `json:"keyPair,omitempty" yaml:"keyPair,omitempty"`
 	NodePools                NodePools `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
+	VSwitchID                string    `json:"vswitchId,omitempty" yaml:"vswitchId,omitempty"`
 }
 
 // UpdateClusterACSK describes Alibaba's node fields of an UpdateCluster request
