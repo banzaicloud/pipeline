@@ -250,13 +250,12 @@ func main() {
 		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
 	}
 
-	router.GET(path.Join(basePath, "/version"), VersionHandler)
-	router.GET(path.Join(basePath, "notifications"), notification.GetNotifications)
+	router.GET("/", api.RedirectRoot)
 
-	root := router.Group("/")
-	{
-		root.GET("/", api.RedirectRoot)
-	}
+	base := router.Group(basePath)
+	base.GET("notifications", notification.GetNotifications)
+	base.GET("version", VersionHandler)
+
 	// Add prometheus metric endpoint
 	if viper.GetBool(config.MetricsEnabled) {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
@@ -269,7 +268,7 @@ func main() {
 
 	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath)
 
-	dgroup := router.Group(path.Join(basePath, "dashboard", "orgs"))
+	dgroup := base.Group(path.Join("dashboard", "orgs"))
 	dgroup.Use(auth.Handler)
 	dgroup.Use(authorizationMiddleware)
 	dgroup.Use(api.OrganizationMiddleware)
@@ -310,11 +309,11 @@ func main() {
 
 	spotguideAPI := api.NewSpotguideAPI(logger, errorHandler, spotguideManager)
 
-	v1 := router.Group(path.Join(basePath, "api", "v1/"))
-	v1.GET("/functions", api.ListFunctions)
-	v1.GET("/securityscan", api.SecurytiScanEnabled)
+	v1 := base.Group("api/v1")
 	{
 		v1.Use(auth.Handler)
+		v1.GET("/functions", api.ListFunctions)
+		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
 		v1.Use(authorizationMiddleware)
@@ -471,13 +470,13 @@ func main() {
 		)
 	}
 
-	router.GET(basePath+"/api", api.MetaHandler(router, basePath+"/api"))
+	base.GET("api", api.MetaHandler(router, basePath+"/api"))
 
 	issueHandler, err := api.NewIssueHandler(Version, CommitHash, BuildDate)
 	if err != nil {
 		panic(err)
 	}
-	router.POST(basePath+"/issues", auth.Handler, issueHandler)
+	base.POST("issues", auth.Handler, issueHandler)
 
 	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
 	logger.Infof("Pipeline internal API listening on http://%s", internalBindAddr)
