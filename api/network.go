@@ -60,6 +60,15 @@ type RouteTableInfo struct {
 	Name string `json:"name,omitempty"`
 }
 
+func filterEmpty(strings []string) (result []string) {
+	for _, s := range strings {
+		if len(s) != 0 {
+			result = append(result, s)
+		}
+	}
+	return
+}
+
 // ListVPCNetworks lists all VPC networks of the specified organization
 func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 	logger := correlationid.Logger(a.logger, ctx)
@@ -118,7 +127,7 @@ func (a *NetworkAPI) ListVPCNetworks(ctx *gin.Context) {
 
 	networkInfos := make([]NetworkInfo, len(networks))
 	for i := range networks {
-		networkInfos[i].CIDRs = networks[i].CIDRs()
+		networkInfos[i].CIDRs = filterEmpty(networks[i].CIDRs())
 		networkInfos[i].ID = networks[i].ID()
 		networkInfos[i].Name = networks[i].Name()
 	}
@@ -185,7 +194,7 @@ func (a *NetworkAPI) ListVPCSubnets(ctx *gin.Context) {
 
 	subnetInfos := make([]SubnetInfo, len(subnets))
 	for i := range subnets {
-		subnetInfos[i].CIDRs = subnets[i].CIDRs()
+		subnetInfos[i].CIDRs = filterEmpty(subnets[i].CIDRs())
 		subnetInfos[i].ID = subnets[i].ID()
 		subnetInfos[i].Location = subnets[i].Location()
 		subnetInfos[i].Name = subnets[i].Name()
