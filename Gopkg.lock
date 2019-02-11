@@ -300,6 +300,14 @@
   revision = "12df4a18567f1e9635135cdc241c6917795e2cc7"
 
 [[projects]]
+  digest = "1:4f9816b70d703f09c6c8e4f567d0f202b9327577cc3ffaf90a8f4d7473765cf5"
+  name = "github.com/banzaicloud/nodepool-labels-operator"
+  packages = ["pkg/npls"]
+  pruneopts = "NUT"
+  revision = "03d7f8f8733e1e2941bc6755d68d9279be611c7a"
+  version = "0.0.1"
+
+[[projects]]
   branch = "master"
   digest = "1:b9fda76e0977f62618cf20fedf2240dab0a8228e702e4fd37de860bb678ec59b"
   name = "github.com/banzaicloud/prometheus-config"
@@ -2243,6 +2251,7 @@
     "github.com/banzaicloud/cicd-go/cicd",
     "github.com/banzaicloud/go-gin-prometheus",
     "github.com/banzaicloud/logrus-runtime-formatter",
+    "github.com/banzaicloud/nodepool-labels-operator/pkg/npls",
     "github.com/banzaicloud/prometheus-config",
     "github.com/casbin/gorm-adapter",
     "github.com/dgrijalva/jwt-go",
@@ -2280,6 +2289,7 @@
     "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/prometheus",
+    "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/prometheus/common/config",
     "github.com/prometheus/common/model",
     "github.com/qor/auth",
