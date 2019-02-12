@@ -61,7 +61,7 @@ services:
             - $HOME:/root
 
     cicd-server:
-        image: banzaicloud/cicd:0.8.1
+        image: banzaicloud/cicd:0.8.2
         depends_on:
             - db
         volumes:
@@ -84,7 +84,7 @@ services:
             CICD_REPO_CONFIG: ".banzaicloud/pipeline.yaml"
 
     cicd-agent:
-        image: banzaicloud/cicd:0.8.1
+        image: banzaicloud/cicd:0.8.2
         depends_on:
             - cicd-server
         volumes:
