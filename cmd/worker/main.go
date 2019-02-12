@@ -28,6 +28,7 @@ import (
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
@@ -114,26 +115,24 @@ func main() {
 
 		workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
 
-		db := conf.DB()
-		cicdDB, err := conf.CICDDB()
+		db, err := database.Connect(config.Database)
 		if err != nil {
 			emperror.Panic(err)
 		}
 
 		clusters := intCluster.NewClusters(db)
 		clusterManager := cluster.NewManager(clusters, nil, nil, nil, nil, conf.Logger(), errorHandler)
-		casbinDSN, err := conf.CasbinDSN()
+		casbinDSN, err := database.GetDSN(config.Database)
 		if err != nil {
 			emperror.Panic(err)
 		}
 		casbinAdapter := gormadapter.NewAdapter("mysql", casbinDSN, true)
 		enforcer := intAuth.NewEnforcer(casbinAdapter)
 		enforcer.StartAutoLoadPolicy(10 * time.Second)
-		basePath := viper.GetString("pipeline.basepath")
-		accessManager := intAuth.NewAccessManager(enforcer, basePath)
+		accessManager := intAuth.NewAccessManager(enforcer, config.Pipeline.BasePath)
 		tokenHandler := auth.NewTokenHandler(accessManager)
 
-		auth.Init(cicdDB, accessManager, nil)
+		auth.InitTokenStore()
 
 		createClusterActivity := pkeworkflow.NewCreateClusterActivity(clusterManager, tokenHandler)
 		activity.RegisterWithOptions(createClusterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateClusterActivityName})

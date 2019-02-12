@@ -44,6 +44,9 @@ type Config struct {
 	// Log configuration
 	Log log.Config
 
+	// Pipeline configuration
+	Pipeline PipelineConfig
+
 	// Database connection information
 	Database database.Config
 
@@ -57,6 +60,10 @@ func (c Config) Validate() error {
 		return errors.New("environment is required")
 	}
 
+	if err := c.Pipeline.Validate(); err != nil {
+		return err
+	}
+
 	if err := c.Database.Validate(); err != nil {
 		return err
 	}
@@ -65,6 +72,16 @@ func (c Config) Validate() error {
 		return err
 	}
 
+	return nil
+}
+
+// PipelineConfig contains application specific config.
+type PipelineConfig struct {
+	BasePath string
+}
+
+// Validate validates the configuration.
+func (c PipelineConfig) Validate() error {
 	return nil
 }
 
@@ -102,16 +119,20 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.RegisterAlias("log.level", "logging.loglevel")
 	v.RegisterAlias("log.noColor", "no_color")
 
+	// Pipeline configuration
+	viper.SetDefault("pipeline.basePath", "")
+
 	// Database configuration
 	_ = v.BindEnv("database.host")
 	v.SetDefault("database.port", 3306)
 	_ = v.BindEnv("database.user")
 	_ = v.BindEnv("database.pass")
 	_ = v.BindEnv("database.dbname")
-	v.RegisterAlias("database.name", "database.dbname") // TODO: deprecate the above
+	v.RegisterAlias("database.name", "database.dbname") // TODO: deprecate dbname
 	v.SetDefault("database.params", map[string]string{
 		"charset": "utf8mb4",
 	})
+	v.RegisterAlias("database.enableLog", "database.logging")
 
 	// Cadence configuration
 	_ = v.BindEnv("cadence.host")
