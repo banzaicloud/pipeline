@@ -107,6 +107,10 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallNodePoolLabelSetOperator,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.SetupNodePoolLabelsSet: &BasePostFunction{
+		f:            SetupNodePoolLabelsSet,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
@@ -119,6 +123,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.CreatePipelineNamespacePostHook],
 	HookMap[pkgCluster.InstallHelmPostHook],
 	HookMap[pkgCluster.InstallNodePoolLabelSetOperator],
+	HookMap[pkgCluster.SetupNodePoolLabelsSet],
 	HookMap[pkgCluster.RegisterDomainPostHook],
 	HookMap[pkgCluster.InstallIngressControllerPostHook],
 	HookMap[pkgCluster.InstallKubernetesDashboardPostHook],

@@ -70,8 +70,15 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 		return emperror.Wrap(err, "installing NodePoolLabelSet operator failed")
 	}
 
+	return nil
+}
+
+// SetupNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
+func SetupNodePoolLabelsSet(cluster CommonCluster) error {
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+
 	// add node pool name, head node, ondemand labels + cloudinfo + user definied labels
-	desiredLabelSet, err := getDesiredLabelSet(cluster)
+	desiredLabelSet, err := getDesiredLabelForCluster(cluster)
 	if err != nil {
 		return emperror.Wrap(err, "failed to retrieve desired set of labels for cluster")
 	}
@@ -98,7 +105,7 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	return nil
 }
 
-func getDesiredLabelSet(cluster CommonCluster) (npls.NodepoolLabelSets, error) {
+func getDesiredLabelForCluster(cluster CommonCluster) (npls.NodepoolLabelSets, error) {
 	desiredLabels := make(npls.NodepoolLabelSets)
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 	clusterStatus, err := cluster.GetStatus()
@@ -106,38 +113,51 @@ func getDesiredLabelSet(cluster CommonCluster) (npls.NodepoolLabelSets, error) {
 		return desiredLabels, err
 	}
 	for name, nodePool := range clusterStatus.NodePools {
-		desiredLabels[name] = make(map[string]string)
-		desiredLabels[name][common.LabelKey] = name
-		if name == headNodePoolName {
-			desiredLabels[name][common.HeadNodeLabelKey] = "true"
-		}
-		desiredLabels[name][common.OnDemandLabelKey] = getOnDemandLabel(nodePool)
-
-		// copy user labels unless they are not reserved keys
-		for labelKey, labelValue := range nodePool.Labels {
-			if !isReservedDomainKey(labelKey) {
-				desiredLabels[name][labelKey] = labelValue
-			}
-		}
-
-		// get CloudInfo labels for node
-		machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
-			clusterStatus.Distribution,
-			clusterStatus.Region,
-			nodePool.InstanceType)
-		if err != nil {
-			return desiredLabels, err
-		}
-		for attrKey, attrValue := range machineDetails.Attributes {
-			cloudInfoAttrkey := common.CloudInfoLabelKeyPrefix + attrKey
-			desiredLabels[name][cloudInfoAttrkey] = attrValue
-		}
+		desiredLabels[name] = getDesiredNodePoolLabels(clusterStatus, name, nodePool, headNodePoolName)
 	}
 	return desiredLabels, nil
 }
 
+func getDesiredNodePoolLabels(
+	clusterStatus *pkgCluster.GetClusterStatusResponse,
+	nodePoolName string,
+	nodePool *pkgCluster.NodePoolStatus,
+	headNodePoolName string) map[string]string {
+
+	desiredLabels := make(map[string]string)
+	desiredLabels[common.LabelKey] = nodePoolName
+	if nodePoolName == headNodePoolName {
+		desiredLabels[common.HeadNodeLabelKey] = "true"
+	}
+	desiredLabels[common.OnDemandLabelKey] = getOnDemandLabel(nodePool)
+
+	// copy user labels unless they are not reserved keys
+	for labelKey, labelValue := range nodePool.Labels {
+		if !isReservedDomainKey(labelKey) {
+			desiredLabels[labelKey] = labelValue
+		}
+	}
+
+	// get CloudInfo labels for node
+	machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
+		clusterStatus.Distribution,
+		clusterStatus.Region,
+		nodePool.InstanceType)
+	if err != nil {
+		log.Warnf("error retrieving labels from CloudInfo: %v", err.Error())
+	} else {
+		for attrKey, attrValue := range machineDetails.Attributes {
+			cloudInfoAttrkey := common.CloudInfoLabelKeyPrefix + attrKey
+			desiredLabels[cloudInfoAttrkey] = attrValue
+		}
+	}
+
+	return desiredLabels
+}
+
 func isReservedDomainKey(labelKey string) bool {
-	for _, reservedDomain := range common.ReservedNodeLabelDomains {
+	reservedNodeLabelDomains := viper.GetStringSlice(pipConfig.ReservedNodeLabelDomains)
+	for _, reservedDomain := range reservedNodeLabelDomains {
 		if match, _ := regexp.MatchString(reservedDomain, labelKey); match {
 			return true
 		}

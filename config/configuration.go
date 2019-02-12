@@ -56,6 +56,9 @@ const (
 	HeadNodeTaintRetryAttempt      = "infra.headNodeTaintRetryAttempt"
 	HeadNodeTaintRetrySleepSeconds = "infra.headNodeTaintRetrySleepSeconds"
 
+	//ReservedNodeLabelDomains reserved node pool label domains
+	ReservedNodeLabelDomains = "infra.reservedNodeLabelDomains"
+
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"
@@ -262,6 +265,15 @@ func init() {
 	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "dashboards", "istio"))
 
 	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.1")
+
+	viper.SetDefault(ReservedNodeLabelDomains, []string{
+		".?banzaicloud.io/.?",
+		".?banzaicloud.com/.?",
+		".?k8s.io/.?",
+		".?kubernetes.io/.?",
+		".?google.com/.?",
+		".?agentpool.?",
+	})
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

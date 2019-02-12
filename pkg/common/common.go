@@ -93,15 +93,6 @@ const (
 	HeadNodeLabelKey        = "nodepool.banzaicloud.io/head"
 )
 
-var ReservedNodeLabelDomains = []string{
-	".?banzaicloud.io/.?",
-	".?banzaicloud.com/.?",
-	".?k8s.io/.?",
-	".?kubernetes.io/.?",
-	".?google.com/.?",
-	".?agentpool.?",
-}
-
 // Constant for tainting head node
 const (
 	HeadNodeTaintKey = "nodepool.banzaicloud.io/name"

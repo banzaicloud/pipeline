@@ -102,6 +102,7 @@ const (
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
 	InstallNodePoolLabelSetOperator        = "InstallNodePoolLabelSetOperator"
+	SetupNodePoolLabelsSet                 = "SetupNodePoolLabelsSet"
 )
 
 // Provider name regexp
