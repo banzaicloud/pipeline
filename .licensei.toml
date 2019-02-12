@@ -12,6 +12,9 @@ ignored = [
   "github.com/gogo/protobuf",
   "github.com/golang/protobuf",
   "github.com/stretchr/testify",
+  "github.com/fatih/structtag", # BSD-3
+  "github.com/samuel/go-thrift", # BSD-3
+  "github.com/uber-go/tally", # MIT
 
   "github.com/davecgh/go-spew", # ISC license
   "github.com/howeyc/gopass", # ISC license
