@@ -115,6 +115,11 @@ func main() {
 		workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
 
 		db := conf.DB()
+		cicdDB, err := conf.CICDDB()
+		if err != nil {
+			emperror.Panic(err)
+		}
+
 		clusters := intCluster.NewClusters(db)
 		clusterManager := cluster.NewManager(clusters, nil, nil, nil, nil, conf.Logger(), errorHandler)
 		casbinDSN, err := conf.CasbinDSN()
@@ -127,6 +132,9 @@ func main() {
 		basePath := viper.GetString("pipeline.basepath")
 		accessManager := intAuth.NewAccessManager(enforcer, basePath)
 		tokenHandler := auth.NewTokenHandler(accessManager)
+
+		auth.Init(cicdDB, accessManager, nil)
+
 		createClusterActivity := pkeworkflow.NewCreateClusterActivity(clusterManager, tokenHandler)
 		activity.RegisterWithOptions(createClusterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateClusterActivityName})
 

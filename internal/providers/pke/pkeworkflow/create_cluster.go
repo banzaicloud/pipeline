@@ -48,6 +48,9 @@ func CreateClusterWorkflow(ctx workflow.Context, input uint) error {
 
 	err := workflow.ExecuteActivity(ctx, CreateClusterActivityName, createClusterActivityInput).Get(ctx, nil)
 	if err != nil {
+
+		// NOOOOOOO
+		//return nil
 		return err
 	}
 
