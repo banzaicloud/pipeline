@@ -1,0 +1,78 @@
+log:
+    stdout: true
+    level: "${LOG_LEVEL}"
+
+persistence:
+    defaultStore: cass-default
+    visibilityStore: cass-visibility
+    numHistoryShards: ${NUM_HISTORY_SHARDS}
+    datastores:
+        cass-default:
+            cassandra:
+                hosts: "${CASSANDRA_SEEDS}"
+                keyspace: "${KEYSPACE}"
+                consistency: "${CASSANDRA_CONSISTENCY}"
+        cass-visibility:
+            cassandra:
+                hosts: "${CASSANDRA_SEEDS}"
+                keyspace: "${VISIBILITY_KEYSPACE}"
+                consistency: "${CASSANDRA_CONSISTENCY}"
+
+ringpop:
+    name: cadence
+    bootstrapMode: hosts
+    bootstrapHosts: ${RINGPOP_SEEDS_JSON_ARRAY}
+    maxJoinDuration: 30s
+
+services:
+    frontend:
+        rpc:
+            port: 7933
+            bindOnLocalHost: ${BIND_ON_LOCALHOST}
+
+    matching:
+        rpc:
+            port: 7935
+            bindOnLocalHost: ${BIND_ON_LOCALHOST}
+
+    history:
+        rpc:
+            port: 7934
+            bindOnLocalHost: ${BIND_ON_LOCALHOST}
+
+    worker:
+        rpc:
+            port: 7939
+            bindOnLocalHost: ${BIND_ON_LOCALHOST}
+
+clustersInfo:
+    enableGlobalDomain: false
+    failoverVersionIncrement: 10
+    masterClusterName: "active"
+    currentClusterName: "active"
+    clusterInitialFailoverVersion:
+        active: 0
+    clusterAddress:
+        active:
+            rpcName: "cadence-frontend"
+            rpcAddress: "127.0.0.1:7933"
+
+dcRedirectionPolicy:
+    policy: "noop"
+    toDC: ""
+
+archival:
+    enableArchival: true
+    blobstore:
+        storeDirectory: "/tmp/blobstore/"
+        defaultBucket:
+            name: "cadence-development"
+            owner: "cadence"
+            retentionDays: 10
+        customBuckets:
+            - name: "custom-bucket-1"
+              owner: "custom-owner-1"
+              retentionDays: 10
+            - name: "custom-bucket-2"
+              owner: "custom-owner-2"
+              retentionDays: 5
