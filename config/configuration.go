@@ -258,6 +258,10 @@ func init() {
 	viper.SetDefault(IstioChartVersion, "1.0.5")
 	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "dashboards", "istio"))
 
+	// Cadence config
+	viper.SetDefault("cadence.port", 7933)
+	viper.SetDefault("cadence.domain", "banzaicloud")
+
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)
