@@ -15,18 +15,18 @@
 package main
 
 import (
-"errors"
-"fmt"
-"os"
-"strings"
-"time"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/spf13/pflag"
-"github.com/spf13/viper"
+	"github.com/spf13/viper"
 
-"github.com/banzaicloud/pipeline/internal/platform/database"
-"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
 
 // Config holds any kind of configuration that comes from the outside world and
