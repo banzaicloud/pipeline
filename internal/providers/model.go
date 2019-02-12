@@ -18,9 +18,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
-	"github.com/banzaicloud/pipeline/internal/providers/banzaicloud"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/oracle"
+	"github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -47,7 +47,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	if err := banzaicloud.Migrate(db, logger); err != nil {
+	if err := pke.Migrate(db, logger); err != nil {
 		return err
 	}
 
