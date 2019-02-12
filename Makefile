@@ -94,11 +94,21 @@ run: build ## Build and execute a binary
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
 
 .PHONY: build
-build: ## Build a binary
+build: build/pipeline build/worker ## Build binaries
+
+.PHONY: build/pipeline
+build/pipeline: ## Build a pipeline binary
 ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
 	@printf "${GOLANG_VERSION}\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^${GOLANG_VERSION}$$" || (printf "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
 endif
-	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME} ${BUILD_PACKAGE}
+	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o $@ ${PACKAGE}/cmd/pipeline
+
+.PHONY: build/worker
+build/worker: ## Build a worker binary
+ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
+	@printf "${GOLANG_VERSION}\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^${GOLANG_VERSION}$$" || (printf "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
+endif
+	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o $@ ${PACKAGE}/cmd/worker
 
 .PHONY: docker-build
 docker-build: ## Builds go binary in docker image
