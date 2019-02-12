@@ -484,6 +484,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MinCount:          np.NodeMinCount,
 				MaxCount:          np.NodeMaxCount,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Labels: 		   np.Labels,
 			}
 		}
 	}
