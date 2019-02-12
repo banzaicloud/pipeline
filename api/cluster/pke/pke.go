@@ -20,6 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
 )
 
 type tokenGenerator interface {
@@ -31,14 +32,23 @@ type API struct {
 	errorHandler    emperror.Handler
 	tokenGenerator  tokenGenerator
 	externalBaseURL string
+
+	workflowClient client.Client
 }
 
-func NewAPI(clusterGetter common.ClusterGetter, errorHandler emperror.Handler, tokenGenerator tokenGenerator, externalBaseURL string) *API {
+func NewAPI(
+	clusterGetter common.ClusterGetter,
+	errorHandler emperror.Handler,
+	tokenGenerator tokenGenerator,
+	externalBaseURL string,
+	workflowClient client.Client,
+) *API {
 	return &API{
 		clusterGetter:   clusterGetter,
 		errorHandler:    errorHandler,
 		tokenGenerator:  tokenGenerator,
 		externalBaseURL: externalBaseURL,
+		workflowClient:  workflowClient,
 	}
 }
 

@@ -19,17 +19,27 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	conf "github.com/banzaicloud/pipeline/config"
+	intAuth "github.com/banzaicloud/pipeline/internal/auth"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/casbin/gorm-adapter"
 	"github.com/goph/emperror"
 	"github.com/oklog/run"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
 )
 
 // nolint: gochecknoinits
@@ -101,6 +111,24 @@ func main() {
 		})
 		worker, err := cadence.NewWorker(config.Cadence, taskList, zapLogger)
 		emperror.Panic(err)
+
+		workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
+
+		db := conf.DB()
+		clusters := intCluster.NewClusters(db)
+		clusterManager := cluster.NewManager(clusters, nil, nil, nil, nil, conf.Logger(), errorHandler)
+		casbinDSN, err := conf.CasbinDSN()
+		if err != nil {
+			emperror.Panic(err)
+		}
+		casbinAdapter := gormadapter.NewAdapter("mysql", casbinDSN, true)
+		enforcer := intAuth.NewEnforcer(casbinAdapter)
+		enforcer.StartAutoLoadPolicy(10 * time.Second)
+		basePath := viper.GetString("pipeline.basepath")
+		accessManager := intAuth.NewAccessManager(enforcer, basePath)
+		tokenHandler := auth.NewTokenHandler(accessManager)
+		createClusterActivity := pkeworkflow.NewCreateClusterActivity(clusterManager, tokenHandler)
+		activity.RegisterWithOptions(createClusterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateClusterActivityName})
 
 		group.Add(worker.Run, func(e error) { worker.Stop() })
 	}

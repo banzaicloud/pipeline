@@ -227,7 +227,9 @@ func main() {
 		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, tokenHandler, externalBaseURL, log, errorHandler)
+	workflowClient := config.CadenceClient()
+
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, log, errorHandler)
 
 	//Initialise Gin router
 	router := gin.New()
@@ -387,7 +389,7 @@ func main() {
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
 
-			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL)
+			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient)
 			pkeAPI.RegisterRoutes(clusters.Group("/pke"))
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)

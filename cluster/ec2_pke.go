@@ -237,6 +237,21 @@ func (c *EC2ClusterPKE) GetAWSClient() (*session.Session, error) {
 	})
 }
 
+func (c *EC2ClusterPKE) GetCurrentWorkflowID() string {
+	return c.model.CurrentWorkflowID
+}
+
+func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
+	c.model.CurrentWorkflowID = workflowID
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return emperror.WrapWith(err, "failed to save ssh secret", "workflowId", workflowID)
+	}
+
+	return nil
+}
+
 func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
 	// Fetch
 

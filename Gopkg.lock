@@ -1704,13 +1704,14 @@
   version = "v1.3.2"
 
 [[projects]]
-  digest = "1:0b9df04e076335cb623611ac9c26096498a5762ec2bcea7a8809f158e8982349"
+  digest = "1:52fcbb998aabd8b0dd1059ff16909f5b0a4797dce4c474b61520a32dafc18c6b"
   name = "go.uber.org/cadence"
   packages = [
     ".gen/go/cadence",
     ".gen/go/cadence/workflowserviceclient",
     ".gen/go/cadence/workflowservicetest",
     ".gen/go/shared",
+    "activity",
     "client",
     "encoded",
     "internal",
@@ -2746,8 +2747,10 @@
     "github.com/technosophos/moniker",
     "go.uber.org/cadence/.gen/go/cadence/workflowserviceclient",
     "go.uber.org/cadence/.gen/go/shared",
+    "go.uber.org/cadence/activity",
     "go.uber.org/cadence/client",
     "go.uber.org/cadence/worker",
+    "go.uber.org/cadence/workflow",
     "go.uber.org/yarpc",
     "go.uber.org/yarpc/transport/tchannel",
     "go.uber.org/zap",

@@ -41,6 +41,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"go.uber.org/cadence/client"
 	"k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -51,18 +52,24 @@ type ClusterAPI struct {
 	clusterGetter   common.ClusterGetter
 	tokenGenerator  cluster.TokenGenerator
 	externalBaseURL string
+	workflowClient  client.Client
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
 }
 
 // NewClusterAPI returns a new ClusterAPI instance.
-func NewClusterAPI(clusterManager *cluster.Manager, clusterGetter common.ClusterGetter, tokenGenerator cluster.TokenGenerator, externalBaseURL string, logger logrus.FieldLogger, errorHandler emperror.Handler) *ClusterAPI {
+func NewClusterAPI(
+	clusterManager *cluster.Manager,
+	clusterGetter common.ClusterGetter,
+	workflowClient client.Client,
+	logger logrus.FieldLogger,
+	errorHandler emperror.Handler,
+) *ClusterAPI {
 	return &ClusterAPI{
 		clusterManager:  clusterManager,
 		clusterGetter:   clusterGetter,
-		tokenGenerator:  tokenGenerator,
-		externalBaseURL: externalBaseURL,
+		workflowClient:  workflowClient,
 
 		logger:       logger,
 		errorHandler: errorHandler,

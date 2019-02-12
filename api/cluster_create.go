@@ -167,7 +167,7 @@ func (a *ClusterAPI) CreateCluster(
 		PostHooks:      postHooks,
 	}
 
-	creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.tokenGenerator, a.externalBaseURL)
+	creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.workflowClient)
 
 	commonCluster, err = a.clusterManager.CreateCluster(ctx, creationCtx, creator)
 
