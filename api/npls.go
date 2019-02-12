@@ -4,10 +4,12 @@ import (
 	"net/http"
 
 	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
+	pipConfig "github.com/banzaicloud/pipeline/config"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func SetNodepoolLabelSets(c *gin.Context) {
@@ -39,7 +41,8 @@ func SetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	m, err := npls.NewNPLSManager(k8sconfig, "pipeline-infra")
+	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	m, err := npls.NewNPLSManager(k8sconfig, pipelineSystemNamespace)
 	if err != nil {
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 		return
@@ -81,8 +84,8 @@ func GetNodepoolLabelSets(c *gin.Context) {
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 		return
 	}
-
-	m, err := npls.NewNPLSManager(k8sconfig, "pipeline-infra")
+	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	m, err := npls.NewNPLSManager(k8sconfig, pipelineSystemNamespace)
 	if err != nil {
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
 		return

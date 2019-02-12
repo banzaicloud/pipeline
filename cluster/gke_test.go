@@ -67,9 +67,7 @@ func TestCreateNodePoolsModelFromRequest(t *testing.T) {
 		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType, Labels: map[string]string{labelName: labelValue}},
 	}
 
-	labels := []*google.GKENodePoolLabelModel{
-		{Name: labelName, Value: labelValue},
-	}
+	labels := map[string]string{labelName: labelValue}
 
 	nodePoolsModel := []*google.GKENodePoolModel{
 		{CreatedBy: userId, Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType, Labels: labels},

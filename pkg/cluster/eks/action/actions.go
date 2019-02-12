@@ -892,20 +892,9 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 
 			if a.isCreate {
 				// do not update node labels via kubelet boostrap params as that induces node reboot or replacement
-				onDemandLabel := "true"
-				if spotPriceParam != "" {
-					onDemandLabel = "false"
-				}
-
+				// we only add node pool name here, all other labels will be added by NodePoolLabelSet operator
 				nodeLabels := []string{
 					fmt.Sprintf("%v=%v", common.LabelKey, nodePool.Name),
-					fmt.Sprintf("%v=%v", common.OnDemandLabelKey, onDemandLabel),
-				}
-
-				for _, labelModel := range nodePool.Labels {
-					if labelModel != nil {
-						nodeLabels = append(nodeLabels, fmt.Sprintf("%v=%v", labelModel.Name, labelModel.Value))
-					}
 				}
 
 				stackParams = append(stackParams, &cloudformation.Parameter{

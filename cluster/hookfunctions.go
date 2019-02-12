@@ -74,8 +74,8 @@ var HookMap = map[string]PostFunctioner{
 		f:            RegisterDomainPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.LabelNodes: &BasePostFunction{
-		f:            LabelNodes,
+	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
+		f:            LabelNodesWithNodePoolName,
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.TaintHeadNodes: &BasePostFunction{
@@ -114,7 +114,7 @@ var HookMap = map[string]PostFunctioner{
 var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.StoreKubeConfig],
 	HookMap[pkgCluster.SetupPrivileges],
-	HookMap[pkgCluster.LabelNodes],
+	HookMap[pkgCluster.LabelNodesWithNodePoolName],
 	HookMap[pkgCluster.TaintHeadNodes],
 	HookMap[pkgCluster.CreatePipelineNamespacePostHook],
 	HookMap[pkgCluster.InstallHelmPostHook],

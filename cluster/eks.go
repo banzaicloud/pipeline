@@ -114,7 +114,7 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId pk
 			Count:            nodePool.Count,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
-			Labels:           createNodePoolLabelsFromRequest(nodePool.Labels),
+			Labels:           nodePool.Labels,
 			Delete:           false,
 		}
 		i++
@@ -133,67 +133,6 @@ func createSubnetsFromRequest(subnets []*pkgEks.ClusterSubnet) []*model.EKSSubne
 		}
 	}
 	return modelSubnets
-}
-
-func createNodePoolLabelsFromRequest(labels map[string]string) []*model.AmazonNodePoolLabelModel {
-	var modelLabels []*model.AmazonNodePoolLabelModel
-
-	for name, value := range labels {
-		modelLabels = append(modelLabels, &model.AmazonNodePoolLabelModel{
-			Name:   name,
-			Value:  value,
-			Delete: false,
-		})
-	}
-
-	return modelLabels
-}
-
-// createNodePoolLabelsFromUpdateRequest compares the list user provided node pool labels stored in the db
-// against the labels passed in the update request and returns a list of labels to update the database with
-func (c *EKSCluster) createNodePoolLabelsFromUpdateRequest(requestedNodePoolLabels map[string]string, currentNodePoolLabels []*model.AmazonNodePoolLabelModel) []*model.AmazonNodePoolLabelModel {
-
-	crtNodePoolLabelsMap := make(map[string]*model.AmazonNodePoolLabelModel)
-	updatedLabels := make([]*model.AmazonNodePoolLabelModel, 0, len(requestedNodePoolLabels))
-
-	for _, crtNodePoolLabel := range currentNodePoolLabels {
-		if crtNodePoolLabel != nil {
-			crtNodePoolLabelsMap[crtNodePoolLabel.Name] = crtNodePoolLabel
-
-			updatedLabel := &model.AmazonNodePoolLabelModel{
-				ID:         crtNodePoolLabel.ID,
-				Name:       crtNodePoolLabel.Name,
-				NodePoolID: crtNodePoolLabel.NodePoolID,
-				CreatedAt:  crtNodePoolLabel.CreatedAt,
-				UpdatedAt:  crtNodePoolLabel.UpdatedAt,
-				Delete:     false,
-			}
-
-			if value, ok := requestedNodePoolLabels[crtNodePoolLabel.Name]; ok {
-				// update value
-				updatedLabel.Value = value
-
-			} else {
-				// delete label
-				updatedLabel.Delete = true
-			}
-
-			updatedLabels = append(updatedLabels, updatedLabel)
-		}
-	}
-
-	for labelName, labelValue := range requestedNodePoolLabels {
-		if _, ok := crtNodePoolLabelsMap[labelName]; !ok {
-			// new node label
-			updatedLabels = append(updatedLabels, &model.AmazonNodePoolLabelModel{
-				Name:   labelName,
-				Value:  labelValue,
-				Delete: false,
-			})
-		}
-	}
-
-	return updatedLabels
 }
 
 //EKSCluster struct for EKS cluster
@@ -549,7 +488,6 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 				NodeMinCount:     nodePool.MinCount,
 				NodeMaxCount:     nodePool.MaxCount,
 				Count:            nodePool.Count,
-				Labels:           c.createNodePoolLabelsFromUpdateRequest(nodePool.Labels, currentNodePoolMap[nodePoolName].Labels),
 				Delete:           false,
 			})
 
@@ -583,7 +521,6 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 				NodeMinCount:     nodePool.MinCount,
 				NodeMaxCount:     nodePool.MaxCount,
 				Count:            nodePool.Count,
-				Labels:           createNodePoolLabelsFromRequest(nodePool.Labels),
 				Delete:           false,
 			})
 		}
@@ -970,11 +907,6 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil {
 
-			labels := make(map[string]string)
-			for _, nodePoolLabels := range np.Labels {
-				labels[nodePoolLabels.Name] = nodePoolLabels.Value
-			}
-
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
 				Count:             np.Count,
@@ -984,7 +916,7 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MaxCount:          np.NodeMaxCount,
 				Image:             np.NodeImage,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				Labels:            labels,
+				Labels:            np.Labels,
 			}
 			if np.NodeSpotPrice != "" && np.NodeSpotPrice != "0" {
 				hasSpotNodePool = true
@@ -1031,11 +963,6 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	// create update request struct with the stored data to check equality
 	preNodePools := make(map[string]*pkgEks.NodePool)
 	for _, preNp := range c.modelCluster.EKS.NodePools {
-		labels := make(map[string]string)
-
-		for _, preNpLabel := range preNp.Labels {
-			labels[preNpLabel.Name] = preNpLabel.Value
-		}
 
 		preNodePools[preNp.Name] = &pkgEks.NodePool{
 			InstanceType: preNp.NodeInstanceType,
@@ -1045,7 +972,6 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 			MaxCount:     preNp.NodeMaxCount,
 			Count:        preNp.Count,
 			Image:        preNp.NodeImage,
-			Labels:       labels,
 		}
 	}
 

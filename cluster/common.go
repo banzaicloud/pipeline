@@ -298,7 +298,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 		err = db.
 			Preload("NodePools").
-			Preload("NodePools.Labels").
 			Preload("Subnets").
 			Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).
 			First(&eksCluster.modelCluster.EKS).Error
@@ -362,7 +361,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		err = db.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.OKE).Error
+		err = db.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").First(&okeCluster.modelCluster.OKE).Error
 
 		return okeCluster, err
 	}

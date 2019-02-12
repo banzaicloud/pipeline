@@ -37,25 +37,20 @@ type CloudInfoResponse struct {
 	ScrapingTime string `json:"scrapingTime,omitempty"`
 }
 
+// SpotPriceInfo represents different prices per availability zones
+type SpotPriceInfo map[string]float64
+
 type MachineDetails struct {
-
-	// cpus
-	Cpus float64 `json:"cpusPerVm,omitempty"`
-
-	// gpus
-	Gpus float64 `json:"gpusPerVm,omitempty"`
-
-	// mem
-	Mem float64 `json:"memPerVm,omitempty"`
-
-	// ntw perf
-	NtwPerf string `json:"ntwPerf,omitempty"`
-
-	// ntw perf cat
-	NtwPerfCat string `json:"ntwPerfCategory,omitempty"`
-
-	// type
-	Type string `json:"type,omitempty"`
+	Type          string            `json:"type"`
+	OnDemandPrice float64           `json:"onDemandPrice"`
+	SpotPrice     SpotPriceInfo     `json:"spotPrice"`
+	Cpus          float64           `json:"cpusPerVm"`
+	Mem           float64           `json:"memPerVm"`
+	Gpus          float64           `json:"gpusPerVm"`
+	NtwPerf       string            `json:"ntwPerf"`
+	NtwPerfCat    string            `json:"ntwPerfCategory"`
+	Zones         []string          `json:"zones"`
+	Attributes    map[string]string `json:"attributes"`
 }
 
 type VMKey struct {

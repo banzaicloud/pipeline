@@ -300,11 +300,18 @@
   revision = "12df4a18567f1e9635135cdc241c6917795e2cc7"
 
 [[projects]]
-  digest = "1:4f9816b70d703f09c6c8e4f567d0f202b9327577cc3ffaf90a8f4d7473765cf5"
+  digest = "1:e1bf39beaa2b71b933fec77d2d080278619bc44807cc7e1bcab0e11bdc9f6338"
   name = "github.com/banzaicloud/nodepool-labels-operator"
-  packages = ["pkg/npls"]
+  packages = [
+    "pkg/apis/nodepoollabelset",
+    "pkg/apis/nodepoollabelset/v1alpha1",
+    "pkg/client/clientset/versioned",
+    "pkg/client/clientset/versioned/scheme",
+    "pkg/client/clientset/versioned/typed/nodepoollabelset/v1alpha1",
+    "pkg/npls",
+  ]
   pruneopts = "NUT"
-  revision = "03d7f8f8733e1e2941bc6755d68d9279be611c7a"
+  revision = "d7d4b9e83d3e8ca23d1e756744979cd9f32a3ed8"
   version = "0.0.1"
 
 [[projects]]
@@ -2289,7 +2296,6 @@
     "github.com/pelletier/go-toml",
     "github.com/pkg/errors",
     "github.com/prometheus/client_golang/prometheus",
-    "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/prometheus/common/config",
     "github.com/prometheus/common/model",
     "github.com/qor/auth",

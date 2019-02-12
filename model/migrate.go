@@ -30,7 +30,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&ACSKClusterModel{},
 		&ACSKNodePoolModel{},
 		&AmazonNodePoolsModel{},
-		&AmazonNodePoolLabelModel{},
 		&EKSClusterModel{},
 		&EKSSubnetModel{},
 		&AKSClusterModel{},
@@ -69,7 +68,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	err = AddForeignKey(db, logger, &AmazonNodePoolsModel{}, &AmazonNodePoolLabelModel{}, "NodePoolID")
 	return err
 }
 

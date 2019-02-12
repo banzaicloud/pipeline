@@ -87,9 +87,20 @@ const (
 
 // Constants for labeling cluster nodes
 const (
-	LabelKey         = "nodepool.banzaicloud.io/name"
-	OnDemandLabelKey = "node.banzaicloud.io/ondemand"
+	LabelKey                = "nodepool.banzaicloud.io/name"
+	OnDemandLabelKey        = "node.banzaicloud.io/ondemand"
+	CloudInfoLabelKeyPrefix = "node.banzaicloud.io/"
+	HeadNodeLabelKey        = "nodepool.banzaicloud.io/head"
 )
+
+var ReservedNodeLabelDomains = []string{
+	".?banzaicloud.io/.?",
+	".?banzaicloud.com/.?",
+	".?k8s.io/.?",
+	".?kubernetes.io/.?",
+	".?google.com/.?",
+	".?agentpool.?",
+}
 
 // Constant for tainting head node
 const (
