@@ -186,3 +186,9 @@ collectionInterval = "30s"
 [cert]
 source = "file"
 path = "config/certs"
+
+
+[cadence]
+host = "127.0.0.1"
+port = 7933
+domain = "pipeline"

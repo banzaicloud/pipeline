@@ -14,15 +14,31 @@
 
 package log
 
-// Config holds details necessary for logging.
-type Config struct {
-	// Format specifies the output log format.
-	// Accepted values are: json, logfmt/text
-	Format string
+import "github.com/sirupsen/logrus"
 
-	// Level is the minimum log level that should appear on the output.
-	Level string
+// NewLogger creates a new logrus logger instance.
+// TODO: rename to NewLogrusLogger
+func NewLogger(config Config) *logrus.Logger {
+	logger := logrus.New()
 
-	// NoColor makes sure that no log output gets colorized.
-	NoColor bool
+	level, err := logrus.ParseLevel(config.Level)
+	if err != nil {
+		level = logrus.InfoLevel
+	}
+
+	logger.Level = level
+
+	switch config.Format {
+	case "json":
+		logger.Formatter = new(logrus.JSONFormatter)
+
+	default:
+		logger.Formatter = &logrus.TextFormatter{
+			DisableColors:             config.NoColor,
+			EnvironmentOverrideColors: true,
+			FullTimestamp:             true,
+		}
+	}
+
+	return logger
 }

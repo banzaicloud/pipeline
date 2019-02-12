@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package log
+package main
 
-// Config holds details necessary for logging.
-type Config struct {
-	// Format specifies the output log format.
-	// Accepted values are: json, logfmt/text
-	Format string
+const (
+	// ServiceName is an identifier-like name used anywhere this app needs to be identified.
+	//
+	// It identifies the service itself, the actual instance needs to be identified via environment
+	// and other details.
+	ServiceName = "worker"
 
-	// Level is the minimum log level that should appear on the output.
-	Level string
+	// FriendlyServiceName is the visible name of the service.
+	FriendlyServiceName = "Pipeline Worker"
 
-	// NoColor makes sure that no log output gets colorized.
-	NoColor bool
-}
+	// EnvPrefix is prepended to environment variables when processing configuration.
+	EnvPrefix = "pipeline"
+)

@@ -21,7 +21,7 @@ func NewLogger(config Config) *zap.Logger {
 
 		return zap.New(zapcore.NewCore(
 			zaplogfmt.NewEncoder(encoderConfig),
-			os.Stderr,
+			os.Stdout,
 			level,
 		))
 

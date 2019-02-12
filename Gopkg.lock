@@ -823,6 +823,17 @@
   version = "v0.16.0"
 
 [[projects]]
+  digest = "1:3a441554e83ca3b1b26f18de3a32d979a32de57bf2e69b8f16f508dfa4232029"
+  name = "github.com/goph/logur"
+  packages = [
+    ".",
+    "adapters/logrusadapter",
+  ]
+  pruneopts = "NUT"
+  revision = "72381de18a2f0fb8cd421a6316af719950ce3bef"
+  version = "v0.10.0"
+
+[[projects]]
   digest = "1:dbd86d229eacaa86a98b10f8fb3e3fc69a1913e0f4e010e7cc1f92bf12edca92"
   name = "github.com/gorilla/context"
   packages = ["."]
@@ -1210,6 +1221,14 @@
   revision = "cca7078d478f8520f85629ad7c68962d31ed7682"
 
 [[projects]]
+  digest = "1:3b517122f3aad1ecce45a630ea912b3092b4729f25532a911d0cb2935a1f9352"
+  name = "github.com/oklog/run"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "4dadeb3030eda0273a12382bb2348ffc7c9d1a39"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:e0cc8395ea893c898ff5eb0850f4d9851c1f57c78c232304a026379a47a552d0"
   name = "github.com/opencontainers/go-digest"
   packages = ["."]
@@ -1514,12 +1533,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:01252cd79aac70f16cac02a72a1067dd136e0ad6d5b597d0129cf74c739fd8d1"
+  digest = "1:e256b859ab89f005f2f639f5ed9807d0873d9135e27c6382f419b840ff9abe71"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
-  version = "v1.1.0"
+  revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:39da3da7a735176ff518f7a6d8de9e4e03cb760dc7ef0b7b8dae6fc61406295c"
@@ -2682,6 +2701,8 @@
     "github.com/google/go-github/github",
     "github.com/goph/emperror",
     "github.com/goph/emperror/handler/logrushandler",
+    "github.com/goph/logur",
+    "github.com/goph/logur/adapters/logrusadapter",
     "github.com/gorilla/sessions",
     "github.com/hashicorp/vault/api",
     "github.com/heptio/ark/pkg/apis/ark/v1",
@@ -2697,6 +2718,7 @@
     "github.com/lestrrat-go/backoff",
     "github.com/microcosm-cc/bluemonday",
     "github.com/mitchellh/mapstructure",
+    "github.com/oklog/run",
     "github.com/oracle/oci-go-sdk/common",
     "github.com/oracle/oci-go-sdk/containerengine",
     "github.com/oracle/oci-go-sdk/core",
