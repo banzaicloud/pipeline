@@ -243,11 +243,9 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	// Generate certificates
 	clusterUidTag := fmt.Sprintf("clusterUID:%s", c.GetUID())
 	req := &secret.CreateSecretRequest{
-		Name: fmt.Sprintf("cluster-%d-ca", c.GetID()),
-		Values: map[string]string{
-			pkgSecret.ClusterUID: fmt.Sprintf("%d-%d", c.GetOrganizationId(), c.GetID()),
-		},
-		Type: pkgSecret.PKESecretType,
+		Name:   fmt.Sprintf("cluster-%d-ca", c.GetID()),
+		Values: map[string]string{},
+		Type:   pkgSecret.PKESecretType,
 		Tags: []string{
 			clusterUidTag,
 			pkgSecret.TagBanzaiReadonly,

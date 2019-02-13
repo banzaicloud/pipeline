@@ -106,8 +106,6 @@ const (
 
 // Distribution keys
 const (
-	ClusterUID = "clusterUid"
-
 	KubernetesCACert = "kubernetesCaCert"
 	KubernetesCAKey  = "kubernetesCaKey"
 
@@ -253,8 +251,6 @@ var DefaultRules = map[string]Meta{
 	},
 	PKESecretType: {
 		Fields: []FieldMeta{
-			{Name: ClusterUID, Required: true},
-
 			{Name: CACert, Required: false},
 			{Name: CAKey, Required: false},
 
