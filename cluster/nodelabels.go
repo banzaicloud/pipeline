@@ -29,6 +29,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
@@ -141,14 +142,22 @@ func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
 	return "true"
 }
 
+func labelSetExists(poolName string, nodepoolLabelSets npls.NodepoolLabelSets) bool {
+	if nodepoolLabelSets == nil {
+		return false
+	}
+	_, ok := nodepoolLabelSets[poolName]
+	return ok
+}
+
 func createNewOnly(m *npls.Manager, sets npls.NodepoolLabelSets) error {
 	existingSet, err := m.GetAll()
-	if err != nil {
+	if err != nil && !k8serrors.IsNotFound(errors.Cause(err)) {
 		return err
 	}
 	merr := emperror.NewMultiErrorBuilder()
 	for poolName, labelSet := range sets {
-		if _, ok := existingSet[poolName]; !ok {
+		if !labelSetExists(poolName, existingSet) {
 			err := m.Create(poolName, labelSet)
 			if err != nil {
 				merr.Add(err)
