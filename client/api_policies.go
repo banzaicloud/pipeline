@@ -91,14 +91,6 @@ func (a *PoliciesApiService) AddPolicy(ctx context.Context, id int32, orgId int3
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
@@ -123,6 +115,15 @@ func (a *PoliciesApiService) AddPolicy(ctx context.Context, id int32, orgId int3
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
@@ -230,21 +231,21 @@ Get the policy bundle content
  * @param policyId
  * @param optional nil or *GetPolicyOpts - Optional Parameters:
  * @param "Detail" (optional.Bool) -  Include policy bundle detail in the form of the full bundle content for each entry
-@return PolicyBundleList
+@return []PolicyBundleRecord
 */
 
 type GetPolicyOpts struct {
 	Detail optional.Bool
 }
 
-func (a *PoliciesApiService) GetPolicy(ctx context.Context, id int32, orgId int32, policyId string, localVarOptionals *GetPolicyOpts) (PolicyBundleList, *http.Response, error) {
+func (a *PoliciesApiService) GetPolicy(ctx context.Context, id int32, orgId int32, policyId string, localVarOptionals *GetPolicyOpts) ([]PolicyBundleRecord, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  PolicyBundleList
+		localVarReturnValue  []PolicyBundleRecord
 	)
 
 	// create path and map variables
@@ -293,21 +294,13 @@ func (a *PoliciesApiService) GetPolicy(ctx context.Context, id int32, orgId int3
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v PolicyBundleList
+			var v []PolicyBundleRecord
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -329,6 +322,15 @@ func (a *PoliciesApiService) GetPolicy(ctx context.Context, id int32, orgId int3
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
 	return localVarReturnValue, localVarHttpResponse, nil
 }
 
@@ -340,21 +342,21 @@ List all saved policy bundles
  * @param orgId Organization identification
  * @param optional nil or *ListPoliciesOpts - Optional Parameters:
  * @param "Detail" (optional.Bool) -  Include policy bundle detail in the form of the full bundle content for each entry
-@return PolicyBundleList
+@return []PolicyBundleRecord
 */
 
 type ListPoliciesOpts struct {
 	Detail optional.Bool
 }
 
-func (a *PoliciesApiService) ListPolicies(ctx context.Context, id int32, orgId int32, localVarOptionals *ListPoliciesOpts) (PolicyBundleList, *http.Response, error) {
+func (a *PoliciesApiService) ListPolicies(ctx context.Context, id int32, orgId int32, localVarOptionals *ListPoliciesOpts) ([]PolicyBundleRecord, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  PolicyBundleList
+		localVarReturnValue  []PolicyBundleRecord
 	)
 
 	// create path and map variables
@@ -402,21 +404,13 @@ func (a *PoliciesApiService) ListPolicies(ctx context.Context, id int32, orgId i
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v PolicyBundleList
+			var v []PolicyBundleRecord
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -424,6 +418,15 @@ func (a *PoliciesApiService) ListPolicies(ctx context.Context, id int32, orgId i
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
@@ -441,21 +444,21 @@ Update/replace and existing policy
  * @param policyBundleRecord
  * @param optional nil or *UpdatePolicyOpts - Optional Parameters:
  * @param "Active" (optional.Bool) -  Mark policy as active
-@return PolicyBundleList
+@return []PolicyBundleRecord
 */
 
 type UpdatePolicyOpts struct {
 	Active optional.Bool
 }
 
-func (a *PoliciesApiService) UpdatePolicy(ctx context.Context, id int32, orgId int32, policyId string, policyBundleRecord PolicyBundleRecord, localVarOptionals *UpdatePolicyOpts) (PolicyBundleList, *http.Response, error) {
+func (a *PoliciesApiService) UpdatePolicy(ctx context.Context, id int32, orgId int32, policyId string, policyBundleRecord PolicyBundleRecord, localVarOptionals *UpdatePolicyOpts) ([]PolicyBundleRecord, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Put")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  PolicyBundleList
+		localVarReturnValue  []PolicyBundleRecord
 	)
 
 	// create path and map variables
@@ -506,21 +509,13 @@ func (a *PoliciesApiService) UpdatePolicy(ctx context.Context, id int32, orgId i
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v PolicyBundleList
+			var v []PolicyBundleRecord
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -538,6 +533,15 @@ func (a *PoliciesApiService) UpdatePolicy(ctx context.Context, id int32, orgId i
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}

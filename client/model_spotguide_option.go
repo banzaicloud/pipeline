@@ -11,11 +11,11 @@
 
 package client
 
-type SpotguideOptionsMonitor struct {
+type SpotguideOption struct {
 	Name     string `json:"name,omitempty"`
-	Type     bool   `json:"type,omitempty"`
+	Type     string `json:"type,omitempty"`
 	Info     string `json:"info,omitempty"`
-	Default  bool   `json:"default,omitempty"`
+	Default  string `json:"default,omitempty"`
 	Readonly bool   `json:"readonly,omitempty"`
 	Key      string `json:"key,omitempty"`
 }

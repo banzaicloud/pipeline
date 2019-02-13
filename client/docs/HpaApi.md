@@ -40,7 +40,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetDeploymentAutoscaling**
-> DeploymentScalingResponse GetDeploymentAutoscaling(ctx, orgId, id, scaleTarget)
+> []map[string]interface{} GetDeploymentAutoscaling(ctx, orgId, id, scaleTarget)
 Get Deployment Scaling Info
 
 Get scaling info for a Helm deployment
@@ -56,7 +56,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**DeploymentScalingResponse**](DeploymentScalingResponse.md)
+[**[]map[string]interface{}**](map[string]interface{}.md)
 
 ### Authorization
 

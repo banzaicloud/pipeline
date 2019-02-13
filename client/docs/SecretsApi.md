@@ -18,7 +18,7 @@ Method | HTTP request | Description
 
 
 # **AddSecretTag**
-> SecretTags AddSecretTag(ctx, orgId, secretId, tag)
+> []string AddSecretTag(ctx, orgId, secretId, tag)
 Add a tag to a secret
 
 Add a tag to a secret
@@ -34,7 +34,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**SecretTags**](SecretTags.md)
+**[]string**
 
 ### Authorization
 
@@ -227,7 +227,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetSecretTags**
-> SecretTags GetSecretTags(ctx, orgId, secretId)
+> []string GetSecretTags(ctx, orgId, secretId)
 Get the tags of a secret
 
 Get the tags of a secret
@@ -242,7 +242,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**SecretTags**](SecretTags.md)
+**[]string**
 
 ### Authorization
 

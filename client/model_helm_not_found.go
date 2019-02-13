@@ -11,5 +11,8 @@
 
 package client
 
-type DeploymentScalingResponse struct {
+type HelmNotFound struct {
+	Code    int32  `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
 }

@@ -3,7 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**ImageContent** | [**ImageContent**](ImageContent.md) |  | [optional] 
+**ImageContent** | [**map[string]interface{}**](.md) | A metadata content record for a specific image, containing different content type entries | [optional] 
 **ImageDetail** | [**[]ImageDetail**](ImageDetail.md) | Details specific to an image reference and type such as tag and image source | [optional] 
 **LastUpdated** | [**time.Time**](time.Time.md) |  | [optional] 
 **CreatedAt** | [**time.Time**](time.Time.md) |  | [optional] 

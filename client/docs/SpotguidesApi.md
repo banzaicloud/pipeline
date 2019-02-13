@@ -69,7 +69,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListSpotguides**
-> ListSpotguidesResponse ListSpotguides(ctx, orgId)
+> []SpotguideDetailsResponse ListSpotguides(ctx, orgId)
 List spotguides
 
 List all available spotguides
@@ -83,7 +83,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ListSpotguidesResponse**](ListSpotguidesResponse.md)
+[**[]SpotguideDetailsResponse**](SpotguideDetailsResponse.md)
 
 ### Authorization
 

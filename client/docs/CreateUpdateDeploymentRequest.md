@@ -11,9 +11,9 @@ Name | Type | Description | Notes
 **DryRun** | **bool** |  | [optional] 
 **Wait** | **bool** | if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment are in a ready state before marking the release as successful | [optional] 
 **Timeout** | **int64** | time in seconds to wait for any individual Kubernetes operation (default 300) | [optional] 
-**OdPcts** | [**map[string]interface{}**](map[string]interface{}.md) | Map of resources in the template where replicas should have a minimum on-demand percentage. Format: &lt;kind.resourceName: min-percentage&gt; | [optional] 
+**OdPcts** | [**map[string]interface{}**](.md) | Map of resources in the template where replicas should have a minimum on-demand percentage. Format: &lt;kind.resourceName: min-percentage&gt; | [optional] 
 **ReuseValues** | **bool** |  | [optional] 
-**Values** | [**map[string]interface{}**](map[string]interface{}.md) | current values of the deployment | [optional] 
+**Values** | [**map[string]interface{}**](.md) | current values of the deployment | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

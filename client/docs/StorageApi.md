@@ -176,7 +176,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListObjectStoreBuckets**
-> ListStorageBucketsResponse ListObjectStoreBuckets(ctx, orgId, optional)
+> []BucketInfo ListObjectStoreBuckets(ctx, orgId, optional)
 List object storage buckets
 
 List object store buckets accessible by the credentials referenced by the given secret. If no credentials provided all managed buckets are returned for all cloud types.
@@ -202,7 +202,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ListStorageBucketsResponse**](ListStorageBucketsResponse.md)
+[**[]BucketInfo**](BucketInfo.md)
 
 ### Authorization
 

@@ -91,14 +91,6 @@ func (a *DeploymentsApiService) CreateDeployment(ctx context.Context, orgId int3
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
@@ -143,6 +135,15 @@ func (a *DeploymentsApiService) CreateDeployment(ctx context.Context, orgId int3
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
@@ -212,14 +213,6 @@ func (a *DeploymentsApiService) DeleteDeployment(ctx context.Context, orgId int3
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
@@ -264,6 +257,15 @@ func (a *DeploymentsApiService) DeleteDeployment(ctx context.Context, orgId int3
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
@@ -343,14 +345,6 @@ func (a *DeploymentsApiService) GetDeployment(ctx context.Context, orgId int32, 
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
@@ -399,6 +393,15 @@ func (a *DeploymentsApiService) GetDeployment(ctx context.Context, orgId int32, 
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
 	return localVarReturnValue, localVarHttpResponse, nil
 }
 
@@ -409,16 +412,16 @@ Retrieves the K8s images of a deployment
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
  * @param name Deployment name
-@return DeploymentImageList
+@return []ClusterImage
 */
-func (a *DeploymentsApiService) GetDeploymentImages(ctx context.Context, orgId int32, id int32, name string) (DeploymentImageList, *http.Response, error) {
+func (a *DeploymentsApiService) GetDeploymentImages(ctx context.Context, orgId int32, id int32, name string) ([]ClusterImage, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  DeploymentImageList
+		localVarReturnValue  []ClusterImage
 	)
 
 	// create path and map variables
@@ -464,21 +467,13 @@ func (a *DeploymentsApiService) GetDeploymentImages(ctx context.Context, orgId i
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v DeploymentImageList
+			var v []ClusterImage
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -520,6 +515,15 @@ func (a *DeploymentsApiService) GetDeploymentImages(ctx context.Context, orgId i
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
 	return localVarReturnValue, localVarHttpResponse, nil
 }
 
@@ -532,21 +536,21 @@ Retrieves the K8s resources of a deployment
  * @param name Deployment name
  * @param optional nil or *GetDeploymentResourceOpts - Optional Parameters:
  * @param "ResourceTypes" (optional.String) -  K8s reource type
-@return GetDeploymentResourcesResponse
+@return []map[string]interface{}
 */
 
 type GetDeploymentResourceOpts struct {
 	ResourceTypes optional.String
 }
 
-func (a *DeploymentsApiService) GetDeploymentResource(ctx context.Context, orgId int32, id int32, name string, localVarOptionals *GetDeploymentResourceOpts) (GetDeploymentResourcesResponse, *http.Response, error) {
+func (a *DeploymentsApiService) GetDeploymentResource(ctx context.Context, orgId int32, id int32, name string, localVarOptionals *GetDeploymentResourceOpts) ([]map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  GetDeploymentResourcesResponse
+		localVarReturnValue  []map[string]interface{}
 	)
 
 	// create path and map variables
@@ -595,21 +599,13 @@ func (a *DeploymentsApiService) GetDeploymentResource(ctx context.Context, orgId
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v GetDeploymentResourcesResponse
+			var v []map[string]interface{}
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -647,6 +643,15 @@ func (a *DeploymentsApiService) GetDeploymentResource(ctx context.Context, orgId
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
@@ -802,21 +807,21 @@ Listing Helm deployments
  * @param id Selected cluster identification (number)
  * @param optional nil or *ListDeploymentsOpts - Optional Parameters:
  * @param "Tag" (optional.String) -  Deployment tag to filter for
-@return ListDeploymentsResponse
+@return []map[string]interface{}
 */
 
 type ListDeploymentsOpts struct {
 	Tag optional.String
 }
 
-func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32, id int32, localVarOptionals *ListDeploymentsOpts) (ListDeploymentsResponse, *http.Response, error) {
+func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32, id int32, localVarOptionals *ListDeploymentsOpts) ([]map[string]interface{}, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  ListDeploymentsResponse
+		localVarReturnValue  []map[string]interface{}
 	)
 
 	// create path and map variables
@@ -864,21 +869,13 @@ func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v ListDeploymentsResponse
+			var v []map[string]interface{}
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -916,6 +913,15 @@ func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
@@ -988,14 +994,6 @@ func (a *DeploymentsApiService) UpdateDeployment(ctx context.Context, orgId int3
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
@@ -1040,6 +1038,15 @@ func (a *DeploymentsApiService) UpdateDeployment(ctx context.Context, orgId int3
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}

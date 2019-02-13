@@ -12,5 +12,5 @@
 package client
 
 type UpdateAckPropertiesAcsk struct {
-	NodePools map[string]NodePoolsAck `json:"nodePools,omitempty"`
+	NodePools map[string]NodePoolsAck `json:"nodePools"`
 }

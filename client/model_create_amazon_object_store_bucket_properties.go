@@ -12,5 +12,5 @@
 package client
 
 type CreateAmazonObjectStoreBucketProperties struct {
-	Amazon CreateAmazonObjectStoreBucketPropertiesAmazon `json:"amazon,omitempty"`
+	Location string `json:"location"`
 }
