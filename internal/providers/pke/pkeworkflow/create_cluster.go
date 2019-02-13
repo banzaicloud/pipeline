@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"time"
 
-	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -27,13 +26,24 @@ import (
 	"go.uber.org/zap"
 )
 
+type Clusters interface {
+	GetCluster(ctx context.Context, id uint) (Cluster, error)
+}
+
+type Cluster interface {
+	GetID() uint
+	GetUID() string
+	GetOrganizationId() uint
+	UpdateStatus(string, string) error
+}
+
 const CreateClusterWorkflowName = "pke-create-cluster"
 
 type CreateClusterWorkflowInput struct {
 	ClusterID uint
 }
 
-func CreateClusterWorkflow(ctx workflow.Context, input uint) error {
+func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    5 * time.Minute,
@@ -43,7 +53,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input uint) error {
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	generateCertificatesActivityInput := GenerateCertificatesActivityInput{
-		ClusterID: input,
+		ClusterID: input.ClusterID,
 	}
 
 	err := workflow.ExecuteActivity(ctx, GenerateCertificatesActivityName, generateCertificatesActivityInput).Get(ctx, nil)
@@ -52,7 +62,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input uint) error {
 	}
 
 	createClusterActivityInput := CreateClusterActivityInput{
-		ClusterID: input,
+		ClusterID: input.ClusterID,
 	}
 
 	err = workflow.ExecuteActivity(ctx, CreateClusterActivityName, createClusterActivityInput).Get(ctx, nil)
@@ -76,13 +86,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input uint) error {
 const CreateClusterActivityName = "pke-create-cluster-activity"
 
 type CreateClusterActivity struct {
-	clusterManager *pkgCluster.Manager
+	clusters       Clusters
 	tokenGenerator TokenGenerator
 }
 
-func NewCreateClusterActivity(clusterManager *pkgCluster.Manager, tokenGenerator TokenGenerator) *CreateClusterActivity {
+func NewCreateClusterActivity(clusters Clusters, tokenGenerator TokenGenerator) *CreateClusterActivity {
 	return &CreateClusterActivity{
-		clusterManager: clusterManager,
+		clusters:       clusters,
 		tokenGenerator: tokenGenerator,
 	}
 }
@@ -96,7 +106,7 @@ type CreateClusterActivityInput struct {
 }
 
 func (a *CreateClusterActivity) Execute(ctx context.Context, input CreateClusterActivityInput) error {
-	c, err := a.clusterManager.GetClusterByIDOnly(ctx, input.ClusterID)
+	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return err
 	}
@@ -129,12 +139,12 @@ func (a *CreateClusterActivity) Execute(ctx context.Context, input CreateCluster
 const GenerateCertificatesActivityName = "pke-generate-certificates-activity"
 
 type GenerateCertificatesActivity struct {
-	clusterManager *pkgCluster.Manager
+	clusters Clusters
 }
 
-func NewGenerateCertificatesActivity(clusterManager *pkgCluster.Manager) *GenerateCertificatesActivity {
+func NewGenerateCertificatesActivity(clusters Clusters) *GenerateCertificatesActivity {
 	return &GenerateCertificatesActivity{
-		clusterManager: clusterManager,
+		clusters: clusters,
 	}
 }
 
@@ -143,15 +153,16 @@ type GenerateCertificatesActivityInput struct {
 }
 
 func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input GenerateCertificatesActivityInput) error {
-	c, err := a.clusterManager.GetClusterByIDOnly(ctx, input.ClusterID)
+	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return err
 	}
 
 	// Generate certificates
 	req := &secret.CreateSecretRequest{
-		Name: fmt.Sprintf("cluster-%d-ca", c.GetID()),
-		Type: pkgSecret.PKESecretType,
+		Name:   fmt.Sprintf("cluster-%d-ca", c.GetID()),
+		Type:   pkgSecret.PKESecretType,
+		Values: map[string]string{},
 		Tags: []string{
 			fmt.Sprintf("clusterUID:%s", c.GetUID()),
 			pkgSecret.TagBanzaiReadonly,

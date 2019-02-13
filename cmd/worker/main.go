@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/casbin/gorm-adapter"
 	"github.com/goph/emperror"
 	"github.com/oklog/run"
@@ -120,8 +121,15 @@ func main() {
 			emperror.Panic(err)
 		}
 
-		clusters := intCluster.NewClusters(db)
-		clusterManager := cluster.NewManager(clusters, nil, nil, nil, nil, conf.Logger(), errorHandler)
+		clusterManager := cluster.NewManager(
+			intCluster.NewClusters(db),
+			nil,
+			nil,
+			nil,
+			nil,
+			conf.Logger(),
+			errorHandler,
+		)
 		casbinDSN, err := database.GetDSN(config.Database)
 		if err != nil {
 			emperror.Panic(err)
@@ -134,10 +142,12 @@ func main() {
 
 		auth.InitTokenStore()
 
-		createClusterActivity := pkeworkflow.NewCreateClusterActivity(clusterManager, tokenHandler)
+		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
+
+		createClusterActivity := pkeworkflow.NewCreateClusterActivity(clusters, tokenHandler)
 		activity.RegisterWithOptions(createClusterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateClusterActivityName})
 
-		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterManager)
+		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusters)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
 
 		var closeCh = make(chan struct{})

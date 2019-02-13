@@ -18,6 +18,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"go.uber.org/cadence/client"
 )
@@ -80,15 +81,14 @@ type pkeCreator struct {
 
 // Create implements the clusterCreator interface.
 func (c *pkeCreator) Create(ctx context.Context) error {
-	//input := pkeworkflow.CreateClusterWorkflowInput{
-	//	ClusterID: c.cluster.GetID(),
-	//}
+	input := pkeworkflow.CreateClusterWorkflowInput{
+		ClusterID: c.cluster.GetID(),
+	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
 	}
-	//exec, err := c.workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.CreateClusterWorkflowName, input)
-	exec, err := c.workflowClient.ExecuteWorkflow(ctx, workflowOptions, "pke-create-cluster", c.cluster.GetID())
+	exec, err := c.workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.CreateClusterWorkflowName, input)
 	if err != nil {
 		return err
 	}
