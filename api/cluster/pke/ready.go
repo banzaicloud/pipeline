@@ -93,7 +93,7 @@ func (a *API) PostReady(c *gin.Context) {
 
 		err = a.workflowClient.SignalWorkflow(
 			c.Request.Context(),
-			commonCluster.(interface{
+			commonCluster.(interface {
 				GetCurrentWorkflowID() string
 			}).GetCurrentWorkflowID(),
 			"",
