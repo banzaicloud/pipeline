@@ -19,5 +19,5 @@ type CreateGkePropertiesGke struct {
 	Vpc string `json:"vpc,omitempty"`
 	// Name of the GCP Subnet to deploy the cluster to. If \"default\" VPC is used this field can be omitted. The subnet must be in the same region as the location of the cluster.
 	Subnet    string                     `json:"subnet,omitempty"`
-	NodePools map[string]NodePoolsGoogle `json:"nodePools,omitempty"`
+	NodePools map[string]NodePoolsGoogle `json:"nodePools"`
 }

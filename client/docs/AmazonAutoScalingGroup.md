@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **Zones** | **[]string** |  | 
 **InstanceType** | **string** |  | 
 **LaunchConfigurationName** | **string** |  | 
-**LaunchTemplate** | [**AmazonLaunchTemplate**](AmazonLaunchTemplate.md) |  | [optional] 
+**LaunchTemplate** | [**map[string]interface{}**](.md) |  | [optional] 
 **VpcID** | **string** |  | 
 **SecurityGroupID** | **string** |  | 
 **Subnets** | **[]string** |  | 

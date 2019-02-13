@@ -70,7 +70,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ScanImages**
-> AnchoreImageList ScanImages(ctx, orgId, id, clusterImage)
+> []AnchoreImage ScanImages(ctx, orgId, id, clusterImage)
 Scan Images used in cluster
 
 Scan Images used in cluster
@@ -86,7 +86,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**AnchoreImageList**](AnchoreImageList.md)
+[**[]AnchoreImage**](AnchoreImage.md)
 
 ### Authorization
 

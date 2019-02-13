@@ -9,7 +9,7 @@ Method | HTTP request | Description
 
 
 # **ListScans**
-> ScanLogList ListScans(ctx, id, orgId)
+> []ScanLogItem ListScans(ctx, id, orgId)
 List scans
 
 List scans
@@ -24,7 +24,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ScanLogList**](ScanLogList.md)
+[**[]ScanLogItem**](ScanLogItem.md)
 
 ### Authorization
 
@@ -38,7 +38,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListScansByRelease**
-> ScanLogList ListScansByRelease(ctx, id, orgId, releaseName)
+> []ScanLogItem ListScansByRelease(ctx, id, orgId, releaseName)
 List scans by release
 
 List scans by release
@@ -54,7 +54,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ScanLogList**](ScanLogList.md)
+[**[]ScanLogItem**](ScanLogItem.md)
 
 ### Authorization
 

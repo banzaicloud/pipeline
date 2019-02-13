@@ -117,7 +117,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetDeploymentImages**
-> DeploymentImageList GetDeploymentImages(ctx, orgId, id, name)
+> []ClusterImage GetDeploymentImages(ctx, orgId, id, name)
 Get deployment K8s images
 
 Retrieves the K8s images of a deployment
@@ -133,7 +133,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**DeploymentImageList**](DeploymentImageList.md)
+[**[]ClusterImage**](ClusterImage.md)
 
 ### Authorization
 
@@ -147,7 +147,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetDeploymentResource**
-> GetDeploymentResourcesResponse GetDeploymentResource(ctx, orgId, id, name, optional)
+> []map[string]interface{} GetDeploymentResource(ctx, orgId, id, name, optional)
 Get deployment K8s resources
 
 Retrieves the K8s resources of a deployment
@@ -174,7 +174,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**GetDeploymentResourcesResponse**](GetDeploymentResourcesResponse.md)
+[**[]map[string]interface{}**](map[string]interface{}.md)
 
 ### Authorization
 
@@ -247,7 +247,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListDeployments**
-> ListDeploymentsResponse ListDeployments(ctx, orgId, id, optional)
+> []map[string]interface{} ListDeployments(ctx, orgId, id, optional)
 List deployments
 
 Listing Helm deployments
@@ -272,7 +272,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ListDeploymentsResponse**](ListDeploymentsResponse.md)
+[**[]map[string]interface{}**](map[string]interface{}.md)
 
 ### Authorization
 

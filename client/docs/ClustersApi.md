@@ -18,9 +18,9 @@ Method | HTTP request | Description
 [**HelmInit**](ClustersApi.md#HelmInit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
 [**InstallSecret**](ClustersApi.md#InstallSecret) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Install a particular secret into a cluster with optional remapping
 [**InstallSecrets**](ClustersApi.md#InstallSecrets) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets | Install secrets into cluster
+[**ListClusterEndpoints**](ClustersApi.md#ListClusterEndpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 [**ListClusterSecrets**](ClustersApi.md#ListClusterSecrets) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/secrets | List secrets which belongs to cluster
 [**ListClusters**](ClustersApi.md#ListClusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
-[**ListEndpoints**](ClustersApi.md#ListEndpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 [**ListNodes**](ClustersApi.md#ListNodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 [**MergeSecret**](ClustersApi.md#MergeSecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
 [**PostReadyPKENode**](ClustersApi.md#PostReadyPKENode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | List bootstrap commands for namespaces
@@ -29,7 +29,7 @@ Method | HTTP request | Description
 
 
 # **ClusterPostHooks**
-> ClusterPostHooks(ctx, orgId, id, reRunPostHook)
+> ClusterPostHooks(ctx, orgId, id, body)
 Run posthook functions
 
 Run posthook functions
@@ -41,7 +41,7 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
   **id** | **int32**| Selected cluster identification (number) | 
-  **reRunPostHook** | [**ReRunPostHook**](ReRunPostHook.md)|  | 
+  **body** | **map[string]interface{}**|  | 
 
 ### Return type
 
@@ -331,7 +331,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetPodDetails**
-> PodDetailsResponse GetPodDetails(ctx, orgId, id)
+> []PodItem GetPodDetails(ctx, orgId, id)
 Get pod details
 
 Getting pod details
@@ -346,7 +346,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**PodDetailsResponse**](PodDetailsResponse.md)
+[**[]PodItem**](PodItem.md)
 
 ### Authorization
 
@@ -450,6 +450,45 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **ListClusterEndpoints**
+> ListEndpointsResponse ListClusterEndpoints(ctx, orgId, id, optional)
+List service public endpoints
+
+List service public endpoints
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+ **optional** | ***ListClusterEndpointsOpts** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a pointer to a ListClusterEndpointsOpts struct
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+
+ **releaseName** | **optional.String**| Selected deployment release name | 
+
+### Return type
+
+[**ListEndpointsResponse**](ListEndpointsResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **ListClusterSecrets**
 > []SecretItem ListClusterSecrets(ctx, orgId, id, optional)
 List secrets which belongs to cluster
@@ -505,45 +544,6 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**[]GetClusterStatusResponse**](GetClusterStatusResponse.md)
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **ListEndpoints**
-> ListEndpointsResponse ListEndpoints(ctx, orgId, id, optional)
-List service public endpoints
-
-List service public endpoints
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization identification | 
-  **id** | **int32**| Selected cluster identification (number) | 
- **optional** | ***ListEndpointsOpts** | optional parameters | nil if no parameters
-
-### Optional Parameters
-Optional parameters are passed through a pointer to a ListEndpointsOpts struct
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
-
-
- **releaseName** | **optional.String**| Selected deployment release name | 
-
-### Return type
-
-[**ListEndpointsResponse**](ListEndpointsResponse.md)
 
 ### Authorization
 

@@ -6,7 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**HelmChartDetails**](HelmApi.md#HelmChartDetails) | **Get** /api/v1/orgs/{orgId}/helm/chart/{repoName}/{chartName} | Chart details
 [**HelmChartList**](HelmApi.md#HelmChartList) | **Get** /api/v1/orgs/{orgId}/helm/charts/ | Chart List
-[**HelmInit**](HelmApi.md#HelmInit) | **Get** /api/v1/orgs/{orgId}/helm/repos | List repositories
+[**HelmListRepos**](HelmApi.md#HelmListRepos) | **Get** /api/v1/orgs/{orgId}/helm/repos | List repositories
 [**HelmReposAdd**](HelmApi.md#HelmReposAdd) | **Post** /api/v1/orgs/{orgId}/helm/repos | Add Repo
 [**HelmReposDelete**](HelmApi.md#HelmReposDelete) | **Delete** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Delete Repo
 [**HelmReposModify**](HelmApi.md#HelmReposModify) | **Put** /api/v1/orgs/{orgId}/helm/repos/{repoName} | Modify Repo
@@ -55,7 +55,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **HelmChartList**
-> HelmChartsListResponse HelmChartList(ctx, orgId, optional)
+> []map[string]interface{} HelmChartList(ctx, orgId, optional)
 Chart List
 
 Get available Helm chart's list
@@ -80,7 +80,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**HelmChartsListResponse**](HelmChartsListResponse.md)
+[**[]map[string]interface{}**](map[string]interface{}.md)
 
 ### Authorization
 
@@ -93,8 +93,8 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **HelmInit**
-> HelmReposListResponse HelmInit(ctx, orgId)
+# **HelmListRepos**
+> []HelmRepoListItem HelmListRepos(ctx, orgId)
 List repositories
 
 Listing Helm repositories in the cluster
@@ -108,7 +108,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**HelmReposListResponse**](HelmReposListResponse.md)
+[**[]HelmRepoListItem**](HelmRepoListItem.md)
 
 ### Authorization
 

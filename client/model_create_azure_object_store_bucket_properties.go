@@ -12,5 +12,7 @@
 package client
 
 type CreateAzureObjectStoreBucketProperties struct {
-	Azure CreateAzureObjectStoreBucketPropertiesAzure `json:"azure,omitempty"`
+	StorageAccount string `json:"storageAccount"`
+	Location       string `json:"location"`
+	ResourceGroup  string `json:"resourceGroup"`
 }

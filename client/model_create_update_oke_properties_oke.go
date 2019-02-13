@@ -12,6 +12,6 @@
 package client
 
 type CreateUpdateOkePropertiesOke struct {
-	Version   string                     `json:"version,omitempty"`
-	NodePools map[string]NodePoolsOracle `json:"nodePools,omitempty"`
+	Version   string                     `json:"version"`
+	NodePools map[string]NodePoolsOracle `json:"nodePools"`
 }

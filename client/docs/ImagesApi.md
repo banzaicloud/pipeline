@@ -9,7 +9,7 @@ Method | HTTP request | Description
 
 
 # **ListDeploymentsByImage**
-> ListDeploymentsResponse ListDeploymentsByImage(ctx, orgId, id, imageDigest)
+> []map[string]interface{} ListDeploymentsByImage(ctx, orgId, id, imageDigest)
 List Deployments by Image
 
 List Deployments by Image
@@ -25,7 +25,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ListDeploymentsResponse**](ListDeploymentsResponse.md)
+[**[]map[string]interface{}**](map[string]interface{}.md)
 
 ### Authorization
 
@@ -39,7 +39,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListImages**
-> ClusterImageList ListImages(ctx, orgId, id)
+> []ClusterImage ListImages(ctx, orgId, id)
 List Images used in cluster
 
 List Images used in cluster
@@ -54,7 +54,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ClusterImageList**](ClusterImageList.md)
+[**[]ClusterImage**](ClusterImage.md)
 
 ### Authorization
 

@@ -64,7 +64,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListUsers**
-> ListUserResponse ListUsers(ctx, orgId)
+> []User ListUsers(ctx, orgId)
 List users
 
 Listing users
@@ -78,7 +78,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ListUserResponse**](ListUserResponse.md)
+[**[]User**](User.md)
 
 ### Authorization
 

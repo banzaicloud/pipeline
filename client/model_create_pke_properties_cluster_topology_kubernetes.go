@@ -12,6 +12,6 @@
 package client
 
 type CreatePkePropertiesClusterTopologyKubernetes struct {
-	Version string                                           `json:"version,omitempty"`
-	Rbac    CreatePkePropertiesClusterTopologyKubernetesRbac `json:"rbac,omitempty"`
+	Version string                                           `json:"version"`
+	Rbac    CreatePkePropertiesClusterTopologyKubernetesRbac `json:"rbac"`
 }

@@ -769,7 +769,7 @@ paths:
             tags:
                 - clusters
             summary: List service public endpoints
-            operationId: ListEndpoints
+            operationId: ListClusterEndpoints
             description: List service public endpoints
             parameters:
                 -
@@ -1508,7 +1508,7 @@ paths:
             tags:
                 - helm
             summary: List repositories
-            operationId: HelmInit
+            operationId: HelmListRepos
             description: Listing Helm repositories in the cluster
             parameters:
                 -
@@ -1698,11 +1698,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                oneOf:
-                                    -
-                                        $ref: '#/components/schemas/ClusterNotFound'
-                                    -
-                                        $ref: '#/components/schemas/RepoNotFound'
+                                $ref: '#/components/schemas/HelmNotFound'
 
     '/api/v1/orgs/{orgId}/helm/repos/{repoName}/update':
         put:
@@ -1753,11 +1749,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                oneOf:
-                                    -
-                                        $ref: '#/components/schemas/ClusterNotFound'
-                                    -
-                                        $ref: '#/components/schemas/RepoNotFound'
+                                $ref: '#/components/schemas/HelmNotFound'
 
     '/api/v1/orgs/{orgId}/helm/charts/':
         get:
@@ -5258,15 +5250,7 @@ components:
                 questions:
                     type: array
                     items:
-                        oneOf:
-                            -
-                                $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
-                            -
-                                $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
-                            -
-                                $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
-                            -
-                                $ref: '#/components/schemas/SpotguideOptionsMonitor'
+                        $ref: '#/components/schemas/SpotguideOption'
 
         LaunchSpotguidesRequest:
             type: object
@@ -5302,57 +5286,7 @@ components:
                 pipeline:
                     type: object
 
-        SpotguideOptionsMysqlDatabaseName:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: mysqlDatabaseName
-                type:
-                    type: string
-                    example: string
-                info:
-                    type: string
-                    example: Your mysql database name
-                default:
-                    type: string
-                    example: "your-mysql-database1"
-                readonly:
-                    type: boolean
-                    example: false
-                enabled:
-                    type: boolean
-                    example: true
-                key:
-                    type: string
-                    example: mysql.database.name
-
-        SpotguideOptionsMysqlDatabaseSize:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: mysqlDatabaseSize
-                type:
-                    type: string
-                    example: string
-                info:
-                    type: string
-                    example: Your mysql database size in GB
-                default:
-                    type: integer
-                    example: "1"
-                readonly:
-                    type: boolean
-                    example: false
-                enabled:
-                    type: boolean
-                    example: true
-                key:
-                    type: string
-                    example: mysql.database.size
-
-        SpotguideOptionsMysqlVersion:
+        SpotguideOption:
             type: object
             properties:
                 name:
@@ -5375,28 +5309,6 @@ components:
                     type: string
                     example: mysql.version
 
-        SpotguideOptionsMonitor:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: monitor
-                type:
-                    type: boolean
-                    example: true
-                info:
-                    type: string
-                    example: Mysql monitoring
-                default:
-                    type: boolean
-                    example: true
-                readonly:
-                    type: boolean
-                    example: false
-                key:
-                    type: string
-                    example: monitor.enabled
-
         SpotguideNotFound:
             type: object
             properties:
@@ -5413,9 +5325,7 @@ components:
         ListSpotguidesResponse:
             type: array
             items:
-                oneOf:
-                    -
-                        $ref: '#/components/schemas/SpotguideDetailsResponse'
+                $ref: '#/components/schemas/SpotguideDetailsResponse'
 
         GetDomainResponse:
             description: GetDomainResponse Api object to be mapped to Get domain request
@@ -5488,13 +5398,14 @@ components:
                     example: "my-aws-secret"
                 postHooks:
                     type: object
-                    oneOf:
-                        -
-                            $ref: '#/components/schemas/LoggingPostHook'
-                        -
-                            $ref: '#/components/schemas/BasePostHook'
-                        -
-                            $ref: '#/components/schemas/ServiceMeshPostHook'
+                    additionalProperties:
+                        # oneOf:
+                        #     -
+                        #         $ref: '#/components/schemas/LoggingPostHook'
+                        #     -
+                        #         $ref: '#/components/schemas/BasePostHook'
+                        #     -
+                        #         $ref: '#/components/schemas/ServiceMeshPostHook'
                     example:
                         InstallLogging:
                             bucketName: "mybucketname"
@@ -5505,19 +5416,20 @@ components:
                     type: string
                 properties:
                     type: object
-                    oneOf:
-                        -
-                            $ref: '#/components/schemas/CreateAKSProperties'
-                        -
-                            $ref: '#/components/schemas/CreateGKEProperties'
-                        -
-                            $ref: '#/components/schemas/CreateEKSProperties'
-                        -
-                            $ref: '#/components/schemas/CreateUpdateOKEProperties'
-                        -
-                            $ref: '#/components/schemas/CreateACKProperties'
-                        -
-                            $ref: '#/components/schemas/CreatePKEProperties'
+                    additionalProperties:
+                    # oneOf:
+                    #     -
+                    #         $ref: '#/components/schemas/CreateAKSProperties'
+                    #     -
+                    #         $ref: '#/components/schemas/CreateGKEProperties'
+                    #     -
+                    #         $ref: '#/components/schemas/CreateEKSProperties'
+                    #     -
+                    #         $ref: '#/components/schemas/CreateUpdateOKEProperties'
+                    #     -
+                    #         $ref: '#/components/schemas/CreateACKProperties'
+                    #     -
+                    #         $ref: '#/components/schemas/CreatePKEProperties'
                     example:
                         gke:
                             master:
@@ -5877,9 +5789,10 @@ components:
                     example: "amazon"
                 providerConfig:
                     type: object
-                    oneOf:
-                        -
-                            $ref: '#/components/schemas/AmazonPoviderConfig'
+                    additionalProperties:
+                    # oneOf:
+                    #     -
+                    #         $ref: '#/components/schemas/AmazonPoviderConfig'
                 hosts:
                     type: array
                     items:
@@ -6038,6 +5951,13 @@ components:
                 error:
                     type: string
                     example: "Error during process"
+        
+        HelmNotFound:
+            oneOf:
+                -
+                    $ref: '#/components/schemas/ClusterNotFound'
+                -
+                    $ref: '#/components/schemas/RepoNotFound'
 
         ClusterNotFound:
             type: object
@@ -6113,17 +6033,18 @@ components:
                     example: google
                 properties:
                     type: object
-                    oneOf:
-                        -
-                            $ref: '#/components/schemas/UpdateAzureProperties'
-                        -
-                            $ref: '#/components/schemas/UpdateGoogleProperties'
-                        -
-                            $ref: '#/components/schemas/UpdateEksProperties'
-                        -
-                            $ref: '#/components/schemas/CreateUpdateOKEProperties'
-                        -
-                            $ref: '#/components/schemas/UpdateACKProperties'
+                    additionalProperties:
+                        # oneOf:
+                        #     -
+                        #         $ref: '#/components/schemas/UpdateAzureProperties'
+                        #     -
+                        #         $ref: '#/components/schemas/UpdateGoogleProperties'
+                        #     -
+                        #         $ref: '#/components/schemas/UpdateEksProperties'
+                        #     -
+                        #         $ref: '#/components/schemas/CreateUpdateOKEProperties'
+                        #     -
+                        #         $ref: '#/components/schemas/UpdateACKProperties'
                     example:
                         google:
                             master:
@@ -7059,13 +6980,14 @@ components:
                     example: "google"
                 properties:
                     type: object
-                    oneOf:
-                        -
-                            $ref: '#/components/schemas/ClusterProfileEKS'
-                        -
-                            $ref: '#/components/schemas/ClusterProfileAKS'
-                        -
-                            $ref: '#/components/schemas/ClusterProfileGKE'
+                    additionalProperties:
+                    # oneOf:
+                    #     -
+                    #         $ref: '#/components/schemas/ClusterProfileEKS'
+                    #     -
+                    #         $ref: '#/components/schemas/ClusterProfileAKS'
+                    #     -
+                    #         $ref: '#/components/schemas/ClusterProfileGKE'
                     example:
                         gke:
                             master:
@@ -7138,15 +7060,16 @@ components:
                     example: "google"
                 properties:
                     type: object
-                    oneOf:
-                        -
-                            $ref: '#/components/schemas/AddClusterProfileEKS'
-                        -
-                            $ref: '#/components/schemas/AddClusterProfileAKS'
-                        -
-                            $ref: '#/components/schemas/AddClusterProfileGKE'
-                        -
-                            $ref: '#/components/schemas/CreateUpdateOKEProperties'
+                    additionalProperties:
+                        # oneOf:
+                        #     -
+                        #         $ref: '#/components/schemas/AddClusterProfileEKS'
+                        #     -
+                        #         $ref: '#/components/schemas/AddClusterProfileAKS'
+                        #     -
+                        #         $ref: '#/components/schemas/AddClusterProfileGKE'
+                        #     -
+                        #         $ref: '#/components/schemas/CreateUpdateOKEProperties'
                     example:
                         gke:
                             master:
@@ -7216,6 +7139,7 @@ components:
                     example: banzaicloud/pipeline
                 expiresAt:
                     type: string
+                    nullable: true
                     format: date-time
                     example: "2018-03-09T13:24:49+01:00"
 
@@ -7347,22 +7271,22 @@ components:
                     type: integer
                     example: 1
                 values:
-                    type: object
-                    oneOf:
-                        -
-                            $ref: '#/components/schemas/SecretKeyValueAmazon'
-                        -
-                            $ref: '#/components/schemas/SecretKeyValueAzure'
-                        -
-                            $ref: '#/components/schemas/SecretKeyValueGoogle'
-                        -
-                            $ref: '#/components/schemas/SecretKeyValueOracle'
-                        -
-                            $ref: '#/components/schemas/SecretKeyValueKubernetes'
-                        -
-                            $ref: '#/components/schemas/SecretKeyValueGeneric'
-                        -
-                            $ref: '#/components/schemas/SecretKeyValueTLS'
+                    additionalProperties:
+                        # oneOf:
+                        #     -
+                        #         $ref: '#/components/schemas/SecretKeyValueAmazon'
+                        #     -
+                        #         $ref: '#/components/schemas/SecretKeyValueAzure'
+                        #     -
+                        #         $ref: '#/components/schemas/SecretKeyValueGoogle'
+                        #     -
+                        #         $ref: '#/components/schemas/SecretKeyValueOracle'
+                        #     -
+                        #         $ref: '#/components/schemas/SecretKeyValueKubernetes'
+                        #     -
+                        #         $ref: '#/components/schemas/SecretKeyValueGeneric'
+                        #     -
+                        #         $ref: '#/components/schemas/SecretKeyValueTLS'
                     example:
                         type: string
                         project_id: string
@@ -7886,69 +7810,65 @@ components:
                     type: string
                     example: "mybucket"
                 properties:
-                    oneOf:
-                        -
-                            $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
-                        -
-                            $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
-                        -
-                            $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
-                        -
-                            $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
+                    $ref: '#/components/schemas/CreateObjectStoreBucketProperties'
+
+        CreateObjectStoreBucketProperties:
+            type: object
+            properties:
+                alibaba:
+                    $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
+                azure:
+                    $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
+                google:
+                    $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
+                oracle:
+                    $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
 
         CreateAmazonObjectStoreBucketProperties:
             type: object
+            nullable: true
+            required:
+                - location
             properties:
-                amazon:
-                    type: object
-                    required:
-                        - location
-                    properties:
-                        location:
-                            type: string
-                            example: "eu-west-1"
+                location:
+                    type: string
+                    example: "eu-west-1"
 
         CreateGoogleObjectStoreBucketProperties:
             type: object
+            nullable: true
+            required:
+                - location
             properties:
-                google:
-                    type: object
-                    required:
-                        - location
-                    properties:
-                        location:
-                            type: string
-                            example: "europe"
+                location:
+                    type: string
+                    example: "europe"
 
         CreateAzureObjectStoreBucketProperties:
             type: object
+            nullable: true
+            required:
+                - storageAccount
+                - resourceGroup
+                - location
             properties:
-                azure:
-                    type: object
-                    required:
-                        - storageAccount
-                        - resourceGroup
-                        - location
-                    properties:
-                        storageAccount:
-                            type: string
-                            example: "mystorageaccount"
-                        location:
-                            type: string
-                            example: "westeurope"
-                        resourceGroup:
-                            type: string
+                storageAccount:
+                    type: string
+                    example: "mystorageaccount"
+                location:
+                    type: string
+                    example: "westeurope"
+                resourceGroup:
+                    type: string
 
         CreateOracleObjectStoreBucketProperties:
             type: object
+            nullable: true
+            required:
+                - location
             properties:
-                oracle:
-                    type: object
-                    required:
-                        - location
-                    properties:
-                        location:
-                            type: string
+                location:
+                    type: string
 
         CreateObjectStoreBucketResponse:
             type: object
@@ -8230,8 +8150,7 @@ components:
                             type: boolean
                             example: false
 
-        ReRunPostHook:
-            type: object
+        PostHooks:
             oneOf:
                 -
                     $ref: '#/components/schemas/LoggingPostHook'
@@ -8239,6 +8158,10 @@ components:
                     $ref: '#/components/schemas/BasePostHook'
                 -
                     $ref: '#/components/schemas/ServiceMeshPostHook'
+
+        ReRunPostHook:
+            type: object
+            additionalProperties:
             example:
                 InstallLogging:
                     bucketName: "mybucketname"
@@ -8982,10 +8905,10 @@ components:
                 example: 127.0.0.1
                 description: ip address of node (where the other nodes can reach it)
               master:
-                type: bool
+                type: boolean
                 description: if this node is a master node
                 example: true
               worker:
-                type: bool
+                type: boolean
                 description: if this node is a worker node
                 example: false

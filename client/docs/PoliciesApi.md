@@ -72,7 +72,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetPolicy**
-> PolicyBundleList GetPolicy(ctx, id, orgId, policyId, optional)
+> []PolicyBundleRecord GetPolicy(ctx, id, orgId, policyId, optional)
 Get specific policy
 
 Get the policy bundle content
@@ -99,7 +99,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**PolicyBundleList**](PolicyBundleList.md)
+[**[]PolicyBundleRecord**](PolicyBundleRecord.md)
 
 ### Authorization
 
@@ -113,7 +113,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListPolicies**
-> PolicyBundleList ListPolicies(ctx, id, orgId, optional)
+> []PolicyBundleRecord ListPolicies(ctx, id, orgId, optional)
 List policies
 
 List all saved policy bundles
@@ -138,7 +138,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**PolicyBundleList**](PolicyBundleList.md)
+[**[]PolicyBundleRecord**](PolicyBundleRecord.md)
 
 ### Authorization
 
@@ -152,7 +152,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **UpdatePolicy**
-> PolicyBundleList UpdatePolicy(ctx, id, orgId, policyId, policyBundleRecord, optional)
+> []PolicyBundleRecord UpdatePolicy(ctx, id, orgId, policyId, policyBundleRecord, optional)
 Update policy
 
 Update/replace and existing policy
@@ -181,7 +181,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**PolicyBundleList**](PolicyBundleList.md)
+[**[]PolicyBundleRecord**](PolicyBundleRecord.md)
 
 ### Authorization
 

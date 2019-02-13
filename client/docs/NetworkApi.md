@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 
 # **ListRouteTables**
-> ListRouteTablesResponse ListRouteTables(ctx, orgId, networkId, secretId, cloudType, optional)
+> []RouteTableInfo ListRouteTables(ctx, orgId, networkId, secretId, cloudType, optional)
 List VPC route tables
 
 List route tables of the given VPC network
@@ -40,7 +40,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ListRouteTablesResponse**](ListRouteTablesResponse.md)
+[**[]RouteTableInfo**](RouteTableInfo.md)
 
 ### Authorization
 
@@ -54,7 +54,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListVPCNetworks**
-> ListVpcNetworksResponse ListVPCNetworks(ctx, orgId, secretId, cloudType, optional)
+> []VpcNetworkInfo ListVPCNetworks(ctx, orgId, secretId, cloudType, optional)
 List VPC networks
 
 List VPC networks accessible by the organization.
@@ -82,7 +82,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ListVpcNetworksResponse**](ListVPCNetworksResponse.md)
+[**[]VpcNetworkInfo**](VPCNetworkInfo.md)
 
 ### Authorization
 
@@ -96,7 +96,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListVPCSubnets**
-> ListVpcSubnetsResponse ListVPCSubnets(ctx, orgId, networkId, secretId, cloudType, optional)
+> []SubnetInfo ListVPCSubnets(ctx, orgId, networkId, secretId, cloudType, optional)
 List VPC subnetworks
 
 List subnetworks of the given VPC network
@@ -126,7 +126,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ListVpcSubnetsResponse**](ListVPCSubnetsResponse.md)
+[**[]SubnetInfo**](SubnetInfo.md)
 
 ### Authorization
 

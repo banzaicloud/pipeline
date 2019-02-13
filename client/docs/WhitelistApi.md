@@ -70,7 +70,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListWhitelists**
-> ReleaseWhiteList ListWhitelists(ctx, orgId, id)
+> []ReleaseWhiteListItem ListWhitelists(ctx, orgId, id)
 List Whitelisted deployments
 
 List Whitelisted deployments
@@ -85,7 +85,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ReleaseWhiteList**](ReleaseWhiteList.md)
+[**[]ReleaseWhiteListItem**](ReleaseWhiteListItem.md)
 
 ### Authorization
 

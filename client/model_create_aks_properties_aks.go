@@ -12,8 +12,8 @@
 package client
 
 type CreateAksPropertiesAks struct {
-	ResourceGroup     string                    `json:"resourceGroup,omitempty"`
-	KubernetesVersion string                    `json:"kubernetesVersion,omitempty"`
-	NodePools         map[string]NodePoolsAzure `json:"nodePools,omitempty"`
+	ResourceGroup     string                    `json:"resourceGroup"`
+	KubernetesVersion string                    `json:"kubernetesVersion"`
+	NodePools         map[string]NodePoolsAzure `json:"nodePools"`
 	VnetSubnetID      string                    `json:"vnetSubnetID,omitempty"`
 }

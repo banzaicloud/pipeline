@@ -12,5 +12,5 @@
 package client
 
 type UpdateEksPropertiesEks struct {
-	NodePools map[string]UpdateNodePoolsEks `json:"nodePools,omitempty"`
+	NodePools map[string]UpdateNodePoolsEks `json:"nodePools"`
 }

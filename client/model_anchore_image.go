@@ -17,7 +17,8 @@ import (
 
 // A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
 type AnchoreImage struct {
-	ImageContent ImageContent `json:"imageContent,omitempty"`
+	// A metadata content record for a specific image, containing different content type entries
+	ImageContent map[string]interface{} `json:"imageContent,omitempty"`
 	// Details specific to an image reference and type such as tag and image source
 	ImageDetail []ImageDetail `json:"imageDetail,omitempty"`
 	LastUpdated time.Time     `json:"lastUpdated,omitempty"`

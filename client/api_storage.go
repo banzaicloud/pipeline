@@ -89,14 +89,6 @@ func (a *StorageApiService) CreateObjectStoreBucket(ctx context.Context, orgId i
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
@@ -141,6 +133,15 @@ func (a *StorageApiService) CreateObjectStoreBucket(ctx context.Context, orgId i
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
@@ -363,14 +364,6 @@ func (a *StorageApiService) GetBucket(ctx context.Context, orgId int32, name str
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
@@ -395,6 +388,15 @@ func (a *StorageApiService) GetBucket(ctx context.Context, orgId int32, name str
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
@@ -513,7 +515,7 @@ List object store buckets accessible by the credentials referenced by the given 
  * @param "CloudType" (optional.String) -  Identifies the cloud provider - mandatory if secretId header is provided
  * @param "Include" (optional.String) -  Signals whether the secret name is to be returned
  * @param "Location" (optional.String) -  Identifies the cloud region. Required by Amazon only.
-@return ListStorageBucketsResponse
+@return []BucketInfo
 */
 
 type ListObjectStoreBucketsOpts struct {
@@ -523,14 +525,14 @@ type ListObjectStoreBucketsOpts struct {
 	Location  optional.String
 }
 
-func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId int32, localVarOptionals *ListObjectStoreBucketsOpts) (ListStorageBucketsResponse, *http.Response, error) {
+func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId int32, localVarOptionals *ListObjectStoreBucketsOpts) ([]BucketInfo, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  ListStorageBucketsResponse
+		localVarReturnValue  []BucketInfo
 	)
 
 	// create path and map variables
@@ -586,21 +588,13 @@ func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId in
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v ListStorageBucketsResponse
+			var v []BucketInfo
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -638,6 +632,15 @@ func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId in
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
