@@ -775,7 +775,7 @@ paths:
   /api/v1/orgs/{orgId}/clusters/{id}/endpoints:
     get:
       description: List service public endpoints
-      operationId: ListEndpoints
+      operationId: ListClusterEndpoints
       parameters:
       - description: Organization identification
         explode: false
@@ -1553,7 +1553,7 @@ paths:
   /api/v1/orgs/{orgId}/helm/repos:
     get:
       description: Listing Helm repositories in the cluster
-      operationId: HelmInit
+      operationId: HelmListRepos
       parameters:
       - description: Organization identification
         explode: false
@@ -1745,9 +1745,7 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                - $ref: '#/components/schemas/ClusterNotFound'
-                - $ref: '#/components/schemas/RepoNotFound'
+                $ref: '#/components/schemas/HelmNotFound'
           description: Resource found
       security:
       - bearerAuth: []
@@ -1799,9 +1797,7 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                - $ref: '#/components/schemas/ClusterNotFound'
-                - $ref: '#/components/schemas/RepoNotFound'
+                $ref: '#/components/schemas/HelmNotFound'
           description: Resource found
       security:
       - bearerAuth: []
@@ -5462,8 +5458,18 @@ components:
         displayName: The spotguide for NodeJS and MongoDB
         name: banzaicloud/spotguide-nodejs-mongodb
         questions:
-        - ""
-        - ""
+        - default: "5.6"
+          readonly: true
+          name: mysql_version
+          type: string
+          key: mysql.version
+          info: Mysql database version
+        - default: "5.6"
+          readonly: true
+          name: mysql_version
+          type: string
+          key: mysql.version
+          info: Mysql database version
         resources:
           onDemandPct: 10
           sumMem: 32
@@ -5507,11 +5513,7 @@ components:
           $ref: '#/components/schemas/RequestedResources'
         questions:
           items:
-            oneOf:
-            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseName'
-            - $ref: '#/components/schemas/SpotguideOptionsMysqlDatabaseSize'
-            - $ref: '#/components/schemas/SpotguideOptionsMysqlVersion'
-            - $ref: '#/components/schemas/SpotguideOptionsMonitor'
+            $ref: '#/components/schemas/SpotguideOption'
           type: array
       type: object
     LaunchSpotguidesRequest:
@@ -5612,52 +5614,14 @@ components:
       - repoOrganization
       - spotguideName
       type: object
-    SpotguideOptionsMysqlDatabaseName:
-      properties:
-        name:
-          example: mysqlDatabaseName
-          type: string
-        type:
-          example: string
-          type: string
-        info:
-          example: Your mysql database name
-          type: string
-        default:
-          example: your-mysql-database1
-          type: string
-        readonly:
-          type: boolean
-        enabled:
-          type: boolean
-        key:
-          example: mysql.database.name
-          type: string
-      type: object
-    SpotguideOptionsMysqlDatabaseSize:
-      properties:
-        name:
-          example: mysqlDatabaseSize
-          type: string
-        type:
-          example: string
-          type: string
-        info:
-          example: Your mysql database size in GB
-          type: string
-        default:
-          example: 1
-          format: int32
-          type: integer
-        readonly:
-          type: boolean
-        enabled:
-          type: boolean
-        key:
-          example: mysql.database.size
-          type: string
-      type: object
-    SpotguideOptionsMysqlVersion:
+    SpotguideOption:
+      example:
+        default: "5.6"
+        readonly: true
+        name: mysql_version
+        type: string
+        key: mysql.version
+        info: Mysql database version
       properties:
         name:
           example: mysql_version
@@ -5680,24 +5644,6 @@ components:
           example: mysql.version
           type: string
       type: object
-    SpotguideOptionsMonitor:
-      properties:
-        name:
-          example: monitor
-          type: string
-        type:
-          type: boolean
-        info:
-          example: Mysql monitoring
-          type: string
-        default:
-          type: boolean
-        readonly:
-          type: boolean
-        key:
-          example: monitor.enabled
-          type: string
-      type: object
     SpotguideNotFound:
       properties:
         code:
@@ -5713,8 +5659,7 @@ components:
       type: object
     ListSpotguidesResponse:
       items:
-        oneOf:
-        - $ref: '#/components/schemas/SpotguideDetailsResponse'
+        $ref: '#/components/schemas/SpotguideDetailsResponse'
       type: array
     GetDomainResponse:
       description: GetDomainResponse Api object to be mapped to Get domain request
@@ -5825,10 +5770,6 @@ components:
               bucketName: mybucketname
               region: region
               secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
-          oneOf:
-          - $ref: '#/components/schemas/LoggingPostHook'
-          - $ref: '#/components/schemas/BasePostHook'
-          - $ref: '#/components/schemas/ServiceMeshPostHook'
           type: object
         profileName:
           type: string
@@ -5842,13 +5783,6 @@ components:
                   count: 1
                   instanceType: n1-standard-2
               nodeVersion: 1.8.7-gke.1
-          oneOf:
-          - $ref: '#/components/schemas/CreateAKSProperties'
-          - $ref: '#/components/schemas/CreateGKEProperties'
-          - $ref: '#/components/schemas/CreateEKSProperties'
-          - $ref: '#/components/schemas/CreateUpdateOKEProperties'
-          - $ref: '#/components/schemas/CreateACKProperties'
-          - $ref: '#/components/schemas/CreatePKEProperties'
           type: object
       required:
       - cloud
@@ -6042,8 +5976,6 @@ components:
           example: amazon
           type: string
         providerConfig:
-          oneOf:
-          - $ref: '#/components/schemas/AmazonPoviderConfig'
           type: object
         hosts:
           items:
@@ -6104,7 +6036,7 @@ components:
           example: distrMaster
           type: string
         launchTemplate:
-          $ref: '#/components/schemas/AmazonLaunchTemplate'
+          type: object
         vpcID:
           example: vpc-0deb755857f5ef79d
           type: string
@@ -6203,6 +6135,10 @@ components:
           example: Error during process
           type: string
       type: object
+    HelmNotFound:
+      oneOf:
+      - $ref: '#/components/schemas/ClusterNotFound'
+      - $ref: '#/components/schemas/RepoNotFound'
     ClusterNotFound:
       properties:
         code:
@@ -6296,12 +6232,6 @@ components:
                 pool1:
                   count: 2
                   instanceType: n1-standard-2
-          oneOf:
-          - $ref: '#/components/schemas/UpdateAzureProperties'
-          - $ref: '#/components/schemas/UpdateGoogleProperties'
-          - $ref: '#/components/schemas/UpdateEksProperties'
-          - $ref: '#/components/schemas/CreateUpdateOKEProperties'
-          - $ref: '#/components/schemas/UpdateACKProperties'
           type: object
       required:
       - cloud
@@ -6746,7 +6676,38 @@ components:
       type: object
     ListDeploymentsResponse:
       items:
-        $ref: '#/components/schemas/ListDeploymentsResponse_inner'
+        properties:
+          releaseName:
+            example: pipeline
+            type: string
+          chart:
+            example: pipeline-cluster-ingress-0.0.1
+            type: string
+          chartName:
+            example: pipeline-cluster-ingress
+            type: string
+          chartVersion:
+            example: 0.0.1
+            type: string
+          version:
+            example: 1
+            format: int32
+            type: integer
+          updatedAt:
+            example: 2018-07-03T14:23:19+02:00
+            type: string
+          status:
+            example: DEPLOYED
+            type: string
+          namespace:
+            example: default
+            type: string
+          createdAt:
+            example: 2018-07-03T14:23:19+02:00
+            type: string
+          supported:
+            type: boolean
+        type: object
       type: array
     CreateUpdateDeploymentRequest:
       example:
@@ -6842,7 +6803,14 @@ components:
       type: object
     GetDeploymentResourcesResponse:
       items:
-        $ref: '#/components/schemas/GetDeploymentResourcesResponse_inner'
+        properties:
+          name:
+            example: bumptious-dragon-zeppelin
+            type: string
+          kind:
+            example: Deployment
+            type: string
+        type: object
       type: array
     GetDeploymentResponse:
       example:
@@ -7037,7 +7005,80 @@ components:
       type: object
     HelmChartsListResponse:
       items:
-        $ref: '#/components/schemas/HelmChartsListResponse_inner'
+        properties:
+          name:
+            example: stable
+            type: string
+          charts:
+            items:
+              items:
+                properties:
+                  name:
+                    example: nginx-ingress
+                    type: string
+                  home:
+                    example: https://github.com/kubernetes/ingress-nginx
+                    type: string
+                  sources:
+                    example:
+                    - https://github.com/kubernetes/ingress-nginx
+                    items:
+                      type: string
+                    type: array
+                  version:
+                    example: 0.13.1
+                    type: string
+                  description:
+                    example: An nginx Ingress controller that uses ConfigMap to store the nginx configuration.
+                    type: string
+                  keywords:
+                    example:
+                    - ingress, nginx
+                    items:
+                      type: string
+                    type: array
+                  maintainers:
+                    items:
+                      properties:
+                        name:
+                          example: jackzampolin
+                          type: string
+                        email:
+                          example: jack.zampolin@gmail.com
+                          type: string
+                      type: object
+                    type: array
+                  engine:
+                    example: gotpl
+                    type: string
+                  icon:
+                    example: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
+                    type: string
+                  appVersion:
+                    example: 0.12.0
+                    type: string
+                  apiVersion:
+                    example: v1
+                    type: string
+                  deprecated:
+                    example: false
+                    type: boolean
+                  urls:
+                    example:
+                    - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
+                    items:
+                      type: string
+                    type: array
+                  created:
+                    example: 2018-04-11T18:11:24.761440762Z
+                    type: string
+                  digest:
+                    example: cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa
+                    type: string
+                type: object
+              type: array
+            type: array
+        type: object
       type: array
     HelmChartDetailsResponse:
       example:
@@ -7214,10 +7255,6 @@ components:
                 pool1:
                   count: 1
                   instanceType: n1-standard-1
-          oneOf:
-          - $ref: '#/components/schemas/ClusterProfileEKS'
-          - $ref: '#/components/schemas/ClusterProfileAKS'
-          - $ref: '#/components/schemas/ClusterProfileGKE'
           type: object
       type: object
     ClusterProfileEKS:
@@ -7269,11 +7306,6 @@ components:
                 pool1:
                   count: 1
                   instanceType: n1-standard-1
-          oneOf:
-          - $ref: '#/components/schemas/AddClusterProfileEKS'
-          - $ref: '#/components/schemas/AddClusterProfileAKS'
-          - $ref: '#/components/schemas/AddClusterProfileGKE'
-          - $ref: '#/components/schemas/CreateUpdateOKEProperties'
           type: object
       type: object
     AddClusterProfileEKS:
@@ -7305,6 +7337,7 @@ components:
           type: string
         expiresAt:
           format: date-time
+          nullable: true
           type: string
       type: object
     TokenCreateResponse:
@@ -7499,15 +7532,6 @@ components:
             token_uri: string
             auth_provider_x509_cert_url: string
             client_x509_cert_url: string
-          oneOf:
-          - $ref: '#/components/schemas/SecretKeyValueAmazon'
-          - $ref: '#/components/schemas/SecretKeyValueAzure'
-          - $ref: '#/components/schemas/SecretKeyValueGoogle'
-          - $ref: '#/components/schemas/SecretKeyValueOracle'
-          - $ref: '#/components/schemas/SecretKeyValueKubernetes'
-          - $ref: '#/components/schemas/SecretKeyValueGeneric'
-          - $ref: '#/components/schemas/SecretKeyValueTLS'
-          type: object
       required:
       - name
       - type
@@ -8038,7 +8062,17 @@ components:
         secretName: my-aws-secret
         name: mybucket
         secretId: secretId
-        properties: ""
+        properties:
+          alibaba:
+            location: eu-west-1
+          oracle:
+            location: location
+          google:
+            location: europe
+          azure:
+            resourceGroup: resourceGroup
+            location: westeurope
+            storageAccount: mystorageaccount
       properties:
         secretId:
           type: string
@@ -8049,34 +8083,84 @@ components:
           example: mybucket
           type: string
         properties:
-          oneOf:
-          - $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
-          - $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
-          - $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
-          - $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
+          $ref: '#/components/schemas/CreateObjectStoreBucketProperties'
       required:
       - name
       - properties
       type: object
-    CreateAmazonObjectStoreBucketProperties:
+    CreateObjectStoreBucketProperties:
+      example:
+        alibaba:
+          location: eu-west-1
+        oracle:
+          location: location
+        google:
+          location: europe
+        azure:
+          resourceGroup: resourceGroup
+          location: westeurope
+          storageAccount: mystorageaccount
       properties:
-        amazon:
-          $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties_amazon'
+        alibaba:
+          $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
+        azure:
+          $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
+        google:
+          $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
+        oracle:
+          $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
+      type: object
+    CreateAmazonObjectStoreBucketProperties:
+      example:
+        location: eu-west-1
+      nullable: true
+      properties:
+        location:
+          example: eu-west-1
+          type: string
+      required:
+      - location
       type: object
     CreateGoogleObjectStoreBucketProperties:
+      example:
+        location: europe
+      nullable: true
       properties:
-        google:
-          $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties_google'
+        location:
+          example: europe
+          type: string
+      required:
+      - location
       type: object
     CreateAzureObjectStoreBucketProperties:
+      example:
+        resourceGroup: resourceGroup
+        location: westeurope
+        storageAccount: mystorageaccount
+      nullable: true
       properties:
-        azure:
-          $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties_azure'
+        storageAccount:
+          example: mystorageaccount
+          type: string
+        location:
+          example: westeurope
+          type: string
+        resourceGroup:
+          type: string
+      required:
+      - location
+      - resourceGroup
+      - storageAccount
       type: object
     CreateOracleObjectStoreBucketProperties:
+      example:
+        location: location
+      nullable: true
       properties:
-        oracle:
-          $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties_oracle'
+        location:
+          type: string
+      required:
+      - location
       type: object
     CreateObjectStoreBucketResponse:
       example:
@@ -8153,6 +8237,13 @@ components:
         $ref: '#/components/schemas/BucketInfo'
       type: array
     SubnetInfo:
+      example:
+        name: MySubnet
+        location: us-central1-a
+        cidrs:
+        - 10.0.1.0/24
+        - 10.0.1.0/24
+        id: subnet-9d4a7b6c
       properties:
         cidrs:
           description: The IPv4 CIDR blocks assigned to the subnet
@@ -8181,6 +8272,9 @@ components:
         $ref: '#/components/schemas/SubnetInfo'
       type: array
     RouteTableInfo:
+      example:
+        name: My little route table
+        id: rtb-12345678
       properties:
         id:
           description: Identifier of the route table
@@ -8198,6 +8292,12 @@ components:
         $ref: '#/components/schemas/RouteTableInfo'
       type: array
     VPCNetworkInfo:
+      example:
+        name: MyVPC
+        cidrs:
+        - 10.50.0.0/16
+        - 10.50.0.0/16
+        id: vpc-a01106c2
       properties:
         cidrs:
           description: The IPv4 CIDR blocks assigned to the VPC network
@@ -8239,6 +8339,35 @@ components:
         $ref: '#/components/schemas/PodItem'
       type: array
     PodItem:
+      example:
+        createdAt: 2018-08-01T09:04:33+02:00
+        resourceSummary:
+          memory:
+            allocatable: "4"
+            request: 380m
+            limit: 100m
+            capacity: "4"
+          cpu:
+            allocatable: "4"
+            request: 380m
+            limit: 100m
+            capacity: "4"
+        name: pipeline-traefik-7c47dc7bd7-twzpl
+        namespace: default
+        conditions:
+        - type: Initialized
+          lastTransitionTime: 2018-08-01T07:04:37Z
+          status: True
+          lastProbeTime: lastProbeTime
+        - type: Initialized
+          lastTransitionTime: 2018-08-01T07:04:37Z
+          status: True
+          lastProbeTime: lastProbeTime
+        restartPolicy: Always
+        labels:
+          app: pipeline-traefik
+          release: pipeline
+          chart: traefik-1.14.2
       properties:
         name:
           example: pipeline-traefik-7c47dc7bd7-twzpl
@@ -8262,6 +8391,11 @@ components:
           $ref: '#/components/schemas/ResourceSummary'
       type: object
     PodCondition:
+      example:
+        type: Initialized
+        lastTransitionTime: 2018-08-01T07:04:37Z
+        status: True
+        lastProbeTime: lastProbeTime
       properties:
         type:
           example: Initialized
@@ -8276,6 +8410,17 @@ components:
           type: string
       type: object
     ResourceSummary:
+      example:
+        memory:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
+        cpu:
+          allocatable: "4"
+          request: 380m
+          limit: 100m
+          capacity: "4"
       properties:
         cpu:
           $ref: '#/components/schemas/Resource'
@@ -8283,6 +8428,11 @@ components:
           $ref: '#/components/schemas/Resource'
       type: object
     Resource:
+      example:
+        allocatable: "4"
+        request: 380m
+        limit: 100m
+        capacity: "4"
       properties:
         capacity:
           example: "4"
@@ -8312,6 +8462,11 @@ components:
         InstallServiceMesh:
           $ref: '#/components/schemas/ServiceMeshPostHook_InstallServiceMesh'
       type: object
+    PostHooks:
+      oneOf:
+      - $ref: '#/components/schemas/LoggingPostHook'
+      - $ref: '#/components/schemas/BasePostHook'
+      - $ref: '#/components/schemas/ServiceMeshPostHook'
     ReRunPostHook:
       example:
         InstallLogging:
@@ -8323,10 +8478,6 @@ components:
             genTlsSecretName: loggingSecret
             namespace: default
             tlsHost: fluent
-      oneOf:
-      - $ref: '#/components/schemas/LoggingPostHook'
-      - $ref: '#/components/schemas/BasePostHook'
-      - $ref: '#/components/schemas/ServiceMeshPostHook'
       type: object
     GenTLSForLogging:
       properties:
@@ -8470,7 +8621,37 @@ components:
             the HPA was able to succesfully calculate a replica count from memory
             resource'
       items:
-        $ref: '#/components/schemas/DeploymentScalingResponse_inner'
+        properties:
+          scaleTarget:
+            example: k8sDeploymentName
+            type: string
+          kind:
+            example: Deployment
+            type: string
+          minReplicas:
+            example: 1
+            format: int32
+            type: integer
+          maxReplicas:
+            example: 3
+            format: int32
+            type: integer
+          cpu:
+            $ref: '#/components/schemas/ResourceMetricStatus'
+          memory:
+            $ref: '#/components/schemas/ResourceMetricStatus'
+          customMetrics:
+            additionalProperties:
+              $ref: '#/components/schemas/CustomMetricStatus'
+            example:
+              custom_metric_name:
+                type: pod
+                targetAverageValue: 700m
+                currentAverageValue: 300m
+            type: object
+          status:
+            $ref: '#/components/schemas/DeploymentScaleStatus'
+        type: object
       title: Get Deployment Scaling Response
       type: array
     ResourceMetricStatus:
@@ -8515,6 +8696,22 @@ components:
         $ref: '#/components/schemas/ScanLogItem'
       type: array
     ScanLogItem:
+      example:
+        result:
+        - nginx:latest policy check failed
+        - busybox:latest policy sheck success
+        image:
+        - lastUpdated: 2018-11-11T14:35:38Z
+          imageName: docker.io/redis
+          imageTag: latest
+          imageDigest: sha256:93ce9120377effb33fc8ab25cc5fb6ab736982aa4524adb89324c031e47b33ac
+        - lastUpdated: 2018-11-11T14:35:38Z
+          imageName: docker.io/redis
+          imageTag: latest
+          imageDigest: sha256:93ce9120377effb33fc8ab25cc5fb6ab736982aa4524adb89324c031e47b33ac
+        resource: banzaicloud
+        releaseName: flying-monkey
+        action: allow
       properties:
         releaseName:
           example: flying-monkey
@@ -8541,6 +8738,11 @@ components:
           type: string
       type: object
     ScanLogItemImage:
+      example:
+        lastUpdated: 2018-11-11T14:35:38Z
+        imageName: docker.io/redis
+        imageTag: latest
+        imageDigest: sha256:93ce9120377effb33fc8ab25cc5fb6ab736982aa4524adb89324c031e47b33ac
       properties:
         imageName:
           example: docker.io/redis
@@ -9195,6 +9397,10 @@ components:
         $ref: '#/components/schemas/ClusterImage'
       type: array
     ClusterImage:
+      example:
+        imageName: docker.io/alpine
+        imageTag: latest
+        imageDigest: imageDigest
       properties:
         imageName:
           example: docker.io/alpine
@@ -9212,6 +9418,7 @@ components:
     AnchoreImage:
       description: A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
       example:
+        imageContent: '{}'
         imageDetail:
         - createdAt: 2000-01-23T04:56:07.000+00:00
           lastUpdated: 2000-01-23T04:56:07.000+00:00
@@ -9241,7 +9448,8 @@ components:
         imageDigest: imageDigest
       properties:
         imageContent:
-          $ref: '#/components/schemas/ImageContent'
+          description: A metadata content record for a specific image, containing different content type entries
+          type: object
         imageDetail:
           description: Details specific to an image reference and type such as tag and image source
           items:
@@ -9274,6 +9482,19 @@ components:
           type: string
       type: object
     Vulnerability:
+      example:
+        severity: severity
+        packagePath: packagePath
+        feed: feed
+        package: package
+        feedGroup: feedGroup
+        fix: fix
+        vuln: vuln
+        packageVersion: packageVersion
+        packageName: packageName
+        packageType: packageType
+        packageCpe: packageCpe
+        url: url
       properties:
         vuln:
           description: The vulnerability identifier, such as CVE-2017-100, or RHSA-2017123
@@ -9320,6 +9541,31 @@ components:
     VulnerabilityResponse:
       description: envelope containing list of vulnerabilities
       example:
+        vulnerabilities:
+        - severity: severity
+          packagePath: packagePath
+          feed: feed
+          package: package
+          feedGroup: feedGroup
+          fix: fix
+          vuln: vuln
+          packageVersion: packageVersion
+          packageName: packageName
+          packageType: packageType
+          packageCpe: packageCpe
+          url: url
+        - severity: severity
+          packagePath: packagePath
+          feed: feed
+          package: package
+          feedGroup: feedGroup
+          fix: fix
+          vuln: vuln
+          packageVersion: packageVersion
+          packageName: packageName
+          packageType: packageType
+          packageCpe: packageCpe
+          url: url
         vulnerabilityType: vulnerabilityType
         imageDigest: imageDigest
       properties:
@@ -9328,7 +9574,10 @@ components:
         vulnerabilityType:
           type: string
         vulnerabilities:
-          $ref: '#/components/schemas/VulnerabilityList'
+          description: List of Vulnerability objects
+          items:
+            $ref: '#/components/schemas/Vulnerability'
+          type: array
       type: object
     ListProjectsResponse:
       description: wraps a list of project details information
@@ -9427,10 +9676,10 @@ components:
           type: string
         master:
           description: if this node is a master node
-          type: bool
+          type: boolean
         worker:
           description: if this node is a worker node
-          type: bool
+          type: boolean
       type: object
     CreateEKSProperties_eks:
       properties:
@@ -9450,18 +9699,25 @@ components:
           items:
             $ref: '#/components/schemas/EKSSubnet'
           type: array
-      type: object
+      required:
+      - nodePools
     CreateACKProperties_acsk:
       properties:
         regionId:
           type: string
         zoneId:
           type: string
+        vswitchId:
+          example: vsw-zysrfslpfhasklu338qys
+          type: string
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsACK'
           type: object
-      type: object
+      required:
+      - nodePools
+      - regionId
+      - zoneId
     CreateAKSProperties_aks:
       properties:
         resourceGroup:
@@ -9477,13 +9733,15 @@ components:
         vnetSubnetID:
           example: /subscriptions/12345678-1234-5678-1234-123456789abc/resourceGroups/your-resource-group-name/providers/Microsoft.Network/virtualNetworks/your-vnet-name/subnets/your-vnet-subnet-name
           type: string
-      type: object
+      required:
+      - kubernetesVersion
+      - nodePools
+      - resourceGroup
     CreateGKEProperties_gke_master:
       properties:
         version:
           example: "1.10"
           type: string
-      type: object
     CreateGKEProperties_gke:
       properties:
         projectId:
@@ -9504,7 +9762,8 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsGoogle'
           type: object
-      type: object
+      required:
+      - nodePools
     CreateUpdateOKEProperties_oke:
       properties:
         version:
@@ -9514,7 +9773,9 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsOracle'
           type: object
-      type: object
+      required:
+      - nodePools
+      - version
     CreatePKEProperties_clusterTopology_network:
       properties:
         apiServerAddress:
@@ -9529,12 +9790,17 @@ components:
         provider:
           example: weave
           type: string
-      type: object
+      required:
+      - apiServerAddress
+      - podCIDR
+      - provider
+      - serviceCIDR
     CreatePKEProperties_clusterTopology_kubernetes_rbac:
       properties:
         enabled:
           type: boolean
-      type: object
+      required:
+      - enabled
     CreatePKEProperties_clusterTopology_kubernetes:
       properties:
         version:
@@ -9542,13 +9808,16 @@ components:
           type: string
         rbac:
           $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_kubernetes_rbac'
-      type: object
+      required:
+      - rbac
+      - version
     CreatePKEProperties_clusterTopology_cri:
       properties:
         runtime:
           example: containerd
           type: string
-      type: object
+      required:
+      - runtime
     CreatePKEProperties_clusterTopology:
       properties:
         network:
@@ -9561,7 +9830,11 @@ components:
           $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_kubernetes'
         cri:
           $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_cri'
-      type: object
+      required:
+      - cri
+      - kubernetes
+      - network
+      - nodePools
     AmazonAutoScalingGroup_size:
       properties:
         min:
@@ -9572,33 +9845,35 @@ components:
           example: 1
           format: int32
           type: integer
-      type: object
+      required:
+      - max
+      - min
     UpdateEksProperties_eks:
       properties:
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/UpdateNodePoolsEks'
           type: object
-      type: object
+      required:
+      - nodePools
     UpdateACKProperties_acsk:
       properties:
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsACK'
           type: object
-      type: object
+      required:
+      - nodePools
     UpdateAzureProperties_azure:
       properties:
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/UpdateNodePoolsAzure'
           type: object
-      type: object
     UpdateGoogleProperties_master:
       properties:
         version:
           type: string
-      type: object
     ListNodesResponse_metadata:
       example:
         resourceVersion: "30123"
@@ -9610,7 +9885,6 @@ components:
         resourceVersion:
           example: "30123"
           type: string
-      type: object
     NodeItem_metadata_labels:
       example:
         failure-domain.beta.kubernetes.io/zone: us-central1-a
@@ -9646,7 +9920,6 @@ components:
         kubernetes.io/hostname:
           example: gke-gkecluster-feri-706-pool1-496eccb3-l25k
           type: string
-      type: object
     NodeItem_metadata_annotations:
       example:
         node.alpha.kubernetes.io/ttl: "0"
@@ -9658,7 +9931,6 @@ components:
         volumes.kubernetes.io/controller-managed-attach-detach:
           example: "true"
           type: string
-      type: object
     NodeItem_metadata:
       example:
         uid: f214d7fb-41ae-11e8-a4ea-42010a8001da
@@ -9698,7 +9970,6 @@ components:
           $ref: '#/components/schemas/NodeItem_metadata_labels'
         annotations:
           $ref: '#/components/schemas/NodeItem_metadata_annotations'
-      type: object
     NodeItem_spec:
       example:
         providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
@@ -9714,7 +9985,6 @@ components:
         providerID:
           example: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
           type: string
-      type: object
     NodeItem_status_capacity:
       example:
         memory: 7664776Ki
@@ -9730,7 +10000,6 @@ components:
         pods:
           example: "110"
           type: string
-      type: object
     NodeItem_status_allocatable:
       example:
         memory: 5784712Ki
@@ -9746,7 +10015,6 @@ components:
         pods:
           example: "110"
           type: string
-      type: object
     NodeItem_status_conditions:
       example:
         reason: KernelHasNoDeadlock
@@ -9774,7 +10042,6 @@ components:
         message:
           example: kernel has no deadlock
           type: string
-      type: object
     NodeItem_status_addresses:
       example:
         address: 10.128.0.2
@@ -9786,7 +10053,6 @@ components:
         address:
           example: 10.128.0.2
           type: string
-      type: object
     NodeItem_status_daemonEndpoints:
       example:
         kubeletEndpoint: '{}'
@@ -9797,7 +10063,6 @@ components:
               example: 10250
               format: int32
               type: integer
-      type: object
     NodeItem_status_nodeInfo:
       example:
         machineID: 10d8adda771410ca912a387cf7e5cb06
@@ -9841,7 +10106,6 @@ components:
         architecture:
           example: amd64
           type: string
-      type: object
     NodeItem_status_images:
       example:
         name:
@@ -9860,7 +10124,6 @@ components:
           example: 286572743
           format: int32
           type: integer
-      type: object
     NodeItem_status:
       example:
         daemonEndpoints:
@@ -9932,124 +10195,6 @@ components:
           items:
             $ref: '#/components/schemas/NodeItem_status_images'
           type: array
-      type: object
-    ListDeploymentsResponse_inner:
-      properties:
-        releaseName:
-          example: pipeline
-          type: string
-        chart:
-          example: pipeline-cluster-ingress-0.0.1
-          type: string
-        chartName:
-          example: pipeline-cluster-ingress
-          type: string
-        chartVersion:
-          example: 0.0.1
-          type: string
-        version:
-          example: 1
-          format: int32
-          type: integer
-        updatedAt:
-          example: 2018-07-03T14:23:19+02:00
-          type: string
-        status:
-          example: DEPLOYED
-          type: string
-        namespace:
-          example: default
-          type: string
-        createdAt:
-          example: 2018-07-03T14:23:19+02:00
-          type: string
-        supported:
-          type: boolean
-      type: object
-    GetDeploymentResourcesResponse_inner:
-      properties:
-        name:
-          example: bumptious-dragon-zeppelin
-          type: string
-        kind:
-          example: Deployment
-          type: string
-      type: object
-    HelmChartsListResponse_inner:
-      properties:
-        name:
-          example: stable
-          type: string
-        charts:
-          items:
-            items:
-              properties:
-                name:
-                  example: nginx-ingress
-                  type: string
-                home:
-                  example: https://github.com/kubernetes/ingress-nginx
-                  type: string
-                sources:
-                  example:
-                  - https://github.com/kubernetes/ingress-nginx
-                  items:
-                    type: string
-                  type: array
-                version:
-                  example: 0.13.1
-                  type: string
-                description:
-                  example: An nginx Ingress controller that uses ConfigMap to store the nginx configuration.
-                  type: string
-                keywords:
-                  example:
-                  - ingress, nginx
-                  items:
-                    type: string
-                  type: array
-                maintainers:
-                  items:
-                    properties:
-                      name:
-                        example: jackzampolin
-                        type: string
-                      email:
-                        example: jack.zampolin@gmail.com
-                        type: string
-                    type: object
-                  type: array
-                engine:
-                  example: gotpl
-                  type: string
-                icon:
-                  example: https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Nginx_logo.svg/500px-Nginx_logo.svg.png
-                  type: string
-                appVersion:
-                  example: 0.12.0
-                  type: string
-                apiVersion:
-                  example: v1
-                  type: string
-                deprecated:
-                  example: false
-                  type: boolean
-                urls:
-                  example:
-                  - https://kubernetes-charts.storage.googleapis.com/nginx-ingress-0.13.1.tgz
-                  items:
-                    type: string
-                  type: array
-                created:
-                  example: 2018-04-11T18:11:24.761440762Z
-                  type: string
-                digest:
-                  example: cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa
-                  type: string
-              type: object
-            type: array
-          type: array
-      type: object
     HelmChartDetailsResponse_chart_maintainers:
       example:
         name: jackzampolin
@@ -10061,7 +10206,6 @@ components:
         email:
           example: jack.zampolin@gmail.com
           type: string
-      type: object
     HelmChartDetailsResponse_chart:
       example:
         maintainers:
@@ -10142,7 +10286,6 @@ components:
         digest:
           example: cf66d1666019b3e1647ba4dbc06a66ee7db1184629ae3669e11a9f72208eb7aa
           type: string
-      type: object
     HelmChartDetailsResponse_versions:
       example:
         values: IyMgbmdpbngtbGVnbyBzcGlucyB1cCBhIHNjYWxhYmxlIGluZ3Jlc3MgcHJvdmlkZXIgdGhhdCBjYW4gYWxzbyBwcm92aXNpb24gU1NMIGNlcnRzCiMjIFNlZSBodHRwczovL2dpdGh1Yi5jb20vamV0c3RhY2sva3ViZS1sZWdvL3RyZWUvbWFzdGVyL2V4YW1wbGVzL25naW54IGZvciBtb3JlIGluZm9ybWF0aW9uIG9uIGltcGxlbWVudGF0aW9uCgojIyBOZ2lueCBjb25maWd1cmF0aW9uCiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci9pbmdyZXNzL2NvbnRyb2xsZXJzL25naW54I2F1dG9tYXRlZC1jZXJ0aWZpY2F0ZS1tYW5hZ2VtZW50LXdpdGgta3ViZS1sZWdvCiMjCm5naW54OgogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogazhzLmdjci5pby9uZ2lueC1pbmdyZXNzLWNvbnRyb2xsZXIKICAgIHRhZzogIjAuOC4zIgogICAgcHVsbFBvbGljeTogSWZOb3RQcmVzZW50CiAgc2VydmljZToKICAgIHR5cGU6IExvYWRCYWxhbmNlcgogIG1vbml0b3Jpbmc6IGZhbHNlCiAgcmVzb3VyY2VzOgogICAgbGltaXRzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAyR2kKICAgIHJlcXVlc3RzOgogICAgICBjcHU6IDEKICAgICAgbWVtb3J5OiAxMjhNaQogIGNvbmZpZ21hcDoKICAgIHByb3h5X2Nvbm5lY3RfdGltZW91dDogIjMwIgogICAgcHJveHlfcmVhZF90aW1lb3V0OiAiNjAwIgogICAgcHJveHlfc2VuZF9pbWVvdXQ6ICI2MDAiCiAgICBoc3RzX2luY2x1ZGVfc3ViZG9tYWluczogImZhbHNlIgogICAgYm9keV9zaXplOiAiNjRtIgogICAgc2VydmVyX25hbWVfaGFzaF9idWNrZXRfc2l6ZTogIjI1NiIKICAgICMgVE9ETzogZmlndXJlIG91dCBob3cgdG8gZXhwb3NlIGB7bmdpbnhfYWRkcn06ODA4MC9uZ2lueF9zdGF0dXNgLCBvbiBleGlzdGluZyBzZXJ2aWNlIG9yIGNyZWF0ZSBuZXcgb25lPwogICAgZW5hYmxlX3Z0c19zdGF0dXM6ICJmYWxzZSIKCiMjIERlZmF1bHQgQmFja2VuZCBjb25maWd1cmF0aW9uCiMjIFRvIHJ1biBhIGRpZmZlcmVudCA0MDQgcGFnZSBmb3IgdGhlIG1hbmFnZWQgZG9tYWlucyBwbGVhc2Ugc2VlIHRoZSBkb2N1bWVudGF0aW9uIGJlbG93CiMjIHJlZjogaHR0cHM6Ly9naXRodWIuY29tL2t1YmVybmV0ZXMvY29udHJpYi90cmVlL21hc3Rlci80MDQtc2VydmVyCiMjCmRlZmF1bHQ6CiAgcmVwbGljYUNvdW50OiAxCiAgaW1hZ2U6CiAgICByZXBvc2l0b3J5OiBrOHMuZ2NyLmlvL2RlZmF1bHRiYWNrZW5kCiAgICB0YWc6ICIxLjAiCiAgICBwdWxsUG9saWN5OiBJZk5vdFByZXNlbnQKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCgojIyBrdWJlLWxlZ28gY29uZmlndXJhdGlvbgojIyByZWY6IGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28KIyMKbGVnbzoKICBlbmFibGVkOiBmYWxzZQogIHJlcGxpY2FDb3VudDogMQogIGltYWdlOgogICAgcmVwb3NpdG9yeTogamV0c3RhY2sva3ViZS1sZWdvCiAgICB0YWc6ICIwLjEuMyIKICAgIHB1bGxQb2xpY3k6IElmTm90UHJlc2VudAogIGNvbmZpZ21hcDoKICAgIGVtYWlsOiAibXlAZW1haWwudGxkIgogICAgIyBQcm9kdWN0aW9uIExldCdzIEVuY3J5cHQgc2VydmVyCiAgICAjIHVybDogImh0dHBzOi8vYWNtZS12MDEuYXBpLmxldHNlbmNyeXB0Lm9yZy9kaXJlY3RvcnkiCiAgICAjIFRlc3QgTGV0J3MgRW5jcnlwdCBzZXJ2ZXIKICAgIHVybDogImh0dHBzOi8vYWNtZS1zdGFnaW5nLmFwaS5sZXRzZW5jcnlwdC5vcmcvZGlyZWN0b3J5ICIKICByZXNvdXJjZXM6CiAgICBsaW1pdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDJHaQogICAgcmVxdWVzdHM6CiAgICAgIGNwdTogMQogICAgICBtZW1vcnk6IDEyOE1pCg==
@@ -10179,7 +10322,6 @@ components:
         readme:
           example: IyBuZ2lueC1sZWdvCgoqKlRoaXMgY2hhcnQgaGFzIGJlZW4gZGVwcmVjYXRlZCBhcyBvZiB2ZXJzaW9uIDAuMi4xIGFuZCB3aWxsIG5vdCBiZSB1cGRhdGVkLiBQbGVhc2UgdXNlIHRoZSBuZ2lueC1pbmdyZXNzIGFuZCAob3B0aW9uYWwpIGt1YmUtbGVnbyBjaGFydHMgaW5zdGVhZC4qKgoKW25naW54LWxlZ29dKGh0dHBzOi8vZ2l0aHViLmNvbS9qZXRzdGFjay9rdWJlLWxlZ28vdHJlZS9tYXN0ZXIvZXhhbXBsZXMvbmdpbngpIGlzIGEgY2hhcnQgZm9yIGFuIFtgbmdpbnhgIGluZ3Jlc3NdKGh0dHBzOi8vZ2l0aHViLmNvbS9rdWJlcm5ldGVzL2NvbnRyaWIvdHJlZS9tYXN0ZXIvaW5ncmVzcy9jb250cm9sbGVycy9uZ2lueCkgd2l0aCBvcHRpb25hbCBzdXBwb3J0IGZvciBhdXRvbWF0aWNhbGx5IGdlbmVyYXRpbmcgYFNTTGAgY2VydCBmb3IgdGhlIG1hbmFnZWQgcm91dGVzLgoKVG8gdXNlIHRoaXMgaW5ncmVzcyBjb250b2xsZXIgYWRkIHRoZSBmb2xsb3dpbmcgYW5ub3RhdGlvbnMgdG8gdGhlIGBpbmdyZXNzYCByZXNvdXJjZXMgeW91IHdvdWxkIGxpa2UgdG8gcm91dGUgdGhyb3VnaCBpdDoKCmBgYHlhbWwKYXBpVmVyc2lvbjogZXh0ZW5zaW9ucy92MWJldGExCmtpbmQ6IEluZ3Jlc3MKbWV0YWRhdGE6CiAgbmFtZXNwYWNlOiBmb28KICBhbm5vdGF0aW9uczoKICAgICMgQWRkIHRvIHJvdXRlIHRocm91Z2ggdGhlIG5naW54IHNlcnZpY2UKICAgIGt1YmVybmV0ZXMuaW8vaW5ncmVzcy5jbGFzczogbmdpbngKICAgICMgQWRkIHRvIGdlbmVyYXRlIGNlcnRpZmljYXRlcyBmb3IgdGhpcyBpbmdyZXNzCiAgICBrdWJlcm5ldGVzLmlvL3Rscy1hY21lOiAidHJ1ZSIKc3BlYzoKICB0bHM6CiAgICAjIFdpdGggdGhpcyBjb25maWd1cmF0aW9uIGt1YmUtbGVnbyB3aWxsIGdlbmVyYXRlIGEgc2VjcmV0IGluIG5hbWVzcGFjZSBmb28gY2FsbGVkIGBleGFtcGxlLXRsc2AKICAgICMgZm9yIHRoZSBVUkwgYHd3dy5leGFtcGxlLmNvbWAKICAgIC0gaG9zdHM6CiAgICAgIC0gInd3dy5leGFtcGxlLmNvbSIKICAgICAgc2VjcmV0TmFtZTogZXhhbXBsZS10bHMKYGBgCgojIyBUTDtEUjsKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgc3RhYmxlL2t1YmUtbGVnbwpgYGAKCiMjIEludHJvZHVjdGlvbgoKVGhpcyBjaGFydCBib290c3RyYXBzIGFuIG5naW54LWxlZ28gZGVwbG95bWVudCBvbiBhIFtLdWJlcm5ldGVzXShodHRwOi8va3ViZXJuZXRlcy5pbykgY2x1c3RlciB1c2luZyB0aGUgW0hlbG1dKGh0dHBzOi8vaGVsbS5zaCkgcGFja2FnZSBtYW5hZ2VyLgoKIyMgUHJlcmVxdWlzaXRlcwoKLSBLdWJlcm5ldGVzIDEuNCsgd2l0aCBCZXRhIEFQSXMgZW5hYmxlZAoKIyMgSW5zdGFsbGluZyB0aGUgQ2hhcnQKClRvIGluc3RhbGwgdGhlIGNoYXJ0IHdpdGggdGhlIHJlbGVhc2UgbmFtZSBgbXktcmVsZWFzZWA6CgpgYGBiYXNoCiQgaGVsbSBpbnN0YWxsIC0tbmFtZSBteS1yZWxlYXNlIHN0YWJsZS9uZ2lueC1sZWdvCmBgYAoKVGhlIGNvbW1hbmQgZGVwbG95cyBuZ2lueC1sZWdvIG9uIHRoZSBLdWJlcm5ldGVzIGNsdXN0ZXIgaW4gdGhlIGRlZmF1bHQgY29uZmlndXJhdGlvbi4gVGhlIFtjb25maWd1cmF0aW9uXSgjY29uZmlndXJhdGlvbikgc2VjdGlvbiBsaXN0cyB0aGUgcGFyYW1ldGVycyB0aGF0IGNhbiBiZSBjb25maWd1cmVkIGR1cmluZyBpbnN0YWxsYXRpb24uCgo+ICoqVGlwKio6IExpc3QgYWxsIHJlbGVhc2VzIHVzaW5nIGBoZWxtIGxpc3RgCgojIyBVbmluc3RhbGxpbmcgdGhlIENoYXJ0CgpUbyB1bmluc3RhbGwvZGVsZXRlIHRoZSBgbXktcmVsZWFzZWAgZGVwbG95bWVudDoKCmBgYGJhc2gKJCBoZWxtIGRlbGV0ZSBteS1yZWxlYXNlCmBgYAoKVGhlIGNvbW1hbmQgcmVtb3ZlcyBhbGwgdGhlIEt1YmVybmV0ZXMgY29tcG9uZW50cyBhc3NvY2lhdGVkIHdpdGggdGhlIGNoYXJ0IGFuZCBkZWxldGVzIHRoZSByZWxlYXNlLgoKIyMgQ29uZmlndXJhdGlvbgoKU2VlIGB2YWx1ZXMueWFtbGAgZm9yIGNvbmZpZ3VyYXRpb24gbm90ZXMuIFNwZWNpZnkgZWFjaCBwYXJhbWV0ZXIgdXNpbmcgdGhlIGAtLXNldCBrZXk9dmFsdWVbLGtleT12YWx1ZV1gIGFyZ3VtZW50IHRvIGBoZWxtIGluc3RhbGxgLiBGb3IgZXhhbXBsZSwKCmBgYGJhc2gKJCBoZWxtIGluc3RhbGwgLS1uYW1lIG15LXJlbGVhc2UgXAogIC0tc2V0IGxlZ28uZW5hYmxlZD1mYWxzZSBcCiAgICBzdGFibGUvbmdpbngtbGVnbwpgYGAKCkluc3RhbGxzIHRoZSBjaGFydCB3aXRob3V0IGt1YmUtbGVnbyBhbmQgdGhlIGFiaWxpdHkgdG8gZ2VuZXJhdGUgY2VydHMuCgpBbHRlcm5hdGl2ZWx5LCBhIFlBTUwgZmlsZSB0aGF0IHNwZWNpZmllcyB0aGUgdmFsdWVzIGZvciB0aGUgcGFyYW1ldGVycyBjYW4gYmUgcHJvdmlkZWQgd2hpbGUgaW5zdGFsbGluZyB0aGUgY2hhcnQuIEZvciBleGFtcGxlLAoKYGBgYmFzaAokIGhlbG0gaW5zdGFsbCAtLW5hbWUgbXktcmVsZWFzZSAtZiB2YWx1ZXMueWFtbCBzdGFibGUvbmdpbngtbGVnbwpgYGAKCj4gKipUaXAqKjogWW91IGNhbiB1c2UgdGhlIGRlZmF1bHQgW3ZhbHVlcy55YW1sXSh2YWx1ZXMueWFtbCkK
           type: string
-      type: object
     InstallSecretsRequest_query:
       example:
         ids:
@@ -10203,7 +10345,6 @@ components:
           items:
             type: string
           type: array
-      type: object
     ClusterProfileEKS_eks:
       properties:
         version:
@@ -10213,7 +10354,6 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsAmazon'
           type: object
-      type: object
     ClusterProfileAKS_aks:
       properties:
         kubernetesVersion:
@@ -10223,13 +10363,11 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsAzure'
           type: object
-      type: object
     ClusterProfileGKE_gke_master:
       properties:
         version:
           example: 1.8.7-gke.1
           type: string
-      type: object
     ClusterProfileGKE_gke:
       properties:
         master:
@@ -10241,7 +10379,6 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsGoogle'
           type: object
-      type: object
     AddClusterProfileAKS_aks:
       properties:
         nodePools:
@@ -10251,7 +10388,6 @@ components:
         kubernetesVersion:
           example: 1.8.2
           type: string
-      type: object
     AllowedSecretTypeResponse_fields:
       example:
         name: name
@@ -10264,7 +10400,6 @@ components:
           type: boolean
         description:
           type: string
-      type: object
     AmazonConfigResponse_image:
       example:
         eu-west-1:
@@ -10278,7 +10413,6 @@ components:
           items:
             type: string
           type: array
-      type: object
     AmazonConfigResponse_instanceType:
       example:
         eu-west-1:
@@ -10292,7 +10426,6 @@ components:
           items:
             type: string
           type: array
-      type: object
     AzureConfigResponse_instanceType:
       example:
         eastus:
@@ -10306,7 +10439,6 @@ components:
           items:
             type: string
           type: array
-      type: object
     GoogleConfigResponse_instanceType:
       example:
         asia-east1-a:
@@ -10320,7 +10452,6 @@ components:
           items:
             type: string
           type: array
-      type: object
     GoogleConfigResponse_kubernetes_versions:
       example:
         validMasterVersions:
@@ -10360,35 +10491,6 @@ components:
           items:
             type: string
           type: array
-      type: object
-    CreateAmazonObjectStoreBucketProperties_amazon:
-      properties:
-        location:
-          example: eu-west-1
-          type: string
-      type: object
-    CreateGoogleObjectStoreBucketProperties_google:
-      properties:
-        location:
-          example: europe
-          type: string
-      type: object
-    CreateAzureObjectStoreBucketProperties_azure:
-      properties:
-        storageAccount:
-          example: mystorageaccount
-          type: string
-        location:
-          example: westeurope
-          type: string
-        resourceGroup:
-          type: string
-      type: object
-    CreateOracleObjectStoreBucketProperties_oracle:
-      properties:
-        location:
-          type: string
-      type: object
     BucketInfo_secret:
       example:
         accessId: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dcef
@@ -10410,8 +10512,13 @@ components:
           description: the secret name of the azure access information
           example: myaccesssecretname
           type: string
-      type: object
+      required:
+      - id
     PodItem_labels:
+      example:
+        app: pipeline-traefik
+        release: pipeline
+        chart: traefik-1.14.2
       properties:
         app:
           example: pipeline-traefik
@@ -10422,7 +10529,6 @@ components:
         release:
           example: pipeline
           type: string
-      type: object
     LoggingPostHook_InstallLogging:
       properties:
         bucketName:
@@ -10445,44 +10551,14 @@ components:
           type: string
         tls:
           $ref: '#/components/schemas/GenTLSForLogging'
-      type: object
+      required:
+      - bucketName
+      - secretId
+      - tls
     ServiceMeshPostHook_InstallServiceMesh:
       properties:
         mtls:
           type: boolean
-      type: object
-    DeploymentScalingResponse_inner:
-      properties:
-        scaleTarget:
-          example: k8sDeploymentName
-          type: string
-        kind:
-          example: Deployment
-          type: string
-        minReplicas:
-          example: 1
-          format: int32
-          type: integer
-        maxReplicas:
-          example: 3
-          format: int32
-          type: integer
-        cpu:
-          $ref: '#/components/schemas/ResourceMetricStatus'
-        memory:
-          $ref: '#/components/schemas/ResourceMetricStatus'
-        customMetrics:
-          additionalProperties:
-            $ref: '#/components/schemas/CustomMetricStatus'
-          example:
-            custom_metric_name:
-              type: pod
-              targetAverageValue: 700m
-              currentAverageValue: 300m
-          type: object
-        status:
-          $ref: '#/components/schemas/DeploymentScaleStatus'
-      type: object
     PolicyRule_params:
       example:
         name: name
@@ -10492,7 +10568,9 @@ components:
           type: string
         value:
           type: string
-      type: object
+      required:
+      - name
+      - value
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT

@@ -12,7 +12,8 @@
 package client
 
 type CreateAckPropertiesAcsk struct {
-	RegionId  string                  `json:"regionId,omitempty"`
-	ZoneId    string                  `json:"zoneId,omitempty"`
-	NodePools map[string]NodePoolsAck `json:"nodePools,omitempty"`
+	RegionId  string                  `json:"regionId"`
+	ZoneId    string                  `json:"zoneId"`
+	VswitchId string                  `json:"vswitchId,omitempty"`
+	NodePools map[string]NodePoolsAck `json:"nodePools"`
 }

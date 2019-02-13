@@ -25,7 +25,7 @@ GOLANGCI_VERSION = 1.10.2
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.0.7
-OPENAPI_GENERATOR_VERSION = 3.3.0
+OPENAPI_GENERATOR_VERSION = PR1869
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
 
@@ -206,12 +206,12 @@ test-integration: ## Run integration tests
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
-	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:v${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
+	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
 
 .PHONY: generate-client
 generate-client: validate-openapi ## Generate go client based on openapi description
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./client; else rm -rf ./client/; fi
-	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:v${OPENAPI_GENERATOR_VERSION} generate \
+	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=client \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/${OPENAPI_DESCRIPTOR} \

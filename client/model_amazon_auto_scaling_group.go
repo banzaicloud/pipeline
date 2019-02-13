@@ -17,7 +17,7 @@ type AmazonAutoScalingGroup struct {
 	Zones                   []string                          `json:"zones"`
 	InstanceType            string                            `json:"instanceType"`
 	LaunchConfigurationName string                            `json:"launchConfigurationName"`
-	LaunchTemplate          AmazonLaunchTemplate              `json:"launchTemplate,omitempty"`
+	LaunchTemplate          map[string]interface{}            `json:"launchTemplate,omitempty"`
 	VpcID                   string                            `json:"vpcID"`
 	SecurityGroupID         string                            `json:"securityGroupID"`
 	Subnets                 []string                          `json:"subnets"`

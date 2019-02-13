@@ -12,8 +12,8 @@
 package client
 
 type CreatePkePropertiesClusterTopology struct {
-	Network    CreatePkePropertiesClusterTopologyNetwork    `json:"network,omitempty"`
-	NodePools  []NodePoolsPke                               `json:"nodePools,omitempty"`
-	Kubernetes CreatePkePropertiesClusterTopologyKubernetes `json:"kubernetes,omitempty"`
-	Cri        CreatePkePropertiesClusterTopologyCri        `json:"cri,omitempty"`
+	Network    CreatePkePropertiesClusterTopologyNetwork    `json:"network"`
+	NodePools  []NodePoolsPke                               `json:"nodePools"`
+	Kubernetes CreatePkePropertiesClusterTopologyKubernetes `json:"kubernetes"`
+	Cri        CreatePkePropertiesClusterTopologyCri        `json:"cri"`
 }

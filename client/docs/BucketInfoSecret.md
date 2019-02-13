@@ -3,7 +3,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | **string** |  | [optional] 
+**Id** | **string** |  | 
 **Name** | **string** |  | [optional] 
 **AccessId** | **string** | the secret identifier of the azure access information | [optional] 
 **AccessName** | **string** | the secret name of the azure access information | [optional] 

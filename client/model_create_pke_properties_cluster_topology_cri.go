@@ -12,5 +12,5 @@
 package client
 
 type CreatePkePropertiesClusterTopologyCri struct {
-	Runtime string `json:"runtime,omitempty"`
+	Runtime string `json:"runtime"`
 }

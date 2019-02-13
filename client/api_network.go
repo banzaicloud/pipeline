@@ -39,7 +39,7 @@ List route tables of the given VPC network
  * @param optional nil or *ListRouteTablesOpts - Optional Parameters:
  * @param "Region" (optional.String) -  Identifies the region of the VPC network (required when cloudType != azure)
  * @param "ResourceGroup" (optional.String) -  Identifies the resource group of the Azure virtual network (required when cloudType == azure)
-@return ListRouteTablesResponse
+@return []RouteTableInfo
 */
 
 type ListRouteTablesOpts struct {
@@ -47,14 +47,14 @@ type ListRouteTablesOpts struct {
 	ResourceGroup optional.String
 }
 
-func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, localVarOptionals *ListRouteTablesOpts) (ListRouteTablesResponse, *http.Response, error) {
+func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, localVarOptionals *ListRouteTablesOpts) ([]RouteTableInfo, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  ListRouteTablesResponse
+		localVarReturnValue  []RouteTableInfo
 	)
 
 	// create path and map variables
@@ -107,21 +107,13 @@ func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, ne
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v ListRouteTablesResponse
+			var v []RouteTableInfo
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -163,6 +155,15 @@ func (a *NetworkApiService) ListRouteTables(ctx context.Context, orgId int32, ne
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
 	return localVarReturnValue, localVarHttpResponse, nil
 }
 
@@ -176,7 +177,7 @@ List VPC networks accessible by the organization.
  * @param optional nil or *ListVPCNetworksOpts - Optional Parameters:
  * @param "Region" (optional.String) -  Identifies the region of the VPC network (required when cloudType != azure)
  * @param "ResourceGroup" (optional.String) -  Identifies the resource group of the Azure virtual network (required when cloudType == azure)
-@return ListVpcNetworksResponse
+@return []VpcNetworkInfo
 */
 
 type ListVPCNetworksOpts struct {
@@ -184,14 +185,14 @@ type ListVPCNetworksOpts struct {
 	ResourceGroup optional.String
 }
 
-func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, secretId string, cloudType string, localVarOptionals *ListVPCNetworksOpts) (ListVpcNetworksResponse, *http.Response, error) {
+func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, secretId string, cloudType string, localVarOptionals *ListVPCNetworksOpts) ([]VpcNetworkInfo, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  ListVpcNetworksResponse
+		localVarReturnValue  []VpcNetworkInfo
 	)
 
 	// create path and map variables
@@ -243,21 +244,13 @@ func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, se
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v ListVpcNetworksResponse
+			var v []VpcNetworkInfo
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -299,6 +292,15 @@ func (a *NetworkApiService) ListVPCNetworks(ctx context.Context, orgId int32, se
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
 	return localVarReturnValue, localVarHttpResponse, nil
 }
 
@@ -313,7 +315,7 @@ List subnetworks of the given VPC network
  * @param optional nil or *ListVPCSubnetsOpts - Optional Parameters:
  * @param "Region" (optional.String) -  Identifies the region of the VPC network (required when cloudType != azure)
  * @param "ResourceGroup" (optional.String) -  Identifies the resource group of the Azure virtual network (required when cloudType == azure)
-@return ListVpcSubnetsResponse
+@return []SubnetInfo
 */
 
 type ListVPCSubnetsOpts struct {
@@ -321,14 +323,14 @@ type ListVPCSubnetsOpts struct {
 	ResourceGroup optional.String
 }
 
-func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, localVarOptionals *ListVPCSubnetsOpts) (ListVpcSubnetsResponse, *http.Response, error) {
+func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, networkId string, secretId string, cloudType string, localVarOptionals *ListVPCSubnetsOpts) ([]SubnetInfo, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  ListVpcSubnetsResponse
+		localVarReturnValue  []SubnetInfo
 	)
 
 	// create path and map variables
@@ -381,21 +383,13 @@ func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, net
 		return localVarReturnValue, localVarHttpResponse, err
 	}
 
-	if localVarHttpResponse.StatusCode < 300 {
-		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
-		if err == nil {
-			return localVarReturnValue, localVarHttpResponse, err
-		}
-	}
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v ListVpcSubnetsResponse
+			var v []SubnetInfo
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -433,6 +427,15 @@ func (a *NetworkApiService) ListVPCSubnets(ctx context.Context, orgId int32, net
 			}
 			newErr.model = v
 			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}

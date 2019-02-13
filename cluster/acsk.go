@@ -29,6 +29,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
@@ -40,7 +41,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/goph/emperror"
-	"github.com/jmespath/go-jmespath"
+	jmespath "github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -184,6 +185,17 @@ func (c *ACSKCluster) GetAlibabaESSClient(cfg *sdk.Config) (*ess.Client, error) 
 	return client, emperror.With(err, "cluster", c.modelCluster.Name)
 }
 
+// GetAlibabaVPCClient creates an Alibaba Virtual Private Cloud client with credentials
+func (c *ACSKCluster) GetAlibabaVPCClient(cfg *sdk.Config) (*vpc.Client, error) {
+	cred, err := c.createAlibabaCredentialsFromSecret()
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := createAlibabaVPCClient(cred, c.modelCluster.ACSK.RegionID, cfg)
+	return client, emperror.With(err, "cluster", c.modelCluster.Name)
+}
+
 func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
 	nodePoolsCount := len(pools)
 	if nodePoolsCount == 0 {
@@ -309,6 +321,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 			SNATEntry:                true,
 			SSHFlags:                 true,
 			NodePools:                nodePools,
+			VSwitchID:                request.Properties.CreateClusterACSK.VSwitchID,
 		},
 		CreatedBy: userId,
 	}
@@ -335,6 +348,10 @@ func (c *ACSKCluster) CreateCluster() error {
 	}
 
 	c.modelCluster.RbacEnabled = true
+	vpcID, err := c.getVPCID()
+	if err != nil {
+		return emperror.Wrap(err, "failed to retreive VPC ID")
+	}
 
 	context := action.NewACKContext("", csClient, ecsClient, essClient)
 
@@ -357,6 +374,10 @@ func (c *ACSKCluster) CreateCluster() error {
 			SNATEntry:                c.modelCluster.ACSK.SNATEntry,                // true,
 			SSHFlags:                 c.modelCluster.ACSK.SSHFlags,                 // true,
 			DisableRollback:          true,
+			VPCID:                    vpcID,
+			VSwitchID:                c.modelCluster.ACSK.VSwitchID,
+			ContainerCIDR:            "172.19.0.0/20",
+			ServiceCIDR:              "172.16.0.0/16",
 		},
 	)
 
@@ -407,6 +428,28 @@ func (c *ACSKCluster) CreateCluster() error {
 	}
 
 	return c.modelCluster.Save()
+}
+
+func (c *ACSKCluster) getVPCID() (string, error) {
+	if c.modelCluster.ACSK.VSwitchID == "" {
+		return "", nil
+	}
+
+	vpcClient, err := c.GetAlibabaVPCClient(nil)
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to get Alibaba VPC client")
+	}
+
+	req := vpc.CreateDescribeVSwitchesRequest()
+	req.VSwitchId = c.modelCluster.ACSK.VSwitchID
+	res, err := vpcClient.DescribeVSwitches(req)
+	if err != nil {
+		return "", emperror.WrapWith(err, "could not get VSwitch details", "vswitch", c.modelCluster.ACSK.VSwitchID)
+	}
+	if len(res.VSwitches.VSwitch) != 1 {
+		return "", errors.New("VSwitch not found")
+	}
+	return res.VSwitches.VSwitch[0].VpcId, nil
 }
 
 type setSchemeSetDomainer interface {
@@ -1116,6 +1159,15 @@ func createAlibabaESSClient(auth *credentials.AccessKeyCredential, regionID stri
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := ess.NewClientWithOptions(regionID, cfg, cred)
 	return client, emperror.Wrap(err, "could not create Alibaba ESSClient")
+}
+
+func createAlibabaVPCClient(auth *credentials.AccessKeyCredential, regionID string, cfg *sdk.Config) (*vpc.Client, error) {
+	if cfg == nil {
+		cfg = createAlibabaConfig()
+	}
+	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
+	client, err := vpc.NewClientWithOptions(regionID, cfg, cred)
+	return client, emperror.Wrap(err, "could not create Alibaba VPCClient")
 }
 
 // GetCreatedBy returns cluster create userID.

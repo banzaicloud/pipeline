@@ -12,5 +12,5 @@
 package client
 
 type CreateOracleObjectStoreBucketProperties struct {
-	Oracle CreateOracleObjectStoreBucketPropertiesOracle `json:"oracle,omitempty"`
+	Location string `json:"location"`
 }
