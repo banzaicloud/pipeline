@@ -28,6 +28,8 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
 )
@@ -76,9 +78,10 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 // SetupNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
 func SetupNodePoolLabelsSet(cluster CommonCluster) error {
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 
 	// add node pool name, head node, ondemand labels + cloudinfo + user definied labels
-	desiredLabelSet, err := getDesiredLabelForCluster(cluster)
+	desiredLabelSet, err := getDesiredLabelForCluster(cluster, headNodePoolName)
 	if err != nil {
 		return emperror.Wrap(err, "failed to retrieve desired set of labels for cluster")
 	}
@@ -105,12 +108,12 @@ func SetupNodePoolLabelsSet(cluster CommonCluster) error {
 	return nil
 }
 
-func getDesiredLabelForCluster(cluster CommonCluster) (npls.NodepoolLabelSets, error) {
+func getDesiredLabelForCluster(cluster CommonCluster, headNodePoolName string) (npls.NodepoolLabelSets, error) {
 	desiredLabels := make(npls.NodepoolLabelSets)
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
+
 	clusterStatus, err := cluster.GetStatus()
 	if err != nil {
-		return desiredLabels, err
+		return desiredLabels, emperror.WrapWith(err, "failed to get cluster status", "cluster", cluster.GetName())
 	}
 	for name, nodePool := range clusterStatus.NodePools {
 		desiredLabels[name] = getDesiredNodePoolLabels(clusterStatus, name, nodePool, headNodePoolName)
@@ -144,7 +147,12 @@ func getDesiredNodePoolLabels(
 		clusterStatus.Region,
 		nodePool.InstanceType)
 	if err != nil {
-		log.Warnf("error retrieving labels from CloudInfo: %v", err.Error())
+		log.WithFields(logrus.Fields{
+			"instance":     nodePool.InstanceType,
+			"cloud":        clusterStatus.Cloud,
+			"distribution": clusterStatus.Distribution,
+			"region":       clusterStatus.Region,
+		}).Warn(errors.Wrap(err, "failed to get instance attributes from Cloud Info"))
 	} else {
 		for attrKey, attrValue := range machineDetails.Attributes {
 			cloudInfoAttrkey := common.CloudInfoLabelKeyPrefix + attrKey
