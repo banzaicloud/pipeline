@@ -17,8 +17,12 @@ package pkeworkflow
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -35,6 +39,11 @@ type Cluster interface {
 	GetUID() string
 	GetOrganizationId() uint
 	UpdateStatus(string, string) error
+}
+
+type AWSCluster interface {
+	GetAWSClient() (*session.Session, error)
+	Cluster
 }
 
 const CreateClusterWorkflowName = "pke-create-cluster"
@@ -68,6 +77,20 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	err = workflow.ExecuteActivity(ctx, CreateClusterActivityName, createClusterActivityInput).Get(ctx, nil)
 	if err != nil {
 		return err
+	}
+
+	createAWSRolesActivityInput := CreateAWSRolesActivityInput{
+		ClusterID: input.ClusterID,
+	}
+
+	var rolesStackID string
+	err = workflow.ExecuteActivity(ctx, CreateAWSRolesActivityName, createAWSRolesActivityInput).Get(ctx, &rolesStackID)
+	if err != nil {
+		return err
+	}
+
+	if rolesStackID != "" {
+		// TODO: wait for stack
 	}
 
 	signalName := "master-ready"
@@ -175,4 +198,77 @@ func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input Genera
 	}
 
 	return nil
+}
+
+const CreateAWSRolesActivityName = "pke-create-aws-roles-activity"
+
+type CreateAWSRolesActivity struct {
+	clusters Clusters
+}
+
+func NewCreateAWSRolesActivity(clusters Clusters) *CreateAWSRolesActivity {
+	return &CreateAWSRolesActivity{
+		clusters: clusters,
+	}
+}
+
+type CreateAWSRolesActivityInput struct {
+	ClusterID uint
+}
+
+func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRolesActivityInput) (string, error) {
+	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	if err != nil {
+		return "", err
+	}
+	awsCluster := cluster.(AWSCluster)
+	client, err := awsCluster.GetAWSClient()
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to connect to AWS")
+	}
+
+	cloudformationSrv := cloudformation.New(client)
+
+	if ok, err := CheckPkeGlobalCF(cloudformationSrv); err != nil {
+		return "", emperror.Wrap(err, "checking if role exists")
+	} else if ok {
+		// already exists
+		// TODO: move check out of this action
+		// TODO: wait for completion of existing stack
+		return "", nil
+	}
+
+	buf, err := ioutil.ReadFile("templates/global.cf.tpl")
+	if err != nil {
+		return "", emperror.Wrap(err, "loading CF template")
+	}
+
+	stackInput := &cloudformation.CreateStackInput{
+		Capabilities: aws.StringSlice([]string{"CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"}),
+		StackName:    aws.String("pke-global"),
+		TemplateBody: aws.String(string(buf)),
+	}
+	output, err := cloudformationSrv.CreateStack(stackInput)
+	if err != nil {
+		return "", emperror.Wrap(err, "creating role")
+	}
+
+	return *output.StackId, nil
+}
+
+// CheckPkeGlobalCF returns if global roles are already created by us for an other cluster
+func CheckPkeGlobalCF(cloudformationSrv *cloudformation.CloudFormation) (bool, error) {
+	stackFilter := cloudformation.ListStacksInput{
+		StackStatusFilter: aws.StringSlice([]string{"CREATE_COMPLETE", "CREATE_IN_PROGRESS"}),
+	}
+	stacks, err := cloudformationSrv.ListStacks(&stackFilter)
+	if err != nil {
+		return false, err
+	}
+	for _, stack := range stacks.StackSummaries {
+		if *stack.StackName == "pke-global" {
+			return true, nil
+		}
+	}
+	return false, nil
 }

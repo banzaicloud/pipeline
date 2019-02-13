@@ -150,6 +150,9 @@ func main() {
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusters)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
 
+		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(clusters)
+		activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
+
 		var closeCh = make(chan struct{})
 
 		group.Add(
