@@ -42,15 +42,21 @@ func CreateClusterWorkflow(ctx workflow.Context, input uint) error {
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
+	generateCertificatesActivityInput := GenerateCertificatesActivityInput{
+		ClusterID: input,
+	}
+
+	err := workflow.ExecuteActivity(ctx, GenerateCertificatesActivityName, generateCertificatesActivityInput).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	createClusterActivityInput := CreateClusterActivityInput{
 		ClusterID: input,
 	}
 
-	err := workflow.ExecuteActivity(ctx, CreateClusterActivityName, createClusterActivityInput).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, CreateClusterActivityName, createClusterActivityInput).Get(ctx, nil)
 	if err != nil {
-
-		// NOOOOOOO
-		//return nil
 		return err
 	}
 
@@ -95,24 +101,6 @@ func (a *CreateClusterActivity) Execute(ctx context.Context, input CreateCluster
 		return err
 	}
 
-	// Generate certificates
-	clusterUidTag := fmt.Sprintf("clusterUID:%s", c.GetUID())
-	req := &secret.CreateSecretRequest{
-		Name: fmt.Sprintf("cluster-%d-ca", c.GetID()),
-		Values: map[string]string{
-			pkgSecret.ClusterUID: fmt.Sprintf("%d-%d", c.GetOrganizationId(), c.GetID()),
-		},
-		Type: pkgSecret.PKESecretType,
-		Tags: []string{
-			clusterUidTag,
-			pkgSecret.TagBanzaiReadonly,
-			pkgSecret.TagBanzaiHidden,
-		},
-	}
-	_, err = secret.Store.GetOrCreate(c.GetOrganizationId(), req)
-	if err != nil {
-		return err
-	}
 	// prepare input for real AWS flow
 	_, _, err = a.tokenGenerator.GenerateClusterToken(c.GetOrganizationId(), c.GetID())
 	if err != nil {
@@ -134,6 +122,50 @@ func (a *CreateClusterActivity) Execute(ctx context.Context, input CreateCluster
 	//}
 
 	c.UpdateStatus("CREATING", "Waiting for Kubeconfig from master node.")
+
+	return nil
+}
+
+const GenerateCertificatesActivityName = "pke-generate-certificates-activity"
+
+type GenerateCertificatesActivity struct {
+	clusterManager *pkgCluster.Manager
+}
+
+func NewGenerateCertificatesActivity(clusterManager *pkgCluster.Manager) *GenerateCertificatesActivity {
+	return &GenerateCertificatesActivity{
+		clusterManager: clusterManager,
+	}
+}
+
+type GenerateCertificatesActivityInput struct {
+	ClusterID uint
+}
+
+func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input GenerateCertificatesActivityInput) error {
+	c, err := a.clusterManager.GetClusterByIDOnly(ctx, input.ClusterID)
+	if err != nil {
+		return err
+	}
+
+	// Generate certificates
+	clusterUidTag := fmt.Sprintf("clusterUID:%s", c.GetUID())
+	req := &secret.CreateSecretRequest{
+		Name: fmt.Sprintf("cluster-%d-ca", c.GetID()),
+		Values: map[string]string{
+			pkgSecret.ClusterUID: fmt.Sprintf("%d-%d", c.GetOrganizationId(), c.GetID()),
+		},
+		Type: pkgSecret.PKESecretType,
+		Tags: []string{
+			clusterUidTag,
+			pkgSecret.TagBanzaiReadonly,
+			pkgSecret.TagBanzaiHidden,
+		},
+	}
+	_, err = secret.Store.GetOrCreate(c.GetOrganizationId(), req)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
