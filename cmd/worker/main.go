@@ -137,6 +137,9 @@ func main() {
 		createClusterActivity := pkeworkflow.NewCreateClusterActivity(clusterManager, tokenHandler)
 		activity.RegisterWithOptions(createClusterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateClusterActivityName})
 
+		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterManager)
+		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
+
 		var closeCh = make(chan struct{})
 
 		group.Add(
