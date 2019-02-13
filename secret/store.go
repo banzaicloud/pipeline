@@ -270,7 +270,7 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 	// if type is distribution, unmount all pki engines
 	if secret.Type == secretTypes.PKESecretType {
-		clusterUID := secret.Values[secretTypes.ClusterUID]
+		clusterUID := getClusterUIDFromTags(secret.Tags)
 		basePath := clusterPKIPath(clusterUID)
 
 		path = fmt.Sprintf("%s/ca", basePath)
@@ -643,13 +643,9 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		}
 
 	} else if value.Type == secretTypes.PKESecretType {
-
-		clusterUID := value.Values[secretTypes.ClusterUID]
-
-		var orgID, clusterID uint
-		_, err := fmt.Sscanf(clusterUID, "%d-%d", &orgID, &clusterID)
-		if err != nil {
-			return errors.Wrapf(err, "clusterUID is not in the proper format")
+		clusterUID := getClusterUIDFromTags(value.Tags)
+		if clusterUID == "" {
+			return errors.New("clusterUID is missing from the tags")
 		}
 
 		mountInput := vaultapi.MountInput{
@@ -665,7 +661,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		basePath := clusterPKIPath(clusterUID)
 		path := fmt.Sprintf("%s/ca", basePath)
 
-		err = ss.Client.Vault().Sys().Mount(path, &mountInput)
+		err := ss.Client.Vault().Sys().Mount(path, &mountInput)
 		if err != nil {
 			return errors.Wrapf(err, "Error mounting pki engine for cluster %s", clusterUID)
 		}
@@ -718,10 +714,6 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert
 		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA.Key
 		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert
-
-		// append cluster tag
-		clusterUIDTag := clusterUIDTag(clusterUID)
-		value.Tags = append(value.Tags, clusterUIDTag)
 	}
 
 	return nil
@@ -784,8 +776,21 @@ type certificate struct {
 	Key  string
 }
 
+const clusterUIDTagName = "clusterUID"
+
 func clusterUIDTag(clusterUID string) string {
-	return fmt.Sprintf("clusterUID:%s", clusterUID)
+	return fmt.Sprintf("%s:%s", clusterUIDTagName, clusterUID)
+}
+
+func getClusterUIDFromTags(tags []string) string {
+	for _, tag := range tags {
+		if strings.HasPrefix(tag, clusterUIDTagName+":") {
+			return strings.TrimPrefix(tag, clusterUIDTagName+":")
+		}
+	}
+
+	// This should never happen
+	return ""
 }
 
 func clusterPKIPath(clusterUID string) string {
