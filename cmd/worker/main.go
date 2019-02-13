@@ -137,7 +137,24 @@ func main() {
 		createClusterActivity := pkeworkflow.NewCreateClusterActivity(clusterManager, tokenHandler)
 		activity.RegisterWithOptions(createClusterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateClusterActivityName})
 
-		group.Add(worker.Run, func(e error) { worker.Stop() })
+		var closeCh = make(chan struct{})
+
+		group.Add(
+			func() error {
+				err := worker.Start()
+				if err != nil {
+					return err
+				}
+
+				<-closeCh
+
+				return nil
+			},
+			func(e error) {
+				worker.Stop()
+				close(closeCh)
+			},
+		)
 	}
 
 	// Setup signal handler
