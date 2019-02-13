@@ -474,6 +474,76 @@ func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterMod
 	}
 }
 
+func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterRequest) map[string]*pkgCluster.NodePoolStatus {
+	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
+	cloudType := updateRequest.Cloud
+	switch cloudType {
+	case pkgCluster.Alibaba:
+		for name, np := range updateRequest.ACSK.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					InstanceType: np.InstanceType,
+					MinCount:     np.MinCount,
+					MaxCount:     np.MaxCount,
+				}
+			}
+		}
+
+	case pkgCluster.Amazon:
+		for name, np := range updateRequest.EKS.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					InstanceType: np.InstanceType,
+					Count:        np.Count,
+					MinCount:     np.MinCount,
+					MaxCount:     np.MaxCount,
+					SpotPrice:    np.SpotPrice,
+				}
+			}
+		}
+
+	case pkgCluster.Azure:
+		for name, np := range updateRequest.AKS.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					Count:    np.Count,
+					MinCount: np.MinCount,
+					MaxCount: np.MaxCount,
+				}
+			}
+		}
+
+	case pkgCluster.Google:
+		for name, np := range updateRequest.GKE.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					InstanceType: np.NodeInstanceType,
+					Count:        np.Count,
+					MinCount:     np.MinCount,
+					MaxCount:     np.MaxCount,
+					Preemptible:  np.Preemptible,
+				}
+			}
+		}
+
+	case pkgCluster.Oracle:
+		for name, np := range updateRequest.OKE.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					Count: int(np.Count),
+					Image: np.Image,
+				}
+			}
+		}
+
+	case pkgCluster.Dummy:
+	case pkgCluster.Kubernetes:
+
+	}
+
+	return nodePools
+}
+
 // CleanStateStore deletes state store folder by cluster name
 func CleanStateStore(path string) error {
 	if len(path) != 0 {
