@@ -16,9 +16,12 @@ package pkeworkflowadapter
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/pkg/errors"
 )
 
 // ClusterManagerAdapter provides an adapter for pkeworkflow.Clusters.
@@ -46,6 +49,8 @@ type Cluster struct {
 	cluster.CommonCluster
 }
 
+var _ pkeworkflow.AWSCluster = (*Cluster)(nil)
+
 func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 	clusterNodePools := c.CommonCluster.(interface{ GetNodePools() []cluster.PKENodePool }).GetNodePools()
 	nodePools := make([]pkeworkflow.NodePool, len(clusterNodePools), len(clusterNodePools))
@@ -60,4 +65,11 @@ func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 		}
 	}
 	return nodePools
+}
+
+func (c *Cluster) GetAWSClient() (*session.Session, error) {
+	if awscluster, ok := c.CommonCluster.(pkeworkflow.AWSCluster); ok {
+		return awscluster.GetAWSClient()
+	}
+	return nil, errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
 }
