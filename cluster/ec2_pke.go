@@ -485,6 +485,41 @@ func (c *EC2ClusterPKE) IsReady() (bool, error) {
 	return true, nil
 }
 
+type PKENodePool struct {
+	Name     string
+	MinCount int
+	MaxCount int
+	Count    int
+	Master   bool
+	Worker   bool
+}
+
+func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
+	pools := make([]PKENodePool, len(c.model.NodePools), len(c.model.NodePools))
+	for i, np := range c.model.NodePools {
+
+		var amazonPool internalPke.NodePoolProviderConfigAmazon
+		_ = mapstructure.Decode(np.ProviderConfig, &amazonPool)
+
+		pools[i] = PKENodePool{
+			Name:     np.Name,
+			MinCount: amazonPool.AutoScalingGroup.Size.Min,
+			MaxCount: amazonPool.AutoScalingGroup.Size.Max,
+			Count:    amazonPool.AutoScalingGroup.Size.Min,
+		}
+		for _, role := range np.Roles {
+			if role == "master" {
+				pools[i].Master = true
+			}
+			if role == "worker" {
+				pools[i].Worker = true
+			}
+		}
+
+	}
+	return pools
+}
+
 // ListNodeNames returns node names to label them
 func (c *EC2ClusterPKE) ListNodeNames() (common.NodeNames, error) {
 	var nodes = make(map[string][]string)

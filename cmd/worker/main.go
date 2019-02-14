@@ -162,6 +162,12 @@ func main() {
 		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(clusters)
 		activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
 
+		listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
+		activity.RegisterWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})
+
+		createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters)
+		activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
+
 		var closeCh = make(chan struct{})
 
 		group.Add(

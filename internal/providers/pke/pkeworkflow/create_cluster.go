@@ -34,11 +34,21 @@ type Cluster interface {
 	GetName() string
 	GetOrganizationId() uint
 	UpdateStatus(string, string) error
+	GetNodePools() []NodePool
 }
 
 type AWSCluster interface {
 	GetAWSClient() (*session.Session, error)
 	Cluster
+}
+
+type NodePool struct {
+	Name     string
+	MinCount int
+	MaxCount int
+	Count    int
+	Master   bool
+	Worker   bool
 }
 
 const CreateClusterWorkflowName = "pke-create-cluster"
@@ -107,7 +117,18 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		ClusterID: input.ClusterID,
 	}
 	var eip string
-	err = workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, createElasticIPActivityInput).Get(ctx, &eip)
+	if err := workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, createElasticIPActivityInput).Get(ctx, &eip); err != nil {
+		return err
+	}
+
+	var nodePools []NodePool
+	listNodePoolsActivityInput := ListNodePoolsActivityInput{
+		ClusterID: input.ClusterID,
+	}
+
+	if err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, listNodePoolsActivityInput).Get(ctx, &nodePools); err != nil {
+		return err
+	}
 
 	signalName := "master-ready"
 	signalChan := workflow.GetSignalChannel(ctx, signalName)
@@ -118,6 +139,21 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
 	})
 	s.Select(ctx)
+
+	for _, np := range nodePools {
+		if !np.Master && np.Worker {
+
+			createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
+				ClusterID: input.ClusterID,
+				Pool:      np,
+			}
+
+			err = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	return nil
 }

@@ -35,5 +35,29 @@ func NewClusterManagerAdapter(clusterManager *cluster.Manager) *ClusterManagerAd
 
 // GetCluster returns a Cluster.
 func (a *ClusterManagerAdapter) GetCluster(ctx context.Context, id uint) (pkeworkflow.Cluster, error) {
-	return a.clusterManager.GetClusterByIDOnly(ctx, id)
+	cluster, err := a.clusterManager.GetClusterByIDOnly(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &Cluster{cluster}, nil
+}
+
+type Cluster struct {
+	cluster.CommonCluster
+}
+
+func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
+	clusterNodePools := c.CommonCluster.(interface{ GetNodePools() []cluster.PKENodePool }).GetNodePools()
+	nodePools := make([]pkeworkflow.NodePool, len(clusterNodePools), len(clusterNodePools))
+	for i, np := range clusterNodePools {
+		nodePools[i] = pkeworkflow.NodePool{
+			Name:     np.Name,
+			MinCount: np.MinCount,
+			MaxCount: np.MaxCount,
+			Count:    np.Count,
+			Master:   np.Master,
+			Worker:   np.Worker,
+		}
+	}
+	return nodePools
 }

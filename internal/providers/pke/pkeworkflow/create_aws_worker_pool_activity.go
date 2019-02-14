@@ -27,29 +27,31 @@ import (
 	"go.uber.org/cadence/activity"
 )
 
-const CreateAWSRolesActivityName = "pke-create-aws-roles-activity"
-const PkeGlobalStackName = "pke-global"
+const CreateWorkerPoolActivityName = "pke-create-aws-worker-role-activity"
 
-type CreateAWSRolesActivity struct {
+type CreateWorkerPoolActivity struct {
 	clusters Clusters
 }
 
-func NewCreateAWSRolesActivity(clusters Clusters) *CreateAWSRolesActivity {
-	return &CreateAWSRolesActivity{
+func NewCreateWorkerPoolActivity(clusters Clusters) *CreateWorkerPoolActivity {
+	return &CreateWorkerPoolActivity{
 		clusters: clusters,
 	}
 }
 
-type CreateAWSRolesActivityInput struct {
+type CreateWorkerPoolActivityInput struct {
 	ClusterID uint
+	Pool      NodePool
 }
 
-func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRolesActivityInput) (string, error) {
+func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWorkerPoolActivityInput) (string, error) {
 	log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return "", err
 	}
+
+	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
@@ -63,14 +65,14 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 
 	cfClient := cloudformation.New(client)
 
-	buf, err := ioutil.ReadFile("templates/pke/global.cf.yaml")
+	buf, err := ioutil.ReadFile("templates/pke/worker.cf.yaml")
 	if err != nil {
 		return "", emperror.Wrap(err, "loading CF template")
 	}
 
 	stackInput := &cloudformation.CreateStackInput{
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam, cloudformation.CapabilityCapabilityNamedIam}),
-		StackName:    aws.String(PkeGlobalStackName),
+		StackName:    aws.String(stackName),
 		TemplateBody: aws.String(string(buf)),
 	}
 
@@ -79,12 +81,9 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 		switch err.Code() {
 		case cloudformation.ErrCodeAlreadyExistsException:
 			log.Infof("stack already exists: %s", err.Message())
-			return PkeGlobalStackName, nil
 		default:
 			return "", err
 		}
-	} else if err != nil {
-		return "", err
 	}
 
 	return *output.StackId, nil
