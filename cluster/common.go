@@ -476,6 +476,7 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 					InstanceType: np.InstanceType,
 					MinCount:     np.MinCount,
 					MaxCount:     np.MaxCount,
+					Labels:       np.Labels,
 				}
 			}
 		}
@@ -489,6 +490,7 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 					MinCount:     np.MinCount,
 					MaxCount:     np.MaxCount,
 					SpotPrice:    np.SpotPrice,
+					Labels:       np.Labels,
 				}
 			}
 		}
@@ -500,6 +502,7 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 					Count:    np.Count,
 					MinCount: np.MinCount,
 					MaxCount: np.MaxCount,
+					Labels:   np.Labels,
 				}
 			}
 		}
@@ -513,6 +516,7 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 					MinCount:     np.MinCount,
 					MaxCount:     np.MaxCount,
 					Preemptible:  np.Preemptible,
+					Labels:       np.Labels,
 				}
 			}
 		}
@@ -521,8 +525,9 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 		for name, np := range updateRequest.OKE.NodePools {
 			if np != nil {
 				nodePools[name] = &pkgCluster.NodePoolStatus{
-					Count: int(np.Count),
-					Image: np.Image,
+					Count:  int(np.Count),
+					Image:  np.Image,
+					Labels: np.Labels,
 				}
 			}
 		}

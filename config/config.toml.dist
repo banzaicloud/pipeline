@@ -38,6 +38,9 @@ adminUser = "admin"
 adminPass = "xxxxxx"
 endPoint = "http://exampe.com"
 
+[cloudinfo]
+endPointUrl = "https://alpha.dev.banzaicloud.com/cloudinfo/api/v1"
+
 [logging]
 logformat = "text"
 loglevel = "debug"
@@ -134,6 +137,15 @@ namespace = "pipeline-system"
 
 headNodeTaintRetryAttempt=30
 headNodeTaintRetrySleepSeconds=5
+
+reservedNodeLabelDomains=[
+		".?banzaicloud.io/.?",
+		".?banzaicloud.com/.?",
+		".?k8s.io/.?",
+		".?kubernetes.io/.?",
+		".?google.com/.?",
+		".?agentpool.?"
+]
 
 [eks]
 ASGFulfillmentTimeout="10m"

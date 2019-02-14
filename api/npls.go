@@ -64,7 +64,7 @@ func SetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusOK, "")
 }
 
 func GetNodepoolLabelSets(c *gin.Context) {

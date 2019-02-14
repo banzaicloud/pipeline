@@ -123,7 +123,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return nil
 	}
 
-	// retrieve node pools, create NodePoolLabelSet object for each node pool to be created
+	// pre deploy NodePoolLabelSet objects for each new node pool to be created
 	nodePools := getNodePoolsFromUpdateRequest(c.request)
 	err := DeployNodePoolLabelsSet(c.cluster, nodePools)
 	if err != nil {

@@ -29,7 +29,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
@@ -65,7 +64,7 @@ func DeployNodePoolLabelsSet(cluster CommonCluster, nodePools map[string]*pkgClu
 		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
 	}
 	// create NodePoolLabelSets only the new ones
-	err = createNewOnly(m, desiredLabelSet)
+	err = m.Sync(desiredLabelSet)
 	if err != nil {
 		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
 	}
@@ -140,30 +139,4 @@ func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
 		return "false"
 	}
 	return "true"
-}
-
-func labelSetExists(poolName string, nodepoolLabelSets npls.NodepoolLabelSets) bool {
-	if nodepoolLabelSets == nil {
-		return false
-	}
-	_, ok := nodepoolLabelSets[poolName]
-	return ok
-}
-
-func createNewOnly(m *npls.Manager, sets npls.NodepoolLabelSets) error {
-	existingSet, err := m.GetAll()
-	if err != nil && !k8serrors.IsNotFound(errors.Cause(err)) {
-		return err
-	}
-	merr := emperror.NewMultiErrorBuilder()
-	for poolName, labelSet := range sets {
-		if !labelSetExists(poolName, existingSet) {
-			err := m.Create(poolName, labelSet)
-			if err != nil {
-				merr.Add(err)
-			}
-		}
-	}
-
-	return merr.ErrOrNil()
 }
