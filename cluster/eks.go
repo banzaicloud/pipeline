@@ -177,12 +177,11 @@ func (c *EKSCluster) GetAPIEndpoint() (string, error) {
 }
 
 //CreateEKSClusterFromModel creates ClusterModel struct from the model
-func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, error) {
-	eksCluster := EKSCluster{
+func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) *EKSCluster {
+	return &EKSCluster{
 		modelCluster: clusterModel,
 		log:          log.WithField("cluster", clusterModel.Name),
 	}
-	return &eksCluster, nil
 }
 
 func (c *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials, error) {

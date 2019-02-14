@@ -291,12 +291,9 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	case pkgCluster.Amazon:
 		//Create Amazon EKS struct
-		eksCluster, err := CreateEKSClusterFromModel(modelCluster)
-		if err != nil {
-			return nil, err
-		}
+		eksCluster := CreateEKSClusterFromModel(modelCluster)
 
-		err = db.
+		err := db.
 			Preload("NodePools").
 			Preload("Subnets").
 			Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).
@@ -306,16 +303,10 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	case pkgCluster.Azure:
 		// Create Azure struct
-		aksCluster, err := CreateAKSClusterFromModel(modelCluster)
-		if err != nil {
-			return nil, err
-		}
+		aksCluster := CreateAKSClusterFromModel(modelCluster)
 
-		err = db.Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
-		if err != nil {
-			return nil, err
-		}
-		err = db.Model(&aksCluster.modelCluster.AKS).Related(&aksCluster.modelCluster.AKS.NodePools, "NodePools").Error
+		err := db.Preload("NodePools").
+			Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 
 		return aksCluster, err
 

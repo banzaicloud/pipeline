@@ -515,7 +515,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "11adc17b-446e-44df-a646-7d947a40669d",
 								"exec": [
 									"if (responseCode.code === 202) {",
 									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
@@ -533,7 +533,8 @@
 									"    postman.setNextRequest(null);",
 									"}",
 									""
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -547,7 +548,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n  \"secretId\": \"{{secretIdAzure}}\",\n  \"properties\": {\n        \"aks\": {\n        \t\"resourceGroup\": \"{{azResourceGroup}}\",\n        \t\"kubernetesVersion\": \"1.11.3\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\"\n            \t},\n            \t\"pool2\": {\n            \t    \"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\"\n            \t}\n        \t}\n        }\n    }\n}"
+							"raw": "{\n  \"name\":\"azcluster{{username}}{{$randomInt}}\",\n  \"location\": \"westeurope\",\n  \"cloud\": \"azure\",\n  \"secretId\": \"{{secretIdAzure}}\",\n  \"properties\": {\n        \"aks\": {\n        \t\"resourceGroup\": \"{{azResourceGroup}}\",\n        \t\"kubernetesVersion\": \"1.11.5\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"autoscaling\": false, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n            \t\t\"count\": 1,\n                \t\"instanceType\": \"Standard_B2ms\",\n                \t\"labels\": {\n                \t\t\"custom\": \"value\"\n                \t}\n            \t}\n        \t}\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
