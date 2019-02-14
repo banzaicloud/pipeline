@@ -28,7 +28,6 @@ services:
         image: banzaicloud/bank-vaults:0.3.16
         depends_on:
             - vault
-        restart: "always"
         command: unseal --init --mode file --file-path /vault/keys
         environment:
             VAULT_ADDR: http://vault:8200
@@ -42,7 +41,6 @@ services:
             - db
             - vault
             - vault-unsealer
-        restart: "always"
         entrypoint: "./wait-for-it.sh"
         command: db:3306 -- bank-vaults configure --mode file --file-path /vault/keys
         environment:
@@ -68,7 +66,6 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
             - /bin/cicd-server
-        restart: "always"
         environment:
             CICD_HOST:                 http://localhost:8000
             CICD_DEBUG:                "true"
@@ -91,7 +88,6 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
             - /bin/cicd-agent
-        restart: "always"
         environment:
             CICD_SERVER: cicd-server:9000
             CICD_SECRET: "s3cr3t"
