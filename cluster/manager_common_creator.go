@@ -17,6 +17,7 @@ package cluster
 import (
 	"context"
 
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -59,7 +60,7 @@ type createPKEClusterer interface {
 }
 
 type TokenGenerator interface {
-	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
+	GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID uint) (string, string, error)
 }
 
 // NewClusterCreator returns a new PKE or Common cluster creator instance depending on the cluster.

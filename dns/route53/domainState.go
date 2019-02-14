@@ -14,7 +14,11 @@
 
 package route53
 
-import "time"
+import (
+	"time"
+
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+)
 
 // status
 const (
@@ -27,7 +31,7 @@ const (
 // domainState represents the state of a domain registered with Amazon Route53 DNS service
 type domainState struct {
 	createdAt      time.Time
-	organisationId uint
+	organisationId pkgAuth.OrganizationID
 	domain         string
 	hostedZoneId   string
 	policyArn      string

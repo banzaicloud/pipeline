@@ -31,6 +31,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk/action"
@@ -295,7 +296,7 @@ func CreateACSKClusterFromModel(clusterModel *model.ClusterModel) (*ACSKCluster,
 	return &alibabaCluster, nil
 }
 
-func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*ACSKCluster, error) {
+func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*ACSKCluster, error) {
 	cluster := ACSKCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -813,7 +814,7 @@ func (c *ACSKCluster) DeleteFromDatabase() error {
 	return nil
 }
 
-func (c *ACSKCluster) GetOrganizationId() uint {
+func (c *ACSKCluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return c.modelCluster.OrganizationId
 }
 

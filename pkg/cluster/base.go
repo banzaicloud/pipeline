@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"time"
 
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
@@ -495,9 +496,9 @@ type ClusterProfileProperties struct {
 
 // CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
-	OrganizationId uint             `json:"-"`
-	SecretId       string           `json:"secretId,omitempty"`
-	Filter         *CloudInfoFilter `json:"filter,omitempty"`
+	OrganizationId pkgAuth.OrganizationID `json:"-"`
+	SecretId       string                 `json:"secretId,omitempty"`
+	Filter         *CloudInfoFilter       `json:"filter,omitempty"`
 }
 
 // CloudInfoFilter describes a filter in cloud info

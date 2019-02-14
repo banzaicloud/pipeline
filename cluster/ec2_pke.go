@@ -31,6 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
@@ -43,7 +44,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
@@ -108,7 +109,7 @@ func (c *EC2ClusterPKE) GetUID() string {
 	return c.model.Cluster.UID
 }
 
-func (c *EC2ClusterPKE) GetOrganizationId() uint {
+func (c *EC2ClusterPKE) GetOrganizationId() pkgAuth.OrganizationID {
 	return c.model.Cluster.OrganizationID
 }
 
@@ -556,7 +557,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) str
 		cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
 }
 
-func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {
+func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*EC2ClusterPKE, error) {
 	c := &EC2ClusterPKE{
 		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
 	}

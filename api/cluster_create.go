@@ -20,8 +20,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
@@ -80,7 +81,7 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 func (a *ClusterAPI) CreateCluster(
 	ctx context.Context,
 	createClusterRequest *pkgCluster.CreateClusterRequest,
-	organizationID uint,
+	organizationID pkgAuth.OrganizationID,
 	userID uint,
 	postHooks []cluster.PostFunctioner,
 ) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {

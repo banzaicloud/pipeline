@@ -17,12 +17,13 @@ package cluster
 import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	gke "google.golang.org/api/container/v1"
 )
 
 // GetGkeServerConfig returns all supported K8S versions
-func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, error) {
+func GetGkeServerConfig(orgId pkgAuth.OrganizationID, secretId, zone string) (*gke.ServerConfig, error) {
 	g := GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{
@@ -36,7 +37,7 @@ func GetGkeServerConfig(orgId uint, secretId, zone string) (*gke.ServerConfig, e
 }
 
 // GetAllMachineTypesByZone returns all supported machine type by zone
-func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]pkgCluster.MachineTypes, error) {
+func GetAllMachineTypesByZone(orgId pkgAuth.OrganizationID, secretId, zone string) (map[string]pkgCluster.MachineTypes, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{
@@ -50,7 +51,7 @@ func GetAllMachineTypesByZone(orgId uint, secretId, zone string) (map[string]pkg
 }
 
 // GetAllMachineTypes returns all supported machine types
-func GetAllMachineTypes(orgId uint, secretId string) (map[string]pkgCluster.MachineTypes, error) {
+func GetAllMachineTypes(orgId pkgAuth.OrganizationID, secretId string) (map[string]pkgCluster.MachineTypes, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{
@@ -65,7 +66,7 @@ func GetAllMachineTypes(orgId uint, secretId string) (map[string]pkgCluster.Mach
 }
 
 // GetZones lists all supported zones
-func GetZones(orgId uint, secretId string) ([]string, error) {
+func GetZones(orgId pkgAuth.OrganizationID, secretId string) ([]string, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{

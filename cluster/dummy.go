@@ -18,10 +18,11 @@ import (
 	"errors"
 
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
-	"gopkg.in/yaml.v2"
+	"github.com/ghodss/yaml"
 )
 
 // DummyCluster struct for DC
@@ -31,7 +32,7 @@ type DummyCluster struct {
 }
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
-func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*DummyCluster, error) {
+func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*DummyCluster, error) {
 	var cluster DummyCluster
 
 	cluster.modelCluster = &model.ClusterModel{
@@ -155,7 +156,7 @@ func (c *DummyCluster) DeleteFromDatabase() error {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *DummyCluster) GetOrganizationId() uint {
+func (c *DummyCluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return c.modelCluster.OrganizationId
 }
 

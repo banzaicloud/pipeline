@@ -19,7 +19,8 @@ import (
 	"net/http"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin"
@@ -35,12 +36,12 @@ type ListProjectsResponse struct {
 // Primarily it's intended to be populated with information coming from the Gin context (header, path, request ...)
 type servicesContext struct {
 	log      logrus.FieldLogger
-	orgId    uint
+	orgId    pkgAuth.OrganizationID
 	secretId string
 }
 
 // newServicesCtx
-func newServicesCtx(orgId uint, secretId string) *servicesContext {
+func newServicesCtx(orgId pkgAuth.OrganizationID, secretId string) *servicesContext {
 	return &servicesContext{
 		orgId:    orgId,
 		secretId: secretId,

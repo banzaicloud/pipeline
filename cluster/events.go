@@ -14,12 +14,14 @@
 
 package cluster
 
+import pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+
 type clusterEvents interface {
 	// ClusterCreated event is emitted when a cluster creation workflow finishes.
 	ClusterCreated(clusterID uint)
 
 	// ClusterDeleted event is emitted when a cluster is completely deleted.
-	ClusterDeleted(orgID uint, clusterName string)
+	ClusterDeleted(orgID pkgAuth.OrganizationID, clusterName string)
 }
 
 type nopClusterEvents struct {
@@ -32,7 +34,7 @@ func NewNopClusterEvents() *nopClusterEvents {
 func (*nopClusterEvents) ClusterCreated(clusterID uint) {
 }
 
-func (*nopClusterEvents) ClusterDeleted(orgID uint, clusterName string) {
+func (*nopClusterEvents) ClusterDeleted(orgID pkgAuth.OrganizationID, clusterName string) {
 }
 
 type eventBus interface {
@@ -58,6 +60,6 @@ func (c *clusterEventBus) ClusterCreated(clusterID uint) {
 	c.eb.Publish(clusterCreatedTopic, clusterID)
 }
 
-func (c *clusterEventBus) ClusterDeleted(orgID uint, clusterName string) {
+func (c *clusterEventBus) ClusterDeleted(orgID pkgAuth.OrganizationID, clusterName string) {
 	c.eb.Publish(clusterDeletedTopic, orgID, clusterName)
 }

@@ -31,6 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
@@ -46,7 +47,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -69,7 +70,7 @@ const mapUsersTemplate = `- userarn: %s
 const asgWaitLoopSleepSeconds = 5
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
-func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
+func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*EKSCluster, error) {
 	cluster := EKSCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -206,7 +207,7 @@ type EKSCluster struct {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *EKSCluster) GetOrganizationId() uint {
+func (c *EKSCluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return c.modelCluster.OrganizationId
 }
 
@@ -1327,7 +1328,7 @@ func (c *EKSCluster) RequiresSshPublicKey() bool {
 }
 
 // ListEksRegions returns the regions in which AmazonEKS service is enabled
-func ListEksRegions(orgId uint, secretId string) ([]string, error) {
+func ListEksRegions(orgId pkgAuth.OrganizationID, secretId string) ([]string, error) {
 	// AWS API https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ doesn't recognizes AmazonEKS service yet
 	// thus we can not use it to query what locations the service is enabled in.
 

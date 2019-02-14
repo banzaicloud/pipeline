@@ -16,6 +16,7 @@ package oracle
 
 import (
 	"github.com/banzaicloud/pipeline/auth"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
 
 // TableName constants
@@ -27,8 +28,8 @@ const (
 type ObjectStoreBucketModel struct {
 	ID uint `gorm:"primary_key"`
 
-	Organization auth.Organization `gorm:"foreignkey:OrgID"`
-	OrgID        uint              `gorm:"index;not null"`
+	Organization auth.Organization      `gorm:"foreignkey:OrgID"`
+	OrgID        pkgAuth.OrganizationID `gorm:"index;not null"`
 
 	CompartmentID string `gorm:"unique_index:idx_bucket_name_location_compartment"`
 	Name          string `gorm:"unique_index:idx_bucket_name_location_compartment"`
