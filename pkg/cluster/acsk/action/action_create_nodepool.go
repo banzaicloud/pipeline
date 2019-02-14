@@ -54,7 +54,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 	}
 
 	if len(a.nodePools) == 0 {
-		r, err := getClusterDetails(a.context.ClusterID, a.context.CSClient)
+		r, err := GetClusterDetails(a.context.CSClient, a.context.ClusterID)
 		if err != nil {
 			return nil, emperror.With(err, "cluster", cluster.Name)
 		}
