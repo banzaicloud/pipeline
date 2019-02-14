@@ -78,7 +78,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			StackID:   rolesStackID,
 		}
 
-		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, rolesOutput)
+		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &rolesOutput)
 		if err != nil {
 			return err
 		}
@@ -97,7 +97,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			StackID:   vpcStackID,
 		}
 
-		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, vpcOutput)
+		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &vpcOutput)
 		if err != nil {
 			return err
 		}
