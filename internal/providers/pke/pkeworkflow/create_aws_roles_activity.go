@@ -20,12 +20,15 @@ import (
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"go.uber.org/cadence/activity"
 )
 
 const CreateAWSRolesActivityName = "pke-create-aws-roles-activity"
+const PkeGlobalStackName = "pke-global"
 
 type CreateAWSRolesActivity struct {
 	clusters Clusters
@@ -42,6 +45,7 @@ type CreateAWSRolesActivityInput struct {
 }
 
 func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRolesActivityInput) (string, error) {
+	log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return "", err
@@ -59,48 +63,25 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 
 	cfClient := cloudformation.New(client)
 
-	// check if global roles are already created for another cluster
-	stackFilter := cloudformation.ListStacksInput{
-		StackStatusFilter: aws.StringSlice([]string{"CREATE_COMPLETE", "CREATE_IN_PROGRESS"}),
-	}
-
-	// TODO: remove this and replace with CreateStack -> ErrCodeAlreadyExistsException handling
-	for {
-		stacks, err := cfClient.ListStacks(&stackFilter)
-		if err != nil {
-			return "", emperror.Wrap(err, "failed to check if role already exists")
-		}
-
-		for _, stack := range stacks.StackSummaries {
-			if *stack.StackName == "pke-global" {
-				if *stack.StackStatus == "CREATE_IN_PROGRESS" {
-					return *stack.StackId, nil
-				}
-				return "", nil
-			}
-		}
-
-		if stacks.NextToken != nil {
-			stackFilter = cloudformation.ListStacksInput{NextToken: stacks.NextToken}
-		} else {
-			break
-		}
-	}
-
-	buf, err := ioutil.ReadFile("templates/global.cf.tpl")
+	buf, err := ioutil.ReadFile("templates/pke/global.cf.tpl")
 	if err != nil {
 		return "", emperror.Wrap(err, "loading CF template")
 	}
 
 	stackInput := &cloudformation.CreateStackInput{
-		Capabilities: aws.StringSlice([]string{"CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"}),
-		StackName:    aws.String("pke-global"),
+		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam, cloudformation.CapabilityCapabilityNamedIam}),
+		StackName:    aws.String(PkeGlobalStackName),
 		TemplateBody: aws.String(string(buf)),
 	}
 
 	output, err := cfClient.CreateStack(stackInput)
-	if err != nil {
-		return "", emperror.Wrap(err, "creating role")
+	if err, ok := err.(awserr.Error); ok {
+		switch err.Code() {
+		case cloudformation.ErrCodeAlreadyExistsException:
+			log.Infof("stack already exists: %s", err.Message())
+		default:
+			return "", err
+		}
 	}
 
 	return *output.StackId, nil
