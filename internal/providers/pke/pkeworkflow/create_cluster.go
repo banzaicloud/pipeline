@@ -55,11 +55,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	generateCertificatesActivityInput := GenerateCertificatesActivityInput{
-		ClusterID: input.ClusterID,
-	}
-
-	err := workflow.ExecuteActivity(ctx, GenerateCertificatesActivityName, generateCertificatesActivityInput).Get(ctx, nil)
+	err := generateCertificates(ctx, input.ClusterID)
 	if err != nil {
 		return err
 	}
@@ -98,6 +94,14 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	s.Select(ctx)
 
 	return nil
+}
+
+func generateCertificates(ctx workflow.Context, clusterID uint) error {
+	generateCertificatesActivityInput := GenerateCertificatesActivityInput{
+		ClusterID: clusterID,
+	}
+
+	return workflow.ExecuteActivity(ctx, GenerateCertificatesActivityName, generateCertificatesActivityInput).Get(ctx, nil)
 }
 
 const CreateClusterActivityName = "pke-create-cluster-activity"
