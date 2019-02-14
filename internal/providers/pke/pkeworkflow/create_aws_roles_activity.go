@@ -16,11 +16,13 @@ package pkeworkflow
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 )
 
 const CreateAWSRolesActivityName = "pke-create-aws-roles-activity"
@@ -44,21 +46,45 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 	if err != nil {
 		return "", err
 	}
-	awsCluster := cluster.(AWSCluster)
+
+	awsCluster, ok := cluster.(AWSCluster)
+	if !ok {
+		return "", errors.New(fmt.Sprintf("can't create AWS roles for %t", cluster))
+	}
+
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
 		return "", emperror.Wrap(err, "failed to connect to AWS")
 	}
 
-	cloudformationSrv := cloudformation.New(client)
+	cfClient := cloudformation.New(client)
 
-	if ok, err := CheckPkeGlobalCF(cloudformationSrv); err != nil {
-		return "", emperror.Wrap(err, "checking if role exists")
-	} else if ok {
-		// already exists
-		// TODO: move check out of this action
-		// TODO: wait for completion of existing stack
-		return "", nil
+	// check if global roles are already created for another cluster
+	stackFilter := cloudformation.ListStacksInput{
+		StackStatusFilter: aws.StringSlice([]string{"CREATE_COMPLETE", "CREATE_IN_PROGRESS"}),
+	}
+
+	// TODO: remove this and replace with CreateStack -> ErrCodeAlreadyExistsException handling
+	for {
+		stacks, err := cfClient.ListStacks(&stackFilter)
+		if err != nil {
+			return "", emperror.Wrap(err, "failed to check if role already exists")
+		}
+
+		for _, stack := range stacks.StackSummaries {
+			if *stack.StackName == "pke-global" {
+				if *stack.StackStatus == "CREATE_IN_PROGRESS" {
+					return *stack.StackId, nil
+				}
+				return "", nil
+			}
+		}
+
+		if stacks.NextToken != nil {
+			stackFilter = cloudformation.ListStacksInput{NextToken: stacks.NextToken}
+		} else {
+			break
+		}
 	}
 
 	buf, err := ioutil.ReadFile("templates/global.cf.tpl")
@@ -71,27 +97,11 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 		StackName:    aws.String("pke-global"),
 		TemplateBody: aws.String(string(buf)),
 	}
-	output, err := cloudformationSrv.CreateStack(stackInput)
+
+	output, err := cfClient.CreateStack(stackInput)
 	if err != nil {
 		return "", emperror.Wrap(err, "creating role")
 	}
 
 	return *output.StackId, nil
-}
-
-// CheckPkeGlobalCF returns if global roles are already created by us for an other cluster
-func CheckPkeGlobalCF(cloudformationSrv *cloudformation.CloudFormation) (bool, error) {
-	stackFilter := cloudformation.ListStacksInput{
-		StackStatusFilter: aws.StringSlice([]string{"CREATE_COMPLETE", "CREATE_IN_PROGRESS"}),
-	}
-	stacks, err := cloudformationSrv.ListStacks(&stackFilter)
-	if err != nil {
-		return false, err
-	}
-	for _, stack := range stacks.StackSummaries {
-		if *stack.StackName == "pke-global" {
-			return true, nil
-		}
-	}
-	return false, nil
 }

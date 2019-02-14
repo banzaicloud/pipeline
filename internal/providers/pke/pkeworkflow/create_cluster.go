@@ -71,7 +71,15 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 
 	if rolesStackID != "" {
-		// TODO: wait for stack
+		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
+			ClusterID: input.ClusterID,
+			StackID:   rolesStackID,
+		}
+
+		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &rolesStackID)
+		if err != nil {
+			return err
+		}
 	}
 
 	signalName := "master-ready"
@@ -132,8 +140,8 @@ func (a *CreateClusterActivity) Execute(ctx context.Context, input CreateCluster
 	//if err != nil {
 	//	return err
 	//}
-	//cloudformationSrv := cloudformation.New(client)
-	//err = CreateMasterCF(cloudformationSrv)
+	//cfClient := cloudformation.New(client)
+	//err = CreateMasterCF(cfClient)
 	//if err != nil {
 	//	return emperror.Wrap(err, "can't create master CF template")
 	//}

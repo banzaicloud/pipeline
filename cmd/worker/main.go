@@ -150,6 +150,9 @@ func main() {
 		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(clusters)
 		activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
 
+		waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(clusters)
+		activity.RegisterWithOptions(waitCFCompletionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitCFCompletionActivityName})
+
 		updateClusterStatusActivitiy := pkeworkflow.NewUpdateClusterStatusActivity(clusters)
 		activity.RegisterWithOptions(updateClusterStatusActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterStatusActivityName})
 
