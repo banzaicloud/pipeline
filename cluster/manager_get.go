@@ -18,13 +18,14 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
 // GetClusters returns the cluster instances for an organization ID.
-func (m *Manager) GetClusters(ctx context.Context, organizationID uint) ([]CommonCluster, error) {
+func (m *Manager) GetClusters(ctx context.Context, organizationID pkgAuth.OrganizationID) ([]CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 	})
@@ -65,7 +66,7 @@ func (m *Manager) GetAllClusters(ctx context.Context) ([]CommonCluster, error) {
 }
 
 // GetClusterByID returns the cluster instance for an organization ID by cluster ID.
-func (m *Manager) GetClusterByID(ctx context.Context, organizationID uint, clusterID uint) (CommonCluster, error) {
+func (m *Manager) GetClusterByID(ctx context.Context, organizationID pkgAuth.OrganizationID, clusterID uint) (CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 		"cluster":      clusterID,
@@ -108,7 +109,7 @@ func (m *Manager) GetClusterByIDOnly(ctx context.Context, clusterID uint) (Commo
 }
 
 // GetClusterByName returns the cluster instance for an organization ID by cluster name.
-func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clusterName string) (CommonCluster, error) {
+func (m *Manager) GetClusterByName(ctx context.Context, organizationID pkgAuth.OrganizationID, clusterName string) (CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 		"cluster":      clusterName,
@@ -130,7 +131,7 @@ func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clu
 }
 
 // GetClustersBySecretID returns the cluster instance for an organization ID by secret ID.
-func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint, secretID string) ([]CommonCluster, error) {
+func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID pkgAuth.OrganizationID, secretID string) ([]CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 		"secret":       secretID,

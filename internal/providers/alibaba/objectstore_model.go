@@ -14,7 +14,10 @@
 
 package alibaba
 
-import "github.com/banzaicloud/pipeline/auth"
+import (
+	"github.com/banzaicloud/pipeline/auth"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+)
 
 // TableName constants
 const (
@@ -23,10 +26,10 @@ const (
 
 // ObjectStoreBucketModel is the schema for the DB
 type ObjectStoreBucketModel struct {
-	ID           uint              `gorm:"primary_key"`
-	Organization auth.Organization `gorm:"foreignkey:OrgID"`
-	OrgID        uint              `gorm:"index;not null"`
-	Name         string            `gorm:"unique_index:idx_bucket_name"`
+	ID           uint                   `gorm:"primary_key"`
+	Organization auth.Organization      `gorm:"foreignkey:OrgID"`
+	OrgID        pkgAuth.OrganizationID `gorm:"index;not null"`
+	Name         string                 `gorm:"unique_index:idx_bucket_name"`
 	Region       string
 	SecretRef    string
 

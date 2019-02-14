@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,27 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package auth
 
-import (
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	"github.com/banzaicloud/pipeline/secret"
-)
-
-type AKSCluster interface {
-	Cluster
-	GetResourceGroupName() string
-}
-
-// Cluster interface for cluster implementations
-type Cluster interface {
-	GetID() uint
-	GetName() string
-	GetOrganizationId() pkgAuth.OrganizationID
-	GetCloud() string
-	GetDistribution() string
-	GetK8sConfig() ([]byte, error)
-	GetSecretWithValidation() (*secret.SecretItemResponse, error)
-	GetLocation() string
-	RbacEnabled() bool
-}
+// OrganizationID represents the identifier of an organization
+type OrganizationID uint

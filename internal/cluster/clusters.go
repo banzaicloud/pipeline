@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -32,7 +33,7 @@ func NewClusters(db *gorm.DB) *Clusters {
 }
 
 // Exists checks if a given cluster exists within an organization.
-func (c *Clusters) Exists(organizationID uint, name string) (bool, error) {
+func (c *Clusters) Exists(organizationID pkgAuth.OrganizationID, name string) (bool, error) {
 	var existingCluster ClusterModel
 
 	err := c.db.First(&existingCluster, map[string]interface{}{"name": name, "organization_id": organizationID}).Error
@@ -58,7 +59,7 @@ func (c *Clusters) All() ([]*model.ClusterModel, error) {
 }
 
 // FindByOrganization returns all cluster instances for an organization.
-func (c *Clusters) FindByOrganization(organizationID uint) ([]*model.ClusterModel, error) {
+func (c *Clusters) FindByOrganization(organizationID pkgAuth.OrganizationID) ([]*model.ClusterModel, error) {
 	var clusters []*model.ClusterModel
 
 	err := c.db.Find(&clusters, map[string]interface{}{"organization_id": organizationID}).Error
@@ -70,18 +71,18 @@ func (c *Clusters) FindByOrganization(organizationID uint) ([]*model.ClusterMode
 }
 
 // FindOneByID returns a cluster instance for an organization by cluster ID.
-func (c *Clusters) FindOneByID(organizationID uint, clusterID uint) (*model.ClusterModel, error) {
+func (c *Clusters) FindOneByID(organizationID pkgAuth.OrganizationID, clusterID uint) (*model.ClusterModel, error) {
 	return c.findOneBy(organizationID, "id", clusterID)
 }
 
 // FindOneByName returns a cluster instance for an organization by cluster name.
-func (c *Clusters) FindOneByName(organizationID uint, clusterName string) (*model.ClusterModel, error) {
+func (c *Clusters) FindOneByName(organizationID pkgAuth.OrganizationID, clusterName string) (*model.ClusterModel, error) {
 	return c.findOneBy(organizationID, "name", clusterName)
 }
 
 type clusterModelNotFoundError struct {
 	cluster        interface{}
-	organizationID uint
+	organizationID pkgAuth.OrganizationID
 }
 
 func (e *clusterModelNotFoundError) Error() string {
@@ -100,7 +101,7 @@ func (e *clusterModelNotFoundError) NotFound() bool {
 }
 
 // findOneBy returns a cluster instance for an organization by cluster name.
-func (c *Clusters) findOneBy(organizationID uint, field string, criteria interface{}) (*model.ClusterModel, error) {
+func (c *Clusters) findOneBy(organizationID pkgAuth.OrganizationID, field string, criteria interface{}) (*model.ClusterModel, error) {
 	cluster := model.ClusterModel{
 		OrganizationId: organizationID,
 	}
@@ -141,7 +142,7 @@ func (c *Clusters) findOneBy(organizationID uint, field string, criteria interfa
 }
 
 // FindBySecret returns all cluster instances for an organization filtered by secret.
-func (c *Clusters) FindBySecret(organizationID uint, secretID string) ([]*model.ClusterModel, error) {
+func (c *Clusters) FindBySecret(organizationID pkgAuth.OrganizationID, secretID string) ([]*model.ClusterModel, error) {
 	var clusters []*model.ClusterModel
 
 	err := c.db.Find(
@@ -159,7 +160,7 @@ func (c *Clusters) FindBySecret(organizationID uint, secretID string) ([]*model.
 }
 
 // GetConfigSecretIDByClusterID returns the kubeconfig's secretID stored in DB
-func (c *Clusters) GetConfigSecretIDByClusterID(organizationID, clusterID uint) (string, error) {
+func (c *Clusters) GetConfigSecretIDByClusterID(organizationID pkgAuth.OrganizationID, clusterID uint) (string, error) {
 	cluster := model.ClusterModel{ID: clusterID}
 
 	if err := c.db.Where(cluster).Select("config_secret_id").First(&cluster).Error; err != nil {

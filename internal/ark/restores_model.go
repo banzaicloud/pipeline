@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
 
 // ClusterBackupRestoresModel describes an ARK restore model
@@ -43,7 +44,7 @@ type ClusterBackupRestoresModel struct {
 	Cluster        model.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	ClusterID      uint                      `gorm:"index;not null"`
 	Organization   auth.Organization         `gorm:"foreignkey:OrganizationID"`
-	OrganizationID uint                      `gorm:"index;not null"`
+	OrganizationID pkgAuth.OrganizationID    `gorm:"index;not null"`
 
 	Status        string
 	StatusMessage string `sql:"type:text;"`

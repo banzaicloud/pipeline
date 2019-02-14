@@ -25,6 +25,7 @@ import (
 
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
 	"github.com/banzaicloud/bank-vaults/pkg/vault"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"
@@ -225,7 +226,7 @@ func (r *CreateSecretRequest) ValidateAsNew(verifier verify.Verifier) error {
 }
 
 // DeleteByClusterUID Delete secrets by ClusterUID
-func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
+func (ss *secretStore) DeleteByClusterUID(orgID pkgAuth.OrganizationID, clusterUID string) error {
 	if clusterUID == "" {
 		return errors.New("clusterUID is empty")
 	}
@@ -256,7 +257,7 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 }
 
 // Delete secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Delete(organizationID uint, secretID string) error {
+func (ss *secretStore) Delete(organizationID pkgAuth.OrganizationID, secretID string) error {
 
 	path := secretMetadataPath(organizationID, secretID)
 
@@ -305,7 +306,7 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 }
 
 // Save secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) (string, error) {
+func (ss *secretStore) Store(organizationID pkgAuth.OrganizationID, request *CreateSecretRequest) (string, error) {
 
 	// We allow only Kubernetes compatible Secret names
 	if errorList := validation.IsDNS1123Subdomain(request.Name); errorList != nil {
@@ -334,7 +335,7 @@ func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) 
 }
 
 // Update secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Update(organizationID uint, secretID string, request *CreateSecretRequest) error {
+func (ss *secretStore) Update(organizationID pkgAuth.OrganizationID, secretID string, request *CreateSecretRequest) error {
 
 	if GenerateSecretID(request) != secretID {
 		return errors.New("Secret name cannot be changed")
@@ -365,7 +366,7 @@ func (ss *secretStore) Update(organizationID uint, secretID string, request *Cre
 }
 
 // GetOrCreate create new secret or get if it's exist. secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) GetOrCreate(organizationID uint, value *CreateSecretRequest) (string, error) {
+func (ss *secretStore) GetOrCreate(organizationID pkgAuth.OrganizationID, value *CreateSecretRequest) (string, error) {
 	secretID := GenerateSecretID(value)
 
 	// Try to get the secret version first
@@ -385,7 +386,7 @@ func (ss *secretStore) GetOrCreate(organizationID uint, value *CreateSecretReque
 }
 
 // CreateOrUpdate create new secret or update if it's exist. secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) CreateOrUpdate(organizationID uint, value *CreateSecretRequest) (string, error) {
+func (ss *secretStore) CreateOrUpdate(organizationID pkgAuth.OrganizationID, value *CreateSecretRequest) (string, error) {
 
 	secretID := GenerateSecretID(value)
 
@@ -444,7 +445,7 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 }
 
 // Retrieve secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemResponse, error) {
+func (ss *secretStore) Get(organizationID pkgAuth.OrganizationID, secretID string) (*SecretItemResponse, error) {
 
 	path := secretDataPath(organizationID, secretID)
 
@@ -462,7 +463,7 @@ func (ss *secretStore) Get(organizationID uint, secretID string) (*SecretItemRes
 }
 
 // Retrieve secret by secret Name secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemResponse, error) {
+func (ss *secretStore) GetByName(organizationID pkgAuth.OrganizationID, name string) (*SecretItemResponse, error) {
 
 	secretID := GenerateSecretIDFromName(name)
 	secret, err := Store.Get(organizationID, secretID)
@@ -479,7 +480,7 @@ func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemR
 	return secret, nil
 }
 
-func (ss *secretStore) getSecretIDs(orgid uint, query *secretTypes.ListSecretsQuery) ([]string, error) {
+func (ss *secretStore) getSecretIDs(orgid pkgAuth.OrganizationID, query *secretTypes.ListSecretsQuery) ([]string, error) {
 	if len(query.IDs) > 0 {
 		return query.IDs, nil
 	}
@@ -499,7 +500,7 @@ func (ss *secretStore) getSecretIDs(orgid uint, query *secretTypes.ListSecretsQu
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
+func (ss *secretStore) List(orgid pkgAuth.OrganizationID, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
 
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 
@@ -544,11 +545,11 @@ func secretData(version int, request *CreateSecretRequest) (map[string]interface
 	return vault.NewData(version, map[string]interface{}{"value": valueData}), nil
 }
 
-func secretDataPath(organizationID uint, secretID string) string {
+func secretDataPath(organizationID pkgAuth.OrganizationID, secretID string) string {
 	return fmt.Sprintf("secret/data/orgs/%d/%s", organizationID, secretID)
 }
 
-func secretMetadataPath(organizationID uint, secretID string) string {
+func secretMetadataPath(organizationID pkgAuth.OrganizationID, secretID string) string {
 	return fmt.Sprintf("secret/metadata/orgs/%d/%s", organizationID, secretID)
 }
 

@@ -22,13 +22,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 // createHostedZoneRoute53Policy creates an AWS policy that allows listing route53 hosted zones and record  sets in general
 // also modifying only the records of the hosted zone identified by the given id.
-func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId string) (*iam.Policy, error) {
+func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId pkgAuth.OrganizationID, hostedZoneId string) (*iam.Policy, error) {
 	log := loggerWithFields(logrus.Fields{"hostedzone": hostedZoneId})
 
 	org, err := dns.getOrganization(orgId)

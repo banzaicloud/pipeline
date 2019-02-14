@@ -14,13 +14,15 @@
 
 package auth
 
+import pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+
 // OrganizationRegisteredTopic is the name of the topic where organization registration events are published.
 const OrganizationRegisteredTopic = "organization_registered"
 
 // authEvents is responsible for dispatching domain events throughout the system.
 // It does not express any infrastructural detail (like pubsub).
 type authEvents interface {
-	OrganizationRegistered(organizationID uint, userID uint)
+	OrganizationRegistered(organizationID pkgAuth.OrganizationID, userID uint)
 }
 
 type eventBus interface {
@@ -31,6 +33,6 @@ type ebAuthEvents struct {
 	eb eventBus
 }
 
-func (e ebAuthEvents) OrganizationRegistered(organizationID uint, userID uint) {
+func (e ebAuthEvents) OrganizationRegistered(organizationID pkgAuth.OrganizationID, userID uint) {
 	e.eb.Publish(OrganizationRegisteredTopic, organizationID, userID)
 }

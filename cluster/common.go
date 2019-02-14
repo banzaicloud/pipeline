@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -42,7 +43,7 @@ type CommonCluster interface {
 	// Entity properties
 	GetID() uint
 	GetUID() string
-	GetOrganizationId() uint
+	GetOrganizationId() pkgAuth.OrganizationID
 	GetName() string
 	GetCloud() string
 	GetDistribution() string
@@ -220,7 +221,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	return nil
 }
 
-func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse, error) {
+func getSecret(organizationId pkgAuth.OrganizationID, secretId string) (*secret.SecretItemResponse, error) {
 	return secret.Store.Get(organizationId, secretId)
 }
 
@@ -370,7 +371,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 }
 
 //CreateCommonClusterFromRequest creates a CommonCluster from a request
-func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId, userId uint) (CommonCluster, error) {
+func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (CommonCluster, error) {
 
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
@@ -450,7 +451,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 }
 
 //createCommonClusterWithDistributionFromRequest creates a CommonCluster from a request
-func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId, userId uint) (*EC2ClusterPKE, error) {
+func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*EC2ClusterPKE, error) {
 	switch createClusterRequest.Cloud {
 	case pkgCluster.Amazon:
 		return CreateEC2ClusterPKEFromRequest(createClusterRequest, orgId, userId)

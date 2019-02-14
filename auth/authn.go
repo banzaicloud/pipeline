@@ -25,6 +25,7 @@ import (
 
 	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
 	"github.com/banzaicloud/pipeline/config"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -128,9 +129,9 @@ func (c cookieExtractor) ExtractToken(r *http.Request) (string, error) {
 type accessManager interface {
 	GrantDefaultAccessToUser(userID string)
 	GrantDefaultAccessToVirtualUser(userID string)
-	AddOrganizationPolicies(orgID uint)
-	GrantOrganizationAccessToUser(userID string, orgID uint)
-	RevokeOrganizationAccessFromUser(userID string, orgID uint)
+	AddOrganizationPolicies(orgID pkgAuth.OrganizationID)
+	GrantOrganizationAccessToUser(userID string, orgID pkgAuth.OrganizationID)
+	RevokeOrganizationAccessFromUser(userID string, orgID pkgAuth.OrganizationID)
 	RevokeAllAccessFromUser(userID string)
 }
 
@@ -361,12 +362,12 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 }
 
 // getClusterUserID maps cluster to a unique identifier for the cluster's technical user
-func getClusterUserID(orgID, clusterID uint) string {
+func getClusterUserID(orgID pkgAuth.OrganizationID, clusterID uint) string {
 	return fmt.Sprintf("clusters/%d/%d", orgID, clusterID)
 }
 
 //GenerateClusterToken looks up, or generates and stores a token for a cluster
-func (h *tokenHandler) GenerateClusterToken(orgID, clusterID uint) (string, string, error) {
+func (h *tokenHandler) GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID uint) (string, string, error) {
 	userID := getClusterUserID(orgID, clusterID)
 	if tokens, err := TokenStore.List(userID); err == nil {
 		for _, token := range tokens {

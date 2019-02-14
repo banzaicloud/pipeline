@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
@@ -48,7 +49,7 @@ func CreateOKEClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, e
 }
 
 // CreateOKEClusterFromRequest creates ClusterModel struct from the request
-func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*OKECluster, error) {
+func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*OKECluster, error) {
 
 	var oke OKECluster
 
@@ -315,7 +316,7 @@ func (o *OKECluster) DeleteFromDatabase() error {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (o *OKECluster) GetOrganizationId() uint {
+func (o *OKECluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return o.modelCluster.OrganizationId
 }
 

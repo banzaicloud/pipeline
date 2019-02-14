@@ -20,6 +20,7 @@ import (
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -28,8 +29,8 @@ import (
 )
 
 type userAccessManager interface {
-	GrantOrganizationAccessToUser(userID string, orgID uint)
-	RevokeOrganizationAccessFromUser(userID string, orgID uint)
+	GrantOrganizationAccessToUser(userID string, orgID pkgAuth.OrganizationID)
+	RevokeOrganizationAccessFromUser(userID string, orgID pkgAuth.OrganizationID)
 }
 
 // UserAPI implements user functions.
