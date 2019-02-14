@@ -31,6 +31,7 @@ type Clusters interface {
 type Cluster interface {
 	GetID() uint
 	GetUID() string
+	GetName() string
 	GetOrganizationId() uint
 	UpdateStatus(string, string) error
 }
@@ -64,6 +65,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		ClusterID: input.ClusterID,
 	}
 
+	var rolesOutput map[string]string
 	var rolesStackID string
 	err = workflow.ExecuteActivity(ctx, CreateAWSRolesActivityName, createAWSRolesActivityInput).Get(ctx, &rolesStackID)
 	if err != nil {
@@ -76,7 +78,26 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			StackID:   rolesStackID,
 		}
 
-		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &rolesStackID)
+		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, rolesOutput)
+		if err != nil {
+			return err
+		}
+	}
+
+	var vpcOutput map[string]string
+	var vpcStackID string
+	createVACActivityInput := CreateVPCActivityInput{ClusterID: input.ClusterID}
+	err = workflow.ExecuteActivity(ctx, CreateVPCActivityName, createVACActivityInput).Get(ctx, &vpcStackID)
+	if err != nil {
+		return err
+	}
+	if vpcStackID != "" {
+		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
+			ClusterID: input.ClusterID,
+			StackID:   vpcStackID,
+		}
+
+		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, vpcOutput)
 		if err != nil {
 			return err
 		}

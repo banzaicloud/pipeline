@@ -18,7 +18,7 @@ import (
 	"context"
 )
 
-const UpdateClusterStatusActivityName = "pke-generate-certificates-activity"
+const UpdateClusterStatusActivityName = "pke-update-cluster-status-activity"
 
 type UpdateClusterStatusActivity struct {
 	clusters Clusters

@@ -153,6 +153,9 @@ func main() {
 		waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(clusters)
 		activity.RegisterWithOptions(waitCFCompletionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitCFCompletionActivityName})
 
+		createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(clusters)
+		activity.RegisterWithOptions(createPKEVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateVPCActivityName})
+
 		updateClusterStatusActivitiy := pkeworkflow.NewUpdateClusterStatusActivity(clusters)
 		activity.RegisterWithOptions(updateClusterStatusActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterStatusActivityName})
 

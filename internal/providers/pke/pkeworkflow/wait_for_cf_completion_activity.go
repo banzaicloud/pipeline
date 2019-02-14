@@ -41,25 +41,37 @@ type WaitCFCompletionActivityInput struct {
 	StackID   string
 }
 
-func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFCompletionActivityInput) error {
+func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFCompletionActivityInput) (map[string]string, error) {
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return errors.New(fmt.Sprintf("can't wait for AWS roles for %t", cluster))
+		return nil, errors.New(fmt.Sprintf("can't wait for AWS roles for %t", cluster))
 	}
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return emperror.Wrap(err, "failed to connect to AWS")
+		return nil, emperror.Wrap(err, "failed to connect to AWS")
 	}
 
 	cfClient := cloudformation.New(client)
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(input.StackID)}
 
-	return cfClient.WaitUntilStackCreateCompleteWithContext(ctx, describeStacksInput)
+	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, describeStacksInput)
+	if err != nil {
+		return nil, emperror.Wrap(err, "error waiting Cloud Formation template")
+	}
+	output, err := cfClient.DescribeStacks(describeStacksInput)
+	if err != nil {
+		return nil, emperror.Wrap(err, "error fetching Cloud Formation template")
+	}
+	outputMap := map[string]string{}
+	for _, p := range output.Stacks[0].Outputs {
+		outputMap[*p.OutputKey] = *p.OutputValue
+	}
+	return outputMap, nil
 }
