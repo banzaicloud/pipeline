@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -287,7 +288,10 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	//}
 	token := "XXX" // TODO masked from dumping valid tokens to log
 	for _, nodePool := range c.model.NodePools {
-		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
+		cmd, err := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
+		if err != nil {
+			return err
+		}
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
 	}
 
@@ -531,44 +535,96 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 }
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
-func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) string {
-	cmd := ""
-	for _, np := range c.model.NodePools {
+func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (string, error) {
+	subcommand := "worker"
+	var np internalPke.NodePool
+	for _, np = range c.model.NodePools {
 		if np.Name == nodePoolName {
 			for _, role := range np.Roles {
 				if role == internalPke.RoleMaster {
-					cmd = "master"
+					subcommand = "master"
 					break
-				} else if role == internalPke.RoleWorker {
-					cmd = "worker"
 				}
 			}
 		}
 	}
+	if nodePoolName == "master" {
+		subcommand = "master"
+	}
 
-	// provide fake command for nonexistent nodepools
-	if cmd == "" {
-		if nodePoolName == "master" { // TODO sorry
-			cmd = "master"
-		} else {
-			cmd = "worker"
+	infrastructureCIDR := ""
+	switch np.Provider {
+	case internalPke.NPPAmazon:
+		var cfg internalPke.NodePoolProviderConfigAmazon
+		err := mapstructure.Decode(np.ProviderConfig, &cfg)
+		if err != nil {
+			return "", err
+		}
+		// match subnet
+		if len(cfg.AutoScalingGroup.Subnets) > 0 {
+			c := ec2.New(c.session)
+
+			// query subnet CIDR from amazon
+			in := &ec2.DescribeSubnetsInput{
+				SubnetIds: aws.StringSlice([]string{string(cfg.AutoScalingGroup.Subnets[0])}),
+			}
+			out, err := c.DescribeSubnets(in)
+			if err != nil {
+				return "", err
+			}
+			if len(out.Subnets) > 0 {
+				s := out.Subnets
+				infrastructureCIDR = *s[0].CidrBlock
+			}
 		}
 	}
-
-	// TODO: use c.model.Network.ServiceCIDR c.model.Network.PodCIDR
-	// TODO: find out how to supply --kubernetes-api-server=10.240.0.11 properly
-
-	if cmd == "master" {
-		return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\nread -p \"Kubernetes Api IP Address: \" PUBLIC_IP\n"+
-			"pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
-			"--kubernetes-version=1.12.2 --kubernetes-network-provider=weave --kubernetes-service-cidr=10.32.0.0/24 --kubernetes-pod-network-cidr=192.168.0.0/16 "+
-			"--kubernetes-infrastructure-cidr=\"${KUBERNETES_INFRASTRUCTURE_CIDR}\" --kubernetes-api-server=\"${PUBLIC_IP}\" --kubernetes-cluster-name=%q",
-			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, c.GetName())
+	if infrastructureCIDR == "" {
+		return "", errors.New("cloud not query nodepool subnet")
 	}
-	return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\n"+
-		"pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
-		"--kubernetes-infrastructure-cidr=\"${KUBERNETES_INFRASTRUCTURE_CIDR}\"",
-		cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
+
+	// master
+	if subcommand == "master" {
+		return fmt.Sprintf("pke install %s "+
+			"--pipeline-url=%q "+
+			"--pipeline-token=%q "+
+			"--pipeline-org-id=%d "+
+			"--pipeline-cluster-id=%d "+
+			"--pipeline-nodepool=%q "+
+			"--kubernetes-version=1.12.2 "+
+			"--kubernetes-network-provider=weave "+
+			"--kubernetes-service-cidr=10.32.0.0/24 "+
+			"--kubernetes-pod-network-cidr=192.168.0.0/16 "+
+			"--kubernetes-infrastructure-cidr=%q "+
+			"--kubernetes-api-server=%q "+
+			"--kubernetes-cluster-name=%q",
+			subcommand,
+			url,
+			token,
+			c.model.Cluster.OrganizationID,
+			c.model.Cluster.ID,
+			nodePoolName,
+			infrastructureCIDR,
+			c.model.Network.APIServerAddress,
+			c.GetName(),
+		), nil
+	}
+
+	// worker
+	return fmt.Sprintf("pke install %s "+
+		"--pipeline-url=%q "+
+		"--pipeline-token=%q "+
+		"--pipeline-org-id=%d "+
+		"--pipeline-cluster-id=%d "+
+		"--pipeline-nodepool=%q "+
+		"--kubernetes-infrastructure-cidr=%q",
+		subcommand,
+		url,
+		token,
+		c.model.Cluster.OrganizationID,
+		c.model.Cluster.ID,
+		nodePoolName,
+		infrastructureCIDR,
+	), nil
 }
 
 func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {
