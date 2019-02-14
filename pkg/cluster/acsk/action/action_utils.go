@@ -43,7 +43,10 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 
 	_, err := waitUntilClusterCreateOrScaleComplete(log, clusterID, csClient, true)
 	if err != nil {
-		log.Warn("Error happened during waiting for cluster state to be deleted ", err)
+		if strings.Contains(err.Error(), "ErrorClusterNotFound") {
+			return nil
+		}
+
 		return emperror.Wrap(err, "could not delete cluster!")
 	}
 
@@ -139,6 +142,16 @@ func deleteNodepools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 
 			_, err := essClient.DeleteScalingGroup(deleteSGRequest)
 			if err != nil {
+
+				if sdkErr, ok := err.(*aliErrors.ServerError); ok {
+					if strings.Contains(sdkErr.ErrorCode(), "InvalidScalingGroupId.NotFound") {
+						log.WithFields(logrus.Fields{"scalingGroupId": nodePool.AsgID, "nodePoolName": nodePool.Name}).Info("scaling group to be deleted not found")
+
+						errChan <- nil
+						return
+					}
+				}
+
 				errChan <- emperror.WrapWith(err, "could not delete scaling group", "scalingGroupId", nodePool.AsgID, "nodePoolName", nodePool.Name)
 				return
 			}
