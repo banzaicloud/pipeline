@@ -25,7 +25,7 @@ import (
 	"go.uber.org/cadence/activity"
 )
 
-const CreateElasticIPActivityName = "pke-create-vpc-activity"
+const CreateElasticIPActivityName = "pke-create-eip-activity"
 
 type CreateElasticIPActivity struct {
 	clusters Clusters

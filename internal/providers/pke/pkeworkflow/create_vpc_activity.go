@@ -65,9 +65,10 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 		return "", emperror.Wrap(err, "loading CF template")
 	}
 	clusterName := c.GetName()
+	stackName := "pke-vpc-" + clusterName
 	stackInput := &cloudformation.CreateStackInput{
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityAutoExpand}),
-		StackName:    aws.String("pke-vpc-" + c.GetName()),
+		StackName:    &stackName,
 		TemplateBody: aws.String(string(buf)),
 		Parameters: []*cloudformation.Parameter{
 			{
@@ -82,6 +83,7 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 		switch err.Code() {
 		case cloudformation.ErrCodeAlreadyExistsException:
 			log.Infof("stack already exists: %s", err.Message())
+		    return stackName, nil
 		default:
 			return "", err
 		}
