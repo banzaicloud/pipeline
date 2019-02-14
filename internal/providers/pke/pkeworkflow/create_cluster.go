@@ -103,6 +103,12 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
+	createElasticIPActivityInput := &CreateElasticIPActivityInput{
+		ClusterID: input.ClusterID,
+	}
+	var eip string
+	err = workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, createElasticIPActivityInput).Get(ctx, &eip)
+
 	signalName := "master-ready"
 	signalChan := workflow.GetSignalChannel(ctx, signalName)
 
