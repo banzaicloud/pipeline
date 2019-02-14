@@ -284,12 +284,12 @@
   version = "0.3.27"
 
 [[projects]]
-  branch = "master"
-  digest = "1:3886346341c9405ada3bec342c98fa2494137926bfd38158b832c63afd41cae6"
+  digest = "1:56e4607cd7937ef27d0a7a6a7ba2516a40a658f1278781cc8aa9caebb9d59e21"
   name = "github.com/banzaicloud/cicd-go"
   packages = ["cicd"]
   pruneopts = "NUT"
-  revision = "de6f3f91e590b34a68773144cd24e313cde0411f"
+  revision = "832df3e92677593b342a15e948c67a1ae8721599"
+  version = "0.1.0"
 
 [[projects]]
   branch = "master"

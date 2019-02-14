@@ -97,6 +97,7 @@ type User struct {
 	Image         string         `form:"image" json:"image,omitempty"`
 	Organizations []Organization `gorm:"many2many:user_organizations" json:"organizations,omitempty"`
 	Virtual       bool           `json:"-" gorm:"-"` // Used only internally
+	APIToken      string         `json:"-" gorm:"-"` // Used only internally
 }
 
 //CICDUser struct
@@ -151,6 +152,10 @@ func (CICDUser) TableName() string {
 // GetCurrentUser returns the current user
 func GetCurrentUser(req *http.Request) *User {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
+		if currentUser != nil && currentUser.APIToken == "" {
+			apiToken, _ := parseRawTokenFromRequest(req)
+			currentUser.APIToken = apiToken
+		}
 		return currentUser
 	}
 	return nil
@@ -164,7 +169,8 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 	return nil
 }
 
-func newCICDClient(apiToken string) cicd.Client {
+// NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
+func NewCICDClient(apiToken string) cicd.Client {
 	cicdURL := viper.GetString("cicd.url")
 	config := new(oauth2.Config)
 	client := config.Client(
@@ -187,18 +193,7 @@ func NewTemporaryCICDClient(login string) (cicd.Client, error) {
 		return nil, err
 	}
 
-	return newCICDClient(cicdAPIToken), nil
-}
-
-// NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
-func NewCICDClient(request *http.Request) (cicd.Client, error) {
-	cicdAPIToken, err := parseCICDTokenFromRequest(request)
-	if err != nil {
-		log.Errorln("Failed to parse CICD token", err.Error())
-		return nil, err
-	}
-
-	return newCICDClient(cicdAPIToken), nil
+	return NewCICDClient(cicdAPIToken), nil
 }
 
 //BanzaiUserStorer struct
@@ -600,15 +595,15 @@ func GetUserNickNameById(userId uint) (userName string) {
 	return
 }
 
-func parseCICDTokenFromRequest(r *http.Request) (string, error) {
+func parseRawTokenFromRequest(r *http.Request) (string, error) {
 	var token = r.Header.Get("Authorization")
 
 	// first we attempt to get the token from the
 	// authorization header.
 	if len(token) != 0 {
 		token = r.Header.Get("Authorization")
-		fmt.Sscanf(token, "Bearer %s", &token)
-		return token, nil
+		_, err := fmt.Sscanf(token, "Bearer %s", &token)
+		return token, err
 	}
 
 	// then we attempt to get the token from the
