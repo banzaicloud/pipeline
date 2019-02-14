@@ -15,10 +15,6 @@
 package action
 
 import (
-	"fmt"
-
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -73,87 +69,9 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 	defer close(instanceIdsChan)
 
 	for _, nodePool := range a.nodePools {
-		go func(nodePool *model.ACSKNodePoolModel) {
-			scalingGroupRequest := ess.CreateCreateScalingGroupRequest()
-			scalingGroupRequest.SetScheme(requests.HTTPS)
-			scalingGroupRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
-			scalingGroupRequest.SetContentType(requests.Json)
-
-			a.log.WithFields(logrus.Fields{
-				"region":        cluster.RegionID,
-				"zone":          cluster.ZoneID,
-				"instance_type": nodePool.InstanceType,
-			}).Info("creating scaling group")
-
-			scalingGroupRequest.MinSize = requests.NewInteger(nodePool.MinCount)
-			scalingGroupRequest.MaxSize = requests.NewInteger(nodePool.MaxCount)
-			scalingGroupRequest.VSwitchId = cluster.VSwitchID
-			scalingGroupRequest.ScalingGroupName = fmt.Sprintf("asg-%s-%s", nodePool.Name, cluster.ClusterID)
-
-			createScalingGroupResponse, err := a.context.ESSClient.CreateScalingGroup(scalingGroupRequest)
-			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not create Scaling Group", "nodePoolName", nodePool.Name, "cluster", cluster.Name)
-				instanceIdsChan <- nil
-				return
-			}
-
-			nodePool.AsgID = createScalingGroupResponse.ScalingGroupId
-			a.log.Infof("Scaling Group with id %s successfully created", nodePool.AsgID)
-			a.log.Infof("Creating scaling configuration for group %s", nodePool.AsgID)
-
-			scalingConfigurationRequest := ess.CreateCreateScalingConfigurationRequest()
-			scalingConfigurationRequest.SetScheme(requests.HTTPS)
-			scalingConfigurationRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
-			scalingConfigurationRequest.SetContentType(requests.Json)
-
-			scalingConfigurationRequest.ScalingGroupId = nodePool.AsgID
-			scalingConfigurationRequest.SecurityGroupId = cluster.SecurityGroupID
-			scalingConfigurationRequest.KeyPairName = cluster.Name
-			scalingConfigurationRequest.InstanceType = nodePool.InstanceType
-			scalingConfigurationRequest.SystemDiskCategory = "cloud_efficiency"
-			scalingConfigurationRequest.ImageId = acsk.AlibabaDefaultImageId
-			scalingConfigurationRequest.Tags =
-				fmt.Sprintf(`{"pipeline-created":"true","pipeline-cluster":"%s","pipeline-nodepool":"%s"`,
-					cluster.Name, nodePool.Name)
-
-			createConfigurationResponse, err := a.context.ESSClient.CreateScalingConfiguration(scalingConfigurationRequest)
-			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
-				instanceIdsChan <- nil
-				return
-			}
-
-			nodePool.ScalingConfigID = createConfigurationResponse.ScalingConfigurationId
-
-			a.log.Infof("Scaling Configuration successfully created for group %s", nodePool.AsgID)
-
-			enableSGRequest := ess.CreateEnableScalingGroupRequest()
-			enableSGRequest.SetScheme(requests.HTTPS)
-			enableSGRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
-			enableSGRequest.SetContentType(requests.Json)
-
-			enableSGRequest.ScalingGroupId = nodePool.AsgID
-			enableSGRequest.ActiveScalingConfigurationId = nodePool.ScalingConfigID
-
-			_, err = a.context.ESSClient.EnableScalingGroup(enableSGRequest)
-			if err != nil {
-				errChan <- emperror.WrapWith(err, "could not enable Scaling Group", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
-				instanceIdsChan <- nil
-				return
-			}
-
-			instanceIds, err := waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, cluster.RegionID, nodePool)
-			if err != nil {
-				errChan <- emperror.With(err, "cluster", cluster.Name)
-				instanceIdsChan <- nil
-				return
-			}
-			// set running instance count for nodePool in DB
-			nodePool.Count = len(instanceIds)
-
-			errChan <- nil
-			instanceIdsChan <- instanceIds
-		}(nodePool)
+		// TODO: run node pool creation in parallel once Alibaba ESS API permits running multiple CreateScalingGroupRequest in parallel
+		// TODO: Currently running multiple CreateScalingGroupRequest in parallel may fail with throttling error
+		createNodePool(a.log, nodePool, a.context.ESSClient, cluster, instanceIdsChan, errChan)
 	}
 
 	caughtErrors := emperror.NewMultiErrorBuilder()
@@ -180,5 +98,5 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 // UndoAction rolls back this CreateACSKNodePoolAction
 func (a *CreateACSKNodePoolAction) UndoAction() (err error) {
 	a.log.Info("EXECUTE UNDO CreateACSKNodePoolAction")
-	return deleteNodepools(a.log, a.nodePools, a.context.ESSClient, a.region)
+	return deleteNodePools(a.log, a.nodePools, a.context.ESSClient, a.region)
 }

@@ -15,12 +15,8 @@
 package action
 
 import (
-	"fmt"
-
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
@@ -76,63 +72,8 @@ func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 		defer close(createdInstanceIdsChan)
 
 		for _, nodePool := range a.nodePools {
-			go func(nodePool *model.ACSKNodePoolModel) {
-				describeScalingInstancesResponseBeforeModify, err :=
-					describeScalingInstances(a.context.ESSClient, nodePool.AsgID, nodePool.ScalingConfigID, a.region)
-				if err != nil {
-					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
-					createdInstanceIdsChan <- nil
-					return
-				}
-
-				modifyScalingGroupReq := ess.CreateModifyScalingGroupRequest()
-				modifyScalingGroupReq.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, a.region))
-				modifyScalingGroupReq.SetScheme(requests.HTTPS)
-				modifyScalingGroupReq.RegionId = a.region
-				modifyScalingGroupReq.ScalingGroupId = nodePool.AsgID
-				modifyScalingGroupReq.MinSize = requests.NewInteger(nodePool.MinCount)
-				modifyScalingGroupReq.MaxSize = requests.NewInteger(nodePool.MaxCount)
-
-				_, err = a.context.ESSClient.ModifyScalingGroup(modifyScalingGroupReq)
-				if err != nil {
-					errChan <- emperror.WrapWith(err, "could not modify ScalingGroup", "scalingGroupId", nodePool.AsgID, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
-					createdInstanceIdsChan <- nil
-					return
-				}
-
-				_, err = waitUntilScalingInstanceCreated(a.log, a.context.ESSClient, a.region, nodePool)
-				if err != nil {
-					errChan <- emperror.With(err, "cluster", a.clusterName)
-					createdInstanceIdsChan <- nil
-					return
-				}
-
-				describeScalingInstancesResponseAfterModify, err :=
-					describeScalingInstances(a.context.ESSClient, nodePool.AsgID, nodePool.ScalingConfigID, a.region)
-				if err != nil {
-					errChan <- emperror.With(err, "nodePoolName", nodePool.Name, "cluster", a.clusterName)
-					createdInstanceIdsChan <- nil
-					return
-				}
-				if describeScalingInstancesResponseBeforeModify.TotalCount < describeScalingInstancesResponseAfterModify.TotalCount {
-					// add new instance to nodepool so we need to join them into the cluster
-					var createdInstaceIds []string
-					createdInstaces := difference(describeScalingInstancesResponseAfterModify.ScalingInstances.ScalingInstance, describeScalingInstancesResponseBeforeModify.ScalingInstances.ScalingInstance)
-					for _, a := range createdInstaces {
-						createdInstaceIds = append(createdInstaceIds, a.InstanceId)
-					}
-					// update running instance count for nodePool in DB
-					nodePool.Count = describeScalingInstancesResponseAfterModify.TotalCount
-					errChan <- nil
-					createdInstanceIdsChan <- createdInstaceIds
-					return
-				}
-				// instances removed from nodepool so we only need to set the count properly in the DB
-				nodePool.Count = describeScalingInstancesResponseAfterModify.TotalCount
-				errChan <- nil
-				createdInstanceIdsChan <- nil
-				return
-			}(nodePool)
+			// TODO: update node pools in parallel once Alibaba ESS API permits running multiple ModifyScalingGroupRequest in parallel
+			updateNodePool(a.log, nodePool, a.context.ESSClient, a.region, a.clusterName, createdInstanceIdsChan, errChan)
 		}
 
 		caughtErrors := emperror.NewMultiErrorBuilder()

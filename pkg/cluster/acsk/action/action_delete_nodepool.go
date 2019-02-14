@@ -44,5 +44,5 @@ func (a *DeleteACSKNodePoolAction) ExecuteAction(input interface{}) (output inte
 		return nil, nil
 	}
 	a.log.Info("EXECUTE DeleteNodePoolAction")
-	return nil, emperror.With(deleteNodepools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionId), "cluster", a.context.ClusterName)
+	return nil, emperror.With(deleteNodePools(a.log, a.context.NodePools, a.context.ESSClient, a.context.RegionId), "cluster", a.context.ClusterName)
 }
