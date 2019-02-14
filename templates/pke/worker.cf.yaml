@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Worker Node(s) for Banzai Cloud Pipeline Kubernetes Engine'
+Description: 'Worker Nodepool for Banzai Cloud Pipeline Kubernetes Engine'
 Parameters:
   SSHLocation:
     Description: The IP address range that can be used to SSH to the EC2 instances
@@ -51,6 +51,18 @@ Parameters:
     Type: 'AWS::EC2::KeyPair::KeyName'
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Default: ""
+  MinSize:
+    Type: Integer
+    Default: 1
+    Description: Minimum count of nodes in the pool
+  MaxSize:
+    Type: Integer
+    Default: 1
+    Description: Maximum count of nodes in the pool
+  DesiredCapacity:
+    Type: Integer
+    Default: 1
+    Description: Initial count of nodes in the pool
 Resources:
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -73,7 +85,7 @@ Resources:
           - |
             #!/usr/bin/env bash
             set -e
-            export SIGNAL_URL="${SignalUrl}"
+            SIGNAL_URL="${SignalUrl}"
 
             curl -v https://banzaicloud.com/downloads/pke/pke-${PkeVersion} -o /usr/local/bin/pke
             chmod +x /usr/local/bin/pke
@@ -93,9 +105,9 @@ Resources:
       AvailabilityZones: !Ref AvailabilityZones
       LaunchConfigurationName:
         Ref: LaunchConfiguration
-      DesiredCapacity: '1'
-      MinSize: "1"
-      MaxSize: "1"
+      DesiredCapacity: !Ref DesiredCapacity
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
       VPCZoneIdentifier: !Ref SubnetIds
       Tags:
       - Key: ClusterName
