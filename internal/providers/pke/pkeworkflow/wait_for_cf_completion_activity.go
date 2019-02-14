@@ -69,7 +69,7 @@ func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFComp
 	if err != nil {
 		return nil, emperror.Wrap(err, "error fetching Cloud Formation template")
 	}
-	outputMap := map[string]string{}
+	outputMap := make(map[string]string)
 	for _, p := range output.Stacks[0].Outputs {
 		outputMap[*p.OutputKey] = *p.OutputValue
 	}
