@@ -27,7 +27,7 @@ import (
 
 // ListKubernetesVersions returns available k8s versions at the specified location
 func (client *ContainerServicesClient) ListKubernetesVersions(ctx context.Context, location string) (res []string, err error) {
-	l, err := client.ListOrchestrators(ctx, location, string(compute.Kubernetes))
+	l, err := client.ListOrchestrators(ctx, location, "managedClusters")
 	if err != nil {
 		return
 	}

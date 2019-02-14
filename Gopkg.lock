@@ -35,7 +35,7 @@
   version = "v0.1.8"
 
 [[projects]]
-  digest = "1:d39271d6d7c4b8da215992531266f76ce53aa8d591c71432e73b40417c17694c"
+  digest = "1:17f64e919e61f0d0e09f84f1603af12d0a3965fff868a01f89cdbf035d4a9668"
   name = "github.com/Azure/azure-sdk-for-go"
   packages = [
     "services/authorization/mgmt/2015-07-01/authorization",
@@ -147,7 +147,7 @@
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
 
 [[projects]]
-  digest = "1:e0287a471dde40bef7acd33ab1a32de76cc561ec894641c7f7795a33e7f8a61e"
+  digest = "1:835cc6ffee3828a909553c158bd5696b5b96d56465e51a3797f8e2623ff37448"
   name = "github.com/aliyun/alibaba-cloud-sdk-go"
   packages = [
     "sdk",
@@ -162,7 +162,7 @@
     "services/cs",
     "services/ecs",
     "services/ess",
-    "services/vpc"
+    "services/vpc",
   ]
   pruneopts = "NUT"
   revision = "1c5a1c93a9c1e3da49ea0aa1f095a204b075c6b8"
@@ -2201,6 +2201,7 @@
     "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute",
     "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice",
     "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-09-01/insights",
+    "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
     "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources",
     "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
@@ -2220,6 +2221,7 @@
     "github.com/aliyun/alibaba-cloud-sdk-go/services/cs",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/ecs",
     "github.com/aliyun/alibaba-cloud-sdk-go/services/ess",
+    "github.com/aliyun/alibaba-cloud-sdk-go/services/vpc",
     "github.com/aliyun/aliyun-oss-go-sdk/oss",
     "github.com/antihax/optional",
     "github.com/aokoli/goutils",
