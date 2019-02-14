@@ -70,6 +70,11 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 		return fmt.Errorf("unexpected http status code: %d", resp.GetHttpStatus())
 	}
 
+	err = waitUntilClusterDeleteIsComplete(log, clusterID, csClient)
+	if err != nil {
+		return emperror.WrapWith(err, "cluster deletion failed", "clusterId", clusterID)
+	}
+
 	return nil
 }
 
@@ -171,7 +176,7 @@ func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, e
 		return
 	}
 
-	_, err = waitUntilScalingInstanceCreated(log, essClient, regionId, nodePool)
+	err = waitUntilScalingInstancesDeleted(log, essClient, regionId, nodePool)
 	if err != nil {
 		errChan <- err
 		return
@@ -253,7 +258,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACSKNodePoolModel
 		return
 	}
 
-	instanceIds, err := waitUntilScalingInstanceCreated(log, essClient, cluster.RegionID, nodePool)
+	instanceIds, err := waitUntilScalingInstanceUpdated(log, essClient, cluster.RegionID, nodePool)
 	if err != nil {
 		errChan <- emperror.With(err, "cluster", cluster.Name)
 		instanceIdsChan <- nil
@@ -290,7 +295,7 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, e
 		return
 	}
 
-	_, err = waitUntilScalingInstanceCreated(log, essClient, regionId, nodePool)
+	_, err = waitUntilScalingInstanceUpdated(log, essClient, regionId, nodePool)
 	if err != nil {
 		errChan <- emperror.With(err, "cluster", clusterName)
 		createdInstanceIdsChan <- nil
@@ -323,8 +328,8 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, e
 	createdInstanceIdsChan <- nil
 }
 
-func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACSKNodePoolModel) ([]string, error) {
-	log.Infof("Waiting for instances to get ready in NodePool: %s", nodePool.Name)
+func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACSKNodePoolModel) ([]string, error) {
+	log.WithField("nodePoolName", nodePool.Name).Info("waiting for instances to get ready")
 
 	for {
 		describeScalingInstancesResponse, err := describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
@@ -350,6 +355,23 @@ func waitUntilScalingInstanceCreated(log logrus.FieldLogger, essClient *ess.Clie
 	}
 }
 
+func waitUntilScalingInstancesDeleted(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACSKNodePoolModel) error {
+	log.WithField("nodePoolName", nodePool.Name).Info("waiting for instances to be deleted")
+
+	for {
+		describeScalingInstancesResponse, err := describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
+		if err != nil {
+			return emperror.With(err, "nodePoolName", nodePool.Name)
+		}
+
+		if describeScalingInstancesResponse.TotalCount == 0 {
+			return nil
+		}
+
+		time.Sleep(time.Second * 20)
+	}
+}
+
 func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client, isClusterCreate bool) (*acsk.AlibabaDescribeClusterResponse, error) {
 	var (
 		r     *acsk.AlibabaDescribeClusterResponse
@@ -357,7 +379,7 @@ func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID str
 		err   error
 	)
 	for {
-		r, err = getClusterDetails(clusterID, csClient)
+		r, err = GetClusterDetails(csClient, clusterID)
 		if err != nil {
 			if strings.Contains(err.Error(), "timeout") {
 				log.Warn(err)
@@ -410,24 +432,66 @@ func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID str
 	}
 }
 
-func getClusterDetails(clusterID string, csClient *cs.Client) (r *acsk.AlibabaDescribeClusterResponse, err error) {
+func waitUntilClusterDeleteIsComplete(logger logrus.FieldLogger, clusterID string, csClient *cs.Client) error {
+	log := logger.WithField("clusterId", clusterID)
+	log.Info("waiting for cluster to be deleted")
 
 	req := cs.CreateDescribeClusterDetailRequest()
 	req.SetScheme(requests.HTTPS)
 	req.SetDomain(acsk.AlibabaApiDomain)
 	req.ClusterId = clusterID
 
-	resp, err := csClient.DescribeClusterDetail(req)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Could not get cluster details for ID: %s", clusterID)
+	for {
+		resp, err := csClient.DescribeClusterDetail(req)
+		if err != nil {
+			if sdkErr, ok := err.(*aliErrors.ServerError); ok {
+				if strings.Contains(sdkErr.Message(), "ErrorClusterNotFound") {
+					// cluster has been deleted
+					return nil
+				}
+			}
+
+			return emperror.WrapWith(err, "could not get cluster details", "clusterId", clusterID)
+		}
+
+		var r *acsk.AlibabaDescribeClusterResponse
+
+		err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
+		if err != nil {
+			return emperror.WrapWith(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
+		}
+
+		if r.State == acsk.AlibabaClusterStateFailed {
+			var logs []string
+			logs, err = collectClusterDeleteFailureLogs(clusterID, csClient)
+
+			if err != nil {
+				log.Error("failed to collect cluster failure event log")
+			}
+
+			return AlibabaClusterFailureLogsError{clusterEventLogs: logs}
+		}
+
+		time.Sleep(time.Second * 20)
 	}
-	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
-		err = errors.Wrapf(err, "Unexpected http status code: %d", resp.GetHttpStatus())
-		return
+}
+
+// GetClusterDetails retrieves cluster details from cloud provider
+func GetClusterDetails(client *cs.Client, clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
+	req := cs.CreateDescribeClusterDetailRequest()
+	req.SetScheme(requests.HTTPS)
+	req.SetDomain(acsk.AlibabaApiDomain)
+	req.ClusterId = clusterID
+	resp, err := client.DescribeClusterDetail(req)
+	if err != nil {
+		return nil, emperror.WrapWith(err, "could not get cluster details", "clusterId", clusterID)
+	}
+	if !resp.IsSuccess() {
+		return nil, emperror.WrapWith(err, "unexpected http status code", "statusCode", resp.GetHttpStatus())
 	}
 
 	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
-	return
+	return r, emperror.WrapWith(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
 }
 
 // collectClusterLogs returns the event logs associated with the cluster identified by clusterID
@@ -440,7 +504,7 @@ func collectClusterLogs(clusterID string, csClient *cs.Client) ([]*acsk.AlibabaD
 	clusterLogsResp, err := csClient.DescribeClusterLogs(clusterLogsRequest)
 
 	if clusterLogsResp != nil {
-		if !clusterLogsResp.IsSuccess() || clusterLogsResp.GetHttpStatus() < 200 || clusterLogsResp.GetHttpStatus() > 299 {
+		if !clusterLogsResp.IsSuccess() {
 			return nil, errors.Wrapf(err, "Unexpected http status code: %d", clusterLogsResp.GetHttpStatus())
 		}
 
@@ -501,4 +565,13 @@ func collectClusterScaleFailureLogs(clusterID string, csClient *cs.Client) ([]st
 		csClient,
 		acsk.AlibabaStartScaleClusterLog,
 		acsk.AlibabaScaleClusterFailedLog)
+}
+
+// collectClusterDeleteFailureLogs returns the logs of events that resulted in cluster deletion to not succeed
+func collectClusterDeleteFailureLogs(clusterID string, csClient *cs.Client) ([]string, error) {
+	return collectClusterLogsInRange(
+		clusterID,
+		csClient,
+		acsk.AlibabaStartDeleteClusterLog,
+		acsk.AlibabaDeleteClusterFailedLog)
 }

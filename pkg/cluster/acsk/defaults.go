@@ -25,6 +25,8 @@ const (
 	AlibabaCreateClusterFailedLog   = "start to update cluster status create_failed"
 	AlibabaStartScaleClusterLog     = "start to scale kubernetes cluster"
 	AlibabaScaleClusterFailedLog    = "start to update cluster status update_failed"
+	AlibabaStartDeleteClusterLog    = "start to deletek8scluster"
+	AlibabaDeleteClusterFailedLog   = "start to update cluster status delete_failed"
 	AlibabaApiDomain                = "cs.aliyuncs.com"
 	AlibabaInstanceHealthyStatus    = "Healthy"
 	AlibabaESSEndPointFmt           = "ess.%s.aliyuncs.com"
