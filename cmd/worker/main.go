@@ -153,6 +153,9 @@ func main() {
 		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(clusters)
 		activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
 
+		updateClusterStatusActivitiy := pkeworkflow.NewUpdateClusterStatusActivity(clusters)
+		activity.RegisterWithOptions(updateClusterStatusActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterStatusActivityName})
+
 		var closeCh = make(chan struct{})
 
 		group.Add(
