@@ -63,7 +63,7 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 
 	cfClient := cloudformation.New(client)
 
-	buf, err := ioutil.ReadFile("templates/pke/global.cf.tpl")
+	buf, err := ioutil.ReadFile("templates/pke/global.cf.yaml")
 	if err != nil {
 		return "", emperror.Wrap(err, "loading CF template")
 	}
@@ -79,6 +79,7 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 		switch err.Code() {
 		case cloudformation.ErrCodeAlreadyExistsException:
 			log.Infof("stack already exists: %s", err.Message())
+			return PkeGlobalStackName, nil
 		default:
 			return "", err
 		}
