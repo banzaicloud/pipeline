@@ -60,15 +60,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	createClusterActivityInput := CreateClusterActivityInput{
-		ClusterID: input.ClusterID,
-	}
-
-	err = workflow.ExecuteActivity(ctx, CreateClusterActivityName, createClusterActivityInput).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
 	createAWSRolesActivityInput := CreateAWSRolesActivityInput{
 		ClusterID: input.ClusterID,
 	}

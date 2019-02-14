@@ -138,14 +138,11 @@ func main() {
 		enforcer := intAuth.NewEnforcer(casbinAdapter)
 		enforcer.StartAutoLoadPolicy(10 * time.Second)
 		accessManager := intAuth.NewAccessManager(enforcer, config.Pipeline.BasePath)
-		tokenHandler := auth.NewTokenHandler(accessManager)
+		_ = auth.NewTokenHandler(accessManager)
 
 		auth.InitTokenStore()
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
-
-		createClusterActivity := pkeworkflow.NewCreateClusterActivity(clusters, tokenHandler)
-		activity.RegisterWithOptions(createClusterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateClusterActivityName})
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusters)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
