@@ -64,11 +64,17 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 	if err != nil {
 		return "", emperror.Wrap(err, "loading CF template")
 	}
-
+	clusterName := c.GetName()
 	stackInput := &cloudformation.CreateStackInput{
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityAutoExpand}),
 		StackName:    aws.String("pke-vpc-" + c.GetName()),
 		TemplateBody: aws.String(string(buf)),
+		Parameters: []*cloudformation.Parameter{
+			{
+				ParameterKey:     aws.String("ClusterName"),
+				ParameterValue:   &clusterName,
+			},
+		},
 	}
 
 	output, err := cfClient.CreateStack(stackInput)
