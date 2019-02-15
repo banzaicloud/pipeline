@@ -17,7 +17,6 @@ package pkeworkflow
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -27,67 +26,57 @@ import (
 	"go.uber.org/cadence/activity"
 )
 
-const CreateWorkerPoolActivityName = "pke-create-aws-worker-role-activity"
+const DeleteWorkerPoolActivityName = "pke-delete-aws-worker-role-activity"
 
-type CreateWorkerPoolActivity struct {
+type DeleteWorkerPoolActivity struct {
 	clusters Clusters
 }
 
-func NewCreateWorkerPoolActivity(clusters Clusters) *CreateWorkerPoolActivity {
-	return &CreateWorkerPoolActivity{
+func NewDeleteWorkerPoolActivity(clusters Clusters) *DeleteWorkerPoolActivity {
+	return &DeleteWorkerPoolActivity{
 		clusters: clusters,
 	}
 }
 
-type CreateWorkerPoolActivityInput struct {
+type DeleteWorkerPoolActivityInput struct {
 	ClusterID uint
 	Pool      NodePool
 }
 
-func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWorkerPoolActivityInput) (string, error) {
-	log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
+func (a *DeleteWorkerPoolActivity) Execute(ctx context.Context, input DeleteWorkerPoolActivityInput) error {
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return "", errors.New(fmt.Sprintf("can't create AWS roles for %t", cluster))
+		return errors.New(fmt.Sprintf("can't delete AWS roles for %t", cluster))
 	}
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to connect to AWS")
+		return emperror.Wrap(err, "failed to connect to AWS")
 	}
 
 	cfClient := cloudformation.New(client)
 
-	buf, err := ioutil.ReadFile("templates/pke/worker.cf.yaml")
-	if err != nil {
-		return "", emperror.Wrap(err, "loading CF template")
-	}
-
-	stackInput := &cloudformation.CreateStackInput{
-		Capabilities:       aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam, cloudformation.CapabilityCapabilityNamedIam}),
+	stackInput := &cloudformation.DeleteStackInput{
 		StackName:          aws.String(stackName),
-		TemplateBody:       aws.String(string(buf)),
 		ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
 	}
 
-	output, err := cfClient.CreateStack(stackInput)
+	_, err = cfClient.DeleteStack(stackInput)
 	if err, ok := err.(awserr.Error); ok {
 		switch err.Code() {
-		case cloudformation.ErrCodeAlreadyExistsException:
-			log.Infof("stack already exists: %s", err.Message())
 		default:
-			return "", err
+			return err
 		}
 	} else if err != nil {
-		return "", err
+		return err
 	}
 
-	return *output.StackId, nil
+	return nil
 }

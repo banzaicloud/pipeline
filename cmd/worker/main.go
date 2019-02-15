@@ -176,6 +176,9 @@ func main() {
 		createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters)
 		activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
+		deleteWorkerPoolActivity := pkeworkflow.NewDeleteWorkerPoolActivity(clusters)
+		activity.RegisterWithOptions(deleteWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteWorkerPoolActivityName})
+
 		var closeCh = make(chan struct{})
 
 		group.Add(

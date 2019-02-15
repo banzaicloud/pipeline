@@ -35,5 +35,34 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
+	var nodePools []NodePool
+	listNodePoolsActivityInput := ListNodePoolsActivityInput{
+		ClusterID: input.ClusterID,
+	}
+
+	if err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, listNodePoolsActivityInput).Get(ctx, &nodePools); err != nil {
+		return err
+	}
+
+	var poolActivities []workflow.Future
+
+	for _, np := range nodePools {
+		if !np.Master && np.Worker {
+			deleteWorkerPoolActivityInput := DeleteWorkerPoolActivityInput{
+				ClusterID: input.ClusterID,
+				Pool:      np,
+			}
+
+			future := workflow.ExecuteActivity(ctx, DeleteWorkerPoolActivityName, deleteWorkerPoolActivityInput)
+			poolActivities = append(poolActivities, future)
+		}
+	}
+
+	for _, future := range poolActivities {
+		if err := future.Get(ctx, nil); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
