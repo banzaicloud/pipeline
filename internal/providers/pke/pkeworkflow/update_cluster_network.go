@@ -14,12 +14,13 @@
 
 package pkeworkflow
 
-
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
-	"errors"
+
+	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 )
 
 const UpdateClusterNetworkActivityName = "pke-update-cluster-network-activity"
@@ -35,10 +36,10 @@ func NewUpdateClusterNetworkActivity(clusters Clusters) *UpdateClusterNetworkAct
 }
 
 type UpdateClusterNetworkActivityInput struct {
-	ClusterID     uint
+	ClusterID       uint
 	APISeverAddress string
-	VPCID string
-	Subnets string
+	VPCID           string
+	Subnets         string
 }
 
 func (a *UpdateClusterNetworkActivity) Execute(ctx context.Context, input UpdateClusterNetworkActivityInput) error {
@@ -51,6 +52,5 @@ func (a *UpdateClusterNetworkActivity) Execute(ctx context.Context, input Update
 		return errors.New(fmt.Sprintf("can't update Network for cluster type %t", c))
 	}
 	subnets := strings.Split(input.Subnets, ",")
-	return awsCluster.SaveNetworkCloudProvider("ec2", input.VPCID, subnets)
+	return awsCluster.SaveNetworkCloudProvider(string(internalPke.CNPAmazon), input.VPCID, subnets)
 }
-
