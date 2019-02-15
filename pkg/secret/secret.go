@@ -145,6 +145,7 @@ const (
 )
 
 // ForbiddenTags are not supported in secret creation
+// nolint: gochecknoglobals
 var ForbiddenTags = []string{
 	TagKubeConfig,
 }
@@ -169,6 +170,7 @@ const (
 )
 
 // DefaultRules key matching for types
+// nolint: gochecknoglobals
 var DefaultRules = map[string]Meta{
 	cluster.Alibaba: {
 		Fields: []FieldMeta{

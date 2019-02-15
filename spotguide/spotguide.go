@@ -53,8 +53,9 @@ const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
-var IgnoredPaths = []string{".circleci", ".github"}
+var IgnoredPaths = []string{".circleci", ".github"} // nolint: gochecknoglobals
 
+// nolint: gochecknoglobals
 var ctx = context.Background()
 
 type SpotguideYAML struct {

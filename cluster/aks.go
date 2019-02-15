@@ -46,6 +46,7 @@ const (
 	poolNameKey = "poolName"
 )
 
+// nolint: gochecknoglobals
 var (
 	ErrNoInfrastructureRG = errors.New("no infrastructure resource group found")
 )
@@ -1217,6 +1218,7 @@ func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.Ev
 	return errEvents, nil
 }
 
+// nolint: gochecknoglobals
 var vnetSubnetIDRegexp = regexp.MustCompile("/subscriptions/([^/]+)/resourceGroups/([^/]+)/providers/Microsoft.Network/virtualNetworks/([^/]+)/subnets/([^/]+)")
 
 func validateVNetSubnet(cc *pkgAzure.CloudConnection, resourceGroupName, vnetSubnetID string) error {

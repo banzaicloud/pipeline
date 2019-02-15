@@ -26,6 +26,7 @@ const (
 	orgID = 19
 )
 
+// nolint: gochecknoglobals
 var version = 1
 
 func TestBlockingTags(t *testing.T) {
@@ -71,6 +72,7 @@ func TestBlockingTags(t *testing.T) {
 
 }
 
+// nolint: gochecknoglobals
 var (
 	requestReadOnly = secret.CreateSecretRequest{
 		Name: "readonly",

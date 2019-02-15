@@ -25,6 +25,7 @@ const (
 )
 
 // DefaultImages in each supported location in EC2 (from https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
+// nolint: gochecknoglobals
 var DefaultImages = map[string]map[string]string{
 	"1.10": {
 		endpoints.UsEast1RegionID:      "ami-0de0b13514617a168",

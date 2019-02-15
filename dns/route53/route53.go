@@ -38,6 +38,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// nolint: gochecknoglobals
 var logger *logrus.Logger
 
 func init() {

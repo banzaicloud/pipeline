@@ -87,6 +87,7 @@ func collectJobNames(scrapeConfigs []*prometheus.ScrapeConfig) []string {
 	return jobNames
 }
 
+// nolint: gochecknoglobals
 var kubernetesSDEndpointsRole = prometheus.ServiceDiscoveryConfig{
 	KubernetesSDConfigs: []*prometheus.KubernetesSDConfig{
 		{

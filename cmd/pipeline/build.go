@@ -23,6 +23,7 @@ import (
 )
 
 // Provisioned by ldflags
+// nolint: gochecknoglobals
 var (
 	Version    string
 	CommitHash string

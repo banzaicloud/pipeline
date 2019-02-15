@@ -33,6 +33,7 @@ const (
 	restoredByLabelValue = "pipeline"
 )
 
+// nolint: gochecknoglobals
 var (
 	nonRestorableNamespaces = []string{
 		"kube-system",

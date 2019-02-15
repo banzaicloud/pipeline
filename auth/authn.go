@@ -68,6 +68,7 @@ const SessionCookieHTTPOnly = true
 const SessionCookieName = "Pipeline session token"
 
 // Init authorization
+// nolint: gochecknoglobals
 var (
 	log *logrus.Logger
 

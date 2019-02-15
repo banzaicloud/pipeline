@@ -124,6 +124,7 @@ const (
 	SshPrivateKeyData       = "private_key_data"
 )
 
+// nolint: gochecknoglobals
 var (
 	awsCreateSecretFull = secret.CreateSecretRequest{
 		Name: secretDesc,
@@ -244,6 +245,7 @@ var (
 	}
 )
 
+// nolint: gochecknoglobals
 var (
 	secretItem1 = secret.SecretItemResponse{
 		ID:   secretId,

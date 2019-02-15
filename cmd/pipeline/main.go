@@ -67,7 +67,10 @@ import (
 )
 
 //Common logger for package
+// nolint: gochecknoglobals
 var log *logrus.Logger
+
+// nolint: gochecknoglobals
 var logger *logrus.Entry
 
 func initLog() *logrus.Entry {
