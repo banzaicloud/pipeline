@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// nolint: gochecknoglobals
 var log logrus.FieldLogger
 
 func init() {

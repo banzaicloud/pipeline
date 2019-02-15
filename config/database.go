@@ -22,7 +22,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+// nolint: gochecknoglobals
 var dbOnce sync.Once
+
+// nolint: gochecknoglobals
 var db *gorm.DB
 
 func initDatabase() {

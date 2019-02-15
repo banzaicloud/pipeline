@@ -82,6 +82,7 @@ const (
 	tcCleanup                    = "Cleanup"
 )
 
+// nolint: gochecknoglobals
 var (
 	testDomainStateCreated = &domainState{
 		organisationId: testOrgId,

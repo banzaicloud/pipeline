@@ -21,6 +21,7 @@ import (
 
 // Note: this should be FieldLogger instead.
 // Debug mode should be split to a separate config.
+// nolint: gochecknoglobals
 var log *logrus.Logger
 
 func init() {

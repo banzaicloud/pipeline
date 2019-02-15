@@ -21,6 +21,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// nolint: gochecknoglobals
 var (
 	timers map[string]*prometheus.Timer
 

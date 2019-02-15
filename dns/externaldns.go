@@ -27,20 +27,28 @@ import (
 	"github.com/spf13/viper"
 )
 
+// nolint: gochecknoglobals
 var once sync.Once
+
+// nolint: gochecknoglobals
 var errCreate error
 
 // dnsServiceClient is the DnsServiceClient singleton instance if this functionality is enabled
+// nolint: gochecknoglobals
 var dnsServiceClient DnsServiceClient
 
+// nolint: gochecknoglobals
 var gc garbageCollector
 
 // dnsNotificationsChannel is used to receive DNS related events from Route53 and fan out the events to consumers.
+// nolint: gochecknoglobals
 var dnsNotificationsChannel chan interface{}
 
 // dnsEventsConsumers stores the channels through which subscribers receive DNS events
+// nolint: gochecknoglobals
 var dnsEventsConsumers map[uuid.UUID]chan<- interface{}
 
+// nolint: gochecknoglobals
 var mux sync.RWMutex
 
 // DnsEventsSubscription represents a subscription to Dns events
