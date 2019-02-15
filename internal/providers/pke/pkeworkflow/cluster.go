@@ -1,5 +1,11 @@
 package pkeworkflow
 
+import (
+	"context"
+
+	"github.com/aws/aws-sdk-go/aws/session"
+)
+
 type Clusters interface {
 	GetCluster(ctx context.Context, id uint) (Cluster, error)
 }

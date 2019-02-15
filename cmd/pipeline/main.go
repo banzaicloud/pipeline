@@ -192,7 +192,8 @@ func main() {
 		log.Errorf("no pipeline.external_url set. falling back to %q", externalBaseURL)
 	}
 
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, log, errorHandler)
+	workflowClient := config.CadenceClient()
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
 
 	if viper.GetBool(config.MonitorEnabled) {
@@ -226,8 +227,6 @@ func main() {
 	if viper.GetBool(config.SpotMetricsEnabled) {
 		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
 	}
-
-	workflowClient := config.CadenceClient()
 
 	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, log, errorHandler)
 

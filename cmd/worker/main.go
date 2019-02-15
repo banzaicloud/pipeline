@@ -128,6 +128,7 @@ func main() {
 			nil,
 			nil,
 			nil,
+			nil,
 			conf.Logger(),
 			errorHandler,
 		)

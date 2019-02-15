@@ -15,13 +15,9 @@
 package pkeworkflow
 
 import (
-	"context"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/goph/emperror"
 	"go.uber.org/cadence/workflow"
-	"go.uber.org/zap"
 )
 
 const DeleteClusterWorkflowName = "pke-delete-cluster"

@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
@@ -33,6 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
@@ -46,6 +48,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
 	"gopkg.in/yaml.v2"
 )
 
@@ -385,6 +388,10 @@ func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 }
 
 func (c *EC2ClusterPKE) DeleteCluster() error {
+	panic("not used")
+}
+
+func (c *EC2ClusterPKE) DeletePKECluster(ctx context.Context, workflowClient client.Client) error {
 	input := pkeworkflow.DeleteClusterWorkflowInput{
 		ClusterID: c.GetID(),
 	}
@@ -392,7 +399,7 @@ func (c *EC2ClusterPKE) DeleteCluster() error {
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
 	}
-	exec, err := c.workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.DeleteClusterWorkflowName, input)
+	exec, err := workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.DeleteClusterWorkflowName, input)
 	if err != nil {
 		return err
 	}
