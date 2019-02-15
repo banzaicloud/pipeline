@@ -20,6 +20,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -699,6 +700,27 @@ func (c *EC2ClusterPKE) SaveNetworkCloudProvider(cloudProvider, vpcID string, su
 	err := c.db.Save(&c.model).Error
 	if err != nil {
 		return emperror.WrapWith(err, "failed to save network cloud provider", "cloudProvider", cloudProvider)
+	}
+
+	return nil
+}
+
+// GetNetworkApiServerAddress returns Kubernetes API Server host and port.
+func (c *EC2ClusterPKE) GetNetworkApiServerAddress() (host, port string, err error) {
+	return net.SplitHostPort(c.model.Network.APIServerAddress)
+}
+
+// SaveNetworkApiServerAddress stores Kubernetes API Server host and port.
+func (c *EC2ClusterPKE) SaveNetworkApiServerAddress(host, port string) error {
+	if port == "" {
+		// default port
+		port = "6443"
+	}
+	c.model.Network.APIServerAddress = net.JoinHostPort(host, port)
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return emperror.WrapWith(err, "failed to save network api server address", "address", c.model.Network.APIServerAddress)
 	}
 
 	return nil
