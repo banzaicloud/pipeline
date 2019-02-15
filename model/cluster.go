@@ -61,7 +61,7 @@ type ClusterModel struct {
 	Name           string     `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
-	Distribution   string
+	Distribution   pkgCluster.DistributionID
 	OrganizationId pkgAuth.OrganizationID `gorm:"unique_index:idx_unique_id"`
 	SecretId       pkgSecret.SecretID
 	ConfigSecretId pkgSecret.SecretID

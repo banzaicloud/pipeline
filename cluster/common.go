@@ -46,7 +46,7 @@ type CommonCluster interface {
 	GetOrganizationId() pkgAuth.OrganizationID
 	GetName() string
 	GetCloud() string
-	GetDistribution() string
+	GetDistribution() pkgCluster.DistributionID
 	GetLocation() string
 	GetCreatedBy() pkgAuth.UserID
 

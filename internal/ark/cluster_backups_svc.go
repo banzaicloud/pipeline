@@ -142,7 +142,7 @@ func (s *ClusterBackupsService) Create(req api.CreateBackupRequest) error {
 	if req.Labels == nil {
 		req.Labels = make(labels.Set)
 	}
-	req.Labels[api.LabelKeyDistribution] = s.cluster.GetDistribution()
+	req.Labels[api.LabelKeyDistribution] = string(s.cluster.GetDistribution())
 	req.Labels[api.LabelKeyCloud] = s.cluster.GetCloud()
 
 	backup, err := client.CreateBackup(req)

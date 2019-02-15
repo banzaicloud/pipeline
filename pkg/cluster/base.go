@@ -59,15 +59,18 @@ const (
 	Oracle     = "oracle"
 )
 
+// DistributionID represents the identifier of a distribution
+type DistributionID string
+
 // Distribution constants
 const (
-	ACSK    = "acsk"
-	EKS     = "eks"
-	AKS     = "aks"
-	GKE     = "gke"
-	OKE     = "oke"
-	PKE     = "pke"
-	Unknown = "unknown"
+	ACSK    DistributionID = "acsk"
+	EKS     DistributionID = "eks"
+	AKS     DistributionID = "aks"
+	GKE     DistributionID = "gke"
+	OKE     DistributionID = "oke"
+	PKE     DistributionID = "pke"
+	Unknown DistributionID = "unknown"
 )
 
 // constants for posthooks
@@ -186,7 +189,7 @@ type GetClusterStatusResponse struct {
 	Name          string                     `json:"name"`
 	Location      string                     `json:"location"`
 	Cloud         string                     `json:"cloud"`
-	Distribution  string                     `json:"distribution"`
+	Distribution  DistributionID             `json:"distribution"`
 	Spot          bool                       `json:"spot,omitempty"`
 	Logging       bool                       `json:"logging"`
 	Monitoring    bool                       `json:"monitoring"`
@@ -231,7 +234,7 @@ type GetNodePoolsResponse struct {
 	ClusterDesiredResources map[string]float64               `json:"clusterDesiredResources,omitempty"`
 	ClusterStatus           string                           `json:"status,omitempty"`
 	Cloud                   string                           `json:"cloud"`
-	Distribution            string                           `json:"distribution"`
+	Distribution            DistributionID                   `json:"distribution"`
 	Location                string                           `json:"location"`
 }
 

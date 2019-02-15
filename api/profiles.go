@@ -36,7 +36,7 @@ const (
 // Sends back the saved cluster profiles
 func GetClusterProfiles(c *gin.Context) {
 
-	distributionType := c.Param(distributionTypeKey)
+	distributionType := pkgCluster.DistributionID(c.Param(distributionTypeKey))
 	log.Infof("Start getting saved cluster profiles [%s]", distributionType)
 
 	resp, err := getProfiles(distributionType)
@@ -113,7 +113,7 @@ func AddClusterProfile(c *gin.Context) {
 }
 
 // getProfiles loads cluster profiles from database by distribution
-func getProfiles(distribution string) ([]pkgCluster.ClusterProfileResponse, error) {
+func getProfiles(distribution pkgCluster.DistributionID) ([]pkgCluster.ClusterProfileResponse, error) {
 
 	var response []pkgCluster.ClusterProfileResponse
 	profiles, err := defaults.GetAllProfiles(distribution)
@@ -187,7 +187,7 @@ func UpdateClusterProfile(c *gin.Context) {
 
 	log.Infof("Load cluster from database: %s[%s]", profileRequest.Name, profileRequest.Cloud)
 
-	distribution := ""
+	distribution := pkgCluster.Unknown
 	switch profileRequest.Cloud {
 	case pkgCluster.Amazon:
 		distribution = pkgCluster.EKS
@@ -233,7 +233,7 @@ func UpdateClusterProfile(c *gin.Context) {
 // Deleting failed if the name is the default name.
 func DeleteClusterProfile(c *gin.Context) {
 
-	distribution := c.Param(distributionTypeKey)
+	distribution := pkgCluster.DistributionID(c.Param(distributionTypeKey))
 	name := c.Param(nameKey)
 	log.Infof("Start deleting cluster profile: %s[%s]", name, distribution)
 

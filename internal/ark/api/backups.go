@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"time"
 
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -39,7 +40,7 @@ type PersistBackupRequest struct {
 	BucketID uint
 
 	Cloud          string
-	Distribution   string
+	Distribution   pkgCluster.DistributionID
 	NodeCount      uint
 	ContentChecked bool
 
@@ -58,7 +59,7 @@ type Backup struct {
 	TTL              metav1.Duration                     `json:"ttl"`
 	Labels           labels.Set                          `json:"labels"`
 	Cloud            string                              `json:"cloud"`
-	Distribution     string                              `json:"distribution"`
+	Distribution     pkgCluster.DistributionID           `json:"distribution"`
 	Options          BackupOptions                       `json:"options,omitempty"`
 	Status           string                              `json:"status"`
 	StartAt          time.Time                           `json:"startAt"`
@@ -163,7 +164,7 @@ func (req *PersistBackupRequest) ExtendFromLabels() {
 	}
 
 	if req.Distribution == "" {
-		req.Distribution = req.Backup.Labels[LabelKeyDistribution]
+		req.Distribution = pkgCluster.DistributionID(req.Backup.Labels[LabelKeyDistribution])
 	}
 
 	if count, err := strconv.Atoi(req.Backup.Labels[LabelKeyNodeCount]); req.NodeCount == 0 && err == nil {
