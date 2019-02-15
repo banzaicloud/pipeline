@@ -48,7 +48,7 @@ type CommonCluster interface {
 	GetCloud() string
 	GetDistribution() string
 	GetLocation() string
-	GetCreatedBy() uint
+	GetCreatedBy() pkgAuth.UserID
 
 	// Secrets
 	GetSecretId() string
@@ -66,8 +66,8 @@ type CommonCluster interface {
 	// Cluster management
 	CreateCluster() error
 	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
-	UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
-	UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error
+	UpdateCluster(*pkgCluster.UpdateClusterRequest, pkgAuth.UserID) error
+	UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, pkgAuth.UserID) error
 	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
 	DeleteCluster() error
@@ -371,7 +371,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 }
 
 //CreateCommonClusterFromRequest creates a CommonCluster from a request
-func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (CommonCluster, error) {
+func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (CommonCluster, error) {
 
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
@@ -451,7 +451,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 }
 
 //createCommonClusterWithDistributionFromRequest creates a CommonCluster from a request
-func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*EC2ClusterPKE, error) {
+func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {
 	switch createClusterRequest.Cloud {
 	case pkgCluster.Amazon:
 		return CreateEC2ClusterPKEFromRequest(createClusterRequest, orgId, userId)
@@ -491,14 +491,14 @@ func CleanHelmFolder(organizationName string) error {
 }
 
 // GetUserIdAndName returns userId and userName from DB
-func GetUserIdAndName(modelCluster *model.ClusterModel) (userId uint, userName string) {
+func GetUserIdAndName(modelCluster *model.ClusterModel) (userId pkgAuth.UserID, userName string) {
 	userId = modelCluster.CreatedBy
 	userName = auth.GetUserNickNameById(userId)
 	return
 }
 
 // NewCreatorBaseFields creates a new CreatorBaseFields instance from createdAt and createdBy
-func NewCreatorBaseFields(createdAt time.Time, createdBy uint) *pkgCommon.CreatorBaseFields {
+func NewCreatorBaseFields(createdAt time.Time, createdBy pkgAuth.UserID) *pkgCommon.CreatorBaseFields {
 
 	var userName string
 	if createdBy != 0 {

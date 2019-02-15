@@ -200,7 +200,7 @@ func (s *SpotguideManager) ScrapeSharedSpotguides() error {
 	return s.scrapeSpotguides(s.sharedLibraryOrganization, githubClient)
 }
 
-func (s *SpotguideManager) ScrapeSpotguides(orgID pkgAuth.OrganizationID, userID uint) error {
+func (s *SpotguideManager) ScrapeSpotguides(orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) error {
 	githubClient, err := auth.NewGithubClientForUser(userID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create GitHub client")
@@ -508,7 +508,7 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 	return entries, nil
 }
 
-func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
+func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID pkgAuth.UserID, sourceRepo *SpotguideRepo) error {
 
 	repo := github.Repository{
 		Name:        github.String(request.RepoName),
@@ -532,7 +532,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 	return nil
 }
 
-func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
+func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID pkgAuth.UserID, sourceRepo *SpotguideRepo) error {
 
 	// An initial files have to be created with the API to be able to use the fresh repo
 	createFile := &github.RepositoryContentFileOptions{
@@ -592,7 +592,7 @@ func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, us
 	return nil
 }
 
-func createSecrets(request *LaunchRequest, orgID pkgAuth.OrganizationID, userID uint) error {
+func createSecrets(request *LaunchRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) error {
 
 	repoTag := "repo:" + request.RepoFullname()
 

@@ -30,7 +30,7 @@ import (
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
 type CreationContext struct {
 	OrganizationID pkgAuth.OrganizationID
-	UserID         uint
+	UserID         pkgAuth.UserID
 	Name           string
 	Provider       string
 	SecretID       string

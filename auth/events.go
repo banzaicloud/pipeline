@@ -22,7 +22,7 @@ const OrganizationRegisteredTopic = "organization_registered"
 // authEvents is responsible for dispatching domain events throughout the system.
 // It does not express any infrastructural detail (like pubsub).
 type authEvents interface {
-	OrganizationRegistered(organizationID pkgAuth.OrganizationID, userID uint)
+	OrganizationRegistered(organizationID pkgAuth.OrganizationID, userID pkgAuth.UserID)
 }
 
 type eventBus interface {
@@ -33,6 +33,6 @@ type ebAuthEvents struct {
 	eb eventBus
 }
 
-func (e ebAuthEvents) OrganizationRegistered(organizationID pkgAuth.OrganizationID, userID uint) {
+func (e ebAuthEvents) OrganizationRegistered(organizationID pkgAuth.OrganizationID, userID pkgAuth.UserID) {
 	e.eb.Publish(OrganizationRegisteredTopic, organizationID, userID)
 }

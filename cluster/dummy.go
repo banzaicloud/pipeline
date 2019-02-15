@@ -32,7 +32,7 @@ type DummyCluster struct {
 }
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
-func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*DummyCluster, error) {
+func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*DummyCluster, error) {
 	var cluster DummyCluster
 
 	cluster.modelCluster = &model.ClusterModel{
@@ -109,12 +109,12 @@ func (c *DummyCluster) DeleteCluster() error {
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *DummyCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+func (c *DummyCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
 	return nil
 }
 
 // UpdateCluster updates the dummy cluster
-func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint) error {
+func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ pkgAuth.UserID) error {
 	c.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion
 	c.modelCluster.Dummy.NodeCount = r.Dummy.Node.Count
 	return nil
@@ -367,6 +367,6 @@ func (c *DummyCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *DummyCluster) GetCreatedBy() uint {
+func (c *DummyCluster) GetCreatedBy() pkgAuth.UserID {
 	return c.modelCluster.CreatedBy
 }

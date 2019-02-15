@@ -79,7 +79,7 @@ type ClusterModel struct {
 	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
-	CreatedBy      uint
+	CreatedBy      pkgAuth.UserID
 }
 
 // ScaleOptions describes scale options
@@ -99,7 +99,7 @@ type ScaleOptions struct {
 type ACSKNodePoolModel struct {
 	ID                           uint `gorm:"primary_key"`
 	CreatedAt                    time.Time
-	CreatedBy                    uint
+	CreatedBy                    pkgAuth.UserID
 	ClusterID                    uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name                         string `gorm:"unique_index:idx_cluster_id_name"`
 	InstanceType                 string
@@ -134,7 +134,7 @@ type ACSKClusterModel struct {
 type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	CreatedBy        uint
+	CreatedBy        pkgAuth.UserID
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	NodeSpotPrice    string
@@ -253,7 +253,7 @@ type AKSClusterModel struct {
 type AKSNodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	CreatedBy        uint
+	CreatedBy        pkgAuth.UserID
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	Autoscaling      bool

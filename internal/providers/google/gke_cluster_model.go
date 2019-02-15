@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/jinzhu/gorm"
 )
 
@@ -106,7 +107,7 @@ func (m GKEClusterModel) String() string {
 type GKENodePoolModel struct {
 	ID        uint `gorm:"primary_key"`
 	CreatedAt time.Time
-	CreatedBy uint
+	CreatedBy pkgAuth.UserID
 
 	ClusterID uint `gorm:"unique_index:idx_cluster_id_name"`
 

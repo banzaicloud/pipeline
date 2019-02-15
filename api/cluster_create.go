@@ -82,7 +82,7 @@ func (a *ClusterAPI) CreateCluster(
 	ctx context.Context,
 	createClusterRequest *pkgCluster.CreateClusterRequest,
 	organizationID pkgAuth.OrganizationID,
-	userID uint,
+	userID pkgAuth.UserID,
 	postHooks []cluster.PostFunctioner,
 ) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
 	logger := a.logger.WithFields(logrus.Fields{
