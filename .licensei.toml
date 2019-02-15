@@ -14,6 +14,5 @@ ignored = [
   "github.com/stretchr/testify",
 
   "github.com/davecgh/go-spew", # ISC license
-  "github.com/howeyc/gopass", # ISC license
   "github.com/oracle/oci-go-sdk", # UPL-1.0
 ]
