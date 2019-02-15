@@ -80,3 +80,10 @@ func (c *Cluster) GetBootstrapCommand(nodePoolName, url, token string) (string, 
 	}
 	return "", errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
 }
+
+func (c *Cluster) SaveNetworkCloudProvider(cloudProvider, vpcID string, subnets []string) error {
+	if awscluster, ok := c.CommonCluster.(pkeworkflow.AWSCluster); ok {
+		return awscluster.SaveNetworkCloudProvider(cloudProvider, vpcID, subnets)
+	}
+	return errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
+}

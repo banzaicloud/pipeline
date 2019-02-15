@@ -40,6 +40,7 @@ type Cluster interface {
 type AWSCluster interface {
 	GetAWSClient() (*session.Session, error)
 	GetBootstrapCommand(string, string, string) (string, error)
+	SaveNetworkCloudProvider(string, string, []string) error
 }
 
 type NodePool struct {
@@ -116,8 +117,18 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	createElasticIPActivityInput := &CreateElasticIPActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	var eip string
+	var eip CreateElasticIPActivityOutput
 	if err := workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, createElasticIPActivityInput).Get(ctx, &eip); err != nil {
+		return err
+	}
+
+	updateClusterNetworkActivityInput := &UpdateClusterNetworkActivityInput{
+		ClusterID:       input.ClusterID,
+		APISeverAddress: eip.PublicIp,
+		VPCID:           vpcOutput["VpcId"],
+		Subnets:         vpcOutput["SubnetIds"],
+	}
+	if err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, updateClusterNetworkActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 

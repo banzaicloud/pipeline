@@ -159,6 +159,9 @@ func main() {
 		updateClusterStatusActivitiy := pkeworkflow.NewUpdateClusterStatusActivity(clusters)
 		activity.RegisterWithOptions(updateClusterStatusActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterStatusActivityName})
 
+		updateClusterNetworkActivitiy := pkeworkflow.NewUpdateClusterNetworkActivity(clusters)
+		activity.RegisterWithOptions(updateClusterNetworkActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterNetworkActivityName})
+
 		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(clusters)
 		activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
 
