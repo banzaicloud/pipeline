@@ -16,14 +16,15 @@ package pkeworkflow
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
-	"io/ioutil"
 )
 
 const CreateVPCActivityName = "pke-create-vpc-activity"
