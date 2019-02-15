@@ -385,7 +385,28 @@ func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 }
 
 func (c *EC2ClusterPKE) DeleteCluster() error {
-	// do nothing (the cluster should be left on the provider for now
+	input := pkeworkflow.DeleteClusterWorkflowInput{
+		ClusterID: c.GetID(),
+	}
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+	}
+	exec, err := c.workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.DeleteClusterWorkflowName, input)
+	if err != nil {
+		return err
+	}
+
+	err = c.SetCurrentWorkflowID(exec.GetID())
+	if err != nil {
+		return err
+	}
+
+	err = exec.Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
