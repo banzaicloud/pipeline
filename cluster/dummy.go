@@ -79,7 +79,7 @@ func (c *DummyCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *DummyCluster) GetDistribution() string {
+func (c *DummyCluster) GetDistribution() pkgCluster.DistributionID {
 	return c.modelCluster.Distribution
 }
 
