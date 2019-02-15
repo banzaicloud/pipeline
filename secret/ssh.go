@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"golang.org/x/crypto/ssh"
 )
@@ -50,7 +51,7 @@ func NewSSHKeyPair(s *SecretItemResponse) *SSHKeyPair {
 }
 
 // StoreSSHKeyPair to store SSH Key to Bank Vaults
-func StoreSSHKeyPair(key *SSHKeyPair, organizationID pkgAuth.OrganizationID, clusterID uint, clusterName string, clusterUID string) (secretID secretTypes.SecretID, err error) {
+func StoreSSHKeyPair(key *SSHKeyPair, organizationID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID, clusterName string, clusterUID string) (secretID secretTypes.SecretID, err error) {
 	log.Info("Store SSH Key to Bank Vaults")
 	var createSecretRequest CreateSecretRequest
 	createSecretRequest.Type = secretTypes.SSHSecretType

@@ -17,6 +17,7 @@ package cluster
 import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
@@ -114,7 +115,7 @@ func (c *Clusters) findOneBy(organizationID pkgAuth.OrganizationID, field string
 			return nil, errors.New("criteria is not a valid uint value for id")
 		}
 
-		cluster.ID = id
+		cluster.ID = pkgCluster.ClusterID(id)
 
 	case "name":
 		name, ok := criteria.(string)
@@ -161,7 +162,7 @@ func (c *Clusters) FindBySecret(organizationID pkgAuth.OrganizationID, secretID 
 }
 
 // GetConfigSecretIDByClusterID returns the kubeconfig's secretID stored in DB
-func (c *Clusters) GetConfigSecretIDByClusterID(organizationID pkgAuth.OrganizationID, clusterID uint) (pkgSecret.SecretID, error) {
+func (c *Clusters) GetConfigSecretIDByClusterID(organizationID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID) (pkgSecret.SecretID, error) {
 	cluster := model.ClusterModel{ID: clusterID}
 
 	if err := c.db.Where(cluster).Select("config_secret_id").First(&cluster).Error; err != nil {

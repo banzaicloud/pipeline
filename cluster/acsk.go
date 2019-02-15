@@ -731,7 +731,7 @@ func (c *ACSKCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest
 	return nil
 }
 
-func (c *ACSKCluster) GetID() uint {
+func (c *ACSKCluster) GetID() pkgCluster.ClusterID {
 	return c.modelCluster.ID
 }
 

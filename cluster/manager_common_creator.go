@@ -18,16 +18,16 @@ import (
 	"context"
 
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 type commonCreator struct {
-	request *cluster.CreateClusterRequest
+	request *pkgCluster.CreateClusterRequest
 	cluster CommonCluster
 }
 
 // NewCommonClusterCreator returns a new cluster creator instance.
-func NewCommonClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster) *commonCreator {
+func NewCommonClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonCluster) *commonCreator {
 	return &commonCreator{
 		request: request,
 		cluster: cluster,
@@ -41,7 +41,7 @@ func (c *commonCreator) Validate(ctx context.Context) error {
 
 // Prepare implements the clusterCreator interface.
 func (c *commonCreator) Prepare(ctx context.Context) (CommonCluster, error) {
-	return c.cluster, c.cluster.Persist(cluster.Creating, cluster.CreatingMessage)
+	return c.cluster, c.cluster.Persist(pkgCluster.Creating, pkgCluster.CreatingMessage)
 }
 
 // Create implements the clusterCreator interface.
@@ -60,11 +60,11 @@ type createPKEClusterer interface {
 }
 
 type TokenGenerator interface {
-	GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID uint) (string, string, error)
+	GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID) (string, string, error)
 }
 
 // NewClusterCreator returns a new PKE or Common cluster creator instance depending on the cluster.
-func NewClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster, tokenGenerator TokenGenerator, externalBaseURL string) clusterCreator {
+func NewClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonCluster, tokenGenerator TokenGenerator, externalBaseURL string) clusterCreator {
 	common := NewCommonClusterCreator(request, cluster)
 	if _, ok := cluster.(createPKEClusterer); !ok {
 		return common

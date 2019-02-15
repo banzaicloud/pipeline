@@ -41,7 +41,7 @@ import (
 // CommonCluster interface for clusters.
 type CommonCluster interface {
 	// Entity properties
-	GetID() uint
+	GetID() pkgCluster.ClusterID
 	GetUID() string
 	GetOrganizationId() pkgAuth.OrganizationID
 	GetName() string

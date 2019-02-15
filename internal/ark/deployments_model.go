@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/model"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // ClusterBackupDeploymentsModel describes an ARK deployment model
@@ -39,7 +40,7 @@ type ClusterBackupDeploymentsModel struct {
 	Organization   auth.Organization      `gorm:"foreignkey:OrganizationID"`
 	OrganizationID pkgAuth.OrganizationID `gorm:"index;not null"`
 	Cluster        model.ClusterModel     `gorm:"foreignkey:ClusterID"`
-	ClusterID      uint                   `gorm:"index;not null"`
+	ClusterID      pkgCluster.ClusterID   `gorm:"index;not null"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

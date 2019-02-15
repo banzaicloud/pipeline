@@ -1013,7 +1013,7 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 }
 
 // GetID returns the DB ID of this cluster
-func (c *EKSCluster) GetID() uint {
+func (c *EKSCluster) GetID() pkgCluster.ClusterID {
 	return c.modelCluster.ID
 }
 

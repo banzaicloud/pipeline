@@ -27,7 +27,7 @@ type AKSCluster interface {
 
 // Cluster interface for cluster implementations
 type Cluster interface {
-	GetID() uint
+	GetID() pkgCluster.ClusterID
 	GetName() string
 	GetOrganizationId() pkgAuth.OrganizationID
 	GetCloud() string

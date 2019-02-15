@@ -258,7 +258,7 @@ func getNodeCount(np *modelOracle.NodePool) int {
 }
 
 //GetID returns the specified cluster id
-func (o *OKECluster) GetID() uint {
+func (o *OKECluster) GetID() pkgCluster.ClusterID {
 	return o.modelCluster.ID
 }
 
