@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"net"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -185,10 +184,7 @@ func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
 	originalStatus := c.model.Cluster.Status
 	originalStatusMessage := c.model.Cluster.StatusMessage
 
-	c.model.Cluster.Status = status
-	c.model.Cluster.StatusMessage = statusMessage
-
-	err := c.db.Save(&c.model).Error
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"status": status, "status_message": statusMessage}).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to update status")
 	}
@@ -618,20 +614,27 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 	}
 
 	infrastructureCIDR := ""
-	switch np.Provider {
-	case internalPke.NPPAmazon:
-		var cfg internalPke.NodePoolProviderConfigAmazon
-		err := mapstructure.Decode(np.ProviderConfig, &cfg)
-		if err != nil {
-			return "", err
-		}
+	cloudProvider, _, subnets, err := c.GetNetworkCloudProvider()
+	if err != nil {
+		return "", err
+	}
+	switch cloudProvider {
+	case string(internalPke.CNPAmazon):
 		// match subnet
-		if len(cfg.AutoScalingGroup.Subnets) > 0 {
-			c := ec2.New(c.session)
+		if len(subnets) > 0 {
+			s, err := c.GetAWSClient()
+			if err != nil {
+				return "", err
+			}
+			c := ec2.New(s)
 
+			idx := 0
+			if nodePoolName != "master" && len(subnets) > 1 {
+				idx = 1
+			}
 			// query subnet CIDR from amazon
 			in := &ec2.DescribeSubnetsInput{
-				SubnetIds: aws.StringSlice([]string{string(cfg.AutoScalingGroup.Subnets[0])}),
+				SubnetIds: aws.StringSlice([]string{string(subnets[idx])}),
 			}
 			out, err := c.DescribeSubnets(in)
 			if err != nil {
@@ -647,6 +650,10 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		return "", errors.New("cloud not query nodepool subnet")
 	}
 
+	apiAddress, _, err := c.GetNetworkApiServerAddress()
+	if err != nil {
+		return "", err
+	}
 	// master
 	if subcommand == "master" {
 		return fmt.Sprintf("pke install %s "+
@@ -657,8 +664,8 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--pipeline-nodepool=%q "+
 			"--kubernetes-version=1.12.2 "+
 			"--kubernetes-network-provider=weave "+
-			"--kubernetes-service-cidr=10.32.0.0/24 "+
-			"--kubernetes-pod-network-cidr=192.168.0.0/16 "+
+			"--kubernetes-service-cidr=10.10.0.0/16 "+
+			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
 			"--kubernetes-infrastructure-cidr=%q "+
 			"--kubernetes-api-server=%q "+
 			"--kubernetes-cluster-name=%q",
@@ -669,7 +676,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			c.model.Cluster.ID,
 			nodePoolName,
 			infrastructureCIDR,
-			c.model.Network.APIServerAddress,
+			apiAddress,
 			c.GetName(),
 		), nil
 	}
@@ -704,7 +711,7 @@ func (c *EC2ClusterPKE) GetNetworkCloudProvider() (cloudProvider, vpcID string, 
 			return
 		}
 		vpcID = cpc.VPCID
-		for _, subnet := range subnets {
+		for _, subnet := range cpc.Subnets {
 			subnets = append(subnets, string(subnet))
 		}
 	}
@@ -718,12 +725,10 @@ func (c *EC2ClusterPKE) SaveNetworkCloudProvider(cloudProvider, vpcID string, su
 		return errors.New("unsupported cloud network provider")
 	}
 
-	cfg := make(map[string]interface{})
-	cfg["vpcID"] = vpcID
-	cfg["subnets"] = strings.Join(subnets, ",")
-
 	c.model.Network.CloudProvider = internalPke.CNPAmazon
-	c.model.Network.CloudProviderConfig = cfg
+	c.model.Network.CloudProviderConfig = make(internalPke.Config)
+	c.model.Network.CloudProviderConfig["vpcID"] = vpcID
+	c.model.Network.CloudProviderConfig["subnets"] = subnets
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {

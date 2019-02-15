@@ -48,11 +48,10 @@ import (
 
 // ClusterAPI implements the Cluster API actions.
 type ClusterAPI struct {
-	clusterManager *cluster.Manager
-	clusterGetter  common.ClusterGetter
-	//tokenGenerator  cluster.TokenGenerator
-	//externalBaseURL string
-	workflowClient client.Client
+	clusterManager  *cluster.Manager
+	clusterGetter   common.ClusterGetter
+	externalBaseURL string
+	workflowClient  client.Client
 
 	logger       logrus.FieldLogger
 	errorHandler emperror.Handler
@@ -65,11 +64,14 @@ func NewClusterAPI(
 	workflowClient client.Client,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
+	externalBaseURL string,
+
 ) *ClusterAPI {
 	return &ClusterAPI{
-		clusterManager: clusterManager,
-		clusterGetter:  clusterGetter,
-		workflowClient: workflowClient,
+		clusterManager:  clusterManager,
+		clusterGetter:   clusterGetter,
+		workflowClient:  workflowClient,
+		externalBaseURL: externalBaseURL,
 
 		logger:       logger,
 		errorHandler: errorHandler,

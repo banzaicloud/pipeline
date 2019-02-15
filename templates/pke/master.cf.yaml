@@ -94,7 +94,7 @@ Resources:
       - Key: ClusterName
         Value: !Ref ClusterName
       - Key: Name
-        Value: !Join ["", ["pke-master"]]
+        Value: !Join ["", ["pke-master-", !Ref ClusterName]]
       - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
         Value: "owned"
     DependsOn:

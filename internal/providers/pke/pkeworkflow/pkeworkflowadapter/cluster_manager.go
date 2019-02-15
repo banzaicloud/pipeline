@@ -87,3 +87,10 @@ func (c *Cluster) SaveNetworkCloudProvider(cloudProvider, vpcID string, subnets 
 	}
 	return errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
 }
+
+func (c *Cluster) SaveNetworkApiServerAddress(host, port string) error {
+	if awscluster, ok := c.CommonCluster.(pkeworkflow.AWSCluster); ok {
+		return awscluster.SaveNetworkApiServerAddress(host, port)
+	}
+	return errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
+}

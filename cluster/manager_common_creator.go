@@ -20,6 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/pkg/errors"
 	"go.uber.org/cadence/client"
 )
 
@@ -81,8 +82,14 @@ type pkeCreator struct {
 
 // Create implements the clusterCreator interface.
 func (c *pkeCreator) Create(ctx context.Context) error {
+	var externalBaseURL string
+	var ok bool
+	if externalBaseURL, ok = ctx.Value("ExternalBaseURL").(string); !ok {
+		return errors.New("externalBaseURL missing from context")
+	}
 	input := pkeworkflow.CreateClusterWorkflowInput{
-		ClusterID: c.cluster.GetID(),
+		ClusterID:           c.cluster.GetID(),
+		PipelineExternalURL: externalBaseURL,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",

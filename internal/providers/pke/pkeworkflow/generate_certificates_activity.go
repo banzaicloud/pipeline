@@ -51,6 +51,7 @@ func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input Genera
 		Values: map[string]string{},
 		Tags: []string{
 			fmt.Sprintf("clusterUID:%s", c.GetUID()),
+			fmt.Sprintf("clusterID:%d", c.GetID()),
 			pkgSecret.TagBanzaiReadonly,
 			pkgSecret.TagBanzaiHidden,
 		},

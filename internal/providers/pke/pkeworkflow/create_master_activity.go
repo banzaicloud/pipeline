@@ -42,7 +42,12 @@ func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator) *
 }
 
 type CreateMasterActivityInput struct {
-	ClusterID uint
+	ClusterID             uint
+	VPCID                 string
+	SubnetID              string
+	EIPAllocationID       string
+	MasterInstanceProfile string
+	ExternalBaseUrl       string
 }
 
 func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterActivityInput) (string, error) {
@@ -61,9 +66,9 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		return "", emperror.Wrap(err, "can't generate Pipeline token")
 	}
 
-	bootstrapCommand, err := awsCluster.GetBootstrapCommand("master", "url", signedToken)
+	bootstrapCommand, err := awsCluster.GetBootstrapCommand("master", input.ExternalBaseUrl, signedToken)
 	if err != nil {
-		return "", err
+		return "", emperror.Wrapf(err, "failed to fetch bootstrap command")
 	}
 
 	client, err := awsCluster.GetAWSClient()
@@ -78,9 +83,10 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		return "", emperror.Wrap(err, "loading CF template")
 	}
 	clusterName := c.GetName()
+	stackName := "pke-master-" + clusterName
 	stackInput := &cloudformation.CreateStackInput{
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityAutoExpand}),
-		StackName:    aws.String("pke-master-" + c.GetName()),
+		StackName:    &stackName,
 		TemplateBody: aws.String(string(buf)),
 		Parameters: []*cloudformation.Parameter{
 			{
@@ -91,6 +97,47 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 				ParameterKey:   aws.String("PkeCommand"),
 				ParameterValue: &bootstrapCommand,
 			},
+			{
+				ParameterKey:   aws.String("InstanceType"),
+				ParameterValue: aws.String("c4.xlarge"),
+			},
+
+			{
+				ParameterKey:   aws.String("AvailabilityZone"),
+				ParameterValue: aws.String("eu-central-1a"),
+			},
+			{
+				ParameterKey:   aws.String("VPCId"),
+				ParameterValue: &input.VPCID,
+			},
+			{
+				ParameterKey:   aws.String("SubnetId"),
+				ParameterValue: &input.SubnetID,
+			},
+			{
+				ParameterKey:   aws.String("EIPAllocationId"),
+				ParameterValue: &input.EIPAllocationID,
+			},
+			{
+				ParameterKey:   aws.String("PkeCommand"),
+				ParameterValue: &bootstrapCommand,
+			},
+			{
+				ParameterKey:   aws.String("IamInstanceProfile"),
+				ParameterValue: &input.MasterInstanceProfile,
+			},
+			{
+				ParameterKey:   aws.String("ImageId"),
+				ParameterValue: aws.String("ami-dd3c0f36"),
+			},
+			{
+				ParameterKey:   aws.String("PkeVersion"),
+				ParameterValue: aws.String("0.0.5"),
+			},
+			{
+				ParameterKey:   aws.String("KeyName"),
+				ParameterValue: aws.String("sanyiMbp"),
+			},
 		},
 	}
 
@@ -99,6 +146,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		switch err.Code() {
 		case cloudformation.ErrCodeAlreadyExistsException:
 			log.Infof("stack already exists: %s", err.Message())
+			return stackName, nil
 		default:
 			return "", err
 		}

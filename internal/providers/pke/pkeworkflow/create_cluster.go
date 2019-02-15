@@ -15,10 +15,9 @@
 package pkeworkflow
 
 import (
-	"context"
+	"strings"
 	"time"
 
-	"github.com/goph/emperror"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 )
@@ -26,7 +25,8 @@ import (
 const CreateClusterWorkflowName = "pke-create-cluster"
 
 type CreateClusterWorkflowInput struct {
-	ClusterID uint
+	ClusterID           uint
+	PipelineExternalURL string
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -112,6 +112,19 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
+	// TODO refactor network things
+	createMasterActivityInput := CreateMasterActivityInput{
+		ClusterID:             input.ClusterID,
+		VPCID:                 vpcOutput["VpcId"],
+		SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
+		EIPAllocationID:       eip.AllocationId,
+		MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
+		ExternalBaseUrl:       input.PipelineExternalURL,
+	}
+	if err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, createMasterActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
+
 	signalName := "master-ready"
 	signalChan := workflow.GetSignalChannel(ctx, signalName)
 
@@ -148,55 +161,10 @@ func generateCertificates(ctx workflow.Context, clusterID uint) error {
 	return workflow.ExecuteActivity(ctx, GenerateCertificatesActivityName, generateCertificatesActivityInput).Get(ctx, nil)
 }
 
-const CreateClusterActivityName = "pke-create-cluster-activity"
-
-type CreateClusterActivity struct {
-	clusters       Clusters
-	tokenGenerator TokenGenerator
-}
-
-func NewCreateClusterActivity(clusters Clusters, tokenGenerator TokenGenerator) *CreateClusterActivity {
-	return &CreateClusterActivity{
-		clusters:       clusters,
-		tokenGenerator: tokenGenerator,
-	}
-}
-
 type TokenGenerator interface {
 	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
 }
 
 type CreateClusterActivityInput struct {
 	ClusterID uint
-}
-
-func (a *CreateClusterActivity) Execute(ctx context.Context, input CreateClusterActivityInput) error {
-	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
-	if err != nil {
-		return err
-	}
-
-	// prepare input for real AWS flow
-	_, _, err = a.tokenGenerator.GenerateClusterToken(c.GetOrganizationId(), c.GetID())
-	if err != nil {
-		return emperror.Wrap(err, "can't generate Pipeline token")
-	}
-	//client, err := c.GetAWSClient()
-	//if err != nil {
-	//	return err
-	//}
-	//cfClient := cloudformation.New(client)
-	//err = CreateMasterCF(cfClient)
-	//if err != nil {
-	//	return emperror.Wrap(err, "can't create master CF template")
-	//}
-	//token := "XXX" // TODO masked from dumping valid tokens to log
-	//for _, nodePool := range c.model.NodePools {
-	//cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
-	//c.log.Debugf("TODO: start ASG with command %s", cmd)
-	//}
-
-	c.UpdateStatus("CREATING", "Waiting for Kubeconfig from master node.")
-
-	return nil
 }

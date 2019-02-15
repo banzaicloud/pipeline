@@ -52,5 +52,9 @@ func (a *UpdateClusterNetworkActivity) Execute(ctx context.Context, input Update
 		return errors.New(fmt.Sprintf("can't update Network for cluster type %t", c))
 	}
 	subnets := strings.Split(input.Subnets, ",")
-	return awsCluster.SaveNetworkCloudProvider(string(internalPke.CNPAmazon), input.VPCID, subnets)
+	err = awsCluster.SaveNetworkCloudProvider(string(internalPke.CNPAmazon), input.VPCID, subnets)
+	if err != nil {
+		return err
+	}
+	return awsCluster.SaveNetworkApiServerAddress(input.APISeverAddress, "")
 }

@@ -28,13 +28,14 @@ import (
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
 type CreationContext struct {
-	OrganizationID uint
-	UserID         uint
-	Name           string
-	Provider       string
-	SecretID       string
-	SecretIDs      []string
-	PostHooks      []PostFunctioner
+	OrganizationID  uint
+	UserID          uint
+	ExternalBaseURL string
+	Name            string
+	Provider        string
+	SecretID        string
+	SecretIDs       []string
+	PostHooks       []PostFunctioner
 }
 
 var ErrAlreadyExists = stderrors.New("cluster already exists with this name")
@@ -130,7 +131,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
-
+		ctx = context.WithValue(ctx, "ExternalBaseURL", creationCtx.ExternalBaseURL)
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
 			errorHandler.Handle(err)
@@ -185,7 +186,6 @@ func (m *Manager) createCluster(
 			return emperror.Wrap(err, "failed to save SSH key secret ID")
 		}
 	}
-
 	if err := creator.Create(ctx); err != nil {
 		cluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err

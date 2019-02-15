@@ -23,6 +23,7 @@ type AWSCluster interface {
 	GetAWSClient() (*session.Session, error)
 	GetBootstrapCommand(string, string, string) (string, error)
 	SaveNetworkCloudProvider(string, string, []string) error
+	SaveNetworkApiServerAddress(string, string) error
 }
 
 type NodePool struct {
