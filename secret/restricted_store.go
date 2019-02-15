@@ -44,7 +44,7 @@ func (s *restrictedSecretStore) List(orgid pkgAuth.OrganizationID, query *secret
 	return newResponseItems, nil
 }
 
-func (s *restrictedSecretStore) Update(organizationID pkgAuth.OrganizationID, secretID string, value *CreateSecretRequest) error {
+func (s *restrictedSecretStore) Update(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID, value *CreateSecretRequest) error {
 	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (s *restrictedSecretStore) Update(organizationID pkgAuth.OrganizationID, se
 	return s.secretStore.Update(organizationID, secretID, value)
 }
 
-func (s *restrictedSecretStore) Delete(organizationID pkgAuth.OrganizationID, secretID string) error {
+func (s *restrictedSecretStore) Delete(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) error {
 	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (s *restrictedSecretStore) Delete(organizationID pkgAuth.OrganizationID, se
 	return s.secretStore.Delete(organizationID, secretID)
 }
 
-func (s *restrictedSecretStore) checkBlockingTags(organizationID pkgAuth.OrganizationID, secretID string) error {
+func (s *restrictedSecretStore) checkBlockingTags(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) error {
 
 	secretItem, err := s.secretStore.Get(organizationID, secretID)
 	if err != nil {
@@ -80,7 +80,7 @@ func (s *restrictedSecretStore) checkBlockingTags(organizationID pkgAuth.Organiz
 	return nil
 }
 
-func (s *restrictedSecretStore) checkForbiddenTags(organizationID pkgAuth.OrganizationID, secretID string) error {
+func (s *restrictedSecretStore) checkForbiddenTags(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) error {
 	secretItem, err := s.secretStore.Get(organizationID, secretID)
 	if err != nil {
 		return err
@@ -104,7 +104,7 @@ func (s *restrictedSecretStore) isSecretReadOnly(secretItem *SecretItemResponse)
 
 // ReadOnlyError describes a secret error where it contains read only tag
 type ReadOnlyError struct {
-	SecretID string
+	SecretID secretTypes.SecretID
 }
 
 func (roe ReadOnlyError) Error() string {

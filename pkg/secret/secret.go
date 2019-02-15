@@ -18,6 +18,9 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
+// SecretID represents the identifier of a secret
+type SecretID string
+
 // FieldMeta describes how a secret field should be validated
 type FieldMeta struct {
 	Name        string `json:"name"`
@@ -296,10 +299,10 @@ var DefaultRules = map[string]Meta{
 
 // ListSecretsQuery represent a secret listing filter
 type ListSecretsQuery struct {
-	Type   string   `form:"type" json:"type"`
-	IDs    []string `form:"ids" json:"ids"`
-	Tags   []string `form:"tags" json:"tags"`
-	Values bool     `form:"values" json:"values"`
+	Type   string     `form:"type" json:"type"`
+	IDs    []SecretID `form:"ids" json:"ids"`
+	Tags   []string   `form:"tags" json:"tags"`
+	Values bool       `form:"values" json:"values"`
 }
 
 // InstallSecretsToClusterRequest describes an InstallSecretToCluster request
@@ -322,4 +325,12 @@ const (
 type K8SSourceMeta struct {
 	Name     string         `json:"name"`
 	Sourcing SourcingMethod `json:"sourcing"`
+}
+
+func StringsToSecretIDs(secretIDs []string) []SecretID {
+	res := make([]SecretID, len(secretIDs))
+	for i, id := range secretIDs {
+		res[i] = SecretID(id)
+	}
+	return res
 }

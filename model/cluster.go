@@ -24,6 +24,7 @@ import (
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
@@ -62,9 +63,9 @@ type ClusterModel struct {
 	Cloud          string
 	Distribution   string
 	OrganizationId pkgAuth.OrganizationID `gorm:"unique_index:idx_unique_id"`
-	SecretId       string
-	ConfigSecretId string
-	SshSecretId    string
+	SecretId       pkgSecret.SecretID
+	ConfigSecretId pkgSecret.SecretID
+	SshSecretId    pkgSecret.SecretID
 	Status         string
 	RbacEnabled    bool
 	Monitoring     bool
@@ -500,13 +501,13 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 }
 
 // UpdateConfigSecret updates the model's config secret id in database
-func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
+func (cs *ClusterModel) UpdateConfigSecret(configSecretId pkgSecret.SecretID) error {
 	cs.ConfigSecretId = configSecretId
 	return cs.Save()
 }
 
 // UpdateSshSecret updates the model's ssh secret id in database
-func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
+func (cs *ClusterModel) UpdateSshSecret(sshSecretId pkgSecret.SecretID) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
 }

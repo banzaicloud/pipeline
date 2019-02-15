@@ -133,15 +133,15 @@ func (c *EC2ClusterPKE) GetCreatedBy() pkgAuth.UserID {
 	return c.model.Cluster.CreatedBy
 }
 
-func (c *EC2ClusterPKE) GetSecretId() string {
+func (c *EC2ClusterPKE) GetSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.SecretID
 }
 
-func (c *EC2ClusterPKE) GetSshSecretId() string {
+func (c *EC2ClusterPKE) GetSshSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.SSHSecretID
 }
 
-func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId string) error {
+func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -152,7 +152,7 @@ func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId string) error {
 	return nil
 }
 
-func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
+func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -163,7 +163,7 @@ func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
 	return nil
 }
 
-func (c *EC2ClusterPKE) GetConfigSecretId() string {
+func (c *EC2ClusterPKE) GetConfigSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.ConfigSecretID
 }
 

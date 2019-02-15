@@ -17,6 +17,7 @@ package cluster
 import (
 	"github.com/banzaicloud/pipeline/model"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -142,7 +143,7 @@ func (c *Clusters) findOneBy(organizationID pkgAuth.OrganizationID, field string
 }
 
 // FindBySecret returns all cluster instances for an organization filtered by secret.
-func (c *Clusters) FindBySecret(organizationID pkgAuth.OrganizationID, secretID string) ([]*model.ClusterModel, error) {
+func (c *Clusters) FindBySecret(organizationID pkgAuth.OrganizationID, secretID pkgSecret.SecretID) ([]*model.ClusterModel, error) {
 	var clusters []*model.ClusterModel
 
 	err := c.db.Find(
@@ -160,7 +161,7 @@ func (c *Clusters) FindBySecret(organizationID pkgAuth.OrganizationID, secretID 
 }
 
 // GetConfigSecretIDByClusterID returns the kubeconfig's secretID stored in DB
-func (c *Clusters) GetConfigSecretIDByClusterID(organizationID pkgAuth.OrganizationID, clusterID uint) (string, error) {
+func (c *Clusters) GetConfigSecretIDByClusterID(organizationID pkgAuth.OrganizationID, clusterID uint) (pkgSecret.SecretID, error) {
 	cluster := model.ClusterModel{ID: clusterID}
 
 	if err := c.db.Where(cluster).Select("config_secret_id").First(&cluster).Error; err != nil {

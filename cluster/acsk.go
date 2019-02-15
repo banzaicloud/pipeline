@@ -38,6 +38,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -312,7 +313,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 		Cloud:          request.Cloud,
 		Distribution:   pkgCluster.ACSK,
 		OrganizationId: orgId,
-		SecretId:       request.SecretId,
+		SecretId:       pkgSecret.SecretID(request.SecretId),
 		ACSK: model.ACSKClusterModel{
 			RegionID:                 request.Properties.CreateClusterACSK.RegionID,
 			ZoneID:                   request.Properties.CreateClusterACSK.ZoneID,
@@ -738,11 +739,11 @@ func (c *ACSKCluster) GetUID() string {
 	return c.modelCluster.UID
 }
 
-func (c *ACSKCluster) GetSecretId() string {
+func (c *ACSKCluster) GetSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SecretId
 }
 
-func (c *ACSKCluster) GetSshSecretId() string {
+func (c *ACSKCluster) GetSshSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SshSecretId
 }
 
@@ -751,7 +752,7 @@ func (c *ACSKCluster) GetLocation() string {
 	return c.modelCluster.Location
 }
 
-func (c *ACSKCluster) SaveSshSecretId(sshSecretId string) error {
+func (c *ACSKCluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
@@ -1052,11 +1053,11 @@ func (c *ACSKCluster) GetSecretWithValidation() (*secret.SecretItemResponse, err
 	return c.CommonClusterBase.getSecret(c)
 }
 
-func (c *ACSKCluster) SaveConfigSecretId(configSecretId string) error {
+func (c *ACSKCluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
-func (c *ACSKCluster) GetConfigSecretId() string {
+func (c *ACSKCluster) GetConfigSecretId() pkgSecret.SecretID {
 	return c.modelCluster.ConfigSecretId
 }
 

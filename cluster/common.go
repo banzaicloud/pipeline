@@ -51,11 +51,11 @@ type CommonCluster interface {
 	GetCreatedBy() pkgAuth.UserID
 
 	// Secrets
-	GetSecretId() string
-	GetSshSecretId() string
-	SaveSshSecretId(string) error
-	SaveConfigSecretId(string) error
-	GetConfigSecretId() string
+	GetSecretId() pkgSecret.SecretID
+	GetSshSecretId() pkgSecret.SecretID
+	SaveSshSecretId(pkgSecret.SecretID) error
+	SaveConfigSecretId(pkgSecret.SecretID) error
+	GetConfigSecretId() pkgSecret.SecretID
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 
 	// Persistence
@@ -221,7 +221,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	return nil
 }
 
-func getSecret(organizationId pkgAuth.OrganizationID, secretId string) (*secret.SecretItemResponse, error) {
+func getSecret(organizationId pkgAuth.OrganizationID, secretId pkgSecret.SecretID) (*secret.SecretItemResponse, error) {
 	return secret.Store.Get(organizationId, secretId)
 }
 

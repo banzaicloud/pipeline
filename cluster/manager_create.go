@@ -33,8 +33,8 @@ type CreationContext struct {
 	UserID         pkgAuth.UserID
 	Name           string
 	Provider       string
-	SecretID       string
-	SecretIDs      []string
+	SecretID       secretTypes.SecretID
+	SecretIDs      []secretTypes.SecretID
 	PostHooks      []PostFunctioner
 }
 

@@ -62,13 +62,13 @@ type secretStore struct {
 
 // CreateSecretResponse API response for AddSecrets
 type CreateSecretResponse struct {
-	Name      string    `json:"name" binding:"required"`
-	Type      string    `json:"type" binding:"required"`
-	ID        string    `json:"id"`
-	Error     string    `json:"error,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
-	UpdatedBy string    `json:"updatedBy,omitempty"`
-	Version   int       `json:"version,omitempty"`
+	Name      string               `json:"name" binding:"required"`
+	Type      string               `json:"type" binding:"required"`
+	ID        secretTypes.SecretID `json:"id"`
+	Error     string               `json:"error,omitempty"`
+	UpdatedAt time.Time            `json:"updatedAt,omitempty"`
+	UpdatedBy string               `json:"updatedBy,omitempty"`
+	Version   int                  `json:"version,omitempty"`
 }
 
 // CreateSecretRequest param for Store.Store
@@ -94,14 +94,14 @@ func (r *CreateSecretRequest) MarshalJSON() ([]byte, error) {
 
 // SecretItemResponse for GetSecret
 type SecretItemResponse struct {
-	ID        string            `json:"id"`
-	Name      string            `json:"name" mapstructure:"name"`
-	Type      string            `json:"type" mapstructure:"type"`
-	Values    map[string]string `json:"values" mapstructure:"values"`
-	Tags      []string          `json:"tags" mapstructure:"tags"`
-	Version   int               `json:"version"`
-	UpdatedAt time.Time         `json:"updatedAt"`
-	UpdatedBy string            `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
+	ID        secretTypes.SecretID `json:"id"`
+	Name      string               `json:"name" mapstructure:"name"`
+	Type      string               `json:"type" mapstructure:"type"`
+	Values    map[string]string    `json:"values" mapstructure:"values"`
+	Tags      []string             `json:"tags" mapstructure:"tags"`
+	Version   int                  `json:"version"`
+	UpdatedAt time.Time            `json:"updatedAt"`
+	UpdatedBy string               `json:"updatedBy,omitempty" mapstructure:"updatedBy"`
 }
 
 // K8SSourceMeta returns the meta information how to use this secret if installed to K8S
@@ -148,12 +148,12 @@ func newVaultSecretStore() *secretStore {
 }
 
 // GenerateSecretIDFromName generates a "unique by name per organization" id for Secrets
-func GenerateSecretIDFromName(name string) string {
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(name)))
+func GenerateSecretIDFromName(name string) secretTypes.SecretID {
+	return secretTypes.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(name))))
 }
 
 // GenerateSecretID generates a "unique by name per organization" id for Secrets
-func GenerateSecretID(request *CreateSecretRequest) string {
+func GenerateSecretID(request *CreateSecretRequest) secretTypes.SecretID {
 	return GenerateSecretIDFromName(request.Name)
 }
 
@@ -257,7 +257,7 @@ func (ss *secretStore) DeleteByClusterUID(orgID pkgAuth.OrganizationID, clusterU
 }
 
 // Delete secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Delete(organizationID pkgAuth.OrganizationID, secretID string) error {
+func (ss *secretStore) Delete(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) error {
 
 	path := secretMetadataPath(organizationID, secretID)
 
@@ -306,7 +306,7 @@ func (ss *secretStore) Delete(organizationID pkgAuth.OrganizationID, secretID st
 }
 
 // Save secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Store(organizationID pkgAuth.OrganizationID, request *CreateSecretRequest) (string, error) {
+func (ss *secretStore) Store(organizationID pkgAuth.OrganizationID, request *CreateSecretRequest) (secretTypes.SecretID, error) {
 
 	// We allow only Kubernetes compatible Secret names
 	if errorList := validation.IsDNS1123Subdomain(request.Name); errorList != nil {
@@ -335,7 +335,7 @@ func (ss *secretStore) Store(organizationID pkgAuth.OrganizationID, request *Cre
 }
 
 // Update secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Update(organizationID pkgAuth.OrganizationID, secretID string, request *CreateSecretRequest) error {
+func (ss *secretStore) Update(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID, request *CreateSecretRequest) error {
 
 	if GenerateSecretID(request) != secretID {
 		return errors.New("Secret name cannot be changed")
@@ -366,7 +366,7 @@ func (ss *secretStore) Update(organizationID pkgAuth.OrganizationID, secretID st
 }
 
 // GetOrCreate create new secret or get if it's exist. secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) GetOrCreate(organizationID pkgAuth.OrganizationID, value *CreateSecretRequest) (string, error) {
+func (ss *secretStore) GetOrCreate(organizationID pkgAuth.OrganizationID, value *CreateSecretRequest) (secretTypes.SecretID, error) {
 	secretID := GenerateSecretID(value)
 
 	// Try to get the secret version first
@@ -386,7 +386,7 @@ func (ss *secretStore) GetOrCreate(organizationID pkgAuth.OrganizationID, value 
 }
 
 // CreateOrUpdate create new secret or update if it's exist. secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) CreateOrUpdate(organizationID pkgAuth.OrganizationID, value *CreateSecretRequest) (string, error) {
+func (ss *secretStore) CreateOrUpdate(organizationID pkgAuth.OrganizationID, value *CreateSecretRequest) (secretTypes.SecretID, error) {
 
 	secretID := GenerateSecretID(value)
 
@@ -411,7 +411,7 @@ func (ss *secretStore) CreateOrUpdate(organizationID pkgAuth.OrganizationID, val
 	return secretID, nil
 }
 
-func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*SecretItemResponse, error) {
+func parseSecret(secretID secretTypes.SecretID, secret *vaultapi.Secret, values bool) (*SecretItemResponse, error) {
 
 	data := cast.ToStringMap(secret.Data["data"])
 	metadata := cast.ToStringMap(secret.Data["metadata"])
@@ -445,7 +445,7 @@ func parseSecret(secretID string, secret *vaultapi.Secret, values bool) (*Secret
 }
 
 // Retrieve secret secret/orgs/:orgid:/:id: scope
-func (ss *secretStore) Get(organizationID pkgAuth.OrganizationID, secretID string) (*SecretItemResponse, error) {
+func (ss *secretStore) Get(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) (*SecretItemResponse, error) {
 
 	path := secretDataPath(organizationID, secretID)
 
@@ -480,7 +480,7 @@ func (ss *secretStore) GetByName(organizationID pkgAuth.OrganizationID, name str
 	return secret, nil
 }
 
-func (ss *secretStore) getSecretIDs(orgid pkgAuth.OrganizationID, query *secretTypes.ListSecretsQuery) ([]string, error) {
+func (ss *secretStore) getSecretIDs(orgid pkgAuth.OrganizationID, query *secretTypes.ListSecretsQuery) ([]secretTypes.SecretID, error) {
 	if len(query.IDs) > 0 {
 		return query.IDs, nil
 	}
@@ -493,10 +493,15 @@ func (ss *secretStore) getSecretIDs(orgid pkgAuth.OrganizationID, query *secretT
 	}
 
 	if list != nil {
-		return cast.ToStringSlice(list.Data["keys"]), nil
+		keys := cast.ToStringSlice(list.Data["keys"])
+		res := make([]secretTypes.SecretID, len(keys))
+		for i, key := range keys {
+			res[i] = secretTypes.SecretID(key)
+		}
+		return res, nil
 	}
 
-	return []string{}, nil
+	return nil, nil
 }
 
 // List secret secret/orgs/:orgid:/ scope
@@ -545,11 +550,11 @@ func secretData(version int, request *CreateSecretRequest) (map[string]interface
 	return vault.NewData(version, map[string]interface{}{"value": valueData}), nil
 }
 
-func secretDataPath(organizationID pkgAuth.OrganizationID, secretID string) string {
+func secretDataPath(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) string {
 	return fmt.Sprintf("secret/data/orgs/%d/%s", organizationID, secretID)
 }
 
-func secretMetadataPath(organizationID pkgAuth.OrganizationID, secretID string) string {
+func secretMetadataPath(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) string {
 	return fmt.Sprintf("secret/metadata/orgs/%d/%s", organizationID, secretID)
 }
 
