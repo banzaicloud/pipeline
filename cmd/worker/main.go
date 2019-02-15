@@ -138,7 +138,7 @@ func main() {
 		enforcer := intAuth.NewEnforcer(casbinAdapter)
 		enforcer.StartAutoLoadPolicy(10 * time.Second)
 		accessManager := intAuth.NewAccessManager(enforcer, config.Pipeline.BasePath)
-		_ = auth.NewTokenHandler(accessManager)
+		tokenGenerator := auth.NewTokenHandler(accessManager)
 
 		auth.InitTokenStore()
 
@@ -161,6 +161,9 @@ func main() {
 
 		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(clusters)
 		activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
+
+		createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)
+		activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
 
 		listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
 		activity.RegisterWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})

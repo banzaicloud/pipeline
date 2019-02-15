@@ -39,7 +39,7 @@ type Cluster interface {
 
 type AWSCluster interface {
 	GetAWSClient() (*session.Session, error)
-	Cluster
+	GetBootstrapCommand(string, string, string) (string, error)
 }
 
 type NodePool struct {
