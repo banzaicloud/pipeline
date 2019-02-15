@@ -96,7 +96,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			Name:           request.Name,
 			Location:       request.Location,
 			OrganizationID: orgID,
-			SecretID:       request.SecretId,
+			SecretID:       pkgSecret.SecretID(request.SecretId),
 			Cloud:          google.Provider,
 			Distribution:   google.ClusterDistributionGKE,
 			CreatedBy:      userID,
@@ -136,17 +136,17 @@ func (c *GKECluster) GetLocation() string {
 }
 
 // GetSecretId retrieves the secret id
-func (c *GKECluster) GetSecretId() string {
+func (c *GKECluster) GetSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.SecretID
 }
 
 // GetSshSecretId retrieves the secret id
-func (c *GKECluster) GetSshSecretId() string {
+func (c *GKECluster) GetSshSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.SSHSecretID
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *GKECluster) SaveSshSecretId(sshSecretId string) error {
+func (c *GKECluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -2089,7 +2089,7 @@ func (c *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
+func (c *GKECluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -2101,7 +2101,7 @@ func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
 }
 
 // GetConfigSecretId return config secret id
-func (c *GKECluster) GetConfigSecretId() string {
+func (c *GKECluster) GetConfigSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.ConfigSecretID
 }
 

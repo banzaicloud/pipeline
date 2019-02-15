@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -55,7 +56,7 @@ const (
 
 // nolint: gochecknoglobals
 var (
-	clusterRequestSecretId = fmt.Sprintf("%x", sha256.Sum256([]byte(secretName)))
+	clusterRequestSecretId = pkgSecret.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(secretName))))
 
 	amazonSecretRequest = secret.CreateSecretRequest{
 		Name: secretName,
@@ -234,7 +235,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Azure,
-		SecretId: clusterRequestSecretId,
+		SecretId: string(clusterRequestSecretId),
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterAKS: &aks.CreateClusterAKS{
 				ResourceGroup:     clusterRequestRG,
@@ -256,7 +257,7 @@ var (
 		Name:     clusterRequestName,
 		Location: "",
 		Cloud:    pkgCluster.Azure,
-		SecretId: clusterRequestSecretId,
+		SecretId: string(clusterRequestSecretId),
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterAKS: &aks.CreateClusterAKS{
 				ResourceGroup:     clusterRequestRG,
@@ -275,7 +276,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Amazon,
-		SecretId: clusterRequestSecretId,
+		SecretId: string(clusterRequestSecretId),
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterEKS: &eks.CreateClusterEKS{
 				Version: clusterRequestKubernetesEKS,
@@ -298,7 +299,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Dummy,
-		SecretId: clusterRequestSecretId,
+		SecretId: string(clusterRequestSecretId),
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterDummy: &dummy.CreateClusterDummy{
 				Node: &dummy.Node{
@@ -313,7 +314,7 @@ var (
 		Name:     clusterRequestName,
 		Location: clusterRequestLocation,
 		Cloud:    pkgCluster.Kubernetes,
-		SecretId: clusterRequestSecretId,
+		SecretId: string(clusterRequestSecretId),
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterKubernetes: &kubernetes.CreateClusterKubernetes{
 				Metadata: map[string]string{
@@ -327,7 +328,7 @@ var (
 		Name:     clusterRequestName,
 		Location: "",
 		Cloud:    pkgCluster.Kubernetes,
-		SecretId: clusterRequestSecretId,
+		SecretId: string(clusterRequestSecretId),
 		Properties: &pkgCluster.CreateClusterProperties{
 			CreateClusterKubernetes: &kubernetes.CreateClusterKubernetes{
 				Metadata: map[string]string{
@@ -341,7 +342,7 @@ var (
 		Name:       clusterRequestName,
 		Location:   clusterRequestLocation,
 		Cloud:      "nonExistsCloud",
-		SecretId:   clusterRequestSecretId,
+		SecretId:   string(clusterRequestSecretId),
 		Properties: &pkgCluster.CreateClusterProperties{},
 	}
 )

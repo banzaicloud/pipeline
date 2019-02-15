@@ -22,6 +22,7 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -37,11 +38,11 @@ type ListProjectsResponse struct {
 type servicesContext struct {
 	log      logrus.FieldLogger
 	orgId    pkgAuth.OrganizationID
-	secretId string
+	secretId pkgSecret.SecretID
 }
 
 // newServicesCtx
-func newServicesCtx(orgId pkgAuth.OrganizationID, secretId string) *servicesContext {
+func newServicesCtx(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID) *servicesContext {
 	return &servicesContext{
 		orgId:    orgId,
 		secretId: secretId,
@@ -60,7 +61,7 @@ func GetProjects(c *gin.Context) {
 	}
 	log.Debugf("retrieving projects for orgId: [%d], secretId [%s]",
 		organization.ID, secretID)
-	servicesCtx := newServicesCtx(organization.ID, secretID)
+	servicesCtx := newServicesCtx(organization.ID, pkgSecret.SecretID(secretID))
 
 	cli, err := servicesCtx.httpClient()
 	if err != nil {

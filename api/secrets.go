@@ -48,7 +48,7 @@ func ValidateSecret(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	log.Infof("Organization id [%d]", organizationID)
 
-	secretID := c.Param("id")
+	secretID := getSecretID(c)
 	log.Infof("secret id [%d]", secretID)
 
 	secretItem, err := secret.RestrictedStore.Get(organizationID, secretID)
@@ -200,7 +200,7 @@ func UpdateSecrets(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	log.Debugf("Organization id: %d", organizationID)
 
-	secretID := c.Param("id")
+	secretID := getSecretID(c)
 
 	validateParam := c.DefaultQuery("validate", "true")
 	validate, err := strconv.ParseBool(validateParam)
@@ -335,7 +335,7 @@ func GetSecret(c *gin.Context) {
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
-	secretID := c.Param("id")
+	secretID := getSecretID(c)
 
 	if secret, err := secret.RestrictedStore.Get(organizationID, secretID); err != nil {
 		log.Errorf("Error during getting secret: %s", err.Error())
@@ -357,7 +357,7 @@ func DeleteSecrets(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 	log.Infof("Organization id: %d", organizationID)
 
-	secretID := c.Param("id")
+	secretID := getSecretID(c)
 
 	log.Infof("Check clusters before delete secret[%s]", secretID)
 	if err := checkClustersBeforeDelete(organizationID, secretID); err != nil {
@@ -385,7 +385,7 @@ func DeleteSecrets(c *gin.Context) {
 // GetSecretTags returns tags of a secret by ID
 func GetSecretTags(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
-	secretID := c.Param("id")
+	secretID := getSecretID(c)
 	log.Debugf("getting secret tags: %d/%s", organizationID, secretID)
 
 	existingSecret, err := secret.RestrictedStore.Get(organizationID, secretID)
@@ -405,7 +405,7 @@ func GetSecretTags(c *gin.Context) {
 // AddSecretTag adds a tag to a given secret in Vault
 func AddSecretTag(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
-	secretID := c.Param("id")
+	secretID := getSecretID(c)
 	tag := strings.Trim(c.Param("tag"), "/")
 	log.Debugf("adding secret tag: %s to %d/%s", tag, organizationID, secretID)
 
@@ -468,7 +468,7 @@ func AddSecretTag(c *gin.Context) {
 // DeleteSecretTag removes a tag from a given secret in Vault
 func DeleteSecretTag(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
-	secretID := c.Param("id")
+	secretID := getSecretID(c)
 	tag := strings.Trim(c.Param("tag"), "/")
 	log.Debugf("deleting secret tag: %s from %d/%s", tag, organizationID, secretID)
 
@@ -572,7 +572,7 @@ func IsValidSecretType(secretType string) error {
 }
 
 // checkClustersBeforeDelete returns error if there's a running cluster that created with the given secret
-func checkClustersBeforeDelete(orgId pkgAuth.OrganizationID, secretId string) error {
+func checkClustersBeforeDelete(orgId pkgAuth.OrganizationID, secretId secretTypes.SecretID) error {
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, log, errorHandler)
@@ -612,4 +612,8 @@ func removeElement(s []string, v string) []string {
 		}
 	}
 	return s
+}
+
+func getSecretID(ctx *gin.Context) secretTypes.SecretID {
+	return secretTypes.SecretID(ctx.Param("id"))
 }

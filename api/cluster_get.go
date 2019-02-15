@@ -25,6 +25,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -240,8 +241,8 @@ type GetClusterResponse struct {
 	Version       string `json:"version,omitempty"`
 	MasterVersion string `json:"masterVersion,omitempty"`
 
-	SecretID   string `json:"secretId"`
-	SecretName string `json:"secretName"`
+	SecretID   pkgSecret.SecretID `json:"secretId"`
+	SecretName string             `json:"secretName"`
 
 	Endpoint     string                        `json:"endpoint,omitempty"`
 	NodePools    map[string]GetClusterNodePool `json:"nodePools,omitempty"`

@@ -44,7 +44,7 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
 		CreatedBy:      userId,
-		SecretId:       request.SecretId,
+		SecretId:       pkgSecret.SecretID(request.SecretId),
 		Distribution:   pkgCluster.Unknown,
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
@@ -177,17 +177,17 @@ func (c *KubeCluster) GetUID() string {
 }
 
 // GetSecretId returns the specified secret id
-func (c *KubeCluster) GetSecretId() string {
+func (c *KubeCluster) GetSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SecretId
 }
 
 // GetSshSecretId returns the specified ssh secret id
-func (c *KubeCluster) GetSshSecretId() string {
+func (c *KubeCluster) GetSshSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *KubeCluster) SaveSshSecretId(sshSecretId string) error {
+func (c *KubeCluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
@@ -278,12 +278,12 @@ func (c *KubeCluster) GetSecretWithValidation() (*secret.SecretItemResponse, err
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *KubeCluster) SaveConfigSecretId(configSecretId string) error {
+func (c *KubeCluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (c *KubeCluster) GetConfigSecretId() string {
+func (c *KubeCluster) GetConfigSecretId() pkgSecret.SecretID {
 	return c.modelCluster.ConfigSecretId
 }
 

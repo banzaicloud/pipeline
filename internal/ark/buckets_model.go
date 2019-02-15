@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // ClusterBackupBucketsModel describes a cluster backup bucket
@@ -29,7 +30,7 @@ type ClusterBackupBucketsModel struct {
 	ID uint `gorm:"primary_key"`
 
 	Cloud          string
-	SecretID       string
+	SecretID       pkgSecret.SecretID
 	BucketName     string
 	Location       string
 	StorageAccount string

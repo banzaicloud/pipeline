@@ -20,6 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/model"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -48,9 +49,9 @@ type ClusterModel struct {
 	Cloud          string
 	Distribution   string
 	OrganizationID pkgAuth.OrganizationID `gorm:"unique_index:idx_unique_id"`
-	SecretID       string
-	ConfigSecretID string
-	SSHSecretID    string
+	SecretID       pkgSecret.SecretID
+	ConfigSecretID pkgSecret.SecretID
+	SSHSecretID    pkgSecret.SecretID
 	Status         string
 	RbacEnabled    bool
 	Monitoring     bool

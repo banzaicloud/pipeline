@@ -14,6 +14,8 @@
 
 package objectstore
 
+import pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+
 // ObjectStoreService is the interface that cloud specific object store implementation
 // must implement
 type ObjectStoreService interface {
@@ -29,12 +31,12 @@ type BucketInfo struct {
 	Name            string                    `json:"name"  binding:"required"`
 	Managed         bool                      `json:"managed" binding:"required"`
 	Location        string                    `json:"location,omitempty"`
-	SecretRef       string                    `json:"secretId,omitempty"`
+	SecretRef       pkgSecret.SecretID        `json:"secretId,omitempty"`
 	Cloud           string                    `json:"cloud,omitempty"`
 	Azure           *BlobStoragePropsForAzure `json:"aks,omitempty"`
 	Status          string                    `json:"status"`
 	StatusMsg       string                    `json:"statusMsg"`
-	AccessSecretRef string                    `json:"accessSecretId"`
+	AccessSecretRef pkgSecret.SecretID        `json:"accessSecretId"`
 }
 
 // BlobStoragePropsForAzure describes the Azure specific properties

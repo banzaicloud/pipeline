@@ -20,6 +20,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -117,6 +118,6 @@ func DeleteResourceGroups(c *gin.Context) {
 
 }
 
-func getSecretIdFromHeader(c *gin.Context) string {
-	return c.GetHeader(secretIdKey)
+func getSecretIdFromHeader(c *gin.Context) pkgSecret.SecretID {
+	return pkgSecret.SecretID(c.GetHeader(secretIdKey))
 }
