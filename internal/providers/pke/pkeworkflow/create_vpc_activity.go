@@ -72,8 +72,8 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 		TemplateBody: aws.String(string(buf)),
 		Parameters: []*cloudformation.Parameter{
 			{
-				ParameterKey:     aws.String("ClusterName"),
-				ParameterValue:   &clusterName,
+				ParameterKey:   aws.String("ClusterName"),
+				ParameterValue: &clusterName,
 			},
 		},
 	}
@@ -83,7 +83,7 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 		switch err.Code() {
 		case cloudformation.ErrCodeAlreadyExistsException:
 			log.Infof("stack already exists: %s", err.Message())
-		    return stackName, nil
+			return stackName, nil
 		default:
 			return "", err
 		}
