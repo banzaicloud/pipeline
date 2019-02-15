@@ -28,6 +28,7 @@ import (
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/dns"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
 	promconfig "github.com/banzaicloud/prometheus-config"
@@ -180,7 +181,7 @@ func (s *clusterSubscriber) Register(events clusterEvents) {
 type scrapeConfigParameters struct {
 	orgID           pkgAuth.OrganizationID
 	orgName         string
-	clusterID       uint
+	clusterID       pkgCluster.ClusterID
 	clusterName     string
 	endpoint        string
 	tlsConfig       *scrapeTLSConfig

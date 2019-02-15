@@ -44,7 +44,7 @@ type PersistBackupRequest struct {
 	NodeCount      uint
 	ContentChecked bool
 
-	ClusterID    uint
+	ClusterID    pkgCluster.ClusterID
 	DeploymentID uint
 
 	Nodes  *core.NodeList
@@ -67,9 +67,9 @@ type Backup struct {
 	VolumeBackups    map[string]*arkAPI.VolumeBackupInfo `json:"volumeBackups,omitempty"`
 	ValidationErrors []string                            `json:"validationErrors,omitempty"`
 
-	ClusterID       uint    `json:"clusterId,omitempty"`
-	ActiveClusterID uint    `json:"activeClusterId,omitempty"`
-	Bucket          *Bucket `json:"-"`
+	ClusterID       pkgCluster.ClusterID `json:"clusterId,omitempty"`
+	ActiveClusterID pkgCluster.ClusterID `json:"activeClusterId,omitempty"`
+	Bucket          *Bucket              `json:"-"`
 }
 
 // DeleteBackupResponse describes a delete backup response

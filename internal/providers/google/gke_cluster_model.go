@@ -20,6 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/jinzhu/gorm"
 )
 
@@ -34,7 +35,7 @@ const (
 type GKEClusterModel struct {
 	ID        uint                 `gorm:"primary_key"`
 	Cluster   cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID uint
+	ClusterID pkgCluster.ClusterID
 
 	MasterVersion string
 	NodeVersion   string

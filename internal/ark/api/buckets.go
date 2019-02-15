@@ -53,7 +53,7 @@ type Bucket struct {
 	Status              string                    `json:"status"`
 	InUse               bool                      `json:"inUse"`
 	DeploymentID        uint                      `json:"deploymentId,omitempty"`
-	ClusterID           uint                      `json:"clusterId,omitempty"`
+	ClusterID           pkgCluster.ClusterID      `json:"clusterId,omitempty"`
 	ClusterCloud        string                    `json:"clusterCloud,omitempty"`
 	ClusterDistribution pkgCluster.DistributionID `json:"clusterDistribution,omitempty"`
 }

@@ -219,10 +219,10 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 
 // GetClusterResponse contains the details of a cluster.
 type GetClusterResponse struct {
-	ID            uint   `json:"id"`
-	Status        string `json:"status"`
-	StatusMessage string `json:"statusMessage,omitempty"`
-	Name          string `json:"name"`
+	ID            pkgCluster.ClusterID `json:"id"`
+	Status        string               `json:"status"`
+	StatusMessage string               `json:"statusMessage,omitempty"`
+	Name          string               `json:"name"`
 
 	// If region not available fall back to Location
 	Region       string                    `json:"region,omitempty"`

@@ -26,6 +26,7 @@ import (
 	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
 	"github.com/banzaicloud/pipeline/config"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -362,12 +363,12 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 }
 
 // getClusterUserID maps cluster to a unique identifier for the cluster's technical user
-func getClusterUserID(orgID pkgAuth.OrganizationID, clusterID uint) string {
+func getClusterUserID(orgID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID) string {
 	return fmt.Sprintf("clusters/%d/%d", orgID, clusterID)
 }
 
 //GenerateClusterToken looks up, or generates and stores a token for a cluster
-func (h *tokenHandler) GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID uint) (string, string, error) {
+func (h *tokenHandler) GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID) (string, string, error) {
 	userID := getClusterUserID(orgID, clusterID)
 	if tokens, err := TokenStore.List(userID); err == nil {
 		for _, token := range tokens {

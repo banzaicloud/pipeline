@@ -28,7 +28,7 @@ import (
 type UpdateContext struct {
 	OrganizationID pkgAuth.OrganizationID
 	UserID         pkgAuth.UserID
-	ClusterID      uint
+	ClusterID      pkgCluster.ClusterID
 }
 
 type clusterUpdater interface {

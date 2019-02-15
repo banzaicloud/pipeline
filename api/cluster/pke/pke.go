@@ -18,13 +18,14 @@ import (
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/cluster"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 )
 
 type tokenGenerator interface {
-	GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID uint) (string, string, error)
+	GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID) (string, string, error)
 }
 
 type API struct {

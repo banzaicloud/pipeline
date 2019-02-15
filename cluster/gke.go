@@ -748,7 +748,7 @@ func (c *GKECluster) updateModel(cluster *gke.Cluster, updatedNodePools []*gke.N
 }
 
 //GetID returns the specified cluster id
-func (c *GKECluster) GetID() uint {
+func (c *GKECluster) GetID() pkgCluster.ClusterID {
 	return c.model.Cluster.ID
 }
 
