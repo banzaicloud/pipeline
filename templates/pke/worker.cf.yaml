@@ -52,15 +52,15 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Default: ""
   MinSize:
-    Type: Integer
+    Type: Number
     Default: 1
     Description: Minimum count of nodes in the pool
   MaxSize:
-    Type: Integer
+    Type: Number
     Default: 1
     Description: Maximum count of nodes in the pool
   DesiredCapacity:
-    Type: Integer
+    Type: Number
     Default: 1
     Description: Initial count of nodes in the pool
 Resources:
