@@ -18,6 +18,7 @@ import (
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/internal/providers/google"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -25,7 +26,7 @@ import (
 )
 
 // createNodePoolsModelFromRequest creates an array of GoogleNodePoolModel from the nodePoolsData received through create/update requests
-func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.NodePool, userID uint) ([]*google.GKENodePoolModel, error) {
+func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.NodePool, userID pkgAuth.UserID) ([]*google.GKENodePoolModel, error) {
 	nodePoolsCount := len(nodePoolsData)
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided

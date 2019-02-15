@@ -70,7 +70,7 @@ const mapUsersTemplate = `- userarn: %s
 const asgWaitLoopSleepSeconds = 5
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
-func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId uint) (*EKSCluster, error) {
+func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EKSCluster, error) {
 	cluster := EKSCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -99,7 +99,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	return &cluster, nil
 }
 
-func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*model.AmazonNodePoolsModel {
+func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId pkgAuth.UserID) []*model.AmazonNodePoolsModel {
 	var modelNodePools = make([]*model.AmazonNodePoolsModel, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
@@ -523,7 +523,7 @@ func (c *EKSCluster) getNodepoolStackNamesToDelete(sess *session.Session) []stri
 	return stackNames
 }
 
-func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
+func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*pkgEks.NodePool, userId pkgAuth.UserID) ([]*model.AmazonNodePoolsModel, error) {
 
 	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(c.modelCluster.EKS.NodePools))
 	for _, nodePool := range c.modelCluster.EKS.NodePools {
@@ -604,7 +604,7 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 }
 
 // UpdateCluster updates EKS cluster in cloud
-func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
+func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy pkgAuth.UserID) error {
 	c.log.Info("Start updating EKS cluster")
 
 	awsCred, err := c.createAWSCredentialsFromSecret()
@@ -781,7 +781,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
 	c.log.Info("Start updating nodepools")
 
 	awsCred, err := c.createAWSCredentialsFromSecret()
@@ -1478,6 +1478,6 @@ func (c *EKSCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *EKSCluster) GetCreatedBy() uint {
+func (c *EKSCluster) GetCreatedBy() pkgAuth.UserID {
 	return c.modelCluster.CreatedBy
 }

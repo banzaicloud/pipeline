@@ -89,7 +89,7 @@ func (t IdentityType) Value() (driver.Value, error)  { return string(t), nil }
 
 //User struct
 type User struct {
-	ID            uint           `gorm:"primary_key" json:"id"`
+	ID            pkgAuth.UserID `gorm:"primary_key" json:"id"`
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
 	Name          string         `form:"name" json:"name,omitempty"`
@@ -118,7 +118,7 @@ type CICDUser struct {
 
 // UserOrganization describes the user organization
 type UserOrganization struct {
-	UserID         uint
+	UserID         pkgAuth.UserID
 	OrganizationID pkgAuth.OrganizationID
 	Role           string `gorm:"default:'admin'"`
 }
@@ -570,7 +570,7 @@ func GetOrganizationByName(name string) (*Organization, error) {
 }
 
 // GetUserById returns user
-func GetUserById(userId uint) (*User, error) {
+func GetUserById(userId pkgAuth.UserID) (*User, error) {
 	db := config.DB()
 	var user User
 	err := db.Find(&user, User{ID: userId}).Error
@@ -586,7 +586,7 @@ func GetUserByLoginName(login string) (*User, error) {
 }
 
 // GetUserNickNameById returns user's login name
-func GetUserNickNameById(userId uint) (userName string) {
+func GetUserNickNameById(userId pkgAuth.UserID) (userName string) {
 	if user, err := GetUserById(userId); err != nil {
 		log.Warnf("Error during getting user name: %s", err.Error())
 	} else {

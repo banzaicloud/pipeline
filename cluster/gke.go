@@ -79,7 +79,7 @@ const (
 )
 
 // CreateGKEClusterFromRequest creates ClusterModel struct from the request
-func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID pkgAuth.OrganizationID, userID uint) (*GKECluster, error) {
+func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) (*GKECluster, error) {
 	c := GKECluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -577,7 +577,7 @@ func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) er
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
 
 	c.log.Info("Start updating cluster (gke) nodepools")
 
@@ -615,7 +615,7 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 }
 
 // UpdateCluster updates GKE cluster in cloud
-func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
+func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) error {
 
 	c.log.Info("Start updating cluster (gke)")
 
@@ -2218,6 +2218,6 @@ func (c *GKECluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *GKECluster) GetCreatedBy() uint {
+func (c *GKECluster) GetCreatedBy() pkgAuth.UserID {
 	return c.model.Cluster.CreatedBy
 }

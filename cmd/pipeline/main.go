@@ -282,7 +282,7 @@ func main() {
 	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, viper.GetString("github.token"), sharedSpotguideOrg)
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
-	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID pkgAuth.OrganizationID, userID uint) {
+	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) {
 		if err := spotguideManager.ScrapeSpotguides(orgID, userID); err != nil {
 			log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
 		}

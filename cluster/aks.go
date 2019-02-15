@@ -60,7 +60,7 @@ type AKSCluster struct {
 }
 
 // CreateAKSClusterFromRequest returns an AKS cluster instance created from the specified request
-func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID pkgAuth.OrganizationID, userID uint) (*AKSCluster, error) {
+func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) (*AKSCluster, error) {
 	var nodePools = make([]*model.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
 	for name, np := range request.Properties.CreateClusterAKS.NodePools {
 		nodePools = append(nodePools, &model.AKSNodePoolModel{
@@ -534,7 +534,7 @@ func getAgentPoolProfileByName(cluster *containerservice.ManagedCluster, name st
 }
 
 // UpdateCluster updates the cluster in AKS
-func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userID uint) error {
+func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userID pkgAuth.UserID) error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
 		return emperror.Wrap(err, "failed to get cloud connection")
@@ -586,7 +586,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userID uint) error {
+func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userID pkgAuth.UserID) error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
 		return emperror.Wrap(err, "failed to get cloud connection")
@@ -1126,7 +1126,7 @@ func (c *AKSCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *AKSCluster) GetCreatedBy() uint {
+func (c *AKSCluster) GetCreatedBy() pkgAuth.UserID {
 	return c.modelCluster.CreatedBy
 }
 

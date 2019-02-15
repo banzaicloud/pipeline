@@ -35,7 +35,7 @@ func newOrg(t *testing.T, db *gorm.DB, id uint, name string) *auth.Organization 
 }
 
 func newUser(t *testing.T, db *gorm.DB, id uint, login string) *auth.User {
-	user := auth.User{ID: id, Login: login}
+	user := auth.User{ID: pkgAuth.UserID(id), Login: login}
 	db.AutoMigrate(user)
 	if err := db.FirstOrCreate(&user).Error; err != nil {
 		t.Fatal(err)

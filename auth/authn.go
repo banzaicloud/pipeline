@@ -112,7 +112,7 @@ type CICDClaims struct {
 func claimConverter(claims *bauth.ScopedClaims) interface{} {
 	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
 	return &User{
-		ID:      uint(userID),
+		ID:      pkgAuth.UserID(userID),
 		Login:   claims.Text, // This is needed for CICD virtual user tokens
 		Virtual: claims.Type == CICDHookTokenType,
 	}
