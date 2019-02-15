@@ -406,6 +406,9 @@ func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, 
 	}
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	if signingKeyBase32 == "" {
+		return "", "", errors.New("missing signingKeyBase32")
+	}
 	signedToken, err := jwtToken.SignedString([]byte(signingKeyBase32))
 	if err != nil {
 		return "", "", errors.Wrap(err, "failed to sign user token")

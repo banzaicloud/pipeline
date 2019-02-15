@@ -141,7 +141,7 @@ func main() {
 		enforcer.StartAutoLoadPolicy(10 * time.Second)
 		accessManager := intAuth.NewAccessManager(enforcer, config.Pipeline.BasePath)
 		tokenGenerator := auth.NewTokenHandler(accessManager)
-
+		auth.Init(nil, accessManager, nil)
 		auth.InitTokenStore()
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
