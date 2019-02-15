@@ -31,8 +31,8 @@ type CreateElasticIPActivity struct {
 	clusters Clusters
 }
 
-func NewCreateElasticIPActivity(clusters Clusters) *CreateVPCActivity {
-	return &CreateVPCActivity{
+func NewCreateElasticIPActivity(clusters Clusters) *CreateElasticIPActivity {
+	return &CreateElasticIPActivity{
 		clusters: clusters,
 	}
 }
@@ -41,20 +41,25 @@ type CreateElasticIPActivityInput struct {
 	ClusterID uint
 }
 
-func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElasticIPActivityInput) (string, error) {
+type CreateElasticIPActivityOutput struct {
+	PublicIp     string
+	AllocationId string
+}
+
+func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElasticIPActivityInput) (*CreateElasticIPActivityOutput, error) {
 	log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
 	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	awsCluster, ok := c.(AWSCluster)
 	if !ok {
-		return "", errors.New(fmt.Sprintf("can't create VPC for cluster type %t", c))
+		return nil, errors.New(fmt.Sprintf("can't create VPC for cluster type %t", c))
 	}
 
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to connect to AWS")
+		return nil, emperror.Wrap(err, "failed to connect to AWS")
 	}
 
 	clusterName := c.GetName()
@@ -71,12 +76,16 @@ func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElast
 	}
 	descAddrOut, err := e.DescribeAddresses(descAddrIn)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to query EIP based on tag")
+		return nil, emperror.Wrap(err, "failed to query EIP based on tag")
 	}
 
 	if descAddrOut != nil && len(descAddrOut.Addresses) > 0 {
 		log.Infof("EIP already exists: %s", *descAddrOut.Addresses[0].PublicIp)
-		return *descAddrOut.Addresses[0].PublicIp, nil
+		output := &CreateElasticIPActivityOutput{
+			PublicIp:     *descAddrOut.Addresses[0].PublicIp,
+			AllocationId: *descAddrOut.Addresses[0].AllocationId,
+		}
+		return output, nil
 	}
 
 	addrIn := &ec2.AllocateAddressInput{
@@ -84,7 +93,7 @@ func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElast
 	}
 	addrOut, err := e.AllocateAddress(addrIn)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to allocate EIP")
+		return nil, emperror.Wrap(err, "failed to allocate EIP")
 	}
 	log.Infof("Created EIP: %s", *addrOut.PublicIp)
 
@@ -99,9 +108,12 @@ func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElast
 	}
 	_, err = e.CreateTags(tagIn)
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to create tags for EIP")
+		return nil, emperror.Wrap(err, "failed to create tags for EIP")
 	}
 	log.Infof("Tagged EIP: %s", *addrOut.PublicIp)
-
-	return *addrOut.PublicIp, nil
+	output := &CreateElasticIPActivityOutput{
+		PublicIp:     *addrOut.PublicIp,
+		AllocationId: *addrOut.AllocationId,
+	}
+	return output, nil
 }
