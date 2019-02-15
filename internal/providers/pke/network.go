@@ -24,10 +24,12 @@ import (
 type Network struct {
 	Model
 
-	ServiceCIDR      string          `yaml:"serviceCIDR" gorm:"column:service_cidr"`
-	PodCIDR          string          `yaml:"podCIDR" gorm:"column:pod_cidr"`
-	Provider         NetworkProvider `yaml:"provider"`
-	APIServerAddress string          `yaml:"apiServerAddress"`
+	ServiceCIDR         string               `yaml:"serviceCIDR" gorm:"column:service_cidr"`
+	PodCIDR             string               `yaml:"podCIDR" gorm:"column:pod_cidr"`
+	Provider            NetworkProvider      `yaml:"provider"`
+	APIServerAddress    string               `yaml:"apiServerAddress"`
+	CloudProvider       CloudNetworkProvider `yaml:"cloudProvider" gorm:"column:cloud_provider"`
+	CloudProviderConfig Config               `yaml:"cloudProviderConfig" gorm:"column:cloud_provider_config;type:text"`
 }
 
 // TableName changes the default table name.
@@ -68,5 +70,27 @@ var _ sql.Scanner = (*NetworkProvider)(nil)
 // Scan implements the sql.Scanner interface
 func (n *NetworkProvider) Scan(src interface{}) error {
 	*n = NetworkProvider(string(src.([]uint8)))
+	return nil
+}
+
+// NetworkProvider is the schema for the DB.
+type CloudNetworkProvider string
+
+const (
+	CNPAmazon CloudNetworkProvider = "ec2" // Amazon EC2 network provider.
+)
+
+var _ driver.Valuer = (*CloudNetworkProvider)(nil)
+
+// Value implements the driver.Valuer interface
+func (n CloudNetworkProvider) Value() (driver.Value, error) {
+	return string(n), nil
+}
+
+var _ sql.Scanner = (*CloudNetworkProvider)(nil)
+
+// Scan implements the sql.Scanner interface
+func (n *CloudNetworkProvider) Scan(src interface{}) error {
+	*n = CloudNetworkProvider(string(src.([]uint8)))
 	return nil
 }

@@ -21,6 +21,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -660,6 +661,47 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		nodePoolName,
 		infrastructureCIDR,
 	), nil
+}
+
+// GetNetworkCloudProvider return cloud provider specific network information.
+func (c *EC2ClusterPKE) GetNetworkCloudProvider() (cloudProvider, vpcID string, subnets []string, err error) {
+	cp := c.model.Network.CloudProvider
+	cloudProvider = string(cp)
+	switch cp {
+	case internalPke.CNPAmazon:
+		cpc := &internalPke.NetworkCloudProviderConfigAmazon{}
+		err = mapstructure.Decode(c.model.Network.CloudProviderConfig, &cpc)
+		if err != nil {
+			return
+		}
+		vpcID = cpc.VPCID
+		for _, subnet := range subnets {
+			subnets = append(subnets, string(subnet))
+		}
+	}
+
+	return
+}
+
+// SaveNetworkCloudProvider saves cloud provider specific network information.
+func (c *EC2ClusterPKE) SaveNetworkCloudProvider(cloudProvider, vpcID string, subnets []string) error {
+	if cloudProvider != string(internalPke.CNPAmazon) {
+		return errors.New("unsupported cloud network provider")
+	}
+
+	cfg := make(map[string]interface{})
+	cfg["vpcID"] = vpcID
+	cfg["subnets"] = strings.Join(subnets, ",")
+
+	c.model.Network.CloudProvider = internalPke.CNPAmazon
+	c.model.Network.CloudProviderConfig = cfg
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return emperror.WrapWith(err, "failed to save network cloud provider", "cloudProvider", cloudProvider)
+	}
+
+	return nil
 }
 
 func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {
