@@ -16,11 +16,11 @@ package pkeworkflow
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
+	"github.com/pkg/errors"
 )
 
 const UpdateClusterNetworkActivityName = "pke-update-cluster-network-activity"
