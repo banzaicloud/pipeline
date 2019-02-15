@@ -66,5 +66,5 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 
 // SetupNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
 func SetupNodePoolLabelsSet(cluster CommonCluster) error {
-	return DeployNodePoolLabelsSet(cluster, nil)
+	return DeployNodePoolLabelsSet(cluster, nil, false)
 }

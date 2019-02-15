@@ -31,8 +31,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
-func DeployNodePoolLabelsSet(cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus) error {
+// DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each node pool.
+// if dontUpdateIfNoUserLabels = true in case there are no labels specified in NodePoolStatus the NodePoolLabelSet for that node pool is not updated,
+// to avoid deleting user specified labels in case of cluster update with empty label map.
+func DeployNodePoolLabelsSet(cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, dontUpdateIfNoUserLabels bool) error {
 	clusterStatus, err := cluster.GetStatus()
 	if err != nil {
 		return emperror.WrapWith(err, "failed to get cluster status", "cluster", cluster.GetName())
@@ -46,7 +48,7 @@ func DeployNodePoolLabelsSet(cluster CommonCluster, nodePools map[string]*pkgClu
 	}
 
 	// gather desired node pool labels
-	desiredLabelSet, err := getDesiredNodePoolLabelSets(clusterStatus, headNodePoolName, nodePools)
+	desiredLabelSet, err := getDesiredNodePoolLabelSets(clusterStatus, headNodePoolName, nodePools, dontUpdateIfNoUserLabels)
 	if err != nil {
 		return emperror.Wrap(err, "failed to retrieve desired set of labels for cluster")
 	}
@@ -63,29 +65,36 @@ func DeployNodePoolLabelsSet(cluster CommonCluster, nodePools map[string]*pkgClu
 	if err != nil {
 		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
 	}
-	// create NodePoolLabelSets only the new ones
+
 	err = m.Sync(desiredLabelSet)
 	if err != nil {
-		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
+		return err
 	}
 
 	return nil
 }
 
 // add node pool name, head node, ondemand labels + cloudinfo + user definied labels
-func getDesiredNodePoolLabelSets(clusterStatus *pkgCluster.GetClusterStatusResponse, headNodePoolName string, nodePools map[string]*pkgCluster.NodePoolStatus) (npls.NodepoolLabelSets, error) {
+func getDesiredNodePoolLabelSets(clusterStatus *pkgCluster.GetClusterStatusResponse, headNodePoolName string, nodePools map[string]*pkgCluster.NodePoolStatus, dontUpdateIfNoUserLabels bool) (npls.NodepoolLabelSets, error) {
 	desiredLabels := make(npls.NodepoolLabelSets)
 
 	for name, nodePool := range nodePools {
-		desiredLabels[name] = getDesiredNodePoolLabels(clusterStatus, name, nodePool, headNodePoolName)
+		labelsMap := getDesiredNodePoolLabels(clusterStatus, name, nodePool, headNodePoolName, dontUpdateIfNoUserLabels)
+		if len(labelsMap) > 0 {
+			desiredLabels[name] = labelsMap
+		}
 	}
 	return desiredLabels, nil
 }
 
 func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse, nodePoolName string,
-	nodePool *pkgCluster.NodePoolStatus, headNodePoolName string) map[string]string {
+	nodePool *pkgCluster.NodePoolStatus, headNodePoolName string, dontUpdateIfNoUserLabels bool) map[string]string {
 
 	desiredLabels := make(map[string]string)
+	if len(nodePool.Labels) == 0 && dontUpdateIfNoUserLabels {
+		return desiredLabels
+	}
+
 	desiredLabels[common.LabelKey] = nodePoolName
 	if nodePoolName == headNodePoolName {
 		desiredLabels[common.HeadNodeLabelKey] = "true"
