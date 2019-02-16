@@ -32,7 +32,8 @@ type CreateClusterWorkflowInput struct {
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
-		StartToCloseTimeout:    5 * time.Minute,
+		StartToCloseTimeout:    10 * time.Minute,
+		ScheduleToCloseTimeout: 15 * time.Minute,
 		WaitForCancellation:    true,
 	}
 
@@ -112,6 +113,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
+	var masterStackID string
 	// TODO refactor network things
 	createMasterActivityInput := CreateMasterActivityInput{
 		ClusterID:             input.ClusterID,
@@ -121,9 +123,24 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
 		ExternalBaseUrl:       input.PipelineExternalURL,
 	}
-	if err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, createMasterActivityInput).Get(ctx, nil); err != nil {
+	if err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, createMasterActivityInput).Get(ctx, &masterStackID); err != nil {
 		return err
 	}
+
+	var masterOutput map[string]string
+	if masterStackID != "" {
+		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
+			ClusterID: input.ClusterID,
+			StackID:   masterStackID,
+		}
+
+		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &masterOutput)
+		if err != nil {
+			return err
+		}
+	}
+
+	clusterSecurityGroup := masterOutput["ClusterSecurityGroup"]
 
 	signalName := "master-ready"
 	signalChan := workflow.GetSignalChannel(ctx, signalName)
@@ -139,8 +156,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		if !np.Master && np.Worker {
 
 			createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
-				ClusterID: input.ClusterID,
-				Pool:      np,
+				ClusterID:             input.ClusterID,
+				Pool:                  np,
+				WorkerInstanceProfile: rolesOutput["WorkerInstanceProfile"],
+				VPCID:                 vpcOutput["VpcId"],
+				SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[1],
+				ClusterSecurityGroup:  clusterSecurityGroup,
+				ExternalBaseUrl:       input.PipelineExternalURL,
 			}
 
 			err = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)

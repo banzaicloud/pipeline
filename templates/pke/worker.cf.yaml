@@ -114,7 +114,7 @@ Resources:
         Value: !Ref ClusterName
         PropagateAtLaunch: True
       - Key: Name
-        Value: !Join ["", ["pke-worker"]]
+        Value: !Join ["", ["pke-worker-", !Ref ClusterName ]]
         PropagateAtLaunch: True
       - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
         Value: "owned"

@@ -642,7 +642,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			}
 			if len(out.Subnets) > 0 {
 				s := out.Subnets
-				infrastructureCIDR = *s[0].CidrBlock
+				infrastructureCIDR = *s[idx].CidrBlock
 			}
 		}
 	}

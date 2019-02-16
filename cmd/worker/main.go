@@ -173,7 +173,7 @@ func main() {
 		listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
 		activity.RegisterWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})
 
-		createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters)
+		createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
 		activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
 		deleteWorkerPoolActivity := pkeworkflow.NewDeleteWorkerPoolActivity(clusters)
