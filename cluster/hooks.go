@@ -93,6 +93,10 @@ func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) error {
 // pollingKubernetesConfig polls kubeconfig from the cloud
 func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 
+	if bytes, err := cluster.GetK8sConfig(); err == nil && len(bytes) > 0 {
+		return bytes, nil
+	}
+
 	var err error
 
 	retryCount := viper.GetInt("cloud.configRetryCount")
