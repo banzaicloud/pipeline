@@ -168,6 +168,11 @@ func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
 }
 
 func (c *EC2ClusterPKE) GetConfigSecretId() string {
+	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
+	id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
+	if err == nil {
+		c.model.Cluster.ConfigSecretID = id
+	}
 	return c.model.Cluster.ConfigSecretID
 }
 
@@ -651,7 +656,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			}
 			if len(out.Subnets) > 0 {
 				s := out.Subnets
-				infrastructureCIDR = *s[idx].CidrBlock
+				infrastructureCIDR = *s[0].CidrBlock
 			}
 		}
 	}
