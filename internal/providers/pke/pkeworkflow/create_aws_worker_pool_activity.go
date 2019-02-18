@@ -104,12 +104,11 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("InstanceType"),
-				ParameterValue: aws.String("c4.xlarge"),
+				ParameterValue: aws.String(input.Pool.InstanceType),
 			},
-
 			{
 				ParameterKey:   aws.String("AvailabilityZones"),
-				ParameterValue: aws.String("eu-central-1b"),
+				ParameterValue: aws.String(input.Pool.AvailabilityZones[0]),
 			},
 			{
 				ParameterKey:   aws.String("VPCId"),

@@ -27,10 +27,12 @@ type AWSCluster interface {
 }
 
 type NodePool struct {
-	Name     string
-	MinCount int
-	MaxCount int
-	Count    int
-	Master   bool
-	Worker   bool
+	Name              string
+	MinCount          int
+	MaxCount          int
+	Count             int
+	Master            bool
+	Worker            bool
+	InstanceType      string
+	AvailabilityZones []string
 }

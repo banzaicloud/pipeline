@@ -512,12 +512,14 @@ func (c *EC2ClusterPKE) IsReady() (bool, error) {
 }
 
 type PKENodePool struct {
-	Name     string
-	MinCount int
-	MaxCount int
-	Count    int
-	Master   bool
-	Worker   bool
+	Name              string
+	MinCount          int
+	MaxCount          int
+	Count             int
+	Master            bool
+	Worker            bool
+	InstanceType      string
+	AvailabilityZones []string
 }
 
 func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
@@ -527,11 +529,18 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 		var amazonPool internalPke.NodePoolProviderConfigAmazon
 		_ = mapstructure.Decode(np.ProviderConfig, &amazonPool)
 
+		var azs []string
+		for _, az := range amazonPool.AutoScalingGroup.Zones {
+			azs = append(azs, string(az))
+		}
+
 		pools[i] = PKENodePool{
-			Name:     np.Name,
-			MinCount: amazonPool.AutoScalingGroup.Size.Min,
-			MaxCount: amazonPool.AutoScalingGroup.Size.Max,
-			Count:    amazonPool.AutoScalingGroup.Size.Min,
+			Name:              np.Name,
+			MinCount:          amazonPool.AutoScalingGroup.Size.Min,
+			MaxCount:          amazonPool.AutoScalingGroup.Size.Max,
+			Count:             amazonPool.AutoScalingGroup.Size.Min,
+			InstanceType:      amazonPool.AutoScalingGroup.InstanceType,
+			AvailabilityZones: azs,
 		}
 		for _, role := range np.Roles {
 			if role == "master" {

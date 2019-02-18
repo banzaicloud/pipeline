@@ -15,9 +15,11 @@
 package pkeworkflow
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 )
@@ -113,10 +115,27 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
+	var masterInstanceType, masterAvailabilityZone string
+	for _, np := range nodePools {
+		if np.Master {
+			masterInstanceType = np.InstanceType
+			if len(np.AvailabilityZones) <= 0 {
+				return errors.New(fmt.Sprintf("missing availability zone from nodepool %q", np.Name))
+			}
+			masterAvailabilityZone = np.AvailabilityZones[0]
+			break
+		}
+	}
+	if masterInstanceType == "" || masterAvailabilityZone == "" {
+		return errors.New("missing instance type or availability zone for master node")
+	}
+
 	var masterStackID string
 	// TODO refactor network things
 	createMasterActivityInput := CreateMasterActivityInput{
 		ClusterID:             input.ClusterID,
+		InstanceType:          masterInstanceType,
+		AvailabilityZone:      masterAvailabilityZone,
 		VPCID:                 vpcOutput["VpcId"],
 		SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
 		EIPAllocationID:       eip.AllocationId,

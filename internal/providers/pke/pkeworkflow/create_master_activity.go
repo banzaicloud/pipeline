@@ -43,6 +43,8 @@ func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator) *
 
 type CreateMasterActivityInput struct {
 	ClusterID             uint
+	InstanceType          string
+	AvailabilityZone      string
 	VPCID                 string
 	SubnetID              string
 	EIPAllocationID       string
@@ -99,12 +101,11 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 			},
 			{
 				ParameterKey:   aws.String("InstanceType"),
-				ParameterValue: aws.String("c4.xlarge"),
+				ParameterValue: aws.String(input.InstanceType),
 			},
-
 			{
 				ParameterKey:   aws.String("AvailabilityZone"),
-				ParameterValue: aws.String("eu-central-1a"),
+				ParameterValue: aws.String(input.AvailabilityZone),
 			},
 			{
 				ParameterKey:   aws.String("VPCId"),

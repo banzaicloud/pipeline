@@ -56,12 +56,14 @@ func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 	nodePools := make([]pkeworkflow.NodePool, len(clusterNodePools), len(clusterNodePools))
 	for i, np := range clusterNodePools {
 		nodePools[i] = pkeworkflow.NodePool{
-			Name:     np.Name,
-			MinCount: np.MinCount,
-			MaxCount: np.MaxCount,
-			Count:    np.Count,
-			Master:   np.Master,
-			Worker:   np.Worker,
+			Name:              np.Name,
+			MinCount:          np.MinCount,
+			MaxCount:          np.MaxCount,
+			Count:             np.Count,
+			Master:            np.Master,
+			Worker:            np.Worker,
+			InstanceType:      np.InstanceType,
+			AvailabilityZones: np.AvailabilityZones,
 		}
 	}
 	return nodePools
