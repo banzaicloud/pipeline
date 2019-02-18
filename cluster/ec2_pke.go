@@ -395,7 +395,7 @@ func (c *EC2ClusterPKE) DeleteCluster() error {
 
 func (c *EC2ClusterPKE) DeletePKECluster(ctx context.Context, workflowClient client.Client) error {
 	input := pkeworkflow.DeleteClusterWorkflowInput{
-		ClusterID: c.GetID(),
+		ClusterID: uint(c.GetID()),
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
