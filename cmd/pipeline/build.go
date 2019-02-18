@@ -25,17 +25,17 @@ import (
 // Provisioned by ldflags
 // nolint: gochecknoglobals
 var (
-	Version    string
-	CommitHash string
-	BuildDate  string
+	version    string
+	commitHash string
+	buildDate  string
 )
 
 func VersionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"version":     Version,
+		"version":     version,
 		"go_version":  runtime.Version(),
-		"commit_hash": CommitHash,
-		"build_date":  BuildDate,
+		"commit_hash": commitHash,
+		"build_date":  buildDate,
 		"os_arch":     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	})
 }
