@@ -63,12 +63,20 @@ Parameters:
     Type: Number
     Default: 1
     Description: Initial count of nodes in the pool
+  NodeSpotPrice:
+    Type: String
+    Description: The spot price for this ASG
+
+Conditions:
+  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
+
 Resources:
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       KeyName: !Ref KeyName
       InstanceType: !Ref InstanceType
+      SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
       ImageId: !Ref ImageId
       IamInstanceProfile: !Ref IamInstanceProfile
       AssociatePublicIpAddress: true
