@@ -12,6 +12,9 @@
 package client
 
 type CreateUpdateOkePropertiesOke struct {
-	Version   string                     `json:"version"`
-	NodePools map[string]NodePoolsOracle `json:"nodePools"`
+	Version     string                     `json:"version"`
+	NodePools   map[string]NodePoolsOracle `json:"nodePools"`
+	VcnId       string                     `json:"vcnId,omitempty"`
+	LbSubnetId1 string                     `json:"lbSubnetId1,omitempty"`
+	LbSubnetId2 string                     `json:"lbSubnetId2,omitempty"`
 }
