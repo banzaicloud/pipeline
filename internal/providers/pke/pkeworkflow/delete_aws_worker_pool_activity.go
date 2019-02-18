@@ -23,7 +23,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"go.uber.org/cadence/activity"
 )
 
 const DeleteWorkerPoolActivityName = "pke-delete-aws-worker-role-activity"
@@ -64,8 +63,8 @@ func (a *DeleteWorkerPoolActivity) Execute(ctx context.Context, input DeleteWork
 	cfClient := cloudformation.New(client)
 
 	stackInput := &cloudformation.DeleteStackInput{
-		StackName:          aws.String(stackName),
-		ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
+		StackName: aws.String(stackName),
+		//ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
 	}
 
 	_, err = cfClient.DeleteStack(stackInput)

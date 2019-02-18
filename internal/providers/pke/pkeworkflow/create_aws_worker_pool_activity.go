@@ -90,9 +90,9 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	clusterName := cluster.GetName()
 	stackInput := &cloudformation.CreateStackInput{
-		StackName:          aws.String(stackName),
-		TemplateBody:       aws.String(string(buf)),
-		ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
+		StackName:    aws.String(stackName),
+		TemplateBody: aws.String(string(buf)),
+		//ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
 		Parameters: []*cloudformation.Parameter{
 			{
 				ParameterKey:   aws.String("ClusterName"),
