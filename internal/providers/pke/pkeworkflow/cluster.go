@@ -37,4 +37,5 @@ type NodePool struct {
 	InstanceType      string
 	AvailabilityZones []string
 	ImageID           string
+	SpotPrice         string
 }

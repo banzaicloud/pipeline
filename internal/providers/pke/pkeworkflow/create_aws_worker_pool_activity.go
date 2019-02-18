@@ -155,6 +155,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 				ParameterKey:   aws.String("ClusterSecurityGroup"),
 				ParameterValue: aws.String(input.ClusterSecurityGroup),
 			},
+			{
+				ParameterKey:   aws.String("NodeSpotPrice"),
+				ParameterValue: aws.String(input.Pool.SpotPrice),
+			},
 		},
 	}
 

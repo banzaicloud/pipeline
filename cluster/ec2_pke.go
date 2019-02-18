@@ -526,6 +526,7 @@ type PKENodePool struct {
 	InstanceType      string
 	AvailabilityZones []string
 	ImageID           string
+	SpotPrice         string
 }
 
 func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
@@ -548,6 +549,7 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 			InstanceType:      amazonPool.AutoScalingGroup.InstanceType,
 			AvailabilityZones: azs,
 			ImageID:           amazonPool.AutoScalingGroup.Image,
+			SpotPrice:         amazonPool.AutoScalingGroup.SpotPrice,
 		}
 		for _, role := range np.Roles {
 			if role == "master" {
