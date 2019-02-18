@@ -17,6 +17,7 @@ type Cluster interface {
 	GetOrganizationId() uint
 	UpdateStatus(string, string) error
 	GetNodePools() []NodePool
+	GetLocation() string
 }
 
 type AWSCluster interface {
@@ -35,4 +36,5 @@ type NodePool struct {
 	Worker            bool
 	InstanceType      string
 	AvailabilityZones []string
+	ImageID           string
 }
