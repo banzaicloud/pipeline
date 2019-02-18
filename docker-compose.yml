@@ -28,7 +28,7 @@ services:
         image: banzaicloud/bank-vaults:0.3.16
         depends_on:
             - vault
-        restart: "always"
+        restart: on-failure
         command: unseal --init --mode file --file-path /vault/keys
         environment:
             VAULT_ADDR: http://vault:8200
@@ -42,7 +42,7 @@ services:
             - db
             - vault
             - vault-unsealer
-        restart: "always"
+        restart: on-failure
         entrypoint: "./wait-for-it.sh"
         command: db:3306 -- bank-vaults configure --mode file --file-path /vault/keys
         environment:
@@ -61,14 +61,14 @@ services:
             - $HOME:/root
 
     cicd-server:
-        image: banzaicloud/cicd:0.8.2
+        image: banzaicloud/cicd:0.8.3
         depends_on:
             - db
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
             - /bin/cicd-server
-        restart: "always"
+        restart: on-failure
         environment:
             CICD_HOST:                 http://localhost:8000
             CICD_DEBUG:                "true"
@@ -84,14 +84,14 @@ services:
             CICD_REPO_CONFIG: ".banzaicloud/pipeline.yaml"
 
     cicd-agent:
-        image: banzaicloud/cicd:0.8.2
+        image: banzaicloud/cicd:0.8.3
         depends_on:
             - cicd-server
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
             - /bin/cicd-agent
-        restart: "always"
+        restart: on-failure
         environment:
             CICD_SERVER: cicd-server:9000
             CICD_SECRET: "s3cr3t"
@@ -110,7 +110,7 @@ services:
             RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
 
     dex:
-        image: banzaicloud/dex-shim:0.3.0
+        image: banzaicloud/dex-shim:0.3.1
         command: serve /dex.yml
         volumes:
             - ./config/dex.yml:/dex.yml

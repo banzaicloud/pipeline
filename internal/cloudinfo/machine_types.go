@@ -63,6 +63,7 @@ type VMKey struct {
 	instanceType string
 }
 
+// nolint: gochecknoglobals
 var instanceTypeMap = make(map[VMKey]MachineDetails)
 
 func fetchMachineTypes(cloud string, service string, region string) error {

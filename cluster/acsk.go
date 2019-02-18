@@ -452,32 +452,6 @@ func (c *ACSKCluster) getVPCID() (string, error) {
 	return res.VSwitches.VSwitch[0].VpcId, nil
 }
 
-type setSchemeSetDomainer interface {
-	SetScheme(string)
-	SetDomain(string)
-}
-
-func setEndpoint(req setSchemeSetDomainer) {
-	req.SetScheme(requests.HTTPS)
-	req.SetDomain(acsk.AlibabaApiDomain)
-}
-
-func getClusterDetails(client *cs.Client, clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
-	req := cs.CreateDescribeClusterDetailRequest()
-	setEndpoint(req)
-	req.ClusterId = clusterID
-	resp, err := client.DescribeClusterDetail(req)
-	if err != nil {
-		return nil, emperror.WrapWith(err, "could not get cluster details", "clusterId", clusterID)
-	}
-	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
-		return nil, emperror.Wrapf(err, "unexpected http status code: %d", resp.GetHttpStatus())
-	}
-
-	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
-	return r, emperror.WrapWith(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
-}
-
 type alibabaConnectionInfo struct {
 	JumpHost    string
 	IntranetURI string
@@ -485,7 +459,7 @@ type alibabaConnectionInfo struct {
 }
 
 func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnectionInfo, err error) {
-	details, err := getClusterDetails(client, clusterID)
+	details, err := action.GetClusterDetails(client, clusterID)
 	if err != nil {
 		return
 	}
@@ -854,7 +828,7 @@ func (c *ACSKCluster) IsReady() (bool, error) {
 		return false, err
 	}
 
-	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
+	r, err := action.GetClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
 		return false, err
 	}
@@ -1093,7 +1067,7 @@ func (c *ACSKCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
 		return nil, emperror.Wrap(err, "failed to get alibaba CS client")
 	}
 
-	cluster, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
+	cluster, err := action.GetClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get cluster details")
 	}

@@ -22,51 +22,52 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	qorauth "github.com/qor/auth"
 	"github.com/stretchr/testify/assert"
 )
 
 type enforcerStub struct {
 	rules []struct {
-		v1     string
-		v2     string
-		v3     string
+		userID string
+		path   string
+		method string
 		result bool
 	}
 }
 
-func (e *enforcerStub) Enforce(rvals ...interface{}) bool {
-	if len(rvals) < 3 {
-		return false
-	}
-
+func (e *enforcerStub) Enforce(org *auth.Organization, user *auth.User, path, method string) (bool, error) {
 	for _, rule := range e.rules {
-		if rule.v1 == rvals[0] && rule.v2 == rvals[1] && (rule.v3 == rvals[2] || rule.v3 == "*") {
-			return rule.result
+		userID := user.IDString()
+		if user.ID == 0 {
+			userID = user.Login
+		}
+		if rule.userID == userID && rule.path == path && (rule.method == method || rule.method == "*") {
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
 }
 
 func TestAuthorizationMiddleware_WithBasePath(t *testing.T) {
 	e := &enforcerStub{
 		rules: []struct {
-			v1     string
-			v2     string
-			v3     string
+			userID string
+			path   string
+			method string
 			result bool
 		}{
 			{
-				v1:     "1",
-				v2:     "/path",
-				v3:     "*",
+				userID: "1",
+				path:   "/path",
+				method: "*",
 				result: true,
 			},
 			{
-				v1:     "virtualUser",
-				v2:     "/path",
-				v3:     "*",
+				userID: "virtualUser",
+				path:   "/path",
+				method: "*",
 				result: true,
 			},
 		},
@@ -127,7 +128,7 @@ func TestAuthorizationMiddleware_WithBasePath(t *testing.T) {
 		name, test := name, test
 
 		t.Run(name, func(t *testing.T) {
-			middleware := NewMiddleware(e, test.basePath)
+			middleware := NewMiddleware(e, test.basePath, emperror.NewNoopHandler())
 
 			gin.SetMode(gin.ReleaseMode)
 			router := gin.New()

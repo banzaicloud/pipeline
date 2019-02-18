@@ -53,6 +53,7 @@ const (
 	pool1Name                   = "pool1"
 )
 
+// nolint: gochecknoglobals
 var (
 	clusterRequestSecretId = fmt.Sprintf("%x", sha256.Sum256([]byte(secretName)))
 
@@ -73,6 +74,7 @@ var (
 	}
 )
 
+// nolint: gochecknoglobals
 var (
 	errAzureAmazon = secret.MismatchError{
 		SecretType: pkgCluster.Azure,
@@ -226,6 +228,7 @@ func TestGetSecretWithValidation(t *testing.T) {
 
 }
 
+// nolint: gochecknoglobals
 var (
 	aksCreateFull = &pkgCluster.CreateClusterRequest{
 		Name:     clusterRequestName,
@@ -343,6 +346,7 @@ var (
 	}
 )
 
+// nolint: gochecknoglobals
 var (
 	aksModelFull = &model.ClusterModel{
 		CreatedBy:      userId,

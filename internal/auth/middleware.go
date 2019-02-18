@@ -21,59 +21,62 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 )
 
-type enforcer interface {
-	Enforce(rvals ...interface{}) bool
+// Enforcer checks if the current user has access to the organization resource under path with method
+type Enforcer interface {
+	Enforce(org *auth.Organization, user *auth.User, path, method string) (bool, error)
 }
 
 // NewMiddleware returns a new gin middleware that checks user authorization.
-func NewMiddleware(e enforcer, basePath string) gin.HandlerFunc {
+func NewMiddleware(e Enforcer, basePath string, errorHandler emperror.Handler) gin.HandlerFunc {
 	m := &middleware{
-		enforcer: e,
-		basePath: fmt.Sprintf("/%s", strings.Trim(basePath, "/")),
+		enforcer:     e,
+		basePath:     fmt.Sprintf("/%s", strings.Trim(basePath, "/")),
+		errorHandler: errorHandler,
 	}
 
 	return func(c *gin.Context) {
-		if !m.CheckPermission(c.Request) {
+		granted, err := m.CheckPermission(c.Request)
+		if err != nil {
+			err = emperror.Wrap(err, "failed to check permissions for request")
+			errorHandler.Handle(err)
+			c.AbortWithError(http.StatusInternalServerError, err)
+		} else if !granted {
 			c.AbortWithStatus(http.StatusForbidden)
 		}
 	}
 }
 
-// middleware stores the casbin handler
+// middleware wraps an Enforcer to make it gin-ish
 type middleware struct {
-	enforcer enforcer
-	basePath string
-}
-
-// getUserID gets the user name from the request.
-func (m *middleware) getUserID(r *http.Request) string {
-	user := auth.GetCurrentUser(r)
-	if user == nil {
-		return ""
-	}
-
-	if user.ID == 0 {
-		return user.Login // This is needed for CICD virtual user tokens
-	}
-
-	return user.IDString()
+	enforcer     Enforcer
+	basePath     string
+	errorHandler emperror.Handler
 }
 
 // CheckPermission checks the user/method/path combination from the request.
 // Returns true (permission granted) or false (permission forbidden)
-func (m *middleware) CheckPermission(r *http.Request) bool {
-	userID := m.getUserID(r)
+func (m *middleware) CheckPermission(r *http.Request) (bool, error) {
+	org := auth.GetCurrentOrganization(r)
+	user := auth.GetCurrentUser(r)
 	method := r.Method
 	path := r.URL.Path
 
-	granted := m.enforcer.Enforce(userID, path, method)
+	if user == nil {
+		return false, nil
+	}
+
+	granted, err := m.enforcer.Enforce(org, user, path, method)
+	if err != nil {
+		return granted, err
+	}
 
 	// Try checking the permission without a base path
 	if !granted && m.basePath != "" && strings.HasPrefix(path, fmt.Sprintf("%s/", m.basePath)) {
-		granted = m.enforcer.Enforce(userID, strings.TrimPrefix(path, m.basePath), method)
+		granted, err = m.enforcer.Enforce(org, user, strings.TrimPrefix(path, m.basePath), method)
 	}
 
-	return granted
+	return granted, err
 }

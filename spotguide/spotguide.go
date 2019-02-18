@@ -53,8 +53,9 @@ const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
-var IgnoredPaths = []string{".circleci", ".github"}
+var IgnoredPaths = []string{".circleci", ".github"} // nolint: gochecknoglobals
 
+// nolint: gochecknoglobals
 var ctx = context.Background()
 
 type SpotguideYAML struct {
@@ -356,8 +357,8 @@ func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*Spot
 	return &spotguide, nil
 }
 
-func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
-	sourceRepo, err := s.GetSpotguide(orgID, request.SpotguideName, request.SpotguideVersion)
+func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Organization, user *auth.User) error {
+	sourceRepo, err := s.GetSpotguide(org.ID, request.SpotguideName, request.SpotguideVersion)
 	if err != nil {
 		return errors.Wrap(err, "failed to find spotguide repo")
 	}
@@ -365,27 +366,29 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, httpRequest *
 	// LaunchRequest might not have the version
 	request.SpotguideVersion = sourceRepo.Version
 
-	err = createSecrets(request, orgID, userID)
+	err = createSecrets(request, org.ID, user.ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to create secrets for spotguide")
 	}
 
-	githubClient, err := auth.NewGithubClientForUser(userID)
+	githubClient, err := auth.NewGithubClientForUser(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to create GitHub client")
 	}
 
-	err = createGithubRepo(githubClient, request, userID, sourceRepo)
+	err = createGithubRepo(githubClient, request, user.ID, sourceRepo)
 	if err != nil {
 		return errors.Wrap(err, "failed to create GitHub repository")
 	}
 
-	err = enableCICD(request, httpRequest)
+	cicdClient := auth.NewCICDClient(user.APIToken)
+
+	err = enableCICD(cicdClient, request, org.Name)
 	if err != nil {
 		return errors.Wrap(err, "failed to enable CI/CD for spotguide")
 	}
 
-	err = addSpotguideContent(githubClient, request, userID, sourceRepo)
+	err = addSpotguideContent(githubClient, request, user.ID, sourceRepo)
 	if err != nil {
 		return errors.Wrap(err, "failed to add spotguide content to repository")
 	}
@@ -606,19 +609,14 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 	return nil
 }
 
-func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
+func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) error {
 
-	cicdClient, err := auth.NewCICDClient(httpRequest)
-	if err != nil {
-		return errors.Wrap(err, "failed to create CICD client")
-	}
-
-	_, err = cicdClient.RepoListOpts(true, true)
+	_, err := cicdClient.RepoListOpts(true, true)
 	if err != nil {
 		return errors.Wrap(err, "failed to sync CICD repositories")
 	}
 
-	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName)
+	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName, org)
 	if err != nil {
 		return errors.Wrap(err, "failed to enable CICD repository")
 	}

@@ -68,6 +68,7 @@ const SessionCookieHTTPOnly = true
 const SessionCookieName = "Pipeline session token"
 
 // Init authorization
+// nolint: gochecknoglobals
 var (
 	log *logrus.Logger
 
@@ -347,7 +348,10 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 			Where(&organization).
 			Related(&organization, "Organizations").Error
 		if err != nil {
-			statusCode := GormErrorToStatusCode(err)
+			statusCode := http.StatusInternalServerError
+			if gorm.IsRecordNotFoundError(err) {
+				statusCode = http.StatusBadRequest
+			}
 			err = c.AbortWithError(statusCode, err)
 			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
 			return
@@ -621,7 +625,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 		}
 	}
 
-	// Delete Casbin roles
+	// Delete authorization roles for user
 	h.accessManager.RevokeAllAccessFromUser(user.IDString())
 
 	BanzaiLogoutHandler(context)

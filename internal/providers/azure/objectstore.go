@@ -35,6 +35,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// nolint: gochecknoglobals
 var (
 	alfanumericRegexp        = regexp.MustCompile(`[^a-zA-Z0-9]`)
 	storageAccountNameRegexp = regexp.MustCompile(`^[a-z0-9]{3,24}$`)

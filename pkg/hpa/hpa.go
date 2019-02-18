@@ -24,6 +24,7 @@ import (
 
 type ValueType string
 
+// nolint: gochecknoglobals
 var (
 	// PercentageValueType specifies that value is a percentage
 	PercentageValueType ValueType = "percentage"

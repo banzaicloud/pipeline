@@ -99,14 +99,6 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:a8bc08e25d94bdcbf8ea54ee8e4b2a00a8c3b6957501b4fdb1a6d303e5292f6d"
-  name = "github.com/Knetic/govaluate"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "d216395917cc49052c7c7094cf57f09657ca08a8"
-  version = "v3.0.0"
-
-[[projects]]
   branch = "master"
   digest = "1:5c3da1e5d06de403fff791e185009015230b30111aabd56125cae296b7e581cf"
   name = "github.com/MakeNowJust/heredoc"
@@ -300,12 +292,12 @@
   version = "0.3.27"
 
 [[projects]]
-  branch = "master"
-  digest = "1:3886346341c9405ada3bec342c98fa2494137926bfd38158b832c63afd41cae6"
+  digest = "1:56e4607cd7937ef27d0a7a6a7ba2516a40a658f1278781cc8aa9caebb9d59e21"
   name = "github.com/banzaicloud/cicd-go"
   packages = ["cicd"]
   pruneopts = "NUT"
-  revision = "de6f3f91e590b34a68773144cd24e313cde0411f"
+  revision = "832df3e92677593b342a15e948c67a1ae8721599"
+  version = "0.1.0"
 
 [[projects]]
   branch = "master"
@@ -340,29 +332,27 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
-  digest = "1:93d478f9bb564bd1c8da4052d25ca1273d7bd752d821ad7027d5f1272733afd0"
+  digest = "1:d7149665a6945aa722d14922377a6d428dc0793d39977cd0ebed2e9263972760"
   name = "github.com/casbin/casbin"
   packages = [
-    ".",
     "config",
-    "file-adapter",
+    "log",
     "model",
     "persist",
     "rbac",
-    "rbac/default-role-manager",
     "util",
   ]
   pruneopts = "NUT"
-  revision = "3a17f2855cc12ad36fd614c590b9d18f46dfd65d"
-  version = "v1.4.0"
+  revision = "4aa316fb68d44d4cc5ddd98d7e9ec80bc0a8b081"
+  version = "v1.8.1"
 
 [[projects]]
   branch = "master"
-  digest = "1:3f253d2e33be7463c645a7c887d15cd0a8a26317fb3d64a5823124d3f059aa5d"
+  digest = "1:3786e4321be0a37718a04c51e3ba6dc0182efd2f617bacf934aa8b44012531ee"
   name = "github.com/casbin/gorm-adapter"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "e56c6daebd5e8c657caf3bdf3a647803cf7b242d"
+  revision = "5f0f4b5ecad7f5259de033c2765c1e9399b23034"
 
 [[projects]]
   digest = "1:65b0d980b428a6ad4425f2df4cd5410edd81f044cf527bd1c345368444649e58"
@@ -1102,15 +1092,15 @@
   revision = "0bc2a4274cd0f8baa49f2d598df5ef0cc3069c80"
 
 [[projects]]
-  branch = "master"
-  digest = "1:7a1e592f0349d56fac8ce47f28469e4e7f4ce637cb26f40c88da9dff25db1c98"
+  digest = "1:4d5fa9f49e5bf3d55c16ff562af9e3231f9ac5ccf495927fd0555f4607c15475"
   name = "github.com/lib/pq"
   packages = [
     ".",
     "oid",
   ]
   pruneopts = "NUT"
-  revision = "d34b9ff171c21ad295489235aec8b6626023cd04"
+  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:35e5598ba3bc950039e13d91958ce37f675264735907cada569d11b243e5cacb"
@@ -2687,8 +2677,6 @@
     "github.com/banzaicloud/go-gin-prometheus",
     "github.com/banzaicloud/logrus-runtime-formatter",
     "github.com/banzaicloud/prometheus-config",
-    "github.com/casbin/casbin",
-    "github.com/casbin/casbin/persist",
     "github.com/casbin/gorm-adapter",
     "github.com/dgrijalva/jwt-go",
     "github.com/didip/tollbooth",

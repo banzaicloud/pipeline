@@ -201,6 +201,7 @@ func (s sortableSecretItemResponses) Less(i, j int) bool {
 	return s[i].Name < s[j].Name
 }
 
+// nolint: gochecknoglobals
 var (
 	secretNameAmazon = "my-aws-secret"
 	secretNameAzure  = "my-aks-secret"
@@ -208,6 +209,7 @@ var (
 	secretNameOracle = "my-oci-secret"
 )
 
+// nolint: gochecknoglobals
 var (
 	secretIdAmazon = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAmazon)))
 	secretIdAzure  = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAzure)))
@@ -262,6 +264,7 @@ const (
 )
 
 // Create requests
+// nolint: gochecknoglobals
 var (
 	awsCreateSecretRequest = secret.CreateSecretRequest{
 		Name: secretNameAmazon,
@@ -366,6 +369,7 @@ func toHiddenValues(secretType string) map[string]string {
 }
 
 // Expected values after list
+// nolint: gochecknoglobals
 var (
 	awsExpectedItems = []*secret.SecretItemResponse{
 		{
@@ -445,6 +449,7 @@ var (
 	}
 )
 
+// nolint: gochecknoglobals
 var (
 	allAllowedTypes = secretTypes.DefaultRules
 

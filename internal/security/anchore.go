@@ -32,10 +32,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-var AnchoreEndpoint string
-var AnchoreEnabled bool
-var AnchoreAdminUser string
-var AnchoreAdminPass string
+var AnchoreEndpoint string  // nolint: gochecknoglobals
+var AnchoreEnabled bool     // nolint: gochecknoglobals
+var AnchoreAdminUser string // nolint: gochecknoglobals
+var AnchoreAdminPass string // nolint: gochecknoglobals
 
 const (
 	anchoreEmail                  string = "banzai@banzaicloud.com"

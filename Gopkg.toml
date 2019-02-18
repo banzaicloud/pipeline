@@ -158,10 +158,6 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
   non-go = true
 
 [[constraint]]
-  name = "github.com/casbin/casbin"
-  version = "1.4.0"
-
-[[constraint]]
   branch = "master"
   name = "github.com/casbin/gorm-adapter"
 
@@ -215,7 +211,7 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
 
 [[constraint]]
   name = "github.com/banzaicloud/cicd-go"
-  branch = "master"
+  version = "0.1.0"
 
 [[constraint]]
   name = "github.com/goph/emperror"
