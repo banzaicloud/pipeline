@@ -80,19 +80,19 @@ func initLog() *logrus.Entry {
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		if CommitHash == "" {
-			fmt.Println("version: ", Version, " built on ", BuildDate)
+		if commitHash == "" {
+			fmt.Println("version: ", version, " built on ", buildDate)
 		} else {
-			fmt.Printf("version: %s-%s built on %s\n", Version, CommitHash, BuildDate)
+			fmt.Printf("version: %s-%s built on %s\n", version, commitHash, buildDate)
 		}
 		os.Exit(0)
 	}
 
 	logger = initLog()
 	logger.WithFields(logrus.Fields{
-		"version":     Version,
-		"commit_hash": CommitHash,
-		"build_date":  BuildDate,
+		"version":     version,
+		"commit_hash": commitHash,
+		"build_date":  buildDate,
 	}).Info("Pipeline initialization")
 	errorHandler := config.ErrorHandler()
 
@@ -278,7 +278,7 @@ func main() {
 		log.Errorf("failed to create shared Spotguide organization: %s", err)
 	}
 
-	spotguideManager := spotguide.NewSpotguideManager(config.DB(), Version, viper.GetString("github.token"), sharedSpotguideOrg)
+	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, viper.GetString("github.token"), sharedSpotguideOrg)
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
@@ -466,7 +466,7 @@ func main() {
 
 	base.GET("api", api.MetaHandler(router, basePath+"/api"))
 
-	issueHandler, err := api.NewIssueHandler(Version, CommitHash, BuildDate)
+	issueHandler, err := api.NewIssueHandler(version, commitHash, buildDate)
 	if err != nil {
 		panic(err)
 	}
