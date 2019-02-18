@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"fmt"
 	"time"
 
@@ -61,6 +62,12 @@ const (
 
 // DistributionID represents the identifier of a distribution
 type DistributionID string
+
+// Value returns the value of the ID
+func (id DistributionID) Value() (driver.Value, error) {
+	// TODO: remove Valuer implementation when mysql driver version is >=1.4
+	return string(id), nil
+}
 
 // Distribution constants
 const (

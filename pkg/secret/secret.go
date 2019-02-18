@@ -15,11 +15,19 @@
 package secret
 
 import (
+	"database/sql/driver"
+
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // SecretID represents the identifier of a secret
 type SecretID string
+
+// Value returns the value of the ID
+func (id SecretID) Value() (driver.Value, error) {
+	// TODO: remove Valuer implementation when mysql driver version is >=1.4
+	return string(id), nil
+}
 
 // FieldMeta describes how a secret field should be validated
 type FieldMeta struct {
