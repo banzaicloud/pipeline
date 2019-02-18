@@ -30,11 +30,13 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/goph/emperror"
@@ -59,7 +61,7 @@ type AKSCluster struct {
 }
 
 // CreateAKSClusterFromRequest returns an AKS cluster instance created from the specified request
-func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID, userID uint) (*AKSCluster, error) {
+func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) (*AKSCluster, error) {
 	var nodePools = make([]*model.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
 	for name, np := range request.Properties.CreateClusterAKS.NodePools {
 		nodePools = append(nodePools, &model.AKSNodePoolModel{
@@ -82,7 +84,7 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		Cloud:          request.Cloud,
 		OrganizationId: orgID,
 		CreatedBy:      userID,
-		SecretId:       request.SecretId,
+		SecretId:       pkgSecret.SecretID(request.SecretId),
 		Distribution:   pkgCluster.AKS,
 		AKS: model.AKSClusterModel{
 			ResourceGroup:     request.Properties.CreateClusterAKS.ResourceGroup,
@@ -144,12 +146,12 @@ func (c *AKSCluster) GetLocation() string {
 }
 
 // GetOrganizationId returns the ID of the organization where the cluster belongs to
-func (c *AKSCluster) GetOrganizationId() uint {
+func (c *AKSCluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return c.modelCluster.OrganizationId
 }
 
 // GetSecretId returns the cluster secret's ID
-func (c *AKSCluster) GetSecretId() string {
+func (c *AKSCluster) GetSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SecretId
 }
 
@@ -462,7 +464,7 @@ func (c *AKSCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *AKSCluster) GetDistribution() string {
+func (c *AKSCluster) GetDistribution() pkgCluster.DistributionID {
 	return c.modelCluster.Distribution
 }
 
@@ -533,7 +535,7 @@ func getAgentPoolProfileByName(cluster *containerservice.ManagedCluster, name st
 }
 
 // UpdateCluster updates the cluster in AKS
-func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userID uint) error {
+func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userID pkgAuth.UserID) error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
 		return emperror.Wrap(err, "failed to get cloud connection")
@@ -585,7 +587,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userID uint) error {
+func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userID pkgAuth.UserID) error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
 		return emperror.Wrap(err, "failed to get cloud connection")
@@ -644,7 +646,7 @@ func (c *AKSCluster) getNodePoolByName(name string) *model.AKSNodePoolModel {
 }
 
 // GetID returns the cluster's ID
-func (c *AKSCluster) GetID() uint {
+func (c *AKSCluster) GetID() pkgCluster.ClusterID {
 	return c.modelCluster.ID
 }
 
@@ -749,7 +751,7 @@ func (c *AKSCluster) getCredentials() (*pkgAzure.Credentials, error) {
 	return pkgAzure.NewCredentials(clusterSecret.Values), nil
 }
 
-func getAzureCredentials(orgID uint, secretID string) (*pkgAzure.Credentials, error) {
+func getAzureCredentials(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID) (*pkgAzure.Credentials, error) {
 	sir, err := getSecret(orgID, secretID)
 	if err != nil {
 		return nil, emperror.WrapWith(err, "failed to retreive secret", "orgID", orgID, "secretID", secretID)
@@ -761,7 +763,7 @@ func getAzureCredentials(orgID uint, secretID string) (*pkgAzure.Credentials, er
 	return pkgAzure.NewCredentials(sir.Values), nil
 }
 
-func getDefaultCloudConnection(orgID uint, secretID string) (*pkgAzure.CloudConnection, error) {
+func getDefaultCloudConnection(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID) (*pkgAzure.CloudConnection, error) {
 	creds, err := getAzureCredentials(orgID, secretID)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to retrieve Azure credentials")
@@ -770,7 +772,7 @@ func getDefaultCloudConnection(orgID uint, secretID string) (*pkgAzure.CloudConn
 }
 
 // GetLocations returns all the locations that are available for resource providers
-func GetLocations(orgID uint, secretID string) (locations []string, err error) {
+func GetLocations(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID) (locations []string, err error) {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
 		return
@@ -790,7 +792,7 @@ func GetLocations(orgID uint, secretID string) (locations []string, err error) {
 }
 
 // GetMachineTypes lists all available virtual machine sizes for a subscription in a location
-func GetMachineTypes(orgID uint, secretID, location string) (pkgCluster.MachineTypes, error) {
+func GetMachineTypes(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID, location string) (pkgCluster.MachineTypes, error) {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get cloud connection")
@@ -799,7 +801,7 @@ func GetMachineTypes(orgID uint, secretID, location string) (pkgCluster.MachineT
 }
 
 // GetKubernetesVersion returns a list of supported kubernetes version in the specified subscription
-func GetKubernetesVersion(orgID uint, secretID, location string) ([]string, error) {
+func GetKubernetesVersion(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID, location string) ([]string, error) {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get cloud connection")
@@ -927,22 +929,22 @@ func (c *AKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret ID in database
-func (c *AKSCluster) SaveConfigSecretId(configSecretID string) error {
+func (c *AKSCluster) SaveConfigSecretId(configSecretID pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretID)
 }
 
 // GetConfigSecretId returns the cluster's config secret ID
-func (c *AKSCluster) GetConfigSecretId() string {
+func (c *AKSCluster) GetConfigSecretId() pkgSecret.SecretID {
 	return c.modelCluster.ConfigSecretId
 }
 
 // GetSSHSecretID returns the cluster's SSH secret ID
-func (c *AKSCluster) GetSshSecretId() string {
+func (c *AKSCluster) GetSshSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the SSH secret ID to database
-func (c *AKSCluster) SaveSshSecretId(sshSecretID string) error {
+func (c *AKSCluster) SaveSshSecretId(sshSecretID pkgSecret.SecretID) error {
 	c.log.Debugf("Saving SSH secret ID [%s]", sshSecretID)
 	return c.modelCluster.UpdateSshSecret(sshSecretID)
 }
@@ -1054,7 +1056,7 @@ func (c *AKSCluster) SetServiceMesh(m bool) {
 }
 
 // ListResourceGroups returns all resource group
-func ListResourceGroups(orgID uint, secretID string) (res []string, err error) {
+func ListResourceGroups(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID) (res []string, err error) {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get cloud connection")
@@ -1073,7 +1075,7 @@ func ListResourceGroups(orgID uint, secretID string) (res []string, err error) {
 }
 
 // CreateOrUpdateResourceGroup creates or updates a resource group
-func CreateOrUpdateResourceGroup(orgID uint, secretID, resourceGroupName, location string) error {
+func CreateOrUpdateResourceGroup(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID, resourceGroupName, location string) error {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get cloud connection")
@@ -1085,7 +1087,7 @@ func CreateOrUpdateResourceGroup(orgID uint, secretID, resourceGroupName, locati
 }
 
 // DeleteResourceGroup creates or updates a resource group
-func DeleteResourceGroup(orgID uint, secretID, resourceGroupName string) error {
+func DeleteResourceGroup(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID, resourceGroupName string) error {
 	cc, err := getDefaultCloudConnection(orgID, secretID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get cloud connection")
@@ -1125,7 +1127,7 @@ func (c *AKSCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *AKSCluster) GetCreatedBy() uint {
+func (c *AKSCluster) GetCreatedBy() pkgAuth.UserID {
 	return c.modelCluster.CreatedBy
 }
 

@@ -156,10 +156,8 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, resourceGroup, st
 }
 
 func (s *ObjectStore) getLogger() logrus.FieldLogger {
-	var sId string
-	if s.secret == nil {
-		sId = ""
-	} else {
+	var sId pkgSecret.SecretID
+	if s.secret != nil {
 		sId = s.secret.ID
 	}
 
@@ -252,9 +250,9 @@ func (s *ObjectStore) CreateBucket(bucketName string) error {
 	return nil
 }
 
-func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (string, string, error) {
+func (s *ObjectStore) createUpdateStorageAccountSecret(accesskey string) (pkgSecret.SecretID, string, error) {
 
-	var secretId string
+	var secretId pkgSecret.SecretID
 	storageAccountName := alfanumericRegexp.ReplaceAllString(s.storageAccount, "-")
 	secretName := fmt.Sprintf("%v-key", storageAccountName)
 

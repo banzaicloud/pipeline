@@ -21,8 +21,10 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/config"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
@@ -51,19 +53,19 @@ const (
 //ClusterModel describes the common cluster model
 // Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
 type ClusterModel struct {
-	ID             uint   `gorm:"primary_key"`
-	UID            string `gorm:"unique_index:idx_uid"`
+	ID             pkgCluster.ClusterID `gorm:"primary_key"`
+	UID            string               `gorm:"unique_index:idx_uid"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
 	Name           string     `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
-	Distribution   string
-	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
-	SecretId       string
-	ConfigSecretId string
-	SshSecretId    string
+	Distribution   pkgCluster.DistributionID
+	OrganizationId pkgAuth.OrganizationID `gorm:"unique_index:idx_unique_id"`
+	SecretId       pkgSecret.SecretID
+	ConfigSecretId pkgSecret.SecretID
+	SshSecretId    pkgSecret.SecretID
 	Status         string
 	RbacEnabled    bool
 	Monitoring     bool
@@ -78,7 +80,7 @@ type ClusterModel struct {
 	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
-	CreatedBy      uint
+	CreatedBy      pkgAuth.UserID
 }
 
 // ScaleOptions describes scale options
@@ -98,7 +100,7 @@ type ScaleOptions struct {
 type ACSKNodePoolModel struct {
 	ID                           uint `gorm:"primary_key"`
 	CreatedAt                    time.Time
-	CreatedBy                    uint
+	CreatedBy                    pkgAuth.UserID
 	ClusterID                    uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name                         string `gorm:"unique_index:idx_cluster_id_name"`
 	InstanceType                 string
@@ -115,7 +117,7 @@ type ACSKNodePoolModel struct {
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
 type ACSKClusterModel struct {
-	ID                       uint `gorm:"primary_key"`
+	ID                       pkgCluster.ClusterID `gorm:"primary_key"`
 	ProviderClusterID        string
 	RegionID                 string
 	ZoneID                   string
@@ -133,7 +135,7 @@ type ACSKClusterModel struct {
 type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	CreatedBy        uint
+	CreatedBy        pkgAuth.UserID
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	NodeSpotPrice    string
@@ -229,8 +231,8 @@ type EKSSubnetModel struct {
 
 //EKSClusterModel describes the EKS cluster model
 type EKSClusterModel struct {
-	ID        uint `gorm:"primary_key"`
-	ClusterID uint `gorm:"unique_index:ux_cluster_id"`
+	ID        uint                 `gorm:"primary_key"`
+	ClusterID pkgCluster.ClusterID `gorm:"unique_index:ux_cluster_id"`
 
 	Version      string
 	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
@@ -242,7 +244,7 @@ type EKSClusterModel struct {
 
 //AKSClusterModel describes the aks cluster model
 type AKSClusterModel struct {
-	ID                uint `gorm:"primary_key"`
+	ID                pkgCluster.ClusterID `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
 	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterID"`
@@ -252,7 +254,7 @@ type AKSClusterModel struct {
 type AKSNodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	CreatedBy        uint
+	CreatedBy        pkgAuth.UserID
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	Autoscaling      bool
@@ -265,16 +267,16 @@ type AKSNodePoolModel struct {
 
 // DummyClusterModel describes the dummy cluster model
 type DummyClusterModel struct {
-	ID                uint `gorm:"primary_key"`
+	ID                pkgCluster.ClusterID `gorm:"primary_key"`
 	KubernetesVersion string
 	NodeCount         int
 }
 
 //KubernetesClusterModel describes the build your own cluster model
 type KubernetesClusterModel struct {
-	ID          uint              `gorm:"primary_key"`
-	Metadata    map[string]string `gorm:"-"`
-	MetadataRaw []byte            `gorm:"meta_data"`
+	ID          pkgCluster.ClusterID `gorm:"primary_key"`
+	Metadata    map[string]string    `gorm:"-"`
+	MetadataRaw []byte               `gorm:"meta_data"`
 }
 
 func (cs *ClusterModel) BeforeCreate() (err error) {
@@ -499,13 +501,13 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 }
 
 // UpdateConfigSecret updates the model's config secret id in database
-func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
+func (cs *ClusterModel) UpdateConfigSecret(configSecretId pkgSecret.SecretID) error {
 	cs.ConfigSecretId = configSecretId
 	return cs.Save()
 }
 
 // UpdateSshSecret updates the model's ssh secret id in database
-func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
+func (cs *ClusterModel) UpdateSshSecret(sshSecretId pkgSecret.SecretID) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
 }

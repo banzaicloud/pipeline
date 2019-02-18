@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
@@ -48,7 +49,7 @@ func CreateOKEClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, e
 }
 
 // CreateOKEClusterFromRequest creates ClusterModel struct from the request
-func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*OKECluster, error) {
+func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*OKECluster, error) {
 
 	var oke OKECluster
 
@@ -57,7 +58,7 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Location:       request.Location,
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
-		SecretId:       request.SecretId,
+		SecretId:       pkgSecret.SecretID(request.SecretId),
 		CreatedBy:      userId,
 		Distribution:   pkgCluster.OKE,
 	}
@@ -103,12 +104,12 @@ func (o *OKECluster) CreateCluster() error {
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (o *OKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+func (o *OKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
 	return nil
 }
 
 // UpdateCluster updates the cluster
-func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId uint) error {
+func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) error {
 
 	updated, err := o.PopulateNetworkValues(r.UpdateProperties.OKE, o.modelCluster.OKE.VCNID)
 	if err != nil {
@@ -209,7 +210,7 @@ func (o *OKECluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (o *OKECluster) GetDistribution() string {
+func (o *OKECluster) GetDistribution() pkgCluster.DistributionID {
 	return o.modelCluster.Distribution
 }
 
@@ -257,7 +258,7 @@ func getNodeCount(np *modelOracle.NodePool) int {
 }
 
 //GetID returns the specified cluster id
-func (o *OKECluster) GetID() uint {
+func (o *OKECluster) GetID() pkgCluster.ClusterID {
 	return o.modelCluster.ID
 }
 
@@ -315,7 +316,7 @@ func (o *OKECluster) DeleteFromDatabase() error {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (o *OKECluster) GetOrganizationId() uint {
+func (o *OKECluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return o.modelCluster.OrganizationId
 }
 
@@ -325,7 +326,7 @@ func (o *OKECluster) GetLocation() string {
 }
 
 //GetSecretId retrieves the secret id
-func (o *OKECluster) GetSecretId() string {
+func (o *OKECluster) GetSecretId() pkgSecret.SecretID {
 	return o.modelCluster.SecretId
 }
 
@@ -335,12 +336,12 @@ func (o *OKECluster) RequiresSshPublicKey() bool {
 }
 
 //GetSshSecretId retrieves the ssh secret id
-func (o *OKECluster) GetSshSecretId() string {
+func (o *OKECluster) GetSshSecretId() pkgSecret.SecretID {
 	return o.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (o *OKECluster) SaveSshSecretId(sshSecretId string) error {
+func (o *OKECluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	return o.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
@@ -395,12 +396,12 @@ func (o *OKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (o *OKECluster) SaveConfigSecretId(configSecretId string) error {
+func (o *OKECluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
 	return o.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (o *OKECluster) GetConfigSecretId() string {
+func (o *OKECluster) GetConfigSecretId() pkgSecret.SecretID {
 	return o.modelCluster.ConfigSecretId
 }
 
@@ -653,7 +654,7 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (o *OKECluster) GetCreatedBy() uint {
+func (o *OKECluster) GetCreatedBy() pkgAuth.UserID {
 	return o.modelCluster.CreatedBy
 }
 

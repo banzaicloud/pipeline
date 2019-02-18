@@ -20,10 +20,12 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -56,7 +58,7 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 			return
 		}
 
-		createClusterRequest.SecretId = secret.GenerateSecretIDFromName(createClusterRequest.SecretName)
+		createClusterRequest.SecretId = string(secret.GenerateSecretIDFromName(createClusterRequest.SecretName))
 	}
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
@@ -80,8 +82,8 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 func (a *ClusterAPI) CreateCluster(
 	ctx context.Context,
 	createClusterRequest *pkgCluster.CreateClusterRequest,
-	organizationID uint,
-	userID uint,
+	organizationID pkgAuth.OrganizationID,
+	userID pkgAuth.UserID,
 	postHooks []cluster.PostFunctioner,
 ) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
 	logger := a.logger.WithFields(logrus.Fields{
@@ -96,7 +98,7 @@ func (a *ClusterAPI) CreateCluster(
 
 		logger.Info("fill data from profile")
 
-		distribution := ""
+		distribution := pkgCluster.Unknown
 		switch createClusterRequest.Cloud {
 		case pkgCluster.Amazon:
 			distribution = pkgCluster.EKS
@@ -161,8 +163,8 @@ func (a *ClusterAPI) CreateCluster(
 		OrganizationID:  organizationID,
 		UserID:          userID,
 		Name:            createClusterRequest.Name,
-		SecretID:        createClusterRequest.SecretId,
-		SecretIDs:       createClusterRequest.SecretIds,
+		SecretID:        pkgSecret.SecretID(createClusterRequest.SecretId),
+		SecretIDs:       pkgSecret.StringsToSecretIDs(createClusterRequest.SecretIds),
 		Provider:        createClusterRequest.Cloud,
 		PostHooks:       postHooks,
 		ExternalBaseURL: a.externalBaseURL,

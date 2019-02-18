@@ -54,6 +54,7 @@ import (
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -282,7 +283,7 @@ func main() {
 	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, viper.GetString("github.token"), sharedSpotguideOrg)
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
-	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
+	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) {
 		if err := spotguideManager.ScrapeSpotguides(orgID, userID); err != nil {
 			log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
 		}

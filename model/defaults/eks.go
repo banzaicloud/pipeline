@@ -76,7 +76,7 @@ func (d *EKSProfile) GetCloud() string {
 }
 
 // GetDistribution returns profile's distribution type
-func (d *EKSProfile) GetDistribution() string {
+func (d *EKSProfile) GetDistribution() pkgCluster.DistributionID {
 	return pkgCluster.EKS
 }
 

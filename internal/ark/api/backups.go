@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"time"
 
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -39,11 +40,11 @@ type PersistBackupRequest struct {
 	BucketID uint
 
 	Cloud          string
-	Distribution   string
+	Distribution   pkgCluster.DistributionID
 	NodeCount      uint
 	ContentChecked bool
 
-	ClusterID    uint
+	ClusterID    pkgCluster.ClusterID
 	DeploymentID uint
 
 	Nodes  *core.NodeList
@@ -58,7 +59,7 @@ type Backup struct {
 	TTL              metav1.Duration                     `json:"ttl"`
 	Labels           labels.Set                          `json:"labels"`
 	Cloud            string                              `json:"cloud"`
-	Distribution     string                              `json:"distribution"`
+	Distribution     pkgCluster.DistributionID           `json:"distribution"`
 	Options          BackupOptions                       `json:"options,omitempty"`
 	Status           string                              `json:"status"`
 	StartAt          time.Time                           `json:"startAt"`
@@ -66,9 +67,9 @@ type Backup struct {
 	VolumeBackups    map[string]*arkAPI.VolumeBackupInfo `json:"volumeBackups,omitempty"`
 	ValidationErrors []string                            `json:"validationErrors,omitempty"`
 
-	ClusterID       uint    `json:"clusterId,omitempty"`
-	ActiveClusterID uint    `json:"activeClusterId,omitempty"`
-	Bucket          *Bucket `json:"-"`
+	ClusterID       pkgCluster.ClusterID `json:"clusterId,omitempty"`
+	ActiveClusterID pkgCluster.ClusterID `json:"activeClusterId,omitempty"`
+	Bucket          *Bucket              `json:"-"`
 }
 
 // DeleteBackupResponse describes a delete backup response
@@ -163,7 +164,7 @@ func (req *PersistBackupRequest) ExtendFromLabels() {
 	}
 
 	if req.Distribution == "" {
-		req.Distribution = req.Backup.Labels[LabelKeyDistribution]
+		req.Distribution = pkgCluster.DistributionID(req.Backup.Labels[LabelKeyDistribution])
 	}
 
 	if count, err := strconv.Atoi(req.Backup.Labels[LabelKeyNodeCount]); req.NodeCount == 0 && err == nil {

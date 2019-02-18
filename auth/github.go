@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
@@ -49,7 +50,7 @@ func NewGithubClient(accessToken string) *github.Client {
 	return github.NewClient(httpClient)
 }
 
-func GetUserGithubToken(userID uint) (string, error) {
+func GetUserGithubToken(userID pkgAuth.UserID) (string, error) {
 	token, err := TokenStore.Lookup(fmt.Sprint(userID), GithubTokenID)
 	if err != nil {
 		return "", emperror.Wrap(err, "failed to lookup user token")
@@ -62,7 +63,7 @@ func GetUserGithubToken(userID uint) (string, error) {
 	return token.Value, nil
 }
 
-func NewGithubClientForUser(userID uint) (*github.Client, error) {
+func NewGithubClientForUser(userID pkgAuth.UserID) (*github.Client, error) {
 	accessToken, err := GetUserGithubToken(userID)
 	if err != nil {
 		return nil, err

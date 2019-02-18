@@ -16,6 +16,8 @@ package cluster
 
 import (
 	"time"
+
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 const (
@@ -26,9 +28,9 @@ const (
 type StatusHistoryModel struct {
 	ID uint `gorm:"primary_key"`
 
-	ClusterID   uint      `gorm:"not null"`
-	ClusterName string    `gorm:"not null"`
-	CreatedAt   time.Time `gorm:"not null"`
+	ClusterID   pkgCluster.ClusterID `gorm:"not null"`
+	ClusterName string               `gorm:"not null"`
+	CreatedAt   time.Time            `gorm:"not null"`
 
 	FromStatus        string `gorm:"not null"`
 	FromStatusMessage string `sql:"type:text;" gorm:"not null"`

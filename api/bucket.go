@@ -25,10 +25,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -45,10 +47,10 @@ const (
 
 // secretData secret representation
 type secretData struct {
-	SecretId         string `json:"id"`
-	SecretName       string `json:"name,omitempty"`
-	AccessSecretId   string `json:"accessId,omitempty"`
-	AccessSecretName string `json:"accessName,omitempty"`
+	SecretId         pkgSecret.SecretID `json:"id"`
+	SecretName       string             `json:"name,omitempty"`
+	AccessSecretId   pkgSecret.SecretID `json:"accessId,omitempty"`
+	AccessSecretName string             `json:"accessName,omitempty"`
 }
 
 // BucketResponseItem encapsulates bucket and secret details to be returned
@@ -470,17 +472,17 @@ func hasSecret(c *gin.Context) bool {
 func getBucketContext(c *gin.Context, logger logrus.FieldLogger) (*auth.Organization, *secret.SecretItemResponse, string, bool) {
 	organization := auth.GetCurrentOrganization(c.Request)
 
-	var secretID string
-	var ok bool
+	var secretID pkgSecret.SecretID
 
 	secretName := c.GetHeader(secretNameHeader)
 	if secretName != "" {
 		secretID = secret.GenerateSecretIDFromName(secretName)
 	} else {
-		secretID, ok = ginutils.GetRequiredHeader(c, secretIdHeader)
+		secretIDValue, ok := ginutils.GetRequiredHeader(c, secretIdHeader)
 		if !ok {
 			return nil, nil, "", false
 		}
+		secretID = pkgSecret.SecretID(secretIDValue)
 	}
 
 	provider, ok := ginutils.RequiredQueryOrAbort(c, "cloudType")
@@ -519,7 +521,7 @@ func (err SecretNotFoundError) Error() string {
 
 // getValidatedSecret looks up the secret by secretId under the given organisation
 // it also verifies if the found secret is of appropriate type for the given cloud provider
-func getValidatedSecret(organizationId uint, secretId, cloudType string) (*secret.SecretItemResponse, error) {
+func getValidatedSecret(organizationId pkgAuth.OrganizationID, secretId pkgSecret.SecretID, cloudType string) (*secret.SecretItemResponse, error) {
 	retrievedSecret, err := secret.Store.Get(organizationId, secretId)
 
 	if err != nil {
@@ -561,7 +563,7 @@ func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) 
 }
 
 // bucketsResponse decorates and formats the list of buckets to be returned
-func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretName bool) []*BucketResponseItem {
+func bucketsResponse(buckets []*objectstore.BucketInfo, orgid pkgAuth.OrganizationID, withSecretName bool) []*BucketResponseItem {
 	bucketItems := make([]*BucketResponseItem, 0)
 
 	for _, bucket := range buckets {
@@ -668,7 +670,7 @@ func (err BucketNotFoundError) NotFound() bool {
 }
 
 // newBucketResponseItemFromBucketInfo builds a responsItem based opn the provided bucketInfo
-func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint, withSecretName bool) *BucketResponseItem {
+func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid pkgAuth.OrganizationID, withSecretName bool) *BucketResponseItem {
 	var (
 		secretName       string
 		accessSecretName string

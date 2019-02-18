@@ -18,6 +18,7 @@ import (
 	"context"
 	stderrors "errors"
 
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -28,13 +29,13 @@ import (
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
 type CreationContext struct {
-	OrganizationID  uint
-	UserID          uint
+	OrganizationID  pkgAuth.OrganizationID
+	UserID          pkgAuth.UserID
 	ExternalBaseURL string
 	Name            string
 	Provider        string
-	SecretID        string
-	SecretIDs       []string
+	SecretID        secretTypes.SecretID
+	SecretIDs       []secretTypes.SecretID
 	PostHooks       []PostFunctioner
 }
 

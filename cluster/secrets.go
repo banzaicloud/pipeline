@@ -18,13 +18,14 @@ import (
 	stderrors "errors"
 
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -43,7 +44,7 @@ func InstallSecrets(cc CommonCluster, query *secretTypes.ListSecretsQuery, names
 }
 
 // InstallSecretsByK8SConfig is the same as InstallSecrets but use this if you already have a K8S config at hand.
-func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secretTypes.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
+func InstallSecretsByK8SConfig(kubeConfig []byte, orgID pkgAuth.OrganizationID, query *secretTypes.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
 
 	// Values are always needed in this case
 	query.Values = true
@@ -159,7 +160,7 @@ func InstallSecret(cc CommonCluster, secretName string, req InstallSecretRequest
 }
 
 // InstallSecretByK8SConfig is the same as InstallSecret but use this if you already have a K8S config at hand.
-func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
+func InstallSecretByK8SConfig(kubeConfig []byte, orgID pkgAuth.OrganizationID, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
 	clusterClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create kubernetes client")
@@ -229,7 +230,7 @@ func MergeSecret(cc CommonCluster, secretName string, req InstallSecretRequest) 
 }
 
 // MergeSecretByK8SConfig is the same as MergeSecret but use this if you already have a K8S config at hand.
-func MergeSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
+func MergeSecretByK8SConfig(kubeConfig []byte, orgID pkgAuth.OrganizationID, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
 	clusterClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create kubernetes client")

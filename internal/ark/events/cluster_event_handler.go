@@ -20,6 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/ark"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
 
 // ClusterEventHandler is for handling cluster events
@@ -37,7 +38,7 @@ func NewClusterEventHandler(events clusterEvents, db *gorm.DB, logger logrus.Fie
 		logger: logger,
 	}
 
-	eh.events.NotifyClusterDeleted(func(orgID uint, clusterName string) {
+	eh.events.NotifyClusterDeleted(func(orgID pkgAuth.OrganizationID, clusterName string) {
 		eh.DeleteStaleARKDeployments(orgID)
 	})
 
@@ -45,7 +46,7 @@ func NewClusterEventHandler(events clusterEvents, db *gorm.DB, logger logrus.Fie
 }
 
 // RemoveStaleDeployments deletes stale ARK deployment records from database
-func (eh *ClusterEventHandler) DeleteStaleARKDeployments(orgID uint) error {
+func (eh *ClusterEventHandler) DeleteStaleARKDeployments(orgID pkgAuth.OrganizationID) error {
 	var deployments []*ark.ClusterBackupDeploymentsModel
 
 	eh.logger.WithField("org", orgID).Debug("removing stale ark deployment records")
