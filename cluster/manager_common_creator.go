@@ -85,7 +85,7 @@ type pkeCreator struct {
 func (c *pkeCreator) Create(ctx context.Context) error {
 	var externalBaseURL string
 	var ok bool
-	if externalBaseURL, ok = ctx.Value("ExternalBaseURL").(string); !ok {
+	if externalBaseURL, ok = ctx.Value(ExternalBaseURLKey).(string); !ok {
 		return errors.New("externalBaseURL missing from context")
 	}
 	input := pkeworkflow.CreateClusterWorkflowInput{

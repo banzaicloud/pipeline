@@ -59,7 +59,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		return "", err
 	}
 
-	imageID := defaultImageIDs[cluster.GetLocation()]
+	imageID := getDefaultImageID(cluster.GetLocation())
 	if input.Pool.ImageID != "" {
 		imageID = input.Pool.ImageID
 	}

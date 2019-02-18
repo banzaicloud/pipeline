@@ -60,7 +60,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", err
 	}
 
-	imageID := defaultImageIDs[cluster.GetLocation()]
+	imageID := getDefaultImageID(cluster.GetLocation())
 	if input.Pool.ImageID != "" {
 		imageID = input.Pool.ImageID
 	}

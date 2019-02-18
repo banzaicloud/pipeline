@@ -39,6 +39,10 @@ type CreationContext struct {
 	PostHooks       []PostFunctioner
 }
 
+type contextKey string
+
+const ExternalBaseURLKey = contextKey("ExternalBaseURL")
+
 var ErrAlreadyExists = stderrors.New("cluster already exists with this name")
 
 type clusterCreator interface {
@@ -132,7 +136,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
-		ctx = context.WithValue(ctx, "ExternalBaseURL", creationCtx.ExternalBaseURL)
+		ctx = context.WithValue(ctx, ExternalBaseURLKey, creationCtx.ExternalBaseURL)
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
 			errorHandler.Handle(err)
