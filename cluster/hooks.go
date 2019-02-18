@@ -36,7 +36,6 @@ import (
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -48,7 +47,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -105,7 +104,7 @@ func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 	var kubeConfig []byte
 	for i := 0; i < retryCount; i++ {
 		kubeConfig, err = cluster.DownloadK8sConfig()
-		if err != nil && err != pkgError.ErrorFunctionShouldNotBeCalled {
+		if err != nil {
 			log.Infof("Error getting kubernetes config attempt %d/%d: %s. Waiting %d seconds", i, retryCount, err.Error(), retrySleepTime)
 			time.Sleep(time.Duration(retrySleepTime) * time.Second)
 			continue
