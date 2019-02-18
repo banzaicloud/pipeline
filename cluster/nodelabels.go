@@ -15,8 +15,8 @@
 package cluster
 
 import (
-	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
 	"github.com/banzaicloud/pipeline/config"
@@ -131,9 +131,14 @@ func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse
 }
 
 func isReservedDomainKey(labelKey string) bool {
-	reservedNodeLabelDomains := viper.GetStringSlice(pipConfig.ReservedNodeLabelDomains)
+	pipelineLabelDomain := viper.GetString(pipConfig.PipelineLabelDomain)
+	if strings.Contains(labelKey, pipelineLabelDomain) {
+		return true
+	}
+
+	reservedNodeLabelDomains := viper.GetStringSlice(pipConfig.ForbiddenLabelDomains)
 	for _, reservedDomain := range reservedNodeLabelDomains {
-		if match, _ := regexp.MatchString(reservedDomain, labelKey); match {
+		if strings.Contains(labelKey, reservedDomain) {
 			return true
 		}
 	}

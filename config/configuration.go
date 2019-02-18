@@ -56,8 +56,11 @@ const (
 	HeadNodeTaintRetryAttempt      = "infra.headNodeTaintRetryAttempt"
 	HeadNodeTaintRetrySleepSeconds = "infra.headNodeTaintRetrySleepSeconds"
 
-	//ReservedNodeLabelDomains reserved node pool label domains
-	ReservedNodeLabelDomains = "infra.reservedNodeLabelDomains"
+	//PipelineLabelDomain reserved node pool label domains
+	PipelineLabelDomain = "infra.pipelineLabelDomain"
+
+	//ForbiddenLabelDomains reserved node pool label domains
+	ForbiddenLabelDomains = "infra.forbiddenLabelDomains"
 
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
@@ -266,13 +269,11 @@ func init() {
 
 	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.1")
 
-	viper.SetDefault(ReservedNodeLabelDomains, []string{
-		".?banzaicloud.io/.?",
-		".?banzaicloud.com/.?",
-		".?k8s.io/.?",
-		".?kubernetes.io/.?",
-		".?google.com/.?",
-		".?agentpool.?",
+	viper.SetDefault(PipelineLabelDomain, "banzaicloud.io")
+	viper.SetDefault(ForbiddenLabelDomains, []string{
+		"k8s.io",
+		"kubernetes.io",
+		"google.com",
 	})
 
 	// Find and read the config file

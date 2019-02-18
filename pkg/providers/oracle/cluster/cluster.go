@@ -22,8 +22,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var versionRegexp = regexp.MustCompile("^v\\d+\\.\\d+\\.\\d+")
-
 // Cluster describes Pipeline's Oracle fields of a Create/Update request
 type Cluster struct {
 	Version   string               `json:"version" yaml:"version"`
@@ -170,7 +168,6 @@ func (c *Cluster) Validate(update bool) error {
 
 // isValidVersion validates the given K8S version
 func isValidVersion(version string) bool {
-	isOk := versionRegexp.MatchString(version)
-
+	isOk, _ := regexp.MatchString("^v\\d+\\.\\d+\\.\\d+", version)
 	return isOk
 }

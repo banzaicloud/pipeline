@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"github.com/banzaicloud/pipeline/config"
+	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
@@ -24,13 +25,26 @@ import (
 )
 
 type nodePoolLabelSetOperatorConfig struct {
-	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
-	Affinity    v1.Affinity     `json:"affinity,omitempty"`
+	Tolerations   []v1.Toleration `json:"tolerations,omitempty"`
+	Affinity      v1.Affinity     `json:"affinity,omitempty"`
+	Configuration configuration   `json:"configuration,omitempty"`
+}
+
+type configuration struct {
+	// Labeler configuration
+	Labeler labelerConfig `mapstructure:"labeler"`
+}
+
+type labelerConfig struct {
+	// ForbiddenLabelDomains holds the forbidden domain names, the labeler won't set matching labels
+	ForbiddenLabelDomains []string `mapstructure:"forbiddenLabelDomains"`
 }
 
 // InstallNodePoolLabelSetOperator deploys node pool label set operator.
 func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	reservedNodeLabelDomains := viper.GetStringSlice(pipConfig.ForbiddenLabelDomains)
+
 	headNodeAffinity := getHeadNodeAffinity(cluster)
 	headNodeTolerations := getHeadNodeTolerations()
 
@@ -40,6 +54,11 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	config := nodePoolLabelSetOperatorConfig{
 		Tolerations: headNodeTolerations,
 		Affinity:    headNodeAffinity,
+		Configuration: configuration{
+			Labeler: labelerConfig{
+				ForbiddenLabelDomains: reservedNodeLabelDomains,
+			},
+		},
 	}
 
 	overrideValues, err := yaml.Marshal(config)

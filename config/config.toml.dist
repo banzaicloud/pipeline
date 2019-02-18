@@ -138,13 +138,10 @@ namespace = "pipeline-system"
 headNodeTaintRetryAttempt=30
 headNodeTaintRetrySleepSeconds=5
 
-reservedNodeLabelDomains=[
-		".?banzaicloud.io/.?",
-		".?banzaicloud.com/.?",
-		".?k8s.io/.?",
-		".?kubernetes.io/.?",
-		".?google.com/.?",
-		".?agentpool.?"
+forbiddenLabelDomains=[
+		"k8s.io",
+		"kubernetes.io",
+		"google.com"
 ]
 
 [eks]
