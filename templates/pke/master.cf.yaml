@@ -63,6 +63,7 @@ Resources:
       IamInstanceProfile: !Ref IamInstanceProfile
       SecurityGroupIds:
       - !Ref MasterSecurityGroup
+      - !Ref ClusterSecurityGroup
       BlockDeviceMappings:
       - DeviceName: /dev/sda1
         Ebs:
