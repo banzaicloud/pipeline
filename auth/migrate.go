@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/casbin/gorm-adapter"
+	gormadapter "github.com/casbin/gorm-adapter"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
