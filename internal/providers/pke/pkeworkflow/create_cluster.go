@@ -134,20 +134,17 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	var masterInstanceType, masterAvailabilityZone string
+	var masterAvailabilityZone string
 	var master NodePool
 	for _, np := range nodePools {
 		if np.Master {
 			master = np
-			if len(np.AvailabilityZones) <= 0 {
-				return errors.New(fmt.Sprintf("missing availability zone from nodepool %q", np.Name))
+			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
+				return errors.New(fmt.Sprintf("missing availability zone for nodepool %q", np.Name))
 			}
 			masterAvailabilityZone = np.AvailabilityZones[0]
 			break
 		}
-	}
-	if masterInstanceType == "" || masterAvailabilityZone == "" {
-		return errors.New("missing instance type or availability zone for master node")
 	}
 
 	var masterStackID string
