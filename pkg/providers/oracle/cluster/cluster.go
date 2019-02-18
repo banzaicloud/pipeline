@@ -26,9 +26,9 @@ type Cluster struct {
 	Version   string               `json:"version" yaml:"version"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 
-	vcnID       string
-	lbSubnetID1 string
-	lbSubnetID2 string
+	VCNID       string `json:"vcnId,omitempty" yaml:"vcnId,omitempty"`
+	LBSubnetID1 string `json:"lbSubnetId1,omitempty" yaml:"lbSubnetId2,omitempty"`
+	LBSubnetID2 string `json:"lbSubnetId2,omitempty" yaml:"lbSubnetId2,omitempty"`
 }
 
 // NodePool describes Oracle's node fields of a Create/Update request
@@ -39,44 +39,44 @@ type NodePool struct {
 	Image   string            `json:"image,omitempty" yaml:"image,omitempty"`
 	Shape   string            `json:"shape,omitempty" yaml:"shape,omitempty"`
 
-	subnetIds         []string
+	SubnetIDs         []string `json:"subnetIds,omitempty" yaml:"subnetIds,omitempty"`
 	quantityPerSubnet uint
 }
 
 // SetVCNID sets VCNID
 func (c *Cluster) SetVCNID(id string) {
 
-	c.vcnID = id
+	c.VCNID = id
 }
 
 // GetVCNID gets VCNID
 func (c *Cluster) GetVCNID() (id string) {
 
-	return c.vcnID
+	return c.VCNID
 }
 
 // SetLBSubnetID1 sets LBSubnetID1
 func (c *Cluster) SetLBSubnetID1(id string) {
 
-	c.lbSubnetID1 = id
+	c.LBSubnetID1 = id
 }
 
 // GetLBSubnetID1 gets LBSubnetID1
 func (c *Cluster) GetLBSubnetID1() (id string) {
 
-	return c.lbSubnetID1
+	return c.LBSubnetID1
 }
 
 // SetLBSubnetID2 sets LBSubnetID2
 func (c *Cluster) SetLBSubnetID2(id string) {
 
-	c.lbSubnetID2 = id
+	c.LBSubnetID2 = id
 }
 
 // GetLBSubnetID2 gets LBSubnetID2
 func (c *Cluster) GetLBSubnetID2() (id string) {
 
-	return c.lbSubnetID2
+	return c.LBSubnetID2
 }
 
 // SetQuantityPerSubnet sets QuantityPerSubnet
@@ -94,13 +94,13 @@ func (np *NodePool) GetQuantityPerSubnet() (q uint) {
 // SetSubnetIDs sets SubnetIDs
 func (np *NodePool) SetSubnetIDs(ids []string) {
 
-	np.subnetIds = ids
+	np.SubnetIDs = ids
 }
 
 // GetSubnetIDs gets SubnetIDs
 func (np *NodePool) GetSubnetIDs() (ids []string) {
 
-	return np.subnetIds
+	return np.SubnetIDs
 }
 
 // AddDefaults adds default values to the request
