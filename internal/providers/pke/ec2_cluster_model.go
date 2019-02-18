@@ -59,7 +59,7 @@ func (m *EC2PKEClusterModel) BeforeDelete(tx *gorm.DB) error {
 		}
 	}
 
-	if e = tx.Where(NodePool{ClusterID: m.ID}).Delete(m.NodePools).Error; e != nil {
+	if e = tx.Where(NodePool{ClusterID: m.ClusterID}).Delete(m.NodePools).Error; e != nil {
 		return emperror.WrapWith(e, "failed to delete nodepools", "nodepools", m.NodePools)
 	}
 
