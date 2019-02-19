@@ -96,3 +96,10 @@ func (c *Cluster) SaveNetworkApiServerAddress(host, port string) error {
 	}
 	return errors.New(fmt.Sprintf("failed to cast cluster to AWSCluster, got type: %T", c.CommonCluster))
 }
+
+func (c *Cluster) GetSshPublicKey() (string, error) {
+	if pke, ok := c.CommonCluster.(*cluster.EC2ClusterPKE); ok {
+		return pke.GetSshPublicKey()
+	}
+	return "", errors.New(fmt.Sprintf("failed to cast cluster to EC2ClusterPKE, got type: %T", c.CommonCluster))
+}

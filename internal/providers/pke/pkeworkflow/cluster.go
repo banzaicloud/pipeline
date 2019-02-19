@@ -17,6 +17,7 @@ type Cluster interface {
 	GetOrganizationId() uint
 	UpdateStatus(string, string) error
 	GetNodePools() []NodePool
+	GetSshPublicKey() (string, error)
 }
 
 type AWSCluster interface {

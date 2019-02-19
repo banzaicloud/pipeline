@@ -115,6 +115,14 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
+	var keyName string
+	UploadSSHKeyPairActivityInput := UploadSSHKeyPairActivityInput{
+		ClusterID: input.ClusterID,
+	}
+	if err := workflow.ExecuteActivity(ctx, UploadSSHKeyPairActivityName, UploadSSHKeyPairActivityInput).Get(ctx, &keyName); err != nil {
+		return err
+	}
+
 	var masterInstanceType, masterAvailabilityZone string
 	for _, np := range nodePools {
 		if np.Master {

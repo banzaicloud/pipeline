@@ -145,6 +145,12 @@ func (c *EC2ClusterPKE) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
+// RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
+// the cluster
+func (c *EC2ClusterPKE) RequiresSshPublicKey() bool {
+	return true
+}
+
 func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId string) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
@@ -154,6 +160,15 @@ func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId string) error {
 	}
 
 	return nil
+}
+
+func (c *EC2ClusterPKE) GetSshPublicKey() (string, error) {
+	sshSecret, err := c.getSshSecret(c)
+	if err != nil {
+		return "", err
+	}
+	sshKey := secret.NewSSHKeyPair(sshSecret)
+	return sshKey.PublicKeyData, nil
 }
 
 func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
