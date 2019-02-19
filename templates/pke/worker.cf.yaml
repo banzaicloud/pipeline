@@ -12,18 +12,6 @@ Parameters:
   InstanceType:
     Description: EC2 instance type(s)
     Type: String
-    AllowedValues:
-    - c5.large
-    - c5.xlarge
-    - c5.2xlarge
-    - c5.4xlarge
-    - c5.9xlarge
-    - c4.large
-    - c4.xlarge
-    - c4.2xlarge
-    - c4.4xlarge
-    - c4.8xlarge
-    ConstraintDescription: must be a valid EC2 instance type.
   ImageId:
     Type: 'AWS::EC2::Image::Id'
     Description: Amazon image
@@ -63,12 +51,20 @@ Parameters:
     Type: Number
     Default: 1
     Description: Initial count of nodes in the pool
+  NodeSpotPrice:
+    Type: String
+    Description: The spot price for this ASG
+
+Conditions:
+  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
+
 Resources:
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       KeyName: !Ref KeyName
       InstanceType: !Ref InstanceType
+      SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
       ImageId: !Ref ImageId
       IamInstanceProfile: !Ref IamInstanceProfile
       AssociatePublicIpAddress: true

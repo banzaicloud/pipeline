@@ -24,7 +24,7 @@ Parameters:
     - c4.2xlarge
     - c4.4xlarge
     - c4.8xlarge
-    ConstraintDescription: must be a valid EC2 instance type.
+    ConstraintDescription: must be a valid PKE supported EC2 instance type.
   ImageId:
     Type: 'AWS::EC2::Image::Id'
     Description: Amazon image

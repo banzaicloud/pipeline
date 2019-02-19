@@ -18,6 +18,7 @@ import (
 	"context"
 	stderrors "errors"
 
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -28,15 +29,19 @@ import (
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
 type CreationContext struct {
-	OrganizationID  uint
-	UserID          uint
+	OrganizationID  pkgAuth.OrganizationID
+	UserID          pkgAuth.UserID
 	ExternalBaseURL string
 	Name            string
 	Provider        string
-	SecretID        string
-	SecretIDs       []string
+	SecretID        secretTypes.SecretID
+	SecretIDs       []secretTypes.SecretID
 	PostHooks       []PostFunctioner
 }
+
+type contextKey string
+
+const ExternalBaseURLKey = contextKey("ExternalBaseURL")
 
 var ErrAlreadyExists = stderrors.New("cluster already exists with this name")
 
@@ -131,7 +136,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
-		ctx = context.WithValue(ctx, "ExternalBaseURL", creationCtx.ExternalBaseURL)
+		ctx = context.WithValue(ctx, ExternalBaseURLKey, creationCtx.ExternalBaseURL)
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
 			errorHandler.Handle(err)

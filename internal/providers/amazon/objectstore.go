@@ -110,10 +110,8 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (a
 }
 
 func (s *objectStore) getLogger() logrus.FieldLogger {
-	var sId string
-	if s.secret == nil {
-		sId = ""
-	} else {
+	var sId pkgSecret.SecretID
+	if s.secret != nil {
 		sId = s.secret.ID
 	}
 

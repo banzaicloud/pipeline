@@ -31,12 +31,14 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk/action"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -196,7 +198,7 @@ func (c *ACSKCluster) GetAlibabaVPCClient(cfg *sdk.Config) (*vpc.Client, error) 
 	return client, emperror.With(err, "cluster", c.modelCluster.Name)
 }
 
-func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
+func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId pkgAuth.UserID) ([]*model.ACSKNodePoolModel, error) {
 	nodePoolsCount := len(pools)
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided
@@ -219,7 +221,7 @@ func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model
 	return res, nil
 }
 
-func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
+func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.NodePools, userId pkgAuth.UserID) ([]*model.ACSKNodePoolModel, error) {
 	currentNodePoolMap := make(map[string]*model.ACSKNodePoolModel, len(c.modelCluster.ACSK.NodePools))
 	updatedNodePools := make([]*model.ACSKNodePoolModel, 0, len(pools))
 
@@ -295,7 +297,7 @@ func CreateACSKClusterFromModel(clusterModel *model.ClusterModel) (*ACSKCluster,
 	return &alibabaCluster, nil
 }
 
-func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId, userId uint) (*ACSKCluster, error) {
+func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*ACSKCluster, error) {
 	cluster := ACSKCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -311,7 +313,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 		Cloud:          request.Cloud,
 		Distribution:   pkgCluster.ACSK,
 		OrganizationId: orgId,
-		SecretId:       request.SecretId,
+		SecretId:       pkgSecret.SecretID(request.SecretId),
 		ACSK: model.ACSKClusterModel{
 			RegionID:                 request.Properties.CreateClusterACSK.RegionID,
 			ZoneID:                   request.Properties.CreateClusterACSK.ZoneID,
@@ -452,32 +454,6 @@ func (c *ACSKCluster) getVPCID() (string, error) {
 	return res.VSwitches.VSwitch[0].VpcId, nil
 }
 
-type setSchemeSetDomainer interface {
-	SetScheme(string)
-	SetDomain(string)
-}
-
-func setEndpoint(req setSchemeSetDomainer) {
-	req.SetScheme(requests.HTTPS)
-	req.SetDomain(acsk.AlibabaApiDomain)
-}
-
-func getClusterDetails(client *cs.Client, clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
-	req := cs.CreateDescribeClusterDetailRequest()
-	setEndpoint(req)
-	req.ClusterId = clusterID
-	resp, err := client.DescribeClusterDetail(req)
-	if err != nil {
-		return nil, emperror.WrapWith(err, "could not get cluster details", "clusterId", clusterID)
-	}
-	if !resp.IsSuccess() || resp.GetHttpStatus() < 200 || resp.GetHttpStatus() > 299 {
-		return nil, emperror.Wrapf(err, "unexpected http status code: %d", resp.GetHttpStatus())
-	}
-
-	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
-	return r, emperror.WrapWith(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
-}
-
 type alibabaConnectionInfo struct {
 	JumpHost    string
 	IntranetURI string
@@ -485,7 +461,7 @@ type alibabaConnectionInfo struct {
 }
 
 func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnectionInfo, err error) {
-	details, err := getClusterDetails(client, clusterID)
+	details, err := action.GetClusterDetails(client, clusterID)
 	if err != nil {
 		return
 	}
@@ -586,7 +562,7 @@ func (c *ACSKCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *ACSKCluster) GetDistribution() string {
+func (c *ACSKCluster) GetDistribution() pkgCluster.DistributionID {
 	return c.modelCluster.Distribution
 }
 
@@ -672,7 +648,7 @@ func (c *ACSKCluster) DeleteCluster() error {
 	return nil
 }
 
-func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
+func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) error {
 	c.log.Info("Start updating cluster (Alibaba)")
 
 	csClient, err := c.GetAlibabaCSClient(nil)
@@ -751,11 +727,11 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *ACSKCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+func (c *ACSKCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
 	return nil
 }
 
-func (c *ACSKCluster) GetID() uint {
+func (c *ACSKCluster) GetID() pkgCluster.ClusterID {
 	return c.modelCluster.ID
 }
 
@@ -763,11 +739,11 @@ func (c *ACSKCluster) GetUID() string {
 	return c.modelCluster.UID
 }
 
-func (c *ACSKCluster) GetSecretId() string {
+func (c *ACSKCluster) GetSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SecretId
 }
 
-func (c *ACSKCluster) GetSshSecretId() string {
+func (c *ACSKCluster) GetSshSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SshSecretId
 }
 
@@ -776,7 +752,7 @@ func (c *ACSKCluster) GetLocation() string {
 	return c.modelCluster.Location
 }
 
-func (c *ACSKCluster) SaveSshSecretId(sshSecretId string) error {
+func (c *ACSKCluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
@@ -839,7 +815,7 @@ func (c *ACSKCluster) DeleteFromDatabase() error {
 	return nil
 }
 
-func (c *ACSKCluster) GetOrganizationId() uint {
+func (c *ACSKCluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return c.modelCluster.OrganizationId
 }
 
@@ -854,7 +830,7 @@ func (c *ACSKCluster) IsReady() (bool, error) {
 		return false, err
 	}
 
-	r, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
+	r, err := action.GetClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
 		return false, err
 	}
@@ -1077,11 +1053,11 @@ func (c *ACSKCluster) GetSecretWithValidation() (*secret.SecretItemResponse, err
 	return c.CommonClusterBase.getSecret(c)
 }
 
-func (c *ACSKCluster) SaveConfigSecretId(configSecretId string) error {
+func (c *ACSKCluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
-func (c *ACSKCluster) GetConfigSecretId() string {
+func (c *ACSKCluster) GetConfigSecretId() pkgSecret.SecretID {
 	return c.modelCluster.ConfigSecretId
 }
 
@@ -1093,7 +1069,7 @@ func (c *ACSKCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
 		return nil, emperror.Wrap(err, "failed to get alibaba CS client")
 	}
 
-	cluster, err := getClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
+	cluster, err := action.GetClusterDetails(client, c.modelCluster.ACSK.ProviderClusterID)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get cluster details")
 	}
@@ -1171,6 +1147,6 @@ func createAlibabaVPCClient(auth *credentials.AccessKeyCredential, regionID stri
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *ACSKCluster) GetCreatedBy() uint {
+func (c *ACSKCluster) GetCreatedBy() pkgAuth.UserID {
 	return c.modelCluster.CreatedBy
 }

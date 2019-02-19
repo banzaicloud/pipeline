@@ -16,6 +16,7 @@ package issue
 import (
 	"github.com/pkg/errors"
 
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/spf13/viper"
 )
 
@@ -26,7 +27,7 @@ type VersionInformation struct {
 }
 
 type Issuer interface {
-	CreateIssue(userID uint, organization, title, body string, userLabels []string) error
+	CreateIssue(userID pkgAuth.UserID, organization, title, body string, userLabels []string) error
 }
 
 func NewIssuer(version VersionInformation) (Issuer, error) {

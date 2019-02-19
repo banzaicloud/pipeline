@@ -20,6 +20,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 type NodePools []NodePool
@@ -27,9 +30,9 @@ type NodePools []NodePool
 type NodePool struct {
 	NodePoolID uint `gorm:"primary_key;name:id"`
 	CreatedAt  time.Time
-	CreatedBy  uint
+	CreatedBy  pkgAuth.UserID
 
-	ClusterID uint `gorm:"foreignkey:ClusterIDl;association_foreignkey:ClusterID;unique_index:idx_cluster_id_name"`
+	ClusterID pkgCluster.ClusterID `gorm:"foreignkey:ClusterIDl;association_foreignkey:ClusterID;unique_index:idx_cluster_id_name"`
 
 	Name           string           `yaml:"name" gorm:"unique_index:idx_cluster_id_name"`
 	Roles          Roles            `yaml:"roles" gorm:"type:varchar(255)"`
@@ -124,7 +127,7 @@ type Hosts []Host
 type Host struct {
 	ID        uint `gorm:"primary_key"`
 	CreatedAt time.Time
-	CreatedBy uint
+	CreatedBy pkgAuth.UserID
 
 	NodePoolID uint `gorm:"name:nodepool_id;foreignkey:NodePoolID"`
 

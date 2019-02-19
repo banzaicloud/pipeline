@@ -23,6 +23,7 @@ import (
 )
 
 // HookMap for api hook endpoints
+// nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
 	pkgCluster.StoreKubeConfig: &BasePostFunction{
 		f:            StoreKubeConfig,
@@ -105,6 +106,7 @@ var HookMap = map[string]PostFunctioner{
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
+// nolint: gochecknoglobals
 var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.StoreKubeConfig],
 	HookMap[pkgCluster.SetupPrivileges],

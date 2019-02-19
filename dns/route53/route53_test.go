@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 	"github.com/banzaicloud/pipeline/auth"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -33,22 +34,22 @@ import (
 )
 
 const (
-	testOrgId                uint = 1
-	testOrgName                   = "testorg"
-	testBaseDomain                = "domain"
-	testDomain                    = "test.domain"
-	testDomainInUse               = "inuse.domain"
-	testDomainMismatch            = "domain.mismatch"
-	testPolicyArn                 = "testpolicyarn"
-	testHostedZoneIdShort         = "testhostedzone1"
-	testBaseHostedZoneId          = "/hostedzone/testhostedzonebase"
-	testHostedZoneId              = "/hostedzone/testhostedzone1"
-	testInUseHostedZoneId         = "/hostedzone/inuse.hostedzone.id"
-	testMismatchHostedZoneId      = "/hostedzone/mismatch.hostedzone.id"
-	testIamUser                   = "a05932df.r53.testorg" // getHashedControlPlaneHostName("example.org")
-	testAccessKeyId               = "testaccesskeyid1"
-	testAccessSecretKey           = "testsecretkey1"
-	testPolicyDocument            = `{
+	testOrgId                pkgAuth.OrganizationID = 1
+	testOrgName                                     = "testorg"
+	testBaseDomain                                  = "domain"
+	testDomain                                      = "test.domain"
+	testDomainInUse                                 = "inuse.domain"
+	testDomainMismatch                              = "domain.mismatch"
+	testPolicyArn                                   = "testpolicyarn"
+	testHostedZoneIdShort                           = "testhostedzone1"
+	testBaseHostedZoneId                            = "/hostedzone/testhostedzonebase"
+	testHostedZoneId                                = "/hostedzone/testhostedzone1"
+	testInUseHostedZoneId                           = "/hostedzone/inuse.hostedzone.id"
+	testMismatchHostedZoneId                        = "/hostedzone/mismatch.hostedzone.id"
+	testIamUser                                     = "a05932df.r53.testorg" // getHashedControlPlaneHostName("example.org")
+	testAccessKeyId                                 = "testaccesskeyid1"
+	testAccessSecretKey                             = "testsecretkey1"
+	testPolicyDocument                              = `{
 		"Version": "2012-10-17",
 		"Statement": [{
 				"Effect": "Allow",
@@ -82,6 +83,7 @@ const (
 	tcCleanup                    = "Cleanup"
 )
 
+// nolint: gochecknoglobals
 var (
 	testDomainStateCreated = &domainState{
 		organisationId: testOrgId,
@@ -185,7 +187,7 @@ func (stateStore *inMemoryStateStore) update(state *domainState) error {
 	return nil
 }
 
-func (stateStore *inMemoryStateStore) find(orgId uint, domain string, state *domainState) (bool, error) {
+func (stateStore *inMemoryStateStore) find(orgId pkgAuth.OrganizationID, domain string, state *domainState) (bool, error) {
 	key := stateKey(orgId, domain)
 
 	s, ok := stateStore.orgDomains[key]
@@ -215,7 +217,7 @@ func (stateStore *inMemoryStateStore) findByStatus(status string) ([]domainState
 	return res, nil
 }
 
-func (stateStore *inMemoryStateStore) findByOrgId(orgId uint, state *domainState) (bool, error) {
+func (stateStore *inMemoryStateStore) findByOrgId(orgId pkgAuth.OrganizationID, state *domainState) (bool, error) {
 
 	for _, v := range stateStore.orgDomains {
 		if v.organisationId == orgId {
@@ -252,7 +254,7 @@ func (stateStore *inMemoryStateStore) delete(state *domainState) error {
 	return nil
 }
 
-func stateKey(orgId uint, domain string) string {
+func stateKey(orgId pkgAuth.OrganizationID, domain string) string {
 	return fmt.Sprintf("%d-%s", orgId, domain)
 }
 
@@ -1167,6 +1169,6 @@ func cleanupVaultTestSecrets() {
 
 }
 
-func getTestOrgById(orgId uint) (*auth.Organization, error) {
+func getTestOrgById(orgId pkgAuth.OrganizationID) (*auth.Organization, error) {
 	return &auth.Organization{ID: testOrgId, Name: testOrgName}, nil
 }

@@ -26,6 +26,27 @@ import (
 
 const CreateClusterWorkflowName = "pke-create-cluster"
 
+func getDefaultImageID(region string) string {
+	return map[string]string{
+		"eu-north-1":     "ami-b133bccf",
+		"ap-south-1":     "ami-1780a878",
+		"eu-west-3":      "ami-262e9f5b",
+		"eu-west-2":      "ami-00846a67",
+		"eu-west-1":      "ami-3548444c",
+		"ap-northeast-2": "ami-bf9c36d1",
+		"ap-northeast-1": "ami-8e8847f1",
+		"sa-east-1":      "ami-cb5803a7",
+		"ca-central-1":   "ami-e802818c",
+		"ap-southeast-1": "ami-8e0205f2",
+		"ap-southeast-2": "ami-d8c21dba",
+		"eu-central-1":   "ami-dd3c0f36",
+		"us-east-1":      "ami-77ec9308",
+		"us-east-2":      "ami-9c0638f9",
+		"us-west-1":      "ami-4826c22b",
+		"us-west-2":      "ami-3ecc8f46",
+	}[region]
+}
+
 type CreateClusterWorkflowInput struct {
 	ClusterID           uint
 	PipelineExternalURL string
@@ -123,32 +144,30 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	var masterInstanceType, masterAvailabilityZone string
+	var masterAvailabilityZone string
+	var master NodePool
 	for _, np := range nodePools {
 		if np.Master {
-			masterInstanceType = np.InstanceType
-			if len(np.AvailabilityZones) <= 0 {
-				return errors.New(fmt.Sprintf("missing availability zone from nodepool %q", np.Name))
+			master = np
+			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
+				return errors.New(fmt.Sprintf("missing availability zone for nodepool %q", np.Name))
 			}
 			masterAvailabilityZone = np.AvailabilityZones[0]
 			break
 		}
-	}
-	if masterInstanceType == "" || masterAvailabilityZone == "" {
-		return errors.New("missing instance type or availability zone for master node")
 	}
 
 	var masterStackID string
 	// TODO refactor network things
 	createMasterActivityInput := CreateMasterActivityInput{
 		ClusterID:             input.ClusterID,
-		InstanceType:          masterInstanceType,
 		AvailabilityZone:      masterAvailabilityZone,
 		VPCID:                 vpcOutput["VpcId"],
 		SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
 		EIPAllocationID:       eip.AllocationId,
 		MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
 		ExternalBaseUrl:       input.PipelineExternalURL,
+		Pool:                  master,
 	}
 	if err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, createMasterActivityInput).Get(ctx, &masterStackID); err != nil {
 		return err

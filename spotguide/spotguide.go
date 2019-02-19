@@ -34,6 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/secret"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
@@ -53,8 +54,9 @@ const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
-var IgnoredPaths = []string{".circleci", ".github"}
+var IgnoredPaths = []string{".circleci", ".github"} // nolint: gochecknoglobals
 
+// nolint: gochecknoglobals
 var ctx = context.Background()
 
 type SpotguideYAML struct {
@@ -69,16 +71,16 @@ type SpotguideYAML struct {
 type Question map[string]interface{}
 
 type SpotguideRepo struct {
-	ID               uint      `json:"id" gorm:"primary_key"`
-	OrganizationID   uint      `json:"organizationId" gorm:"unique_index:name_and_version"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
-	Name             string    `json:"name" gorm:"unique_index:name_and_version"`
-	DisplayName      string    `json:"displayName" gorm:"-"`
-	Icon             []byte    `json:"-" gorm:"type:mediumblob"`
-	Readme           string    `json:"readme" gorm:"type:mediumtext"`
-	Version          string    `json:"version" gorm:"unique_index:name_and_version"`
-	SpotguideYAMLRaw []byte    `json:"-" gorm:"type:text"`
+	ID               uint                   `json:"id" gorm:"primary_key"`
+	OrganizationID   pkgAuth.OrganizationID `json:"organizationId" gorm:"unique_index:name_and_version"`
+	CreatedAt        time.Time              `json:"createdAt"`
+	UpdatedAt        time.Time              `json:"updatedAt"`
+	Name             string                 `json:"name" gorm:"unique_index:name_and_version"`
+	DisplayName      string                 `json:"displayName" gorm:"-"`
+	Icon             []byte                 `json:"-" gorm:"type:mediumblob"`
+	Readme           string                 `json:"readme" gorm:"type:mediumtext"`
+	Version          string                 `json:"version" gorm:"unique_index:name_and_version"`
+	SpotguideYAMLRaw []byte                 `json:"-" gorm:"type:text"`
 	SpotguideYAML    `gorm:"-"`
 }
 
@@ -95,7 +97,7 @@ func (r SpotguideRepo) Key() SpotguideRepoKey {
 }
 
 type SpotguideRepoKey struct {
-	OrganizationID uint
+	OrganizationID pkgAuth.OrganizationID
 	Name           string
 	Version        string
 }
@@ -198,7 +200,7 @@ func (s *SpotguideManager) ScrapeSharedSpotguides() error {
 	return s.scrapeSpotguides(s.sharedLibraryOrganization, githubClient)
 }
 
-func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
+func (s *SpotguideManager) ScrapeSpotguides(orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) error {
 	githubClient, err := auth.NewGithubClientForUser(userID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create GitHub client")
@@ -331,7 +333,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 	return nil
 }
 
-func (s *SpotguideManager) GetSpotguides(orgID uint) (spotguides []*SpotguideRepo, err error) {
+func (s *SpotguideManager) GetSpotguides(orgID pkgAuth.OrganizationID) (spotguides []*SpotguideRepo, err error) {
 	query := s.db.Where(SpotguideRepo{OrganizationID: orgID})
 	if s.sharedLibraryOrganization != nil {
 		query = query.Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID})
@@ -341,7 +343,7 @@ func (s *SpotguideManager) GetSpotguides(orgID uint) (spotguides []*SpotguideRep
 	return spotguides, err
 }
 
-func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
+func (s *SpotguideManager) GetSpotguide(orgID pkgAuth.OrganizationID, name, version string) (*SpotguideRepo, error) {
 	query := s.db.Where(SpotguideRepo{OrganizationID: orgID, Name: name, Version: version})
 	if s.sharedLibraryOrganization != nil {
 		query = query.Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID, Name: name, Version: version})
@@ -356,8 +358,8 @@ func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*Spot
 	return &spotguide, nil
 }
 
-func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, httpRequest *http.Request, orgID, userID uint) error {
-	sourceRepo, err := s.GetSpotguide(orgID, request.SpotguideName, request.SpotguideVersion)
+func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Organization, user *auth.User) error {
+	sourceRepo, err := s.GetSpotguide(org.ID, request.SpotguideName, request.SpotguideVersion)
 	if err != nil {
 		return errors.Wrap(err, "failed to find spotguide repo")
 	}
@@ -365,27 +367,29 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, httpRequest *
 	// LaunchRequest might not have the version
 	request.SpotguideVersion = sourceRepo.Version
 
-	err = createSecrets(request, orgID, userID)
+	err = createSecrets(request, org.ID, user.ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to create secrets for spotguide")
 	}
 
-	githubClient, err := auth.NewGithubClientForUser(userID)
+	githubClient, err := auth.NewGithubClientForUser(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to create GitHub client")
 	}
 
-	err = createGithubRepo(githubClient, request, userID, sourceRepo)
+	err = createGithubRepo(githubClient, request, user.ID, sourceRepo)
 	if err != nil {
 		return errors.Wrap(err, "failed to create GitHub repository")
 	}
 
-	err = enableCICD(request, httpRequest)
+	cicdClient := auth.NewCICDClient(user.APIToken)
+
+	err = enableCICD(cicdClient, request, org.Name)
 	if err != nil {
 		return errors.Wrap(err, "failed to enable CI/CD for spotguide")
 	}
 
-	err = addSpotguideContent(githubClient, request, userID, sourceRepo)
+	err = addSpotguideContent(githubClient, request, user.ID, sourceRepo)
 	if err != nil {
 		return errors.Wrap(err, "failed to add spotguide content to repository")
 	}
@@ -504,7 +508,7 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 	return entries, nil
 }
 
-func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
+func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID pkgAuth.UserID, sourceRepo *SpotguideRepo) error {
 
 	repo := github.Repository{
 		Name:        github.String(request.RepoName),
@@ -528,7 +532,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 	return nil
 }
 
-func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
+func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID pkgAuth.UserID, sourceRepo *SpotguideRepo) error {
 
 	// An initial files have to be created with the API to be able to use the fresh repo
 	createFile := &github.RepositoryContentFileOptions{
@@ -588,7 +592,7 @@ func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, us
 	return nil
 }
 
-func createSecrets(request *LaunchRequest, orgID, userID uint) error {
+func createSecrets(request *LaunchRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) error {
 
 	repoTag := "repo:" + request.RepoFullname()
 
@@ -606,19 +610,14 @@ func createSecrets(request *LaunchRequest, orgID, userID uint) error {
 	return nil
 }
 
-func enableCICD(request *LaunchRequest, httpRequest *http.Request) error {
+func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) error {
 
-	cicdClient, err := auth.NewCICDClient(httpRequest)
-	if err != nil {
-		return errors.Wrap(err, "failed to create CICD client")
-	}
-
-	_, err = cicdClient.RepoListOpts(true, true)
+	_, err := cicdClient.RepoListOpts(true, true)
 	if err != nil {
 		return errors.Wrap(err, "failed to sync CICD repositories")
 	}
 
-	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName)
+	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName, org)
 	if err != nil {
 		return errors.Wrap(err, "failed to enable CICD repository")
 	}

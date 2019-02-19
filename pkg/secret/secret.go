@@ -15,8 +15,19 @@
 package secret
 
 import (
+	"database/sql/driver"
+
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
+
+// SecretID represents the identifier of a secret
+type SecretID string
+
+// Value returns the value of the ID
+func (id SecretID) Value() (driver.Value, error) {
+	// TODO: remove Valuer implementation when mysql driver version is >=1.4
+	return string(id), nil
+}
 
 // FieldMeta describes how a secret field should be validated
 type FieldMeta struct {
@@ -145,6 +156,7 @@ const (
 )
 
 // ForbiddenTags are not supported in secret creation
+// nolint: gochecknoglobals
 var ForbiddenTags = []string{
 	TagKubeConfig,
 }
@@ -169,6 +181,7 @@ const (
 )
 
 // DefaultRules key matching for types
+// nolint: gochecknoglobals
 var DefaultRules = map[string]Meta{
 	cluster.Alibaba: {
 		Fields: []FieldMeta{
@@ -294,10 +307,10 @@ var DefaultRules = map[string]Meta{
 
 // ListSecretsQuery represent a secret listing filter
 type ListSecretsQuery struct {
-	Type   string   `form:"type" json:"type"`
-	IDs    []string `form:"ids" json:"ids"`
-	Tags   []string `form:"tags" json:"tags"`
-	Values bool     `form:"values" json:"values"`
+	Type   string     `form:"type" json:"type"`
+	IDs    []SecretID `form:"ids" json:"ids"`
+	Tags   []string   `form:"tags" json:"tags"`
+	Values bool       `form:"values" json:"values"`
 }
 
 // InstallSecretsToClusterRequest describes an InstallSecretToCluster request
@@ -320,4 +333,12 @@ const (
 type K8SSourceMeta struct {
 	Name     string         `json:"name"`
 	Sourcing SourcingMethod `json:"sourcing"`
+}
+
+func StringsToSecretIDs(secretIDs []string) []SecretID {
+	res := make([]SecretID, len(secretIDs))
+	for i, id := range secretIDs {
+		res[i] = SecretID(id)
+	}
+	return res
 }

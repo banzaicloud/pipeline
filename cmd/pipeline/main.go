@@ -54,10 +54,10 @@ import (
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	gormadapter "github.com/casbin/gorm-adapter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -67,7 +67,10 @@ import (
 )
 
 //Common logger for package
+// nolint: gochecknoglobals
 var log *logrus.Logger
+
+// nolint: gochecknoglobals
 var logger *logrus.Entry
 
 func initLog() *logrus.Entry {
@@ -78,19 +81,19 @@ func initLog() *logrus.Entry {
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		if CommitHash == "" {
-			fmt.Println("version: ", Version, " built on ", BuildDate)
+		if commitHash == "" {
+			fmt.Println("version: ", version, " built on ", buildDate)
 		} else {
-			fmt.Printf("version: %s-%s built on %s\n", Version, CommitHash, BuildDate)
+			fmt.Printf("version: %s-%s built on %s\n", version, commitHash, buildDate)
 		}
 		os.Exit(0)
 	}
 
 	logger = initLog()
 	logger.WithFields(logrus.Fields{
-		"version":     Version,
-		"commit_hash": CommitHash,
-		"build_date":  BuildDate,
+		"version":     version,
+		"commit_hash": commitHash,
+		"build_date":  buildDate,
 	}).Info("Pipeline initialization")
 	errorHandler := config.ErrorHandler()
 
@@ -101,18 +104,10 @@ func main() {
 		logger.Panic(err.Error())
 	}
 
-	casbinDSN, err := config.CasbinDSN()
-	if err != nil {
-		logger.Panic(err.Error())
-	}
-
 	basePath := viper.GetString("pipeline.basepath")
 
-	casbinAdapter := gormadapter.NewAdapter("mysql", casbinDSN, true)
-	enforcer := intAuth.NewEnforcer(casbinAdapter)
-	enforcer.StartAutoLoadPolicy(10 * time.Second)
+	enforcer := intAuth.NewEnforcer(db)
 	accessManager := intAuth.NewAccessManager(enforcer, basePath)
-
 	accessManager.AddDefaultPolicies()
 
 	githubImporter := auth.NewGithubImporter(db, accessManager, config.EventBus)
@@ -267,12 +262,12 @@ func main() {
 	auth.Install(router, tokenHandler.GenerateToken)
 	auth.StartTokenStoreGC()
 
-	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath)
+	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath, errorHandler)
 
 	dgroup := base.Group(path.Join("dashboard", "orgs"))
 	dgroup.Use(auth.Handler)
-	dgroup.Use(authorizationMiddleware)
 	dgroup.Use(api.OrganizationMiddleware)
+	dgroup.Use(authorizationMiddleware)
 	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
 
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
@@ -285,10 +280,10 @@ func main() {
 		log.Errorf("failed to create shared Spotguide organization: %s", err)
 	}
 
-	spotguideManager := spotguide.NewSpotguideManager(config.DB(), Version, viper.GetString("github.token"), sharedSpotguideOrg)
+	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, viper.GetString("github.token"), sharedSpotguideOrg)
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
-	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
+	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) {
 		if err := spotguideManager.ScrapeSpotguides(orgID, userID); err != nil {
 			log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
 		}
@@ -317,10 +312,10 @@ func main() {
 		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
-		v1.Use(authorizationMiddleware)
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)
+			orgs.Use(authorizationMiddleware)
 
 			orgs.GET("/:orgid/spotguides", spotguideAPI.GetSpotguides)
 			orgs.PUT("/:orgid/spotguides", middleware.NewRateLimiterByOrgID(api.SyncSpotguidesRateLimit), spotguideAPI.SyncSpotguides)
@@ -473,7 +468,7 @@ func main() {
 
 	base.GET("api", api.MetaHandler(router, basePath+"/api"))
 
-	issueHandler, err := api.NewIssueHandler(Version, CommitHash, BuildDate)
+	issueHandler, err := api.NewIssueHandler(version, commitHash, buildDate)
 	if err != nil {
 		panic(err)
 	}

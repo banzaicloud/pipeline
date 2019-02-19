@@ -17,6 +17,5 @@ ignored = [
   "github.com/uber-go/tally", # MIT
 
   "github.com/davecgh/go-spew", # ISC license
-  "github.com/howeyc/gopass", # ISC license
   "github.com/oracle/oci-go-sdk", # UPL-1.0
 ]

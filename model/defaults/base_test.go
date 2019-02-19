@@ -101,6 +101,7 @@ const (
 	k8sVersion       = "TestKubernetesVersion"
 )
 
+// nolint: gochecknoglobals
 var (
 	fullRequestGKE = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
@@ -167,6 +168,7 @@ var (
 	}
 )
 
+// nolint: gochecknoglobals
 var (
 	masterRequestGKE = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
@@ -188,6 +190,7 @@ var (
 	}
 )
 
+// nolint: gochecknoglobals
 var (
 	nodeRequestGKE = &pkgCluster.ClusterProfileRequest{
 		Name:     name,
@@ -220,6 +223,7 @@ var (
 	}
 )
 
+// nolint: gochecknoglobals
 var (
 	emptyRequestGKE = &pkgCluster.ClusterProfileRequest{
 		Name:       name,

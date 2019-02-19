@@ -135,6 +135,7 @@ const (
 	dummyReleaseName   = "vetoed-ibis"
 )
 
+// nolint: gochecknoglobals
 var (
 	serviceForIngress = &v1.ServiceList{
 		Items: []v1.Service{{
@@ -254,6 +255,8 @@ var (
 		},
 	}
 )
+
+// nolint: gochecknoglobals
 var (
 	ingressListWithMultipleLoadBalancer = &v1beta1.IngressList{
 		Items: []v1beta1.Ingress{{
@@ -290,6 +293,8 @@ var (
 		}},
 	}
 )
+
+// nolint: gochecknoglobals
 var (
 	expectedEndpointListWithHostName = []*pkgHelm.EndpointItem{{
 		Name:         "serviceListWithHostName",
@@ -362,6 +367,7 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 	}
 }
 
+// nolint: gochecknoglobals
 var (
 	serviceListWithPendingLoadBalancer = &v1.ServiceList{
 		Items: []v1.Service{{

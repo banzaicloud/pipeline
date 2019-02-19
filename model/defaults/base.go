@@ -70,7 +70,7 @@ type ClusterProfile interface {
 	IsDefinedBefore() bool
 	SaveInstance() error
 	GetCloud() string
-	GetDistribution() string
+	GetDistribution() pkgCluster.DistributionID
 	GetProfile() *pkgCluster.ClusterProfileResponse
 	UpdateProfile(*pkgCluster.ClusterProfileRequest, bool) error
 	DeleteProfile() error
@@ -126,7 +126,7 @@ func GetDefaultProfiles() []ClusterProfile {
 }
 
 // GetAllProfiles loads all saved cluster profile from database by given cloud type
-func GetAllProfiles(distribution string) ([]ClusterProfile, error) {
+func GetAllProfiles(distribution pkgCluster.DistributionID) ([]ClusterProfile, error) {
 
 	var defaults []ClusterProfile
 	db := config.DB()
@@ -169,7 +169,7 @@ func GetAllProfiles(distribution string) ([]ClusterProfile, error) {
 }
 
 // GetProfile finds cluster profile from database by given name and cloud type
-func GetProfile(distribution string, name string) (ClusterProfile, error) {
+func GetProfile(distribution pkgCluster.DistributionID, name string) (ClusterProfile, error) {
 	db := config.DB()
 
 	switch distribution {

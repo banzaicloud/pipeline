@@ -98,7 +98,7 @@ func (d *AKSProfile) GetCloud() string {
 }
 
 // GetDistribution returns profile's distribution type
-func (d *AKSProfile) GetDistribution() string {
+func (d *AKSProfile) GetDistribution() pkgCluster.DistributionID {
 	return pkgCluster.AKS
 }
 

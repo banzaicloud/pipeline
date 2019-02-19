@@ -50,6 +50,7 @@ type CreateWorkerPoolActivityInput struct {
 	WorkerInstanceProfile string
 	ClusterSecurityGroup  string
 	ExternalBaseUrl       string
+	ImageID               string
 }
 
 func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWorkerPoolActivityInput) (string, error) {
@@ -59,6 +60,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", err
 	}
 
+	imageID := getDefaultImageID(cluster.GetLocation())
+	if input.Pool.ImageID != "" {
+		imageID = input.Pool.ImageID
+	}
 	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
 
 	awsCluster, ok := cluster.(AWSCluster)
@@ -124,7 +129,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("ImageId"),
-				ParameterValue: aws.String("ami-dd3c0f36"),
+				ParameterValue: aws.String(imageID),
 			},
 			{
 				ParameterKey:   aws.String("PkeVersion"),
@@ -149,6 +154,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			{
 				ParameterKey:   aws.String("ClusterSecurityGroup"),
 				ParameterValue: aws.String(input.ClusterSecurityGroup),
+			},
+			{
+				ParameterKey:   aws.String("NodeSpotPrice"),
+				ParameterValue: aws.String(input.Pool.SpotPrice),
 			},
 		},
 	}

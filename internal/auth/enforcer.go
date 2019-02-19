@@ -15,36 +15,42 @@
 package auth
 
 import (
-	"github.com/casbin/casbin"
-	"github.com/casbin/casbin/persist"
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
 )
 
-const modelDefinition = `
-[request_definition]
-r = sub, obj, act
+type basicEnforcer struct {
+	db *gorm.DB
+}
 
-[policy_definition]
-p = sub, obj, act
+func (e *basicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, method string) (bool, error) {
+	if user == nil {
+		return false, nil
+	}
 
-[role_definition]
-g = _, _
+	if org == nil {
+		return true, nil
+	}
 
-[policy_effect]
-e = some(where (p.eft == allow))
+	if user.ID == 0 {
+		orgName := auth.GetOrgNameFromVirtualUser(user.Login)
+		return org.Name == orgName, nil
+	}
 
-[matchers]
-m = g(r.sub, p.sub) && keyMatch(r.obj, p.obj) && (r.act == p.act || p.act == "*")
-`
+	err := e.db.Model(user).Where(org).Related(org, "Organizations").Error
 
-const logging = false
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return false, nil
+		}
+		return false, emperror.Wrap(err, "failed to query user's organizations from db")
+	}
+
+	return true, nil
+}
 
 // NewEnforcer returns a new enforcer.
-func NewEnforcer(adapter persist.Adapter) *casbin.SyncedEnforcer {
-	model := casbin.NewModel(modelDefinition)
-
-	enforcer := casbin.NewSyncedEnforcer()
-	enforcer.EnableLog(logging)
-	enforcer.InitWithModelAndAdapter(model, adapter)
-
-	return enforcer
+func NewEnforcer(db *gorm.DB) Enforcer {
+	return &basicEnforcer{db: db}
 }

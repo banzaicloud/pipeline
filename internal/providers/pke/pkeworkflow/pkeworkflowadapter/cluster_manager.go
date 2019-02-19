@@ -51,6 +51,14 @@ type Cluster struct {
 
 var _ pkeworkflow.AWSCluster = (*Cluster)(nil)
 
+func (c *Cluster) GetID() uint {
+	return uint(c.CommonCluster.GetID())
+}
+
+func (c *Cluster) GetOrganizationId() uint {
+	return uint(c.CommonCluster.GetOrganizationId())
+}
+
 func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 	clusterNodePools := c.CommonCluster.(interface{ GetNodePools() []cluster.PKENodePool }).GetNodePools()
 	nodePools := make([]pkeworkflow.NodePool, len(clusterNodePools), len(clusterNodePools))
@@ -64,6 +72,8 @@ func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 			Worker:            np.Worker,
 			InstanceType:      np.InstanceType,
 			AvailabilityZones: np.AvailabilityZones,
+			ImageID:           np.ImageID,
+			SpotPrice:         np.SpotPrice,
 		}
 	}
 	return nodePools

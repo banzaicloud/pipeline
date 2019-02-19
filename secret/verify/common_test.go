@@ -98,6 +98,7 @@ const (
 	testRegion             = "testRegion"
 )
 
+// nolint: gochecknoglobals
 var (
 	awsCredentialsMap = map[string]string{
 		pkgSecret.AwsAccessKeyId:     testAwsAccessKeyId,

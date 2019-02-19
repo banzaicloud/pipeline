@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
@@ -88,7 +89,7 @@ func (t IdentityType) Value() (driver.Value, error)  { return string(t), nil }
 
 //User struct
 type User struct {
-	ID            uint           `gorm:"primary_key" json:"id"`
+	ID            pkgAuth.UserID `gorm:"primary_key" json:"id"`
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
 	Name          string         `form:"name" json:"name,omitempty"`
@@ -97,6 +98,7 @@ type User struct {
 	Image         string         `form:"image" json:"image,omitempty"`
 	Organizations []Organization `gorm:"many2many:user_organizations" json:"organizations,omitempty"`
 	Virtual       bool           `json:"-" gorm:"-"` // Used only internally
+	APIToken      string         `json:"-" gorm:"-"` // Used only internally
 }
 
 //CICDUser struct
@@ -116,21 +118,21 @@ type CICDUser struct {
 
 // UserOrganization describes the user organization
 type UserOrganization struct {
-	UserID         uint
-	OrganizationID uint
+	UserID         pkgAuth.UserID
+	OrganizationID pkgAuth.OrganizationID
 	Role           string `gorm:"default:'admin'"`
 }
 
 //Organization struct
 type Organization struct {
-	ID        uint      `gorm:"primary_key" json:"id"`
-	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Name      string    `gorm:"unique;not null" json:"name"`
-	Provider  string    `gorm:"not null" json:"provider"`
-	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
-	Role      string    `json:"-" gorm:"-"` // Used only internally
+	ID        pkgAuth.OrganizationID `gorm:"primary_key" json:"id"`
+	GithubID  *int64                 `gorm:"unique" json:"githubId,omitempty"`
+	CreatedAt time.Time              `json:"createdAt"`
+	UpdatedAt time.Time              `json:"updatedAt"`
+	Name      string                 `gorm:"unique;not null" json:"name"`
+	Provider  string                 `gorm:"not null" json:"provider"`
+	Users     []User                 `gorm:"many2many:user_organizations" json:"users,omitempty"`
+	Role      string                 `json:"-" gorm:"-"` // Used only internally
 }
 
 //IDString returns the ID as string
@@ -151,6 +153,10 @@ func (CICDUser) TableName() string {
 // GetCurrentUser returns the current user
 func GetCurrentUser(req *http.Request) *User {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {
+		if currentUser != nil && currentUser.APIToken == "" {
+			apiToken, _ := parseRawTokenFromRequest(req)
+			currentUser.APIToken = apiToken
+		}
 		return currentUser
 	}
 	return nil
@@ -164,7 +170,8 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 	return nil
 }
 
-func newCICDClient(apiToken string) cicd.Client {
+// NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
+func NewCICDClient(apiToken string) cicd.Client {
 	cicdURL := viper.GetString("cicd.url")
 	config := new(oauth2.Config)
 	client := config.Client(
@@ -187,18 +194,7 @@ func NewTemporaryCICDClient(login string) (cicd.Client, error) {
 		return nil, err
 	}
 
-	return newCICDClient(cicdAPIToken), nil
-}
-
-// NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
-func NewCICDClient(request *http.Request) (cicd.Client, error) {
-	cicdAPIToken, err := parseCICDTokenFromRequest(request)
-	if err != nil {
-		log.Errorln("Failed to parse CICD token", err.Error())
-		return nil, err
-	}
-
-	return newCICDClient(cicdAPIToken), nil
+	return NewCICDClient(cicdAPIToken), nil
 }
 
 //BanzaiUserStorer struct
@@ -495,9 +491,9 @@ func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []org
 	return nil
 }
 
-func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
+func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[pkgAuth.OrganizationID]bool, error) {
 
-	orgIDs := make(map[uint]bool, len(orgs))
+	orgIDs := make(map[pkgAuth.OrganizationID]bool, len(orgs))
 
 	tx := db.Begin()
 	for _, org := range orgs {
@@ -558,7 +554,7 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organizati
 }
 
 // GetOrganizationById returns an organization from database by ID
-func GetOrganizationById(orgID uint) (*Organization, error) {
+func GetOrganizationById(orgID pkgAuth.OrganizationID) (*Organization, error) {
 	db := config.DB()
 	var org Organization
 	err := db.Find(&org, Organization{ID: orgID}).Error
@@ -574,7 +570,7 @@ func GetOrganizationByName(name string) (*Organization, error) {
 }
 
 // GetUserById returns user
-func GetUserById(userId uint) (*User, error) {
+func GetUserById(userId pkgAuth.UserID) (*User, error) {
 	db := config.DB()
 	var user User
 	err := db.Find(&user, User{ID: userId}).Error
@@ -590,7 +586,7 @@ func GetUserByLoginName(login string) (*User, error) {
 }
 
 // GetUserNickNameById returns user's login name
-func GetUserNickNameById(userId uint) (userName string) {
+func GetUserNickNameById(userId pkgAuth.UserID) (userName string) {
 	if user, err := GetUserById(userId); err != nil {
 		log.Warnf("Error during getting user name: %s", err.Error())
 	} else {
@@ -600,15 +596,15 @@ func GetUserNickNameById(userId uint) (userName string) {
 	return
 }
 
-func parseCICDTokenFromRequest(r *http.Request) (string, error) {
+func parseRawTokenFromRequest(r *http.Request) (string, error) {
 	var token = r.Header.Get("Authorization")
 
 	// first we attempt to get the token from the
 	// authorization header.
 	if len(token) != 0 {
 		token = r.Header.Get("Authorization")
-		fmt.Sscanf(token, "Bearer %s", &token)
-		return token, nil
+		_, err := fmt.Sscanf(token, "Bearer %s", &token)
+		return token, err
 	}
 
 	// then we attempt to get the token from the

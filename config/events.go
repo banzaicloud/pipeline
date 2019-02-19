@@ -19,4 +19,5 @@ import (
 )
 
 // EventBus is the global EventBus dispatcher object
+// nolint: gochecknoglobals
 var EventBus = evbus.New()

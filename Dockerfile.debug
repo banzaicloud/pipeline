@@ -1,16 +1,23 @@
-FROM golang:1.11-alpine
+FROM golang:1.11-alpine AS builder
+
 RUN apk add --update --no-cache ca-certificates git
+
 RUN go get -d github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
 RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     git checkout 981ecbe && \
     go install ./cmd/aws-iam-authenticator
+
 RUN go get github.com/derekparker/delve/cmd/dlv
 
 FROM alpine:3.8
+
 RUN apk add --no-cache ca-certificates tzdata libc6-compat
-COPY --from=0 /go/bin/aws-iam-authenticator /usr/bin/
-COPY --from=0 /go/bin/dlv /
-COPY build/pipeline-debug /
+
+COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
+COPY --from=builder /go/bin/dlv /
+
+COPY build/debug/pipeline /
+COPY build/debug/worker /
 COPY views /views/
 COPY templates/eks /templates/eks
 

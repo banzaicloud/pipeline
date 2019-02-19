@@ -19,7 +19,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -34,7 +33,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
-	"github.com/casbin/gorm-adapter"
 	"github.com/goph/emperror"
 	"github.com/oklog/run"
 	"github.com/pkg/errors"
@@ -132,15 +130,9 @@ func main() {
 			conf.Logger(),
 			errorHandler,
 		)
-		casbinDSN, err := database.GetDSN(config.Database)
-		if err != nil {
-			emperror.Panic(err)
-		}
-		casbinAdapter := gormadapter.NewAdapter("mysql", casbinDSN, true)
-		enforcer := intAuth.NewEnforcer(casbinAdapter)
-		enforcer.StartAutoLoadPolicy(10 * time.Second)
+		enforcer := intAuth.NewEnforcer(db)
 		accessManager := intAuth.NewAccessManager(enforcer, config.Pipeline.BasePath)
-		tokenGenerator := auth.NewTokenHandler(accessManager)
+		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewTokenHandler(accessManager))
 		auth.Init(nil, accessManager, nil)
 		auth.InitTokenStore()
 

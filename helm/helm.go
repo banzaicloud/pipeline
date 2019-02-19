@@ -66,9 +66,11 @@ const SystemNamespace = "kube-system"
 const versionAll = "all"
 
 // ErrRepoNotFound describe an error if helm repository not found
+// nolint: gochecknoglobals
 var ErrRepoNotFound = errors.New("helm repository not found!")
 
 // DefaultInstallOptions contains th default install options used for creating a new helm deployment
+// nolint: gochecknoglobals
 var DefaultInstallOptions = []helm.InstallOption{
 	helm.InstallReuseName(true),
 	helm.InstallDisableHooks(false),
@@ -195,6 +197,7 @@ func DeleteAllDeployment(kubeconfig []byte) error {
 	return nil
 }
 
+// nolint: gochecknoglobals
 var deploymentCache = cache.New(30*time.Minute, 5*time.Minute)
 
 //ListDeployments lists Helm deployments

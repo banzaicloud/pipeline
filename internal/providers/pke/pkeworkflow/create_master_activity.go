@@ -43,27 +43,33 @@ func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator) *
 
 type CreateMasterActivityInput struct {
 	ClusterID             uint
-	InstanceType          string
 	AvailabilityZone      string
 	VPCID                 string
 	SubnetID              string
 	EIPAllocationID       string
 	MasterInstanceProfile string
 	ExternalBaseUrl       string
+	Pool                  NodePool
 }
 
 func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterActivityInput) (string, error) {
 	log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
-	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return "", err
 	}
-	awsCluster, ok := c.(AWSCluster)
-	if !ok {
-		return "", errors.New(fmt.Sprintf("can't create VPC for cluster type %t", c))
+
+	imageID := getDefaultImageID(cluster.GetLocation())
+	if input.Pool.ImageID != "" {
+		imageID = input.Pool.ImageID
 	}
 
-	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(c.GetOrganizationId(), c.GetID())
+	awsCluster, ok := cluster.(AWSCluster)
+	if !ok {
+		return "", errors.New(fmt.Sprintf("can't create VPC for cluster type %t", cluster))
+	}
+
+	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
 	if err != nil {
 		return "", emperror.Wrap(err, "can't generate Pipeline token")
 	}
@@ -84,7 +90,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 	if err != nil {
 		return "", emperror.Wrap(err, "loading CF template")
 	}
-	clusterName := c.GetName()
+	clusterName := cluster.GetName()
 	stackName := "pke-master-" + clusterName
 	stackInput := &cloudformation.CreateStackInput{
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityAutoExpand}),
@@ -101,7 +107,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 			},
 			{
 				ParameterKey:   aws.String("InstanceType"),
-				ParameterValue: aws.String(input.InstanceType),
+				ParameterValue: aws.String(input.Pool.InstanceType),
 			},
 			{
 				ParameterKey:   aws.String("AvailabilityZone"),
@@ -129,7 +135,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 			},
 			{
 				ParameterKey:   aws.String("ImageId"),
-				ParameterValue: aws.String("ami-dd3c0f36"),
+				ParameterValue: aws.String(imageID),
 			},
 			{
 				ParameterKey:   aws.String("PkeVersion"),

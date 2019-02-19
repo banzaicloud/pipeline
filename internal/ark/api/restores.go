@@ -15,6 +15,7 @@
 package api
 
 import (
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -23,7 +24,7 @@ import (
 // PersistRestoreRequest describes a persist restore request
 type PersistRestoreRequest struct {
 	BucketID  uint
-	ClusterID uint
+	ClusterID pkgCluster.ClusterID
 
 	Results *RestoreResults
 	Restore *arkAPI.Restore

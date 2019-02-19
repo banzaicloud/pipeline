@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/banzaicloud/pipeline/pkg/auth"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
@@ -56,7 +57,7 @@ func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input Genera
 			pkgSecret.TagBanzaiHidden,
 		},
 	}
-	_, err = secret.Store.GetOrCreate(c.GetOrganizationId(), req)
+	_, err = secret.Store.GetOrCreate(auth.OrganizationID(c.GetOrganizationId()), req)
 	if err != nil {
 		return err
 	}

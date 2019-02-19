@@ -40,6 +40,7 @@ const (
 	userId = 1
 )
 
+// nolint: gochecknoglobals
 var (
 	clusterModelWithNilNodePools = &google.GKEClusterModel{NodeVersion: nodeVersion}
 
@@ -252,6 +253,7 @@ func TestUpdateVersions(t *testing.T) {
 
 }
 
+// nolint: gochecknoglobals
 var (
 	okVersionsIn = []string{
 		"1.9.7-gke.0",

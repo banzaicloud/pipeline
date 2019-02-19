@@ -113,7 +113,7 @@ func (d *Profile) GetCloud() string {
 }
 
 // GetDistribution returns profile's distribution type
-func (d *Profile) GetDistribution() string {
+func (d *Profile) GetDistribution() pkgCluster.DistributionID {
 	return pkgCluster.OKE
 }
 

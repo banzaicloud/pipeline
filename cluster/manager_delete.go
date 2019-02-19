@@ -47,7 +47,7 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
 
-		err := m.deleteCluster(ctx, cluster, force)
+		err := m.deleteCluster(context.Background(), cluster, force)
 		if err != nil {
 			errorHandler.Handle(err)
 			return
