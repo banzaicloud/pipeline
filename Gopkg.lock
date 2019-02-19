@@ -300,7 +300,7 @@
   revision = "12df4a18567f1e9635135cdc241c6917795e2cc7"
 
 [[projects]]
-  digest = "1:1044eaf6fccb1e2e156e3c0f11bafdb170f92629520fe199ca48504c857ae78a"
+  digest = "1:de23312715221b61362a6bff82467126b74ac77722bd9994274c75779e0789d5"
   name = "github.com/banzaicloud/nodepool-labels-operator"
   packages = [
     "pkg/apis/nodepoollabelset",
@@ -311,8 +311,8 @@
     "pkg/npls",
   ]
   pruneopts = "NUT"
-  revision = "6db8f536362771547d1933b4fd2fac379e7a2ba5"
-  version = "0.0.1"
+  revision = "a13c1b05f240e7b478c62f6bbb9422b1d690d11a"
+  version = "0.0.2"
 
 [[projects]]
   branch = "master"

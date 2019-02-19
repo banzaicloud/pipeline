@@ -283,4 +283,4 @@
 
 [[constraint]]
   name = "github.com/banzaicloud/nodepool-labels-operator"
-  version = "0.0.1"
+  version = "0.0.2"
