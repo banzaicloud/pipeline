@@ -58,7 +58,7 @@ func main() {
 
 		os.Exit(0)
 	}
-
+	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	_, configFileNotFound := err.(viper.ConfigFileNotFoundError)
 	if !configFileNotFound {
