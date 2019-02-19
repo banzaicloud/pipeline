@@ -25,34 +25,37 @@ import (
 	"github.com/pkg/errors"
 )
 
-const DeleteWorkerPoolActivityName = "pke-delete-aws-worker-role-activity"
+const DeletePoolActivityName = "pke-delete-aws-pool-activity"
 
-type DeleteWorkerPoolActivity struct {
+type DeletePoolActivity struct {
 	clusters Clusters
 }
 
-func NewDeleteWorkerPoolActivity(clusters Clusters) *DeleteWorkerPoolActivity {
-	return &DeleteWorkerPoolActivity{
+func NewDeletePoolActivity(clusters Clusters) *DeletePoolActivity {
+	return &DeletePoolActivity{
 		clusters: clusters,
 	}
 }
 
-type DeleteWorkerPoolActivityInput struct {
+type DeletePoolActivityInput struct {
 	ClusterID uint
 	Pool      NodePool
 }
 
-func (a *DeleteWorkerPoolActivity) Execute(ctx context.Context, input DeleteWorkerPoolActivityInput) error {
+func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivityInput) error {
 	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return err
 	}
 
 	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
+	if input.Pool.Master {
+		stackName = fmt.Sprintf("pke-master-%s", cluster.GetName())
+	}
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return errors.New(fmt.Sprintf("can't delete AWS roles for %t", cluster))
+		return errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
 	}
 
 	client, err := awsCluster.GetAWSClient()

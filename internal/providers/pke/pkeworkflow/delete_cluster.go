@@ -48,12 +48,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	for _, np := range nodePools {
 		if !np.Master && np.Worker {
-			deleteWorkerPoolActivityInput := DeleteWorkerPoolActivityInput{
+			deletePoolActivityInput := DeletePoolActivityInput{
 				ClusterID: input.ClusterID,
 				Pool:      np,
 			}
 
-			future := workflow.ExecuteActivity(ctx, DeleteWorkerPoolActivityName, deleteWorkerPoolActivityInput)
+			future := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
 			poolActivities = append(poolActivities, future)
 		}
 	}
@@ -63,6 +63,48 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			return err
 		}
 	}
+
+	poolActivities = []workflow.Future{}
+
+	for _, np := range nodePools {
+		if np.Master || !np.Worker {
+			deletePoolActivityInput := DeletePoolActivityInput{
+				ClusterID: input.ClusterID,
+				Pool:      np,
+			}
+
+			future := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
+			poolActivities = append(poolActivities, future)
+		}
+	}
+
+	for _, future := range poolActivities {
+		if err := future.Get(ctx, nil); err != nil {
+			return err
+		}
+	}
+
+	// TODO: clean-up ssh key (?)
+
+	// release elastic ip
+
+	deleteElasticIPActivityInput := &DeleteElasticIPActivityInput{
+		ClusterID: input.ClusterID,
+	}
+	if err := workflow.ExecuteActivity(ctx, DeleteElasticIPActivityName, deleteElasticIPActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	// remove vpc (if we created it)
+
+	deleteVPCActivityInput := &DeleteVPCActivityInput{
+		ClusterID: input.ClusterID,
+	}
+	if err := workflow.ExecuteActivity(ctx, DeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	// TODO: remove roles (probably not needed)
 
 	return nil
 }

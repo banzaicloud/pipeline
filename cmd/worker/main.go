@@ -167,8 +167,14 @@ func main() {
 		createWorkerPoolActivity := pkeworkflow.NewCreateWorkerPoolActivity(clusters, tokenGenerator)
 		activity.RegisterWithOptions(createWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateWorkerPoolActivityName})
 
-		deleteWorkerPoolActivity := pkeworkflow.NewDeleteWorkerPoolActivity(clusters)
-		activity.RegisterWithOptions(deleteWorkerPoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteWorkerPoolActivityName})
+		deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)
+		activity.RegisterWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})
+
+		deleteElasticIPActivity := pkeworkflow.NewDeleteElasticIPActivity(clusters)
+		activity.RegisterWithOptions(deleteElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteElasticIPActivityName})
+
+		deleteVPCActivity := pkeworkflow.NewDeleteVPCActivity(clusters)
+		activity.RegisterWithOptions(deleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteVPCActivityName})
 
 		uploadSshKeyPairActivity := pkeworkflow.NewUploadSSHKeyPairActivity(clusters)
 		activity.RegisterWithOptions(uploadSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UploadSSHKeyPairActivityName})

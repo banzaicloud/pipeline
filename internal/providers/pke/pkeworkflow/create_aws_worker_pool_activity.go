@@ -68,7 +68,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
-		return "", errors.New(fmt.Sprintf("can't create AWS roles for %t", cluster))
+		return "", errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
