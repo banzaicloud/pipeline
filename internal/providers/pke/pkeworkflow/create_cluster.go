@@ -136,11 +136,11 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	var keyName string
+	var keyOut UploadSSHKeyPairActivityOutput
 	UploadSSHKeyPairActivityInput := UploadSSHKeyPairActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err := workflow.ExecuteActivity(ctx, UploadSSHKeyPairActivityName, UploadSSHKeyPairActivityInput).Get(ctx, &keyName); err != nil {
+	if err := workflow.ExecuteActivity(ctx, UploadSSHKeyPairActivityName, UploadSSHKeyPairActivityInput).Get(ctx, &keyOut); err != nil {
 		return err
 	}
 
@@ -168,6 +168,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
 		ExternalBaseUrl:       input.PipelineExternalURL,
 		Pool:                  master,
+		SSHKeyName:            keyOut.KeyName,
 	}
 	if err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, createMasterActivityInput).Get(ctx, &masterStackID); err != nil {
 		return err

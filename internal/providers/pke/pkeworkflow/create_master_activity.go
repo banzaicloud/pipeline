@@ -50,6 +50,7 @@ type CreateMasterActivityInput struct {
 	MasterInstanceProfile string
 	ExternalBaseUrl       string
 	Pool                  NodePool
+	SSHKeyName            string
 }
 
 func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterActivityInput) (string, error) {
@@ -143,7 +144,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 			},
 			{
 				ParameterKey:   aws.String("KeyName"),
-				ParameterValue: aws.String("sanyiMbp"),
+				ParameterValue: aws.String(input.SSHKeyName),
 			},
 		},
 	}

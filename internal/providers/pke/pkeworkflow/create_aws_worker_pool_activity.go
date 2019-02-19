@@ -51,6 +51,7 @@ type CreateWorkerPoolActivityInput struct {
 	ClusterSecurityGroup  string
 	ExternalBaseUrl       string
 	ImageID               string
+	SSHKeyName            string
 }
 
 func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWorkerPoolActivityInput) (string, error) {
@@ -137,7 +138,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("KeyName"),
-				ParameterValue: aws.String("sanyiMbp"),
+				ParameterValue: aws.String(input.SSHKeyName),
 			},
 			{
 				ParameterKey:   aws.String("MinSize"),
