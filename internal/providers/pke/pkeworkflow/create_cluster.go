@@ -210,6 +210,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[1],
 				ClusterSecurityGroup:  clusterSecurityGroup,
 				ExternalBaseUrl:       input.PipelineExternalURL,
+				SSHKeyName:            keyOut.KeyName,
 			}
 
 			err = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)
