@@ -617,7 +617,7 @@ func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) erro
 		return errors.Wrap(err, "failed to sync CICD repositories")
 	}
 
-	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName, org)
+	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName)
 	if err != nil {
 		return errors.Wrap(err, "failed to enable CICD repository")
 	}
