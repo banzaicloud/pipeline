@@ -250,6 +250,7 @@ var (
 						MaxCount:         clusterRequestNodeMaxCount,
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
+						Labels:           clusterRequestNodeLabels,
 					},
 				},
 			},

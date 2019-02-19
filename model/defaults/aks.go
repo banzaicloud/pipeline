@@ -209,7 +209,7 @@ func (d *AKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 					return err
 				}
 
-				labels := make([]*AKSNodePoolLabelsProfile, len(np.Labels))
+				labels := make([]*AKSNodePoolLabelsProfile, 0, len(np.Labels))
 				for name, value := range np.Labels {
 					labels = append(labels, &AKSNodePoolLabelsProfile{
 						Name:  name,

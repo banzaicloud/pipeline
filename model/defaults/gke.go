@@ -208,7 +208,7 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 		if len(r.Properties.GKE.NodePools) != 0 {
 
-			nodePools := make([]*GKENodePoolProfile, len(r.Properties.GKE.NodeVersion))
+			nodePools := make([]*GKENodePoolProfile, 0, len(r.Properties.GKE.NodePools))
 			for name, np := range r.Properties.GKE.NodePools {
 
 				err := pkgCommon.ValidateNodePoolLabels(np.Labels)

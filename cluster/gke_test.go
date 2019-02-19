@@ -125,8 +125,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			"https://www.googleapis.com/auth/compute",
 		},
 		Labels: map[string]string{
-			pkgCommon.LabelKey:         pool1Name,
-			pkgCommon.OnDemandLabelKey: "true",
+			pkgCommon.LabelKey: pool1Name,
 		},
 	}
 
@@ -140,8 +139,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			"https://www.googleapis.com/auth/compute",
 		},
 		Labels: map[string]string{
-			pkgCommon.LabelKey:         pool2Name,
-			pkgCommon.OnDemandLabelKey: "true",
+			pkgCommon.LabelKey: pool2Name,
 		},
 	}
 	nodePools := []*gke.NodePool{
