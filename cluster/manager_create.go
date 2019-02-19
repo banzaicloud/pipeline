@@ -108,6 +108,9 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	switch c := cluster.(type) {
 	case *EC2ClusterPKE:
+		if creationCtx.SecretID != "" {
+			c.model.Cluster.SecretID = creationCtx.SecretID
+		}
 		for _, secretID := range creationCtx.SecretIDs {
 			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, pkgCluster.Amazon) == nil {
 				c.model.Cluster.SecretID = secretID
