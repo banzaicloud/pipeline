@@ -16,7 +16,6 @@ package config
 
 import (
 	"context"
-	"sync"
 
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/sirupsen/logrus"
@@ -25,9 +24,6 @@ import (
 	"go.uber.org/cadence/client"
 	"go.uber.org/cadence/worker"
 )
-
-var cadenceClient client.Client
-var cadenceOnce sync.Once
 
 func newCadenceConfig() cadence.Config {
 	return cadence.Config{
@@ -43,22 +39,9 @@ func CadenceTaskList() string {
 	return "pipeline"
 }
 
-// CadenceClient returns a cadence client.
-func CadenceClient() client.Client {
-	cadenceOnce.Do(func() {
-		cadenceClient = newCadence()
-	})
-
-	return cadenceClient
-}
-
-func newCadence() client.Client {
-	c, err := cadence.NewClient(newCadenceConfig(), ZapLogger())
-	if err != nil {
-		panic(err)
-	}
-
-	return c
+// CadenceClient returns a new cadence client.
+func CadenceClient() (client.Client, error) {
+	return cadence.NewClient(newCadenceConfig(), ZapLogger())
 }
 
 // CadenceWorker returns a cadence worker.

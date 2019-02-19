@@ -187,7 +187,11 @@ func main() {
 		log.Errorf("no pipeline.external_url set. falling back to %q", externalBaseURL)
 	}
 
-	workflowClient := config.CadenceClient()
+	workflowClient, err := config.CadenceClient()
+	if err != nil {
+		errorHandler.Handle(emperror.Wrap(err, "Failed to configure Cadence client"))
+	}
+
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
 
