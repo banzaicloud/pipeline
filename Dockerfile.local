@@ -17,6 +17,6 @@ COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY build/release/pipeline /
 COPY build/release/worker /
 COPY views /views/
-COPY templates/eks /templates/eks
+COPY templates/ /templates/
 
 CMD ["/pipeline"]

@@ -126,7 +126,8 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("database.host")
 	v.SetDefault("database.port", 3306)
 	_ = v.BindEnv("database.user")
-	_ = v.BindEnv("database.pass")
+	_ = v.BindEnv("database.password")
+	v.RegisterAlias("database.pass", "database.password") // TODO: deprecate password
 	_ = v.BindEnv("database.dbname")
 	v.RegisterAlias("database.name", "database.dbname") // TODO: deprecate dbname
 	v.SetDefault("database.params", map[string]string{
