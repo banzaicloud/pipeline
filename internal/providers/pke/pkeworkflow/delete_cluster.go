@@ -84,7 +84,13 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 	}
 
-	// TODO: clean-up ssh key (?)
+	// clean-up ssh key
+	deleteSSHKeyPairActivityInput := &DeleteSSHKeyPairActivityInput{
+		ClusterID: input.ClusterID,
+	}
+	if err := workflow.ExecuteActivity(ctx, DeleteSSHKeyPairActivityName, deleteSSHKeyPairActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
 
 	// release elastic ip
 

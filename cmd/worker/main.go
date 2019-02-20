@@ -179,6 +179,9 @@ func main() {
 		uploadSshKeyPairActivity := pkeworkflow.NewUploadSSHKeyPairActivity(clusters)
 		activity.RegisterWithOptions(uploadSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UploadSSHKeyPairActivityName})
 
+		deleteSshKeyPairActivity := pkeworkflow.NewDeleteSSHKeyPairActivity(clusters)
+		activity.RegisterWithOptions(deleteSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSSHKeyPairActivityName})
+
 		var closeCh = make(chan struct{})
 
 		group.Add(
