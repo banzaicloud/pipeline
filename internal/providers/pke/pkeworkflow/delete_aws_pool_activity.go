@@ -80,5 +80,10 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 		return err
 	}
 
+	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
+	if err != nil {
+		return emperror.Wrap(err, "waiting for termination")
+	}
+
 	return nil
 }
