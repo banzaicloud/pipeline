@@ -25,16 +25,16 @@ import (
 const GenerateCertificatesActivityName = "pke-generate-certificates-activity"
 
 type GenerateCertificatesActivity struct {
-	secrets SecretStore
+	secrets ClusterSecretStore
 }
 
-func NewGenerateCertificatesActivity(secrets SecretStore) *GenerateCertificatesActivity {
+func NewGenerateCertificatesActivity(secrets ClusterSecretStore) *GenerateCertificatesActivity {
 	return &GenerateCertificatesActivity{
 		secrets: secrets,
 	}
 }
 
-type SecretStore interface {
+type ClusterSecretStore interface {
 	EnsureSecretExists(ctx context.Context, clusterID uint, secret clustersecret.NewSecret) (string, error)
 }
 
