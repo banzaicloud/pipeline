@@ -89,7 +89,12 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 		return errors.New("externalBaseURL missing from context")
 	}
 	input := pkeworkflow.CreateClusterWorkflowInput{
+		OrganizationID:      uint(c.cluster.GetOrganizationId()),
 		ClusterID:           uint(c.cluster.GetID()),
+		ClusterUID:          c.cluster.GetUID(),
+		ClusterName:         c.cluster.GetName(),
+		SecretID:            string(c.cluster.GetSecretId()),
+		Region:              c.cluster.GetLocation(),
 		PipelineExternalURL: externalBaseURL,
 	}
 	workflowOptions := client.StartWorkflowOptions{
