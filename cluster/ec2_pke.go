@@ -494,7 +494,7 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 		}
 		var hostCount int
-		err = c.db.Find(&internalPke.Host{NodePoolID: np.NodePoolID}).Count(&hostCount).Error
+		err = c.db.Model(&internalPke.Host{}).Where(&internalPke.Host{NodePoolID: np.NodePoolID}).Count(&hostCount).Error
 		if err != nil {
 			return nil, err
 		}
