@@ -12,7 +12,7 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
   name = "github.com/docker/docker"
   revision = "4f3616fb1c112e206b88cb7a9922bf49067a7756"
 
-[[override]]
+[[constraint]]
   name = "google.golang.org/grpc"
   version = "=v1.11.2"
 
@@ -280,3 +280,7 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
 [[constraint]]
   name = "github.com/oklog/run"
   version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/dexidp/dex"
+  version = "v2.15.0"
