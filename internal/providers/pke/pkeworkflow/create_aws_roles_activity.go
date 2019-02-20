@@ -16,14 +16,12 @@ package pkeworkflow
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 )
 
@@ -31,39 +29,27 @@ const CreateAWSRolesActivityName = "pke-create-aws-roles-activity"
 const PkeGlobalStackName = "pke-global"
 
 type CreateAWSRolesActivity struct {
-	clusters Clusters
+	awsClientFactory *AWSClientFactory
 }
 
-func NewCreateAWSRolesActivity(clusters Clusters) *CreateAWSRolesActivity {
+func NewCreateAWSRolesActivity(awsClientFactory *AWSClientFactory) *CreateAWSRolesActivity {
 	return &CreateAWSRolesActivity{
-		clusters: clusters,
+		awsClientFactory: awsClientFactory,
 	}
 }
 
 type CreateAWSRolesActivityInput struct {
+	AWSActivityInput
 	ClusterID uint
-	Region    string
 }
 
 func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRolesActivityInput) (string, error) {
-	log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
-	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	logger := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
+
+	client, err := a.awsClientFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err != nil {
 		return "", err
 	}
-
-	awsCluster, ok := cluster.(AWSCluster)
-	if !ok {
-		return "", errors.New(fmt.Sprintf("can't create AWS roles for %t", cluster))
-	}
-
-	client, err := awsCluster.GetAWSClient()
-	if err != nil {
-		return "", emperror.Wrap(err, "failed to connect to AWS")
-	}
-
-	// TODO maybe check for roles not stack, now overriding region to avoid collision
-	client.Config.Region = &input.Region
 
 	cfClient := cloudformation.New(client)
 
@@ -82,7 +68,7 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 	if err, ok := err.(awserr.Error); ok {
 		switch err.Code() {
 		case cloudformation.ErrCodeAlreadyExistsException:
-			log.Infof("stack already exists: %s", err.Message())
+			logger.Infof("stack already exists: %s", err.Message())
 			return PkeGlobalStackName, nil
 		default:
 			return "", err

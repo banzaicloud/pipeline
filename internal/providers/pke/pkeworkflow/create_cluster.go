@@ -77,18 +77,27 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	createAWSRolesActivityInput := CreateAWSRolesActivityInput{
-		ClusterID: input.ClusterID,
-		Region:    "us-east-1",
+	// Generic AWS activity input
+	awsActivityInput := AWSActivityInput{
+		OrganizationID: input.OrganizationID,
+		SecretID:       input.SecretID,
+		Region:         input.Region,
 	}
 
-	var rolesOutput map[string]string
+	// Create AWS roles
+	createRolesActivityInput := CreateAWSRolesActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID}
+	createRolesActivityInput.AWSActivityInput.Region = "us-east-1"
 	var rolesStackID string
-	err = workflow.ExecuteActivity(ctx, CreateAWSRolesActivityName, createAWSRolesActivityInput).Get(ctx, &rolesStackID)
+	err = workflow.ExecuteActivity(
+		ctx,
+		CreateAWSRolesActivityName,
+		createRolesActivityInput,
+	).Get(ctx, &rolesStackID)
 	if err != nil {
 		return err
 	}
 
+	var rolesOutput map[string]string
 	if rolesStackID != "" {
 		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
 			ClusterID: input.ClusterID,
