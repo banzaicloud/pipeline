@@ -16,11 +16,10 @@ package pkeworkflow
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/banzaicloud/pipeline/pkg/auth"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/pkg/errors"
 )
 
 const GenerateCertificatesActivityName = "pke-generate-certificates-activity"
@@ -36,32 +35,25 @@ func NewGenerateCertificatesActivity(secrets SecretStore) *GenerateCertificatesA
 }
 
 type SecretStore interface {
-	GetOrCreate(organizationID auth.OrganizationID, value *secret.CreateSecretRequest) (pkgSecret.SecretID, error)
+	EnsureSecretExists(ctx context.Context, clusterID uint, secret clustersecret.NewSecret) (string, error)
 }
 
 type GenerateCertificatesActivityInput struct {
-	OrganizationID uint
-	ClusterID      uint
-	ClusterUID     string
+	ClusterID uint
 }
 
 func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input GenerateCertificatesActivityInput) error {
-	req := &secret.CreateSecretRequest{
-		Name:   fmt.Sprintf("cluster-%d-ca", input.ClusterID),
+	req := clustersecret.NewSecret{
+		Name:   "ca",
 		Type:   pkgSecret.PKESecretType,
 		Values: map[string]string{}, // Implicitly generate the necessary certificates
 		Tags: []string{
-			fmt.Sprintf("clusterUID:%s", input.ClusterUID),
-			fmt.Sprintf("clusterID:%d", input.ClusterID),
 			pkgSecret.TagBanzaiReadonly,
 			pkgSecret.TagBanzaiHidden,
 		},
 	}
 
-	_, err := a.secrets.GetOrCreate(auth.OrganizationID(input.OrganizationID), req)
-	if err != nil {
-		return err
-	}
+	_, err := a.secrets.EnsureSecretExists(ctx, input.ClusterID, req)
 
-	return nil
+	return errors.Wrap(err, "failed to generate certificates")
 }

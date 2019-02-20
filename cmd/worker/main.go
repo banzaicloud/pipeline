@@ -25,6 +25,8 @@ import (
 	conf "github.com/banzaicloud/pipeline/config"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -138,7 +140,10 @@ func main() {
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 
-		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(secret.Store)
+		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clustersecret.NewStore(
+			clustersecretadapter.NewClusterManagerAdapter(clusterManager),
+			clustersecretadapter.NewSecretStore(secret.Store),
+		))
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
 
 		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(clusters)

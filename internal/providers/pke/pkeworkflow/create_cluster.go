@@ -67,7 +67,12 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	err := generateCertificates(ctx, input.ClusterID)
+	// Generate CA certificates
+	err := workflow.ExecuteActivity(
+		ctx,
+		GenerateCertificatesActivityName,
+		GenerateCertificatesActivityInput{ClusterID: input.ClusterID},
+	).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -228,14 +233,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 
 	return nil
-}
-
-func generateCertificates(ctx workflow.Context, clusterID uint) error {
-	generateCertificatesActivityInput := GenerateCertificatesActivityInput{
-		ClusterID: clusterID,
-	}
-
-	return workflow.ExecuteActivity(ctx, GenerateCertificatesActivityName, generateCertificatesActivityInput).Get(ctx, nil)
 }
 
 type TokenGenerator interface {
