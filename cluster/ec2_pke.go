@@ -485,7 +485,6 @@ func (c *EC2ClusterPKE) GetKubernetesUserName() (string, error) {
 
 func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Create cluster status response")
-
 	hasSpotNodePool := false
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.model.NodePools {
@@ -494,8 +493,15 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		if err != nil {
 			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 		}
+		var hostCount int
+		err = c.db.Find(&internalPke.Host{NodePoolID: np.NodePoolID}).Count(&hostCount).Error
+		if err != nil {
+			return nil, err
+		}
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-			Count:             len(np.Hosts),
+			Count:             hostCount,
+			MaxCount:          providerConfig.AutoScalingGroup.Size.Max,
+			MinCount:          providerConfig.AutoScalingGroup.Size.Min,
 			InstanceType:      providerConfig.AutoScalingGroup.InstanceType,
 			SpotPrice:         providerConfig.AutoScalingGroup.SpotPrice,
 			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
