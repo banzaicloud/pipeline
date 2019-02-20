@@ -146,7 +146,9 @@ func main() {
 		))
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
 
-		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(clusters)
+		awsClientFactory := pkeworkflow.NewAWSClientFactory(pkeworkflowadapter.NewSecretStore(secret.Store))
+
+		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory)
 		activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
 
 		waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(clusters)
