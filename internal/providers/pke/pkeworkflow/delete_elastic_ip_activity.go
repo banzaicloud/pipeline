@@ -85,9 +85,9 @@ func (a *DeleteElasticIPActivity) Execute(ctx context.Context, input DeleteElast
 		}
 		_, err := e.ReleaseAddress(addrIn)
 		if err != nil {
-			return emperror.Wrapf(err, "failed to release EIP %s (%s)", ip.AllocationId, ip.PublicIp)
+			return emperror.Wrapf(err, "failed to release EIP %s (%s)", *ip.AllocationId, *ip.PublicIp)
 		}
-		log.Infof("Released EIP: %s (%s)", ip.AllocationId, ip.PublicIp)
+		log.Infof("Released EIP: %s (%s)", *ip.AllocationId, *ip.PublicIp)
 	}
 
 	return nil
