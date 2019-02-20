@@ -48,7 +48,12 @@ func getDefaultImageID(region string) string {
 }
 
 type CreateClusterWorkflowInput struct {
+	OrganizationID      uint
 	ClusterID           uint
+	ClusterUID          string
+	ClusterName         string
+	SecretID            string
+	Region              string
 	PipelineExternalURL string
 }
 
