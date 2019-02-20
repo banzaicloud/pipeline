@@ -702,7 +702,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--pipeline-org-id=%d "+
 			"--pipeline-cluster-id=%d "+
 			"--pipeline-nodepool=%q "+
-			"--kubernetes-cloud-provider=aws"+
+			"--kubernetes-cloud-provider=aws "+
 			"--kubernetes-version=1.12.2 "+
 			"--kubernetes-network-provider=weave "+
 			"--kubernetes-service-cidr=10.10.0.0/16 "+
@@ -729,7 +729,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		"--pipeline-org-id=%d "+
 		"--pipeline-cluster-id=%d "+
 		"--pipeline-nodepool=%q "+
-		"--kubernetes-cloud-provider=aws"+
+		"--kubernetes-cloud-provider=aws "+
 		"--kubernetes-infrastructure-cidr=%q",
 		subcommand,
 		url,
