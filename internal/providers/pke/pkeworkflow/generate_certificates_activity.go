@@ -26,38 +26,39 @@ import (
 const GenerateCertificatesActivityName = "pke-generate-certificates-activity"
 
 type GenerateCertificatesActivity struct {
-	clusters Clusters
+	secrets SecretStore
 }
 
-func NewGenerateCertificatesActivity(clusters Clusters) *GenerateCertificatesActivity {
+func NewGenerateCertificatesActivity(secrets SecretStore) *GenerateCertificatesActivity {
 	return &GenerateCertificatesActivity{
-		clusters: clusters,
+		secrets: secrets,
 	}
+}
+
+type SecretStore interface {
+	GetOrCreate(organizationID auth.OrganizationID, value *secret.CreateSecretRequest) (pkgSecret.SecretID, error)
 }
 
 type GenerateCertificatesActivityInput struct {
-	ClusterID uint
+	OrganizationID uint
+	ClusterID      uint
+	ClusterUID     string
 }
 
 func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input GenerateCertificatesActivityInput) error {
-	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
-	if err != nil {
-		return err
-	}
-
-	// Generate certificates
 	req := &secret.CreateSecretRequest{
-		Name:   fmt.Sprintf("cluster-%d-ca", c.GetID()),
+		Name:   fmt.Sprintf("cluster-%d-ca", input.ClusterID),
 		Type:   pkgSecret.PKESecretType,
-		Values: map[string]string{},
+		Values: map[string]string{}, // Implicitly generate the necessary certificates
 		Tags: []string{
-			fmt.Sprintf("clusterUID:%s", c.GetUID()),
-			fmt.Sprintf("clusterID:%d", c.GetID()),
+			fmt.Sprintf("clusterUID:%s", input.ClusterUID),
+			fmt.Sprintf("clusterID:%d", input.ClusterID),
 			pkgSecret.TagBanzaiReadonly,
 			pkgSecret.TagBanzaiHidden,
 		},
 	}
-	_, err = secret.Store.GetOrCreate(auth.OrganizationID(c.GetOrganizationId()), req)
+
+	_, err := a.secrets.GetOrCreate(auth.OrganizationID(input.OrganizationID), req)
 	if err != nil {
 		return err
 	}

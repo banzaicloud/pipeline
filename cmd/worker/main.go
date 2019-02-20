@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/oklog/run"
 	"github.com/pkg/errors"
@@ -137,7 +138,7 @@ func main() {
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 
-		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusters)
+		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(secret.Store)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
 
 		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(clusters)
