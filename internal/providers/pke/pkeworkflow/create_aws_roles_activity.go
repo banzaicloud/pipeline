@@ -42,6 +42,7 @@ func NewCreateAWSRolesActivity(clusters Clusters) *CreateAWSRolesActivity {
 
 type CreateAWSRolesActivityInput struct {
 	ClusterID uint
+	Region    string
 }
 
 func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRolesActivityInput) (string, error) {
@@ -62,7 +63,7 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 	}
 
 	// TODO maybe check for roles not stack, now overriding region to avoid collision
-	client.Config.Region = aws.String("us-east-1")
+	client.Config.Region = &input.Region
 
 	cfClient := cloudformation.New(client)
 

@@ -69,6 +69,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	createAWSRolesActivityInput := CreateAWSRolesActivityInput{
 		ClusterID: input.ClusterID,
+		Region:    "us-east-1",
 	}
 
 	var rolesOutput map[string]string
@@ -82,7 +83,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
 			ClusterID: input.ClusterID,
 			StackID:   rolesStackID,
-			Region:    "us-west-1",
+			Region:    "us-east-1",
 		}
 
 		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &rolesOutput)
