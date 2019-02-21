@@ -267,7 +267,7 @@ func init() {
 	viper.SetDefault(IstioChartVersion, "1.0.5")
 	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "dashboards", "istio"))
 
-	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.1")
+	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.2")
 
 	viper.SetDefault(PipelineLabelDomain, "banzaicloud.io")
 	viper.SetDefault(ForbiddenLabelDomains, []string{
