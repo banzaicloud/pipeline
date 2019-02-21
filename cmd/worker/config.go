@@ -22,11 +22,10 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 // Config holds any kind of configuration that comes from the outside world and
