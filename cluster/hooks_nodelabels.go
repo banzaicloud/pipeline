@@ -24,6 +24,8 @@ import (
 	"k8s.io/api/core/v1"
 )
 
+const nodePoolLabelsOperatorName = "/nodepool-labels-operator"
+
 type nodePoolLabelSetOperatorConfig struct {
 	Tolerations   []v1.Toleration `json:"tolerations,omitempty"`
 	Affinity      v1.Affinity     `json:"affinity,omitempty"`
@@ -48,7 +50,7 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	headNodeAffinity := getHeadNodeAffinity(cluster)
 	headNodeTolerations := getHeadNodeTolerations()
 
-	chartName := helm.BanzaiRepository + "/nodepool-labels-operator"
+	chartName := helm.BanzaiRepository + nodePoolLabelsOperatorName
 	chartVersion := viper.GetString(config.NodePoolLabelSetOperatorChartVersion)
 
 	config := nodePoolLabelSetOperatorConfig{

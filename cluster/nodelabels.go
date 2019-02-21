@@ -74,7 +74,7 @@ func DeployNodePoolLabelsSet(cluster CommonCluster, nodePools map[string]*pkgClu
 	return nil
 }
 
-// add node pool name, head node, ondemand labels + cloudinfo + user definied labels
+// getDesiredNodePoolLabelSets add node pool name, head node, ondemand labels + cloudinfo + user definied labels
 func getDesiredNodePoolLabelSets(clusterStatus *pkgCluster.GetClusterStatusResponse, headNodePoolName string, nodePools map[string]*pkgCluster.NodePoolStatus, dontUpdateIfNoUserLabels bool) (npls.NodepoolLabelSets, error) {
 	desiredLabels := make(npls.NodepoolLabelSets)
 

@@ -1006,8 +1006,8 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "dns", externalDnsValuesJson, chartVersion, false)
 }
 
-// LabelNodesWithNodePoolName add node pool name labels for all nodes. We only this in case of ec2_banzaicloud,
-// ACSK etc. where we are not able add labels via API.
+// LabelNodesWithNodePoolName add node pool name labels for all nodes.
+// It's used only used in case of ec2_banzaicloud, ACSK etc. when we're not able to add labels via API.
 func LabelNodesWithNodePoolName(commonCluster CommonCluster) error {
 
 	switch commonCluster.GetDistribution() {

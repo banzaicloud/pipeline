@@ -28,7 +28,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// returns NodePoolStatus map with updated user labels from NodePoolLabelSets
+// getNodePoolsWithUpdatedLabels returns NodePoolStatus map with updated user labels from NodePoolLabelSets
 func getNodePoolsWithUpdatedLabels(commonCluster cluster.CommonCluster, nodepoolLabelSets npls.NodepoolLabelSets) (map[string]*pkgCluster.NodePoolStatus, error) {
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
