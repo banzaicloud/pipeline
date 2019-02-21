@@ -18,9 +18,6 @@ Parameters:
   ClusterName:
     Description: PKE Cluster name
     Type: String
-  AvailabilityZones:
-    Type: 'List<AWS::EC2::AvailabilityZone::Name>'
-    Description: Specify Availability Zones for Autoscaling
   VPCId:
     Type: 'AWS::EC2::VPC::Id'
     Description: Specify VPC Id for Autoscaling
@@ -98,7 +95,6 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AvailabilityZones: !Ref AvailabilityZones
       LaunchConfigurationName:
         Ref: LaunchConfiguration
       DesiredCapacity: !Ref DesiredCapacity
