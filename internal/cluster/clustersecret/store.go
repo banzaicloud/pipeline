@@ -64,7 +64,7 @@ type SecretStore interface {
 	EnsureSecretExists(organizationID uint, secret SecretCreateRequest) (string, error)
 }
 
-// EnsureSecretExists creates a secret for an organization if it cannot be found and returns it's ID.
+// EnsureSecretExists creates a secret for a cluster if it cannot be found and returns it's ID.
 func (s *Store) EnsureSecretExists(ctx context.Context, clusterID uint, secret SecretCreateRequest) (string, error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
