@@ -198,3 +198,8 @@ path = "config/certs"
 
 [nodepools]
 labelSetOperatorChartVersion = "0.0.1"
+
+[cadence]
+host = "127.0.0.1"
+port = 7933
+domain = "pipeline"

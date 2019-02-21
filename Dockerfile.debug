@@ -17,6 +17,7 @@ COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=builder /go/bin/dlv /
 
 COPY build/debug/pipeline /
+COPY build/debug/worker /
 COPY views /views/
 COPY templates/eks /templates/eks
 

@@ -187,7 +187,12 @@ func main() {
 		log.Errorf("no pipeline.external_url set. falling back to %q", externalBaseURL)
 	}
 
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, log, errorHandler)
+	workflowClient, err := config.CadenceClient()
+	if err != nil {
+		errorHandler.Handle(emperror.Wrap(err, "Failed to configure Cadence client"))
+	}
+
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
 
 	if viper.GetBool(config.MonitorEnabled) {
@@ -222,7 +227,7 @@ func main() {
 		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, tokenHandler, externalBaseURL, log, errorHandler)
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, log, errorHandler, externalBaseURL)
 
 	//Initialise Gin router
 	router := gin.New()
@@ -385,7 +390,7 @@ func main() {
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
 
-			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL)
+			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient)
 			pkeAPI.RegisterRoutes(clusters.Group("/pke"))
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)

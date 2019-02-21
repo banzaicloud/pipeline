@@ -27,5 +27,6 @@ COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=builder /go/src/github.com/banzaicloud/pipeline/views /views/
 COPY --from=builder /go/src/github.com/banzaicloud/pipeline/templates/eks /templates/eks/
 COPY --from=builder /build/release/pipeline /
+COPY --from=builder /build/release/worker /
 
 CMD ["/pipeline"]

@@ -29,14 +29,19 @@ import (
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
 type CreationContext struct {
-	OrganizationID pkgAuth.OrganizationID
-	UserID         pkgAuth.UserID
-	Name           string
-	Provider       string
-	SecretID       secretTypes.SecretID
-	SecretIDs      []secretTypes.SecretID
-	PostHooks      []PostFunctioner
+	OrganizationID  pkgAuth.OrganizationID
+	UserID          pkgAuth.UserID
+	ExternalBaseURL string
+	Name            string
+	Provider        string
+	SecretID        secretTypes.SecretID
+	SecretIDs       []secretTypes.SecretID
+	PostHooks       []PostFunctioner
 }
+
+type contextKey string
+
+const ExternalBaseURLKey = contextKey("ExternalBaseURL")
 
 var ErrAlreadyExists = stderrors.New("cluster already exists with this name")
 
@@ -103,6 +108,9 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	switch c := cluster.(type) {
 	case *EC2ClusterPKE:
+		if creationCtx.SecretID != "" {
+			c.model.Cluster.SecretID = creationCtx.SecretID
+		}
 		for _, secretID := range creationCtx.SecretIDs {
 			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, pkgCluster.Amazon) == nil {
 				c.model.Cluster.SecretID = secretID
@@ -131,7 +139,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
-
+		ctx = context.WithValue(ctx, ExternalBaseURLKey, creationCtx.ExternalBaseURL)
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
 			errorHandler.Handle(err)
@@ -186,7 +194,6 @@ func (m *Manager) createCluster(
 			return emperror.Wrap(err, "failed to save SSH key secret ID")
 		}
 	}
-
 	if err := creator.Create(ctx); err != nil {
 		cluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err

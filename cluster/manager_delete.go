@@ -26,6 +26,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,7 +47,7 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	go func() {
 		defer emperror.HandleRecover(m.errorHandler)
 
-		err := m.deleteCluster(ctx, cluster, force)
+		err := m.deleteCluster(context.Background(), cluster, force)
 		if err != nil {
 			errorHandler.Handle(err)
 			return
@@ -274,21 +275,23 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		)
 	}
 
-	switch cls := cluster.(type) {
-	case *EC2ClusterPKE:
-		// the cluster is only deleted from the database for now
-		if err = cls.DeleteFromDatabase(); err != nil {
-			err = emperror.Wrap(err, "failed to delete from the database")
-			if !force {
-				cls.UpdateStatus(pkgCluster.Error, err.Error())
-				return err
+	/*
+		switch cls := cluster.(type) {
+		case *EC2ClusterPKE:
+			// the cluster is only deleted from the database for now
+			if err = cls.DeleteFromDatabase(); err != nil {
+				err = emperror.Wrap(err, "failed to delete from the database")
+				if !force {
+					cls.UpdateStatus(pkgCluster.Error, err.Error())
+					return err
+				}
+				logger.Error(err)
 			}
-			logger.Error(err)
+			// Send delete event before finish
+			m.events.ClusterDeleted(cluster.GetOrganizationId(), cluster.GetName())
+			return nil
 		}
-		// Send delete event before finish
-		m.events.ClusterDeleted(cluster.GetOrganizationId(), cluster.GetName())
-		return nil
-	}
+	*/
 
 	// By default we try to delete resources from the cluster,
 	// but in certain cases we want to skip that step
@@ -351,7 +354,14 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	}
 
 	// delete cluster
-	err = cluster.DeleteCluster()
+
+	if deleter, ok := cluster.(interface {
+		DeletePKECluster(context.Context, client.Client) error
+	}); ok {
+		err = deleter.DeletePKECluster(ctx, m.workflowClient)
+	} else {
+		err = cluster.DeleteCluster()
+	}
 	if err != nil {
 		err = emperror.Wrap(err, "failed to delete cluster from the provider")
 		if !force {

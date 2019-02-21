@@ -276,6 +276,10 @@ func init() {
 		"google.com",
 	})
 
+	// Cadence config
+	viper.SetDefault("cadence.port", 7933)
+	viper.SetDefault("cadence.domain", "pipeline")
+
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)

@@ -15,21 +15,25 @@
 package cluster
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"net"
 	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/model"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -44,6 +48,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -141,6 +146,12 @@ func (c *EC2ClusterPKE) GetSshSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.SSHSecretID
 }
 
+// RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
+// the cluster
+func (c *EC2ClusterPKE) RequiresSshPublicKey() bool {
+	return true
+}
+
 func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
@@ -150,6 +161,15 @@ func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	}
 
 	return nil
+}
+
+func (c *EC2ClusterPKE) GetSshPublicKey() (string, error) {
+	sshSecret, err := c.getSshSecret(c)
+	if err != nil {
+		return "", err
+	}
+	sshKey := secret.NewSSHKeyPair(sshSecret)
+	return sshKey.PublicKeyData, nil
 }
 
 func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
@@ -164,6 +184,11 @@ func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId pkgSecret.SecretID) er
 }
 
 func (c *EC2ClusterPKE) GetConfigSecretId() pkgSecret.SecretID {
+	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
+	id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
+	if err == nil {
+		c.model.Cluster.ConfigSecretID = id
+	}
 	return c.model.Cluster.ConfigSecretID
 }
 
@@ -180,10 +205,7 @@ func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
 	originalStatus := c.model.Cluster.Status
 	originalStatusMessage := c.model.Cluster.StatusMessage
 
-	c.model.Cluster.Status = status
-	c.model.Cluster.StatusMessage = statusMessage
-
-	err := c.db.Save(&c.model).Error
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"status": status, "status_message": statusMessage}).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to update status")
 	}
@@ -238,6 +260,21 @@ func (c *EC2ClusterPKE) GetAWSClient() (*session.Session, error) {
 	})
 }
 
+func (c *EC2ClusterPKE) GetCurrentWorkflowID() string {
+	return c.model.CurrentWorkflowID
+}
+
+func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
+	c.model.CurrentWorkflowID = workflowID
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return emperror.WrapWith(err, "failed to save ssh secret", "workflowId", workflowID)
+	}
+
+	return nil
+}
+
 func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
 	// Fetch
 
@@ -273,7 +310,10 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	//}
 	token := "XXX" // TODO masked from dumping valid tokens to log
 	for _, nodePool := range c.model.NodePools {
-		cmd := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
+		cmd, err := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
+		if err != nil {
+			return err
+		}
 		c.log.Debugf("TODO: start ASG with command %s", cmd)
 	}
 
@@ -365,7 +405,32 @@ func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
 }
 
 func (c *EC2ClusterPKE) DeleteCluster() error {
-	// do nothing (the cluster should be left on the provider for now
+	panic("not used")
+}
+
+func (c *EC2ClusterPKE) DeletePKECluster(ctx context.Context, workflowClient client.Client) error {
+	input := pkeworkflow.DeleteClusterWorkflowInput{
+		ClusterID: uint(c.GetID()),
+	}
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+	}
+	exec, err := workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.DeleteClusterWorkflowName, input)
+	if err != nil {
+		return err
+	}
+
+	err = c.SetCurrentWorkflowID(exec.GetID())
+	if err != nil {
+		return err
+	}
+
+	err = exec.Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -420,7 +485,6 @@ func (c *EC2ClusterPKE) GetKubernetesUserName() (string, error) {
 
 func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	log.Info("Create cluster status response")
-
 	hasSpotNodePool := false
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.model.NodePools {
@@ -429,8 +493,15 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		if err != nil {
 			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 		}
+		var hostCount int
+		err = c.db.Model(&internalPke.Host{}).Where(&internalPke.Host{NodePoolID: np.NodePoolID}).Count(&hostCount).Error
+		if err != nil {
+			return nil, err
+		}
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-			Count:             len(np.Hosts),
+			Count:             hostCount,
+			MaxCount:          providerConfig.AutoScalingGroup.Size.Max,
+			MinCount:          providerConfig.AutoScalingGroup.Size.Min,
 			InstanceType:      providerConfig.AutoScalingGroup.InstanceType,
 			SpotPrice:         providerConfig.AutoScalingGroup.SpotPrice,
 			CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
@@ -465,6 +536,54 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 func (c *EC2ClusterPKE) IsReady() (bool, error) {
 	// TODO: is this a correct implementation?
 	return true, nil
+}
+
+type PKENodePool struct {
+	Name              string
+	MinCount          int
+	MaxCount          int
+	Count             int
+	Master            bool
+	Worker            bool
+	InstanceType      string
+	AvailabilityZones []string
+	ImageID           string
+	SpotPrice         string
+}
+
+func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
+	pools := make([]PKENodePool, len(c.model.NodePools), len(c.model.NodePools))
+	for i, np := range c.model.NodePools {
+
+		var amazonPool internalPke.NodePoolProviderConfigAmazon
+		_ = mapstructure.Decode(np.ProviderConfig, &amazonPool)
+
+		var azs []string
+		for _, az := range amazonPool.AutoScalingGroup.Zones {
+			azs = append(azs, string(az))
+		}
+
+		pools[i] = PKENodePool{
+			Name:              np.Name,
+			MinCount:          amazonPool.AutoScalingGroup.Size.Min,
+			MaxCount:          amazonPool.AutoScalingGroup.Size.Max,
+			Count:             amazonPool.AutoScalingGroup.Size.Min,
+			InstanceType:      amazonPool.AutoScalingGroup.InstanceType,
+			AvailabilityZones: azs,
+			ImageID:           amazonPool.AutoScalingGroup.Image,
+			SpotPrice:         amazonPool.AutoScalingGroup.SpotPrice,
+		}
+		for _, role := range np.Roles {
+			if role == "master" {
+				pools[i].Master = true
+			}
+			if role == "worker" {
+				pools[i].Worker = true
+			}
+		}
+
+	}
+	return pools
 }
 
 // ListNodeNames returns node names to label them
@@ -517,44 +636,169 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 }
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
-func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) string {
-	cmd := ""
-	for _, np := range c.model.NodePools {
+func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (string, error) {
+	subcommand := "worker"
+	var np internalPke.NodePool
+	for _, np = range c.model.NodePools {
 		if np.Name == nodePoolName {
 			for _, role := range np.Roles {
 				if role == internalPke.RoleMaster {
-					cmd = "master"
+					subcommand = "master"
 					break
-				} else if role == internalPke.RoleWorker {
-					cmd = "worker"
 				}
 			}
 		}
 	}
+	if nodePoolName == "master" {
+		subcommand = "master"
+	}
 
-	// provide fake command for nonexistent nodepools
-	if cmd == "" {
-		if nodePoolName == "master" { // TODO sorry
-			cmd = "master"
-		} else {
-			cmd = "worker"
+	infrastructureCIDR := ""
+	cloudProvider, _, subnets, err := c.GetNetworkCloudProvider()
+	if err != nil {
+		return "", err
+	}
+	switch cloudProvider {
+	case string(internalPke.CNPAmazon):
+		// match subnet
+		if len(subnets) > 0 {
+			s, err := c.GetAWSClient()
+			if err != nil {
+				return "", err
+			}
+			c := ec2.New(s)
+
+			idx := 0
+			if nodePoolName != "master" && len(subnets) > 1 {
+				idx = 1
+			}
+			// query subnet CIDR from amazon
+			in := &ec2.DescribeSubnetsInput{
+				SubnetIds: aws.StringSlice([]string{string(subnets[idx])}),
+			}
+			out, err := c.DescribeSubnets(in)
+			if err != nil {
+				return "", err
+			}
+			if len(out.Subnets) > 0 {
+				s := out.Subnets
+				infrastructureCIDR = *s[0].CidrBlock
+			}
+		}
+	}
+	if infrastructureCIDR == "" {
+		return "", errors.New("cloud not query nodepool subnet")
+	}
+
+	apiAddress, _, err := c.GetNetworkApiServerAddress()
+	if err != nil {
+		return "", err
+	}
+	// master
+	if subcommand == "master" {
+		return fmt.Sprintf("pke install %s "+
+			"--pipeline-url=%q "+
+			"--pipeline-token=%q "+
+			"--pipeline-org-id=%d "+
+			"--pipeline-cluster-id=%d "+
+			"--pipeline-nodepool=%q "+
+			"--kubernetes-cloud-provider=aws "+
+			"--kubernetes-version=1.12.2 "+
+			"--kubernetes-network-provider=weave "+
+			"--kubernetes-service-cidr=10.10.0.0/16 "+
+			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
+			"--kubernetes-infrastructure-cidr=%q "+
+			"--kubernetes-api-server=%q "+
+			"--kubernetes-cluster-name=%q",
+			subcommand,
+			url,
+			token,
+			c.model.Cluster.OrganizationID,
+			c.model.Cluster.ID,
+			nodePoolName,
+			infrastructureCIDR,
+			apiAddress,
+			c.GetName(),
+		), nil
+	}
+
+	// worker
+	return fmt.Sprintf("pke install %s "+
+		"--pipeline-url=%q "+
+		"--pipeline-token=%q "+
+		"--pipeline-org-id=%d "+
+		"--pipeline-cluster-id=%d "+
+		"--pipeline-nodepool=%q "+
+		"--kubernetes-cloud-provider=aws "+
+		"--kubernetes-infrastructure-cidr=%q",
+		subcommand,
+		url,
+		token,
+		c.model.Cluster.OrganizationID,
+		c.model.Cluster.ID,
+		nodePoolName,
+		infrastructureCIDR,
+	), nil
+}
+
+// GetNetworkCloudProvider return cloud provider specific network information.
+func (c *EC2ClusterPKE) GetNetworkCloudProvider() (cloudProvider, vpcID string, subnets []string, err error) {
+	cp := c.model.Network.CloudProvider
+	cloudProvider = string(cp)
+	switch cp {
+	case internalPke.CNPAmazon:
+		cpc := &internalPke.NetworkCloudProviderConfigAmazon{}
+		err = mapstructure.Decode(c.model.Network.CloudProviderConfig, &cpc)
+		if err != nil {
+			return
+		}
+		vpcID = cpc.VPCID
+		for _, subnet := range cpc.Subnets {
+			subnets = append(subnets, string(subnet))
 		}
 	}
 
-	// TODO: use c.model.Network.ServiceCIDR c.model.Network.PodCIDR
-	// TODO: find out how to supply --kubernetes-api-server=10.240.0.11 properly
+	return
+}
 
-	if cmd == "master" {
-		return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\nread -p \"Kubernetes Api IP Address: \" PUBLIC_IP\n"+
-			"pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
-			"--kubernetes-version=1.12.2 --kubernetes-network-provider=weave --kubernetes-service-cidr=10.32.0.0/24 --kubernetes-pod-network-cidr=192.168.0.0/16 "+
-			"--kubernetes-infrastructure-cidr=\"${KUBERNETES_INFRASTRUCTURE_CIDR}\" --kubernetes-api-server=\"${PUBLIC_IP}\" --kubernetes-cluster-name=%q",
-			cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName, c.GetName())
+// SaveNetworkCloudProvider saves cloud provider specific network information.
+func (c *EC2ClusterPKE) SaveNetworkCloudProvider(cloudProvider, vpcID string, subnets []string) error {
+	if cloudProvider != string(internalPke.CNPAmazon) {
+		return errors.New("unsupported cloud network provider")
 	}
-	return fmt.Sprintf("read -p \"Nodes Network Cidr: \" KUBERNETES_INFRASTRUCTURE_CIDR\n"+
-		"pke-installer install %s --pipeline-url=%q --pipeline-token=%q --pipeline-org-id=%d --pipeline-cluster-id=%d --pipeline-nodepool=%q "+
-		"--kubernetes-infrastructure-cidr=\"${KUBERNETES_INFRASTRUCTURE_CIDR}\"",
-		cmd, url, token, c.model.Cluster.OrganizationID, c.model.Cluster.ID, nodePoolName)
+
+	c.model.Network.CloudProvider = internalPke.CNPAmazon
+	c.model.Network.CloudProviderConfig = make(internalPke.Config)
+	c.model.Network.CloudProviderConfig["vpcID"] = vpcID
+	c.model.Network.CloudProviderConfig["subnets"] = subnets
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return emperror.WrapWith(err, "failed to save network cloud provider", "cloudProvider", cloudProvider)
+	}
+
+	return nil
+}
+
+// GetNetworkApiServerAddress returns Kubernetes API Server host and port.
+func (c *EC2ClusterPKE) GetNetworkApiServerAddress() (host, port string, err error) {
+	return net.SplitHostPort(c.model.Network.APIServerAddress)
+}
+
+// SaveNetworkApiServerAddress stores Kubernetes API Server host and port.
+func (c *EC2ClusterPKE) SaveNetworkApiServerAddress(host, port string) error {
+	if port == "" {
+		// default port
+		port = "6443"
+	}
+	c.model.Network.APIServerAddress = net.JoinHostPort(host, port)
+
+	err := c.db.Save(&c.model).Error
+	if err != nil {
+		return emperror.WrapWith(err, "failed to save network api server address", "address", c.model.Network.APIServerAddress)
+	}
+
+	return nil
 }
 
 func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {

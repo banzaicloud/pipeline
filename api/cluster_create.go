@@ -160,16 +160,17 @@ func (a *ClusterAPI) CreateCluster(
 	}
 
 	creationCtx := cluster.CreationContext{
-		OrganizationID: organizationID,
-		UserID:         userID,
-		Name:           createClusterRequest.Name,
-		SecretID:       pkgSecret.SecretID(createClusterRequest.SecretId),
-		SecretIDs:      pkgSecret.StringsToSecretIDs(createClusterRequest.SecretIds),
-		Provider:       createClusterRequest.Cloud,
-		PostHooks:      postHooks,
+		OrganizationID:  organizationID,
+		UserID:          userID,
+		Name:            createClusterRequest.Name,
+		SecretID:        pkgSecret.SecretID(createClusterRequest.SecretId),
+		SecretIDs:       pkgSecret.StringsToSecretIDs(createClusterRequest.SecretIds),
+		Provider:        createClusterRequest.Cloud,
+		PostHooks:       postHooks,
+		ExternalBaseURL: a.externalBaseURL,
 	}
 
-	creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.tokenGenerator, a.externalBaseURL)
+	creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.workflowClient)
 
 	commonCluster, err = a.clusterManager.CreateCluster(ctx, creationCtx, creator)
 

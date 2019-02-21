@@ -29,7 +29,7 @@ var logger *logrus.Logger
 // nolint: gochecknoglobals
 var loggerOnce sync.Once
 
-// Logger is a configured Logrus logger
+// Logger is a configured Logrus logger.
 func Logger() *logrus.Logger {
 	loggerOnce.Do(func() { logger = newLogger() })
 

@@ -90,6 +90,28 @@ func (a *API) PostReady(c *gin.Context) {
 			return
 		}
 		log.Info("Kubeconfig saved")
+
+		err = a.workflowClient.SignalWorkflow(
+			c.Request.Context(),
+			commonCluster.(interface {
+				GetCurrentWorkflowID() string
+			}).GetCurrentWorkflowID(),
+			"",
+			"master-ready",
+			nil,
+		)
+		if err != nil {
+			err := emperror.Wrap(err, "could signal workflow")
+			a.errorHandler.Handle(err)
+
+			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "could signal workflow",
+				Error:   err.Error(),
+			})
+
+			return
+		}
 	}
 
 	if registerNodeer, ok := commonCluster.(interface {

@@ -575,7 +575,7 @@ func IsValidSecretType(secretType string) error {
 func checkClustersBeforeDelete(orgId pkgAuth.OrganizationID, secretId secretTypes.SecretID) error {
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, log, errorHandler)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
 
 	clusters, err := clusterManager.GetClustersBySecretID(context.Background(), orgId, secretId)
 	if err != nil {

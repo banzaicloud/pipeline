@@ -15,7 +15,11 @@
 package auth
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/banzaicloud/pipeline/auth"
+	auth2 "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 )
@@ -34,6 +38,20 @@ func (e *basicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, m
 	}
 
 	if user.ID == 0 {
+		if strings.HasPrefix(user.Login, "clusters/") {
+			segments := strings.Split(user.Login, "/")
+			if len(segments) < 2 {
+				return false, nil
+			}
+
+			orgID, err := strconv.Atoi(segments[1])
+			if err != nil {
+				return false, emperror.Wrap(err, "failed to parse user token")
+			}
+
+			return org.ID == auth2.OrganizationID(orgID), nil
+		}
+
 		orgName := auth.GetOrgNameFromVirtualUser(user.Login)
 		return org.Name == orgName, nil
 	}

@@ -29,6 +29,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"go.uber.org/cadence/client"
 )
 
 type clusterRepository interface {
@@ -61,6 +62,7 @@ type Manager struct {
 	statusChangeDurationMetric *prometheus.SummaryVec
 	clusterTotalMetric         *prometheus.CounterVec
 	kubeProxyCache             kubeProxyCache
+	workflowClient             client.Client
 	logger                     logrus.FieldLogger
 	errorHandler               emperror.Handler
 }
@@ -70,6 +72,7 @@ func NewManager(clusters clusterRepository,
 	events clusterEvents,
 	statusChangeDurationMetric *prometheus.SummaryVec,
 	clusterTotalMetric *prometheus.CounterVec,
+	workflowClient client.Client,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler) *Manager {
 	return &Manager{
@@ -79,6 +82,7 @@ func NewManager(clusters clusterRepository,
 		statusChangeDurationMetric: statusChangeDurationMetric,
 		clusterTotalMetric:         clusterTotalMetric,
 		kubeProxyCache:             &goCacheKubeProxyCache{cache: cache.New(defaultProxyExpirationMinutes*time.Minute, 1*time.Minute)},
+		workflowClient:             workflowClient,
 		logger:                     logger,
 		errorHandler:               errorHandler,
 	}
