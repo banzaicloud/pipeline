@@ -94,7 +94,8 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", emperror.Wrap(err, "loading CF template")
 	}
 
-	if input.Pool.SpotPrice == "0.0" {
+	spotPrice, err := strconv.ParseFloat(input.Pool.SpotPrice, 64)
+	if err != nil || spotPrice <= 0.0 {
 		input.Pool.SpotPrice = ""
 	}
 
