@@ -17,9 +17,7 @@ CREATE TABLE `amazon_node_pool_labels` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_node_pool_id_name` (`name`,`node_pool_id`),
-  KEY `idx_amazon_node_pool_labels_node_pool_id` (`node_pool_id`),
-  CONSTRAINT `fk_amazon_node_pool_labels_node_pool_id` FOREIGN KEY (`node_pool_id`) REFERENCES `amazon_node_pools` (`id`)
+  UNIQUE KEY `idx_node_pool_id_name` (`name`,`node_pool_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `google_gke_node_pool_labels` (

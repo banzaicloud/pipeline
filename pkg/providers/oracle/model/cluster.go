@@ -29,6 +29,7 @@ const (
 	clustersTableName                = "oracle_oke_clusters"
 	clustersNodePoolsTableName       = "oracle_oke_node_pools"
 	clustersNodePoolSubnetsTableName = "oracle_oke_node_pool_subnets"
+	clustersNodePoolLabelsTableName  = "oracle_oke_node_pool_labels"
 )
 
 // Cluster describes the Oracle cluster model
@@ -246,4 +247,19 @@ func (c *Cluster) GetClusterRequestFromModel() *cluster.Cluster {
 		Version:   c.Version,
 		NodePools: nodePools,
 	}
+}
+
+// NodePoolLabel stores labels for node pools
+type NodePoolLabel struct {
+	ID         uint   `gorm:"primary_key"`
+	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
+	Value      string
+	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+// TableName sets the NodePoolLabels table name
+func (NodePoolLabel) TableName() string {
+	return clustersNodePoolLabelsTableName
 }

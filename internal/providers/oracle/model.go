@@ -34,6 +34,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&model.Profile{},
 		&model.ProfileNodePool{},
 		&model.ProfileNodePoolLabel{},
+		&model.NodePoolLabel{},
 	}
 
 	var tableNames string

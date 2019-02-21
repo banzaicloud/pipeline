@@ -46,6 +46,7 @@ const (
 	tableNameDummyProperties      = "dummy_clusters"
 	tableNameKubernetesProperties = "kubernetes_clusters"
 	tableNameEKSSubnets           = "amazon_eks_subnets"
+	tableNameAmazonNodePoolLabels = "amazon_node_pool_labels"
 )
 
 //ClusterModel describes the common cluster model
@@ -457,4 +458,33 @@ func (cs *ClusterModel) UpdateConfigSecret(configSecretId pkgSecret.SecretID) er
 func (cs *ClusterModel) UpdateSshSecret(sshSecretId pkgSecret.SecretID) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
+}
+
+// AmazonNodePoolLabelModel stores labels for node pools
+type AmazonNodePoolLabelModel struct {
+	ID         uint   `gorm:"primary_key"`
+	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
+	Value      string
+	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+
+	Delete bool `gorm:"-"`
+}
+
+// TableName changes the default table name.
+func (AmazonNodePoolLabelModel) TableName() string {
+	return tableNameAmazonNodePoolLabels
+}
+
+func (m AmazonNodePoolLabelModel) String() string {
+	return fmt.Sprintf(
+		"ID: %d, Name: %s, Value: %s, NodePoolID: %d, createdAt: %v, UpdatedAt: %v",
+		m.ID,
+		m.Name,
+		m.Value,
+		m.NodePoolID,
+		m.CreatedAt,
+		m.UpdatedAt,
+	)
 }

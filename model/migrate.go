@@ -36,6 +36,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&AKSNodePoolModel{},
 		&DummyClusterModel{},
 		&KubernetesClusterModel{},
+		&AmazonNodePoolLabelModel{},
 	}
 
 	var tableNames string
