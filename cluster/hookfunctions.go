@@ -74,8 +74,8 @@ var HookMap = map[string]PostFunctioner{
 		f:            RegisterDomainPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.LabelNodes: &BasePostFunction{
-		f:            LabelNodes,
+	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
+		f:            LabelNodesWithNodePoolName,
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.TaintHeadNodes: &BasePostFunction{
@@ -103,6 +103,14 @@ var HookMap = map[string]PostFunctioner{
 		f:            DeployInstanceTerminationHandler,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.InstallNodePoolLabelSetOperator: &BasePostFunction{
+		f:            InstallNodePoolLabelSetOperator,
+		ErrorHandler: ErrorHandler{},
+	},
+	pkgCluster.SetupNodePoolLabelsSet: &BasePostFunction{
+		f:            SetupNodePoolLabelsSet,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
@@ -110,10 +118,12 @@ var HookMap = map[string]PostFunctioner{
 var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.StoreKubeConfig],
 	HookMap[pkgCluster.SetupPrivileges],
-	HookMap[pkgCluster.LabelNodes],
+	HookMap[pkgCluster.LabelNodesWithNodePoolName],
 	HookMap[pkgCluster.TaintHeadNodes],
 	HookMap[pkgCluster.CreatePipelineNamespacePostHook],
 	HookMap[pkgCluster.InstallHelmPostHook],
+	HookMap[pkgCluster.InstallNodePoolLabelSetOperator],
+	HookMap[pkgCluster.SetupNodePoolLabelsSet],
 	HookMap[pkgCluster.RegisterDomainPostHook],
 	HookMap[pkgCluster.InstallIngressControllerPostHook],
 	HookMap[pkgCluster.InstallKubernetesDashboardPostHook],

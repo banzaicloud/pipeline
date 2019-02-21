@@ -32,11 +32,13 @@ const (
 	DefaultEKSNodePoolProfileTableName       = "amazon_eks_profile_node_pools"
 	DefaultEKSNodePoolLabelsProfileTableName = "amazon_eks_profile_node_pool_labels"
 
-	DefaultAKSProfileTableName         = "azure_aks_profiles"
-	DefaultAKSNodePoolProfileTableName = "azure_aks_profile_node_pools"
+	DefaultAKSProfileTableName               = "azure_aks_profiles"
+	DefaultAKSNodePoolProfileTableName       = "azure_aks_profile_node_pools"
+	DefaultAKSNodePoolProfileLabelsTableName = "azure_aks_profile_node_pool_labels"
 
-	DefaultGKEProfileTableName         = "google_gke_profiles"
-	DefaultGKENodePoolProfileTableName = "google_gke_profile_node_pools"
+	DefaultGKEProfileTableName               = "google_gke_profiles"
+	DefaultGKENodePoolProfileTableName       = "google_gke_profile_node_pools"
+	DefaultGKENodePoolProfileLabelsTableName = "google_gke_profile_node_pool_labels"
 )
 
 // default node name for all provider
@@ -107,12 +109,14 @@ func GetDefaultProfiles() []ClusterProfile {
 		&AKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*AKSNodePoolProfile{{
+				Name:     GetDefaultProfileName(),
 				NodeName: DefaultNodeName,
 			}},
 		},
 		&GKEProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
 			NodePools: []*GKENodePoolProfile{{
+				Name:     GetDefaultProfileName(),
 				NodeName: DefaultNodeName,
 			}},
 		},
@@ -142,14 +146,14 @@ func GetAllProfiles(distribution pkgCluster.DistributionID) ([]ClusterProfile, e
 
 	case pkgCluster.AKS:
 		var aksProfiles []AKSProfile
-		db.Find(&aksProfiles)
+		db.Preload("NodePools.Labels").Find(&aksProfiles)
 		for i := range aksProfiles {
 			defaults = append(defaults, &aksProfiles[i])
 		}
 
 	case pkgCluster.GKE:
 		var gkeProfiles []GKEProfile
-		db.Find(&gkeProfiles)
+		db.Preload("NodePools.Labels").Find(&gkeProfiles)
 		for i := range gkeProfiles {
 			defaults = append(defaults, &gkeProfiles[i])
 		}
@@ -182,14 +186,16 @@ func GetProfile(distribution pkgCluster.DistributionID, name string) (ClusterPro
 
 	case pkgCluster.AKS:
 		var aksProfile AKSProfile
-		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&aksProfile).Error; err != nil {
+		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).
+			Preload("NodePools.Labels").First(&aksProfile).Error; err != nil {
 			return nil, err
 		}
 		return &aksProfile, nil
 
 	case pkgCluster.GKE:
 		var gkeProfile GKEProfile
-		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).First(&gkeProfile).Error; err != nil {
+		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).
+			Preload("NodePools.Labels").First(&gkeProfile).Error; err != nil {
 			return nil, err
 		}
 		return &gkeProfile, nil

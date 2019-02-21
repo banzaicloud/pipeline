@@ -214,6 +214,7 @@ func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId pkgAuth.UserID)
 			MinCount:     pool.MinCount,
 			MaxCount:     pool.MaxCount,
 			Count:        pool.MinCount,
+			Labels:       pool.Labels,
 		}
 		i++
 	}
@@ -585,6 +586,7 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 				MinCount:          np.MinCount,
 				MaxCount:          np.MaxCount,
 				Count:             np.Count,
+				Labels:            np.Labels,
 			}
 		}
 	}

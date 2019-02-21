@@ -123,7 +123,14 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return nil
 	}
 
-	err := c.cluster.UpdateCluster(c.request, c.userID)
+	// pre deploy NodePoolLabelSet objects for each new node pool to be created
+	nodePools := getNodePoolsFromUpdateRequest(c.request)
+	err := DeployNodePoolLabelsSet(c.cluster, nodePools, true)
+	if err != nil {
+		return err
+	}
+
+	err = c.cluster.UpdateCluster(c.request, c.userID)
 	if err != nil {
 		return err
 	}
@@ -132,7 +139,8 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return emperror.Wrap(err, "deploying cluster autoscaler failed")
 	}
 
-	if err := LabelNodes(c.cluster); err != nil {
+	// on certain clouds like Alibaba & Ec2_Banzaicloud we still need to add node pool name labels
+	if err := LabelNodesWithNodePoolName(c.cluster); err != nil {
 		return emperror.Wrap(err, "adding labels to nodes failed")
 	}
 	return nil

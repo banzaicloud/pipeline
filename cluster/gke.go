@@ -353,6 +353,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MaxCount:          np.NodeMaxCount,
 				Version:           c.model.NodeVersion,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Labels:            np.Labels,
 			}
 			if np.Preemptible {
 				hasSpotNodePool = true
@@ -1526,7 +1527,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	log := log.WithField("cluster", clusterModel.Name)
 	log.Debug("Load Google props from database")
 
-	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").Preload("NodePools.Labels").First(&m).Error
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").First(&m).Error
 	if err != nil {
 		return nil, err
 	}
