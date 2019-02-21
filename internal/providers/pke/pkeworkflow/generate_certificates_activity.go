@@ -35,7 +35,7 @@ func NewGenerateCertificatesActivity(secrets ClusterSecretStore) *GenerateCertif
 }
 
 type ClusterSecretStore interface {
-	// EnsureSecretExists creates a secret for an organization if it cannot be found and returns it's ID.
+	// EnsureSecretExists creates a secret for a cluster if it cannot be found and returns it's ID.
 	EnsureSecretExists(ctx context.Context, clusterID uint, secret clustersecret.SecretCreateRequest) (string, error)
 }
 
