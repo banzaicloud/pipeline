@@ -202,7 +202,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	s.Select(ctx)
 
 	for _, np := range nodePools {
-		if !np.Master && np.Worker {
+		if !np.Master {
 
 			createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 				ClusterID:             input.ClusterID,
