@@ -61,6 +61,9 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 		return "", emperror.Wrap(err, "failed to connect to AWS")
 	}
 
+	// TODO maybe check for roles not stack, now overriding region to avoid collision
+	client.Config.Region = aws.String("us-east-1")
+
 	cfClient := cloudformation.New(client)
 
 	buf, err := ioutil.ReadFile("templates/pke/global.cf.yaml")
