@@ -82,6 +82,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
 			ClusterID: input.ClusterID,
 			StackID:   rolesStackID,
+			Region:    "us-west-1",
 		}
 
 		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &rolesOutput)

@@ -39,6 +39,7 @@ func NewWaitCFCompletionActivity(clusters Clusters) *WaitCFCompletionActivity {
 type WaitCFCompletionActivityInput struct {
 	ClusterID uint
 	StackID   string
+	Region    string
 }
 
 func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFCompletionActivityInput) (map[string]string, error) {
@@ -55,6 +56,10 @@ func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFComp
 	client, err := awsCluster.GetAWSClient()
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to connect to AWS")
+	}
+
+	if input.Region != "" {
+		client.Config.Region = aws.String(input.Region)
 	}
 
 	cfClient := cloudformation.New(client)
