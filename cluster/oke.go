@@ -230,6 +230,7 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				Image:             np.Image,
 				Version:           np.Version,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Labels:            np.Labels,
 			}
 		}
 	}
@@ -501,7 +502,7 @@ func (o *OKECluster) CreatePreconfiguredVCN(name string) (VCNID string, err erro
 	}
 
 	if vcn.Id == nil {
-		return VCNID, fmt.Errorf("Invalid VCN!")
+		return VCNID, errors.New("invalid VCN")
 	}
 
 	VCNID = *vcn.Id
@@ -537,7 +538,7 @@ func (o *OKECluster) PopulateNetworkValues(r *oracle.Cluster, VCNID string) (*or
 
 	r.SetVCNID(VCNID)
 	if len(networkValues.LBSubnetIDs) != 2 {
-		return r, fmt.Errorf("Invalid network config: there must be 2 loadbalancer subnets!")
+		return r, errors.New("invalid network config: there must be 2 loadbalancer subnets")
 	}
 	r.SetLBSubnetID1(networkValues.LBSubnetIDs[0])
 	r.SetLBSubnetID2(networkValues.LBSubnetIDs[1])

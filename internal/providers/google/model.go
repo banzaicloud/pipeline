@@ -31,7 +31,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 
 		&GKEClusterModel{},
 		&GKENodePoolModel{},
-		&GKENodePoolLabelModel{},
 	}
 
 	var tableNames string
@@ -55,11 +54,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	err = model.AddForeignKeyAndReferencedKey(db, logger, &GKEClusterModel{}, &GKENodePoolModel{}, "ClusterID", "ClusterID")
-	if err != nil {
-		return err
-	}
-
-	err = model.AddForeignKey(db, logger, &GKENodePoolModel{}, &GKENodePoolLabelModel{}, "NodePoolID")
 	if err != nil {
 		return err
 	}

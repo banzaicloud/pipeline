@@ -97,7 +97,7 @@ services:
             CICD_SECRET: "s3cr3t"
 
     ui:
-        image: banzaicloud/pipeline-web:latest
+        image: banzaicloud/pipeline-web:0.7.0
         environment:
             TAG: local
 

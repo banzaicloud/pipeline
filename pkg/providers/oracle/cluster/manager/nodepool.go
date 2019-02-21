@@ -18,6 +18,7 @@ import (
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
 
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 )
@@ -114,11 +115,6 @@ func (cm *ClusterManager) UpdateNodePool(clusterModel *model.Cluster, np *model.
 	for _, subnet := range np.Subnets {
 		request.UpdateNodePoolDetails.SubnetIds = append(request.UpdateNodePoolDetails.SubnetIds, subnet.SubnetID)
 	}
-	for _, label := range np.Labels {
-		request.UpdateNodePoolDetails.InitialNodeLabels = append(request.UpdateNodePoolDetails.InitialNodeLabels, containerengine.KeyValue{
-			Key: &label.Name, Value: &label.Value,
-		})
-	}
 
 	_, err = ce.UpdateNodePool(request)
 	if err != nil {
@@ -174,11 +170,11 @@ func (cm *ClusterManager) AddNodePool(clusterModel *model.Cluster, np *model.Nod
 	for _, subnet := range np.Subnets {
 		createNodePoolReq.SubnetIds = append(createNodePoolReq.SubnetIds, subnet.SubnetID)
 	}
-	for _, label := range np.Labels {
-		createNodePoolReq.InitialNodeLabels = append(createNodePoolReq.InitialNodeLabels, containerengine.KeyValue{
-			Key: &label.Name, Value: &label.Value,
-		})
-	}
+
+	// only add node pool name label, other are added by NodeLabelController
+	createNodePoolReq.InitialNodeLabels = append(createNodePoolReq.InitialNodeLabels, containerengine.KeyValue{
+		Key: common.String(pkgCommon.LabelKey), Value: common.String(np.Name),
+	})
 
 	nodepoolOCID, err := ce.CreateNodePool(createNodePoolReq)
 	if err != nil {

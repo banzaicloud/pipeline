@@ -30,7 +30,6 @@ import (
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 const unknown = "unknown"
@@ -47,7 +46,6 @@ const (
 	tableNameDummyProperties      = "dummy_clusters"
 	tableNameKubernetesProperties = "kubernetes_clusters"
 	tableNameEKSSubnets           = "amazon_eks_subnets"
-	tableNameAmazonNodePoolLabels = "amazon_node_pool_labels"
 )
 
 //ClusterModel describes the common cluster model
@@ -112,7 +110,8 @@ type ACSKNodePoolModel struct {
 	MaxCount                     int
 	AsgID                        string
 	ScalingConfigID              string
-	Delete                       bool `gorm:"-"`
+	Labels                       map[string]string `gorm:"-"`
+	Delete                       bool              `gorm:"-"`
 }
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
@@ -145,8 +144,8 @@ type AmazonNodePoolsModel struct {
 	Count            int
 	NodeImage        string
 	NodeInstanceType string
-	Labels           []*AmazonNodePoolLabelModel `gorm:"foreignkey:NodePoolID"`
-	Delete           bool                        `gorm:"-"`
+	Labels           map[string]string `gorm:"-"`
+	Delete           bool              `gorm:"-"`
 }
 
 // BeforeDelete deletes all nodepool labels that belongs to this AmazonNodePoolsModel
@@ -164,59 +163,6 @@ func (m *AmazonNodePoolsModel) BeforeDelete(tx *gorm.DB) error {
 	}
 
 	return nil
-}
-
-// AfterUpdate removes marked node pool(s)
-func (m *AmazonNodePoolsModel) AfterUpdate(tx *gorm.DB) error {
-	log.WithFields(logrus.Fields{
-		"clusterId":    m.ClusterID,
-		"nodePoolName": m.Name},
-	).Debugln("remove node pool labels marked for deletion")
-
-	for _, labelModel := range m.Labels {
-		if labelModel != nil && labelModel.Delete {
-			err := tx.Model(m).Association("Labels").Delete(labelModel).Error
-			if err != nil {
-				return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", m.ClusterID, "nodePoolName", m.Name)
-			}
-
-			err = tx.Delete(labelModel).Error
-			if err != nil {
-				return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", m.ClusterID, "nodePoolName", m.Name)
-			}
-		}
-	}
-
-	return nil
-}
-
-// AmazonNodePoolLabelModel stores labels for node pools
-type AmazonNodePoolLabelModel struct {
-	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
-	Value      string
-	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-
-	Delete bool `gorm:"-"`
-}
-
-// TableName changes the default table name.
-func (AmazonNodePoolLabelModel) TableName() string {
-	return tableNameAmazonNodePoolLabels
-}
-
-func (m AmazonNodePoolLabelModel) String() string {
-	return fmt.Sprintf(
-		"ID: %d, Name: %s, Value: %s, NodePoolID: %d, createdAt: %v, UpdatedAt: %v",
-		m.ID,
-		m.Name,
-		m.Value,
-		m.NodePoolID,
-		m.CreatedAt,
-		m.UpdatedAt,
-	)
 }
 
 // EKSSubnetModel describes the model of subnets used for creating an EKS cluster
@@ -263,6 +209,7 @@ type AKSNodePoolModel struct {
 	Count            int
 	NodeInstanceType string
 	VNetSubnetID     string
+	Labels           map[string]string `gorm:"-"`
 }
 
 // DummyClusterModel describes the dummy cluster model

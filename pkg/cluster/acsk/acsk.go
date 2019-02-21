@@ -20,9 +20,10 @@ import (
 
 // NodePool describes Alibaba's node fields of a CreateCluster/Update request
 type NodePool struct {
-	InstanceType string `json:"instanceType"`
-	MinCount     int    `json:"minCount"`
-	MaxCount     int    `json:"maxCount"`
+	InstanceType string            `json:"instanceType"`
+	MinCount     int               `json:"minCount"`
+	MaxCount     int               `json:"maxCount"`
+	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 type NodePools map[string]*NodePool

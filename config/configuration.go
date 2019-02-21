@@ -56,6 +56,12 @@ const (
 	HeadNodeTaintRetryAttempt      = "infra.headNodeTaintRetryAttempt"
 	HeadNodeTaintRetrySleepSeconds = "infra.headNodeTaintRetrySleepSeconds"
 
+	//PipelineLabelDomain reserved node pool label domains
+	PipelineLabelDomain = "infra.pipelineLabelDomain"
+
+	//ForbiddenLabelDomains reserved node pool label domains
+	ForbiddenLabelDomains = "infra.forbiddenLabelDomains"
+
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"
@@ -134,6 +140,9 @@ const (
 
 	IstioChartVersion             = "servicemesh.istioChartVersion"
 	IstioGrafanaDashboardLocation = "servicemesh.grafanaDashboardLocation"
+
+	// NodePool LabelSet Operator
+	NodePoolLabelSetOperatorChartVersion = "nodepools.labelSetOperatorChartVersion"
 )
 
 //Init initializes the configurations
@@ -257,6 +266,15 @@ func init() {
 
 	viper.SetDefault(IstioChartVersion, "1.0.5")
 	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "dashboards", "istio"))
+
+	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.2")
+
+	viper.SetDefault(PipelineLabelDomain, "banzaicloud.io")
+	viper.SetDefault(ForbiddenLabelDomains, []string{
+		"k8s.io",
+		"kubernetes.io",
+		"google.com",
+	})
 
 	// Cadence config
 	viper.SetDefault("cadence.port", 7933)

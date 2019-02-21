@@ -384,6 +384,9 @@ func main() {
 
 			clusters := orgs.Group("/:orgid/clusters/:id")
 
+			clusters.GET("/nodepools/labels", api.GetNodepoolLabelSets)
+			clusters.POST("/nodepools/labels", api.SetNodepoolLabelSets)
+
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
 

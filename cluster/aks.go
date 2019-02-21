@@ -73,6 +73,7 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			Count:            np.Count,
 			NodeInstanceType: np.NodeInstanceType,
 			VNetSubnetID:     np.VNetSubnetID,
+			Labels:           np.Labels,
 		})
 	}
 
@@ -476,6 +477,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.AKS.NodePools {
 		if np != nil {
+
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
 				Count:             np.Count,
@@ -483,6 +485,7 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MinCount:          np.NodeMinCount,
 				MaxCount:          np.NodeMaxCount,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Labels:            np.Labels,
 			}
 		}
 	}
@@ -674,14 +677,11 @@ func (c *AKSCluster) getAzureCluster() (*containerservice.ManagedCluster, error)
 }
 
 //CreateAKSClusterFromModel creates ClusterModel struct from model
-func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) (*AKSCluster, error) {
-	log := log.WithField("cluster", clusterModel.Name)
-
-	aksCluster := AKSCluster{
+func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) *AKSCluster {
+	return &AKSCluster{
 		modelCluster: clusterModel,
-		log:          log,
+		log:          log.WithField("cluster", clusterModel.Name),
 	}
-	return &aksCluster, nil
 }
 
 //AddDefaultsToUpdate adds defaults to update request

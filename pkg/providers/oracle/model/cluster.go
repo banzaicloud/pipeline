@@ -20,7 +20,6 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
 )
@@ -30,7 +29,6 @@ const (
 	clustersTableName                = "oracle_oke_clusters"
 	clustersNodePoolsTableName       = "oracle_oke_node_pools"
 	clustersNodePoolSubnetsTableName = "oracle_oke_node_pool_subnets"
-	clustersNodePoolLabelsTableName  = "oracle_oke_node_pool_labels"
 )
 
 // Cluster describes the Oracle cluster model
@@ -62,7 +60,7 @@ type NodePool struct {
 	OCID              string `gorm:"column:ocid"`
 	ClusterID         uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Subnets           []*NodePoolSubnet
-	Labels            []*NodePoolLabel
+	Labels            map[string]string `gorm:"-"`
 	CreatedBy         pkgAuth.UserID
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
@@ -75,16 +73,6 @@ type NodePoolSubnet struct {
 	ID         uint   `gorm:"primary_key"`
 	SubnetID   string `gorm:"unique_index:idx_node_pool_id_subnet_id"`
 	NodePoolID uint   `gorm:"unique_index:idx_node_pool_id_subnet_id"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-}
-
-// NodePoolLabel stores labels for node pools
-type NodePoolLabel struct {
-	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
-	Value      string
-	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
@@ -102,11 +90,6 @@ func (NodePool) TableName() string {
 // TableName sets the NodePoolSubnets table name
 func (NodePoolSubnet) TableName() string {
 	return clustersNodePoolSubnetsTableName
-}
-
-// TableName sets the NodePoolLabels table name
-func (NodePoolLabel) TableName() string {
-	return clustersNodePoolLabelsTableName
 }
 
 // CreateModelFromCreateRequest create model from create request
@@ -151,7 +134,7 @@ func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID pkgAuth.Us
 			nodePool.Add = true
 		} else {
 			nodePool.Subnets = make([]*NodePoolSubnet, 0)
-			nodePool.Labels = make([]*NodePoolLabel, 0)
+			nodePool.Labels = data.Labels
 		}
 		nodePool.CreatedBy = userID
 		nodePool.Version = data.Version
@@ -160,20 +143,6 @@ func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID pkgAuth.Us
 		for _, subnetID := range data.GetSubnetIDs() {
 			nodePool.Subnets = append(nodePool.Subnets, &NodePoolSubnet{
 				SubnetID: subnetID,
-			})
-		}
-
-		nodePool.Labels = []*NodePoolLabel{
-			{
-				Name:  pkgCommon.LabelKey,
-				Value: nodePool.Name,
-			},
-		}
-
-		for name, value := range data.Labels {
-			nodePool.Labels = append(nodePool.Labels, &NodePoolLabel{
-				Name:  name,
-				Value: value,
 			})
 		}
 
@@ -220,21 +189,13 @@ func (c *Cluster) Cleanup() error {
 
 // BeforeDelete deletes all subnets and labels belongs to the nodepool
 func (d *NodePool) BeforeDelete() error {
-	log.Info("BeforeDelete oracle nodepool... delete all subnets and labels")
+	log.Info("BeforeDelete oracle nodepool... delete all subnets")
 
 	var nodePoolSubnets []*NodePoolSubnet
-	var nodePoolLabels []*NodePoolLabel
 
-	err := config.DB().Where(NodePoolSubnet{
+	return config.DB().Where(NodePoolSubnet{
 		NodePoolID: d.ID,
 	}).Find(&nodePoolSubnets).Delete(&nodePoolSubnets).Error
-	if err != nil {
-		return err
-	}
-
-	return config.DB().Where(NodePoolLabel{
-		NodePoolID: d.ID,
-	}).Find(&nodePoolLabels).Delete(&nodePoolLabels).Error
 }
 
 // RemoveNodePools delete node pool records from the database
@@ -277,10 +238,6 @@ func (c *Cluster) GetClusterRequestFromModel() *cluster.Cluster {
 				Image:   np.Image,
 				Count:   uint(int(np.QuantityPerSubnet) * len(np.Subnets)),
 				Shape:   np.Shape,
-			}
-			nodePools[np.Name].Labels = make(map[string]string, 0)
-			for _, l := range np.Labels {
-				nodePools[np.Name].Labels[l.Name] = l.Value
 			}
 		}
 	}

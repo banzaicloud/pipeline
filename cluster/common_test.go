@@ -56,7 +56,10 @@ const (
 
 // nolint: gochecknoglobals
 var (
-	clusterRequestSecretId = pkgSecret.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(secretName))))
+	clusterRequestSecretId   = pkgSecret.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(secretName))))
+	clusterRequestNodeLabels = map[string]string{
+		"testname": "testvalue",
+	}
 
 	amazonSecretRequest = secret.CreateSecretRequest{
 		Name: secretName,
@@ -247,6 +250,7 @@ var (
 						MaxCount:         clusterRequestNodeMaxCount,
 						Count:            clusterRequestNodeCount,
 						NodeInstanceType: clusterRequestNodeInstance,
+						Labels:           clusterRequestNodeLabels,
 					},
 				},
 			},
@@ -369,6 +373,7 @@ var (
 					Count:            clusterRequestNodeCount,
 					NodeInstanceType: clusterRequestNodeInstance,
 					Name:             clusterRequestAgentName,
+					Labels:           clusterRequestNodeLabels,
 				},
 			},
 		},

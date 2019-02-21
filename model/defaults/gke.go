@@ -15,9 +15,13 @@
 package defaults
 
 import (
+	"time"
+
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/jinzhu/gorm"
 )
 
 // GKEProfile describes a Google cluster profile
@@ -31,15 +35,26 @@ type GKEProfile struct {
 
 // GKENodePoolProfile describes a Google cluster profile's nodepools
 type GKENodePoolProfile struct {
-	ID               uint   `gorm:"primary_key"`
-	Autoscaling      bool   `gorm:"default:false"`
-	MinCount         int    `gorm:"default:1"`
-	MaxCount         int    `gorm:"default:2"`
-	Count            int    `gorm:"default:1"`
-	NodeInstanceType string `gorm:"default:'n1-standard-1'"`
-	Name             string `gorm:"unique_index:idx_name_node_name"`
-	NodeName         string `gorm:"unique_index:idx_name_node_name"`
-	Preemptible      bool   `gorm:"default:false"`
+	ID               uint                        `gorm:"primary_key"`
+	Autoscaling      bool                        `gorm:"default:false"`
+	MinCount         int                         `gorm:"default:1"`
+	MaxCount         int                         `gorm:"default:2"`
+	Count            int                         `gorm:"default:1"`
+	NodeInstanceType string                      `gorm:"default:'n1-standard-1'"`
+	Name             string                      `gorm:"unique_index:idx_name_node_name"`
+	NodeName         string                      `gorm:"unique_index:idx_name_node_name"`
+	Preemptible      bool                        `gorm:"default:false"`
+	Labels           []*GKENodePoolLabelsProfile `gorm:"foreignkey:NodePoolProfileID"`
+}
+
+// GKENodePoolLabelsProfile stores labels for Google cluster profile's nodepools
+type GKENodePoolLabelsProfile struct {
+	ID                uint   `gorm:"primary_key"`
+	Name              string `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	Value             string
+	NodePoolProfileID uint `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 // TableName overrides GKEProfile's table name
@@ -52,35 +67,68 @@ func (GKENodePoolProfile) TableName() string {
 	return DefaultGKENodePoolProfileTableName
 }
 
+// TableName overrides GKENodePoolLabelsProfile's table name
+func (GKENodePoolLabelsProfile) TableName() string {
+	return DefaultGKENodePoolProfileLabelsTableName
+}
+
 // AfterFind loads nodepools to profile
 func (d *GKEProfile) AfterFind() error {
 	log.Info("AfterFind gke profile... load node pools")
 	return config.DB().Where(GKENodePoolProfile{Name: d.Name}).Find(&d.NodePools).Error
 }
 
-// BeforeSave clears nodepools
-func (d *GKEProfile) BeforeSave() error {
-	log.Info("BeforeSave gke profile...")
+// BeforeUpdate clears nodepools
+func (d *GKEProfile) BeforeUpdate(tx *gorm.DB) error {
+	log.Info("BeforeUpdate gke profile...")
+
+	if d.CreatedAt.IsZero() && d.UpdatedAt.IsZero() {
+		return tx.Create(d).Error
+	}
 
 	var nodePools []*GKENodePoolProfile
-	err := config.DB().Where(GKENodePoolProfile{
+	err := tx.Where(GKENodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
 	if err != nil {
-		log.Errorf("Error during deleting saved nodepools: %s", err.Error())
+		return err
 	}
 
 	return nil
 }
 
 // BeforeDelete deletes all nodepools to belongs to profile
-func (d *GKEProfile) BeforeDelete() error {
+func (d *GKEProfile) BeforeDelete(tx *gorm.DB) error {
 	log.Info("BeforeDelete gke profile... delete all nodepool")
 
 	var nodePools []*GKENodePoolProfile
-	return config.DB().Where(GKENodePoolProfile{
+
+	err := tx.Where(GKENodePoolProfile{
 		Name: d.Name,
 	}).Find(&nodePools).Delete(&nodePools).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// BeforeDelete deletes all node labels that belong to node pool profile
+func (d *GKENodePoolProfile) BeforeDelete(tx *gorm.DB) error {
+	log.Info("BeforeDelete gke profile... delete all nodepool")
+
+	if d.ID == 0 {
+		return nil
+	}
+
+	err := tx.Where(GKENodePoolLabelsProfile{
+		NodePoolProfileID: d.ID,
+	}).Delete(GKENodePoolLabelsProfile{}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SaveInstance saves cluster profile into database
@@ -109,6 +157,14 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	nodePools := make(map[string]*gke.NodePool)
 	if d.NodePools != nil {
 		for _, np := range d.NodePools {
+
+			labels := make(map[string]string)
+			for _, label := range np.Labels {
+				if label != nil {
+					labels[label.Name] = label.Value
+				}
+			}
+
 			nodePools[np.NodeName] = &gke.NodePool{
 				Autoscaling:      np.Autoscaling,
 				MinCount:         np.MinCount,
@@ -116,6 +172,7 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 				Count:            np.Count,
 				NodeInstanceType: np.NodeInstanceType,
 				Preemptible:      np.Preemptible,
+				Labels:           labels,
 			}
 		}
 	}
@@ -151,9 +208,24 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 
 		if len(r.Properties.GKE.NodePools) != 0 {
 
-			var nodePools []*GKENodePoolProfile
+			nodePools := make([]*GKENodePoolProfile, 0, len(r.Properties.GKE.NodePools))
 			for name, np := range r.Properties.GKE.NodePools {
-				nodePools = append(nodePools, &GKENodePoolProfile{
+
+				err := pkgCommon.ValidateNodePoolLabels(np.Labels)
+				if err != nil {
+					return err
+				}
+
+				var labels []*GKENodePoolLabelsProfile
+
+				for lblName, lblValue := range np.Labels {
+					labels = append(labels, &GKENodePoolLabelsProfile{
+						Name:  lblName,
+						Value: lblValue,
+					})
+				}
+
+				nodePool := &GKENodePoolProfile{
 					Autoscaling:      np.Autoscaling,
 					MinCount:         np.MinCount,
 					MaxCount:         np.MaxCount,
@@ -162,7 +234,9 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 					Name:             d.Name,
 					NodeName:         name,
 					Preemptible:      np.Preemptible,
-				})
+					Labels:           labels,
+				}
+				nodePools = append(nodePools, nodePool)
 			}
 
 			d.NodePools = nodePools
