@@ -77,7 +77,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 
 	bootstrapCommand, err := awsCluster.GetBootstrapCommand("master", input.ExternalBaseUrl, signedToken)
 	if err != nil {
-		return "", emperror.Wrapf(err, "failed to fetch bootstrap command")
+		return "", emperror.Wrap(err, "failed to fetch bootstrap command")
 	}
 
 	client, err := awsCluster.GetAWSClient()

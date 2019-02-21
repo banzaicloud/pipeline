@@ -79,7 +79,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	bootstrapCommand, err := awsCluster.GetBootstrapCommand(input.Pool.Name, input.ExternalBaseUrl, signedToken)
 	if err != nil {
-		return "", emperror.Wrapf(err, "failed to fetch bootstrap command")
+		return "", emperror.Wrap(err, "failed to fetch bootstrap command")
 	}
 
 	client, err := awsCluster.GetAWSClient()

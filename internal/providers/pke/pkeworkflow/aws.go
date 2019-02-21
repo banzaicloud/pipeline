@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/goph/emperror"
 )
 
 type AWSActivityInput struct {
@@ -56,7 +57,7 @@ type Secret interface {
 func (f *AWSClientFactory) New(organizationID uint, secretID string, region string) (*session.Session, error) {
 	s, err := f.secrets.GetSecret(organizationID, secretID)
 	if err != nil {
-		return nil, err
+		return nil, emperror.Wrap(err, "failed to get AWS secret")
 	}
 
 	err = s.ValidateSecretType(amazon.Provider)
