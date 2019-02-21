@@ -40,7 +40,7 @@ func NewSecretStore(secrets InternalSecretStore) *SecretStore {
 }
 
 // EnsureSecretExists creates a secret for an organization if it cannot be found.
-func (s *SecretStore) EnsureSecretExists(organizationID uint, sec clustersecret.NewSecret) (string, error) {
+func (s *SecretStore) EnsureSecretExists(organizationID uint, sec clustersecret.SecretCreateRequest) (string, error) {
 	createSecret := &secret.CreateSecretRequest{
 		Name:   sec.Name,
 		Type:   sec.Type,

@@ -25,10 +25,10 @@ import (
 type ensureSecretExistsStub struct {
 	secretID       string
 	organizationID uint
-	secret         NewSecret
+	secret         SecretCreateRequest
 }
 
-func (s *ensureSecretExistsStub) EnsureSecretExists(organizationID uint, secret NewSecret) (string, error) {
+func (s *ensureSecretExistsStub) EnsureSecretExists(organizationID uint, secret SecretCreateRequest) (string, error) {
 	s.organizationID = organizationID
 	s.secret = secret
 
@@ -68,7 +68,7 @@ func TestStore_EnsureSecretExists(t *testing.T) {
 	}
 	store := NewStore(clusters, secretStore)
 
-	secret := NewSecret{
+	secret := SecretCreateRequest{
 		Name: "name",
 		Type: "secret",
 		Values: map[string]string{
@@ -81,7 +81,7 @@ func TestStore_EnsureSecretExists(t *testing.T) {
 	secretID, err := store.EnsureSecretExists(context.Background(), clusterID, secret)
 	require.NoError(t, err)
 
-	expectedSecret := NewSecret{
+	expectedSecret := SecretCreateRequest{
 		Name: "cluster-1-name",
 		Type: "secret",
 		Values: map[string]string{
