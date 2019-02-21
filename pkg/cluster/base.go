@@ -286,6 +286,7 @@ type UpdateProperties struct {
 	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
 	Dummy *dummy.UpdateClusterDummy   `json:"dummy,omitempty"`
 	OKE   *oke.Cluster                `json:"oke,omitempty"`
+	PKE   *pke.UpdateClusterPKE       `json:"pke,omitempty"`
 }
 
 // String method prints formatted update request fields
@@ -419,27 +420,24 @@ func (r *CreateClusterRequest) validateMainFields() error {
 func (r *UpdateClusterRequest) Validate() error {
 
 	r.preValidate()
+	if r.PKE != nil {
+		return r.PKE.Validate()
+	}
 
 	switch r.Cloud {
 	case Alibaba:
-		// alibaba validate
 		return r.ACSK.Validate()
 	case Amazon:
-		// eks validate
 		return r.EKS.Validate()
 	case Azure:
-		// aks validate
 		return r.AKS.Validate()
 	case Google:
-		// gke validate
 		return r.GKE.Validate()
 	case Dummy:
 		return r.Dummy.Validate()
 	case Oracle:
-		// oracle validate
 		return r.OKE.Validate(true)
 	default:
-		// not supported cloud type
 		return pkgErrors.ErrorNotSupportedCloudType
 	}
 

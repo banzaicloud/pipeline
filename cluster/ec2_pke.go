@@ -389,7 +389,78 @@ func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterReques
 }
 
 func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, pkgAuth.UserID) error {
-	panic("implement me")
+	panic("not used")
+}
+
+func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.NodePool {
+	var out = make([]pkeworkflow.NodePool, len(nodePools))
+	i := 0
+	for nodePoolName, nodePool := range nodePools {
+		out[i] = pkeworkflow.NodePool{
+			Name:         nodePoolName,
+			MinCount:     nodePool.MinCount,
+			MaxCount:     nodePool.MaxCount,
+			Count:        nodePool.Count,
+			InstanceType: nodePool.InstanceType,
+			SpotPrice:    nodePool.SpotPrice,
+		}
+		i++
+	}
+	return out
+}
+
+func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, workflowClient client.Client, externalBaseURL string) error {
+
+	vpcid, ok := c.model.Network.CloudProviderConfig["vpcID"].(string)
+	if !ok {
+		return errors.New("VPC ID not found")
+	}
+
+	subnets := []string{}
+	if subnetIfaces, ok := c.model.Network.CloudProviderConfig["subnets"].([]interface{}); ok {
+		for _, subnet := range subnetIfaces {
+			if str, ok := subnet.(string); ok {
+				subnets = append(subnets, str)
+			} else {
+				c.log.Errorf("Subnet ID is not a string (%v %T)", subnet, subnet)
+			}
+		}
+	} else {
+		return errors.New(fmt.Sprintf("Subnet IDs not found (%v %T)", c.model.Network.CloudProviderConfig["subnets"], c.model.Network.CloudProviderConfig["subnets"]))
+	}
+
+	input := pkeworkflow.UpdateClusterWorkflowInput{
+		ClusterID:           uint(c.GetID()),
+		NodePools:           createNodePoolsFromPKERequest(request.PKE.NodePools),
+		OrganizationID:      uint(c.GetOrganizationId()),
+		ClusterUID:          c.GetUID(),
+		ClusterName:         c.GetName(),
+		SecretID:            string(c.GetSecretId()),
+		Region:              c.GetLocation(),
+		PipelineExternalURL: externalBaseURL,
+		VPCID:               vpcid,
+		SubnetIDs:           subnets,
+	}
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+	}
+	exec, err := workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.UpdateClusterWorkflowName, input)
+	if err != nil {
+		return err
+	}
+
+	err = c.SetCurrentWorkflowID(exec.GetID())
+	if err != nil {
+		return err
+	}
+
+	err = exec.Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, pkgAuth.UserID) error {
@@ -397,11 +468,10 @@ func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, pkgA
 }
 
 func (c *EC2ClusterPKE) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
-	panic("implement me")
+	return nil
 }
 
 func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
-	panic("implement me")
 }
 
 func (c *EC2ClusterPKE) DeleteCluster() error {

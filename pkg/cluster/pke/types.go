@@ -27,6 +27,27 @@ type CreateClusterPKE struct {
 	CRI        CRI        `json:"cri,omitempty" yaml:"cri,omitempty" binding:"required"`
 }
 
+// UpdateClusterPKE describes Pipeline's EC2/BanzaiCloud fields of a UpdateCluster request
+type UpdateClusterPKE struct {
+	NodePools UpdateNodePools `json:"nodepools,omitempty" yaml:"nodepools,omitempty" binding:"required"`
+}
+
+func (a *UpdateClusterPKE) Validate() error {
+	// TODO implement
+	return nil
+}
+
+type UpdateNodePools map[string]UpdateNodePool
+
+type UpdateNodePool struct {
+	InstanceType string `json:"instanceType" yaml:"instanceType"`
+	SpotPrice    string `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling  bool   `json:"autoscaling" yaml:"autoscaling"`
+	MinCount     int    `json:"minCount" yaml:"minCount"`
+	MaxCount     int    `json:"maxCount" yaml:"maxCount"`
+	Count        int    `json:"count" yaml:"count"`
+}
+
 type Network struct {
 	ServiceCIDR      string          `json:"serviceCIDR" yaml:"serviceCIDR"`
 	PodCIDR          string          `json:"podCIDR" yaml:"podCIDR"`
