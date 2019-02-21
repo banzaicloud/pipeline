@@ -94,6 +94,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", emperror.Wrap(err, "loading CF template")
 	}
 
+	if input.Pool.SpotPrice == "0.0" {
+		input.Pool.SpotPrice = ""
+	}
+
 	clusterName := cluster.GetName()
 	stackInput := &cloudformation.CreateStackInput{
 		StackName:    aws.String(stackName),
