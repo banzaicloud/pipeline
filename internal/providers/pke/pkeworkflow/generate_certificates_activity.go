@@ -36,7 +36,7 @@ func NewGenerateCertificatesActivity(secrets ClusterSecretStore) *GenerateCertif
 
 type ClusterSecretStore interface {
 	// EnsureSecretExists creates a secret for an organization if it cannot be found and returns it's ID.
-	EnsureSecretExists(ctx context.Context, clusterID uint, secret clustersecret.NewSecret) (string, error)
+	EnsureSecretExists(ctx context.Context, clusterID uint, secret clustersecret.SecretCreateRequest) (string, error)
 }
 
 type GenerateCertificatesActivityInput struct {
@@ -44,7 +44,7 @@ type GenerateCertificatesActivityInput struct {
 }
 
 func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input GenerateCertificatesActivityInput) error {
-	req := clustersecret.NewSecret{
+	req := clustersecret.SecretCreateRequest{
 		Name:   "ca",
 		Type:   pkgSecret.PKESecretType,
 		Values: map[string]string{}, // Implicitly generate the necessary certificates

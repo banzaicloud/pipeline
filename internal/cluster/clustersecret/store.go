@@ -21,8 +21,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// NewSecret represents a new secret.
-type NewSecret struct {
+// SecretCreateRequest represents a new secret.
+type SecretCreateRequest struct {
 	Name   string
 	Type   string
 	Values map[string]string
@@ -61,11 +61,11 @@ type Cluster interface {
 // SecretStore is a generic secret store.
 type SecretStore interface {
 	// EnsureSecretExists creates a secret for an organization if it cannot be found and returns it's ID.
-	EnsureSecretExists(organizationID uint, secret NewSecret) (string, error)
+	EnsureSecretExists(organizationID uint, secret SecretCreateRequest) (string, error)
 }
 
 // EnsureSecretExists creates a secret for an organization if it cannot be found and returns it's ID.
-func (s *Store) EnsureSecretExists(ctx context.Context, clusterID uint, secret NewSecret) (string, error) {
+func (s *Store) EnsureSecretExists(ctx context.Context, clusterID uint, secret SecretCreateRequest) (string, error) {
 	cluster, err := s.clusters.GetCluster(ctx, clusterID)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create secret")
