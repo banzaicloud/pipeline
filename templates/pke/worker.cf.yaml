@@ -18,6 +18,9 @@ Parameters:
   ClusterName:
     Description: PKE Cluster name
     Type: String
+  NodeGroupName:
+    Description: Unique identifier for the PKE Node Group
+    Type: String
   VPCId:
     Type: 'AWS::EC2::VPC::Id'
     Description: Specify VPC Id for Autoscaling
@@ -106,7 +109,7 @@ Resources:
         Value: !Ref ClusterName
         PropagateAtLaunch: True
       - Key: Name
-        Value: !Join ["", ["pke-worker-", !Ref ClusterName ]]
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-", !Ref NodeGroupName] ]
         PropagateAtLaunch: True
       - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
         Value: "owned"
@@ -127,7 +130,7 @@ Resources:
         SourceSecurityGroupId: !Ref ClusterSecurityGroup
       Tags:
       - Key: Name
-        Value: !Join ["", ["pke-worker-sg-",!Ref "AWS::StackName"]]
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-sg-", !Ref NodeGroupName]]
 
   WaitForFirstInstance:
     Type: AWS::CloudFormation::WaitCondition
