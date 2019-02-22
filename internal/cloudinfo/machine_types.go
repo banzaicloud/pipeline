@@ -21,6 +21,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
@@ -35,37 +37,33 @@ type CloudInfoResponse struct {
 	ScrapingTime string `json:"scrapingTime,omitempty"`
 }
 
+// SpotPriceInfo represents different prices per availability zones
+type SpotPriceInfo map[string]float64
+
 type MachineDetails struct {
-
-	// cpus
-	Cpus float64 `json:"cpusPerVm,omitempty"`
-
-	// gpus
-	Gpus float64 `json:"gpusPerVm,omitempty"`
-
-	// mem
-	Mem float64 `json:"memPerVm,omitempty"`
-
-	// ntw perf
-	NtwPerf string `json:"ntwPerf,omitempty"`
-
-	// ntw perf cat
-	NtwPerfCat string `json:"ntwPerfCategory,omitempty"`
-
-	// type
-	Type string `json:"type,omitempty"`
+	Type          string            `json:"type"`
+	OnDemandPrice float64           `json:"onDemandPrice"`
+	SpotPrice     SpotPriceInfo     `json:"spotPrice"`
+	Cpus          float64           `json:"cpusPerVm"`
+	Mem           float64           `json:"memPerVm"`
+	Gpus          float64           `json:"gpusPerVm"`
+	NtwPerf       string            `json:"ntwPerf"`
+	NtwPerfCat    string            `json:"ntwPerfCategory"`
+	Zones         []string          `json:"zones"`
+	Attributes    map[string]string `json:"attributes"`
 }
 
 type VMKey struct {
 	cloud        string
-	service      string
+	service      pkgCluster.DistributionID
 	region       string
 	instanceType string
 }
 
+// nolint: gochecknoglobals
 var instanceTypeMap = make(map[VMKey]MachineDetails)
 
-func fetchMachineTypes(cloud string, service string, region string) error {
+func fetchMachineTypes(cloud string, service pkgCluster.DistributionID, region string) error {
 	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
 	if len(cloudInfoEndPoint) == 0 {
 		return emperror.With(errors.New("missing config"), "propertyName", config.CloudInfoEndPoint)
@@ -83,7 +81,7 @@ func fetchMachineTypes(cloud string, service string, region string) error {
 
 	ciResponse, err := httpClient.Do(ciRequest)
 	if err != nil {
-		return errors.New("error fetching machine types from CloudInfo")
+		return emperror.Wrap(err, "error fetching machine types from CloudInfo")
 	}
 	respBody, _ := ioutil.ReadAll(ciResponse.Body)
 	var vmDetails CloudInfoResponse
@@ -102,7 +100,7 @@ func fetchMachineTypes(cloud string, service string, region string) error {
 }
 
 //GetMachineDetails returns machine resource details, like cpu/gpu/memory etc. either from local cache or CloudInfo
-func GetMachineDetails(cloud string, service string, region string, instanceType string) (*MachineDetails, error) {
+func GetMachineDetails(cloud string, service pkgCluster.DistributionID, region string, instanceType string) (*MachineDetails, error) {
 
 	vmKey := VMKey{
 		cloud,
@@ -115,7 +113,7 @@ func GetMachineDetails(cloud string, service string, region string, instanceType
 	if !ok {
 		err := fetchMachineTypes(cloud, service, region)
 		if err != nil {
-			return nil, err
+			return nil, emperror.WrapWith(err, "failed to retrieve service machine types", "cloud", cloud, "region", region, "service", service)
 		}
 		vmDetails = instanceTypeMap[vmKey]
 	}

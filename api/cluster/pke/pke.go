@@ -17,13 +17,16 @@ package pke
 import (
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/cluster"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
 )
 
 type tokenGenerator interface {
-	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
+	GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID) (string, string, error)
 }
 
 type API struct {
@@ -31,14 +34,23 @@ type API struct {
 	errorHandler    emperror.Handler
 	tokenGenerator  tokenGenerator
 	externalBaseURL string
+
+	workflowClient client.Client
 }
 
-func NewAPI(clusterGetter common.ClusterGetter, errorHandler emperror.Handler, tokenGenerator tokenGenerator, externalBaseURL string) *API {
+func NewAPI(
+	clusterGetter common.ClusterGetter,
+	errorHandler emperror.Handler,
+	tokenGenerator tokenGenerator,
+	externalBaseURL string,
+	workflowClient client.Client,
+) *API {
 	return &API{
 		clusterGetter:   clusterGetter,
 		errorHandler:    errorHandler,
 		tokenGenerator:  tokenGenerator,
 		externalBaseURL: externalBaseURL,
+		workflowClient:  workflowClient,
 	}
 }
 

@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -41,9 +41,9 @@ type ErrorResponse struct {
 
 // CreatorBaseFields describes all field which contains info about who created the cluster/application etc
 type CreatorBaseFields struct {
-	CreatedAt   time.Time `json:"createdAt,omitempty"`
-	CreatorName string    `json:"creatorName,omitempty"`
-	CreatorId   uint      `json:"creatorId,omitempty"`
+	CreatedAt   time.Time      `json:"createdAt,omitempty"`
+	CreatorName string         `json:"creatorName,omitempty"`
+	CreatorId   pkgAuth.UserID `json:"creatorId,omitempty"`
 }
 
 // NodeNames describes node names
@@ -53,10 +53,6 @@ type NodeNames map[string][]string
 // set by Pipeline and also if these are valid Kubernetes labels
 func ValidateNodePoolLabels(labels map[string]string) error {
 	for name, value := range labels {
-		if strings.Contains(name, PipelineSpecificLabelsCommonPart) {
-			return pkgErrors.ErrorNodePoolLabelClashesWithPipelineLabel
-		}
-
 		// validate node label name
 		errs := validation.IsQualifiedName(name)
 		if len(errs) > 0 {
@@ -86,8 +82,10 @@ const (
 
 // Constants for labeling cluster nodes
 const (
-	LabelKey         = "nodepool.banzaicloud.io/name"
-	OnDemandLabelKey = "node.banzaicloud.io/ondemand"
+	LabelKey                = "nodepool.banzaicloud.io/name"
+	OnDemandLabelKey        = "node.banzaicloud.io/ondemand"
+	CloudInfoLabelKeyPrefix = "node.banzaicloud.io/"
+	HeadNodeLabelKey        = "nodepool.banzaicloud.io/head"
 )
 
 // Constant for tainting head node

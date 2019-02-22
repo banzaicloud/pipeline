@@ -27,6 +27,7 @@ import (
 )
 
 // Log is a logrus.FieldLogger
+// nolint: gochecknoglobals
 var Log logrus.FieldLogger
 
 // init initializes the fieldlogger

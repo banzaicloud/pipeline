@@ -35,4 +35,4 @@ func (e ebAuthEvents) NotifyOrganizationRegistered(fn interface{}) {
 	e.eb.SubscribeAsync(auth.OrganizationRegisteredTopic, fn, false)
 }
 
-var AuthEventEmitter authEvents = ebAuthEvents{config.EventBus}
+var AuthEventEmitter authEvents = ebAuthEvents{config.EventBus} // nolint: gochecknoglobals

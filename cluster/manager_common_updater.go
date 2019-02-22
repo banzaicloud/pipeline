@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 )
@@ -25,7 +26,7 @@ import (
 type commonUpdater struct {
 	request                  *cluster.UpdateClusterRequest
 	cluster                  CommonCluster
-	userID                   uint
+	userID                   pkgAuth.UserID
 	scaleOptionsChanged      bool
 	clusterPropertiesChanged bool
 }
@@ -50,7 +51,7 @@ func (e *commonUpdateValidationError) IsPreconditionFailed() bool {
 }
 
 // NewCommonClusterUpdater returns a new cluster creator instance.
-func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID uint) *commonUpdater {
+func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID pkgAuth.UserID) *commonUpdater {
 	return &commonUpdater{
 		request: request,
 		cluster: cluster,
@@ -122,7 +123,14 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return nil
 	}
 
-	err := c.cluster.UpdateCluster(c.request, c.userID)
+	// pre deploy NodePoolLabelSet objects for each new node pool to be created
+	nodePools := getNodePoolsFromUpdateRequest(c.request)
+	err := DeployNodePoolLabelsSet(c.cluster, nodePools, true)
+	if err != nil {
+		return err
+	}
+
+	err = c.cluster.UpdateCluster(c.request, c.userID)
 	if err != nil {
 		return err
 	}
@@ -131,7 +139,8 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		return emperror.Wrap(err, "deploying cluster autoscaler failed")
 	}
 
-	if err := LabelNodes(c.cluster); err != nil {
+	// on certain clouds like Alibaba & Ec2_Banzaicloud we still need to add node pool name labels
+	if err := LabelNodesWithNodePoolName(c.cluster); err != nil {
 		return emperror.Wrap(err, "adding labels to nodes failed")
 	}
 	return nil

@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,29 +14,40 @@
 
 package log
 
-import "github.com/sirupsen/logrus"
+import (
+	"os"
 
-// NewLogger creates a new logrus logger instance.
-func NewLogger(config Config) *logrus.Logger {
+	"github.com/goph/logur"
+	"github.com/goph/logur/adapters/logrusadapter"
+	"github.com/sirupsen/logrus"
+)
+
+// NewLogurLogger creates a new logger.
+func NewLogurLogger(config Config) logur.Logger {
 	logger := logrus.New()
 
-	level, err := logrus.ParseLevel(config.Level)
-	if err != nil {
-		level = logrus.InfoLevel
-	}
-
-	logger.Level = level
+	logger.SetOutput(os.Stdout)
+	logger.SetFormatter(&logrus.TextFormatter{
+		DisableColors:             config.NoColor,
+		EnvironmentOverrideColors: true,
+	})
 
 	switch config.Format {
+	case "logfmt":
+		// Already the default
+
 	case "json":
-		logger.Formatter = new(logrus.JSONFormatter)
-
-	default:
-		textFormatter := new(logrus.TextFormatter)
-		textFormatter.FullTimestamp = true
-
-		logger.Formatter = textFormatter
+		logger.SetFormatter(&logrus.JSONFormatter{})
 	}
 
-	return logger
+	if level, err := logrus.ParseLevel(config.Level); err == nil {
+		logger.SetLevel(level)
+	}
+
+	return logrusadapter.New(logger)
+}
+
+// WithFields returns a new contextual logger instance with context added to it.
+func WithFields(logger logur.Logger, fields map[string]interface{}) logur.Logger {
+	return logur.WithFields(logger, fields)
 }

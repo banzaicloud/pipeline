@@ -40,6 +40,7 @@ const (
 	userId = 1
 )
 
+// nolint: gochecknoglobals
 var (
 	clusterModelWithNilNodePools = &google.GKEClusterModel{NodeVersion: nodeVersion}
 
@@ -66,9 +67,7 @@ func TestCreateNodePoolsModelFromRequest(t *testing.T) {
 		pool2Name: {Count: pool2Count, NodeInstanceType: pool2NodeInstanceType, Labels: map[string]string{labelName: labelValue}},
 	}
 
-	labels := []*google.GKENodePoolLabelModel{
-		{Name: labelName, Value: labelValue},
-	}
+	labels := map[string]string{labelName: labelValue}
 
 	nodePoolsModel := []*google.GKENodePoolModel{
 		{CreatedBy: userId, Name: pool1Name, NodeCount: pool1Count, NodeInstanceType: pool1NodeInstanceType, Labels: labels},
@@ -126,8 +125,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			"https://www.googleapis.com/auth/compute",
 		},
 		Labels: map[string]string{
-			pkgCommon.LabelKey:         pool1Name,
-			pkgCommon.OnDemandLabelKey: "true",
+			pkgCommon.LabelKey: pool1Name,
 		},
 	}
 
@@ -141,8 +139,7 @@ func TestCreateNodePoolsFromClusterModel(t *testing.T) {
 			"https://www.googleapis.com/auth/compute",
 		},
 		Labels: map[string]string{
-			pkgCommon.LabelKey:         pool2Name,
-			pkgCommon.OnDemandLabelKey: "true",
+			pkgCommon.LabelKey: pool2Name,
 		},
 	}
 	nodePools := []*gke.NodePool{
@@ -252,6 +249,7 @@ func TestUpdateVersions(t *testing.T) {
 
 }
 
+// nolint: gochecknoglobals
 var (
 	okVersionsIn = []string{
 		"1.9.7-gke.0",

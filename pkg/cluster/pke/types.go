@@ -48,6 +48,7 @@ type NodePool struct {
 	Hosts          Hosts                  `json:"hosts" yaml:"hosts"`
 	Provider       NodePoolProvider       `json:"provider" yaml:"provider" binding:"required"`
 	ProviderConfig map[string]interface{} `json:"providerConfig" yaml:"providerConfig" binding:"required"`
+	Labels         map[string]string      `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 type NodePoolProvider string

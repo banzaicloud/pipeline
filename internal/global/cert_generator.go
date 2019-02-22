@@ -23,7 +23,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+// nolint: gochecknoglobals
 var certGenerator *cert.Generator
+
+// nolint: gochecknoglobals
 var certGeneratorOnce sync.Once
 
 func newCertGenerator() *cert.Generator {

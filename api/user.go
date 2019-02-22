@@ -20,6 +20,7 @@ import (
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -28,8 +29,8 @@ import (
 )
 
 type userAccessManager interface {
-	GrantOrganizationAccessToUser(userID string, orgID uint)
-	RevokeOrganizationAccessFromUser(userID string, orgID uint)
+	GrantOrganizationAccessToUser(userID string, orgID pkgAuth.OrganizationID)
+	RevokeOrganizationAccessFromUser(userID string, orgID pkgAuth.OrganizationID)
 }
 
 // UserAPI implements user functions.
@@ -119,7 +120,7 @@ func (a *UserAPI) GetUsers(c *gin.Context) {
 
 	var users []auth.User
 
-	err = a.db.Model(organization).Where(&auth.User{ID: uint(id)}).Related(&users, "Users").Error
+	err = a.db.Model(organization).Where(&auth.User{ID: pkgAuth.UserID(id)}).Related(&users, "Users").Error
 	if err != nil {
 		message := "failed to fetch users"
 		a.errorHandler.Handle(emperror.Wrap(err, message))
@@ -189,7 +190,7 @@ func (a *UserAPI) AddUser(c *gin.Context) {
 	}
 
 	organization := auth.GetCurrentOrganization(c.Request)
-	user := &auth.User{ID: uint(id)}
+	user := &auth.User{ID: pkgAuth.UserID(id)}
 
 	err = a.addUserToOrgInDb(organization, user, role.Role)
 
@@ -251,7 +252,7 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 		return
 	}
 
-	err = a.db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
+	err = a.db.Model(organization).Association("Users").Delete(auth.User{ID: pkgAuth.UserID(id)}).Error
 	if err != nil {
 		message := "failed to delete user"
 		a.errorHandler.Handle(emperror.Wrap(err, message))

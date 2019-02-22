@@ -32,6 +32,7 @@ type storageAccount struct {
 	client storage.AccountsClient
 }
 
+// nolint: gochecknoglobals
 var (
 	falseVal = false
 	trueVal  = true

@@ -15,6 +15,7 @@ linters:
         - gofmt
         - golint
         - goimports
+        - gochecknoglobals
     disable:
         - errcheck
         - gas

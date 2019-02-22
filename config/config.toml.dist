@@ -38,6 +38,9 @@ adminUser = "admin"
 adminPass = "xxxxxx"
 endPoint = "http://exampe.com"
 
+[cloudinfo]
+endPointUrl = "https://alpha.dev.banzaicloud.com/cloudinfo/api/v1"
+
 [logging]
 logformat = "text"
 loglevel = "debug"
@@ -135,6 +138,12 @@ namespace = "pipeline-system"
 headNodeTaintRetryAttempt=30
 headNodeTaintRetrySleepSeconds=5
 
+forbiddenLabelDomains=[
+		"k8s.io",
+		"kubernetes.io",
+		"google.com"
+]
+
 [eks]
 ASGFulfillmentTimeout="10m"
 
@@ -186,3 +195,11 @@ collectionInterval = "30s"
 [cert]
 source = "file"
 path = "config/certs"
+
+[nodepools]
+labelSetOperatorChartVersion = "0.0.1"
+
+[cadence]
+host = "127.0.0.1"
+port = 7933
+domain = "pipeline"

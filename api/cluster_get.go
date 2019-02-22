@@ -20,10 +20,12 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -33,7 +35,7 @@ import (
 // GetCluster fetches a K8S cluster in the cloud
 func (a *ClusterAPI) GetCluster(c *gin.Context) {
 	commonCluster, ok := a.clusterGetter.GetClusterFromRequest(c)
-	if ok != true {
+	if !ok {
 		return
 	}
 
@@ -217,17 +219,17 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 
 // GetClusterResponse contains the details of a cluster.
 type GetClusterResponse struct {
-	ID            uint   `json:"id"`
-	Status        string `json:"status"`
-	StatusMessage string `json:"statusMessage,omitempty"`
-	Name          string `json:"name"`
+	ID            pkgCluster.ClusterID `json:"id"`
+	Status        string               `json:"status"`
+	StatusMessage string               `json:"statusMessage,omitempty"`
+	Name          string               `json:"name"`
 
 	// If region not available fall back to Location
-	Region       string `json:"region,omitempty"`
-	Location     string `json:"location"`
-	Cloud        string `json:"cloud"`
-	Distribution string `json:"distribution"`
-	Spot         bool   `json:"spot,omitempty"`
+	Region       string                    `json:"region,omitempty"`
+	Location     string                    `json:"location"`
+	Cloud        string                    `json:"cloud"`
+	Distribution pkgCluster.DistributionID `json:"distribution"`
+	Spot         bool                      `json:"spot,omitempty"`
 
 	Logging      bool                     `json:"logging"`
 	Monitoring   bool                     `json:"monitoring"`
@@ -239,16 +241,16 @@ type GetClusterResponse struct {
 	Version       string `json:"version,omitempty"`
 	MasterVersion string `json:"masterVersion,omitempty"`
 
-	SecretID   string `json:"secretId"`
-	SecretName string `json:"secretName"`
+	SecretID   pkgSecret.SecretID `json:"secretId"`
+	SecretName string             `json:"secretName"`
 
 	Endpoint     string                        `json:"endpoint,omitempty"`
 	NodePools    map[string]GetClusterNodePool `json:"nodePools,omitempty"`
 	TotalSummary *ResourceSummary              `json:"totalSummary,omitempty"`
 
-	CreatedAt   time.Time `json:"createdAt,omitempty"`
-	CreatorName string    `json:"creatorName,omitempty"`
-	CreatorID   uint      `json:"creatorId,omitempty"`
+	CreatedAt   time.Time      `json:"createdAt,omitempty"`
+	CreatorName string         `json:"creatorName,omitempty"`
+	CreatorID   pkgAuth.UserID `json:"creatorId,omitempty"`
 }
 
 // GetClusterNodePool describes a cluster's node pool.
@@ -265,9 +267,9 @@ type GetClusterNodePool struct {
 	ResourceSummary map[string]NodeResourceSummary `json:"resourceSummary,omitempty"`
 	Labels          map[string]string              `json:"labels,omitempty"`
 
-	CreatedAt   time.Time `json:"createdAt,omitempty"`
-	CreatorName string    `json:"creatorName,omitempty"`
-	CreatorID   uint      `json:"creatorId,omitempty"`
+	CreatedAt   time.Time      `json:"createdAt,omitempty"`
+	CreatorName string         `json:"creatorName,omitempty"`
+	CreatorID   pkgAuth.UserID `json:"creatorId,omitempty"`
 }
 
 // ResourceSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable

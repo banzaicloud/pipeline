@@ -21,14 +21,15 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/config"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 const unknown = "unknown"
@@ -51,19 +52,19 @@ const (
 //ClusterModel describes the common cluster model
 // Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
 type ClusterModel struct {
-	ID             uint   `gorm:"primary_key"`
-	UID            string `gorm:"unique_index:idx_uid"`
+	ID             pkgCluster.ClusterID `gorm:"primary_key"`
+	UID            string               `gorm:"unique_index:idx_uid"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
 	Name           string     `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
-	Distribution   string
-	OrganizationId uint `gorm:"unique_index:idx_unique_id"`
-	SecretId       string
-	ConfigSecretId string
-	SshSecretId    string
+	Distribution   pkgCluster.DistributionID
+	OrganizationId pkgAuth.OrganizationID `gorm:"unique_index:idx_unique_id"`
+	SecretId       pkgSecret.SecretID
+	ConfigSecretId pkgSecret.SecretID
+	SshSecretId    pkgSecret.SecretID
 	Status         string
 	RbacEnabled    bool
 	Monitoring     bool
@@ -78,7 +79,7 @@ type ClusterModel struct {
 	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
-	CreatedBy      uint
+	CreatedBy      pkgAuth.UserID
 }
 
 // ScaleOptions describes scale options
@@ -98,7 +99,7 @@ type ScaleOptions struct {
 type ACSKNodePoolModel struct {
 	ID                           uint `gorm:"primary_key"`
 	CreatedAt                    time.Time
-	CreatedBy                    uint
+	CreatedBy                    pkgAuth.UserID
 	ClusterID                    uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name                         string `gorm:"unique_index:idx_cluster_id_name"`
 	InstanceType                 string
@@ -110,12 +111,13 @@ type ACSKNodePoolModel struct {
 	MaxCount                     int
 	AsgID                        string
 	ScalingConfigID              string
-	Delete                       bool `gorm:"-"`
+	Labels                       map[string]string `gorm:"-"`
+	Delete                       bool              `gorm:"-"`
 }
 
 // ACSKClusterModel describes the Alibaba Cloud CS cluster model
 type ACSKClusterModel struct {
-	ID                       uint `gorm:"primary_key"`
+	ID                       pkgCluster.ClusterID `gorm:"primary_key"`
 	ProviderClusterID        string
 	RegionID                 string
 	ZoneID                   string
@@ -133,7 +135,7 @@ type ACSKClusterModel struct {
 type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	CreatedBy        uint
+	CreatedBy        pkgAuth.UserID
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	NodeSpotPrice    string
@@ -143,8 +145,8 @@ type AmazonNodePoolsModel struct {
 	Count            int
 	NodeImage        string
 	NodeInstanceType string
-	Labels           []*AmazonNodePoolLabelModel `gorm:"foreignkey:NodePoolID"`
-	Delete           bool                        `gorm:"-"`
+	Labels           map[string]string `gorm:"-"`
+	Delete           bool              `gorm:"-"`
 }
 
 // BeforeDelete deletes all nodepool labels that belongs to this AmazonNodePoolsModel
@@ -164,59 +166,6 @@ func (m *AmazonNodePoolsModel) BeforeDelete(tx *gorm.DB) error {
 	return nil
 }
 
-// AfterUpdate removes marked node pool(s)
-func (m *AmazonNodePoolsModel) AfterUpdate(tx *gorm.DB) error {
-	log.WithFields(logrus.Fields{
-		"clusterId":    m.ClusterID,
-		"nodePoolName": m.Name},
-	).Debugln("remove node pool labels marked for deletion")
-
-	for _, labelModel := range m.Labels {
-		if labelModel != nil && labelModel.Delete {
-			err := tx.Model(m).Association("Labels").Delete(labelModel).Error
-			if err != nil {
-				return emperror.WrapWith(err, "failed to unlink labels from node pool", "clusterId", m.ClusterID, "nodePoolName", m.Name)
-			}
-
-			err = tx.Delete(labelModel).Error
-			if err != nil {
-				return emperror.WrapWith(err, "failed to delete nodepool label", "clusterId", m.ClusterID, "nodePoolName", m.Name)
-			}
-		}
-	}
-
-	return nil
-}
-
-// AmazonNodePoolLabelModel stores labels for node pools
-type AmazonNodePoolLabelModel struct {
-	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
-	Value      string
-	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-
-	Delete bool `gorm:"-"`
-}
-
-// TableName changes the default table name.
-func (AmazonNodePoolLabelModel) TableName() string {
-	return tableNameAmazonNodePoolLabels
-}
-
-func (m AmazonNodePoolLabelModel) String() string {
-	return fmt.Sprintf(
-		"ID: %d, Name: %s, Value: %s, NodePoolID: %d, createdAt: %v, UpdatedAt: %v",
-		m.ID,
-		m.Name,
-		m.Value,
-		m.NodePoolID,
-		m.CreatedAt,
-		m.UpdatedAt,
-	)
-}
-
 // EKSSubnetModel describes the model of subnets used for creating an EKS cluster
 type EKSSubnetModel struct {
 	ID         uint `gorm:"primary_key"`
@@ -229,8 +178,8 @@ type EKSSubnetModel struct {
 
 //EKSClusterModel describes the EKS cluster model
 type EKSClusterModel struct {
-	ID        uint `gorm:"primary_key"`
-	ClusterID uint `gorm:"unique_index:ux_cluster_id"`
+	ID        uint                 `gorm:"primary_key"`
+	ClusterID pkgCluster.ClusterID `gorm:"unique_index:ux_cluster_id"`
 
 	Version      string
 	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
@@ -242,7 +191,7 @@ type EKSClusterModel struct {
 
 //AKSClusterModel describes the aks cluster model
 type AKSClusterModel struct {
-	ID                uint `gorm:"primary_key"`
+	ID                pkgCluster.ClusterID `gorm:"primary_key"`
 	ResourceGroup     string
 	KubernetesVersion string
 	NodePools         []*AKSNodePoolModel `gorm:"foreignkey:ClusterID"`
@@ -252,7 +201,7 @@ type AKSClusterModel struct {
 type AKSNodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	CreatedBy        uint
+	CreatedBy        pkgAuth.UserID
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	Autoscaling      bool
@@ -261,20 +210,21 @@ type AKSNodePoolModel struct {
 	Count            int
 	NodeInstanceType string
 	VNetSubnetID     string
+	Labels           map[string]string `gorm:"-"`
 }
 
 // DummyClusterModel describes the dummy cluster model
 type DummyClusterModel struct {
-	ID                uint `gorm:"primary_key"`
+	ID                pkgCluster.ClusterID `gorm:"primary_key"`
 	KubernetesVersion string
 	NodeCount         int
 }
 
 //KubernetesClusterModel describes the build your own cluster model
 type KubernetesClusterModel struct {
-	ID          uint              `gorm:"primary_key"`
-	Metadata    map[string]string `gorm:"-"`
-	MetadataRaw []byte            `gorm:"meta_data"`
+	ID          pkgCluster.ClusterID `gorm:"primary_key"`
+	Metadata    map[string]string    `gorm:"-"`
+	MetadataRaw []byte               `gorm:"meta_data"`
 }
 
 func (cs *ClusterModel) BeforeCreate() (err error) {
@@ -499,13 +449,42 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 }
 
 // UpdateConfigSecret updates the model's config secret id in database
-func (cs *ClusterModel) UpdateConfigSecret(configSecretId string) error {
+func (cs *ClusterModel) UpdateConfigSecret(configSecretId pkgSecret.SecretID) error {
 	cs.ConfigSecretId = configSecretId
 	return cs.Save()
 }
 
 // UpdateSshSecret updates the model's ssh secret id in database
-func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
+func (cs *ClusterModel) UpdateSshSecret(sshSecretId pkgSecret.SecretID) error {
 	cs.SshSecretId = sshSecretId
 	return cs.Save()
+}
+
+// AmazonNodePoolLabelModel stores labels for node pools
+type AmazonNodePoolLabelModel struct {
+	ID         uint   `gorm:"primary_key"`
+	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
+	Value      string
+	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+
+	Delete bool `gorm:"-"`
+}
+
+// TableName changes the default table name.
+func (AmazonNodePoolLabelModel) TableName() string {
+	return tableNameAmazonNodePoolLabels
+}
+
+func (m AmazonNodePoolLabelModel) String() string {
+	return fmt.Sprintf(
+		"ID: %d, Name: %s, Value: %s, NodePoolID: %d, createdAt: %v, UpdatedAt: %v",
+		m.ID,
+		m.Name,
+		m.Value,
+		m.NodePoolID,
+		m.CreatedAt,
+		m.UpdatedAt,
+	)
 }

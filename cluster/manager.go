@@ -22,24 +22,27 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/goph/emperror"
-	"github.com/patrickmn/go-cache"
+	cache "github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"go.uber.org/cadence/client"
 )
 
 type clusterRepository interface {
-	Exists(organizationID uint, name string) (bool, error)
+	Exists(organizationID pkgAuth.OrganizationID, name string) (bool, error)
 	All() ([]*model.ClusterModel, error)
-	FindByOrganization(organizationID uint) ([]*model.ClusterModel, error)
-	FindOneByID(organizationID uint, clusterID uint) (*model.ClusterModel, error)
-	FindOneByName(organizationID uint, clusterName string) (*model.ClusterModel, error)
-	FindBySecret(organizationID uint, secretID string) ([]*model.ClusterModel, error)
+	FindByOrganization(organizationID pkgAuth.OrganizationID) ([]*model.ClusterModel, error)
+	FindOneByID(organizationID pkgAuth.OrganizationID, clusterID uint) (*model.ClusterModel, error)
+	FindOneByName(organizationID pkgAuth.OrganizationID, clusterName string) (*model.ClusterModel, error)
+	FindBySecret(organizationID pkgAuth.OrganizationID, secretID pkgSecret.SecretID) ([]*model.ClusterModel, error)
 }
 
 type secretValidator interface {
-	ValidateSecretType(organizationID uint, secretID string, cloud string) error
+	ValidateSecretType(organizationID pkgAuth.OrganizationID, secretID pkgSecret.SecretID, cloud string) error
 }
 
 type kubeProxyCache interface {
@@ -59,6 +62,7 @@ type Manager struct {
 	statusChangeDurationMetric *prometheus.SummaryVec
 	clusterTotalMetric         *prometheus.CounterVec
 	kubeProxyCache             kubeProxyCache
+	workflowClient             client.Client
 	logger                     logrus.FieldLogger
 	errorHandler               emperror.Handler
 }
@@ -68,6 +72,7 @@ func NewManager(clusters clusterRepository,
 	events clusterEvents,
 	statusChangeDurationMetric *prometheus.SummaryVec,
 	clusterTotalMetric *prometheus.CounterVec,
+	workflowClient client.Client,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler) *Manager {
 	return &Manager{
@@ -77,6 +82,7 @@ func NewManager(clusters clusterRepository,
 		statusChangeDurationMetric: statusChangeDurationMetric,
 		clusterTotalMetric:         clusterTotalMetric,
 		kubeProxyCache:             &goCacheKubeProxyCache{cache: cache.New(defaultProxyExpirationMinutes*time.Minute, 1*time.Minute)},
+		workflowClient:             workflowClient,
 		logger:                     logger,
 		errorHandler:               errorHandler,
 	}
@@ -90,7 +96,7 @@ func (m *Manager) getErrorHandler(ctx context.Context) emperror.Handler {
 	return pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler)
 }
 
-func (m *Manager) getPrometheusTimer(provider, location, status string, orgId uint, clusterName string) (*prometheus.Timer, error) {
+func (m *Manager) getPrometheusTimer(provider, location, status string, orgId pkgAuth.OrganizationID, clusterName string) (*prometheus.Timer, error) {
 	if viper.GetBool(config.MetricsDebug) {
 		org, err := auth.GetOrganizationById(orgId)
 		if err != nil {

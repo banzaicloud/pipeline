@@ -23,6 +23,7 @@ import (
 )
 
 // HookMap for api hook endpoints
+// nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
 	pkgCluster.StoreKubeConfig: &BasePostFunction{
 		f:            StoreKubeConfig,
@@ -73,8 +74,8 @@ var HookMap = map[string]PostFunctioner{
 		f:            RegisterDomainPostHook,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.LabelNodes: &BasePostFunction{
-		f:            LabelNodes,
+	pkgCluster.LabelNodesWithNodePoolName: &BasePostFunction{
+		f:            LabelNodesWithNodePoolName,
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.TaintHeadNodes: &BasePostFunction{
@@ -102,16 +103,27 @@ var HookMap = map[string]PostFunctioner{
 		f:            DeployInstanceTerminationHandler,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.InstallNodePoolLabelSetOperator: &BasePostFunction{
+		f:            InstallNodePoolLabelSetOperator,
+		ErrorHandler: ErrorHandler{},
+	},
+	pkgCluster.SetupNodePoolLabelsSet: &BasePostFunction{
+		f:            SetupNodePoolLabelsSet,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
+// nolint: gochecknoglobals
 var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.StoreKubeConfig],
 	HookMap[pkgCluster.SetupPrivileges],
-	HookMap[pkgCluster.LabelNodes],
+	HookMap[pkgCluster.LabelNodesWithNodePoolName],
 	HookMap[pkgCluster.TaintHeadNodes],
 	HookMap[pkgCluster.CreatePipelineNamespacePostHook],
 	HookMap[pkgCluster.InstallHelmPostHook],
+	HookMap[pkgCluster.InstallNodePoolLabelSetOperator],
+	HookMap[pkgCluster.SetupNodePoolLabelsSet],
 	HookMap[pkgCluster.RegisterDomainPostHook],
 	HookMap[pkgCluster.InstallIngressControllerPostHook],
 	HookMap[pkgCluster.InstallKubernetesDashboardPostHook],

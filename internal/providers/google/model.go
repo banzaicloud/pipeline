@@ -59,10 +59,5 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		return err
 	}
 
-	err = model.AddForeignKey(db, logger, &GKENodePoolModel{}, &GKENodePoolLabelModel{}, "NodePoolID")
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

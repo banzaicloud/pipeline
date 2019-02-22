@@ -31,8 +31,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&EKSNodePoolLabelsProfile{},
 		&AKSProfile{},
 		&AKSNodePoolProfile{},
+		&AKSNodePoolLabelsProfile{},
 		&GKEProfile{},
 		&GKENodePoolProfile{},
+		&GKENodePoolLabelsProfile{},
 	}
 
 	var tableNames string
@@ -53,6 +55,22 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := model.AddForeignKey(db, logger, &EKSNodePoolProfile{}, &EKSNodePoolLabelsProfile{}, "NodePoolProfileID"); err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &AKSProfile{}, &AKSNodePoolProfile{}, "Name"); err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &AKSNodePoolProfile{}, &AKSNodePoolLabelsProfile{}, "NodePoolProfileID"); err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &GKEProfile{}, &GKENodePoolProfile{}, "Name"); err != nil {
+		return err
+	}
+
+	if err := model.AddForeignKey(db, logger, &GKENodePoolProfile{}, &GKENodePoolLabelsProfile{}, "NodePoolProfileID"); err != nil {
 		return err
 	}
 

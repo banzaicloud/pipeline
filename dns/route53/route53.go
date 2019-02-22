@@ -30,6 +30,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -38,6 +39,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// nolint: gochecknoglobals
 var logger *logrus.Logger
 
 func init() {
@@ -105,7 +107,7 @@ func (ctx *context) rollback() {
 
 type workerTask struct {
 	operation        operationType
-	organisationId   uint
+	organisationId   pkgAuth.OrganizationID
 	domain           *string
 	dnsRecordownerId *string
 
@@ -127,14 +129,14 @@ type awsRoute53 struct {
 	// orgDomainWorkers maps organisation id to the channel of the worker that
 	// serves Route53 operations for the organisation. There is one worker allocated for each
 	// organisation
-	orgDomainWorkers map[uint]chan workerTask
+	orgDomainWorkers map[pkgAuth.OrganizationID]chan workerTask
 
 	route53Svc       route53iface.Route53API
 	iamSvc           iamiface.IAMAPI
 	stateStore       awsRoute53StateStore
 	baseHostedZoneId string // the id of the hosted zone of the base domain
 
-	getOrganization func(orgId uint) (*auth.Organization, error)
+	getOrganization func(orgId pkgAuth.OrganizationID) (*auth.Organization, error)
 
 	notificationChannel chan<- interface{}
 	region              string
@@ -182,7 +184,7 @@ func NewAwsRoute53(region, awsSecretId, awsSecretKey, baseDomain string, notific
 }
 
 // IsDomainRegistered returns true if the domain has already been registered in Route53 for the given organisation
-func (dns *awsRoute53) IsDomainRegistered(orgId uint, domain string) (bool, error) {
+func (dns *awsRoute53) IsDomainRegistered(orgId pkgAuth.OrganizationID, domain string) (bool, error) {
 	responseQueue := make(chan workerResponse)
 
 	dns.getWorker(orgId) <- newWorkerTask(isDomainRegistered, orgId, &domain, responseQueue)
@@ -193,7 +195,7 @@ func (dns *awsRoute53) IsDomainRegistered(orgId uint, domain string) (bool, erro
 }
 
 // RegisterDomain registers the given domain with AWS Route53
-func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
+func (dns *awsRoute53) RegisterDomain(orgId pkgAuth.OrganizationID, domain string) error {
 	responseQueue := make(chan workerResponse)
 
 	dns.getWorker(orgId) <- newWorkerTask(registerDomain, orgId, &domain, responseQueue)
@@ -220,7 +222,7 @@ func (dns *awsRoute53) RegisterDomain(orgId uint, domain string) error {
 
 // UnregisterDomain delete the hosted zone with given domain from AWS Route53, also it removes the user access policy
 // that was created to allow access to the hosted zone and the IAM user that was created for accessing the hosted zone.
-func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
+func (dns *awsRoute53) UnregisterDomain(orgId pkgAuth.OrganizationID, domain string) error {
 	responseQueue := make(chan workerResponse)
 
 	dns.getWorker(orgId) <- newWorkerTask(unregisterDomain, orgId, &domain, responseQueue)
@@ -246,7 +248,7 @@ func (dns *awsRoute53) UnregisterDomain(orgId uint, domain string) error {
 }
 
 // isDomainRegistered returns true if the domain has already been registered in Route53 for the given organisation
-func (dns *awsRoute53) isDomainRegistered(orgId uint, domain string) (bool, error) {
+func (dns *awsRoute53) isDomainRegistered(orgId pkgAuth.OrganizationID, domain string) (bool, error) {
 	log := loggerWithFields(logrus.Fields{"organisationId": orgId, "domain": domain})
 
 	// check statestore to see if domain was already registered
@@ -261,7 +263,7 @@ func (dns *awsRoute53) isDomainRegistered(orgId uint, domain string) (bool, erro
 }
 
 // RegisterDomain registers the given domain with AWS Route53
-func (dns *awsRoute53) registerDomain(orgId uint, domain string) error {
+func (dns *awsRoute53) registerDomain(orgId pkgAuth.OrganizationID, domain string) error {
 	log := loggerWithFields(logrus.Fields{"organisationId": orgId, "domain": domain})
 
 	state := &domainState{}
@@ -369,7 +371,7 @@ func (dns *awsRoute53) registerDomain(orgId uint, domain string) error {
 
 // UnregisterDomain delete the hosted zone with given domain from AWS Route53, also it removes the user access policy
 // that was created to allow access to the hosted zone and the IAM user that was created for accessing the hosted zone.
-func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
+func (dns *awsRoute53) unregisterDomain(orgId pkgAuth.OrganizationID, domain string) error {
 	log := loggerWithFields(logrus.Fields{"organisationId": orgId, "domain": domain})
 
 	log.Info("unregistering domain")
@@ -631,7 +633,7 @@ func (dns *awsRoute53) ProcessUnfinishedTasks() {
 }
 
 // DeleteDnsRecordsOwnedBy deletes DNS records that belong to the specified owner
-func (dns *awsRoute53) DeleteDnsRecordsOwnedBy(ownerId string, orgId uint) error {
+func (dns *awsRoute53) DeleteDnsRecordsOwnedBy(ownerId string, orgId pkgAuth.OrganizationID) error {
 	responseQueue := make(chan workerResponse)
 
 	task := newWorkerTask(deleteDnsRecordsOwnedBy, orgId, nil, responseQueue)
@@ -645,7 +647,7 @@ func (dns *awsRoute53) DeleteDnsRecordsOwnedBy(ownerId string, orgId uint) error
 }
 
 // GetOrgDomain returns the DNS domain name registered for the organization with given id
-func (dns *awsRoute53) GetOrgDomain(orgId uint) (string, error) {
+func (dns *awsRoute53) GetOrgDomain(orgId pkgAuth.OrganizationID) (string, error) {
 	responseQueue := make(chan workerResponse)
 
 	dns.getWorker(orgId) <- newWorkerTask(getOrgDomain, orgId, nil, responseQueue)
@@ -766,7 +768,7 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 
 // getRoute53Secret returns the secret from Vault that stores the IAM user
 // aws access credentials that is used for accessing the Route53 Amazon service
-func (dns *awsRoute53) getRoute53Secret(orgId uint) (*secret.SecretItemResponse, error) {
+func (dns *awsRoute53) getRoute53Secret(orgId pkgAuth.OrganizationID) (*secret.SecretItemResponse, error) {
 	route53Secret, err := secret.Store.GetByName(orgId, IAMUserAccessKeySecretName)
 	if err != nil && err != secret.ErrSecretNotExists {
 		return nil, err
@@ -791,7 +793,7 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 		},
 	}
 
-	var secretId string
+	var secretId secretTypes.SecretID
 	var err error
 
 	if updateSecret != nil {
@@ -815,7 +817,7 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 	return nil
 }
 
-func (dns *awsRoute53) getOrgDomain(orgId uint) (string, error) {
+func (dns *awsRoute53) getOrgDomain(orgId pkgAuth.OrganizationID) (string, error) {
 	state := domainState{}
 	found, err := dns.stateStore.findByOrgId(orgId, &state)
 
@@ -861,7 +863,7 @@ func wrapAwsError(err error) error {
 	return &wrappedAwsError{err}
 }
 
-func getOrgById(orgId uint) (*auth.Organization, error) {
+func getOrgById(orgId pkgAuth.OrganizationID) (*auth.Organization, error) {
 	org, err := auth.GetOrganizationById(orgId)
 	if err != nil {
 		return nil, err
@@ -872,12 +874,12 @@ func getOrgById(orgId uint) (*auth.Organization, error) {
 
 // getWorker returns a worker that handles route53 related requests for the given organisation.
 // It ensures that there is only one worker assigned for an organisation
-func (dns *awsRoute53) getWorker(orgId uint) chan workerTask {
+func (dns *awsRoute53) getWorker(orgId pkgAuth.OrganizationID) chan workerTask {
 	dns.muxWorkers.Lock()
 	defer dns.muxWorkers.Unlock()
 
 	if dns.orgDomainWorkers == nil {
-		dns.orgDomainWorkers = make(map[uint]chan workerTask)
+		dns.orgDomainWorkers = make(map[pkgAuth.OrganizationID]chan workerTask)
 	}
 
 	worker, ok := dns.orgDomainWorkers[orgId]
@@ -930,7 +932,7 @@ func (dns *awsRoute53) startNewWorker() chan workerTask {
 	return workQueue
 }
 
-func newWorkerTask(operation operationType, orgId uint, domain *string, responseQueue chan<- workerResponse) workerTask {
+func newWorkerTask(operation operationType, orgId pkgAuth.OrganizationID, domain *string, responseQueue chan<- workerResponse) workerTask {
 	return workerTask{
 		operation:      operation,
 		organisationId: orgId,
@@ -939,7 +941,7 @@ func newWorkerTask(operation operationType, orgId uint, domain *string, response
 	}
 }
 
-func createCommonEvent(orgId uint, domain string) *DomainEvent {
+func createCommonEvent(orgId pkgAuth.OrganizationID, domain string) *DomainEvent {
 	return &DomainEvent{
 		Domain:         domain,
 		OrganisationId: orgId,

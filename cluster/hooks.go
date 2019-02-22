@@ -36,7 +36,6 @@ import (
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -48,7 +47,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -93,6 +92,10 @@ func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) error {
 // pollingKubernetesConfig polls kubeconfig from the cloud
 func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 
+	if bytes, err := cluster.GetK8sConfig(); err == nil && len(bytes) > 0 {
+		return bytes, nil
+	}
+
 	var err error
 
 	retryCount := viper.GetInt("cloud.configRetryCount")
@@ -101,7 +104,7 @@ func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 	var kubeConfig []byte
 	for i := 0; i < retryCount; i++ {
 		kubeConfig, err = cluster.DownloadK8sConfig()
-		if err != nil && err != pkgError.ErrorFunctionShouldNotBeCalled {
+		if err != nil {
 			log.Infof("Error getting kubernetes config attempt %d/%d: %s. Waiting %d seconds", i, retryCount, err.Error(), retrySleepTime)
 			time.Sleep(time.Duration(retrySleepTime) * time.Second)
 			continue
@@ -169,7 +172,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		if loggingParam.SecretName == "" {
 			return fmt.Errorf("either secretId or secretName has to be set")
 		}
-		loggingParam.SecretId = secret.GenerateSecretIDFromName(loggingParam.SecretName)
+		loggingParam.SecretId = string(secret.GenerateSecretIDFromName(loggingParam.SecretName))
 	}
 	if loggingParam.GenTLSForLogging.Namespace == "" {
 		loggingParam.GenTLSForLogging.Namespace = namespace
@@ -233,14 +236,14 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 	}
 
 	// Determine the type of output plugin
-	logSecret, err := secret.Store.Get(cluster.GetOrganizationId(), loggingParam.SecretId)
+	logSecret, err := secret.Store.Get(cluster.GetOrganizationId(), pkgSecret.SecretID(loggingParam.SecretId))
 	if err != nil {
 		return err
 	}
 	log.Infof("logging-hook secret type: %s", logSecret.Type)
 	switch logSecret.Type {
 	case pkgCluster.Amazon:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []pkgSecret.SecretID{pkgSecret.SecretID(loggingParam.SecretId)}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "install amazon secret failed")
 		}
@@ -260,7 +263,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			return emperror.Wrap(err, "install s3-output failed")
 		}
 	case pkgCluster.Google:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []pkgSecret.SecretID{pkgSecret.SecretID(loggingParam.SecretId)}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "install google secret failed")
 		}
@@ -279,7 +282,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			return emperror.Wrap(err, "install gcs-output failed")
 		}
 	case pkgCluster.Alibaba:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []pkgSecret.SecretID{pkgSecret.SecretID(loggingParam.SecretId)}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "could not install alibaba logging secret")
 		}
@@ -971,7 +974,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		commonCluster,
 		&pkgSecret.ListSecretsQuery{
 			Type: pkgCluster.Amazon,
-			IDs:  []string{route53Secret.ID},
+			IDs:  []pkgSecret.SecretID{route53Secret.ID},
 		},
 		route53SecretNamespace,
 	)
@@ -1006,22 +1009,13 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "dns", externalDnsValuesJson, chartVersion, false)
 }
 
-func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
-	if p, err := strconv.ParseFloat(nodePool.SpotPrice, 64); err == nil && p > 0.0 {
-		return "false"
-	}
-	if nodePool.Preemptible {
-		return "false"
-	}
-	return "true"
-}
-
-// LabelNodes adds labels for all nodes
-func LabelNodes(commonCluster CommonCluster) error {
+// LabelNodesWithNodePoolName add node pool name labels for all nodes.
+// It's used only used in case of ec2_banzaicloud, ACSK etc. when we're not able to add labels via API.
+func LabelNodesWithNodePoolName(commonCluster CommonCluster) error {
 
 	switch commonCluster.GetDistribution() {
-	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE:
-		log.Infof("node are already labelled on : %v", commonCluster.GetDistribution())
+	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.AKS:
+		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
 		return nil
 	}
 
@@ -1043,23 +1037,12 @@ func LabelNodes(commonCluster CommonCluster) error {
 		return err
 	}
 
-	clusterStatus, err := commonCluster.GetStatus()
-	if err != nil {
-		return emperror.Wrap(err, "failed to get cluster status")
-	}
-
 	for poolName, nodes := range nodeNames {
 
 		log.Debugf("nodepool: [%s]", poolName)
 		for _, nodeName := range nodes {
 			log.Infof("add label to node [%s]", nodeName)
 			labels := map[string]string{pkgCommon.LabelKey: poolName}
-
-			// add spot labels, in case of a Spot cluster. This is only needed for ec2_banzaicloud as in case of
-			// EKS & GKE labels are added by provider
-			if clusterStatus.Spot {
-				labels[pkgCommon.OnDemandLabelKey] = getOnDemandLabel(clusterStatus.NodePools[poolName])
-			}
 
 			if err := addLabelsToNode(client, nodeName, labels); err != nil {
 				log.Warnf("error during adding label to node [%s]: %s", nodeName, err.Error())
@@ -1268,7 +1251,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 	distribution := cluster.GetDistribution()
 
-	if distribution != pkgCluster.GKE && distribution != pkgCluster.EKS {
+	if distribution != pkgCluster.GKE && distribution != pkgCluster.EKS && distribution != pkgCluster.PKE {
 		return nil
 	}
 

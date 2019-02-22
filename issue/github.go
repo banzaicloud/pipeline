@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/pipeline/auth"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
@@ -47,7 +48,7 @@ const issueTemplate = `
 %s`
 
 // CreateIssue creates an issue on GitHub
-func (gi GitHubIssuer) CreateIssue(userID uint, organization, title, text string, userLabels []string) error {
+func (gi GitHubIssuer) CreateIssue(userID pkgAuth.UserID, organization, title, text string, userLabels []string) error {
 
 	githubClient := auth.NewGithubClient(viper.GetString("github.token"))
 

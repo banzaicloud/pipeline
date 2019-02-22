@@ -16,9 +16,11 @@ package cluster
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"fmt"
 	"time"
 
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
@@ -58,15 +60,24 @@ const (
 	Oracle     = "oracle"
 )
 
+// DistributionID represents the identifier of a distribution
+type DistributionID string
+
+// Value returns the value of the ID
+func (id DistributionID) Value() (driver.Value, error) {
+	// TODO: remove Valuer implementation when mysql driver version is >=1.4
+	return string(id), nil
+}
+
 // Distribution constants
 const (
-	ACSK    = "acsk"
-	EKS     = "eks"
-	AKS     = "aks"
-	GKE     = "gke"
-	OKE     = "oke"
-	PKE     = "pke"
-	Unknown = "unknown"
+	ACSK    DistributionID = "acsk"
+	EKS     DistributionID = "eks"
+	AKS     DistributionID = "aks"
+	GKE     DistributionID = "gke"
+	OKE     DistributionID = "oke"
+	PKE     DistributionID = "pke"
+	Unknown DistributionID = "unknown"
 )
 
 // constants for posthooks
@@ -83,13 +94,15 @@ const (
 	InstallLogging                         = "InstallLogging"
 	InstallServiceMesh                     = "InstallServiceMesh"
 	RegisterDomainPostHook                 = "RegisterDomainPostHook"
-	LabelNodes                             = "LabelNodes"
+	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
 	TaintHeadNodes                         = "TaintHeadNodes"
 	InstallPVCOperator                     = "InstallPVCOperator"
 	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"
 	RestoreFromBackup                      = "RestoreFromBackup"
 	InitSpotConfig                         = "InitSpotConfig"
 	DeployInstanceTerminationHandler       = "DeployInstanceTerminationHandler"
+	InstallNodePoolLabelSetOperator        = "InstallNodePoolLabelSetOperator"
+	SetupNodePoolLabelsSet                 = "SetupNodePoolLabelsSet"
 )
 
 // Provider name regexp
@@ -106,6 +119,9 @@ const (
 	KeyWordKubernetesVersion = "k8sVersion"
 	KeyWordImage             = "image"
 )
+
+// ClusterID represents the identifier of a cluster
+type ClusterID uint
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
@@ -185,14 +201,14 @@ type GetClusterStatusResponse struct {
 	Name          string                     `json:"name"`
 	Location      string                     `json:"location"`
 	Cloud         string                     `json:"cloud"`
-	Distribution  string                     `json:"distribution"`
+	Distribution  DistributionID             `json:"distribution"`
 	Spot          bool                       `json:"spot,omitempty"`
 	Logging       bool                       `json:"logging"`
 	Monitoring    bool                       `json:"monitoring"`
 	ServiceMesh   bool                       `json:"servicemesh"`
 	SecurityScan  bool                       `json:"securityscan"`
 	Version       string                     `json:"version,omitempty"`
-	ResourceID    uint                       `json:"id"`
+	ResourceID    ClusterID                  `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools"`
 	pkgCommon.CreatorBaseFields
 
@@ -230,7 +246,7 @@ type GetNodePoolsResponse struct {
 	ClusterDesiredResources map[string]float64               `json:"clusterDesiredResources,omitempty"`
 	ClusterStatus           string                           `json:"status,omitempty"`
 	Cloud                   string                           `json:"cloud"`
-	Distribution            string                           `json:"distribution"`
+	Distribution            DistributionID                   `json:"distribution"`
 	Location                string                           `json:"location"`
 }
 
@@ -495,9 +511,9 @@ type ClusterProfileProperties struct {
 
 // CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
-	OrganizationId uint             `json:"-"`
-	SecretId       string           `json:"secretId,omitempty"`
-	Filter         *CloudInfoFilter `json:"filter,omitempty"`
+	OrganizationId pkgAuth.OrganizationID `json:"-"`
+	SecretId       string                 `json:"secretId,omitempty"`
+	Filter         *CloudInfoFilter       `json:"filter,omitempty"`
 }
 
 // CloudInfoFilter describes a filter in cloud info
@@ -552,8 +568,8 @@ type SupportedClusterItem struct {
 
 // CreateClusterResponse describes Pipeline's CreateCluster API response
 type CreateClusterResponse struct {
-	Name       string `json:"name"`
-	ResourceID uint   `json:"id"`
+	Name       string    `json:"name"`
+	ResourceID ClusterID `json:"id"`
 }
 
 // PodDetailsResponse describes a pod

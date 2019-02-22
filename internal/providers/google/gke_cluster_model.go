@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/jinzhu/gorm"
 )
 
@@ -33,7 +35,7 @@ const (
 type GKEClusterModel struct {
 	ID        uint                 `gorm:"primary_key"`
 	Cluster   cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID uint
+	ClusterID pkgCluster.ClusterID
 
 	MasterVersion string
 	NodeVersion   string
@@ -106,7 +108,7 @@ func (m GKEClusterModel) String() string {
 type GKENodePoolModel struct {
 	ID        uint `gorm:"primary_key"`
 	CreatedAt time.Time
-	CreatedBy uint
+	CreatedBy pkgAuth.UserID
 
 	ClusterID uint `gorm:"unique_index:idx_cluster_id_name"`
 
@@ -117,8 +119,8 @@ type GKENodePoolModel struct {
 	NodeMaxCount     int
 	NodeCount        int
 	NodeInstanceType string
-	Labels           []*GKENodePoolLabelModel `gorm:"foreignkey:NodePoolID"`
-	Delete           bool                     `gorm:"-"`
+	Labels           map[string]string `gorm:"-"`
+	Delete           bool              `gorm:"-"`
 }
 
 // TableName changes the default table name.

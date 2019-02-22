@@ -282,6 +282,7 @@ pipeline:
         - master
 `
 
+// nolint: gochecknoglobals
 var testLaunchRequestJSON = `{
   "spotguideName": "banzaicloud/spotguide-nodejs-mongodb",
   "repoPrivate": true,

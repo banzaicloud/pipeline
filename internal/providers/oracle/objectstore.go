@@ -112,10 +112,8 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, location string) 
 
 // getLogger initializes and gives back a logger instance with some basic fields
 func (o *ObjectStore) getLogger() logrus.FieldLogger {
-	var sId string
-	if o.secret == nil {
-		sId = ""
-	} else {
+	var sId pkgSecret.SecretID
+	if o.secret != nil {
 		sId = o.secret.ID
 	}
 
@@ -179,7 +177,7 @@ func (o *ObjectStore) createFailed(bucket *ObjectStoreBucketModel, err error) er
 		return emperror.WrapWith(e, "failed to save bucket", "bucket", bucket.Name)
 	}
 
-	return emperror.With(err, "create failed")
+	return emperror.With(err, "bucket", bucket.Name)
 }
 
 // ListBuckets list all buckets in Oracle object store

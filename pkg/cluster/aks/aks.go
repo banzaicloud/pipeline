@@ -26,8 +26,8 @@ import (
 // ### [ Constants to Azure cluster default values ] ### //
 const (
 	DefaultAgentName                      = "agentpool1"
-	DefaultKubernetesVersion              = "1.9.2"
-	MinKubernetesVersionWithAutoscalerStr = "1.9.6"
+	defaultKubernetesVersion              = "1.9.2"
+	minKubernetesVersionWithAutoscalerStr = "1.9.6"
 )
 
 // CreateClusterAKS describes Azure fields of a CreateCluster request
@@ -39,20 +39,22 @@ type CreateClusterAKS struct {
 
 // NodePoolCreate describes Azure's node fields of a CreateCluster request
 type NodePoolCreate struct {
-	Autoscaling      bool   `json:"autoscaling" yaml:"autoscaling"`
-	MinCount         int    `json:"minCount" yaml:"minCount"`
-	MaxCount         int    `json:"maxCount" yaml:"maxCount"`
-	Count            int    `json:"count" yaml:"count"`
-	NodeInstanceType string `json:"instanceType" yaml:"instanceType"`
-	VNetSubnetID     string `json:"vnetSubnetID,omitempty" yaml:"vnetSubnetID,omitempty"`
+	Autoscaling      bool              `json:"autoscaling" yaml:"autoscaling"`
+	MinCount         int               `json:"minCount" yaml:"minCount"`
+	MaxCount         int               `json:"maxCount" yaml:"maxCount"`
+	Count            int               `json:"count" yaml:"count"`
+	NodeInstanceType string            `json:"instanceType" yaml:"instanceType"`
+	VNetSubnetID     string            `json:"vnetSubnetID,omitempty" yaml:"vnetSubnetID,omitempty"`
+	Labels           map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 // NodePoolUpdate describes Azure's node count of a UpdateCluster request
 type NodePoolUpdate struct {
-	Autoscaling bool `json:"autoscaling"`
-	MinCount    int  `json:"minCount"`
-	MaxCount    int  `json:"maxCount"`
-	Count       int  `json:"count"`
+	Autoscaling bool              `json:"autoscaling"`
+	MinCount    int               `json:"minCount"`
+	MaxCount    int               `json:"maxCount"`
+	Count       int               `json:"count"`
+	Labels      map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 // UpdateClusterAzure describes Azure's node fields of an UpdateCluster request
@@ -80,7 +82,7 @@ func (azure *CreateClusterAKS) Validate() error {
 
 		// ---- [ Min & Max count fields are required in case of autoscaling ] ---- //
 		if np.Autoscaling {
-			err := checkVersionsIsNewerThen(azure.KubernetesVersion, MinKubernetesVersionWithAutoscalerStr)
+			err := checkVersionsIsNewerThen(azure.KubernetesVersion, minKubernetesVersionWithAutoscalerStr)
 			if err != nil {
 				return err
 			}
@@ -102,10 +104,14 @@ func (azure *CreateClusterAKS) Validate() error {
 		if len(np.NodeInstanceType) == 0 {
 			return pkgErrors.ErrorInstancetypeFieldIsEmpty
 		}
+
+		if err := pkgCommon.ValidateNodePoolLabels(np.Labels); err != nil {
+			return err
+		}
 	}
 
 	if len(azure.KubernetesVersion) == 0 {
-		azure.KubernetesVersion = DefaultKubernetesVersion
+		azure.KubernetesVersion = defaultKubernetesVersion
 	}
 
 	return nil

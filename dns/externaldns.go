@@ -20,6 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns/route53"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gofrs/uuid"
@@ -27,20 +28,28 @@ import (
 	"github.com/spf13/viper"
 )
 
+// nolint: gochecknoglobals
 var once sync.Once
+
+// nolint: gochecknoglobals
 var errCreate error
 
 // dnsServiceClient is the DnsServiceClient singleton instance if this functionality is enabled
+// nolint: gochecknoglobals
 var dnsServiceClient DnsServiceClient
 
+// nolint: gochecknoglobals
 var gc garbageCollector
 
 // dnsNotificationsChannel is used to receive DNS related events from Route53 and fan out the events to consumers.
+// nolint: gochecknoglobals
 var dnsNotificationsChannel chan interface{}
 
 // dnsEventsConsumers stores the channels through which subscribers receive DNS events
+// nolint: gochecknoglobals
 var dnsEventsConsumers map[uuid.UUID]chan<- interface{}
 
+// nolint: gochecknoglobals
 var mux sync.RWMutex
 
 // DnsEventsSubscription represents a subscription to Dns events
@@ -51,12 +60,12 @@ type DnsEventsSubscription struct {
 
 // DnsServiceClient contains the operations for managing domains in a Dns Service
 type DnsServiceClient interface {
-	RegisterDomain(orgId uint, domain string) error
-	UnregisterDomain(orgId uint, domain string) error
-	IsDomainRegistered(orgId uint, domain string) (bool, error)
-	GetOrgDomain(orgId uint) (string, error)
+	RegisterDomain(orgId pkgAuth.OrganizationID, domain string) error
+	UnregisterDomain(orgId pkgAuth.OrganizationID, domain string) error
+	IsDomainRegistered(orgId pkgAuth.OrganizationID, domain string) (bool, error)
+	GetOrgDomain(orgId pkgAuth.OrganizationID) (string, error)
 	Cleanup()
-	DeleteDnsRecordsOwnedBy(ownerId string, orgId uint) error
+	DeleteDnsRecordsOwnedBy(ownerId string, orgId pkgAuth.OrganizationID) error
 	ProcessUnfinishedTasks()
 }
 

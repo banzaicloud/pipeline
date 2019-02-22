@@ -5882,6 +5882,11 @@ components:
         instanceType:
           example: Standard_B2ms
           type: string
+        labels:
+          additionalProperties:
+            example: '{"example.io/label1":"value1"}'
+            type: string
+          type: object
       required:
       - count
       - instanceType
@@ -5949,6 +5954,12 @@ components:
         labels:
           additionalProperties:
             $ref: '#/components/schemas/LabelsOracle'
+        subnetIds:
+          items:
+            example: ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx
+            type: string
+          maxItems: 3
+          type: array
       type: object
     LabelsOracle:
       example: labelValue
@@ -9773,6 +9784,15 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolsOracle'
           type: object
+        vcnId:
+          example: ocid1.vcn.oc1.iad.aaaaaaaapt4vnv6vhy4nxwxfq7e5hji44ugdz3dqpffxk77gurec7skjbcyq
+          type: string
+        lbSubnetId1:
+          example: ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx
+          type: string
+        lbSubnetId2:
+          example: ocid1.subnet.oc1.iad.abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwx
+          type: string
       required:
       - nodePools
       - version

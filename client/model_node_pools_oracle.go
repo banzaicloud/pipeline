@@ -12,9 +12,10 @@
 package client
 
 type NodePoolsOracle struct {
-	Version string            `json:"version,omitempty"`
-	Count   int32             `json:"count,omitempty"`
-	Image   string            `json:"image,omitempty"`
-	Shape   string            `json:"shape,omitempty"`
-	Labels  map[string]string `json:"labels,omitempty"`
+	Version   string            `json:"version,omitempty"`
+	Count     int32             `json:"count,omitempty"`
+	Image     string            `json:"image,omitempty"`
+	Shape     string            `json:"shape,omitempty"`
+	Labels    map[string]string `json:"labels,omitempty"`
+	SubnetIds []string          `json:"subnetIds,omitempty"`
 }

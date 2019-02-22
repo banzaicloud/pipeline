@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,23 +15,17 @@
 package config
 
 import (
-	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/pkg/errors"
+	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
-// CasbinDSN returns the connection string for Casbin gorm adapter.
-func CasbinDSN() (string, error) {
-	config := NewDBConfig()
+// ZapLogger is a configured zap logger.
+func ZapLogger() *zap.Logger {
+	logger := zaplog.NewLogger(zaplog.Config{
+		Level:  viper.GetString("logging.loglevel"),
+		Format: viper.GetString("logging.logformat"),
+	})
 
-	err := config.Validate()
-	if err != nil {
-		return "", errors.Wrap(err, "invalid database config")
-	}
-
-	dsn, err := database.GetDSN(config)
-	if err != nil {
-		return "", errors.Wrap(err, "could not get DSN for casbin gorm adapter")
-	}
-
-	return dsn, nil
+	return logger
 }

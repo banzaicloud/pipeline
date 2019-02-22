@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -40,21 +41,21 @@ import (
 // CommonCluster interface for clusters.
 type CommonCluster interface {
 	// Entity properties
-	GetID() uint
+	GetID() pkgCluster.ClusterID
 	GetUID() string
-	GetOrganizationId() uint
+	GetOrganizationId() pkgAuth.OrganizationID
 	GetName() string
 	GetCloud() string
-	GetDistribution() string
+	GetDistribution() pkgCluster.DistributionID
 	GetLocation() string
-	GetCreatedBy() uint
+	GetCreatedBy() pkgAuth.UserID
 
 	// Secrets
-	GetSecretId() string
-	GetSshSecretId() string
-	SaveSshSecretId(string) error
-	SaveConfigSecretId(string) error
-	GetConfigSecretId() string
+	GetSecretId() pkgSecret.SecretID
+	GetSshSecretId() pkgSecret.SecretID
+	SaveSshSecretId(pkgSecret.SecretID) error
+	SaveConfigSecretId(pkgSecret.SecretID) error
+	GetConfigSecretId() pkgSecret.SecretID
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 
 	// Persistence
@@ -65,8 +66,8 @@ type CommonCluster interface {
 	// Cluster management
 	CreateCluster() error
 	ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error
-	UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error
-	UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error
+	UpdateCluster(*pkgCluster.UpdateClusterRequest, pkgAuth.UserID) error
+	UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, pkgAuth.UserID) error
 	CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error
 	AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest)
 	DeleteCluster() error
@@ -220,7 +221,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	return nil
 }
 
-func getSecret(organizationId uint, secretId string) (*secret.SecretItemResponse, error) {
+func getSecret(organizationId pkgAuth.OrganizationID, secretId pkgSecret.SecretID) (*secret.SecretItemResponse, error) {
 	return secret.Store.Get(organizationId, secretId)
 }
 
@@ -290,14 +291,10 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	case pkgCluster.Amazon:
 		//Create Amazon EKS struct
-		eksCluster, err := CreateEKSClusterFromModel(modelCluster)
-		if err != nil {
-			return nil, err
-		}
+		eksCluster := CreateEKSClusterFromModel(modelCluster)
 
-		err = db.
+		err := db.
 			Preload("NodePools").
-			Preload("NodePools.Labels").
 			Preload("Subnets").
 			Where(model.EKSClusterModel{ClusterID: eksCluster.modelCluster.ID}).
 			First(&eksCluster.modelCluster.EKS).Error
@@ -306,16 +303,10 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	case pkgCluster.Azure:
 		// Create Azure struct
-		aksCluster, err := CreateAKSClusterFromModel(modelCluster)
-		if err != nil {
-			return nil, err
-		}
+		aksCluster := CreateAKSClusterFromModel(modelCluster)
 
-		err = db.Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
-		if err != nil {
-			return nil, err
-		}
-		err = db.Model(&aksCluster.modelCluster.AKS).Related(&aksCluster.modelCluster.AKS.NodePools, "NodePools").Error
+		err := db.Preload("NodePools").
+			Where(model.AKSClusterModel{ID: aksCluster.modelCluster.ID}).First(&aksCluster.modelCluster.AKS).Error
 
 		return aksCluster, err
 
@@ -361,7 +352,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 			return nil, err
 		}
 
-		err = db.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").Preload("NodePools.Labels").First(&okeCluster.modelCluster.OKE).Error
+		err = db.Where(modelOracle.Cluster{ClusterModelID: okeCluster.modelCluster.ID}).Preload("NodePools.Subnets").First(&okeCluster.modelCluster.OKE).Error
 
 		return okeCluster, err
 	}
@@ -370,7 +361,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 }
 
 //CreateCommonClusterFromRequest creates a CommonCluster from a request
-func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId, userId uint) (CommonCluster, error) {
+func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (CommonCluster, error) {
 
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
@@ -450,7 +441,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 }
 
 //createCommonClusterWithDistributionFromRequest creates a CommonCluster from a request
-func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId, userId uint) (*EC2ClusterPKE, error) {
+func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {
 	switch createClusterRequest.Cloud {
 	case pkgCluster.Amazon:
 		return CreateEC2ClusterPKEFromRequest(createClusterRequest, orgId, userId)
@@ -474,6 +465,81 @@ func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterMod
 	}
 }
 
+func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterRequest) map[string]*pkgCluster.NodePoolStatus {
+	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
+	cloudType := updateRequest.Cloud
+	switch cloudType {
+	case pkgCluster.Alibaba:
+		for name, np := range updateRequest.ACSK.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					InstanceType: np.InstanceType,
+					MinCount:     np.MinCount,
+					MaxCount:     np.MaxCount,
+					Labels:       np.Labels,
+				}
+			}
+		}
+
+	case pkgCluster.Amazon:
+		for name, np := range updateRequest.EKS.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					InstanceType: np.InstanceType,
+					Count:        np.Count,
+					MinCount:     np.MinCount,
+					MaxCount:     np.MaxCount,
+					SpotPrice:    np.SpotPrice,
+					Labels:       np.Labels,
+				}
+			}
+		}
+
+	case pkgCluster.Azure:
+		for name, np := range updateRequest.AKS.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					Count:    np.Count,
+					MinCount: np.MinCount,
+					MaxCount: np.MaxCount,
+					Labels:   np.Labels,
+				}
+			}
+		}
+
+	case pkgCluster.Google:
+		for name, np := range updateRequest.GKE.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					InstanceType: np.NodeInstanceType,
+					Count:        np.Count,
+					MinCount:     np.MinCount,
+					MaxCount:     np.MaxCount,
+					Preemptible:  np.Preemptible,
+					Labels:       np.Labels,
+				}
+			}
+		}
+
+	case pkgCluster.Oracle:
+		for name, np := range updateRequest.OKE.NodePools {
+			if np != nil {
+				nodePools[name] = &pkgCluster.NodePoolStatus{
+					Count:  int(np.Count),
+					Image:  np.Image,
+					Labels: np.Labels,
+				}
+			}
+		}
+
+	case pkgCluster.Dummy:
+	case pkgCluster.Kubernetes:
+
+	}
+
+	return nodePools
+}
+
 // CleanStateStore deletes state store folder by cluster name
 func CleanStateStore(path string) error {
 	if len(path) != 0 {
@@ -490,14 +556,14 @@ func CleanHelmFolder(organizationName string) error {
 }
 
 // GetUserIdAndName returns userId and userName from DB
-func GetUserIdAndName(modelCluster *model.ClusterModel) (userId uint, userName string) {
+func GetUserIdAndName(modelCluster *model.ClusterModel) (userId pkgAuth.UserID, userName string) {
 	userId = modelCluster.CreatedBy
 	userName = auth.GetUserNickNameById(userId)
 	return
 }
 
 // NewCreatorBaseFields creates a new CreatorBaseFields instance from createdAt and createdBy
-func NewCreatorBaseFields(createdAt time.Time, createdBy uint) *pkgCommon.CreatorBaseFields {
+func NewCreatorBaseFields(createdAt time.Time, createdBy pkgAuth.UserID) *pkgCommon.CreatorBaseFields {
 
 	var userName string
 	if createdBy != 0 {

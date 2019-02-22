@@ -16,6 +16,7 @@ package pke
 
 import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 )
@@ -23,9 +24,10 @@ import (
 type EC2PKEClusterModel struct {
 	ID                 uint                 `gorm:"primary_key"`
 	Cluster            cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID          uint
+	ClusterID          pkgCluster.ClusterID
 	MasterInstanceType string
 	MasterImage        string
+	CurrentWorkflowID  string
 
 	Network    Network    `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"network"`
 	NodePools  NodePools  `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"nodepools"`
@@ -40,37 +42,37 @@ func (EC2PKEClusterModel) TableName() string {
 }
 
 // BeforeDelete callback / hook to delete related entries from the database
-func (m *EC2PKEClusterModel) BeforeDelete(db *gorm.DB) error {
+func (m *EC2PKEClusterModel) BeforeDelete(tx *gorm.DB) error {
 	var e error
 
-	if e = db.Delete(m.Cluster).Error; e != nil {
-		return emperror.WrapWith(e, "failed to delete cluster", "cluster", m.Cluster.ID)
-	}
-
-	if e = db.Delete(m.Network).Error; e != nil {
+	if e = tx.Delete(m.Network).Error; e != nil {
 		return emperror.WrapWith(e, "failed to delete network", "network", m.Network.ID)
 	}
 
-	if e = db.Delete(m.CRI).Error; e != nil {
+	if e = tx.Delete(m.CRI).Error; e != nil {
 		return emperror.WrapWith(e, "failed to delete cri", "cri", m.CRI.ID)
 	}
 
 	for _, np := range m.NodePools {
-		if e = db.Delete(np.Hosts).Error; e != nil {
+		if e = tx.Where(Host{NodePoolID: np.NodePoolID}).Delete(np.Hosts).Error; e != nil {
 			return emperror.WrapWith(e, "failed to delete nodepool hosts", "nodepool", np.Name)
 		}
 	}
 
-	if e = db.Delete(m.NodePools).Error; e != nil {
+	if e = tx.Where(NodePool{ClusterID: m.ClusterID}).Delete(m.NodePools).Error; e != nil {
 		return emperror.WrapWith(e, "failed to delete nodepools", "nodepools", m.NodePools)
 	}
 
-	if e = db.Delete(m.KubeADM).Error; e != nil {
+	if e = tx.Delete(m.KubeADM).Error; e != nil {
 		return emperror.WrapWith(e, "failed to delete KubeADM", "KubeADM", m.KubeADM.ID)
 	}
 
-	if e = db.Delete(m.Kubernetes).Error; e != nil {
+	if e = tx.Delete(m.Kubernetes).Error; e != nil {
 		return emperror.WrapWith(e, "failed to delete Kubernetes", "network", m.Kubernetes.ID)
+	}
+
+	if e = tx.Delete(m.Cluster).Error; e != nil {
+		return emperror.WrapWith(e, "failed to delete cluster", "cluster", m.Cluster.ID)
 	}
 
 	return e

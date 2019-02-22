@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -78,7 +79,7 @@ const (
 )
 
 // CreateGKEClusterFromRequest creates ClusterModel struct from the request
-func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID, userID uint) (*GKECluster, error) {
+func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) (*GKECluster, error) {
 	c := GKECluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -95,7 +96,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			Name:           request.Name,
 			Location:       request.Location,
 			OrganizationID: orgID,
-			SecretID:       request.SecretId,
+			SecretID:       pkgSecret.SecretID(request.SecretId),
 			Cloud:          google.Provider,
 			Distribution:   google.ClusterDistributionGKE,
 			CreatedBy:      userID,
@@ -125,7 +126,7 @@ type GKECluster struct {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *GKECluster) GetOrganizationId() uint {
+func (c *GKECluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return c.model.Cluster.OrganizationID
 }
 
@@ -135,17 +136,17 @@ func (c *GKECluster) GetLocation() string {
 }
 
 // GetSecretId retrieves the secret id
-func (c *GKECluster) GetSecretId() string {
+func (c *GKECluster) GetSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.SecretID
 }
 
 // GetSshSecretId retrieves the secret id
-func (c *GKECluster) GetSshSecretId() string {
+func (c *GKECluster) GetSshSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.SSHSecretID
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *GKECluster) SaveSshSecretId(sshSecretId string) error {
+func (c *GKECluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -330,7 +331,7 @@ func (c *GKECluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *GKECluster) GetDistribution() string {
+func (c *GKECluster) GetDistribution() pkgCluster.DistributionID {
 	return c.model.Cluster.Distribution
 }
 
@@ -352,6 +353,7 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MaxCount:          np.NodeMaxCount,
 				Version:           c.model.NodeVersion,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
+				Labels:            np.Labels,
 			}
 			if np.Preemptible {
 				hasSpotNodePool = true
@@ -576,7 +578,7 @@ func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) er
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
 
 	c.log.Info("Start updating cluster (gke) nodepools")
 
@@ -614,7 +616,7 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 }
 
 // UpdateCluster updates GKE cluster in cloud
-func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
+func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) error {
 
 	c.log.Info("Start updating cluster (gke)")
 
@@ -747,7 +749,7 @@ func (c *GKECluster) updateModel(cluster *gke.Cluster, updatedNodePools []*gke.N
 }
 
 //GetID returns the specified cluster id
-func (c *GKECluster) GetID() uint {
+func (c *GKECluster) GetID() pkgCluster.ClusterID {
 	return c.model.Cluster.ID
 }
 
@@ -1525,7 +1527,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	log := log.WithField("cluster", clusterModel.Name)
 	log.Debug("Load Google props from database")
 
-	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").Preload("NodePools.Labels").First(&m).Error
+	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").First(&m).Error
 	if err != nil {
 		return nil, err
 	}
@@ -2088,7 +2090,7 @@ func (c *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
+func (c *GKECluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -2100,7 +2102,7 @@ func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
 }
 
 // GetConfigSecretId return config secret id
-func (c *GKECluster) GetConfigSecretId() string {
+func (c *GKECluster) GetConfigSecretId() pkgSecret.SecretID {
 	return c.model.Cluster.ConfigSecretID
 }
 
@@ -2217,6 +2219,6 @@ func (c *GKECluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *GKECluster) GetCreatedBy() uint {
+func (c *GKECluster) GetCreatedBy() pkgAuth.UserID {
 	return c.model.Cluster.CreatedBy
 }

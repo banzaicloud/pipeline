@@ -15,9 +15,8 @@
 package cluster
 
 import (
-	"strconv"
-
 	"github.com/banzaicloud/pipeline/internal/providers/google"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -25,7 +24,7 @@ import (
 )
 
 // createNodePoolsModelFromRequest creates an array of GoogleNodePoolModel from the nodePoolsData received through create/update requests
-func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.NodePool, userID uint) ([]*google.GKENodePoolModel, error) {
+func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.NodePool, userID pkgAuth.UserID) ([]*google.GKENodePoolModel, error) {
 	nodePoolsCount := len(nodePoolsData)
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided
@@ -43,14 +42,7 @@ func createNodePoolsModelFromRequest(nodePoolsData map[string]*pkgClusterGoogle.
 			NodeCount:        nodePoolData.Count,
 			NodeInstanceType: nodePoolData.NodeInstanceType,
 			Preemptible:      nodePoolData.Preemptible,
-			Labels:           make([]*google.GKENodePoolLabelModel, 0),
-		}
-
-		for name, value := range nodePoolData.Labels {
-			nodePoolsModel[i].Labels = append(nodePoolsModel[i].Labels, &google.GKENodePoolLabelModel{
-				Name:  name,
-				Value: value,
-			})
+			Labels:           nodePoolData.Labels,
 		}
 
 		i++
@@ -71,13 +63,9 @@ func createNodePoolsFromClusterModel(clusterModel *google.GKEClusterModel) ([]*g
 	for i := 0; i < nodePoolsCount; i++ {
 		nodePoolModel := clusterModel.NodePools[i]
 
+		// only add node pool name label, other are added by NodeLabelController
 		labels := map[string]string{
-			pkgCommon.LabelKey:         nodePoolModel.Name,
-			pkgCommon.OnDemandLabelKey: strconv.FormatBool(!nodePoolModel.Preemptible),
-		}
-
-		for _, label := range nodePoolModel.Labels {
-			labels[label.Name] = label.Value
+			pkgCommon.LabelKey: nodePoolModel.Name,
 		}
 
 		nodePools[i] = &gke.NodePool{

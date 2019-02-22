@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "91eaf775-2c67-4f46-be3e-6604140921f6",
+		"_postman_id": "607f647a-3fd2-4156-849c-455189fc3d87",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -415,7 +415,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\":\"ekscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secretIdAmazon}}\",\n  \"properties\": {\n        \"eks\": {\n\t\t\t\"version\":\"1.11\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"t2.medium\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false,\n\t                \"minCount\": 1,\n\t                \"maxCount\": 1,\n            \t\t\"count\": 1,\n\t                \"image\": \"{{eksNodeImage}}\"\n            \t}\n            }\n        }\n    }\n}"
+							"raw": "{\n  \"name\":\"ekscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secretIdAmazon}}\",\n  \"properties\": {\n        \"eks\": {\n\t\t\t\"version\":\"1.11\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"t2.medium\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false,\n\t                \"minCount\": 1,\n\t                \"maxCount\": 1,\n            \t\t\"count\": 1,\n\t                \"image\": \"{{eksNodeImage}}\",\n\t                \"labels\": {\n                \t\t\"custom\": \"value\"\n                \t}\n            \t}\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
@@ -438,6 +438,74 @@
 							]
 						},
 						"description": "Creates a K8S cluster in the Amazon Web Services"
+					},
+					"response": []
+				},
+				{
+					"name": "Cluster Create EKS with Scale options",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f28a263a-0d98-4e3d-b40a-c38b473541a4",
+								"exec": [
+									"if (responseCode.code === 202) {",
+									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"clusterId\", dataJSON.id);",
+									"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+									"",
+									"    tests[\"Response Time\"] = pm.expect(pm.response.responseTime).to.be.below(80500)",
+									"",
+									"    postman.setNextRequest(\"Cluster Status\");",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\":\"ekscluster-{{username}}-{{$randomInt}}\",\n  \"location\": \"us-west-2\",\n  \"cloud\": \"amazon\",\n  \"secretId\": \"{{secretIdAmazon}}\",\n  \"properties\": {\n        \"eks\": {\n\t\t\t\"version\":\"1.11\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"instanceType\": \"t2.medium\",\n\t            \t\"spotPrice\": \"0.2\",\n            \t\t\"autoscaling\": false,\n\t                \"minCount\": 1,\n\t                \"maxCount\": 1,\n            \t\t\"count\": 1,\n\t                \"image\": \"{{eksNodeImage}}\"\n            \t}\n            }\n        }\n    },\n    \"scaleOptions\": {\n    \t\"enabled\": true,\n\t\t\"desiredCpu\":8,\n\t\t\"desiredMem\":40,\n\t\t\"desiredGpu\":0,\n\t\t\"onDemandPct\":25,\n\t\t\"keepDesiredCapacity\": true,\n\t\t\"excludes\": [\n\t\t\t\"c4.xlarge\"\n\t\t]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								}
+							]
+						}
 					},
 					"response": []
 				},
@@ -624,9 +692,9 @@
 							],
 							"variable": [
 								{
-									"description": "Organization identifier",
 									"key": "orgId",
-									"value": "{{orgId}}"
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
 								}
 							]
 						},
@@ -1241,7 +1309,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"autoscaling\": true, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 3\n            \t},\n            \t\"newpool1\": {\n            \t\t\"autoscaling\": true, \n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"{{eksNodeImage}}\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
+							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"autoscaling\": true, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 3,\n\t                \"labels\": {\n                \t\t\"custom\": \"value1\"\n                \t}\n            \t},\n            \t\"newpool1\": {\n            \t\t\"autoscaling\": true, \n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"{{eksNodeImage}}\",\n\t                \"labels\": {\n                \t\t\"custom\": \"value2\"\n                \t}\n            \t}\n\t\t\t}\n\t\t}\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
@@ -1270,6 +1338,69 @@
 							]
 						},
 						"description": "Update an AWS cluster"
+					},
+					"response": []
+				},
+				{
+					"name": "Cluster Update EKS with Scale options",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5fcc4749-27c9-40ed-a840-bd4f22f43e12",
+								"exec": [
+									"",
+									"if (responseCode.code === 202) {",
+									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"properties\": {\n\t\t\"eks\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n            \t\t\"autoscaling\": true, \n\t                \"minCount\": 1,\n\t                \"maxCount\": 3\n            \t},\n            \t\"newpool1\": {\n            \t\t\"autoscaling\": true, \n            \t\t\"instanceType\": \"m4.xlarge\",\n\t            \t\"spotPrice\": \"0.2\",\n\t                \"minCount\": 1,\n\t                \"maxCount\": 2,\n\t                \"image\": \"{{eksNodeImage}}\"\t\n            \t}\n\t\t\t}\n\t\t}\n\t},\n\t\"scaleOptions\": {\n    \t\"enabled\": true,\n\t\t\"desiredCpu\":16,\n\t\t\"desiredMem\":40,\n\t\t\"desiredGpu\":0,\n\t\t\"onDemandPct\":25,\n\t\t\"keepDesiredCapacity\": true,\n\t\t\"excludes\": [\n\t\t\t\"c4.xlarge\"\n\t\t]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterId",
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
+								}
+							]
+						}
 					},
 					"response": []
 				},
@@ -9450,7 +9581,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "{{token}}",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6ImNlOTZhNDFkLTA4MzMtNGIzNi1iODQyLWI5NmMwNTI4MjhhMyIsImlhdCI6MTU0ODkzNDIzOSwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6InNhbmN5eCJ9.UKv8doLYy8LzR1tBfm-8cd74twfXpPyV4e4Im64BUqI",
 				"type": "string"
 			}
 		]

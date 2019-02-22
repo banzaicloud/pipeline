@@ -16,11 +16,13 @@ package cluster
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
 
-func newEC2Client(orgID uint, secretID, region string) (*ec2.EC2, error) {
+func newEC2Client(orgID pkgAuth.OrganizationID, secretID pkgSecret.SecretID, region string) (*ec2.EC2, error) {
 	s, err := getSecret(orgID, secretID)
 	if err != nil {
 		return nil, err
@@ -37,7 +39,7 @@ func newEC2Client(orgID uint, secretID, region string) (*ec2.EC2, error) {
 }
 
 // ListRegions lists supported regions
-func ListRegions(orgId uint, secretId, region string) ([]*ec2.Region, error) {
+func ListRegions(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID, region string) ([]*ec2.Region, error) {
 	client, err := newEC2Client(orgId, secretId, region)
 	if err != nil {
 		return nil, err
@@ -52,7 +54,7 @@ func ListRegions(orgId uint, secretId, region string) ([]*ec2.Region, error) {
 }
 
 // ListAMIs returns supported AMIs by region and tags
-func ListAMIs(orgId uint, secretId, region string, tags []*string) ([]*ec2.Image, error) {
+func ListAMIs(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID, region string, tags []*string) ([]*ec2.Image, error) {
 	client, err := newEC2Client(orgId, secretId, region)
 	if err != nil {
 		return nil, err

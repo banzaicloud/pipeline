@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -33,7 +34,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/scheduler/cache"
@@ -78,18 +79,18 @@ type Status struct {
 }
 
 type Cluster struct {
-	Name                string    `json:"name"`
-	Id                  string    `json:"id"`
-	Status              string    `json:"status"`
-	Distribution        string    `json:"distribution"`
-	StatusMessage       string    `json:"statusMessage"`
-	Cloud               string    `json:"cloud"`
-	CreatedAt           time.Time `json:"createdAt"`
-	Region              string    `json:"region"`
-	Nodes               []Node    `json:"nodes"`
-	CpuUsagePercent     float64   `json:"cpuUsagePercent"`
-	StorageUsagePercent float64   `json:"storageUsagePercent"`
-	MemoryUsagePercent  float64   `json:"memoryUsagePercent"`
+	Name                string                    `json:"name"`
+	Id                  string                    `json:"id"`
+	Status              string                    `json:"status"`
+	Distribution        pkgCluster.DistributionID `json:"distribution"`
+	StatusMessage       string                    `json:"statusMessage"`
+	Cloud               string                    `json:"cloud"`
+	CreatedAt           time.Time                 `json:"createdAt"`
+	Region              string                    `json:"region"`
+	Nodes               []Node                    `json:"nodes"`
+	CpuUsagePercent     float64                   `json:"cpuUsagePercent"`
+	StorageUsagePercent float64                   `json:"storageUsagePercent"`
+	MemoryUsagePercent  float64                   `json:"memoryUsagePercent"`
 }
 
 // GetDashboardResponse Api object to be mapped to Get dashboard request
@@ -128,7 +129,7 @@ func GetDashboard(c *gin.Context) {
 
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, log, errorHandler)
+	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
 
 	logger.Info("fetching clusters")
 

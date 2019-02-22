@@ -16,17 +16,22 @@ package cluster
 
 import (
 	"context"
+	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/pkg/errors"
+	"go.uber.org/cadence/client"
 )
 
 type commonCreator struct {
-	request *cluster.CreateClusterRequest
+	request *pkgCluster.CreateClusterRequest
 	cluster CommonCluster
 }
 
 // NewCommonClusterCreator returns a new cluster creator instance.
-func NewCommonClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster) *commonCreator {
+func NewCommonClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonCluster) *commonCreator {
 	return &commonCreator{
 		request: request,
 		cluster: cluster,
@@ -40,7 +45,7 @@ func (c *commonCreator) Validate(ctx context.Context) error {
 
 // Prepare implements the clusterCreator interface.
 func (c *commonCreator) Prepare(ctx context.Context) (CommonCluster, error) {
-	return c.cluster, c.cluster.Persist(cluster.Creating, cluster.CreatingMessage)
+	return c.cluster, c.cluster.Persist(pkgCluster.Creating, pkgCluster.CreatingMessage)
 }
 
 // Create implements the clusterCreator interface.
@@ -48,34 +53,68 @@ func (c *commonCreator) Create(ctx context.Context) error {
 	return c.cluster.CreateCluster()
 }
 
-type pkeCreator struct {
-	externalBaseURL string
-	tokenGenerator  TokenGenerator
-	commonCreator
-}
-
-type createPKEClusterer interface {
-	CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error
-}
-
 type TokenGenerator interface {
-	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
+	GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID) (string, string, error)
 }
 
 // NewClusterCreator returns a new PKE or Common cluster creator instance depending on the cluster.
-func NewClusterCreator(request *cluster.CreateClusterRequest, cluster CommonCluster, tokenGenerator TokenGenerator, externalBaseURL string) clusterCreator {
+func NewClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonCluster, workflowClient client.Client) clusterCreator {
 	common := NewCommonClusterCreator(request, cluster)
 	if _, ok := cluster.(createPKEClusterer); !ok {
 		return common
 	}
+
 	return &pkeCreator{
-		tokenGenerator:  tokenGenerator,
-		externalBaseURL: externalBaseURL,
-		commonCreator:   *common,
+		workflowClient: workflowClient,
+
+		commonCreator: *common,
 	}
+}
+
+type createPKEClusterer interface {
+	SetCurrentWorkflowID(workflowID string) error
+}
+
+type pkeCreator struct {
+	workflowClient client.Client
+
+	commonCreator
 }
 
 // Create implements the clusterCreator interface.
 func (c *pkeCreator) Create(ctx context.Context) error {
-	return c.cluster.(createPKEClusterer).CreatePKECluster(c.tokenGenerator, c.externalBaseURL)
+	var externalBaseURL string
+	var ok bool
+	if externalBaseURL, ok = ctx.Value(ExternalBaseURLKey).(string); !ok {
+		return errors.New("externalBaseURL missing from context")
+	}
+	input := pkeworkflow.CreateClusterWorkflowInput{
+		OrganizationID:      uint(c.cluster.GetOrganizationId()),
+		ClusterID:           uint(c.cluster.GetID()),
+		ClusterUID:          c.cluster.GetUID(),
+		ClusterName:         c.cluster.GetName(),
+		SecretID:            string(c.cluster.GetSecretId()),
+		Region:              c.cluster.GetLocation(),
+		PipelineExternalURL: externalBaseURL,
+	}
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+	}
+	exec, err := c.workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.CreateClusterWorkflowName, input)
+	if err != nil {
+		return err
+	}
+
+	err = c.cluster.(createPKEClusterer).SetCurrentWorkflowID(exec.GetID())
+	if err != nil {
+		return err
+	}
+
+	err = exec.Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

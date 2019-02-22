@@ -64,10 +64,20 @@ services:
         volumes:
             - ./.docker/volumes/dex:/dex
 
+    cadence:
+        ports:
+            - 127.0.0.1:7933:7933
+            - 127.0.0.1:7934:7934
+            - 127.0.0.1:7935:7935
+
+    cadence-web:
+        ports:
+            - 127.0.0.1:8088:8088
+
 #     ldap:
 #         image: osixia/openldap:1.2.2
 #         ports:
-#             - 389
+#             - 127.0.0.1:389:389
 #         volumes:
 #             - ldap-config:/container/service/slapd/assets/config/bootstrap/ldif/custom/
 #         environment:

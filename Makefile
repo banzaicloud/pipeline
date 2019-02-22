@@ -14,14 +14,14 @@ BUILD_PACKAGE = ${PACKAGE}/cmd/pipeline
 VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
-LDFLAGS += -X main.Version=${VERSION} -X main.CommitHash=${COMMIT_HASH} -X main.BuildDate=${BUILD_DATE}
+LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
 export CGO_ENABLED ?= 0
 ifeq (${VERBOSE}, 1)
 	GOARGS += -v
 endif
 
 DEP_VERSION = 0.5.0
-GOLANGCI_VERSION = 1.10.2
+GOLANGCI_VERSION = 1.12.3
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.1.0
@@ -81,6 +81,11 @@ bin/dep-${DEP_VERSION}:
 .PHONY: vendor
 vendor: bin/dep ## Install dependencies
 	bin/dep ensure -v -vendor-only
+	@touch vendor/.auto
+
+vendor/.auto: Gopkg.lock bin/dep # install/update dependencies if needed
+	bin/dep ensure -v -vendor-only
+	@touch $@
 
 config/config.toml:
 	cp config/config.toml.dist config/config.toml
@@ -90,34 +95,48 @@ config/dex.yml:
 
 .PHONY: run
 run: GOTAGS += dev
-run: build ## Build and execute a binary
+run: build-pipeline ## Build and execute a binary
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
 
-.PHONY: build
-build: ## Build a binary
+.PHONY: run-worker
+run-worker: GOTAGS += dev
+run-worker: build-worker ## Build and execute a binary
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker ${ARGS}
+
+.PHONY: runall ## Run worker and pipeline in foreground. Use with make -j.
+runall: run run-worker
+
+.PHONY: goversion
+goversion:
 ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
 	@printf "${GOLANG_VERSION}\n$$(go version | awk '{sub(/^go/, "", $$3);print $$3}')" | sort -t '.' -k 1,1 -k 2,2 -k 3,3 -g | head -1 | grep -q -E "^${GOLANG_VERSION}$$" || (printf "Required Go version is ${GOLANG_VERSION}\nInstalled: `go version`" && exit 1)
 endif
-	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/${BINARY_NAME} ${BUILD_PACKAGE}
 
-.PHONY: docker-build
-docker-build: ## Builds go binary in docker image
-	docker run -it -v $${PWD}:/go/src/${PACKAGE} -w /go/src/${PACKAGE} golang:${GOLANG_VERSION}-alpine go build -o pipeline_linux ${BUILD_PACKAGE}
+.PHONY: build-%
+build-%: goversion vendor/.auto ## Build a binary
+	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
 
-.PHONY: debug
-debug: export GOOS = linux
-debug: GOARGS += -gcflags "-N -l"
-debug: BINARY_NAME = pipeline-debug
-debug: build ## Builds binary package
+builds := $(patsubst ./cmd/%,build-%,$(wildcard ./cmd/*))
+.PHONY: build
+build: $(builds) ## Build project binaries
 
+.PHONY: build-release
+build-release: ## Build project binaries without debug information
+	@${MAKE} LDFLAGS="-w ${LDFLAGS}" BUILD_DIR="${BUILD_DIR}/release" build
 
-.PHONY: debug-docker
-debug-docker: debug ## Builds binary package
-	docker build -t banzaicloud/pipeline:debug -f Dockerfile.dev .
+.PHONY: build-debug
+build-debug: ## Build project binaries with remote debugging capabilities
+	@${MAKE} GOARGS="${GOARGS} -gcflags \"all=-N -l\"" BUILD_DIR="${BUILD_DIR}/debug" build
 
-.PHONY: local-docker
-local-docker: debug ## Builds binary package
+.PHONY: docker
+docker: ## Build a Docker image
+	@${MAKE} GOOS=linux GOARCH=amd64 build-release
 	docker build -t banzaicloud/pipeline:local -f Dockerfile.local .
+
+.PHONY: docker-debug
+docker-debug: ## Build a Docker image with remote debugging capabilities
+	@${MAKE} GOOS=linux GOARCH=amd64 build-debug
+	docker build -t banzaicloud/pipeline:debug -f Dockerfile.debug .
 
 .PHONY: check
 check: test lint ## Run tests and linters

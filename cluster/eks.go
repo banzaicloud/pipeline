@@ -31,6 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks/action"
@@ -38,7 +39,8 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
-	pgkEc2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
+	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -46,7 +48,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -69,7 +71,7 @@ const mapUsersTemplate = `- userarn: %s
 const asgWaitLoopSleepSeconds = 5
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
-func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
+func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EKSCluster, error) {
 	cluster := EKSCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -81,7 +83,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Location:       request.Location,
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
-		SecretId:       request.SecretId,
+		SecretId:       pkgSecret.SecretID(request.SecretId),
 		Distribution:   pkgCluster.EKS,
 		EKS: model.EKSClusterModel{
 			Version:      request.Properties.CreateClusterEKS.Version,
@@ -98,7 +100,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	return &cluster, nil
 }
 
-func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*model.AmazonNodePoolsModel {
+func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId pkgAuth.UserID) []*model.AmazonNodePoolsModel {
 	var modelNodePools = make([]*model.AmazonNodePoolsModel, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
@@ -112,7 +114,7 @@ func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId ui
 			Count:            nodePool.Count,
 			NodeImage:        nodePool.Image,
 			NodeInstanceType: nodePool.InstanceType,
-			Labels:           createNodePoolLabelsFromRequest(nodePool.Labels),
+			Labels:           nodePool.Labels,
 			Delete:           false,
 		}
 		i++
@@ -133,67 +135,6 @@ func createSubnetsFromRequest(subnets []*pkgEks.ClusterSubnet) []*model.EKSSubne
 	return modelSubnets
 }
 
-func createNodePoolLabelsFromRequest(labels map[string]string) []*model.AmazonNodePoolLabelModel {
-	var modelLabels []*model.AmazonNodePoolLabelModel
-
-	for name, value := range labels {
-		modelLabels = append(modelLabels, &model.AmazonNodePoolLabelModel{
-			Name:   name,
-			Value:  value,
-			Delete: false,
-		})
-	}
-
-	return modelLabels
-}
-
-// createNodePoolLabelsFromUpdateRequest compares the list user provided node pool labels stored in the db
-// against the labels passed in the update request and returns a list of labels to update the database with
-func (c *EKSCluster) createNodePoolLabelsFromUpdateRequest(requestedNodePoolLabels map[string]string, currentNodePoolLabels []*model.AmazonNodePoolLabelModel) []*model.AmazonNodePoolLabelModel {
-
-	crtNodePoolLabelsMap := make(map[string]*model.AmazonNodePoolLabelModel)
-	updatedLabels := make([]*model.AmazonNodePoolLabelModel, 0, len(requestedNodePoolLabels))
-
-	for _, crtNodePoolLabel := range currentNodePoolLabels {
-		if crtNodePoolLabel != nil {
-			crtNodePoolLabelsMap[crtNodePoolLabel.Name] = crtNodePoolLabel
-
-			updatedLabel := &model.AmazonNodePoolLabelModel{
-				ID:         crtNodePoolLabel.ID,
-				Name:       crtNodePoolLabel.Name,
-				NodePoolID: crtNodePoolLabel.NodePoolID,
-				CreatedAt:  crtNodePoolLabel.CreatedAt,
-				UpdatedAt:  crtNodePoolLabel.UpdatedAt,
-				Delete:     false,
-			}
-
-			if value, ok := requestedNodePoolLabels[crtNodePoolLabel.Name]; ok {
-				// update value
-				updatedLabel.Value = value
-
-			} else {
-				// delete label
-				updatedLabel.Delete = true
-			}
-
-			updatedLabels = append(updatedLabels, updatedLabel)
-		}
-	}
-
-	for labelName, labelValue := range requestedNodePoolLabels {
-		if _, ok := crtNodePoolLabelsMap[labelName]; !ok {
-			// new node label
-			updatedLabels = append(updatedLabels, &model.AmazonNodePoolLabelModel{
-				Name:   labelName,
-				Value:  labelValue,
-				Delete: false,
-			})
-		}
-	}
-
-	return updatedLabels
-}
-
 //EKSCluster struct for EKS cluster
 type EKSCluster struct {
 	modelCluster             *model.ClusterModel
@@ -206,7 +147,7 @@ type EKSCluster struct {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *EKSCluster) GetOrganizationId() uint {
+func (c *EKSCluster) GetOrganizationId() pkgAuth.OrganizationID {
 	return c.modelCluster.OrganizationId
 }
 
@@ -216,17 +157,17 @@ func (c *EKSCluster) GetLocation() string {
 }
 
 // GetSecretId retrieves the secret id
-func (c *EKSCluster) GetSecretId() string {
+func (c *EKSCluster) GetSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SecretId
 }
 
 // GetSshSecretId retrieves the secret id
-func (c *EKSCluster) GetSshSecretId() string {
+func (c *EKSCluster) GetSshSecretId() pkgSecret.SecretID {
 	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *EKSCluster) SaveSshSecretId(sshSecretId string) error {
+func (c *EKSCluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
@@ -236,12 +177,11 @@ func (c *EKSCluster) GetAPIEndpoint() (string, error) {
 }
 
 //CreateEKSClusterFromModel creates ClusterModel struct from the model
-func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) (*EKSCluster, error) {
-	eksCluster := EKSCluster{
+func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) *EKSCluster {
+	return &EKSCluster{
 		modelCluster: clusterModel,
 		log:          log.WithField("cluster", clusterModel.Name),
 	}
-	return &eksCluster, nil
 }
 
 func (c *EKSCluster) createAWSCredentialsFromSecret() (*credentials.Credentials, error) {
@@ -442,7 +382,7 @@ func (c *EKSCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *EKSCluster) GetDistribution() string {
+func (c *EKSCluster) GetDistribution() pkgCluster.DistributionID {
 	return c.modelCluster.Distribution
 }
 
@@ -522,7 +462,7 @@ func (c *EKSCluster) getNodepoolStackNamesToDelete(sess *session.Session) []stri
 	return stackNames
 }
 
-func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*pkgEks.NodePool, userId uint) ([]*model.AmazonNodePoolsModel, error) {
+func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[string]*pkgEks.NodePool, userId pkgAuth.UserID) ([]*model.AmazonNodePoolsModel, error) {
 
 	currentNodePoolMap := make(map[string]*model.AmazonNodePoolsModel, len(c.modelCluster.EKS.NodePools))
 	for _, nodePool := range c.modelCluster.EKS.NodePools {
@@ -547,7 +487,6 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 				NodeMinCount:     nodePool.MinCount,
 				NodeMaxCount:     nodePool.MaxCount,
 				Count:            nodePool.Count,
-				Labels:           c.createNodePoolLabelsFromUpdateRequest(nodePool.Labels, currentNodePoolMap[nodePoolName].Labels),
 				Delete:           false,
 			})
 
@@ -581,7 +520,6 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 				NodeMinCount:     nodePool.MinCount,
 				NodeMaxCount:     nodePool.MaxCount,
 				Count:            nodePool.Count,
-				Labels:           createNodePoolLabelsFromRequest(nodePool.Labels),
 				Delete:           false,
 			})
 		}
@@ -603,7 +541,7 @@ func (c *EKSCluster) createNodePoolsFromUpdateRequest(requestedNodePools map[str
 }
 
 // UpdateCluster updates EKS cluster in cloud
-func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy uint) error {
+func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, updatedBy pkgAuth.UserID) error {
 	c.log.Info("Start updating EKS cluster")
 
 	awsCred, err := c.createAWSCredentialsFromSecret()
@@ -780,7 +718,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
+func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
 	c.log.Info("Start updating nodepools")
 
 	awsCred, err := c.createAWSCredentialsFromSecret()
@@ -968,11 +906,6 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 	for _, np := range c.modelCluster.EKS.NodePools {
 		if np != nil {
 
-			labels := make(map[string]string)
-			for _, nodePoolLabels := range np.Labels {
-				labels[nodePoolLabels.Name] = nodePoolLabels.Value
-			}
-
 			nodePools[np.Name] = &pkgCluster.NodePoolStatus{
 				Autoscaling:       np.Autoscaling,
 				Count:             np.Count,
@@ -982,7 +915,7 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 				MaxCount:          np.NodeMaxCount,
 				Image:             np.NodeImage,
 				CreatorBaseFields: *NewCreatorBaseFields(np.CreatedAt, np.CreatedBy),
-				Labels:            labels,
+				Labels:            np.Labels,
 			}
 			if np.NodeSpotPrice != "" && np.NodeSpotPrice != "0" {
 				hasSpotNodePool = true
@@ -1011,7 +944,7 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 }
 
 // GetID returns the DB ID of this cluster
-func (c *EKSCluster) GetID() uint {
+func (c *EKSCluster) GetID() pkgCluster.ClusterID {
 	return c.modelCluster.ID
 }
 
@@ -1029,11 +962,6 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	// create update request struct with the stored data to check equality
 	preNodePools := make(map[string]*pkgEks.NodePool)
 	for _, preNp := range c.modelCluster.EKS.NodePools {
-		labels := make(map[string]string)
-
-		for _, preNpLabel := range preNp.Labels {
-			labels[preNpLabel.Name] = preNpLabel.Value
-		}
 
 		preNodePools[preNp.Name] = &pkgEks.NodePool{
 			InstanceType: preNp.NodeInstanceType,
@@ -1043,7 +971,6 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 			MaxCount:     preNp.NodeMaxCount,
 			Count:        preNp.Count,
 			Image:        preNp.NodeImage,
-			Labels:       labels,
 		}
 	}
 
@@ -1188,7 +1115,7 @@ func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return emperror.Wrap(err, "failed to create AWS session")
 	}
 
-	netSvc := pgkEc2.NewNetworkSvc(ec2.New(session), c.log)
+	netSvc := pkgEC2.NewNetworkSvc(ec2.New(session), c.log)
 	if r.Properties.CreateClusterEKS.Vpc != nil {
 
 		if r.Properties.CreateClusterEKS.Vpc.VpcId != "" && r.Properties.CreateClusterEKS.Vpc.Cidr != "" {
@@ -1288,12 +1215,12 @@ func (c *EKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *EKSCluster) SaveConfigSecretId(configSecretId string) error {
+func (c *EKSCluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId returns config secret id
-func (c *EKSCluster) GetConfigSecretId() string {
+func (c *EKSCluster) GetConfigSecretId() pkgSecret.SecretID {
 	return c.modelCluster.ConfigSecretId
 }
 
@@ -1327,7 +1254,7 @@ func (c *EKSCluster) RequiresSshPublicKey() bool {
 }
 
 // ListEksRegions returns the regions in which AmazonEKS service is enabled
-func ListEksRegions(orgId uint, secretId string) ([]string, error) {
+func ListEksRegions(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID) ([]string, error) {
 	// AWS API https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ doesn't recognizes AmazonEKS service yet
 	// thus we can not use it to query what locations the service is enabled in.
 
@@ -1477,6 +1404,6 @@ func (c *EKSCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *EKSCluster) GetCreatedBy() uint {
+func (c *EKSCluster) GetCreatedBy() pkgAuth.UserID {
 	return c.modelCluster.CreatedBy
 }
