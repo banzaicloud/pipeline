@@ -95,8 +95,16 @@ config/dex.yml:
 
 .PHONY: run
 run: GOTAGS += dev
-run: build ## Build and execute a binary
+run: build-pipeline ## Build and execute a binary
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
+
+.PHONY: run-worker
+run-worker: GOTAGS += dev
+run-worker: build-worker ## Build and execute a binary
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker ${ARGS}
+
+.PHONY: runall ## Run worker and pipeline in foreground. Use with make -j.
+runall: run run-worker
 
 .PHONY: goversion
 goversion:
