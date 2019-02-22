@@ -44,13 +44,14 @@ type ResourceMetricStatus struct {
 }
 
 type CustomMetric struct {
-	Type               string `json:"type"`
+	Query              string `json:"query"`
+	TargetValue        string `json:"targetValue,omitempty"`
 	TargetAverageValue string `json:"targetAverageValue,omitempty"`
 }
 
 type CustomMetricStatus struct {
 	CustomMetric
-	CurrentAverageValue string `json:"currentAverageValue,omitempty"`
+	CurrentValue string `json:"currentValue,omitempty"`
 }
 
 type DeploymentScaleStatus struct {
@@ -88,11 +89,9 @@ func (r *DeploymentScalingRequest) Validate() error {
 		metricCount++
 	}
 	for _, cm := range r.CustomMetrics {
-		if len(cm.Type) != 0 {
-			err := cm.validateCustomMetric()
-			if err != nil {
-				return err
-			}
+		err := cm.validateCustomMetric()
+		if err != nil {
+			return err
 		}
 		metricCount++
 	}
@@ -124,13 +123,21 @@ func (rm ResourceMetric) validateResourceMetric() error {
 }
 
 func (rm CustomMetric) validateCustomMetric() error {
-	if rm.Type != "pod" {
-		return fmt.Errorf("invalid custom metric type specified: %v", rm.Type)
+	if len(rm.Query) == 0 {
+		return fmt.Errorf("query is required for custom metric")
 	}
-
-	_, err := resource.ParseQuantity(rm.TargetAverageValue)
-	if err != nil {
-		return fmt.Errorf("invalid custom metric value: %v (%v)", rm.TargetAverageValue, err.Error())
+	if len(rm.TargetValue) > 0 {
+		_, err := resource.ParseQuantity(rm.TargetValue)
+		if err != nil {
+			return fmt.Errorf("invalid custom metric targetValue: %s (%s)", rm.TargetValue, err.Error())
+		}
+	} else if len(rm.TargetAverageValue) > 0 {
+		_, err := resource.ParseQuantity(rm.TargetAverageValue)
+		if err != nil {
+			return fmt.Errorf("invalid custom metric targetAverageValue: %s (%s)", rm.TargetAverageValue, err.Error())
+		}
+	} else {
+		return errors.New("either targetValue or targetAverageValue is required")
 	}
 
 	return nil

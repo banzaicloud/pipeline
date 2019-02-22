@@ -707,11 +707,20 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 
 //InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
+	promServiceName := viper.GetString(pipConfig.PrometheusServiceName)
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
 
 	values := map[string]interface{}{
 		"affinity":    getHeadNodeAffinity(cluster),
 		"tolerations": getHeadNodeTolerations(),
+		"kube-metrics-adapter": map[string]interface{}{
+			"prometheus": map[string]interface{}{
+				"url": fmt.Sprintf("http://%s.%s.svc/%s", promServiceName, infraNamespace, serviceContext),
+			},
+			"affinity":    getHeadNodeAffinity(cluster),
+			"tolerations": getHeadNodeTolerations(),
+		},
 	}
 
 	// install metricsServer for Amazon & Azure & Alibaba & Oracle only if metrics.k8s.io endpoint is not available already

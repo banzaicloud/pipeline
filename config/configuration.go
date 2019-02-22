@@ -146,6 +146,11 @@ const (
 
 	// NodePool LabelSet Operator
 	NodePoolLabelSetOperatorChartVersion = "nodepools.labelSetOperatorChartVersion"
+
+	// Prometheus svc name, context & local port of Prometheus deploy if monitoring is enabled on cluster
+	PrometheusServiceName    = "prometheus.serviceName"
+	PrometheusServiceContext = "prometheus.serviceContext"
+	PrometheusLocalPort      = "prometheus.localPort"
 )
 
 //Init initializes the configurations
@@ -284,6 +289,11 @@ func init() {
 	// Cadence config
 	viper.SetDefault("cadence.port", 7933)
 	viper.SetDefault("cadence.domain", "pipeline")
+
+	// Prometheus service defaults
+	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")
+	viper.SetDefault(PrometheusServiceContext, "prometheus")
+	viper.SetDefault(PrometheusLocalPort, 9090)
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
