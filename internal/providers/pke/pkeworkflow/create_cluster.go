@@ -186,16 +186,21 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		activityInput := UploadSSHKeyPairActivityInput{
 			ClusterID: input.ClusterID,
 		}
-		if err := workflow.ExecuteActivity(ctx, UploadSSHKeyPairActivityName, activityInput).Get(ctx, &keyOut); err != nil {
+		err := workflow.ExecuteActivity(ctx, UploadSSHKeyPairActivityName, activityInput).Get(ctx, &keyOut)
+		if err != nil {
 			return err
 		}
 	}
 
-	createDexClientActivityInput := CreateDexClientActivityInput{
-		ClusterID: input.ClusterID,
-	}
-	if err := workflow.ExecuteActivity(ctx, CreateDexClientActivityName, createDexClientActivityInput).Get(ctx, nil); err != nil {
-		return err
+	// Create dex client for the cluster
+	{
+		activityInput := CreateDexClientActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		err := workflow.ExecuteActivity(ctx, CreateDexClientActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	var masterAvailabilityZone string
