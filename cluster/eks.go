@@ -380,7 +380,7 @@ func (c *EKSCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *EKSCluster) GetDistribution() pkgCluster.DistributionID {
+func (c *EKSCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 

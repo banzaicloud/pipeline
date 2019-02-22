@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"bytes"
-	"database/sql/driver"
 	"fmt"
 	"time"
 
@@ -59,24 +58,15 @@ const (
 	Oracle     = "oracle"
 )
 
-// DistributionID represents the identifier of a distribution
-type DistributionID string
-
-// Value returns the value of the ID
-func (id DistributionID) Value() (driver.Value, error) {
-	// TODO: remove Valuer implementation when mysql driver version is >=1.4
-	return string(id), nil
-}
-
 // Distribution constants
 const (
-	ACSK    DistributionID = "acsk"
-	EKS     DistributionID = "eks"
-	AKS     DistributionID = "aks"
-	GKE     DistributionID = "gke"
-	OKE     DistributionID = "oke"
-	PKE     DistributionID = "pke"
-	Unknown DistributionID = "unknown"
+	ACSK    = "acsk"
+	EKS     = "eks"
+	AKS     = "aks"
+	GKE     = "gke"
+	OKE     = "oke"
+	PKE     = "pke"
+	Unknown = "unknown"
 )
 
 // constants for posthooks
@@ -197,7 +187,7 @@ type GetClusterStatusResponse struct {
 	Name          string                     `json:"name"`
 	Location      string                     `json:"location"`
 	Cloud         string                     `json:"cloud"`
-	Distribution  DistributionID             `json:"distribution"`
+	Distribution  string                     `json:"distribution"`
 	Spot          bool                       `json:"spot,omitempty"`
 	Logging       bool                       `json:"logging"`
 	Monitoring    bool                       `json:"monitoring"`
@@ -242,7 +232,7 @@ type GetNodePoolsResponse struct {
 	ClusterDesiredResources map[string]float64               `json:"clusterDesiredResources,omitempty"`
 	ClusterStatus           string                           `json:"status,omitempty"`
 	Cloud                   string                           `json:"cloud"`
-	Distribution            DistributionID                   `json:"distribution"`
+	Distribution            string                           `json:"distribution"`
 	Location                string                           `json:"location"`
 }
 

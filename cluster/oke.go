@@ -209,7 +209,7 @@ func (o *OKECluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (o *OKECluster) GetDistribution() pkgCluster.DistributionID {
+func (o *OKECluster) GetDistribution() string {
 	return o.modelCluster.Distribution
 }
 

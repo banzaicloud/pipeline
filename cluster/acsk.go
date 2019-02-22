@@ -561,7 +561,7 @@ func (c *ACSKCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *ACSKCluster) GetDistribution() pkgCluster.DistributionID {
+func (c *ACSKCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 

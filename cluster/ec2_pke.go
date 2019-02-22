@@ -125,7 +125,7 @@ func (c *EC2ClusterPKE) GetCloud() string {
 	return c.model.Cluster.Cloud
 }
 
-func (c *EC2ClusterPKE) GetDistribution() pkgCluster.DistributionID {
+func (c *EC2ClusterPKE) GetDistribution() string {
 	return c.model.Cluster.Distribution
 }
 

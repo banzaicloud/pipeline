@@ -119,7 +119,7 @@ func (c *KubeCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *KubeCluster) GetDistribution() pkgCluster.DistributionID {
+func (c *KubeCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 

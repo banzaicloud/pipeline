@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/model"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -46,7 +45,7 @@ type ClusterModel struct {
 	Name           string `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
-	Distribution   pkgCluster.DistributionID
+	Distribution   string
 	OrganizationID uint `gorm:"unique_index:idx_unique_id"`
 	SecretID       string
 	ConfigSecretID string

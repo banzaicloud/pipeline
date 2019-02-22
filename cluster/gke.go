@@ -330,7 +330,7 @@ func (c *GKECluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *GKECluster) GetDistribution() pkgCluster.DistributionID {
+func (c *GKECluster) GetDistribution() string {
 	return c.model.Cluster.Distribution
 }
 
