@@ -1,0 +1,2 @@
+# get feedback about migrations from ops
+database/migrations/*.sql @banzaicloud/dba
