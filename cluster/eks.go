@@ -71,7 +71,7 @@ const mapUsersTemplate = `- userarn: %s
 const asgWaitLoopSleepSeconds = 5
 
 //CreateEKSClusterFromRequest creates ClusterModel struct from the request
-func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EKSCluster, error) {
+func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*EKSCluster, error) {
 	cluster := EKSCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -147,7 +147,7 @@ type EKSCluster struct {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *EKSCluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *EKSCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
@@ -1254,7 +1254,7 @@ func (c *EKSCluster) RequiresSshPublicKey() bool {
 }
 
 // ListEksRegions returns the regions in which AmazonEKS service is enabled
-func ListEksRegions(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID) ([]string, error) {
+func ListEksRegions(orgId uint, secretId pkgSecret.SecretID) ([]string, error) {
 	// AWS API https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ doesn't recognizes AmazonEKS service yet
 	// thus we can not use it to query what locations the service is enabled in.
 

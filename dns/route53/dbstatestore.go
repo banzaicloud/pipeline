@@ -19,7 +19,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	route53model "github.com/banzaicloud/pipeline/dns/route53/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -58,7 +57,7 @@ func (stateStore *awsRoute53DatabaseStateStore) update(state *domainState) error
 
 // find looks up in the database the domain state identified by origId and domain. The found data is passed back
 // through stateOut
-func (stateStore *awsRoute53DatabaseStateStore) find(orgId pkgAuth.OrganizationID, domain string, stateOut *domainState) (bool, error) {
+func (stateStore *awsRoute53DatabaseStateStore) find(orgId uint, domain string, stateOut *domainState) (bool, error) {
 	db := config.DB()
 
 	dbRec := &route53model.Route53Domain{}
@@ -135,7 +134,7 @@ func (stateStore *awsRoute53DatabaseStateStore) findByStatus(status string) ([]d
 
 // findByOrgId looks up in the database the domain state identified by origId. The found data is passed back
 // through stateOut
-func (stateStore *awsRoute53DatabaseStateStore) findByOrgId(orgId pkgAuth.OrganizationID, stateOut *domainState) (bool, error) {
+func (stateStore *awsRoute53DatabaseStateStore) findByOrgId(orgId uint, stateOut *domainState) (bool, error) {
 	db := config.DB()
 	dbRec := &route53model.Route53Domain{}
 

@@ -14,8 +14,5 @@
 
 package auth
 
-// OrganizationID represents the identifier of an organization
-type OrganizationID uint
-
 // UserID represents the identifier of a user
 type UserID uint

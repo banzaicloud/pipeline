@@ -49,7 +49,7 @@ func CreateOKEClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, e
 }
 
 // CreateOKEClusterFromRequest creates ClusterModel struct from the request
-func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*OKECluster, error) {
+func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*OKECluster, error) {
 
 	var oke OKECluster
 
@@ -317,7 +317,7 @@ func (o *OKECluster) DeleteFromDatabase() error {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (o *OKECluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (o *OKECluster) GetOrganizationId() uint {
 	return o.modelCluster.OrganizationId
 }
 

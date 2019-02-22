@@ -82,7 +82,7 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 func (a *ClusterAPI) CreateCluster(
 	ctx context.Context,
 	createClusterRequest *pkgCluster.CreateClusterRequest,
-	organizationID pkgAuth.OrganizationID,
+	organizationID uint,
 	userID pkgAuth.UserID,
 	postHooks []cluster.PostFunctioner,
 ) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {

@@ -17,14 +17,13 @@ package cluster
 import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	gke "google.golang.org/api/container/v1"
 )
 
 // GetGkeServerConfig returns all supported K8S versions
-func GetGkeServerConfig(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID, zone string) (*gke.ServerConfig, error) {
+func GetGkeServerConfig(orgId uint, secretId pkgSecret.SecretID, zone string) (*gke.ServerConfig, error) {
 	g := GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{
@@ -38,7 +37,7 @@ func GetGkeServerConfig(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretI
 }
 
 // GetAllMachineTypesByZone returns all supported machine type by zone
-func GetAllMachineTypesByZone(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID, zone string) (map[string]pkgCluster.MachineTypes, error) {
+func GetAllMachineTypesByZone(orgId uint, secretId pkgSecret.SecretID, zone string) (map[string]pkgCluster.MachineTypes, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{
@@ -52,7 +51,7 @@ func GetAllMachineTypesByZone(orgId pkgAuth.OrganizationID, secretId pkgSecret.S
 }
 
 // GetAllMachineTypes returns all supported machine types
-func GetAllMachineTypes(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID) (map[string]pkgCluster.MachineTypes, error) {
+func GetAllMachineTypes(orgId uint, secretId pkgSecret.SecretID) (map[string]pkgCluster.MachineTypes, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{
@@ -67,7 +66,7 @@ func GetAllMachineTypes(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretI
 }
 
 // GetZones lists all supported zones
-func GetZones(orgId pkgAuth.OrganizationID, secretId pkgSecret.SecretID) ([]string, error) {
+func GetZones(orgId uint, secretId pkgSecret.SecretID) ([]string, error) {
 	g := &GKECluster{
 		model: &google.GKEClusterModel{
 			Cluster: cluster.ClusterModel{

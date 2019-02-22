@@ -43,7 +43,7 @@ type CommonCluster interface {
 	// Entity properties
 	GetID() pkgCluster.ClusterID
 	GetUID() string
-	GetOrganizationId() pkgAuth.OrganizationID
+	GetOrganizationId() uint
 	GetName() string
 	GetCloud() string
 	GetDistribution() pkgCluster.DistributionID
@@ -221,7 +221,7 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 	return nil
 }
 
-func getSecret(organizationId pkgAuth.OrganizationID, secretId pkgSecret.SecretID) (*secret.SecretItemResponse, error) {
+func getSecret(organizationId uint, secretId pkgSecret.SecretID) (*secret.SecretItemResponse, error) {
 	return secret.Store.Get(organizationId, secretId)
 }
 
@@ -361,7 +361,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 }
 
 //CreateCommonClusterFromRequest creates a CommonCluster from a request
-func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (CommonCluster, error) {
+func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (CommonCluster, error) {
 
 	if err := createClusterRequest.AddDefaults(); err != nil {
 		return nil, err
@@ -441,7 +441,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 }
 
 //createCommonClusterWithDistributionFromRequest creates a CommonCluster from a request
-func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {
+func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {
 	switch createClusterRequest.Cloud {
 	case pkgCluster.Amazon:
 		return CreateEC2ClusterPKEFromRequest(createClusterRequest, orgId, userId)

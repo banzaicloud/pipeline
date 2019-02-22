@@ -119,20 +119,20 @@ type CICDUser struct {
 // UserOrganization describes the user organization
 type UserOrganization struct {
 	UserID         pkgAuth.UserID
-	OrganizationID pkgAuth.OrganizationID
+	OrganizationID uint
 	Role           string `gorm:"default:'admin'"`
 }
 
 //Organization struct
 type Organization struct {
-	ID        pkgAuth.OrganizationID `gorm:"primary_key" json:"id"`
-	GithubID  *int64                 `gorm:"unique" json:"githubId,omitempty"`
-	CreatedAt time.Time              `json:"createdAt"`
-	UpdatedAt time.Time              `json:"updatedAt"`
-	Name      string                 `gorm:"unique;not null" json:"name"`
-	Provider  string                 `gorm:"not null" json:"provider"`
-	Users     []User                 `gorm:"many2many:user_organizations" json:"users,omitempty"`
-	Role      string                 `json:"-" gorm:"-"` // Used only internally
+	ID        uint      `gorm:"primary_key" json:"id"`
+	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Name      string    `gorm:"unique;not null" json:"name"`
+	Provider  string    `gorm:"not null" json:"provider"`
+	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
+	Role      string    `json:"-" gorm:"-"` // Used only internally
 }
 
 //IDString returns the ID as string
@@ -491,9 +491,9 @@ func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []org
 	return nil
 }
 
-func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[pkgAuth.OrganizationID]bool, error) {
+func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
 
-	orgIDs := make(map[pkgAuth.OrganizationID]bool, len(orgs))
+	orgIDs := make(map[uint]bool, len(orgs))
 
 	tx := db.Begin()
 	for _, org := range orgs {
@@ -554,7 +554,7 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organizati
 }
 
 // GetOrganizationById returns an organization from database by ID
-func GetOrganizationById(orgID pkgAuth.OrganizationID) (*Organization, error) {
+func GetOrganizationById(orgID uint) (*Organization, error) {
 	db := config.DB()
 	var org Organization
 	err := db.Find(&org, Organization{ID: orgID}).Error

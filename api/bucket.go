@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/providers"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -521,7 +520,7 @@ func (err SecretNotFoundError) Error() string {
 
 // getValidatedSecret looks up the secret by secretId under the given organisation
 // it also verifies if the found secret is of appropriate type for the given cloud provider
-func getValidatedSecret(organizationId pkgAuth.OrganizationID, secretId pkgSecret.SecretID, cloudType string) (*secret.SecretItemResponse, error) {
+func getValidatedSecret(organizationId uint, secretId pkgSecret.SecretID, cloudType string) (*secret.SecretItemResponse, error) {
 	retrievedSecret, err := secret.Store.Get(organizationId, secretId)
 
 	if err != nil {
@@ -563,7 +562,7 @@ func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) 
 }
 
 // bucketsResponse decorates and formats the list of buckets to be returned
-func bucketsResponse(buckets []*objectstore.BucketInfo, orgid pkgAuth.OrganizationID, withSecretName bool) []*BucketResponseItem {
+func bucketsResponse(buckets []*objectstore.BucketInfo, orgid uint, withSecretName bool) []*BucketResponseItem {
 	bucketItems := make([]*BucketResponseItem, 0)
 
 	for _, bucket := range buckets {
@@ -670,7 +669,7 @@ func (err BucketNotFoundError) NotFound() bool {
 }
 
 // newBucketResponseItemFromBucketInfo builds a responsItem based opn the provided bucketInfo
-func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid pkgAuth.OrganizationID, withSecretName bool) *BucketResponseItem {
+func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint, withSecretName bool) *BucketResponseItem {
 	var (
 		secretName       string
 		accessSecretName string
