@@ -81,6 +81,11 @@ bin/dep-${DEP_VERSION}:
 .PHONY: vendor
 vendor: bin/dep ## Install dependencies
 	bin/dep ensure -v -vendor-only
+	@touch vendor/.auto
+
+vendor/.auto: Gopkg.lock bin/dep # install/update dependencies if needed
+	bin/dep ensure -v -vendor-only
+	@touch $@
 
 config/config.toml:
 	cp config/config.toml.dist config/config.toml
@@ -100,7 +105,7 @@ ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
 endif
 
 .PHONY: build-%
-build-%: goversion ## Build a binary
+build-%: goversion vendor/.auto ## Build a binary
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
 
 builds := $(patsubst ./cmd/%,build-%,$(wildcard ./cmd/*))
