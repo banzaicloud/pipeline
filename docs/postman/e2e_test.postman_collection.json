@@ -8506,7 +8506,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"type": "text/javascript",
+								"id": "1dd87315-2213-4b11-9031-22f1a6cdbd63",
 								"exec": [
 									"if (responseCode.code === 201) {",
 									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
@@ -8518,7 +8518,8 @@
 									"    postman.setNextRequest(null);",
 									"}",
 									""
-								]
+								],
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -8532,7 +8533,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"scaleTarget\": \"k8sDeploymentName\",\n\t\"minReplicas\": 1,\n\t\"maxReplicas\": 4,\n\t\"cpu\": {\n        \"targetAverageValueType\": \"percentage\",\n        \"targetAverageValue\": \"60\"\n\t},\n\t\"memory\": {\n        \"targetAverageValueType\": \"quantity\",\n        \"targetAverageValue\": \"1100Mi\"\n\t},\n\t\"customMetrics\": {\n\t\t\"customMetricName\": {\n\t\t\t\"type\": \"pod\",\n\t\t\t\"targetAverageValue\": \"700m\"\n\t\t}\n\t}\n}\n"
+							"raw": "{\n\t\"scaleTarget\": \"k8sDeploymentName\",\n\t\"minReplicas\": 1,\n\t\"maxReplicas\": 4,\n\t\"cpu\": {\n        \"targetAverageValueType\": \"percentage\",\n        \"targetAverageValue\": \"60\"\n\t},\n\t\"memory\": {\n        \"targetAverageValueType\": \"quantity\",\n        \"targetAverageValue\": \"1100Mi\"\n\t},\n\t\"customMetrics\": {\n\t\t\"customMetricName\": {\n\t\t\t\"query\": \"sum({kubernetes_pod_name=~\\\"^wildfly.*\\\",__name__=~\\\"org_xnio_Xnio_ConnectionCount\\\"})\",\n\t\t\t\"targetAverageValue\": \"40\"\n\t\t}\n\t}\n}\n"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/hpa",
