@@ -16,7 +16,6 @@ package oracle
 
 import (
 	"github.com/banzaicloud/pipeline/auth"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // TableName constants
@@ -35,7 +34,7 @@ type ObjectStoreBucketModel struct {
 	Name          string `gorm:"unique_index:idx_bucket_name_location_compartment"`
 	Location      string `gorm:"unique_index:idx_bucket_name_location_compartment"`
 
-	SecretRef pkgSecret.SecretID
+	SecretRef string
 	Status    string
 	StatusMsg string `sql:"type:text;"`
 }

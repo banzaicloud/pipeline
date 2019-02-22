@@ -58,7 +58,7 @@ func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Location:       request.Location,
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
-		SecretId:       pkgSecret.SecretID(request.SecretId),
+		SecretId:       request.SecretId,
 		CreatedBy:      userId,
 		Distribution:   pkgCluster.OKE,
 	}
@@ -327,7 +327,7 @@ func (o *OKECluster) GetLocation() string {
 }
 
 //GetSecretId retrieves the secret id
-func (o *OKECluster) GetSecretId() pkgSecret.SecretID {
+func (o *OKECluster) GetSecretId() string {
 	return o.modelCluster.SecretId
 }
 
@@ -337,12 +337,12 @@ func (o *OKECluster) RequiresSshPublicKey() bool {
 }
 
 //GetSshSecretId retrieves the ssh secret id
-func (o *OKECluster) GetSshSecretId() pkgSecret.SecretID {
+func (o *OKECluster) GetSshSecretId() string {
 	return o.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (o *OKECluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
+func (o *OKECluster) SaveSshSecretId(sshSecretId string) error {
 	return o.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
@@ -397,12 +397,12 @@ func (o *OKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (o *OKECluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
+func (o *OKECluster) SaveConfigSecretId(configSecretId string) error {
 	return o.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (o *OKECluster) GetConfigSecretId() pkgSecret.SecretID {
+func (o *OKECluster) GetConfigSecretId() string {
 	return o.modelCluster.ConfigSecretId
 }
 

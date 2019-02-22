@@ -22,7 +22,6 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/model"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/goph/emperror"
 	cache "github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,11 +36,11 @@ type clusterRepository interface {
 	FindByOrganization(organizationID uint) ([]*model.ClusterModel, error)
 	FindOneByID(organizationID uint, clusterID uint) (*model.ClusterModel, error)
 	FindOneByName(organizationID uint, clusterName string) (*model.ClusterModel, error)
-	FindBySecret(organizationID uint, secretID pkgSecret.SecretID) ([]*model.ClusterModel, error)
+	FindBySecret(organizationID uint, secretID string) ([]*model.ClusterModel, error)
 }
 
 type secretValidator interface {
-	ValidateSecretType(organizationID uint, secretID pkgSecret.SecretID, cloud string) error
+	ValidateSecretType(organizationID uint, secretID string, cloud string) error
 }
 
 type kubeProxyCache interface {

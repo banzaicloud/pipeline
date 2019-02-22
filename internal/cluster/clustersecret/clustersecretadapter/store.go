@@ -16,14 +16,13 @@ package clustersecretadapter
 
 import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 // InternalSecretStore is an interface for the internal secret store.
 type InternalSecretStore interface {
 	// GetOrCreate create new secret or get if it's exist.
-	GetOrCreate(organizationID uint, value *secret.CreateSecretRequest) (pkgSecret.SecretID, error)
+	GetOrCreate(organizationID uint, value *secret.CreateSecretRequest) (string, error)
 }
 
 // SecretStore is a wrapper for the internal secret store.

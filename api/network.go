@@ -22,7 +22,6 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -285,9 +284,9 @@ func getRequiredRegionOrResourceGroupFromContext(ctx *gin.Context, provider stri
 	}
 }
 
-func getRequiredSecretIDFromContext(ctx *gin.Context, logger logrus.FieldLogger) (pkgSecret.SecretID, bool) {
+func getRequiredSecretIDFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
 	secretID, ok := ginutils.GetRequiredHeader(ctx, "secretId")
-	return pkgSecret.SecretID(secretID), ok
+	return secretID, ok
 }
 
 func replyWithError(ctx *gin.Context, err error) {

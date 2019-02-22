@@ -25,7 +25,6 @@ import (
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -163,8 +162,8 @@ func (a *ClusterAPI) CreateCluster(
 		OrganizationID:  organizationID,
 		UserID:          userID,
 		Name:            createClusterRequest.Name,
-		SecretID:        pkgSecret.SecretID(createClusterRequest.SecretId),
-		SecretIDs:       pkgSecret.StringsToSecretIDs(createClusterRequest.SecretIds),
+		SecretID:        createClusterRequest.SecretId,
+		SecretIDs:       createClusterRequest.SecretIds,
 		Provider:        createClusterRequest.Cloud,
 		PostHooks:       postHooks,
 		ExternalBaseURL: a.externalBaseURL,

@@ -14,13 +14,11 @@
 
 package api
 
-import pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-
 // CreateBucketRequest to create bucket
 type CreateBucketRequest struct {
-	SecretId   pkgSecret.SecretID `json:"secretId"`
-	SecretName string             `json:"secretName"`
-	Name       string             `json:"name" binding:"required"`
+	SecretId   string `json:"secretId"`
+	SecretName string `json:"secretName"`
+	Name       string `json:"name" binding:"required"`
 	Properties struct {
 		Alibaba *CreateAlibabaObjectStoreBucketProperties `json:"alibaba,omitempty"`
 		Amazon  *CreateAmazonObjectStoreBucketProperties  `json:"amazon,omitempty"`

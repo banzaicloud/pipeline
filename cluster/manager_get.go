@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/model"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -131,7 +130,7 @@ func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clu
 }
 
 // GetClustersBySecretID returns the cluster instance for an organization ID by secret ID.
-func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint, secretID pkgSecret.SecretID) ([]CommonCluster, error) {
+func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint, secretID string) ([]CommonCluster, error) {
 	logger := m.getLogger(ctx).WithFields(logrus.Fields{
 		"organization": organizationID,
 		"secret":       secretID,

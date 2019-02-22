@@ -16,15 +16,14 @@ package api
 
 import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // CreateBucketRequest describes create bucket request
 type CreateBucketRequest struct {
-	Cloud      string             `json:"cloud" binding:"required"`
-	BucketName string             `json:"bucketName" binding:"required"`
-	SecretID   pkgSecret.SecretID `json:"secretId" binding:"required"`
-	Location   string             `json:"location"`
+	Cloud      string `json:"cloud" binding:"required"`
+	BucketName string `json:"bucketName" binding:"required"`
+	SecretID   string `json:"secretId" binding:"required"`
+	Location   string `json:"location"`
 
 	AzureBucketProperties `json:"azure"`
 }
@@ -44,11 +43,11 @@ type FindBucketRequest struct {
 
 // Bucket describes a Bucket used for ARK backups
 type Bucket struct {
-	ID       uint               `json:"id"`
-	Name     string             `json:"name"`
-	Cloud    string             `json:"cloud"`
-	SecretID pkgSecret.SecretID `json:"secretId"`
-	Location string             `json:"location,omitempty"`
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Cloud    string `json:"cloud"`
+	SecretID string `json:"secretId"`
+	Location string `json:"location,omitempty"`
 	AzureBucketProperties
 	Status              string                    `json:"status"`
 	InUse               bool                      `json:"inUse"`

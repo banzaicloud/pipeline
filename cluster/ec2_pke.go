@@ -138,11 +138,11 @@ func (c *EC2ClusterPKE) GetCreatedBy() pkgAuth.UserID {
 	return c.model.Cluster.CreatedBy
 }
 
-func (c *EC2ClusterPKE) GetSecretId() pkgSecret.SecretID {
+func (c *EC2ClusterPKE) GetSecretId() string {
 	return c.model.Cluster.SecretID
 }
 
-func (c *EC2ClusterPKE) GetSshSecretId() pkgSecret.SecretID {
+func (c *EC2ClusterPKE) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
@@ -152,7 +152,7 @@ func (c *EC2ClusterPKE) RequiresSshPublicKey() bool {
 	return true
 }
 
-func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
+func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId string) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -172,7 +172,7 @@ func (c *EC2ClusterPKE) GetSshPublicKey() (string, error) {
 	return sshKey.PublicKeyData, nil
 }
 
-func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
+func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -183,7 +183,7 @@ func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId pkgSecret.SecretID) er
 	return nil
 }
 
-func (c *EC2ClusterPKE) GetConfigSecretId() pkgSecret.SecretID {
+func (c *EC2ClusterPKE) GetConfigSecretId() string {
 	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
 	id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
 	if err == nil {
