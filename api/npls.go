@@ -123,5 +123,18 @@ func GetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, sets)
+	response := make(map[string][]pkgCluster.NodePoolLabel)
+	for npName, labelMap := range sets {
+		labels := make([]pkgCluster.NodePoolLabel, 0, len(labelMap))
+		for labelKey, labelValue := range labelMap {
+			labels = append(labels, pkgCluster.NodePoolLabel{
+				Name:     labelKey,
+				Value:    labelValue,
+				Reserved: cluster.IsReservedDomainKey(labelKey),
+			})
+		}
+		response[npName] = labels
+	}
+
+	c.JSON(http.StatusOK, response)
 }
