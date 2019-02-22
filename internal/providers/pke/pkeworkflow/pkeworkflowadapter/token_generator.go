@@ -14,12 +14,8 @@
 
 package pkeworkflowadapter
 
-import (
-	"github.com/banzaicloud/pipeline/pkg/cluster"
-)
-
 type tokenHandler interface {
-	GenerateClusterToken(orgID uint, clusterID cluster.ClusterID) (string, string, error)
+	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
 }
 
 // ClusterManagerAdapter provides an adapter for pkeworkflow.Clusters.
@@ -35,5 +31,5 @@ func NewTokenGenerator(tokenHandler tokenHandler) *tokenGenerator {
 }
 
 func (g *tokenGenerator) GenerateClusterToken(orgID, clusterID uint) (string, string, error) {
-	return g.tokenHandler.GenerateClusterToken(orgID, cluster.ClusterID(clusterID))
+	return g.tokenHandler.GenerateClusterToken(orgID, clusterID)
 }

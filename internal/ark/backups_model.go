@@ -51,7 +51,7 @@ type ClusterBackupsModel struct {
 	Organization   auth.Organization             `gorm:"foreignkey:OrganizationID"`
 	OrganizationID uint                          `gorm:"index;not null"`
 	Cluster        model.ClusterModel            `gorm:"foreignkey:ClusterID"`
-	ClusterID      pkgCluster.ClusterID          `gorm:"index;not null"`
+	ClusterID      uint                          `gorm:"index;not null"`
 	Deployment     ClusterBackupDeploymentsModel `gorm:"foreignkey:DeploymentID"`
 	DeploymentID   uint                          `gorm:"not null"`
 	Bucket         ClusterBackupBucketsModel     `gorm:"foreignkey:BucketID"`

@@ -167,7 +167,7 @@ func (c *KubeCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReque
 }
 
 // GetID returns the specified cluster id
-func (c *KubeCluster) GetID() pkgCluster.ClusterID {
+func (c *KubeCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 

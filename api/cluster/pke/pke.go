@@ -17,7 +17,6 @@ package pke
 import (
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/cluster"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
@@ -25,7 +24,7 @@ import (
 )
 
 type tokenGenerator interface {
-	GenerateClusterToken(orgID uint, clusterID pkgCluster.ClusterID) (string, string, error)
+	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
 }
 
 type API struct {

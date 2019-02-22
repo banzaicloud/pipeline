@@ -27,7 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/dns"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
 	promconfig "github.com/banzaicloud/prometheus-config"
@@ -180,7 +179,7 @@ func (s *clusterSubscriber) Register(events clusterEvents) {
 type scrapeConfigParameters struct {
 	orgID           uint
 	orgName         string
-	clusterID       pkgCluster.ClusterID
+	clusterID       uint
 	clusterName     string
 	endpoint        string
 	tlsConfig       *scrapeTLSConfig
@@ -199,7 +198,7 @@ type basicAuthConfig struct {
 	passwordFile string
 }
 
-func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID pkgCluster.ClusterID) {
+func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -296,7 +295,7 @@ func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID uint, cluste
 	}
 }
 
-func (s *clusterSubscriber) init(clusterID pkgCluster.ClusterID) (cluster.CommonCluster, *auth.Organization, *promconfig.Config, *v1.Secret, error) {
+func (s *clusterSubscriber) init(clusterID uint) (cluster.CommonCluster, *auth.Organization, *promconfig.Config, *v1.Secret, error) {
 	c, org, err := s.getClusterAndOrganization(clusterID)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -307,8 +306,8 @@ func (s *clusterSubscriber) init(clusterID pkgCluster.ClusterID) (cluster.Common
 	return c, org, prometheusConfig, secret, err
 }
 
-func (s *clusterSubscriber) getClusterAndOrganization(clusterID pkgCluster.ClusterID) (cluster.CommonCluster, *auth.Organization, error) {
-	c, err := s.manager.GetClusterByIDOnly(context.Background(), uint(clusterID))
+func (s *clusterSubscriber) getClusterAndOrganization(clusterID uint) (cluster.CommonCluster, *auth.Organization, error) {
+	c, err := s.manager.GetClusterByIDOnly(context.Background(), clusterID)
 	if err != nil {
 		return nil, nil, err
 	}

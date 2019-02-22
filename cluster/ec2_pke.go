@@ -105,7 +105,7 @@ func (c *EC2ClusterPKE) SetServiceMesh(m bool) {
 	c.model.Cluster.ServiceMesh = m
 }
 
-func (c *EC2ClusterPKE) GetID() pkgCluster.ClusterID {
+func (c *EC2ClusterPKE) GetID() uint {
 	return c.model.Cluster.ID
 }
 

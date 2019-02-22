@@ -35,8 +35,8 @@ const (
 
 // ClusterModel describes the common cluster model.
 type ClusterModel struct {
-	ID  pkgCluster.ClusterID `gorm:"primary_key"`
-	UID string               `gorm:"unique_index:idx_uid"`
+	ID  uint   `gorm:"primary_key"`
+	UID string `gorm:"unique_index:idx_uid"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

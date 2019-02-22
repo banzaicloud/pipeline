@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/jinzhu/gorm"
 )
 
@@ -34,7 +33,7 @@ const (
 type GKEClusterModel struct {
 	ID        uint                 `gorm:"primary_key"`
 	Cluster   cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID pkgCluster.ClusterID
+	ClusterID uint
 
 	MasterVersion string
 	NodeVersion   string

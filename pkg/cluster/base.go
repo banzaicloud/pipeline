@@ -119,9 +119,6 @@ const (
 	KeyWordImage             = "image"
 )
 
-// ClusterID represents the identifier of a cluster
-type ClusterID uint
-
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
 	Name         string                   `json:"name" yaml:"name" binding:"required"`
@@ -207,7 +204,7 @@ type GetClusterStatusResponse struct {
 	ServiceMesh   bool                       `json:"servicemesh"`
 	SecurityScan  bool                       `json:"securityscan"`
 	Version       string                     `json:"version,omitempty"`
-	ResourceID    ClusterID                  `json:"id"`
+	ResourceID    uint                       `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools"`
 	pkgCommon.CreatorBaseFields
 
@@ -567,8 +564,8 @@ type SupportedClusterItem struct {
 
 // CreateClusterResponse describes Pipeline's CreateCluster API response
 type CreateClusterResponse struct {
-	Name       string    `json:"name"`
-	ResourceID ClusterID `json:"id"`
+	Name       string `json:"name"`
+	ResourceID uint   `json:"id"`
 }
 
 // PodDetailsResponse describes a pod
