@@ -93,6 +93,7 @@ const (
 	InstallNodePoolLabelSetOperator        = "InstallNodePoolLabelSetOperator"
 	SetupNodePoolLabelsSet                 = "SetupNodePoolLabelsSet"
 	CreateDefaultStorageclass              = "CreateDefaultStorageclass"
+	CreateClusterRoles                     = "CreateClusterRoles"
 )
 
 // Provider name regexp
