@@ -15,6 +15,8 @@
 package azure
 
 import (
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
@@ -51,6 +53,9 @@ func NewCloudConnection(env *azure.Environment, creds *Credentials) (*CloudConne
 		creds:  *creds,
 		client: autorest.NewClientWithUserAgent(userAgent),
 	}
+
+	cc.client.PollingDuration = 30 * time.Minute
+
 	var err error
 	cc.client.Authorizer, err = GetAuthorizer(&creds.ServicePrincipal, env)
 	if err != nil {
