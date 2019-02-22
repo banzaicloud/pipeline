@@ -14,10 +14,6 @@
 
 package api
 
-import (
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-)
-
 // CreateBucketRequest describes create bucket request
 type CreateBucketRequest struct {
 	Cloud      string `json:"cloud" binding:"required"`
@@ -49,12 +45,12 @@ type Bucket struct {
 	SecretID string `json:"secretId"`
 	Location string `json:"location,omitempty"`
 	AzureBucketProperties
-	Status              string                    `json:"status"`
-	InUse               bool                      `json:"inUse"`
-	DeploymentID        uint                      `json:"deploymentId,omitempty"`
-	ClusterID           uint                      `json:"clusterId,omitempty"`
-	ClusterCloud        string                    `json:"clusterCloud,omitempty"`
-	ClusterDistribution pkgCluster.DistributionID `json:"clusterDistribution,omitempty"`
+	Status              string `json:"status"`
+	InUse               bool   `json:"inUse"`
+	DeploymentID        uint   `json:"deploymentId,omitempty"`
+	ClusterID           uint   `json:"clusterId,omitempty"`
+	ClusterCloud        string `json:"clusterCloud,omitempty"`
+	ClusterDistribution string `json:"clusterDistribution,omitempty"`
 }
 
 // DeleteBucketResponse describes a delete bucket response

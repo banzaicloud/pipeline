@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/model"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // ClusterBackupsModel describes a cluster backup
@@ -35,7 +34,7 @@ type ClusterBackupsModel struct {
 	UID            string
 	Name           string
 	Cloud          string
-	Distribution   pkgCluster.DistributionID
+	Distribution   string
 	NodeCount      uint
 	ContentChecked bool
 	StartedAt      *time.Time

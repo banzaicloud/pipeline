@@ -463,7 +463,7 @@ func (c *AKSCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *AKSCluster) GetDistribution() pkgCluster.DistributionID {
+func (c *AKSCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 

@@ -15,7 +15,6 @@
 package api
 
 import (
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -30,7 +29,7 @@ type Cluster interface {
 	GetName() string
 	GetOrganizationId() uint
 	GetCloud() string
-	GetDistribution() pkgCluster.DistributionID
+	GetDistribution() string
 	GetK8sConfig() ([]byte, error)
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 	GetLocation() string

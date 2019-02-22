@@ -223,11 +223,11 @@ type GetClusterResponse struct {
 	Name          string `json:"name"`
 
 	// If region not available fall back to Location
-	Region       string                    `json:"region,omitempty"`
-	Location     string                    `json:"location"`
-	Cloud        string                    `json:"cloud"`
-	Distribution pkgCluster.DistributionID `json:"distribution"`
-	Spot         bool                      `json:"spot,omitempty"`
+	Region       string `json:"region,omitempty"`
+	Location     string `json:"location"`
+	Cloud        string `json:"cloud"`
+	Distribution string `json:"distribution"`
+	Spot         bool   `json:"spot,omitempty"`
 
 	Logging      bool                     `json:"logging"`
 	Monitoring   bool                     `json:"monitoring"`

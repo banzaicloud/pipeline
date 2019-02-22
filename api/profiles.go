@@ -36,7 +36,7 @@ const (
 // Sends back the saved cluster profiles
 func GetClusterProfiles(c *gin.Context) {
 
-	distributionType := pkgCluster.DistributionID(c.Param(distributionTypeKey))
+	distributionType := c.Param(distributionTypeKey)
 	log.Infof("Start getting saved cluster profiles [%s]", distributionType)
 
 	resp, err := getProfiles(distributionType)
@@ -113,7 +113,7 @@ func AddClusterProfile(c *gin.Context) {
 }
 
 // getProfiles loads cluster profiles from database by distribution
-func getProfiles(distribution pkgCluster.DistributionID) ([]pkgCluster.ClusterProfileResponse, error) {
+func getProfiles(distribution string) ([]pkgCluster.ClusterProfileResponse, error) {
 
 	var response []pkgCluster.ClusterProfileResponse
 	profiles, err := defaults.GetAllProfiles(distribution)
@@ -233,7 +233,7 @@ func UpdateClusterProfile(c *gin.Context) {
 // Deleting failed if the name is the default name.
 func DeleteClusterProfile(c *gin.Context) {
 
-	distribution := pkgCluster.DistributionID(c.Param(distributionTypeKey))
+	distribution := c.Param(distributionTypeKey)
 	name := c.Param(nameKey)
 	log.Infof("Start deleting cluster profile: %s[%s]", name, distribution)
 
