@@ -20,7 +20,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -34,7 +33,7 @@ import (
 )
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
-func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*KubeCluster, error) {
+func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*KubeCluster, error) {
 
 	var cluster KubeCluster
 
@@ -158,12 +157,12 @@ func (c *KubeCluster) DeleteCluster() error {
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *KubeCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
+func (c *KubeCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 	return nil
 }
 
 // UpdateCluster updates cluster in cloud, in this case no update function
-func (c *KubeCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, _ pkgAuth.UserID) error {
+func (c *KubeCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, _ uint) error {
 	return nil
 }
 
@@ -368,6 +367,6 @@ func (c *KubeCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *KubeCluster) GetCreatedBy() pkgAuth.UserID {
+func (c *KubeCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
 }

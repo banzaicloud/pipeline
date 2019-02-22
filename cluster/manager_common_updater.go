@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 )
@@ -26,7 +25,7 @@ import (
 type commonUpdater struct {
 	request                  *cluster.UpdateClusterRequest
 	cluster                  CommonCluster
-	userID                   pkgAuth.UserID
+	userID                   uint
 	scaleOptionsChanged      bool
 	clusterPropertiesChanged bool
 }
@@ -51,7 +50,7 @@ func (e *commonUpdateValidationError) IsPreconditionFailed() bool {
 }
 
 // NewCommonClusterUpdater returns a new cluster creator instance.
-func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID pkgAuth.UserID) *commonUpdater {
+func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID uint) *commonUpdater {
 	return &commonUpdater{
 		request: request,
 		cluster: cluster,

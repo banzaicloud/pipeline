@@ -26,7 +26,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-gonic/gin"
@@ -133,7 +132,7 @@ func LogWriter(
 		}
 
 		user := auth.GetCurrentUser(c.Request)
-		var userID pkgAuth.UserID
+		var userID uint
 		if user != nil {
 			userID = user.ID
 		}

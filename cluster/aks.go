@@ -30,7 +30,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterAzure "github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -60,7 +59,7 @@ type AKSCluster struct {
 }
 
 // CreateAKSClusterFromRequest returns an AKS cluster instance created from the specified request
-func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID pkgAuth.UserID) (*AKSCluster, error) {
+func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID uint) (*AKSCluster, error) {
 	var nodePools = make([]*model.AKSNodePoolModel, 0, len(request.Properties.CreateClusterAKS.NodePools))
 	for name, np := range request.Properties.CreateClusterAKS.NodePools {
 		nodePools = append(nodePools, &model.AKSNodePoolModel{
@@ -537,7 +536,7 @@ func getAgentPoolProfileByName(cluster *containerservice.ManagedCluster, name st
 }
 
 // UpdateCluster updates the cluster in AKS
-func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userID pkgAuth.UserID) error {
+func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userID uint) error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
 		return emperror.Wrap(err, "failed to get cloud connection")
@@ -589,7 +588,7 @@ func (c *AKSCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, use
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userID pkgAuth.UserID) error {
+func (c *AKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userID uint) error {
 	cc, err := c.getCloudConnection()
 	if err != nil {
 		return emperror.Wrap(err, "failed to get cloud connection")
@@ -1126,7 +1125,7 @@ func (c *AKSCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *AKSCluster) GetCreatedBy() pkgAuth.UserID {
+func (c *AKSCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
 }
 

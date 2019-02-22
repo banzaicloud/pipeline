@@ -18,7 +18,6 @@ import (
 	"errors"
 
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
@@ -32,7 +31,7 @@ type DummyCluster struct {
 }
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
-func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*DummyCluster, error) {
+func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*DummyCluster, error) {
 	var cluster DummyCluster
 
 	cluster.modelCluster = &model.ClusterModel{
@@ -109,12 +108,12 @@ func (c *DummyCluster) DeleteCluster() error {
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *DummyCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
+func (c *DummyCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 	return nil
 }
 
 // UpdateCluster updates the dummy cluster
-func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ pkgAuth.UserID) error {
+func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint) error {
 	c.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion
 	c.modelCluster.Dummy.NodeCount = r.Dummy.Node.Count
 	return nil
@@ -367,6 +366,6 @@ func (c *DummyCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *DummyCluster) GetCreatedBy() pkgAuth.UserID {
+func (c *DummyCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
 }

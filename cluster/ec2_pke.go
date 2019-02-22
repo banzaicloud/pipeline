@@ -35,7 +35,6 @@ import (
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
@@ -134,7 +133,7 @@ func (c *EC2ClusterPKE) GetLocation() string {
 	return c.model.Cluster.Location
 }
 
-func (c *EC2ClusterPKE) GetCreatedBy() pkgAuth.UserID {
+func (c *EC2ClusterPKE) GetCreatedBy() uint {
 	return c.model.Cluster.CreatedBy
 }
 
@@ -388,11 +387,11 @@ func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterReques
 	return nil
 }
 
-func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, pkgAuth.UserID) error {
+func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
 	panic("implement me")
 }
 
-func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, pkgAuth.UserID) error {
+func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error {
 	panic("implement me")
 }
 
@@ -801,7 +800,7 @@ func (c *EC2ClusterPKE) SaveNetworkApiServerAddress(host, port string) error {
 	return nil
 }
 
-func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {
+func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {
 	c := &EC2ClusterPKE{
 		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
 	}
@@ -874,7 +873,7 @@ func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2Cluster
 	return c, nil
 }
 
-func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId pkgAuth.UserID) internalPke.NodePools {
+func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId uint) internalPke.NodePools {
 	var nps internalPke.NodePools
 
 	for _, pool := range pools {
@@ -933,7 +932,7 @@ func convertTaints(taints pke.Taints) (result internalPke.Taints) {
 	return
 }
 
-func createEC2PKENetworkFromRequest(network pke.Network, userId pkgAuth.UserID) internalPke.Network {
+func createEC2PKENetworkFromRequest(network pke.Network, userId uint) internalPke.Network {
 	n := internalPke.Network{
 		ServiceCIDR:      network.ServiceCIDR,
 		PodCIDR:          network.PodCIDR,
@@ -948,7 +947,7 @@ func convertNetworkProvider(provider pke.NetworkProvider) (result internalPke.Ne
 	return internalPke.NetworkProvider(provider)
 }
 
-func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId pkgAuth.UserID) internalPke.Kubernetes {
+func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId uint) internalPke.Kubernetes {
 	k := internalPke.Kubernetes{
 		Version: kubernetes.Version,
 		RBAC:    internalPke.RBAC{Enabled: kubernetes.RBAC.Enabled},
@@ -957,7 +956,7 @@ func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId pkgAuth.Us
 	return k
 }
 
-func createEC2ClusterPKEKubeADMFromRequest(kubernetes pke.KubeADM, userId pkgAuth.UserID) internalPke.KubeADM {
+func createEC2ClusterPKEKubeADMFromRequest(kubernetes pke.KubeADM, userId uint) internalPke.KubeADM {
 	a := internalPke.KubeADM{
 		ExtraArgs: convertExtraArgs(kubernetes.ExtraArgs),
 	}
@@ -973,7 +972,7 @@ func convertExtraArgs(extraArgs pke.ExtraArgs) internalPke.ExtraArgs {
 	return res
 }
 
-func createEC2ClusterPKECRIFromRequest(cri pke.CRI, userId pkgAuth.UserID) internalPke.CRI {
+func createEC2ClusterPKECRIFromRequest(cri pke.CRI, userId uint) internalPke.CRI {
 	c := internalPke.CRI{
 		Runtime:       internalPke.Runtime(cri.Runtime),
 		RuntimeConfig: cri.RuntimeConfig,
