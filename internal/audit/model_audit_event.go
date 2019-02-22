@@ -16,8 +16,6 @@ package audit
 
 import (
 	"time"
-
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
 
 // TableName constants
@@ -34,7 +32,7 @@ type AuditEvent struct {
 	UserAgent     string
 	Path          string `gorm:"size:8000"`
 	Method        string `gorm:"size:7"`
-	UserID        pkgAuth.UserID
+	UserID        uint
 	StatusCode    int
 	Body          *string `gorm:"type:json"`
 	Headers       string  `gorm:"type:json"`

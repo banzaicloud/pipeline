@@ -21,7 +21,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -247,9 +246,9 @@ type GetClusterResponse struct {
 	NodePools    map[string]GetClusterNodePool `json:"nodePools,omitempty"`
 	TotalSummary *ResourceSummary              `json:"totalSummary,omitempty"`
 
-	CreatedAt   time.Time      `json:"createdAt,omitempty"`
-	CreatorName string         `json:"creatorName,omitempty"`
-	CreatorID   pkgAuth.UserID `json:"creatorId,omitempty"`
+	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	CreatorName string    `json:"creatorName,omitempty"`
+	CreatorID   uint      `json:"creatorId,omitempty"`
 }
 
 // GetClusterNodePool describes a cluster's node pool.
@@ -266,9 +265,9 @@ type GetClusterNodePool struct {
 	ResourceSummary map[string]NodeResourceSummary `json:"resourceSummary,omitempty"`
 	Labels          map[string]string              `json:"labels,omitempty"`
 
-	CreatedAt   time.Time      `json:"createdAt,omitempty"`
-	CreatorName string         `json:"creatorName,omitempty"`
-	CreatorID   pkgAuth.UserID `json:"creatorId,omitempty"`
+	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	CreatorName string    `json:"creatorName,omitempty"`
+	CreatorID   uint      `json:"creatorId,omitempty"`
 }
 
 // ResourceSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable

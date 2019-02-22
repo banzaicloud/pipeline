@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gofrs/uuid"
@@ -42,7 +41,7 @@ type ClusterModel struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
-	CreatedBy pkgAuth.UserID
+	CreatedBy uint
 
 	Name           string `gorm:"unique_index:idx_unique_id"`
 	Location       string

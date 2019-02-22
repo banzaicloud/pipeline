@@ -26,7 +26,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -79,7 +78,7 @@ const (
 )
 
 // CreateGKEClusterFromRequest creates ClusterModel struct from the request
-func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID pkgAuth.UserID) (*GKECluster, error) {
+func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID uint) (*GKECluster, error) {
 	c := GKECluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -578,7 +577,7 @@ func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) er
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
+func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 
 	c.log.Info("Start updating cluster (gke) nodepools")
 
@@ -616,7 +615,7 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 }
 
 // UpdateCluster updates GKE cluster in cloud
-func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) error {
+func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
 
 	c.log.Info("Start updating cluster (gke)")
 
@@ -2219,6 +2218,6 @@ func (c *GKECluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *GKECluster) GetCreatedBy() pkgAuth.UserID {
+func (c *GKECluster) GetCreatedBy() uint {
 	return c.model.Cluster.CreatedBy
 }

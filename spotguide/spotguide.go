@@ -34,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/secret"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
@@ -200,7 +199,7 @@ func (s *SpotguideManager) ScrapeSharedSpotguides() error {
 	return s.scrapeSpotguides(s.sharedLibraryOrganization, githubClient)
 }
 
-func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID pkgAuth.UserID) error {
+func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 	githubClient, err := auth.NewGithubClientForUser(userID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create GitHub client")
@@ -508,7 +507,7 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 	return entries, nil
 }
 
-func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID pkgAuth.UserID, sourceRepo *SpotguideRepo) error {
+func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
 
 	repo := github.Repository{
 		Name:        github.String(request.RepoName),
@@ -532,7 +531,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 	return nil
 }
 
-func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID pkgAuth.UserID, sourceRepo *SpotguideRepo) error {
+func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
 
 	// An initial files have to be created with the API to be able to use the fresh repo
 	createFile := &github.RepositoryContentFileOptions{
@@ -592,7 +591,7 @@ func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, us
 	return nil
 }
 
-func createSecrets(request *LaunchRequest, orgID uint, userID pkgAuth.UserID) error {
+func createSecrets(request *LaunchRequest, orgID uint, userID uint) error {
 
 	repoTag := "repo:" + request.RepoFullname()
 

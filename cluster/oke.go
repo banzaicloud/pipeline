@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
@@ -49,7 +48,7 @@ func CreateOKEClusterFromModel(clusterModel *model.ClusterModel) (*OKECluster, e
 }
 
 // CreateOKEClusterFromRequest creates ClusterModel struct from the request
-func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*OKECluster, error) {
+func CreateOKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*OKECluster, error) {
 
 	var oke OKECluster
 
@@ -104,12 +103,12 @@ func (o *OKECluster) CreateCluster() error {
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (o *OKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
+func (o *OKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 	return nil
 }
 
 // UpdateCluster updates the cluster
-func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) error {
+func (o *OKECluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, userId uint) error {
 
 	updated, err := o.PopulateNetworkValues(r.UpdateProperties.OKE, o.modelCluster.OKE.VCNID)
 	if err != nil {
@@ -655,7 +654,7 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (o *OKECluster) GetCreatedBy() pkgAuth.UserID {
+func (o *OKECluster) GetCreatedBy() uint {
 	return o.modelCluster.CreatedBy
 }
 

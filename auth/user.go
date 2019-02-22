@@ -27,7 +27,6 @@ import (
 	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
@@ -89,7 +88,7 @@ func (t IdentityType) Value() (driver.Value, error)  { return string(t), nil }
 
 //User struct
 type User struct {
-	ID            pkgAuth.UserID `gorm:"primary_key" json:"id"`
+	ID            uint           `gorm:"primary_key" json:"id"`
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
 	Name          string         `form:"name" json:"name,omitempty"`
@@ -118,7 +117,7 @@ type CICDUser struct {
 
 // UserOrganization describes the user organization
 type UserOrganization struct {
-	UserID         pkgAuth.UserID
+	UserID         uint
 	OrganizationID uint
 	Role           string `gorm:"default:'admin'"`
 }
@@ -570,7 +569,7 @@ func GetOrganizationByName(name string) (*Organization, error) {
 }
 
 // GetUserById returns user
-func GetUserById(userId pkgAuth.UserID) (*User, error) {
+func GetUserById(userId uint) (*User, error) {
 	db := config.DB()
 	var user User
 	err := db.Find(&user, User{ID: userId}).Error
@@ -586,7 +585,7 @@ func GetUserByLoginName(login string) (*User, error) {
 }
 
 // GetUserNickNameById returns user's login name
-func GetUserNickNameById(userId pkgAuth.UserID) (userName string) {
+func GetUserNickNameById(userId uint) (userName string) {
 	if user, err := GetUserById(userId); err != nil {
 		log.Warnf("Error during getting user name: %s", err.Error())
 	} else {

@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/config"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	"github.com/banzaicloud/pipeline/utils"
@@ -78,7 +77,7 @@ type ClusterModel struct {
 	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
-	CreatedBy      pkgAuth.UserID
+	CreatedBy      uint
 }
 
 // ScaleOptions describes scale options
@@ -98,7 +97,7 @@ type ScaleOptions struct {
 type ACSKNodePoolModel struct {
 	ID                           uint `gorm:"primary_key"`
 	CreatedAt                    time.Time
-	CreatedBy                    pkgAuth.UserID
+	CreatedBy                    uint
 	ClusterID                    uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name                         string `gorm:"unique_index:idx_cluster_id_name"`
 	InstanceType                 string
@@ -134,7 +133,7 @@ type ACSKClusterModel struct {
 type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	CreatedBy        pkgAuth.UserID
+	CreatedBy        uint
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	NodeSpotPrice    string
@@ -200,7 +199,7 @@ type AKSClusterModel struct {
 type AKSNodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
-	CreatedBy        pkgAuth.UserID
+	CreatedBy        uint
 	ClusterID        uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Name             string `gorm:"unique_index:idx_cluster_id_name"`
 	Autoscaling      bool

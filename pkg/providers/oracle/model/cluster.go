@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/config"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
@@ -43,7 +42,7 @@ type Cluster struct {
 	OCID           string `gorm:"column:ocid"`
 	ClusterModelID pkgCluster.ClusterID
 	NodePools      []*NodePool
-	CreatedBy      pkgAuth.UserID
+	CreatedBy      uint
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	Delete         bool   `gorm:"-"`
@@ -62,7 +61,7 @@ type NodePool struct {
 	ClusterID         uint   `gorm:"unique_index:idx_cluster_id_name"`
 	Subnets           []*NodePoolSubnet
 	Labels            map[string]string `gorm:"-"`
-	CreatedBy         pkgAuth.UserID
+	CreatedBy         uint
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	Delete            bool `gorm:"-"`
@@ -94,7 +93,7 @@ func (NodePoolSubnet) TableName() string {
 }
 
 // CreateModelFromCreateRequest create model from create request
-func CreateModelFromCreateRequest(r *pkgCluster.CreateClusterRequest, userId pkgAuth.UserID) (cluster Cluster, err error) {
+func CreateModelFromCreateRequest(r *pkgCluster.CreateClusterRequest, userId uint) (cluster Cluster, err error) {
 
 	cluster.Name = r.Name
 
@@ -102,12 +101,12 @@ func CreateModelFromCreateRequest(r *pkgCluster.CreateClusterRequest, userId pkg
 }
 
 // CreateModelFromUpdateRequest create model from update request
-func CreateModelFromUpdateRequest(current Cluster, r *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) (cluster Cluster, err error) {
+func CreateModelFromUpdateRequest(current Cluster, r *pkgCluster.UpdateClusterRequest, userId uint) (cluster Cluster, err error) {
 	return CreateModelFromRequest(current, r.UpdateProperties.OKE, userId)
 }
 
 // CreateModelFromRequest creates model from request
-func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID pkgAuth.UserID) (cluster Cluster, err error) {
+func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID uint) (cluster Cluster, err error) {
 
 	model.Version = r.Version
 	model.CreatedBy = userID

@@ -25,7 +25,6 @@ import (
 
 	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
 	"github.com/banzaicloud/pipeline/config"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
@@ -113,7 +112,7 @@ type CICDClaims struct {
 func claimConverter(claims *bauth.ScopedClaims) interface{} {
 	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
 	return &User{
-		ID:      pkgAuth.UserID(userID),
+		ID:      uint(userID),
 		Login:   claims.Text, // This is needed for CICD virtual user tokens
 		Virtual: claims.Type == CICDHookTokenType,
 	}

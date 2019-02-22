@@ -31,7 +31,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk/action"
@@ -197,7 +196,7 @@ func (c *ACSKCluster) GetAlibabaVPCClient(cfg *sdk.Config) (*vpc.Client, error) 
 	return client, emperror.With(err, "cluster", c.modelCluster.Name)
 }
 
-func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId pkgAuth.UserID) ([]*model.ACSKNodePoolModel, error) {
+func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
 	nodePoolsCount := len(pools)
 	if nodePoolsCount == 0 {
 		return nil, pkgErrors.ErrorNodePoolNotProvided
@@ -221,7 +220,7 @@ func createACSKNodePoolsFromRequest(pools acsk.NodePools, userId pkgAuth.UserID)
 	return res, nil
 }
 
-func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.NodePools, userId pkgAuth.UserID) ([]*model.ACSKNodePoolModel, error) {
+func (c *ACSKCluster) createACSKNodePoolsModelFromUpdateRequestData(pools acsk.NodePools, userId uint) ([]*model.ACSKNodePoolModel, error) {
 	currentNodePoolMap := make(map[string]*model.ACSKNodePoolModel, len(c.modelCluster.ACSK.NodePools))
 	updatedNodePools := make([]*model.ACSKNodePoolModel, 0, len(pools))
 
@@ -297,7 +296,7 @@ func CreateACSKClusterFromModel(clusterModel *model.ClusterModel) (*ACSKCluster,
 	return &alibabaCluster, nil
 }
 
-func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*ACSKCluster, error) {
+func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*ACSKCluster, error) {
 	cluster := ACSKCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -649,7 +648,7 @@ func (c *ACSKCluster) DeleteCluster() error {
 	return nil
 }
 
-func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) error {
+func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, userId uint) error {
 	c.log.Info("Start updating cluster (Alibaba)")
 
 	csClient, err := c.GetAlibabaCSClient(nil)
@@ -728,7 +727,7 @@ func (c *ACSKCluster) UpdateCluster(request *pkgCluster.UpdateClusterRequest, us
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *ACSKCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
+func (c *ACSKCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 	return nil
 }
 
@@ -1148,6 +1147,6 @@ func createAlibabaVPCClient(auth *credentials.AccessKeyCredential, regionID stri
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *ACSKCluster) GetCreatedBy() pkgAuth.UserID {
+func (c *ACSKCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
 }
