@@ -40,7 +40,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -83,7 +82,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Location:       request.Location,
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
-		SecretId:       pkgSecret.SecretID(request.SecretId),
+		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.EKS,
 		EKS: model.EKSClusterModel{
 			Version:      request.Properties.CreateClusterEKS.Version,
@@ -157,17 +156,17 @@ func (c *EKSCluster) GetLocation() string {
 }
 
 // GetSecretId retrieves the secret id
-func (c *EKSCluster) GetSecretId() pkgSecret.SecretID {
+func (c *EKSCluster) GetSecretId() string {
 	return c.modelCluster.SecretId
 }
 
 // GetSshSecretId retrieves the secret id
-func (c *EKSCluster) GetSshSecretId() pkgSecret.SecretID {
+func (c *EKSCluster) GetSshSecretId() string {
 	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *EKSCluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
+func (c *EKSCluster) SaveSshSecretId(sshSecretId string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
@@ -1215,12 +1214,12 @@ func (c *EKSCluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *EKSCluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
+func (c *EKSCluster) SaveConfigSecretId(configSecretId string) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId returns config secret id
-func (c *EKSCluster) GetConfigSecretId() pkgSecret.SecretID {
+func (c *EKSCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
@@ -1254,7 +1253,7 @@ func (c *EKSCluster) RequiresSshPublicKey() bool {
 }
 
 // ListEksRegions returns the regions in which AmazonEKS service is enabled
-func ListEksRegions(orgId uint, secretId pkgSecret.SecretID) ([]string, error) {
+func ListEksRegions(orgId uint, secretId string) ([]string, error) {
 	// AWS API https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ doesn't recognizes AmazonEKS service yet
 	// thus we can not use it to query what locations the service is enabled in.
 

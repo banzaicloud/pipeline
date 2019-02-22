@@ -792,7 +792,7 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 		},
 	}
 
-	var secretId secretTypes.SecretID
+	var secretId string
 	var err error
 
 	if updateSecret != nil {

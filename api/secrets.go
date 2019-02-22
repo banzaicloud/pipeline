@@ -571,7 +571,7 @@ func IsValidSecretType(secretType string) error {
 }
 
 // checkClustersBeforeDelete returns error if there's a running cluster that created with the given secret
-func checkClustersBeforeDelete(orgId uint, secretId secretTypes.SecretID) error {
+func checkClustersBeforeDelete(orgId uint, secretId string) error {
 	// TODO: move these to a struct and create them only once upon application init
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	clusterManager := cluster.NewManager(intCluster.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, log, errorHandler)
@@ -613,6 +613,6 @@ func removeElement(s []string, v string) []string {
 	return s
 }
 
-func getSecretID(ctx *gin.Context) secretTypes.SecretID {
-	return secretTypes.SecretID(ctx.Param("id"))
+func getSecretID(ctx *gin.Context) string {
+	return ctx.Param("id")
 }

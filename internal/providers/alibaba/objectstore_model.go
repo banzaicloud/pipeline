@@ -16,7 +16,6 @@ package alibaba
 
 import (
 	"github.com/banzaicloud/pipeline/auth"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // TableName constants
@@ -31,7 +30,7 @@ type ObjectStoreBucketModel struct {
 	OrgID        uint              `gorm:"index;not null"`
 	Name         string            `gorm:"unique_index:idx_bucket_name"`
 	Region       string
-	SecretRef    pkgSecret.SecretID
+	SecretRef    string
 
 	Status    string
 	StatusMsg string `sql:"type:text;"`

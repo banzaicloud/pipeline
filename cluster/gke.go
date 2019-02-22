@@ -49,7 +49,7 @@ import (
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -96,7 +96,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			Name:           request.Name,
 			Location:       request.Location,
 			OrganizationID: orgID,
-			SecretID:       pkgSecret.SecretID(request.SecretId),
+			SecretID:       request.SecretId,
 			Cloud:          google.Provider,
 			Distribution:   google.ClusterDistributionGKE,
 			CreatedBy:      userID,
@@ -136,17 +136,17 @@ func (c *GKECluster) GetLocation() string {
 }
 
 // GetSecretId retrieves the secret id
-func (c *GKECluster) GetSecretId() pkgSecret.SecretID {
+func (c *GKECluster) GetSecretId() string {
 	return c.model.Cluster.SecretID
 }
 
 // GetSshSecretId retrieves the secret id
-func (c *GKECluster) GetSshSecretId() pkgSecret.SecretID {
+func (c *GKECluster) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *GKECluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
+func (c *GKECluster) SaveSshSecretId(sshSecretId string) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -2090,7 +2090,7 @@ func (c *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *GKECluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
+func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -2102,7 +2102,7 @@ func (c *GKECluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error
 }
 
 // GetConfigSecretId return config secret id
-func (c *GKECluster) GetConfigSecretId() pkgSecret.SecretID {
+func (c *GKECluster) GetConfigSecretId() string {
 	return c.model.Cluster.ConfigSecretID
 }
 

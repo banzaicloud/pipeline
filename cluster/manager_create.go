@@ -34,8 +34,8 @@ type CreationContext struct {
 	ExternalBaseURL string
 	Name            string
 	Provider        string
-	SecretID        secretTypes.SecretID
-	SecretIDs       []secretTypes.SecretID
+	SecretID        string
+	SecretIDs       []string
 	PostHooks       []PostFunctioner
 }
 

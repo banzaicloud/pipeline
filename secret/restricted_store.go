@@ -43,7 +43,7 @@ func (s *restrictedSecretStore) List(orgid uint, query *secretTypes.ListSecretsQ
 	return newResponseItems, nil
 }
 
-func (s *restrictedSecretStore) Update(organizationID uint, secretID secretTypes.SecretID, value *CreateSecretRequest) error {
+func (s *restrictedSecretStore) Update(organizationID uint, secretID string, value *CreateSecretRequest) error {
 	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (s *restrictedSecretStore) Update(organizationID uint, secretID secretTypes
 	return s.secretStore.Update(organizationID, secretID, value)
 }
 
-func (s *restrictedSecretStore) Delete(organizationID uint, secretID secretTypes.SecretID) error {
+func (s *restrictedSecretStore) Delete(organizationID uint, secretID string) error {
 	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (s *restrictedSecretStore) Delete(organizationID uint, secretID secretTypes
 	return s.secretStore.Delete(organizationID, secretID)
 }
 
-func (s *restrictedSecretStore) checkBlockingTags(organizationID uint, secretID secretTypes.SecretID) error {
+func (s *restrictedSecretStore) checkBlockingTags(organizationID uint, secretID string) error {
 
 	secretItem, err := s.secretStore.Get(organizationID, secretID)
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *restrictedSecretStore) checkBlockingTags(organizationID uint, secretID 
 	return nil
 }
 
-func (s *restrictedSecretStore) checkForbiddenTags(organizationID uint, secretID secretTypes.SecretID) error {
+func (s *restrictedSecretStore) checkForbiddenTags(organizationID uint, secretID string) error {
 	secretItem, err := s.secretStore.Get(organizationID, secretID)
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func (s *restrictedSecretStore) isSecretReadOnly(secretItem *SecretItemResponse)
 
 // ReadOnlyError describes a secret error where it contains read only tag
 type ReadOnlyError struct {
-	SecretID secretTypes.SecretID
+	SecretID string
 }
 
 func (roe ReadOnlyError) Error() string {

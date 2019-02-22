@@ -21,7 +21,6 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -47,7 +46,7 @@ func IsProviderSupported(provider string) error {
 }
 
 // GetSecretWithValidation gives back a secret response with validation
-func GetSecretWithValidation(secretID pkgSecret.SecretID, orgID uint, provider string) (*secret.SecretItemResponse, error) {
+func GetSecretWithValidation(secretID string, orgID uint, provider string) (*secret.SecretItemResponse, error) {
 
 	secret, err := secret.Store.Get(orgID, secretID)
 	if err != nil {
