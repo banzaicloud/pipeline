@@ -53,7 +53,7 @@ func (c *commonCreator) Create(ctx context.Context) error {
 }
 
 type TokenGenerator interface {
-	GenerateClusterToken(orgID uint, clusterID pkgCluster.ClusterID) (string, string, error)
+	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
 }
 
 // NewClusterCreator returns a new PKE or Common cluster creator instance depending on the cluster.

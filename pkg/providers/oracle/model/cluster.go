@@ -40,7 +40,7 @@ type Cluster struct {
 	LBSubnetID1    string
 	LBSubnetID2    string
 	OCID           string `gorm:"column:ocid"`
-	ClusterModelID pkgCluster.ClusterID
+	ClusterModelID uint
 	NodePools      []*NodePool
 	CreatedBy      uint
 	CreatedAt      time.Time

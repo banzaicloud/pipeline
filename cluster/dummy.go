@@ -120,7 +120,7 @@ func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint)
 }
 
 //GetID returns the specified cluster id
-func (c *DummyCluster) GetID() pkgCluster.ClusterID {
+func (c *DummyCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 

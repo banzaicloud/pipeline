@@ -647,7 +647,7 @@ func (c *AKSCluster) getNodePoolByName(name string) *model.AKSNodePoolModel {
 }
 
 // GetID returns the cluster's ID
-func (c *AKSCluster) GetID() pkgCluster.ClusterID {
+func (c *AKSCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 

@@ -14,13 +14,9 @@
 
 package cluster
 
-import (
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-)
-
 type clusterEvents interface {
 	// ClusterCreated event is emitted when a cluster creation workflow finishes.
-	ClusterCreated(clusterID pkgCluster.ClusterID)
+	ClusterCreated(clusterID uint)
 
 	// ClusterDeleted event is emitted when a cluster is completely deleted.
 	ClusterDeleted(orgID uint, clusterName string)
@@ -33,7 +29,7 @@ func NewNopClusterEvents() *nopClusterEvents {
 	return &nopClusterEvents{}
 }
 
-func (*nopClusterEvents) ClusterCreated(clusterID pkgCluster.ClusterID) {
+func (*nopClusterEvents) ClusterCreated(clusterID uint) {
 }
 
 func (*nopClusterEvents) ClusterDeleted(orgID uint, clusterName string) {
@@ -58,7 +54,7 @@ func NewClusterEvents(eb eventBus) *clusterEventBus {
 	}
 }
 
-func (c *clusterEventBus) ClusterCreated(clusterID pkgCluster.ClusterID) {
+func (c *clusterEventBus) ClusterCreated(clusterID uint) {
 	c.eb.Publish(clusterCreatedTopic, clusterID)
 }
 
