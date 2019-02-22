@@ -14,10 +14,6 @@
 
 package auth
 
-import (
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-)
-
 // AccessManager is responsible for managing authorization rules.
 // NOTE:
 // Currently this implementation is a dummy one, and is a placeholder for a future implementation.
@@ -48,15 +44,15 @@ func (m *AccessManager) GrantDefaultAccessToVirtualUser(userID string) {
 }
 
 // AddOrganizationPolicies creates an organization role, by adding the default (*) org policies for the given organization.
-func (m *AccessManager) AddOrganizationPolicies(orgID pkgAuth.OrganizationID) {
+func (m *AccessManager) AddOrganizationPolicies(orgID uint) {
 }
 
 // GrantOrganizationAccessToUser adds a user to an organization by adding the associated organization role.
-func (m *AccessManager) GrantOrganizationAccessToUser(userID string, orgID pkgAuth.OrganizationID) {
+func (m *AccessManager) GrantOrganizationAccessToUser(userID string, orgID uint) {
 }
 
 // RevokeOrganizationAccessFromUser removes a user from an organization by removing the associated organization role.
-func (m *AccessManager) RevokeOrganizationAccessFromUser(userID string, orgID pkgAuth.OrganizationID) {
+func (m *AccessManager) RevokeOrganizationAccessFromUser(userID string, orgID uint) {
 }
 
 // RevokeAllAccessFromUser removes all roles for a given user.

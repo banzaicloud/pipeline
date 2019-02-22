@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/pipeline/auth"
-	auth2 "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 )
@@ -49,7 +48,7 @@ func (e *basicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, m
 				return false, emperror.Wrap(err, "failed to parse user token")
 			}
 
-			return org.ID == auth2.OrganizationID(orgID), nil
+			return org.ID == uint(orgID), nil
 		}
 
 		orgName := auth.GetOrgNameFromVirtualUser(user.Login)

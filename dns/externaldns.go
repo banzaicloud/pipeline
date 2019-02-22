@@ -20,7 +20,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns/route53"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gofrs/uuid"
@@ -60,12 +59,12 @@ type DnsEventsSubscription struct {
 
 // DnsServiceClient contains the operations for managing domains in a Dns Service
 type DnsServiceClient interface {
-	RegisterDomain(orgId pkgAuth.OrganizationID, domain string) error
-	UnregisterDomain(orgId pkgAuth.OrganizationID, domain string) error
-	IsDomainRegistered(orgId pkgAuth.OrganizationID, domain string) (bool, error)
-	GetOrgDomain(orgId pkgAuth.OrganizationID) (string, error)
+	RegisterDomain(orgId uint, domain string) error
+	UnregisterDomain(orgId uint, domain string) error
+	IsDomainRegistered(orgId uint, domain string) (bool, error)
+	GetOrgDomain(orgId uint) (string, error)
 	Cleanup()
-	DeleteDnsRecordsOwnedBy(ownerId string, orgId pkgAuth.OrganizationID) error
+	DeleteDnsRecordsOwnedBy(ownerId string, orgId uint) error
 	ProcessUnfinishedTasks()
 }
 

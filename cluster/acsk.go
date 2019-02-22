@@ -298,7 +298,7 @@ func CreateACSKClusterFromModel(clusterModel *model.ClusterModel) (*ACSKCluster,
 	return &alibabaCluster, nil
 }
 
-func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*ACSKCluster, error) {
+func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*ACSKCluster, error) {
 	cluster := ACSKCluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -817,7 +817,7 @@ func (c *ACSKCluster) DeleteFromDatabase() error {
 	return nil
 }
 
-func (c *ACSKCluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *ACSKCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 

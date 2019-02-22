@@ -33,7 +33,7 @@ type DummyCluster struct {
 }
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
-func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*DummyCluster, error) {
+func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*DummyCluster, error) {
 	var cluster DummyCluster
 
 	cluster.modelCluster = &model.ClusterModel{
@@ -157,7 +157,7 @@ func (c *DummyCluster) DeleteFromDatabase() error {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *DummyCluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *DummyCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 

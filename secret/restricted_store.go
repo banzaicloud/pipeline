@@ -17,7 +17,6 @@ package secret
 import (
 	"fmt"
 
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
@@ -27,7 +26,7 @@ type restrictedSecretStore struct {
 	*secretStore
 }
 
-func (s *restrictedSecretStore) List(orgid pkgAuth.OrganizationID, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
+func (s *restrictedSecretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
 	responseItems, err := s.secretStore.List(orgid, query)
 	if err != nil {
 		return nil, err
@@ -44,7 +43,7 @@ func (s *restrictedSecretStore) List(orgid pkgAuth.OrganizationID, query *secret
 	return newResponseItems, nil
 }
 
-func (s *restrictedSecretStore) Update(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID, value *CreateSecretRequest) error {
+func (s *restrictedSecretStore) Update(organizationID uint, secretID secretTypes.SecretID, value *CreateSecretRequest) error {
 	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
@@ -52,7 +51,7 @@ func (s *restrictedSecretStore) Update(organizationID pkgAuth.OrganizationID, se
 	return s.secretStore.Update(organizationID, secretID, value)
 }
 
-func (s *restrictedSecretStore) Delete(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) error {
+func (s *restrictedSecretStore) Delete(organizationID uint, secretID secretTypes.SecretID) error {
 	if err := s.checkBlockingTags(organizationID, secretID); err != nil {
 		return err
 	}
@@ -60,7 +59,7 @@ func (s *restrictedSecretStore) Delete(organizationID pkgAuth.OrganizationID, se
 	return s.secretStore.Delete(organizationID, secretID)
 }
 
-func (s *restrictedSecretStore) checkBlockingTags(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) error {
+func (s *restrictedSecretStore) checkBlockingTags(organizationID uint, secretID secretTypes.SecretID) error {
 
 	secretItem, err := s.secretStore.Get(organizationID, secretID)
 	if err != nil {
@@ -80,7 +79,7 @@ func (s *restrictedSecretStore) checkBlockingTags(organizationID pkgAuth.Organiz
 	return nil
 }
 
-func (s *restrictedSecretStore) checkForbiddenTags(organizationID pkgAuth.OrganizationID, secretID secretTypes.SecretID) error {
+func (s *restrictedSecretStore) checkForbiddenTags(organizationID uint, secretID secretTypes.SecretID) error {
 	secretItem, err := s.secretStore.Get(organizationID, secretID)
 	if err != nil {
 		return err

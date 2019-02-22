@@ -79,7 +79,7 @@ const (
 )
 
 // CreateGKEClusterFromRequest creates ClusterModel struct from the request
-func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) (*GKECluster, error) {
+func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID pkgAuth.UserID) (*GKECluster, error) {
 	c := GKECluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -126,7 +126,7 @@ type GKECluster struct {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *GKECluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *GKECluster) GetOrganizationId() uint {
 	return c.model.Cluster.OrganizationID
 }
 

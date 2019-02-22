@@ -26,7 +26,7 @@ import (
 
 // UpdateContext represents the data necessary to do generic cluster update steps/checks.
 type UpdateContext struct {
-	OrganizationID pkgAuth.OrganizationID
+	OrganizationID uint
 	UserID         pkgAuth.UserID
 	ClusterID      pkgCluster.ClusterID
 }

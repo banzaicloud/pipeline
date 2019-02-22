@@ -29,8 +29,8 @@ import (
 )
 
 type userAccessManager interface {
-	GrantOrganizationAccessToUser(userID string, orgID pkgAuth.OrganizationID)
-	RevokeOrganizationAccessFromUser(userID string, orgID pkgAuth.OrganizationID)
+	GrantOrganizationAccessToUser(userID string, orgID uint)
+	RevokeOrganizationAccessFromUser(userID string, orgID uint)
 }
 
 // UserAPI implements user functions.

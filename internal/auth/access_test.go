@@ -26,7 +26,7 @@ import (
 )
 
 func newOrg(t *testing.T, db *gorm.DB, id uint, name string) *auth.Organization {
-	org := auth.Organization{ID: pkgAuth.OrganizationID(id), Name: name}
+	org := auth.Organization{ID: id, Name: name}
 	db.AutoMigrate(org)
 	if err := db.FirstOrCreate(&org).Error; err != nil {
 		t.Fatal(err)

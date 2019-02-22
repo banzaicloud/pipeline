@@ -14,16 +14,14 @@
 
 package route53
 
-import pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-
 // awsRoute53StateStore manages the state of the domains
 // registered by us in the Amazon Route53 external DNS service
 type awsRoute53StateStore interface {
 	create(state *domainState) error
 	update(state *domainState) error
-	find(orgId pkgAuth.OrganizationID, domain string, state *domainState) (bool, error)
+	find(orgId uint, domain string, state *domainState) (bool, error)
 	findByStatus(status string) ([]domainState, error)
-	findByOrgId(orgId pkgAuth.OrganizationID, state *domainState) (bool, error)
+	findByOrgId(orgId uint, state *domainState) (bool, error)
 	listUnused() ([]domainState, error)
 	delete(state *domainState) error
 }

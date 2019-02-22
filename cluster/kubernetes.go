@@ -26,7 +26,7 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -34,7 +34,7 @@ import (
 )
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
-func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*KubeCluster, error) {
+func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*KubeCluster, error) {
 
 	var cluster KubeCluster
 
@@ -235,7 +235,7 @@ func (c *KubeCluster) DeleteFromDatabase() error {
 }
 
 // GetOrganizationId returns the specified organization id
-func (c *KubeCluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *KubeCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 

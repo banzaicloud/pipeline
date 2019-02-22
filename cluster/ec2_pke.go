@@ -49,7 +49,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
@@ -114,7 +114,7 @@ func (c *EC2ClusterPKE) GetUID() string {
 	return c.model.Cluster.UID
 }
 
-func (c *EC2ClusterPKE) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *EC2ClusterPKE) GetOrganizationId() uint {
 	return c.model.Cluster.OrganizationID
 }
 
@@ -801,7 +801,7 @@ func (c *EC2ClusterPKE) SaveNetworkApiServerAddress(host, port string) error {
 	return nil
 }
 
-func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {
+func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {
 	c := &EC2ClusterPKE{
 		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
 	}

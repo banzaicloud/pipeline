@@ -21,7 +21,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
@@ -40,7 +39,7 @@ type ClusterBackupBucketsModel struct {
 	StatusMessage string `sql:"type:text;"`
 
 	Organization   auth.Organization             `gorm:"foreignkey:OrganizationID"`
-	OrganizationID pkgAuth.OrganizationID        `gorm:"index;not null"`
+	OrganizationID uint                          `gorm:"index;not null"`
 	Deployment     ClusterBackupDeploymentsModel `gorm:"foreignkey:BucketID"`
 
 	CreatedAt time.Time

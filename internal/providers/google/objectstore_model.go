@@ -16,7 +16,6 @@ package google
 
 import (
 	"github.com/banzaicloud/pipeline/auth"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
@@ -29,8 +28,8 @@ const (
 type ObjectStoreBucketModel struct {
 	ID uint `gorm:"primary_key"`
 
-	Organization   auth.Organization      `gorm:"foreignkey:OrganizationID"`
-	OrganizationID pkgAuth.OrganizationID `gorm:"index;not null"`
+	Organization   auth.Organization `gorm:"foreignkey:OrganizationID"`
+	OrganizationID uint              `gorm:"index;not null"`
 
 	Name     string `gorm:"unique_index:idx_bucket_name"`
 	Location string
