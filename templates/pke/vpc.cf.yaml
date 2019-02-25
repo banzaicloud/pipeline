@@ -28,11 +28,6 @@ Parameters:
     Default: 192.168.64.0/20
     Description: CidrBlock for subnet 01 within the VPC
 
-  Subnet02Block:
-    Type: String
-    Default: 192.168.80.0/20
-    Description: CidrBlock for subnet 02 within the VPC
-
   Subnets:
     Description: The subnets where workers can be created.
     Type: String
@@ -54,7 +49,6 @@ Metadata:
           - RouteTableId
           - VpcBlock
           - Subnet01Block
-          - Subnet02Block
           - Subnets
 Conditions:
   CreateVpc: !Equals [ !Ref VpcId, "" ]
@@ -121,24 +115,6 @@ Resources:
       - Key: Name
         Value: !Sub "${AWS::StackName}-Subnet01"
 
-  Subnet02:
-    Type: "AWS::EC2::Subnet"
-    Condition: CreateSubnets
-    Metadata:
-      Comment: Subnet 02
-    Properties:
-      AvailabilityZone:
-        Fn::Select:
-        - '1'
-        - Fn::GetAZs:
-            Ref: AWS::Region
-      CidrBlock:
-        Ref: Subnet02Block
-      VpcId: !If [ CreateVpc, !Ref VPC,  !Ref VpcId ]
-      Tags:
-      - Key: Name
-        Value: !Sub "${AWS::StackName}-Subnet02"
-
   Subnet01RouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
     Condition: CreateSubnets
@@ -146,19 +122,12 @@ Resources:
       SubnetId: !Ref Subnet01
       RouteTableId: !If [ CreateVpc, !Ref RouteTable,  !Ref RouteTableId ]
 
-  Subnet02RouteTableAssociation:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Condition: CreateSubnets
-    Properties:
-      SubnetId: !Ref Subnet02
-      RouteTableId: !If [ CreateVpc, !Ref RouteTable,  !Ref RouteTableId ]
-
 Outputs:
 
   SubnetIds:
     Description: All subnets in the VPC
-    Value:  !If [ CreateSubnets, !Join [ ",", [ !Ref Subnet01, !Ref Subnet02 ] ], !Ref Subnets ]
+    Value:  !If [ CreateSubnets, !Ref Subnet01, !Ref Subnets ]
 
   VpcId:
     Description: The VPC Id
-    Value: !If [ CreateVpc, !Ref VPC,  !Ref VpcId ]
+    Value: !If [ CreateVpc, !Ref VPC, !Ref VpcId ]
