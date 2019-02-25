@@ -347,6 +347,14 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  digest = "1:a1e402c0a7eb4122cb9e4c3dcd1aa20bb238767ea1a857cc5d245f05c0cd5b3c"
+  name = "github.com/cactus/go-statsd-client"
+  packages = ["statsd"]
+  pruneopts = "NUT"
+  revision = "138b925ccdf617776955904ba7759fce64406cec"
+  version = "v3.1.1"
+
+[[projects]]
   digest = "1:d7149665a6945aa722d14922377a6d428dc0793d39977cd0ebed2e9263972760"
   name = "github.com/casbin/casbin"
   packages = [
@@ -1072,14 +1080,6 @@
   version = "v1.1.5"
 
 [[projects]]
-  digest = "1:45bba2e6115039916f7592304640178725ee7dd82cb5baeeaea6d76ccda952fc"
-  name = "github.com/jsternberg/zap-logfmt"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "ef1948cade6f9592fac3f57654e3ddfc4986bb52"
-  version = "v1.2.0"
-
-[[projects]]
   digest = "1:d3209f11918bfd131db14e9ea1691bd202568228715980f71e56b1bd60ad1e07"
   name = "github.com/kisielk/errcheck"
   packages = [
@@ -1622,6 +1622,17 @@
   pruneopts = "NUT"
   revision = "a5dbd03a2245d554160e3ae6bfdcf969fe58b431"
   version = "0.2.0"
+
+[[projects]]
+  digest = "1:2e0ce46ff4b3c6038ba31d83c9b42661695f2658e901f9a0b753fd3806c63142"
+  name = "github.com/uber-common/bark"
+  packages = [
+    ".",
+    "zbark",
+  ]
+  pruneopts = "NUT"
+  revision = "02d883c81a4e7b76904d97efb176efdf4be791bd"
+  version = "v1.2.1"
 
 [[projects]]
   digest = "1:22f696cee54865fb8e9ff91df7b633f6b8f22037a8015253c6b6a71ca82219c7"
@@ -2700,7 +2711,6 @@
     "github.com/ghodss/yaml",
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/gin",
-    "github.com/gin-gonic/gin/json",
     "github.com/gofrs/uuid",
     "github.com/golang/protobuf/ptypes/duration",
     "github.com/google/go-github/github",
@@ -2719,7 +2729,6 @@
     "github.com/jinzhu/gorm/dialects/sqlite",
     "github.com/jinzhu/now",
     "github.com/jmespath/go-jmespath",
-    "github.com/jsternberg/zap-logfmt",
     "github.com/lestrrat-go/backoff",
     "github.com/microcosm-cc/bluemonday",
     "github.com/mitchellh/mapstructure",
@@ -2749,6 +2758,8 @@
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
     "github.com/technosophos/moniker",
+    "github.com/uber-common/bark",
+    "github.com/uber-common/bark/zbark",
     "go.uber.org/cadence/.gen/go/cadence/workflowserviceclient",
     "go.uber.org/cadence/.gen/go/shared",
     "go.uber.org/cadence/activity",
@@ -2758,7 +2769,6 @@
     "go.uber.org/yarpc",
     "go.uber.org/yarpc/transport/tchannel",
     "go.uber.org/zap",
-    "go.uber.org/zap/zapcore",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh",
     "golang.org/x/net/context",

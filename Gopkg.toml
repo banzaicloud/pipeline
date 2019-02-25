@@ -270,12 +270,8 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
   version = "=0.9.3"
 
 [[constraint]]
-  name = "go.uber.org/zap"
-  version = "1.9.1"
-
-[[constraint]]
-  name = "github.com/jsternberg/zap-logfmt"
-  version = "1.2.0"
+  name = "github.com/uber-common/bark"
+  version = "1.2.1"
 
 [[constraint]]
   name = "github.com/goph/logur"

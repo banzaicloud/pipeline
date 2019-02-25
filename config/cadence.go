@@ -20,6 +20,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/uber-common/bark"
+	"github.com/uber-common/bark/zbark"
 	"go.uber.org/cadence/.gen/go/shared"
 	"go.uber.org/cadence/client"
 	"go.uber.org/cadence/worker"
@@ -41,12 +43,12 @@ func CadenceTaskList() string {
 
 // CadenceClient returns a new cadence client.
 func CadenceClient() (client.Client, error) {
-	return cadence.NewClient(newCadenceConfig(), ZapLogger())
+	return cadence.NewClient(newCadenceConfig(), zbark.Zapify(bark.NewLoggerFromLogrus(Logger()).WithField("component", "cadence-client")))
 }
 
 // CadenceWorker returns a cadence worker.
 func CadenceWorker() worker.Worker {
-	w, err := cadence.NewWorker(newCadenceConfig(), CadenceTaskList(), ZapLogger())
+	w, err := cadence.NewWorker(newCadenceConfig(), CadenceTaskList(), zbark.Zapify(bark.NewLoggerFromLogrus(Logger()).WithField("component", "cadence-worker")))
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +58,7 @@ func CadenceWorker() worker.Worker {
 
 func RegisterCadenceDomain(logger logrus.FieldLogger) {
 	config := newCadenceConfig()
-	client, err := cadence.NewDomainClient(config, ZapLogger())
+	client, err := cadence.NewDomainClient(config, zbark.Zapify(bark.NewLoggerFromLogrus(Logger()).WithField("component", "cadence-domain")))
 	if err != nil {
 		panic(err)
 	}
