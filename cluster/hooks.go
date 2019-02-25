@@ -523,7 +523,7 @@ func CreateDefaultStorageclass(commonCluster CommonCluster) error {
 	}
 
 	err = createDefaultStorageClass(client, "kubernetes.io/aws-ebs", volumeBindingMode)
-	if err != nil && !strings.Contains("already exists", err.Error()) {
+	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		return emperror.WrapWith(err, "failed to create default storage class",
 			"provisioner", "kubernetes.io/aws-ebs",
 			"bindingMode", volumeBindingMode)
