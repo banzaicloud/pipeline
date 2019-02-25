@@ -111,6 +111,11 @@ var HookMap = map[string]PostFunctioner{
 		f:            SetupNodePoolLabelsSet,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.CreateDefaultStorageclass: &BasePostFunction{
+		f:            CreateDefaultStorageclass,
+		Priority:     Priority{5},
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create

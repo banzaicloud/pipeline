@@ -523,7 +523,7 @@ func CreateDefaultStorageclass(commonCluster CommonCluster) error {
 	}
 
 	err = createDefaultStorageClass(client, "kubernetes.io/aws-ebs", volumeBindingMode)
-	if err != nil {
+	if err != nil && !strings.Contains("already exists", err.Error()) {
 		return emperror.WrapWith(err, "failed to create default storage class",
 			"provisioner", "kubernetes.io/aws-ebs",
 			"bindingMode", volumeBindingMode)
@@ -1206,11 +1206,6 @@ func taintNodes(commonCluster CommonCluster, client *kubernetes.Clientset, nodeP
 				Key:    pkgCommon.HeadNodeTaintKey,
 				Value:  nodePoolName,
 				Effect: v1.TaintEffectNoSchedule,
-			})
-			taints = append(taints, v1.Taint{
-				Key:    pkgCommon.HeadNodeTaintKey,
-				Value:  nodePoolName,
-				Effect: v1.TaintEffectNoExecute,
 			})
 		}
 
