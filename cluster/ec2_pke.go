@@ -269,7 +269,7 @@ func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return emperror.WrapWith(err, "failed to save ssh secret", "workflowId", workflowID)
+		return emperror.WrapWith(err, "failed to save workflow id", "workflowId", workflowID)
 	}
 
 	return nil
@@ -429,9 +429,10 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 		return errors.New(fmt.Sprintf("Subnet IDs not found (%v %T)", c.model.Network.CloudProviderConfig["subnets"], c.model.Network.CloudProviderConfig["subnets"]))
 	}
 
+	newNodepools := createNodePoolsFromPKERequest(request.PKE.NodePools)
 	input := pkeworkflow.UpdateClusterWorkflowInput{
 		ClusterID:           uint(c.GetID()),
-		NodePools:           createNodePoolsFromPKERequest(request.PKE.NodePools),
+		NodePools:           newNodepools,
 		OrganizationID:      uint(c.GetOrganizationId()),
 		ClusterUID:          c.GetUID(),
 		ClusterName:         c.GetName(),
@@ -458,6 +459,71 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 	err = exec.Get(ctx, nil)
 	if err != nil {
 		return err
+	}
+
+	newNodepoolMap := map[string]pkeworkflow.NodePool{}
+	for _, np := range newNodepools {
+		newNodepoolMap[np.Name] = np
+	}
+	oldNodepoolSet := map[string]bool{}
+
+	// update or delete existing pools in DB
+	newModelNodepools := internalPke.NodePools{}
+	deletedNodepools := internalPke.NodePools{}
+	for _, np := range c.model.NodePools {
+		oldNodepoolSet[np.Name] = true
+		if newNp, ok := newNodepoolMap[np.Name]; ok { // update
+
+			providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+			if err = mapstructure.Decode(np.ProviderConfig, &providerConfig); err != nil {
+				return emperror.Wrapf(err, "decoding nodepool %q config", np.Name)
+			}
+			providerConfig.AutoScalingGroup.Size.Min = newNp.MinCount
+			providerConfig.AutoScalingGroup.Size.Max = newNp.MaxCount
+			np.ProviderConfig["autoScalingGroup"] = providerConfig.AutoScalingGroup
+
+			newModelNodepools = append(newModelNodepools, np)
+		} else {
+			deletedNodepools = append(deletedNodepools, np)
+		}
+	}
+
+	// add new pools
+	for _, np := range newNodepools {
+		if oldNodepoolSet[np.Name] {
+			continue
+		}
+		providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+		providerConfig.AutoScalingGroup.Name = np.Name
+		providerConfig.AutoScalingGroup.InstanceType = np.InstanceType
+		providerConfig.AutoScalingGroup.Image = np.ImageID
+		providerConfig.AutoScalingGroup.Size.Min = np.MinCount
+		providerConfig.AutoScalingGroup.Size.Max = np.MaxCount
+		providerConfig.AutoScalingGroup.SpotPrice = np.SpotPrice
+		modelNodepool := internalPke.NodePool{
+			Name:     np.Name,
+			Roles:    internalPke.Roles{"worker"},
+			Provider: internalPke.NPPAmazon,
+			ProviderConfig: internalPke.Config{
+				"autoScalingGroup": providerConfig.AutoScalingGroup},
+		}
+		newModelNodepools = append(newModelNodepools, modelNodepool)
+	}
+
+	c.model.NodePools = newModelNodepools
+	if err := c.db.Save(&c.model).Error; err != nil {
+		return emperror.Wrap(err, "failed to save cluster")
+	}
+
+	for _, np := range deletedNodepools {
+		if np.NodePoolID == 0 {
+			panic("prevented deleting all nodepools")
+		}
+
+		c.log.WithField("nodepool", np.Name).Info("deleting nodepool")
+		if err := c.db.Delete(&np).Error; err != nil {
+			return emperror.Wrap(err, "failed to delete nodepool")
+		}
 	}
 
 	return nil
