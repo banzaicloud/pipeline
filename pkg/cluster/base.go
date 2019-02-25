@@ -608,6 +608,13 @@ type ResourceSummaryItem struct {
 	Request     string `json:"request,omitempty"`
 }
 
+// NodePoolLabel desribes labels on a node pool
+type NodePoolLabel struct {
+	Name     string `json:"Name"`
+	Value    string `json:"Value"`
+	Reserved bool   `json:"Reserved"`
+}
+
 // CreateClusterRequest creates a CreateClusterRequest model from profile
 func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClusterRequest) (*CreateClusterRequest, error) {
 	response := &CreateClusterRequest{

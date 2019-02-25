@@ -200,7 +200,7 @@ type basicAuthConfig struct {
 	passwordFile string
 }
 
-func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
+func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID pkgCluster.ClusterID) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -297,7 +297,7 @@ func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID pkgAuth.Orga
 	}
 }
 
-func (s *clusterSubscriber) init(clusterID uint) (cluster.CommonCluster, *auth.Organization, *promconfig.Config, *v1.Secret, error) {
+func (s *clusterSubscriber) init(clusterID pkgCluster.ClusterID) (cluster.CommonCluster, *auth.Organization, *promconfig.Config, *v1.Secret, error) {
 	c, org, err := s.getClusterAndOrganization(clusterID)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -308,8 +308,8 @@ func (s *clusterSubscriber) init(clusterID uint) (cluster.CommonCluster, *auth.O
 	return c, org, prometheusConfig, secret, err
 }
 
-func (s *clusterSubscriber) getClusterAndOrganization(clusterID uint) (cluster.CommonCluster, *auth.Organization, error) {
-	c, err := s.manager.GetClusterByIDOnly(context.Background(), clusterID)
+func (s *clusterSubscriber) getClusterAndOrganization(clusterID pkgCluster.ClusterID) (cluster.CommonCluster, *auth.Organization, error) {
+	c, err := s.manager.GetClusterByIDOnly(context.Background(), uint(clusterID))
 	if err != nil {
 		return nil, nil, err
 	}

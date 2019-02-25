@@ -103,7 +103,7 @@ func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse
 
 	// copy user labels unless they are not reserved keys
 	for labelKey, labelValue := range nodePool.Labels {
-		if !isReservedDomainKey(labelKey) {
+		if !IsReservedDomainKey(labelKey) {
 			desiredLabels[labelKey] = labelValue
 		}
 	}
@@ -130,7 +130,7 @@ func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse
 	return desiredLabels
 }
 
-func isReservedDomainKey(labelKey string) bool {
+func IsReservedDomainKey(labelKey string) bool {
 	pipelineLabelDomain := viper.GetString(pipConfig.PipelineLabelDomain)
 	if strings.Contains(labelKey, pipelineLabelDomain) {
 		return true
