@@ -9,7 +9,8 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
 
 RUN go get github.com/derekparker/delve/cmd/dlv
 
-FROM alpine:3.8
+
+FROM alpine:3.9
 
 RUN apk add --no-cache ca-certificates tzdata libc6-compat
 
