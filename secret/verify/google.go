@@ -16,17 +16,16 @@ package verify
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
-
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/gin-gonic/gin/json"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/cloudresourcemanager/v1"
