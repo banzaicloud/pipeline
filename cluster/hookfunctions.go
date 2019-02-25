@@ -132,6 +132,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallPVCOperator],
 	HookMap[pkgCluster.InitSpotConfig],
 	HookMap[pkgCluster.DeployInstanceTerminationHandler],
+	HookMap[pkgCluster.CreateDefaultStorageclass],
 }
 
 // PostFunctioner manages posthook functions

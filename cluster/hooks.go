@@ -49,6 +49,7 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
+	storagev1 "k8s.io/api/storage/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -484,6 +485,49 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		return err
 	}
 	log.Infof("'%s' installed", deploymentName)
+	return nil
+}
+
+func CreateDefaultStorageclass(commonCluster CommonCluster) error {
+	if distro := commonCluster.GetDistribution(); distro != pkgCluster.PKE {
+		log.Infof("Not creating storageclass for %s", distro)
+		return nil
+	}
+	log.Debug("get K8S config")
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		return err
+	}
+	log.Debug("get K8S connection")
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+	version, err := client.ServerVersion()
+	if err != nil {
+		return emperror.Wrap(err, "could not get server version")
+	}
+	semVer, err := semver.NewVersion(version.String())
+	if err != nil {
+		return emperror.Wrap(err, "could not create semver from server version")
+	}
+	constraint, err := semver.NewConstraint(">= 1.12")
+	if err != nil {
+		return emperror.Wrap(err, "could not set  1.12 constraint for semver")
+	}
+	var volumeBindingMode storagev1.VolumeBindingMode
+	if constraint.Check(semVer) {
+		volumeBindingMode = storagev1.VolumeBindingWaitForFirstConsumer
+	} else {
+		volumeBindingMode = storagev1.VolumeBindingImmediate
+	}
+
+	err = createDefaultStorageClass(client, "kubernetes.io/aws-ebs", volumeBindingMode)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to create default storage class",
+			"provisioner", "kubernetes.io/aws-ebs",
+			"bindingMode", volumeBindingMode)
+	}
 	return nil
 }
 
