@@ -67,6 +67,13 @@ const SessionCookieHTTPOnly = true
 // SessionCookieName is the name of the token that is stored in the session cookie
 const SessionCookieName = "Pipeline session token"
 
+// Auth provider names
+const (
+	ProviderDexGithub = "dex:github"
+	ProviderGithub    = "github"
+	ProviderUser      = "user"
+)
+
 // Init authorization
 // nolint: gochecknoglobals
 var (

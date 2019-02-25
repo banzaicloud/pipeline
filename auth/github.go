@@ -97,7 +97,7 @@ func getGithubOrganizations(token string) ([]organization, error) {
 			name:     membership.GetOrganization().GetLogin(),
 			id:       membership.GetOrganization().GetID(),
 			role:     membership.GetRole(),
-			provider: "github",
+			provider: ProviderGithub,
 		}
 
 		orgs = append(orgs, org)
@@ -111,7 +111,7 @@ func getGithubOrganizations(token string) ([]organization, error) {
 	userOrg := organization{
 		name:     *user.Login,
 		role:     "admin",
-		provider: "user",
+		provider: ProviderUser,
 	}
 
 	orgs = append(orgs, userOrg)
