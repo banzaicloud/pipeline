@@ -15,14 +15,12 @@
 package providers
 
 import (
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
 )
 
 type secretStore interface {
-	Get(organizationID pkgAuth.OrganizationID, secretID pkgSecret.SecretID) (*secret.SecretItemResponse, error)
+	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 }
 
 type secretValidator struct {
@@ -35,7 +33,7 @@ func NewSecretValidator(secrets secretStore) *secretValidator {
 }
 
 // ValidateSecretType validates that a secret belongs to a cloud provider.
-func (v *secretValidator) ValidateSecretType(organizationID pkgAuth.OrganizationID, secretID pkgSecret.SecretID, provider string) error {
+func (v *secretValidator) ValidateSecretType(organizationID uint, secretID string, provider string) error {
 	s, err := v.secrets.Get(organizationID, secretID)
 	if err == secret.ErrSecretNotExists {
 		return errors.Wrap(err, "error during secret validation")

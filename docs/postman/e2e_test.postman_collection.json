@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "607f647a-3fd2-4156-849c-455189fc3d87",
+		"_postman_id": "8675497b-ab53-4053-ae42-fe4ffdaec8fb",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -9511,6 +9511,153 @@
 			]
 		},
 		{
+			"name": "Nodepool labels",
+			"item": [
+				{
+					"name": "Get node pool labels",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9d482635-68ed-483b-abd7-96ac540a0c31",
+								"exec": [
+									"",
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"}",
+									"else if (responseCode.code === 404) {",
+									"    tests[\"Cluster Node Found!\"] = false",
+									"    postman.setNextRequest(null);",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"",
+									"    ",
+									"}",
+									" ",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/{{clusterId}}/nodepools/labels",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								"{{clusterId}}",
+								"nodepools",
+								"labels"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put node pool labels",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9d482635-68ed-483b-abd7-96ac540a0c31",
+								"exec": [
+									"",
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"}",
+									"else if (responseCode.code === 404) {",
+									"    tests[\"Cluster Node Found!\"] = false",
+									"    postman.setNextRequest(null);",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"",
+									"    ",
+									"}",
+									" ",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"head\": {\n        \"node.banzaicloud.io/NetworkPerfCategory\": \"medium\",\n        \"node.banzaicloud.io/cpu\": \"2\",\n        \"node.banzaicloud.io/memory\": \"7.5\",\n        \"node.banzaicloud.io/ondemand\": \"true\",\n        \"nodepool.banzaicloud.io/head\": \"true\",\n        \"nodepool.banzaicloud.io/name\": \"head\"\n    },\n    \"pool1\": {\n        \"customlabelx\": \"x\",\n        \"node.banzaicloud.io/NetworkPerfCategory\": \"medium\",\n        \"node.banzaicloud.io/cpu\": \"4\",\n        \"node.banzaicloud.io/memory\": \"15\",\n        \"node.banzaicloud.io/ondemand\": \"true\",\n        \"nodepool.banzaicloud.io/name\": \"pool1\"\n    },\n    \"pool2\": {\n        \"node.banzaicloud.io/NetworkPerfCategory\": \"medium\",\n        \"node.banzaicloud.io/cpu\": \"4\",\n        \"node.banzaicloud.io/memory\": \"15\",\n        \"node.banzaicloud.io/ondemand\": \"true\",\n        \"nodepool.banzaicloud.io/name\": \"pool2\"\n    },\n    \"pool3\": {\n       \n    }\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/{{clusterId}}/nodepools/labels",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								"{{clusterId}}",
+								"nodepools",
+								"labels"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Get API Endpoints",
 			"request": {
 				"method": "GET",
@@ -9581,7 +9728,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL3BpcGVsaW5lLmJhbnphaWNsb3VkLmNvbSIsImp0aSI6ImNlOTZhNDFkLTA4MzMtNGIzNi1iODQyLWI5NmMwNTI4MjhhMyIsImlhdCI6MTU0ODkzNDIzOSwiaXNzIjoiaHR0cHM6Ly9iYW56YWljbG91ZC5jb20vIiwic3ViIjoiMSIsInNjb3BlIjoiYXBpOmludm9rZSIsInR5cGUiOiJ1c2VyIiwidGV4dCI6InNhbmN5eCJ9.UKv8doLYy8LzR1tBfm-8cd74twfXpPyV4e4Im64BUqI",
+				"value": "{{token}}",
 				"type": "string"
 			}
 		]

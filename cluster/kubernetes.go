@@ -20,13 +20,12 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -34,7 +33,7 @@ import (
 )
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
-func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*KubeCluster, error) {
+func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*KubeCluster, error) {
 
 	var cluster KubeCluster
 
@@ -44,7 +43,7 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
 		CreatedBy:      userId,
-		SecretId:       pkgSecret.SecretID(request.SecretId),
+		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.Unknown,
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
@@ -120,7 +119,7 @@ func (c *KubeCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *KubeCluster) GetDistribution() pkgCluster.DistributionID {
+func (c *KubeCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 
@@ -158,17 +157,17 @@ func (c *KubeCluster) DeleteCluster() error {
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *KubeCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
+func (c *KubeCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 	return nil
 }
 
 // UpdateCluster updates cluster in cloud, in this case no update function
-func (c *KubeCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, _ pkgAuth.UserID) error {
+func (c *KubeCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, _ uint) error {
 	return nil
 }
 
 // GetID returns the specified cluster id
-func (c *KubeCluster) GetID() pkgCluster.ClusterID {
+func (c *KubeCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 
@@ -177,17 +176,17 @@ func (c *KubeCluster) GetUID() string {
 }
 
 // GetSecretId returns the specified secret id
-func (c *KubeCluster) GetSecretId() pkgSecret.SecretID {
+func (c *KubeCluster) GetSecretId() string {
 	return c.modelCluster.SecretId
 }
 
 // GetSshSecretId returns the specified ssh secret id
-func (c *KubeCluster) GetSshSecretId() pkgSecret.SecretID {
+func (c *KubeCluster) GetSshSecretId() string {
 	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *KubeCluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
+func (c *KubeCluster) SaveSshSecretId(sshSecretId string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
@@ -235,7 +234,7 @@ func (c *KubeCluster) DeleteFromDatabase() error {
 }
 
 // GetOrganizationId returns the specified organization id
-func (c *KubeCluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *KubeCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
@@ -278,12 +277,12 @@ func (c *KubeCluster) GetSecretWithValidation() (*secret.SecretItemResponse, err
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *KubeCluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
+func (c *KubeCluster) SaveConfigSecretId(configSecretId string) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (c *KubeCluster) GetConfigSecretId() pkgSecret.SecretID {
+func (c *KubeCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
@@ -368,6 +367,6 @@ func (c *KubeCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *KubeCluster) GetCreatedBy() pkgAuth.UserID {
+func (c *KubeCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
 }

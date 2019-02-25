@@ -27,8 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/dns"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
 	promconfig "github.com/banzaicloud/prometheus-config"
@@ -37,7 +35,7 @@ import (
 	"github.com/pkg/errors"
 	promCommon "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -179,9 +177,9 @@ func (s *clusterSubscriber) Register(events clusterEvents) {
 }
 
 type scrapeConfigParameters struct {
-	orgID           pkgAuth.OrganizationID
+	orgID           uint
 	orgName         string
-	clusterID       pkgCluster.ClusterID
+	clusterID       uint
 	clusterName     string
 	endpoint        string
 	tlsConfig       *scrapeTLSConfig
@@ -259,7 +257,7 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	}
 }
 
-func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID pkgAuth.OrganizationID, clusterName string) {
+func (s *clusterSubscriber) RemoveClusterFromPrometheusConfig(orgID uint, clusterName string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -319,7 +317,7 @@ func (s *clusterSubscriber) getClusterAndOrganization(clusterID uint) (cluster.C
 	return c, org, err
 }
 
-func (s *clusterSubscriber) getOrganization(orgID pkgAuth.OrganizationID) (*auth.Organization, error) {
+func (s *clusterSubscriber) getOrganization(orgID uint) (*auth.Organization, error) {
 	org := auth.Organization{
 		ID: orgID,
 	}

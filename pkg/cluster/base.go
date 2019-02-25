@@ -16,11 +16,9 @@ package cluster
 
 import (
 	"bytes"
-	"database/sql/driver"
 	"fmt"
 	"time"
 
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
@@ -60,24 +58,15 @@ const (
 	Oracle     = "oracle"
 )
 
-// DistributionID represents the identifier of a distribution
-type DistributionID string
-
-// Value returns the value of the ID
-func (id DistributionID) Value() (driver.Value, error) {
-	// TODO: remove Valuer implementation when mysql driver version is >=1.4
-	return string(id), nil
-}
-
 // Distribution constants
 const (
-	ACSK    DistributionID = "acsk"
-	EKS     DistributionID = "eks"
-	AKS     DistributionID = "aks"
-	GKE     DistributionID = "gke"
-	OKE     DistributionID = "oke"
-	PKE     DistributionID = "pke"
-	Unknown DistributionID = "unknown"
+	ACSK    = "acsk"
+	EKS     = "eks"
+	AKS     = "aks"
+	GKE     = "gke"
+	OKE     = "oke"
+	PKE     = "pke"
+	Unknown = "unknown"
 )
 
 // constants for posthooks
@@ -119,9 +108,6 @@ const (
 	KeyWordKubernetesVersion = "k8sVersion"
 	KeyWordImage             = "image"
 )
-
-// ClusterID represents the identifier of a cluster
-type ClusterID uint
 
 // CreateClusterRequest describes a create cluster request
 type CreateClusterRequest struct {
@@ -201,14 +187,14 @@ type GetClusterStatusResponse struct {
 	Name          string                     `json:"name"`
 	Location      string                     `json:"location"`
 	Cloud         string                     `json:"cloud"`
-	Distribution  DistributionID             `json:"distribution"`
+	Distribution  string                     `json:"distribution"`
 	Spot          bool                       `json:"spot,omitempty"`
 	Logging       bool                       `json:"logging"`
 	Monitoring    bool                       `json:"monitoring"`
 	ServiceMesh   bool                       `json:"servicemesh"`
 	SecurityScan  bool                       `json:"securityscan"`
 	Version       string                     `json:"version,omitempty"`
-	ResourceID    ClusterID                  `json:"id"`
+	ResourceID    uint                       `json:"id"`
 	NodePools     map[string]*NodePoolStatus `json:"nodePools"`
 	pkgCommon.CreatorBaseFields
 
@@ -246,7 +232,7 @@ type GetNodePoolsResponse struct {
 	ClusterDesiredResources map[string]float64               `json:"clusterDesiredResources,omitempty"`
 	ClusterStatus           string                           `json:"status,omitempty"`
 	Cloud                   string                           `json:"cloud"`
-	Distribution            DistributionID                   `json:"distribution"`
+	Distribution            string                           `json:"distribution"`
 	Location                string                           `json:"location"`
 }
 
@@ -509,9 +495,9 @@ type ClusterProfileProperties struct {
 
 // CloudInfoRequest describes Cloud info requests
 type CloudInfoRequest struct {
-	OrganizationId pkgAuth.OrganizationID `json:"-"`
-	SecretId       string                 `json:"secretId,omitempty"`
-	Filter         *CloudInfoFilter       `json:"filter,omitempty"`
+	OrganizationId uint             `json:"-"`
+	SecretId       string           `json:"secretId,omitempty"`
+	Filter         *CloudInfoFilter `json:"filter,omitempty"`
 }
 
 // CloudInfoFilter describes a filter in cloud info
@@ -566,8 +552,8 @@ type SupportedClusterItem struct {
 
 // CreateClusterResponse describes Pipeline's CreateCluster API response
 type CreateClusterResponse struct {
-	Name       string    `json:"name"`
-	ResourceID ClusterID `json:"id"`
+	Name       string `json:"name"`
+	ResourceID uint   `json:"id"`
 }
 
 // PodDetailsResponse describes a pod
@@ -604,6 +590,13 @@ type ResourceSummaryItem struct {
 	Allocatable string `json:"allocatable,omitempty"`
 	Limit       string `json:"limit,omitempty"`
 	Request     string `json:"request,omitempty"`
+}
+
+// NodePoolLabel desribes labels on a node pool
+type NodePoolLabel struct {
+	Name     string `json:"Name"`
+	Value    string `json:"Value"`
+	Reserved bool   `json:"Reserved"`
 }
 
 // CreateClusterRequest creates a CreateClusterRequest model from profile

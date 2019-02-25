@@ -95,7 +95,7 @@ Resources:
       - Key: ClusterName
         Value: !Ref ClusterName
       - Key: Name
-        Value: !Join ["", ["pke-master-", !Ref ClusterName]]
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-master"]]
       - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
         Value: "owned"
     DependsOn:
@@ -127,7 +127,7 @@ Resources:
         SourceSecurityGroupId: !Ref "ClusterSecurityGroup"
       Tags:
       - Key: Name
-        Value: !Join ["", ["pke-sg-cluster-", !Ref ClusterName]]
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-sg-master"]]
 
   ClusterSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -139,7 +139,7 @@ Resources:
       - Key: ClusterName
         Value: !Ref ClusterName
       - Key: Name
-        Value: !Join ["", ["pke-sg-cluster-",!Ref ClusterName ]]
+        Value: !Join ["", ["pke-",!Ref ClusterName, "-sg-cluster" ]]
       - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
         Value: "owned"
 

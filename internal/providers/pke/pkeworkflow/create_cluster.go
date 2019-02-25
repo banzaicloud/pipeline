@@ -228,7 +228,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 				Pool:                  np,
 				WorkerInstanceProfile: rolesOutput["WorkerInstanceProfile"],
 				VPCID:                 vpcOutput["VpcId"],
-				SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[1],
+				SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
 				ClusterSecurityGroup:  clusterSecurityGroup,
 				ExternalBaseUrl:       input.PipelineExternalURL,
 				SSHKeyName:            keyOut.KeyName,

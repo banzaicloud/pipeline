@@ -25,7 +25,6 @@ import (
 	"net/http"
 	"path"
 
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -76,7 +75,7 @@ type anchoreUserPostBody struct {
 
 // AnchoreRequest anchore API request
 type AnchoreRequest struct {
-	OrgID     pkgAuth.OrganizationID
+	OrgID     uint
 	ClusterID string
 	Method    string
 	URL       string
@@ -203,7 +202,7 @@ func anchoreUserEndPoint(username string) string {
 }
 
 //SetupAnchoreUser sets up a new user in Anchore Postgres DB & creates / updates a secret containng user name /password.
-func SetupAnchoreUser(orgId pkgAuth.OrganizationID, clusterId string) (*User, error) {
+func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 	anchoreUserName := fmt.Sprintf("%v-anchore-user", clusterId)
 	var user User
 	if checkAnchoreUser(anchoreUserName, http.MethodGet) != http.StatusOK {
@@ -262,7 +261,7 @@ func SetupAnchoreUser(orgId pkgAuth.OrganizationID, clusterId string) (*User, er
 	return &user, nil
 }
 
-func RemoveAnchoreUser(orgId pkgAuth.OrganizationID, clusterId string) {
+func RemoveAnchoreUser(orgId uint, clusterId string) {
 
 	anchorUserName := fmt.Sprintf("%v-anchore-user", clusterId)
 

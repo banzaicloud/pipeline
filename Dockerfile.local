@@ -8,7 +8,7 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     go install ./cmd/aws-iam-authenticator
 
 
-FROM alpine:3.8
+FROM alpine:3.9
 
 RUN apk add --no-cache ca-certificates tzdata
 

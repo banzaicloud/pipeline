@@ -16,15 +16,13 @@ package pkeworkflowadapter
 
 import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
-	"github.com/banzaicloud/pipeline/pkg/auth"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 // InternalSecretStore is an interface for the internal secret store.
 type InternalSecretStore interface {
 	// Get retrieves a secret from the store.
-	Get(organizationID auth.OrganizationID, secretID pkgSecret.SecretID) (*secret.SecretItemResponse, error)
+	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 }
 
 // SecretStore is a wrapper for the internal secret store.
@@ -40,7 +38,7 @@ func NewSecretStore(secrets InternalSecretStore) *SecretStore {
 }
 
 func (s *SecretStore) GetSecret(organizationID uint, secretID string) (pkeworkflow.Secret, error) {
-	sec, err := s.secrets.Get(auth.OrganizationID(organizationID), pkgSecret.SecretID(secretID))
+	sec, err := s.secrets.Get(organizationID, secretID)
 	if err != nil {
 		return nil, err
 	}

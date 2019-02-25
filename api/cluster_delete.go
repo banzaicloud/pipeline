@@ -20,16 +20,15 @@ import (
 
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/gin-gonic/gin"
 )
 
 // DeleteClusterResponse describes Pipeline's DeleteCluster API response
 type DeleteClusterResponse struct {
-	Status     int                  `json:"status"`
-	Name       string               `json:"name"`
-	Message    string               `json:"message"`
-	ResourceID pkgCluster.ClusterID `json:"id"`
+	Status     int    `json:"status"`
+	Name       string `json:"name"`
+	Message    string `json:"message"`
+	ResourceID uint   `json:"id"`
 }
 
 // DeleteCluster deletes a K8S cluster from the cloud

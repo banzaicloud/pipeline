@@ -29,7 +29,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	"github.com/banzaicloud/pipeline/pkg/cluster/kubernetes"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -56,7 +55,7 @@ const (
 
 // nolint: gochecknoglobals
 var (
-	clusterRequestSecretId   = pkgSecret.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(secretName))))
+	clusterRequestSecretId   = fmt.Sprintf("%x", sha256.Sum256([]byte(secretName)))
 	clusterRequestNodeLabels = map[string]string{
 		"testname": "testvalue",
 	}

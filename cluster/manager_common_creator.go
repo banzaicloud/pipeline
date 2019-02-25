@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/client"
@@ -54,7 +53,7 @@ func (c *commonCreator) Create(ctx context.Context) error {
 }
 
 type TokenGenerator interface {
-	GenerateClusterToken(orgID pkgAuth.OrganizationID, clusterID pkgCluster.ClusterID) (string, string, error)
+	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
 }
 
 // NewClusterCreator returns a new PKE or Common cluster creator instance depending on the cluster.

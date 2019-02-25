@@ -19,9 +19,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -37,22 +34,22 @@ const (
 
 // ClusterModel describes the common cluster model.
 type ClusterModel struct {
-	ID  pkgCluster.ClusterID `gorm:"primary_key"`
-	UID string               `gorm:"unique_index:idx_uid"`
+	ID  uint   `gorm:"primary_key"`
+	UID string `gorm:"unique_index:idx_uid"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
-	CreatedBy pkgAuth.UserID
+	CreatedBy uint
 
 	Name           string `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
-	Distribution   pkgCluster.DistributionID
-	OrganizationID pkgAuth.OrganizationID `gorm:"unique_index:idx_unique_id"`
-	SecretID       pkgSecret.SecretID
-	ConfigSecretID pkgSecret.SecretID
-	SSHSecretID    pkgSecret.SecretID
+	Distribution   string
+	OrganizationID uint `gorm:"unique_index:idx_unique_id"`
+	SecretID       string
+	ConfigSecretID string
+	SSHSecretID    string
 	Status         string
 	RbacEnabled    bool
 	Monitoring     bool

@@ -17,7 +17,6 @@ package cluster
 import (
 	"context"
 
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -26,9 +25,9 @@ import (
 
 // UpdateContext represents the data necessary to do generic cluster update steps/checks.
 type UpdateContext struct {
-	OrganizationID pkgAuth.OrganizationID
-	UserID         pkgAuth.UserID
-	ClusterID      pkgCluster.ClusterID
+	OrganizationID uint
+	UserID         uint
+	ClusterID      uint
 }
 
 type clusterUpdater interface {

@@ -147,7 +147,7 @@ func (d *GKEProfile) GetCloud() string {
 }
 
 // GetDistribution returns profile's distribution type
-func (d *GKEProfile) GetDistribution() pkgCluster.DistributionID {
+func (d *GKEProfile) GetDistribution() string {
 	return pkgCluster.GKE
 }
 

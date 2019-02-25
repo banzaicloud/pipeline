@@ -81,6 +81,11 @@ bin/dep-${DEP_VERSION}:
 .PHONY: vendor
 vendor: bin/dep ## Install dependencies
 	bin/dep ensure -v -vendor-only
+	@touch vendor/.auto
+
+vendor/.auto: Gopkg.lock bin/dep # install/update dependencies if needed
+	bin/dep ensure -v -vendor-only
+	@touch $@
 
 config/config.toml:
 	cp config/config.toml.dist config/config.toml
@@ -90,8 +95,16 @@ config/dex.yml:
 
 .PHONY: run
 run: GOTAGS += dev
-run: build ## Build and execute a binary
+run: build-pipeline ## Build and execute a binary
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
+
+.PHONY: run-worker
+run-worker: GOTAGS += dev
+run-worker: build-worker ## Build and execute a binary
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker ${ARGS}
+
+.PHONY: runall ## Run worker and pipeline in foreground. Use with make -j.
+runall: run run-worker
 
 .PHONY: goversion
 goversion:
@@ -100,7 +113,7 @@ ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
 endif
 
 .PHONY: build-%
-build-%: goversion ## Build a binary
+build-%: goversion vendor/.auto ## Build a binary
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
 
 builds := $(patsubst ./cmd/%,build-%,$(wildcard ./cmd/*))

@@ -19,7 +19,6 @@ import (
 	"strings"
 	"time"
 
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -28,7 +27,7 @@ import (
 type Model struct {
 	ID        uint `gorm:"primary_key"`
 	CreatedAt time.Time
-	CreatedBy pkgAuth.UserID
+	CreatedBy uint
 
 	ClusterID uint `gorm:"foreignkey:ClusterID"`
 }

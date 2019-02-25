@@ -110,6 +110,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 				ParameterValue: &clusterName,
 			},
 			{
+				ParameterKey:   aws.String("NodeGroupName"),
+				ParameterValue: &input.Pool.Name,
+			},
+			{
 				ParameterKey:   aws.String("PkeCommand"),
 				ParameterValue: &bootstrapCommand,
 			},

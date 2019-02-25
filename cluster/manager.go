@@ -22,8 +22,6 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/goph/emperror"
 	cache "github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
@@ -33,16 +31,16 @@ import (
 )
 
 type clusterRepository interface {
-	Exists(organizationID pkgAuth.OrganizationID, name string) (bool, error)
+	Exists(organizationID uint, name string) (bool, error)
 	All() ([]*model.ClusterModel, error)
-	FindByOrganization(organizationID pkgAuth.OrganizationID) ([]*model.ClusterModel, error)
-	FindOneByID(organizationID pkgAuth.OrganizationID, clusterID uint) (*model.ClusterModel, error)
-	FindOneByName(organizationID pkgAuth.OrganizationID, clusterName string) (*model.ClusterModel, error)
-	FindBySecret(organizationID pkgAuth.OrganizationID, secretID pkgSecret.SecretID) ([]*model.ClusterModel, error)
+	FindByOrganization(organizationID uint) ([]*model.ClusterModel, error)
+	FindOneByID(organizationID uint, clusterID uint) (*model.ClusterModel, error)
+	FindOneByName(organizationID uint, clusterName string) (*model.ClusterModel, error)
+	FindBySecret(organizationID uint, secretID string) ([]*model.ClusterModel, error)
 }
 
 type secretValidator interface {
-	ValidateSecretType(organizationID pkgAuth.OrganizationID, secretID pkgSecret.SecretID, cloud string) error
+	ValidateSecretType(organizationID uint, secretID string, cloud string) error
 }
 
 type kubeProxyCache interface {
@@ -96,7 +94,7 @@ func (m *Manager) getErrorHandler(ctx context.Context) emperror.Handler {
 	return pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler)
 }
 
-func (m *Manager) getPrometheusTimer(provider, location, status string, orgId pkgAuth.OrganizationID, clusterName string) (*prometheus.Timer, error) {
+func (m *Manager) getPrometheusTimer(provider, location, status string, orgId uint, clusterName string) (*prometheus.Timer, error) {
 	if viper.GetBool(config.MetricsDebug) {
 		org, err := auth.GetOrganizationById(orgId)
 		if err != nil {

@@ -16,8 +16,6 @@ package azure
 
 import (
 	"github.com/banzaicloud/pipeline/auth"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // TableName constants
@@ -29,18 +27,18 @@ const (
 type ObjectStoreBucketModel struct {
 	ID uint `gorm:"primary_key"`
 
-	Organization   auth.Organization      `gorm:"foreignkey:OrganizationID"`
-	OrganizationID pkgAuth.OrganizationID `gorm:"index;not null"`
+	Organization   auth.Organization `gorm:"foreignkey:OrganizationID"`
+	OrganizationID uint              `gorm:"index;not null"`
 
 	Name           string `gorm:"unique_index:idx_bucket_name"`
 	ResourceGroup  string `gorm:"unique_index:idx_bucket_name"`
 	StorageAccount string `gorm:"unique_index:idx_bucket_name"`
 	Location       string
 
-	SecretRef       pkgSecret.SecretID
+	SecretRef       string
 	Status          string
 	StatusMsg       string `sql:"type:text;"`
-	AccessSecretRef pkgSecret.SecretID
+	AccessSecretRef string
 }
 
 // TableName changes the default table name.
