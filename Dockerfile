@@ -25,7 +25,7 @@ RUN apk add --update --no-cache ca-certificates tzdata
 
 COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=builder /go/src/github.com/banzaicloud/pipeline/views /views/
-COPY --from=builder /go/src/github.com/banzaicloud/pipeline/templates/eks /templates/eks/
+COPY --from=builder /go/src/github.com/banzaicloud/pipeline/templates /templates/
 COPY --from=builder /build/release/pipeline /
 COPY --from=builder /build/release/worker /
 
