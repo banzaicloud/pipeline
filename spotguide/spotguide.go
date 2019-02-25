@@ -146,7 +146,7 @@ func CreateSharedSpotguideOrganization(db *gorm.DB, sharedLibraryGitHubOrganizat
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to query shared Github organization")
 	}
-	sharedOrg = &auth.Organization{Name: *githubOrg.Login, GithubID: githubOrg.ID}
+	sharedOrg = &auth.Organization{Name: *githubOrg.Login, GithubID: githubOrg.ID, Provider: "github"}
 	if err := db.Where(sharedOrg).FirstOrCreate(sharedOrg).Error; err != nil {
 		return nil, emperror.Wrap(err, "failed to create shared organization")
 	}
