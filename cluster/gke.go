@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -35,7 +36,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/gin-gonic/gin/json"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"

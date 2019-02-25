@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -22,7 +23,6 @@ import (
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/gin-gonic/gin/json"
 	gke "google.golang.org/api/container/v1"
 )
 
