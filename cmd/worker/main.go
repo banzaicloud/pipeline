@@ -32,7 +32,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/secret"
@@ -41,6 +40,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/uber-common/bark"
+	"github.com/uber-common/bark/zbark"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 )
@@ -107,11 +108,7 @@ func main() {
 	// Configure Cadence worker
 	{
 		const taskList = "pipeline"
-		zapLogger := zaplog.NewLogger(zaplog.Config{
-			Level:  config.Log.Level,
-			Format: config.Log.Format,
-		})
-		worker, err := cadence.NewWorker(config.Cadence, taskList, zapLogger)
+		worker, err := cadence.NewWorker(config.Cadence, taskList, zbark.Zapify(bark.NewLoggerFromLogrus(conf.Logger()).WithField("component", "cadence-worker")))
 		emperror.Panic(err)
 
 		workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
