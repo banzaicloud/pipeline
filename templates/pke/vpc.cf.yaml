@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Amazon EKS VPC'
+Description: 'Amazon VPC for Banzai Cloud Pipeline Kubernetes Engine'
 
 Parameters:
 
@@ -38,12 +38,12 @@ Metadata:
     ParameterGroups:
       -
         Label:
-          default: "EKS Cluster"
+          default: "PKE Cluster"
         Parameters:
           - ClusterName
       -
         Label:
-          default: "Worker Network Configuration"
+          default: "PKE Worker Network Configuration"
         Parameters:
           - VpcId
           - RouteTableId
