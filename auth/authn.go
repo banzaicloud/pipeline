@@ -71,8 +71,11 @@ const SessionCookieName = "Pipeline session token"
 const (
 	ProviderDexGithub = "dex:github"
 	ProviderGithub    = "github"
-	ProviderUser      = "user"
 )
+
+func getBackendProvider(dexProvider string) string {
+	return strings.TrimPrefix(dexProvider, "dex:")
+}
 
 // Init authorization
 // nolint: gochecknoglobals

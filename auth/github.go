@@ -111,7 +111,7 @@ func getGithubOrganizations(token string) ([]organization, error) {
 	userOrg := organization{
 		name:     *user.Login,
 		role:     "admin",
-		provider: ProviderUser,
+		provider: ProviderGithub,
 	}
 
 	orgs = append(orgs, userOrg)
