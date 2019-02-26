@@ -50,7 +50,7 @@ import (
 	"google.golang.org/api/googleapi"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/rbac/v1beta1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -1246,11 +1246,11 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 		return "", emperror.WrapWith(err, "creating service account failed", "namespace", defaultNamespace, "service account", serviceAccount)
 	}
 
-	adminRole := &v1beta1.ClusterRole{
+	adminRole := &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: clusterAdmin,
 		},
-		Rules: []v1beta1.PolicyRule{
+		Rules: []rbacv1.PolicyRule{
 			{
 				APIGroups: []string{"*"},
 				Resources: []string{"*"},
@@ -1262,33 +1262,31 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 			},
 		},
 	}
-	clusterAdminRole, err := clientset.RbacV1beta1().ClusterRoles().Get(clusterAdmin, metav1.GetOptions{})
+	clusterAdminRole, err := clientset.RbacV1().ClusterRoles().Get(clusterAdmin, metav1.GetOptions{})
 	if err != nil {
-		clusterAdminRole, err = clientset.RbacV1beta1().ClusterRoles().Create(adminRole)
+		clusterAdminRole, err = clientset.RbacV1().ClusterRoles().Create(adminRole)
 		if err != nil {
 			return "", emperror.WrapWith(err, "creating cluster role failed", "cluster role", adminRole.Name)
 		}
 	}
 
-	clusterRoleBinding := &v1beta1.ClusterRoleBinding{
+	clusterRoleBinding := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s-clusterRoleBinding", netesDefault),
 		},
-		Subjects: []v1beta1.Subject{
+		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
 				Name:      serviceAccount.Name,
 				Namespace: "default",
-				APIGroup:  v1.GroupName,
 			},
 		},
-		RoleRef: v1beta1.RoleRef{
-			Kind:     "ClusterRole",
-			Name:     clusterAdminRole.Name,
-			APIGroup: v1beta1.GroupName,
+		RoleRef: rbacv1.RoleRef{
+			Kind: "ClusterRole",
+			Name: clusterAdminRole.Name,
 		},
 	}
-	if _, err = clientset.RbacV1beta1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil && !k8sErrors.IsAlreadyExists(err) {
+	if _, err = clientset.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return "", emperror.WrapWith(err, "creating cluster role binding failed", "cluster role", clusterAdminRole.Name, "service account", serviceAccount.Name)
 	}
 

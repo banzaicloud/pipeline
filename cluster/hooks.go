@@ -49,7 +49,6 @@ import (
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/api/rbac/v1beta1"
 	storagev1 "k8s.io/api/storage/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -563,7 +562,7 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 		// cluster role based on https://github.com/helm/charts/blob/master/stable/kubernetes-dashboard/templates/role.yaml
 		clusterRoleName := k8sDashboardReleaseName
-		rules := []v1beta1.PolicyRule{
+		rules := []rbacv1.PolicyRule{
 			// Allow to list all
 			{
 				APIGroups: []string{"*"},
@@ -655,22 +654,20 @@ func setAdminRights(client *kubernetes.Clientset, userName string) (err error) {
 
 	log.Info("cluster role creating")
 
-	_, err = client.RbacV1beta1().ClusterRoleBindings().Create(
-		&v1beta1.ClusterRoleBinding{
+	_, err = client.RbacV1().ClusterRoleBindings().Create(
+		&rbacv1.ClusterRoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 			},
-			Subjects: []v1beta1.Subject{
+			Subjects: []rbacv1.Subject{
 				{
-					Kind:     "User",
-					Name:     userName,
-					APIGroup: v1.GroupName,
+					Kind: "User",
+					Name: userName,
 				},
 			},
-			RoleRef: v1beta1.RoleRef{
-				Kind:     "ClusterRole",
-				Name:     "cluster-admin",
-				APIGroup: v1beta1.GroupName,
+			RoleRef: rbacv1.RoleRef{
+				Kind: "ClusterRole",
+				Name: "cluster-admin",
 			},
 		})
 
@@ -1367,7 +1364,7 @@ func CreateClusterRoles(cluster CommonCluster) error {
 
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: org.Name,
+			Name: org.Name + "-cluster-admin",
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind: "ClusterRole",
