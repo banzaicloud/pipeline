@@ -71,12 +71,26 @@ func (c *Clusters) FindByOrganization(organizationID uint) ([]*model.ClusterMode
 
 // FindOneByID returns a cluster instance for an organization by cluster ID.
 func (c *Clusters) FindOneByID(organizationID uint, clusterID uint) (*model.ClusterModel, error) {
-	return c.findOneBy(organizationID, "id", clusterID)
+	cluster, err := c.findOneBy(model.ClusterModel{
+		OrganizationId: organizationID,
+		ID:             clusterID,
+	})
+	if err != nil {
+		return nil, emperror.Wrap(err, "could not find cluster by ID")
+	}
+	return cluster, nil
 }
 
 // FindOneByName returns a cluster instance for an organization by cluster name.
 func (c *Clusters) FindOneByName(organizationID uint, clusterName string) (*model.ClusterModel, error) {
-	return c.findOneBy(organizationID, "name", clusterName)
+	cluster, err := c.findOneBy(model.ClusterModel{
+		OrganizationId: organizationID,
+		Name:           clusterName,
+	})
+	if err != nil {
+		return nil, emperror.Wrap(err, "could not find cluster by name")
+	}
+	return cluster, nil
 }
 
 type clusterModelNotFoundError struct {
@@ -100,44 +114,20 @@ func (e *clusterModelNotFoundError) NotFound() bool {
 }
 
 // findOneBy returns a cluster instance for an organization by cluster name.
-func (c *Clusters) findOneBy(organizationID uint, field string, criteria interface{}) (*model.ClusterModel, error) {
-	cluster := model.ClusterModel{
-		OrganizationId: organizationID,
-	}
-
-	switch field {
-	case "id":
-		id, ok := criteria.(uint)
-		if !ok {
-			return nil, errors.New("criteria is not a valid uint value for id")
-		}
-
-		cluster.ID = id
-
-	case "name":
-		name, ok := criteria.(string)
-		if !ok {
-			return nil, errors.New("criteria is not a valid string value for name")
-		}
-
-		cluster.Name = name
-	}
-
-	err := c.db.Where(cluster).Preload("ScaleOptions").First(&cluster).Error
+func (c *Clusters) findOneBy(cluster model.ClusterModel) (*model.ClusterModel, error) {
+	var result model.ClusterModel
+	err := c.db.Where(cluster).Preload("ScaleOptions").First(&result).Error
 	if gorm.IsRecordNotFoundError(err) {
 		return nil, errors.WithStack(&clusterModelNotFoundError{
-			cluster:        criteria,
-			organizationID: organizationID,
+			cluster:        cluster,
+			organizationID: cluster.OrganizationId,
 		})
-	} else if err != nil {
-		return nil, emperror.With(
-			errors.Wrapf(err, "could not get cluster by %s", field),
-			"cluster", criteria,
-			"organization", organizationID,
-		)
+	}
+	if err != nil {
+		return nil, emperror.With(err, "cluster", cluster, "organization", cluster.OrganizationId)
 	}
 
-	return &cluster, nil
+	return &result, nil
 }
 
 // FindBySecret returns all cluster instances for an organization filtered by secret.
