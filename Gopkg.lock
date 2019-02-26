@@ -420,14 +420,6 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:6b2fc71062354c8eb3fa9d20a4b9adb7a9148706cecc9140db2c28b4f094b992"
-  name = "github.com/dexidp/dex"
-  packages = ["api"]
-  pruneopts = "NUT"
-  revision = "7bd4071b4c8ced39568fbc48332641b5cdcc164c"
-  version = "v2.15.0"
-
-[[projects]]
   digest = "1:2e08f767623936c719c07f52e1c89bb5d8597aac6b5fe669e6e851b92cebbe69"
   name = "github.com/dgrijalva/jwt-go"
   packages = [
@@ -2714,7 +2706,6 @@
     "github.com/banzaicloud/nodepool-labels-operator/pkg/npls",
     "github.com/banzaicloud/prometheus-config",
     "github.com/casbin/gorm-adapter",
-    "github.com/dexidp/dex/api",
     "github.com/dgrijalva/jwt-go",
     "github.com/didip/tollbooth",
     "github.com/docker/libcompose/yaml",
@@ -2795,8 +2786,6 @@
     "google.golang.org/api/serviceusage/v1",
     "google.golang.org/api/storage/v1",
     "google.golang.org/genproto/googleapis/iam/credentials/v1",
-    "google.golang.org/grpc",
-    "google.golang.org/grpc/credentials",
     "gopkg.in/yaml.v2",
     "k8s.io/api/autoscaling/v2beta1",
     "k8s.io/api/core/v1",

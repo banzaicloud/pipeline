@@ -140,7 +140,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 			},
 			{
 				ParameterKey:   aws.String("PkeVersion"),
-				ParameterValue: aws.String("0.0.6"),
+				ParameterValue: aws.String("0.0.5"),
 			},
 			{
 				ParameterKey:   aws.String("KeyName"),
