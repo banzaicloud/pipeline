@@ -49,13 +49,21 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	var masterOutput map[string]string
-	waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
-		ClusterID: input.ClusterID,
-		StackID:   "pke-master-" + input.ClusterName,
+	// Generic AWS activity input
+	awsActivityInput := AWSActivityInput{
+		OrganizationID: input.OrganizationID,
+		SecretID:       input.SecretID,
+		Region:         input.Region,
 	}
 
-	if err := workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &masterOutput); err != nil {
+	var masterOutput map[string]string
+	err := workflow.ExecuteActivity(ctx,
+		WaitCFCompletionActivityName,
+		WaitCFCompletionActivityInput{
+			AWSActivityInput: awsActivityInput,
+			StackID:          "pke-master-" + input.ClusterName,
+		}).Get(ctx, &masterOutput)
+	if err != nil {
 		return err
 	}
 	clusterSecurityGroup := masterOutput["ClusterSecurityGroup"]
@@ -87,6 +95,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 		}
 
 		err := workflow.ExecuteActivity(ctx, DeletePoolActivityName, DeletePoolActivityInput{
+			//AWSActivityInput: awsActivityInput,
 			ClusterID: input.ClusterID,
 			Pool:      np,
 		}).Get(ctx, nil)
@@ -109,8 +118,8 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			err := workflow.ExecuteActivity(ctx,
 				WaitCFCompletionActivityName,
 				WaitCFCompletionActivityInput{
-					ClusterID: input.ClusterID,
-					StackID:   stackName}).Get(ctx, &cfOut)
+					AWSActivityInput: awsActivityInput,
+					StackID:          stackName}).Get(ctx, &cfOut)
 			if err != nil {
 				return emperror.Wrap(err, fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
 			}
@@ -123,7 +132,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			err = workflow.ExecuteActivity(ctx,
 				UpdatePoolActivityName,
 				UpdatePoolActivityInput{
-					ClusterID:        input.ClusterID,
+					AWSActivityInput: awsActivityInput,
 					Pool:             np,
 					AutoScalingGroup: asg,
 				}).Get(ctx, nil)
@@ -137,6 +146,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 		// create new
 
 		createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
+			//AWSActivityInput:      awsActivityInput,
 			ClusterID:             input.ClusterID,
 			Pool:                  np,
 			WorkerInstanceProfile: PkeGlobalStackName + "-worker-profile",

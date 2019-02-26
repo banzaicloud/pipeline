@@ -16,46 +16,34 @@ package pkeworkflow
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 )
 
 const UpdatePoolActivityName = "pke-update-aws-pool-activity"
 
 type UpdatePoolActivity struct {
-	clusters Clusters
+	awsClientFactory *AWSClientFactory
 }
 
-func NewUpdatePoolActivity(clusters Clusters) *UpdatePoolActivity {
+func NewUpdatePoolActivity(awsClientFactory *AWSClientFactory) *UpdatePoolActivity {
 	return &UpdatePoolActivity{
-		clusters: clusters,
+		awsClientFactory: awsClientFactory,
 	}
 }
 
 type UpdatePoolActivityInput struct {
-	ClusterID        uint
+	AWSActivityInput
 	Pool             NodePool
 	AutoScalingGroup string
 }
 
 func (a *UpdatePoolActivity) Execute(ctx context.Context, input UpdatePoolActivityInput) error {
-	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	client, err := a.awsClientFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err != nil {
 		return err
-	}
-
-	awsCluster, ok := cluster.(AWSCluster)
-	if !ok {
-		return errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
-	}
-
-	client, err := awsCluster.GetAWSClient()
-	if err != nil {
-		return emperror.Wrap(err, "failed to connect to AWS")
 	}
 
 	autoscalingSrv := autoscaling.New(client)

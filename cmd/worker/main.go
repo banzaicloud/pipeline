@@ -188,6 +188,9 @@ func main() {
 		deletePoolActivity := pkeworkflow.NewDeletePoolActivity(clusters)
 		activity.RegisterWithOptions(deletePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeletePoolActivityName})
 
+		updatePoolActivity := pkeworkflow.NewUpdatePoolActivity(awsClientFactory)
+		activity.RegisterWithOptions(updatePoolActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdatePoolActivityName})
+
 		deleteElasticIPActivity := pkeworkflow.NewDeleteElasticIPActivity(clusters)
 		activity.RegisterWithOptions(deleteElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteElasticIPActivityName})
 
