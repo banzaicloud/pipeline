@@ -41,13 +41,15 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 			"please check your subscription)")
 	}
 
-	_, err := waitUntilClusterCreateOrScaleComplete(log, clusterID, csClient, true)
+	cluster, err := waitUntilClusterCreateOrScaleComplete(log, clusterID, csClient, true)
 	if err != nil {
 		if strings.Contains(err.Error(), "ErrorClusterNotFound") {
 			return nil
 		}
 
-		return emperror.Wrap(err, "could not delete cluster!")
+		if cluster == nil {
+			return emperror.Wrap(err, "could not delete cluster!")
+		}
 	}
 
 	req := cs.CreateDeleteClusterRequest()
@@ -385,7 +387,7 @@ func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID str
 				log.Warn(err)
 				continue
 			}
-			return r, err
+			return nil, err
 		}
 
 		if r.State != state {
@@ -407,7 +409,7 @@ func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID str
 					log.Error("failed to collect cluster failure event log")
 				}
 				if len(logs) > 0 {
-					return nil, AlibabaClusterFailureLogsError{clusterEventLogs: logs}
+					return r, AlibabaClusterFailureLogsError{clusterEventLogs: logs}
 				}
 			}
 
@@ -425,7 +427,7 @@ func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID str
 				log.Error("failed to collect cluster failure event log")
 			}
 
-			return nil, AlibabaClusterFailureLogsError{clusterEventLogs: logs}
+			return r, AlibabaClusterFailureLogsError{clusterEventLogs: logs}
 		default:
 			time.Sleep(time.Second * 20)
 		}
