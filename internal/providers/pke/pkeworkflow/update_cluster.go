@@ -124,7 +124,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				return emperror.Wrap(err, fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
 			}
 
-			asg, ok := cfOut["AutoScalingGroup"]
+			asg, ok := cfOut["AutoScalingGroupId"]
 			if !ok {
 				return errors.New(fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
 			}
