@@ -293,7 +293,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
 	// GitHub API query to get the user login and image to retain compatibility for now
 	var githubUserMeta *githubUserMeta
-	if schema.Provider == "dex:github" {
+	if schema.Provider == ProviderDexGithub {
 
 		githubUserMeta, err = getGithubUserMeta(schema)
 		if err != nil {
@@ -327,7 +327,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	// When a user registers a default organization is created in which he/she is admin
 	userOrg := Organization{
 		Name:     currentUser.Login,
-		Provider: "user",
+		Provider: getBackendProvider(schema.Provider),
 	}
 	currentUser.Organizations = []Organization{userOrg}
 
@@ -347,7 +347,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
 	// Import Github organizations in case of GitHub
-	if schema.Provider == "dex:github" {
+	if schema.Provider == ProviderDexGithub {
 		err = bus.githubImporter.ImportOrganizationsFromDex(currentUser, organizations)
 	}
 
@@ -465,7 +465,7 @@ func (i *GithubImporter) ImportOrganizationsFromGithub(currentUser *User, github
 func (i *GithubImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string) error {
 	var orgs []organization
 	for _, org := range organizations {
-		orgs = append(orgs, organization{name: org, provider: "github"})
+		orgs = append(orgs, organization{name: org, provider: ProviderGithub})
 	}
 
 	return i.ImportGithubOrganizations(currentUser, orgs)

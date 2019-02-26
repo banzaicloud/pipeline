@@ -88,7 +88,7 @@ func getGithubOrganizations(token string) ([]organization, error) {
 
 	memberships, _, err := githubClient.Organizations.ListOrgMemberships(oauth2.NoContext, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to list organization memberships")
+		return nil, errors.Wrap(err, "failed to list organization memberships from github")
 	}
 
 	var orgs []organization
@@ -97,11 +97,24 @@ func getGithubOrganizations(token string) ([]organization, error) {
 			name:     membership.GetOrganization().GetLogin(),
 			id:       membership.GetOrganization().GetID(),
 			role:     membership.GetRole(),
-			provider: "github",
+			provider: ProviderGithub,
 		}
 
 		orgs = append(orgs, org)
 	}
+
+	user, _, err := githubClient.Users.Get(context.Background(), "")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch user from github")
+	}
+
+	userOrg := organization{
+		name:     *user.Login,
+		role:     "admin",
+		provider: ProviderGithub,
+	}
+
+	orgs = append(orgs, userOrg)
 
 	return orgs, nil
 }

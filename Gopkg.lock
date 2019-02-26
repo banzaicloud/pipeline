@@ -347,6 +347,14 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  digest = "1:a1e402c0a7eb4122cb9e4c3dcd1aa20bb238767ea1a857cc5d245f05c0cd5b3c"
+  name = "github.com/cactus/go-statsd-client"
+  packages = ["statsd"]
+  pruneopts = "NUT"
+  revision = "138b925ccdf617776955904ba7759fce64406cec"
+  version = "v3.1.1"
+
+[[projects]]
   digest = "1:d7149665a6945aa722d14922377a6d428dc0793d39977cd0ebed2e9263972760"
   name = "github.com/casbin/casbin"
   packages = [
@@ -410,6 +418,14 @@
   pruneopts = "NUT"
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  digest = "1:6b2fc71062354c8eb3fa9d20a4b9adb7a9148706cecc9140db2c28b4f094b992"
+  name = "github.com/dexidp/dex"
+  packages = ["api"]
+  pruneopts = "NUT"
+  revision = "7bd4071b4c8ced39568fbc48332641b5cdcc164c"
+  version = "v2.15.0"
 
 [[projects]]
   digest = "1:2e08f767623936c719c07f52e1c89bb5d8597aac6b5fe669e6e851b92cebbe69"
@@ -828,15 +844,16 @@
   version = "v0.16.0"
 
 [[projects]]
-  digest = "1:3a441554e83ca3b1b26f18de3a32d979a32de57bf2e69b8f16f508dfa4232029"
+  digest = "1:b6af66e0bc44844277c94aacec74e8da06a5cb691cc4aa9ce363f20c0dd6eca9"
   name = "github.com/goph/logur"
   packages = [
     ".",
     "adapters/logrusadapter",
+    "integrations/zaplog",
   ]
   pruneopts = "NUT"
-  revision = "72381de18a2f0fb8cd421a6316af719950ce3bef"
-  version = "v0.10.0"
+  revision = "4f5b4da9656e77984dc8d9c43bbb385430ef0e85"
+  version = "v0.11.0"
 
 [[projects]]
   digest = "1:dbd86d229eacaa86a98b10f8fb3e3fc69a1913e0f4e010e7cc1f92bf12edca92"
@@ -1070,14 +1087,6 @@
   pruneopts = "NUT"
   revision = "1624edc4454b8682399def8740d46db5e4362ba4"
   version = "v1.1.5"
-
-[[projects]]
-  digest = "1:45bba2e6115039916f7592304640178725ee7dd82cb5baeeaea6d76ccda952fc"
-  name = "github.com/jsternberg/zap-logfmt"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "ef1948cade6f9592fac3f57654e3ddfc4986bb52"
-  version = "v1.2.0"
 
 [[projects]]
   digest = "1:d3209f11918bfd131db14e9ea1691bd202568228715980f71e56b1bd60ad1e07"
@@ -1624,6 +1633,17 @@
   version = "0.2.0"
 
 [[projects]]
+  digest = "1:2e0ce46ff4b3c6038ba31d83c9b42661695f2658e901f9a0b753fd3806c63142"
+  name = "github.com/uber-common/bark"
+  packages = [
+    ".",
+    "zbark",
+  ]
+  pruneopts = "NUT"
+  revision = "02d883c81a4e7b76904d97efb176efdf4be791bd"
+  version = "v1.2.1"
+
+[[projects]]
   digest = "1:22f696cee54865fb8e9ff91df7b633f6b8f22037a8015253c6b6a71ca82219c7"
   name = "github.com/uber-go/atomic"
   packages = ["."]
@@ -2074,7 +2094,7 @@
   revision = "b5d43981345bdb2c233eb4bf3277847b48c6fdc6"
 
 [[projects]]
-  digest = "1:b140f21b83859b16d263fc34fc316076af1c3e1661d92018a105a8cbf2f24d1e"
+  digest = "1:8462458147dbb4b02e389c8081e235e2ea3023c9baa21f669e9d6a7c37e0c98d"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -2104,8 +2124,8 @@
     "transport",
   ]
   pruneopts = "NUT"
-  revision = "d89cded64628466c4ab532d1f0ba5c220459ebe8"
-  version = "v1.11.2"
+  revision = "d11072e7ca9811b1100b80ca0269ac831f06d024"
+  version = "v1.11.3"
 
 [[projects]]
   branch = "v3"
@@ -2694,13 +2714,13 @@
     "github.com/banzaicloud/nodepool-labels-operator/pkg/npls",
     "github.com/banzaicloud/prometheus-config",
     "github.com/casbin/gorm-adapter",
+    "github.com/dexidp/dex/api",
     "github.com/dgrijalva/jwt-go",
     "github.com/didip/tollbooth",
     "github.com/docker/libcompose/yaml",
     "github.com/ghodss/yaml",
     "github.com/gin-contrib/cors",
     "github.com/gin-gonic/gin",
-    "github.com/gin-gonic/gin/json",
     "github.com/gofrs/uuid",
     "github.com/golang/protobuf/ptypes/duration",
     "github.com/google/go-github/github",
@@ -2708,6 +2728,7 @@
     "github.com/goph/emperror/handler/logrushandler",
     "github.com/goph/logur",
     "github.com/goph/logur/adapters/logrusadapter",
+    "github.com/goph/logur/integrations/zaplog",
     "github.com/gorilla/sessions",
     "github.com/hashicorp/vault/api",
     "github.com/heptio/ark/pkg/apis/ark/v1",
@@ -2719,7 +2740,6 @@
     "github.com/jinzhu/gorm/dialects/sqlite",
     "github.com/jinzhu/now",
     "github.com/jmespath/go-jmespath",
-    "github.com/jsternberg/zap-logfmt",
     "github.com/lestrrat-go/backoff",
     "github.com/microcosm-cc/bluemonday",
     "github.com/mitchellh/mapstructure",
@@ -2749,6 +2769,8 @@
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
     "github.com/technosophos/moniker",
+    "github.com/uber-common/bark",
+    "github.com/uber-common/bark/zbark",
     "go.uber.org/cadence/.gen/go/cadence/workflowserviceclient",
     "go.uber.org/cadence/.gen/go/shared",
     "go.uber.org/cadence/activity",
@@ -2758,7 +2780,6 @@
     "go.uber.org/yarpc",
     "go.uber.org/yarpc/transport/tchannel",
     "go.uber.org/zap",
-    "go.uber.org/zap/zapcore",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh",
     "golang.org/x/net/context",
@@ -2774,12 +2795,13 @@
     "google.golang.org/api/serviceusage/v1",
     "google.golang.org/api/storage/v1",
     "google.golang.org/genproto/googleapis/iam/credentials/v1",
+    "google.golang.org/grpc",
+    "google.golang.org/grpc/credentials",
     "gopkg.in/yaml.v2",
     "k8s.io/api/autoscaling/v2beta1",
     "k8s.io/api/core/v1",
     "k8s.io/api/extensions/v1beta1",
     "k8s.io/api/rbac/v1",
-    "k8s.io/api/rbac/v1beta1",
     "k8s.io/api/storage/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/api/resource",

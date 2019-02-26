@@ -47,8 +47,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"k8s.io/api/core/v1"
-	"k8s.io/api/rbac/v1beta1"
+	v1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -487,6 +488,49 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	return nil
 }
 
+func CreateDefaultStorageclass(commonCluster CommonCluster) error {
+	if distro := commonCluster.GetDistribution(); distro != pkgCluster.PKE {
+		log.Infof("Not creating storageclass for %s", distro)
+		return nil
+	}
+	log.Debug("get K8S config")
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		return err
+	}
+	log.Debug("get K8S connection")
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+	version, err := client.ServerVersion()
+	if err != nil {
+		return emperror.Wrap(err, "could not get server version")
+	}
+	semVer, err := semver.NewVersion(version.String())
+	if err != nil {
+		return emperror.Wrap(err, "could not create semver from server version")
+	}
+	constraint, err := semver.NewConstraint(">= 1.12")
+	if err != nil {
+		return emperror.Wrap(err, "could not set  1.12 constraint for semver")
+	}
+	var volumeBindingMode storagev1.VolumeBindingMode
+	if constraint.Check(semVer) {
+		volumeBindingMode = storagev1.VolumeBindingWaitForFirstConsumer
+	} else {
+		volumeBindingMode = storagev1.VolumeBindingImmediate
+	}
+
+	err = createDefaultStorageClass(client, "kubernetes.io/aws-ebs", volumeBindingMode)
+	if err != nil && !strings.Contains(err.Error(), "already exists") {
+		return emperror.WrapWith(err, "failed to create default storage class",
+			"provisioner", "kubernetes.io/aws-ebs",
+			"bindingMode", volumeBindingMode)
+	}
+	return nil
+}
+
 //InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
@@ -518,7 +562,7 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 		// cluster role based on https://github.com/helm/charts/blob/master/stable/kubernetes-dashboard/templates/role.yaml
 		clusterRoleName := k8sDashboardReleaseName
-		rules := []v1beta1.PolicyRule{
+		rules := []rbacv1.PolicyRule{
 			// Allow to list all
 			{
 				APIGroups: []string{"*"},
@@ -610,22 +654,20 @@ func setAdminRights(client *kubernetes.Clientset, userName string) (err error) {
 
 	log.Info("cluster role creating")
 
-	_, err = client.RbacV1beta1().ClusterRoleBindings().Create(
-		&v1beta1.ClusterRoleBinding{
+	_, err = client.RbacV1().ClusterRoleBindings().Create(
+		&rbacv1.ClusterRoleBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 			},
-			Subjects: []v1beta1.Subject{
+			Subjects: []rbacv1.Subject{
 				{
-					Kind:     "User",
-					Name:     userName,
-					APIGroup: v1.GroupName,
+					Kind: "User",
+					Name: userName,
 				},
 			},
-			RoleRef: v1beta1.RoleRef{
-				Kind:     "ClusterRole",
-				Name:     "cluster-admin",
-				APIGroup: v1beta1.GroupName,
+			RoleRef: rbacv1.RoleRef{
+				Kind: "ClusterRole",
+				Name: "cluster-admin",
 			},
 		})
 
@@ -1163,11 +1205,6 @@ func taintNodes(commonCluster CommonCluster, client *kubernetes.Clientset, nodeP
 				Value:  nodePoolName,
 				Effect: v1.TaintEffectNoSchedule,
 			})
-			taints = append(taints, v1.Taint{
-				Key:    pkgCommon.HeadNodeTaintKey,
-				Value:  nodePoolName,
-				Effect: v1.TaintEffectNoExecute,
-			})
 		}
 
 		marshalledTaints, err := json.Marshal(taints)
@@ -1300,5 +1337,50 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 		}
 	}
 	log.Info("finished initializing spot ConfigMap")
+	return nil
+}
+
+// CreateClusterRoles creates the pre-defined ClusterRoles for a PKE cluster
+func CreateClusterRoles(cluster CommonCluster) error {
+	if distro := cluster.GetDistribution(); distro != pkgCluster.PKE {
+		log.Infof("Not creating ClusterRoleBindings for %s", distro)
+		return nil
+	}
+
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		return emperror.Wrap(err, "failed to get Kubernetes config")
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get Kubernetes clientset from kubeconfig")
+	}
+
+	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+	if err != nil {
+		return emperror.Wrap(err, "failed to get organization of Kubernetes cluster")
+	}
+
+	clusterRoleBinding := rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: org.Name + "-cluster-admin",
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind: "ClusterRole",
+			Name: "cluster-admin",
+		},
+		Subjects: []rbacv1.Subject{{
+			Kind: rbacv1.GroupKind,
+			Name: org.Name,
+		}},
+	}
+
+	_, err = client.RbacV1().ClusterRoleBindings().Create(&clusterRoleBinding)
+
+	if err != nil {
+		return emperror.WrapWith(err, "failed to ClusterRoleBinding", "name", clusterRoleBinding.Name)
+	}
+
 	return nil
 }

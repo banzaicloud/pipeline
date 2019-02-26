@@ -12,9 +12,9 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
   name = "github.com/docker/docker"
   revision = "4f3616fb1c112e206b88cb7a9922bf49067a7756"
 
-[[override]]
+[[constraint]]
   name = "google.golang.org/grpc"
-  version = "=v1.11.2"
+  version = "=v1.11.3"
 
 [[override]]
   name = "github.com/Azure/go-autorest"
@@ -270,17 +270,17 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
   version = "=0.9.3"
 
 [[constraint]]
-  name = "go.uber.org/zap"
-  version = "1.9.1"
-
-[[constraint]]
-  name = "github.com/jsternberg/zap-logfmt"
-  version = "1.2.0"
+  name = "github.com/uber-common/bark"
+  version = "1.2.1"
 
 [[constraint]]
   name = "github.com/goph/logur"
-  version = "0.10.0"
+  version = "0.11.0"
 
 [[constraint]]
   name = "github.com/oklog/run"
   version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/dexidp/dex"
+  version = "v2.15.0"

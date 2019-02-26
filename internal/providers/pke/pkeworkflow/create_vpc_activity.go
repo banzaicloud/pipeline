@@ -16,47 +16,39 @@ package pkeworkflow
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 )
 
 const CreateVPCActivityName = "pke-create-vpc-activity"
 
 type CreateVPCActivity struct {
-	clusters Clusters
+	awsClientFactory *AWSClientFactory
 }
 
-func NewCreateVPCActivity(clusters Clusters) *CreateVPCActivity {
+func NewCreateVPCActivity(awsClientFactory *AWSClientFactory) *CreateVPCActivity {
 	return &CreateVPCActivity{
-		clusters: clusters,
+		awsClientFactory: awsClientFactory,
 	}
 }
 
 type CreateVPCActivityInput struct {
-	ClusterID uint
+	AWSActivityInput
+	ClusterID   uint
+	ClusterName string
 }
 
 func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivityInput) (string, error) {
 	log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
-	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
+
+	client, err := a.awsClientFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err != nil {
 		return "", err
-	}
-	awsCluster, ok := c.(AWSCluster)
-	if !ok {
-		return "", errors.New(fmt.Sprintf("can't create VPC for cluster type %t", c))
-	}
-
-	client, err := awsCluster.GetAWSClient()
-	if err != nil {
-		return "", emperror.Wrap(err, "failed to connect to AWS")
 	}
 
 	cfClient := cloudformation.New(client)
@@ -65,8 +57,8 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 	if err != nil {
 		return "", emperror.Wrap(err, "loading CF template")
 	}
-	clusterName := c.GetName()
-	stackName := "pke-vpc-" + clusterName
+
+	stackName := "pke-vpc-" + input.ClusterName
 	stackInput := &cloudformation.CreateStackInput{
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityAutoExpand}),
 		StackName:    &stackName,
@@ -74,7 +66,7 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 		Parameters: []*cloudformation.Parameter{
 			{
 				ParameterKey:   aws.String("ClusterName"),
-				ParameterValue: &clusterName,
+				ParameterValue: aws.String(input.ClusterName),
 			},
 		},
 	}
@@ -85,9 +77,11 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 		case cloudformation.ErrCodeAlreadyExistsException:
 			log.Infof("stack already exists: %s", err.Message())
 			return stackName, nil
+
 		default:
 			return "", err
 		}
 	}
+
 	return *output.StackId, nil
 }

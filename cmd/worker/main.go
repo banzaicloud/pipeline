@@ -25,6 +25,7 @@ import (
 	conf "github.com/banzaicloud/pipeline/config"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
@@ -32,11 +33,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/goph/logur/integrations/zaplog"
 	"github.com/oklog/run"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -107,11 +109,7 @@ func main() {
 	// Configure Cadence worker
 	{
 		const taskList = "pipeline"
-		zapLogger := zaplog.NewLogger(zaplog.Config{
-			Level:  config.Log.Level,
-			Format: config.Log.Format,
-		})
-		worker, err := cadence.NewWorker(config.Cadence, taskList, zapLogger)
+		worker, err := cadence.NewWorker(config.Cadence, taskList, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-worker"})))
 		emperror.Panic(err)
 
 		workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
@@ -141,10 +139,15 @@ func main() {
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 
-		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clustersecret.NewStore(
+		clusterSecretStore := clustersecret.NewStore(
 			clustersecretadapter.NewClusterManagerAdapter(clusterManager),
 			clustersecretadapter.NewSecretStore(secret.Store),
-		))
+		)
+
+		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
+		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
+
+		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
 
 		awsClientFactory := pkeworkflow.NewAWSClientFactory(pkeworkflowadapter.NewSecretStore(secret.Store))
@@ -152,10 +155,10 @@ func main() {
 		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory)
 		activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
 
-		waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(clusters)
+		waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(awsClientFactory)
 		activity.RegisterWithOptions(waitCFCompletionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitCFCompletionActivityName})
 
-		createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(clusters)
+		createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(awsClientFactory)
 		activity.RegisterWithOptions(createPKEVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateVPCActivityName})
 
 		updateClusterStatusActivitiy := pkeworkflow.NewUpdateClusterStatusActivity(clusters)
@@ -164,8 +167,14 @@ func main() {
 		updateClusterNetworkActivitiy := pkeworkflow.NewUpdateClusterNetworkActivity(clusters)
 		activity.RegisterWithOptions(updateClusterNetworkActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterNetworkActivityName})
 
-		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(clusters)
+		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(awsClientFactory)
 		activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
+
+		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
+		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
+
+		deleteDexClientActivity := pkeworkflow.NewDeleteDexClientActivity(clusters, clusterAuthService)
+		activity.RegisterWithOptions(deleteDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteDexClientActivityName})
 
 		createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)
 		activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
