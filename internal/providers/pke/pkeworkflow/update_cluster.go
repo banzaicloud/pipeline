@@ -15,10 +15,12 @@
 package pkeworkflow
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -95,20 +97,44 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 
 	// create/change nodepools that are not removed
 	for _, np := range input.NodePools {
-		if olds[np.Name] {
-			// TODO: implement nodepool update
-			/*
-								var old NodePool
-								for _, oldNodePool := range oldNodePools {
-									if np.Name == oldNodePool.Name {
-										old = oldNodePool
-									}
-								}
-				if np.MinCount != old.MinCount || np.MaxCount != old.MaxCount || ...
-			*/
+		if np.Master || np.Name == "master" {
+			continue
+		}
+
+		if olds[np.Name] { // update existing
+
+			stackName := fmt.Sprintf("pke-pool-%s-worker-%s", input.ClusterName, np.Name)
+			var cfOut map[string]string
+
+			err := workflow.ExecuteActivity(ctx,
+				WaitCFCompletionActivityName,
+				WaitCFCompletionActivityInput{
+					ClusterID: input.ClusterID,
+					StackID:   stackName}).Get(ctx, &cfOut)
+			if err != nil {
+				return emperror.Wrap(err, fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
+			}
+
+			asg, ok := cfOut["AutoScalingGroup"]
+			if !ok {
+				return errors.New(fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
+			}
+
+			err = workflow.ExecuteActivity(ctx,
+				UpdatePoolActivityName,
+				UpdatePoolActivityInput{
+					ClusterID:        input.ClusterID,
+					Pool:             np,
+					AutoScalingGroup: asg,
+				}).Get(ctx, nil)
+			if err != nil {
+				return err
+			}
 
 			continue
 		}
+
+		// create new
 
 		createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 			ClusterID:             input.ClusterID,
