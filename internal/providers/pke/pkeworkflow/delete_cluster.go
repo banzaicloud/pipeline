@@ -110,15 +110,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		return err
 	}
 
-	// remove dex client (if we created it)
-
-	deleteDexClientActivityInput := &DeleteDexClientActivityInput{
-		ClusterID: input.ClusterID,
-	}
-	if err := workflow.ExecuteActivity(ctx, DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
-		return err
-	}
-
 	// TODO: remove roles (probably not needed)
 
 	return nil
