@@ -56,7 +56,7 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		ClusterID:      commonCluster.GetID(),
 	}
 
-	updater := cluster.NewCommonClusterUpdater(updateRequest, commonCluster, updateCtx.UserID)
+	updater := cluster.NewCommonClusterUpdater(updateRequest, commonCluster, updateCtx.UserID, a.workflowClient, a.externalBaseURL)
 
 	ctx := ginutils.Context(context.Background(), c)
 

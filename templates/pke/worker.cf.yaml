@@ -142,3 +142,8 @@ Resources:
 
   WaitForFirstInstanceHandle:
     Type: AWS::CloudFormation::WaitConditionHandle
+
+Outputs:
+  AutoScalingGroupId:
+    Description: 'ID of the created ASG'
+    Value: !Ref AutoScalingGroup

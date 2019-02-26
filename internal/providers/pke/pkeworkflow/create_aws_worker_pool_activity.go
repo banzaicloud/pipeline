@@ -28,7 +28,7 @@ import (
 	"go.uber.org/cadence/activity"
 )
 
-const CreateWorkerPoolActivityName = "pke-create-aws-worker-role-activity"
+const CreateWorkerPoolActivityName = "pke-create-aws-worker-pool-activity"
 
 type CreateWorkerPoolActivity struct {
 	clusters       Clusters
@@ -180,5 +180,8 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", err
 	}
 
-	return *output.StackId, nil
+	if output.StackId != nil {
+		return *output.StackId, nil
+	}
+	return stackName, nil
 }

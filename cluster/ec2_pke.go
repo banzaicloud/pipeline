@@ -68,7 +68,12 @@ func (c *EC2ClusterPKE) GetSecurityScan() bool {
 }
 
 func (c *EC2ClusterPKE) SetSecurityScan(scan bool) {
-	c.model.Cluster.SecurityScan = scan
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"security_scan": scan}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.SecurityScan = scan
+	}
 }
 
 func (c *EC2ClusterPKE) GetLogging() bool {
@@ -76,7 +81,13 @@ func (c *EC2ClusterPKE) GetLogging() bool {
 }
 
 func (c *EC2ClusterPKE) SetLogging(l bool) {
-	c.model.Cluster.Logging = l
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"logging": l}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.Logging = l
+	}
+
 }
 
 func (c *EC2ClusterPKE) GetMonitoring() bool {
@@ -84,7 +95,12 @@ func (c *EC2ClusterPKE) GetMonitoring() bool {
 }
 
 func (c *EC2ClusterPKE) SetMonitoring(m bool) {
-	c.model.Cluster.Monitoring = m
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"monitoring": m}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.Monitoring = m
+	}
 }
 
 // GetScaleOptions returns scale options for the cluster
@@ -102,7 +118,13 @@ func (c *EC2ClusterPKE) GetServiceMesh() bool {
 }
 
 func (c *EC2ClusterPKE) SetServiceMesh(m bool) {
-	c.model.Cluster.ServiceMesh = m
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"service_mesh": m}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.ServiceMesh = m
+	}
+
 }
 
 func (c *EC2ClusterPKE) GetID() uint {
@@ -268,7 +290,7 @@ func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return emperror.WrapWith(err, "failed to save ssh secret", "workflowId", workflowID)
+		return emperror.WrapWith(err, "failed to save workflow id", "workflowId", workflowID)
 	}
 
 	return nil
@@ -388,7 +410,144 @@ func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterReques
 }
 
 func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
-	panic("implement me")
+	panic("not used")
+}
+
+func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.NodePool {
+	var out = make([]pkeworkflow.NodePool, len(nodePools))
+	i := 0
+	for nodePoolName, nodePool := range nodePools {
+		out[i] = pkeworkflow.NodePool{
+			Name:         nodePoolName,
+			MinCount:     nodePool.MinCount,
+			MaxCount:     nodePool.MaxCount,
+			Count:        nodePool.Count,
+			InstanceType: nodePool.InstanceType,
+			SpotPrice:    nodePool.SpotPrice,
+		}
+		i++
+	}
+	return out
+}
+
+func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, workflowClient client.Client, externalBaseURL string) error {
+
+	vpcid, ok := c.model.Network.CloudProviderConfig["vpcID"].(string)
+	if !ok {
+		return errors.New("VPC ID not found")
+	}
+
+	subnets := []string{}
+	if subnetIfaces, ok := c.model.Network.CloudProviderConfig["subnets"].([]interface{}); ok {
+		for _, subnet := range subnetIfaces {
+			if str, ok := subnet.(string); ok {
+				subnets = append(subnets, str)
+			} else {
+				c.log.Errorf("Subnet ID is not a string (%v %T)", subnet, subnet)
+			}
+		}
+	} else {
+		return errors.New(fmt.Sprintf("Subnet IDs not found (%v %T)", c.model.Network.CloudProviderConfig["subnets"], c.model.Network.CloudProviderConfig["subnets"]))
+	}
+
+	newNodepools := createNodePoolsFromPKERequest(request.PKE.NodePools)
+	input := pkeworkflow.UpdateClusterWorkflowInput{
+		ClusterID:           uint(c.GetID()),
+		NodePools:           newNodepools,
+		OrganizationID:      uint(c.GetOrganizationId()),
+		ClusterUID:          c.GetUID(),
+		ClusterName:         c.GetName(),
+		SecretID:            string(c.GetSecretId()),
+		Region:              c.GetLocation(),
+		PipelineExternalURL: externalBaseURL,
+		VPCID:               vpcid,
+		SubnetIDs:           subnets,
+	}
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+	}
+	exec, err := workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.UpdateClusterWorkflowName, input)
+	if err != nil {
+		return err
+	}
+
+	err = c.SetCurrentWorkflowID(exec.GetID())
+	if err != nil {
+		return err
+	}
+
+	err = exec.Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	newNodepoolMap := map[string]pkeworkflow.NodePool{}
+	for _, np := range newNodepools {
+		newNodepoolMap[np.Name] = np
+	}
+	oldNodepoolSet := map[string]bool{}
+
+	// update or delete existing pools in DB
+	newModelNodepools := internalPke.NodePools{}
+	deletedNodepools := internalPke.NodePools{}
+	for _, np := range c.model.NodePools {
+		oldNodepoolSet[np.Name] = true
+		if newNp, ok := newNodepoolMap[np.Name]; ok { // update
+
+			providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+			if err = mapstructure.Decode(np.ProviderConfig, &providerConfig); err != nil {
+				return emperror.Wrapf(err, "decoding nodepool %q config", np.Name)
+			}
+			providerConfig.AutoScalingGroup.Size.Min = newNp.MinCount
+			providerConfig.AutoScalingGroup.Size.Max = newNp.MaxCount
+			np.ProviderConfig["autoScalingGroup"] = providerConfig.AutoScalingGroup
+
+			newModelNodepools = append(newModelNodepools, np)
+		} else {
+			deletedNodepools = append(deletedNodepools, np)
+		}
+	}
+
+	// add new pools
+	for _, np := range newNodepools {
+		if oldNodepoolSet[np.Name] {
+			continue
+		}
+		providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+		providerConfig.AutoScalingGroup.Name = np.Name
+		providerConfig.AutoScalingGroup.InstanceType = np.InstanceType
+		providerConfig.AutoScalingGroup.Image = np.ImageID
+		providerConfig.AutoScalingGroup.Size.Min = np.MinCount
+		providerConfig.AutoScalingGroup.Size.Max = np.MaxCount
+		providerConfig.AutoScalingGroup.SpotPrice = np.SpotPrice
+		modelNodepool := internalPke.NodePool{
+			Name:     np.Name,
+			Roles:    internalPke.Roles{"worker"},
+			Provider: internalPke.NPPAmazon,
+			ProviderConfig: internalPke.Config{
+				"autoScalingGroup": providerConfig.AutoScalingGroup},
+		}
+		newModelNodepools = append(newModelNodepools, modelNodepool)
+	}
+
+	c.model.NodePools = newModelNodepools
+	if err := c.db.Save(&c.model).Error; err != nil {
+		return emperror.Wrap(err, "failed to save cluster")
+	}
+
+	for _, np := range deletedNodepools {
+		if np.NodePoolID == 0 {
+			panic("prevented deleting all nodepools")
+		}
+
+		c.log.WithField("nodepool", np.Name).Info("deleting nodepool")
+		if err := c.db.Delete(&np).Error; err != nil {
+			return emperror.Wrap(err, "failed to delete nodepool")
+		}
+	}
+
+	return nil
 }
 
 func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error {
@@ -396,11 +555,10 @@ func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint
 }
 
 func (c *EC2ClusterPKE) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
-	panic("implement me")
+	return nil
 }
 
 func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
-	panic("implement me")
 }
 
 func (c *EC2ClusterPKE) DeleteCluster() error {

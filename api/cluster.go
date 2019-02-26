@@ -475,7 +475,6 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	// bind request body to UpdateClusterRequest struct
 	var request pkgSecret.InstallSecretsToClusterRequest
 	if err := c.BindJSON(&request); err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())

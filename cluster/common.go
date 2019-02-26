@@ -467,6 +467,20 @@ func createCommonClusterWithDistributionFromModel(modelCluster *model.ClusterMod
 func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterRequest) map[string]*pkgCluster.NodePoolStatus {
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	cloudType := updateRequest.Cloud
+	if updateRequest.PKE != nil {
+		for name, np := range updateRequest.PKE.NodePools {
+			nodePools[name] = &pkgCluster.NodePoolStatus{
+				InstanceType: np.InstanceType,
+				Count:        np.Count,
+				MinCount:     np.MinCount,
+				MaxCount:     np.MaxCount,
+				SpotPrice:    np.SpotPrice,
+				// Labels:       np.Labels,
+			}
+		}
+		return nodePools
+	}
+
 	switch cloudType {
 	case pkgCluster.Alibaba:
 		for name, np := range updateRequest.ACSK.NodePools {

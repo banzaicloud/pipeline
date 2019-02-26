@@ -20,6 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
+	"go.uber.org/cadence/client"
 )
 
 type commonUpdater struct {
@@ -28,6 +29,8 @@ type commonUpdater struct {
 	userID                   uint
 	scaleOptionsChanged      bool
 	clusterPropertiesChanged bool
+	workflowClient           client.Client
+	externalBaseURL          string
 }
 
 type commonUpdateValidationError struct {
@@ -50,11 +53,13 @@ func (e *commonUpdateValidationError) IsPreconditionFailed() bool {
 }
 
 // NewCommonClusterUpdater returns a new cluster creator instance.
-func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID uint) *commonUpdater {
+func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID uint, workflowClient client.Client, externalBaseURL string) *commonUpdater {
 	return &commonUpdater{
-		request: request,
-		cluster: cluster,
-		userID:  userID,
+		request:         request,
+		cluster:         cluster,
+		userID:          userID,
+		workflowClient:  workflowClient,
+		externalBaseURL: externalBaseURL,
 	}
 }
 
@@ -124,12 +129,19 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 
 	// pre deploy NodePoolLabelSet objects for each new node pool to be created
 	nodePools := getNodePoolsFromUpdateRequest(c.request)
-	err := DeployNodePoolLabelsSet(c.cluster, nodePools, true)
-	if err != nil {
+	if err := DeployNodePoolLabelsSet(c.cluster, nodePools, true); err != nil {
 		return err
 	}
 
-	err = c.cluster.UpdateCluster(c.request, c.userID)
+	var err error
+
+	if updater, ok := c.cluster.(interface {
+		UpdatePKECluster(context.Context, *cluster.UpdateClusterRequest, client.Client, string) error
+	}); ok {
+		err = updater.UpdatePKECluster(ctx, c.request, c.workflowClient, c.externalBaseURL)
+	} else {
+		err = c.cluster.UpdateCluster(c.request, c.userID)
+	}
 	if err != nil {
 		return err
 	}
