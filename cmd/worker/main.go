@@ -148,10 +148,10 @@ func main() {
 		createAWSRolesActivity := pkeworkflow.NewCreateAWSRolesActivity(awsClientFactory)
 		activity.RegisterWithOptions(createAWSRolesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateAWSRolesActivityName})
 
-		waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(clusters)
+		waitCFCompletionActivity := pkeworkflow.NewWaitCFCompletionActivity(awsClientFactory)
 		activity.RegisterWithOptions(waitCFCompletionActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.WaitCFCompletionActivityName})
 
-		createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(clusters)
+		createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(awsClientFactory)
 		activity.RegisterWithOptions(createPKEVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateVPCActivityName})
 
 		updateClusterStatusActivitiy := pkeworkflow.NewUpdateClusterStatusActivity(clusters)
@@ -160,7 +160,7 @@ func main() {
 		updateClusterNetworkActivitiy := pkeworkflow.NewUpdateClusterNetworkActivity(clusters)
 		activity.RegisterWithOptions(updateClusterNetworkActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterNetworkActivityName})
 
-		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(clusters)
+		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(awsClientFactory)
 		activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
 
 		createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)

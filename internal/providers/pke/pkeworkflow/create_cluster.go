@@ -15,7 +15,6 @@
 package pkeworkflow
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -47,6 +46,10 @@ func getDefaultImageID(region string) string {
 	}[region]
 }
 
+type TokenGenerator interface {
+	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
+}
+
 type CreateClusterWorkflowInput struct {
 	OrganizationID      uint
 	ClusterID           uint
@@ -68,13 +71,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// Generate CA certificates
-	err := workflow.ExecuteActivity(
-		ctx,
-		GenerateCertificatesActivityName,
-		GenerateCertificatesActivityInput{ClusterID: input.ClusterID},
-	).Get(ctx, nil)
-	if err != nil {
-		return err
+	{
+		activityInput := GenerateCertificatesActivityInput{ClusterID: input.ClusterID}
+
+		err := workflow.ExecuteActivity(ctx, GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Generic AWS activity input
@@ -84,85 +87,108 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		Region:         input.Region,
 	}
 
-	// Create AWS roles
-	createRolesActivityInput := CreateAWSRolesActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID}
-	createRolesActivityInput.AWSActivityInput.Region = "us-east-1"
 	var rolesStackID string
-	err = workflow.ExecuteActivity(
-		ctx,
-		CreateAWSRolesActivityName,
-		createRolesActivityInput,
-	).Get(ctx, &rolesStackID)
-	if err != nil {
-		return err
+
+	// Create AWS roles
+	{
+		activityInput := CreateAWSRolesActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID}
+		activityInput.AWSActivityInput.Region = "us-east-1"
+		err := workflow.ExecuteActivity(ctx, CreateAWSRolesActivityName, activityInput).Get(ctx, &rolesStackID)
+		if err != nil {
+			return err
+		}
 	}
 
 	var rolesOutput map[string]string
-	if rolesStackID != "" {
-		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
-			ClusterID: input.ClusterID,
-			StackID:   rolesStackID,
-			Region:    "us-east-1",
+
+	// Wait for roles
+	{
+		if rolesStackID == "" {
+			return errors.New("missing AWS role stack ID")
 		}
 
-		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &rolesOutput)
+		activityInput := WaitCFCompletionActivityInput{AWSActivityInput: awsActivityInput, StackID: rolesStackID}
+		activityInput.AWSActivityInput.Region = "us-east-1"
+
+		err := workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, activityInput).Get(ctx, &rolesOutput)
+		if err != nil {
+			return err
+		}
+	}
+
+	var vpcStackID string
+
+	// Create VPC
+	{
+		activityInput := CreateVPCActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID, ClusterName: input.ClusterName}
+		err := workflow.ExecuteActivity(ctx, CreateVPCActivityName, activityInput).Get(ctx, &vpcStackID)
 		if err != nil {
 			return err
 		}
 	}
 
 	var vpcOutput map[string]string
-	var vpcStackID string
-	createVACActivityInput := CreateVPCActivityInput{ClusterID: input.ClusterID}
-	err = workflow.ExecuteActivity(ctx, CreateVPCActivityName, createVACActivityInput).Get(ctx, &vpcStackID)
-	if err != nil {
-		return err
-	}
-	if vpcStackID != "" {
-		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
-			ClusterID: input.ClusterID,
-			StackID:   vpcStackID,
+
+	// Wait for VPC
+	{
+		if vpcStackID == "" {
+			return errors.New("missing VPC stack ID")
 		}
 
-		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &vpcOutput)
+		activityInput := WaitCFCompletionActivityInput{AWSActivityInput: awsActivityInput, StackID: vpcStackID}
+
+		err := workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, activityInput).Get(ctx, &vpcOutput)
 		if err != nil {
 			return err
 		}
 	}
 
-	createElasticIPActivityInput := &CreateElasticIPActivityInput{
-		ClusterID: input.ClusterID,
-	}
 	var eip CreateElasticIPActivityOutput
-	if err := workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, createElasticIPActivityInput).Get(ctx, &eip); err != nil {
-		return err
+
+	// Create EIP
+	{
+		activityInput := &CreateElasticIPActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID, ClusterName: input.ClusterName}
+		err := workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, activityInput).Get(ctx, &eip)
+		if err != nil {
+			return err
+		}
 	}
 
-	updateClusterNetworkActivityInput := &UpdateClusterNetworkActivityInput{
-		ClusterID:       input.ClusterID,
-		APISeverAddress: eip.PublicIp,
-		VPCID:           vpcOutput["VpcId"],
-		Subnets:         vpcOutput["SubnetIds"],
-	}
-	if err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, updateClusterNetworkActivityInput).Get(ctx, nil); err != nil {
-		return err
+	// Update cluster network
+	{
+		activityInput := &UpdateClusterNetworkActivityInput{
+			ClusterID:       input.ClusterID,
+			APISeverAddress: eip.PublicIp,
+			VPCID:           vpcOutput["VpcId"],
+			Subnets:         vpcOutput["SubnetIds"],
+		}
+		err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	var nodePools []NodePool
-	listNodePoolsActivityInput := ListNodePoolsActivityInput{
-		ClusterID: input.ClusterID,
-	}
 
-	if err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, listNodePoolsActivityInput).Get(ctx, &nodePools); err != nil {
-		return err
+	// List node pools
+	{
+		activityInput := ListNodePoolsActivityInput{ClusterID: input.ClusterID}
+		err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, activityInput).Get(ctx, &nodePools)
+		if err != nil {
+			return err
+		}
 	}
 
 	var keyOut UploadSSHKeyPairActivityOutput
-	UploadSSHKeyPairActivityInput := UploadSSHKeyPairActivityInput{
-		ClusterID: input.ClusterID,
-	}
-	if err := workflow.ExecuteActivity(ctx, UploadSSHKeyPairActivityName, UploadSSHKeyPairActivityInput).Get(ctx, &keyOut); err != nil {
-		return err
+
+	// Upload SSH key pair
+	{
+		activityInput := UploadSSHKeyPairActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		if err := workflow.ExecuteActivity(ctx, UploadSSHKeyPairActivityName, activityInput).Get(ctx, &keyOut); err != nil {
+			return err
+		}
 	}
 
 	var masterAvailabilityZone string
@@ -171,44 +197,51 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		if np.Master {
 			master = np
 			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
-				return errors.New(fmt.Sprintf("missing availability zone for nodepool %q", np.Name))
+				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
 			}
+
 			masterAvailabilityZone = np.AvailabilityZones[0]
+
 			break
 		}
 	}
 
 	var masterStackID string
-	// TODO refactor network things
-	createMasterActivityInput := CreateMasterActivityInput{
-		ClusterID:             input.ClusterID,
-		AvailabilityZone:      masterAvailabilityZone,
-		VPCID:                 vpcOutput["VpcId"],
-		SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
-		EIPAllocationID:       eip.AllocationId,
-		MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
-		ExternalBaseUrl:       input.PipelineExternalURL,
-		Pool:                  master,
-		SSHKeyName:            keyOut.KeyName,
-	}
-	if err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, createMasterActivityInput).Get(ctx, &masterStackID); err != nil {
-		return err
-	}
 
-	var masterOutput map[string]string
-	if masterStackID != "" {
-		waitCFCompletionActivityInput := WaitCFCompletionActivityInput{
-			ClusterID: input.ClusterID,
-			StackID:   masterStackID,
+	// Create master
+	{
+		// TODO refactor network things
+		activityInput := CreateMasterActivityInput{
+			ClusterID:             input.ClusterID,
+			AvailabilityZone:      masterAvailabilityZone,
+			VPCID:                 vpcOutput["VpcId"],
+			SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
+			EIPAllocationID:       eip.AllocationId,
+			MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
+			ExternalBaseUrl:       input.PipelineExternalURL,
+			Pool:                  master,
+			SSHKeyName:            keyOut.KeyName,
 		}
-
-		err = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, waitCFCompletionActivityInput).Get(ctx, &masterOutput)
+		err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, activityInput).Get(ctx, &masterStackID)
 		if err != nil {
 			return err
 		}
 	}
 
-	clusterSecurityGroup := masterOutput["ClusterSecurityGroup"]
+	var masterOutput map[string]string
+
+	// Wait for master
+	{
+		if masterStackID == "" {
+			return errors.New("missing VPC stack ID")
+		}
+
+		activityInput := WaitCFCompletionActivityInput{AWSActivityInput: awsActivityInput, StackID: masterStackID}
+		err := workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, activityInput).Get(ctx, &masterOutput)
+		if err != nil {
+			return err
+		}
+	}
 
 	signalName := "master-ready"
 	signalChan := workflow.GetSignalChannel(ctx, signalName)
@@ -220,34 +253,28 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	})
 	s.Select(ctx)
 
-	for _, np := range nodePools {
-		if !np.Master {
+	// Create nodes
+	{
+		for _, np := range nodePools {
+			if !np.Master {
+				createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
+					ClusterID:             input.ClusterID,
+					Pool:                  np,
+					WorkerInstanceProfile: rolesOutput["WorkerInstanceProfile"],
+					VPCID:                 vpcOutput["VpcId"],
+					SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
+					ClusterSecurityGroup:  masterOutput["ClusterSecurityGroup"],
+					ExternalBaseUrl:       input.PipelineExternalURL,
+					SSHKeyName:            keyOut.KeyName,
+				}
 
-			createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
-				ClusterID:             input.ClusterID,
-				Pool:                  np,
-				WorkerInstanceProfile: rolesOutput["WorkerInstanceProfile"],
-				VPCID:                 vpcOutput["VpcId"],
-				SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
-				ClusterSecurityGroup:  clusterSecurityGroup,
-				ExternalBaseUrl:       input.PipelineExternalURL,
-				SSHKeyName:            keyOut.KeyName,
-			}
-
-			err = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)
-			if err != nil {
-				return err
+				err := workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 
 	return nil
-}
-
-type TokenGenerator interface {
-	GenerateClusterToken(orgID, clusterID uint) (string, string, error)
-}
-
-type CreateClusterActivityInput struct {
-	ClusterID uint
 }

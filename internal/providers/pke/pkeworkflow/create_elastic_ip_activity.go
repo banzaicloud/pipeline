@@ -16,29 +16,29 @@ package pkeworkflow
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 )
 
 const CreateElasticIPActivityName = "pke-create-eip-activity"
 
 type CreateElasticIPActivity struct {
-	clusters Clusters
+	awsClientFactory *AWSClientFactory
 }
 
-func NewCreateElasticIPActivity(clusters Clusters) *CreateElasticIPActivity {
+func NewCreateElasticIPActivity(awsClientFactory *AWSClientFactory) *CreateElasticIPActivity {
 	return &CreateElasticIPActivity{
-		clusters: clusters,
+		awsClientFactory: awsClientFactory,
 	}
 }
 
 type CreateElasticIPActivityInput struct {
-	ClusterID uint
+	AWSActivityInput
+	ClusterID   uint
+	ClusterName string
 }
 
 type CreateElasticIPActivityOutput struct {
@@ -48,21 +48,12 @@ type CreateElasticIPActivityOutput struct {
 
 func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElasticIPActivityInput) (*CreateElasticIPActivityOutput, error) {
 	log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
-	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
+
+	client, err := a.awsClientFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err != nil {
 		return nil, err
 	}
-	awsCluster, ok := c.(AWSCluster)
-	if !ok {
-		return nil, errors.New(fmt.Sprintf("can't create VPC for cluster type %t", c))
-	}
 
-	client, err := awsCluster.GetAWSClient()
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to connect to AWS")
-	}
-
-	clusterName := c.GetName()
 	e := ec2.New(client)
 
 	// check EIP is already allocated or not
@@ -70,7 +61,7 @@ func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElast
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String("tag-key"),
-				Values: aws.StringSlice([]string{"kubernetes.io/cluster/" + clusterName}),
+				Values: aws.StringSlice([]string{"kubernetes.io/cluster/" + input.ClusterName}),
 			},
 		},
 	}
@@ -95,25 +86,29 @@ func (a *CreateElasticIPActivity) Execute(ctx context.Context, input CreateElast
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to allocate EIP")
 	}
+
 	log.Infof("Created EIP: %s", *addrOut.PublicIp)
 
 	tagIn := &ec2.CreateTagsInput{
 		Resources: []*string{addrOut.AllocationId},
 		Tags: []*ec2.Tag{
 			{
-				Key:   aws.String("kubernetes.io/cluster/" + clusterName),
+				Key:   aws.String("kubernetes.io/cluster/" + input.ClusterName),
 				Value: aws.String("owned"),
 			},
 		},
 	}
+
 	_, err = e.CreateTags(tagIn)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create tags for EIP")
 	}
+
 	log.Infof("Tagged EIP: %s", *addrOut.PublicIp)
 	output := &CreateElasticIPActivityOutput{
 		PublicIp:     *addrOut.PublicIp,
 		AllocationId: *addrOut.AllocationId,
 	}
+
 	return output, nil
 }

@@ -16,50 +16,33 @@ package pkeworkflow
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 )
 
 const WaitCFCompletionActivityName = "pke-wait-cf-completion-activity"
 
 type WaitCFCompletionActivity struct {
-	clusters Clusters
+	awsClientFactory *AWSClientFactory
 }
 
-func NewWaitCFCompletionActivity(clusters Clusters) *WaitCFCompletionActivity {
+func NewWaitCFCompletionActivity(awsClientFactory *AWSClientFactory) *WaitCFCompletionActivity {
 	return &WaitCFCompletionActivity{
-		clusters: clusters,
+		awsClientFactory: awsClientFactory,
 	}
 }
 
 type WaitCFCompletionActivityInput struct {
-	ClusterID uint
-	StackID   string
-	Region    string
+	AWSActivityInput
+	StackID string
 }
 
 func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFCompletionActivityInput) (map[string]string, error) {
-	cluster, err := a.clusters.GetCluster(ctx, input.ClusterID)
+	client, err := a.awsClientFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err != nil {
 		return nil, err
-	}
-
-	awsCluster, ok := cluster.(AWSCluster)
-	if !ok {
-		return nil, errors.New(fmt.Sprintf("can't wait for AWS roles for %t", cluster))
-	}
-
-	client, err := awsCluster.GetAWSClient()
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to connect to AWS")
-	}
-
-	if input.Region != "" {
-		client.Config.Region = aws.String(input.Region)
 	}
 
 	cfClient := cloudformation.New(client)
@@ -70,13 +53,16 @@ func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFComp
 	if err != nil {
 		return nil, emperror.Wrap(err, "error waiting Cloud Formation template")
 	}
+
 	output, err := cfClient.DescribeStacks(describeStacksInput)
 	if err != nil {
 		return nil, emperror.Wrap(err, "error fetching Cloud Formation template")
 	}
+
 	outputMap := make(map[string]string)
 	for _, p := range output.Stacks[0].Outputs {
 		outputMap[*p.OutputKey] = *p.OutputValue
 	}
+
 	return outputMap, nil
 }
