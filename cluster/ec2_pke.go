@@ -68,7 +68,12 @@ func (c *EC2ClusterPKE) GetSecurityScan() bool {
 }
 
 func (c *EC2ClusterPKE) SetSecurityScan(scan bool) {
-	c.model.Cluster.SecurityScan = scan
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"security_scan": scan}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.SecurityScan = scan
+	}
 }
 
 func (c *EC2ClusterPKE) GetLogging() bool {
@@ -76,7 +81,13 @@ func (c *EC2ClusterPKE) GetLogging() bool {
 }
 
 func (c *EC2ClusterPKE) SetLogging(l bool) {
-	c.model.Cluster.Logging = l
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"logging": l}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.Logging = l
+	}
+
 }
 
 func (c *EC2ClusterPKE) GetMonitoring() bool {
@@ -84,7 +95,12 @@ func (c *EC2ClusterPKE) GetMonitoring() bool {
 }
 
 func (c *EC2ClusterPKE) SetMonitoring(m bool) {
-	c.model.Cluster.Monitoring = m
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"monitoring": m}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.Monitoring = m
+	}
 }
 
 // GetScaleOptions returns scale options for the cluster
@@ -102,7 +118,13 @@ func (c *EC2ClusterPKE) GetServiceMesh() bool {
 }
 
 func (c *EC2ClusterPKE) SetServiceMesh(m bool) {
-	c.model.Cluster.ServiceMesh = m
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"service_mesh": m}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.ServiceMesh = m
+	}
+
 }
 
 func (c *EC2ClusterPKE) GetID() uint {
