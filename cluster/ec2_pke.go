@@ -39,6 +39,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -48,7 +49,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
@@ -241,7 +242,8 @@ func (c *EC2ClusterPKE) DeleteFromDatabase() error {
 }
 
 func (c *EC2ClusterPKE) CreateCluster() error {
-	return errors.New("not implemented")
+	_, err := c.Deploy(context.TODO())
+	return err
 }
 
 func (c *EC2ClusterPKE) GetAWSClient() (*session.Session, error) {
@@ -384,7 +386,7 @@ func CreateMasterCF(formation *cloudformation.CloudFormation) error {
 
 func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
 	// TODO(Ecsy): implement me
-	return nil
+	return nil // TODO: obsolete, remove when CommonCluster interface is not supported anymore
 }
 
 func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
@@ -409,7 +411,7 @@ func (c *EC2ClusterPKE) DeleteCluster() error {
 
 func (c *EC2ClusterPKE) DeletePKECluster(ctx context.Context, workflowClient client.Client) error {
 	input := pkeworkflow.DeleteClusterWorkflowInput{
-		ClusterID: uint(c.GetID()),
+		ClusterID: c.GetID(),
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
@@ -1000,4 +1002,49 @@ func getMasterInstanceTypeAndImageFromNodePools(nodepools internalPke.NodePools)
 		}
 	}
 	return
+}
+
+// PKEAWS defines the PKE-on-AWS cluster type
+const PKEAWS = "pke-aws"
+
+func CreateEC2ClusterPKEFromClusterModel(clusterModel *internalPke.EC2PKEClusterModel) (*EC2ClusterPKE, error) {
+	db := pipConfig.DB()
+	log := log.WithField("cluster", clusterModel.Cluster.Name).WithField("organization", clusterModel.Cluster.OrganizationID)
+	return &EC2ClusterPKE{
+		db:    db,
+		log:   log,
+		model: clusterModel,
+	}, nil
+}
+
+func (c *EC2ClusterPKE) Deploy(ctx context.Context) (bool, error) {
+	panic("implement me")
+}
+
+func (c *EC2ClusterPKE) Dispose(ctx context.Context) error {
+	panic("implement me")
+}
+
+func (c *EC2ClusterPKE) GetCreationTime() time.Time {
+	return c.model.Cluster.CreatedAt
+}
+
+func (c *EC2ClusterPKE) GetDistributionID() string {
+	return pkgCluster.PKE
+}
+
+func (c *EC2ClusterPKE) GetOrganizationID() uint {
+	return c.model.Cluster.OrganizationID
+}
+
+func (c *EC2ClusterPKE) GetProviderID() string {
+	return providers.Amazon
+}
+
+func (c *EC2ClusterPKE) GetType() string {
+	return PKEAWS
+}
+
+func (c *EC2ClusterPKE) GetUUID() string {
+	return c.model.Cluster.UID
 }

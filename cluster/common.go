@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"os"
@@ -36,6 +37,23 @@ import (
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
+
+// Cluster defines the common interface of clusters
+type Cluster interface {
+	// Deploy ensures that the cluster has been fully realized on the provider, and returns false when the cluster has already been deployed
+	Deploy(ctx context.Context) (created bool, err error)
+	Dispose(ctx context.Context) error
+
+	GetCreatedBy() uint
+	GetCreationTime() time.Time
+	GetDistributionID() string
+	GetID() uint
+	GetName() string
+	GetOrganizationID() uint
+	GetProviderID() string
+	GetType() string
+	GetUUID() string
+}
 
 // CommonCluster interface for clusters.
 type CommonCluster interface {
