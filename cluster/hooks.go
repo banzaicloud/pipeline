@@ -47,8 +47,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/api/rbac/v1beta1"
 	storagev1 "k8s.io/api/storage/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -1340,50 +1339,5 @@ func initializeSpotConfigMap(client *kubernetes.Clientset, systemNs string) erro
 		}
 	}
 	log.Info("finished initializing spot ConfigMap")
-	return nil
-}
-
-// CreateClusterRoles creates the pre-defined ClusterRoles for a PKE cluster
-func CreateClusterRoles(cluster CommonCluster) error {
-	if distro := cluster.GetDistribution(); distro != pkgCluster.PKE {
-		log.Infof("Not creating ClusterRoleBindings for %s", distro)
-		return nil
-	}
-
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return emperror.Wrap(err, "failed to get Kubernetes config")
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get Kubernetes clientset from kubeconfig")
-	}
-
-	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
-	if err != nil {
-		return emperror.Wrap(err, "failed to get organization of Kubernetes cluster")
-	}
-
-	clusterRoleBinding := rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: org.Name,
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind: "ClusterRole",
-			Name: "cluster-admin",
-		},
-		Subjects: []rbacv1.Subject{{
-			Kind: rbacv1.GroupKind,
-			Name: org.Name,
-		}},
-	}
-
-	_, err = client.RbacV1().ClusterRoleBindings().Create(&clusterRoleBinding)
-
-	if err != nil {
-		return emperror.WrapWith(err, "failed to ClusterRoleBinding", "name", clusterRoleBinding.Name)
-	}
-
 	return nil
 }

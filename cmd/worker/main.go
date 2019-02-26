@@ -172,9 +172,6 @@ func main() {
 		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
 		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
 
-		deleteDexClientActivity := pkeworkflow.NewDeleteDexClientActivity(clusters, clusterAuthService)
-		activity.RegisterWithOptions(deleteDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteDexClientActivityName})
-
 		createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)
 		activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
 
