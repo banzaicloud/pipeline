@@ -29,7 +29,7 @@ type DeleteDexClientActivity struct {
 	clusterAuthService auth.ClusterAuthService
 }
 
-func NewDeleteDexClientActivity(clusters Clusters, clusterAuthService auth.ClusterAuthService) *DeleteDexClientActivity {
+func DeleteCreateDexClientActivity(clusters Clusters, clusterAuthService auth.ClusterAuthService) *DeleteDexClientActivity {
 	return &DeleteDexClientActivity{
 		clusters:           clusters,
 		clusterAuthService: clusterAuthService,

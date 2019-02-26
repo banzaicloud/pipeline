@@ -112,11 +112,8 @@ var HookMap = map[string]PostFunctioner{
 		ErrorHandler: ErrorHandler{},
 	},
 	pkgCluster.CreateDefaultStorageclass: &BasePostFunction{
-		f:        CreateDefaultStorageclass,
-		Priority: Priority{5},
-	},
-	pkgCluster.CreateClusterRoles: &BasePostFunction{
-		f:            CreateClusterRoles,
+		f:            CreateDefaultStorageclass,
+		Priority:     Priority{5},
 		ErrorHandler: ErrorHandler{},
 	},
 }
