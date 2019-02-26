@@ -2094,7 +2094,7 @@
   revision = "b5d43981345bdb2c233eb4bf3277847b48c6fdc6"
 
 [[projects]]
-  digest = "1:8462458147dbb4b02e389c8081e235e2ea3023c9baa21f669e9d6a7c37e0c98d"
+  digest = "1:b140f21b83859b16d263fc34fc316076af1c3e1661d92018a105a8cbf2f24d1e"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -2124,8 +2124,8 @@
     "transport",
   ]
   pruneopts = "NUT"
-  revision = "d11072e7ca9811b1100b80ca0269ac831f06d024"
-  version = "v1.11.3"
+  revision = "d89cded64628466c4ab532d1f0ba5c220459ebe8"
+  version = "v1.11.2"
 
 [[projects]]
   branch = "v3"
@@ -2802,6 +2802,7 @@
     "k8s.io/api/core/v1",
     "k8s.io/api/extensions/v1beta1",
     "k8s.io/api/rbac/v1",
+    "k8s.io/api/rbac/v1beta1",
     "k8s.io/api/storage/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/api/resource",
