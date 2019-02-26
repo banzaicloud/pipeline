@@ -47,7 +47,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
 	"gopkg.in/yaml.v2"
 )
@@ -694,10 +693,6 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 	if err != nil {
 		return "", err
 	}
-
-	dexIssuerURL := viper.GetString("auth.dexURL")
-	dexClientID := c.GetUID()
-
 	// master
 	if subcommand == "master" {
 		return fmt.Sprintf("pke install %s "+
@@ -713,9 +708,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
 			"--kubernetes-infrastructure-cidr=%q "+
 			"--kubernetes-api-server=%q "+
-			"--kubernetes-cluster-name=%q "+
-			"--kubernetes-oidc-issuer-url=%q "+
-			"--kubernetes-oidc-client-id=%q",
+			"--kubernetes-cluster-name=%q",
 			subcommand,
 			url,
 			token,
@@ -725,8 +718,6 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
-			dexIssuerURL,
-			dexClientID,
 		), nil
 	}
 
