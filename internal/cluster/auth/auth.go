@@ -16,7 +16,6 @@ package auth
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -74,28 +73,19 @@ func (*noOpClusterAuthService) UnRegisterCluster(tx context.Context, clusterUID 
 }
 
 type dexClusterAuthService struct {
-	dexClient           *dexClient
-	secretStore         *clustersecret.Store
-	pipelineRedirectURI string
+	dexClient   *dexClient
+	secretStore *clustersecret.Store
 }
 
 func NewDexClusterAuthService(secretStore *clustersecret.Store) (ClusterAuthService, error) {
 	client, err := newDexClient(viper.GetString("auth.dexGrpcAddress"), viper.GetString("auth.dexGrpcCaCert"))
 	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to create dex auth service")
+		return nil, err
 	}
-
-	pipelineExternalURL, err := url.Parse(viper.GetString("pipeline.externalURL"))
-	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to parse pipeline externalURL")
-	}
-
-	pipelineExternalURL.Path = "/auth/dex/cluster/callback"
 
 	return &dexClusterAuthService{
-		dexClient:           client,
-		secretStore:         secretStore,
-		pipelineRedirectURI: pipelineExternalURL.String(),
+		dexClient:   client,
+		secretStore: secretStore,
 	}, nil
 }
 
@@ -103,18 +93,14 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 
 	clientID := clusterUID
 	clientSecret, _ := secret.RandomString("randAlphaNum", 32)
-	cliRedirectURI := "http://127.0.0.1:5555/auth/dex/cluster/callback"
-	pipelineRedirectURI := a.pipelineRedirectURI
+	redirectURI := "http://127.0.0.1:1848/dex/cluster/callback"
 
 	req := &api.CreateClientReq{
 		Client: &api.Client{
-			Id:     clientID,
-			Name:   clusterName,
-			Secret: clientSecret,
-			RedirectUris: []string{
-				cliRedirectURI,
-				pipelineRedirectURI,
-			},
+			Id:           clientID,
+			Name:         clusterName,
+			Secret:       clientSecret,
+			RedirectUris: []string{redirectURI},
 		},
 	}
 
