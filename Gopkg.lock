@@ -836,15 +836,16 @@
   version = "v0.16.0"
 
 [[projects]]
-  digest = "1:3a441554e83ca3b1b26f18de3a32d979a32de57bf2e69b8f16f508dfa4232029"
+  digest = "1:b6af66e0bc44844277c94aacec74e8da06a5cb691cc4aa9ce363f20c0dd6eca9"
   name = "github.com/goph/logur"
   packages = [
     ".",
     "adapters/logrusadapter",
+    "integrations/zaplog",
   ]
   pruneopts = "NUT"
-  revision = "72381de18a2f0fb8cd421a6316af719950ce3bef"
-  version = "v0.10.0"
+  revision = "4f5b4da9656e77984dc8d9c43bbb385430ef0e85"
+  version = "v0.11.0"
 
 [[projects]]
   digest = "1:dbd86d229eacaa86a98b10f8fb3e3fc69a1913e0f4e010e7cc1f92bf12edca92"
@@ -2718,6 +2719,7 @@
     "github.com/goph/emperror/handler/logrushandler",
     "github.com/goph/logur",
     "github.com/goph/logur/adapters/logrusadapter",
+    "github.com/goph/logur/integrations/zaplog",
     "github.com/gorilla/sessions",
     "github.com/hashicorp/vault/api",
     "github.com/heptio/ark/pkg/apis/ark/v1",

@@ -275,7 +275,7 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
 
 [[constraint]]
   name = "github.com/goph/logur"
-  version = "0.10.0"
+  version = "0.11.0"
 
 [[constraint]]
   name = "github.com/oklog/run"
