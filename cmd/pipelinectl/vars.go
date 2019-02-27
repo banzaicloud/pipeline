@@ -21,9 +21,6 @@ const (
 	// and other details.
 	ServiceName = "pipelinectl"
 
-	// FriendlyServiceName is the visible name of the service.
-	FriendlyServiceName = "Pipeline Control"
-
 	// EnvPrefix is prepended to environment variables when processing configuration.
 	EnvPrefix = "pipeline"
 )

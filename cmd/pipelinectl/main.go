@@ -27,8 +27,8 @@ import (
 func main() {
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
-		Use:     "pipelinectl",
-		Short:   "pipelinectl controls a Pipeline instance.",
+		Use:     ServiceName,
+		Short:   ServiceName + " manages a Pipeline instance.",
 		Version: version,
 	}
 
