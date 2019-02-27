@@ -78,8 +78,6 @@ secureCookie = false
 cookieDomain = ""
 setCookieDomain = false
 
-whitelistEnabled = false
-
 [helm]
 retryAttempt = 30
 retrySleepSeconds = 15

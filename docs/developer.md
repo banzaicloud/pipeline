@@ -157,31 +157,6 @@ Creating and using EKS clusters requires to you to have the [AWS IAM Authenticat
 go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
 ```
 
-#### User and organization whitelist
-
-If you enable user and organization whitelist with:
-
-```bash
-export PIPELINE_AUTH_WHITELISTENABLED=true
-```
-
-the Pipeline will limit which users can register, this list is stored in the `whitelisted_auth_identities` table, you can add users or organizations to this table (if you add an organization all members of the organization are allowed to register):
-
-- Add `banzaicloud` organization for example:
-
-    Get the `banzaicloud` organization information from: https://api.github.com/orgs/banzaicloud
-
-    ```sql
-    INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "dex:github", "Organization", "banzaicloud", 32848483)
-    ```
-
-- Add `bonifaido` user for example:
-
-    Get the `bonifaido` user information from: https://api.github.com/users/bonifaido
-
-    ```sql
-    INSERT INTO whitelisted_auth_identities (created_at, updated_at, provider, type, login, uid) VALUES (NOW(), NOW(), "dex:github", "User", "bonifaido", 23779)
-    ```
 
 #### Anchore Engine
 
