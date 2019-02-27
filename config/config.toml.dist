@@ -194,8 +194,8 @@ collectionInterval = "30s"
 source = "file"
 path = "config/certs"
 
-[nodepools]
-labelSetOperatorChartVersion = "0.0.1"
+#[nodepools]
+#labelSetOperatorChartVersion = "0.0.2"
 
 [cadence]
 host = "127.0.0.1"
