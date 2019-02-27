@@ -35,6 +35,11 @@ func (s *ensureSecretExistsStub) EnsureSecretExists(organizationID uint, secret 
 	return s.secretID, nil
 }
 
+func (s *ensureSecretExistsStub) GetSecret(organizationID uint, name string) (SecretResponse, error) {
+
+	return SecretResponse{}, nil
+}
+
 type clustersStub struct {
 	cluster Cluster
 }
