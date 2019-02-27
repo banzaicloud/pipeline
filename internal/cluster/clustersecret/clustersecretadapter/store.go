@@ -23,6 +23,9 @@ import (
 type InternalSecretStore interface {
 	// GetOrCreate create new secret or get if it's exist.
 	GetOrCreate(organizationID uint, value *secret.CreateSecretRequest) (string, error)
+
+	// GetByName gets a secret by name if it's exist.
+	GetByName(organizationID uint, name string) (*secret.SecretItemResponse, error)
 }
 
 // SecretStore is a wrapper for the internal secret store.
@@ -49,4 +52,24 @@ func (s *SecretStore) EnsureSecretExists(organizationID uint, sec clustersecret.
 	id, err := s.secrets.GetOrCreate(organizationID, createSecret)
 
 	return string(id), err
+}
+
+// GetSecret gets a secret by name if it exists
+func (s *SecretStore) GetSecret(organizationID uint, name string) (clustersecret.SecretResponse, error) {
+	sec, err := s.secrets.GetByName(organizationID, name)
+
+	if err != nil {
+		return clustersecret.SecretResponse{}, err
+	}
+
+	if sec == nil {
+		return clustersecret.SecretResponse{}, clustersecret.ErrSecretNotFound
+	}
+
+	return clustersecret.SecretResponse{
+		Name:   sec.Name,
+		Type:   sec.Type,
+		Values: sec.Values,
+		Tags:   sec.Tags,
+	}, nil
 }

@@ -21,8 +21,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrSecretNotFound represents an error case when the specified secret doesn't exist
+var ErrSecretNotFound = errors.New("secret not found")
+
 // SecretCreateRequest represents a new secret.
 type SecretCreateRequest struct {
+	Name   string
+	Type   string
+	Values map[string]string
+	Tags   []string
+}
+
+type SecretResponse struct {
 	Name   string
 	Type   string
 	Values map[string]string
@@ -62,6 +72,9 @@ type Cluster interface {
 type SecretStore interface {
 	// EnsureSecretExists creates a secret for an organization if it cannot be found and returns it's ID.
 	EnsureSecretExists(organizationID uint, secret SecretCreateRequest) (string, error)
+
+	// GetSecret gets a secret for an organization, if it doesn't exists it returns an ErrSecretNotFound
+	GetSecret(organizationID uint, name string) (SecretResponse, error)
 }
 
 // EnsureSecretExists creates a secret for a cluster if it cannot be found and returns it's ID.
@@ -83,4 +96,17 @@ func (s *Store) EnsureSecretExists(ctx context.Context, clusterID uint, secret S
 	)
 
 	return s.secrets.EnsureSecretExists(cluster.GetOrganizationID(), secret)
+}
+
+// GetSecret gets a secret for a cluster if exists
+func (s *Store) GetSecret(ctx context.Context, clusterID uint, name string) (SecretResponse, error) {
+	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return SecretResponse{}, errors.Wrap(err, "failed to get secret")
+	}
+
+	// Prepend the name with a cluster prefix
+	name = fmt.Sprintf("cluster-%d-%s", clusterID, name)
+
+	return s.secrets.GetSecret(cluster.GetOrganizationID(), name)
 }

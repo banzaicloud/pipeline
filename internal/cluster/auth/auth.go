@@ -28,6 +28,15 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+const authSecretName = "dex-client"
+const clientIDKey = "clientID"
+const clientSecretKey = "clientSecret"
+
+type ClusterClientSecret struct {
+	ClientID     string
+	ClientSecret string
+}
+
 type dexClient struct {
 	api.DexClient
 	grpcConn *grpc.ClientConn
@@ -56,6 +65,7 @@ func newDexClient(hostAndPort, caPath string) (*dexClient, error) {
 type ClusterAuthService interface {
 	RegisterCluster(context.Context, string, uint, string) error
 	UnRegisterCluster(context.Context, string) error
+	GetClusterClientSecret(context.Context, uint) (ClusterClientSecret, error)
 }
 
 type noOpClusterAuthService struct {
@@ -71,6 +81,10 @@ func (*noOpClusterAuthService) RegisterCluster(tx context.Context, clusterName s
 
 func (*noOpClusterAuthService) UnRegisterCluster(tx context.Context, clusterUID string) error {
 	return nil
+}
+
+func (*noOpClusterAuthService) GetClusterClientSecret(ctx context.Context, clusterID uint) (ClusterClientSecret, error) {
+	return ClusterClientSecret{}, nil
 }
 
 type dexClusterAuthService struct {
@@ -125,10 +139,10 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 	// save the secret to the secret store
 	secretRequest := clustersecret.SecretCreateRequest{
 		Type: pkgSecret.GenericSecret,
-		Name: "dex-client",
+		Name: authSecretName,
 		Values: map[string]string{
-			"clientID":     clientID,
-			"clientSecret": clientSecret,
+			clientIDKey:     clientID,
+			clientSecretKey: clientSecret,
 		},
 	}
 
@@ -154,4 +168,18 @@ func (a *dexClusterAuthService) UnRegisterCluster(ctx context.Context, clusterUI
 	}
 
 	return nil
+}
+
+func (a *dexClusterAuthService) GetClusterClientSecret(ctx context.Context, clusterID uint) (ClusterClientSecret, error) {
+
+	secret, err := a.secretStore.GetSecret(ctx, clusterID, authSecretName)
+
+	if err != nil {
+		return ClusterClientSecret{}, emperror.Wrapf(err, "failed to get dex client for cluster: %d", clusterID)
+	}
+
+	return ClusterClientSecret{
+		ClientID:     secret.Values[clientIDKey],
+		ClientSecret: secret.Values[clientSecretKey],
+	}, nil
 }
