@@ -70,6 +70,7 @@ type NodePool struct {
 	Provider       NodePoolProvider       `json:"provider" yaml:"provider" binding:"required"`
 	ProviderConfig map[string]interface{} `json:"providerConfig" yaml:"providerConfig" binding:"required"`
 	Labels         map[string]string      `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Autoscaling    bool                   `json:"autoscaling" yaml:"autoscaling"`
 }
 
 type NodePoolProvider string
@@ -116,8 +117,9 @@ type AmazonProviderConfig struct {
 		Subnets                 Subnets `json:"subnets" yaml:"subnets" binding:"required"`
 		Tags                    Tags    `json:"tags" yaml:"tags" binding:"required"`
 		Size                    struct {
-			Min int `json:"min" yaml:"min" binding:"required"`
-			Max int `json:"max" yaml:"max" binding:"required"`
+			Desired int `json:"desired" yaml:"desired"`
+			Min     int `json:"min" yaml:"min" binding:"required"`
+			Max     int `json:"max" yaml:"max" binding:"required"`
 		} `json:"size" yaml:"size" binding:"required"`
 	} `json:"autoScalingGroup" yaml:"autoScalingGroup" binding:"required"`
 }
