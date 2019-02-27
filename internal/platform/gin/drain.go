@@ -63,6 +63,7 @@ func (m *DrainModeMiddleware) Middleware(c *gin.Context) {
 		}
 
 		m.mu.Lock()
+		defer m.mu.Unlock()
 
 		switch c.Request.Method {
 		case http.MethodPost:
@@ -72,9 +73,14 @@ func (m *DrainModeMiddleware) Middleware(c *gin.Context) {
 		case http.MethodDelete:
 			m.enabled = false
 			m.drainModeMetric.Set(0)
-		}
 
-		m.mu.Unlock()
+		case http.MethodHead:
+			if !m.enabled {
+				c.AbortWithStatus(http.StatusNotFound)
+
+				return
+			}
+		}
 
 		c.AbortWithStatus(http.StatusOK)
 
