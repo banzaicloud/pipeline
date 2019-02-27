@@ -30,7 +30,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
@@ -297,72 +296,12 @@ func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
 }
 
 func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
-	// Fetch
-
-	// Generate certificates
-	clusterUidTag := fmt.Sprintf("clusterUID:%s", c.GetUID())
-	req := &secret.CreateSecretRequest{
-		Name:   fmt.Sprintf("cluster-%d-ca", c.GetID()),
-		Values: map[string]string{},
-		Type:   pkgSecret.PKESecretType,
-		Tags: []string{
-			clusterUidTag,
-			pkgSecret.TagBanzaiReadonly,
-			pkgSecret.TagBanzaiHidden,
-		},
-	}
-	_, err := secret.Store.GetOrCreate(c.GetOrganizationId(), req)
-	if err != nil {
-		return err
-	}
-	// prepare input for real AWS flow
-	_, err = c.GetPipelineToken(tokenGenerator)
-	if err != nil {
-		return emperror.Wrap(err, "can't generate Pipeline token")
-	}
-	//client, err := c.GetAWSClient()
-	//if err != nil {
-	//	return err
-	//}
-	//cloudformationSrv := cloudformation.New(client)
-	//err = CreateMasterCF(cloudformationSrv)
-	//if err != nil {
-	//	return emperror.Wrap(err, "can't create master CF template")
-	//}
-	token := "XXX" // TODO masked from dumping valid tokens to log
-	for _, nodePool := range c.model.NodePools {
-		cmd, err := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
-		if err != nil {
-			return err
-		}
-		c.log.Debugf("TODO: start ASG with command %s", cmd)
-	}
-
-	c.UpdateStatus(c.model.Cluster.Status, "Waiting for Kubeconfig from master node.")
-	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
-	err = backoff.Retry(func() error {
-		id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
-		if err != nil {
-			return err
-		} else if id == "" {
-			log.Debug("waiting for Kubeconfig (/ready call)")
-			return errors.New("no Kubeconfig received from master")
-		}
-		c.model.Cluster.ConfigSecretID = id
-		return nil
-	}, backoff.NewConstantBackoffPolicy(&backoff.ConstantBackoffConfig{
-		Delay:          20 * time.Second,
-		MaxElapsedTime: 30 * time.Minute}))
-
-	if err != nil {
-		return emperror.Wrap(err, "timeout")
-	}
-	return nil
+	return errors.New("unused method")
 }
 
 // RegisterNode adds a Node to the DB
 func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, worker bool) error {
-
+	/* TODO: decide if we need this on AWS
 	db := pipConfig.DB()
 	nodePool := internalPke.NodePool{
 		Name:      nodePoolName,
@@ -395,6 +334,7 @@ func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, work
 		return emperror.Wrap(err, "failed to register node")
 	}
 	c.log.WithField("node", name).Info("node registered")
+	*/
 
 	return nil
 }
@@ -422,6 +362,7 @@ func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.
 			MinCount:     nodePool.MinCount,
 			MaxCount:     nodePool.MaxCount,
 			Count:        nodePool.Count,
+			Autoscaling:  nodePool.Autoscaling,
 			InstanceType: nodePool.InstanceType,
 			SpotPrice:    nodePool.SpotPrice,
 		}
@@ -477,10 +418,7 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 		return err
 	}
 
-	err = exec.Get(ctx, nil)
-	if err != nil {
-		return err
-	}
+	workflowError := exec.Get(ctx, nil)
 
 	newNodepoolMap := map[string]pkeworkflow.NodePool{}
 	for _, np := range newNodepools {
@@ -520,11 +458,13 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 		providerConfig.AutoScalingGroup.Image = np.ImageID
 		providerConfig.AutoScalingGroup.Size.Min = np.MinCount
 		providerConfig.AutoScalingGroup.Size.Max = np.MaxCount
+		providerConfig.AutoScalingGroup.Size.Desired = np.Count
 		providerConfig.AutoScalingGroup.SpotPrice = np.SpotPrice
 		modelNodepool := internalPke.NodePool{
-			Name:     np.Name,
-			Roles:    internalPke.Roles{"worker"},
-			Provider: internalPke.NPPAmazon,
+			Name:        np.Name,
+			Roles:       internalPke.Roles{"worker"},
+			Autoscaling: np.Autoscaling,
+			Provider:    internalPke.NPPAmazon,
 			ProviderConfig: internalPke.Config{
 				"autoScalingGroup": providerConfig.AutoScalingGroup},
 		}
@@ -547,7 +487,7 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 		}
 	}
 
-	return nil
+	return workflowError
 }
 
 func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error {
@@ -650,13 +590,10 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		if err != nil {
 			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 		}
-		var hostCount int
-		err = c.db.Model(&internalPke.Host{}).Where(&internalPke.Host{NodePoolID: np.NodePoolID}).Count(&hostCount).Error
-		if err != nil {
-			return nil, err
-		}
+
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-			Count:             hostCount,
+			Autoscaling:       np.Autoscaling,
+			Count:             providerConfig.AutoScalingGroup.Size.Desired,
 			MaxCount:          providerConfig.AutoScalingGroup.Size.Max,
 			MinCount:          providerConfig.AutoScalingGroup.Size.Min,
 			InstanceType:      providerConfig.AutoScalingGroup.InstanceType,
@@ -700,6 +637,7 @@ type PKENodePool struct {
 	MinCount          int
 	MaxCount          int
 	Count             int
+	Autoscaling       bool
 	Master            bool
 	Worker            bool
 	InstanceType      string
@@ -724,11 +662,12 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 			Name:              np.Name,
 			MinCount:          amazonPool.AutoScalingGroup.Size.Min,
 			MaxCount:          amazonPool.AutoScalingGroup.Size.Max,
-			Count:             amazonPool.AutoScalingGroup.Size.Min,
+			Count:             amazonPool.AutoScalingGroup.Size.Desired,
 			InstanceType:      amazonPool.AutoScalingGroup.InstanceType,
 			AvailabilityZones: azs,
 			ImageID:           amazonPool.AutoScalingGroup.Image,
 			SpotPrice:         amazonPool.AutoScalingGroup.SpotPrice,
+			Autoscaling:       np.Autoscaling,
 		}
 		for _, role := range np.Roles {
 			if role == "master" {
@@ -1042,6 +981,7 @@ func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId uint) i
 			Provider:       convertNodePoolProvider(pool.Provider),
 			ProviderConfig: pool.ProviderConfig,
 			Labels:         pool.Labels,
+			Autoscaling:    pool.Autoscaling,
 		}
 		np.CreatedBy = userId
 		nps = append(nps, np)

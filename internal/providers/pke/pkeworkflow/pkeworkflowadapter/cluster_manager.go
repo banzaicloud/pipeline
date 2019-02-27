@@ -68,6 +68,7 @@ func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 			MinCount:          np.MinCount,
 			MaxCount:          np.MaxCount,
 			Count:             np.Count,
+			Autoscaling:       np.Autoscaling,
 			Master:            np.Master,
 			Worker:            np.Worker,
 			InstanceType:      np.InstanceType,
