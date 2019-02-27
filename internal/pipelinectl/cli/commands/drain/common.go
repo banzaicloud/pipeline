@@ -12,16 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package drain
 
 import (
-	"github.com/banzaicloud/pipeline/internal/pipelinectl/cli/commands/drain"
-	"github.com/spf13/cobra"
+	"net/http"
+	"net/url"
+
+	"github.com/pkg/errors"
 )
 
-// AddCommands adds all the commands from cli/command to the root command
-func AddCommands(cmd *cobra.Command) {
-	cmd.AddCommand(
-		drain.NewDrainCommand(),
-	)
+type drainOptions struct {
+	apiUrl string
+}
+
+func newDrainRequest(apiUrl string) (*http.Request, error) {
+	u, err := url.Parse(apiUrl)
+	if err != nil {
+		return nil, errors.Errorf("invalid api url: %s", apiUrl)
+	}
+
+	u.Path = "/-/drain"
+
+	req, err := http.NewRequest("", u.String(), nil)
+	return req, errors.Wrap(err, "failed  to create HTTP request")
 }
