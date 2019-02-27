@@ -536,8 +536,8 @@ func (o *OKECluster) PopulateNetworkValues(r *oracle.Cluster, VCNID string) (*or
 	}
 
 	r.SetVCNID(VCNID)
-	if len(networkValues.LBSubnetIDs) != 2 {
-		return r, errors.New("invalid network config: there must be 2 loadbalancer subnets")
+	if len(networkValues.LBSubnetIDs) != 2 || networkValues.LBSubnetIDs[0] == networkValues.LBSubnetIDs[1] {
+		return r, errors.New("invalid network config: there must be exactly 2 different load balancer subnets specified")
 	}
 	r.SetLBSubnetID1(networkValues.LBSubnetIDs[0])
 	r.SetLBSubnetID2(networkValues.LBSubnetIDs[1])
