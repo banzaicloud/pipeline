@@ -37,6 +37,7 @@ type NodePool struct {
 	Provider       NodePoolProvider  `yaml:"provider"`
 	ProviderConfig Config            `yaml:"providerConfig" gorm:"column:provider_config;type:text"`
 	Labels         map[string]string `yaml:"labels" gorm:"-"`
+	Autoscaling    bool              `yaml:"autoscaling" gorm:"default:false"`
 }
 
 // TableName changes the default table name.

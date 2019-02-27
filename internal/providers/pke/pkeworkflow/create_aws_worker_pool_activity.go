@@ -100,6 +100,20 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 	}
 
 	clusterName := cluster.GetName()
+
+	autoscaling := aws.String("false")
+	if input.Pool.Autoscaling {
+		autoscaling = aws.String("true")
+	}
+
+	desired := input.Pool.Count
+	if desired < input.Pool.MinCount {
+		desired = input.Pool.MinCount
+	}
+	if desired > input.Pool.MaxCount {
+		desired = input.Pool.MaxCount
+	}
+
 	stackInput := &cloudformation.CreateStackInput{
 		StackName:    aws.String(stackName),
 		TemplateBody: aws.String(string(buf)),
@@ -155,7 +169,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("DesiredCapacity"),
-				ParameterValue: aws.String(strconv.Itoa(input.Pool.Count)),
+				ParameterValue: aws.String(strconv.Itoa(desired)),
 			},
 			{
 				ParameterKey:   aws.String("ClusterSecurityGroup"),
@@ -164,6 +178,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			{
 				ParameterKey:   aws.String("NodeSpotPrice"),
 				ParameterValue: aws.String(input.Pool.SpotPrice),
+			},
+			{
+				ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
+				ParameterValue: autoscaling,
 			},
 		},
 	}
