@@ -159,10 +159,6 @@ required = [ "github.com/apache/thrift/lib/go/thrift"]
 
 [[constraint]]
   branch = "master"
-  name = "github.com/casbin/gorm-adapter"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/banzaicloud/logrus-runtime-formatter"
 
 [[constraint]]
