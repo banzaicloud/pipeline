@@ -12,16 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package commands
+package drain
 
-import (
-	"github.com/banzaicloud/pipeline/internal/pipelinectl/cli/commands/drain"
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-// AddCommands adds all the commands from cli/command to the root command
-func AddCommands(cmd *cobra.Command) {
+// NewDrainCommand returns a cobra command for `drain` subcommands.
+func NewDrainCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "drain",
+		Short: "Manage drain status",
+	}
+
 	cmd.AddCommand(
-		drain.NewDrainCommand(),
+		NewStatusCommand(),
+		NewEnableCommand(),
+		NewDisableCommand(),
 	)
+
+	return cmd
 }
