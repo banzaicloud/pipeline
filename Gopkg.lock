@@ -355,29 +355,6 @@
   version = "v3.1.1"
 
 [[projects]]
-  digest = "1:d7149665a6945aa722d14922377a6d428dc0793d39977cd0ebed2e9263972760"
-  name = "github.com/casbin/casbin"
-  packages = [
-    "config",
-    "log",
-    "model",
-    "persist",
-    "rbac",
-    "util",
-  ]
-  pruneopts = "NUT"
-  revision = "4aa316fb68d44d4cc5ddd98d7e9ec80bc0a8b081"
-  version = "v1.8.1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:3786e4321be0a37718a04c51e3ba6dc0182efd2f617bacf934aa8b44012531ee"
-  name = "github.com/casbin/gorm-adapter"
-  packages = ["."]
-  pruneopts = "NUT"
-  revision = "5f0f4b5ecad7f5259de033c2765c1e9399b23034"
-
-[[projects]]
   digest = "1:65b0d980b428a6ad4425f2df4cd5410edd81f044cf527bd1c345368444649e58"
   name = "github.com/census-instrumentation/opencensus-proto"
   packages = [
@@ -1106,17 +1083,6 @@
   packages = ["."]
   pruneopts = "NUT"
   revision = "0bc2a4274cd0f8baa49f2d598df5ef0cc3069c80"
-
-[[projects]]
-  digest = "1:4d5fa9f49e5bf3d55c16ff562af9e3231f9ac5ccf495927fd0555f4607c15475"
-  name = "github.com/lib/pq"
-  packages = [
-    ".",
-    "oid",
-  ]
-  pruneopts = "NUT"
-  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
-  version = "v1.0.0"
 
 [[projects]]
   digest = "1:35e5598ba3bc950039e13d91958ce37f675264735907cada569d11b243e5cacb"
@@ -2705,7 +2671,6 @@
     "github.com/banzaicloud/logrus-runtime-formatter",
     "github.com/banzaicloud/nodepool-labels-operator/pkg/npls",
     "github.com/banzaicloud/prometheus-config",
-    "github.com/casbin/gorm-adapter",
     "github.com/dgrijalva/jwt-go",
     "github.com/didip/tollbooth",
     "github.com/docker/libcompose/yaml",
