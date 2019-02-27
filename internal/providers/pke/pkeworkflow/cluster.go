@@ -47,6 +47,7 @@ type NodePool struct {
 	MinCount          int
 	MaxCount          int
 	Count             int
+	Autoscaling       bool
 	Master            bool
 	Worker            bool
 	InstanceType      string

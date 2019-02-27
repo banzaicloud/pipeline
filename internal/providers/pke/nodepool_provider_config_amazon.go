@@ -27,8 +27,9 @@ type NodePoolProviderConfigAmazon struct {
 		Subnets                 Subnets `yaml:"subnets"`
 		Tags                    Tags    `yaml:"tags"`
 		Size                    struct {
-			Min int `yaml:"min"`
-			Max int `yaml:"max"`
+			Min     int `yaml:"min"`
+			Max     int `yaml:"max"`
+			Desired int `yaml:"desired"`
 		} `yaml:"size"`
 		SpotPrice string `yaml:"spotPrice"`
 	} `yaml:"autoScalingGroup"`

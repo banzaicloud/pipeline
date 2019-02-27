@@ -57,13 +57,56 @@ func (a *UpdatePoolActivity) Execute(ctx context.Context, input UpdatePoolActivi
 		return emperror.Wrapf(err, "setting min/max capacity of pool %q", input.Pool.Name)
 	}
 
+	desired := input.Pool.Count
+	if desired < input.Pool.MinCount {
+		desired = input.Pool.MinCount
+	}
+	if desired > input.Pool.MaxCount {
+		desired = input.Pool.MaxCount
+	}
 	_, err = autoscalingSrv.SetDesiredCapacity(&autoscaling.SetDesiredCapacityInput{
 		AutoScalingGroupName: aws.String(input.AutoScalingGroup),
-		DesiredCapacity:      aws.Int64(int64(input.Pool.Count)),
+		DesiredCapacity:      aws.Int64(int64(desired)),
 		HonorCooldown:        aws.Bool(false),
 	})
 	if err != nil {
 		return emperror.Wrapf(err, "setting desired capacity of pool %q", input.Pool.Name)
+	}
+
+	addTag := "enabled"
+	delTag := "disabled"
+	if !input.Pool.Autoscaling {
+		addTag, delTag = delTag, addTag
+	}
+
+	_, err = autoscalingSrv.CreateOrUpdateTags(&autoscaling.CreateOrUpdateTagsInput{
+		Tags: []*autoscaling.Tag{
+			{
+				ResourceId:        aws.String(input.AutoScalingGroup),
+				ResourceType:      aws.String("auto-scaling-group"),
+				Key:               aws.String("k8s.io/cluster-autoscaler/" + addTag),
+				Value:             aws.String("true"),
+				PropagateAtLaunch: aws.Bool(true),
+			},
+		},
+	})
+	if err != nil {
+		return emperror.Wrap(err, "failed to create tags for ASG")
+	}
+
+	_, err = autoscalingSrv.DeleteTags(&autoscaling.DeleteTagsInput{
+		Tags: []*autoscaling.Tag{
+			{
+				ResourceId:        aws.String(input.AutoScalingGroup),
+				ResourceType:      aws.String("auto-scaling-group"),
+				Key:               aws.String("k8s.io/cluster-autoscaler/" + delTag),
+				Value:             aws.String("true"),
+				PropagateAtLaunch: aws.Bool(true),
+			},
+		},
+	})
+	if err != nil {
+		return emperror.Wrap(err, "failed to delete tags for ASG")
 	}
 
 	return nil
