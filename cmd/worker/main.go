@@ -25,6 +25,7 @@ import (
 	conf "github.com/banzaicloud/pipeline/config"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
@@ -138,10 +139,15 @@ func main() {
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 
-		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clustersecret.NewStore(
+		clusterSecretStore := clustersecret.NewStore(
 			clustersecretadapter.NewClusterManagerAdapter(clusterManager),
 			clustersecretadapter.NewSecretStore(secret.Store),
-		))
+		)
+
+		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
+		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
+
+		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
 
 		awsClientFactory := pkeworkflow.NewAWSClientFactory(pkeworkflowadapter.NewSecretStore(secret.Store))
@@ -163,6 +169,12 @@ func main() {
 
 		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(awsClientFactory)
 		activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
+
+		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
+		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
+
+		deleteDexClientActivity := pkeworkflow.NewDeleteDexClientActivity(clusters, clusterAuthService)
+		activity.RegisterWithOptions(deleteDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteDexClientActivityName})
 
 		createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)
 		activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})

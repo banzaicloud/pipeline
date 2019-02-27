@@ -116,6 +116,10 @@ var HookMap = map[string]PostFunctioner{
 		Priority:     Priority{5},
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.CreateClusterRoles: &BasePostFunction{
+		f:            CreateClusterRoles,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
