@@ -54,10 +54,10 @@ require (
 	github.com/coreos/bbolt v1.3.2 // indirect
 	github.com/coreos/go-oidc v2.0.0+incompatible // indirect
 	github.com/coreos/go-systemd v0.0.0-20190212144455-93d5ec2c7f76 // indirect
-	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
 	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
 	github.com/dancannon/gorethink v4.0.0+incompatible // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190204142019-df6d76eb9289 // indirect
+	github.com/dexidp/dex v0.0.0-20190205125449-7bd4071b4c8c
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/didip/tollbooth v4.0.0+incompatible
 	github.com/dimchansky/utfbom v1.0.0 // indirect
@@ -96,7 +96,6 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocql/gocql v0.0.0-20190219221429-ec4793573d14 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/golang/groupcache v0.0.0-20180203143532-66deaeb636df // indirect
 	github.com/golang/mock v1.2.0 // indirect
 	github.com/golang/protobuf v1.2.0
 	github.com/google/go-github v15.0.0+incompatible
@@ -139,7 +138,6 @@ require (
 	github.com/hashicorp/vault-plugin-secrets-kv v0.0.0-20190227052836-76a82948fe5b // indirect
 	github.com/heptio/ark v0.9.3
 	github.com/huandu/xstrings v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jeffchao/backoff v0.0.0-20140404060208-9d7fd7aa17f2 // indirect
 	github.com/jefferai/jsonx v1.0.0 // indirect
 	github.com/jessevdk/go-flags v1.4.0 // indirect
@@ -239,13 +237,13 @@ require (
 	golang.org/x/tools v0.0.0-20190211224914-44bee7e801e4 // indirect
 	google.golang.org/api v0.0.0-20190111181425-455dee39f703
 	google.golang.org/genproto v0.0.0-20181202183823-bd91e49a0898
+	google.golang.org/grpc v1.17.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/gorethink/gorethink.v4 v4.1.0 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce // indirect
 	gopkg.in/ory-am/dockertest.v2 v2.2.3 // indirect
-	gopkg.in/square/go-jose.v2 v2.1.6 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 	gotest.tools v2.2.0+incompatible // indirect
 	honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099 // indirect
