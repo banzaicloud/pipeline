@@ -25,6 +25,7 @@ type CreateClusterPKE struct {
 	Kubernetes Kubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty" binding:"required"`
 	KubeADM    KubeADM    `json:"kubeadm,omitempty" yaml:"kubeadm,omitempty"`
 	CRI        CRI        `json:"cri,omitempty" yaml:"cri,omitempty" binding:"required"`
+	DexEnabled bool       `json:"dexEnabled,omitempty"`
 }
 
 // UpdateClusterPKE describes Pipeline's EC2/BanzaiCloud fields of a UpdateCluster request
