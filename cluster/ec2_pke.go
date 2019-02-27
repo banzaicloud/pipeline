@@ -792,12 +792,9 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		return "", err
 	}
 
-	dexIssuerURL := viper.GetString("auth.dexURL")
-	dexClientID := c.GetUID()
-
 	// master
 	if subcommand == "master" {
-		return fmt.Sprintf("pke install %s "+
+		command := fmt.Sprintf("pke install %s "+
 			"--pipeline-url=%q "+
 			"--pipeline-token=%q "+
 			"--pipeline-org-id=%d "+
@@ -810,9 +807,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
 			"--kubernetes-infrastructure-cidr=%q "+
 			"--kubernetes-api-server=%q "+
-			"--kubernetes-cluster-name=%q "+
-			"--kubernetes-oidc-issuer-url=%q "+
-			"--kubernetes-oidc-client-id=%q",
+			"--kubernetes-cluster-name=%q"+
 			subcommand,
 			url,
 			token,
@@ -822,9 +817,22 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
-			dexIssuerURL,
-			dexClientID,
-		), nil
+		)
+
+		if c.model.DexEnabled {
+			dexIssuerURL := viper.GetString("auth.dexURL")
+			dexClientID := c.GetUID()
+
+			command = fmt.Sprintf("%s "+
+				"--kubernetes-oidc-issuer-url=%q "+
+				"--kubernetes-oidc-client-id=%q",
+				command,
+				dexIssuerURL,
+				dexClientID,
+			)
+		}
+
+		return command, nil
 	}
 
 	// worker
@@ -919,6 +927,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		kubernetes = createEC2ClusterPKEFromRequest(request.Properties.CreateClusterPKE.Kubernetes, userId)
 		kubeADM    = createEC2ClusterPKEKubeADMFromRequest(request.Properties.CreateClusterPKE.KubeADM, userId)
 		cri        = createEC2ClusterPKECRIFromRequest(request.Properties.CreateClusterPKE.CRI, userId)
+		dexEnabled = request.Properties.CreateClusterPKE.DexEnabled
 	)
 
 	instanceType, image, err := getMasterInstanceTypeAndImageFromNodePools(nodepools)
@@ -943,6 +952,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		Kubernetes:         kubernetes,
 		KubeADM:            kubeADM,
 		CRI:                cri,
+		DexEnabled:         dexEnabled,
 	}
 
 	return c, nil

@@ -67,6 +67,8 @@ func NewClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonC
 		workflowClient: workflowClient,
 
 		commonCreator: *common,
+
+		dexEnabled: request.Properties.CreateClusterPKE.DexEnabled,
 	}
 }
 
@@ -78,6 +80,8 @@ type pkeCreator struct {
 	workflowClient client.Client
 
 	commonCreator
+
+	dexEnabled bool
 }
 
 // Create implements the clusterCreator interface.
@@ -95,6 +99,7 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 		SecretID:            string(c.cluster.GetSecretId()),
 		Region:              c.cluster.GetLocation(),
 		PipelineExternalURL: externalBaseURL,
+		DexEnabled:          c.dexEnabled,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
