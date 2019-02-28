@@ -20,7 +20,6 @@ ifeq (${VERBOSE}, 1)
 	GOARGS += -v
 endif
 
-DEP_VERSION = 0.5.0
 GOLANGCI_VERSION = 1.12.3
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
@@ -34,7 +33,7 @@ GOLANG_VERSION = 1.11
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: up
-up: vendor config/dex.yml start config/config.toml ## Set up the development environment
+up: config/dex.yml start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -46,7 +45,7 @@ reset: down up ## Reset the development environment
 
 .PHONY: clean
 clean: ## Clean the working area and the project
-	rm -rf bin/ ${BUILD_DIR}/ vendor/
+	rm -rf bin/ ${BUILD_DIR}/
 	rm -rf pipeline
 
 docker-compose.override.yml: ## Create docker compose override file
@@ -70,22 +69,6 @@ anchorestart: docker-compose.anchore.yml create-docker-dirs ## Start docker deve
 .PHONY: stop
 stop: ## Stop docker development environment
 	docker-compose stop
-
-bin/dep: bin/dep-${DEP_VERSION}
-	@ln -sf dep-${DEP_VERSION} bin/dep
-bin/dep-${DEP_VERSION}:
-	@mkdir -p bin
-	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=bin DEP_RELEASE_TAG=v${DEP_VERSION} sh
-	@mv bin/dep $@
-
-.PHONY: vendor
-vendor: bin/dep ## Install dependencies
-	bin/dep ensure -v -vendor-only
-	@touch vendor/.auto
-
-vendor/.auto: Gopkg.lock bin/dep # install/update dependencies if needed
-	bin/dep ensure -v -vendor-only
-	@touch $@
 
 config/config.toml:
 	cp config/config.toml.dist config/config.toml
@@ -113,7 +96,7 @@ ifneq (${IGNORE_GOLANG_VERSION_REQ}, 1)
 endif
 
 .PHONY: build-%
-build-%: goversion vendor/.auto ## Build a binary
+build-%: goversion ## Build a binary
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
 
 builds := $(patsubst ./cmd/%,build-%,$(wildcard ./cmd/*))
