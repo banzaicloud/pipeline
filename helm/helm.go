@@ -191,18 +191,19 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
 		//      release name = release1, status = DEPLOYED
 		//
 		// we need only the release name for deleting a release
-		releases := make(map[string]bool)
+		deletedDeployments := make(map[string]bool)
 		for _, r := range releaseResp.Releases {
-			releases[r.Name] = true
-		}
+			if _, ok := deletedDeployments[r.Name]; !ok {
+				log.Infoln("deleting deployment", r.Name)
 
-		for release := range releases {
-			log.Infoln("deleting deployment", release)
-			err := DeleteDeployment(release, kubeconfig)
-			if err != nil {
-				return err
+				err := DeleteDeployment(r.Name, kubeconfig)
+				if err != nil {
+					return emperror.WrapWith(err, "failed to delete deployment", "deployment", r.Name)
+				}
+				deletedDeployments[r.Name] = true
+
+				log.Infof("deployment %s successfully deleted", r.Name)
 			}
-			log.Infof("deployment %s successfully deleted", release)
 		}
 	}
 	return nil
