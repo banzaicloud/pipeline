@@ -27,7 +27,7 @@ type EC2PKEClusterModel struct {
 	MasterInstanceType string
 	MasterImage        string
 	CurrentWorkflowID  string
-	DexEnabled         bool
+	DexEnabled         bool `gorm:"default:0;not null"`
 
 	Network    Network    `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"network"`
 	NodePools  NodePools  `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"nodepools"`
