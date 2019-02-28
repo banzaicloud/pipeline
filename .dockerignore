@@ -1,6 +1,9 @@
 .docker/
 bin/
 client/*.md
+Dockerfile
+Dockerfile.*
+docker-compose.*
 docs/
 orgs/
 vendor/
