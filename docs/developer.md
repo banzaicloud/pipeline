@@ -160,8 +160,5 @@ go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticato
 
 #### Anchore Engine
 
-If you need to access local anchore server, you'll have to start development environment with `anchorestart` instead of `start`
-
-```bash
-$ make anchorestart
-```
+If you need to access local anchore server, uncomment the related services in `docker-compose.override.yml`
+and restart the environment with `make start`.
