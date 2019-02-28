@@ -17,7 +17,7 @@ package google
 import (
 	"fmt"
 
-	"cloud.google.com/go/iam/credentials/apiv1"
+	credentials "cloud.google.com/go/iam/credentials/apiv1"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/goph/emperror"
 	"golang.org/x/net/context"

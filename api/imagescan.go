@@ -19,7 +19,7 @@ import (
 	"path"
 
 	apiclient "github.com/banzaicloud/pipeline/client"
-	"github.com/banzaicloud/pipeline/internal/security"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"

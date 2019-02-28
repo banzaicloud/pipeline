@@ -31,7 +31,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	apiv1 "k8s.io/api/core/v1"
-	"k8s.io/api/rbac/v1"
+	v1 "k8s.io/api/rbac/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/cmd/helm/installer"

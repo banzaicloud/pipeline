@@ -17,7 +17,7 @@ package anchore
 import (
 	"sync"
 
-	"github.com/banzaicloud/logrus-runtime-formatter"
+	runtime "github.com/banzaicloud/logrus-runtime-formatter"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"

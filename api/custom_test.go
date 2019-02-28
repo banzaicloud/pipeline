@@ -20,9 +20,9 @@ import (
 	"testing"
 
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -139,7 +139,7 @@ const (
 var (
 	serviceForIngress = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name:   "serviceForIngress",
 				Labels: map[string]string{"release": dummyReleaseName},
 			},
@@ -148,7 +148,7 @@ var (
 	}
 	serviceListWithoutLoadBalancer = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "withoutLoadBalancer",
 			},
 			Status: v1.ServiceStatus{
@@ -161,7 +161,7 @@ var (
 	}
 	serviceListWithHostName = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "serviceListWithHostName",
 			},
 			Status: v1.ServiceStatus{
@@ -177,7 +177,7 @@ var (
 	}
 	serviceListWithIP = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "serviceListWithIP",
 			},
 			Status: v1.ServiceStatus{
@@ -193,7 +193,7 @@ var (
 	}
 	serviceListWithMultipleLoadBalancer = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "loadBalancerWithIngress",
 			},
 			Spec: v1.ServiceSpec{
@@ -208,7 +208,7 @@ var (
 				},
 			},
 		}, {
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "loadBalancerWithoutIngress",
 			},
 			Status: v1.ServiceStatus{
@@ -221,7 +221,7 @@ var (
 			},
 		},
 			{
-				ObjectMeta: v12.ObjectMeta{
+				ObjectMeta: v1meta.ObjectMeta{
 					Name:   "serviceForIngress",
 					Labels: map[string]string{"release": dummyReleaseName},
 				},
@@ -230,7 +230,7 @@ var (
 	}
 	serviceListWithPort = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "loadBalancerWithPort",
 			},
 			Spec: v1.ServiceSpec{
@@ -260,7 +260,7 @@ var (
 var (
 	ingressListWithMultipleLoadBalancer = &v1beta1.IngressList{
 		Items: []v1beta1.Ingress{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name:        "test-ingress1",
 				Annotations: map[string]string{"kubernetes.io/ingress.class": traefik},
 			},
@@ -371,7 +371,7 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 var (
 	serviceListWithPendingLoadBalancer = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "serviceListWithPendingLoadBalancer",
 			},
 			Status: v1.ServiceStatus{
@@ -386,7 +386,7 @@ var (
 
 	serviceListReadyLoadBalancer = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "serviceListWithReadyLoadBalancer",
 			},
 			Status: v1.ServiceStatus{
@@ -403,7 +403,7 @@ var (
 
 	serviceListWithPendingReadyLoadBalancer = &v1.ServiceList{
 		Items: []v1.Service{{
-			ObjectMeta: v12.ObjectMeta{
+			ObjectMeta: v1meta.ObjectMeta{
 				Name: "serviceWithPendingLoadBalancer",
 			},
 			Status: v1.ServiceStatus{
@@ -414,7 +414,7 @@ var (
 			},
 		},
 			{
-				ObjectMeta: v12.ObjectMeta{
+				ObjectMeta: v1meta.ObjectMeta{
 					Name: "serviceWithReadyLoadBalancer",
 				},
 				Status: v1.ServiceStatus{
