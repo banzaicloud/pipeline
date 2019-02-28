@@ -41,6 +41,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"k8s.io/api/core/v1"
@@ -176,22 +177,32 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 }
 
 //DeleteAllDeployment deletes all Helm deployment
-func DeleteAllDeployment(kubeconfig []byte) error {
-	log.Info("Getting deployments....")
+func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
+	log.Info("getting deployments....")
 	filter := ""
 	releaseResp, err := ListDeployments(&filter, "", kubeconfig)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "failed to get deployments")
 	}
-	log.Info("Starting deleting deployments")
+	log.Info("start deleting deployments")
 	if releaseResp != nil {
+		// the returned release items are unique by release name and status
+		// e.g. release name = release1, status = PENDING_UPGRADE
+		//      release name = release1, status = DEPLOYED
+		//
+		// we need only the release name for deleting a release
+		releases := make(map[string]bool)
 		for _, r := range releaseResp.Releases {
-			log.Info("Trying to delete deployment ", r.Name)
-			err := DeleteDeployment(r.Name, kubeconfig)
+			releases[r.Name] = true
+		}
+
+		for release := range releases {
+			log.Infoln("deleting deployment", release)
+			err := DeleteDeployment(release, kubeconfig)
 			if err != nil {
 				return err
 			}
-			log.Infof("Deployment %s successfully deleted", r.Name)
+			log.Infof("deployment %s successfully deleted", release)
 		}
 	}
 	return nil
