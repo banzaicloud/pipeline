@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 
 # **ListRouteTables**
-> []RouteTableInfo ListRouteTables(ctx, orgId, networkId, secretId, cloudType, optional)
+> []RouteTableInfo ListRouteTables(ctx, orgId, networkId, secretId, provider, optional)
 List VPC route tables
 
 List route tables of the given VPC network
@@ -23,7 +23,7 @@ Name | Type | Description  | Notes
   **orgId** | **int32**| Organization identification | 
   **networkId** | **string**| VPC network identification | 
   **secretId** | **string**| Secret identification | 
-  **cloudType** | **string**| Identifies the cloud provider | 
+  **provider** | **string**| Identifies the cloud provider | 
  **optional** | ***ListRouteTablesOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -54,7 +54,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListVPCNetworks**
-> []VpcNetworkInfo ListVPCNetworks(ctx, orgId, secretId, cloudType, optional)
+> []VpcNetworkInfo ListVPCNetworks(ctx, orgId, secretId, provider, optional)
 List VPC networks
 
 List VPC networks accessible by the organization.
@@ -66,7 +66,7 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
   **secretId** | **string**| Secret identification | 
-  **cloudType** | **string**| Identifies the cloud provider | 
+  **provider** | **string**| Identifies the cloud provider | 
  **optional** | ***ListVPCNetworksOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -77,8 +77,8 @@ Name | Type | Description  | Notes
 
 
 
- **region** | **optional.String**| Identifies the region of the VPC network (required when cloudType !&#x3D; azure) | 
- **resourceGroup** | **optional.String**| Identifies the resource group of the Azure virtual network (required when cloudType &#x3D;&#x3D; azure) | 
+ **region** | **optional.String**| Identifies the region of the VPC network (required when provider !&#x3D; azure) | 
+ **resourceGroup** | **optional.String**| Identifies the resource group of the Azure virtual network (required when provider &#x3D;&#x3D; azure) | 
 
 ### Return type
 
@@ -96,7 +96,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListVPCSubnets**
-> []SubnetInfo ListVPCSubnets(ctx, orgId, networkId, secretId, cloudType, optional)
+> []SubnetInfo ListVPCSubnets(ctx, orgId, networkId, secretId, provider, optional)
 List VPC subnetworks
 
 List subnetworks of the given VPC network
@@ -109,7 +109,7 @@ Name | Type | Description  | Notes
   **orgId** | **int32**| Organization identification | 
   **networkId** | **string**| VPC network identification | 
   **secretId** | **string**| Secret identification | 
-  **cloudType** | **string**| Identifies the cloud provider | 
+  **provider** | **string**| Identifies the cloud provider | 
  **optional** | ***ListVPCSubnetsOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
