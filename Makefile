@@ -28,7 +28,7 @@ OPENAPI_GENERATOR_VERSION = PR1869
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
 
-GOLANG_VERSION = 1.11
+GOLANG_VERSION = 1.11.5
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
