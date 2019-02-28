@@ -51,19 +51,10 @@ clean: ## Clean the working area and the project
 docker-compose.override.yml: ## Create docker compose override file
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then cat docker-compose.override.yml.dist | sed -e 's/# user: "$${uid}:$${gid}"/user: "$(shell id -u):$(shell id -g)"/' > docker-compose.override.yml; else cp docker-compose.override.yml.dist docker-compose.override.yml; fi
 
-docker-compose.anchore.yml: ## Create docker compose override file with anchore
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then cat docker-compose.anchore.yml.dist | sed -e 's/# user: "$${uid}:$${gid}"/user: "$(shell id -u):$(shell id -g)"/' > docker-compose.override.yml; else cp docker-compose.anchore.yml.dist docker-compose.override.yml; fi
-
-create-docker-dirs: ## Create .docker directories with your user
-	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
-
 .PHONY: start
-start: docker-compose.override.yml create-docker-dirs ## Start docker development environment
+start: docker-compose.override.yml ## Start docker development environment
 	@ if [ docker-compose.override.yml -ot docker-compose.override.yml.dist ]; then diff -u docker-compose.override.yml* || (echo "!!! The distributed docker-compose.override.yml example changed. Please update your file accordingly (or at least touch it). !!!" && false); fi
-	docker-compose up -d
-
-.PHONY: anchorestart
-anchorestart: docker-compose.anchore.yml create-docker-dirs ## Start docker development environment with anchore
+	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
 	docker-compose up -d
 
 .PHONY: stop
