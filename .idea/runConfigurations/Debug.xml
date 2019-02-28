@@ -2,7 +2,6 @@
   <configuration default="false" name="Debug" type="GoApplicationRunConfiguration" factoryName="Go Application" singleton="true">
     <module name="pipeline" />
     <working_directory value="$PROJECT_DIR$/" />
-    <go_parameters value="-i" />
     <envs>
       <env name="VAULT_ADDR" value="http://127.0.0.1:8200" />
     </envs>
