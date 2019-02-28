@@ -206,46 +206,6 @@ type BanzaiUserStorer struct {
 	githubImporter   *GithubImporter
 }
 
-func checkWhiteList(db *gorm.DB, user *User, userSchema *auth.Schema, userOrgs []string) (bool, error) {
-
-	whitelistedCandidates := []*WhitelistedAuthIdentity{}
-
-	// Check here that a user login name is in the whitelisted_auth_identities table
-	userWhitelisted := WhitelistedAuthIdentity{
-		Provider: userSchema.Provider,
-		Login:    user.Login,
-		Type:     UserType,
-	}
-
-	whitelistedCandidates = append(whitelistedCandidates, &userWhitelisted)
-
-	// Also check if the user is member of one of the whitelisted organizations
-	for _, userOrg := range userOrgs {
-
-		orgWhitelisted := WhitelistedAuthIdentity{
-			Provider: userSchema.Provider,
-			Login:    userOrg,
-			Type:     OrganizationType,
-		}
-
-		whitelistedCandidates = append(whitelistedCandidates, &orgWhitelisted)
-	}
-
-	var userIsWhitelisted bool
-	for _, whitelistedCandidate := range whitelistedCandidates {
-
-		if tx := db.Where(&whitelistedCandidate).Find(&WhitelistedAuthIdentity{}); tx.Error == nil {
-			userIsWhitelisted = true
-			break
-		} else if !tx.RecordNotFound() {
-			log.Errorln("failed to check whitelist in db", tx.Error.Error())
-			return false, tx.Error
-		}
-	}
-
-	return userIsWhitelisted, nil
-}
-
 func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
 	var dexClaims struct {
 		Groups []string
@@ -308,15 +268,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	}
 
 	db := authCtx.Auth.GetDB(authCtx.Request)
-
-	if viper.GetBool("auth.whitelistEnabled") {
-
-		if ok, err := checkWhiteList(db, currentUser, schema, organizations); err != nil {
-			return nil, "", emperror.Wrap(err, "failed to check whitelist")
-		} else if !ok {
-			return nil, "", errors.New("user is not enabled")
-		}
-	}
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	err = bus.createUserInCICDDB(currentUser)
