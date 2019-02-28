@@ -4512,7 +4512,7 @@ paths:
                     schema:
                         type: string
                 -
-                    name: cloudType
+                    name: provider
                     description: Identifies the cloud provider
                     in: query
                     required: true
@@ -4521,14 +4521,14 @@ paths:
                         enum: [amazon, google, azure, oracle, alibaba]
                 -
                     name: region
-                    description: Identifies the region of the VPC network (required when cloudType != azure)
+                    description: Identifies the region of the VPC network (required when provider != azure)
                     in: query
                     required: false
                     schema:
                         type: string
                 -
                     name: resourceGroup
-                    description: Identifies the resource group of the Azure virtual network (required when cloudType == azure)
+                    description: Identifies the resource group of the Azure virtual network (required when provider == azure)
                     in: query
                     required: false
                     schema:
@@ -4592,7 +4592,7 @@ paths:
                     schema:
                         type: string
                 -
-                    name: cloudType
+                    name: provider
                     description: Identifies the cloud provider
                     in: query
                     required: true
@@ -4674,7 +4674,7 @@ paths:
                     schema:
                         type: string
                 -
-                    name: cloudType
+                    name: provider
                     description: Identifies the cloud provider
                     in: query
                     required: true

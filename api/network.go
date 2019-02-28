@@ -269,7 +269,7 @@ func (a *NetworkAPI) ListRouteTables(ctx *gin.Context) {
 }
 
 func getRequiredProviderFromContext(ctx *gin.Context, logger logrus.FieldLogger) (string, bool) {
-	provider, ok := ginutils.RequiredQueryOrAbort(ctx, "cloudType")
+	provider, ok := ginutils.RequiredQueryOrAbort(ctx, "provider")
 	return provider, ok
 }
 
