@@ -5,6 +5,8 @@ jobs:
         docker:
             -
                 image: circleci/golang:1.11
+                environment:
+                    GOFLAG: -mod=readonly
             -
                 image: mysql:5.7
                 command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -15,8 +17,6 @@ jobs:
                 environment:
                     SKIP_SETCAP: true
                     VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
-
-        working_directory: /go/src/github.com/banzaicloud/pipeline
 
         steps:
             - checkout
@@ -29,17 +29,17 @@ jobs:
 
             -
                 restore_cache:
-                    name: Restore dependencies
+                    name: Restore Go module cache
                     keys:
-                        - gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
-                        - gopkg-v1-{{ .Branch }}
-                        - gopkg-v1-master
-                        - gopkg-v1
+                        - gomod-v1-{{ .Branch }}-{{ checksum "go.sum" }}
+                        - gomod-v1-{{ .Branch }}
+                        - gomod-v1-master
+                        - gomod-v1
 
             -
                 run:
-                    name: Install dependencies
-                    command: make vendor
+                    name: Download Go module cache
+                    command: go mod download
 
             -
                 run:
@@ -48,10 +48,10 @@ jobs:
 
             -
                 save_cache:
-                    name: Save dependencies
-                    key: gopkg-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                    name: Save Go module cache
+                    key: gomod-v1-{{ .Branch }}-{{ checksum "go.sum" }}
                     paths:
-                        - vendor/
+                        - /go/pkg/mod
 
             -
                 restore_cache:
