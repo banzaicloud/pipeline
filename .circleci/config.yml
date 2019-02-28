@@ -57,7 +57,7 @@ jobs:
                 restore_cache:
                     name: Restore license cache
                     keys:
-                        - licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                        - licensei-v1-{{ .Branch }}-{{ checksum "go.sum" }}
                         - licensei-v1-{{ .Branch }}
                         - licensei-v1-master
                         - licensei-v1
@@ -70,7 +70,7 @@ jobs:
             -
                 save_cache:
                     name: Save license cache
-                    key: licensei-v1-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+                    key: licensei-v1-{{ .Branch }}-{{ checksum "go.sum" }}
                     paths:
                         - .licensei.cache
 
