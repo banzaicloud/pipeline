@@ -17,7 +17,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/banzaicloud/bank-vaults/pkg/db"
+	database "github.com/banzaicloud/bank-vaults/pkg/db"
 )
 
 // GetDSN returns a DSN string from a config.

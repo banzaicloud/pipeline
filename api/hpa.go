@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/hpa"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -27,8 +27,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"k8s.io/api/autoscaling/v2beta1"
-	"k8s.io/api/core/v1"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const hpaAnnotationPrefix = "hpa.autoscaling.banzaicloud.io"
@@ -172,13 +172,13 @@ func getHpaResources(scaleTargetRef string, kubeConfig []byte) (*hpa.DeploymentS
 		return nil, err
 	}
 
-	listOption := v12.ListOptions{
-		TypeMeta: v12.TypeMeta{
+	listOption := metav1.ListOptions{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "HorizontalPodAutoscaler",
 			APIVersion: "autoscaling/v1",
 		},
 	}
-	hpaList, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(v12.NamespaceAll).List(listOption)
+	hpaList, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(metav1.NamespaceAll).List(listOption)
 	if err != nil {
 		return nil, err
 	}
@@ -289,13 +289,13 @@ func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	}
 
 	// find deployment & update hpa annotations
-	// get doesn't work with v12.NamespaceAll only if you specify the namespace exactly
-	// deployment, err := client.AppsV1().Deployments(v12.NamespaceAll).Get(request.Name, v12.GetOptions{})
+	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
+	// deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
 	scaleTargetFound := false
-	listOptions := v12.ListOptions{
+	listOptions := metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%v", scaleTarget),
 	}
-	deploymentList, err := client.AppsV1().Deployments(v12.NamespaceAll).List(listOptions)
+	deploymentList, err := client.AppsV1().Deployments(metav1.NamespaceAll).List(listOptions)
 	if err != nil {
 		return err
 	}
@@ -312,7 +312,7 @@ func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	}
 
 	// find statefulset & update hpa annotations
-	statefulSetList, err := client.AppsV1().StatefulSets(v12.NamespaceAll).List(listOptions)
+	statefulSetList, err := client.AppsV1().StatefulSets(metav1.NamespaceAll).List(listOptions)
 	if err != nil {
 		return err
 	}
@@ -342,13 +342,13 @@ func setDeploymentAutoscalingInfo(kubeConfig []byte, request hpa.DeploymentScali
 	}
 
 	// find deployment & update hpa annotations
-	// get doesn't work with v12.NamespaceAll only if you specify the namespace exactly
-	//deployment, err := client.AppsV1().Deployments(v12.NamespaceAll).Get(request.Name, v12.GetOptions{})
+	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
+	//deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
 	scaleTargetFound := false
-	listOptions := v12.ListOptions{
+	listOptions := metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%v", request.ScaleTarget),
 	}
-	deploymentList, err := client.AppsV1().Deployments(v12.NamespaceAll).List(listOptions)
+	deploymentList, err := client.AppsV1().Deployments(metav1.NamespaceAll).List(listOptions)
 	if err != nil {
 		return err
 	}
@@ -366,7 +366,7 @@ func setDeploymentAutoscalingInfo(kubeConfig []byte, request hpa.DeploymentScali
 	}
 
 	// find statefulset & update hpa annotations
-	statefulSetList, err := client.AppsV1().StatefulSets(v12.NamespaceAll).List(listOptions)
+	statefulSetList, err := client.AppsV1().StatefulSets(metav1.NamespaceAll).List(listOptions)
 	if err != nil {
 		return err
 	}

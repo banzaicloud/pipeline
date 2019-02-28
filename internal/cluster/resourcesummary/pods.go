@@ -15,7 +15,7 @@
 package resourcesummary
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	resourcev1 "k8s.io/kubernetes/pkg/api/v1/resource"
 )

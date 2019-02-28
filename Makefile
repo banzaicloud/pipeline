@@ -20,7 +20,7 @@ ifeq (${VERBOSE}, 1)
 	GOARGS += -v
 endif
 
-GOLANGCI_VERSION = 1.12.3
+GOLANGCI_VERSION = 1.15.0
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.1.0
@@ -133,7 +133,7 @@ bin/golangci-lint-${GOLANGCI_VERSION}:
 
 .PHONY: lint
 lint: bin/golangci-lint ## Run linter
-	@bin/golangci-lint run
+	bin/golangci-lint run
 
 .PHONY: fmt
 fmt:

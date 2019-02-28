@@ -21,7 +21,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 const nodePoolLabelsOperatorName = "/nodepool-labels-operator"
