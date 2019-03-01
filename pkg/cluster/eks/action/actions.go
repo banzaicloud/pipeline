@@ -789,13 +789,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				a.log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, update stack name:", stackName)
 			}
 
-			commaDelimitedSubnetIDs := ""
-			for i, subnetID := range a.context.SubnetIDs {
-				commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + *subnetID
-				if i != len(a.context.SubnetIDs)-1 {
-					commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + ","
-				}
-			}
+			commaDelimitedSubnetIDs := *a.context.SubnetIDs[0]
 
 			tags := []*cloudformation.Tag{
 				{Key: aws.String("pipeline-created"), Value: aws.String("true")},
