@@ -1057,7 +1057,7 @@ func (a *PersistClusterUserAccessKeyAction) GetName() string {
 
 // getSecretName returns the name that identifies the  cluster user access key in Vault
 func getSecretName(userName string) string {
-	return fmt.Sprintf("%s-key", userName)
+	return fmt.Sprintf("%s-key", strings.ToLower(userName))
 }
 
 // GetClusterUserAccessKeyIdAndSecretVault returns the AWS access key and access key secret from Vault
