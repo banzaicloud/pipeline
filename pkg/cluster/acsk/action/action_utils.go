@@ -480,6 +480,9 @@ func waitUntilClusterDeleteIsComplete(logger logrus.FieldLogger, clusterID strin
 
 // GetClusterDetails retrieves cluster details from cloud provider
 func GetClusterDetails(client *cs.Client, clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
+	if clusterID == "" {
+		return nil, errors.New("could not get cluster details clusterId is empty")
+	}
 	req := cs.CreateDescribeClusterDetailRequest()
 	req.SetScheme(requests.HTTPS)
 	req.SetDomain(acsk.AlibabaApiDomain)

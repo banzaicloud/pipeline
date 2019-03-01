@@ -40,8 +40,11 @@ const (
 	// DNSGcLogLevel configuration key for the DNS garbage collector logging level default value: "debug"
 	DNSGcLogLevel = "dns.gcLogLevel"
 
-	// DNSExternalDnsChartVersion set the external-dns chart version default value: "0.5.4"
+	// DNSExternalDnsChartVersion set the external-dns chart version default value: "1.6.2"
 	DNSExternalDnsChartVersion = "dns.externalDnsChartVersion"
+
+	// DNSExternalDnsImageVersion set the external-dns image version
+	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
 
 	// Route53MaintenanceWndMinute configuration key for the maintenance window for Route53.
 	// This is the maintenance window before the next AWS Route53 pricing period starts
@@ -212,7 +215,8 @@ func init() {
 	viper.SetDefault("tls.validity", "8760h") // 1 year
 	viper.SetDefault(DNSBaseDomain, "example.org")
 	viper.SetDefault(DNSGcIntervalMinute, 1)
-	viper.SetDefault(DNSExternalDnsChartVersion, "0.7.5")
+	viper.SetDefault(DNSExternalDnsChartVersion, "1.6.2")
+	viper.SetDefault(DNSExternalDnsImageVersion, "v0.5.11")
 	viper.SetDefault(DNSGcLogLevel, "debug")
 	viper.SetDefault(Route53MaintenanceWndMinute, 15)
 

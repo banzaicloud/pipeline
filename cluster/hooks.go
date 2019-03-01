@@ -1039,6 +1039,9 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		"rbac": map[string]bool{
 			"create": commonCluster.RbacEnabled() == true,
 		},
+		"image": map[string]string{
+			"tag": viper.GetString(pipConfig.DNSExternalDnsImageVersion),
+		},
 		"aws": map[string]string{
 			"secretKey": route53Secret.Values[pkgSecret.AwsSecretAccessKey],
 			"accessKey": route53Secret.Values[pkgSecret.AwsAccessKeyId],
