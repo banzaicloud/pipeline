@@ -319,7 +319,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	}
 
 	if deleteResources {
-		err = helm.DeleteAllDeployment(config)
+		err = helm.DeleteAllDeployment(logger, config)
 		if err != nil {
 			err = emperror.Wrap(err, "failed to delete deployments")
 
