@@ -184,7 +184,7 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
 	if err != nil {
 		return emperror.Wrap(err, "failed to get deployments")
 	}
-	log.Info("start deleting deployments")
+
 	if releaseResp != nil {
 		// the returned release items are unique by release name and status
 		// e.g. release name = release1, status = PENDING_UPGRADE
@@ -194,7 +194,9 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
 		deletedDeployments := make(map[string]bool)
 		for _, r := range releaseResp.Releases {
 			if _, ok := deletedDeployments[r.Name]; !ok {
-				log.Infoln("deleting deployment", r.Name)
+				log := log.WithField("deployment", r.Name)
+
+				log.Info("deleting deployment")
 
 				err := DeleteDeployment(r.Name, kubeconfig)
 				if err != nil {
@@ -202,7 +204,7 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
 				}
 				deletedDeployments[r.Name] = true
 
-				log.Infof("deployment %s successfully deleted", r.Name)
+				log.Info("deployment successfully deleted")
 			}
 		}
 	}
