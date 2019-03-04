@@ -32,7 +32,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 type ingressControllerValues struct {

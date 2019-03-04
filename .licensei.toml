@@ -18,4 +18,23 @@ ignored = [
 
   "github.com/davecgh/go-spew", # ISC license
   "github.com/oracle/oci-go-sdk", # UPL-1.0
+
+  # Vanity URLS :\
+  "cloud.google.com/go",
+  "contrib.go.opencensus.io/exporter/ocagent",
+  "go.opencensus.io",
+  "go.uber.org/atomic",
+  "go.uber.org/cadence",
+  "go.uber.org/multierr",
+  "go.uber.org/net/metrics",
+  "go.uber.org/thriftrw",
+  "go.uber.org/tools",
+  "go.uber.org/yarpc",
+  "go.uber.org/zap",
+  "google.golang.org/api",
+  "google.golang.org/appengine",
+  "google.golang.org/genproto",
+  "google.golang.org/grpc",
+  "honnef.co/go/tools",
+  "vbom.ml/util",
 ]

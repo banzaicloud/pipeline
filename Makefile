@@ -20,8 +20,7 @@ ifeq (${VERBOSE}, 1)
 	GOARGS += -v
 endif
 
-DEP_VERSION = 0.5.0
-GOLANGCI_VERSION = 1.12.3
+GOLANGCI_VERSION = 1.15.0
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.1.0
@@ -29,12 +28,12 @@ OPENAPI_GENERATOR_VERSION = PR1869
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
 
-GOLANG_VERSION = 1.11
+GOLANG_VERSION = 1.11.5
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: up
-up: vendor config/dex.yml start config/config.toml ## Set up the development environment
+up: config/dex.yml start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -46,41 +45,21 @@ reset: down up ## Reset the development environment
 
 .PHONY: clean
 clean: ## Clean the working area and the project
-	rm -rf bin/ ${BUILD_DIR}/ vendor/
+	rm -rf bin/ ${BUILD_DIR}/
 	rm -rf pipeline
 
 docker-compose.override.yml: ## Create docker compose override file
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then cat docker-compose.override.yml.dist | sed -e 's/# user: "$${uid}:$${gid}"/user: "$(shell id -u):$(shell id -g)"/' > docker-compose.override.yml; else cp docker-compose.override.yml.dist docker-compose.override.yml; fi
 
-docker-compose.anchore.yml: ## Create docker compose override file with anchore
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then cat docker-compose.anchore.yml.dist | sed -e 's/# user: "$${uid}:$${gid}"/user: "$(shell id -u):$(shell id -g)"/' > docker-compose.override.yml; else cp docker-compose.anchore.yml.dist docker-compose.override.yml; fi
-
-create-docker-dirs: ## Create .docker directories with your user
-	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
-
 .PHONY: start
-start: docker-compose.override.yml create-docker-dirs ## Start docker development environment
+start: docker-compose.override.yml ## Start docker development environment
 	@ if [ docker-compose.override.yml -ot docker-compose.override.yml.dist ]; then diff -u docker-compose.override.yml* || (echo "!!! The distributed docker-compose.override.yml example changed. Please update your file accordingly (or at least touch it). !!!" && false); fi
-	docker-compose up -d
-
-.PHONY: anchorestart
-anchorestart: docker-compose.anchore.yml create-docker-dirs ## Start docker development environment with anchore
+	mkdir -p .docker/volumes/{mysql,vault/file,vault/keys}
 	docker-compose up -d
 
 .PHONY: stop
 stop: ## Stop docker development environment
 	docker-compose stop
-
-bin/dep: bin/dep-${DEP_VERSION}
-	@ln -sf dep-${DEP_VERSION} bin/dep
-bin/dep-${DEP_VERSION}:
-	@mkdir -p bin
-	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=bin DEP_RELEASE_TAG=v${DEP_VERSION} sh
-	@mv bin/dep $@
-
-.PHONY: vendor
-vendor: bin/dep ## Install dependencies
-	bin/dep ensure -v -vendor-only
 
 config/config.toml:
 	cp config/config.toml.dist config/config.toml
@@ -90,8 +69,16 @@ config/dex.yml:
 
 .PHONY: run
 run: GOTAGS += dev
-run: build ## Build and execute a binary
+run: build-pipeline ## Build and execute a binary
 	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/${BINARY_NAME} ${ARGS}
+
+.PHONY: run-worker
+run-worker: GOTAGS += dev
+run-worker: build-worker ## Build and execute a binary
+	PIPELINE_CONFIG_DIR=$${PWD}/config VAULT_ADDR="http://127.0.0.1:8200" ${BUILD_DIR}/worker ${ARGS}
+
+.PHONY: runall ## Run worker and pipeline in foreground. Use with make -j.
+runall: run run-worker
 
 .PHONY: goversion
 goversion:
@@ -137,7 +124,7 @@ bin/golangci-lint-${GOLANGCI_VERSION}:
 
 .PHONY: lint
 lint: bin/golangci-lint ## Run linter
-	@bin/golangci-lint run
+	bin/golangci-lint run
 
 .PHONY: fmt
 fmt:

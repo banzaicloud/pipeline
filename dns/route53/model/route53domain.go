@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
 
 // TableName constants
@@ -35,8 +34,8 @@ type Route53Domain struct {
 
 	Organization auth.Organization `gorm:"foreignkey:OrganizationId"`
 
-	OrganizationId pkgAuth.OrganizationID `gorm:"unique_index;not null"`
-	Domain         string                 `gorm:"unique_index;not null"`
+	OrganizationId uint   `gorm:"unique_index;not null"`
+	Domain         string `gorm:"unique_index;not null"`
 	HostedZoneId   string
 	PolicyArn      string
 	IamUser        string

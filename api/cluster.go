@@ -42,7 +42,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -475,7 +475,6 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	// bind request body to UpdateClusterRequest struct
 	var request pkgSecret.InstallSecretsToClusterRequest
 	if err := c.BindJSON(&request); err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())

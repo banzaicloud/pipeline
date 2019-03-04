@@ -19,7 +19,6 @@ import (
 	"strings"
 	"time"
 
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -41,9 +40,9 @@ type ErrorResponse struct {
 
 // CreatorBaseFields describes all field which contains info about who created the cluster/application etc
 type CreatorBaseFields struct {
-	CreatedAt   time.Time      `json:"createdAt,omitempty"`
-	CreatorName string         `json:"creatorName,omitempty"`
-	CreatorId   pkgAuth.UserID `json:"creatorId,omitempty"`
+	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	CreatorName string    `json:"creatorName,omitempty"`
+	CreatorId   uint      `json:"creatorId,omitempty"`
 }
 
 // NodeNames describes node names

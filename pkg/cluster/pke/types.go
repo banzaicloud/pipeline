@@ -25,6 +25,28 @@ type CreateClusterPKE struct {
 	Kubernetes Kubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty" binding:"required"`
 	KubeADM    KubeADM    `json:"kubeadm,omitempty" yaml:"kubeadm,omitempty"`
 	CRI        CRI        `json:"cri,omitempty" yaml:"cri,omitempty" binding:"required"`
+	DexEnabled bool       `json:"dexEnabled,omitempty"`
+}
+
+// UpdateClusterPKE describes Pipeline's EC2/BanzaiCloud fields of a UpdateCluster request
+type UpdateClusterPKE struct {
+	NodePools UpdateNodePools `json:"nodepools,omitempty" yaml:"nodepools,omitempty" binding:"required"`
+}
+
+func (a *UpdateClusterPKE) Validate() error {
+	// TODO implement
+	return nil
+}
+
+type UpdateNodePools map[string]UpdateNodePool
+
+type UpdateNodePool struct {
+	InstanceType string `json:"instanceType" yaml:"instanceType"`
+	SpotPrice    string `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling  bool   `json:"autoscaling" yaml:"autoscaling"`
+	MinCount     int    `json:"minCount" yaml:"minCount"`
+	MaxCount     int    `json:"maxCount" yaml:"maxCount"`
+	Count        int    `json:"count" yaml:"count"`
 }
 
 type Network struct {
@@ -49,6 +71,7 @@ type NodePool struct {
 	Provider       NodePoolProvider       `json:"provider" yaml:"provider" binding:"required"`
 	ProviderConfig map[string]interface{} `json:"providerConfig" yaml:"providerConfig" binding:"required"`
 	Labels         map[string]string      `json:"labels,omitempty" yaml:"labels,omitempty"`
+	Autoscaling    bool                   `json:"autoscaling" yaml:"autoscaling"`
 }
 
 type NodePoolProvider string
@@ -95,8 +118,9 @@ type AmazonProviderConfig struct {
 		Subnets                 Subnets `json:"subnets" yaml:"subnets" binding:"required"`
 		Tags                    Tags    `json:"tags" yaml:"tags" binding:"required"`
 		Size                    struct {
-			Min int `json:"min" yaml:"min" binding:"required"`
-			Max int `json:"max" yaml:"max" binding:"required"`
+			Desired int `json:"desired" yaml:"desired"`
+			Min     int `json:"min" yaml:"min" binding:"required"`
+			Max     int `json:"max" yaml:"max" binding:"required"`
 		} `json:"size" yaml:"size" binding:"required"`
 	} `json:"autoScalingGroup" yaml:"autoScalingGroup" binding:"required"`
 }

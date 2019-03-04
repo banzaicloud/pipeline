@@ -40,8 +40,11 @@ const (
 	// DNSGcLogLevel configuration key for the DNS garbage collector logging level default value: "debug"
 	DNSGcLogLevel = "dns.gcLogLevel"
 
-	// DNSExternalDnsChartVersion set the external-dns chart version default value: "0.5.4"
+	// DNSExternalDnsChartVersion set the external-dns chart version default value: "1.6.2"
 	DNSExternalDnsChartVersion = "dns.externalDnsChartVersion"
+
+	// DNSExternalDnsImageVersion set the external-dns image version
+	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
 
 	// Route53MaintenanceWndMinute configuration key for the maintenance window for Route53.
 	// This is the maintenance window before the next AWS Route53 pricing period starts
@@ -143,6 +146,11 @@ const (
 
 	// NodePool LabelSet Operator
 	NodePoolLabelSetOperatorChartVersion = "nodepools.labelSetOperatorChartVersion"
+
+	// Prometheus svc name, context & local port of Prometheus deploy if monitoring is enabled on cluster
+	PrometheusServiceName    = "prometheus.serviceName"
+	PrometheusServiceContext = "prometheus.serviceContext"
+	PrometheusLocalPort      = "prometheus.localPort"
 )
 
 //Init initializes the configurations
@@ -178,8 +186,9 @@ func init() {
 	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	viper.SetDefault("auth.secureCookie", true)
-	viper.SetDefault("auth.whitelistEnabled", false)
 	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
+	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
+	viper.SetDefault("auth.dexGrpcCaCert", "")
 	viper.SetDefault(SetCookieDomain, false)
 
 	viper.SetDefault("pipeline.bindaddr", "127.0.0.1:9090")
@@ -206,7 +215,8 @@ func init() {
 	viper.SetDefault("tls.validity", "8760h") // 1 year
 	viper.SetDefault(DNSBaseDomain, "example.org")
 	viper.SetDefault(DNSGcIntervalMinute, 1)
-	viper.SetDefault(DNSExternalDnsChartVersion, "0.7.5")
+	viper.SetDefault(DNSExternalDnsChartVersion, "1.6.2")
+	viper.SetDefault(DNSExternalDnsImageVersion, "v0.5.11")
 	viper.SetDefault(DNSGcLogLevel, "debug")
 	viper.SetDefault(Route53MaintenanceWndMinute, 15)
 
@@ -279,6 +289,11 @@ func init() {
 	// Cadence config
 	viper.SetDefault("cadence.port", 7933)
 	viper.SetDefault("cadence.domain", "pipeline")
+
+	// Prometheus service defaults
+	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")
+	viper.SetDefault(PrometheusServiceContext, "prometheus")
+	viper.SetDefault(PrometheusLocalPort, 9090)
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

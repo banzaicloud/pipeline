@@ -12,20 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package commands
 
 import (
-	"github.com/banzaicloud/pipeline/internal/platform/zaplog"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
+	"github.com/banzaicloud/pipeline/internal/pipelinectl/cli/commands/drain"
+	"github.com/spf13/cobra"
 )
 
-// ZapLogger is a configured zap logger.
-func ZapLogger() *zap.Logger {
-	logger := zaplog.NewLogger(zaplog.Config{
-		Level:  viper.GetString("logging.loglevel"),
-		Format: viper.GetString("logging.logformat"),
-	})
-
-	return logger
+// AddCommands adds all the commands from cli/command to the root command
+func AddCommands(cmd *cobra.Command) {
+	cmd.AddCommand(
+		drain.NewDrainCommand(),
+	)
 }

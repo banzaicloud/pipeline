@@ -18,10 +18,8 @@ import (
 	"errors"
 
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
 )
@@ -33,7 +31,7 @@ type DummyCluster struct {
 }
 
 // CreateDummyClusterFromRequest creates ClusterModel struct from the request
-func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*DummyCluster, error) {
+func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*DummyCluster, error) {
 	var cluster DummyCluster
 
 	cluster.modelCluster = &model.ClusterModel{
@@ -42,7 +40,7 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 		Cloud:          request.Cloud,
 		OrganizationId: orgId,
 		CreatedBy:      userId,
-		SecretId:       pkgSecret.SecretID(request.SecretId),
+		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.Dummy,
 		Dummy: model.DummyClusterModel{
 			KubernetesVersion: request.Properties.CreateClusterDummy.Node.KubernetesVersion,
@@ -79,7 +77,7 @@ func (c *DummyCluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *DummyCluster) GetDistribution() pkgCluster.DistributionID {
+func (c *DummyCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 
@@ -110,19 +108,19 @@ func (c *DummyCluster) DeleteCluster() error {
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *DummyCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
+func (c *DummyCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 	return nil
 }
 
 // UpdateCluster updates the dummy cluster
-func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ pkgAuth.UserID) error {
+func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint) error {
 	c.modelCluster.Dummy.KubernetesVersion = r.Dummy.Node.KubernetesVersion
 	c.modelCluster.Dummy.NodeCount = r.Dummy.Node.Count
 	return nil
 }
 
 //GetID returns the specified cluster id
-func (c *DummyCluster) GetID() pkgCluster.ClusterID {
+func (c *DummyCluster) GetID() uint {
 	return c.modelCluster.ID
 }
 
@@ -157,7 +155,7 @@ func (c *DummyCluster) DeleteFromDatabase() error {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *DummyCluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *DummyCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
@@ -167,17 +165,17 @@ func (c *DummyCluster) GetLocation() string {
 }
 
 //GetSecretId retrieves the secret id
-func (c *DummyCluster) GetSecretId() pkgSecret.SecretID {
+func (c *DummyCluster) GetSecretId() string {
 	return c.modelCluster.SecretId
 }
 
 //GetSshSecretId retrieves the ssh secret id
-func (c *DummyCluster) GetSshSecretId() pkgSecret.SecretID {
+func (c *DummyCluster) GetSshSecretId() string {
 	return c.modelCluster.SshSecretId
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *DummyCluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
+func (c *DummyCluster) SaveSshSecretId(sshSecretId string) error {
 	c.modelCluster.SshSecretId = sshSecretId
 	return nil
 }
@@ -279,12 +277,12 @@ func (c *DummyCluster) GetSecretWithValidation() (*secret.SecretItemResponse, er
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *DummyCluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
+func (c *DummyCluster) SaveConfigSecretId(configSecretId string) error {
 	return c.modelCluster.UpdateConfigSecret(configSecretId)
 }
 
 // GetConfigSecretId return config secret id
-func (c *DummyCluster) GetConfigSecretId() pkgSecret.SecretID {
+func (c *DummyCluster) GetConfigSecretId() string {
 	return c.modelCluster.ConfigSecretId
 }
 
@@ -368,6 +366,6 @@ func (c *DummyCluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *DummyCluster) GetCreatedBy() pkgAuth.UserID {
+func (c *DummyCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
 }

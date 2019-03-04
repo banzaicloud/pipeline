@@ -27,7 +27,6 @@ import (
 	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
@@ -89,7 +88,7 @@ func (t IdentityType) Value() (driver.Value, error)  { return string(t), nil }
 
 //User struct
 type User struct {
-	ID            pkgAuth.UserID `gorm:"primary_key" json:"id"`
+	ID            uint           `gorm:"primary_key" json:"id"`
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
 	Name          string         `form:"name" json:"name,omitempty"`
@@ -118,21 +117,21 @@ type CICDUser struct {
 
 // UserOrganization describes the user organization
 type UserOrganization struct {
-	UserID         pkgAuth.UserID
-	OrganizationID pkgAuth.OrganizationID
+	UserID         uint
+	OrganizationID uint
 	Role           string `gorm:"default:'admin'"`
 }
 
 //Organization struct
 type Organization struct {
-	ID        pkgAuth.OrganizationID `gorm:"primary_key" json:"id"`
-	GithubID  *int64                 `gorm:"unique" json:"githubId,omitempty"`
-	CreatedAt time.Time              `json:"createdAt"`
-	UpdatedAt time.Time              `json:"updatedAt"`
-	Name      string                 `gorm:"unique;not null" json:"name"`
-	Provider  string                 `gorm:"not null" json:"provider"`
-	Users     []User                 `gorm:"many2many:user_organizations" json:"users,omitempty"`
-	Role      string                 `json:"-" gorm:"-"` // Used only internally
+	ID        uint      `gorm:"primary_key" json:"id"`
+	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Name      string    `gorm:"unique;not null" json:"name"`
+	Provider  string    `gorm:"not null" json:"provider"`
+	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
+	Role      string    `json:"-" gorm:"-"` // Used only internally
 }
 
 //IDString returns the ID as string
@@ -207,46 +206,6 @@ type BanzaiUserStorer struct {
 	githubImporter   *GithubImporter
 }
 
-func checkWhiteList(db *gorm.DB, user *User, userSchema *auth.Schema, userOrgs []string) (bool, error) {
-
-	whitelistedCandidates := []*WhitelistedAuthIdentity{}
-
-	// Check here that a user login name is in the whitelisted_auth_identities table
-	userWhitelisted := WhitelistedAuthIdentity{
-		Provider: userSchema.Provider,
-		Login:    user.Login,
-		Type:     UserType,
-	}
-
-	whitelistedCandidates = append(whitelistedCandidates, &userWhitelisted)
-
-	// Also check if the user is member of one of the whitelisted organizations
-	for _, userOrg := range userOrgs {
-
-		orgWhitelisted := WhitelistedAuthIdentity{
-			Provider: userSchema.Provider,
-			Login:    userOrg,
-			Type:     OrganizationType,
-		}
-
-		whitelistedCandidates = append(whitelistedCandidates, &orgWhitelisted)
-	}
-
-	var userIsWhitelisted bool
-	for _, whitelistedCandidate := range whitelistedCandidates {
-
-		if tx := db.Where(&whitelistedCandidate).Find(&WhitelistedAuthIdentity{}); tx.Error == nil {
-			userIsWhitelisted = true
-			break
-		} else if !tx.RecordNotFound() {
-			log.Errorln("failed to check whitelist in db", tx.Error.Error())
-			return false, tx.Error
-		}
-	}
-
-	return userIsWhitelisted, nil
-}
-
 func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
 	var dexClaims struct {
 		Groups []string
@@ -294,7 +253,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
 	// GitHub API query to get the user login and image to retain compatibility for now
 	var githubUserMeta *githubUserMeta
-	if schema.Provider == "dex:github" {
+	if schema.Provider == ProviderDexGithub {
 
 		githubUserMeta, err = getGithubUserMeta(schema)
 		if err != nil {
@@ -310,15 +269,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	db := authCtx.Auth.GetDB(authCtx.Request)
 
-	if viper.GetBool("auth.whitelistEnabled") {
-
-		if ok, err := checkWhiteList(db, currentUser, schema, organizations); err != nil {
-			return nil, "", emperror.Wrap(err, "failed to check whitelist")
-		} else if !ok {
-			return nil, "", errors.New("user is not enabled")
-		}
-	}
-
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	err = bus.createUserInCICDDB(currentUser)
 	if err != nil {
@@ -328,7 +278,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	// When a user registers a default organization is created in which he/she is admin
 	userOrg := Organization{
 		Name:     currentUser.Login,
-		Provider: "user",
+		Provider: getBackendProvider(schema.Provider),
 	}
 	currentUser.Organizations = []Organization{userOrg}
 
@@ -348,7 +298,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
 	// Import Github organizations in case of GitHub
-	if schema.Provider == "dex:github" {
+	if schema.Provider == ProviderDexGithub {
 		err = bus.githubImporter.ImportOrganizationsFromDex(currentUser, organizations)
 	}
 
@@ -466,7 +416,7 @@ func (i *GithubImporter) ImportOrganizationsFromGithub(currentUser *User, github
 func (i *GithubImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string) error {
 	var orgs []organization
 	for _, org := range organizations {
-		orgs = append(orgs, organization{name: org, provider: "github"})
+		orgs = append(orgs, organization{name: org, provider: ProviderGithub})
 	}
 
 	return i.ImportGithubOrganizations(currentUser, orgs)
@@ -491,9 +441,9 @@ func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []org
 	return nil
 }
 
-func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[pkgAuth.OrganizationID]bool, error) {
+func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
 
-	orgIDs := make(map[pkgAuth.OrganizationID]bool, len(orgs))
+	orgIDs := make(map[uint]bool, len(orgs))
 
 	tx := db.Begin()
 	for _, org := range orgs {
@@ -554,7 +504,7 @@ func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organizati
 }
 
 // GetOrganizationById returns an organization from database by ID
-func GetOrganizationById(orgID pkgAuth.OrganizationID) (*Organization, error) {
+func GetOrganizationById(orgID uint) (*Organization, error) {
 	db := config.DB()
 	var org Organization
 	err := db.Find(&org, Organization{ID: orgID}).Error
@@ -570,7 +520,7 @@ func GetOrganizationByName(name string) (*Organization, error) {
 }
 
 // GetUserById returns user
-func GetUserById(userId pkgAuth.UserID) (*User, error) {
+func GetUserById(userId uint) (*User, error) {
 	db := config.DB()
 	var user User
 	err := db.Find(&user, User{ID: userId}).Error
@@ -586,7 +536,7 @@ func GetUserByLoginName(login string) (*User, error) {
 }
 
 // GetUserNickNameById returns user's login name
-func GetUserNickNameById(userId pkgAuth.UserID) (userName string) {
+func GetUserNickNameById(userId uint) (userName string) {
 	if user, err := GetUserById(userId); err != nil {
 		log.Warnf("Error during getting user name: %s", err.Error())
 	} else {

@@ -16,7 +16,6 @@ package pke
 
 import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 )
@@ -24,10 +23,11 @@ import (
 type EC2PKEClusterModel struct {
 	ID                 uint                 `gorm:"primary_key"`
 	Cluster            cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
-	ClusterID          pkgCluster.ClusterID
+	ClusterID          uint
 	MasterInstanceType string
 	MasterImage        string
 	CurrentWorkflowID  string
+	DexEnabled         bool `gorm:"default:0;not null"`
 
 	Network    Network    `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"network"`
 	NodePools  NodePools  `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"nodepools"`

@@ -24,7 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +44,7 @@ func OrganizationMiddleware(c *gin.Context) {
 		return
 	}
 
-	organization := &auth.Organization{ID: pkgAuth.OrganizationID(orgid)}
+	organization := &auth.Organization{ID: uint(orgid)}
 
 	db := config.DB()
 	err = db.Where(organization).Find(organization).Error
@@ -96,7 +95,7 @@ func (a *OrganizationAPI) GetOrganizations(c *gin.Context) {
 		return
 	}
 
-	var organization = auth.Organization{ID: pkgAuth.OrganizationID(id)}
+	var organization = auth.Organization{ID: uint(id)}
 	var organizations []auth.Organization
 
 	db := config.DB()
@@ -204,7 +203,7 @@ func (a *OrganizationAPI) DeleteOrganization(c *gin.Context) {
 	}
 
 	user := auth.GetCurrentUser(c.Request)
-	organization, err := auth.GetOrganizationById(pkgAuth.OrganizationID(id))
+	organization, err := auth.GetOrganizationById(uint(id))
 	deleteName := organization.Name
 
 	err = deleteOrgFromDB(organization, user)

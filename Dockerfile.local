@@ -1,4 +1,6 @@
-FROM golang:1.11-alpine AS builder
+ARG GO_VERSION=1.12
+
+FROM golang:${GO_VERSION}-alpine AS builder
 
 RUN apk add --update --no-cache ca-certificates git
 
@@ -8,7 +10,7 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     go install ./cmd/aws-iam-authenticator
 
 
-FROM alpine:3.8
+FROM alpine:3.9
 
 RUN apk add --no-cache ca-certificates tzdata
 
@@ -16,6 +18,7 @@ COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 
 COPY build/release/pipeline /
 COPY build/release/worker /
+COPY build/release/pipelinectl /
 COPY views /views/
 COPY templates/ /templates/
 

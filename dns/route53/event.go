@@ -14,12 +14,10 @@
 
 package route53
 
-import pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-
 // DomainEvent holds the common fields for the domain events
 type DomainEvent struct {
 	Domain         string
-	OrganisationId pkgAuth.OrganizationID
+	OrganisationId uint
 }
 
 // RegisterDomainSucceededEvent is fired when a domain is registered or re-registered in an external DNS service

@@ -21,15 +21,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 )
 
 type CloudInfoResponse struct {
-
 	// Products represents a slice of products for a given provider (VMs with attributes and process)
 	Products []*MachineDetails `json:"products"`
 
@@ -55,7 +52,7 @@ type MachineDetails struct {
 
 type VMKey struct {
 	cloud        string
-	service      pkgCluster.DistributionID
+	service      string
 	region       string
 	instanceType string
 }
@@ -63,7 +60,7 @@ type VMKey struct {
 // nolint: gochecknoglobals
 var instanceTypeMap = make(map[VMKey]MachineDetails)
 
-func fetchMachineTypes(cloud string, service pkgCluster.DistributionID, region string) error {
+func fetchMachineTypes(cloud string, service string, region string) error {
 	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
 	if len(cloudInfoEndPoint) == 0 {
 		return emperror.With(errors.New("missing config"), "propertyName", config.CloudInfoEndPoint)
@@ -100,7 +97,7 @@ func fetchMachineTypes(cloud string, service pkgCluster.DistributionID, region s
 }
 
 //GetMachineDetails returns machine resource details, like cpu/gpu/memory etc. either from local cache or CloudInfo
-func GetMachineDetails(cloud string, service pkgCluster.DistributionID, region string, instanceType string) (*MachineDetails, error) {
+func GetMachineDetails(cloud string, service string, region string, instanceType string) (*MachineDetails, error) {
 
 	vmKey := VMKey{
 		cloud,

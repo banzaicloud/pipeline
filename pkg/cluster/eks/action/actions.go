@@ -31,7 +31,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	"github.com/banzaicloud/pipeline/pkg/common"
@@ -408,12 +407,12 @@ var _ utils.RevocableAction = (*GenerateVPCConfigRequestAction)(nil)
 type GenerateVPCConfigRequestAction struct {
 	context        *EksClusterCreateUpdateContext
 	stackName      string
-	organizationID pkgAuth.OrganizationID
+	organizationID uint
 	log            logrus.FieldLogger
 }
 
 // NewGenerateVPCConfigRequestAction creates a new GenerateVPCConfigRequestAction
-func NewGenerateVPCConfigRequestAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext, stackName string, orgID pkgAuth.OrganizationID) *GenerateVPCConfigRequestAction {
+func NewGenerateVPCConfigRequestAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext, stackName string, orgID uint) *GenerateVPCConfigRequestAction {
 	return &GenerateVPCConfigRequestAction{
 		context:        creationContext,
 		stackName:      stackName,
@@ -790,13 +789,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				a.log.Infoln("EXECUTE CreateUpdateNodePoolStackAction, update stack name:", stackName)
 			}
 
-			commaDelimitedSubnetIDs := ""
-			for i, subnetID := range a.context.SubnetIDs {
-				commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + *subnetID
-				if i != len(a.context.SubnetIDs)-1 {
-					commaDelimitedSubnetIDs = commaDelimitedSubnetIDs + ","
-				}
-			}
+			commaDelimitedSubnetIDs := *a.context.SubnetIDs[0]
 
 			tags := []*cloudformation.Tag{
 				{Key: aws.String("pipeline-created"), Value: aws.String("true")},
@@ -1044,12 +1037,12 @@ var _ utils.RevocableAction = (*PersistClusterUserAccessKeyAction)(nil)
 // PersistClusterUserAccessKeyAction describes the cluster user access key to be persisted
 type PersistClusterUserAccessKeyAction struct {
 	context        *EksClusterCreateUpdateContext
-	organizationID pkgAuth.OrganizationID
+	organizationID uint
 	log            logrus.FieldLogger
 }
 
 // NewPersistClusterUserAccessKeyAction creates a new PersistClusterUserAccessKeyAction
-func NewPersistClusterUserAccessKeyAction(log logrus.FieldLogger, context *EksClusterCreateUpdateContext, orgID pkgAuth.OrganizationID) *PersistClusterUserAccessKeyAction {
+func NewPersistClusterUserAccessKeyAction(log logrus.FieldLogger, context *EksClusterCreateUpdateContext, orgID uint) *PersistClusterUserAccessKeyAction {
 	return &PersistClusterUserAccessKeyAction{
 		context:        context,
 		organizationID: orgID,
@@ -1064,12 +1057,12 @@ func (a *PersistClusterUserAccessKeyAction) GetName() string {
 
 // getSecretName returns the name that identifies the  cluster user access key in Vault
 func getSecretName(userName string) string {
-	return fmt.Sprintf("%s-key", userName)
+	return fmt.Sprintf("%s-key", strings.ToLower(userName))
 }
 
 // GetClusterUserAccessKeyIdAndSecretVault returns the AWS access key and access key secret from Vault
 // for cluster user name
-func GetClusterUserAccessKeyIdAndSecretVault(organizationID pkgAuth.OrganizationID, userName string) (string, string, error) {
+func GetClusterUserAccessKeyIdAndSecretVault(organizationID uint, userName string) (string, string, error) {
 	secretName := getSecretName(userName)
 	secretItem, err := secret.Store.GetByName(organizationID, secretName)
 	if err != nil {
@@ -1337,12 +1330,12 @@ var _ utils.Action = (*DeleteClusterUserAccessKeySecretAction)(nil)
 // DeleteClusterUserAccessKeySecretAction deletes cluster user access key from Vault
 type DeleteClusterUserAccessKeySecretAction struct {
 	context        *EksClusterDeletionContext
-	organizationID pkgAuth.OrganizationID
+	organizationID uint
 	log            logrus.FieldLogger
 }
 
 // NewDeleteClusterUserAccessKeySecretAction creates a new DeleteClusterUserAccessKeySecretAction
-func NewDeleteClusterUserAccessKeySecretAction(log logrus.FieldLogger, context *EksClusterDeletionContext, orgID pkgAuth.OrganizationID) *DeleteClusterUserAccessKeySecretAction {
+func NewDeleteClusterUserAccessKeySecretAction(log logrus.FieldLogger, context *EksClusterDeletionContext, orgID uint) *DeleteClusterUserAccessKeySecretAction {
 	return &DeleteClusterUserAccessKeySecretAction{
 		context:        context,
 		organizationID: orgID,

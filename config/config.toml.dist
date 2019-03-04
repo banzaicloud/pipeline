@@ -67,6 +67,7 @@ token = "YourPersonalAccessToken"
 clientid = "pipeline"
 clientsecret = "ZXhhbXBsZS1hcHAtc2VjcmV0"
 dexURL = "http://127.0.0.1:5556/dex"
+dexGrpcAddress = "127.0.0.1:5557"
 
 tokensigningkey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 jwtissueer = "https://banzaicloud.com/"
@@ -77,8 +78,6 @@ secureCookie = false
 # Domain field for cookies
 cookieDomain = ""
 setCookieDomain = false
-
-whitelistEnabled = false
 
 [helm]
 retryAttempt = 30
@@ -196,8 +195,8 @@ collectionInterval = "30s"
 source = "file"
 path = "config/certs"
 
-[nodepools]
-labelSetOperatorChartVersion = "0.0.1"
+#[nodepools]
+#labelSetOperatorChartVersion = "0.0.2"
 
 [cadence]
 host = "127.0.0.1"

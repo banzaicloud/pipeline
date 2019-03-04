@@ -170,7 +170,7 @@ func TestDeleteSecrets(t *testing.T) {
 
 	cases := []struct {
 		name     string
-		secretId secretTypes.SecretID
+		secretId string
 	}{
 		{name: "Delete amazon secret", secretId: secretIdAmazon},
 		{name: "Delete azure secret", secretId: secretIdAzure},
@@ -211,10 +211,10 @@ var (
 
 // nolint: gochecknoglobals
 var (
-	secretIdAmazon = secretTypes.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAmazon))))
-	secretIdAzure  = secretTypes.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAzure))))
-	secretIdGoogle = secretTypes.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameGoogle))))
-	secretIdOracle = secretTypes.SecretID(fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameOracle))))
+	secretIdAmazon = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAmazon)))
+	secretIdAzure  = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameAzure)))
+	secretIdGoogle = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameGoogle)))
+	secretIdOracle = fmt.Sprintf("%x", sha256.Sum256([]byte(secretNameOracle)))
 )
 
 const (

@@ -19,14 +19,13 @@ import (
 	"testing"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
 )
 
 func newOrg(t *testing.T, db *gorm.DB, id uint, name string) *auth.Organization {
-	org := auth.Organization{ID: pkgAuth.OrganizationID(id), Name: name}
+	org := auth.Organization{ID: id, Name: name}
 	db.AutoMigrate(org)
 	if err := db.FirstOrCreate(&org).Error; err != nil {
 		t.Fatal(err)
@@ -35,7 +34,7 @@ func newOrg(t *testing.T, db *gorm.DB, id uint, name string) *auth.Organization 
 }
 
 func newUser(t *testing.T, db *gorm.DB, id uint, login string) *auth.User {
-	user := auth.User{ID: pkgAuth.UserID(id), Login: login}
+	user := auth.User{ID: id, Login: login}
 	db.AutoMigrate(user)
 	if err := db.FirstOrCreate(&user).Error; err != nil {
 		t.Fatal(err)

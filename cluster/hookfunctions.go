@@ -111,6 +111,15 @@ var HookMap = map[string]PostFunctioner{
 		f:            SetupNodePoolLabelsSet,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.CreateDefaultStorageclass: &BasePostFunction{
+		f:            CreateDefaultStorageclass,
+		Priority:     Priority{5},
+		ErrorHandler: ErrorHandler{},
+	},
+	pkgCluster.CreateClusterRoles: &BasePostFunction{
+		f:            CreateClusterRoles,
+		ErrorHandler: ErrorHandler{},
+	},
 }
 
 // BasePostHookFunctions default posthook functions after cluster create
@@ -132,6 +141,7 @@ var BasePostHookFunctions = []PostFunctioner{
 	HookMap[pkgCluster.InstallPVCOperator],
 	HookMap[pkgCluster.InitSpotConfig],
 	HookMap[pkgCluster.DeployInstanceTerminationHandler],
+	HookMap[pkgCluster.CreateDefaultStorageclass],
 }
 
 // PostFunctioner manages posthook functions

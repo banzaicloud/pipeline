@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	gormadapter "github.com/casbin/gorm-adapter"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 )
@@ -31,7 +30,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&User{},
 		&UserOrganization{},
 		&Organization{},
-		&gormadapter.CasbinRule{},
 	}
 
 	var tableNames string

@@ -60,6 +60,7 @@ services:
     dex:
         ports:
             - 127.0.0.1:5556:5556
+            - 127.0.0.1:5557:5557
             - 127.0.0.1:5558:5558
         volumes:
             - ./.docker/volumes/dex:/dex
@@ -73,6 +74,30 @@ services:
     cadence-web:
         ports:
             - 127.0.0.1:8088:8088
+
+# Uncomment the following two services to enable Anchore.
+#    anchore-db:
+#        image: "postgres:9"
+#        environment:
+#            - POSTGRES_PASSWORD=mysecretpassword
+#            - PGDATA=/var/lib/postgresql/data/pgdata/
+#        ports:
+#            - "5432:5432"
+#        volumes:
+#            - ./.docker/volumes/anchore-db:/var/lib/postgresql/data/pgdata/:z
+#
+#    anchore-engine:
+#        image: docker.io/anchore/anchore-engine:v0.3.0
+#        depends_on:
+#            - anchore-db
+#        environment:
+#            - ANCHORE_HOST_ID=dockerhostid-anchore-engine
+#            - ANCHORE_ENDPOINT_HOSTNAME=anchore-engine
+#        ports:
+#            - "8228:8228"
+#            - "8338:8338"
+#        volumes:
+#            - ./config/anchore-config.yaml:/config/config.yaml:z
 
 #     ldap:
 #         image: osixia/openldap:1.2.2

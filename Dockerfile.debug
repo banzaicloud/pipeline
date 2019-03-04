@@ -1,4 +1,6 @@
-FROM golang:1.11-alpine AS builder
+ARG GO_VERSION=1.12
+
+FROM golang:${GO_VERSION}-alpine AS builder
 
 RUN apk add --update --no-cache ca-certificates git
 
@@ -9,7 +11,8 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
 
 RUN go get github.com/derekparker/delve/cmd/dlv
 
-FROM alpine:3.8
+
+FROM alpine:3.9
 
 RUN apk add --no-cache ca-certificates tzdata libc6-compat
 
@@ -18,7 +21,8 @@ COPY --from=builder /go/bin/dlv /
 
 COPY build/debug/pipeline /
 COPY build/debug/worker /
+COPY build/debug/pipelinectl /
 COPY views /views/
-COPY templates/eks /templates/eks
+COPY templates /templates
 
 ENTRYPOINT ["/dlv", "--listen=:40000", "--headless=true", "--api-version=2", "--log", "exec", "/pipeline-debug"]

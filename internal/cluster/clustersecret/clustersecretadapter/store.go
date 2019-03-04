@@ -16,15 +16,16 @@ package clustersecretadapter
 
 import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
-	"github.com/banzaicloud/pipeline/pkg/auth"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 // InternalSecretStore is an interface for the internal secret store.
 type InternalSecretStore interface {
 	// GetOrCreate create new secret or get if it's exist.
-	GetOrCreate(organizationID auth.OrganizationID, value *secret.CreateSecretRequest) (pkgSecret.SecretID, error)
+	GetOrCreate(organizationID uint, value *secret.CreateSecretRequest) (string, error)
+
+	// GetByName gets a secret by name if it's exist.
+	GetByName(organizationID uint, name string) (*secret.SecretItemResponse, error)
 }
 
 // SecretStore is a wrapper for the internal secret store.
@@ -48,7 +49,27 @@ func (s *SecretStore) EnsureSecretExists(organizationID uint, sec clustersecret.
 		Tags:   sec.Tags,
 	}
 
-	id, err := s.secrets.GetOrCreate(auth.OrganizationID(organizationID), createSecret)
+	id, err := s.secrets.GetOrCreate(organizationID, createSecret)
 
 	return string(id), err
+}
+
+// GetSecret gets a secret by name if it exists
+func (s *SecretStore) GetSecret(organizationID uint, name string) (clustersecret.SecretResponse, error) {
+	sec, err := s.secrets.GetByName(organizationID, name)
+
+	if err != nil {
+		return clustersecret.SecretResponse{}, err
+	}
+
+	if sec == nil {
+		return clustersecret.SecretResponse{}, clustersecret.ErrSecretNotFound
+	}
+
+	return clustersecret.SecretResponse{
+		Name:   sec.Name,
+		Type:   sec.Type,
+		Values: sec.Values,
+		Tags:   sec.Tags,
+	}, nil
 }

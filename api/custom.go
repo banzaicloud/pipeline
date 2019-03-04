@@ -25,7 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/apis/core"

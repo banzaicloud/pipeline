@@ -20,7 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
@@ -56,7 +56,7 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		ClusterID:      commonCluster.GetID(),
 	}
 
-	updater := cluster.NewCommonClusterUpdater(updateRequest, commonCluster, updateCtx.UserID)
+	updater := cluster.NewCommonClusterUpdater(updateRequest, commonCluster, updateCtx.UserID, a.workflowClient, a.externalBaseURL)
 
 	ctx := ginutils.Context(context.Background(), c)
 

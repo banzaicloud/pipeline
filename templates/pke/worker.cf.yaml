@@ -18,6 +18,9 @@ Parameters:
   ClusterName:
     Description: PKE Cluster name
     Type: String
+  NodeGroupName:
+    Description: Unique identifier for the PKE Node Group
+    Type: String
   VPCId:
     Type: 'AWS::EC2::VPC::Id'
     Description: Specify VPC Id for Autoscaling
@@ -51,9 +54,14 @@ Parameters:
   NodeSpotPrice:
     Type: String
     Description: The spot price for this ASG
+  ClusterAutoscalerEnabled:
+    Description: Enable Cluster Autoscaler (true/false)
+    Default: "false"
+    Type: String
 
 Conditions:
   IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
+  AutoscalerEnabled:  !Equals [ !Ref ClusterAutoscalerEnabled, "true" ]
 
 Resources:
   LaunchConfiguration:
@@ -106,11 +114,14 @@ Resources:
         Value: !Ref ClusterName
         PropagateAtLaunch: True
       - Key: Name
-        Value: !Join ["", ["pke-worker-", !Ref ClusterName ]]
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-", !Ref NodeGroupName] ]
         PropagateAtLaunch: True
       - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
         Value: "owned"
         PropagateAtLaunch: True
+      - Key: !If [ AutoscalerEnabled, 'k8s.io/cluster-autoscaler/enabled', 'k8s.io/cluster-autoscaler/disabled' ]
+        Value: 'true'
+        PropagateAtLaunch: 'false'
 
   SecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
@@ -127,7 +138,7 @@ Resources:
         SourceSecurityGroupId: !Ref ClusterSecurityGroup
       Tags:
       - Key: Name
-        Value: !Join ["", ["pke-worker-sg-",!Ref "AWS::StackName"]]
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-sg-", !Ref NodeGroupName]]
 
   WaitForFirstInstance:
     Type: AWS::CloudFormation::WaitCondition
@@ -139,3 +150,8 @@ Resources:
 
   WaitForFirstInstanceHandle:
     Type: AWS::CloudFormation::WaitConditionHandle
+
+Outputs:
+  AutoScalingGroupId:
+    Description: 'ID of the created ASG'
+    Value: !Ref AutoScalingGroup

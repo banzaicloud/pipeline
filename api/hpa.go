@@ -15,20 +15,31 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pipConfig "github.com/banzaicloud/pipeline/config"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/hpa"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	promapi "github.com/prometheus/client_golang/api"
+	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
+	"github.com/spf13/viper"
 	"k8s.io/api/autoscaling/v2beta1"
-	"k8s.io/api/core/v1"
-	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 const hpaAnnotationPrefix = "hpa.autoscaling.banzaicloud.io"
@@ -57,7 +68,7 @@ func PutHpaResource(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
-			Error:   errors.Cause(err).Error(),
+			Error:   err.Error(),
 		})
 		return
 	}
@@ -69,12 +80,66 @@ func PutHpaResource(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
-			Error:   errors.Cause(err).Error(),
+			Error:   err.Error(),
 		})
 		return
 	}
 
-	err = setDeploymentAutoscalingInfo(kubeConfig, *scalingRequest)
+	config, err := k8sclient.NewClientConfig(kubeConfig)
+	if err != nil {
+		err := errors.Wrap(err, "Error getting K8s cluster config:")
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting K8s cluster config!",
+			Error:   err.Error(),
+		})
+		return
+	}
+	client, err := k8sclient.NewClientFromConfig(config)
+	if err != nil {
+		err := errors.Wrap(err, "Error getting K8s cluster client:")
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error getting K8s cluster client!",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	//validate custom metrics query
+	if len(scalingRequest.CustomMetrics) > 0 {
+		cluster, _ := getClusterFromRequest(c)
+		if !cluster.GetMonitoring() {
+			err := errors.New("Monitoring should be enabled on cluster to be able to setup custom metrics")
+			log.Error(err.Error())
+			c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Monitoring is not deployed on cluster",
+				Error:   err.Error(),
+			})
+			return
+		}
+	}
+	for _, cm := range scalingRequest.CustomMetrics {
+
+		value, err := runPrometheusQuery(config, client, cm.Query)
+		if err != nil {
+			log.Error(err.Error())
+			c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error validating custom metrics query!",
+				Error:   err.Error(),
+			})
+			return
+		}
+		if len(value.String()) == 0 {
+
+		}
+	}
+
+	err = setDeploymentAutoscalingInfo(client, *scalingRequest)
 	if err != nil {
 
 		httpStatusCode := http.StatusBadRequest
@@ -87,12 +152,64 @@ func PutHpaResource(c *gin.Context) {
 		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
 			Code:    httpStatusCode,
 			Message: "Error during request processing!",
-			Error:   errors.Cause(err).Error(),
+			Error:   err.Error(),
 		})
 		return
 	}
 
 	c.Status(http.StatusCreated)
+}
+
+func runPrometheusQuery(config *rest.Config, client *kubernetes.Clientset, query string) (model.Value, error) {
+	prometheusEndpointPort := viper.GetInt(pipConfig.PrometheusLocalPort)
+	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
+	promethuesPodLabels := labels.Set{"app": "prometheus", "component": "server"}
+
+	log.Debugf("create kubernetes tunnel for %v", promethuesPodLabels)
+	tunnel, err := k8sutil.NewKubeTunnel(pipelineSystemNamespace, client, config, promethuesPodLabels.AsSelector(), prometheusEndpointPort)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create kubernetes tunnel")
+	}
+	defer tunnel.Close()
+	log.Debugf("tunnel listening on port: %d", tunnel.Local)
+
+	cfg := promapi.Config{
+		Address:      fmt.Sprintf("http://localhost:%d/%s", tunnel.Local, serviceContext),
+		RoundTripper: &http.Transport{},
+	}
+	promClient, err := promapi.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+	promAPI := promv1.NewAPI(promClient)
+	value, err := promAPI.Query(context.Background(), query, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+
+	var sampleValue model.SampleValue
+	switch value.Type() {
+	case model.ValVector:
+		samples := value.(model.Vector)
+		if len(samples) == 0 {
+			return nil, fmt.Errorf("query '%s' returned no samples", query)
+		}
+
+		sampleValue = samples[0].Value
+	case model.ValScalar:
+		scalar := value.(*model.Scalar)
+		sampleValue = scalar.Value
+	}
+
+	if sampleValue.String() == "NaN" {
+		return nil, fmt.Errorf("query '%s' returned no samples: %s", query, sampleValue.String())
+	}
+
+	log.Debugf("prometheus query result: %s", sampleValue)
+
+	return value, err
+
 }
 
 // DeleteHpaResource deletes a Hpa resource annotations from scaleTarget - K8s deployment/statefulset
@@ -166,19 +283,24 @@ func GetHpaResource(c *gin.Context) {
 }
 
 func getHpaResources(scaleTargetRef string, kubeConfig []byte) (*hpa.DeploymentScalingInfo, error) {
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	config, err := k8sclient.NewClientConfig(kubeConfig)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to create client config")
+	}
+
+	client, err := k8sclient.NewClientFromConfig(config)
 	if err != nil {
 		log.Errorf("Getting K8s client failed: %s", err.Error())
 		return nil, err
 	}
 
-	listOption := v12.ListOptions{
-		TypeMeta: v12.TypeMeta{
+	listOption := metav1.ListOptions{
+		TypeMeta: metav1.TypeMeta{
 			Kind:       "HorizontalPodAutoscaler",
 			APIVersion: "autoscaling/v1",
 		},
 	}
-	hpaList, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(v12.NamespaceAll).List(listOption)
+	hpaList, err := client.AutoscalingV2beta1().HorizontalPodAutoscalers(metav1.NamespaceAll).List(listOption)
 	if err != nil {
 		return nil, err
 	}
@@ -206,9 +328,9 @@ func getHpaResources(scaleTargetRef string, kubeConfig []byte) (*hpa.DeploymentS
 				case v1.ResourceMemory:
 					deploymentItem.Memory = getResourceMetricStatus(hpaItem, metric)
 				}
-			case v2beta1.PodsMetricSourceType:
-				log.Warnf("custom metric %v found for hpa: %v", metric.Pods.MetricName, hpaItem.Name)
-				deploymentItem.CustomMetrics[metric.Pods.MetricName] = getPodMetricStatus(hpaItem, metric)
+			case v2beta1.ObjectMetricSourceType:
+				log.Warnf("custom metric %v found for hpa: %v", metric.Object.MetricName, hpaItem.Name)
+				deploymentItem.CustomMetrics[metric.Object.MetricName] = getCustomMetricStatus(hpaItem, metric)
 			default:
 				log.Warnf("metric found: %v for hpa: %v", metric.Type, hpaItem.Name)
 			}
@@ -259,15 +381,22 @@ func getResourceMetricStatus(hpaItem v2beta1.HorizontalPodAutoscaler, metric v2b
 	return metricStatus
 }
 
-func getPodMetricStatus(hpaItem v2beta1.HorizontalPodAutoscaler, metric v2beta1.MetricSpec) hpa.CustomMetricStatus {
+func getCustomMetricStatus(hpaItem v2beta1.HorizontalPodAutoscaler, metric v2beta1.MetricSpec) hpa.CustomMetricStatus {
 	metricStatus := hpa.CustomMetricStatus{}
-	metricStatus.TargetAverageValue = metric.Pods.TargetAverageValue.String()
-	metricStatus.Type = "pod"
+	metricName := metric.Object.MetricName
+	metricStatus.Query = hpaItem.Annotations[fmt.Sprintf("metric-config.object.%s.prometheus/query", metricName)]
+	_, perReplica := hpaItem.Annotations[fmt.Sprintf("metric-config.object.%s.prometheus/per-replica", metricName)]
+	if perReplica {
+		metricStatus.TargetAverageValue = metric.Object.TargetValue.String()
+	} else {
+		metricStatus.TargetValue = metric.Object.TargetValue.String()
+	}
+
 	for _, currentMetricStatus := range hpaItem.Status.CurrentMetrics {
-		if currentMetricStatus.Pods != nil && currentMetricStatus.Pods.MetricName == metric.Pods.MetricName {
-			if !currentMetricStatus.Pods.CurrentAverageValue.IsZero() {
-				metricStatus.CurrentAverageValue = currentMetricStatus.Pods.CurrentAverageValue.String()
-			}
+		if currentMetricStatus.Object != nil && currentMetricStatus.Object.MetricName == metricName {
+			//if !currentMetricStatus.Object.CurrentValue.IsZero() {
+			metricStatus.CurrentValue = currentMetricStatus.Object.CurrentValue.String()
+			//}
 		}
 	}
 
@@ -289,13 +418,13 @@ func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	}
 
 	// find deployment & update hpa annotations
-	// get doesn't work with v12.NamespaceAll only if you specify the namespace exactly
-	// deployment, err := client.AppsV1().Deployments(v12.NamespaceAll).Get(request.Name, v12.GetOptions{})
+	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
+	// deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
 	scaleTargetFound := false
-	listOptions := v12.ListOptions{
+	listOptions := metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%v", scaleTarget),
 	}
-	deploymentList, err := client.AppsV1().Deployments(v12.NamespaceAll).List(listOptions)
+	deploymentList, err := client.AppsV1().Deployments(metav1.NamespaceAll).List(listOptions)
 	if err != nil {
 		return err
 	}
@@ -312,7 +441,7 @@ func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	}
 
 	// find statefulset & update hpa annotations
-	statefulSetList, err := client.AppsV1().StatefulSets(v12.NamespaceAll).List(listOptions)
+	statefulSetList, err := client.AppsV1().StatefulSets(metav1.NamespaceAll).List(listOptions)
 	if err != nil {
 		return err
 	}
@@ -335,20 +464,15 @@ func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 	return nil
 }
 
-func setDeploymentAutoscalingInfo(kubeConfig []byte, request hpa.DeploymentScalingRequest) error {
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-
+func setDeploymentAutoscalingInfo(client *kubernetes.Clientset, request hpa.DeploymentScalingRequest) error {
 	// find deployment & update hpa annotations
-	// get doesn't work with v12.NamespaceAll only if you specify the namespace exactly
-	//deployment, err := client.AppsV1().Deployments(v12.NamespaceAll).Get(request.Name, v12.GetOptions{})
+	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
+	//deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
 	scaleTargetFound := false
-	listOptions := v12.ListOptions{
+	listOptions := metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%v", request.ScaleTarget),
 	}
-	deploymentList, err := client.AppsV1().Deployments(v12.NamespaceAll).List(listOptions)
+	deploymentList, err := client.AppsV1().Deployments(metav1.NamespaceAll).List(listOptions)
 	if err != nil {
 		return err
 	}
@@ -366,7 +490,7 @@ func setDeploymentAutoscalingInfo(kubeConfig []byte, request hpa.DeploymentScali
 	}
 
 	// find statefulset & update hpa annotations
-	statefulSetList, err := client.AppsV1().StatefulSets(v12.NamespaceAll).List(listOptions)
+	statefulSetList, err := client.AppsV1().StatefulSets(metav1.NamespaceAll).List(listOptions)
 	if err != nil {
 		return err
 	}
@@ -424,10 +548,14 @@ func setupResourceMetricAnnotation(annotations map[string]string, prefix string,
 }
 
 func setupCustomMetricAnnotation(annotations map[string]string, customMetricName string, customMetric hpa.CustomMetric) {
-	if len(customMetric.TargetAverageValue) > 0 {
-		switch customMetric.Type {
-		case "pod":
-			annotations[fmt.Sprintf("pod.%v/%v", hpaAnnotationPrefix, customMetricName)] = customMetric.TargetAverageValue
-		}
+	if len(customMetric.TargetValue) > 0 {
+		annotations[fmt.Sprintf("prometheus.%v.%v/targetValue", customMetricName, hpaAnnotationPrefix)] = customMetric.TargetValue
+	} else if len(customMetric.TargetAverageValue) > 0 {
+		annotations[fmt.Sprintf("prometheus.%v.%v/targetAverageValue", customMetricName, hpaAnnotationPrefix)] = customMetric.TargetAverageValue
 	}
+
+	if len(customMetric.TargetAverageValue) > 0 {
+
+	}
+	annotations[fmt.Sprintf("prometheus.%v.%v/query", customMetricName, hpaAnnotationPrefix)] = customMetric.Query
 }

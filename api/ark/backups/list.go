@@ -24,7 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // List lists ARK backups
@@ -47,7 +46,7 @@ func List(c *gin.Context) {
 
 	backups := make([]*api.Backup, 0)
 	for _, backup := range orgBackups {
-		if backup.ClusterID == pkgCluster.ClusterID(cluserID) {
+		if backup.ClusterID == cluserID {
 			backups = append(backups, backup)
 		}
 	}

@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,7 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -36,7 +36,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/gin-gonic/gin/json"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
@@ -49,9 +48,9 @@ import (
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/rbac/v1beta1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -79,7 +78,7 @@ const (
 )
 
 // CreateGKEClusterFromRequest creates ClusterModel struct from the request
-func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) (*GKECluster, error) {
+func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID uint, userID uint) (*GKECluster, error) {
 	c := GKECluster{
 		log: log.WithField("cluster", request.Name),
 	}
@@ -96,7 +95,7 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			Name:           request.Name,
 			Location:       request.Location,
 			OrganizationID: orgID,
-			SecretID:       pkgSecret.SecretID(request.SecretId),
+			SecretID:       request.SecretId,
 			Cloud:          google.Provider,
 			Distribution:   google.ClusterDistributionGKE,
 			CreatedBy:      userID,
@@ -126,7 +125,7 @@ type GKECluster struct {
 }
 
 // GetOrganizationId gets org where the cluster belongs
-func (c *GKECluster) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *GKECluster) GetOrganizationId() uint {
 	return c.model.Cluster.OrganizationID
 }
 
@@ -136,17 +135,17 @@ func (c *GKECluster) GetLocation() string {
 }
 
 // GetSecretId retrieves the secret id
-func (c *GKECluster) GetSecretId() pkgSecret.SecretID {
+func (c *GKECluster) GetSecretId() string {
 	return c.model.Cluster.SecretID
 }
 
 // GetSshSecretId retrieves the secret id
-func (c *GKECluster) GetSshSecretId() pkgSecret.SecretID {
+func (c *GKECluster) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
 // SaveSshSecretId saves the ssh secret id to database
-func (c *GKECluster) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
+func (c *GKECluster) SaveSshSecretId(sshSecretId string) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -331,7 +330,7 @@ func (c *GKECluster) GetCloud() string {
 }
 
 // GetDistribution returns the distribution type of the cluster
-func (c *GKECluster) GetDistribution() pkgCluster.DistributionID {
+func (c *GKECluster) GetDistribution() string {
 	return c.model.Cluster.Distribution
 }
 
@@ -578,7 +577,7 @@ func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) er
 }
 
 // UpdateNodePools updates nodes pools of a cluster
-func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId pkgAuth.UserID) error {
+func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest, userId uint) error {
 
 	c.log.Info("Start updating cluster (gke) nodepools")
 
@@ -616,7 +615,7 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 }
 
 // UpdateCluster updates GKE cluster in cloud
-func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId pkgAuth.UserID) error {
+func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterRequest, userId uint) error {
 
 	c.log.Info("Start updating cluster (gke)")
 
@@ -749,7 +748,7 @@ func (c *GKECluster) updateModel(cluster *gke.Cluster, updatedNodePools []*gke.N
 }
 
 //GetID returns the specified cluster id
-func (c *GKECluster) GetID() pkgCluster.ClusterID {
+func (c *GKECluster) GetID() uint {
 	return c.model.Cluster.ID
 }
 
@@ -1247,11 +1246,11 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 		return "", emperror.WrapWith(err, "creating service account failed", "namespace", defaultNamespace, "service account", serviceAccount)
 	}
 
-	adminRole := &v1beta1.ClusterRole{
+	adminRole := &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: clusterAdmin,
 		},
-		Rules: []v1beta1.PolicyRule{
+		Rules: []rbacv1.PolicyRule{
 			{
 				APIGroups: []string{"*"},
 				Resources: []string{"*"},
@@ -1263,33 +1262,31 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 			},
 		},
 	}
-	clusterAdminRole, err := clientset.RbacV1beta1().ClusterRoles().Get(clusterAdmin, metav1.GetOptions{})
+	clusterAdminRole, err := clientset.RbacV1().ClusterRoles().Get(clusterAdmin, metav1.GetOptions{})
 	if err != nil {
-		clusterAdminRole, err = clientset.RbacV1beta1().ClusterRoles().Create(adminRole)
+		clusterAdminRole, err = clientset.RbacV1().ClusterRoles().Create(adminRole)
 		if err != nil {
 			return "", emperror.WrapWith(err, "creating cluster role failed", "cluster role", adminRole.Name)
 		}
 	}
 
-	clusterRoleBinding := &v1beta1.ClusterRoleBinding{
+	clusterRoleBinding := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s-clusterRoleBinding", netesDefault),
 		},
-		Subjects: []v1beta1.Subject{
+		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
 				Name:      serviceAccount.Name,
 				Namespace: "default",
-				APIGroup:  v1.GroupName,
 			},
 		},
-		RoleRef: v1beta1.RoleRef{
-			Kind:     "ClusterRole",
-			Name:     clusterAdminRole.Name,
-			APIGroup: v1beta1.GroupName,
+		RoleRef: rbacv1.RoleRef{
+			Kind: "ClusterRole",
+			Name: clusterAdminRole.Name,
 		},
 	}
-	if _, err = clientset.RbacV1beta1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil && !k8sErrors.IsAlreadyExists(err) {
+	if _, err = clientset.RbacV1().ClusterRoleBindings().Create(clusterRoleBinding); err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return "", emperror.WrapWith(err, "creating cluster role binding failed", "cluster role", clusterAdminRole.Name, "service account", serviceAccount.Name)
 	}
 
@@ -2090,7 +2087,7 @@ func (c *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 }
 
 // SaveConfigSecretId saves the config secret id in database
-func (c *GKECluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
+func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -2102,7 +2099,7 @@ func (c *GKECluster) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error
 }
 
 // GetConfigSecretId return config secret id
-func (c *GKECluster) GetConfigSecretId() pkgSecret.SecretID {
+func (c *GKECluster) GetConfigSecretId() string {
 	return c.model.Cluster.ConfigSecretID
 }
 
@@ -2219,6 +2216,6 @@ func (c *GKECluster) GetKubernetesUserName() (string, error) {
 }
 
 // GetCreatedBy returns cluster create userID.
-func (c *GKECluster) GetCreatedBy() pkgAuth.UserID {
+func (c *GKECluster) GetCreatedBy() uint {
 	return c.model.Cluster.CreatedBy
 }

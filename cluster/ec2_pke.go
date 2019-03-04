@@ -30,12 +30,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/model"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
@@ -48,8 +46,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
@@ -69,7 +68,12 @@ func (c *EC2ClusterPKE) GetSecurityScan() bool {
 }
 
 func (c *EC2ClusterPKE) SetSecurityScan(scan bool) {
-	c.model.Cluster.SecurityScan = scan
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"security_scan": scan}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.SecurityScan = scan
+	}
 }
 
 func (c *EC2ClusterPKE) GetLogging() bool {
@@ -77,7 +81,13 @@ func (c *EC2ClusterPKE) GetLogging() bool {
 }
 
 func (c *EC2ClusterPKE) SetLogging(l bool) {
-	c.model.Cluster.Logging = l
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"logging": l}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.Logging = l
+	}
+
 }
 
 func (c *EC2ClusterPKE) GetMonitoring() bool {
@@ -85,7 +95,12 @@ func (c *EC2ClusterPKE) GetMonitoring() bool {
 }
 
 func (c *EC2ClusterPKE) SetMonitoring(m bool) {
-	c.model.Cluster.Monitoring = m
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"monitoring": m}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.Monitoring = m
+	}
 }
 
 // GetScaleOptions returns scale options for the cluster
@@ -103,10 +118,16 @@ func (c *EC2ClusterPKE) GetServiceMesh() bool {
 }
 
 func (c *EC2ClusterPKE) SetServiceMesh(m bool) {
-	c.model.Cluster.ServiceMesh = m
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"service_mesh": m}).Error
+	if err != nil {
+		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
+	} else {
+		c.model.Cluster.ServiceMesh = m
+	}
+
 }
 
-func (c *EC2ClusterPKE) GetID() pkgCluster.ClusterID {
+func (c *EC2ClusterPKE) GetID() uint {
 	return c.model.Cluster.ID
 }
 
@@ -114,7 +135,7 @@ func (c *EC2ClusterPKE) GetUID() string {
 	return c.model.Cluster.UID
 }
 
-func (c *EC2ClusterPKE) GetOrganizationId() pkgAuth.OrganizationID {
+func (c *EC2ClusterPKE) GetOrganizationId() uint {
 	return c.model.Cluster.OrganizationID
 }
 
@@ -126,7 +147,7 @@ func (c *EC2ClusterPKE) GetCloud() string {
 	return c.model.Cluster.Cloud
 }
 
-func (c *EC2ClusterPKE) GetDistribution() pkgCluster.DistributionID {
+func (c *EC2ClusterPKE) GetDistribution() string {
 	return c.model.Cluster.Distribution
 }
 
@@ -134,15 +155,15 @@ func (c *EC2ClusterPKE) GetLocation() string {
 	return c.model.Cluster.Location
 }
 
-func (c *EC2ClusterPKE) GetCreatedBy() pkgAuth.UserID {
+func (c *EC2ClusterPKE) GetCreatedBy() uint {
 	return c.model.Cluster.CreatedBy
 }
 
-func (c *EC2ClusterPKE) GetSecretId() pkgSecret.SecretID {
+func (c *EC2ClusterPKE) GetSecretId() string {
 	return c.model.Cluster.SecretID
 }
 
-func (c *EC2ClusterPKE) GetSshSecretId() pkgSecret.SecretID {
+func (c *EC2ClusterPKE) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
@@ -152,7 +173,7 @@ func (c *EC2ClusterPKE) RequiresSshPublicKey() bool {
 	return true
 }
 
-func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId pkgSecret.SecretID) error {
+func (c *EC2ClusterPKE) SaveSshSecretId(sshSecretId string) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -172,7 +193,7 @@ func (c *EC2ClusterPKE) GetSshPublicKey() (string, error) {
 	return sshKey.PublicKeyData, nil
 }
 
-func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId pkgSecret.SecretID) error {
+func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
 	err := c.db.Save(&c.model).Error
@@ -183,7 +204,7 @@ func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId pkgSecret.SecretID) er
 	return nil
 }
 
-func (c *EC2ClusterPKE) GetConfigSecretId() pkgSecret.SecretID {
+func (c *EC2ClusterPKE) GetConfigSecretId() string {
 	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
 	id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
 	if err == nil {
@@ -269,79 +290,19 @@ func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
 
 	err := c.db.Save(&c.model).Error
 	if err != nil {
-		return emperror.WrapWith(err, "failed to save ssh secret", "workflowId", workflowID)
+		return emperror.WrapWith(err, "failed to save workflow id", "workflowId", workflowID)
 	}
 
 	return nil
 }
 
 func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
-	// Fetch
-
-	// Generate certificates
-	clusterUidTag := fmt.Sprintf("clusterUID:%s", c.GetUID())
-	req := &secret.CreateSecretRequest{
-		Name:   fmt.Sprintf("cluster-%d-ca", c.GetID()),
-		Values: map[string]string{},
-		Type:   pkgSecret.PKESecretType,
-		Tags: []string{
-			clusterUidTag,
-			pkgSecret.TagBanzaiReadonly,
-			pkgSecret.TagBanzaiHidden,
-		},
-	}
-	_, err := secret.Store.GetOrCreate(c.GetOrganizationId(), req)
-	if err != nil {
-		return err
-	}
-	// prepare input for real AWS flow
-	_, err = c.GetPipelineToken(tokenGenerator)
-	if err != nil {
-		return emperror.Wrap(err, "can't generate Pipeline token")
-	}
-	//client, err := c.GetAWSClient()
-	//if err != nil {
-	//	return err
-	//}
-	//cloudformationSrv := cloudformation.New(client)
-	//err = CreateMasterCF(cloudformationSrv)
-	//if err != nil {
-	//	return emperror.Wrap(err, "can't create master CF template")
-	//}
-	token := "XXX" // TODO masked from dumping valid tokens to log
-	for _, nodePool := range c.model.NodePools {
-		cmd, err := c.GetBootstrapCommand(nodePool.Name, externalBaseURL, token)
-		if err != nil {
-			return err
-		}
-		c.log.Debugf("TODO: start ASG with command %s", cmd)
-	}
-
-	c.UpdateStatus(c.model.Cluster.Status, "Waiting for Kubeconfig from master node.")
-	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
-	err = backoff.Retry(func() error {
-		id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
-		if err != nil {
-			return err
-		} else if id == "" {
-			log.Debug("waiting for Kubeconfig (/ready call)")
-			return errors.New("no Kubeconfig received from master")
-		}
-		c.model.Cluster.ConfigSecretID = id
-		return nil
-	}, backoff.NewConstantBackoffPolicy(&backoff.ConstantBackoffConfig{
-		Delay:          20 * time.Second,
-		MaxElapsedTime: 30 * time.Minute}))
-
-	if err != nil {
-		return emperror.Wrap(err, "timeout")
-	}
-	return nil
+	return errors.New("unused method")
 }
 
 // RegisterNode adds a Node to the DB
 func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, worker bool) error {
-
+	/* TODO: decide if we need this on AWS
 	db := pipConfig.DB()
 	nodePool := internalPke.NodePool{
 		Name:      nodePoolName,
@@ -374,6 +335,7 @@ func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, work
 		return emperror.Wrap(err, "failed to register node")
 	}
 	c.log.WithField("node", name).Info("node registered")
+	*/
 
 	return nil
 }
@@ -388,20 +350,156 @@ func (c *EC2ClusterPKE) ValidateCreationFields(r *pkgCluster.CreateClusterReques
 	return nil
 }
 
-func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, pkgAuth.UserID) error {
-	panic("implement me")
+func (c *EC2ClusterPKE) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
+	panic("not used")
 }
 
-func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, pkgAuth.UserID) error {
+func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.NodePool {
+	var out = make([]pkeworkflow.NodePool, len(nodePools))
+	i := 0
+	for nodePoolName, nodePool := range nodePools {
+		out[i] = pkeworkflow.NodePool{
+			Name:         nodePoolName,
+			MinCount:     nodePool.MinCount,
+			MaxCount:     nodePool.MaxCount,
+			Count:        nodePool.Count,
+			Autoscaling:  nodePool.Autoscaling,
+			InstanceType: nodePool.InstanceType,
+			SpotPrice:    nodePool.SpotPrice,
+		}
+		i++
+	}
+	return out
+}
+
+func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, workflowClient client.Client, externalBaseURL string) error {
+
+	vpcid, ok := c.model.Network.CloudProviderConfig["vpcID"].(string)
+	if !ok {
+		return errors.New("VPC ID not found")
+	}
+
+	subnets := []string{}
+	if subnetIfaces, ok := c.model.Network.CloudProviderConfig["subnets"].([]interface{}); ok {
+		for _, subnet := range subnetIfaces {
+			if str, ok := subnet.(string); ok {
+				subnets = append(subnets, str)
+			} else {
+				c.log.Errorf("Subnet ID is not a string (%v %T)", subnet, subnet)
+			}
+		}
+	} else {
+		return errors.New(fmt.Sprintf("Subnet IDs not found (%v %T)", c.model.Network.CloudProviderConfig["subnets"], c.model.Network.CloudProviderConfig["subnets"]))
+	}
+
+	newNodepools := createNodePoolsFromPKERequest(request.PKE.NodePools)
+	input := pkeworkflow.UpdateClusterWorkflowInput{
+		ClusterID:           uint(c.GetID()),
+		NodePools:           newNodepools,
+		OrganizationID:      uint(c.GetOrganizationId()),
+		ClusterUID:          c.GetUID(),
+		ClusterName:         c.GetName(),
+		SecretID:            string(c.GetSecretId()),
+		Region:              c.GetLocation(),
+		PipelineExternalURL: externalBaseURL,
+		VPCID:               vpcid,
+		SubnetIDs:           subnets,
+	}
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+	}
+	exec, err := workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.UpdateClusterWorkflowName, input)
+	if err != nil {
+		return err
+	}
+
+	err = c.SetCurrentWorkflowID(exec.GetID())
+	if err != nil {
+		return err
+	}
+
+	workflowError := exec.Get(ctx, nil)
+
+	newNodepoolMap := map[string]pkeworkflow.NodePool{}
+	for _, np := range newNodepools {
+		newNodepoolMap[np.Name] = np
+	}
+	oldNodepoolSet := map[string]bool{}
+
+	// update or delete existing pools in DB
+	newModelNodepools := internalPke.NodePools{}
+	deletedNodepools := internalPke.NodePools{}
+	for _, np := range c.model.NodePools {
+		oldNodepoolSet[np.Name] = true
+		if newNp, ok := newNodepoolMap[np.Name]; ok { // update
+
+			providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+			if err = mapstructure.Decode(np.ProviderConfig, &providerConfig); err != nil {
+				return emperror.Wrapf(err, "decoding nodepool %q config", np.Name)
+			}
+			providerConfig.AutoScalingGroup.Size.Min = newNp.MinCount
+			providerConfig.AutoScalingGroup.Size.Max = newNp.MaxCount
+			np.ProviderConfig["autoScalingGroup"] = providerConfig.AutoScalingGroup
+
+			newModelNodepools = append(newModelNodepools, np)
+		} else {
+			deletedNodepools = append(deletedNodepools, np)
+		}
+	}
+
+	// add new pools
+	for _, np := range newNodepools {
+		if oldNodepoolSet[np.Name] {
+			continue
+		}
+		providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+		providerConfig.AutoScalingGroup.Name = np.Name
+		providerConfig.AutoScalingGroup.InstanceType = np.InstanceType
+		providerConfig.AutoScalingGroup.Image = np.ImageID
+		providerConfig.AutoScalingGroup.Size.Min = np.MinCount
+		providerConfig.AutoScalingGroup.Size.Max = np.MaxCount
+		providerConfig.AutoScalingGroup.Size.Desired = np.Count
+		providerConfig.AutoScalingGroup.SpotPrice = np.SpotPrice
+		modelNodepool := internalPke.NodePool{
+			Name:        np.Name,
+			Roles:       internalPke.Roles{"worker"},
+			Autoscaling: np.Autoscaling,
+			Provider:    internalPke.NPPAmazon,
+			ProviderConfig: internalPke.Config{
+				"autoScalingGroup": providerConfig.AutoScalingGroup},
+		}
+		newModelNodepools = append(newModelNodepools, modelNodepool)
+	}
+
+	c.model.NodePools = newModelNodepools
+	if err := c.db.Save(&c.model).Error; err != nil {
+		return emperror.Wrap(err, "failed to save cluster")
+	}
+
+	for _, np := range deletedNodepools {
+		if np.NodePoolID == 0 {
+			panic("prevented deleting all nodepools")
+		}
+
+		c.log.WithField("nodepool", np.Name).Info("deleting nodepool")
+		if err := c.db.Delete(&np).Error; err != nil {
+			return emperror.Wrap(err, "failed to delete nodepool")
+		}
+	}
+
+	return workflowError
+}
+
+func (c *EC2ClusterPKE) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error {
 	panic("implement me")
 }
 
 func (c *EC2ClusterPKE) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
-	panic("implement me")
+	return nil
 }
 
 func (c *EC2ClusterPKE) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
-	panic("implement me")
 }
 
 func (c *EC2ClusterPKE) DeleteCluster() error {
@@ -493,13 +591,10 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		if err != nil {
 			return nil, emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 		}
-		var hostCount int
-		err = c.db.Model(&internalPke.Host{}).Where(&internalPke.Host{NodePoolID: np.NodePoolID}).Count(&hostCount).Error
-		if err != nil {
-			return nil, err
-		}
+
 		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
-			Count:             hostCount,
+			Autoscaling:       np.Autoscaling,
+			Count:             providerConfig.AutoScalingGroup.Size.Desired,
 			MaxCount:          providerConfig.AutoScalingGroup.Size.Max,
 			MinCount:          providerConfig.AutoScalingGroup.Size.Min,
 			InstanceType:      providerConfig.AutoScalingGroup.InstanceType,
@@ -543,6 +638,7 @@ type PKENodePool struct {
 	MinCount          int
 	MaxCount          int
 	Count             int
+	Autoscaling       bool
 	Master            bool
 	Worker            bool
 	InstanceType      string
@@ -567,11 +663,12 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 			Name:              np.Name,
 			MinCount:          amazonPool.AutoScalingGroup.Size.Min,
 			MaxCount:          amazonPool.AutoScalingGroup.Size.Max,
-			Count:             amazonPool.AutoScalingGroup.Size.Min,
+			Count:             amazonPool.AutoScalingGroup.Size.Desired,
 			InstanceType:      amazonPool.AutoScalingGroup.InstanceType,
 			AvailabilityZones: azs,
 			ImageID:           amazonPool.AutoScalingGroup.Image,
 			SpotPrice:         amazonPool.AutoScalingGroup.SpotPrice,
+			Autoscaling:       np.Autoscaling,
 		}
 		for _, role := range np.Roles {
 			if role == "master" {
@@ -694,9 +791,10 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 	if err != nil {
 		return "", err
 	}
+
 	// master
 	if subcommand == "master" {
-		return fmt.Sprintf("pke install %s "+
+		command := fmt.Sprintf("pke install %s "+
 			"--pipeline-url=%q "+
 			"--pipeline-token=%q "+
 			"--pipeline-org-id=%d "+
@@ -719,7 +817,22 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
-		), nil
+		)
+
+		if c.model.DexEnabled {
+			dexIssuerURL := viper.GetString("auth.dexURL")
+			dexClientID := c.GetUID()
+
+			command = fmt.Sprintf("%s "+
+				"--kubernetes-oidc-issuer-url=%q "+
+				"--kubernetes-oidc-client-id=%q",
+				command,
+				dexIssuerURL,
+				dexClientID,
+			)
+		}
+
+		return command, nil
 	}
 
 	// worker
@@ -801,7 +914,7 @@ func (c *EC2ClusterPKE) SaveNetworkApiServerAddress(host, port string) error {
 	return nil
 }
 
-func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId pkgAuth.OrganizationID, userId pkgAuth.UserID) (*EC2ClusterPKE, error) {
+func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {
 	c := &EC2ClusterPKE{
 		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
 	}
@@ -814,6 +927,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		kubernetes = createEC2ClusterPKEFromRequest(request.Properties.CreateClusterPKE.Kubernetes, userId)
 		kubeADM    = createEC2ClusterPKEKubeADMFromRequest(request.Properties.CreateClusterPKE.KubeADM, userId)
 		cri        = createEC2ClusterPKECRIFromRequest(request.Properties.CreateClusterPKE.CRI, userId)
+		dexEnabled = request.Properties.CreateClusterPKE.DexEnabled
 	)
 
 	instanceType, image, err := getMasterInstanceTypeAndImageFromNodePools(nodepools)
@@ -838,6 +952,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		Kubernetes:         kubernetes,
 		KubeADM:            kubeADM,
 		CRI:                cri,
+		DexEnabled:         dexEnabled,
 	}
 
 	return c, nil
@@ -874,7 +989,7 @@ func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2Cluster
 	return c, nil
 }
 
-func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId pkgAuth.UserID) internalPke.NodePools {
+func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId uint) internalPke.NodePools {
 	var nps internalPke.NodePools
 
 	for _, pool := range pools {
@@ -885,6 +1000,7 @@ func createEC2ClusterPKENodePoolsFromRequest(pools pke.NodePools, userId pkgAuth
 			Provider:       convertNodePoolProvider(pool.Provider),
 			ProviderConfig: pool.ProviderConfig,
 			Labels:         pool.Labels,
+			Autoscaling:    pool.Autoscaling,
 		}
 		np.CreatedBy = userId
 		nps = append(nps, np)
@@ -933,7 +1049,7 @@ func convertTaints(taints pke.Taints) (result internalPke.Taints) {
 	return
 }
 
-func createEC2PKENetworkFromRequest(network pke.Network, userId pkgAuth.UserID) internalPke.Network {
+func createEC2PKENetworkFromRequest(network pke.Network, userId uint) internalPke.Network {
 	n := internalPke.Network{
 		ServiceCIDR:      network.ServiceCIDR,
 		PodCIDR:          network.PodCIDR,
@@ -948,7 +1064,7 @@ func convertNetworkProvider(provider pke.NetworkProvider) (result internalPke.Ne
 	return internalPke.NetworkProvider(provider)
 }
 
-func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId pkgAuth.UserID) internalPke.Kubernetes {
+func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId uint) internalPke.Kubernetes {
 	k := internalPke.Kubernetes{
 		Version: kubernetes.Version,
 		RBAC:    internalPke.RBAC{Enabled: kubernetes.RBAC.Enabled},
@@ -957,7 +1073,7 @@ func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId pkgAuth.Us
 	return k
 }
 
-func createEC2ClusterPKEKubeADMFromRequest(kubernetes pke.KubeADM, userId pkgAuth.UserID) internalPke.KubeADM {
+func createEC2ClusterPKEKubeADMFromRequest(kubernetes pke.KubeADM, userId uint) internalPke.KubeADM {
 	a := internalPke.KubeADM{
 		ExtraArgs: convertExtraArgs(kubernetes.ExtraArgs),
 	}
@@ -973,7 +1089,7 @@ func convertExtraArgs(extraArgs pke.ExtraArgs) internalPke.ExtraArgs {
 	return res
 }
 
-func createEC2ClusterPKECRIFromRequest(cri pke.CRI, userId pkgAuth.UserID) internalPke.CRI {
+func createEC2ClusterPKECRIFromRequest(cri pke.CRI, userId uint) internalPke.CRI {
 	c := internalPke.CRI{
 		Runtime:       internalPke.Runtime(cri.Runtime),
 		RuntimeConfig: cri.RuntimeConfig,

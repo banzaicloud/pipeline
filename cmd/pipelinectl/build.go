@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package auth
+package main
 
-// OrganizationID represents the identifier of an organization
-type OrganizationID uint
-
-// UserID represents the identifier of a user
-type UserID uint
+// Provisioned by ldflags
+// nolint: gochecknoglobals
+var (
+	version    string
+	commitHash string
+	buildDate  string
+)

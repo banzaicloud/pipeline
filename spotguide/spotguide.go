@@ -34,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/secret"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
@@ -43,7 +42,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 const SpotguideGithubTopic = "spotguide"
@@ -71,16 +70,16 @@ type SpotguideYAML struct {
 type Question map[string]interface{}
 
 type SpotguideRepo struct {
-	ID               uint                   `json:"id" gorm:"primary_key"`
-	OrganizationID   pkgAuth.OrganizationID `json:"organizationId" gorm:"unique_index:name_and_version"`
-	CreatedAt        time.Time              `json:"createdAt"`
-	UpdatedAt        time.Time              `json:"updatedAt"`
-	Name             string                 `json:"name" gorm:"unique_index:name_and_version"`
-	DisplayName      string                 `json:"displayName" gorm:"-"`
-	Icon             []byte                 `json:"-" gorm:"type:mediumblob"`
-	Readme           string                 `json:"readme" gorm:"type:mediumtext"`
-	Version          string                 `json:"version" gorm:"unique_index:name_and_version"`
-	SpotguideYAMLRaw []byte                 `json:"-" gorm:"type:text"`
+	ID               uint      `json:"id" gorm:"primary_key"`
+	OrganizationID   uint      `json:"organizationId" gorm:"unique_index:name_and_version"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
+	Name             string    `json:"name" gorm:"unique_index:name_and_version"`
+	DisplayName      string    `json:"displayName" gorm:"-"`
+	Icon             []byte    `json:"-" gorm:"type:mediumblob"`
+	Readme           string    `json:"readme" gorm:"type:mediumtext"`
+	Version          string    `json:"version" gorm:"unique_index:name_and_version"`
+	SpotguideYAMLRaw []byte    `json:"-" gorm:"type:text"`
 	SpotguideYAML    `gorm:"-"`
 }
 
@@ -97,7 +96,7 @@ func (r SpotguideRepo) Key() SpotguideRepoKey {
 }
 
 type SpotguideRepoKey struct {
-	OrganizationID pkgAuth.OrganizationID
+	OrganizationID uint
 	Name           string
 	Version        string
 }
@@ -147,7 +146,7 @@ func CreateSharedSpotguideOrganization(db *gorm.DB, sharedLibraryGitHubOrganizat
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to query shared Github organization")
 	}
-	sharedOrg = &auth.Organization{Name: *githubOrg.Login, GithubID: githubOrg.ID}
+	sharedOrg = &auth.Organization{Name: *githubOrg.Login, GithubID: githubOrg.ID, Provider: auth.ProviderGithub}
 	if err := db.Where(sharedOrg).FirstOrCreate(sharedOrg).Error; err != nil {
 		return nil, emperror.Wrap(err, "failed to create shared organization")
 	}
@@ -200,7 +199,7 @@ func (s *SpotguideManager) ScrapeSharedSpotguides() error {
 	return s.scrapeSpotguides(s.sharedLibraryOrganization, githubClient)
 }
 
-func (s *SpotguideManager) ScrapeSpotguides(orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) error {
+func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 	githubClient, err := auth.NewGithubClientForUser(userID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create GitHub client")
@@ -333,7 +332,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 	return nil
 }
 
-func (s *SpotguideManager) GetSpotguides(orgID pkgAuth.OrganizationID) (spotguides []*SpotguideRepo, err error) {
+func (s *SpotguideManager) GetSpotguides(orgID uint) (spotguides []*SpotguideRepo, err error) {
 	query := s.db.Where(SpotguideRepo{OrganizationID: orgID})
 	if s.sharedLibraryOrganization != nil {
 		query = query.Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID})
@@ -343,7 +342,7 @@ func (s *SpotguideManager) GetSpotguides(orgID pkgAuth.OrganizationID) (spotguid
 	return spotguides, err
 }
 
-func (s *SpotguideManager) GetSpotguide(orgID pkgAuth.OrganizationID, name, version string) (*SpotguideRepo, error) {
+func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
 	query := s.db.Where(SpotguideRepo{OrganizationID: orgID, Name: name, Version: version})
 	if s.sharedLibraryOrganization != nil {
 		query = query.Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID, Name: name, Version: version})
@@ -508,7 +507,7 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 	return entries, nil
 }
 
-func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID pkgAuth.UserID, sourceRepo *SpotguideRepo) error {
+func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
 
 	repo := github.Repository{
 		Name:        github.String(request.RepoName),
@@ -532,7 +531,7 @@ func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userI
 	return nil
 }
 
-func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID pkgAuth.UserID, sourceRepo *SpotguideRepo) error {
+func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
 
 	// An initial files have to be created with the API to be able to use the fresh repo
 	createFile := &github.RepositoryContentFileOptions{
@@ -592,7 +591,7 @@ func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, us
 	return nil
 }
 
-func createSecrets(request *LaunchRequest, orgID pkgAuth.OrganizationID, userID pkgAuth.UserID) error {
+func createSecrets(request *LaunchRequest, orgID uint, userID uint) error {
 
 	repoTag := "repo:" + request.RepoFullname()
 

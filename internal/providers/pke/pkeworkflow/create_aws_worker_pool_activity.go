@@ -28,7 +28,7 @@ import (
 	"go.uber.org/cadence/activity"
 )
 
-const CreateWorkerPoolActivityName = "pke-create-aws-worker-role-activity"
+const CreateWorkerPoolActivityName = "pke-create-aws-worker-pool-activity"
 
 type CreateWorkerPoolActivity struct {
 	clusters       Clusters
@@ -100,6 +100,20 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 	}
 
 	clusterName := cluster.GetName()
+
+	autoscaling := aws.String("false")
+	if input.Pool.Autoscaling {
+		autoscaling = aws.String("true")
+	}
+
+	desired := input.Pool.Count
+	if desired < input.Pool.MinCount {
+		desired = input.Pool.MinCount
+	}
+	if desired > input.Pool.MaxCount {
+		desired = input.Pool.MaxCount
+	}
+
 	stackInput := &cloudformation.CreateStackInput{
 		StackName:    aws.String(stackName),
 		TemplateBody: aws.String(string(buf)),
@@ -108,6 +122,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			{
 				ParameterKey:   aws.String("ClusterName"),
 				ParameterValue: &clusterName,
+			},
+			{
+				ParameterKey:   aws.String("NodeGroupName"),
+				ParameterValue: &input.Pool.Name,
 			},
 			{
 				ParameterKey:   aws.String("PkeCommand"),
@@ -151,7 +169,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("DesiredCapacity"),
-				ParameterValue: aws.String(strconv.Itoa(input.Pool.Count)),
+				ParameterValue: aws.String(strconv.Itoa(desired)),
 			},
 			{
 				ParameterKey:   aws.String("ClusterSecurityGroup"),
@@ -160,6 +178,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			{
 				ParameterKey:   aws.String("NodeSpotPrice"),
 				ParameterValue: aws.String(input.Pool.SpotPrice),
+			},
+			{
+				ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
+				ParameterValue: autoscaling,
 			},
 		},
 	}
@@ -176,5 +198,8 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", err
 	}
 
-	return *output.StackId, nil
+	if output.StackId != nil {
+		return *output.StackId, nil
+	}
+	return stackName, nil
 }

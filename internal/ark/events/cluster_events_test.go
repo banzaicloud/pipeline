@@ -19,19 +19,17 @@ import (
 
 	evbus "github.com/asaskevich/EventBus"
 	"github.com/banzaicloud/pipeline/cluster"
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 func TestClusterCreatedEvent(t *testing.T) {
-	oid := pkgCluster.ClusterID(1)
+	oid := uint(1)
 
 	clusterEventBus := evbus.New()
 	publisher := cluster.NewClusterEvents(clusterEventBus)
 
 	ok := false
 	listener := NewClusterEvents(clusterEventBus)
-	listener.NotifyClusterCreated(func(clusterID pkgCluster.ClusterID) {
+	listener.NotifyClusterCreated(func(clusterID uint) {
 		if clusterID == oid {
 			ok = true
 		}
@@ -47,7 +45,7 @@ func TestClusterCreatedEvent(t *testing.T) {
 }
 
 func TestClusterDeletedEvent(t *testing.T) {
-	oid := pkgAuth.OrganizationID(1)
+	oid := uint(1)
 	cname := "clustername"
 
 	clusterEventBus := evbus.New()
@@ -55,7 +53,7 @@ func TestClusterDeletedEvent(t *testing.T) {
 
 	ok := false
 	listener := NewClusterEvents(clusterEventBus)
-	listener.NotifyClusterDeleted(func(orgID pkgAuth.OrganizationID, clusterName string) {
+	listener.NotifyClusterDeleted(func(orgID uint, clusterName string) {
 		if orgID == oid && clusterName == cname {
 			ok = true
 		}

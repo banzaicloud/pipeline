@@ -12,10 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package zaplog
+package drain
 
-// Config holds information necessary for customizing the logger.
-type Config struct {
-	Level  string
-	Format string
+import (
+	"net/http"
+	"net/url"
+
+	"github.com/pkg/errors"
+)
+
+type drainOptions struct {
+	apiUrl string
+}
+
+func newDrainRequest(apiUrl string) (*http.Request, error) {
+	u, err := url.Parse(apiUrl)
+	if err != nil {
+		return nil, errors.Errorf("invalid api url: %s", apiUrl)
+	}
+
+	u.Path = "/-/drain"
+
+	req, err := http.NewRequest("", u.String(), nil)
+	return req, errors.Wrap(err, "failed  to create HTTP request")
 }

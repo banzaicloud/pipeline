@@ -1,32 +1,35 @@
-FROM golang:1.11-alpine AS builder
+ARG GO_VERSION=1.12
 
-RUN apk add --update --no-cache bash ca-certificates curl git make
+FROM golang:${GO_VERSION}-alpine AS builder
+
+RUN apk add --update --no-cache bash ca-certificates make curl git mercurial bzr
 
 RUN go get -d github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
 RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     git checkout 981ecbe && \
     go install ./cmd/aws-iam-authenticator
 
-RUN mkdir -p /go/src/github.com/banzaicloud/pipeline
-ADD Gopkg.* Makefile /go/src/github.com/banzaicloud/pipeline/
+ENV GOFLAGS="-mod=readonly"
 
-WORKDIR /go/src/github.com/banzaicloud/pipeline
+RUN mkdir -p /build
+WORKDIR /build
 
-RUN make vendor
+COPY go.* /build/
+RUN go mod download
 
-ADD . /go/src/github.com/banzaicloud/pipeline
+COPY . /build
+RUN make build-release
 
-RUN BUILD_DIR=/build make build-release
 
-
-FROM alpine:3.8
+FROM alpine:3.9
 
 RUN apk add --update --no-cache ca-certificates tzdata
 
 COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
-COPY --from=builder /go/src/github.com/banzaicloud/pipeline/views /views/
-COPY --from=builder /go/src/github.com/banzaicloud/pipeline/templates/eks /templates/eks/
-COPY --from=builder /build/release/pipeline /
-COPY --from=builder /build/release/worker /
+COPY --from=builder /build/views /views/
+COPY --from=builder /build/templates /templates/
+COPY --from=builder /build/build/release/pipeline /
+COPY --from=builder /build/build/release/worker /
+COPY --from=builder /build/build/release/pipelinectl /
 
 CMD ["/pipeline"]

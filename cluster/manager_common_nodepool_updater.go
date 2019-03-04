@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 )
@@ -26,7 +25,7 @@ import (
 type commonNodepoolUpdater struct {
 	request *cluster.UpdateNodePoolsRequest
 	cluster CommonCluster
-	userID  pkgAuth.UserID
+	userID  uint
 }
 
 type commonNodepoolUpdateValidationError struct {
@@ -49,7 +48,7 @@ func (e *commonNodepoolUpdateValidationError) IsPreconditionFailed() bool {
 }
 
 // NewCommonNodepoolUpdater returns a new cluster creator instance.
-func NewCommonNodepoolUpdater(request *cluster.UpdateNodePoolsRequest, cluster CommonCluster, userID pkgAuth.UserID) *commonNodepoolUpdater {
+func NewCommonNodepoolUpdater(request *cluster.UpdateNodePoolsRequest, cluster CommonCluster, userID uint) *commonNodepoolUpdater {
 	return &commonNodepoolUpdater{
 		request: request,
 		cluster: cluster,

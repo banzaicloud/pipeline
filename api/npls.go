@@ -20,7 +20,7 @@ import (
 	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
 	"github.com/banzaicloud/pipeline/cluster"
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -123,5 +123,18 @@ func GetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, sets)
+	response := make(map[string][]pkgCluster.NodePoolLabel)
+	for npName, labelMap := range sets {
+		labels := make([]pkgCluster.NodePoolLabel, 0, len(labelMap))
+		for labelKey, labelValue := range labelMap {
+			labels = append(labels, pkgCluster.NodePoolLabel{
+				Name:     labelKey,
+				Value:    labelValue,
+				Reserved: cluster.IsReservedDomainKey(labelKey),
+			})
+		}
+		response[npName] = labels
+	}
+
+	c.JSON(http.StatusOK, response)
 }

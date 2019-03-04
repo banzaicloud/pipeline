@@ -15,8 +15,6 @@
 package api
 
 import (
-	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -27,11 +25,11 @@ type AKSCluster interface {
 
 // Cluster interface for cluster implementations
 type Cluster interface {
-	GetID() pkgCluster.ClusterID
+	GetID() uint
 	GetName() string
-	GetOrganizationId() pkgAuth.OrganizationID
+	GetOrganizationId() uint
 	GetCloud() string
-	GetDistribution() pkgCluster.DistributionID
+	GetDistribution() string
 	GetK8sConfig() ([]byte, error)
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 	GetLocation() string

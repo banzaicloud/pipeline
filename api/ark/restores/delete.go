@@ -23,7 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 )
 
 // Delete deletes an ARK restore
