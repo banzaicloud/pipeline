@@ -308,7 +308,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 
 	cluster.modelCluster = &model.ClusterModel{
 		Name:           request.Name,
-		Location:       request.Properties.CreateClusterACSK.RegionID,
+		Location:       request.Properties.CreateClusterACSK.ZoneID,
 		Cloud:          request.Cloud,
 		Distribution:   pkgCluster.ACSK,
 		OrganizationId: orgId,
