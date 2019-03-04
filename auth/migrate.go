@@ -26,7 +26,6 @@ import (
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&AuthIdentity{},
-		&WhitelistedAuthIdentity{},
 		&User{},
 		&UserOrganization{},
 		&Organization{},

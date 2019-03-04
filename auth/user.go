@@ -16,7 +16,6 @@ package auth
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -27,7 +26,7 @@ import (
 	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
@@ -60,31 +59,6 @@ type AuthIdentity struct {
 	auth_identity.Basic
 	auth_identity.SignLogs
 }
-
-// WhitelistedAuthIdentity auth identity whitelist session model
-type WhitelistedAuthIdentity struct {
-	ID        uint         `gorm:"primary_key" json:"id"`
-	CreatedAt time.Time    `json:"createdAt"`
-	UpdatedAt time.Time    `json:"updatedAt"`
-	Provider  string       `gorm:"unique_index:provider_login"` // phone, email, github, google...
-	Type      IdentityType `gorm:"type:ENUM('User', 'Organization')"`
-	Login     string       `gorm:"unique_index:provider_login"`
-	UID       string       `gorm:"column:uid"`
-}
-
-func (WhitelistedAuthIdentity) TableName() string {
-	return "whitelisted_auth_identities"
-}
-
-type IdentityType string
-
-const (
-	UserType         IdentityType = "User"
-	OrganizationType IdentityType = "Organization"
-)
-
-func (t *IdentityType) Scan(value interface{}) error { *t = IdentityType(value.([]byte)); return nil }
-func (t IdentityType) Value() (driver.Value, error)  { return string(t), nil }
 
 //User struct
 type User struct {
