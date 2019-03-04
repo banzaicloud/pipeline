@@ -199,7 +199,7 @@ func init() {
 	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(MetricsEnabled, false)
 	viper.SetDefault(MetricsPort, "9900")
-	viper.SetDefault(MetricsAddress, "0.0.0.0")
+	viper.SetDefault(MetricsAddress, "127.0.0.1")
 	viper.SetDefault(MetricsDebug, true)
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
