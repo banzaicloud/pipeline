@@ -235,6 +235,14 @@ func main() {
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())
 	router.Use(ginlog.Middleware(log, skipPaths...))
+
+	// Add prometheus metric endpoint
+	if viper.GetBool(config.MetricsEnabled) {
+		p := ginprometheus.NewPrometheus("pipeline", []string{})
+		p.SetListenAddress(viper.GetString(config.MetricsAddress) + ":" + viper.GetString(config.MetricsPort))
+		p.Use(router, "/metrics")
+	}
+
 	router.Use(gin.Recovery())
 	drainModeMetric := prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "pipeline",
@@ -254,13 +262,6 @@ func main() {
 	base := router.Group(basePath)
 	base.GET("notifications", notification.GetNotifications)
 	base.GET("version", VersionHandler)
-
-	// Add prometheus metric endpoint
-	if viper.GetBool(config.MetricsEnabled) {
-		p := ginprometheus.NewPrometheus("pipeline", []string{})
-		p.SetListenAddress(viper.GetString(config.MetricsAddress) + ":" + viper.GetString(config.MetricsPort))
-		p.Use(router, "/metrics")
-	}
 
 	auth.Install(router, tokenHandler.GenerateToken)
 	auth.StartTokenStoreGC()
