@@ -134,8 +134,8 @@ func CreateModelFromRequest(model Cluster, r *cluster.Cluster, userID uint) (clu
 			nodePool.Add = true
 		} else {
 			nodePool.Subnets = make([]*NodePoolSubnet, 0)
-			nodePool.Labels = data.Labels
 		}
+		nodePool.Labels = data.Labels
 		nodePool.CreatedBy = userID
 		nodePool.Version = data.Version
 		nodePool.QuantityPerSubnet = data.GetQuantityPerSubnet()
