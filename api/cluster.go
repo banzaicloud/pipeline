@@ -19,8 +19,16 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"sort"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"go.uber.org/cadence/client"
+	v1 "k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/auth"
@@ -36,14 +44,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"go.uber.org/cadence/client"
-	v1 "k8s.io/api/core/v1"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ClusterAPI implements the Cluster API actions.
@@ -88,35 +88,6 @@ func getClusterFromRequest(c *gin.Context) (cluster.CommonCluster, bool) {
 	clusterGetter := common.NewClusterGetter(clusterManager, log, errorHandler)
 
 	return clusterGetter.GetClusterFromRequest(c)
-}
-
-func getPostHookFunctions(postHooks pkgCluster.PostHooks) (ph []cluster.PostFunctioner) {
-
-	log.Info("Get posthook function(s)")
-
-	for postHookName, param := range postHooks {
-
-		function := cluster.HookMap[postHookName]
-		if function != nil {
-
-			if f, isOk := function.(*cluster.PostFunctionWithParam); isOk {
-				fa := *f
-				fa.SetParams(param)
-				function = &fa
-			}
-
-			log.Infof("posthook function: %s", function)
-			log.Infof("posthook params: %#v", param)
-			ph = append(ph, function)
-		} else {
-			log.Warnf("there's no function with this name [%s]", postHookName)
-		}
-	}
-
-	sort.Sort(cluster.ByPriority(ph))
-	log.Infof("Found posthooks: %v", ph)
-
-	return
 }
 
 // GetClusterConfig gets a cluster config
@@ -209,7 +180,7 @@ func (a *ClusterAPI) GetClusters(c *gin.Context) {
 
 		status, err := c.GetStatus()
 		if err != nil {
-			//TODO we want skip or return error?
+			// TODO we want skip or return error?
 			logger.Errorf("get cluster status failed: %s", err.Error())
 		} else {
 			response = append(response, *status)
@@ -217,41 +188,6 @@ func (a *ClusterAPI) GetClusters(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
-}
-
-// ReRunPostHooks handles {cluster_id}/posthooks API request
-func ReRunPostHooks(c *gin.Context) {
-
-	log.Info("Get common cluster")
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-
-	var ph pkgCluster.PostHooks
-	if err := c.BindJSON(&ph); err != nil {
-		log.Errorf("error during binding request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "error during binding request",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	var posthooks []cluster.PostFunctioner
-	if len(ph) == 0 {
-		posthooks = cluster.BasePostHookFunctions
-	} else {
-		posthooks = getPostHookFunctions(ph)
-	}
-
-	log.Infof("Cluster id: %d", commonCluster.GetID())
-	log.Infof("Run posthook(s): %v", posthooks)
-
-	go cluster.RunPostHooks(posthooks, commonCluster)
-
-	c.Status(http.StatusOK)
 }
 
 // ClusterCheck checks the cluster ready

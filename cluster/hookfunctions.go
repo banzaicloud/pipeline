@@ -124,24 +124,24 @@ var HookMap = map[string]PostFunctioner{
 
 // BasePostHookFunctions default posthook functions after cluster create
 // nolint: gochecknoglobals
-var BasePostHookFunctions = []PostFunctioner{
-	HookMap[pkgCluster.StoreKubeConfig],
-	HookMap[pkgCluster.SetupPrivileges],
-	HookMap[pkgCluster.LabelNodesWithNodePoolName],
-	HookMap[pkgCluster.TaintHeadNodes],
-	HookMap[pkgCluster.CreatePipelineNamespacePostHook],
-	HookMap[pkgCluster.InstallHelmPostHook],
-	HookMap[pkgCluster.InstallNodePoolLabelSetOperator],
-	HookMap[pkgCluster.SetupNodePoolLabelsSet],
-	HookMap[pkgCluster.RegisterDomainPostHook],
-	HookMap[pkgCluster.InstallIngressControllerPostHook],
-	HookMap[pkgCluster.InstallKubernetesDashboardPostHook],
-	HookMap[pkgCluster.InstallClusterAutoscalerPostHook],
-	HookMap[pkgCluster.InstallHorizontalPodAutoscalerPostHook],
-	HookMap[pkgCluster.InstallPVCOperator],
-	HookMap[pkgCluster.InitSpotConfig],
-	HookMap[pkgCluster.DeployInstanceTerminationHandler],
-	HookMap[pkgCluster.CreateDefaultStorageclass],
+var BasePostHookFunctions = []string{
+	pkgCluster.StoreKubeConfig,
+	pkgCluster.SetupPrivileges,
+	pkgCluster.LabelNodesWithNodePoolName,
+	pkgCluster.TaintHeadNodes,
+	pkgCluster.CreatePipelineNamespacePostHook,
+	pkgCluster.InstallHelmPostHook,
+	pkgCluster.InstallNodePoolLabelSetOperator,
+	pkgCluster.SetupNodePoolLabelsSet,
+	pkgCluster.RegisterDomainPostHook,
+	pkgCluster.InstallIngressControllerPostHook,
+	pkgCluster.InstallKubernetesDashboardPostHook,
+	pkgCluster.InstallClusterAutoscalerPostHook,
+	pkgCluster.InstallHorizontalPodAutoscalerPostHook,
+	pkgCluster.InstallPVCOperator,
+	pkgCluster.InitSpotConfig,
+	pkgCluster.DeployInstanceTerminationHandler,
+	pkgCluster.CreateDefaultStorageclass,
 }
 
 // PostFunctioner manages posthook functions
@@ -149,14 +149,6 @@ type PostFunctioner interface {
 	Do(CommonCluster) error
 	GetPriority() int
 	Error(CommonCluster, error)
-}
-
-type ByPriority []PostFunctioner
-
-func (p ByPriority) Len() int      { return len(p) }
-func (p ByPriority) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
-func (p ByPriority) Less(i, j int) bool {
-	return p[i].GetPriority() < p[j].GetPriority()
 }
 
 // ErrorHandler is the common struct which implement Error function

@@ -342,7 +342,7 @@ func main() {
 			orgs.GET("/:orgid/clusters/:id/bootstrap", clusterAPI.GetBootstrapInfo)
 			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
 
-			orgs.PUT("/:orgid/clusters/:id/posthooks", api.ReRunPostHooks)
+			orgs.PUT("/:orgid/clusters/:id/posthooks", clusterAPI.ReRunPostHooks)
 			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
 			orgs.POST("/:orgid/clusters/:id/secrets/:secretName", api.InstallSecretToCluster)
 			orgs.PATCH("/:orgid/clusters/:id/secrets/:secretName", api.MergeSecretInCluster)
