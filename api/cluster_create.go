@@ -18,6 +18,9 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/goph/emperror"
+
+	clusterAPI "github.com/banzaicloud/pipeline/api/cluster"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -30,14 +33,95 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func (a *ClusterAPI) onParseError(ctx *gin.Context, err error) {
+	msg := "Error parsing request"
+
+	a.logger.Error(emperror.Wrap(err, msg))
+	ginutils.ReplyWithErrorResponse(ctx, &pkgCommon.ErrorResponse{
+		Code:    http.StatusBadRequest,
+		Message: msg,
+		Error:   err.Error(),
+	})
+}
+
+func (a *ClusterAPI) parseCreatePKEAWSClusterRequest(ctx *gin.Context) (req clusterAPI.CreatePKEAWSClusterRequest, err error) {
+	if err = ctx.ShouldBindJSON(&req); err != nil {
+		return req, emperror.Wrap(err, "failed to parse CreatePKEAWSClusterRequest")
+	}
+	return
+}
+
+func (a *ClusterAPI) parseCreateCustomClusterRequest(ctx *gin.Context) (req clusterAPI.CreateCustomClusterRequest, err error) {
+	if err = ctx.ShouldBindJSON(&req); err != nil {
+		return req, emperror.Wrap(err, "failed to parse CreateCustomClusterRequest")
+	}
+	return
+}
+
 //CreateClusterRequest gin handler
 func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 	a.logger.Info("Cluster creation started")
 
-	a.logger.Debug("Bind json into CreateClusterRequest struct")
-	// bind request body to struct
+	ctx := ginutils.Context(context.Background(), c)
+
+	orgID := auth.GetCurrentOrganization(c.Request).ID
+	userID := auth.GetCurrentUser(c.Request).ID
+
+	a.logger.Debug("Try to bind JSON to CreateClusterRequest struct")
+	var createClusterRequestBase clusterAPI.CreateClusterRequestBase
+	if err := c.ShouldBindJSON(&createClusterRequestBase); err == nil {
+		var createClusterRequest interface {
+			CreateCluster(ctx context.Context, organizationID uint, userID uint) (cluster.Cluster, *pkgCommon.ErrorResponse)
+		}
+
+		switch createClusterRequestBase.Type {
+		case cluster.PKEAWS:
+			createClusterRequest, err = a.parseCreatePKEAWSClusterRequest(c)
+		case "custom":
+			createClusterRequest, err = a.parseCreateCustomClusterRequest(c)
+		default:
+			ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "unknown cluster type",
+			})
+			return
+		}
+
+		if err != nil {
+			a.onParseError(c, err)
+			return
+		}
+		cl, errResp := createClusterRequest.CreateCluster(ctx, orgID, userID)
+		if errResp != nil {
+			ginutils.ReplyWithErrorResponse(c, errResp)
+			return
+		}
+		// until this point, all request data should've been validated
+		// below this point, all errors are server errors (HTTP 5xx)
+		created, err := cl.Deploy(ctx)
+		if err = emperror.Wrap(err, "failed to "); err != nil {
+			a.logger.Error(err)
+			ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: err.Error(),
+				Error:   errors.Cause(err).Error(),
+			})
+			return
+		}
+		status := http.StatusOK
+		if created {
+			status = http.StatusCreated
+		}
+		c.JSON(status, pkgCluster.CreateClusterResponse{
+			Name:       cl.GetName(),
+			ResourceID: cl.GetID(),
+		})
+		return
+	}
+
+	a.logger.Debug("JSON didn't match V2 format, trying legacy format")
 	var createClusterRequest pkgCluster.CreateClusterRequest
-	if err := c.BindJSON(&createClusterRequest); err != nil {
+	if err := c.ShouldBindJSON(&createClusterRequest); err != nil {
 		a.logger.Error(errors.Wrap(err, "Error parsing request"))
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -59,11 +143,7 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 		createClusterRequest.SecretId = string(secret.GenerateSecretIDFromName(createClusterRequest.SecretName))
 	}
 
-	orgID := auth.GetCurrentOrganization(c.Request).ID
-	userID := auth.GetCurrentUser(c.Request).ID
-
 	ph := getPostHookFunctions(createClusterRequest.PostHooks)
-	ctx := ginutils.Context(context.Background(), c)
 	commonCluster, err := a.CreateCluster(ctx, &createClusterRequest, orgID, userID, ph)
 	if err != nil {
 		c.JSON(err.Code, err)
