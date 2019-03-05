@@ -394,8 +394,9 @@ func main() {
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
 
+			pkeGroup := clusters.Group("/pke")
 			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient)
-			pkeAPI.RegisterRoutes(clusters.Group("/pke"))
+			pkeAPI.RegisterRoutes(pkeGroup)
 
 			clusterSecretStore := clustersecret.NewStore(
 				clustersecretadapter.NewClusterManagerAdapter(clusterManager),
@@ -419,7 +420,7 @@ func main() {
 			)
 			emperror.Panic(emperror.Wrap(err, "failed to create ClusterAuthAPI"))
 
-			clusterAuthAPI.RegisterRoutes(clusters, router)
+			clusterAuthAPI.RegisterRoutes(pkeGroup, router)
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
