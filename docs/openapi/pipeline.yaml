@@ -4989,6 +4989,55 @@ paths:
                                 $ref: '#/components/schemas/BaseError_500'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/ready':
+        get:
+            summary: Query reported node readiness information
+            operationId: GetReadyPKENode
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+            responses:
+                '200':
+                    description: Readiness information
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PKEClusterReadinessResponse'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: No such PKE cluster found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+        
         post:
             security:
                 -
@@ -8933,3 +8982,14 @@ components:
                 type: boolean
                 description: if this node is a worker node
                 example: false
+
+        PKEClusterReadinessResponse:
+            type: object
+            properties:
+                master:
+                    type: object
+                    properties:
+                        ready:
+                            type: boolean
+                            description: true when the node has been reported to be ready
+                            example: true
