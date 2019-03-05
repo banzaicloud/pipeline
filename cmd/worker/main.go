@@ -20,6 +20,16 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/goph/logur/integrations/zaplog"
+	"github.com/oklog/run"
+	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	conf "github.com/banzaicloud/pipeline/config"
@@ -36,15 +46,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
-	"github.com/goph/logur"
-	"github.com/goph/logur/integrations/zaplog"
-	"github.com/oklog/run"
-	"github.com/pkg/errors"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/workflow"
 )
 
 // nolint: gochecknoinits
@@ -205,6 +206,14 @@ func main() {
 
 		deleteSshKeyPairActivity := pkeworkflow.NewDeleteSSHKeyPairActivity(clusters)
 		activity.RegisterWithOptions(deleteSshKeyPairActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteSSHKeyPairActivityName})
+
+		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
+
+		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)
+		activity.RegisterWithOptions(runPostHookActivity.Execute, activity.RegisterOptions{Name: cluster.RunPostHookActivityName})
+
+		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
+		activity.RegisterWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
 
 		var closeCh = make(chan struct{})
 
