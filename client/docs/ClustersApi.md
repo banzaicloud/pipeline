@@ -15,6 +15,7 @@ Method | HTTP request | Description
 [**GetClusterStatus**](ClustersApi.md#GetClusterStatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 [**GetPKECommands**](ClustersApi.md#GetPKECommands) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/commands | List bootstrap commands for namespaces
 [**GetPodDetails**](ClustersApi.md#GetPodDetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
+[**GetReadyPKENode**](ClustersApi.md#GetReadyPKENode) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Query reported node readiness information
 [**HelmInit**](ClustersApi.md#HelmInit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
 [**InstallSecret**](ClustersApi.md#InstallSecret) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Install a particular secret into a cluster with optional remapping
 [**InstallSecrets**](ClustersApi.md#InstallSecrets) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets | Install secrets into cluster
@@ -23,7 +24,7 @@ Method | HTTP request | Description
 [**ListClusters**](ClustersApi.md#ListClusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
 [**ListNodes**](ClustersApi.md#ListNodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 [**MergeSecret**](ClustersApi.md#MergeSecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
-[**PostReadyPKENode**](ClustersApi.md#PostReadyPKENode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | List bootstrap commands for namespaces
+[**PostReadyPKENode**](ClustersApi.md#PostReadyPKENode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Report to Pipeline that a new node is ready (to be called by PKE installer)
 [**UpdateCluster**](ClustersApi.md#UpdateCluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 [**UpdateMonitoring**](ClustersApi.md#UpdateMonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
 
@@ -359,6 +360,33 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **GetReadyPKENode**
+> PkeClusterReadinessResponse GetReadyPKENode(ctx, orgId, id)
+Query reported node readiness information
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+
+### Return type
+
+[**PkeClusterReadinessResponse**](PKEClusterReadinessResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **HelmInit**
 > HelmInitResponse HelmInit(ctx, orgId, id, helmInitRequest)
 Initialize Helm
@@ -618,8 +646,6 @@ Name | Type | Description  | Notes
 
 # **PostReadyPKENode**
 > map[string]interface{} PostReadyPKENode(ctx, orgId, id, postReadyPkeNodeRequest)
-List bootstrap commands for namespaces
-
 Report to Pipeline that a new node is ready (to be called by PKE installer)
 
 ### Required Parameters

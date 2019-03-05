@@ -5221,8 +5221,58 @@ paths:
       tags:
       - imagescan
   /api/v1/orgs/{orgId}/clusters/{id}/pke/ready:
+    get:
+      operationId: GetReadyPKENode
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PKEClusterReadinessResponse'
+          description: Readiness information
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: No such PKE cluster found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Query reported node readiness information
+      tags:
+      - clusters
     post:
-      description: Report to Pipeline that a new node is ready (to be called by PKE installer)
       operationId: PostReadyPKENode
       parameters:
       - description: Organization identification
@@ -5277,7 +5327,7 @@ paths:
           description: Internal server error
       security:
       - bearerAuth: []
-      summary: List bootstrap commands for namespaces
+      summary: Report to Pipeline that a new node is ready (to be called by PKE installer)
       tags:
       - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/pke/commands:
@@ -9692,6 +9742,14 @@ components:
           description: if this node is a worker node
           type: boolean
       type: object
+    PKEClusterReadinessResponse:
+      example:
+        master:
+          ready: true
+      properties:
+        master:
+          $ref: '#/components/schemas/PKEClusterReadinessResponse_master'
+      type: object
     CreateEKSProperties_eks:
       properties:
         version:
@@ -10591,6 +10649,13 @@ components:
       required:
       - name
       - value
+    PKEClusterReadinessResponse_master:
+      example:
+        ready: true
+      properties:
+        ready:
+          description: true when the node has been reported to be ready
+          type: boolean
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT
