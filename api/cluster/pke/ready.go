@@ -18,12 +18,60 @@ import (
 	"encoding/base64"
 	"net/http"
 
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
+
+// GetReady responds to requests with information about the specified cluster's readiness
+func (a *API) GetReady(c *gin.Context) {
+	type NodeReadiness struct {
+		Ready bool `json:"ready"`
+	}
+	type ClusterReadiness struct {
+		Master NodeReadiness `json:"master"`
+	}
+
+	commonCluster, _, ok := a.getCluster(c)
+	if !ok {
+		return
+	}
+
+	if readinessChecker, ok := commonCluster.(interface {
+		IsMasterReady() (bool, error)
+	}); ok {
+		masterReady, err := readinessChecker.IsMasterReady()
+		if err != nil {
+			a.errorHandler.Handle(err)
+			ginutils.ReplyWithErrorResponse(c, &common.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "failed to query master node readiness",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, ClusterReadiness{
+			Master: NodeReadiness{
+				Ready: masterReady,
+			},
+		})
+		return
+	}
+
+	err := errors.Errorf("the required readiness checking methods are not implemented in %T", commonCluster)
+	a.errorHandler.Handle(err)
+	ginutils.ReplyWithErrorResponse(c, &common.ErrorResponse{
+		Code:    http.StatusInternalServerError,
+		Message: err.Error(),
+		Error:   err.Error(),
+	})
+	return
+}
 
 type ReadyRequest struct {
 	Config   string `json:"config,omitempty"` // kubeconfig in base64 or empty if not a master

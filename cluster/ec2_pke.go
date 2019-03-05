@@ -300,6 +300,17 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 	return errors.New("unused method")
 }
 
+// HasK8sConfig returns true if the cluster's k8s config is available
+func (c *EC2ClusterPKE) HasK8sConfig() (bool, error) {
+	cfg, err := c.GetK8sConfig()
+	return len(cfg) > 0, emperror.Wrap(err, "failed to check if k8s config is available")
+}
+
+// IsMasterReady returns true when the master node has been reported as ready
+func (c *EC2ClusterPKE) IsMasterReady() (bool, error) {
+	return c.HasK8sConfig()
+}
+
 // RegisterNode adds a Node to the DB
 func (c *EC2ClusterPKE) RegisterNode(name, nodePoolName, ip string, master, worker bool) error {
 	/* TODO: decide if we need this on AWS
