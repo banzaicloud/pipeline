@@ -32,7 +32,8 @@ func NewWorker(config Config, taskList string, logger *zap.Logger) (worker.Worke
 	}
 
 	if config.CreateNonexistentDomain {
-		ctx, _ := context.WithTimeout(context.Background(), 60*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
 		err := serviceClient.RegisterDomain(ctx, &shared.RegisterDomainRequest{
 			Name:                                   &config.Domain,
 			WorkflowExecutionRetentionPeriodInDays: &config.WorkflowExecutionRetentionPeriodInDays,
