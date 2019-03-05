@@ -221,6 +221,8 @@ func (m *Manager) createCluster(
 
 	exec, err := m.workflowClient.ExecuteWorkflow(ctx, workflowOptions, RunPostHooksWorkflowName, input)
 	if err != nil {
+		_ = cluster.UpdateStatus(pkgCluster.Error, "failed to run posthooks")
+
 		return emperror.WrapWith(err, "failed to start workflow", "workflowName", RunPostHooksWorkflowName)
 	}
 
