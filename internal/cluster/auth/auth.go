@@ -200,9 +200,9 @@ func (a *dexClusterAuthService) GetClusterConfig(ctx context.Context, clusterID 
 		return nil, emperror.Wrapf(err, "failed to get dex client for cluster: %d", clusterID)
 	}
 
-	configData, err := base64.StdEncoding.DecodeString(secret.Values["K8Sconfig"])
+	configData, err := base64.StdEncoding.DecodeString(secret.Values[pkgSecret.K8SConfig])
 	if err != nil {
-		return nil, emperror.Wrapf(err, "failed to base64 decode kube config: %d", clusterID)
+		return nil, emperror.Wrapf(err, "failed to base64 decode kubeconfig: %d", clusterID)
 	}
 
 	return k8sClient.Load(configData)
