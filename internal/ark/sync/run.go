@@ -18,18 +18,17 @@ import (
 	"context"
 	"time"
 
+	"github.com/banzaicloud/pipeline/internal/ark/api"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/cluster"
 )
 
 // RunSyncServices runs ARK sync services
 func RunSyncServices(
 	context context.Context,
 	db *gorm.DB,
-	clusterManager *cluster.Manager,
+	clusterManager api.ClusterManager,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	bucketSyncInterval, restoreSyncInterval, backupSyncInterval time.Duration,

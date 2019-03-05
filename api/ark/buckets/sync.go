@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package backups
+package buckets
 
 import (
 	"net/http"
@@ -22,24 +22,17 @@ import (
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
-type orgBackups struct {
-	clusterManager *cluster.Manager
-}
-
-// ListAll lists every ARK backup for the organization
-func (b *orgBackups) List(c *gin.Context) {
+// Sync synchronizes ARK buckets
+func Sync(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
-	logger.Info("getting backups")
+	logger.Info("syncing buckets")
 
 	org := auth.GetCurrentOrganization(c.Request)
-
 	bucketsSyncSvc := sync.NewBucketsSyncService(org, config.DB(), logger)
 	err := bucketsSyncSvc.SyncBackupsFromBuckets()
 	if err != nil {
@@ -49,22 +42,5 @@ func (b *orgBackups) List(c *gin.Context) {
 		return
 	}
 
-	err = syncOrgBackups(b.clusterManager, org, config.DB(), logger)
-	if err != nil {
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
-	}
-
-	bs := ark.BackupsServiceFactory(org, config.DB(), logger)
-
-	backups, err := bs.List()
-	if err != nil {
-		err = emperror.Wrap(err, "could not get backups")
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, backups)
+	c.Status(http.StatusOK)
 }

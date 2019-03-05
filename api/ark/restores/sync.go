@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,59 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package backups
+package restores
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
-type orgBackups struct {
-	clusterManager *cluster.Manager
+// Sync synchronizes ARK restores
+func Sync(c *gin.Context) {
+	logger := correlationid.Logger(common.Log, c)
+	logger.Info("syncing restores")
+
+	arkSvc := common.GetARKService(c.Request)
+	err := syncRestores(arkSvc, logger)
+	if err != nil {
+		err = emperror.Wrap(err, "could not sync restores")
+		common.ErrorHandler.Handle(err)
+		common.ErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }
 
-// ListAll lists every ARK backup for the organization
-func (b *orgBackups) List(c *gin.Context) {
-	logger := correlationid.Logger(common.Log, c)
-	logger.Info("getting backups")
-
-	org := auth.GetCurrentOrganization(c.Request)
-
-	bucketsSyncSvc := sync.NewBucketsSyncService(org, config.DB(), logger)
-	err := bucketsSyncSvc.SyncBackupsFromBuckets()
+func syncRestores(arkSvc *ark.Service, logger logrus.FieldLogger) error {
+	restoresSyncSvc := sync.NewRestoresSyncService(arkSvc.GetOrganization(), arkSvc.GetDB(), logger)
+	err := restoresSyncSvc.SyncRestoresForCluster(arkSvc.GetCluster())
 	if err != nil {
-		err = emperror.Wrap(err, "could not sync buckets")
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
+		return emperror.Wrap(err, "could not sync restores")
 	}
 
-	err = syncOrgBackups(b.clusterManager, org, config.DB(), logger)
-	if err != nil {
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
-	}
-
-	bs := ark.BackupsServiceFactory(org, config.DB(), logger)
-
-	backups, err := bs.List()
-	if err != nil {
-		err = emperror.Wrap(err, "could not get backups")
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, backups)
+	return nil
 }

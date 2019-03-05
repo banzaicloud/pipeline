@@ -25,7 +25,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -53,7 +52,7 @@ func NewRestoresSyncService(
 }
 
 // SyncRestores syncs restores from ARK for every cluster within the organization
-func (s *RestoresSyncService) SyncRestores(clusterManager *cluster.Manager) error {
+func (s *RestoresSyncService) SyncRestores(clusterManager api.ClusterManager) error {
 
 	clusters, err := clusterManager.GetClusters(context.Background(), s.org.ID)
 	if err != nil {
@@ -73,7 +72,7 @@ func (s *RestoresSyncService) SyncRestores(clusterManager *cluster.Manager) erro
 			continue
 		}
 
-		err = s.syncRestoresForCluster(cluster)
+		err = s.SyncRestoresForCluster(cluster)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			log.Error(err)
 		}
@@ -82,7 +81,7 @@ func (s *RestoresSyncService) SyncRestores(clusterManager *cluster.Manager) erro
 	return nil
 }
 
-func (s *RestoresSyncService) syncRestoresForCluster(cluster api.Cluster) error {
+func (s *RestoresSyncService) SyncRestoresForCluster(cluster api.Cluster) error {
 
 	deployments := ark.DeploymentsServiceFactory(s.org, cluster, s.db, s.logger)
 
