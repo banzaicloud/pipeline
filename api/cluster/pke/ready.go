@@ -38,14 +38,6 @@ func (a *API) PostReady(c *gin.Context) {
 
 	commonCluster, log, ok := a.getCluster(c)
 	if !ok {
-		err := errors.New("cluster not found")
-		a.errorHandler.Handle(err)
-
-		c.JSON(http.StatusNotFound, common.ErrorResponse{
-			Code:    http.StatusNotFound,
-			Message: "Cluster not found",
-			Error:   err.Error(),
-		})
 		return
 	}
 
