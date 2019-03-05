@@ -4995,8 +4995,7 @@ paths:
                     bearerAuth: []
             tags:
                 - clusters
-            summary: List bootstrap commands for namespaces
-            description: Report to Pipeline that a new node is ready (to be called by PKE installer)
+            summary: Report to Pipeline that a new node is ready (to be called by PKE installer)
             operationId: PostReadyPKENode
             parameters:
                 -
