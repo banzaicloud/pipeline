@@ -23,7 +23,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -55,7 +54,7 @@ func NewBackupsSyncService(org *auth.Organization, db *gorm.DB, logger logrus.Fi
 }
 
 // SyncBackups syncs backups between Pipeline DB and ARK for every Cluster within the Org
-func (s *BackupsSyncService) SyncBackups(clusterManager *cluster.Manager) error {
+func (s *BackupsSyncService) SyncBackups(clusterManager api.ClusterManager) error {
 
 	// delete backups stored removed buckets
 	s.logger.Debug("delete backups of removed buckets")
@@ -95,12 +94,11 @@ func (s *BackupsSyncService) SyncBackups(clusterManager *cluster.Manager) error 
 
 // SyncBackupsForCluster syncs backups between Pipeline DB and ARK for a Cluster
 func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
-
 	deploymentsSvc := ark.DeploymentsServiceFactory(s.org, cluster, s.db, s.logger)
 
 	deployment, err := deploymentsSvc.GetActiveDeployment()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "could not get active deployment")
 	}
 
 	if deployment.RestoreMode == true {
@@ -109,18 +107,18 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 
 	bucket, err := s.bucketsSvc.GetByID(deployment.BucketID)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "could not get bucket by id")
 	}
 
 	client, err := deploymentsSvc.GetClient()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "could not get ark client")
 	}
 
 	var listOptions metav1.ListOptions
 	backups, err := client.ListBackups(listOptions)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "could not list backups")
 	}
 
 	for _, backup := range backups.Items {
@@ -159,7 +157,7 @@ func (s *BackupsSyncService) SyncBackupsForCluster(cluster api.Cluster) error {
 
 		_, err = s.backupsSvc.Persist(req)
 		if err != nil {
-			return err
+			return emperror.Wrap(err, "could not persist backup")
 		}
 
 		log.Debug("backup synced")

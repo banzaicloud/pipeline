@@ -18,6 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 )
 
@@ -27,8 +28,9 @@ const (
 )
 
 // AddOrgRoutes adds routes for managing ARK backups within an organization
-func AddOrgRoutes(group *gin.RouterGroup) {
-	group.GET("", ListAll)
+func AddOrgRoutes(group *gin.RouterGroup, clusterManager *cluster.Manager) {
+	orgBackups := &orgBackups{clusterManager: clusterManager}
+	group.GET("", orgBackups.List)
 }
 
 // AddRoutes adds ARK backups related API routes
@@ -37,6 +39,7 @@ func AddRoutes(group *gin.RouterGroup) {
 	group.Use(common.ARKMiddleware(config.DB(), common.Log))
 	group.GET("", List)
 	group.POST("", Create)
+	group.PUT("/sync", Sync)
 	item := group.Group("/:" + IDParamName)
 	{
 		item.GET("", Get)

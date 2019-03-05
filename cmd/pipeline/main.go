@@ -42,7 +42,6 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
-	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
@@ -55,7 +54,6 @@ import (
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
-	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/model/defaults"
@@ -516,25 +514,10 @@ func main() {
 		restores.AddRoutes(orgs.Group("/:orgid/clusters/:id/restores"))
 		schedules.AddRoutes(orgs.Group("/:orgid/clusters/:id/schedules"))
 		buckets.AddRoutes(orgs.Group("/:orgid/backupbuckets"))
-		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"))
+		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"), clusterManager)
 	}
 
-	if viper.GetBool(config.ARKSyncEnabled) {
-		arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logger)
-		go arkSync.RunSyncServices(
-			context.Background(),
-			config.DB(),
-			clusterManager,
-			platformlog.NewLogger(platformlog.Config{
-				Level:  viper.GetString(config.ARKLogLevel),
-				Format: viper.GetString(config.LoggingLogFormat),
-			}).WithField("subsystem", "ark"),
-			config.ErrorHandler(),
-			viper.GetDuration(config.ARKBucketSyncInterval),
-			viper.GetDuration(config.ARKRestoreSyncInterval),
-			viper.GetDuration(config.ARKBackupSyncInterval),
-		)
-	}
+	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logger)
 
 	base.GET("api", api.MetaHandler(router, basePath+"/api"))
 

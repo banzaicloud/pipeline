@@ -23,12 +23,12 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
 // Service describes a service for every ARK related sync operations
 type Service struct {
-	clusterManager      *cluster.Manager
+	clusterManager      api.ClusterManager
 	bucketSyncInterval  time.Duration
 	restoreSyncInterval time.Duration
 	backupSyncInterval  time.Duration
@@ -36,7 +36,7 @@ type Service struct {
 
 // NewSyncService creates and initializes a Service
 func NewSyncService(
-	ClusterManager *cluster.Manager,
+	ClusterManager api.ClusterManager,
 	BucketSyncInterval time.Duration,
 	RestoreSyncInterval time.Duration,
 	BackupSyncInterval time.Duration,

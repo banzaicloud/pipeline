@@ -87,19 +87,14 @@ const (
 	LoggingLogFormat = "logging.logformat"
 
 	// ARK
-	ARKName                = "ark.name"
-	ARKNamespace           = "ark.namespace"
-	ARKChart               = "ark.chart"
-	ARKChartVersion        = "ark.chartVersion"
-	ARKImage               = "ark.image"
-	ARKImageTag            = "ark.imageTag"
-	ARKPullPolicy          = "ark.pullPolicy"
-	ARKSyncEnabled         = "ark.syncEnabled"
-	ARKLogLevel            = "ark.logLevel"
-	ARKBucketSyncInterval  = "ark.bucketSyncInterval"
-	ARKRestoreSyncInterval = "ark.restoreSyncInterval"
-	ARKBackupSyncInterval  = "ark.backupSyncInterval"
-	ARKRestoreWaitTimeout  = "ark.restoreWaitTimeout"
+	ARKName               = "ark.name"
+	ARKNamespace          = "ark.namespace"
+	ARKChart              = "ark.chart"
+	ARKChartVersion       = "ark.chartVersion"
+	ARKImage              = "ark.image"
+	ARKImageTag           = "ark.imageTag"
+	ARKPullPolicy         = "ark.pullPolicy"
+	ARKRestoreWaitTimeout = "ark.restoreWaitTimeout"
 
 	// Spot Metrics
 	SpotMetricsEnabled            = "spotmetrics.enabled"
@@ -232,17 +227,12 @@ func init() {
 	viper.SetDefault(OKESleepSecondsForNodepoolActive, 30)
 
 	viper.SetDefault(ARKName, "ark")
-	viper.SetDefault(ARKNamespace, "pipeline-infra")
+	viper.SetDefault(ARKNamespace, "pipeline-system")
 	viper.SetDefault(ARKChart, "banzaicloud-stable/ark")
-	viper.SetDefault(ARKChartVersion, "1.2.1")
+	viper.SetDefault(ARKChartVersion, "1.2.2")
 	viper.SetDefault(ARKImage, "banzaicloud/ark")
-	viper.SetDefault(ARKImageTag, "v0.9.6")
+	viper.SetDefault(ARKImageTag, "v0.9.11")
 	viper.SetDefault(ARKPullPolicy, "IfNotPresent")
-	viper.SetDefault(ARKSyncEnabled, true)
-	viper.SetDefault(ARKLogLevel, "info")
-	viper.SetDefault(ARKBucketSyncInterval, "10m")
-	viper.SetDefault(ARKRestoreSyncInterval, "20s")
-	viper.SetDefault(ARKBackupSyncInterval, "20s")
 	viper.SetDefault(ARKRestoreWaitTimeout, "5m")
 
 	viper.SetDefault(SpotMetricsEnabled, false)

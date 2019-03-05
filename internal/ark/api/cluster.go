@@ -15,6 +15,9 @@
 package api
 
 import (
+	"context"
+
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -34,4 +37,10 @@ type Cluster interface {
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 	GetLocation() string
 	RbacEnabled() bool
+	GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
+}
+
+// ClusterManager interface for getting clusters
+type ClusterManager interface {
+	GetClusters(context.Context, uint) ([]Cluster, error)
 }

@@ -160,17 +160,12 @@ sleepSecondsForNodepoolActive = 30
 
 [ark]
 name = "ark"
-namespace = "pipeline-infra"
+namespace = "pipeline-system"
 chart = "banzaicloud-stable/ark"
-chartVersion = "1.2.1"
+chartVersion = "1.2.2"
 image = "banzaicloud/ark"
-imageTag = "v0.9.6"
+imageTag = "v0.9.11"
 pullPolicy = "IfNotPresent"
-syncEnabled = true
-logLevel = "info"
-bucketSyncInterval = "10m"
-restoreSyncInterval = "20s"
-backupSyncInterval = "20s"
 restoreWaitTimeout = "5m"
 
 [spotguide]
