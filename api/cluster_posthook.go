@@ -59,7 +59,7 @@ func (a *ClusterAPI) ReRunPostHooks(c *gin.Context) {
 
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 30 * time.Minute, // TODO: lower timeout
+		ExecutionStartToCloseTimeout: 2 * time.Hour, // TODO: lower timeout
 	}
 
 	exec, err := a.workflowClient.ExecuteWorkflow(c.Request.Context(), workflowOptions, cluster.RunPostHooksWorkflowName, input)
