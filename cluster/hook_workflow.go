@@ -112,7 +112,13 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 		return err
 	}
 
-	logger := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID, "postHook", input.HookName)
+	info := activity.GetInfo(ctx)
+	logger := activity.GetLogger(ctx).Sugar().With(
+		"clusterID", input.ClusterID,
+		"postHook", input.HookName,
+		"workflowID", info.WorkflowExecution.ID,
+		"workflowRunID", info.WorkflowExecution.RunID,
+	)
 
 	logger.Infow("starting posthook function", "param", input.HookParam)
 
