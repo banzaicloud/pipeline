@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f8e44676-7ca6-454f-a536-3209ce39efe9",
+		"_postman_id": "d79480b2-e93c-4065-bd60-66e602de12f3",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -295,6 +295,79 @@
 											"key": "clusterId",
 											"value": "{{clusterId}}",
 											"description": "Cluster identifier"
+										}
+									]
+								},
+								"description": "Get cluster details"
+							},
+							"response": []
+						},
+						{
+							"name": "Query Cluster Ready",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "09340e49-184c-4bc6-ae8e-abc07c155616",
+										"exec": [
+											"if (responseCode.code === 200) {",
+											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+											"",
+											"    pm.environment.set(\"timestampHeader\", new Date());",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"    tests[\"Master ready: \" + dataJSON.master.ready] = true;",
+											"",
+											"    postman.setNextRequest(\"Cluster Status\");",
+											"}",
+											"else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    console.warn(responseBody);",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/pke/ready",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"pke",
+										"ready"
+									],
+									"variable": [
+										{
+											"description": "Organization identifier",
+											"key": "orgId",
+											"value": "{{orgId}}"
+										},
+										{
+											"description": "Cluster identifier",
+											"key": "clusterId",
+											"value": "{{clusterId}}"
 										}
 									]
 								},
