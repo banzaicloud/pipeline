@@ -15,13 +15,16 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/internal/pipelinectl/cli/commands"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/internal/pipelinectl/cli/commands"
 )
 
 func main() {
@@ -39,12 +42,22 @@ func main() {
 	flags.StringP("url", "u", "http://127.0.0.1:9090", "Pipeline API URL")
 	_ = viper.BindPFlag("api.url", flags.Lookup("url"))
 
+	flags.Bool("verify", true, "Verify root CA")
+	_ = viper.BindPFlag("api.verify", flags.Lookup("verify"))
+
 	viper.SetEnvPrefix(EnvPrefix)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	viper.AutomaticEnv()
 
 	// Pipeline configuration
 	viper.SetDefault("api.url", "http://127.0.0.1:9090")
+	viper.SetDefault("api.verify", true)
+
+	cobra.OnInitialize(func() {
+		if !viper.GetBool("api.verify") {
+			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		}
+	})
 
 	commands.AddCommands(rootCmd)
 
