@@ -87,7 +87,7 @@ services:
 #            - ./.docker/volumes/anchore-db:/var/lib/postgresql/data/pgdata/:z
 #
 #    anchore-engine:
-#        image: docker.io/anchore/anchore-engine:v0.3.0
+#        image: docker.io/anchore/anchore-engine:v0.3.2
 #        depends_on:
 #            - anchore-db
 #        environment:
