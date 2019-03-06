@@ -142,7 +142,7 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 
 		// stateRaw parseJWT -> state
 		stateClaims := stateClaims{}
-		_, err := jwt.ParseWithClaims(stateRaw, &stateClaims, func(token *jwt.Token) (interface{}, error) {
+		_, err = jwt.ParseWithClaims(stateRaw, &stateClaims, func(token *jwt.Token) (interface{}, error) {
 			return api.tokenSigningKey, nil
 		})
 
@@ -156,7 +156,8 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 			return
 		}
 
-		secret, err := api.clusterAuthService.GetClusterClientSecret(c.Request.Context(), stateClaims.ClusterID)
+		var secret auth.ClusterClientSecret
+		secret, err = api.clusterAuthService.GetClusterClientSecret(c.Request.Context(), stateClaims.ClusterID)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("error getting cluster client secret: %q", err.Error()))
 			return
