@@ -15,7 +15,11 @@
 package cadence
 
 import (
+	"context"
+	"time"
+
 	"github.com/goph/emperror"
+	"go.uber.org/cadence/.gen/go/shared"
 	"go.uber.org/cadence/worker"
 	"go.uber.org/zap"
 )
@@ -25,6 +29,22 @@ func NewWorker(config Config, taskList string, logger *zap.Logger) (worker.Worke
 	serviceClient, err := newServiceClient("cadence-worker", config, logger)
 	if err != nil {
 		return nil, emperror.Wrap(err, "could not create cadence worker client")
+	}
+
+	if config.CreateNonexistentDomain {
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer cancel()
+		err := serviceClient.RegisterDomain(ctx, &shared.RegisterDomainRequest{
+			Name:                                   &config.Domain,
+			WorkflowExecutionRetentionPeriodInDays: &config.WorkflowExecutionRetentionPeriodInDays,
+		})
+		if _, ok := err.(*shared.DomainAlreadyExistsError); ok {
+			logger.Info("Cadence domain already exists")
+		} else if err != nil {
+			return nil, emperror.Wrap(err, "failed to register Cadence domain")
+		} else {
+			logger.Info("Created Cadence domain")
+		}
 	}
 
 	return worker.New(

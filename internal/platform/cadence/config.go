@@ -26,7 +26,9 @@ type Config struct {
 	Host string
 	Port int
 
-	Domain string
+	Domain                                 string
+	WorkflowExecutionRetentionPeriodInDays int32
+	CreateNonexistentDomain                bool
 
 	// Client identity (not used for now; falls back to machine host name)
 	Identity string
