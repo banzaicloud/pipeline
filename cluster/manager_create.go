@@ -216,7 +216,7 @@ func (m *Manager) createCluster(
 
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 30 * time.Minute, // TODO: lower timeout
+		ExecutionStartToCloseTimeout: 2 * time.Hour, // TODO: lower timeout
 	}
 
 	exec, err := m.workflowClient.ExecuteWorkflow(ctx, workflowOptions, RunPostHooksWorkflowName, input)

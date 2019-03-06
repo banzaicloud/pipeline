@@ -41,9 +41,8 @@ type RunPostHooksWorkflowInputPostHook struct {
 
 func RunPostHooksWorkflow(ctx workflow.Context, input RunPostHooksWorkflowInput) error {
 	ao := workflow.ActivityOptions{
-		ScheduleToStartTimeout: 5 * time.Minute,
-		StartToCloseTimeout:    10 * time.Minute,
-		ScheduleToCloseTimeout: 15 * time.Minute,
+		ScheduleToStartTimeout: 10 * time.Minute,
+		StartToCloseTimeout:    30 * time.Minute,
 		WaitForCancellation:    true,
 	}
 
