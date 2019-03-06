@@ -273,8 +273,8 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 
 	// if type is distribution, unmount all pki engines
 	if secret.Type == secretTypes.PKESecretType {
-		clusterUID := getClusterUIDFromTags(secret.Tags)
-		basePath := clusterPKIPath(clusterUID)
+		clusterID := getClusterIDFromTags(secret.Tags)
+		basePath := clusterPKIPath(organizationID, clusterID)
 
 		path = fmt.Sprintf("%s/ca", basePath)
 		err = ss.Client.Vault().Sys().Unmount(path)
@@ -315,7 +315,7 @@ func (ss *secretStore) Store(organizationID uint, request *CreateSecretRequest) 
 	secretID := GenerateSecretID(request)
 	path := secretDataPath(organizationID, secretID)
 
-	if err := ss.generateValuesIfNeeded(request); err != nil {
+	if err := ss.generateValuesIfNeeded(organizationID, request); err != nil {
 		return "", err
 	}
 
@@ -589,7 +589,7 @@ func IsCASError(err error) bool {
 	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version")
 }
 
-func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error {
+func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *CreateSecretRequest) error {
 	if value.Type == secretTypes.TLSSecretType && len(value.Values) <= 2 {
 		// If we are not storing a full TLS secret instead of it's a request to generate one
 
@@ -651,14 +651,14 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		}
 
 	} else if value.Type == secretTypes.PKESecretType {
-		clusterUID := getClusterUIDFromTags(value.Tags)
-		if clusterUID == "" {
-			return errors.New("clusterUID is missing from the tags")
+		clusterID := getClusterIDFromTags(value.Tags)
+		if clusterID == "" {
+			return errors.New("clusterID is missing from the tags")
 		}
 
 		mountInput := vaultapi.MountInput{
 			Type:        "pki",
-			Description: fmt.Sprintf("root PKI engine for cluster %s", clusterUID),
+			Description: fmt.Sprintf("root PKI engine for cluster %s", clusterID),
 			Config: vaultapi.MountConfigInput{
 				MaxLeaseTTL:     "43801h",
 				DefaultLeaseTTL: "43801h",
@@ -666,17 +666,17 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		}
 
 		// Mount a separate PKI engine for the cluster
-		basePath := clusterPKIPath(clusterUID)
+		basePath := clusterPKIPath(organizationID, clusterID)
 		path := fmt.Sprintf("%s/ca", basePath)
 
 		err := ss.Client.Vault().Sys().Mount(path, &mountInput)
 		if err != nil {
-			return errors.Wrapf(err, "Error mounting pki engine for cluster %s", clusterUID)
+			return errors.Wrapf(err, "Error mounting pki engine for cluster %s", clusterID)
 		}
 
 		// Generate the root CA
 		rootCAData := map[string]interface{}{
-			"common_name": fmt.Sprintf("cluster-%s-ca", clusterUID),
+			"common_name": fmt.Sprintf("cluster-%s-ca", clusterID),
 		}
 
 		_, err = ss.Logical.Write(fmt.Sprintf("%s/root/generate/internal", path), rootCAData)
@@ -685,7 +685,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 				log.Warnf("failed to unmount %s: %s", path, err)
 			}
-			return errors.Wrapf(err, "Error generating root CA for cluster %s", clusterUID)
+			return errors.Wrapf(err, "Error generating root CA for cluster %s", clusterID)
 		}
 
 		// Get root CA
@@ -695,12 +695,12 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 				log.Warnf("failed to unmount %s: %s", path, err)
 			}
-			return errors.Wrapf(err, "Error reading root CA for cluster %s", clusterUID)
+			return errors.Wrapf(err, "Error reading root CA for cluster %s", clusterID)
 		}
 		ca := rootCA.Data["certificate"].(string)
 
 		// Generate the intermediate CAs
-		kubernetesCA, err := ss.generateIntermediateCert(clusterUID, basePath, secretTypes.KubernetesCACommonName)
+		kubernetesCA, err := ss.generateIntermediateCert(clusterID, basePath, secretTypes.KubernetesCACommonName)
 		if err != nil {
 			// Unmount the pki backend first
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
@@ -709,7 +709,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			return err
 		}
 
-		etcdCA, err := ss.generateIntermediateCert(clusterUID, basePath, secretTypes.EtcdCACommonName)
+		etcdCA, err := ss.generateIntermediateCert(clusterID, basePath, secretTypes.EtcdCACommonName)
 		if err != nil {
 			// Unmount the pki backend first
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
@@ -718,7 +718,7 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			return err
 		}
 
-		frontProxyCA, err := ss.generateIntermediateCert(clusterUID, basePath, secretTypes.KubernetesFrontProxyCACommonName)
+		frontProxyCA, err := ss.generateIntermediateCert(clusterID, basePath, secretTypes.KubernetesFrontProxyCACommonName)
 		if err != nil {
 			// Unmount the pki backend first
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
@@ -738,10 +738,10 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 	return nil
 }
 
-func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName string) (*certificate, error) {
+func (ss *secretStore) generateIntermediateCert(clusterID, basePath, commonName string) (*certificate, error) {
 	mountInput := vaultapi.MountInput{
 		Type:        "pki",
-		Description: fmt.Sprintf("%s intermediate PKI engine for cluster %s", commonName, clusterUID),
+		Description: fmt.Sprintf("%s intermediate PKI engine for cluster %s", commonName, clusterID),
 		Config: vaultapi.MountConfigInput{
 			MaxLeaseTTL:     "43800h",
 			DefaultLeaseTTL: "43800h",
@@ -754,7 +754,7 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 	// https://github.com/hashicorp/vault/issues/1586#issuecomment-230300216
 	err := ss.Client.Vault().Sys().Mount(path, &mountInput)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error mounting %s intermediate pki engine for cluster %s", commonName, clusterUID)
+		return nil, errors.Wrapf(err, "error mounting %s intermediate pki engine for cluster %s", commonName, clusterID)
 	}
 
 	caData := map[string]interface{}{
@@ -767,7 +767,7 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
 		}
-		return nil, errors.Wrapf(err, "error generating %s intermediate cert for cluster %s", commonName, clusterUID)
+		return nil, errors.Wrapf(err, "error generating %s intermediate cert for cluster %s", commonName, clusterID)
 	}
 
 	caSignData := map[string]interface{}{
@@ -781,7 +781,7 @@ func (ss *secretStore) generateIntermediateCert(clusterUID, basePath, commonName
 		if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
 		}
-		return nil, errors.Wrapf(err, "error signing %s intermediate cert for cluster %s", commonName, clusterUID)
+		return nil, errors.Wrapf(err, "error signing %s intermediate cert for cluster %s", commonName, clusterID)
 	}
 
 	return &certificate{
@@ -795,16 +795,17 @@ type certificate struct {
 	Key  string
 }
 
+const clusterIDTagName = "clusterID"
 const clusterUIDTagName = "clusterUID"
 
 func clusterUIDTag(clusterUID string) string {
 	return fmt.Sprintf("%s:%s", clusterUIDTagName, clusterUID)
 }
 
-func getClusterUIDFromTags(tags []string) string {
+func getClusterIDFromTags(tags []string) string {
 	for _, tag := range tags {
-		if strings.HasPrefix(tag, clusterUIDTagName+":") {
-			return strings.TrimPrefix(tag, clusterUIDTagName+":")
+		if strings.HasPrefix(tag, clusterIDTagName+":") {
+			return strings.TrimPrefix(tag, clusterIDTagName+":")
 		}
 	}
 
@@ -812,6 +813,6 @@ func getClusterUIDFromTags(tags []string) string {
 	return ""
 }
 
-func clusterPKIPath(clusterUID string) string {
-	return fmt.Sprintf("clusters/%s/pki", clusterUID)
+func clusterPKIPath(organizationID uint, clusterID string) string {
+	return fmt.Sprintf("clusters/%d/%s/pki", organizationID, clusterID)
 }
