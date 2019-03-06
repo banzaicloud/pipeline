@@ -688,6 +688,17 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 			return errors.Wrapf(err, "Error generating root CA for cluster %s", clusterUID)
 		}
 
+		// Get root CA
+		rootCA, err := ss.Logical.Read(fmt.Sprintf("%s/cert/ca", path))
+		if err != nil {
+			// Unmount the pki engine first
+			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
+				log.Warnf("failed to unmount %s: %s", path, err)
+			}
+			return errors.Wrapf(err, "Error reading root CA for cluster %s", clusterUID)
+		}
+		ca := rootCA.Data["certificate"].(string)
+
 		// Generate the intermediate CAs
 		kubernetesCA, err := ss.generateIntermediateCert(clusterUID, basePath, secretTypes.KubernetesCACommonName)
 		if err != nil {
@@ -717,11 +728,11 @@ func (ss *secretStore) generateValuesIfNeeded(value *CreateSecretRequest) error 
 		}
 
 		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA.Key
-		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert
+		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
 		value.Values[secretTypes.EtcdCAKey] = etcdCA.Key
-		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert
+		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert + "\n" + ca
 		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA.Key
-		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert
+		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert + "\n" + ca
 	}
 
 	return nil

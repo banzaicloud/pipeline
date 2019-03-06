@@ -203,3 +203,5 @@ path = "config/certs"
 host = "127.0.0.1"
 port = 7933
 domain = "pipeline"
+createNonexistentDomain = true
+workflowExecutionRetentionPeriodInDays = 3

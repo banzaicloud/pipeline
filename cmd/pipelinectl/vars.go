@@ -22,5 +22,5 @@ const (
 	ServiceName = "pipelinectl"
 
 	// EnvPrefix is prepended to environment variables when processing configuration.
-	EnvPrefix = "pipeline"
+	EnvPrefix = "pipelinectl"
 )
