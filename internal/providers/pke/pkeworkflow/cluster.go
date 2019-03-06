@@ -33,6 +33,7 @@ type Cluster interface {
 	GetNodePools() []NodePool
 	GetSshPublicKey() (string, error)
 	GetLocation() string
+	GetK8sConfig() ([]byte, error)
 }
 
 type AWSCluster interface {

@@ -59,6 +59,10 @@ func (c *Cluster) GetOrganizationId() uint {
 	return uint(c.CommonCluster.GetOrganizationId())
 }
 
+func (c *Cluster) GetK8sConfig() ([]byte, error) {
+	return c.CommonCluster.GetK8sConfig()
+}
+
 func (c *Cluster) GetNodePools() []pkeworkflow.NodePool {
 	clusterNodePools := c.CommonCluster.(interface{ GetNodePools() []cluster.PKENodePool }).GetNodePools()
 	nodePools := make([]pkeworkflow.NodePool, len(clusterNodePools), len(clusterNodePools))
