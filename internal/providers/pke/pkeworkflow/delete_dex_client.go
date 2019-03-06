@@ -47,7 +47,7 @@ func (a *DeleteDexClientActivity) Execute(ctx context.Context, input DeleteDexCl
 
 	err = a.clusterAuthService.UnRegisterCluster(ctx, cluster.GetUID())
 	if err != nil {
-		return emperror.Wrapf(err, "can't delete dex client for cluster: %d", input.ClusterID)
+		return emperror.Wrap(err, "can't delete dex client for cluster")
 	}
 
 	return nil
