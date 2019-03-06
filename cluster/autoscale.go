@@ -25,7 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -84,31 +83,44 @@ type autoscalingInfo struct {
 func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	var nodeGroups []nodeGroup
 
-	var nodePools []*model.AmazonNodePoolsModel
-	var err error
-	switch cluster.GetDistribution() {
-	case pkgCluster.EKS:
-		nodePools, err = GetEKSNodePools(cluster)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 	scaleOptions := cluster.GetScaleOptions()
 	scaleEnabled := scaleOptions != nil && scaleOptions.Enabled
 
-	for _, nodePool := range nodePools {
-		// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools (except head) on Amazon
-		if nodePool.Autoscaling && (nodePool.Name == headNodePoolName || !scaleEnabled) {
-			nodeGroups = append(nodeGroups, nodeGroup{
-				Name:    cluster.GetName() + ".node." + nodePool.Name,
-				MinSize: nodePool.NodeMinCount,
-				MaxSize: nodePool.NodeMaxCount,
-			})
+	switch cluster.GetDistribution() {
+	case pkgCluster.EKS:
+		nodePools, err := GetEKSNodePools(cluster)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, nodePool := range nodePools {
+			// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools (except head) on Amazon
+			if nodePool.Autoscaling && (nodePool.Name == headNodePoolName || !scaleEnabled) {
+				nodeGroups = append(nodeGroups, nodeGroup{
+					Name:    cluster.GetName() + ".node." + nodePool.Name,
+					MinSize: nodePool.NodeMinCount,
+					MaxSize: nodePool.NodeMaxCount,
+				})
+			}
+		}
+	case pkgCluster.PKE:
+		pke, ok := cluster.(*EC2ClusterPKE)
+		if !ok {
+			return nil, errors.New("could not cast Amazon/PKE cluster to EC2ClusterPKE")
+		}
+		nodePools := pke.GetNodePools()
+		for _, nodePool := range nodePools {
+			if nodePool.Autoscaling && (nodePool.Name == headNodePoolName || !scaleEnabled) {
+				nodeGroups = append(nodeGroups, nodeGroup{
+					Name:    cluster.GetName() + ".node." + nodePool.Name,
+					MinSize: nodePool.MinCount,
+					MaxSize: nodePool.MaxCount,
+				})
+			}
 		}
 	}
+
 	return nodeGroups, nil
 }
 
@@ -291,7 +303,7 @@ func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
 func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeConfig []byte, action deploymentAction) error {
 	var values *autoscalingInfo
 	switch cluster.GetDistribution() {
-	case pkgCluster.EKS:
+	case pkgCluster.EKS, pkgCluster.PKE:
 		values = createAutoscalingForEks(cluster, nodeGroups)
 	case pkgCluster.AKS:
 		values = createAutoscalingForAzure(cluster, nodeGroups)

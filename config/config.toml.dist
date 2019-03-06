@@ -177,7 +177,8 @@ sharedLibraryGitHubOrganization = "spotguides"
 
 [metrics]
 enabled = false
-port = ":9900"
+address = "127.0.0.1"
+port = "9900"
 
 # if true, some metrics have unique labels
 debug = true
@@ -202,3 +203,5 @@ path = "config/certs"
 host = "127.0.0.1"
 port = 7933
 domain = "pipeline"
+createNonexistentDomain = true
+workflowExecutionRetentionPeriodInDays = 3
