@@ -106,8 +106,9 @@ const (
 
 // Distribution keys
 const (
-	KubernetesCACert = "kubernetesCaCert"
-	KubernetesCAKey  = "kubernetesCaKey"
+	KubernetesCACert        = "kubernetesCaCert"
+	KubernetesCASigningCert = "kubernetesCaSigningCert"
+	KubernetesCAKey         = "kubernetesCaKey"
 
 	EtcdCACert = "etcdCaCert"
 	EtcdCAKey  = "etcdCaKey"

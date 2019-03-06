@@ -179,6 +179,9 @@ func main() {
 		createMasterActivity := pkeworkflow.NewCreateMasterActivity(clusters, tokenGenerator)
 		activity.RegisterWithOptions(createMasterActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateMasterActivityName})
 
+		setMasterTaintActivity := pkeworkflow.NewSetMasterTaintActivity(clusters)
+		activity.RegisterWithOptions(setMasterTaintActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SetMasterTaintActivityName})
+
 		listNodePoolsActivity := pkeworkflow.NewListNodePoolsActivity(clusters)
 		activity.RegisterWithOptions(listNodePoolsActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.ListNodePoolsActivityName})
 
