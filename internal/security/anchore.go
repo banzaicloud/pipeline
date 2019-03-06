@@ -130,7 +130,7 @@ func checkAnchoreUser(username string, method string) int {
 	response, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		logger.Error(err)
-		return response.StatusCode
+		return http.StatusInternalServerError
 	}
 	return response.StatusCode
 }
@@ -153,7 +153,7 @@ func deleteAnchoreAccount(account string) int {
 	response, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		logger.Error(err)
-		return response.StatusCode
+		return http.StatusInternalServerError
 	}
 
 	anchoreRequest = AnchoreRequest{
@@ -165,7 +165,7 @@ func deleteAnchoreAccount(account string) int {
 	response, err = DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		logger.Error(err)
-		return response.StatusCode
+		return http.StatusInternalServerError
 	}
 	return response.StatusCode
 }
@@ -186,7 +186,7 @@ func getAnchoreUserCredentials(username string) (string, int) {
 	response, err := DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		logger.Error(err)
-		return "", response.StatusCode
+		return "", http.StatusInternalServerError
 	}
 	defer response.Body.Close()
 	var usercreds userCred
@@ -347,7 +347,7 @@ func DoAnchoreRequest(req AnchoreRequest) (*http.Response, error) {
 
 	response, err := client.Do(request)
 	if err != nil {
-		return response, emperror.Wrap(err, "anchore request failed")
+		return nil, emperror.Wrap(err, "anchore request failed")
 	}
 
 	return response, nil
