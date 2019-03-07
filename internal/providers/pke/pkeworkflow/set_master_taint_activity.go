@@ -16,19 +16,18 @@ package pkeworkflow
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const SetMasterTaintActivityName = "set-master-taint-activity"
 const masterKey = "node-role.kubernetes.io/master"
 
+// SetMasterTaintActivity sets the correct taints and labels for a single-node PKE cluster
 type SetMasterTaintActivity struct {
 	clusters Clusters
 }
@@ -40,8 +39,7 @@ func NewSetMasterTaintActivity(clusters Clusters) *SetMasterTaintActivity {
 }
 
 type SetMasterTaintActivityInput struct {
-	ClusterID   uint
-	Schedulable bool
+	ClusterID uint
 }
 
 func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTaintActivityInput) error {
@@ -62,21 +60,14 @@ func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTai
 		return err
 	}
 
-	selector := "node-role.kubernetes.io/master"
-
-	effect := v1.TaintEffectNoSchedule
-	if input.Schedulable {
-		effect = v1.TaintEffectPreferNoSchedule
-	}
-
-	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: selector})
+	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: masterKey})
 	if err != nil {
 		return emperror.Wrap(err, "failed to list master nodes")
 	}
 
 	for _, node := range nodes.Items {
 		logger := logger.With("node", node.Name)
-		taints := []v1.Taint{}
+		var taints []v1.Taint
 
 		for _, taint := range node.Spec.Taints {
 			if taint.Key != masterKey {
@@ -86,19 +77,19 @@ func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTai
 
 		taints = append(taints, v1.Taint{
 			Key:    masterKey,
-			Effect: effect,
+			Effect: v1.TaintEffectPreferNoSchedule,
 		})
 
-		patch := v1.Node{Spec: v1.NodeSpec{Taints: taints}}
-		patchData, err := json.Marshal(patch)
+		node.Spec.Taints = taints
+
+		delete(node.ObjectMeta.Labels, masterKey)
+		node.ObjectMeta.Labels["node-role.kubernetes.io/master-worker"] = ""
+
+		_, err = client.CoreV1().Nodes().Update(&node)
 		if err != nil {
-			return emperror.Wrap(err, "failed to marshal node patch")
+			return emperror.Wrapf(err, "failed to update node %q", node.ObjectMeta.Name)
 		}
 
-		_, err = client.CoreV1().Nodes().Patch(node.Name, types.StrategicMergePatchType, patchData)
-		if err != nil {
-			return err
-		}
 		logger.Info("tainted master node")
 	}
 
