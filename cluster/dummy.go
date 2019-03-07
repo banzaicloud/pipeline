@@ -55,6 +55,12 @@ func (c *DummyCluster) CreateCluster() error {
 	return nil
 }
 
+//Persist save the cluster model
+func (c *DummyCluster) Persist(status, statusMessage string) error {
+	log.Infof("Model before save: %v", c.modelCluster)
+	return c.modelCluster.UpdateStatus(status, statusMessage)
+}
+
 // DownloadK8sConfig downloads the kubeconfig file from cloud
 func (c *DummyCluster) DownloadK8sConfig() ([]byte, error) {
 	return yaml.Marshal(createDummyConfig())
@@ -243,8 +249,8 @@ func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluste
 	return &dummyCluster, nil
 }
 
-// SetStatus sets the cluster' status
-func (c *DummyCluster) SetStatus(status, statusMessage string) error {
+// UpdateStatus updates cluster status in database
+func (c *DummyCluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 

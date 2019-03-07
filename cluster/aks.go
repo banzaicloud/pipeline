@@ -413,6 +413,11 @@ func isRoleAssigned(roleAssignments []authorization.RoleAssignment, scope, roleI
 	return false
 }
 
+// Persist saves the cluster model
+func (c *AKSCluster) Persist(status, statusMessage string) error {
+	return c.modelCluster.UpdateStatus(status, statusMessage)
+}
+
 // GetResourceGroupName return the resource group's name the cluster belongs in
 func (c *AKSCluster) GetResourceGroupName() string {
 	return c.modelCluster.AKS.ResourceGroup
@@ -802,8 +807,8 @@ func GetKubernetesVersion(orgID uint, secretID string, location string) ([]strin
 	return cc.GetContainerServicesClient().ListKubernetesVersions(context.TODO(), location)
 }
 
-// SetStatus sets the cluster's status
-func (c *AKSCluster) SetStatus(status, statusMessage string) error {
+// UpdateStatus updates cluster status in database
+func (c *AKSCluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 

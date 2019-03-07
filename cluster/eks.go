@@ -363,6 +363,12 @@ func (c *EKSCluster) generateIAMRoleNameForCluster() string {
 	return "pipeline-eks-" + c.modelCluster.Name
 }
 
+// Persist saves the cluster model
+func (c *EKSCluster) Persist(status, statusMessage string) error {
+	c.log.Infof("Model before save: %v", c.modelCluster)
+	return c.modelCluster.UpdateStatus(status, statusMessage)
+}
+
 // GetName returns the name of the cluster
 func (c *EKSCluster) GetName() string {
 	return c.modelCluster.Name
@@ -1006,8 +1012,8 @@ func (c *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 	return
 }
 
-// SetStatus sets the cluster's status
-func (c *EKSCluster) SetStatus(status, statusMessage string) error {
+// UpdateStatus updates cluster status in database
+func (c *EKSCluster) UpdateStatus(status string, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 

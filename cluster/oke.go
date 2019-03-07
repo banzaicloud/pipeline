@@ -176,6 +176,12 @@ func (o *OKECluster) DeleteCluster() error {
 	return nil
 }
 
+//Persist save the cluster model
+func (o *OKECluster) Persist(status, statusMessage string) error {
+
+	return o.modelCluster.UpdateStatus(status, statusMessage)
+}
+
 // DownloadK8sConfig downloads the kubeconfig file from cloud
 func (o *OKECluster) DownloadK8sConfig() ([]byte, error) {
 
@@ -339,8 +345,8 @@ func (o *OKECluster) SaveSshSecretId(sshSecretId string) error {
 	return o.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
-// SetStatus sets the cluster's status
-func (o *OKECluster) SetStatus(status, statusMessage string) error {
+// UpdateStatus updates cluster status in database
+func (o *OKECluster) UpdateStatus(status, statusMessage string) error {
 	return o.modelCluster.UpdateStatus(status, statusMessage)
 }
 

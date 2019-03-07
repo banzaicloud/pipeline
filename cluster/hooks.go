@@ -74,7 +74,7 @@ func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) error {
 				return err
 			}
 
-			if err := cluster.SetStatus(pkgCluster.Creating, statusMsg); err != nil {
+			if err := cluster.UpdateStatus(pkgCluster.Creating, statusMsg); err != nil {
 				return emperror.Wrap(err, "failed to write status to db")
 			}
 		}
@@ -82,7 +82,7 @@ func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) error {
 
 	log.Info("all posthooks ran successfully")
 
-	if err := cluster.SetStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
+	if err := cluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
 		log.Errorf("Error during posthook status update in db: %s", err.Error())
 		return err
 	}
