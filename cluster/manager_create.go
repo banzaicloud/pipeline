@@ -130,7 +130,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		return nil, err
 	}
 
-	if err := cluster.SetStatus(pkgCluster.Creating, pkgCluster.CreatingMessage); err != nil {
+	if err := cluster.UpdateStatus(pkgCluster.Creating, pkgCluster.CreatingMessage); err != nil {
 		return nil, err
 	}
 
@@ -178,23 +178,23 @@ func (m *Manager) createCluster(
 
 		sshKey, err := secret.GenerateSSHKeyPair()
 		if err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to generate SSH key")
 		}
 
 		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
 		if err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to store SSH key")
 		}
 
 		if err := cluster.SaveSshSecretId(sshSecretId); err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to save SSH key secret ID")
 		}
 	}
 	if err := creator.Create(ctx); err != nil {
-		cluster.SetStatus(pkgCluster.Error, err.Error())
+		cluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 

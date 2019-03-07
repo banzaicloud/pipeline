@@ -217,8 +217,12 @@ func (c *EC2ClusterPKE) GetSecretWithValidation() (*secret.SecretItemResponse, e
 	return c.CommonClusterBase.getSecret(c)
 }
 
-// SetStatus sets the cluster's status
-func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
+func (c *EC2ClusterPKE) Persist(string, string) error {
+	err := c.db.Save(c.model).Error
+	return err
+}
+
+func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
 	originalStatus := c.model.Cluster.Status
 	originalStatusMessage := c.model.Cluster.StatusMessage
 
