@@ -83,7 +83,11 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 		log: log.WithField("cluster", request.Name),
 	}
 
-	c.db = pipConfig.DB()
+	var err error
+	c.repository, err = NewDBGKEClusterRepository(pipConfig.DB())
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create GKE cluster repository")
+	}
 
 	nodePools, err := createNodePoolsModelFromRequest(request.Properties.CreateClusterGKE.NodePools, userID)
 	if err != nil {
@@ -114,9 +118,52 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 	return &c, nil
 }
 
+type dbGKEClusterRepository struct {
+	db *gorm.DB
+}
+
+func (r dbGKEClusterRepository) DeleteClusterModel(model *cluster.ClusterModel) error {
+	return r.db.Delete(model).Error
+}
+
+func (r dbGKEClusterRepository) DeleteModel(model *google.GKEClusterModel) error {
+	return r.db.Delete(model).Error
+}
+
+func (r dbGKEClusterRepository) DeleteNodePool(model *google.GKENodePoolModel) error {
+	return r.db.Delete(model).Error
+}
+
+func (r dbGKEClusterRepository) SaveModel(model *google.GKEClusterModel) error {
+	return r.db.Save(model).Error
+}
+
+func (r dbGKEClusterRepository) SaveStatusHistory(model *cluster.StatusHistoryModel) error {
+	return r.db.Save(model).Error
+}
+
+// NewDBGKEClusterRepository returns a new GKEClusterRepository backed by a GORM DB
+func NewDBGKEClusterRepository(db *gorm.DB) (GKEClusterRepository, error) {
+	if db == nil {
+		return nil, errors.New("db parameter cannot be nil")
+	}
+	return dbGKEClusterRepository{
+		db: db,
+	}, nil
+}
+
+// GKEClusterRepository describes a GKE cluster's persistent storage repository
+type GKEClusterRepository interface {
+	DeleteClusterModel(model *cluster.ClusterModel) error
+	DeleteModel(model *google.GKEClusterModel) error
+	DeleteNodePool(model *google.GKENodePoolModel) error
+	SaveModel(model *google.GKEClusterModel) error
+	SaveStatusHistory(model *cluster.StatusHistoryModel) error
+}
+
 //GKECluster struct for GKE cluster
 type GKECluster struct {
-	db            *gorm.DB
+	repository    GKEClusterRepository
 	model         *google.GKEClusterModel
 	googleCluster *gke.Cluster //Don't use this directly
 	APIEndpoint   string
@@ -148,7 +195,7 @@ func (c *GKECluster) GetSshSecretId() string {
 func (c *GKECluster) SaveSshSecretId(sshSecretId string) error {
 	c.model.Cluster.SSHSecretID = sshSecretId
 
-	err := c.db.Save(&c.model).Error
+	err := c.repository.SaveModel(c.model)
 	if err != nil {
 		return errors.Wrap(err, "failed to save ssh secret id")
 	}
@@ -297,7 +344,7 @@ func (c *GKECluster) Persist(status, statusMessage string) error {
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
-	err := c.db.Save(&c.model).Error
+	err := c.repository.SaveModel(c.model)
 	if err != nil {
 		return errors.Wrap(err, "failed to persist cluster")
 	}
@@ -1529,10 +1576,15 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 		return nil, err
 	}
 
+	repository, err := NewDBGKEClusterRepository(db)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create DB GKE cluster repository")
+	}
+
 	gkeCluster := GKECluster{
-		db:    db,
-		model: &m,
-		log:   log,
+		repository: repository,
+		model:      &m,
+		log:        log,
 	}
 	return &gkeCluster, nil
 }
@@ -1627,17 +1679,17 @@ func (c *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 //DeleteFromDatabase deletes model from the database
 func (c *GKECluster) DeleteFromDatabase() error {
-	if err := c.db.Delete(&c.model.Cluster).Error; err != nil {
+	if err := c.repository.DeleteClusterModel(&c.model.Cluster); err != nil {
 		return err
 	}
 
 	for _, nodePool := range c.model.NodePools {
-		if err := c.db.Delete(nodePool).Error; err != nil {
+		if err := c.repository.DeleteNodePool(nodePool); err != nil {
 			return err
 		}
 	}
 
-	if err := c.db.Delete(c.model).Error; err != nil {
+	if err := c.repository.DeleteModel(c.model); err != nil {
 		return err
 	}
 
@@ -1850,7 +1902,7 @@ func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
-	err := c.db.Save(&c.model).Error
+	err := c.repository.SaveModel(c.model)
 	if err != nil {
 		return errors.Wrap(err, "failed to update cluster status")
 	}
@@ -1866,7 +1918,7 @@ func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
 			ToStatusMessage:   statusMessage,
 		}
 
-		err := c.db.Save(&statusHistory).Error
+		err := c.repository.SaveStatusHistory(statusHistory)
 		if err != nil {
 			return errors.Wrap(err, "failed to update cluster status history")
 		}
@@ -2090,7 +2142,7 @@ func (c *GKECluster) GetSecretWithValidation() (*secret.SecretItemResponse, erro
 func (c *GKECluster) SaveConfigSecretId(configSecretId string) error {
 	c.model.Cluster.ConfigSecretID = configSecretId
 
-	err := c.db.Save(&c.model).Error
+	err := c.repository.SaveModel(c.model)
 	if err != nil {
 		return errors.Wrap(err, "failed to save config secret id")
 	}
