@@ -1882,32 +1882,30 @@ func (c *GKECluster) getProjectId() (string, error) {
 
 // SetStatus sets the cluster's status
 func (c *GKECluster) SetStatus(status, statusMessage string) error {
-	originalStatus := c.model.Cluster.Status
-	originalStatusMessage := c.model.Cluster.StatusMessage
+	if c.model.Cluster.Status == status && c.model.Cluster.StatusMessage == statusMessage {
+		c.log.Debug("cluster status is same as current, skipping update")
+		return nil
+	}
+
+	statusHistory := &cluster.StatusHistoryModel{
+		ClusterID:   c.model.Cluster.ID,
+		ClusterName: c.model.Cluster.Name,
+
+		FromStatus:        c.model.Cluster.Status,
+		FromStatusMessage: c.model.Cluster.StatusMessage,
+		ToStatus:          status,
+		ToStatusMessage:   statusMessage,
+	}
+
+	if err := c.repository.SaveStatusHistory(statusHistory); err != nil {
+		return emperror.Wrap(err, "failed to update cluster status history")
+	}
 
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
-	err := c.repository.SaveModel(c.model)
-	if err != nil {
-		return errors.Wrap(err, "failed to update cluster status")
-	}
-
-	if c.model.Cluster.Status != status {
-		statusHistory := &cluster.StatusHistoryModel{
-			ClusterID:   c.model.Cluster.ID,
-			ClusterName: c.model.Cluster.Name,
-
-			FromStatus:        originalStatus,
-			FromStatusMessage: originalStatusMessage,
-			ToStatus:          status,
-			ToStatusMessage:   statusMessage,
-		}
-
-		err := c.repository.SaveStatusHistory(statusHistory)
-		if err != nil {
-			return errors.Wrap(err, "failed to update cluster status history")
-		}
+	if err := c.repository.SaveModel(c.model); err != nil {
+		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
 	return nil
