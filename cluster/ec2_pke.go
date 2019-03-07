@@ -51,6 +51,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const defaultPKEVersion = "1.12.2"
+
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
 
 type EC2ClusterPKE struct {
@@ -761,6 +763,13 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		subcommand = "master"
 	}
 
+	version := c.model.Kubernetes.Version
+	if version == "" {
+		version = defaultPKEVersion
+	}
+	if version[0] == 'v' {
+		version = version[1:]
+	}
 	infrastructureCIDR := ""
 	cloudProvider, _, subnets, err := c.GetNetworkCloudProvider()
 	if err != nil {
@@ -812,7 +821,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--pipeline-cluster-id=%d "+
 			"--pipeline-nodepool=%q "+
 			"--kubernetes-cloud-provider=aws "+
-			"--kubernetes-version=1.12.2 "+
+			"--kubernetes-version=%q "+
 			"--kubernetes-network-provider=weave "+
 			"--kubernetes-service-cidr=10.10.0.0/16 "+
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
@@ -825,6 +834,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			c.model.Cluster.OrganizationID,
 			c.model.Cluster.ID,
 			nodePoolName,
+			version,
 			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
@@ -854,7 +864,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		"--pipeline-cluster-id=%d "+
 		"--pipeline-nodepool=%q "+
 		"--kubernetes-cloud-provider=aws "+
-		"--kubernetes-version=1.12.2 "+
+		"--kubernetes-version=%q "+
 		"--kubernetes-infrastructure-cidr=%q",
 		subcommand,
 		url,
@@ -862,6 +872,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		c.model.Cluster.OrganizationID,
 		c.model.Cluster.ID,
 		nodePoolName,
+		version,
 		infrastructureCIDR,
 	), nil
 }
