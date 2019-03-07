@@ -267,7 +267,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	logger.Info("deleting cluster")
 
-	err := cluster.UpdateStatus(pkgCluster.Deleting, pkgCluster.DeletingMessage)
+	err := cluster.SetStatus(pkgCluster.Deleting, pkgCluster.DeletingMessage)
 	if err != nil {
 		return emperror.With(
 			emperror.Wrap(err, "cluster status update failed"),
@@ -282,7 +282,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			if err = cls.DeleteFromDatabase(); err != nil {
 				err = emperror.Wrap(err, "failed to delete from the database")
 				if !force {
-					cls.UpdateStatus(pkgCluster.Error, err.Error())
+					cls.SetStatus(pkgCluster.Error, err.Error())
 					return err
 				}
 				logger.Error(err)
@@ -308,7 +308,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		err = emperror.Wrap(err, "cannot access Kubernetes cluster")
 
 		if !force {
-			cluster.UpdateStatus(pkgCluster.Error, err.Error())
+			cluster.SetStatus(pkgCluster.Error, err.Error())
 
 			return err
 		}
@@ -324,7 +324,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			err = emperror.Wrap(err, "failed to delete deployments")
 
 			if !force {
-				cluster.UpdateStatus(pkgCluster.Error, err.Error())
+				cluster.SetStatus(pkgCluster.Error, err.Error())
 
 				return err
 			}
@@ -337,7 +337,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			err = emperror.Wrap(err, "failed to delete Kubernetes resources")
 
 			if !force {
-				cluster.UpdateStatus(pkgCluster.Error, err.Error())
+				cluster.SetStatus(pkgCluster.Error, err.Error())
 
 				return err
 			}
@@ -365,7 +365,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if err != nil {
 		err = emperror.Wrap(err, "failed to delete cluster from the provider")
 		if !force {
-			cluster.UpdateStatus(pkgCluster.Error, err.Error())
+			cluster.SetStatus(pkgCluster.Error, err.Error())
 			return err
 		}
 		logger.Error(err)
@@ -378,7 +378,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if err != nil {
 		err = emperror.Wrap(err, "failed to delete unused cluster secrets")
 		if !force {
-			cluster.UpdateStatus(pkgCluster.Error, err.Error())
+			cluster.SetStatus(pkgCluster.Error, err.Error())
 			return err
 		}
 		logger.Error(err)
@@ -391,7 +391,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if err != nil {
 		err = emperror.Wrap(err, "failed to delete from the database")
 		if !force {
-			cluster.UpdateStatus(pkgCluster.Error, err.Error())
+			cluster.SetStatus(pkgCluster.Error, err.Error())
 			return err
 		}
 		logger.Error(err)

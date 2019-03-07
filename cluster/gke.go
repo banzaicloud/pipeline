@@ -338,20 +338,6 @@ func (c *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
 	}
 }
 
-//Persist save the cluster model
-func (c *GKECluster) Persist(status, statusMessage string) error {
-	c.log.Infof("Model before save: %v", c.model)
-	c.model.Cluster.Status = status
-	c.model.Cluster.StatusMessage = statusMessage
-
-	err := c.repository.SaveModel(c.model)
-	if err != nil {
-		return errors.Wrap(err, "failed to persist cluster")
-	}
-
-	return nil
-}
-
 // DownloadK8sConfig downloads the kubeconfig file from cloud
 func (c *GKECluster) DownloadK8sConfig() ([]byte, error) {
 
@@ -1894,8 +1880,8 @@ func (c *GKECluster) getProjectId() (string, error) {
 	return s.GetValue(pkgSecret.ProjectId), nil
 }
 
-// UpdateStatus updates cluster status in database
-func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
+// SetStatus sets the cluster's status
+func (c *GKECluster) SetStatus(status, statusMessage string) error {
 	originalStatus := c.model.Cluster.Status
 	originalStatusMessage := c.model.Cluster.StatusMessage
 

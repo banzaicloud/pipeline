@@ -74,11 +74,6 @@ func (c *KubeCluster) CreateCluster() error {
 	return nil
 }
 
-// Persist save the cluster model
-func (c *KubeCluster) Persist(status, statusMessage string) error {
-	return c.modelCluster.UpdateStatus(status, statusMessage)
-}
-
 // createDefaultStorageClass creates a default storage class as some clusters are not created with
 // any storage classes or with default one
 func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode) error {
@@ -251,8 +246,8 @@ func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCl
 	return &kubeCluster, nil
 }
 
-// UpdateStatus updates cluster status in database
-func (c *KubeCluster) UpdateStatus(status, statusMessage string) error {
+// SetStatus sets the cluster's status
+func (c *KubeCluster) SetStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
