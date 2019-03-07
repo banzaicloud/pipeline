@@ -259,6 +259,6 @@ require (
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 
-replace github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa => github.com/banzaicloud/auth v0.1.0
+replace github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa => github.com/banzaicloud/auth v0.1.1
 
 replace gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
