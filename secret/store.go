@@ -729,6 +729,7 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 
 		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA.Key
 		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
+		value.Values[secretTypes.KubernetesCASigningCert] = kubernetesCA.Cert
 		value.Values[secretTypes.EtcdCAKey] = etcdCA.Key
 		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert + "\n" + ca
 		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA.Key
