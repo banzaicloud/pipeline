@@ -134,6 +134,10 @@ func (r dbGKEClusterRepository) DeleteNodePool(model *google.GKENodePoolModel) e
 	return r.db.Delete(model).Error
 }
 
+func (r dbGKEClusterRepository) SaveClusterModel(model *cluster.ClusterModel) error {
+	return r.db.Save(model).Error
+}
+
 func (r dbGKEClusterRepository) SaveModel(model *google.GKEClusterModel) error {
 	return r.db.Save(model).Error
 }
@@ -157,6 +161,7 @@ type GKEClusterRepository interface {
 	DeleteClusterModel(model *cluster.ClusterModel) error
 	DeleteModel(model *google.GKEClusterModel) error
 	DeleteNodePool(model *google.GKENodePoolModel) error
+	SaveClusterModel(model *cluster.ClusterModel) error
 	SaveModel(model *google.GKEClusterModel) error
 	SaveStatusHistory(model *cluster.StatusHistoryModel) error
 }
@@ -1904,7 +1909,7 @@ func (c *GKECluster) SetStatus(status, statusMessage string) error {
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
-	if err := c.repository.SaveModel(c.model); err != nil {
+	if err := c.repository.SaveClusterModel(&c.model.Cluster); err != nil {
 		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
