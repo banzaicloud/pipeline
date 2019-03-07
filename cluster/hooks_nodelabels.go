@@ -87,5 +87,10 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 
 // SetupNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
 func SetupNodePoolLabelsSet(cluster CommonCluster) error {
-	return DeployNodePoolLabelsSet(cluster, nil, false)
+	labelsMap, err := GetDesiredLabelsForCluster(cluster, nil, false)
+	if err != nil {
+		return err
+	}
+	// labelsMap should be obtained before and set as param for Cadence workflow
+	return DeployNodePoolLabelsSet(cluster, labelsMap)
 }
