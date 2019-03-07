@@ -71,10 +71,8 @@ github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f h1:ZNv7
 github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f/go.mod h1:AuiFmCCPBSrqvVMvuqFuk0qogytodnVFVSN5CeJB8Gc=
 github.com/banzaicloud/anchore-image-validator v0.0.0-20181204185657-bf9806201a4e h1:VMCHYloxbkoTRK8EJHctvqvdwcopwCzHmLNSB2C9u6I=
 github.com/banzaicloud/anchore-image-validator v0.0.0-20181204185657-bf9806201a4e/go.mod h1:VJiVAbcVK7jA47SF+VvQe5NK93vSMiumk7Cr8HK6cv4=
-github.com/banzaicloud/auth v0.0.0-20190129164927-922d5048ccd3 h1:ZppPubTYdo6IZLJgRGxP9oHZEC0GBmlP1Mxt2T1f6ag=
-github.com/banzaicloud/auth v0.0.0-20190129164927-922d5048ccd3/go.mod h1:oKSmpvPMCqencgRxTNadXspkyZYqpZcQV8yeo0VUxso=
-github.com/banzaicloud/auth v0.1.0 h1:rz0jgeu+sonxd9+oVv4IYArP0oHi4lPACBY+U0jkqnI=
-github.com/banzaicloud/auth v0.1.0/go.mod h1:oKSmpvPMCqencgRxTNadXspkyZYqpZcQV8yeo0VUxso=
+github.com/banzaicloud/auth v0.1.1 h1:RbkwjgS9H0PBmmnOzFd2AVqCtLWeosplqdlyxNWKgz0=
+github.com/banzaicloud/auth v0.1.1/go.mod h1:oKSmpvPMCqencgRxTNadXspkyZYqpZcQV8yeo0VUxso=
 github.com/banzaicloud/bank-vaults v0.0.0-20181228154154-8f1348d7821a h1:UAAasJ268OWbYYz+2cLfo30diWRU3N+JkIR91kaLRU0=
 github.com/banzaicloud/bank-vaults v0.0.0-20181228154154-8f1348d7821a/go.mod h1:DCXyt+jITEQ5JUfxOWiYUKUE6ILZ5P4IU0MKgGcnmuc=
 github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677 h1:5q4Sv/DFbmiXNyelLCKwYGCUwulXmT1thgKzgWPMvLU=
