@@ -217,12 +217,8 @@ func (c *EC2ClusterPKE) GetSecretWithValidation() (*secret.SecretItemResponse, e
 	return c.CommonClusterBase.getSecret(c)
 }
 
-func (c *EC2ClusterPKE) Persist(string, string) error {
-	err := c.db.Save(c.model).Error
-	return err
-}
-
-func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
+// SetStatus sets the cluster's status
+func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
 	originalStatus := c.model.Cluster.Status
 	originalStatusMessage := c.model.Cluster.StatusMessage
 
@@ -298,6 +294,17 @@ func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
 
 func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
 	return errors.New("unused method")
+}
+
+// HasK8sConfig returns true if the cluster's k8s config is available
+func (c *EC2ClusterPKE) HasK8sConfig() (bool, error) {
+	cfg, err := c.GetK8sConfig()
+	return len(cfg) > 0, emperror.Wrap(err, "failed to check if k8s config is available")
+}
+
+// IsMasterReady returns true when the master node has been reported as ready
+func (c *EC2ClusterPKE) IsMasterReady() (bool, error) {
+	return c.HasK8sConfig()
 }
 
 // RegisterNode adds a Node to the DB

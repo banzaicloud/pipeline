@@ -596,9 +596,9 @@ type ResourceSummaryItem struct {
 
 // NodePoolLabel desribes labels on a node pool
 type NodePoolLabel struct {
-	Name     string `json:"Name"`
-	Value    string `json:"Value"`
-	Reserved bool   `json:"Reserved"`
+	Name     string `json:"name"`
+	Value    string `json:"value"`
+	Reserved bool   `json:"reserved"`
 }
 
 // CreateClusterRequest creates a CreateClusterRequest model from profile

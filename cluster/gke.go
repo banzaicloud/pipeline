@@ -134,6 +134,10 @@ func (r dbGKEClusterRepository) DeleteNodePool(model *google.GKENodePoolModel) e
 	return r.db.Delete(model).Error
 }
 
+func (r dbGKEClusterRepository) SaveClusterModel(model *cluster.ClusterModel) error {
+	return r.db.Save(model).Error
+}
+
 func (r dbGKEClusterRepository) SaveModel(model *google.GKEClusterModel) error {
 	return r.db.Save(model).Error
 }
@@ -157,6 +161,7 @@ type GKEClusterRepository interface {
 	DeleteClusterModel(model *cluster.ClusterModel) error
 	DeleteModel(model *google.GKEClusterModel) error
 	DeleteNodePool(model *google.GKENodePoolModel) error
+	SaveClusterModel(model *cluster.ClusterModel) error
 	SaveModel(model *google.GKEClusterModel) error
 	SaveStatusHistory(model *cluster.StatusHistoryModel) error
 }
@@ -336,20 +341,6 @@ func (c *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
 		// currently we didn't support different node versions
 		c.model.NodeVersion = gkeCluster.NodePools[0].Version
 	}
-}
-
-//Persist save the cluster model
-func (c *GKECluster) Persist(status, statusMessage string) error {
-	c.log.Infof("Model before save: %v", c.model)
-	c.model.Cluster.Status = status
-	c.model.Cluster.StatusMessage = statusMessage
-
-	err := c.repository.SaveModel(c.model)
-	if err != nil {
-		return errors.Wrap(err, "failed to persist cluster")
-	}
-
-	return nil
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
@@ -1894,34 +1885,32 @@ func (c *GKECluster) getProjectId() (string, error) {
 	return s.GetValue(pkgSecret.ProjectId), nil
 }
 
-// UpdateStatus updates cluster status in database
-func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
-	originalStatus := c.model.Cluster.Status
-	originalStatusMessage := c.model.Cluster.StatusMessage
+// SetStatus sets the cluster's status
+func (c *GKECluster) SetStatus(status, statusMessage string) error {
+	if c.model.Cluster.Status == status && c.model.Cluster.StatusMessage == statusMessage {
+		c.log.Debug("cluster status is same as current, skipping update")
+		return nil
+	}
+
+	statusHistory := &cluster.StatusHistoryModel{
+		ClusterID:   c.model.Cluster.ID,
+		ClusterName: c.model.Cluster.Name,
+
+		FromStatus:        c.model.Cluster.Status,
+		FromStatusMessage: c.model.Cluster.StatusMessage,
+		ToStatus:          status,
+		ToStatusMessage:   statusMessage,
+	}
+
+	if err := c.repository.SaveStatusHistory(statusHistory); err != nil {
+		return emperror.Wrap(err, "failed to update cluster status history")
+	}
 
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
-	err := c.repository.SaveModel(c.model)
-	if err != nil {
-		return errors.Wrap(err, "failed to update cluster status")
-	}
-
-	if c.model.Cluster.Status != status {
-		statusHistory := &cluster.StatusHistoryModel{
-			ClusterID:   c.model.Cluster.ID,
-			ClusterName: c.model.Cluster.Name,
-
-			FromStatus:        originalStatus,
-			FromStatusMessage: originalStatusMessage,
-			ToStatus:          status,
-			ToStatusMessage:   statusMessage,
-		}
-
-		err := c.repository.SaveStatusHistory(statusHistory)
-		if err != nil {
-			return errors.Wrap(err, "failed to update cluster status history")
-		}
+	if err := c.repository.SaveClusterModel(&c.model.Cluster); err != nil {
+		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
 	return nil

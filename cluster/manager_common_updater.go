@@ -114,7 +114,7 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 		}
 	}
 
-	return c.cluster, c.cluster.Persist(cluster.Updating, cluster.UpdatingMessage)
+	return c.cluster, c.cluster.SetStatus(cluster.Updating, cluster.UpdatingMessage)
 }
 
 // Update implements the clusterUpdater interface.
@@ -129,11 +129,15 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 
 	// pre deploy NodePoolLabelSet objects for each new node pool to be created
 	nodePools := getNodePoolsFromUpdateRequest(c.request)
-	if err := DeployNodePoolLabelsSet(c.cluster, nodePools, true); err != nil {
+	// to avoid overriding user specified labels, in case of of an empty label map in update request,
+	// set noReturnIfNoUserLabels = true
+	labelsMap, err := GetDesiredLabelsForCluster(c.cluster, nodePools, true)
+	if err != nil {
 		return err
 	}
-
-	var err error
+	if err = DeployNodePoolLabelsSet(c.cluster, labelsMap); err != nil {
+		return err
+	}
 
 	if updater, ok := c.cluster.(interface {
 		UpdatePKECluster(context.Context, *cluster.UpdateClusterRequest, client.Client, string) error

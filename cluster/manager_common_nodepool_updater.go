@@ -93,7 +93,7 @@ func (c *commonNodepoolUpdater) Validate(ctx context.Context) error {
 
 // Prepare implements the clusterUpdater interface.
 func (c *commonNodepoolUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
-	return c.cluster, c.cluster.Persist(cluster.Updating, cluster.UpdatingMessage)
+	return c.cluster, c.cluster.SetStatus(cluster.Updating, cluster.UpdatingMessage)
 }
 
 // Update implements the clusterUpdater interface.
