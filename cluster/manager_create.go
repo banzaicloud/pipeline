@@ -207,6 +207,17 @@ func (m *Manager) createCluster(
 		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
+	labelsMap, err := GetDesiredLabelsForCluster(cluster, nil, false)
+	if err != nil {
+		_ = cluster.UpdateStatus(pkgCluster.Error, "failed to get desired labels")
+
+		return err
+	}
+
+	postHooks[pkgCluster.SetupNodePoolLabelsSet] = NodePoolLabelParam{
+		Labels: labelsMap,
+	}
+
 	logger.WithField("workflowName", RunPostHooksWorkflowName).Info("starting workflow")
 
 	input := RunPostHooksWorkflowInput{
@@ -264,6 +275,16 @@ func BuildWorkflowPostHookFunctions(postHooks pkgCluster.PostHooks, alwaysInclud
 	}
 
 	if len(postHooks) > 0 {
+		// Fix base post hooks with parameters
+		for key, existingPostHook := range workflowPostHooks {
+			postHook, ok := postHooks[existingPostHook.Name]
+			if ok {
+				workflowPostHooks[key].Param = postHook
+
+				delete(postHooks, existingPostHook.Name)
+			}
+		}
+
 		var postHooksByPriority postHookFunctionByPriority
 
 		for postHookName, param := range postHooks {
