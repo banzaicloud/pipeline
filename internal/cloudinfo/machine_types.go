@@ -54,13 +54,14 @@ type VMKey struct {
 	cloud        string
 	service      string
 	region       string
+	location     string
 	instanceType string
 }
 
 // nolint: gochecknoglobals
 var instanceTypeMap = make(map[VMKey]MachineDetails)
 
-func fetchMachineTypes(cloud string, service string, region string) error {
+func fetchMachineTypes(cloud string, service string, region string, location string) error {
 	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
 	if len(cloudInfoEndPoint) == 0 {
 		return emperror.With(errors.New("missing config"), "propertyName", config.CloudInfoEndPoint)
@@ -89,6 +90,7 @@ func fetchMachineTypes(cloud string, service string, region string) error {
 			cloud,
 			service,
 			region,
+			location,
 			product.Type,
 		}] = *product
 	}
@@ -97,18 +99,19 @@ func fetchMachineTypes(cloud string, service string, region string) error {
 }
 
 //GetMachineDetails returns machine resource details, like cpu/gpu/memory etc. either from local cache or CloudInfo
-func GetMachineDetails(cloud string, service string, region string, instanceType string) (*MachineDetails, error) {
+func GetMachineDetails(cloud string, service string, region string, location string, instanceType string) (*MachineDetails, error) {
 
 	vmKey := VMKey{
 		cloud,
 		service,
 		region,
+		location,
 		instanceType,
 	}
 
 	vmDetails, ok := instanceTypeMap[vmKey]
 	if !ok {
-		err := fetchMachineTypes(cloud, service, region)
+		err := fetchMachineTypes(cloud, service, region, location)
 		if err != nil {
 			return nil, emperror.WrapWith(err, "failed to retrieve service machine types", "cloud", cloud, "region", region, "service", service)
 		}
