@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -46,6 +47,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/audit"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/notification"
@@ -390,8 +394,33 @@ func main() {
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
 
+			pkeGroup := clusters.Group("/pke")
 			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient)
-			pkeAPI.RegisterRoutes(clusters.Group("/pke"))
+			pkeAPI.RegisterRoutes(pkeGroup)
+
+			clusterSecretStore := clustersecret.NewStore(
+				clustersecretadapter.NewClusterManagerAdapter(clusterManager),
+				clustersecretadapter.NewSecretStore(secret.Store),
+			)
+
+			clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
+			emperror.Panic(emperror.Wrap(err, "failed to create DexClusterAuthService"))
+
+			pipelineExternalURL, err := url.Parse(externalBaseURL)
+			emperror.Panic(emperror.Wrap(err, "failed to parse pipeline externalBaseURL"))
+
+			pipelineExternalURL.Path = "/auth/dex/cluster/callback"
+
+			clusterAuthAPI, err := api.NewClusterAuthAPI(
+				clusterGetter,
+				clusterAuthService,
+				viper.GetString("auth.tokensigningkey"),
+				viper.GetString("auth.dexURL"),
+				pipelineExternalURL.String(),
+			)
+			emperror.Panic(emperror.Wrap(err, "failed to create ClusterAuthAPI"))
+
+			clusterAuthAPI.RegisterRoutes(pkeGroup, router)
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
@@ -477,7 +506,7 @@ func main() {
 
 	issueHandler, err := api.NewIssueHandler(version, commitHash, buildDate)
 	if err != nil {
-		panic(err)
+		emperror.Panic(emperror.Wrap(err, "failed to create IssueHandler"))
 	}
 	base.POST("issues", auth.Handler, issueHandler)
 

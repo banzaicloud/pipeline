@@ -52,7 +52,7 @@ require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/containerd/continuity v0.0.0-20181203112020-004b46473808 // indirect
 	github.com/coreos/bbolt v1.3.2 // indirect
-	github.com/coreos/go-oidc v2.0.0+incompatible // indirect
+	github.com/coreos/go-oidc v2.0.0+incompatible
 	github.com/coreos/go-systemd v0.0.0-20190212144455-93d5ec2c7f76 // indirect
 	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
 	github.com/dancannon/gorethink v4.0.0+incompatible // indirect
