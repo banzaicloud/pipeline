@@ -1068,7 +1068,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 func LabelNodesWithNodePoolName(commonCluster CommonCluster) error {
 
 	switch commonCluster.GetDistribution() {
-	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.AKS:
+	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE:
 		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
 		return nil
 	}
