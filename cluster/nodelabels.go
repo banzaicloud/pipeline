@@ -92,6 +92,7 @@ func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse
 	machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
 		clusterStatus.Distribution,
 		clusterStatus.Region,
+		clusterStatus.Location,
 		nodePool.InstanceType)
 	if err != nil {
 		log.WithFields(logrus.Fields{
