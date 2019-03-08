@@ -107,7 +107,7 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallNodePoolLabelSetOperator,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.SetupNodePoolLabelsSet: &BasePostFunction{
+	pkgCluster.SetupNodePoolLabelsSet: &PostFunctionWithParam{
 		f:            SetupNodePoolLabelsSet,
 		ErrorHandler: ErrorHandler{},
 	},
