@@ -17,7 +17,7 @@ Resources:
           - "sts:AssumeRole"
       RoleName: !Join ["", [ !Ref "AWS::StackName" , "-worker" ]]
       Policies:
-      - PolicyName: PkeKubernetesMasterPolicy
+      - PolicyName: PkeKubernetesWorkerPolicy
         PolicyDocument:
           Version: "2012-10-17"
           Statement:
@@ -63,7 +63,7 @@ Resources:
           - "sts:AssumeRole"
       RoleName: !Join ["", [ !Ref "AWS::StackName" , "-master" ]]
       Policies:
-      - PolicyName: PkeKubernetesWorkerPolicy
+      - PolicyName: PkeKubernetesMasterPolicy
         PolicyDocument:
           Version: "2012-10-17"
           Statement:
@@ -71,12 +71,7 @@ Resources:
             'autoscaling:DescribeAutoScalingGroups',
             'autoscaling:DescribeLaunchConfigurations',
             'autoscaling:DescribeTags',
-            'ec2:DescribeInstances',
-            'ec2:DescribeRegions',
-            'ec2:DescribeRouteTables',
-            'ec2:DescribeSecurityGroups',
-            'ec2:DescribeSubnets',
-            'ec2:DescribeVolumes',
+            'ec2:Describe*',
             'ec2:CreateSecurityGroup',
             'ec2:CreateTags',
             'ec2:CreateVolume',
@@ -90,7 +85,13 @@ Resources:
             'ec2:DeleteVolume',
             'ec2:DetachVolume',
             'ec2:RevokeSecurityGroupIngress',
-            'ec2:DescribeVpcs',
+            'ecr:GetAuthorizationToken',
+            'ecr:BatchCheckLayerAvailability',
+            'ecr:GetDownloadUrlForLayer',
+            'ecr:GetRepositoryPolicy',
+            'ecr:DescribeRepositories',
+            'ecr:ListImages',
+            'ecr:BatchGetImage',
             'elasticloadbalancing:AddTags',
             'elasticloadbalancing:AttachLoadBalancerToSubnets',
             'elasticloadbalancing:ApplySecurityGroupsToLoadBalancer',
