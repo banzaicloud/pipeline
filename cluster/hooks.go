@@ -21,27 +21,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-
 	"github.com/Masterminds/semver"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
-	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/dns"
-	"github.com/banzaicloud/pipeline/dns/route53"
-	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/internal/ark"
-	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -56,39 +38,25 @@ import (
 	"k8s.io/client-go/kubernetes"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
+
+	"github.com/banzaicloud/pipeline/auth"
+	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
+	"github.com/banzaicloud/pipeline/dns/route53"
+	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/ark"
+	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 )
-
-//RunPostHooks calls posthook functions with created cluster
-func RunPostHooks(postHooks []PostFunctioner, cluster CommonCluster) error {
-
-	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "org": cluster.GetOrganizationId()})
-
-	for _, postHook := range postHooks {
-		if postHook != nil {
-			log := log.WithField("postHook", postHook)
-			log.Info("starting posthook function")
-			statusMsg := fmt.Sprintf("running %s", postHook)
-			if err := postHook.Do(cluster); err != nil {
-				err := emperror.Wrap(err, "posthook failed")
-				postHook.Error(cluster, err)
-				return err
-			}
-
-			if err := cluster.UpdateStatus(pkgCluster.Creating, statusMsg); err != nil {
-				return emperror.Wrap(err, "failed to write status to db")
-			}
-		}
-	}
-
-	log.Info("all posthooks ran successfully")
-
-	if err := cluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
-		log.Errorf("Error during posthook status update in db: %s", err.Error())
-		return err
-	}
-
-	return nil
-}
 
 // pollingKubernetesConfig polls kubeconfig from the cloud
 func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
@@ -163,9 +131,9 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		return emperror.Wrap(err, "posthook param failed")
 	}
 	// This makes no sense since we can't check if it default false or set false
-	//if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
-	//	return errors.Errorf("TLS related parameter is missing from request!")
-	//}
+	// if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
+	// 	return errors.Errorf("TLS related parameter is missing from request!")
+	// }
 	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	loggingParam.GenTLSForLogging.TLSEnabled = true
 	// Set TLS default values (default True)
@@ -531,7 +499,7 @@ func CreateDefaultStorageclass(commonCluster CommonCluster) error {
 	return nil
 }
 
-//InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
+// InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 	k8sDashboardNameSpace := viper.GetString(pipConfig.PipelineSystemNamespace)
@@ -674,7 +642,7 @@ func setAdminRights(client *kubernetes.Clientset, userName string) (err error) {
 	return
 }
 
-//InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
+// InstallClusterAutoscalerPostHook post hook only for AWS & Azure for now
 func InstallClusterAutoscalerPostHook(cluster CommonCluster) error {
 	return DeployClusterAutoscaler(cluster)
 }
@@ -705,7 +673,7 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 	return false
 }
 
-//InstallHorizontalPodAutoscalerPostHook
+// InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	promServiceName := viper.GetString(pipConfig.PrometheusServiceName)
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
@@ -748,7 +716,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "hpa-operator", valuesOverride, "", false)
 }
 
-//InstallPVCOperatorPostHook installs the PVC operator
+// InstallPVCOperatorPostHook installs the PVC operator
 func InstallPVCOperatorPostHook(cluster CommonCluster) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
@@ -764,7 +732,7 @@ func InstallPVCOperatorPostHook(cluster CommonCluster) error {
 	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/pvc-operator", "pvc-operator", valuesOverride, "", false)
 }
 
-//InstallAnchoreImageValidator installs Anchore image validator
+// InstallAnchoreImageValidator installs Anchore image validator
 func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHookParam) error {
 
 	if !anchore.AnchoreEnabled {
@@ -890,7 +858,7 @@ func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 	return nil
 }
 
-//InstallHelmPostHook this posthook installs the helm related things
+// InstallHelmPostHook this posthook installs the helm related things
 func InstallHelmPostHook(cluster CommonCluster) error {
 	helmInstall := &pkgHelm.Install{
 		Namespace:      "kube-system",
