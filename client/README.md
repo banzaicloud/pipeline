@@ -84,11 +84,7 @@ Class | Method | HTTP request | Description
 *ImagescanApi* | [**ScanImages**](docs/ImagescanApi.md#scanimages) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/imagescan | Scan Images used in cluster
 *InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
 *InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
-*InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
-*InfoApi* | [**GetAzureConfig**](docs/InfoApi.md#getazureconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/azure | Get all azure config
-*InfoApi* | [**GetGoogleConfig**](docs/InfoApi.md#getgoogleconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
 *InfoApi* | [**GetResourceGroups**](docs/InfoApi.md#getresourcegroups) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
-*InfoApi* | [**GetSupportedClouds**](docs/InfoApi.md#getsupportedclouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
 *NetworkApi* | [**ListRouteTables**](docs/NetworkApi.md#listroutetables) | **Get** /api/v1/orgs/{orgId}/networks/{networkId}/routeTables | List VPC route tables
 *NetworkApi* | [**ListVPCNetworks**](docs/NetworkApi.md#listvpcnetworks) | **Get** /api/v1/orgs/{orgId}/networks | List VPC networks
 *NetworkApi* | [**ListVPCSubnets**](docs/NetworkApi.md#listvpcsubnets) | **Get** /api/v1/orgs/{orgId}/networks/{networkId}/subnets | List VPC subnetworks
@@ -147,14 +143,9 @@ Class | Method | HTTP request | Description
  - [AllowedSecretTypeResponseFields](docs/AllowedSecretTypeResponseFields.md)
  - [AmazonAutoScalingGroup](docs/AmazonAutoScalingGroup.md)
  - [AmazonAutoScalingGroupSize](docs/AmazonAutoScalingGroupSize.md)
- - [AmazonConfigResponse](docs/AmazonConfigResponse.md)
- - [AmazonConfigResponseImage](docs/AmazonConfigResponseImage.md)
- - [AmazonConfigResponseInstanceType](docs/AmazonConfigResponseInstanceType.md)
  - [AmazonPoviderConfig](docs/AmazonPoviderConfig.md)
  - [AnchoreImage](docs/AnchoreImage.md)
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
- - [AzureConfigResponse](docs/AzureConfigResponse.md)
- - [AzureConfigResponseInstanceType](docs/AzureConfigResponseInstanceType.md)
  - [BaseError](docs/BaseError.md)
  - [BaseError400](docs/BaseError400.md)
  - [BaseError500](docs/BaseError500.md)
@@ -221,9 +212,6 @@ Class | Method | HTTP request | Description
  - [GetDeploymentResponse](docs/GetDeploymentResponse.md)
  - [GetDomainResponse](docs/GetDomainResponse.md)
  - [GetPkeCommandsResponse](docs/GetPkeCommandsResponse.md)
- - [GoogleConfigResponse](docs/GoogleConfigResponse.md)
- - [GoogleConfigResponseInstanceType](docs/GoogleConfigResponseInstanceType.md)
- - [GoogleConfigResponseKubernetesVersions](docs/GoogleConfigResponseKubernetesVersions.md)
  - [HelmChartDetailsResponse](docs/HelmChartDetailsResponse.md)
  - [HelmChartDetailsResponseChart](docs/HelmChartDetailsResponseChart.md)
  - [HelmChartDetailsResponseChartMaintainers](docs/HelmChartDetailsResponseChartMaintainers.md)
@@ -319,8 +307,6 @@ Class | Method | HTTP request | Description
  - [SpotguideNotFound](docs/SpotguideNotFound.md)
  - [SpotguideOption](docs/SpotguideOption.md)
  - [SubnetInfo](docs/SubnetInfo.md)
- - [SupportedCloudItem](docs/SupportedCloudItem.md)
- - [SupportedCloudsResponse](docs/SupportedCloudsResponse.md)
  - [TokenCreateRequest](docs/TokenCreateRequest.md)
  - [TokenCreateResponse](docs/TokenCreateResponse.md)
  - [TokenListResponseItem](docs/TokenListResponseItem.md)
