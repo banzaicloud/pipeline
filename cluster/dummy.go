@@ -253,8 +253,8 @@ func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluste
 	return &dummyCluster, nil
 }
 
-// UpdateStatus updates cluster status in database
-func (c *DummyCluster) UpdateStatus(status, statusMessage string) error {
+// SetStatus sets the cluster's status
+func (c *DummyCluster) SetStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
