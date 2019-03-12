@@ -415,8 +415,9 @@ func isRoleAssigned(roleAssignments []authorization.RoleAssignment, scope, roleI
 }
 
 // Persist saves the cluster model
-func (c *AKSCluster) Persist(status, statusMessage string) error {
-	return c.SetStatus(status, statusMessage)
+// Deprecated: Do not use.
+func (c *AKSCluster) Persist() error {
+	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // GetResourceGroupName return the resource group's name the cluster belongs in
