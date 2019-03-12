@@ -448,7 +448,7 @@ func (a *ClusterAPI) ProxyToCluster(c *gin.Context) {
 
 	apiProxyPrefix := strings.TrimSuffix(c.Request.URL.Path, c.Param("path"))
 
-	kubeProxy, err := a.clusterManager.GetKubeProxy(apiProxyPrefix, commonCluster)
+	kubeProxy, err := a.clusterManager.GetKubeProxy(c.Request.URL.Scheme, c.Request.URL.Host, apiProxyPrefix, commonCluster)
 	if err != nil {
 		log.Errorf("Error proxying to cluster [%d]: %s", commonCluster.GetID(), err.Error())
 		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
