@@ -1899,37 +1899,37 @@ func (c *GKECluster) getProjectId() (string, error) {
 
 // UpdateStatus updates cluster status in database
 func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
-	originalStatus := c.model.Cluster.Status
-	originalStatusMessage := c.model.Cluster.StatusMessage
-
-	c.model.Cluster.Status = status
-	c.model.Cluster.StatusMessage = statusMessage
-
-	now := time.Now()
-	if status != originalStatus && originalStatus == pkgCluster.Creating && (status == pkgCluster.Running || status == pkgCluster.Warning) {
-		c.model.Cluster.StartedAt = &now
+	if c.model.Cluster.Status == status && c.model.Cluster.StatusMessage == statusMessage {
+		return nil
 	}
 
-	err := c.repository.SaveModel(c.model)
-	if err != nil {
-		return errors.Wrap(err, "failed to update cluster status")
-	}
-
-	if originalStatus != status {
-		statusHistory := &cluster.StatusHistoryModel{
+	if c.model.Cluster.ID != 0 {
+		// Record status change to history before modifying the actual status.
+		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
+		statusHistory := cluster.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
 
-			FromStatus:        originalStatus,
-			FromStatusMessage: originalStatusMessage,
+			FromStatus:        c.model.Cluster.Status,
+			FromStatusMessage: c.model.Cluster.StatusMessage,
 			ToStatus:          status,
 			ToStatusMessage:   statusMessage,
 		}
 
-		err := c.repository.SaveStatusHistory(statusHistory)
-		if err != nil {
-			return errors.Wrap(err, "failed to update cluster status history")
+		if err := c.repository.SaveStatusHistory(&statusHistory); err != nil {
+			return errors.Wrap(err, "failed to record cluster status change to history")
 		}
+	}
+
+	if c.model.Cluster.Status == pkgCluster.Creating && (status == pkgCluster.Running || status == pkgCluster.Warning) {
+		now := time.Now()
+		c.model.Cluster.StartedAt = &now
+	}
+	c.model.Cluster.Status = status
+	c.model.Cluster.StatusMessage = statusMessage
+
+	if err := c.repository.SaveModel(c.model); err != nil {
+		return errors.Wrap(err, "failed to update cluster status")
 	}
 
 	return nil
