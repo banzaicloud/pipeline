@@ -68,8 +68,18 @@ func makeUpgradeTransport(config *rest.Config, keepalive time.Duration) (proxy.U
 	return proxy.NewUpgradeRequestRoundTripper(rt, upgrader), nil
 }
 
+func defaultProxyTransport(requestSchema string, requestHost string, apiProxyPrefix string, internalTransport http.RoundTripper) *proxy.Transport {
+	rewritingTransport := &proxy.Transport{
+		Scheme:       requestSchema,
+		Host:         requestHost,
+		PathPrepend:  apiProxyPrefix,
+		RoundTripper: internalTransport,
+	}
+	return rewritingTransport
+}
+
 // NewKubeAPIProxy creates a new Kubernetes API Server Proxy to the given cluster with a well-defined keep-alive timeout.
-func NewKubeAPIProxy(apiProxyPrefix string, cluster CommonCluster, keepalive time.Duration) (*KubeAPIProxy, error) {
+func NewKubeAPIProxy(requestSchema string, requestHost string, apiProxyPrefix string, cluster CommonCluster, keepalive time.Duration) (*KubeAPIProxy, error) {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -99,7 +109,9 @@ func NewKubeAPIProxy(apiProxyPrefix string, cluster CommonCluster, keepalive tim
 	if err != nil {
 		return nil, err
 	}
-	proxy := proxy.NewUpgradeAwareHandler(target, transport, false, false, responder)
+	proxyTransport := defaultProxyTransport(requestSchema, requestHost, apiProxyPrefix, transport)
+
+	proxy := proxy.NewUpgradeAwareHandler(target, proxyTransport, false, false, responder)
 	proxy.UpgradeTransport = upgradeTransport
 	proxy.UseRequestLocation = true
 

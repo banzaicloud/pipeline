@@ -23,7 +23,7 @@ import (
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/goph/emperror"
-	cache "github.com/patrickmn/go-cache"
+	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -106,7 +106,7 @@ func (m *Manager) getPrometheusTimer(provider, location, status string, orgId ui
 	return prometheus.NewTimer(m.statusChangeDurationMetric.WithLabelValues(provider, location, status, "", "")), nil
 }
 
-func (m *Manager) GetKubeProxy(apiProxyPrefix string, commonCluster CommonCluster) (*KubeAPIProxy, error) {
+func (m *Manager) GetKubeProxy(requestSchema string, requestHost string, apiProxyPrefix string, commonCluster CommonCluster) (*KubeAPIProxy, error) {
 	// Currently we do not lock this transaction of getting and optionally creating a KubeAPIProxy.
 	// The worst thing that could happen is that for a short period (a Go GC period) there will be
 	// an extra KubeAPIProxy object in memory, but we can keep this method lock-free I think this is a good trade-off.
@@ -114,7 +114,7 @@ func (m *Manager) GetKubeProxy(apiProxyPrefix string, commonCluster CommonCluste
 	if !found {
 		var err error
 
-		kubeProxy, err = NewKubeAPIProxy(apiProxyPrefix, commonCluster, defaultProxyExpirationMinutes*time.Minute)
+		kubeProxy, err = NewKubeAPIProxy(requestSchema, requestHost, apiProxyPrefix, commonCluster, defaultProxyExpirationMinutes*time.Minute)
 
 		if err != nil {
 			return nil, emperror.Wrap(err, "Error during creating cluster API proxy.")
