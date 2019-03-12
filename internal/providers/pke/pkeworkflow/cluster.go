@@ -29,7 +29,7 @@ type Cluster interface {
 	GetUID() string
 	GetName() string
 	GetOrganizationId() uint
-	UpdateStatus(string, string) error
+	SetStatus(string, string) error
 	GetNodePools() []NodePool
 	GetSshPublicKey() (string, error)
 	GetLocation() string

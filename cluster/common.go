@@ -59,7 +59,6 @@ type CommonCluster interface {
 
 	// Persistence
 	Persist(string, string) error
-	UpdateStatus(string, string) error
 	DeleteFromDatabase() error
 
 	// Cluster management
@@ -100,6 +99,8 @@ type CommonCluster interface {
 	SetMonitoring(m bool)
 	GetServiceMesh() bool
 	SetServiceMesh(m bool)
+
+	SetStatus(status, statusMessage string) error
 }
 
 // CommonClusterBase holds the fields that is common to all cluster types

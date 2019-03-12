@@ -1897,8 +1897,8 @@ func (c *GKECluster) getProjectId() (string, error) {
 	return s.GetValue(pkgSecret.ProjectId), nil
 }
 
-// UpdateStatus updates cluster status in database
-func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
+// SetStatus sets the cluster's status
+func (c *GKECluster) SetStatus(status, statusMessage string) error {
 	if c.model.Cluster.Status == status && c.model.Cluster.StatusMessage == statusMessage {
 		return nil
 	}

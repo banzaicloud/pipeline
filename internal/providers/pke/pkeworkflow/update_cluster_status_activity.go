@@ -42,5 +42,5 @@ func (a *UpdateClusterStatusActivity) Execute(ctx context.Context, input UpdateC
 		return err
 	}
 
-	return c.UpdateStatus(input.Status, input.StatusMessage)
+	return c.SetStatus(input.Status, input.StatusMessage)
 }

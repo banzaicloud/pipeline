@@ -255,8 +255,8 @@ func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCl
 	return &kubeCluster, nil
 }
 
-// UpdateStatus updates cluster status in database
-func (c *KubeCluster) UpdateStatus(status, statusMessage string) error {
+// SetStatus sets the cluster's status
+func (c *KubeCluster) SetStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
