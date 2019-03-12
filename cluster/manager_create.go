@@ -214,6 +214,10 @@ func (m *Manager) createCluster(
 		return err
 	}
 
+	if postHooks == nil {
+		postHooks = make(pkgCluster.PostHooks)
+	}
+
 	postHooks[pkgCluster.SetupNodePoolLabelsSet] = NodePoolLabelParam{
 		Labels: labelsMap,
 	}
