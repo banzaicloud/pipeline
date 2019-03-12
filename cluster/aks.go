@@ -416,7 +416,7 @@ func isRoleAssigned(roleAssignments []authorization.RoleAssignment, scope, roleI
 
 // Persist saves the cluster model
 func (c *AKSCluster) Persist(status, statusMessage string) error {
-	return c.modelCluster.UpdateStatus(status, statusMessage)
+	return c.SetStatus(status, statusMessage)
 }
 
 // GetResourceGroupName return the resource group's name the cluster belongs in
