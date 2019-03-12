@@ -60,7 +60,7 @@ func (c *DummyCluster) CreateCluster() error {
 //Persist save the cluster model
 func (c *DummyCluster) Persist(status, statusMessage string) error {
 	log.Infof("Model before save: %v", c.modelCluster)
-	return c.modelCluster.UpdateStatus(status, statusMessage)
+	return c.SetStatus(status, statusMessage)
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
