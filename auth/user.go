@@ -226,20 +226,30 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
 	// GitHub API query to get the user login and image to retain compatibility for now
-	var githubUserMeta *githubUserMeta
-	if schema.Provider == ProviderDexGithub {
 
-		githubUserMeta, err = getGithubUserMeta(schema)
+	switch schema.Provider {
+	case ProviderDexGithub:
+		githubUserMeta, err := getGithubUserMeta(schema)
 		if err != nil {
 			return nil, "", emperror.Wrap(err, "failed to query github login name")
 		}
-
 		currentUser.Login = githubUserMeta.Login
 		currentUser.Image = githubUserMeta.AvatarURL
-	} else {
+
+	case ProviderDexGitlab:
+
+		gitlabUserMeta, err := getGitlabUserMeta(schema)
+		if err != nil {
+			return nil, "", emperror.Wrap(err, "failed to query gitlab login name")
+		}
+		currentUser.Login = gitlabUserMeta.Username
+		currentUser.Image = gitlabUserMeta.AvatarURL
+
+	default:
 		// Login will be derived from the email for new users coming from an other provider than GitHub
 		currentUser.Login = emailToLoginName(schema.Email)
 	}
+
 
 	db := authCtx.Auth.GetDB(authCtx.Request)
 

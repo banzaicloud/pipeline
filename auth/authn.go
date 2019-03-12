@@ -71,6 +71,7 @@ const SessionCookieName = "Pipeline session token"
 const (
 	ProviderDexGithub = "dex:github"
 	ProviderGithub    = "github"
+	ProviderDexGitlab = "dex:gitlab"
 )
 
 func getBackendProvider(dexProvider string) string {
