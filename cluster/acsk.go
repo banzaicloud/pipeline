@@ -508,9 +508,10 @@ func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnecti
 	return
 }
 
-func (c *ACSKCluster) Persist(status, statusMessage string) error {
-	c.log.Infof("Model before save: %v", c.modelCluster)
-	return c.SetStatus(status, statusMessage)
+// Persist
+// Deprecated: Do not use.
+func (c *ACSKCluster) Persist() error {
+	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 func (c *ACSKCluster) DownloadK8sConfig() ([]byte, error) {

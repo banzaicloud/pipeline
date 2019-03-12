@@ -365,9 +365,9 @@ func (c *EKSCluster) generateIAMRoleNameForCluster() string {
 }
 
 // Persist saves the cluster model
-func (c *EKSCluster) Persist(status, statusMessage string) error {
-	c.log.Infof("Model before save: %v", c.modelCluster)
-	return c.SetStatus(status, statusMessage)
+// Deprecated: Do not use.
+func (c *EKSCluster) Persist() error {
+	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // GetName returns the name of the cluster

@@ -117,7 +117,10 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 		}
 	}
 
-	return c.cluster, c.cluster.Persist(cluster.Updating, cluster.UpdatingMessage)
+	if err := c.cluster.SetStatus(cluster.Updating, cluster.UpdatingMessage); err != nil {
+		return nil, err
+	}
+	return c.cluster, c.cluster.Persist()
 }
 
 // Update implements the clusterUpdater interface.

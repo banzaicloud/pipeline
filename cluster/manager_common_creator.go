@@ -47,7 +47,10 @@ func (c *commonCreator) Validate(ctx context.Context) error {
 
 // Prepare implements the clusterCreator interface.
 func (c *commonCreator) Prepare(ctx context.Context) (CommonCluster, error) {
-	return c.cluster, c.cluster.Persist(pkgCluster.Creating, pkgCluster.CreatingMessage)
+	if err := c.cluster.SetStatus(pkgCluster.Creating, pkgCluster.CreatingMessage); err != nil {
+		return nil, err
+	}
+	return c.cluster, c.cluster.Persist()
 }
 
 // Create implements the clusterCreator interface.
