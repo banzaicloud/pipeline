@@ -514,7 +514,6 @@ List object store buckets accessible by the credentials referenced by the given 
  * @param "SecretId" (optional.String) -  Secret identification. If not provided only the managed buckets (those created via pipeline) are listed
  * @param "CloudType" (optional.String) -  Identifies the cloud provider - mandatory if secretId header is provided
  * @param "Include" (optional.String) -  Signals whether the secret name is to be returned
- * @param "Location" (optional.String) -  Identifies the cloud region. Required by Amazon only.
 @return []BucketInfo
 */
 
@@ -522,7 +521,6 @@ type ListObjectStoreBucketsOpts struct {
 	SecretId  optional.String
 	CloudType optional.String
 	Include   optional.String
-	Location  optional.String
 }
 
 func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId int32, localVarOptionals *ListObjectStoreBucketsOpts) ([]BucketInfo, *http.Response, error) {
@@ -548,9 +546,6 @@ func (a *StorageApiService) ListObjectStoreBuckets(ctx context.Context, orgId in
 	}
 	if localVarOptionals != nil && localVarOptionals.Include.IsSet() {
 		localVarQueryParams.Add("include", parameterToString(localVarOptionals.Include.Value(), ""))
-	}
-	if localVarOptionals != nil && localVarOptionals.Location.IsSet() {
-		localVarQueryParams.Add("location", parameterToString(localVarOptionals.Location.Value(), ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}

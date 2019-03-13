@@ -198,7 +198,6 @@ Name | Type | Description  | Notes
  **secretId** | **optional.String**| Secret identification. If not provided only the managed buckets (those created via pipeline) are listed | 
  **cloudType** | **optional.String**| Identifies the cloud provider - mandatory if secretId header is provided | 
  **include** | **optional.String**| Signals whether the secret name is to be returned | 
- **location** | **optional.String**| Identifies the cloud region. Required by Amazon only. | 
 
 ### Return type
 
