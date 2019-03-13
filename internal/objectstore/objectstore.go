@@ -32,9 +32,9 @@ type BucketInfo struct {
 	SecretRef       string                    `json:"secretId,omitempty"`
 	Cloud           string                    `json:"cloud,omitempty"`
 	Azure           *BlobStoragePropsForAzure `json:"aks,omitempty"`
-	Status          string                    `json:"status"`
-	StatusMsg       string                    `json:"statusMsg"`
-	AccessSecretRef string                    `json:"accessSecretId"`
+	Status          string                    `json:"status,omitempty"`
+	StatusMsg       string                    `json:"statusMsg,omitempty"`
+	AccessSecretRef string                    `json:"accessSecretId,omitempty"`
 }
 
 // BlobStoragePropsForAzure describes the Azure specific properties
