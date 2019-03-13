@@ -424,7 +424,7 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 		return errors.Wrap(err, "failed to update cluster status")
 	}
 
-	if cs.Status != status {
+	if cs.Status != originalStatus {
 		statusHistory := &StatusHistoryModel{
 			ClusterID:   cs.ID,
 			ClusterName: cs.Name,
