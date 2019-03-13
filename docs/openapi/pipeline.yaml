@@ -3949,12 +3949,6 @@ paths:
                         enum: [secret]
                     required: false
                     description: Signals whether the secret name is to be returned
-                -
-                    name: location
-                    in: query
-                    schema:
-                        type: string
-                    description: Identifies the cloud region. Required by Amazon only.
             responses:
                 '200':
                     description: "Storage buckets listed"

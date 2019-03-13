@@ -4066,14 +4066,6 @@ paths:
           - secret
           type: string
         style: form
-      - description: Identifies the cloud region. Required by Amazon only.
-        explode: true
-        in: query
-        name: location
-        required: false
-        schema:
-          type: string
-        style: form
       responses:
         200:
           content:

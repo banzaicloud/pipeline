@@ -195,14 +195,7 @@ func (os *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 		if idx < len(managedBuckets) && strings.Compare(managedBuckets[idx].Name, bucket) == 0 {
 			bucketInfo.Managed = true
 		}
-		if location, err := os.objectStore.GetLocation(bucket); err == nil {
-			// Removing oss- from the beginning of the location because we are storing and using it
-			// without oss- prefix
-			bucketInfo.Location = strings.TrimPrefix(location, "oss-")
-			bucketList = append(bucketList, bucketInfo)
-		} else {
-			return nil, err
-		}
+		bucketList = append(bucketList, bucketInfo)
 	}
 
 	return bucketList, nil
@@ -318,4 +311,26 @@ func (os *objectStore) deleteFailed(bucket *ObjectStoreBucketModel, reason error
 		return emperror.WrapWith(err, "failed to save bucket", "bucket", bucket.Name)
 	}
 	return reason
+}
+
+func GetBucketLocation(secret *secret.SecretItemResponse, bucketName string, region string, orgID uint, log logrus.FieldLogger) (string, error) {
+
+	org, err := auth.GetOrganizationById(orgID)
+	if err != nil {
+		return "", emperror.WrapWith(err, "retrieving organization failed", "orgID", orgID)
+	}
+
+	// we don't need DB here, this bucket information came from the cloud
+	s, err := NewObjectStore(region, secret, org, nil, log, false)
+	if err != nil {
+		return "", emperror.Wrap(err, "retrieving Alibaba object store failed")
+	}
+
+	location, err := s.objectStore.GetLocation(bucketName)
+	if err != nil {
+		return "", emperror.WrapWith(err, "failed to get bucket location", "bucket", bucketName)
+	}
+
+	// Removing oss- from the beginning of the location because we are storing and using it without oss- prefix
+	return strings.TrimPrefix(location, "oss-"), nil
 }

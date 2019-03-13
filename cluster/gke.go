@@ -1961,7 +1961,7 @@ func (c *GKECluster) IsReady() (bool, error) {
 		return false, err
 	}
 
-	c.log.Debug("Get gke cluster with name %s", c.model.Cluster.Name)
+	c.log.Debug("Get gke cluster")
 	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pkgSecret.ProjectId), c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
 	if err != nil {
 		apiError := getBanzaiErrorFromError(err)
