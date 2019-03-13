@@ -46,6 +46,8 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
+	alibabaObjectstore "github.com/banzaicloud/pipeline/internal/providers/alibaba"
+	amazonObjectstore "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -216,6 +218,18 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		if err != nil {
 			return emperror.Wrap(err, "install amazon secret failed")
 		}
+
+		if len(loggingParam.Region) == 0 {
+			// region field is empty in request, get bucket region
+			defaultRegion := viper.GetString(pipConfig.AmazonInitializeRegionKey)
+			region, err := amazonObjectstore.GetBucketRegion(logSecret, loggingParam.BucketName, defaultRegion, cluster.GetOrganizationId(), log)
+			if err != nil {
+				return emperror.WrapWith(err, "failed to get S3 bucket region", "bucket", loggingParam.BucketName)
+			}
+
+			loggingParam.Region = region
+		}
+
 		loggingValues := map[string]interface{}{
 			"bucketName": loggingParam.BucketName,
 			"region":     loggingParam.Region,
@@ -255,6 +269,18 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		if err != nil {
 			return emperror.Wrap(err, "could not install alibaba logging secret")
 		}
+
+		if len(loggingParam.Region) == 0 {
+			// region field is empty in request, get bucket region
+			defaultRegion := viper.GetString(pipConfig.AlibabaInitializeRegionKey)
+			region, err := alibabaObjectstore.GetBucketLocation(logSecret, loggingParam.BucketName, defaultRegion, cluster.GetOrganizationId(), log)
+			if err != nil {
+				return emperror.WrapWith(err, "failed to get OSS bucket region", "bucket", loggingParam.BucketName)
+			}
+
+			loggingParam.Region = region
+		}
+
 		loggingValues := map[string]interface{}{
 			"bucket": map[string]interface{}{
 				"name":   loggingParam.BucketName,

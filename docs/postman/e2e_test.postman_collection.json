@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "d79480b2-e93c-4065-bd60-66e602de12f3",
+		"_postman_id": "3c37dc30-ac98-4db4-8efe-275196af4e4d",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -360,14 +360,14 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										},
 										{
-											"description": "Cluster identifier",
 											"key": "clusterId",
-											"value": "{{clusterId}}"
+											"value": "{{clusterId}}",
+											"description": "Cluster identifier"
 										}
 									]
 								},
@@ -7339,6 +7339,48 @@
 					"response": []
 				},
 				{
+					"name": "CreateBuckets Alibaba",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "secretId",
+								"value": "{{secretIdAlibaba}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"secretId\": \"{{secretIdAlibaba}}\",\n\t\"name\": \"\",\n\t\"properties\": {\n\t\t\"alibaba\": {\n\t\t\t\"location\": \"eu-central-1\"\n\t\t}\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/buckets",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"buckets"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "CreateBuckets Azure",
 					"request": {
 						"method": "POST",
@@ -7480,7 +7522,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=amazon&location={{amLocation}}",
+							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=amazon",
 							"host": [
 								"{{url}}"
 							],
@@ -7496,11 +7538,6 @@
 									"key": "cloudType",
 									"value": "amazon",
 									"description": "Bucket's cloud: Amazon"
-								},
-								{
-									"key": "location",
-									"value": "{{amLocation}}",
-									"description": "Location of the buckets"
 								}
 							],
 							"variable": [
@@ -7508,6 +7545,49 @@
 									"key": "orgId",
 									"value": "{{orgId}}",
 									"description": "Organization identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListBuckets Alibaba",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "secretId",
+								"value": "{{secretIdAlibaba}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=alibaba",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"buckets"
+							],
+							"query": [
+								{
+									"key": "cloudType",
+									"value": "alibaba"
+								}
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}"
 								}
 							]
 						}
@@ -7863,95 +7943,6 @@
 									"key": "bucketName",
 									"value": "{{bucketName}}",
 									"description": "Bucket name"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CreateBuckets Alibaba",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "secretId",
-								"value": "{{secretIdAlibaba}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"secretId\": \"{{secretIdAlibaba}}\",\n\t\"name\": \"\",\n\t\"properties\": {\n\t\t\"alibaba\": {\n\t\t\t\"location\": \"eu-central-1\"\n\t\t}\n\t}\n}"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/buckets",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"buckets"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "ListBuckets Alibaba",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "secretId",
-								"value": "{{secretIdAlibaba}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=alibaba&location=eu-central-1",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"buckets"
-							],
-							"query": [
-								{
-									"key": "cloudType",
-									"value": "alibaba"
-								},
-								{
-									"key": "location",
-									"value": "eu-central-1"
-								}
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}"
 								}
 							]
 						}

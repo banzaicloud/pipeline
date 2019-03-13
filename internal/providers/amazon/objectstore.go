@@ -18,18 +18,17 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/objectstore"
+	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
+	amazonObjectstore "github.com/banzaicloud/pipeline/pkg/providers/amazon/objectstore"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/internal/objectstore"
-	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
-	amazonObjectstore "github.com/banzaicloud/pipeline/pkg/providers/amazon/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
 )
 
 type bucketNotFoundError struct{}
@@ -289,17 +288,7 @@ func (s *objectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 		if idx < len(managedBuckets) && strings.Compare(managedBuckets[idx].Name, bucket) == 0 {
 			bucketInfo.Managed = true
 		}
-
-		if region, err := s.objectStore.GetRegion(bucket); err == nil {
-			bucketInfo.Location = region
-			bucketList = append(bucketList, bucketInfo)
-		} else {
-			if objectstore.IsNotFoundError(err) {
-				logger.WithField("bucket", bucket).WithError(err).Warn("skipping bucket from the list")
-			} else {
-				return nil, emperror.WrapWith(err, "failed to retrieve region for bucket", "bucket", bucket)
-			}
-		}
+		bucketList = append(bucketList, bucketInfo)
 	}
 
 	return bucketList, nil
@@ -337,4 +326,21 @@ func (s *objectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel 
 		OrganizationID: s.org.ID,
 		Name:           bucketName,
 	}
+}
+
+// GetBucketRegion returns with the given bucket's region from Amazon
+func GetBucketRegion(secret *secret.SecretItemResponse, bucketName string, region string, orgID uint, log logrus.FieldLogger) (string, error) {
+
+	org, err := auth.GetOrganizationById(orgID)
+	if err != nil {
+		return "", emperror.WrapWith(err, "retrieving organization failed", "orgID", orgID)
+	}
+
+	// we don't need DB here, this bucket information came from the cloud
+	s, err := NewObjectStore(region, secret, org, nil, log, false)
+	if err != nil {
+		return "", emperror.Wrap(err, "retrieving Amazon object store failed")
+	}
+
+	return s.objectStore.GetRegion(bucketName)
 }
