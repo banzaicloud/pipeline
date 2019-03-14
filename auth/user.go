@@ -49,6 +49,8 @@ const (
 
 	// GithubTokenID denotes the tokenID for the user's Github token, there can be only one
 	GithubTokenID = "github"
+	// GitlabTokenID denotes the tokenID for the user's Github token, there can be only one
+	GitlabTokenID = "gitlab"
 )
 
 // AuthIdentity auth identity session model
@@ -250,7 +252,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		currentUser.Login = emailToLoginName(schema.Email)
 	}
 
-
 	db := authCtx.Auth.GetDB(authCtx.Request)
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
@@ -289,46 +290,47 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
-// SaveUserGitHubToken saves a GitHub personal access token specified for a user
-func SaveUserGitHubToken(user *User, githubToken string) error {
+// SaveUserSCMToken saves a GitHub personal access token specified for a user
+func SaveUserSCMToken(user *User, scmToken string, tokenType string) error {
 	// Revoke the old Github token from Vault if any
-	err := TokenStore.Revoke(user.IDString(), GithubTokenID)
+	err := TokenStore.Revoke(user.IDString(), tokenType)
 	if err != nil {
 		return errors.Wrap(err, "failed to revoke old Github access token")
 	}
-
-	token := bauth.NewToken(GithubTokenID, "Github access token")
-	token.Value = githubToken
+	token := bauth.NewToken(tokenType, "Github access token")
+	token.Value = scmToken
 	err = TokenStore.Store(user.IDString(), token)
 	if err != nil {
 		return emperror.WrapWith(err, "failed to store Github access token for user", "user", user.Login)
 	}
+	if tokenType == GithubTokenID {
+		// TODO CICD should use Vault as well, and this should be removed by then
+		err = updateUserInCICDDB(user, scmToken)
+		if err != nil {
+			return emperror.WrapWith(err, "failed to update Github access token for user in CICD", "user", user.Login)
+		}
 
-	// TODO CICD should use Vault as well, and this should be removed by then
-	err = updateUserInCICDDB(user, githubToken)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to update Github access token for user in CICD", "user", user.Login)
+		synchronizeCICDRepos(user.Login)
 	}
-
-	synchronizeCICDRepos(user.Login)
 
 	return nil
 }
 
-// RemoveUserGitHubToken removes a GitHub personal access token specified for a user
-func RemoveUserGitHubToken(user *User) error {
+// RemoveUserSCMToken removes a GitHub personal access token specified for a user
+func RemoveUserSCMToken(user *User, tokenType string) error {
 	// Revoke the old Github token from Vault if any
-	err := TokenStore.Revoke(user.IDString(), GithubTokenID)
+	err := TokenStore.Revoke(user.IDString(), tokenType)
 	if err != nil {
 		return errors.Wrap(err, "failed to revoke Github access token")
 	}
 
-	// TODO CICD should use Vault as well, and this should be removed by then
-	err = updateUserInCICDDB(user, "")
-	if err != nil {
-		return emperror.WrapWith(err, "failed to revoke Github access token for user in CICD", "user", user.Login)
+	if tokenType == GithubTokenID {
+		// TODO CICD should use Vault as well, and this should be removed by then
+		err = updateUserInCICDDB(user, "")
+		if err != nil {
+			return emperror.WrapWith(err, "failed to revoke Github access token for user in CICD", "user", user.Login)
+		}
 	}
-
 	return nil
 }
 

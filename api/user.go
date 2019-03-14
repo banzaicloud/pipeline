@@ -273,6 +273,7 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 
 type updateUserRequest struct {
 	GitHubToken *string `json:"gitHubToken,omitempty"`
+	GitLabToken *string `json:"gitLabToken,omitempty"`
 }
 
 // UpdateCurrentUser updates the authenticated user's settings
@@ -314,7 +315,7 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 
 	if updateUserRequest.GitHubToken != nil {
 		if *updateUserRequest.GitHubToken != "" {
-			err = auth.SaveUserGitHubToken(user, *updateUserRequest.GitHubToken)
+			err = auth.SaveUserSCMToken(user, *updateUserRequest.GitHubToken, auth.GithubTokenID)
 			if err != nil {
 				message := "failed to update user's github token"
 				a.errorHandler.Handle(emperror.Wrap(err, message))
@@ -326,7 +327,7 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 				return
 			}
 		} else {
-			err = auth.RemoveUserGitHubToken(user)
+			err = auth.RemoveUserSCMToken(user, auth.GithubTokenID)
 			if err != nil {
 				message := "failed to remove user's github token"
 				a.errorHandler.Handle(emperror.Wrap(err, message))
