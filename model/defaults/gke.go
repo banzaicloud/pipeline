@@ -31,6 +31,7 @@ type GKEProfile struct {
 	NodeVersion   string                `gorm:"default:'1.10'"`
 	MasterVersion string                `gorm:"default:'1.10'"`
 	NodePools     []*GKENodePoolProfile `gorm:"foreignkey:Name"`
+	TtlMinutes    uint                  `gorm:"not null;default:0"`
 }
 
 // GKENodePoolProfile describes a Google cluster profile's nodepools
@@ -178,9 +179,10 @@ func (d *GKEProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	}
 
 	return &pkgCluster.ClusterProfileResponse{
-		Name:     d.DefaultModel.Name,
-		Location: d.Location,
-		Cloud:    pkgCluster.Google,
+		Name:       d.DefaultModel.Name,
+		Location:   d.Location,
+		Cloud:      pkgCluster.Google,
+		TtlMinutes: d.TtlMinutes,
 		Properties: &pkgCluster.ClusterProfileProperties{
 			GKE: &gke.ClusterProfileGKE{
 				Master: &gke.Master{
@@ -246,6 +248,7 @@ func (d *GKEProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 			d.MasterVersion = r.Properties.GKE.Master.Version
 		}
 	}
+	d.TtlMinutes = r.TtlMinutes
 
 	if withSave {
 		return d.SaveInstance()

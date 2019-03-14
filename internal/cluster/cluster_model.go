@@ -40,6 +40,7 @@ type ClusterModel struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
+	StartedAt *time.Time
 	CreatedBy uint
 
 	Name           string `gorm:"unique_index:idx_unique_id"`
@@ -58,6 +59,7 @@ type ClusterModel struct {
 	SecurityScan   bool
 	StatusMessage  string             `sql:"type:text;"`
 	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
+	TtlMinutes     uint               `gorm:"default:0"`
 }
 
 const InstanceTypeSeparator = " "

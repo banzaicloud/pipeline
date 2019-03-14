@@ -27,9 +27,10 @@ import (
 // EKSProfile describes an Amazon EKS cluster profile
 type EKSProfile struct {
 	DefaultModel
-	Region    string                `gorm:"default:'us-west-2'"`
-	Version   string                `gorm:"default:'1.10'"`
-	NodePools []*EKSNodePoolProfile `gorm:"foreignkey:Name"`
+	Region     string                `gorm:"default:'us-west-2'"`
+	Version    string                `gorm:"default:'1.10'"`
+	NodePools  []*EKSNodePoolProfile `gorm:"foreignkey:Name"`
+	TtlMinutes uint                  `gorm:"not null;default:0"`
 }
 
 // EKSNodePoolProfile describes an EKS cluster profile's nodepools
@@ -113,9 +114,10 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	}
 
 	return &pkgCluster.ClusterProfileResponse{
-		Name:     d.DefaultModel.Name,
-		Location: d.Region,
-		Cloud:    pkgCluster.Amazon,
+		Name:       d.DefaultModel.Name,
+		Location:   d.Region,
+		Cloud:      pkgCluster.Amazon,
+		TtlMinutes: d.TtlMinutes,
 		Properties: &pkgCluster.ClusterProfileProperties{
 			EKS: &eks.ClusterProfileEKS{
 				Version:   d.Version,
@@ -212,6 +214,9 @@ func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 			d.NodePools = nodePools
 		}
 	}
+
+	d.TtlMinutes = r.TtlMinutes
+
 	if withSave {
 		return d.SaveInstance()
 	}
