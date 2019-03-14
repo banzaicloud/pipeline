@@ -30,6 +30,33 @@ All URIs are relative to *http://localhost:9090*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*ArkApi* | [**CheckARKStatus**](docs/ArkApi.md#checkarkstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/backupservice/status | Check ARK service status
+*ArkApi* | [**DisableARK**](docs/ArkApi.md#disableark) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/backupservice/disable | Disable ARK service
+*ArkApi* | [**EnableARK**](docs/ArkApi.md#enableark) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/backupservice/enable | Enable ARK service
+*ArkBackupsApi* | [**CreateARKBackupOfACluster**](docs/ArkBackupsApi.md#createarkbackupofacluster) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/backups | Create ARK backup
+*ArkBackupsApi* | [**DeleteARKBackup**](docs/ArkBackupsApi.md#deletearkbackup) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId} | Delete ARK backup
+*ArkBackupsApi* | [**DownloadARKBackupContents**](docs/ArkBackupsApi.md#downloadarkbackupcontents) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId}/download | Download ARK backup contents
+*ArkBackupsApi* | [**GetARKBackup**](docs/ArkBackupsApi.md#getarkbackup) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId} | Get ARK backup
+*ArkBackupsApi* | [**GetARKBackupLogs**](docs/ArkBackupsApi.md#getarkbackuplogs) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId}/logs | Get ARK backup logs
+*ArkBackupsApi* | [**ListARKBackupsForOrganization**](docs/ArkBackupsApi.md#listarkbackupsfororganization) | **Get** /api/v1/orgs/{orgId}/backups | List ARK backups of an Organization
+*ArkBackupsApi* | [**ListARKBackupsOfACluster**](docs/ArkBackupsApi.md#listarkbackupsofacluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/backups | List ARK backups of a cluster
+*ArkBackupsApi* | [**SyncARKBackupsOfACluster**](docs/ArkBackupsApi.md#syncarkbackupsofacluster) | **Put** /api/v1/orgs/{orgId}/backups/{id}/sync | Sync ARK backups of a cluster
+*ArkBackupsApi* | [**SyncOrgBackups**](docs/ArkBackupsApi.md#syncorgbackups) | **Put** /api/v1/orgs/{orgId}/backups/sync | Sync ARK backups of an Organization
+*ArkBucketsApi* | [**CreateBackupBucket**](docs/ArkBucketsApi.md#createbackupbucket) | **Post** /api/v1/orgs/{orgId}/backupbuckets | Create backup bucket
+*ArkBucketsApi* | [**DeleteBackupBucket**](docs/ArkBucketsApi.md#deletebackupbucket) | **Delete** /api/v1/orgs/{orgId}/backupbuckets/{bucketId} | Delete backup bucket by ID
+*ArkBucketsApi* | [**GetBackupBucket**](docs/ArkBucketsApi.md#getbackupbucket) | **Get** /api/v1/orgs/{orgId}/backupbuckets/{bucketId} | Get backup bucket by ID
+*ArkBucketsApi* | [**ListBackupBuckets**](docs/ArkBucketsApi.md#listbackupbuckets) | **Get** /api/v1/orgs/{orgId}/backupbuckets | List backup buckets
+*ArkBucketsApi* | [**SyncBackupBucket**](docs/ArkBucketsApi.md#syncbackupbucket) | **Put** /api/v1/orgs/{orgId}/backupbuckets/sync | Sync backup buckets
+*ArkRestoresApi* | [**CreateARKRestore**](docs/ArkRestoresApi.md#createarkrestore) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/restores | Create ARK restore
+*ArkRestoresApi* | [**DeleteARKRestore**](docs/ArkRestoresApi.md#deletearkrestore) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/restores/{restoreId} | Delete ARK restore
+*ArkRestoresApi* | [**GetARKRestore**](docs/ArkRestoresApi.md#getarkrestore) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/restores/{restoreId} | Get ARK restore
+*ArkRestoresApi* | [**GetARKRestoreResuts**](docs/ArkRestoresApi.md#getarkrestoreresuts) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/restores/{restoreId}/results | Get ARK restore results
+*ArkRestoresApi* | [**ListARKRestores**](docs/ArkRestoresApi.md#listarkrestores) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/restores | List ARK restores
+*ArkRestoresApi* | [**SyncARKRestoresOfACluster**](docs/ArkRestoresApi.md#syncarkrestoresofacluster) | **Put** /api/v1/orgs/{orgId}/restores/{id}/sync | Sync ARK restores of a cluster
+*ArkSchedulesApi* | [**CreateARKSchedule**](docs/ArkSchedulesApi.md#createarkschedule) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/schedules | Create ARK schedule
+*ArkSchedulesApi* | [**DeleteARKSchedule**](docs/ArkSchedulesApi.md#deletearkschedule) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/schedules/{scheduleName} | Delete ARK schedule
+*ArkSchedulesApi* | [**GetARKSchedule**](docs/ArkSchedulesApi.md#getarkschedule) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/schedules/{scheduleName} | Get ARK schedule
+*ArkSchedulesApi* | [**ListARKSchedules**](docs/ArkSchedulesApi.md#listarkschedules) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/schedules | List ARK schedules
 *AuthApi* | [**CreateToken**](docs/AuthApi.md#createtoken) | **Post** /api/v1/tokens | Create token
 *AuthApi* | [**DeleteToken**](docs/AuthApi.md#deletetoken) | **Delete** /api/v1/tokens/{tokenId} | Delete an API token
 *AuthApi* | [**ListTokens**](docs/AuthApi.md#listtokens) | **Get** /api/v1/tokens | List all API tokens
@@ -147,6 +174,9 @@ Class | Method | HTTP request | Description
  - [AmazonPoviderConfig](docs/AmazonPoviderConfig.md)
  - [AnchoreImage](docs/AnchoreImage.md)
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
+ - [BackupBucketResponse](docs/BackupBucketResponse.md)
+ - [BackupOptions](docs/BackupOptions.md)
+ - [BackupResponse](docs/BackupResponse.md)
  - [BaseError](docs/BaseError.md)
  - [BaseError400](docs/BaseError400.md)
  - [BaseError500](docs/BaseError500.md)
@@ -173,6 +203,10 @@ Class | Method | HTTP request | Description
  - [CreateAksPropertiesAks](docs/CreateAksPropertiesAks.md)
  - [CreateAmazonObjectStoreBucketProperties](docs/CreateAmazonObjectStoreBucketProperties.md)
  - [CreateAzureObjectStoreBucketProperties](docs/CreateAzureObjectStoreBucketProperties.md)
+ - [CreateBackupBucketRequest](docs/CreateBackupBucketRequest.md)
+ - [CreateBackupBucketResponse](docs/CreateBackupBucketResponse.md)
+ - [CreateBackupRequest](docs/CreateBackupRequest.md)
+ - [CreateBackupResponse](docs/CreateBackupResponse.md)
  - [CreateClusterRequest](docs/CreateClusterRequest.md)
  - [CreateClusterRequestBase](docs/CreateClusterRequestBase.md)
  - [CreateClusterRequestV2](docs/CreateClusterRequestV2.md)
@@ -197,6 +231,10 @@ Class | Method | HTTP request | Description
  - [CreatePkePropertiesClusterTopologyKubernetesRbac](docs/CreatePkePropertiesClusterTopologyKubernetesRbac.md)
  - [CreatePkePropertiesClusterTopologyNetwork](docs/CreatePkePropertiesClusterTopologyNetwork.md)
  - [CreateResourceGroup](docs/CreateResourceGroup.md)
+ - [CreateRestoreRequest](docs/CreateRestoreRequest.md)
+ - [CreateRestoreResponse](docs/CreateRestoreResponse.md)
+ - [CreateScheduleRequest](docs/CreateScheduleRequest.md)
+ - [CreateScheduleResponse](docs/CreateScheduleResponse.md)
  - [CreateSecretRequest](docs/CreateSecretRequest.md)
  - [CreateSecretResponse](docs/CreateSecretResponse.md)
  - [CreateUpdateDeploymentRequest](docs/CreateUpdateDeploymentRequest.md)
@@ -205,19 +243,31 @@ Class | Method | HTTP request | Description
  - [CreateUpdateOkePropertiesOke](docs/CreateUpdateOkePropertiesOke.md)
  - [CustomMetric](docs/CustomMetric.md)
  - [CustomMetricStatus](docs/CustomMetricStatus.md)
+ - [DeleteBackupBucketResponse](docs/DeleteBackupBucketResponse.md)
+ - [DeleteBackupResponse](docs/DeleteBackupResponse.md)
  - [DeleteDeploymentResponse](docs/DeleteDeploymentResponse.md)
+ - [DeleteRestoreResponse](docs/DeleteRestoreResponse.md)
+ - [DeleteScheduleResponse](docs/DeleteScheduleResponse.md)
+ - [DeployedBackupBucketResponse](docs/DeployedBackupBucketResponse.md)
  - [DeploymentScaleStatus](docs/DeploymentScaleStatus.md)
  - [DeploymentScalingRequest](docs/DeploymentScalingRequest.md)
+ - [DisableArkResponse](docs/DisableArkResponse.md)
  - [EksSubnet](docs/EksSubnet.md)
  - [EksVpc](docs/EksVpc.md)
+ - [EnableArkRequest](docs/EnableArkRequest.md)
+ - [EnableArkResponse](docs/EnableArkResponse.md)
  - [EndpointItem](docs/EndpointItem.md)
  - [Feature](docs/Feature.md)
  - [GenTlsForLogging](docs/GenTlsForLogging.md)
+ - [GetBackupBucketResponse](docs/GetBackupBucketResponse.md)
+ - [GetBackupResponse](docs/GetBackupResponse.md)
  - [GetClusterBootstrapResponse](docs/GetClusterBootstrapResponse.md)
  - [GetClusterStatusResponse](docs/GetClusterStatusResponse.md)
  - [GetDeploymentResponse](docs/GetDeploymentResponse.md)
  - [GetDomainResponse](docs/GetDomainResponse.md)
  - [GetPkeCommandsResponse](docs/GetPkeCommandsResponse.md)
+ - [GetRestoreResponse](docs/GetRestoreResponse.md)
+ - [GetRestoreResultsResponse](docs/GetRestoreResultsResponse.md)
  - [HelmChartDetailsResponse](docs/HelmChartDetailsResponse.md)
  - [HelmChartDetailsResponseChart](docs/HelmChartDetailsResponseChart.md)
  - [HelmChartDetailsResponseChartMaintainers](docs/HelmChartDetailsResponseChartMaintainers.md)
@@ -238,6 +288,7 @@ Class | Method | HTTP request | Description
  - [InstallSecretResponse](docs/InstallSecretResponse.md)
  - [InstallSecretsRequest](docs/InstallSecretsRequest.md)
  - [InstallSecretsRequestQuery](docs/InstallSecretsRequestQuery.md)
+ - [Labels](docs/Labels.md)
  - [LaunchSpotguidesRequest](docs/LaunchSpotguidesRequest.md)
  - [ListEndpointsResponse](docs/ListEndpointsResponse.md)
  - [ListNodesResponse](docs/ListNodesResponse.md)
@@ -289,6 +340,7 @@ Class | Method | HTTP request | Description
  - [PostReadyPkeNodeRequest](docs/PostReadyPkeNodeRequest.md)
  - [ProfileListResponse](docs/ProfileListResponse.md)
  - [ProjectDetails](docs/ProjectDetails.md)
+ - [RecordNotFound](docs/RecordNotFound.md)
  - [ReleaseWhiteListItem](docs/ReleaseWhiteListItem.md)
  - [RepoNotFound](docs/RepoNotFound.md)
  - [RequestedResources](docs/RequestedResources.md)
@@ -297,10 +349,15 @@ Class | Method | HTTP request | Description
  - [ResourceMetric](docs/ResourceMetric.md)
  - [ResourceMetricStatus](docs/ResourceMetricStatus.md)
  - [ResourceSummary](docs/ResourceSummary.md)
+ - [RestoreResponse](docs/RestoreResponse.md)
+ - [RestoreResultErrors](docs/RestoreResultErrors.md)
+ - [RestoreResultWarnings](docs/RestoreResultWarnings.md)
+ - [RestoreResultsResponse](docs/RestoreResultsResponse.md)
  - [RouteTableInfo](docs/RouteTableInfo.md)
  - [ScaleOptions](docs/ScaleOptions.md)
  - [ScanLogItem](docs/ScanLogItem.md)
  - [ScanLogItemImage](docs/ScanLogItemImage.md)
+ - [ScheduleResponse](docs/ScheduleResponse.md)
  - [SecretItem](docs/SecretItem.md)
  - [SecretKeyValueAmazon](docs/SecretKeyValueAmazon.md)
  - [SecretKeyValueAzure](docs/SecretKeyValueAzure.md)

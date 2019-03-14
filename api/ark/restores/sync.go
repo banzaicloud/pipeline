@@ -41,14 +41,14 @@ func Sync(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.Status(http.StatusOK)
 }
 
 func syncRestores(arkSvc *ark.Service, logger logrus.FieldLogger) error {
 	restoresSyncSvc := sync.NewRestoresSyncService(arkSvc.GetOrganization(), arkSvc.GetDB(), logger)
 	err := restoresSyncSvc.SyncRestoresForCluster(arkSvc.GetCluster())
 	if err != nil {
-		return emperror.Wrap(err, "could not sync restores")
+		return emperror.WrapWith(err, "could not sync restores", "clusterName", arkSvc.GetCluster().GetName())
 	}
 
 	return nil

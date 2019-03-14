@@ -29,16 +29,7 @@ func List(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
 	logger.Info("getting restores")
 
-	arkSvc := common.GetARKService(c.Request)
-
-	err := syncRestores(arkSvc, logger)
-	if err != nil {
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
-	}
-
-	restores, err := arkSvc.GetRestoresService().List()
+	restores, err := common.GetARKService(c.Request).GetRestoresService().List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get restores")
 		common.ErrorHandler.Handle(err)

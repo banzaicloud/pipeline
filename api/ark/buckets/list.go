@@ -24,7 +24,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark"
-	"github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
@@ -33,18 +32,7 @@ func List(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
 	logger.Info("getting buckets")
 
-	org := auth.GetCurrentOrganization(c.Request)
-
-	bucketsSyncSvc := sync.NewBucketsSyncService(org, config.DB(), common.Log)
-	err := bucketsSyncSvc.SyncBackupsFromBuckets()
-	if err != nil {
-		err = emperror.Wrap(err, "could not sync buckets")
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
-	}
-
-	bs := ark.BucketsServiceFactory(org, config.DB(), logger)
+	bs := ark.BucketsServiceFactory(auth.GetCurrentOrganization(c.Request), config.DB(), logger)
 	buckets, err := bs.List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get buckets")

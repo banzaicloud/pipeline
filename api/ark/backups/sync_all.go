@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright © 2018 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,35 +19,28 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
-	"github.com/banzaicloud/pipeline/internal/ark"
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/config"
+	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	"github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
-// Sync synchronizes ARK backups
-func Sync(c *gin.Context) {
+// Sync syncs ARK backups for the organization
+func (b *orgBackups) Sync(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
 	logger.Info("syncing backups")
 
-	err := syncBackups(common.GetARKService(c.Request), logger)
+	org := auth.GetCurrentOrganization(c.Request)
+	err := sync.NewBackupsSyncService(org, config.DB(), logger).SyncBackups(arkClusterManager.New(b.clusterManager))
 	if err != nil {
+		err = emperror.WrapWith(err, "could not sync org backups", "orgName", org.Name)
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
 	}
 
 	c.Status(http.StatusOK)
-}
-
-func syncBackups(arkSvc *ark.Service, logger logrus.FieldLogger) error {
-	backupSyncSvc := sync.NewBackupsSyncService(arkSvc.GetOrganization(), arkSvc.GetDB(), logger)
-	err := backupSyncSvc.SyncBackupsForCluster(arkSvc.GetCluster())
-	if err != nil {
-		return emperror.WrapWith(err, "could not sync backups", "clusterName", arkSvc.GetCluster().GetName())
-	}
-
-	return nil
 }

@@ -36,16 +36,7 @@ func List(c *gin.Context) {
 		return
 	}
 
-	arkSvc := common.GetARKService(c.Request)
-
-	err := syncBackups(arkSvc, logger)
-	if err != nil {
-		common.ErrorHandler.Handle(err)
-		common.ErrorResponse(c, err)
-		return
-	}
-
-	orgBackups, err := arkSvc.GetBackupsService().List()
+	orgBackups, err := common.GetARKService(c.Request).GetBackupsService().List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backups")
 		common.ErrorHandler.Handle(err)
