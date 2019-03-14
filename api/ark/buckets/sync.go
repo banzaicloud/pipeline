@@ -30,13 +30,13 @@ import (
 // Sync synchronizes ARK buckets
 func Sync(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
-	logger.Info("syncing buckets")
+	logger.Info("syncing backups from buckets")
 
 	org := auth.GetCurrentOrganization(c.Request)
 	bucketsSyncSvc := sync.NewBucketsSyncService(org, config.DB(), logger)
 	err := bucketsSyncSvc.SyncBackupsFromBuckets()
 	if err != nil {
-		err = emperror.Wrap(err, "could not sync buckets")
+		err = emperror.WrapWith(err, "could not sync backups from buckets", "orgName", org.Name)
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return

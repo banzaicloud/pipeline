@@ -31,6 +31,7 @@ const (
 func AddOrgRoutes(group *gin.RouterGroup, clusterManager *cluster.Manager) {
 	orgBackups := &orgBackups{clusterManager: clusterManager}
 	group.GET("", orgBackups.List)
+	group.PUT("/sync", orgBackups.Sync)
 }
 
 // AddRoutes adds ARK backups related API routes
