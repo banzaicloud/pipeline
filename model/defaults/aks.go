@@ -30,6 +30,7 @@ type AKSProfile struct {
 	Location          string                `gorm:"default:'eastus'"`
 	KubernetesVersion string                `gorm:"default:'1.9.2'"`
 	NodePools         []*AKSNodePoolProfile `gorm:"foreignkey:Name"`
+	TtlMinutes        uint                  `gorm:"not null;default:0"`
 }
 
 // AKSNodePoolProfile describes an Azure cluster profile's nodepools
@@ -175,9 +176,10 @@ func (d *AKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	}
 
 	return &pkgCluster.ClusterProfileResponse{
-		Name:     d.DefaultModel.Name,
-		Location: d.Location,
-		Cloud:    pkgCluster.Azure,
+		Name:       d.DefaultModel.Name,
+		Location:   d.Location,
+		Cloud:      pkgCluster.Azure,
+		TtlMinutes: d.TtlMinutes,
 		Properties: &pkgCluster.ClusterProfileProperties{
 			AKS: &aks.ClusterProfileAKS{
 				KubernetesVersion: d.KubernetesVersion,
@@ -231,6 +233,7 @@ func (d *AKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave
 			d.NodePools = nodePools
 		}
 	}
+	d.TtlMinutes = r.TtlMinutes
 
 	if withSave {
 		return d.SaveInstance()
