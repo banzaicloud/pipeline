@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 **Name** | **string** |  | 
 **Location** | **string** |  | 
 **Cloud** | **string** |  | 
+**TtlMinutes** | **int32** | The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted. | [optional] 
 **SecretId** | **string** |  | [optional] 
 **SecretIds** | **[]string** |  | [optional] 
 **SecretName** | **string** |  | [optional] 

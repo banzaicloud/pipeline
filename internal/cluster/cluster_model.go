@@ -58,6 +58,7 @@ type ClusterModel struct {
 	SecurityScan   bool
 	StatusMessage  string             `sql:"type:text;"`
 	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
+	TtlMinutes     uint               `gorm:"default:0"`
 }
 
 const InstanceTypeSeparator = " "
