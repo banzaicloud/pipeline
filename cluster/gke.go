@@ -1907,7 +1907,7 @@ func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
 		return errors.Wrap(err, "failed to update cluster status")
 	}
 
-	if c.model.Cluster.Status != status {
+	if originalStatus != status {
 		statusHistory := &cluster.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
