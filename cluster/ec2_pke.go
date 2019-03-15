@@ -233,7 +233,7 @@ func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
 		return errors.Wrap(err, "failed to update status")
 	}
 
-	if originalStatus != originalStatusMessage {
+	if originalStatus != status {
 		statusHistory := &cluster.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
