@@ -25,6 +25,7 @@ type GetClusterStatusResponse struct {
 	Servicemesh   bool   `json:"servicemesh,omitempty"`
 	Securityscan  bool   `json:"securityscan,omitempty"`
 	CreatedAt     string `json:"createdAt,omitempty"`
+	StartedAt     string `json:"startedAt,omitempty"`
 	CreatorName   string `json:"creatorName,omitempty"`
 	CreatorId     int32  `json:"creatorId,omitempty"`
 	Region        string `json:"region,omitempty"`

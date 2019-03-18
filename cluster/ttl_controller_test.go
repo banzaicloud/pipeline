@@ -15,98 +15,87 @@
 package cluster
 
 import (
+	"reflect"
 	"testing"
 	"time"
 )
 import pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 
-const ttl = 30
+const ttl = 30 * time.Minute
 
 // nolint: gochecknoglobals
 var (
-	clusterCreating = &pkgCluster.StatusHistory{
-		StatusChanges: []*pkgCluster.StatusChange{
-			{
-				CreatedAt:  time.Now().Add(-10 * time.Minute),
-				FromStatus: pkgCluster.Unknown,
-				ToStatus:   pkgCluster.Creating,
-			},
-		},
+	clusterCreateTime         = time.Now().Add(-30 * time.Minute)
+	clusterStartTimeWithinTTL = time.Now().Add(-20 * time.Minute)
+	clusterStartTimeBeyondTTL = time.Now().Add(-40 * time.Minute)
+
+	clusterCreating = &pkgCluster.GetClusterStatusResponse{
+		Status: pkgCluster.Creating,
 	}
-	clusterRunningWithinTTL = &pkgCluster.StatusHistory{
-		StatusChanges: []*pkgCluster.StatusChange{
-			{
-				CreatedAt:  time.Now().Add(-20 * time.Minute),
-				FromStatus: pkgCluster.Unknown,
-				ToStatus:   pkgCluster.Creating,
-			},
-			{
-				CreatedAt:  time.Now().Add(-15 * time.Minute),
-				FromStatus: pkgCluster.Creating,
-				ToStatus:   pkgCluster.Running,
-			},
-			{
-				CreatedAt:  time.Now().Add(-10 * time.Minute),
-				FromStatus: pkgCluster.Running,
-				ToStatus:   pkgCluster.Updating,
-			},
-			{
-				CreatedAt:  time.Now().Add(-5 * time.Minute),
-				FromStatus: pkgCluster.Updating,
-				ToStatus:   pkgCluster.Warning,
-			},
-		},
+	clusterRunning = &pkgCluster.GetClusterStatusResponse{
+		CreatorBaseFields: *NewCreatorBaseFields(clusterCreateTime, 0),
+		Status:            pkgCluster.Running,
+		StartedAt:         &clusterStartTimeWithinTTL,
 	}
 
-	clusterRunningBeyondTTL = &pkgCluster.StatusHistory{
-		StatusChanges: []*pkgCluster.StatusChange{
-			{
-				CreatedAt:  time.Now().Add(-50 * time.Minute),
-				FromStatus: pkgCluster.Unknown,
-				ToStatus:   pkgCluster.Creating,
-			},
-			{
-				CreatedAt:  time.Now().Add(-40 * time.Minute),
-				FromStatus: pkgCluster.Creating,
-				ToStatus:   pkgCluster.Running,
-			},
-			{
-				CreatedAt:  time.Now().Add(-30 * time.Minute),
-				FromStatus: pkgCluster.Running,
-				ToStatus:   pkgCluster.Updating,
-			},
-			{
-				CreatedAt:  time.Now().Add(-20 * time.Minute),
-				FromStatus: pkgCluster.Updating,
-				ToStatus:   pkgCluster.Running,
-			},
-		},
+	clusterRunningWithWarning = &pkgCluster.GetClusterStatusResponse{
+		CreatorBaseFields: *NewCreatorBaseFields(clusterCreateTime, 0),
+		Status:            pkgCluster.Running,
+		StartedAt:         &clusterStartTimeWithinTTL,
+	}
+
+	oldClusterRunning = &pkgCluster.GetClusterStatusResponse{
+		CreatorBaseFields: *NewCreatorBaseFields(clusterCreateTime, 0),
+		Status:            pkgCluster.Running,
 	}
 )
 
 func TestTtlController_isClusterEndOfLife(t *testing.T) {
-	controller := NewTtlController(nil, nil, nil, nil)
+	controller := NewTTLController(nil, nil, nil, nil)
 
 	testCases := []struct {
-		name          string
-		statusHistory *pkgCluster.StatusHistory
-		ttlMinutes    uint
-		expected      bool
+		name            string
+		clusterStarTime *time.Time
+		ttl             time.Duration
+		expected        bool
 	}{
-		{"cluster with no status history", nil, ttl, false},
-		{"creating cluster", clusterCreating, ttl, false},
-		{"running cluster within TTL", clusterRunningWithinTTL, ttl, false},
-		{"running cluster beyond TTL", clusterRunningBeyondTTL, ttl, true},
+		{"cluster with no start time recorded", nil, ttl, false},
+		{"running cluster within TTL", &clusterStartTimeWithinTTL, ttl, false},
+		{"running cluster beyond TTL", &clusterStartTimeBeyondTTL, ttl, true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := controller.isClusterEndOfLife(controller.getClusterStartTime(tc.statusHistory), tc.ttlMinutes)
+			actual := controller.isClusterEndOfLife(tc.clusterStarTime, tc.ttl)
 
 			if actual != tc.expected {
 				t.Errorf("isClusterEndOfLife expected return %v, got %v", tc.expected, actual)
 			}
 		})
 	}
+}
 
+func TestTtlController_getClusterStartTime(t *testing.T) {
+	controller := NewTTLController(nil, nil, nil, nil)
+
+	testCases := []struct {
+		name          string
+		clusterDetail *pkgCluster.GetClusterStatusResponse
+		expected      *time.Time
+	}{
+		{"no cluster detail available", nil, nil},
+		{"cluster is creating", clusterCreating, nil},
+		{"cluster is running", clusterRunning, &clusterStartTimeWithinTTL},
+		{"cluster is running with warning", clusterRunningWithWarning, &clusterStartTimeWithinTTL},
+		{"old cluster is running", oldClusterRunning, &clusterCreateTime},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := controller.getClusterStartTime(tc.clusterDetail)
+			if !reflect.DeepEqual(tc.expected, actual) {
+				t.Errorf("getClusterStartTime expected return %v, got %v", tc.expected, actual)
+			}
+		})
+	}
 }

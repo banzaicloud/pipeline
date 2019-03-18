@@ -198,9 +198,9 @@ func main() {
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, log, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
 
-	clusterTtlController := cluster.NewTtlController(clusterManager, clusterEventBus, log.WithField("subsystem", "ttl-controller"), errorHandler)
-	defer clusterTtlController.Stop()
-	err = clusterTtlController.Start()
+	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, log.WithField("subsystem", "ttl-controller"), errorHandler)
+	defer clusterTTLController.Stop()
+	err = clusterTTLController.Start()
 	if err != nil {
 		logger.Panic(err)
 	}

@@ -29,8 +29,8 @@ type clusterEventsSubscriber interface {
 	SubscribeAsync(topic string, fn interface{}, transactional bool) error
 }
 
-// TtlController periodically checks running clusters and delete those with cluster age exceeding the configured TTL
-type TtlController struct {
+// TTLController periodically checks running clusters and delete those with cluster age exceeding the configured TTL
+type TTLController struct {
 	manager *Manager
 
 	// clusterEvents is the event bus through which cluster created and deleted notifications are received
@@ -44,7 +44,7 @@ type TtlController struct {
 	errorHandler emperror.Handler
 }
 
-func (c *TtlController) Start() error {
+func (c *TTLController) Start() error {
 	c.logger.Info("starting cluster TTL controller")
 	clusters, err := c.manager.GetAllClusters(context.Background())
 
@@ -69,14 +69,14 @@ func (c *TtlController) Start() error {
 
 }
 
-func (c *TtlController) Stop() {
+func (c *TTLController) Stop() {
 	c.logger.Info("shutting cluster TTL controller")
 	c.queue.ShutDown()
 }
 
-// NewTtlController instantiates a new cluster TTL controller
-func NewTtlController(manager *Manager, clusterEvents clusterEventsSubscriber, logger logrus.FieldLogger, errorHandler emperror.Handler) *TtlController {
-	return &TtlController{
+// NewTTLController instantiates a new cluster TTL controller
+func NewTTLController(manager *Manager, clusterEvents clusterEventsSubscriber, logger logrus.FieldLogger, errorHandler emperror.Handler) *TTLController {
+	return &TTLController{
 		manager:       manager,
 		clusterEvents: clusterEvents,
 		queue:         workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "ttl-controller"),
@@ -85,14 +85,14 @@ func NewTtlController(manager *Manager, clusterEvents clusterEventsSubscriber, l
 	}
 }
 
-func (c *TtlController) enqueueCluster(clusterID uint) {
+func (c *TTLController) enqueueCluster(clusterID uint) {
 	if !c.queue.ShuttingDown() {
 		c.queue.Add(clusterID)
 	}
 }
 
 // runWorker runs the loop that processes clusters taken from the workqueue
-func (c *TtlController) runWorker() {
+func (c *TTLController) runWorker() {
 	// loop until we are told to quit
 	for c.processNextCluster() {
 	}
@@ -100,7 +100,7 @@ func (c *TtlController) runWorker() {
 
 // processNextCluster takes one cluster id off the queue for processing.
 // It returns false when it's time to quit
-func (c *TtlController) processNextCluster() bool {
+func (c *TTLController) processNextCluster() bool {
 	// get next cluster off the queue
 	clusterID, quit := c.queue.Get()
 	if quit {
@@ -124,7 +124,7 @@ func (c *TtlController) processNextCluster() bool {
 	return true
 }
 
-func (c *TtlController) handleCluster(clusterID uint) error {
+func (c *TTLController) handleCluster(clusterID uint) error {
 	cluster, err := c.manager.GetClusterByIDOnly(context.Background(), clusterID)
 
 	if err != nil && !intCluster.IsClusterNotFoundError(err) {
@@ -136,12 +136,7 @@ func (c *TtlController) handleCluster(clusterID uint) error {
 		return emperror.WrapWith(err, "failed to retrieve cluster details", "clusterID", clusterID)
 	}
 
-	statusHistory, err := c.manager.GetClusterStatusHistory(context.Background(), clusterID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve cluster status  history")
-	}
-
-	clusterStartedAt := c.getClusterStartTime(statusHistory)
+	clusterStartedAt := c.getClusterStartTime(clusterDetail)
 
 	log := c.logger.WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
@@ -149,22 +144,24 @@ func (c *TtlController) handleCluster(clusterID uint) error {
 		"cluster":      cluster.GetName(),
 		"status":       clusterDetail.Status,
 		"created_at":   clusterDetail.CreatedAt,
-		"ttlMinutes":   clusterDetail.TtlMinutes,
 	})
 
-	if clusterStartedAt.IsZero() {
+	if clusterStartedAt == nil {
 		log = log.WithField("started_at", "")
 	} else {
 		log = log.WithField("started_at", clusterStartedAt)
 	}
 
 	// check only running clusters that have a TTL assigned
-	if !c.hasTtl(clusterDetail) {
+	if !c.hasTTL(clusterDetail) {
 		log.Info("cluster has no TTL set, skip further processing")
 
 		return nil
 	}
 
+	ttl := time.Duration(clusterDetail.TtlMinutes) * time.Minute
+
+	log = log.WithField("ttl", ttl)
 	if !c.isClusterRunning(clusterDetail) {
 		log.Infof("cluster is not in any of [%s, %s] states, skip further processing", pkgCluster.Running, pkgCluster.Warning)
 
@@ -173,7 +170,7 @@ func (c *TtlController) handleCluster(clusterID uint) error {
 
 	log.Debug("check if cluster has reached end of life")
 
-	if c.isClusterEndOfLife(clusterStartedAt, clusterDetail.TtlMinutes) {
+	if c.isClusterEndOfLife(clusterStartedAt, ttl) {
 		log.Info("deleting cluster as it has reached end of life")
 
 		err = c.manager.DeleteCluster(context.Background(), cluster, false)
@@ -190,50 +187,42 @@ func (c *TtlController) handleCluster(clusterID uint) error {
 	return nil
 }
 
-// hasTtl returns true if the cluster has a TTL set
-func (c *TtlController) hasTtl(clusterDetail *pkgCluster.GetClusterStatusResponse) bool {
+// hasTTL returns true if the cluster has a TTL set
+func (c *TTLController) hasTTL(clusterDetail *pkgCluster.GetClusterStatusResponse) bool {
 	return clusterDetail.TtlMinutes > 0
 }
 
 // isClusterRunning returns true if the cluster is up an running regardless of the health of the cluster
-func (c *TtlController) isClusterRunning(clusterDetail *pkgCluster.GetClusterStatusResponse) bool {
+func (c *TTLController) isClusterRunning(clusterDetail *pkgCluster.GetClusterStatusResponse) bool {
 	// deleting a cluster that is in updating state may fail on some cloud provider thus clusters in updating state should
 	// not be considered for deletion in case of end of life. Process these clusters once they finished updating.
 	return clusterDetail.Status == pkgCluster.Running || clusterDetail.Status == pkgCluster.Warning
 }
 
 // isClusterEndOfLife returns true if cluster has reached end of life according
-func (c *TtlController) isClusterEndOfLife(clusterStarTime time.Time, ttlMinutes uint) bool {
-	if clusterStarTime.IsZero() {
+func (c *TTLController) isClusterEndOfLife(clusterStarTime *time.Time, ttl time.Duration) bool {
+	if clusterStarTime == nil {
 		return false
 	}
 
-	clusterEndTime := clusterStarTime.Add(time.Duration(ttlMinutes) * time.Minute)
+	clusterEndTime := clusterStarTime.Add(ttl)
 
 	return time.Now().After(clusterEndTime)
 }
 
 // getClusterStartTime returns the time when cluster status changed from creating -> running|warning
-// if no such status transition found in cluster status history than returns zero time
-func (c *TtlController) getClusterStartTime(statusHistory *pkgCluster.StatusHistory) time.Time {
-	if statusHistory == nil {
-		return time.Time{}
+// if the timestamp when the status changed to running/warning than returns nil
+func (c *TTLController) getClusterStartTime(clusterDetail *pkgCluster.GetClusterStatusResponse) *time.Time {
+	if clusterDetail == nil {
+		return nil
 	}
 
-	// find the time when cluster become running
-	found := false
-	var statusChange *pkgCluster.StatusChange
-
-	for _, statusChange = range statusHistory.StatusChanges {
-		if statusChange.FromStatus == pkgCluster.Creating && (statusChange.ToStatus == pkgCluster.Running || statusChange.ToStatus == pkgCluster.Warning) {
-			found = true
-			break
+	if clusterDetail.StartedAt == nil {
+		// old clusters do not track started_at thus falling back to created_at
+		if clusterDetail.Status != pkgCluster.Creating {
+			return &clusterDetail.CreatedAt
 		}
 	}
 
-	if !found {
-		return time.Time{}
-	}
-
-	return statusChange.CreatedAt
+	return clusterDetail.StartedAt
 }
