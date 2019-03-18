@@ -17,6 +17,7 @@ package cluster
 import (
 	"encoding/base64"
 	"errors"
+	"time"
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
@@ -150,6 +151,7 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
 		TtlMinutes:        c.modelCluster.TtlMinutes,
+		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
 
@@ -373,12 +375,12 @@ func (c *KubeCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
 }
 
-// GetTtlMinutes retrieves the TTL of the cluster
-func (c *KubeCluster) GetTtlMinutes() uint {
-	return c.modelCluster.TtlMinutes
+// GetTTL retrieves the TTL of the cluster
+func (c *KubeCluster) GetTTL() time.Duration {
+	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
 }
 
-// SetTtlMinutes sets the lifespan of a cluster
-func (c *KubeCluster) SetTtlMinutes(ttlMinutes uint) {
-	c.modelCluster.TtlMinutes = ttlMinutes
+// SetTTL sets the lifespan of a cluster
+func (c *KubeCluster) SetTTL(ttl time.Duration) {
+	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }

@@ -7421,6 +7421,9 @@ components:
                 createdAt:
                     type: string
                     example: "2018-07-03T14:23:19+02:00"
+                startedAt:
+                    type: string
+                    example: "2018-07-03T14:23:29+02:00"
                 creatorName:
                     type: string
                     example: "userName"
