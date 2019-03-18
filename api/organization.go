@@ -66,13 +66,13 @@ func OrganizationMiddleware(c *gin.Context) {
 
 // OrganizationAPI implements organization functions.
 type OrganizationAPI struct {
-	githubImporter *auth.GithubImporter
+	scmImporter *auth.SCMImporter
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(githubImporter *auth.GithubImporter) *OrganizationAPI {
+func NewOrganizationAPI(scmImporter *auth.SCMImporter) *OrganizationAPI {
 	return &OrganizationAPI{
-		githubImporter: githubImporter,
+		scmImporter: scmImporter,
 	}
 }
 
@@ -168,8 +168,9 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 
 		return
 	}
-	if provider == auth.GithubTokenID {
-		err = a.githubImporter.ImportOrganizationsFromGithub(user, token)
+	switch provider {
+	case auth.GithubTokenID:
+		err := a.scmImporter.ImportOrganizationsFromGithub(user, token)
 		if err != nil {
 			errorHandler.Handle(err)
 
@@ -181,7 +182,20 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 
 			return
 		}
-	} else {
+	case auth.GitlabTokenID:
+		err := a.scmImporter.ImportOrganizationsFromGitlab(user, token)
+		if err != nil {
+			errorHandler.Handle(err)
+
+			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "syncronization failed",
+				Error:   err.Error(),
+			})
+
+			return
+		}
+	default:
 		return
 	}
 

@@ -87,7 +87,7 @@ func getGitlabOrganizations(token string) ([]organization, error) {
 			name:     group.Name,
 			id:       int64(group.ID),
 			role:     role,
-			provider: ProviderDexGitlab,
+			provider: ProviderGitlab,
 		}
 
 		orgs = append(orgs, org)

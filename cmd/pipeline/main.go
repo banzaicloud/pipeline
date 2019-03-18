@@ -113,11 +113,11 @@ func main() {
 	accessManager := intAuth.NewAccessManager(enforcer, basePath)
 	accessManager.AddDefaultPolicies()
 
-	githubImporter := auth.NewGithubImporter(db, accessManager, config.EventBus)
+	scmImporter := auth.NewSCMImporter(db, accessManager, config.EventBus)
 	tokenHandler := auth.NewTokenHandler(accessManager)
 
 	// Initialize auth
-	auth.Init(cicdDB, accessManager, githubImporter)
+	auth.Init(cicdDB, accessManager, scmImporter)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		log.Info("running automatic schema migrations")
@@ -286,7 +286,7 @@ func main() {
 	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
 
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
-	organizationAPI := api.NewOrganizationAPI(githubImporter)
+	organizationAPI := api.NewOrganizationAPI(scmImporter)
 	userAPI := api.NewUserAPI(accessManager, db, log, errorHandler)
 	networkAPI := api.NewNetworkAPI(log)
 

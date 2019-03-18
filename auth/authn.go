@@ -72,6 +72,7 @@ const (
 	ProviderDexGithub = "dex:github"
 	ProviderGithub    = "github"
 	ProviderDexGitlab = "dex:gitlab"
+	ProviderGitlab    = "gitlab"
 )
 
 func getBackendProvider(dexProvider string) string {
@@ -159,7 +160,7 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImporter) {
+func Init(db *gorm.DB, accessManager accessManager, scmImporter *SCMImporter) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -212,7 +213,7 @@ func Init(db *gorm.DB, accessManager accessManager, githubImporter *GithubImport
 			cicdDB:           cicdDB,
 			events:           ebAuthEvents{eb: config.EventBus},
 			accessManager:    accessManager,
-			githubImporter:   githubImporter,
+			scmImporter:      scmImporter,
 		},
 		LogoutHandler:     BanzaiLogoutHandler,
 		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
