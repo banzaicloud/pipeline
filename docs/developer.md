@@ -93,6 +93,11 @@ $ make build
 $ build/pipeline
 ```
 
+You will also need to run a Worker for background jobs:
+```bash
+$ build/worker
+```
+
 (Optionally, you could also build and run with VSCode or Goland.)
 
 If you happen to get an error similar to this on the first run:
@@ -162,3 +167,16 @@ go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticato
 
 If you need to access local anchore server, uncomment the related services in `docker-compose.override.yml`
 and restart the environment with `make start`.
+
+#### Accessing Pipeline API from the cluster
+
+If you want to launch PKE clusters, you will need to ensure that the pke-tool running on the cluster will access the Pipeline API.
+In a development environment you can do this for example with the following [ngrok](https://ngrok.com/) command: `ngrok http 9090`.
+
+You will also need to adjust the `pipeline.externalURL` configuration value.
+In the `pipeline` section of `config/config.toml` you can add the value like below:
+
+```yaml
+# Base URL where the end users can reach this pipeline instance
+externalURL = "http://abcd1234.ngrok.io/pipeline"
+```
