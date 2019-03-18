@@ -51,6 +51,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const defaultPKEVersion = "1.12.2"
+
 var _ CommonCluster = (*EC2ClusterPKE)(nil)
 
 type EC2ClusterPKE struct {
@@ -298,6 +300,17 @@ func (c *EC2ClusterPKE) SetCurrentWorkflowID(workflowID string) error {
 
 func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, externalBaseURL string) error {
 	return errors.New("unused method")
+}
+
+// HasK8sConfig returns true if the cluster's k8s config is available
+func (c *EC2ClusterPKE) HasK8sConfig() (bool, error) {
+	cfg, err := c.GetK8sConfig()
+	return len(cfg) > 0, emperror.Wrap(err, "failed to check if k8s config is available")
+}
+
+// IsMasterReady returns true when the master node has been reported as ready
+func (c *EC2ClusterPKE) IsMasterReady() (bool, error) {
+	return c.HasK8sConfig()
 }
 
 // RegisterNode adds a Node to the DB
@@ -750,6 +763,13 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		subcommand = "master"
 	}
 
+	version := c.model.Kubernetes.Version
+	if version == "" {
+		version = defaultPKEVersion
+	}
+	if version[0] == 'v' {
+		version = version[1:]
+	}
 	infrastructureCIDR := ""
 	cloudProvider, _, subnets, err := c.GetNetworkCloudProvider()
 	if err != nil {
@@ -801,7 +821,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--pipeline-cluster-id=%d "+
 			"--pipeline-nodepool=%q "+
 			"--kubernetes-cloud-provider=aws "+
-			"--kubernetes-version=1.12.2 "+
+			"--kubernetes-version=%q "+
 			"--kubernetes-network-provider=weave "+
 			"--kubernetes-service-cidr=10.10.0.0/16 "+
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
@@ -814,6 +834,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			c.model.Cluster.OrganizationID,
 			c.model.Cluster.ID,
 			nodePoolName,
+			version,
 			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
@@ -843,7 +864,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		"--pipeline-cluster-id=%d "+
 		"--pipeline-nodepool=%q "+
 		"--kubernetes-cloud-provider=aws "+
-		"--kubernetes-version=1.12.2 "+
+		"--kubernetes-version=%q "+
 		"--kubernetes-infrastructure-cidr=%q",
 		subcommand,
 		url,
@@ -851,6 +872,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		c.model.Cluster.OrganizationID,
 		c.model.Cluster.ID,
 		nodePoolName,
+		version,
 		infrastructureCIDR,
 	), nil
 }

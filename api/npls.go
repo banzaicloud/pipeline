@@ -78,7 +78,14 @@ func SetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	err = cluster.DeployNodePoolLabelsSet(commonCluster, updatedNodePools, false)
+	labelsMap, err := cluster.GetDesiredLabelsForCluster(commonCluster, updatedNodePools, false)
+	if err != nil {
+		errorHandler.Handle(err)
+		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		return
+	}
+
+	err = cluster.DeployNodePoolLabelsSet(commonCluster, labelsMap)
 	if err != nil {
 		if errs, ok := err.(errorCollection); ok {
 			for _, e := range errs.Errors() {

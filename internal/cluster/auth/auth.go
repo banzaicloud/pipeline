@@ -16,6 +16,7 @@ package auth
 
 import (
 	"context"
+	"encoding/base64"
 	"net/url"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
@@ -26,9 +27,12 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	k8sClient "k8s.io/client-go/tools/clientcmd"
+	k8sClientApi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 const authSecretName = "dex-client"
+const configSecretName = "config"
 const clientIDKey = "clientID"
 const clientSecretKey = "clientSecret"
 
@@ -66,6 +70,7 @@ type ClusterAuthService interface {
 	RegisterCluster(context.Context, string, uint, string) error
 	UnRegisterCluster(context.Context, string) error
 	GetClusterClientSecret(context.Context, uint) (ClusterClientSecret, error)
+	GetClusterConfig(context.Context, uint) (*k8sClientApi.Config, error)
 }
 
 type noOpClusterAuthService struct {
@@ -85,6 +90,10 @@ func (*noOpClusterAuthService) UnRegisterCluster(tx context.Context, clusterUID 
 
 func (*noOpClusterAuthService) GetClusterClientSecret(ctx context.Context, clusterID uint) (ClusterClientSecret, error) {
 	return ClusterClientSecret{}, nil
+}
+
+func (*noOpClusterAuthService) GetClusterConfig(ctx context.Context, clusterID uint) (*k8sClientApi.Config, error) {
+	return nil, nil
 }
 
 type dexClusterAuthService struct {
@@ -182,4 +191,19 @@ func (a *dexClusterAuthService) GetClusterClientSecret(ctx context.Context, clus
 		ClientID:     secret.Values[clientIDKey],
 		ClientSecret: secret.Values[clientSecretKey],
 	}, nil
+}
+
+func (a *dexClusterAuthService) GetClusterConfig(ctx context.Context, clusterID uint) (*k8sClientApi.Config, error) {
+
+	secret, err := a.secretStore.GetSecret(ctx, clusterID, configSecretName)
+	if err != nil {
+		return nil, emperror.Wrapf(err, "failed to get dex client for cluster: %d", clusterID)
+	}
+
+	configData, err := base64.StdEncoding.DecodeString(secret.Values[pkgSecret.K8SConfig])
+	if err != nil {
+		return nil, emperror.Wrapf(err, "failed to base64 decode kubeconfig: %d", clusterID)
+	}
+
+	return k8sClient.Load(configData)
 }

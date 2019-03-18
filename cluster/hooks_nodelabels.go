@@ -15,13 +15,15 @@
 package cluster
 
 import (
-	"github.com/banzaicloud/pipeline/config"
-	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
+
+	"github.com/banzaicloud/pipeline/config"
+	pipConfig "github.com/banzaicloud/pipeline/config"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 const nodePoolLabelsOperatorName = "/nodepool-labels-operator"
@@ -85,7 +87,17 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	return nil
 }
 
+type NodePoolLabelParam struct {
+	Labels map[string]map[string]string `json:"labels"`
+}
+
 // SetupNodePoolLabelsSet deploys NodePoolLabelSet resources for each nodepool.
-func SetupNodePoolLabelsSet(cluster CommonCluster) error {
-	return DeployNodePoolLabelsSet(cluster, nil, false)
+func SetupNodePoolLabelsSet(cluster CommonCluster, param pkgCluster.PostHookParam) error {
+	var nodePoolParam NodePoolLabelParam
+	err := castToPostHookParam(&param, &nodePoolParam)
+	if err != nil {
+		return emperror.Wrap(err, "posthook param failed")
+	}
+
+	return DeployNodePoolLabelsSet(cluster, nodePoolParam.Labels)
 }

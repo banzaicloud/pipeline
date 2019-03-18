@@ -52,7 +52,7 @@ require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/containerd/continuity v0.0.0-20181203112020-004b46473808 // indirect
 	github.com/coreos/bbolt v1.3.2 // indirect
-	github.com/coreos/go-oidc v2.0.0+incompatible // indirect
+	github.com/coreos/go-oidc v2.0.0+incompatible
 	github.com/coreos/go-systemd v0.0.0-20190212144455-93d5ec2c7f76 // indirect
 	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
 	github.com/dancannon/gorethink v4.0.0+incompatible // indirect
@@ -259,6 +259,6 @@ require (
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 
-replace github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa => github.com/banzaicloud/auth v0.0.0-20190129164927-922d5048ccd3
+replace github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa => github.com/banzaicloud/auth v0.1.1
 
 replace gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182

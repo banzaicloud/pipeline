@@ -11,6 +11,6 @@
 
 package client
 
-type AmazonConfigResponseInstanceType struct {
-	EuWest1 []string `json:"eu-west-1,omitempty"`
+type PkeClusterReadinessResponse struct {
+	Master PkeClusterReadinessResponseMaster `json:"master,omitempty"`
 }

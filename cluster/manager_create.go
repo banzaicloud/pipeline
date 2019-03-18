@@ -17,13 +17,17 @@ package cluster
 import (
 	"context"
 	stderrors "errors"
+	"sort"
+	"time"
+
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
 
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
@@ -35,7 +39,7 @@ type CreationContext struct {
 	Provider        string
 	SecretID        string
 	SecretIDs       []string
-	PostHooks       []PostFunctioner
+	PostHooks       pkgCluster.PostHooks
 }
 
 type contextKey string
@@ -169,7 +173,7 @@ func (m *Manager) createCluster(
 	ctx context.Context,
 	cluster CommonCluster,
 	creator clusterCreator,
-	postHooks []PostFunctioner,
+	postHooks pkgCluster.PostHooks,
 	logger logrus.FieldLogger,
 ) error {
 	// Check if public ssh key is needed for the cluster. If so and there is generate one and store it Vault
@@ -198,16 +202,139 @@ func (m *Manager) createCluster(
 		return err
 	}
 
-	postHookFunctions := BasePostHookFunctions
-	if postHooks != nil && len(postHooks) != 0 {
-		postHookFunctions = append(postHookFunctions, postHooks...)
+	err := cluster.UpdateStatus(pkgCluster.Creating, "running posthooks")
+	if err != nil {
+		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
-	if err := RunPostHooks(postHookFunctions, cluster); err != nil {
-		return emperror.Wrap(err, "posthook failed")
+	labelsMap, err := GetDesiredLabelsForCluster(cluster, nil, false)
+	if err != nil {
+		_ = cluster.UpdateStatus(pkgCluster.Error, "failed to get desired labels")
+
+		return err
 	}
+
+	if postHooks == nil {
+		postHooks = make(pkgCluster.PostHooks)
+	}
+
+	postHooks[pkgCluster.SetupNodePoolLabelsSet] = NodePoolLabelParam{
+		Labels: labelsMap,
+	}
+
+	logger.WithField("workflowName", RunPostHooksWorkflowName).Info("starting workflow")
+
+	input := RunPostHooksWorkflowInput{
+		ClusterID: cluster.GetID(),
+		PostHooks: BuildWorkflowPostHookFunctions(postHooks, true),
+	}
+
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 2 * time.Hour, // TODO: lower timeout
+	}
+
+	exec, err := m.workflowClient.ExecuteWorkflow(ctx, workflowOptions, RunPostHooksWorkflowName, input)
+	if err != nil {
+		_ = cluster.UpdateStatus(pkgCluster.Error, "failed to run posthooks")
+
+		return emperror.WrapWith(err, "failed to start workflow", "workflowName", RunPostHooksWorkflowName)
+	}
+
+	logger.WithFields(logrus.Fields{
+		"workflowName":  RunPostHooksWorkflowName,
+		"workflowID":    exec.GetID(),
+		"workflowRunID": exec.GetRunID(),
+	}).Info("workflow started successfully")
+
+	err = exec.Get(ctx, nil)
+	if err != nil {
+		return emperror.Wrap(err, "running posthooks failed")
+	}
+
+	logger.WithFields(logrus.Fields{
+		"workflowName":  RunPostHooksWorkflowName,
+		"workflowID":    exec.GetID(),
+		"workflowRunID": exec.GetRunID(),
+	}).Info("workflow finished successfully")
 
 	m.events.ClusterCreated(cluster.GetID())
 
 	return nil
+}
+
+// BuildWorkflowPostHookFunctions builds posthook workflow input.
+func BuildWorkflowPostHookFunctions(postHooks pkgCluster.PostHooks, alwaysIncludeBasePostHooks bool) []RunPostHooksWorkflowInputPostHook {
+	var workflowPostHooks []RunPostHooksWorkflowInputPostHook
+
+	if len(postHooks) == 0 || alwaysIncludeBasePostHooks {
+		for _, postHookName := range BasePostHookFunctions {
+			workflowPostHooks = append(
+				workflowPostHooks,
+				RunPostHooksWorkflowInputPostHook{
+					Name: postHookName,
+				},
+			)
+		}
+	}
+
+	if len(postHooks) > 0 {
+		// Fix base post hooks with parameters
+		for key, existingPostHook := range workflowPostHooks {
+			postHook, ok := postHooks[existingPostHook.Name]
+			if ok {
+				workflowPostHooks[key].Param = postHook
+
+				delete(postHooks, existingPostHook.Name)
+			}
+		}
+
+		var postHooksByPriority postHookFunctionByPriority
+
+		for postHookName, param := range postHooks {
+			postHook, ok := HookMap[postHookName]
+			if !ok {
+				log.Debugf("cannot find posthook function: %s", postHookName)
+
+				continue
+			}
+
+			postHooksByPriority = append(
+				postHooksByPriority,
+				postHookFunctionSorter{
+					Name:     postHookName,
+					Param:    param,
+					Priority: postHook.GetPriority(),
+				},
+			)
+		}
+
+		sort.Sort(postHooksByPriority)
+
+		for _, postHookByPriority := range postHooksByPriority {
+			workflowPostHooks = append(
+				workflowPostHooks,
+				RunPostHooksWorkflowInputPostHook{
+					Name:  postHookByPriority.Name,
+					Param: postHookByPriority.Param,
+				},
+			)
+		}
+	}
+
+	return workflowPostHooks
+}
+
+type postHookFunctionSorter struct {
+	Name     string
+	Param    interface{}
+	Priority int
+}
+
+type postHookFunctionByPriority []postHookFunctionSorter
+
+func (p postHookFunctionByPriority) Len() int      { return len(p) }
+func (p postHookFunctionByPriority) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p postHookFunctionByPriority) Less(i, j int) bool {
+	return p[i].Priority < p[j].Priority
 }

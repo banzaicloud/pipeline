@@ -24,6 +24,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
+const pkeVersion = "0.0.12"
 
 func getDefaultImageID(region string) string {
 	return map[string]string{
@@ -266,12 +267,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	})
 	s.Select(ctx)
 
-	err := workflow.ExecuteActivity(ctx, SetMasterTaintActivityName, SetMasterTaintActivityInput{
-		ClusterID:   input.ClusterID,
-		Schedulable: len(nodePools) == 1,
-	}).Get(ctx, nil)
-	if err != nil {
-		return err
+	if len(nodePools) == 1 {
+		err := workflow.ExecuteActivity(ctx, SetMasterTaintActivityName, SetMasterTaintActivityInput{
+			ClusterID: input.ClusterID,
+		}).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Create nodes

@@ -62,9 +62,8 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	userID := auth.GetCurrentUser(c.Request).ID
 
-	ph := getPostHookFunctions(createClusterRequest.PostHooks)
 	ctx := ginutils.Context(context.Background(), c)
-	commonCluster, err := a.CreateCluster(ctx, &createClusterRequest, orgID, userID, ph)
+	commonCluster, err := a.CreateCluster(ctx, &createClusterRequest, orgID, userID, createClusterRequest.PostHooks)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -82,7 +81,7 @@ func (a *ClusterAPI) CreateCluster(
 	createClusterRequest *pkgCluster.CreateClusterRequest,
 	organizationID uint,
 	userID uint,
-	postHooks []cluster.PostFunctioner,
+	postHooks pkgCluster.PostHooks,
 ) (cluster.CommonCluster, *pkgCommon.ErrorResponse) {
 	logger := a.logger.WithFields(logrus.Fields{
 		"organization": organizationID,

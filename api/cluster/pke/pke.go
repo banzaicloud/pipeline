@@ -63,5 +63,6 @@ func (a *API) getCluster(c *gin.Context) (cluster.CommonCluster, logrus.FieldLog
 
 func (a *API) RegisterRoutes(r gin.IRouter) {
 	r.GET("commands", a.ListCommands)
+	r.GET("ready", a.GetReady)
 	r.POST("ready", a.PostReady)
 }

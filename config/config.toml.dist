@@ -23,7 +23,7 @@ dialect = "mysql"
 host = "localhost"
 port = 3306
 user = "sparky"
-role = "pipeline"
+role = ""
 password = "sparky123"
 dbname = "pipeline"
 
@@ -205,3 +205,11 @@ port = 7933
 domain = "pipeline"
 createNonexistentDomain = true
 workflowExecutionRetentionPeriodInDays = 3
+
+[amazon]
+# default Amazon region to initialize client
+defaultApiRegion = "us-west-1"
+
+[alibaba]
+# default Alibaba region to initialize client
+defaultApiRegion = "eu-central-1"

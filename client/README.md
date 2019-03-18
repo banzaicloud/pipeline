@@ -44,6 +44,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**GetPKECommands**](docs/ClustersApi.md#getpkecommands) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/commands | List bootstrap commands for namespaces
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
+*ClustersApi* | [**GetReadyPKENode**](docs/ClustersApi.md#getreadypkenode) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Query reported node readiness information
 *ClustersApi* | [**HelmInit**](docs/ClustersApi.md#helminit) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/helminit | Initialize Helm
 *ClustersApi* | [**InstallSecret**](docs/ClustersApi.md#installsecret) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Install a particular secret into a cluster with optional remapping
 *ClustersApi* | [**InstallSecrets**](docs/ClustersApi.md#installsecrets) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/secrets | Install secrets into cluster
@@ -52,7 +53,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**ListClusters**](docs/ClustersApi.md#listclusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
 *ClustersApi* | [**ListNodes**](docs/ClustersApi.md#listnodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 *ClustersApi* | [**MergeSecret**](docs/ClustersApi.md#mergesecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
-*ClustersApi* | [**PostReadyPKENode**](docs/ClustersApi.md#postreadypkenode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | List bootstrap commands for namespaces
+*ClustersApi* | [**PostReadyPKENode**](docs/ClustersApi.md#postreadypkenode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Report to Pipeline that a new node is ready (to be called by PKE installer)
 *ClustersApi* | [**UpdateCluster**](docs/ClustersApi.md#updatecluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 *ClustersApi* | [**UpdateMonitoring**](docs/ClustersApi.md#updatemonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
@@ -83,11 +84,7 @@ Class | Method | HTTP request | Description
 *ImagescanApi* | [**ScanImages**](docs/ImagescanApi.md#scanimages) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/imagescan | Scan Images used in cluster
 *InfoApi* | [**CreateResourceGroup**](docs/InfoApi.md#createresourcegroup) | **Post** /api/v1/orgs/{orgId}/azure/resourcegroups | Create resource groups
 *InfoApi* | [**DeleteResourceGroup**](docs/InfoApi.md#deleteresourcegroup) | **Delete** /api/v1/orgs/{orgId}/azure/resourcegroups/{name} | Delete resource group
-*InfoApi* | [**GetAmazonConfig**](docs/InfoApi.md#getamazonconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/amazon | Get all amazon config
-*InfoApi* | [**GetAzureConfig**](docs/InfoApi.md#getazureconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/azure | Get all azure config
-*InfoApi* | [**GetGoogleConfig**](docs/InfoApi.md#getgoogleconfig) | **Get** /api/v1/orgs/{orgId}/cloudinfo/google | Get all google config
 *InfoApi* | [**GetResourceGroups**](docs/InfoApi.md#getresourcegroups) | **Get** /api/v1/orgs/{orgId}/azure/resourcegroups | Get all resource groups
-*InfoApi* | [**GetSupportedClouds**](docs/InfoApi.md#getsupportedclouds) | **Get** /api/v1/orgs/{orgId}/cloudinfo | Get supported cloud types
 *NetworkApi* | [**ListRouteTables**](docs/NetworkApi.md#listroutetables) | **Get** /api/v1/orgs/{orgId}/networks/{networkId}/routeTables | List VPC route tables
 *NetworkApi* | [**ListVPCNetworks**](docs/NetworkApi.md#listvpcnetworks) | **Get** /api/v1/orgs/{orgId}/networks | List VPC networks
 *NetworkApi* | [**ListVPCSubnets**](docs/NetworkApi.md#listvpcsubnets) | **Get** /api/v1/orgs/{orgId}/networks/{networkId}/subnets | List VPC subnetworks
@@ -146,14 +143,9 @@ Class | Method | HTTP request | Description
  - [AllowedSecretTypeResponseFields](docs/AllowedSecretTypeResponseFields.md)
  - [AmazonAutoScalingGroup](docs/AmazonAutoScalingGroup.md)
  - [AmazonAutoScalingGroupSize](docs/AmazonAutoScalingGroupSize.md)
- - [AmazonConfigResponse](docs/AmazonConfigResponse.md)
- - [AmazonConfigResponseImage](docs/AmazonConfigResponseImage.md)
- - [AmazonConfigResponseInstanceType](docs/AmazonConfigResponseInstanceType.md)
  - [AmazonPoviderConfig](docs/AmazonPoviderConfig.md)
  - [AnchoreImage](docs/AnchoreImage.md)
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
- - [AzureConfigResponse](docs/AzureConfigResponse.md)
- - [AzureConfigResponseInstanceType](docs/AzureConfigResponseInstanceType.md)
  - [BaseError](docs/BaseError.md)
  - [BaseError400](docs/BaseError400.md)
  - [BaseError500](docs/BaseError500.md)
@@ -220,9 +212,6 @@ Class | Method | HTTP request | Description
  - [GetDeploymentResponse](docs/GetDeploymentResponse.md)
  - [GetDomainResponse](docs/GetDomainResponse.md)
  - [GetPkeCommandsResponse](docs/GetPkeCommandsResponse.md)
- - [GoogleConfigResponse](docs/GoogleConfigResponse.md)
- - [GoogleConfigResponseInstanceType](docs/GoogleConfigResponseInstanceType.md)
- - [GoogleConfigResponseKubernetesVersions](docs/GoogleConfigResponseKubernetesVersions.md)
  - [HelmChartDetailsResponse](docs/HelmChartDetailsResponse.md)
  - [HelmChartDetailsResponseChart](docs/HelmChartDetailsResponseChart.md)
  - [HelmChartDetailsResponseChartMaintainers](docs/HelmChartDetailsResponseChartMaintainers.md)
@@ -277,6 +266,8 @@ Class | Method | HTTP request | Description
  - [NodePoolsPke](docs/NodePoolsPke.md)
  - [OrganizationListItemResponse](docs/OrganizationListItemResponse.md)
  - [OrganizationNotFound](docs/OrganizationNotFound.md)
+ - [PkeClusterReadinessResponse](docs/PkeClusterReadinessResponse.md)
+ - [PkeClusterReadinessResponseMaster](docs/PkeClusterReadinessResponseMaster.md)
  - [PkeHosts](docs/PkeHosts.md)
  - [PodCondition](docs/PodCondition.md)
  - [PodItem](docs/PodItem.md)
@@ -316,8 +307,6 @@ Class | Method | HTTP request | Description
  - [SpotguideNotFound](docs/SpotguideNotFound.md)
  - [SpotguideOption](docs/SpotguideOption.md)
  - [SubnetInfo](docs/SubnetInfo.md)
- - [SupportedCloudItem](docs/SupportedCloudItem.md)
- - [SupportedCloudsResponse](docs/SupportedCloudsResponse.md)
  - [TokenCreateRequest](docs/TokenCreateRequest.md)
  - [TokenCreateResponse](docs/TokenCreateResponse.md)
  - [TokenListResponseItem](docs/TokenListResponseItem.md)

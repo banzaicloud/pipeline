@@ -31,55 +31,24 @@ import (
 	"github.com/spf13/viper"
 )
 
-// DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each node pool.
-// if dontUpdateIfNoUserLabels = true in case there are no labels specified in NodePoolStatus the NodePoolLabelSet for that node pool is not updated,
-// to avoid deleting user specified labels in case of cluster update with empty label map.
-func DeployNodePoolLabelsSet(cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, dontUpdateIfNoUserLabels bool) error {
+// GetDesiredLabelsForCluster returns desired set of labels for each node pool name, adding Banzaicloud prefixed labels like:
+// head node, ondemand labels + cloudinfo to user defined labels in specified nodePools map.
+// noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
+// is not returned, to avoid overriding user specified labels.
+func GetDesiredLabelsForCluster(cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) (map[string]map[string]string, error) {
+	desiredLabels := make(map[string]map[string]string)
+
 	clusterStatus, err := cluster.GetStatus()
 	if err != nil {
-		return emperror.WrapWith(err, "failed to get cluster status", "cluster", cluster.GetName())
+		return desiredLabels, emperror.WrapWith(err, "failed to get cluster status", "cluster", cluster.GetName())
 	}
-
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-
-	if nodePools == nil {
+	if len(nodePools) == 0 {
 		nodePools = clusterStatus.NodePools
 	}
-
-	// gather desired node pool labels
-	desiredLabelSet, err := getDesiredNodePoolLabelSets(clusterStatus, headNodePoolName, nodePools, dontUpdateIfNoUserLabels)
-	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve desired set of labels for cluster")
-	}
-
-	k8sConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
-	}
-	k8sClientConfig, err := k8sclient.NewClientConfig(k8sConfig)
-	if err != nil {
-		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
-	}
-	m, err := npls.NewNPLSManager(k8sClientConfig, pipelineSystemNamespace)
-	if err != nil {
-		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
-	}
-
-	err = m.Sync(desiredLabelSet)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// getDesiredNodePoolLabelSets add node pool name, head node, ondemand labels + cloudinfo + user definied labels
-func getDesiredNodePoolLabelSets(clusterStatus *pkgCluster.GetClusterStatusResponse, headNodePoolName string, nodePools map[string]*pkgCluster.NodePoolStatus, dontUpdateIfNoUserLabels bool) (npls.NodepoolLabelSets, error) {
-	desiredLabels := make(npls.NodepoolLabelSets)
+	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 
 	for name, nodePool := range nodePools {
-		labelsMap := getDesiredNodePoolLabels(clusterStatus, name, nodePool, headNodePoolName, dontUpdateIfNoUserLabels)
+		labelsMap := getDesiredNodePoolLabels(clusterStatus, name, nodePool, headNodePoolName, noReturnIfNoUserLabels)
 		if len(labelsMap) > 0 {
 			desiredLabels[name] = labelsMap
 		}
@@ -87,11 +56,22 @@ func getDesiredNodePoolLabelSets(clusterStatus *pkgCluster.GetClusterStatusRespo
 	return desiredLabels, nil
 }
 
+func getNodePoolLabelSets(nodePoolLabels map[string]map[string]string) npls.NodepoolLabelSets {
+	desiredLabels := make(npls.NodepoolLabelSets)
+
+	for name, nodePoolLabelMap := range nodePoolLabels {
+		if len(nodePoolLabelMap) > 0 {
+			desiredLabels[name] = nodePoolLabelMap
+		}
+	}
+	return desiredLabels
+}
+
 func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse, nodePoolName string,
-	nodePool *pkgCluster.NodePoolStatus, headNodePoolName string, dontUpdateIfNoUserLabels bool) map[string]string {
+	nodePool *pkgCluster.NodePoolStatus, headNodePoolName string, noReturnIfNoUserLabels bool) map[string]string {
 
 	desiredLabels := make(map[string]string)
-	if len(nodePool.Labels) == 0 && dontUpdateIfNoUserLabels {
+	if len(nodePool.Labels) == 0 && noReturnIfNoUserLabels {
 		return desiredLabels
 	}
 
@@ -112,6 +92,7 @@ func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse
 	machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
 		clusterStatus.Distribution,
 		clusterStatus.Region,
+		clusterStatus.Location,
 		nodePool.InstanceType)
 	if err != nil {
 		log.WithFields(logrus.Fields{
@@ -153,4 +134,31 @@ func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
 		return "false"
 	}
 	return "true"
+}
+
+// DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each node pool.
+func DeployNodePoolLabelsSet(cluster CommonCluster, nodePoolLabels map[string]map[string]string) error {
+
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+
+	k8sConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
+	}
+	k8sClientConfig, err := k8sclient.NewClientConfig(k8sConfig)
+	if err != nil {
+		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
+	}
+	m, err := npls.NewNPLSManager(k8sClientConfig, pipelineSystemNamespace)
+	if err != nil {
+		return emperror.Wrap(err, "failed to set up desired set of labels for cluster")
+	}
+
+	labelSet := getNodePoolLabelSets(nodePoolLabels)
+	err = m.Sync(labelSet)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

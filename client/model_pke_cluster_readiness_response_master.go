@@ -11,6 +11,7 @@
 
 package client
 
-type GoogleConfigResponseInstanceType struct {
-	AsiaEast1A []string `json:"asia-east1-a,omitempty"`
+type PkeClusterReadinessResponseMaster struct {
+	// true when the node has been reported to be ready
+	Ready bool `json:"ready,omitempty"`
 }

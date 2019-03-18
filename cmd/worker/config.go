@@ -138,6 +138,6 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("cadence.host")
 	v.SetDefault("cadence.port", 7933)
 	v.SetDefault("cadence.domain", "pipeline")
-	v.SetDefault("cadence.createNonexistentDomain", true)
+	v.SetDefault("cadence.createNonexistentDomain", false)
 	v.SetDefault("cadence.workflowExecutionRetentionPeriodInDays", 3)
 }
