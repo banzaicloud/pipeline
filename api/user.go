@@ -74,7 +74,7 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	githubToken, err := auth.GetUserGithubToken(user.ID)
+	scmToken, provider, err := auth.GetSCMToken(user.ID)
 
 	if err != nil {
 		message := "failed to fetch user's github token"
@@ -86,13 +86,19 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		})
 		return
 	}
-
 	var response struct {
 		*auth.User
 		GitHubTokenSet bool `json:"gitHubTokenSet"`
+		GitLabTokenSet bool `json:"gitLabTokenSet"`
 	}
+
 	response.User = user
-	response.GitHubTokenSet = (githubToken != "")
+	if provider == auth.GithubTokenID {
+		response.GitHubTokenSet = (scmToken != "")
+	}
+	if provider == auth.GitlabTokenID {
+		response.GitLabTokenSet = (scmToken != "")
+	}
 
 	c.JSON(http.StatusOK, response)
 }
@@ -330,6 +336,34 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 			err = auth.RemoveUserSCMToken(user, auth.GithubTokenID)
 			if err != nil {
 				message := "failed to remove user's github token"
+				a.errorHandler.Handle(emperror.Wrap(err, message))
+				c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+					Code:    http.StatusInternalServerError,
+					Message: message,
+					Error:   message,
+				})
+				return
+			}
+		}
+	}
+
+	if updateUserRequest.GitLabToken != nil {
+		if *updateUserRequest.GitLabToken != "" {
+			err = auth.SaveUserSCMToken(user, *updateUserRequest.GitLabToken, auth.GitlabTokenID)
+			if err != nil {
+				message := "failed to update user's gitlab token"
+				a.errorHandler.Handle(emperror.Wrap(err, message))
+				c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+					Code:    http.StatusInternalServerError,
+					Message: message,
+					Error:   message,
+				})
+				return
+			}
+		} else {
+			err = auth.RemoveUserSCMToken(user, auth.GitlabTokenID)
+			if err != nil {
+				message := "failed to remove user's gitlab token"
 				a.errorHandler.Handle(emperror.Wrap(err, message))
 				c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
 					Code:    http.StatusInternalServerError,

@@ -15,7 +15,11 @@
 package auth
 
 import (
+	"fmt"
+
+	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -35,6 +39,37 @@ func NewGitlabClient(accessToken string) *gitlab.Client {
 	)
 
 	return gitlab.NewClient(httpClient, accessToken)
+}
+
+func NewGitlabClientForUser(userID uint) (*gitlab.Client, error) {
+	accessToken, err := GetUserGitlabToken(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if accessToken == "" {
+		return nil, errors.New("user's gitlab token is not set")
+	}
+
+	return NewGitlabClient(accessToken), nil
+}
+
+func GetUserGitlabToken(userID uint) (string, error) {
+	token, err := TokenStore.Lookup(fmt.Sprint(userID), GitlabTokenID)
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to lookup user token")
+	}
+
+	if token == nil {
+		return "", nil
+	}
+
+	return token.Value, nil
+}
+
+func getGitlabOrganizations(token string) ([]organization, error) {
+
+	return nil, nil
 }
 
 func getGitlabUserMeta(schema *auth.Schema) (*gitlabUserMeta, error) {
