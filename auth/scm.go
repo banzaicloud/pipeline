@@ -16,6 +16,13 @@ package auth
 
 import "github.com/goph/emperror"
 
+type organization struct {
+	name     string
+	id       int64
+	role     string
+	provider string
+}
+
 // GetSCMToken get scm token
 func GetSCMToken(userID uint) (string, string, error) {
 	scmToken, err := GetUserGithubToken(userID)

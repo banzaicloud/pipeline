@@ -15,6 +15,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/goph/emperror"
@@ -68,8 +69,49 @@ func GetUserGitlabToken(userID uint) (string, error) {
 }
 
 func getGitlabOrganizations(token string) ([]organization, error) {
+	httpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
+	gitlabClient := gitlab.NewClient(httpClient, token)
 
-	return nil, nil
+	groups, _, err := gitlabClient.Groups.ListGroups(&gitlab.ListGroupsOptions{})
+
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to list groups from gitlab")
+	}
+
+	currentUser, _, err := gitlabClient.Users.CurrentUser()
+	var orgs []organization
+	for _, group := range groups {
+		role, _ := getGroupAccesLevel(gitlabClient, group.ID, currentUser.ID)
+		// TODO error logging
+		org := organization{
+			name:     group.Name,
+			id:       int64(group.ID),
+			role:     role,
+			provider: ProviderDexGitlab,
+		}
+
+		orgs = append(orgs, org)
+	}
+
+	return orgs, nil
+}
+
+func getGroupAccesLevel(gitlabClient *gitlab.Client, groupID int, userID int) (string, error) {
+
+	groupMember, _, err := gitlabClient.GroupMembers.GetGroupMember(groupID, userID)
+	if err != nil {
+		return "", emperror.With(err, "userID", userID, "groupID", groupID)
+	}
+	role := map[int]string{
+		0:  "NoPermissions",
+		10: "GuestPermissions",
+		20: "ReporterPermissions",
+		30: "DeveloperPermissions",
+		40: "MaintainerPermissions",
+		50: "OwnerPermissions",
+	}
+
+	return role[int(groupMember.AccessLevel)], nil
 }
 
 func getGitlabUserMeta(schema *auth.Schema) (*gitlabUserMeta, error) {
