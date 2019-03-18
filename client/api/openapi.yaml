@@ -5331,7 +5331,7 @@ components:
           - 62bc3c75-91fb-4670-bad4-24b401a9deac
           - 4378ae32-2355-12ed-b984-1234567804ed
           name: gkecluster-pipelineuser-123
-          ttlMinutes: 2
+          ttlMinutes: 120
           secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
           postHooks:
@@ -5530,7 +5530,7 @@ components:
         - 62bc3c75-91fb-4670-bad4-24b401a9deac
         - 4378ae32-2355-12ed-b984-1234567804ed
         name: gkecluster-pipelineuser-123
-        ttlMinutes: 2
+        ttlMinutes: 120
         secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
         postHooks:
@@ -5559,7 +5559,7 @@ components:
           type: string
         ttlMinutes:
           description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 2
+          example: 120
           format: int32
           minimum: 0
           type: integer
@@ -6034,7 +6034,7 @@ components:
     UpdateClusterRequest:
       example:
         cloud: google
-        ttlMinutes: 2
+        ttlMinutes: 120
         properties:
           google:
             master:
@@ -6049,7 +6049,7 @@ components:
           type: string
         ttlMinutes:
           description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 2
+          example: 120
           format: int32
           minimum: 0
           type: integer
@@ -7055,7 +7055,7 @@ components:
       example:
         cloud: google
         name: default
-        ttlMinutes: 2
+        ttlMinutes: 120
         location: us-central1-a
         properties:
           gke:
@@ -7078,7 +7078,7 @@ components:
           type: string
         ttlMinutes:
           description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 2
+          example: 120
           format: int32
           minimum: 0
           type: integer
@@ -7113,7 +7113,7 @@ components:
       example:
         cloud: google
         name: myCluster-profile
-        ttlMinutes: 2
+        ttlMinutes: 120
         location: us-central1-a
         properties:
           gke:
@@ -7136,7 +7136,7 @@ components:
           type: string
         ttlMinutes:
           description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 2
+          example: 120
           format: int32
           minimum: 0
           type: integer
@@ -7610,7 +7610,7 @@ components:
         securityscan: true
         creatorName: userName
         creatorId: 1
-        ttlMinutes: 2
+        ttlMinutes: 120
         distribution: gke
         monitoring: true
         statusMessage: Cluster is running
@@ -7676,7 +7676,7 @@ components:
           type: string
         ttlMinutes:
           description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 2
+          example: 120
           format: int32
           minimum: 0
           type: integer
