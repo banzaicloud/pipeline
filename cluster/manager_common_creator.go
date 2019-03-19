@@ -106,16 +106,19 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 		DexEnabled:          c.dexEnabled,
 	}
 
-	cpc := &pke.NetworkCloudProviderConfigAmazon{}
-	err := mapstructure.Decode(c.request.Properties.CreateClusterPKE.Network.ProviderConfig, &cpc)
-	if err != nil {
-		return err
-	}
+	providerConfig := c.request.Properties.CreateClusterPKE.Network.ProviderConfig
+	if providerConfig != nil {
+		cpc := &pke.NetworkCloudProviderConfigAmazon{}
+		err := mapstructure.Decode(providerConfig, &cpc)
+		if err != nil {
+			return err
+		}
 
-	input.VPCID = cpc.VPCID
+		input.VPCID = cpc.VPCID
 
-	if len(cpc.Subnets) > 0 {
-		input.SubnetID = string(cpc.Subnets[0])
+		if len(cpc.Subnets) > 0 {
+			input.SubnetID = string(cpc.Subnets[0])
+		}
 	}
 
 	workflowOptions := client.StartWorkflowOptions{
