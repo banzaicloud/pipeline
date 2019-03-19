@@ -148,6 +148,7 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 
 	user := auth.GetCurrentUser(c.Request)
 	token, provider, err := auth.GetSCMToken(user.ID)
+
 	if err != nil {
 		errorHandler.Handle(err)
 

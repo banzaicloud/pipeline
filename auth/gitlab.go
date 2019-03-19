@@ -15,7 +15,6 @@
 package auth
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/goph/emperror"
@@ -23,7 +22,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 )
@@ -69,10 +67,10 @@ func GetUserGitlabToken(userID uint) (string, error) {
 }
 
 func getGitlabOrganizations(token string) ([]organization, error) {
-	httpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
-	gitlabClient := gitlab.NewClient(httpClient, token)
+	gitlabClient := gitlab.NewClient(nil, token)
 
-	groups, _, err := gitlabClient.Groups.ListGroups(&gitlab.ListGroupsOptions{})
+	minAccessLevel := gitlab.DeveloperPermissions
+	groups, _, err := gitlabClient.Groups.ListGroups(&gitlab.ListGroupsOptions{MinAccessLevel: &minAccessLevel})
 
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to list groups from gitlab")
@@ -114,9 +112,6 @@ func getGroupAccesLevel(gitlabClient *gitlab.Client, groupID int, userID int) (s
 		return "", emperror.With(err, "userID", userID, "groupID", groupID)
 	}
 	role := map[int]string{
-		0:  "NoPermissions",
-		10: "GuestPermissions",
-		20: "ReporterPermissions",
 		30: "DeveloperPermissions",
 		40: "MaintainerPermissions",
 		50: "OwnerPermissions",
@@ -126,7 +121,7 @@ func getGroupAccesLevel(gitlabClient *gitlab.Client, groupID int, userID int) (s
 }
 
 func getGitlabUserMeta(schema *auth.Schema) (*gitlabUserMeta, error) {
-	gitlabClient := NewGitlabClient(viper.GetString("gitlab.token"))
+	gitlabClient := NewGitlabClient("")
 
 	var dexClaims struct {
 		FederatedClaims map[string]string
