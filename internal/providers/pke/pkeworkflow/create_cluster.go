@@ -60,6 +60,8 @@ type CreateClusterWorkflowInput struct {
 	Region              string
 	PipelineExternalURL string
 	DexEnabled          bool
+	VPCID               string
+	SubnetID            string
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -122,7 +124,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	// Create VPC
 	{
-		activityInput := CreateVPCActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID, ClusterName: input.ClusterName}
+		activityInput := CreateVPCActivityInput{
+			AWSActivityInput: awsActivityInput,
+			ClusterID:        input.ClusterID,
+			ClusterName:      input.ClusterName,
+			VPCID:            input.VPCID,
+			SubnetID:         input.SubnetID,
+		}
 		err := workflow.ExecuteActivity(ctx, CreateVPCActivityName, activityInput).Get(ctx, &vpcStackID)
 		if err != nil {
 			return err

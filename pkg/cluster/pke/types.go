@@ -16,7 +16,7 @@ package pke
 
 import "github.com/pkg/errors"
 
-//TODO add required field to KubeADM if applicable
+// TODO add required field to KubeADM if applicable
 
 // CreateClusterPKE describes Pipeline's EC2/BanzaiCloud fields of a CreateCluster request
 type CreateClusterPKE struct {
@@ -50,10 +50,11 @@ type UpdateNodePool struct {
 }
 
 type Network struct {
-	ServiceCIDR      string          `json:"serviceCIDR" yaml:"serviceCIDR"`
-	PodCIDR          string          `json:"podCIDR" yaml:"podCIDR"`
-	Provider         NetworkProvider `json:"provider" yaml:"provider"`
-	APIServerAddress string          `json:"apiServerAddress" yaml:"apiServerAddress"`
+	ServiceCIDR      string                 `json:"serviceCIDR" yaml:"serviceCIDR"`
+	PodCIDR          string                 `json:"podCIDR" yaml:"podCIDR"`
+	Provider         NetworkProvider        `json:"provider" yaml:"provider"`
+	APIServerAddress string                 `json:"apiServerAddress" yaml:"apiServerAddress"`
+	ProviderConfig   map[string]interface{} `json:"cloudProviderConfig" yaml:"cloudProviderConfig"`
 }
 
 type NetworkProvider string
@@ -104,7 +105,7 @@ type Labels map[string]string
 type Taints []Taint
 type Taint string
 
-//TODO add required field to LaunchTemplate if applicable
+// TODO add required field to LaunchTemplate if applicable
 type AmazonProviderConfig struct {
 	AutoScalingGroup struct {
 		Name                    string  `json:"name" yaml:"name" binding:"required"`
@@ -161,7 +162,7 @@ type RBAC struct {
 	Enabled bool `json:"enabled" yaml:"enabled" binding:"required"`
 }
 
-//TODO add required field to RuntimeConfig if applicable
+// TODO add required field to RuntimeConfig if applicable
 type CRI struct {
 	Runtime       Runtime                `json:"runtime" yaml:"runtime" binding:"required"`
 	RuntimeConfig map[string]interface{} `json:"runtimeConfig" yaml:"runtimeConfig"`
@@ -173,7 +174,7 @@ const (
 	CRIContainerd Runtime = "containerd"
 )
 
-////TODO add required field to ExtraArgs if applicable
+// //TODO add required field to ExtraArgs if applicable
 type KubeADM struct {
 	ExtraArgs ExtraArgs `json:"extraArgs" yaml:"extraArgs"`
 }
