@@ -79,6 +79,9 @@ func getGitlabOrganizations(token string) ([]organization, error) {
 	}
 
 	currentUser, _, err := gitlabClient.Users.CurrentUser()
+	if err != nil {
+		return nil, emperror.With(err, "unable to get current gitlab user")
+	}
 	var orgs []organization
 	for _, group := range groups {
 		role, _ := getGroupAccesLevel(gitlabClient, group.ID, currentUser.ID)
@@ -92,6 +95,14 @@ func getGitlabOrganizations(token string) ([]organization, error) {
 
 		orgs = append(orgs, org)
 	}
+
+	userOrg := organization{
+		name:     currentUser.Username,
+		role:     "admin",
+		provider: ProviderGitlab,
+	}
+
+	orgs = append(orgs, userOrg)
 
 	return orgs, nil
 }
