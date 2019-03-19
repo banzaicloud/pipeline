@@ -41,6 +41,8 @@ type CreateVPCActivityInput struct {
 	AWSActivityInput
 	ClusterID   uint
 	ClusterName string
+	VPCID       string
+	SubnetID    string
 }
 
 func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivityInput) (string, error) {
@@ -67,6 +69,14 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 			{
 				ParameterKey:   aws.String("ClusterName"),
 				ParameterValue: aws.String(input.ClusterName),
+			},
+			{
+				ParameterKey:   aws.String("VpcId"),
+				ParameterValue: aws.String(input.VPCID),
+			},
+			{
+				ParameterKey:   aws.String("Subnets"),
+				ParameterValue: aws.String(input.SubnetID),
 			},
 		},
 	}
