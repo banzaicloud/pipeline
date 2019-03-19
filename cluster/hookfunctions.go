@@ -65,6 +65,11 @@ var HookMap = map[string]PostFunctioner{
 		f:            InstallLogging,
 		ErrorHandler: ErrorHandler{},
 	},
+	pkgCluster.InstallIstioOperator: &PostFunctionWithParam{
+		f:            InstallIstioOperator,
+		Priority:     Priority{6},
+		ErrorHandler: ErrorHandler{},
+	},
 	pkgCluster.InstallServiceMesh: &PostFunctionWithParam{
 		f:            InstallServiceMesh,
 		Priority:     Priority{10},

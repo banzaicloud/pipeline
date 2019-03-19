@@ -12,5 +12,7 @@
 package client
 
 type ServiceMeshPostHookInstallServiceMesh struct {
-	Mtls bool `json:"mtls,omitempty"`
+	Mtls                        bool     `json:"mtls,omitempty"`
+	AutoSidecarInjectNamespaces []string `json:"autoSidecarInjectNamespaces,omitempty"`
+	BypassEgressTraffic         bool     `json:"bypassEgressTraffic,omitempty"`
 }

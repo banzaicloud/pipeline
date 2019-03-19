@@ -8194,6 +8194,8 @@ components:
       type: object
     ServiceMeshPostHook:
       properties:
+        InstallIstioOperator:
+          type: object
         InstallServiceMesh:
           $ref: '#/components/schemas/ServiceMeshPostHook_InstallServiceMesh'
       type: object
@@ -10219,6 +10221,13 @@ components:
     ServiceMeshPostHook_InstallServiceMesh:
       properties:
         mtls:
+          type: boolean
+        autoSidecarInjectNamespaces:
+          example: default
+          items:
+            type: string
+          type: array
+        bypassEgressTraffic:
           type: boolean
     PolicyRule_params:
       example:

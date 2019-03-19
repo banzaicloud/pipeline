@@ -12,5 +12,6 @@
 package client
 
 type ServiceMeshPostHook struct {
-	InstallServiceMesh ServiceMeshPostHookInstallServiceMesh `json:"InstallServiceMesh,omitempty"`
+	InstallIstioOperator map[string]interface{}                `json:"InstallIstioOperator,omitempty"`
+	InstallServiceMesh   ServiceMeshPostHookInstallServiceMesh `json:"InstallServiceMesh,omitempty"`
 }

@@ -81,6 +81,7 @@ const (
 	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
 	InstallMonitoring                      = "InstallMonitoring"
 	InstallLogging                         = "InstallLogging"
+	InstallIstioOperator                   = "InstallIstioOperator"
 	InstallServiceMesh                     = "InstallServiceMesh"
 	RegisterDomainPostHook                 = "RegisterDomainPostHook"
 	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
