@@ -337,7 +337,6 @@ func GetNodePools(c *gin.Context) {
 			machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
 				clusterStatus.Distribution,
 				clusterStatus.Region,
-				clusterStatus.Location,
 				nodePool.InstanceType)
 			if err != nil {
 				errorHandler.Handle(err)
