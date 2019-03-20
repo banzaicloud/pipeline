@@ -138,7 +138,7 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 	nodePools := getNodePoolsFromUpdateRequest(c.request)
 	// to avoid overriding user specified labels, in case of of an empty label map in update request,
 	// set noReturnIfNoUserLabels = true
-	labelsMap, err := GetDesiredLabelsForCluster(c.cluster, nodePools, true)
+	labelsMap, err := GetDesiredLabelsForCluster(ctx, c.cluster, nodePools, true)
 	if err != nil {
 		return err
 	}

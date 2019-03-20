@@ -15,6 +15,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
@@ -51,6 +52,8 @@ func getNodePoolsWithUpdatedLabels(commonCluster cluster.CommonCluster, nodepool
 }
 
 func SetNodepoolLabelSets(c *gin.Context) {
+	ctx := ginutils.Context(context.Background(), c)
+
 	var nodepoolLabelSets npls.NodepoolLabelSets
 	if err := c.BindJSON(&nodepoolLabelSets); err != nil {
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
@@ -78,7 +81,7 @@ func SetNodepoolLabelSets(c *gin.Context) {
 		return
 	}
 
-	labelsMap, err := cluster.GetDesiredLabelsForCluster(commonCluster, updatedNodePools, false)
+	labelsMap, err := cluster.GetDesiredLabelsForCluster(ctx, commonCluster, updatedNodePools, false)
 	if err != nil {
 		errorHandler.Handle(err)
 		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
