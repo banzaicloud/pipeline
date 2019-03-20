@@ -117,16 +117,6 @@ func (*ACSKCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-// GetTtlMinutes retrieves the TTL of the cluster
-func (c *ACSKCluster) GetTtlMinutes() uint {
-	return c.modelCluster.TtlMinutes
-}
-
-// SetTtlMinutes sets the lifespan of a cluster
-func (c *ACSKCluster) SetTtlMinutes(ttlMinutes uint) {
-	c.modelCluster.TtlMinutes = ttlMinutes
-}
-
 func (c *ACSKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 	essClient, err := c.GetAlibabaESSClient(nil)
 	if err != nil {
@@ -334,8 +324,7 @@ func CreateACSKClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgI
 			NodePools:                nodePools,
 			VSwitchID:                request.Properties.CreateClusterACSK.VSwitchID,
 		},
-		CreatedBy:  userId,
-		TtlMinutes: request.TtlMinutes,
+		CreatedBy: userId,
 	}
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 
@@ -615,7 +604,6 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		Region:            c.modelCluster.ACSK.RegionID,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 	}, nil
 }
 

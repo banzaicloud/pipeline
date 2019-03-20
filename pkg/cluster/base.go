@@ -123,7 +123,6 @@ type CreateClusterRequest struct {
 	PostHooks    PostHooks                `json:"postHooks" yaml:"postHooks"`
 	Properties   *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
 	ScaleOptions *ScaleOptions            `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
-	TtlMinutes   uint                     `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 }
 
 // CreateClusterProperties contains the cluster flavor specific properties.
@@ -202,8 +201,7 @@ type GetClusterStatusResponse struct {
 	pkgCommon.CreatorBaseFields
 
 	// If region not available fall back to Location
-	Region     string `json:"region,omitempty"`
-	TtlMinutes uint   `json:"ttlMinutes,omitempty"`
+	Region string `json:"region,omitempty"`
 }
 
 // NodePoolStatus describes cluster's node status
@@ -260,7 +258,6 @@ type UpdateClusterRequest struct {
 	Cloud            string `json:"cloud" binding:"required"`
 	UpdateProperties `json:"properties"`
 	ScaleOptions     *ScaleOptions `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
-	TtlMinutes       uint          `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 }
 
 // Ipv4Cidrs describes the service and pod IPv4 ranges
@@ -479,7 +476,6 @@ type ClusterProfileResponse struct {
 	Name       string                    `json:"name" binding:"required"`
 	Location   string                    `json:"location" binding:"required"`
 	Cloud      string                    `json:"cloud" binding:"required"`
-	TtlMinutes uint                      `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 	Properties *ClusterProfileProperties `json:"properties" binding:"required"`
 }
 
@@ -488,7 +484,6 @@ type ClusterProfileRequest struct {
 	Name       string                    `json:"name" binding:"required"`
 	Location   string                    `json:"location" binding:"required"`
 	Cloud      string                    `json:"cloud" binding:"required"`
-	TtlMinutes uint                      `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`
 	Properties *ClusterProfileProperties `json:"properties" binding:"required"`
 }
 
@@ -599,25 +594,11 @@ type ResourceSummaryItem struct {
 	Request     string `json:"request,omitempty"`
 }
 
-// NodePoolLabel describes labels on a node pool
+// NodePoolLabel desribes labels on a node pool
 type NodePoolLabel struct {
 	Name     string `json:"name"`
 	Value    string `json:"value"`
 	Reserved bool   `json:"reserved"`
-}
-
-// StatusChange describes a transition in cluster status
-type StatusChange struct {
-	CreatedAt         time.Time `json:"createdAt,omitempty"`
-	FromStatus        string    `json:"fromStatus,omitempty"`
-	FromStatusMessage string    `jon:"fromStatusMessage,omitempty"`
-	ToStatus          string    `json:"toStatus,omitempty"`
-	ToStatusMessage   string    `json:"toStatusMessage,omitempty"`
-}
-
-// StatusHistory describes the status change history of a cluster
-type StatusHistory struct {
-	StatusChanges []*StatusChange `json:"statusChanges,omitempty"`
 }
 
 // CreateClusterRequest creates a CreateClusterRequest model from profile
@@ -629,7 +610,6 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 		SecretId:    createRequest.SecretId,
 		ProfileName: p.Name,
 		Properties:  &CreateClusterProperties{},
-		TtlMinutes:  p.TtlMinutes,
 	}
 
 	switch p.Cloud { // TODO(Ecsy): distribution???

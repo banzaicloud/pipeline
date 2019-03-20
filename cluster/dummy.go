@@ -46,7 +46,6 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 			KubernetesVersion: request.Properties.CreateClusterDummy.Node.KubernetesVersion,
 			NodeCount:         request.Properties.CreateClusterDummy.Node.Count,
 		},
-		TtlMinutes: request.TtlMinutes,
 	}
 	return &cluster, nil
 }
@@ -100,7 +99,6 @@ func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error)
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 	}, nil
 }
 
@@ -370,14 +368,4 @@ func (c *DummyCluster) GetKubernetesUserName() (string, error) {
 // GetCreatedBy returns cluster create userID.
 func (c *DummyCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
-}
-
-// GetTtlMinutes retrieves the TTL of the cluster
-func (c *DummyCluster) GetTtlMinutes() uint {
-	return c.modelCluster.TtlMinutes
-}
-
-// SetTtlMinutes sets the lifespan of a cluster
-func (c *DummyCluster) SetTtlMinutes(ttlMinutes uint) {
-	c.modelCluster.TtlMinutes = ttlMinutes
 }

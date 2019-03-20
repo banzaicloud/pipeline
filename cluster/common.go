@@ -72,8 +72,6 @@ type CommonCluster interface {
 	DeleteCluster() error
 	GetScaleOptions() *pkgCluster.ScaleOptions
 	SetScaleOptions(*pkgCluster.ScaleOptions)
-	GetTtlMinutes() uint
-	SetTtlMinutes(uint)
 
 	// Kubernetes
 	DownloadK8sConfig() ([]byte, error)
