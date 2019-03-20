@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/model"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -147,22 +146,6 @@ func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint
 	return m.getClustersFromModels(clusterModels, logger), nil
 }
 
-// GetClusterStatusHistory returns the list of status changes of the given cluster in chronological order
-func (m *Manager) GetClusterStatusHistory(ctx context.Context, clusterID uint) (*pkgCluster.StatusHistory, error) {
-	logger := m.getLogger(ctx).WithFields(logrus.Fields{
-		"cluster": clusterID,
-	})
-
-	logger.Debug("getting cluster status change history")
-
-	statusHistory, err := m.clusters.FindStatusHistoryByClusterID(clusterID)
-	if err != nil {
-		return nil, emperror.Wrap(err, "could not get cluster status change history from database")
-	}
-
-	return m.getClusterStatusHistory(statusHistory), nil
-}
-
 func (m *Manager) getClusterFromModel(clusterModel *model.ClusterModel) (CommonCluster, error) {
 	return GetCommonClusterFromModel(clusterModel)
 }
@@ -184,22 +167,4 @@ func (m *Manager) getClustersFromModels(clusterModels []*model.ClusterModel, log
 	}
 
 	return clusters
-}
-
-func (m *Manager) getClusterStatusHistory(statusHistoryModel []*model.StatusHistoryModel) *pkgCluster.StatusHistory {
-	statusHistory := pkgCluster.StatusHistory{}
-
-	for _, statusChangeModel := range statusHistoryModel {
-		if statusChangeModel != nil {
-			statusHistory.StatusChanges = append(statusHistory.StatusChanges, &pkgCluster.StatusChange{
-				CreatedAt:         statusChangeModel.CreatedAt,
-				FromStatus:        statusChangeModel.FromStatus,
-				ToStatus:          statusChangeModel.ToStatus,
-				FromStatusMessage: statusChangeModel.FromStatusMessage,
-				ToStatusMessage:   statusChangeModel.ToStatusMessage,
-			})
-		}
-	}
-
-	return &statusHistory
 }

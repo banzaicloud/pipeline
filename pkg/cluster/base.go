@@ -607,20 +607,6 @@ type NodePoolLabel struct {
 	Reserved bool   `json:"reserved"`
 }
 
-// StatusChange describes a transition in cluster status
-type StatusChange struct {
-	CreatedAt         time.Time `json:"createdAt,omitempty"`
-	FromStatus        string    `json:"fromStatus,omitempty"`
-	FromStatusMessage string    `jon:"fromStatusMessage,omitempty"`
-	ToStatus          string    `json:"toStatus,omitempty"`
-	ToStatusMessage   string    `json:"toStatusMessage,omitempty"`
-}
-
-// StatusHistory describes the status change history of a cluster
-type StatusHistory struct {
-	StatusChanges []*StatusChange `json:"statusChanges,omitempty"`
-}
-
 // CreateClusterRequest creates a CreateClusterRequest model from profile
 func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClusterRequest) (*CreateClusterRequest, error) {
 	response := &CreateClusterRequest{
