@@ -26,7 +26,7 @@ const (
 type StatusHistoryModel struct {
 	ID uint `gorm:"primary_key"`
 
-	ClusterID   uint      `gorm:"not null;index"`
+	ClusterID   uint      `gorm:"not null"`
 	ClusterName string    `gorm:"not null"`
 	CreatedAt   time.Time `gorm:"not null"`
 

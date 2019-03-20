@@ -31,14 +31,13 @@ const (
 
 // Profile describes the Oracle cluster profile model
 type Profile struct {
-	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_name"`
-	Location   string `gorm:"default:'eu-frankfurt-1'"`
-	Version    string `gorm:"default:'v1.10.3'"`
-	NodePools  []*ProfileNodePool
-	TtlMinutes uint `gorm:"not null;default:0"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID        uint   `gorm:"primary_key"`
+	Name      string `gorm:"unique_index:idx_name"`
+	Location  string `gorm:"default:'eu-frankfurt-1'"`
+	Version   string `gorm:"default:'v1.10.3'"`
+	NodePools []*ProfileNodePool
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 // ProfileNodePool describes Oracle node pool profile model of a cluster
@@ -138,10 +137,9 @@ func (d *Profile) GetProfile() *pkgCluster.ClusterProfileResponse {
 	}
 
 	return &pkgCluster.ClusterProfileResponse{
-		Name:       d.Name,
-		Location:   d.Location,
-		Cloud:      pkgCluster.Oracle,
-		TtlMinutes: d.TtlMinutes,
+		Name:     d.Name,
+		Location: d.Location,
+		Cloud:    pkgCluster.Oracle,
 		Properties: &pkgCluster.ClusterProfileProperties{
 			OKE: &oracle.Cluster{
 				Version:   d.Version,
@@ -182,8 +180,6 @@ func (d *Profile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bo
 
 			d.NodePools = nodePools
 		}
-
-		d.TtlMinutes = r.TtlMinutes
 	}
 
 	if withSave {

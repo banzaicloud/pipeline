@@ -5331,7 +5331,6 @@ components:
           - 62bc3c75-91fb-4670-bad4-24b401a9deac
           - 4378ae32-2355-12ed-b984-1234567804ed
           name: gkecluster-pipelineuser-123
-          ttlMinutes: 120
           secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           location: us-central1-a
           postHooks:
@@ -5530,7 +5529,6 @@ components:
         - 62bc3c75-91fb-4670-bad4-24b401a9deac
         - 4378ae32-2355-12ed-b984-1234567804ed
         name: gkecluster-pipelineuser-123
-        ttlMinutes: 120
         secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
         location: us-central1-a
         postHooks:
@@ -5557,12 +5555,6 @@ components:
         cloud:
           example: google
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 120
-          format: int32
-          minimum: 0
-          type: integer
         secretId:
           example: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: string
@@ -6034,7 +6026,6 @@ components:
     UpdateClusterRequest:
       example:
         cloud: google
-        ttlMinutes: 120
         properties:
           google:
             master:
@@ -6047,12 +6038,6 @@ components:
         cloud:
           example: google
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 120
-          format: int32
-          minimum: 0
-          type: integer
         properties:
           example:
             google:
@@ -7055,7 +7040,6 @@ components:
       example:
         cloud: google
         name: default
-        ttlMinutes: 120
         location: us-central1-a
         properties:
           gke:
@@ -7076,12 +7060,6 @@ components:
         cloud:
           example: google
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 120
-          format: int32
-          minimum: 0
-          type: integer
         properties:
           example:
             gke:
@@ -7113,7 +7091,6 @@ components:
       example:
         cloud: google
         name: myCluster-profile
-        ttlMinutes: 120
         location: us-central1-a
         properties:
           gke:
@@ -7134,12 +7111,6 @@ components:
         cloud:
           example: google
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 120
-          format: int32
-          minimum: 0
-          type: integer
         properties:
           example:
             gke:
@@ -7610,8 +7581,6 @@ components:
         securityscan: true
         creatorName: userName
         creatorId: 1
-        startedAt: 2018-07-03T14:23:29+02:00
-        ttlMinutes: 120
         distribution: gke
         monitoring: true
         statusMessage: Cluster is running
@@ -7665,9 +7634,6 @@ components:
         createdAt:
           example: 2018-07-03T14:23:19+02:00
           type: string
-        startedAt:
-          example: 2018-07-03T14:23:29+02:00
-          type: string
         creatorName:
           example: userName
           type: string
@@ -7678,12 +7644,6 @@ components:
         region:
           example: us-central1
           type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 120
-          format: int32
-          minimum: 0
-          type: integer
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolStatus'

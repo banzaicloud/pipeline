@@ -55,8 +55,7 @@ type ClusterModel struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
-	StartedAt      *time.Time
-	Name           string `gorm:"unique_index:idx_unique_id"`
+	Name           string     `gorm:"unique_index:idx_unique_id"`
 	Location       string
 	Cloud          string
 	Distribution   string
@@ -79,7 +78,6 @@ type ClusterModel struct {
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
-	TtlMinutes     uint `gorm:"not null;default:0"`
 }
 
 // ScaleOptions describes scale options
@@ -418,13 +416,9 @@ func (a *ACSKClusterModel) AfterUpdate(scope *gorm.Scope) error {
 func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 	originalStatus := cs.Status
 	originalStatusMessage := cs.StatusMessage
-	now := time.Now()
 
 	cs.Status = status
 	cs.StatusMessage = statusMessage
-	if cs.Status != originalStatus && originalStatus == pkgCluster.Creating && (cs.Status == pkgCluster.Running || cs.Status == pkgCluster.Warning) {
-		cs.StartedAt = &now
-	}
 	err := cs.Save()
 	if err != nil {
 		return errors.Wrap(err, "failed to update cluster status")
