@@ -21,3 +21,13 @@ secrets:
           creation_statements: "GRANT ALL ON *.* TO '{{name}}'@'%' IDENTIFIED BY '{{password}}';"
           default_ttl: "10m"
           max_ttl: "24h"
+
+  - path: leaderelection
+    type: kv
+    description: Leader election secrets
+    options:
+      version: 2
+    configuration:
+      config:
+        - cas_required: true
+          max_versions: 1
