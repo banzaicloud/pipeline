@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -253,7 +252,6 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		NodePools:         nodePools,
 		Region:            o.modelCluster.Location,
 		TtlMinutes:        o.modelCluster.TtlMinutes,
-		StartedAt:         o.modelCluster.StartedAt,
 	}, nil
 }
 
@@ -674,12 +672,12 @@ func (o *OKECluster) getSSHPubKey() (string, error) {
 	return sshKey.PublicKeyData, nil
 }
 
-// GetTTL retrieves the TTL of the cluster
-func (o *OKECluster) GetTTL() time.Duration {
-	return time.Duration(o.modelCluster.TtlMinutes) * time.Minute
+// GetTtlMinutes retrieves the TTL of the cluster
+func (o *OKECluster) GetTtlMinutes() uint {
+	return o.modelCluster.TtlMinutes
 }
 
-// SetTTL sets the lifespan of a cluster
-func (o *OKECluster) SetTTL(ttl time.Duration) {
-	o.modelCluster.TtlMinutes = uint(ttl.Minutes())
+// SetTtlMinutes sets the lifespan of a cluster
+func (o *OKECluster) SetTtlMinutes(ttlMinutes uint) {
+	o.modelCluster.TtlMinutes = ttlMinutes
 }

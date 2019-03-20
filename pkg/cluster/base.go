@@ -202,9 +202,8 @@ type GetClusterStatusResponse struct {
 	pkgCommon.CreatorBaseFields
 
 	// If region not available fall back to Location
-	Region     string     `json:"region,omitempty"`
-	TtlMinutes uint       `json:"ttlMinutes,omitempty"`
-	StartedAt  *time.Time `json:"startedAt,omitempty"`
+	Region     string `json:"region,omitempty"`
+	TtlMinutes uint   `json:"ttlMinutes,omitempty"`
 }
 
 // NodePoolStatus describes cluster's node status

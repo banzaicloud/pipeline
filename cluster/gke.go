@@ -426,7 +426,6 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
 		Region:            c.model.Region,
 		TtlMinutes:        c.model.Cluster.TtlMinutes,
-		StartedAt:         c.model.Cluster.StartedAt,
 	}, nil
 }
 
@@ -1905,11 +1904,6 @@ func (c *GKECluster) UpdateStatus(status, statusMessage string) error {
 	c.model.Cluster.Status = status
 	c.model.Cluster.StatusMessage = statusMessage
 
-	now := time.Now()
-	if status != originalStatus && originalStatus == pkgCluster.Creating && (status == pkgCluster.Running || status == pkgCluster.Warning) {
-		c.model.Cluster.StartedAt = &now
-	}
-
 	err := c.repository.SaveModel(c.model)
 	if err != nil {
 		return errors.Wrap(err, "failed to update cluster status")
@@ -2280,12 +2274,12 @@ func (c *GKECluster) GetCreatedBy() uint {
 	return c.model.Cluster.CreatedBy
 }
 
-// GetTTL retrieves the TTL of the cluster
-func (c *GKECluster) GetTTL() time.Duration {
-	return time.Duration(c.model.Cluster.TtlMinutes) * time.Minute
+// GetTtlMinutes retrieves the TTL of the cluster
+func (c *GKECluster) GetTtlMinutes() uint {
+	return c.model.Cluster.TtlMinutes
 }
 
-// SetTTL sets the lifespan of a cluster
-func (c *GKECluster) SetTTL(ttl time.Duration) {
-	c.model.Cluster.TtlMinutes = uint(ttl.Minutes())
+// SetTtlMinutes sets the lifespan of a cluster
+func (c *GKECluster) SetTtlMinutes(ttlMinutes uint) {
+	c.model.Cluster.TtlMinutes = ttlMinutes
 }

@@ -17,7 +17,6 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
@@ -29,7 +28,7 @@ type commonUpdater struct {
 	cluster                  CommonCluster
 	userID                   uint
 	scaleOptionsChanged      bool
-	ttlChanged               bool
+	ttlMinutesChanged        bool
 	clusterPropertiesChanged bool
 	workflowClient           client.Client
 	externalBaseURL          string
@@ -97,12 +96,12 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 	c.cluster.AddDefaultsToUpdate(c.request)
 
 	c.scaleOptionsChanged = isDifferent(c.request.ScaleOptions, c.cluster.GetScaleOptions()) == nil
-	c.ttlChanged = time.Duration(c.request.TtlMinutes)*time.Minute != c.cluster.GetTTL()
+	c.ttlMinutesChanged = c.request.TtlMinutes != c.cluster.GetTtlMinutes()
 	c.clusterPropertiesChanged = true
 
 	if err := c.cluster.CheckEqualityToUpdate(c.request); err != nil {
 		c.clusterPropertiesChanged = false
-		if !c.scaleOptionsChanged && !c.ttlChanged {
+		if !c.scaleOptionsChanged && !c.ttlMinutesChanged {
 			return nil, &commonUpdateValidationError{
 				msg:            err.Error(),
 				invalidRequest: true,
@@ -126,12 +125,12 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		c.cluster.SetScaleOptions(c.request.ScaleOptions)
 	}
 
-	if !c.clusterPropertiesChanged && !c.scaleOptionsChanged && !c.ttlChanged {
+	if !c.clusterPropertiesChanged && !c.scaleOptionsChanged && !c.ttlMinutesChanged {
 		return nil
 	}
 
-	if c.ttlChanged {
-		c.cluster.SetTTL(time.Duration(c.request.TtlMinutes) * time.Minute)
+	if c.ttlMinutesChanged {
+		c.cluster.SetTtlMinutes(c.request.TtlMinutes)
 	}
 
 	// pre deploy NodePoolLabelSet objects for each new node pool to be created

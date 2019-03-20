@@ -169,14 +169,14 @@ func (c *EC2ClusterPKE) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
-// GetTTL retrieves the TTL of the cluster
-func (c *EC2ClusterPKE) GetTTL() time.Duration {
-	return time.Duration(c.model.Cluster.TtlMinutes) * time.Minute
+// GetTtlMinutes retrieves the TTL of the cluster
+func (c *EC2ClusterPKE) GetTtlMinutes() uint {
+	return c.model.Cluster.TtlMinutes
 }
 
-// SetTTL sets the lifespan of a cluster
-func (c *EC2ClusterPKE) SetTTL(ttl time.Duration) {
-	c.model.Cluster.TtlMinutes = uint(ttl.Minutes())
+// SetTtlMinutes sets the lifespan of a cluster
+func (c *EC2ClusterPKE) SetTtlMinutes(ttlMinutes uint) {
+	c.model.Cluster.TtlMinutes = ttlMinutes
 }
 
 // RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
@@ -238,13 +238,7 @@ func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
 	originalStatus := c.model.Cluster.Status
 	originalStatusMessage := c.model.Cluster.StatusMessage
 
-	updateFields := map[string]interface{}{"status": status, "status_message": statusMessage}
-
-	if status != originalStatus && originalStatus == pkgCluster.Creating && (status == pkgCluster.Running || status == pkgCluster.Warning) {
-		updateFields["started_at"] = time.Now()
-	}
-
-	err := c.db.Model(&c.model.Cluster).Updates(updateFields).Error
+	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"status": status, "status_message": statusMessage}).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to update status")
 	}
@@ -654,7 +648,6 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
 		Region:            c.model.Cluster.Location,
 		TtlMinutes:        c.model.Cluster.TtlMinutes,
-		StartedAt:         c.model.Cluster.StartedAt,
 	}, nil
 }
 

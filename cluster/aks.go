@@ -506,7 +506,6 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		NodePools:         nodePools,
 		Region:            c.modelCluster.Location,
 		TtlMinutes:        c.modelCluster.TtlMinutes,
-		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
 
@@ -1056,14 +1055,14 @@ func (c *AKSCluster) SetServiceMesh(m bool) {
 	c.modelCluster.ServiceMesh = m
 }
 
-// GetTTL retrieves the TTL of the cluster
-func (c *AKSCluster) GetTTL() time.Duration {
-	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
+// GetTtlMinutes retrieves the TTL of the cluster
+func (c *AKSCluster) GetTtlMinutes() uint {
+	return c.modelCluster.TtlMinutes
 }
 
-// SetTTL sets the lifespan of a cluster
-func (c *AKSCluster) SetTTL(ttl time.Duration) {
-	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
+// SetTtlMinutes sets the lifespan of a cluster
+func (c *AKSCluster) SetTtlMinutes(ttlMinutes uint) {
+	c.modelCluster.TtlMinutes = ttlMinutes
 }
 
 // ListResourceGroups returns all resource group
