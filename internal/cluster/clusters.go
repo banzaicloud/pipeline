@@ -175,16 +175,3 @@ func (c *Clusters) GetConfigSecretIDByClusterID(organizationID uint, clusterID u
 
 	return cluster.ConfigSecretId, nil
 }
-
-// FindStatusHistoryByClusterID returns the status change history records of the cluster identified by
-// the given id in chronological order
-func (c *Clusters) FindStatusHistoryByClusterID(clusterID uint) ([]*model.StatusHistoryModel, error) {
-	var statusHistory []*model.StatusHistoryModel
-
-	if err := c.db.
-		Where(model.StatusHistoryModel{ClusterID: clusterID}).Order("created_at ASC").Find(&statusHistory).Error; err != nil {
-		return nil, emperror.WrapWith(err, "cloud not fetch cluster status change history", "clusterID", clusterID)
-	}
-
-	return statusHistory, nil
-}
