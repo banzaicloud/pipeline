@@ -53,6 +53,10 @@ const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
+// File encodings
+const EncodingBase64 = "base64"
+const EncodingText = "text"
+
 var IgnoredPaths = []string{".circleci", ".github"} // nolint: gochecknoglobals
 
 // nolint: gochecknoglobals
@@ -135,45 +139,50 @@ type ReleaseBody struct {
 type SpotguideManager struct {
 	db                        *gorm.DB
 	pipelineVersion           *semver.Version
-	githubToken               string
+	scmToken                  string
+	scm                       string
 	sharedLibraryOrganization *auth.Organization
 }
 
-func CreateSharedSpotguideOrganization(db *gorm.DB, sharedLibraryGitHubOrganization string) (*auth.Organization, error) {
+func CreateSharedSpotguideOrganization(db *gorm.DB, scm string, sharedLibraryOrganization string) (*auth.Organization, error) {
 	// insert shared organization to DB if not exists
 	var sharedOrg *auth.Organization
-	githubOrg, _, err := github.NewClient(nil).Organizations.Get(context.Background(), sharedLibraryGitHubOrganization)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to query shared Github organization")
+
+	switch scm {
+	case "github":
+		sharedOrg = &auth.Organization{Name: sharedLibraryOrganization, Provider: auth.ProviderGithub}
+	case "gitlab":
+		sharedOrg = &auth.Organization{Name: sharedLibraryOrganization, Provider: auth.ProviderGitlab}
 	}
-	sharedOrg = &auth.Organization{Name: *githubOrg.Login, GithubID: githubOrg.ID, Provider: auth.ProviderGithub}
+
 	if err := db.Where(sharedOrg).FirstOrCreate(sharedOrg).Error; err != nil {
 		return nil, emperror.Wrap(err, "failed to create shared organization")
 	}
 	return sharedOrg, nil
 }
 
-func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, githubToken string, sharedLibraryOrganization *auth.Organization) *SpotguideManager {
+func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, scmToken string, scm string, sharedLibraryOrganization *auth.Organization) *SpotguideManager {
 
 	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
 
 	return &SpotguideManager{
 		db:                        db,
 		pipelineVersion:           pipelineVersion,
-		githubToken:               githubToken,
+		scmToken:                  scmToken,
+		scm:                       scm,
 		sharedLibraryOrganization: sharedLibraryOrganization,
 	}
 }
 
-func (s *SpotguideManager) isSpotguideReleaseAllowed(release *github.RepositoryRelease) bool {
-	version, err := semver.NewVersion(release.GetTagName())
+func (s *SpotguideManager) isSpotguideReleaseAllowed(release scmRepositoryRelease) bool {
+	version, err := semver.NewVersion(release.GetTag())
 	if err != nil {
 		log.Warn("failed to parse spotguide release tag: ", err)
 		return false
 	}
 
 	supported := true
-	prerelease := version.Prerelease() != "" || *release.Prerelease
+	prerelease := version.Prerelease() != "" || release.IsPreRelease()
 
 	// try to parse release body as YAML
 	rawBody := release.GetBody()
@@ -195,54 +204,67 @@ func (s *SpotguideManager) ScrapeSharedSpotguides() error {
 		return errors.New("failed to scrape shared spotguides")
 	}
 
-	githubClient := auth.NewGithubClient(s.githubToken)
-	return s.scrapeSpotguides(s.sharedLibraryOrganization, githubClient)
+	var scm scm
+
+	switch s.scm {
+	case "github":
+		githubClient := auth.NewGithubClient(s.scmToken)
+
+		scm = newGitHubSCM(githubClient)
+
+	case "gitlab":
+		gitlabClient, err := auth.NewGitlabClient(s.scmToken)
+		if err != nil {
+			return emperror.Wrap(err, "failed to create GitLab client")
+		}
+
+		scm = newGitLabSCM(gitlabClient)
+
+	default:
+		return fmt.Errorf("Unknown CI/CD SCM configured: %s", s.scm)
+	}
+
+	return s.scrapeSpotguides(s.sharedLibraryOrganization, scm)
 }
 
 func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
-	githubClient, err := auth.NewGithubClientForUser(userID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to create GitHub client")
-	}
 
 	org, err := auth.GetOrganizationById(orgID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to resolve organization from id")
 	}
 
-	return s.scrapeSpotguides(org, githubClient)
+	var scm scm
+
+	switch s.scm {
+	case "github":
+		githubClient, err := auth.NewGithubClientForUser(userID)
+		if err != nil {
+			return emperror.Wrap(err, "failed to create GitHub client")
+		}
+
+		scm = newGitHubSCM(githubClient)
+
+	case "gitlab":
+		gitlabClient, err := auth.NewGitlabClientForUser(userID)
+		if err != nil {
+			return emperror.Wrap(err, "failed to create GitLab client")
+		}
+
+		scm = newGitLabSCM(gitlabClient)
+
+	default:
+		return fmt.Errorf("Unknown CI/CD SCM configured: %s", s.scm)
+	}
+
+	return s.scrapeSpotguides(org, scm)
 }
 
-func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient *github.Client) error {
-	var allRepositories []github.Repository
-	query := fmt.Sprintf("org:%s topic:%s fork:true", org.Name, SpotguideGithubTopic)
-	if !viper.GetBool(config.SpotguideAllowPrivateRepos) {
-		query += " is:public"
-	}
-	listOpts := github.ListOptions{PerPage: 100}
-	for {
-		reposRes, resp, err := githubClient.Search.Repositories(ctx, query, &github.SearchOptions{
-			Sort:        "created",
-			Order:       "asc",
-			ListOptions: listOpts,
-		})
+func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm) error {
+	allRepositories, err := scm.ListRepositoriesByTopic(org.Name, SpotguideGithubTopic)
 
-		if err != nil {
-			// Empty organization, no repositories
-			if resp != nil && resp.StatusCode == http.StatusUnprocessableEntity {
-				return nil
-			}
-
-			return emperror.Wrap(err, "failed to list github repositories")
-		}
-
-		allRepositories = append(allRepositories, reposRes.Repositories...)
-
-		if resp.NextPage == 0 {
-			break
-		}
-
-		listOpts.Page = resp.NextPage
+	if err != nil {
+		return emperror.Wrap(err, "failed to list spotguide repositories")
 	}
 
 	where := SpotguideRepo{
@@ -262,12 +284,12 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 	}
 
 	for _, repository := range allRepositories {
-		owner := repository.GetOwner().GetLogin()
+		owner := repository.GetOwner()
 		name := repository.GetName()
 
-		releases, _, err := githubClient.Repositories.ListReleases(ctx, owner, name, &github.ListOptions{})
+		releases, err := scm.ListRepositoryReleases(owner, name)
 		if err != nil {
-			return emperror.Wrap(err, "failed to list github repo releases")
+			return emperror.Wrap(err, "failed to list repo releases")
 		}
 
 		for _, release := range releases {
@@ -276,9 +298,9 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 				continue
 			}
 
-			tag := release.GetTagName()
+			tag := release.GetTag()
 
-			spotguideRaw, err := downloadGithubFile(githubClient, owner, name, SpotguideYAMLPath, tag)
+			spotguideRaw, err := scm.DownloadFile(owner, name, SpotguideYAMLPath, tag)
 			if err != nil {
 				log.Warnf("failed to scrape spotguide.yaml of '%s/%s' at version '%s': %s", owner, name, tag, err)
 				continue
@@ -291,12 +313,12 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 				continue
 			}
 
-			readme, err := downloadGithubFile(githubClient, owner, name, ReadmePath, tag)
+			readme, err := scm.DownloadFile(owner, name, ReadmePath, tag)
 			if err != nil {
 				log.Warnf("failed to scrape the readme of '%s/%s' at version '%s': %s", owner, name, tag, err)
 			}
 
-			icon, err := downloadGithubFile(githubClient, owner, name, IconPath, tag)
+			icon, err := scm.DownloadFile(owner, name, IconPath, tag)
 			if err != nil {
 				log.Warnf("failed to scrape the icon of '%s/%s' at version '%s': %s", owner, name, tag, err)
 			}
@@ -329,6 +351,8 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, githubClient
 		}
 	}
 
+	log.Infof("Finished scraping spotguides for organization '%s'", org.Name)
+
 	return nil
 }
 
@@ -360,7 +384,7 @@ func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*Spot
 func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Organization, user *auth.User) error {
 	sourceRepo, err := s.GetSpotguide(org.ID, request.SpotguideName, request.SpotguideVersion)
 	if err != nil {
-		return errors.Wrap(err, "failed to find spotguide repo")
+		return emperror.Wrap(err, "failed to find spotguide repo")
 	}
 
 	// LaunchRequest might not have the version
@@ -368,29 +392,53 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 
 	err = createSecrets(request, org.ID, user.ID)
 	if err != nil {
-		return errors.Wrap(err, "failed to create secrets for spotguide")
+		return emperror.Wrap(err, "failed to create secrets for spotguide")
 	}
 
-	githubClient, err := auth.NewGithubClientForUser(user.ID)
-	if err != nil {
-		return errors.Wrap(err, "failed to create GitHub client")
+	var scm scm
+
+	switch s.scm {
+	case "github":
+		githubClient, err := auth.NewGithubClientForUser(user.ID)
+		if err != nil {
+			return emperror.Wrap(err, "failed to create GitHub client")
+		}
+
+		scm = newGitHubSCM(githubClient)
+
+	case "gitlab":
+		gitlabClient, err := auth.NewGitlabClientForUser(user.ID)
+		if err != nil {
+			return emperror.Wrap(err, "failed to create GitLab client")
+		}
+
+		scm = newGitLabSCM(gitlabClient)
+
+	default:
+		return fmt.Errorf("Unknown CI/CD SCM configured: %s", s.scm)
 	}
 
-	err = createGithubRepo(githubClient, request, user.ID, sourceRepo)
+	err = scm.CreateRepository(request.RepoOrganization, request.RepoName, request.RepoPrivate, user.ID)
 	if err != nil {
-		return errors.Wrap(err, "failed to create GitHub repository")
+		return emperror.Wrap(err, "failed to create repository")
 	}
 
 	cicdClient := auth.NewCICDClient(user.APIToken)
 
 	err = enableCICD(cicdClient, request, org.Name)
 	if err != nil {
-		return errors.Wrap(err, "failed to enable CI/CD for spotguide")
+		return emperror.Wrap(err, "failed to enable CI/CD for spotguide")
 	}
 
-	err = addSpotguideContent(githubClient, request, user.ID, sourceRepo)
+	// Prepare the spotguide content
+	spotguideContent, err := getSpotguideContent(scm, request, sourceRepo)
 	if err != nil {
-		return errors.Wrap(err, "failed to add spotguide content to repository")
+		return emperror.Wrap(err, "failed to prepare spotguide git content")
+	}
+
+	err = scm.AddContentToRepository(request.RepoOrganization, request.RepoName, spotguideContent)
+	if err != nil {
+		return emperror.Wrap(err, "failed to add spotguide content to repository")
 	}
 
 	return nil
@@ -400,47 +448,34 @@ func preparePipelineYAML(request *LaunchRequest, sourceRepo *SpotguideRepo, pipe
 	// Create repo config that drives the CICD flow from LaunchRequest
 	repoConfig, err := createCICDRepoConfig(pipelineYAML, request)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize repo config")
+		return nil, emperror.Wrap(err, "failed to initialize repo config")
 	}
 
 	repoConfigRaw, err := yaml.Marshal(repoConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal repo config")
+		return nil, emperror.Wrap(err, "failed to marshal repo config")
 	}
 
 	return repoConfigRaw, nil
 }
 
-func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, sourceRepo *SpotguideRepo) ([]github.TreeEntry, error) {
+func getSpotguideContent(scm scm, request *LaunchRequest, sourceRepo *SpotguideRepo) ([]repoFile, error) {
 	// Download source repo zip
 	sourceRepoParts := strings.Split(sourceRepo.Name, "/")
 	sourceRepoOwner := sourceRepoParts[0]
 	sourceRepoName := sourceRepoParts[1]
 
-	sourceRelease, _, err := githubClient.Repositories.GetReleaseByTag(ctx, sourceRepoOwner, sourceRepoName, request.SpotguideVersion)
+	repoBytes, err := scm.DownloadRelease(sourceRepoOwner, sourceRepoName, request.SpotguideVersion)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find source spotguide repository release")
+		return nil, emperror.Wrap(err, "failed to download source spotguide repository release")
 	}
 
-	// Support private repositories via downloading with an authenticated client
-	downloadRequest, err := http.NewRequest(http.MethodGet, sourceRelease.GetZipballURL(), nil)
+	zipReader, err := zip.NewReader(bytes.NewReader(repoBytes), int64(len(repoBytes)))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create source spotguide repository release download request")
+		return nil, emperror.Wrap(err, "failed to extract source spotguide repository release")
 	}
 
-	repoBytes := bytes.NewBuffer(nil)
-	_, err = githubClient.Do(ctx, downloadRequest, repoBytes)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to download source spotguide repository release")
-	}
-
-	zipReader, err := zip.NewReader(bytes.NewReader(repoBytes.Bytes()), int64(repoBytes.Len()))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
-	}
-
-	// List the files here that needs to be created in this commit and create a tree from them
-	entries := []github.TreeEntry{}
+	var repoFiles []repoFile
 
 	for _, zf := range zipReader.File {
 		if zf.FileInfo().IsDir() {
@@ -457,138 +492,49 @@ func getSpotguideContent(githubClient *github.Client, request *LaunchRequest, so
 
 		file, err := zf.Open()
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
+			return nil, emperror.Wrap(err, "failed to extract source spotguide repository release")
 		}
 		defer file.Close()
 
 		content, err := ioutil.ReadAll(file)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to extract source spotguide repository release")
+			return nil, emperror.Wrap(err, "failed to extract source spotguide repository release")
 		}
 
 		// Prepare pipeline.yaml
 		if path == PipelineYAMLPath {
 			content, err = preparePipelineYAML(request, sourceRepo, content)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to prepare pipeline.yaml")
+				return nil, emperror.Wrap(err, "failed to prepare pipeline.yaml")
 			}
 		}
 
-		// The GitHub API accepts blobs as utf-8 by default, and we can change the encoding only in the
-		// CreateBlob call, so if the file is utf-8 let's spare an API call, otherwise create the blob
-		// with base64 encoding specified.
-		var blobSHA, blobContent *string
+		var encoding, fileContent string
 
 		if strings.HasSuffix(http.DetectContentType(content), "charset=utf-8") {
-			blobContent = github.String(string(content))
+			fileContent = string(content)
+			encoding = EncodingText
 		} else {
-			blob, _, err := githubClient.Git.CreateBlob(ctx, request.RepoOrganization, request.RepoName, &github.Blob{
-				Content:  github.String(base64.StdEncoding.EncodeToString(content)),
-				Encoding: github.String("base64"),
-			})
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to create blob for spotguide repository: "+path)
-			}
-
-			blobSHA = blob.SHA
+			fileContent = base64.StdEncoding.EncodeToString(content)
+			encoding = EncodingBase64
 		}
 
-		entry := github.TreeEntry{
-			Type:    github.String("blob"),
-			Mode:    github.String("100644"),
-			Path:    github.String(path),
-			SHA:     blobSHA,
-			Content: blobContent,
+		repoFile := repoFile{
+			path:     path,
+			encoding: encoding,
+			content:  fileContent,
 		}
 
-		entries = append(entries, entry)
+		repoFiles = append(repoFiles, repoFile)
 	}
 
-	return entries, nil
+	return repoFiles, nil
 }
 
-func createGithubRepo(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
-
-	repo := github.Repository{
-		Name:        github.String(request.RepoName),
-		Description: github.String("Spotguide by Banzai Cloud"),
-		Private:     github.Bool(request.RepoPrivate),
-	}
-
-	// If the user's name is used as organization name, it has to be cleared in repo create.
-	// See: https://developer.github.com/v3/repos/#create
-	orgName := request.RepoOrganization
-	if auth.GetUserNickNameById(userID) == orgName {
-		orgName = ""
-	}
-
-	_, _, err := githubClient.Repositories.Create(ctx, orgName, &repo)
-	if err != nil {
-		return errors.Wrap(err, "failed to create spotguide repository")
-	}
-
-	log.Infof("created spotguide repository: %s", request.RepoFullname())
-	return nil
-}
-
-func addSpotguideContent(githubClient *github.Client, request *LaunchRequest, userID uint, sourceRepo *SpotguideRepo) error {
-
-	// An initial files have to be created with the API to be able to use the fresh repo
-	createFile := &github.RepositoryContentFileOptions{
-		Content: []byte("# Say hello to Spotguides!"),
-		Message: github.String("initial import"),
-	}
-
-	contentResponse, _, err := githubClient.Repositories.CreateFile(ctx, request.RepoOrganization, request.RepoName, "README.md", createFile)
-
-	if err != nil {
-		return errors.Wrap(err, "failed to initialize spotguide repository")
-	}
-
-	// Prepare the spotguide commit
-	spotguideEntries, err := getSpotguideContent(githubClient, request, sourceRepo)
-	if err != nil {
-		return errors.Wrap(err, "failed to prepare spotguide git content")
-	}
-
-	tree, _, err := githubClient.Git.CreateTree(ctx, request.RepoOrganization, request.RepoName, contentResponse.GetSHA(), spotguideEntries)
-
-	if err != nil {
-		return errors.Wrap(err, "failed to create git tree for spotguide repository")
-	}
-
-	// Create a commit from the tree
-	contentResponse.Commit.SHA = contentResponse.SHA
-
-	commit := &github.Commit{
-		Message: github.String("initial Banzai Cloud Pipeline commit"),
-		Parents: []github.Commit{contentResponse.Commit},
-		Tree:    tree,
-	}
-
-	newCommit, _, err := githubClient.Git.CreateCommit(ctx, request.RepoOrganization, request.RepoName, commit)
-
-	if err != nil {
-		return errors.Wrap(err, "failed to create git commit for spotguide repository")
-	}
-
-	// Attach the commit to the master branch.
-	// This can be changed later to another branch + create PR.
-	// See: https://github.com/google/go-github/blob/master/example/commitpr/main.go#L62
-	ref, _, err := githubClient.Git.GetRef(ctx, request.RepoOrganization, request.RepoName, "refs/heads/master")
-	if err != nil {
-		return errors.Wrap(err, "failed to get git ref for spotguide repository")
-	}
-
-	ref.Object.SHA = newCommit.SHA
-
-	_, _, err = githubClient.Git.UpdateRef(ctx, request.RepoOrganization, request.RepoName, ref, false)
-
-	if err != nil {
-		return errors.Wrap(err, "failed to update git ref for spotguide repository")
-	}
-
-	return nil
+type repoFile struct {
+	path     string
+	content  string
+	encoding string
 }
 
 func createSecrets(request *LaunchRequest, orgID uint, userID uint) error {
@@ -707,7 +653,7 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*cicdRep
 
 func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) error {
 
-	clusterJson, err := json.Marshal(request.Cluster)
+	clusterJSON, err := json.Marshal(request.Cluster)
 	if err != nil {
 		return err
 	}
@@ -724,7 +670,7 @@ func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) e
 			}
 
 			// Merge the cluster from the request into the existing cluster value
-			err = json.Unmarshal(clusterJson, &clusterStep.Cluster)
+			err = json.Unmarshal(clusterJSON, &clusterStep.Cluster)
 			if err != nil {
 				return err
 			}
@@ -743,7 +689,7 @@ func cicdRepoConfigCluster(request *LaunchRequest, repoConfig *cicdRepoConfig) e
 	log.Debug("merge cluster info to cluster block")
 
 	// Merge the cluster from the request into the cluster block
-	if err := json.Unmarshal(clusterJson, &repoConfig.Cluster); err != nil {
+	if err := json.Unmarshal(clusterJSON, &repoConfig.Cluster); err != nil {
 		return err
 	}
 	return nil
@@ -793,20 +739,6 @@ func cicdRepoConfigPipeline(request *LaunchRequest, repoConfig *cicdRepoConfig) 
 	}
 
 	return nil
-}
-
-func downloadGithubFile(githubClient *github.Client, owner, repo, file, tag string) ([]byte, error) {
-	reader, err := githubClient.Repositories.DownloadContents(ctx, owner, repo, file, &github.RepositoryContentGetOptions{
-		Ref: tag,
-	})
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to download file from GitHub")
-	}
-
-	defer reader.Close()
-
-	data, err := ioutil.ReadAll(reader)
-	return data, emperror.Wrap(err, "failed to download file from GitHub")
 }
 
 func isIgnoredPath(path string) bool {

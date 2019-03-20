@@ -290,12 +290,20 @@ func main() {
 	userAPI := api.NewUserAPI(accessManager, db, log, errorHandler)
 	networkAPI := api.NewNetworkAPI(log)
 
-	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+	scm := viper.GetString("cicd.scm")
+	var scmToken string
+	switch scm {
+	case "github":
+		scmToken = viper.GetString("github.token")
+	case "gitlab":
+		scmToken = viper.GetString("gitlab.token")
+	}
+
+	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), scm, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 	if err != nil {
 		log.Errorf("failed to create shared Spotguide organization: %s", err)
 	}
-
-	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, viper.GetString("github.token"), sharedSpotguideOrg)
+	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, scmToken, scm, sharedSpotguideOrg)
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
