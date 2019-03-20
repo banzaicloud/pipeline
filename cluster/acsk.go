@@ -603,7 +603,7 @@ func (c *ACSKCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
-		Region:            c.modelCluster.Location,
+		Region:            c.modelCluster.ACSK.RegionID,
 	}, nil
 }
 
