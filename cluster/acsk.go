@@ -835,7 +835,7 @@ func (c *ACSKCluster) IsReady() (bool, error) {
 		return false, err
 	}
 
-	return r.State != acsk.AlibabaClusterStateRunning, nil
+	return r.State == acsk.AlibabaClusterStateRunning, nil
 }
 
 func interfaceArrayToStringArray(in []interface{}) (out []string) {
