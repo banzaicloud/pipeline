@@ -40,7 +40,6 @@ type ClusterModel struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
-	StartedAt *time.Time
 	CreatedBy uint
 
 	Name           string `gorm:"unique_index:idx_unique_id"`

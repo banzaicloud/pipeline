@@ -16,7 +16,6 @@ Name | Type | Description | Notes
 **Servicemesh** | **bool** |  | [optional] 
 **Securityscan** | **bool** |  | [optional] 
 **CreatedAt** | **string** |  | [optional] 
-**StartedAt** | **string** |  | [optional] 
 **CreatorName** | **string** |  | [optional] 
 **CreatorId** | **int32** |  | [optional] 
 **Region** | **string** |  | [optional] 
