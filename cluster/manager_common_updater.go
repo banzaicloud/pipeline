@@ -28,7 +28,6 @@ type commonUpdater struct {
 	cluster                  CommonCluster
 	userID                   uint
 	scaleOptionsChanged      bool
-	ttlMinutesChanged        bool
 	clusterPropertiesChanged bool
 	workflowClient           client.Client
 	externalBaseURL          string
@@ -96,12 +95,11 @@ func (c *commonUpdater) Prepare(ctx context.Context) (CommonCluster, error) {
 	c.cluster.AddDefaultsToUpdate(c.request)
 
 	c.scaleOptionsChanged = isDifferent(c.request.ScaleOptions, c.cluster.GetScaleOptions()) == nil
-	c.ttlMinutesChanged = c.request.TtlMinutes != c.cluster.GetTtlMinutes()
 	c.clusterPropertiesChanged = true
 
 	if err := c.cluster.CheckEqualityToUpdate(c.request); err != nil {
 		c.clusterPropertiesChanged = false
-		if !c.scaleOptionsChanged && !c.ttlMinutesChanged {
+		if !c.scaleOptionsChanged {
 			return nil, &commonUpdateValidationError{
 				msg:            err.Error(),
 				invalidRequest: true,
@@ -125,12 +123,8 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 		c.cluster.SetScaleOptions(c.request.ScaleOptions)
 	}
 
-	if !c.clusterPropertiesChanged && !c.scaleOptionsChanged && !c.ttlMinutesChanged {
+	if !c.clusterPropertiesChanged && !c.scaleOptionsChanged {
 		return nil
-	}
-
-	if c.ttlMinutesChanged {
-		c.cluster.SetTtlMinutes(c.request.TtlMinutes)
 	}
 
 	// pre deploy NodePoolLabelSet objects for each new node pool to be created

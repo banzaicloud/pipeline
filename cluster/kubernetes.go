@@ -48,7 +48,6 @@ func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest
 		Kubernetes: model.KubernetesClusterModel{
 			Metadata: request.Properties.CreateClusterKubernetes.Metadata,
 		},
-		TtlMinutes: request.TtlMinutes,
 	}
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
 	return &cluster, nil
@@ -149,7 +148,6 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 	}, nil
 }
 
@@ -371,14 +369,4 @@ func (c *KubeCluster) GetKubernetesUserName() (string, error) {
 // GetCreatedBy returns cluster create userID.
 func (c *KubeCluster) GetCreatedBy() uint {
 	return c.modelCluster.CreatedBy
-}
-
-// GetTtlMinutes retrieves the TTL of the cluster
-func (c *KubeCluster) GetTtlMinutes() uint {
-	return c.modelCluster.TtlMinutes
-}
-
-// SetTtlMinutes sets the lifespan of a cluster
-func (c *KubeCluster) SetTtlMinutes(ttlMinutes uint) {
-	c.modelCluster.TtlMinutes = ttlMinutes
 }
