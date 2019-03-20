@@ -108,7 +108,11 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 
 	err := updater.Update(ctx)
 	if err != nil {
-		cluster.UpdateStatus(pkgCluster.Warning, err.Error())
+		if updErr := cluster.UpdateStatus(pkgCluster.Warning, err.Error()); updErr != nil {
+			log.Error(updErr, "could not update cluster status")
+		} else {
+			m.events.ClusterUpdated(updateCtx.ClusterID)
+		}
 
 		return emperror.Wrap(err, "error updating cluster")
 	}
@@ -116,6 +120,7 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 	if err := cluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
 		return emperror.Wrap(err, "could not update cluster status")
 	}
+	m.events.ClusterUpdated(updateCtx.ClusterID)
 
 	logger.Info("cluster updated successfully")
 

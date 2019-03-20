@@ -169,6 +169,16 @@ func (c *EC2ClusterPKE) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
+// GetTTL retrieves the TTL of the cluster
+func (c *EC2ClusterPKE) GetTTL() time.Duration {
+	return time.Duration(c.model.Cluster.TtlMinutes) * time.Minute
+}
+
+// SetTTL sets the lifespan of a cluster
+func (c *EC2ClusterPKE) SetTTL(ttl time.Duration) {
+	c.model.Cluster.TtlMinutes = uint(ttl.Minutes())
+}
+
 // RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
 // the cluster
 func (c *EC2ClusterPKE) RequiresSshPublicKey() bool {
@@ -228,7 +238,13 @@ func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
 	originalStatus := c.model.Cluster.Status
 	originalStatusMessage := c.model.Cluster.StatusMessage
 
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"status": status, "status_message": statusMessage}).Error
+	updateFields := map[string]interface{}{"status": status, "status_message": statusMessage}
+
+	if status != originalStatus && originalStatus == pkgCluster.Creating && (status == pkgCluster.Running || status == pkgCluster.Warning) {
+		updateFields["started_at"] = time.Now()
+	}
+
+	err := c.db.Model(&c.model.Cluster).Updates(updateFields).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to update status")
 	}
@@ -637,6 +653,8 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		Version:           c.model.Kubernetes.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
 		Region:            c.model.Cluster.Location,
+		TtlMinutes:        c.model.Cluster.TtlMinutes,
+		StartedAt:         c.model.Cluster.StartedAt,
 	}, nil
 }
 
@@ -967,6 +985,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 			OrganizationID: orgId,
 			RbacEnabled:    kubernetes.RBAC.Enabled,
 			CreatedBy:      userId,
+			TtlMinutes:     request.TtlMinutes,
 		},
 		MasterInstanceType: instanceType,
 		MasterImage:        image,

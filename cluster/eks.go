@@ -91,7 +91,8 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			RouteTableId: &request.Properties.CreateClusterEKS.RouteTableId,
 			Subnets:      createSubnetsFromRequest(request.Properties.CreateClusterEKS.Subnets),
 		},
-		CreatedBy: userId,
+		CreatedBy:  userId,
+		TtlMinutes: request.TtlMinutes,
 	}
 
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
@@ -938,6 +939,8 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Version:           c.modelCluster.EKS.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		Region:            c.modelCluster.Location,
+		TtlMinutes:        c.modelCluster.TtlMinutes,
+		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
 
@@ -1337,6 +1340,16 @@ func (c *EKSCluster) GetServiceMesh() bool {
 // SetServiceMesh sets service mesh flag on the cluster
 func (c *EKSCluster) SetServiceMesh(m bool) {
 	c.modelCluster.ServiceMesh = m
+}
+
+// GetTTL retrieves the TTL of the cluster
+func (c *EKSCluster) GetTTL() time.Duration {
+	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
+}
+
+// SetTTL sets the lifespan of a cluster
+func (c *EKSCluster) SetTTL(ttl time.Duration) {
+	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.
