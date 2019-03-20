@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"context"
 	"strconv"
 	"strings"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
+	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -35,7 +37,12 @@ import (
 // head node, ondemand labels + cloudinfo to user defined labels in specified nodePools map.
 // noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
 // is not returned, to avoid overriding user specified labels.
-func GetDesiredLabelsForCluster(cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) (map[string]map[string]string, error) {
+func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) (map[string]map[string]string, error) {
+	logger := pipelineContext.LoggerWithCorrelationID(ctx, config.Logger()).WithFields(logrus.Fields{
+		"organization": cluster.GetOrganizationId(),
+		"cluster":      cluster.GetID(),
+	})
+
 	desiredLabels := make(map[string]map[string]string)
 
 	clusterStatus, err := cluster.GetStatus()
@@ -48,7 +55,7 @@ func GetDesiredLabelsForCluster(cluster CommonCluster, nodePools map[string]*pkg
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 
 	for name, nodePool := range nodePools {
-		labelsMap := getDesiredNodePoolLabels(clusterStatus, name, nodePool, headNodePoolName, noReturnIfNoUserLabels)
+		labelsMap := getDesiredNodePoolLabels(logger, clusterStatus, name, nodePool, headNodePoolName, noReturnIfNoUserLabels)
 		if len(labelsMap) > 0 {
 			desiredLabels[name] = labelsMap
 		}
@@ -67,7 +74,7 @@ func getNodePoolLabelSets(nodePoolLabels map[string]map[string]string) npls.Node
 	return desiredLabels
 }
 
-func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse, nodePoolName string,
+func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgCluster.GetClusterStatusResponse, nodePoolName string,
 	nodePool *pkgCluster.NodePoolStatus, headNodePoolName string, noReturnIfNoUserLabels bool) map[string]string {
 
 	desiredLabels := make(map[string]string)
@@ -89,7 +96,7 @@ func getDesiredNodePoolLabels(clusterStatus *pkgCluster.GetClusterStatusResponse
 	}
 
 	// get CloudInfo labels for node
-	machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
+	machineDetails, err := cloudinfo.GetMachineDetails(logger, clusterStatus.Cloud,
 		clusterStatus.Distribution,
 		clusterStatus.Region,
 		nodePool.InstanceType)
