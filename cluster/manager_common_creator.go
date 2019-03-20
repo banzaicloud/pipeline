@@ -18,10 +18,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/client"
+
+	"github.com/banzaicloud/pipeline/internal/providers/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 type commonCreator struct {
@@ -91,6 +94,7 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 	if externalBaseURL, ok = ctx.Value(ExternalBaseURLKey).(string); !ok {
 		return errors.New("externalBaseURL missing from context")
 	}
+
 	input := pkeworkflow.CreateClusterWorkflowInput{
 		OrganizationID:      uint(c.cluster.GetOrganizationId()),
 		ClusterID:           uint(c.cluster.GetID()),
@@ -101,6 +105,22 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 		PipelineExternalURL: externalBaseURL,
 		DexEnabled:          c.dexEnabled,
 	}
+
+	providerConfig := c.request.Properties.CreateClusterPKE.Network.ProviderConfig
+	if providerConfig != nil {
+		cpc := &pke.NetworkCloudProviderConfigAmazon{}
+		err := mapstructure.Decode(providerConfig, &cpc)
+		if err != nil {
+			return err
+		}
+
+		input.VPCID = cpc.VPCID
+
+		if len(cpc.Subnets) > 0 {
+			input.SubnetID = string(cpc.Subnets[0])
+		}
+	}
+
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
