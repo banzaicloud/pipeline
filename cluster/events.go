@@ -20,11 +20,6 @@ type clusterEvents interface {
 
 	// ClusterDeleted event is emitted when a cluster is completely deleted.
 	ClusterDeleted(orgID uint, clusterName string)
-
-	// ClusterUpdated event is emitted when a cluster update workflow finishes
-	// this event is fired regardless of whether the cluster update succeeded or
-	// only partially succeeded (cluster is in warning state)
-	ClusterUpdated(clusterID uint)
 }
 
 type nopClusterEvents struct {
@@ -40,9 +35,6 @@ func (*nopClusterEvents) ClusterCreated(clusterID uint) {
 func (*nopClusterEvents) ClusterDeleted(orgID uint, clusterName string) {
 }
 
-func (*nopClusterEvents) ClusterUpdated(clusterID uint) {
-}
-
 type eventBus interface {
 	Publish(topic string, args ...interface{})
 }
@@ -54,7 +46,6 @@ type clusterEventBus struct {
 const (
 	clusterCreatedTopic = "cluster_created"
 	clusterDeletedTopic = "cluster_deleted"
-	clusterUpdatedTopic = "cluster_updated"
 )
 
 func NewClusterEvents(eb eventBus) *clusterEventBus {
@@ -69,8 +60,4 @@ func (c *clusterEventBus) ClusterCreated(clusterID uint) {
 
 func (c *clusterEventBus) ClusterDeleted(orgID uint, clusterName string) {
 	c.eb.Publish(clusterDeletedTopic, orgID, clusterName)
-}
-
-func (c *clusterEventBus) ClusterUpdated(clusterID uint) {
-	c.eb.Publish(clusterUpdatedTopic, clusterID)
 }

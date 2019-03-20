@@ -99,13 +99,6 @@ func (e *clusterModelNotFoundError) NotFound() bool {
 	return true
 }
 
-// IsClusterNotFoundError returns true if the passed in error designates a cluster not found error
-func IsClusterNotFoundError(err error) bool {
-	notFoundErr, ok := errors.Cause(err).(*clusterModelNotFoundError)
-
-	return ok && notFoundErr.NotFound()
-}
-
 // findOneBy returns a cluster instance for an organization by cluster name.
 func (c *Clusters) findOneBy(organizationID uint, field string, criteria interface{}) (*model.ClusterModel, error) {
 	cluster := model.ClusterModel{

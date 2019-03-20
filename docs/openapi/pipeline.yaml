@@ -5207,11 +5207,6 @@ components:
                 cloud:
                     type: string
                     example: "google"
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 secretId:
                     type: string
                     example: "62bc3c75-91fb-4670-bad4-24b401a9deac"
@@ -5880,11 +5875,6 @@ components:
                 cloud:
                     type: string
                     example: google
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 properties:
                     type: object
                     additionalProperties:
@@ -6832,11 +6822,6 @@ components:
                 cloud:
                     type: string
                     example: "google"
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 properties:
                     type: object
                     additionalProperties:
@@ -6917,11 +6902,6 @@ components:
                 cloud:
                     type: string
                     example: "google"
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 properties:
                     type: object
                     additionalProperties:
@@ -7421,9 +7401,6 @@ components:
                 createdAt:
                     type: string
                     example: "2018-07-03T14:23:19+02:00"
-                startedAt:
-                    type: string
-                    example: "2018-07-03T14:23:29+02:00"
                 creatorName:
                     type: string
                     example: "userName"
@@ -7433,11 +7410,6 @@ components:
                 region:
                     type: string
                     example: "us-central1"
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 nodePools:
                     type: object
                     additionalProperties:

@@ -90,7 +90,6 @@ func CreateAKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			KubernetesVersion: request.Properties.CreateClusterAKS.KubernetesVersion,
 			NodePools:         nodePools,
 		},
-		TtlMinutes: request.TtlMinutes,
 	}
 
 	cluster.log = log.WithField("cluster", request.Name)
@@ -505,8 +504,6 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
-		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
 
@@ -1054,16 +1051,6 @@ func (c *AKSCluster) GetServiceMesh() bool {
 // SetServiceMesh sets service mesh flag on the cluster
 func (c *AKSCluster) SetServiceMesh(m bool) {
 	c.modelCluster.ServiceMesh = m
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *AKSCluster) GetTTL() time.Duration {
-	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *AKSCluster) SetTTL(ttl time.Duration) {
-	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }
 
 // ListResourceGroups returns all resource group
