@@ -402,7 +402,11 @@ func main() {
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
 
 			pkeGroup := clusters.Group("/pke")
-			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient)
+
+			leaderRepository, err := pke.NewVaultLeaderRepository()
+			emperror.Panic(emperror.Wrap(err, "failed to create Vault leader repository"))
+
+			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient, leaderRepository)
 			pkeAPI.RegisterRoutes(pkeGroup)
 
 			clusterSecretStore := clustersecret.NewStore(
