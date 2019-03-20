@@ -5210,7 +5210,7 @@ components:
                 ttlMinutes:
                     type: integer
                     minimum: 0
-                    example: 120
+                    example: 2
                     description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 secretId:
                     type: string
@@ -5883,7 +5883,7 @@ components:
                 ttlMinutes:
                     type: integer
                     minimum: 0
-                    example: 120
+                    example: 2
                     description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 properties:
                     type: object
@@ -6835,7 +6835,7 @@ components:
                 ttlMinutes:
                     type: integer
                     minimum: 0
-                    example: 120
+                    example: 2
                     description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 properties:
                     type: object
@@ -6920,7 +6920,7 @@ components:
                 ttlMinutes:
                     type: integer
                     minimum: 0
-                    example: 120
+                    example: 2
                     description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 properties:
                     type: object
@@ -7433,7 +7433,7 @@ components:
                 ttlMinutes:
                     type: integer
                     minimum: 0
-                    example: 120
+                    example: 2
                     description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 nodePools:
                     type: object
