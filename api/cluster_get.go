@@ -55,6 +55,18 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		return
 	}
 
+	secret, err := commonCluster.GetSecretWithValidation()
+	if err != nil {
+		errorHandler.Handle(err)
+
+		ginutils.ReplyWithErrorResponse(c, &common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error getting secret",
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	response := GetClusterResponse{
 		ID:            clusterStatus.ResourceID,
 		Status:        clusterStatus.Status,
@@ -79,6 +91,9 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		MasterVersion: clusterStatus.Version,
 
 		NodePools: make(map[string]GetClusterNodePool, len(clusterStatus.NodePools)),
+
+		SecretID:   secret.ID,
+		SecretName: secret.Name,
 
 		CreatedAt:   clusterStatus.CreatedAt,
 		CreatorName: clusterStatus.CreatorName,
@@ -115,16 +130,6 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 	}
 
 	var partialResponse bool
-
-	secret, err := commonCluster.GetSecretWithValidation()
-	if err != nil {
-		errorHandler.Handle(err)
-
-		partialResponse = true
-	} else {
-		response.SecretID = secret.ID
-		response.SecretName = secret.Name
-	}
 
 	endpoint, err := commonCluster.GetAPIEndpoint()
 	if err != nil {
