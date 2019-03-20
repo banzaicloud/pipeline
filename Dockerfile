@@ -10,6 +10,7 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     go install ./cmd/aws-iam-authenticator
 
 ENV GOFLAGS="-mod=readonly"
+ARG GOPROXY
 
 RUN mkdir -p /build
 WORKDIR /build
