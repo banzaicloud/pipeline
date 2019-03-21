@@ -66,13 +66,13 @@ func OrganizationMiddleware(c *gin.Context) {
 
 // OrganizationAPI implements organization functions.
 type OrganizationAPI struct {
-	scmAuthImporter *auth.SCMAuthImporter
+	orgImporter *auth.OrgImporter
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(scmAuthImporter *auth.SCMAuthImporter) *OrganizationAPI {
+func NewOrganizationAPI(orgImporter *auth.OrgImporter) *OrganizationAPI {
 	return &OrganizationAPI{
-		scmAuthImporter: scmAuthImporter,
+		orgImporter: orgImporter,
 	}
 }
 
@@ -171,10 +171,10 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 	}
 	switch provider {
 	case auth.GithubTokenID:
-		err = a.scmAuthImporter.ImportOrganizationsFromGithub(user, token)
+		err = a.orgImporter.ImportOrganizationsFromGithub(user, token)
 
 	case auth.GitlabTokenID:
-		err = a.scmAuthImporter.ImportOrganizationsFromGitlab(user, token)
+		err = a.orgImporter.ImportOrganizationsFromGitlab(user, token)
 
 	default:
 		return

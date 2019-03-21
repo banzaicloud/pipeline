@@ -160,7 +160,7 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, accessManager accessManager, scmAuthImporter *SCMAuthImporter) {
+func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -213,7 +213,7 @@ func Init(db *gorm.DB, accessManager accessManager, scmAuthImporter *SCMAuthImpo
 			cicdDB:           cicdDB,
 			events:           ebAuthEvents{eb: config.EventBus},
 			accessManager:    accessManager,
-			scmAuthImporter:  scmAuthImporter,
+			orgImporter:      orgImporter,
 		},
 		LogoutHandler:     BanzaiLogoutHandler,
 		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),

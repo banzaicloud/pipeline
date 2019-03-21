@@ -4,13 +4,13 @@
 
 Create a [personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) on GitLab.
 
-Take note of the generated GitHub access token as it will be needed.
+Take note of the generated GitLab access token as it will be needed.
 
-### Register the OAuth application on GitHub
+### Register the OAuth application on GitLab
 
 Register an [OAuth](https://docs.gitlab.com/ee/integration/oauth_provider.html) application on GitLab for the Pipeline API and CI/CD workflow.
 
-<a href="images/howto/GitlabOAuthAppReg.png" target="_blank"><img src="images/howto/GitlabOAuthAppReg.png" height="250"></a>
+<a href="images/howto/GitLabOAuthAppReg.png" target="_blank"><img src="images/howto/GitLabOAuthAppReg.png" height="250"></a>
 
 Fill in `Authorization callback URL`. This field has to be updated once the Control Plane is up and running using the IP address or the DNS name:
 
@@ -26,4 +26,4 @@ Fill in `Authorization callback URL`. This field has to be updated once the Cont
 
 Take note of the `Client ID` and `Client Secret` as these will be required for launching the Pipeline Control Plane and fill them into the `config/dex.yml` file (or into environment variables, see that file for details).
 
-<a href="images/howto/GitlabOAuthAppID.png" target="_blank"><img src="images/howto/GitlabOAuthAppID.png" height="250"></a>
+<a href="images/howto/GitLabOAuthAppID.png" target="_blank"><img src="images/howto/GitLabOAuthAppID.png" height="250"></a>
