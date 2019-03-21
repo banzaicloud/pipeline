@@ -275,10 +275,10 @@ func init() {
 	viper.SetDefault("issue.githubOwner", "banzaicloud")
 	viper.SetDefault("issue.githubRepository", "pipeline")
 
-	viper.SetDefault("issue.githubRepository", "pipeline")
-
 	viper.SetDefault("cert.source", "file")
-	viper.SetDefault("gitlab.baseurl", "https://gitlab.com/")
+	viper.SetDefault("cert.path", "config/certs")
+
+	viper.SetDefault("gitlab.baseURL", "https://gitlab.com/")
 
 	viper.SetDefault(IstioOperatorChartVersion, "0.0.2")
 	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "dashboards", "istio"))

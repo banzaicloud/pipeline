@@ -94,8 +94,10 @@ func getGitlabOrganizations(token string) ([]organization, error) {
 	}
 	var orgs []organization
 	for _, group := range groups {
-		role, _ := getGroupAccesLevel(gitlabClient, group.ID, currentUser.ID)
-		// TODO error logging
+		role, err := getGroupAccesLevel(gitlabClient, group.ID, currentUser.ID)
+		if err != nil {
+			return nil, emperror.With(err, "groupID", group.ID, "userID", currentUser.ID)
+		}
 		org := organization{
 			name:     group.Name,
 			id:       int64(group.ID),

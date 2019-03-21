@@ -284,7 +284,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	bus.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
-	// Import Github organizations in case of DEX
+	// Import organizations in case of DEX
 	if schema.Provider == ProviderDexGithub {
 		err = bus.scmAuthImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGithub)
 	}
@@ -295,24 +295,24 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
-// SaveUserSCMToken saves a GitHub personal access token specified for a user
+// SaveUserSCMToken saves a personal access token specified for a user
 func SaveUserSCMToken(user *User, scmToken string, tokenType string) error {
 	// Revoke the old Github token from Vault if any
 	err := TokenStore.Revoke(user.IDString(), tokenType)
 	if err != nil {
-		return errors.Wrap(err, "failed to revoke old Github access token")
+		return errors.Wrap(err, "failed to revoke old access token")
 	}
-	token := bauth.NewToken(tokenType, "Github access token")
+	token := bauth.NewToken(tokenType, "scm access token")
 	token.Value = scmToken
 	err = TokenStore.Store(user.IDString(), token)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to store Github access token for user", "user", user.Login)
+		return emperror.WrapWith(err, "failed to store access token for user", "user", user.Login)
 	}
 	if tokenType == GithubTokenID {
 		// TODO CICD should use Vault as well, and this should be removed by then
 		err = updateUserInCICDDB(user, scmToken)
 		if err != nil {
-			return emperror.WrapWith(err, "failed to update Github access token for user in CICD", "user", user.Login)
+			return emperror.WrapWith(err, "failed to update access token for user in CICD", "user", user.Login)
 		}
 
 		synchronizeCICDRepos(user.Login)
@@ -326,14 +326,14 @@ func RemoveUserSCMToken(user *User, tokenType string) error {
 	// Revoke the old Github token from Vault if any
 	err := TokenStore.Revoke(user.IDString(), tokenType)
 	if err != nil {
-		return errors.Wrap(err, "failed to revoke Github access token")
+		return errors.Wrap(err, "failed to revoke access token")
 	}
 
 	if tokenType == GithubTokenID {
 		// TODO CICD should use Vault as well, and this should be removed by then
 		err = updateUserInCICDDB(user, "")
 		if err != nil {
-			return emperror.WrapWith(err, "failed to revoke Github access token for user in CICD", "user", user.Login)
+			return emperror.WrapWith(err, "failed to revoke access token for user in CICD", "user", user.Login)
 		}
 	}
 	return nil
@@ -423,13 +423,13 @@ func (i *SCMAuthImporter) ImportOrganizationsFromDex(currentUser *User, organiza
 }
 
 func (i *SCMAuthImporter) ImportSCMOrganizations(currentUser *User, orgs []organization) error {
-	githubOrgIDs, err := importSCMOrganizations(i.db, currentUser, orgs)
+	orgIDs, err := importSCMOrganizations(i.db, currentUser, orgs)
 
 	if err != nil {
 		return emperror.Wrap(err, "failed to import organizations")
 	}
 
-	for id, created := range githubOrgIDs {
+	for id, created := range orgIDs {
 		i.accessManager.AddOrganizationPolicies(id)
 		i.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), id)
 

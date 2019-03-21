@@ -45,13 +45,13 @@ func UpdateSCMToken(user *User, scmToken string, provider string) (string, error
 	if scmToken != "" {
 		err := SaveUserSCMToken(user, scmToken, provider)
 		if err != nil {
-			message := "failed to update user's github token"
+			message := "failed to update user's access token"
 			return message, emperror.Wrap(err, message)
 		}
 	} else {
 		err := RemoveUserSCMToken(user, provider)
 		if err != nil {
-			message := "failed to remove user's github token"
+			message := "failed to remove user's access token"
 			return message, emperror.Wrap(err, message)
 		}
 	}
