@@ -179,7 +179,7 @@ type BanzaiUserStorer struct {
 	cicdDB           *gorm.DB
 	events           authEvents
 	accessManager    accessManager
-	scmImporter      *SCMImporter
+	scmAuthImporter  *SCMAuthImporter
 }
 
 func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
@@ -286,10 +286,10 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	// Import Github organizations in case of DEX
 	if schema.Provider == ProviderDexGithub {
-		err = bus.scmImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGithub)
+		err = bus.scmAuthImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGithub)
 	}
 	if schema.Provider == ProviderDexGitlab {
-		err = bus.scmImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGitlab)
+		err = bus.scmAuthImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGitlab)
 	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
@@ -375,27 +375,27 @@ func synchronizeCICDRepos(login string) {
 	}
 }
 
-// SCMImporter imports github organizations.
-type SCMImporter struct {
+// SCMAuthImporter imports github organizations.
+type SCMAuthImporter struct {
 	db            *gorm.DB
 	accessManager accessManager
 	events        authEvents
 }
 
-// NewSCMImporter returns a new SCMImporter instance.
-func NewSCMImporter(
+// NewSCMAuthImporter returns a new SCMAuthImporter instance.
+func NewSCMAuthImporter(
 	db *gorm.DB,
 	accessManager accessManager,
 	events eventBus,
-) *SCMImporter {
-	return &SCMImporter{
+) *SCMAuthImporter {
+	return &SCMAuthImporter{
 		db:            db,
 		accessManager: accessManager,
 		events:        ebAuthEvents{eb: events},
 	}
 }
 
-func (i *SCMImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
+func (i *SCMAuthImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
 	orgs, err := getGithubOrganizations(githubToken)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get organizations")
@@ -404,7 +404,7 @@ func (i *SCMImporter) ImportOrganizationsFromGithub(currentUser *User, githubTok
 	return i.ImportSCMOrganizations(currentUser, orgs)
 }
 
-func (i *SCMImporter) ImportOrganizationsFromGitlab(currentUser *User, gitlabToken string) error {
+func (i *SCMAuthImporter) ImportOrganizationsFromGitlab(currentUser *User, gitlabToken string) error {
 	orgs, err := getGitlabOrganizations(gitlabToken)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get organizations")
@@ -413,7 +413,7 @@ func (i *SCMImporter) ImportOrganizationsFromGitlab(currentUser *User, gitlabTok
 	return i.ImportSCMOrganizations(currentUser, orgs)
 }
 
-func (i *SCMImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string, provider string) error {
+func (i *SCMAuthImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string, provider string) error {
 	var orgs []organization
 	for _, org := range organizations {
 		orgs = append(orgs, organization{name: org, provider: provider})
@@ -422,7 +422,7 @@ func (i *SCMImporter) ImportOrganizationsFromDex(currentUser *User, organization
 	return i.ImportSCMOrganizations(currentUser, orgs)
 }
 
-func (i *SCMImporter) ImportSCMOrganizations(currentUser *User, orgs []organization) error {
+func (i *SCMAuthImporter) ImportSCMOrganizations(currentUser *User, orgs []organization) error {
 	githubOrgIDs, err := importSCMOrganizations(i.db, currentUser, orgs)
 
 	if err != nil {

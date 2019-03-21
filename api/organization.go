@@ -66,13 +66,13 @@ func OrganizationMiddleware(c *gin.Context) {
 
 // OrganizationAPI implements organization functions.
 type OrganizationAPI struct {
-	scmImporter *auth.SCMImporter
+	scmAuthImporter *auth.SCMAuthImporter
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(scmImporter *auth.SCMImporter) *OrganizationAPI {
+func NewOrganizationAPI(scmAuthImporter *auth.SCMAuthImporter) *OrganizationAPI {
 	return &OrganizationAPI{
-		scmImporter: scmImporter,
+		scmAuthImporter: scmAuthImporter,
 	}
 }
 
@@ -171,32 +171,23 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 	}
 	switch provider {
 	case auth.GithubTokenID:
-		err := a.scmImporter.ImportOrganizationsFromGithub(user, token)
-		if err != nil {
-			errorHandler.Handle(err)
+		err = a.scmAuthImporter.ImportOrganizationsFromGithub(user, token)
 
-			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-				Code:    http.StatusInternalServerError,
-				Message: "syncronization failed",
-				Error:   err.Error(),
-			})
-
-			return
-		}
 	case auth.GitlabTokenID:
-		err := a.scmImporter.ImportOrganizationsFromGitlab(user, token)
-		if err != nil {
-			errorHandler.Handle(err)
+		err = a.scmAuthImporter.ImportOrganizationsFromGitlab(user, token)
 
-			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-				Code:    http.StatusInternalServerError,
-				Message: "syncronization failed",
-				Error:   err.Error(),
-			})
-
-			return
-		}
 	default:
+		return
+	}
+	if err != nil {
+		errorHandler.Handle(err)
+
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "syncronization failed",
+			Error:   err.Error(),
+		})
+
 		return
 	}
 

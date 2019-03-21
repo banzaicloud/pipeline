@@ -113,11 +113,11 @@ func main() {
 	accessManager := intAuth.NewAccessManager(enforcer, basePath)
 	accessManager.AddDefaultPolicies()
 
-	scmImporter := auth.NewSCMImporter(db, accessManager, config.EventBus)
+	scmAuthImporter := auth.NewSCMAuthImporter(db, accessManager, config.EventBus)
 	tokenHandler := auth.NewTokenHandler(accessManager)
 
 	// Initialize auth
-	auth.Init(cicdDB, accessManager, scmImporter)
+	auth.Init(cicdDB, accessManager, scmAuthImporter)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		log.Info("running automatic schema migrations")
@@ -286,7 +286,7 @@ func main() {
 	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
 
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
-	organizationAPI := api.NewOrganizationAPI(scmImporter)
+	organizationAPI := api.NewOrganizationAPI(scmAuthImporter)
 	userAPI := api.NewUserAPI(accessManager, db, log, errorHandler)
 	networkAPI := api.NewNetworkAPI(log)
 

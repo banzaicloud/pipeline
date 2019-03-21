@@ -15,6 +15,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/goph/emperror"
@@ -22,6 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/spf13/cast"
+	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 )
@@ -31,13 +33,18 @@ type gitlabUserMeta struct {
 	AvatarURL string
 }
 
-func NewGitlabClient(accessToken string) *gitlab.Client {
+func NewGitlabClient(accessToken string) (*gitlab.Client, error) {
 	httpClient := oauth2.NewClient(
 		oauth2.NoContext,
 		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}),
 	)
-
-	return gitlab.NewClient(httpClient, accessToken)
+	gitlabURL := viper.GetString("github.baseurl")
+	gitlabClient := gitlab.NewClient(httpClient, accessToken)
+	err := gitlabClient.SetBaseURL(gitlabURL)
+	if err != nil {
+		return nil, emperror.With(err, "gitlabBaseURL", gitlabURL)
+	}
+	return gitlabClient, nil
 }
 
 func NewGitlabClientForUser(userID uint) (*gitlab.Client, error) {
@@ -50,7 +57,11 @@ func NewGitlabClientForUser(userID uint) (*gitlab.Client, error) {
 		return nil, errors.New("user's gitlab token is not set")
 	}
 
-	return NewGitlabClient(accessToken), nil
+	gitlabClient, err := NewGitlabClient(accessToken)
+	if err != nil {
+		return nil, err
+	}
+	return gitlabClient, nil
 }
 
 func GetUserGitlabToken(userID uint) (string, error) {
@@ -67,7 +78,8 @@ func GetUserGitlabToken(userID uint) (string, error) {
 }
 
 func getGitlabOrganizations(token string) ([]organization, error) {
-	gitlabClient := gitlab.NewClient(nil, token)
+	httpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
+	gitlabClient := gitlab.NewClient(httpClient, token)
 
 	minAccessLevel := gitlab.DeveloperPermissions
 	groups, _, err := gitlabClient.Groups.ListGroups(&gitlab.ListGroupsOptions{MinAccessLevel: &minAccessLevel})
@@ -121,7 +133,10 @@ func getGroupAccesLevel(gitlabClient *gitlab.Client, groupID int, userID int) (s
 }
 
 func getGitlabUserMeta(schema *auth.Schema) (*gitlabUserMeta, error) {
-	gitlabClient := NewGitlabClient("")
+	gitlabClient, err := NewGitlabClient("")
+	if err != nil {
+		return nil, err
+	}
 
 	var dexClaims struct {
 		FederatedClaims map[string]string

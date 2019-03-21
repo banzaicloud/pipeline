@@ -14,7 +14,9 @@
 
 package auth
 
-import "github.com/goph/emperror"
+import (
+	"github.com/goph/emperror"
+)
 
 type organization struct {
 	name     string
@@ -36,4 +38,22 @@ func GetSCMToken(userID uint) (string, string, error) {
 	}
 
 	return "", "", emperror.Wrap(err, "failed to fetch user's scm token")
+}
+
+// UpdateSCMToken update user token
+func UpdateSCMToken(user *User, scmToken string, provider string) (string, error) {
+	if scmToken != "" {
+		err := SaveUserSCMToken(user, scmToken, provider)
+		if err != nil {
+			message := "failed to update user's github token"
+			return message, emperror.Wrap(err, message)
+		}
+	} else {
+		err := RemoveUserSCMToken(user, provider)
+		if err != nil {
+			message := "failed to remove user's github token"
+			return message, emperror.Wrap(err, message)
+		}
+	}
+	return "", nil
 }
