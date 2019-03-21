@@ -17,15 +17,52 @@
             }
         },
         {
-            "label": "run",
+            "label": "run all",
             "type": "process",
-            "command": "build/pipeline",
+            "command": "make",
+            "args": [
+                "-j",
+                "runall"
+            ],
             "options": {
                 "cwd": "${workspaceRoot}",
                 "env": {
                     "VAULT_ADDR": "http://localhost:8200"
                 }
-            }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run pipeline",
+            "type": "process",
+            "command": "make",
+            "args": [
+                "-j",
+                "run"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}",
+                "env": {
+                    "VAULT_ADDR": "http://localhost:8200"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run worker",
+            "type": "process",
+            "command": "make",
+            "args": [
+                "-j",
+                "run-worker"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}",
+                "env": {
+                    "VAULT_ADDR": "http://localhost:8200"
+                }
+            },
+            "problemMatcher": []
         },
         {
             "label": "test",
