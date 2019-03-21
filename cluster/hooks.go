@@ -24,6 +24,7 @@ import (
 	"github.com/Masterminds/semver"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
+	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -46,8 +47,6 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
-	alibabaObjectstore "github.com/banzaicloud/pipeline/internal/providers/alibaba"
-	amazonObjectstore "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -221,8 +220,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 
 		if len(loggingParam.Region) == 0 {
 			// region field is empty in request, get bucket region
-			defaultRegion := viper.GetString(pipConfig.AmazonInitializeRegionKey)
-			region, err := amazonObjectstore.GetBucketRegion(logSecret, loggingParam.BucketName, defaultRegion, cluster.GetOrganizationId(), log)
+			region, err := providers.GetBucketLocation(pkgCluster.Amazon, logSecret, loggingParam.BucketName, cluster.GetOrganizationId(), log)
 			if err != nil {
 				return emperror.WrapWith(err, "failed to get S3 bucket region", "bucket", loggingParam.BucketName)
 			}
@@ -272,8 +270,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 
 		if len(loggingParam.Region) == 0 {
 			// region field is empty in request, get bucket region
-			defaultRegion := viper.GetString(pipConfig.AlibabaInitializeRegionKey)
-			region, err := alibabaObjectstore.GetBucketLocation(logSecret, loggingParam.BucketName, defaultRegion, cluster.GetOrganizationId(), log)
+			region, err := providers.GetBucketLocation(pkgCluster.Alibaba, logSecret, loggingParam.BucketName, cluster.GetOrganizationId(), log)
 			if err != nil {
 				return emperror.WrapWith(err, "failed to get OSS bucket region", "bucket", loggingParam.BucketName)
 			}

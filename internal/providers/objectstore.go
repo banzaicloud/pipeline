@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // ObjectStoreContext describes all parameters necessary to create a cloud provider agnostic object store instance.
@@ -70,4 +71,21 @@ func NewObjectStore(ctx *ObjectStoreContext, logger logrus.FieldLogger) (objects
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
 	}
+}
+
+func GetBucketLocation(provider string, secret *secret.SecretItemResponse, bucketName string, orgID uint, log logrus.FieldLogger) (string, error) {
+
+	switch provider {
+	case providers.Alibaba:
+		defaultRegion := viper.GetString(config.AlibabaInitializeRegionKey)
+		return alibaba.GetBucketLocation(secret, bucketName, defaultRegion, orgID, log)
+
+	case providers.Amazon:
+		defaultRegion := viper.GetString(config.AmazonInitializeRegionKey)
+		return amazon.GetBucketRegion(secret, bucketName, defaultRegion, orgID, log)
+
+	default:
+		return "", pkgErrors.ErrorNotSupportedCloudType
+	}
+
 }
