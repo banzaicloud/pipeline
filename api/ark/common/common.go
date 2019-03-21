@@ -17,7 +17,10 @@ package common
 import (
 	"net/http"
 
+	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -45,4 +48,14 @@ func ErrorResponse(c *gin.Context, err error) {
 	}
 
 	pkgCommon.ErrorResponseWithStatus(c, status, err)
+}
+
+func GetBucketLocation(cloud string, bucketName string, secretId string, organizationID uint, logger logrus.FieldLogger) (string, error) {
+
+	bucketSecret, err := secret.RestrictedStore.Get(organizationID, secretId)
+	if err != nil {
+		return "", emperror.WrapWith(err, "error during getting secret", "secretId", secretId)
+	}
+
+	return providers.GetBucketLocation(cloud, bucketSecret, bucketName, organizationID, logger)
 }

@@ -45,6 +45,20 @@ func Create(c *gin.Context) {
 	}
 
 	org := auth.GetCurrentOrganization(c.Request)
+
+	if len(request.Location) == 0 {
+		// location field is empty in request, get bucket location
+		location, err := common.GetBucketLocation(request.Cloud, request.BucketName, request.SecretID, org.ID, logger)
+		if err != nil {
+			err = emperror.WrapWith(err, "failed to get bucket region", "bucket", request.BucketName)
+			common.ErrorHandler.Handle(err)
+			common.ErrorResponse(c, err)
+			return
+		}
+
+		request.Location = location
+	}
+
 	bs := ark.BucketsServiceFactory(org, config.DB(), logger)
 
 	_, err := bs.GetByRequest(api.FindBucketRequest{
