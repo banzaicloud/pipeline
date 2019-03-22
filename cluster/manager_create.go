@@ -207,7 +207,7 @@ func (m *Manager) createCluster(
 		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
-	labelsMap, err := GetDesiredLabelsForCluster(cluster, nil, false)
+	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nil, false)
 	if err != nil {
 		_ = cluster.UpdateStatus(pkgCluster.Error, "failed to get desired labels")
 
