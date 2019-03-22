@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -58,6 +59,21 @@ func Enable(c *gin.Context) {
 		common.ErrorHandler.Handle(err)
 		common.ErrorResponse(c, err)
 		return
+	}
+
+	if len(request.Location) == 0 {
+		// location field is empty in request, get bucket location
+		organizationID := auth.GetCurrentOrganization(c.Request).ID
+
+		location, err := common.GetBucketLocation(request.Cloud, request.BucketName, request.SecretID, organizationID, logger)
+		if err != nil {
+			err = emperror.WrapWith(err, "failed to get bucket region", "bucket", request.BucketName)
+			common.ErrorHandler.Handle(err)
+			common.ErrorResponse(c, err)
+			return
+		}
+
+		request.Location = location
 	}
 
 	bucketService := svc.GetBucketsService()

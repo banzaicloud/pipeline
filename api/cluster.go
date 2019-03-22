@@ -334,10 +334,9 @@ func GetNodePools(c *gin.Context) {
 				ActualCount:    nodePoolCounts[nodePoolName],
 			}
 
-			machineDetails, err := cloudinfo.GetMachineDetails(clusterStatus.Cloud,
+			machineDetails, err := cloudinfo.GetMachineDetails(log, clusterStatus.Cloud,
 				clusterStatus.Distribution,
 				clusterStatus.Region,
-				clusterStatus.Location,
 				nodePool.InstanceType)
 			if err != nil {
 				errorHandler.Handle(err)
