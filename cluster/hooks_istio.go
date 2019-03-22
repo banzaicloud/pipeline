@@ -46,12 +46,12 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 		return emperror.Wrap(err, "failed to get kubeconfig")
 	}
 
-	err = InstallIstioOperator(cluster)
+	err = installIstioOperator(cluster)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create istio-operator")
 	}
 
-	err = CreateIstioCR(kubeConfig, &params, cluster)
+	err = createIstioCR(kubeConfig, &params, cluster)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create Istio CR")
 	}

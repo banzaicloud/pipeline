@@ -35,8 +35,8 @@ const istioOperatorNamespace = "istio-system"
 const istioOperatorDeploymentName = pkgHelm.BanzaiRepository + "/" + "istio-operator"
 const istioOperatorReleaseName = "istio-operator"
 
-// InstallIstioOperator installs istio-operator on a cluster
-func InstallIstioOperator(cluster CommonCluster) error {
+// installIstioOperator installs istio-operator on a cluster
+func installIstioOperator(cluster CommonCluster) error {
 	err := installDeployment(
 		cluster,
 		istioOperatorNamespace,
@@ -52,8 +52,8 @@ func InstallIstioOperator(cluster CommonCluster) error {
 	return nil
 }
 
-// CreateIstioCR creates an istio-operator specific CR which triggers the istio-operator to install Istio
-func CreateIstioCR(kubeConfig []byte, params *InstallServiceMeshParams, cluster CommonCluster) error {
+// createIstioCR creates an istio-operator specific CR which triggers the istio-operator to install Istio
+func createIstioCR(kubeConfig []byte, params *InstallServiceMeshParams, cluster CommonCluster) error {
 	restClient, err := createRESTClient(kubeConfig)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create REST client")
