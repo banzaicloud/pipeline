@@ -7903,6 +7903,14 @@ components:
                         mtls:
                             type: boolean
                             example: false
+                        autoSidecarInjectNamespaces:
+                            type: array
+                            items:
+                                type: string
+                            example: "default"
+                        bypassEgressTraffic:
+                            type: boolean
+                            example: false
 
         PostHooks:
             oneOf:

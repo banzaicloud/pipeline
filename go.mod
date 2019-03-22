@@ -35,6 +35,7 @@ require (
 	github.com/banzaicloud/bank-vaults v0.0.0-20181228154154-8f1348d7821a
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
+	github.com/banzaicloud/istio-operator v0.0.0-20190312122926-a4debb5bafe9
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190219103855-a13c1b05f240
 	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29
@@ -230,11 +231,11 @@ require (
 	go.uber.org/tools v0.0.0-20170523140223-ce2550dad714 // indirect
 	go.uber.org/yarpc v1.36.1
 	go.uber.org/zap v1.9.1
-	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	golang.org/x/lint v0.0.0-20181217174547-8f45f776aaf1 // indirect
-	golang.org/x/net v0.0.0-20190119204137-ed066c81e75e
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
 	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890
-	golang.org/x/tools v0.0.0-20190211224914-44bee7e801e4 // indirect
+	golang.org/x/tools v0.0.0-20190318200714-bb1270c20edf // indirect
 	google.golang.org/api v0.0.0-20190111181425-455dee39f703
 	google.golang.org/genproto v0.0.0-20181202183823-bd91e49a0898
 	google.golang.org/grpc v1.17.0
@@ -256,6 +257,7 @@ require (
 	k8s.io/kubernetes v1.11.5
 	k8s.io/utils v0.0.0-20180208044234-258e2a2fa645 // indirect
 	layeh.com/radius v0.0.0-20190118135028-0f678f039617 // indirect
+	sigs.k8s.io/controller-runtime v0.1.10 // indirect
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 

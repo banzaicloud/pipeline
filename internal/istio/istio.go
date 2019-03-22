@@ -15,20 +15,3 @@
 package istio
 
 const Namespace = "istio-system"
-
-type Config struct {
-	Global Global `json:"global,omitempty"`
-}
-
-type Global struct {
-	Mtls  MTLS  `json:"mtls,omitempty"`
-	Proxy Proxy `json:"proxy,omitempty"`
-}
-
-type MTLS struct {
-	Enabled bool `json:"enabled,omitempty"`
-}
-
-type Proxy struct {
-	IncludeIPRanges string `json:"includeIPRanges,omitempty"`
-}

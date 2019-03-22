@@ -15,16 +15,10 @@
 package cluster
 
 import (
-	"strings"
-
-	pConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/istio"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
-	"github.com/spf13/viper"
 )
 
 // InstallServiceMeshParams describes InstallServiceMesh posthook params
@@ -47,50 +41,25 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 
 	log.Infof("istio params: %#v", params)
 
-	config := istio.Config{
-		Global: istio.Global{
-			Mtls: istio.MTLS{
-				Enabled: params.EnableMtls,
-			},
-		},
-	}
-
-	if params.BypassEgressTraffic {
-		ipRanges, err := cluster.GetK8sIpv4Cidrs()
-		if err != nil {
-			log.Warnf("couldn't set included IP ranges in Envoy config, external requests will be intercepted")
-		} else {
-			config.Global.Proxy = istio.Proxy{
-				IncludeIPRanges: strings.Join(ipRanges.PodIPRanges, ",") + "," + strings.Join(ipRanges.ServiceClusterIPRanges, ","),
-			}
-		}
-	}
-
-	overrideValues, err := yaml.Marshal(config)
-	if err != nil {
-		return emperror.Wrap(err, "failed to marshal yaml values")
-	}
-
-	err = installDeployment(cluster, istio.Namespace, pkgHelm.BanzaiRepository+"/istio", "istio", overrideValues, viper.GetString(pConfig.IstioChartVersion), false)
-	if err != nil {
-		return emperror.Wrap(err, "installing Istio failed")
-	}
-
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		return emperror.Wrap(err, "failed to get kubeconfig")
+	}
+
+	err = installIstioOperator(cluster)
+	if err != nil {
+		return emperror.Wrap(err, "failed to create istio-operator")
+	}
+
+	err = createIstioCR(kubeConfig, &params, cluster)
+	if err != nil {
+		return emperror.Wrap(err, "failed to create Istio CR")
 	}
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create client from kubeconfig")
 	}
-
-	err = istio.LabelNamespaces(log, client, params.AutoSidecarInjectNamespaces)
-	if err != nil {
-		return emperror.Wrap(err, "failed to label namespace")
-	}
-
 	if cluster.GetMonitoring() {
 		err = istio.AddPrometheusTargets(log, client)
 		if err != nil {
