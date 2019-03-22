@@ -90,7 +90,6 @@ Resources:
             PkeCommand: !Ref PkeCommand,
             }
       SubnetId: !Ref SubnetId
-      AvailabilityZone: !Ref AvailabilityZone
       Tags:
       - Key: ClusterName
         Value: !Ref ClusterName
