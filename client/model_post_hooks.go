@@ -14,6 +14,5 @@ package client
 type PostHooks struct {
 	InstallLogging       LoggingPostHookInstallLogging         `json:"InstallLogging,omitempty"`
 	PostHookFunctionName map[string]interface{}                `json:"PostHookFunctionName,omitempty"`
-	InstallIstioOperator map[string]interface{}                `json:"InstallIstioOperator,omitempty"`
 	InstallServiceMesh   ServiceMeshPostHookInstallServiceMesh `json:"InstallServiceMesh,omitempty"`
 }

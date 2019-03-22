@@ -8194,8 +8194,6 @@ components:
       type: object
     ServiceMeshPostHook:
       properties:
-        InstallIstioOperator:
-          type: object
         InstallServiceMesh:
           $ref: '#/components/schemas/ServiceMeshPostHook_InstallServiceMesh'
       type: object

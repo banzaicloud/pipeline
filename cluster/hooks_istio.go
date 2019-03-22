@@ -15,19 +15,10 @@
 package cluster
 
 import (
-	"strings"
-
-	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	"github.com/banzaicloud/pipeline/internal/istio"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 // InstallServiceMeshParams describes InstallServiceMesh posthook params
@@ -55,20 +46,12 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 		return emperror.Wrap(err, "failed to get kubeconfig")
 	}
 
-	restClient, err := createRESTClient(kubeConfig)
+	err = InstallIstioOperator(cluster)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create REST client")
+		return emperror.Wrap(err, "failed to create istio-operator")
 	}
 
-	istioConfig := createIstioConfig(&params, cluster)
-
-	// Install Istio by creating a CR for the istio-operator
-	err = restClient.Post().
-		Namespace(istio.Namespace).
-		Resource("istios").
-		Body(&istioConfig).
-		Do().
-		Error()
+	err = CreateIstioCR(kubeConfig, &params, cluster)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create Istio CR")
 	}
@@ -90,58 +73,4 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 
 	cluster.SetServiceMesh(true)
 	return nil
-}
-
-func createRESTClient(kubeConfig []byte) (restClient *rest.RESTClient, err error) {
-	config, err := clientcmd.RESTConfigFromKubeConfig(kubeConfig)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create client from kubeconfig")
-	}
-
-	err = v1beta1.AddToScheme(scheme.Scheme)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to add istio-operator schema")
-	}
-
-	config.ContentConfig.GroupVersion = &schema.GroupVersion{Group: "istio.banzaicloud.io", Version: "v1beta1"}
-	config.APIPath = "/apis"
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-	config.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	restClient, err = rest.RESTClientFor(config)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create REST client for config")
-	}
-
-	return restClient, nil
-}
-
-func createIstioConfig(params *InstallServiceMeshParams, cluster CommonCluster) v1beta1.Istio {
-	istioConfig := v1beta1.Istio{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Istio",
-			APIVersion: "istio.banzaicloud.io/v1beta1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "istio-config",
-			Labels: map[string]string{
-				"controller-tools.k8s.io": "1.0",
-			},
-		},
-		Spec: v1beta1.IstioSpec{
-			MTLS:                    params.EnableMtls,
-			AutoInjectionNamespaces: params.AutoSidecarInjectNamespaces,
-		},
-	}
-
-	if params.BypassEgressTraffic {
-		ipRanges, err := cluster.GetK8sIpv4Cidrs()
-		if err != nil {
-			log.Warnf("couldn't set included IP ranges in Envoy config, external requests will be intercepted")
-		} else {
-			istioConfig.Spec.IncludeIPRanges = strings.Join(ipRanges.PodIPRanges, ",") + "," + strings.Join(ipRanges.ServiceClusterIPRanges, ",")
-		}
-	}
-
-	return istioConfig
 }

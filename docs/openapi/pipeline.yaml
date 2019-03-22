@@ -7897,8 +7897,6 @@ components:
         ServiceMeshPostHook:
             type: object
             properties:
-                InstallIstioOperator:
-                    type: object
                 InstallServiceMesh:
                     type: object
                     properties:
