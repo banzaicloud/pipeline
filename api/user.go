@@ -74,7 +74,7 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	githubToken, err := auth.GetUserGithubToken(user.ID)
+	scmToken, provider, err := auth.GetSCMToken(user.ID)
 
 	if err != nil {
 		message := "failed to fetch user's github token"
@@ -86,13 +86,18 @@ func (a *UserAPI) GetCurrentUser(c *gin.Context) {
 		})
 		return
 	}
-
 	var response struct {
 		*auth.User
 		GitHubTokenSet bool `json:"gitHubTokenSet"`
+		GitLabTokenSet bool `json:"gitLabTokenSet"`
 	}
+
 	response.User = user
-	response.GitHubTokenSet = (githubToken != "")
+	if provider == auth.GithubTokenID {
+		response.GitHubTokenSet = (scmToken != "")
+	} else if provider == auth.GitlabTokenID {
+		response.GitLabTokenSet = (scmToken != "")
+	}
 
 	c.JSON(http.StatusOK, response)
 }
@@ -273,6 +278,7 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 
 type updateUserRequest struct {
 	GitHubToken *string `json:"gitHubToken,omitempty"`
+	GitLabToken *string `json:"gitLabToken,omitempty"`
 }
 
 // UpdateCurrentUser updates the authenticated user's settings
@@ -312,32 +318,24 @@ func (a *UserAPI) UpdateCurrentUser(c *gin.Context) {
 		return
 	}
 
+	var provider string
+	var scmToken string
 	if updateUserRequest.GitHubToken != nil {
-		if *updateUserRequest.GitHubToken != "" {
-			err = auth.SaveUserGitHubToken(user, *updateUserRequest.GitHubToken)
-			if err != nil {
-				message := "failed to update user's github token"
-				a.errorHandler.Handle(emperror.Wrap(err, message))
-				c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-					Code:    http.StatusInternalServerError,
-					Message: message,
-					Error:   message,
-				})
-				return
-			}
-		} else {
-			err = auth.RemoveUserGitHubToken(user)
-			if err != nil {
-				message := "failed to remove user's github token"
-				a.errorHandler.Handle(emperror.Wrap(err, message))
-				c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
-					Code:    http.StatusInternalServerError,
-					Message: message,
-					Error:   message,
-				})
-				return
-			}
-		}
+		provider = auth.GithubTokenID
+		scmToken = *updateUserRequest.GitHubToken
+	} else if updateUserRequest.GitLabToken != nil {
+		provider = auth.GitlabTokenID
+		scmToken = *updateUserRequest.GitLabToken
+	}
+
+	message, err := auth.UpdateSCMToken(user, scmToken, provider)
+	if err != nil {
+		a.errorHandler.Handle(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
+			Error:   message,
+		})
 	}
 
 	c.Status(http.StatusNoContent)

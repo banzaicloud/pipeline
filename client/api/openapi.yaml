@@ -5251,9 +5251,13 @@ components:
     UpdateUserRequest:
       example:
         gitHubToken: b8d9cfb5df15fd513bf3351719876ffff4b310d2
+        gitLabToken: a_tguocsP6vqqHBh8vYQ
       properties:
         gitHubToken:
           example: b8d9cfb5df15fd513bf3351719876ffff4b310d2
+          type: string
+        gitLabToken:
+          example: a_tguocsP6vqqHBh8vYQ
           type: string
       type: object
     SpotguideDetailsResponse:
