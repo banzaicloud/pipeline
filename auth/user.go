@@ -355,9 +355,9 @@ func updateUserInCICDDB(user *User, scmAccessToken string) error {
 	where := &CICDUser{
 		Login: user.Login,
 	}
-	update := &CICDUser{
-		Token:  scmAccessToken,
-		Synced: time.Now().Unix(),
+	update := map[string]interface{}{
+		"user_token":  scmAccessToken,
+		"user_synced": time.Now().Unix(),
 	}
 	return cicdDB.Model(&CICDUser{}).Where(where).Update(update).Error
 }
