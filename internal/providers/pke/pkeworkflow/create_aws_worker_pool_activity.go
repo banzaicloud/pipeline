@@ -61,15 +61,21 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", err
 	}
 
-	imageID := getDefaultImageID(cluster.GetLocation())
-	if input.Pool.ImageID != "" {
-		imageID = input.Pool.ImageID
-	}
 	stackName := fmt.Sprintf("pke-pool-%s-worker-%s", cluster.GetName(), input.Pool.Name)
 
 	awsCluster, ok := cluster.(AWSCluster)
 	if !ok {
 		return "", errors.New(fmt.Sprintf("can't get AWS client for %t", cluster))
+	}
+
+	ver, err := awsCluster.GetKubernetesVersion()
+	if err != nil {
+		return "", emperror.Wrap(err, "can't get Kubernetes version")
+	}
+
+	imageID := getDefaultImageID(cluster.GetLocation(), ver)
+	if input.Pool.ImageID != "" {
+		imageID = input.Pool.ImageID
 	}
 
 	_, signedToken, err := a.tokenGenerator.GenerateClusterToken(cluster.GetOrganizationId(), cluster.GetID())
