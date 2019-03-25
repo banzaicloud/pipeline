@@ -38,7 +38,7 @@ func NewGitlabClient(accessToken string) (*gitlab.Client, error) {
 		oauth2.NoContext,
 		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}),
 	)
-	gitlabURL := viper.GetString("github.baseURL")
+	gitlabURL := viper.GetString("gitlab.baseURL")
 	gitlabClient := gitlab.NewClient(httpClient, accessToken)
 	err := gitlabClient.SetBaseURL(gitlabURL)
 	if err != nil {
