@@ -17,6 +17,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
@@ -34,12 +35,8 @@ type gitlabUserMeta struct {
 }
 
 func NewGitlabClient(accessToken string) (*gitlab.Client, error) {
-	httpClient := oauth2.NewClient(
-		oauth2.NoContext,
-		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}),
-	)
 	gitlabURL := viper.GetString("gitlab.baseURL")
-	gitlabClient := gitlab.NewClient(httpClient, accessToken)
+	gitlabClient := gitlab.NewClient(http.DefaultClient, accessToken)
 	err := gitlabClient.SetBaseURL(gitlabURL)
 	if err != nil {
 		return nil, emperror.With(err, "gitlabBaseURL", gitlabURL)
