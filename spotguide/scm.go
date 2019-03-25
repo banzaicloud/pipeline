@@ -343,25 +343,32 @@ func (scm *gitLabSCM) ListRepositoriesByTopic(owner, topic string) ([]scmReposit
 		Visibility: visibility,
 	}
 
-	// TODO do this in a loop
-	projects, _, err := scm.client.Groups.ListGroupProjects(owner, opt)
-
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to list GitLab projects")
-	}
-
 	var repositories []scmRepository
 
-	for _, project := range projects {
+	for {
+		projects, resp, err := scm.client.Groups.ListGroupProjects(owner, opt)
 
-		if utils.Contains(project.TagList, topic) {
-			repo := scmRepository{
-				owner: owner,
-				name:  project.Name,
-			}
-
-			repositories = append(repositories, repo)
+		if err != nil {
+			return nil, emperror.Wrap(err, "failed to list GitLab projects")
 		}
+
+		for _, project := range projects {
+
+			if utils.Contains(project.TagList, topic) {
+				repo := scmRepository{
+					owner: owner,
+					name:  project.Name,
+				}
+
+				repositories = append(repositories, repo)
+			}
+		}
+
+		if resp.CurrentPage >= resp.TotalPages {
+			break
+		}
+
+		opt.Page = resp.NextPage
 	}
 
 	return repositories, nil
@@ -375,17 +382,25 @@ func (scm *gitLabSCM) ListRepositoryReleases(owner, name string) ([]scmRepositor
 
 	var releases []scmRepositoryRelease
 
-	gitlabTags, _, err := scm.client.Tags.ListTags(pid, opt)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to list github repository tags")
-	}
-
-	for _, gitlabTag := range gitlabTags {
-		release := scmRepositoryRelease{
-			tag:  gitlabTag.Release.TagName,
-			body: gitlabTag.Release.Description,
+	for {
+		gitlabTags, resp, err := scm.client.Tags.ListTags(pid, opt)
+		if err != nil {
+			return nil, emperror.Wrap(err, "failed to list github repository tags")
 		}
-		releases = append(releases, release)
+
+		for _, gitlabTag := range gitlabTags {
+			release := scmRepositoryRelease{
+				tag:  gitlabTag.Release.TagName,
+				body: gitlabTag.Release.Description,
+			}
+			releases = append(releases, release)
+		}
+
+		if resp.CurrentPage >= resp.TotalPages {
+			break
+		}
+
+		opt.Page = resp.NextPage
 	}
 
 	return releases, nil
