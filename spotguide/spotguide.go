@@ -218,7 +218,10 @@ func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 }
 
 func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM) error {
-	allRepositories, err := scm.ListRepositoriesByTopic(org.Name, SpotguideGithubTopic)
+
+	allowPrivate := viper.GetBool(config.SpotguideAllowPrivateRepos)
+
+	allRepositories, err := scm.ListRepositoriesByTopic(org.Name, SpotguideGithubTopic, allowPrivate)
 
 	if err != nil {
 		return emperror.Wrap(err, "failed to list spotguide repositories")

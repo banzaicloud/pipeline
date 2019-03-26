@@ -22,10 +22,8 @@ import (
 	"net/http"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
-	"github.com/spf13/viper"
 )
 
 type gitHubSCM struct {
@@ -68,12 +66,12 @@ func (scm *gitHubSCM) DownloadRelease(owner, repo, tag string) ([]byte, error) {
 	return repoBytes.Bytes(), emperror.Wrap(err, "failed to download source spotguide repository release")
 }
 
-func (scm *gitHubSCM) ListRepositoriesByTopic(owner, topic string) ([]Repository, error) {
+func (scm *gitHubSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate bool) ([]Repository, error) {
 
 	var repositories []Repository
 
 	query := fmt.Sprintf("org:%s topic:%s fork:true", owner, topic)
-	if !viper.GetBool(config.SpotguideAllowPrivateRepos) {
+	if !allowPrivate {
 		query += " is:public"
 	}
 

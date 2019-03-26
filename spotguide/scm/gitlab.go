@@ -18,11 +18,9 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
 )
 
@@ -52,11 +50,11 @@ func (scm *gitLabSCM) DownloadRelease(owner, repo, tag string) ([]byte, error) {
 	return archive, emperror.Wrap(err, "failed to download source spotguide repository release")
 }
 
-func (scm *gitLabSCM) ListRepositoriesByTopic(owner, topic string) ([]Repository, error) {
+func (scm *gitLabSCM) ListRepositoriesByTopic(owner, topic string, allowPrivate bool) ([]Repository, error) {
 
 	// TODO move this outside, also for github
 	var visibility *gitlab.VisibilityValue
-	if !viper.GetBool(config.SpotguideAllowPrivateRepos) {
+	if !allowPrivate {
 		visibility = gitlab.Visibility(gitlab.PublicVisibility)
 	}
 

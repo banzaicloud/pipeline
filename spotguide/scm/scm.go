@@ -72,7 +72,7 @@ type RepositoryFile struct {
 type SCM interface {
 	DownloadFile(owner, repo, file, tag string) ([]byte, error)
 	DownloadRelease(owner, repo, tag string) ([]byte, error)
-	ListRepositoriesByTopic(owner, topic string) ([]Repository, error)
+	ListRepositoriesByTopic(owner, topic string, allowPrivate bool) ([]Repository, error)
 	ListRepositoryReleases(owner, name string) ([]RepositoryRelease, error)
 	CreateRepository(owner, name string, private bool, userID uint) error
 	AddContentToRepository(owner, name string, content []RepositoryFile) error
