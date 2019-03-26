@@ -88,7 +88,7 @@ services:
         depends_on:
             - cicd-server
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
+            - ${HOME}/.kube:/root/.kube
         entrypoint:
             - /bin/cicd-agent
         restart: on-failure
