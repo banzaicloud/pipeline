@@ -49,6 +49,8 @@ const (
 
 	// GithubTokenID denotes the tokenID for the user's Github token, there can be only one
 	GithubTokenID = "github"
+	// GitlabTokenID denotes the tokenID for the user's Github token, there can be only one
+	GitlabTokenID = "gitlab"
 )
 
 // AuthIdentity auth identity session model
@@ -177,7 +179,7 @@ type BanzaiUserStorer struct {
 	cicdDB           *gorm.DB
 	events           authEvents
 	accessManager    accessManager
-	githubImporter   *GithubImporter
+	orgImporter      *OrgImporter
 }
 
 func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
@@ -226,17 +228,26 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
 	// GitHub API query to get the user login and image to retain compatibility for now
-	var githubUserMeta *githubUserMeta
-	if schema.Provider == ProviderDexGithub {
 
-		githubUserMeta, err = getGithubUserMeta(schema)
+	switch schema.Provider {
+	case ProviderDexGithub:
+		githubUserMeta, err := getGithubUserMeta(schema)
 		if err != nil {
 			return nil, "", emperror.Wrap(err, "failed to query github login name")
 		}
-
 		currentUser.Login = githubUserMeta.Login
 		currentUser.Image = githubUserMeta.AvatarURL
-	} else {
+
+	case ProviderDexGitlab:
+
+		gitlabUserMeta, err := getGitlabUserMeta(schema)
+		if err != nil {
+			return nil, "", emperror.Wrap(err, "failed to query gitlab login name")
+		}
+		currentUser.Login = gitlabUserMeta.Username
+		currentUser.Image = gitlabUserMeta.AvatarURL
+
+	default:
 		// Login will be derived from the email for new users coming from an other provider than GitHub
 		currentUser.Login = emailToLoginName(schema.Email)
 	}
@@ -244,9 +255,11 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	db := authCtx.Auth.GetDB(authCtx.Request)
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
-	err = bus.createUserInCICDDB(currentUser)
-	if err != nil {
-		return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
+	if schema.Provider == ProviderDexGithub {
+		err = bus.createUserInCICDDB(currentUser)
+		if err != nil {
+			return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
+		}
 	}
 
 	// When a user registers a default organization is created in which he/she is admin
@@ -271,54 +284,58 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	bus.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
-	// Import Github organizations in case of GitHub
+	// Import organizations in case of DEX
 	if schema.Provider == ProviderDexGithub {
-		err = bus.githubImporter.ImportOrganizationsFromDex(currentUser, organizations)
+		err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGithub)
+	}
+	if schema.Provider == ProviderDexGitlab {
+		err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGitlab)
 	}
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
-// SaveUserGitHubToken saves a GitHub personal access token specified for a user
-func SaveUserGitHubToken(user *User, githubToken string) error {
+// SaveUserSCMToken saves a personal access token specified for a user
+func SaveUserSCMToken(user *User, scmToken string, tokenType string) error {
 	// Revoke the old Github token from Vault if any
-	err := TokenStore.Revoke(user.IDString(), GithubTokenID)
+	err := TokenStore.Revoke(user.IDString(), tokenType)
 	if err != nil {
-		return errors.Wrap(err, "failed to revoke old Github access token")
+		return errors.Wrap(err, "failed to revoke old access token")
 	}
-
-	token := bauth.NewToken(GithubTokenID, "Github access token")
-	token.Value = githubToken
+	token := bauth.NewToken(tokenType, "scm access token")
+	token.Value = scmToken
 	err = TokenStore.Store(user.IDString(), token)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to store Github access token for user", "user", user.Login)
+		return emperror.WrapWith(err, "failed to store access token for user", "user", user.Login)
 	}
+	if tokenType == GithubTokenID {
+		// TODO CICD should use Vault as well, and this should be removed by then
+		err = updateUserInCICDDB(user, scmToken)
+		if err != nil {
+			return emperror.WrapWith(err, "failed to update access token for user in CICD", "user", user.Login)
+		}
 
-	// TODO CICD should use Vault as well, and this should be removed by then
-	err = updateUserInCICDDB(user, githubToken)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to update Github access token for user in CICD", "user", user.Login)
+		synchronizeCICDRepos(user.Login)
 	}
-
-	synchronizeCICDRepos(user.Login)
 
 	return nil
 }
 
-// RemoveUserGitHubToken removes a GitHub personal access token specified for a user
-func RemoveUserGitHubToken(user *User) error {
+// RemoveUserSCMToken removes a GitHub personal access token specified for a user
+func RemoveUserSCMToken(user *User, tokenType string) error {
 	// Revoke the old Github token from Vault if any
-	err := TokenStore.Revoke(user.IDString(), GithubTokenID)
+	err := TokenStore.Revoke(user.IDString(), tokenType)
 	if err != nil {
-		return errors.Wrap(err, "failed to revoke Github access token")
+		return errors.Wrap(err, "failed to revoke access token")
 	}
 
-	// TODO CICD should use Vault as well, and this should be removed by then
-	err = updateUserInCICDDB(user, "")
-	if err != nil {
-		return emperror.WrapWith(err, "failed to revoke Github access token for user in CICD", "user", user.Login)
+	if tokenType == GithubTokenID {
+		// TODO CICD should use Vault as well, and this should be removed by then
+		err = updateUserInCICDDB(user, "")
+		if err != nil {
+			return emperror.WrapWith(err, "failed to revoke access token for user in CICD", "user", user.Login)
+		}
 	}
-
 	return nil
 }
 
@@ -358,52 +375,61 @@ func synchronizeCICDRepos(login string) {
 	}
 }
 
-// GithubImporter imports github organizations.
-type GithubImporter struct {
+// OrgImporter imports organizations.
+type OrgImporter struct {
 	db            *gorm.DB
 	accessManager accessManager
 	events        authEvents
 }
 
-// NewGithubImporter returns a new GithubImporter instance.
-func NewGithubImporter(
+// NewOrgImporter returns a new OrgImporter instance.
+func NewOrgImporter(
 	db *gorm.DB,
 	accessManager accessManager,
 	events eventBus,
-) *GithubImporter {
-	return &GithubImporter{
+) *OrgImporter {
+	return &OrgImporter{
 		db:            db,
 		accessManager: accessManager,
 		events:        ebAuthEvents{eb: events},
 	}
 }
 
-func (i *GithubImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
+func (i *OrgImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
 	orgs, err := getGithubOrganizations(githubToken)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get organizations")
 	}
 
-	return i.ImportGithubOrganizations(currentUser, orgs)
+	return i.ImportOrganizations(currentUser, orgs)
 }
 
-func (i *GithubImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string) error {
-	var orgs []organization
-	for _, org := range organizations {
-		orgs = append(orgs, organization{name: org, provider: ProviderGithub})
+func (i *OrgImporter) ImportOrganizationsFromGitlab(currentUser *User, gitlabToken string) error {
+	orgs, err := getGitlabOrganizations(gitlabToken)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get organizations")
 	}
 
-	return i.ImportGithubOrganizations(currentUser, orgs)
+	return i.ImportOrganizations(currentUser, orgs)
 }
 
-func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []organization) error {
-	githubOrgIDs, err := importGithubOrganizations(i.db, currentUser, orgs)
+func (i *OrgImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string, provider string) error {
+	var orgs []organization
+	for _, org := range organizations {
+		orgs = append(orgs, organization{name: org, provider: provider})
+	}
+
+	return i.ImportOrganizations(currentUser, orgs)
+}
+
+func (i *OrgImporter) ImportOrganizations(currentUser *User, orgs []organization) error {
+	orgIDs, err := importOrganizations(i.db, currentUser, orgs)
 
 	if err != nil {
 		return emperror.Wrap(err, "failed to import organizations")
 	}
 
-	for id, created := range githubOrgIDs {
+	for id, created := range orgIDs {
 		i.accessManager.AddOrganizationPolicies(id)
 		i.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), id)
 
@@ -415,7 +441,7 @@ func (i *GithubImporter) ImportGithubOrganizations(currentUser *User, orgs []org
 	return nil
 }
 
-func importGithubOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
+func importOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
 
 	orgIDs := make(map[uint]bool, len(orgs))
 

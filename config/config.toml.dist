@@ -62,6 +62,9 @@ url = "http://localhost:8000"
 [github]
 token = "YourPersonalAccessToken"
 
+[gitlab]
+baseURL = "https://gitlab.com/"
+
 [auth]
 # Dex settings
 clientid = "pipeline"
@@ -102,7 +105,7 @@ chartVersion = ""
 imageTag = "0.0.4"
 
 [servicemesh]
-istioChartVersion = "1.0.5"
+istioOperatorChartVersion = "0.0.2"
 grafanaDashboardLocation = "https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards"
 
 # DNS service settings

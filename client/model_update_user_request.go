@@ -13,4 +13,5 @@ package client
 
 type UpdateUserRequest struct {
 	GitHubToken string `json:"gitHubToken,omitempty"`
+	GitLabToken string `json:"gitLabToken,omitempty"`
 }

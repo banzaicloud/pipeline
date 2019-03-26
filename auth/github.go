@@ -75,13 +75,6 @@ func NewGithubClientForUser(userID uint) (*github.Client, error) {
 	return NewGithubClient(accessToken), nil
 }
 
-type organization struct {
-	name     string
-	id       int64
-	role     string
-	provider string
-}
-
 func getGithubOrganizations(token string) ([]organization, error) {
 	httpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
 	githubClient := github.NewClient(httpClient)

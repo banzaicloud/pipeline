@@ -5041,6 +5041,9 @@ components:
                 gitHubToken:
                     type: string
                     example: "b8d9cfb5df15fd513bf3351719876ffff4b310d2"
+                gitLabToken:
+                    type: string
+                    example: "a_tguocsP6vqqHBh8vYQ"
 
         SpotguideDetailsResponse:
             type: object
@@ -7901,6 +7904,14 @@ components:
                     type: object
                     properties:
                         mtls:
+                            type: boolean
+                            example: false
+                        autoSidecarInjectNamespaces:
+                            type: array
+                            items:
+                                type: string
+                            example: "default"
+                        bypassEgressTraffic:
                             type: boolean
                             example: false
 

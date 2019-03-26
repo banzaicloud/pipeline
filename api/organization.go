@@ -66,13 +66,13 @@ func OrganizationMiddleware(c *gin.Context) {
 
 // OrganizationAPI implements organization functions.
 type OrganizationAPI struct {
-	githubImporter *auth.GithubImporter
+	orgImporter *auth.OrgImporter
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(githubImporter *auth.GithubImporter) *OrganizationAPI {
+func NewOrganizationAPI(orgImporter *auth.OrgImporter) *OrganizationAPI {
 	return &OrganizationAPI{
-		githubImporter: githubImporter,
+		orgImporter: orgImporter,
 	}
 }
 
@@ -147,13 +147,14 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 	logger.Info("synchronizing organizations")
 
 	user := auth.GetCurrentUser(c.Request)
-	token, err := auth.GetUserGithubToken(user.ID)
+	token, provider, err := auth.GetSCMToken(user.ID)
+
 	if err != nil {
 		errorHandler.Handle(err)
 
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "failed to retrieve github token",
+			Message: "failed to retrieve scm token",
 			Error:   err.Error(),
 		})
 
@@ -163,13 +164,21 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 	if token == "" {
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "user's github token is not set",
+			Message: "user's scm token is not set",
 		})
 
 		return
 	}
+	switch provider {
+	case auth.GithubTokenID:
+		err = a.orgImporter.ImportOrganizationsFromGithub(user, token)
 
-	err = a.githubImporter.ImportOrganizationsFromGithub(user, token)
+	case auth.GitlabTokenID:
+		err = a.orgImporter.ImportOrganizationsFromGitlab(user, token)
+
+	default:
+		return
+	}
 	if err != nil {
 		errorHandler.Handle(err)
 
