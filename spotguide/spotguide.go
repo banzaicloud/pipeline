@@ -17,7 +17,6 @@ package spotguide
 import (
 	"archive/zip"
 	"bytes"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -35,12 +34,12 @@ import (
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/spotguide/scm"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 )
@@ -53,14 +52,7 @@ const IconPath = ".banzaicloud/icon.svg"
 const CreateClusterStep = "create_cluster"
 const SpotguideRepoTableName = "spotguide_repos"
 
-// File encodings
-const EncodingBase64 = "base64"
-const EncodingText = "text"
-
 var IgnoredPaths = []string{".circleci", ".github"} // nolint: gochecknoglobals
-
-// nolint: gochecknoglobals
-var ctx = context.Background()
 
 type SpotguideYAML struct {
 	Name        string                    `json:"name"`
@@ -139,8 +131,7 @@ type ReleaseBody struct {
 type SpotguideManager struct {
 	db                        *gorm.DB
 	pipelineVersion           *semver.Version
-	scmToken                  string
-	scm                       string
+	scmFactory                scm.SCMFactory
 	sharedLibraryOrganization *auth.Organization
 }
 
@@ -161,20 +152,19 @@ func CreateSharedSpotguideOrganization(db *gorm.DB, scm string, sharedLibraryOrg
 	return sharedOrg, nil
 }
 
-func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, scmToken string, scm string, sharedLibraryOrganization *auth.Organization) *SpotguideManager {
+func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, scmFactory scm.SCMFactory, sharedLibraryOrganization *auth.Organization) *SpotguideManager {
 
 	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
 
 	return &SpotguideManager{
 		db:                        db,
 		pipelineVersion:           pipelineVersion,
-		scmToken:                  scmToken,
-		scm:                       scm,
+		scmFactory:                scmFactory,
 		sharedLibraryOrganization: sharedLibraryOrganization,
 	}
 }
 
-func (s *SpotguideManager) isSpotguideReleaseAllowed(release scmRepositoryRelease) bool {
+func (s *SpotguideManager) isSpotguideReleaseAllowed(release scm.RepositoryRelease) bool {
 	version, err := semver.NewVersion(release.GetTag())
 	if err != nil {
 		log.Warn("failed to parse spotguide release tag: ", err)
@@ -201,30 +191,15 @@ func (s *SpotguideManager) isSpotguideReleaseAllowed(release scmRepositoryReleas
 
 func (s *SpotguideManager) ScrapeSharedSpotguides() error {
 	if s.sharedLibraryOrganization == nil {
-		return errors.New("failed to scrape shared spotguides")
+		return fmt.Errorf("failed to scrape shared spotguides")
 	}
 
-	var scm scm
-
-	switch s.scm {
-	case "github":
-		githubClient := auth.NewGithubClient(s.scmToken)
-
-		scm = newGitHubSCM(githubClient)
-
-	case "gitlab":
-		gitlabClient, err := auth.NewGitlabClient(s.scmToken)
-		if err != nil {
-			return emperror.Wrap(err, "failed to create GitLab client")
-		}
-
-		scm = newGitLabSCM(gitlabClient)
-
-	default:
-		return fmt.Errorf("Unknown CI/CD SCM configured: %s", s.scm)
+	sharedSCM, err := s.scmFactory.CreateSharedSCM()
+	if err != nil {
+		return emperror.Wrap(err, "failed to create SCM client")
 	}
 
-	return s.scrapeSpotguides(s.sharedLibraryOrganization, scm)
+	return s.scrapeSpotguides(s.sharedLibraryOrganization, sharedSCM)
 }
 
 func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
@@ -234,33 +209,15 @@ func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 		return emperror.Wrap(err, "failed to resolve organization from id")
 	}
 
-	var scm scm
-
-	switch s.scm {
-	case "github":
-		githubClient, err := auth.NewGithubClientForUser(userID)
-		if err != nil {
-			return emperror.Wrap(err, "failed to create GitHub client")
-		}
-
-		scm = newGitHubSCM(githubClient)
-
-	case "gitlab":
-		gitlabClient, err := auth.NewGitlabClientForUser(userID)
-		if err != nil {
-			return emperror.Wrap(err, "failed to create GitLab client")
-		}
-
-		scm = newGitLabSCM(gitlabClient)
-
-	default:
-		return fmt.Errorf("Unknown CI/CD SCM configured: %s", s.scm)
+	userSCM, err := s.scmFactory.CreateUserSCM(userID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to create SCM client")
 	}
 
-	return s.scrapeSpotguides(org, scm)
+	return s.scrapeSpotguides(org, userSCM)
 }
 
-func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm) error {
+func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM) error {
 	allRepositories, err := scm.ListRepositoriesByTopic(org.Name, SpotguideGithubTopic)
 
 	if err != nil {
@@ -395,30 +352,12 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 		return emperror.Wrap(err, "failed to create secrets for spotguide")
 	}
 
-	var scm scm
-
-	switch s.scm {
-	case "github":
-		githubClient, err := auth.NewGithubClientForUser(user.ID)
-		if err != nil {
-			return emperror.Wrap(err, "failed to create GitHub client")
-		}
-
-		scm = newGitHubSCM(githubClient)
-
-	case "gitlab":
-		gitlabClient, err := auth.NewGitlabClientForUser(user.ID)
-		if err != nil {
-			return emperror.Wrap(err, "failed to create GitLab client")
-		}
-
-		scm = newGitLabSCM(gitlabClient)
-
-	default:
-		return fmt.Errorf("Unknown CI/CD SCM configured: %s", s.scm)
+	userSCM, err := s.scmFactory.CreateUserSCM(user.ID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to create SCM client")
 	}
 
-	err = scm.CreateRepository(request.RepoOrganization, request.RepoName, request.RepoPrivate, user.ID)
+	err = userSCM.CreateRepository(request.RepoOrganization, request.RepoName, request.RepoPrivate, user.ID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create repository")
 	}
@@ -433,12 +372,12 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 	}
 
 	// Prepare the spotguide content
-	spotguideContent, err := getSpotguideContent(scm, request, sourceRepo)
+	spotguideContent, err := getSpotguideContent(userSCM, request, sourceRepo)
 	if err != nil {
 		return emperror.Wrap(err, "failed to prepare spotguide git content")
 	}
 
-	err = scm.AddContentToRepository(request.RepoOrganization, request.RepoName, spotguideContent)
+	err = userSCM.AddContentToRepository(request.RepoOrganization, request.RepoName, spotguideContent)
 	if err != nil {
 		return emperror.Wrap(err, "failed to add spotguide content to repository")
 	}
@@ -463,13 +402,13 @@ func preparePipelineYAML(request *LaunchRequest, sourceRepo *SpotguideRepo, pipe
 	return repoConfigRaw, nil
 }
 
-func getSpotguideContent(scm scm, request *LaunchRequest, sourceRepo *SpotguideRepo) ([]repoFile, error) {
+func getSpotguideContent(sourceSCM scm.SCM, request *LaunchRequest, sourceRepo *SpotguideRepo) ([]scm.RepositoryFile, error) {
 	// Download source repo zip
 	sourceRepoParts := strings.Split(sourceRepo.Name, "/")
 	sourceRepoOwner := sourceRepoParts[0]
 	sourceRepoName := sourceRepoParts[1]
 
-	repoBytes, err := scm.DownloadRelease(sourceRepoOwner, sourceRepoName, request.SpotguideVersion)
+	repoBytes, err := sourceSCM.DownloadRelease(sourceRepoOwner, sourceRepoName, request.SpotguideVersion)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to download source spotguide repository release")
 	}
@@ -479,7 +418,7 @@ func getSpotguideContent(scm scm, request *LaunchRequest, sourceRepo *SpotguideR
 		return nil, emperror.Wrap(err, "failed to extract source spotguide repository release")
 	}
 
-	var repoFiles []repoFile
+	var repoFiles []scm.RepositoryFile
 
 	for _, zf := range zipReader.File {
 		if zf.FileInfo().IsDir() {
@@ -517,28 +456,22 @@ func getSpotguideContent(scm scm, request *LaunchRequest, sourceRepo *SpotguideR
 
 		if strings.HasSuffix(http.DetectContentType(content), "charset=utf-8") {
 			fileContent = string(content)
-			encoding = EncodingText
+			encoding = scm.EncodingText
 		} else {
 			fileContent = base64.StdEncoding.EncodeToString(content)
-			encoding = EncodingBase64
+			encoding = scm.EncodingBase64
 		}
 
-		repoFile := repoFile{
-			path:     path,
-			encoding: encoding,
-			content:  fileContent,
+		repoFile := scm.RepositoryFile{
+			Path:     path,
+			Encoding: encoding,
+			Content:  fileContent,
 		}
 
 		repoFiles = append(repoFiles, repoFile)
 	}
 
 	return repoFiles, nil
-}
-
-type repoFile struct {
-	path     string
-	content  string
-	encoding string
 }
 
 func createSecrets(request *LaunchRequest, orgID uint, userID uint) error {
@@ -550,7 +483,7 @@ func createSecrets(request *LaunchRequest, orgID uint, userID uint) error {
 		secretRequest.Tags = append(secretRequest.Tags, repoTag)
 
 		if _, err := secret.Store.Store(orgID, secretRequest); err != nil {
-			return errors.Wrap(err, "failed to create spotguide secret: "+secretRequest.Name)
+			return emperror.WrapWith(err, "failed to create spotguide secret", "name", secretRequest.Name)
 		}
 	}
 
@@ -563,12 +496,12 @@ func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) erro
 
 	_, err := cicdClient.RepoListOpts(true, true)
 	if err != nil {
-		return errors.Wrap(err, "failed to sync CICD repositories")
+		return emperror.Wrap(err, "failed to sync CICD repositories")
 	}
 
 	_, err = cicdClient.RepoPost(request.RepoOrganization, request.RepoName, org)
 	if err != nil {
-		return errors.Wrap(err, "failed to enable CICD repository")
+		return emperror.Wrap(err, "failed to enable CICD repository")
 	}
 
 	repoPatch := cicd.RepoPatch{
@@ -585,7 +518,7 @@ func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) erro
 
 	_, err = cicdClient.RepoPatch(request.RepoOrganization, request.RepoName, &repoPatch)
 	if err != nil {
-		return errors.Wrap(err, "failed to patch CICD repository")
+		return emperror.Wrap(err, "failed to patch CICD repository")
 	}
 
 	return nil
@@ -636,22 +569,22 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*cicdRep
 
 	repoConfig := new(cicdRepoConfig)
 	if err := yaml.Unmarshal(buffer.Bytes(), repoConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal initial config")
+		return nil, emperror.Wrap(err, "failed to unmarshal initial config")
 	}
 
 	// Configure cluster
 	if err := cicdRepoConfigCluster(request, repoConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to add cluster details")
+		return nil, emperror.Wrap(err, "failed to add cluster details")
 	}
 
 	// Configure secrets
 	if err := cicdRepoConfigSecrets(request, repoConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to add secrets to steps")
+		return nil, emperror.Wrap(err, "failed to add secrets to steps")
 	}
 
 	// Configure pipeline
 	if err := cicdRepoConfigPipeline(request, repoConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to merge values")
+		return nil, emperror.Wrap(err, "failed to merge values")
 	}
 
 	return repoConfig, nil

@@ -61,7 +61,7 @@ services:
             - $HOME:/root
 
     cicd-server:
-        image: banzaicloud/cicd:0.8.5
+        image: banzaicloud/cicd:0.8.6
         depends_on:
             - db
         volumes:
@@ -73,8 +73,8 @@ services:
             CICD_HOST:                http://localhost:8000
             CICD_EXTERNAL_URL:        https://my-cicd.serveo.net
             CICD_DEBUG:               "true"
-            CICD_GITLAB:              "true"
-            # CICD_GITHUB:              "true"
+            CICD_GITHUB:              "true"
+            # CICD_GITLAB:              "true"
             CICD_OPEN:                "true"
             CICD_ORGS:
             CICD_DATABASE_DRIVER:     mysql
@@ -85,7 +85,7 @@ services:
             PIPELINE_EXTERNAL_BASEPATH: https://my-pipeline.serveo.net/pipeline
 
     cicd-agent:
-        image: banzaicloud/cicd:0.8.5
+        image: banzaicloud/cicd:0.8.6
         depends_on:
             - cicd-server
         volumes:
