@@ -212,7 +212,6 @@ func (scm *gitHubSCM) CreateRepository(owner, name string, private bool, userID 
 		return emperror.Wrap(err, "failed to create spotguide repository")
 	}
 
-	log.Infof("created spotguide repository: %s/%s", owner, name)
 	return nil
 }
 
@@ -438,7 +437,6 @@ func (scm *gitLabSCM) CreateRepository(owner, name string, private bool, userID 
 		return errors.Wrap(err, "failed to create spotguide repository")
 	}
 
-	log.Infof("created spotguide repository: %s/%s", owner, name)
 	return nil
 }
 

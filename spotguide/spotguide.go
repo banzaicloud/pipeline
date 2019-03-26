@@ -423,6 +423,8 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 		return emperror.Wrap(err, "failed to create repository")
 	}
 
+	log.Infof("created spotguide repository: %s/%s", request.RepoOrganization, request.RepoName)
+
 	cicdClient := auth.NewCICDClient(user.APIToken)
 
 	err = enableCICD(cicdClient, request, org.Name)
@@ -440,6 +442,8 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 	if err != nil {
 		return emperror.Wrap(err, "failed to add spotguide content to repository")
 	}
+
+	log.Infof("added spotguide content to repository: %s/%s", request.RepoOrganization, request.RepoName)
 
 	return nil
 }
@@ -571,12 +575,14 @@ func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) erro
 		IsSpotguide:     github.Bool(true),
 		SpotguideSource: github.String(request.SpotguideName),
 	}
+
 	if request.RepoLatent {
 		repoPatch.AllowTag = github.Bool(false)
 		repoPatch.AllowPull = github.Bool(false)
 		repoPatch.AllowPush = github.Bool(false)
 		repoPatch.AllowDeploy = github.Bool(false)
 	}
+
 	_, err = cicdClient.RepoPatch(request.RepoOrganization, request.RepoName, &repoPatch)
 	if err != nil {
 		return errors.Wrap(err, "failed to patch CICD repository")
