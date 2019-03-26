@@ -24,13 +24,17 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.2.1"
+const pkeVersion = "0.2.3"
 
 func getDefaultImageID(region, kubernetesVersion string) string {
 	switch kubernetesVersion {
+	case "1.14.0":
+		fallthrough
 	case "1.13.3":
 		fallthrough
 	case "1.12.2":
+		fallthrough
+	default:
 		return map[string]string{
 			"eu-north-1":     "ami-b133bccf",
 			"ap-south-1":     "ami-1780a878",
@@ -49,8 +53,6 @@ func getDefaultImageID(region, kubernetesVersion string) string {
 			"us-west-1":      "ami-4826c22b",
 			"us-west-2":      "ami-3ecc8f46",
 		}[region]
-	default:
-		return ""
 	}
 }
 
