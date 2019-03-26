@@ -16,7 +16,7 @@ services:
         image: adminer
 
     vault:
-        image: vault:0.11.5
+        image: vault:1.1.0
         command: server
         cap_add:
             - IPC_LOCK
@@ -25,7 +25,7 @@ services:
             - ./scripts/vault.hcl:/vault/config/vault.hcl
 
     vault-unsealer:
-        image: banzaicloud/bank-vaults:0.3.16
+        image: banzaicloud/bank-vaults:0.4.10
         depends_on:
             - vault
         restart: on-failure
@@ -37,7 +37,7 @@ services:
             - ./scripts/wait-for-it.sh:/wait-for-it.sh
 
     vault-configurer:
-        image: banzaicloud/bank-vaults:0.3.16
+        image: banzaicloud/bank-vaults:0.4.10
         depends_on:
             - db
             - vault

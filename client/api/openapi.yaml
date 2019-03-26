@@ -4974,6 +4974,70 @@ paths:
       summary: Get vulnerabilities
       tags:
       - imagescan
+  /api/v1/orgs/{orgId}/clusters/{id}/pke/leader:
+    post:
+      operationId: PostLeaderElection
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostLeaderElectionRequest'
+        required: true
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostLeaderElectionResponse'
+          description: Application successful
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: No such PKE cluster found
+        409:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostLeaderElectionResponse'
+          description: Leader already elected
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Apply as new cluster leader
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/pke/ready:
     get:
       operationId: GetReadyPKENode
@@ -9427,6 +9491,34 @@ components:
       properties:
         master:
           $ref: '#/components/schemas/PKEClusterReadinessResponse_master'
+      type: object
+    PostLeaderElectionRequest:
+      example:
+        hostname: node-0.my.cloud.com
+        ip: 10.20.30.40
+      properties:
+        hostname:
+          example: node-0.my.cloud.com
+          type: string
+        ip:
+          example: 10.20.30.40
+          type: string
+      required:
+      - hostname
+      type: object
+    PostLeaderElectionResponse:
+      example:
+        hostname: node-0.my.cloud.com
+        ip: 10.20.30.40
+      properties:
+        hostname:
+          example: node-0.my.cloud.com
+          type: string
+        ip:
+          example: 10.20.30.40
+          type: string
+      required:
+      - hostname
       type: object
     CreateEKSProperties_eks:
       properties:
