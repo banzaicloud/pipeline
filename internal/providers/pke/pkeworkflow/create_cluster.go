@@ -24,7 +24,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.2.0"
+const pkeVersion = "0.2.2"
 
 func getDefaultImageID(region string) string {
 	return map[string]string{
