@@ -321,7 +321,8 @@ func (scm *gitLabSCM) DownloadFile(owner, repo, file, tag string) ([]byte, error
 
 func (scm *gitLabSCM) DownloadRelease(owner, repo, tag string) ([]byte, error) {
 	opt := &gitlab.ArchiveOptions{
-		SHA: gitlab.String(tag),
+		SHA:    gitlab.String(tag),
+		Format: gitlab.String("zip"),
 	}
 
 	archive, _, err := scm.client.Repositories.Archive(fmt.Sprint(owner, "/", repo), opt)
