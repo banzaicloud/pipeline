@@ -103,7 +103,7 @@ func (scm *gitLabSCM) ListRepositoryReleases(owner, name string) ([]RepositoryRe
 	for {
 		gitlabTags, resp, err := scm.client.Tags.ListTags(pid, opt)
 		if err != nil {
-			return nil, emperror.Wrap(err, "failed to list github repository tags")
+			return nil, emperror.Wrap(err, "failed to list GitLab repository tags")
 		}
 
 		for _, gitlabTag := range gitlabTags {
