@@ -46,6 +46,12 @@ services:
             CICD_CORS_ALLOW_ORIGINS:     "http://localhost:4200"
             CICD_EXTERNAL_URL:           https://my-cicd.serveo.net
             PIPELINE_BASEPATH:           https://my-pipeline.serveo.net/pipeline
+            PIPELINE_EXTERNAL_BASEPATH:  https://my-pipeline.serveo.net/pipeline
+
+    cicd-agent:
+        environment:
+            PIPELINE_BASEPATH:          https://my-pipeline.serveo.net/pipeline
+            PIPELINE_EXTERNAL_BASEPATH: https://my-pipeline.serveo.net/pipeline
 
     ui:
         image: banzaicloud/pipeline-web:latest

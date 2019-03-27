@@ -64,8 +64,6 @@ services:
         image: banzaicloud/cicd:0.8.6
         depends_on:
             - db
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
             - /bin/cicd-server
         restart: on-failure
@@ -81,15 +79,14 @@ services:
             CICD_DATABASE_DATASOURCE: root:example@tcp(db:3306)/drone?parseTime=true
             CICD_SECRET:              "s3cr3t"
             CICD_REPO_CONFIG:         ".banzaicloud/pipeline.yaml"
-            PIPELINE_BASEPATH:          https://my-pipeline.serveo.net/pipeline
-            PIPELINE_EXTERNAL_BASEPATH: https://my-pipeline.serveo.net/pipeline
 
     cicd-agent:
         image: banzaicloud/cicd:0.8.6
         depends_on:
             - cicd-server
         volumes:
-            - $HOME:/root
+            - $HOME/.kube:/root/.kube
+            - $HOME/.minikube:/root/.minikube
         entrypoint:
             - /bin/cicd-agent
         restart: on-failure
