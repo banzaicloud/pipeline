@@ -29,6 +29,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"go.uber.org/cadence/client"
+	"gopkg.in/yaml.v2"
+
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
@@ -41,14 +50,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
-	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"go.uber.org/cadence/client"
-	"gopkg.in/yaml.v2"
 )
 
 const defaultPKEVersion = "1.12.2"
@@ -58,7 +59,7 @@ var _ CommonCluster = (*EC2ClusterPKE)(nil)
 type EC2ClusterPKE struct {
 	db    *gorm.DB
 	model *internalPke.EC2PKEClusterModel
-	//amazonCluster *ec2.EC2 //Don't use this directly
+	// amazonCluster *ec2.EC2 //Don't use this directly
 	APIEndpoint string
 	log         logrus.FieldLogger
 	session     *session.Session
@@ -245,6 +246,7 @@ func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
 		statusHistory := cluster.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
+			CreatedBy:   c.model.Cluster.CreatedBy,
 
 			FromStatus:        c.model.Cluster.Status,
 			FromStatusMessage: c.model.Cluster.StatusMessage,

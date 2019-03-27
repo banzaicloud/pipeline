@@ -31,6 +31,7 @@ type StatusHistoryModel struct {
 	ClusterID   uint      `gorm:"not null; index"`
 	ClusterName string    `gorm:"not null"`
 	CreatedAt   time.Time `gorm:"not null"`
+	CreatedBy   uint      `gorm:"default:0"`
 
 	FromStatus        string `gorm:"not null"`
 	FromStatusMessage string `sql:"type:text;" gorm:"not null"`

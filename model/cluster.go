@@ -20,19 +20,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/config"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/config"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 const unknown = "unknown"
 
-//TableName constants
+// TableName constants
 const (
 	tableNameClusters             = "clusters"
 	tableNameAlibabaProperties    = "alibaba_acsk_clusters"
@@ -47,7 +48,7 @@ const (
 	tableNameAmazonNodePoolLabels = "amazon_node_pool_labels"
 )
 
-//ClusterModel describes the common cluster model
+// ClusterModel describes the common cluster model
 // Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
 type ClusterModel struct {
 	ID             uint   `gorm:"primary_key"`
@@ -131,7 +132,7 @@ type ACSKClusterModel struct {
 	VSwitchID                string
 }
 
-//AmazonNodePoolsModel describes Amazon node groups model of a cluster
+// AmazonNodePoolsModel describes Amazon node groups model of a cluster
 type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
@@ -176,7 +177,7 @@ type EKSSubnetModel struct {
 	Cidr       *string `gorm:"size:18"`
 }
 
-//EKSClusterModel describes the EKS cluster model
+// EKSClusterModel describes the EKS cluster model
 type EKSClusterModel struct {
 	ID        uint `gorm:"primary_key"`
 	ClusterID uint `gorm:"unique_index:ux_cluster_id"`
@@ -189,7 +190,7 @@ type EKSClusterModel struct {
 	Subnets      []*EKSSubnetModel       `gorm:"foreignkey:ClusterID"`
 }
 
-//AKSClusterModel describes the aks cluster model
+// AKSClusterModel describes the aks cluster model
 type AKSClusterModel struct {
 	ID                uint `gorm:"primary_key"`
 	ResourceGroup     string
@@ -220,7 +221,7 @@ type DummyClusterModel struct {
 	NodeCount         int
 }
 
-//KubernetesClusterModel describes the build your own cluster model
+// KubernetesClusterModel describes the build your own cluster model
 type KubernetesClusterModel struct {
 	ID          uint              `gorm:"primary_key"`
 	Metadata    map[string]string `gorm:"-"`
@@ -271,7 +272,7 @@ func (cs *ClusterModel) AfterFind() error {
 	return nil
 }
 
-//Save the cluster to DB
+// Save the cluster to DB
 func (cs *ClusterModel) Save() error {
 	db := config.DB()
 	err := db.Save(&cs).Error
@@ -281,7 +282,7 @@ func (cs *ClusterModel) Save() error {
 	return nil
 }
 
-//Delete cluster from DB
+// Delete cluster from DB
 func (cs *ClusterModel) Delete() error {
 	db := config.DB()
 	return db.Delete(&cs).Error
@@ -366,12 +367,12 @@ func (AKSNodePoolModel) TableName() string {
 	return tableNameAzureNodePools
 }
 
-//TableName sets the DummyClusterModel's table name
+// TableName sets the DummyClusterModel's table name
 func (DummyClusterModel) TableName() string {
 	return tableNameDummyProperties
 }
 
-//TableName sets the KubernetesClusterModel's table name
+// TableName sets the KubernetesClusterModel's table name
 func (KubernetesClusterModel) TableName() string {
 	return tableNameKubernetesProperties
 }
@@ -426,6 +427,7 @@ func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
 		statusHistory := StatusHistoryModel{
 			ClusterID:   cs.ID,
 			ClusterName: cs.Name,
+			CreatedBy:   cs.CreatedBy,
 
 			FromStatus:        cs.Status,
 			FromStatusMessage: cs.StatusMessage,
