@@ -340,8 +340,17 @@ func (c *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
 }
 
 //Persist save the cluster model
-func (c *GKECluster) Persist() error {
-	return emperror.Wrap(c.repository.SaveModel(c.model), "failed to persist cluster")
+func (c *GKECluster) Persist(status, statusMessage string) error {
+	c.log.Infof("Model before save: %v", c.model)
+	c.model.Cluster.Status = status
+	c.model.Cluster.StatusMessage = statusMessage
+
+	err := c.repository.SaveModel(c.model)
+	if err != nil {
+		return errors.Wrap(err, "failed to persist cluster")
+	}
+
+	return nil
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud

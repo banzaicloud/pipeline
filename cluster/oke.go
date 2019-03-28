@@ -29,7 +29,6 @@ import (
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
 	"github.com/oracle/oci-go-sdk/containerengine"
 	"github.com/pkg/errors"
 )
@@ -179,10 +178,9 @@ func (o *OKECluster) DeleteCluster() error {
 	return nil
 }
 
-// Persist save the cluster model
-// Deprecated: Do not use.
-func (o *OKECluster) Persist() error {
-	return emperror.Wrap(o.modelCluster.Save(), "failed to persist cluster")
+//Persist save the cluster model
+func (o *OKECluster) Persist(status, statusMessage string) error {
+	return o.SetStatus(status, statusMessage)
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud

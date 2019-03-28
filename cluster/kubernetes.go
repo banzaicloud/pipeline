@@ -77,9 +77,8 @@ func (c *KubeCluster) CreateCluster() error {
 }
 
 // Persist save the cluster model
-// Deprecated: Do not use.
-func (c *KubeCluster) Persist() error {
-	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
+func (c *KubeCluster) Persist(status, statusMessage string) error {
+	return c.SetStatus(status, statusMessage)
 }
 
 // createDefaultStorageClass creates a default storage class as some clusters are not created with

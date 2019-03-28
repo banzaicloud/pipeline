@@ -58,7 +58,7 @@ type CommonCluster interface {
 	GetSecretWithValidation() (*secret.SecretItemResponse, error)
 
 	// Persistence
-	Persist() error
+	Persist(string, string) error
 	DeleteFromDatabase() error
 
 	// Cluster management

@@ -229,8 +229,9 @@ func (c *EC2ClusterPKE) GetSecretWithValidation() (*secret.SecretItemResponse, e
 	return c.CommonClusterBase.getSecret(c)
 }
 
-func (c *EC2ClusterPKE) Persist() error {
-	return emperror.Wrap(c.db.Save(c.model).Error, "failed to persist cluster")
+func (c *EC2ClusterPKE) Persist(string, string) error {
+	err := c.db.Save(c.model).Error
+	return err
 }
 
 // SetStatus sets the cluster's status
