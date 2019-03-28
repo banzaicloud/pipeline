@@ -24,27 +24,36 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.2.0"
+const pkeVersion = "0.2.3"
 
-func getDefaultImageID(region string) string {
-	return map[string]string{
-		"eu-north-1":     "ami-b133bccf",
-		"ap-south-1":     "ami-1780a878",
-		"eu-west-3":      "ami-262e9f5b",
-		"eu-west-2":      "ami-00846a67",
-		"eu-west-1":      "ami-3548444c",
-		"ap-northeast-2": "ami-bf9c36d1",
-		"ap-northeast-1": "ami-8e8847f1",
-		"sa-east-1":      "ami-cb5803a7",
-		"ca-central-1":   "ami-e802818c",
-		"ap-southeast-1": "ami-8e0205f2",
-		"ap-southeast-2": "ami-d8c21dba",
-		"eu-central-1":   "ami-dd3c0f36",
-		"us-east-1":      "ami-77ec9308",
-		"us-east-2":      "ami-9c0638f9",
-		"us-west-1":      "ami-4826c22b",
-		"us-west-2":      "ami-3ecc8f46",
-	}[region]
+func getDefaultImageID(region, kubernetesVersion string) string {
+	switch kubernetesVersion {
+	case "1.14.0":
+		fallthrough
+	case "1.13.3":
+		fallthrough
+	case "1.12.2":
+		fallthrough
+	default:
+		return map[string]string{
+			"eu-north-1":     "ami-b133bccf",
+			"ap-south-1":     "ami-1780a878",
+			"eu-west-3":      "ami-262e9f5b",
+			"eu-west-2":      "ami-00846a67",
+			"eu-west-1":      "ami-3548444c",
+			"ap-northeast-2": "ami-bf9c36d1",
+			"ap-northeast-1": "ami-8e8847f1",
+			"sa-east-1":      "ami-cb5803a7",
+			"ca-central-1":   "ami-e802818c",
+			"ap-southeast-1": "ami-8e0205f2",
+			"ap-southeast-2": "ami-d8c21dba",
+			"eu-central-1":   "ami-dd3c0f36",
+			"us-east-1":      "ami-77ec9308",
+			"us-east-2":      "ami-9c0638f9",
+			"us-west-1":      "ami-4826c22b",
+			"us-west-2":      "ami-3ecc8f46",
+		}[region]
+	}
 }
 
 type TokenGenerator interface {

@@ -904,6 +904,10 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 	), nil
 }
 
+func (c *EC2ClusterPKE) GetKubernetesVersion() (string, error) {
+	return c.model.Kubernetes.Version, nil
+}
+
 // GetNetworkCloudProvider return cloud provider specific network information.
 func (c *EC2ClusterPKE) GetNetworkCloudProvider() (cloudProvider, vpcID string, subnets []string, err error) {
 	cp := c.model.Network.CloudProvider
