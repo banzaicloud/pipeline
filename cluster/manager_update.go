@@ -77,7 +77,7 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 		return err
 	}
 
-	if err := cluster.SetStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
+	if err := cluster.UpdateStatus(pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
 		return emperror.With(err, "could not update cluster status")
 	}
 
@@ -106,9 +106,10 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 
 	logger.Info("updating cluster")
 
-	if err := updater.Update(ctx); err != nil {
-		if setErr := cluster.SetStatus(pkgCluster.Warning, err.Error()); setErr != nil {
-			log.Error(setErr, "could not set cluster status")
+	err := updater.Update(ctx)
+	if err != nil {
+		if updErr := cluster.UpdateStatus(pkgCluster.Warning, err.Error()); updErr != nil {
+			log.Error(updErr, "could not update cluster status")
 		} else {
 			m.events.ClusterUpdated(updateCtx.ClusterID)
 		}
@@ -116,7 +117,7 @@ func (m *Manager) updateCluster(ctx context.Context, updateCtx UpdateContext, cl
 		return emperror.Wrap(err, "error updating cluster")
 	}
 
-	if err := cluster.SetStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
+	if err := cluster.UpdateStatus(pkgCluster.Running, pkgCluster.RunningMessage); err != nil {
 		return emperror.Wrap(err, "could not update cluster status")
 	}
 	m.events.ClusterUpdated(updateCtx.ClusterID)

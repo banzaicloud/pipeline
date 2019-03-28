@@ -234,8 +234,7 @@ func (c *EC2ClusterPKE) Persist(string, string) error {
 	return err
 }
 
-// SetStatus sets the cluster's status
-func (c *EC2ClusterPKE) SetStatus(status, statusMessage string) error {
+func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
 	if c.model.Cluster.Status == status && c.model.Cluster.StatusMessage == statusMessage {
 		return nil
 	}

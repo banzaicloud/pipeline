@@ -134,7 +134,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		return nil, err
 	}
 
-	if err := cluster.SetStatus(pkgCluster.Creating, pkgCluster.CreatingMessage); err != nil {
+	if err := cluster.UpdateStatus(pkgCluster.Creating, pkgCluster.CreatingMessage); err != nil {
 		return nil, err
 	}
 
@@ -182,34 +182,34 @@ func (m *Manager) createCluster(
 
 		sshKey, err := secret.GenerateSSHKeyPair()
 		if err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to generate SSH key")
 		}
 
 		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
 		if err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to store SSH key")
 		}
 
 		if err := cluster.SaveSshSecretId(sshSecretId); err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			cluster.UpdateStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to save SSH key secret ID")
 		}
 	}
 	if err := creator.Create(ctx); err != nil {
-		cluster.SetStatus(pkgCluster.Error, err.Error())
+		cluster.UpdateStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 
-	err := cluster.SetStatus(pkgCluster.Creating, "running posthooks")
+	err := cluster.UpdateStatus(pkgCluster.Creating, "running posthooks")
 	if err != nil {
 		return emperror.Wrap(err, "failed to update cluster status")
 	}
 
 	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nil, false)
 	if err != nil {
-		_ = cluster.SetStatus(pkgCluster.Error, "failed to get desired labels")
+		_ = cluster.UpdateStatus(pkgCluster.Error, "failed to get desired labels")
 
 		return err
 	}
@@ -236,7 +236,7 @@ func (m *Manager) createCluster(
 
 	exec, err := m.workflowClient.ExecuteWorkflow(ctx, workflowOptions, RunPostHooksWorkflowName, input)
 	if err != nil {
-		_ = cluster.SetStatus(pkgCluster.Error, "failed to run posthooks")
+		_ = cluster.UpdateStatus(pkgCluster.Error, "failed to run posthooks")
 
 		return emperror.WrapWith(err, "failed to start workflow", "workflowName", RunPostHooksWorkflowName)
 	}

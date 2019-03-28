@@ -349,8 +349,8 @@ func (o *OKECluster) SaveSshSecretId(sshSecretId string) error {
 	return o.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
-// SetStatus sets the cluster's status
-func (o *OKECluster) SetStatus(status, statusMessage string) error {
+// UpdateStatus updates cluster status in database
+func (o *OKECluster) UpdateStatus(status, statusMessage string) error {
 	return o.modelCluster.UpdateStatus(status, statusMessage)
 }
 

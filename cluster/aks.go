@@ -810,8 +810,8 @@ func GetKubernetesVersion(orgID uint, secretID string, location string) ([]strin
 	return cc.GetContainerServicesClient().ListKubernetesVersions(context.TODO(), location)
 }
 
-// SetStatus sets the cluster's status
-func (c *AKSCluster) SetStatus(status, statusMessage string) error {
+// UpdateStatus updates cluster status in database
+func (c *AKSCluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 

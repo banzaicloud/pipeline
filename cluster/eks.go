@@ -1015,8 +1015,8 @@ func (c *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 	return
 }
 
-// SetStatus sets the cluster's status
-func (c *EKSCluster) SetStatus(status string, statusMessage string) error {
+// UpdateStatus updates cluster status in database
+func (c *EKSCluster) UpdateStatus(status string, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 

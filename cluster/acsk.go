@@ -832,8 +832,7 @@ func (c *ACSKCluster) GetOrganizationId() uint {
 	return c.modelCluster.OrganizationId
 }
 
-// SetStatus sets the cluster's status
-func (c *ACSKCluster) SetStatus(status, statusMessage string) error {
+func (c *ACSKCluster) UpdateStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
