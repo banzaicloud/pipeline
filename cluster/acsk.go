@@ -510,7 +510,7 @@ func getConnectionInfo(client *cs.Client, clusterID string) (inf alibabaConnecti
 
 func (c *ACSKCluster) Persist(status, statusMessage string) error {
 	c.log.Infof("Model before save: %v", c.modelCluster)
-	return c.SetStatus(status, statusMessage)
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 func (c *ACSKCluster) DownloadK8sConfig() ([]byte, error) {

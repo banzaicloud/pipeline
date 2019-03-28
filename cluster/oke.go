@@ -180,7 +180,8 @@ func (o *OKECluster) DeleteCluster() error {
 
 //Persist save the cluster model
 func (o *OKECluster) Persist(status, statusMessage string) error {
-	return o.SetStatus(status, statusMessage)
+
+	return o.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
