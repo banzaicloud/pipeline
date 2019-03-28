@@ -1017,7 +1017,7 @@ func (c *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 
 // SetStatus sets the cluster's status
 func (c *EKSCluster) SetStatus(status string, statusMessage string) error {
-	return c.SetStatus(status, statusMessage)
+	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 
 // NodePoolExists returns true if node pool with nodePoolName exists
