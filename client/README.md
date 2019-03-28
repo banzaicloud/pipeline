@@ -53,6 +53,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**ListClusters**](docs/ClustersApi.md#listclusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
 *ClustersApi* | [**ListNodes**](docs/ClustersApi.md#listnodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 *ClustersApi* | [**MergeSecret**](docs/ClustersApi.md#mergesecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
+*ClustersApi* | [**PostLeaderElection**](docs/ClustersApi.md#postleaderelection) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Apply as new cluster leader
 *ClustersApi* | [**PostReadyPKENode**](docs/ClustersApi.md#postreadypkenode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Report to Pipeline that a new node is ready (to be called by PKE installer)
 *ClustersApi* | [**UpdateCluster**](docs/ClustersApi.md#updatecluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 *ClustersApi* | [**UpdateMonitoring**](docs/ClustersApi.md#updatemonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
@@ -278,6 +279,8 @@ Class | Method | HTTP request | Description
  - [PolicyRule](docs/PolicyRule.md)
  - [PolicyRuleParams](docs/PolicyRuleParams.md)
  - [PostHooks](docs/PostHooks.md)
+ - [PostLeaderElectionRequest](docs/PostLeaderElectionRequest.md)
+ - [PostLeaderElectionResponse](docs/PostLeaderElectionResponse.md)
  - [PostReadyPkeNodeRequest](docs/PostReadyPkeNodeRequest.md)
  - [ProfileListResponse](docs/ProfileListResponse.md)
  - [ProjectDetails](docs/ProjectDetails.md)

@@ -416,37 +416,37 @@ func (a *ACSKClusterModel) AfterUpdate(scope *gorm.Scope) error {
 
 // UpdateStatus updates the model's status and status message in database
 func (cs *ClusterModel) UpdateStatus(status, statusMessage string) error {
-	originalStatus := cs.Status
-	originalStatusMessage := cs.StatusMessage
-	now := time.Now()
-
-	cs.Status = status
-	cs.StatusMessage = statusMessage
-	if cs.Status != originalStatus && originalStatus == pkgCluster.Creating && (cs.Status == pkgCluster.Running || cs.Status == pkgCluster.Warning) {
-		cs.StartedAt = &now
-	}
-	err := cs.Save()
-	if err != nil {
-		return errors.Wrap(err, "failed to update cluster status")
+	if cs.Status == status && cs.StatusMessage == statusMessage {
+		return nil
 	}
 
-	if cs.Status != originalStatus {
-		statusHistory := &StatusHistoryModel{
+	if cs.ID != 0 {
+		// Record status change to history before modifying the actual status.
+		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
+		statusHistory := StatusHistoryModel{
 			ClusterID:   cs.ID,
 			ClusterName: cs.Name,
 
-			FromStatus:        originalStatus,
-			FromStatusMessage: originalStatusMessage,
+			FromStatus:        cs.Status,
+			FromStatusMessage: cs.StatusMessage,
 			ToStatus:          status,
 			ToStatusMessage:   statusMessage,
 		}
 
-		db := config.DB()
-
-		err := db.Save(&statusHistory).Error
-		if err != nil {
-			return errors.Wrap(err, "failed to update cluster status history")
+		if err := config.DB().Save(&statusHistory).Error; err != nil {
+			return errors.Wrap(err, "failed to record cluster status change to history")
 		}
+	}
+
+	if cs.Status == pkgCluster.Creating && (cs.Status == pkgCluster.Running || cs.Status == pkgCluster.Warning) {
+		now := time.Now()
+		cs.StartedAt = &now
+	}
+	cs.Status = status
+	cs.StatusMessage = statusMessage
+
+	if err := cs.Save(); err != nil {
+		return errors.Wrap(err, "failed to update cluster status")
 	}
 
 	return nil

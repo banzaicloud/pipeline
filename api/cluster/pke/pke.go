@@ -27,13 +27,24 @@ type tokenGenerator interface {
 	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
 }
 
+type LeaderInfo struct {
+	Hostname string
+	IP       string
+}
+
+type LeaderRepository interface {
+	GetLeader(organizationID, clusterID uint) (LeaderInfo, error)
+	SetLeader(organizationID, clusterID uint, leaderInfo LeaderInfo) error
+}
+
 type API struct {
 	clusterGetter   common.ClusterGetter
 	errorHandler    emperror.Handler
 	tokenGenerator  tokenGenerator
 	externalBaseURL string
 
-	workflowClient client.Client
+	workflowClient   client.Client
+	leaderRepository LeaderRepository
 }
 
 func NewAPI(
@@ -42,13 +53,15 @@ func NewAPI(
 	tokenGenerator tokenGenerator,
 	externalBaseURL string,
 	workflowClient client.Client,
+	leaderRepository LeaderRepository,
 ) *API {
 	return &API{
-		clusterGetter:   clusterGetter,
-		errorHandler:    errorHandler,
-		tokenGenerator:  tokenGenerator,
-		externalBaseURL: externalBaseURL,
-		workflowClient:  workflowClient,
+		clusterGetter:    clusterGetter,
+		errorHandler:     errorHandler,
+		tokenGenerator:   tokenGenerator,
+		externalBaseURL:  externalBaseURL,
+		workflowClient:   workflowClient,
+		leaderRepository: leaderRepository,
 	}
 }
 
@@ -65,4 +78,5 @@ func (a *API) RegisterRoutes(r gin.IRouter) {
 	r.GET("commands", a.ListCommands)
 	r.GET("ready", a.GetReady)
 	r.POST("ready", a.PostReady)
+	r.POST("leader", a.PostLeaderElection)
 }

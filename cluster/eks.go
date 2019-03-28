@@ -365,9 +365,9 @@ func (c *EKSCluster) generateIAMRoleNameForCluster() string {
 }
 
 // Persist saves the cluster model
-func (c *EKSCluster) Persist(status, statusMessage string) error {
-	c.log.Infof("Model before save: %v", c.modelCluster)
-	return c.modelCluster.UpdateStatus(status, statusMessage)
+// Deprecated: Do not use.
+func (c *EKSCluster) Persist() error {
+	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // GetName returns the name of the cluster
@@ -1015,9 +1015,9 @@ func (c *EKSCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) 
 	return
 }
 
-// UpdateStatus updates cluster status in database
-func (c *EKSCluster) UpdateStatus(status string, statusMessage string) error {
-	return c.modelCluster.UpdateStatus(status, statusMessage)
+// SetStatus sets the cluster's status
+func (c *EKSCluster) SetStatus(status string, statusMessage string) error {
+	return c.SetStatus(status, statusMessage)
 }
 
 // NodePoolExists returns true if node pool with nodePoolName exists

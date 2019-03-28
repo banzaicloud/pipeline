@@ -23,6 +23,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
+	"github.com/goph/emperror"
 )
 
 // DummyCluster struct for DC
@@ -57,10 +58,10 @@ func (c *DummyCluster) CreateCluster() error {
 	return nil
 }
 
-//Persist save the cluster model
-func (c *DummyCluster) Persist(status, statusMessage string) error {
-	log.Infof("Model before save: %v", c.modelCluster)
-	return c.modelCluster.UpdateStatus(status, statusMessage)
+// Persist save the cluster model
+// Deprecated: Do not use.
+func (c *DummyCluster) Persist() error {
+	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
@@ -253,8 +254,8 @@ func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluste
 	return &dummyCluster, nil
 }
 
-// UpdateStatus updates cluster status in database
-func (c *DummyCluster) UpdateStatus(status, statusMessage string) error {
+// SetStatus sets the cluster's status
+func (c *DummyCluster) SetStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 

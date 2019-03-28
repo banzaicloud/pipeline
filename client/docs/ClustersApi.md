@@ -24,6 +24,7 @@ Method | HTTP request | Description
 [**ListClusters**](ClustersApi.md#ListClusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
 [**ListNodes**](ClustersApi.md#ListNodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 [**MergeSecret**](ClustersApi.md#MergeSecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
+[**PostLeaderElection**](ClustersApi.md#PostLeaderElection) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Apply as new cluster leader
 [**PostReadyPKENode**](ClustersApi.md#PostReadyPKENode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Report to Pipeline that a new node is ready (to be called by PKE installer)
 [**UpdateCluster**](ClustersApi.md#UpdateCluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 [**UpdateMonitoring**](ClustersApi.md#UpdateMonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
@@ -632,6 +633,34 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**InstallSecretResponse**](InstallSecretResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **PostLeaderElection**
+> PostLeaderElectionResponse PostLeaderElection(ctx, orgId, id, postLeaderElectionRequest)
+Apply as new cluster leader
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+  **postLeaderElectionRequest** | [**PostLeaderElectionRequest**](PostLeaderElectionRequest.md)|  | 
+
+### Return type
+
+[**PostLeaderElectionResponse**](PostLeaderElectionResponse.md)
 
 ### Authorization
 

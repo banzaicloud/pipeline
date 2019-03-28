@@ -4762,6 +4762,68 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
 
+    '/api/v1/orgs/{orgId}/clusters/{id}/pke/leader':
+        post:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: Apply as new cluster leader
+            operationId: PostLeaderElection
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PostLeaderElectionRequest'
+            responses:
+                '201':
+                    description: Application successful
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PostLeaderElectionResponse'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: No such PKE cluster found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+                '409':
+                    description: Leader already elected
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PostLeaderElectionResponse'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/ready':
         get:
             summary: Query reported node readiness information
@@ -8688,3 +8750,27 @@ components:
                             type: boolean
                             description: true when the node has been reported to be ready
                             example: true
+
+        PostLeaderElectionRequest:
+            type: object
+            required:
+                - hostname
+            properties:
+                hostname:
+                    type: string
+                    example: node-0.my.cloud.com
+                ip:
+                    type: string
+                    example: 10.20.30.40
+
+        PostLeaderElectionResponse:
+            type: object
+            required:
+                - hostname
+            properties:
+                hostname:
+                    type: string
+                    example: node-0.my.cloud.com
+                ip:
+                    type: string
+                    example: 10.20.30.40

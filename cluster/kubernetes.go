@@ -77,8 +77,9 @@ func (c *KubeCluster) CreateCluster() error {
 }
 
 // Persist save the cluster model
-func (c *KubeCluster) Persist(status, statusMessage string) error {
-	return c.modelCluster.UpdateStatus(status, statusMessage)
+// Deprecated: Do not use.
+func (c *KubeCluster) Persist() error {
+	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
 }
 
 // createDefaultStorageClass creates a default storage class as some clusters are not created with
@@ -255,8 +256,8 @@ func CreateKubernetesClusterFromModel(clusterModel *model.ClusterModel) (*KubeCl
 	return &kubeCluster, nil
 }
 
-// UpdateStatus updates cluster status in database
-func (c *KubeCluster) UpdateStatus(status, statusMessage string) error {
+// SetStatus sets the cluster's status
+func (c *KubeCluster) SetStatus(status, statusMessage string) error {
 	return c.modelCluster.UpdateStatus(status, statusMessage)
 }
 

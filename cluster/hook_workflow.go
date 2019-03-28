@@ -130,7 +130,7 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 		return err
 	}
 
-	if err := cluster.UpdateStatus(pkgCluster.Creating, statusMsg); err != nil {
+	if err := cluster.SetStatus(pkgCluster.Creating, statusMsg); err != nil {
 		return emperror.Wrap(err, "failed to write status to db")
 	}
 
