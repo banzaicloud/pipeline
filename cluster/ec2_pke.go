@@ -235,44 +235,35 @@ func (c *EC2ClusterPKE) Persist(string, string) error {
 }
 
 func (c *EC2ClusterPKE) UpdateStatus(status, statusMessage string) error {
-	if c.model.Cluster.Status == status && c.model.Cluster.StatusMessage == statusMessage {
-		return nil
+	originalStatus := c.model.Cluster.Status
+	originalStatusMessage := c.model.Cluster.StatusMessage
+
+	updateFields := map[string]interface{}{"status": status, "status_message": statusMessage}
+
+	if status != originalStatus && originalStatus == pkgCluster.Creating && (status == pkgCluster.Running || status == pkgCluster.Warning) {
+		updateFields["started_at"] = time.Now()
 	}
 
-	if c.model.Cluster.ID != 0 {
-		// Record status change to history before modifying the actual status.
-		// If setting/saving the actual status doesn't succeed somehow, at least we can reconstruct it from history (i.e. event sourcing).
-		statusHistory := cluster.StatusHistoryModel{
+	err := c.db.Model(&c.model.Cluster).Updates(updateFields).Error
+	if err != nil {
+		return errors.Wrap(err, "failed to update status")
+	}
+
+	if originalStatus != status {
+		statusHistory := &cluster.StatusHistoryModel{
 			ClusterID:   c.model.Cluster.ID,
 			ClusterName: c.model.Cluster.Name,
 
-			FromStatus:        c.model.Cluster.Status,
-			FromStatusMessage: c.model.Cluster.StatusMessage,
+			FromStatus:        originalStatus,
+			FromStatusMessage: originalStatusMessage,
 			ToStatus:          status,
 			ToStatusMessage:   statusMessage,
 		}
 
-		if err := c.db.Save(&statusHistory).Error; err != nil {
-			return errors.Wrap(err, "failed to record cluster status change to history")
+		err := c.db.Save(&statusHistory).Error
+		if err != nil {
+			return errors.Wrap(err, "failed to update cluster status history")
 		}
-	}
-
-	now := time.Now()
-	justStarted := c.model.Cluster.Status == pkgCluster.Creating && (status == pkgCluster.Running || status == pkgCluster.Warning)
-
-	updateFields := map[string]interface{}{"status": status, "status_message": statusMessage}
-	if justStarted {
-		updateFields["started_at"] = &now
-	}
-
-	if err := c.db.Model(&c.model.Cluster).Updates(updateFields).Error; err != nil {
-		return errors.Wrap(err, "failed to update cluster status")
-	}
-
-	c.model.Cluster.Status = status
-	c.model.Cluster.StatusMessage = statusMessage
-	if justStarted {
-		c.model.Cluster.StartedAt = &now
 	}
 
 	return nil
