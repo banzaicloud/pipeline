@@ -31,5 +31,5 @@ const (
 	AlibabaInstanceHealthyStatus    = "Healthy"
 	AlibabaESSEndPointFmt           = "ess.%s.aliyuncs.com"
 	AlibabaMaxNodePoolSize          = 20
-	AlibabaDefaultImageId           = "centos_7_04_64_20G_alibase_20180419.vhd"
+	AlibabaDefaultImageId           = "centos_7_06_64_20G_alibase_20190218.vhd"
 )
