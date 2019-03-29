@@ -32,20 +32,16 @@ import (
 
 // DeleteCluster deletes a cluster.
 func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
-	errorHandler := emperror.HandlerWith(
-		m.getErrorHandler(ctx),
-		"organization", cluster.GetOrganizationId(),
-		"cluster", cluster.GetID(),
-		"force", force,
-	)
 
 	timer, err := m.getPrometheusTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return err
 	}
 
+	errorHandler := m.getClusterErrorHandler(ctx, cluster)
+
 	go func() {
-		defer emperror.HandleRecover(m.errorHandler)
+		defer emperror.HandleRecover(errorHandler.WithStatus(pkgCluster.Error, "internal error while deleting cluster"))
 
 		err := m.deleteCluster(context.Background(), cluster, force)
 		if err != nil {

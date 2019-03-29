@@ -82,9 +82,10 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 	}
 
 	logger.Info("updating cluster")
+	errorHandler := m.getClusterErrorHandler(ctx, cluster)
 
 	go func() {
-		defer emperror.HandleRecover(m.errorHandler)
+		defer emperror.HandleRecover(errorHandler.WithStatus(pkgCluster.Warning, "internal error while updating cluster"))
 
 		err := m.updateCluster(ctx, updateCtx, cluster, updater)
 		if err != nil {

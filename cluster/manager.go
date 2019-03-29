@@ -16,6 +16,8 @@ package cluster
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -92,6 +94,40 @@ func (m *Manager) getLogger(ctx context.Context) logrus.FieldLogger {
 
 func (m *Manager) getErrorHandler(ctx context.Context) emperror.Handler {
 	return pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler)
+}
+
+type clusterErrorHandler struct {
+	handler       emperror.Handler
+	status        string
+	statusMessage string
+	cluster       CommonCluster
+}
+
+func (c clusterErrorHandler) Handle(err error) {
+	if c.statusMessage != "" {
+		statusMessage := c.statusMessage
+		if strings.Contains(statusMessage, "%") {
+			statusMessage = fmt.Sprintf(statusMessage, err)
+		}
+		_ = c.cluster.SetStatus(c.status, statusMessage)
+	}
+	c.handler.Handle(err)
+}
+
+func (c clusterErrorHandler) WithStatus(status, statusMessage string) clusterErrorHandler {
+	return clusterErrorHandler{
+		cluster:       c.cluster,
+		status:        status,
+		statusMessage: statusMessage,
+		handler:       c.handler,
+	}
+}
+
+func (m *Manager) getClusterErrorHandler(ctx context.Context, commonCluster CommonCluster) clusterErrorHandler {
+	return clusterErrorHandler{
+		handler: pipelineContext.ErrorHandlerWithCorrelationID(ctx, m.errorHandler),
+		cluster: commonCluster,
+	}
 }
 
 func (m *Manager) getPrometheusTimer(provider, location, status string, orgId uint, clusterName string) (*prometheus.Timer, error) {
