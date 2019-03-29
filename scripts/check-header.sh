@@ -17,7 +17,7 @@ read -r -d '' EXPECTED <<EOF
 EOF
 
 STATUS=0
-FILES=$(find . -name "*.go" -not -path "./vendor/*" -not -path "./client/*") # TODO: remove client
+FILES=$(find . -name "*.go" -not -path "./vendor/*" -not -path "./client/*" -not -path "./.gen/*") # TODO: remove client and .gen
 
 for FILE in ${FILES}; do
     # Replace the actual year with DATE so we can ignore the year when
