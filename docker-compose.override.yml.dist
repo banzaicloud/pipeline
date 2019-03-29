@@ -42,6 +42,7 @@ services:
             - 127.0.0.1:8000:8000
             - 127.0.0.1:9000:9000
         environment:
+            # CICD_GITLAB:               "true"
             CICD_CORS_ALLOW_ALL_ORIGINS: "false"
             CICD_CORS_ALLOW_ORIGINS:     "http://localhost:4200"
             CICD_EXTERNAL_URL:           https://my-cicd.serveo.net

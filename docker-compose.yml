@@ -69,10 +69,8 @@ services:
         restart: on-failure
         environment:
             CICD_HOST:                http://localhost:8000
-            CICD_EXTERNAL_URL:        https://my-cicd.serveo.net
             CICD_DEBUG:               "true"
             CICD_GITHUB:              "true"
-            # CICD_GITLAB:              "true"
             CICD_OPEN:                "true"
             CICD_ORGS:
             CICD_DATABASE_DRIVER:     mysql
@@ -91,10 +89,8 @@ services:
             - /bin/cicd-agent
         restart: on-failure
         environment:
-            CICD_SERVER:       cicd-server:9000
-            CICD_SECRET:       "s3cr3t"
-            PIPELINE_BASEPATH:          https://my-pipeline.serveo.net/pipeline
-            PIPELINE_EXTERNAL_BASEPATH: https://my-pipeline.serveo.net/pipeline
+            CICD_SERVER: cicd-server:9000
+            CICD_SECRET: "s3cr3t"
 
     ui:
         image: banzaicloud/pipeline-web:0.7.0
