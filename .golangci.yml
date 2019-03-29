@@ -1,5 +1,6 @@
 run:
     skip-dirs:
+        - .gen
         - client
 
 linters-settings:
