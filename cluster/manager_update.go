@@ -49,23 +49,14 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 		"cluster":      updateCtx.ClusterID,
 	})
 
-	errorHandler := emperror.HandlerWith(
-		m.getErrorHandler(ctx),
-		"organization", updateCtx.OrganizationID,
-		"user", updateCtx.UserID,
-		"cluster", updateCtx.ClusterID,
-	)
-
-	logger.Info("validating update context")
+	logger.Debug("validating update context")
 
 	err := updater.Validate(ctx)
 	if err != nil {
 		return errors.WithMessage(err, "cluster update validation failed")
 	}
 
-	logger.Info("update context is valid")
-
-	logger.Info("preparing cluster update")
+	logger.Debug("preparing cluster update")
 
 	cluster, err := updater.Prepare(ctx)
 	if err != nil {

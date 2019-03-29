@@ -67,12 +67,11 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		"cluster":      creationCtx.Name,
 	})
 
-	logger.Debug("looking for existing cluster")
 	if err := m.assertNotExists(creationCtx); err != nil {
 		return nil, err
 	}
 
-	logger.Info("validating secret")
+	logger.Debug("validating secret")
 	if len(creationCtx.SecretIDs) > 0 {
 		var err error
 		for _, secretID := range creationCtx.SecretIDs {
@@ -131,7 +130,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		return nil, err
 	}
 
-	logger.Infof("creating cluster")
+	logger.Info("creating cluster")
 
 	errorHandler := m.getClusterErrorHandler(ctx, cluster)
 
