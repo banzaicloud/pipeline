@@ -54,6 +54,11 @@ func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, node
 	}
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 
+	// TODO: remove this once ACSK is properly renamed to ACK everywhere
+	if clusterStatus.Distribution == pkgCluster.ACSK {
+		clusterStatus.Distribution = "ack"
+	}
+
 	for name, nodePool := range nodePools {
 		labelsMap := getDesiredNodePoolLabels(logger, clusterStatus, name, nodePool, headNodePoolName, noReturnIfNoUserLabels)
 		if len(labelsMap) > 0 {
