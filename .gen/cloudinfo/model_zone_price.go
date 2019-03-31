@@ -14,5 +14,5 @@ package cloudinfo
 // ZonePrice struct for displaying price information per zone
 type ZonePrice struct {
 	Price float64 `json:"price,omitempty"`
-	Zone string `json:"zone,omitempty"`
+	Zone  string  `json:"zone,omitempty"`
 }

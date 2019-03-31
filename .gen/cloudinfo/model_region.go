@@ -13,6 +13,6 @@ package cloudinfo
 
 // Region hold the id and name of a cloud provider region
 type Region struct {
-	Id string `json:"id,omitempty"`
+	Id   string `json:"id,omitempty"`
 	Name string `json:"name,omitempty"`
 }

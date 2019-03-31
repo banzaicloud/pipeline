@@ -15,42 +15,16 @@
 package cloudinfo
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"context"
 	"sync"
 
+	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
-
-type CloudInfoResponse struct {
-	// Products represents a slice of products for a given provider (VMs with attributes and process)
-	Products []*MachineDetails `json:"products"`
-
-	// ScrapingTime represents scraping time for a given provider in milliseconds
-	ScrapingTime string `json:"scrapingTime,omitempty"`
-}
-
-// SpotPriceInfo represents different prices per availability zones
-type SpotPriceInfo map[string]float64
-
-type MachineDetails struct {
-	Type          string            `json:"type"`
-	OnDemandPrice float64           `json:"onDemandPrice"`
-	SpotPrice     SpotPriceInfo     `json:"spotPrice"`
-	Cpus          float64           `json:"cpusPerVm"`
-	Mem           float64           `json:"memPerVm"`
-	Gpus          float64           `json:"gpusPerVm"`
-	NtwPerf       string            `json:"ntwPerf"`
-	NtwPerfCat    string            `json:"ntwPerfCategory"`
-	Zones         []string          `json:"zones"`
-	Attributes    map[string]string `json:"attributes"`
-}
 
 type VMKey struct {
 	cloud        string
@@ -61,23 +35,23 @@ type VMKey struct {
 
 type InstanceTypeMap struct {
 	lock     sync.RWMutex
-	internal map[VMKey]MachineDetails
+	internal map[VMKey]cloudinfo.ProductDetails
 }
 
 func NewInstanceTypeMap() *InstanceTypeMap {
 	return &InstanceTypeMap{
-		internal: make(map[VMKey]MachineDetails),
+		internal: make(map[VMKey]cloudinfo.ProductDetails),
 	}
 }
 
-func (im *InstanceTypeMap) getMachine(key VMKey) (MachineDetails, bool) {
+func (im *InstanceTypeMap) getMachine(key VMKey) (cloudinfo.ProductDetails, bool) {
 	im.lock.RLock()
 	result, ok := im.internal[key]
 	im.lock.RUnlock()
 	return result, ok
 }
 
-func (im *InstanceTypeMap) setMachines(cloud string, service string, region string, vmList []*MachineDetails) {
+func (im *InstanceTypeMap) setMachines(cloud string, service string, region string, vmList []cloudinfo.ProductDetails) {
 	instanceTypeMap.lock.Lock()
 	for _, product := range vmList {
 		instanceTypeMap.internal[VMKey{
@@ -85,7 +59,7 @@ func (im *InstanceTypeMap) setMachines(cloud string, service string, region stri
 			service,
 			region,
 			product.Type,
-		}] = *product
+		}] = product
 	}
 	instanceTypeMap.lock.Unlock()
 }
@@ -96,37 +70,28 @@ var instanceTypeMap = NewInstanceTypeMap()
 func fetchMachineTypes(logger logrus.FieldLogger, cloud string, service string, region string) error {
 	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
 	if len(cloudInfoEndPoint) == 0 {
-		return emperror.With(errors.New("missing config"), "propertyName", config.CloudInfoEndPoint)
+		return emperror.With(errors.New("missing config"), "cloudInfoEndPoint", config.CloudInfoEndPoint)
 	}
-	cloudInfoUrl := fmt.Sprintf(
-		"%s/providers/%s/services/%s/regions/%s/products",
-		cloudInfoEndPoint, cloud, service, region)
-	ciRequest, err := http.NewRequest(http.MethodGet, cloudInfoUrl, nil)
-	if err != nil {
-		return errors.New("error fetching machine types from CloudInfo")
-	}
-
-	ciRequest.Header.Set("Content-Type", "application/json")
-	httpClient := &http.Client{}
 
 	log := logger.WithFields(logrus.Fields{"cloudInfoEndPoint": cloudInfoEndPoint, "cloud": cloud, "region": region, "service": service})
 	log.Info("fetching machine types from CloudInfo")
 
-	ciResponse, err := httpClient.Do(ciRequest)
+	cloudInfoClient := cloudinfo.NewAPIClient(&cloudinfo.Configuration{
+		BasePath:      cloudInfoEndPoint,
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "Pipeline/go",
+	})
+	response, _, err := cloudInfoClient.ProductsApi.GetProducts(context.Background(), cloud, service, region)
 	if err != nil {
-		return emperror.Wrap(err, "error fetching machine types from CloudInfo")
+		return errors.WithStack(err)
 	}
-	respBody, _ := ioutil.ReadAll(ciResponse.Body)
-	var vmDetails CloudInfoResponse
-	json.Unmarshal(respBody, &vmDetails)
 
-	instanceTypeMap.setMachines(cloud, service, region, vmDetails.Products)
-
+	instanceTypeMap.setMachines(cloud, service, region, response.Products)
 	return nil
 }
 
 //GetMachineDetails returns machine resource details, like cpu/gpu/memory etc. either from local cache or CloudInfo
-func GetMachineDetails(logger logrus.FieldLogger, cloud string, service string, region string, instanceType string) (*MachineDetails, error) {
+func GetMachineDetails(logger logrus.FieldLogger, cloud string, service string, region string, instanceType string) (*cloudinfo.ProductDetails, error) {
 
 	vmKey := VMKey{
 		cloud,
@@ -139,7 +104,7 @@ func GetMachineDetails(logger logrus.FieldLogger, cloud string, service string, 
 	if !ok {
 		err := fetchMachineTypes(logger, cloud, service, region)
 		if err != nil {
-			return nil, emperror.WrapWith(err, "failed to retrieve service machine types", "cloud", cloud, "region", region, "service", service)
+			return nil, emperror.WrapWith(err, "failed to retrieve machine types", "cloud", cloud, "region", region, "service", service)
 		}
 		vmDetails, ok = instanceTypeMap.getMachine(vmKey)
 		if !ok {

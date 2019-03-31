@@ -13,7 +13,7 @@ package cloudinfo
 
 // Image represents an image
 type Image struct {
-	Gpu bool `json:"gpu,omitempty"`
-	Name string `json:"name,omitempty"`
+	Gpu     bool   `json:"gpu,omitempty"`
+	Name    string `json:"name,omitempty"`
 	Version string `json:"version,omitempty"`
 }

@@ -13,6 +13,6 @@ package cloudinfo
 
 // Provider represents a cloud provider
 type Provider struct {
-	Provider string `json:"provider,omitempty"`
+	Provider string    `json:"provider,omitempty"`
 	Services []Service `json:"services,omitempty"`
 }
