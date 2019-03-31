@@ -13,6 +13,6 @@ package cloudinfo
 
 // AttributeResponse holds attribute values
 type AttributeResponse struct {
-	AttributeName string `json:"attributeName,omitempty"`
+	AttributeName   string    `json:"attributeName,omitempty"`
 	AttributeValues []float64 `json:"attributeValues,omitempty"`
 }

@@ -13,7 +13,7 @@ package cloudinfo
 
 // GetRegionResp holds the detailed description of a specific region of a cloud provider
 type GetRegionResp struct {
-	Id string `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
+	Id    string   `json:"id,omitempty"`
+	Name  string   `json:"name,omitempty"`
 	Zones []string `json:"zones,omitempty"`
 }

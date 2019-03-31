@@ -13,6 +13,6 @@ package cloudinfo
 
 // it's intended to implement the ServiceDescriber interface
 type Service struct {
-	IsStatic bool `json:"isStatic,omitempty"`
-	Service string `json:"service,omitempty"`
+	IsStatic bool   `json:"isStatic,omitempty"`
+	Service  string `json:"service,omitempty"`
 }

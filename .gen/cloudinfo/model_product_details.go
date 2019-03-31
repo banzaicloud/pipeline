@@ -15,17 +15,17 @@ package cloudinfo
 type ProductDetails struct {
 	Attributes map[string]string `json:"attributes,omitempty"`
 	// Burst this is derived for now
-	Burst bool `json:"burst,omitempty"`
-	Category string `json:"category,omitempty"`
+	Burst     bool    `json:"burst,omitempty"`
+	Category  string  `json:"category,omitempty"`
 	CpusPerVm float64 `json:"cpusPerVm,omitempty"`
 	// CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
-	CurrentGen bool `json:"currentGen,omitempty"`
-	GpusPerVm float64 `json:"gpusPerVm,omitempty"`
-	MemPerVm float64 `json:"memPerVm,omitempty"`
-	NtwPerf string `json:"ntwPerf,omitempty"`
-	NtwPerfCategory string `json:"ntwPerfCategory,omitempty"`
-	OnDemandPrice float64 `json:"onDemandPrice,omitempty"`
-	SpotPrice []ZonePrice `json:"spotPrice,omitempty"`
-	Type string `json:"type,omitempty"`
-	Zones []string `json:"zones,omitempty"`
+	CurrentGen      bool        `json:"currentGen,omitempty"`
+	GpusPerVm       float64     `json:"gpusPerVm,omitempty"`
+	MemPerVm        float64     `json:"memPerVm,omitempty"`
+	NtwPerf         string      `json:"ntwPerf,omitempty"`
+	NtwPerfCategory string      `json:"ntwPerfCategory,omitempty"`
+	OnDemandPrice   float64     `json:"onDemandPrice,omitempty"`
+	SpotPrice       []ZonePrice `json:"spotPrice,omitempty"`
+	Type            string      `json:"type,omitempty"`
+	Zones           []string    `json:"zones,omitempty"`
 }

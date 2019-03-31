@@ -13,12 +13,12 @@ package cloudinfo
 
 import (
 	"context"
+	"fmt"
+	"github.com/antihax/optional"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"fmt"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -35,13 +35,13 @@ ImagesApiService Provides a list of available images on a given provider in a sp
  * @param service
  * @param region
  * @param optional nil or *GetImagesOpts - Optional Parameters:
- * @param "Gpu" (optional.String) - 
- * @param "Version" (optional.String) - 
+ * @param "Gpu" (optional.String) -
+ * @param "Version" (optional.String) -
 @return ImagesResponse
 */
 
 type GetImagesOpts struct {
-	Gpu optional.String
+	Gpu     optional.String
 	Version optional.String
 }
 
