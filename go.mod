@@ -87,6 +87,7 @@ require (
 	github.com/gin-gonic/gin v1.3.1-0.20190204012700-5acf6601170b
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-ldap/ldap v3.0.1+incompatible // indirect
+	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/go-openapi/jsonpointer v0.0.0-20180322222829-3a0015ad55fa // indirect
 	github.com/go-openapi/jsonreference v0.0.0-20180322222742-3fb327e6747d // indirect
 	github.com/go-openapi/spec v0.0.0-20180326232708-9acd88844bc1 // indirect
@@ -215,7 +216,7 @@ require (
 	github.com/uber/jaeger-client-go v2.15.0+incompatible // indirect
 	github.com/uber/jaeger-lib v2.0.0+incompatible // indirect
 	github.com/uber/tchannel-go v1.12.0 // indirect
-	github.com/xanzy/go-gitlab v0.16.0
+	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	go.etcd.io/bbolt v1.3.2 // indirect
@@ -255,6 +256,7 @@ require (
 	k8s.io/utils v0.0.0-20180208044234-258e2a2fa645 // indirect
 	layeh.com/radius v0.0.0-20190118135028-0f678f039617 // indirect
 	sigs.k8s.io/controller-runtime v0.1.10 // indirect
+	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 

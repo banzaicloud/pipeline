@@ -17,6 +17,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
@@ -45,6 +46,7 @@ func NewGithubClient(accessToken string) *github.Client {
 		oauth2.NoContext,
 		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}),
 	)
+	httpClient.Timeout = time.Second * 10
 
 	return github.NewClient(httpClient)
 }
@@ -76,8 +78,7 @@ func NewGithubClientForUser(userID uint) (*github.Client, error) {
 }
 
 func getGithubOrganizations(token string) ([]organization, error) {
-	httpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
-	githubClient := github.NewClient(httpClient)
+	githubClient := NewGithubClient(token)
 
 	memberships, _, err := githubClient.Organizations.ListOrgMemberships(oauth2.NoContext, nil)
 	if err != nil {

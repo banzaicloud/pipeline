@@ -20,6 +20,8 @@ ifeq (${VERBOSE}, 1)
 	GOARGS += -v
 endif
 
+CLOUDINFO_VERSION = 0.4.19
+
 GOLANGCI_VERSION = 1.15.0
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
@@ -217,6 +219,18 @@ bin/migrate-${MIGRATE_VERSION}:
 	@mkdir -p bin
 	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${PLATFORM}-amd64.tar.gz | tar xvz -C bin
 	@mv bin/migrate.${PLATFORM}-amd64 $@
+
+.PHONY: generate-cloudinfo-client
+generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec
+	curl https://raw.githubusercontent.com/banzaicloud/cloudinfo/${CLOUDINFO_VERSION}/api/openapi-spec/cloudinfo.yaml | sed "s/version: .*/version: ${CLOUDINFO_VERSION}/" > cloudinfo-openapi.yaml
+	rm -rf .gen/cloudinfo
+	docker run --rm -v ${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	--additional-properties packageName=cloudinfo \
+	--additional-properties withGoCodegenComment=true \
+	-i /local/cloudinfo-openapi.yaml \
+	-g go \
+	-o /local/.gen/cloudinfo
+	rm cloudinfo-openapi.yaml .gen/cloudinfo/.travis.yml .gen/cloudinfo/git_push.sh
 
 .PHONY: list
 list: ## List all make targets

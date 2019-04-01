@@ -15,8 +15,9 @@
 package auth
 
 import (
-	"context"
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
@@ -25,7 +26,6 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	gitlab "github.com/xanzy/go-gitlab"
-	"golang.org/x/oauth2"
 )
 
 type gitlabUserMeta struct {
@@ -34,16 +34,17 @@ type gitlabUserMeta struct {
 }
 
 func NewGitlabClient(accessToken string) (*gitlab.Client, error) {
-	httpClient := oauth2.NewClient(
-		oauth2.NoContext,
-		oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken}),
-	)
-	gitlabURL := viper.GetString("gitlab.baseURL")
+	httpClient := &http.Client{
+		Timeout: time.Second * 10,
+	}
 	gitlabClient := gitlab.NewClient(httpClient, accessToken)
+
+	gitlabURL := viper.GetString("gitlab.baseURL")
 	err := gitlabClient.SetBaseURL(gitlabURL)
 	if err != nil {
 		return nil, emperror.With(err, "gitlabBaseURL", gitlabURL)
 	}
+
 	return gitlabClient, nil
 }
 
@@ -78,8 +79,10 @@ func GetUserGitlabToken(userID uint) (string, error) {
 }
 
 func getGitlabOrganizations(token string) ([]organization, error) {
-	httpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))
-	gitlabClient := gitlab.NewClient(httpClient, token)
+	gitlabClient, err := NewGitlabClient(token)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create gitlab client")
+	}
 
 	minAccessLevel := gitlab.DeveloperPermissions
 	groups, _, err := gitlabClient.Groups.ListGroups(&gitlab.ListGroupsOptions{MinAccessLevel: &minAccessLevel})

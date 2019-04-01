@@ -341,9 +341,9 @@ func GetNodePools(c *gin.Context) {
 			if err != nil {
 				errorHandler.Handle(err)
 			} else if machineDetails != nil {
-				clusterTotalResources["cpu"] += float64(nodePool.Count) * machineDetails.Cpus
-				clusterTotalResources["gpu"] += float64(nodePool.Count) * machineDetails.Gpus
-				clusterTotalResources["mem"] += float64(nodePool.Count) * machineDetails.Mem
+				clusterTotalResources["cpu"] += float64(nodePool.Count) * machineDetails.CpusPerVm
+				clusterTotalResources["gpu"] += float64(nodePool.Count) * machineDetails.GpusPerVm
+				clusterTotalResources["mem"] += float64(nodePool.Count) * machineDetails.MemPerVm
 			}
 		}
 

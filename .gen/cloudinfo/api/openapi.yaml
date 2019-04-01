@@ -1,0 +1,743 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: info@banzaicloud.com
+    name: Banzai Cloud
+  description: |-
+    The product info application uses the cloud provider APIs to asynchronously fetch and parse instance type attributes
+    and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Product Info.
+  version: 0.4.19
+servers:
+- url: /api/v1
+paths:
+  /providers:
+    get:
+      description: Returns the supported providers
+      operationId: getProviders
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvidersResponse'
+          description: ProvidersResponse
+      tags:
+      - providers
+  /providers/{provider}:
+    get:
+      description: Returns the requested provider
+      operationId: getProvider
+      parameters:
+      - explode: false
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Provider
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderResponse'
+          description: ProviderResponse
+      tags:
+      - provider
+  /providers/{provider}/services:
+    get:
+      description: Provides a list with the available services for the provider
+      operationId: getServices
+      parameters:
+      - explode: false
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Provider
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicesResponse'
+          description: ServicesResponse
+      tags:
+      - services
+  /providers/{provider}/services/{service}:
+    get:
+      description: Provides service details for the given service on the provider in the given region
+      operationId: getService
+      parameters:
+      - explode: false
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Provider
+      - explode: false
+        in: path
+        name: service
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Service
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+          description: ServiceResponse
+      tags:
+      - service
+  /providers/{provider}/services/{service}/regions:
+    get:
+      description: Provides the list of available regions of a cloud provider
+      operationId: getRegions
+      parameters:
+      - explode: false
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Provider
+      - explode: false
+        in: path
+        name: service
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Service
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionsResponse'
+          description: RegionsResponse
+      tags:
+      - regions
+  /providers/{provider}/services/{service}/regions/{region}:
+    get:
+      description: Provides the detailed info of a specific region of a cloud provider
+      operationId: getRegion
+      parameters:
+      - explode: false
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Provider
+      - explode: false
+        in: path
+        name: service
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Service
+      - explode: false
+        in: path
+        name: region
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Region
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRegionResp'
+          description: GetRegionResp
+      tags:
+      - region
+  /providers/{provider}/services/{service}/regions/{region}/images:
+    get:
+      operationId: getImages
+      parameters:
+      - explode: false
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Provider
+      - explode: false
+        in: path
+        name: service
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Service
+      - explode: false
+        in: path
+        name: region
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Region
+      - explode: true
+        in: query
+        name: gpu
+        required: false
+        schema:
+          type: string
+        style: form
+        x-go-name: Gpu
+      - explode: true
+        in: query
+        name: version
+        required: false
+        schema:
+          type: string
+        style: form
+        x-go-name: Version
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImagesResponse'
+          description: ImagesResponse
+      summary: Provides a list of available images on a given provider in a specific region for a service.
+      tags:
+      - images
+  /providers/{provider}/services/{service}/regions/{region}/products:
+    get:
+      operationId: getProducts
+      parameters:
+      - explode: false
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Provider
+      - explode: false
+        in: path
+        name: service
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Service
+      - explode: false
+        in: path
+        name: region
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Region
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailsResponse'
+          description: ProductDetailsResponse
+      summary: Provides a list of available machine types on a given provider in a specific region.
+      tags:
+      - products
+  /providers/{provider}/services/{service}/regions/{region}/versions:
+    get:
+      operationId: getVersions
+      parameters:
+      - explode: false
+        in: path
+        name: provider
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Provider
+      - explode: false
+        in: path
+        name: service
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Service
+      - explode: false
+        in: path
+        name: region
+        required: true
+        schema:
+          type: string
+        style: simple
+        x-go-name: Region
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionsResponse'
+          description: VersionsResponse
+      summary: Provides a list of available versions on a given provider in a specific region for a service.
+      tags:
+      - versions
+components:
+  schemas:
+    AttributeResponse:
+      description: AttributeResponse holds attribute values
+      properties:
+        attributeName:
+          type: string
+          x-go-name: AttributeName
+        attributeValues:
+          items:
+            format: double
+            type: number
+          type: array
+          x-go-name: AttributeValues
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    GetAttributeValuesPathParams:
+      description: GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters
+      properties:
+        attribute:
+          description: in:path
+          type: string
+          x-go-name: Attribute
+        provider:
+          description: in:path
+          type: string
+          x-go-name: Provider
+        region:
+          description: in:path
+          type: string
+          x-go-name: Region
+        service:
+          description: in:path
+          type: string
+          x-go-name: Service
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    GetImagesQueryParams:
+      description: GetImagesQueryParams is a placeholder for the get images query parameters
+      properties:
+        gpu:
+          description: in:query
+          type: string
+          x-go-name: Gpu
+        version:
+          description: in:query
+          type: string
+          x-go-name: Version
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    GetProviderPathParams:
+      description: GetProviderPathParams is a placeholder for the providers related route path parameters
+      properties:
+        provider:
+          description: in:path
+          type: string
+          x-go-name: Provider
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    GetRegionPathParams:
+      description: GetRegionPathParams is a placeholder for the regions related route path parameters
+      properties:
+        provider:
+          description: in:path
+          type: string
+          x-go-name: Provider
+        region:
+          description: in:path
+          type: string
+          x-go-name: Region
+        service:
+          description: in:path
+          type: string
+          x-go-name: Service
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    GetRegionResp:
+      description: GetRegionResp holds the detailed description of a specific region of a cloud provider
+      example:
+        name: name
+        id: id
+        zones:
+        - zones
+        - zones
+      properties:
+        id:
+          type: string
+          x-go-name: Id
+        name:
+          type: string
+          x-go-name: Name
+        zones:
+          items:
+            type: string
+          type: array
+          x-go-name: Zones
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    GetServicesPathParams:
+      description: GetServicesPathParams is a placeholder for the services related route path parameters
+      properties:
+        provider:
+          description: in:path
+          type: string
+          x-go-name: Provider
+        service:
+          description: in:path
+          type: string
+          x-go-name: Service
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    Image:
+      description: Image represents an image
+      example:
+        name: name
+        gpu: true
+        version: version
+      properties:
+        gpu:
+          type: boolean
+          x-go-name: GpuAvailable
+        name:
+          type: string
+          x-go-name: Name
+        version:
+          type: string
+          x-go-name: Version
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+    ImagesResponse:
+      description: ImagesResponse holds the list of available images
+      example:
+        images:
+        - name: name
+          gpu: true
+          version: version
+        - name: name
+          gpu: true
+          version: version
+      properties:
+        images:
+          items:
+            $ref: '#/components/schemas/Image'
+          type: array
+          x-go-name: Images
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    ProductDetails:
+      description: ProductDetails extended view of the virtual machine details
+      example:
+        currentGen: true
+        spotPrice:
+        - zone: zone
+          price: 5.63737665663332876420099637471139430999755859375
+        - zone: zone
+          price: 5.63737665663332876420099637471139430999755859375
+        ntwPerf: ntwPerf
+        type: type
+        zones:
+        - zones
+        - zones
+        cpusPerVm: 0.80082819046101150206595775671303272247314453125
+        memPerVm: 1.46581298050294517310021547018550336360931396484375
+        gpusPerVm: 6.02745618307040320615897144307382404804229736328125
+        attributes:
+          key: attributes
+        ntwPerfCategory: ntwPerfCategory
+        burst: true
+        category: category
+        onDemandPrice: 5.962133916683182377482808078639209270477294921875
+      properties:
+        attributes:
+          additionalProperties:
+            type: string
+          type: object
+          x-go-name: Attributes
+        burst:
+          description: Burst this is derived for now
+          type: boolean
+          x-go-name: Burst
+        category:
+          type: string
+          x-go-name: Category
+        cpusPerVm:
+          format: double
+          type: number
+          x-go-name: Cpus
+        currentGen:
+          description: CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
+          type: boolean
+          x-go-name: CurrentGen
+        gpusPerVm:
+          format: double
+          type: number
+          x-go-name: Gpus
+        memPerVm:
+          format: double
+          type: number
+          x-go-name: Mem
+        ntwPerf:
+          type: string
+          x-go-name: NtwPerf
+        ntwPerfCategory:
+          type: string
+          x-go-name: NtwPerfCat
+        onDemandPrice:
+          format: double
+          type: number
+          x-go-name: OnDemandPrice
+        spotPrice:
+          items:
+            $ref: '#/components/schemas/ZonePrice'
+          type: array
+          x-go-name: SpotPrice
+        type:
+          type: string
+          x-go-name: Type
+        zones:
+          items:
+            type: string
+          type: array
+          x-go-name: Zones
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+    ProductDetailsResponse:
+      description: ProductDetailsResponse Api object to be mapped to product info response
+      example:
+        scrapingTime: scrapingTime
+        products:
+        - currentGen: true
+          spotPrice:
+          - zone: zone
+            price: 5.63737665663332876420099637471139430999755859375
+          - zone: zone
+            price: 5.63737665663332876420099637471139430999755859375
+          ntwPerf: ntwPerf
+          type: type
+          zones:
+          - zones
+          - zones
+          cpusPerVm: 0.80082819046101150206595775671303272247314453125
+          memPerVm: 1.46581298050294517310021547018550336360931396484375
+          gpusPerVm: 6.02745618307040320615897144307382404804229736328125
+          attributes:
+            key: attributes
+          ntwPerfCategory: ntwPerfCategory
+          burst: true
+          category: category
+          onDemandPrice: 5.962133916683182377482808078639209270477294921875
+        - currentGen: true
+          spotPrice:
+          - zone: zone
+            price: 5.63737665663332876420099637471139430999755859375
+          - zone: zone
+            price: 5.63737665663332876420099637471139430999755859375
+          ntwPerf: ntwPerf
+          type: type
+          zones:
+          - zones
+          - zones
+          cpusPerVm: 0.80082819046101150206595775671303272247314453125
+          memPerVm: 1.46581298050294517310021547018550336360931396484375
+          gpusPerVm: 6.02745618307040320615897144307382404804229736328125
+          attributes:
+            key: attributes
+          ntwPerfCategory: ntwPerfCategory
+          burst: true
+          category: category
+          onDemandPrice: 5.962133916683182377482808078639209270477294921875
+      properties:
+        products:
+          description: Products represents a slice of products for a given provider (VMs with attributes and process)
+          items:
+            $ref: '#/components/schemas/ProductDetails'
+          type: array
+          x-go-name: Products
+        scrapingTime:
+          description: ScrapingTime represents scraping time for a given provider in milliseconds
+          type: string
+          x-go-name: ScrapingTime
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    Provider:
+      description: Provider represents a cloud provider
+      example:
+        provider: provider
+        services:
+        - isStatic: true
+          service: service
+        - isStatic: true
+          service: service
+      properties:
+        provider:
+          type: string
+          x-go-name: Provider
+        services:
+          items:
+            $ref: '#/components/schemas/Service'
+          type: array
+          x-go-name: Services
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+    ProviderResponse:
+      description: ProviderResponse is the response used for the requested provider
+      example:
+        provider:
+          provider: provider
+          services:
+          - isStatic: true
+            service: service
+          - isStatic: true
+            service: service
+      properties:
+        provider:
+          $ref: '#/components/schemas/Provider'
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    ProvidersResponse:
+      description: ProvidersResponse is the response used for the supported providers
+      example:
+        providers:
+        - provider: provider
+          services:
+          - isStatic: true
+            service: service
+          - isStatic: true
+            service: service
+        - provider: provider
+          services:
+          - isStatic: true
+            service: service
+          - isStatic: true
+            service: service
+      properties:
+        providers:
+          items:
+            $ref: '#/components/schemas/Provider'
+          type: array
+          x-go-name: Providers
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    Region:
+      description: Region hold the id and name of a cloud provider region
+      example:
+        name: name
+        id: id
+      properties:
+        id:
+          type: string
+          x-go-name: Id
+        name:
+          type: string
+          x-go-name: Name
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    RegionsResponse:
+      description: RegionsResponse holds the list of available regions of a cloud provider
+      items:
+        $ref: '#/components/schemas/Region'
+      type: array
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    Service:
+      description: it's intended to implement the ServiceDescriber interface
+      example:
+        isStatic: true
+        service: service
+      properties:
+        isStatic:
+          type: boolean
+          x-go-name: IsStatic
+        service:
+          type: string
+          x-go-name: Service
+      title: Service represents a service supported by a given provider.
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+    ServiceResponse:
+      description: ServiceResponse holds the list of available services
+      example:
+        service:
+          isStatic: true
+          service: service
+      properties:
+        service:
+          $ref: '#/components/schemas/Service'
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    ServicesResponse:
+      description: ServicesResponse holds the list of available services
+      example:
+        services:
+        - isStatic: true
+          service: service
+        - isStatic: true
+          service: service
+      properties:
+        services:
+          items:
+            $ref: '#/components/schemas/Service'
+          type: array
+          x-go-name: Services
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    Version:
+      description: Version represents a version
+      example:
+        versions: versions
+      properties:
+        versions:
+          type: string
+          x-go-name: Version
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
+    VersionsResponse:
+      description: VersionsResponse holds the list of available versions
+      example:
+        versions:
+        - versions: versions
+        - versions: versions
+      properties:
+        versions:
+          items:
+            $ref: '#/components/schemas/Version'
+          type: array
+          x-go-name: Versions
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
+    ZonePrice:
+      description: ZonePrice struct for displaying price information per zone
+      example:
+        zone: zone
+        price: 5.63737665663332876420099637471139430999755859375
+      properties:
+        price:
+          format: double
+          type: number
+          x-go-name: Price
+        zone:
+          type: string
+          x-go-name: Zone
+      type: object
+      x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo

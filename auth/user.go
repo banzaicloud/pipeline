@@ -255,7 +255,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	db := authCtx.Auth.GetDB(authCtx.Request)
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
-	if schema.Provider == ProviderDexGithub {
+	if schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab {
 		err = bus.createUserInCICDDB(currentUser)
 		if err != nil {
 			return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
@@ -287,8 +287,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	// Import organizations in case of DEX
 	if schema.Provider == ProviderDexGithub {
 		err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGithub)
-	}
-	if schema.Provider == ProviderDexGitlab {
+	} else if schema.Provider == ProviderDexGitlab {
 		err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGitlab)
 	}
 
@@ -308,7 +307,7 @@ func SaveUserSCMToken(user *User, scmToken string, tokenType string) error {
 	if err != nil {
 		return emperror.WrapWith(err, "failed to store access token for user", "user", user.Login)
 	}
-	if tokenType == GithubTokenID {
+	if tokenType == GithubTokenID || tokenType == GitlabTokenID {
 		// TODO CICD should use Vault as well, and this should be removed by then
 		err = updateUserInCICDDB(user, scmToken)
 		if err != nil {
@@ -329,7 +328,7 @@ func RemoveUserSCMToken(user *User, tokenType string) error {
 		return errors.Wrap(err, "failed to revoke access token")
 	}
 
-	if tokenType == GithubTokenID {
+	if tokenType == GithubTokenID || tokenType == GitlabTokenID {
 		// TODO CICD should use Vault as well, and this should be removed by then
 		err = updateUserInCICDDB(user, "")
 		if err != nil {
@@ -352,13 +351,13 @@ func (bus BanzaiUserStorer) createUserInCICDDB(user *User) error {
 	return bus.cicdDB.Where(cicdUser).FirstOrCreate(cicdUser).Error
 }
 
-func updateUserInCICDDB(user *User, githubAccessToken string) error {
+func updateUserInCICDDB(user *User, scmAccessToken string) error {
 	where := &CICDUser{
 		Login: user.Login,
 	}
-	update := &CICDUser{
-		Token:  githubAccessToken,
-		Synced: time.Now().Unix(),
+	update := map[string]interface{}{
+		"user_token":  scmAccessToken,
+		"user_synced": time.Now().Unix(),
 	}
 	return cicdDB.Model(&CICDUser{}).Where(where).Update(update).Error
 }
