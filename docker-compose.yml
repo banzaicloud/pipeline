@@ -61,34 +61,30 @@ services:
             - $HOME:/root
 
     cicd-server:
-        image: banzaicloud/cicd:0.8.3
+        image: banzaicloud/cicd:0.8.6
         depends_on:
             - db
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
         entrypoint:
             - /bin/cicd-server
         restart: on-failure
         environment:
-            CICD_HOST:                 http://localhost:8000
-            CICD_DEBUG:                "true"
-            CICD_GITHUB:               "true"
-            CICD_GITHUB_CLIENT:
-            CICD_GITHUB_SECRET:
-            CICD_OPEN:                 "true"
+            CICD_HOST:                http://localhost:8000
+            CICD_DEBUG:               "true"
+            CICD_GITHUB:              "true"
+            CICD_OPEN:                "true"
             CICD_ORGS:
-            CICD_PROVIDER:             github
-            CICD_DATABASE_DRIVER:      mysql
-            CICD_DATABASE_DATASOURCE:  root:example@tcp(db:3306)/drone?parseTime=true
-            CICD_SECRET: "s3cr3t"
-            CICD_REPO_CONFIG: ".banzaicloud/pipeline.yaml"
+            CICD_DATABASE_DRIVER:     mysql
+            CICD_DATABASE_DATASOURCE: root:example@tcp(db:3306)/drone?parseTime=true
+            CICD_SECRET:              "s3cr3t"
+            CICD_REPO_CONFIG:         ".banzaicloud/pipeline.yaml"
 
     cicd-agent:
-        image: banzaicloud/cicd:0.8.3
+        image: banzaicloud/cicd:0.8.6
         depends_on:
             - cicd-server
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
+            - $HOME/.kube:/root/.kube
+            - $HOME/.minikube:/root/.minikube
         entrypoint:
             - /bin/cicd-agent
         restart: on-failure

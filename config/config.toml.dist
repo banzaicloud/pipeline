@@ -58,6 +58,7 @@ path = ""
 
 [cicd]
 url = "http://localhost:8000"
+scm = "github"
 
 [github]
 token = "YourPersonalAccessToken"

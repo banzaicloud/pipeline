@@ -23,7 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/jinzhu/gorm"
 
 	evbus "github.com/asaskevich/EventBus"
@@ -61,6 +60,8 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/spotguide"
+	"github.com/banzaicloud/pipeline/spotguide/scm"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -290,12 +291,26 @@ func main() {
 	userAPI := api.NewUserAPI(accessManager, db, log, errorHandler)
 	networkAPI := api.NewNetworkAPI(log)
 
-	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+	scmProvider := viper.GetString("cicd.scm")
+	var scmToken string
+	switch scmProvider {
+	case "github":
+		scmToken = viper.GetString("github.token")
+	case "gitlab":
+		scmToken = viper.GetString("gitlab.token")
+	default:
+		emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
+	}
+
+	scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
+	emperror.Panic(emperror.Wrap(err, "failed to create SCMFactory"))
+
+	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 	if err != nil {
 		log.Errorf("failed to create shared Spotguide organization: %s", err)
 	}
 
-	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, viper.GetString("github.token"), sharedSpotguideOrg)
+	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, scmFactory, sharedSpotguideOrg)
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
