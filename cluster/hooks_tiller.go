@@ -15,12 +15,14 @@
 package cluster
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/internal/backoff"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
@@ -34,29 +36,43 @@ func WaitingForTillerComeUp(kubeConfig []byte) error {
 	retryAttempts := viper.GetInt(pkgHelm.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(pkgHelm.HELM_RETRY_SLEEP_SECONDS)
 
-	for i := 0; i <= retryAttempts; i++ {
-		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
+	var backoffConfig = backoff.ConstantBackoffConfig{
+		Delay:      time.Duration(retrySleepSeconds) * time.Second,
+		MaxRetries: retryAttempts,
+	}
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+
+	i := 0
+
+	err = backoff.Retry(func() error {
+		log.WithField("attempt", fmt.Sprintf("%d/%d", i, retryAttempts)).Info("waiting for tiller to come up")
 
 		client, err := pkgHelm.NewClient(kubeConfig, log)
-		if err == nil {
-			defer client.Close()
+		if err != nil {
+			log.Warnf("error during getting helm client: %s", err.Error())
 
-			resp, err := client.GetVersion()
-			if err != nil {
-				return err
-			}
+			return err
+		}
+		defer client.Close()
 
-			if !semver.MustParse(resp.Version.SemVer).LessThan(requiredHelmVersion) {
-				return nil
-			}
-
-			log.Warn("Tiller version is not up to date yet")
-		} else {
-			log.Warnf("Error during getting helm client: %s", err.Error())
+		resp, err := client.GetVersion()
+		if err != nil {
+			return err
 		}
 
-		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+		if semver.MustParse(resp.Version.SemVer).LessThan(requiredHelmVersion) {
+			err := errors.New("tiller version is not up to date yet")
+			log.Warn(err.Error())
+
+			return err
+		}
+
+		return nil
+	}, backoffPolicy)
+
+	if err != nil {
+		return errors.New("timeout during waiting for tiller to get ready")
 	}
 
-	return errors.New("Timeout during waiting for tiller to get ready")
+	return nil
 }
