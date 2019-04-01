@@ -20,16 +20,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
-	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
-	"github.com/banzaicloud/pipeline/model"
 	"github.com/goph/emperror"
 	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/config"
+	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
+	"github.com/banzaicloud/pipeline/model"
 )
 
 type clusterRepository interface {
@@ -111,6 +112,13 @@ func (c clusterErrorHandler) Handle(err error) {
 		}
 		_ = c.cluster.SetStatus(c.status, statusMessage)
 	}
+
+	err = emperror.With(
+		err,
+		"clusterId", c.cluster.GetID(),
+		"clusterName", c.cluster.GetName(),
+	)
+
 	c.handler.Handle(err)
 }
 
