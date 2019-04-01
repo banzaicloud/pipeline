@@ -24,7 +24,6 @@ import (
 	"github.com/Masterminds/semver"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
-	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -47,6 +46,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
+	"github.com/banzaicloud/pipeline/internal/providers"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -83,37 +83,6 @@ func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
 	}
 
 	return kubeConfig, err
-}
-
-// WaitingForTillerComeUp waits until till to come up
-func WaitingForTillerComeUp(kubeConfig []byte) error {
-
-	retryAttempts := viper.GetInt(pkgHelm.HELM_RETRY_ATTEMPT_CONFIG)
-	retrySleepSeconds := viper.GetInt(pkgHelm.HELM_RETRY_SLEEP_SECONDS)
-	requiredHelmVersion, err := semver.NewVersion(viper.GetString("helm.tillerVersion"))
-	if err != nil {
-		return err
-	}
-
-	for i := 0; i <= retryAttempts; i++ {
-		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
-		client, err := pkgHelm.NewClient(kubeConfig, log)
-		if err == nil {
-			defer client.Close()
-			resp, err := client.GetVersion()
-			if err != nil {
-				return err
-			}
-			if !semver.MustParse(resp.Version.SemVer).LessThan(requiredHelmVersion) {
-				return nil
-			}
-			log.Warn("Tiller version is not up to date yet")
-		} else {
-			log.Warnf("Error during getting helm client: %s", err.Error())
-		}
-		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
-	}
-	return errors.New("Timeout during waiting for tiller to get ready")
 }
 
 type imageValues struct {
