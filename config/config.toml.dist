@@ -86,8 +86,8 @@ setCookieDomain = false
 [helm]
 retryAttempt = 30
 retrySleepSeconds = 15
-tillerVersion = "v2.11.0"
-path = "./orgs"
+tillerVersion = "v2.12.2"
+path = "./var/cache"
 
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
@@ -103,10 +103,10 @@ grafanaAdminUsername = "admin"
 
 [loggingOperator]
 chartVersion = ""
-imageTag = "0.0.4"
+imageTag = "0.1.2"
 
 [servicemesh]
-istioOperatorChartVersion = "0.0.2"
+istioOperatorChartVersion = "0.0.3"
 grafanaDashboardLocation = "https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards"
 
 # DNS service settings
