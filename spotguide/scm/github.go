@@ -165,6 +165,18 @@ func (scm *gitHubSCM) CreateRepository(owner, name string, private bool, userID 
 }
 
 func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideContent []RepositoryFile) error {
+
+	// A file has to be created with the API to be able to use the fresh repo
+	contentOptions := &github.RepositoryContentFileOptions{
+		Content: []byte("# Say hello to Spotguides!"),
+		Message: github.String("initial import"),
+	}
+
+	contentResponse, _, err := scm.client.Repositories.CreateFile(context.Background(), owner, name, "README.md", contentOptions)
+	if err != nil {
+		return emperror.Wrap(err, "failed to initialize spotguide repository")
+	}
+
 	// List the files here that needs to be created in this commit and create a tree from them
 	entries := []github.TreeEntry{}
 
@@ -200,20 +212,8 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 		entries = append(entries, entry)
 	}
 
-	// A file has to be created with the API to be able to use the fresh repo
-	contentOptions := &github.RepositoryContentFileOptions{
-		Content: []byte("# Say hello to Spotguides!"),
-		Message: github.String("initial import"),
-	}
-
-	contentResponse, _, err := scm.client.Repositories.CreateFile(context.Background(), owner, name, "README.md", contentOptions)
-
-	if err != nil {
-		return emperror.Wrap(err, "failed to initialize spotguide repository")
-	}
-
+	// Create a tree from the tree entries
 	tree, _, err := scm.client.Git.CreateTree(context.Background(), owner, name, contentResponse.GetSHA(), entries)
-
 	if err != nil {
 		return emperror.Wrap(err, "failed to create git tree for spotguide repository")
 	}
@@ -228,7 +228,6 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 	}
 
 	newCommit, _, err := scm.client.Git.CreateCommit(context.Background(), owner, name, commit)
-
 	if err != nil {
 		return emperror.Wrap(err, "failed to create git commit for spotguide repository")
 	}
@@ -244,7 +243,6 @@ func (scm *gitHubSCM) AddContentToRepository(owner, name string, spotguideConten
 	ref.Object.SHA = newCommit.SHA
 
 	_, _, err = scm.client.Git.UpdateRef(context.Background(), owner, name, ref, false)
-
 	if err != nil {
 		return emperror.Wrap(err, "failed to update git ref for spotguide repository")
 	}
