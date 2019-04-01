@@ -103,7 +103,7 @@ require (
 	github.com/google/martian v2.1.0+incompatible // indirect
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/googleapis/gax-go v2.0.0+incompatible // indirect
-	github.com/goph/emperror v0.17.0
+	github.com/goph/emperror v0.17.1
 	github.com/goph/logur v0.11.0
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75 // indirect
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
