@@ -1,3 +1,7 @@
+/bin/
+/build/
+/var/
+
 _state*
 .DS_Store
 .pipeline
@@ -8,13 +12,10 @@ vault/*
 config/config.toml
 config/dex.yml
 *.swp
-orgs/
 *.pem
 !config/certs/*.pem
 */main/main.go
 test.txt
-/bin/
-/build/
 /vendor/
 /.docker/
 /docker-compose.override.yml
