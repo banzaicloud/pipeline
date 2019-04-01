@@ -26,31 +26,37 @@ import (
 
 // WaitingForTillerComeUp waits until till to come up
 func WaitingForTillerComeUp(kubeConfig []byte) error {
-
-	retryAttempts := viper.GetInt(pkgHelm.HELM_RETRY_ATTEMPT_CONFIG)
-	retrySleepSeconds := viper.GetInt(pkgHelm.HELM_RETRY_SLEEP_SECONDS)
 	requiredHelmVersion, err := semver.NewVersion(viper.GetString("helm.tillerVersion"))
 	if err != nil {
 		return err
 	}
 
+	retryAttempts := viper.GetInt(pkgHelm.HELM_RETRY_ATTEMPT_CONFIG)
+	retrySleepSeconds := viper.GetInt(pkgHelm.HELM_RETRY_SLEEP_SECONDS)
+
 	for i := 0; i <= retryAttempts; i++ {
 		log.Infof("Waiting for tiller to come up %d/%d", i, retryAttempts)
+
 		client, err := pkgHelm.NewClient(kubeConfig, log)
 		if err == nil {
 			defer client.Close()
+
 			resp, err := client.GetVersion()
 			if err != nil {
 				return err
 			}
+
 			if !semver.MustParse(resp.Version.SemVer).LessThan(requiredHelmVersion) {
 				return nil
 			}
+
 			log.Warn("Tiller version is not up to date yet")
 		} else {
 			log.Warnf("Error during getting helm client: %s", err.Error())
 		}
+
 		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 	}
+
 	return errors.New("Timeout during waiting for tiller to get ready")
 }
