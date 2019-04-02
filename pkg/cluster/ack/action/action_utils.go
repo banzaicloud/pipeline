@@ -26,7 +26,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -55,7 +55,7 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 	req := cs.CreateDeleteClusterRequest()
 	req.ClusterId = clusterID
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain(acsk.AlibabaApiDomain)
+	req.SetDomain(ack.AlibabaApiDomain)
 
 	resp, err := csClient.DeleteCluster(req)
 	if err != nil {
@@ -83,7 +83,7 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 func describeScalingInstances(essClient *ess.Client, asgId, scalingConfId, regionId string) (*ess.DescribeScalingInstancesResponse, error) {
 	describeScalingInstancesRequest := ess.CreateDescribeScalingInstancesRequest()
 	describeScalingInstancesRequest.SetScheme(requests.HTTPS)
-	describeScalingInstancesRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, regionId))
+	describeScalingInstancesRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, regionId))
 	describeScalingInstancesRequest.SetContentType(requests.Json)
 
 	describeScalingInstancesRequest.ScalingGroupId = asgId
@@ -96,11 +96,11 @@ func describeScalingInstances(essClient *ess.Client, asgId, scalingConfId, regio
 	return describeScalingInstancesResponse, nil
 }
 
-func attachInstancesToCluster(log logrus.FieldLogger, clusterID string, instanceIds []string, csClient *cs.Client) (*acsk.AlibabaDescribeClusterResponse, error) {
+func attachInstancesToCluster(log logrus.FieldLogger, clusterID string, instanceIds []string, csClient *cs.Client) (*ack.AlibabaDescribeClusterResponse, error) {
 	log.Info("Attaching nodepools to cluster")
 	attachInstanceRequest := cs.CreateAttachInstancesRequest()
 	attachInstanceRequest.SetScheme(requests.HTTPS)
-	attachInstanceRequest.SetDomain(acsk.AlibabaApiDomain)
+	attachInstanceRequest.SetDomain(ack.AlibabaApiDomain)
 	attachInstanceRequest.SetContentType(requests.Json)
 
 	attachInstanceRequest.ClusterId = clusterID
@@ -127,7 +127,7 @@ func attachInstancesToCluster(log logrus.FieldLogger, clusterID string, instance
 	return clusterWithPools, nil
 }
 
-func deleteNodePools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolModel, essClient *ess.Client, regionId string) error {
+func deleteNodePools(log logrus.FieldLogger, nodePools []*model.ACKNodePoolModel, essClient *ess.Client, regionId string) error {
 	errChan := make(chan error, len(nodePools))
 	defer close(errChan)
 
@@ -149,10 +149,10 @@ func deleteNodePools(log logrus.FieldLogger, nodePools []*model.ACSKNodePoolMode
 	return pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
 }
 
-func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, essClient *ess.Client, regionId string, errChan chan<- error) {
+func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, essClient *ess.Client, regionId string, errChan chan<- error) {
 	deleteSGRequest := ess.CreateDeleteScalingGroupRequest()
 	deleteSGRequest.SetScheme(requests.HTTPS)
-	deleteSGRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, regionId))
+	deleteSGRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, regionId))
 	deleteSGRequest.SetContentType(requests.Json)
 	if nodePool.AsgID == "" {
 		// Asg could not be created nothing to remove
@@ -187,10 +187,10 @@ func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, e
 	errChan <- nil
 }
 
-func createNodePool(logger logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, essClient *ess.Client, cluster *acsk.AlibabaDescribeClusterResponse, instanceIdsChan chan<- []string, errChan chan<- error) {
+func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel, essClient *ess.Client, cluster *ack.AlibabaDescribeClusterResponse, instanceIdsChan chan<- []string, errChan chan<- error) {
 	scalingGroupRequest := ess.CreateCreateScalingGroupRequest()
 	scalingGroupRequest.SetScheme(requests.HTTPS)
-	scalingGroupRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
+	scalingGroupRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, cluster.RegionID))
 	scalingGroupRequest.SetContentType(requests.Json)
 
 	log := logger.WithFields(logrus.Fields{
@@ -221,7 +221,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACSKNodePoolModel
 
 	scalingConfigurationRequest := ess.CreateCreateScalingConfigurationRequest()
 	scalingConfigurationRequest.SetScheme(requests.HTTPS)
-	scalingConfigurationRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
+	scalingConfigurationRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, cluster.RegionID))
 	scalingConfigurationRequest.SetContentType(requests.Json)
 
 	scalingConfigurationRequest.ScalingGroupId = nodePool.AsgID
@@ -229,7 +229,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACSKNodePoolModel
 	scalingConfigurationRequest.KeyPairName = cluster.Name
 	scalingConfigurationRequest.InstanceType = nodePool.InstanceType
 	scalingConfigurationRequest.SystemDiskCategory = "cloud_efficiency"
-	scalingConfigurationRequest.ImageId = acsk.AlibabaDefaultImageId
+	scalingConfigurationRequest.ImageId = ack.AlibabaDefaultImageId
 	scalingConfigurationRequest.Tags =
 		fmt.Sprintf(`{"pipeline-created":"true","pipeline-cluster":"%s","pipeline-nodepool":"%s"`,
 			cluster.Name, nodePool.Name)
@@ -247,7 +247,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACSKNodePoolModel
 
 	enableSGRequest := ess.CreateEnableScalingGroupRequest()
 	enableSGRequest.SetScheme(requests.HTTPS)
-	enableSGRequest.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, cluster.RegionID))
+	enableSGRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, cluster.RegionID))
 	enableSGRequest.SetContentType(requests.Json)
 
 	enableSGRequest.ScalingGroupId = nodePool.AsgID
@@ -273,7 +273,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACSKNodePoolModel
 	instanceIdsChan <- instanceIds
 }
 
-func updateNodePool(log logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, essClient *ess.Client, regionId, clusterName string, createdInstanceIdsChan chan<- []string, errChan chan<- error) {
+func updateNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, essClient *ess.Client, regionId, clusterName string, createdInstanceIdsChan chan<- []string, errChan chan<- error) {
 	describeScalingInstancesResponseBeforeModify, err :=
 		describeScalingInstances(essClient, nodePool.AsgID, nodePool.ScalingConfigID, regionId)
 	if err != nil {
@@ -283,7 +283,7 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, e
 	}
 
 	modifyScalingGroupReq := ess.CreateModifyScalingGroupRequest()
-	modifyScalingGroupReq.SetDomain(fmt.Sprintf(acsk.AlibabaESSEndPointFmt, regionId))
+	modifyScalingGroupReq.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, regionId))
 	modifyScalingGroupReq.SetScheme(requests.HTTPS)
 	modifyScalingGroupReq.RegionId = regionId
 	modifyScalingGroupReq.ScalingGroupId = nodePool.AsgID
@@ -330,7 +330,7 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACSKNodePoolModel, e
 	createdInstanceIdsChan <- nil
 }
 
-func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACSKNodePoolModel) ([]string, error) {
+func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACKNodePoolModel) ([]string, error) {
 	log.WithField("nodePoolName", nodePool.Name).Info("waiting for instances to get ready")
 
 	for {
@@ -344,7 +344,7 @@ func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Clie
 		instanceIds := make([]string, 0)
 
 		for _, instance := range describeScalingInstancesResponse.ScalingInstances.ScalingInstance {
-			if instance.HealthStatus == acsk.AlibabaInstanceHealthyStatus {
+			if instance.HealthStatus == ack.AlibabaInstanceHealthyStatus {
 				instanceIds = append(instanceIds, instance.InstanceId)
 			} else {
 				time.Sleep(time.Second * 20)
@@ -357,7 +357,7 @@ func waitUntilScalingInstanceUpdated(log logrus.FieldLogger, essClient *ess.Clie
 	}
 }
 
-func waitUntilScalingInstancesDeleted(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACSKNodePoolModel) error {
+func waitUntilScalingInstancesDeleted(log logrus.FieldLogger, essClient *ess.Client, regionId string, nodePool *model.ACKNodePoolModel) error {
 	log.WithField("nodePoolName", nodePool.Name).Info("waiting for instances to be deleted")
 
 	for {
@@ -374,9 +374,9 @@ func waitUntilScalingInstancesDeleted(log logrus.FieldLogger, essClient *ess.Cli
 	}
 }
 
-func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client, isClusterCreate bool) (*acsk.AlibabaDescribeClusterResponse, error) {
+func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID string, csClient *cs.Client, isClusterCreate bool) (*ack.AlibabaDescribeClusterResponse, error) {
 	var (
-		r     *acsk.AlibabaDescribeClusterResponse
+		r     *ack.AlibabaDescribeClusterResponse
 		state string
 		err   error
 	)
@@ -396,7 +396,7 @@ func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID str
 		}
 
 		switch r.State {
-		case acsk.AlibabaClusterStateRunning:
+		case ack.AlibabaClusterStateRunning:
 			if !isClusterCreate {
 				// in case of cluster scale the transition from 'scaling' -> 'running'
 				// doesn't necessary mean that the scale succeeded.
@@ -414,7 +414,7 @@ func waitUntilClusterCreateOrScaleComplete(log logrus.FieldLogger, clusterID str
 			}
 
 			return r, nil
-		case acsk.AlibabaClusterStateFailed:
+		case ack.AlibabaClusterStateFailed:
 			var logs []string
 			var err error
 
@@ -440,7 +440,7 @@ func waitUntilClusterDeleteIsComplete(logger logrus.FieldLogger, clusterID strin
 
 	req := cs.CreateDescribeClusterDetailRequest()
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain(acsk.AlibabaApiDomain)
+	req.SetDomain(ack.AlibabaApiDomain)
 	req.ClusterId = clusterID
 
 	for {
@@ -456,14 +456,14 @@ func waitUntilClusterDeleteIsComplete(logger logrus.FieldLogger, clusterID strin
 			return emperror.WrapWith(err, "could not get cluster details", "clusterId", clusterID)
 		}
 
-		var r *acsk.AlibabaDescribeClusterResponse
+		var r *ack.AlibabaDescribeClusterResponse
 
 		err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
 		if err != nil {
 			return emperror.WrapWith(err, "could not unmarshall describe cluster details", "clusterId", clusterID)
 		}
 
-		if r.State == acsk.AlibabaClusterStateFailed {
+		if r.State == ack.AlibabaClusterStateFailed {
 			var logs []string
 			logs, err = collectClusterDeleteFailureLogs(clusterID, csClient)
 
@@ -479,13 +479,13 @@ func waitUntilClusterDeleteIsComplete(logger logrus.FieldLogger, clusterID strin
 }
 
 // GetClusterDetails retrieves cluster details from cloud provider
-func GetClusterDetails(client *cs.Client, clusterID string) (r *acsk.AlibabaDescribeClusterResponse, err error) {
+func GetClusterDetails(client *cs.Client, clusterID string) (r *ack.AlibabaDescribeClusterResponse, err error) {
 	if clusterID == "" {
 		return nil, errors.New("could not get cluster details clusterId is empty")
 	}
 	req := cs.CreateDescribeClusterDetailRequest()
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain(acsk.AlibabaApiDomain)
+	req.SetDomain(ack.AlibabaApiDomain)
 	req.ClusterId = clusterID
 	resp, err := client.DescribeClusterDetail(req)
 	if err != nil {
@@ -500,11 +500,11 @@ func GetClusterDetails(client *cs.Client, clusterID string) (r *acsk.AlibabaDesc
 }
 
 // collectClusterLogs returns the event logs associated with the cluster identified by clusterID
-func collectClusterLogs(clusterID string, csClient *cs.Client) ([]*acsk.AlibabaDescribeClusterLogResponseEntry, error) {
+func collectClusterLogs(clusterID string, csClient *cs.Client) ([]*ack.AlibabaDescribeClusterLogResponseEntry, error) {
 	clusterLogsRequest := cs.CreateDescribeClusterLogsRequest()
 	clusterLogsRequest.ClusterId = clusterID
 	clusterLogsRequest.SetScheme(requests.HTTPS)
-	clusterLogsRequest.SetDomain(acsk.AlibabaApiDomain)
+	clusterLogsRequest.SetDomain(ack.AlibabaApiDomain)
 
 	clusterLogsResp, err := csClient.DescribeClusterLogs(clusterLogsRequest)
 
@@ -513,7 +513,7 @@ func collectClusterLogs(clusterID string, csClient *cs.Client) ([]*acsk.AlibabaD
 			return nil, errors.Wrapf(err, "Unexpected http status code: %d", clusterLogsResp.GetHttpStatus())
 		}
 
-		var clusterLogs []*acsk.AlibabaDescribeClusterLogResponseEntry
+		var clusterLogs []*ack.AlibabaDescribeClusterLogResponseEntry
 		err = json.Unmarshal(clusterLogsResp.GetHttpContentBytes(), &clusterLogs)
 		if err != nil {
 			return nil, err
@@ -559,8 +559,8 @@ func collectClusterCreateFailureLogs(clusterID string, csClient *cs.Client) ([]s
 	return collectClusterLogsInRange(
 		clusterID,
 		csClient,
-		acsk.AlibabaStartCreateClusterLog,
-		acsk.AlibabaCreateClusterFailedLog)
+		ack.AlibabaStartCreateClusterLog,
+		ack.AlibabaCreateClusterFailedLog)
 }
 
 // collectClusterScaleFailureLogs returns the logs of events that resulted in cluster creation to not succeed
@@ -568,8 +568,8 @@ func collectClusterScaleFailureLogs(clusterID string, csClient *cs.Client) ([]st
 	return collectClusterLogsInRange(
 		clusterID,
 		csClient,
-		acsk.AlibabaStartScaleClusterLog,
-		acsk.AlibabaScaleClusterFailedLog)
+		ack.AlibabaStartScaleClusterLog,
+		ack.AlibabaScaleClusterFailedLog)
 }
 
 // collectClusterDeleteFailureLogs returns the logs of events that resulted in cluster deletion to not succeed
@@ -577,6 +577,6 @@ func collectClusterDeleteFailureLogs(clusterID string, csClient *cs.Client) ([]s
 	return collectClusterLogsInRange(
 		clusterID,
 		csClient,
-		acsk.AlibabaStartDeleteClusterLog,
-		acsk.AlibabaDeleteClusterFailedLog)
+		ack.AlibabaStartDeleteClusterLog,
+		ack.AlibabaDeleteClusterFailedLog)
 }

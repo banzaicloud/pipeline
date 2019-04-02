@@ -27,8 +27,8 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
 		&ClusterModel{},
 		&ScaleOptions{},
-		&ACSKClusterModel{},
-		&ACSKNodePoolModel{},
+		&ACKClusterModel{},
+		&ACKNodePoolModel{},
 		&AmazonNodePoolsModel{},
 		&EKSClusterModel{},
 		&EKSSubnetModel{},

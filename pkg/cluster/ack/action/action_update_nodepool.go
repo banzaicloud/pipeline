@@ -22,18 +22,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// UpdateACSKNodePoolAction describes the fields used across ACK cluster update operation
-type UpdateACSKNodePoolAction struct {
+// UpdateACKNodePoolAction describes the fields used across ACK cluster update operation
+type UpdateACKNodePoolAction struct {
 	clusterName string
 	log         logrus.FieldLogger
-	nodePools   []*model.ACSKNodePoolModel
+	nodePools   []*model.ACKNodePoolModel
 	context     *ACKContext
 	region      string
 }
 
-// NewUpdateACSKNodePoolAction creates a new UpdateACSKNodePoolAction
-func NewUpdateACSKNodePoolAction(log logrus.FieldLogger, clusterName string, nodepools []*model.ACSKNodePoolModel, clusterContext *ACKContext, region string) *UpdateACSKNodePoolAction {
-	return &UpdateACSKNodePoolAction{
+// NewUpdateACKNodePoolAction creates a new UpdateACKNodePoolAction
+func NewUpdateACKNodePoolAction(log logrus.FieldLogger, clusterName string, nodepools []*model.ACKNodePoolModel, clusterContext *ACKContext, region string) *UpdateACKNodePoolAction {
+	return &UpdateACKNodePoolAction{
 		log:         log,
 		clusterName: clusterName,
 		nodePools:   nodepools,
@@ -42,9 +42,9 @@ func NewUpdateACSKNodePoolAction(log logrus.FieldLogger, clusterName string, nod
 	}
 }
 
-// GetName returns the name of this UpdateACSKNodePoolAction
-func (a *UpdateACSKNodePoolAction) GetName() string {
-	return "UpdateACSKNodePoolAction"
+// GetName returns the name of this UpdateACKNodePoolAction
+func (a *UpdateACKNodePoolAction) GetName() string {
+	return "UpdateACKNodePoolAction"
 }
 
 // difference returns the elements in a that aren't in b
@@ -62,10 +62,10 @@ func difference(a, b []ess.ScalingInstance) []ess.ScalingInstance {
 	return ab
 }
 
-// ExecuteAction executes this UpdateACSKNodePoolAction
-func (a *UpdateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}, error) {
+// ExecuteAction executes this UpdateACKNodePoolAction
+func (a *UpdateACKNodePoolAction) ExecuteAction(input interface{}) (interface{}, error) {
 	if len(a.nodePools) != 0 {
-		a.log.Infof("EXECUTE UpdateACSKNodePoolAction on cluster, %s", a.context.ClusterID)
+		a.log.Infof("EXECUTE UpdateACKNodePoolAction on cluster, %s", a.context.ClusterID)
 		errChan := make(chan error, len(a.nodePools))
 		createdInstanceIdsChan := make(chan []string, len(a.nodePools))
 		defer close(errChan)

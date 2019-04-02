@@ -23,18 +23,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ACSKClusterDeleteContext describes the fields used across ACK cluster delete operation
-type ACSKClusterDeleteContext struct {
+// ACKClusterDeleteContext describes the fields used across ACK cluster delete operation
+type ACKClusterDeleteContext struct {
 	ACKContext
 	RegionId    string
 	ClusterName string
-	NodePools   []*model.ACSKNodePoolModel
+	NodePools   []*model.ACKNodePoolModel
 }
 
-// NewACSKClusterDeletionContext creates a new ACSKClusterDeleteContext
-func NewACSKClusterDeletionContext(csClient *cs.Client,
-	ecsClient *ecs.Client, essClient *ess.Client, clusterID string, nodePools []*model.ACSKNodePoolModel, clusterName, regionID string) *ACSKClusterDeleteContext {
-	return &ACSKClusterDeleteContext{
+// NewACKClusterDeletionContext creates a new ACKClusterDeleteContext
+func NewACKClusterDeletionContext(csClient *cs.Client,
+	ecsClient *ecs.Client, essClient *ess.Client, clusterID string, nodePools []*model.ACKNodePoolModel, clusterName, regionID string) *ACKClusterDeleteContext {
+	return &ACKClusterDeleteContext{
 		ACKContext: ACKContext{
 			CSClient:  csClient,
 			ECSClient: ecsClient,
@@ -47,27 +47,27 @@ func NewACSKClusterDeletionContext(csClient *cs.Client,
 	}
 }
 
-// DeleteACSKClusterAction describes the properties of an Alibaba cluster deletion
-type DeleteACSKClusterAction struct {
-	context *ACSKClusterDeleteContext
+// DeleteACKClusterAction describes the properties of an Alibaba cluster deletion
+type DeleteACKClusterAction struct {
+	context *ACKClusterDeleteContext
 	log     logrus.FieldLogger
 }
 
-// NewCreateACSKClusterAction creates a new CreateACSKClusterAction
-func NewDeleteACSKClusterAction(log logrus.FieldLogger, deletionContext *ACSKClusterDeleteContext) *DeleteACSKClusterAction {
-	return &DeleteACSKClusterAction{
+// NewCreateACKClusterAction creates a new CreateACKClusterAction
+func NewDeleteACKClusterAction(log logrus.FieldLogger, deletionContext *ACKClusterDeleteContext) *DeleteACKClusterAction {
+	return &DeleteACKClusterAction{
 		context: deletionContext,
 		log:     log,
 	}
 }
 
-// GetName returns the name of this DeleteACSKClusterAction
-func (a *DeleteACSKClusterAction) GetName() string {
-	return "DeleteACSKClusterAction"
+// GetName returns the name of this DeleteACKClusterAction
+func (a *DeleteACKClusterAction) GetName() string {
+	return "DeleteACKClusterAction"
 }
 
-// ExecuteAction executes this DeleteACSKClusterAction
-func (a *DeleteACSKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+// ExecuteAction executes this DeleteACKClusterAction
+func (a *DeleteACKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	a.log.Info("EXECUTE DeleteClusterAction")
 	return nil, emperror.With(deleteCluster(a.log, a.context.ClusterID, a.context.CSClient), "cluster", a.context.ClusterName)
 }

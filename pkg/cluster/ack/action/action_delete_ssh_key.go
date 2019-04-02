@@ -25,14 +25,14 @@ import (
 
 // DeleteSSHKeyAction describes how to delete an SSH key
 type DeleteSSHKeyAction struct {
-	context        *ACSKClusterDeleteContext
+	context        *ACKClusterDeleteContext
 	sshKeyName     string
 	sshKeyRegionID string
 	log            logrus.FieldLogger
 }
 
 // NewDeleteSSHKeyAction creates a new UploadSSHKeyAction
-func NewDeleteSSHKeyAction(log logrus.FieldLogger, context *ACSKClusterDeleteContext, sshKeyName, regionID string) *DeleteSSHKeyAction {
+func NewDeleteSSHKeyAction(log logrus.FieldLogger, context *ACKClusterDeleteContext, sshKeyName, regionID string) *DeleteSSHKeyAction {
 	return &DeleteSSHKeyAction{
 		context:        context,
 		sshKeyName:     sshKeyName,

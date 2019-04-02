@@ -72,7 +72,7 @@ type ClusterModel struct {
 	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
 	SecurityScan   bool
 	StatusMessage  string                 `sql:"type:text;"`
-	ACSK           ACSKClusterModel       `gorm:"foreignkey:ID"`
+	ACK            ACKClusterModel        `gorm:"foreignkey:ID"`
 	AKS            AKSClusterModel        `gorm:"foreignkey:ID"`
 	EKS            EKSClusterModel        `gorm:"foreignkey:ClusterID"`
 	Dummy          DummyClusterModel      `gorm:"foreignkey:ID"`
@@ -95,8 +95,8 @@ type ScaleOptions struct {
 	KeepDesiredCapacity bool
 }
 
-// ACSKNodePoolModel describes Alibaba Cloud CS node groups model of a cluster
-type ACSKNodePoolModel struct {
+// ACKNodePoolModel describes Alibaba Cloud CS node groups model of a cluster
+type ACKNodePoolModel struct {
 	ID                           uint `gorm:"primary_key"`
 	CreatedAt                    time.Time
 	CreatedBy                    uint
@@ -115,8 +115,8 @@ type ACSKNodePoolModel struct {
 	Delete                       bool              `gorm:"-"`
 }
 
-// ACSKClusterModel describes the Alibaba Cloud CS cluster model
-type ACSKClusterModel struct {
+// ACKClusterModel describes the Alibaba Cloud CS cluster model
+type ACKClusterModel struct {
 	ID                       uint `gorm:"primary_key"`
 	ProviderClusterID        string
 	RegionID                 string
@@ -126,7 +126,7 @@ type ACSKClusterModel struct {
 	MasterSystemDiskSize     int
 	SNATEntry                bool
 	SSHFlags                 bool
-	NodePools                []*ACSKNodePoolModel `gorm:"foreignkey:ClusterID"`
+	NodePools                []*ACKNodePoolModel `gorm:"foreignkey:ClusterID"`
 	KubernetesVersion        string
 	VSwitchID                string
 }
@@ -259,6 +259,11 @@ func (cs *ClusterModel) AfterFind() error {
 		cs.Location = unknown
 	}
 
+	if cs.Distribution == "acsk" {
+		// we renamed acsk distribution to ack
+		cs.Distribution = pkgCluster.ACK
+	}
+
 	if cs.Cloud == pkgCluster.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
 		out, err := utils.ConvertJson2Map(cs.Kubernetes.MetadataRaw)
 		if err != nil {
@@ -331,13 +336,13 @@ func (cs *ClusterModel) String() string {
 	return buffer.String()
 }
 
-// TableName sets ACSKClusterModel's table name
-func (ACSKClusterModel) TableName() string {
+// TableName sets ACKClusterModel's table name
+func (ACKClusterModel) TableName() string {
 	return tableNameAlibabaProperties
 }
 
-// TableName sets ACSKNodePoolModel's table name
-func (ACSKNodePoolModel) TableName() string {
+// TableName sets ACKNodePoolModel's table name
+func (ACKNodePoolModel) TableName() string {
 	return tableNameAlibabaNodePools
 }
 
@@ -398,7 +403,7 @@ func (a *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
 }
 
 // AfterUpdate removes marked node pool(s)
-func (a *ACSKClusterModel) AfterUpdate(scope *gorm.Scope) error {
+func (a *ACKClusterModel) AfterUpdate(scope *gorm.Scope) error {
 	log.Debug("Remove node pools marked for deletion")
 
 	for _, nodePoolModel := range a.NodePools {
