@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Network Load Balancer and SGs for Banzai Cloud Pipeline Kubernetes Engine'
+Parameters:
+  ClusterName:
+    Description: PKE Cluster name
+    Type: String
+  VPCId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: ID of the VPC the NLB target group is created in
+  SubnetIds:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: Specify Subnet Ids for the NLB
+
+Conditions:
+  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
+
+Resources:
+
+  NLBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Enable external/internal K8S api access'
+      VpcId:
+        Ref: VPCId
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '6443'
+        ToPort: '6443'
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-sg-nlb"]]
+
+  MasterNLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - LoadBalancerAttributes
+      Name: String
+      SecurityGroups:
+        - !Ref MasterSecurityGroup
+      Subnets: !Ref SubnetIds
+      Tags:
+        - Key: ClusterName
+          Value: !Ref ClusterName
+      Type: network
+
+  MasterTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: String
+      Port: 6443
+      Protocol: TCP
+      Tags:
+      - Key: ClusterName
+        Value: !Ref ClusterName
+      VpcId: !Ref VPCId
+
+  NLBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref MasterTargetGroup
+      LoadBalancerArn: !Ref MasterNLB
+      Port: 6443
+      Protocol: TCP
+
+Outputs:
+  TargetGroup:
+    Description: 'ID of the created TargetGroup'
+    Value: !Ref MasterTargetGroup
+  DNSName:
+    Description: 'DNS name of the created NLB'
+    Value: !GetAtt MasterNLB.DNSName
+  SecurityGroup:
+    Description: 'ID of the SecurityGroup created for the NLB'
+    Value: !Ref NLBSecurityGroup

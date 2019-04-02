@@ -46,11 +46,16 @@ type CreateMasterActivityInput struct {
 	AvailabilityZone      string
 	VPCID                 string
 	SubnetID              string
-	EIPAllocationID       string
+	MultiMaster           bool
 	MasterInstanceProfile string
 	ExternalBaseUrl       string
 	Pool                  NodePool
 	SSHKeyName            string
+
+	EIPAllocationID string
+
+	TargetGroup      string
+	NLBSecurityGroup string
 }
 
 func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterActivityInput) (string, error) {
@@ -92,66 +97,88 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 
 	cfClient := cloudformation.New(client)
 
-	buf, err := ioutil.ReadFile("templates/pke/master.cf.yaml")
+	target := "master"
+	if input.MultiMaster {
+		target = "masters"
+	}
+
+	buf, err := ioutil.ReadFile(fmt.Sprintf("templates/pke/%s.cf.yaml", target))
 	if err != nil {
 		return "", emperror.Wrap(err, "loading CF template")
 	}
 	clusterName := cluster.GetName()
-	stackName := "pke-master-" + clusterName
+
+	params := []*cloudformation.Parameter{
+		{
+			ParameterKey:   aws.String("ClusterName"),
+			ParameterValue: &clusterName,
+		},
+		{
+			ParameterKey:   aws.String("PkeCommand"),
+			ParameterValue: &bootstrapCommand,
+		},
+		{
+			ParameterKey:   aws.String("InstanceType"),
+			ParameterValue: aws.String(input.Pool.InstanceType),
+		},
+		{
+			ParameterKey:   aws.String("VPCId"),
+			ParameterValue: &input.VPCID,
+		},
+		{
+			ParameterKey:   aws.String("SubnetId"),
+			ParameterValue: &input.SubnetID,
+		},
+		{
+			ParameterKey:   aws.String("PkeCommand"),
+			ParameterValue: &bootstrapCommand,
+		},
+		{
+			ParameterKey:   aws.String("IamInstanceProfile"),
+			ParameterValue: &input.MasterInstanceProfile,
+		},
+		{
+			ParameterKey:   aws.String("ImageId"),
+			ParameterValue: aws.String(imageID),
+		},
+		{
+			ParameterKey:   aws.String("PkeVersion"),
+			ParameterValue: aws.String(pkeVersion),
+		},
+		{
+			ParameterKey:   aws.String("KeyName"),
+			ParameterValue: aws.String(input.SSHKeyName),
+		},
+	}
+
+	stackName := fmt.Sprintf("pke-%s-%s", target, clusterName)
+
+	if input.MultiMaster {
+
+		params = append(params,
+			[]*cloudformation.Parameter{
+				{
+					ParameterKey:   aws.String("TargetGroup"),
+					ParameterValue: aws.String(input.TargetGroup),
+				},
+				{
+					ParameterKey:   aws.String("NLBSecurityGroup"),
+					ParameterValue: aws.String(input.NLBSecurityGroup),
+				},
+			}...)
+	} else {
+		params = append(params,
+			&cloudformation.Parameter{
+				ParameterKey:   aws.String("EIPAllocationId"),
+				ParameterValue: aws.String(input.EIPAllocationID),
+			})
+	}
+
 	stackInput := &cloudformation.CreateStackInput{
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityAutoExpand}),
 		StackName:    &stackName,
 		TemplateBody: aws.String(string(buf)),
-		Parameters: []*cloudformation.Parameter{
-			{
-				ParameterKey:   aws.String("ClusterName"),
-				ParameterValue: &clusterName,
-			},
-			{
-				ParameterKey:   aws.String("PkeCommand"),
-				ParameterValue: &bootstrapCommand,
-			},
-			{
-				ParameterKey:   aws.String("InstanceType"),
-				ParameterValue: aws.String(input.Pool.InstanceType),
-			},
-			{
-				ParameterKey:   aws.String("AvailabilityZone"),
-				ParameterValue: aws.String(input.AvailabilityZone),
-			},
-			{
-				ParameterKey:   aws.String("VPCId"),
-				ParameterValue: &input.VPCID,
-			},
-			{
-				ParameterKey:   aws.String("SubnetId"),
-				ParameterValue: &input.SubnetID,
-			},
-			{
-				ParameterKey:   aws.String("EIPAllocationId"),
-				ParameterValue: &input.EIPAllocationID,
-			},
-			{
-				ParameterKey:   aws.String("PkeCommand"),
-				ParameterValue: &bootstrapCommand,
-			},
-			{
-				ParameterKey:   aws.String("IamInstanceProfile"),
-				ParameterValue: &input.MasterInstanceProfile,
-			},
-			{
-				ParameterKey:   aws.String("ImageId"),
-				ParameterValue: aws.String(imageID),
-			},
-			{
-				ParameterKey:   aws.String("PkeVersion"),
-				ParameterValue: aws.String(pkeVersion),
-			},
-			{
-				ParameterKey:   aws.String("KeyName"),
-				ParameterValue: aws.String(input.SSHKeyName),
-			},
-		},
+		Parameters:   params,
 	}
 
 	output, err := cfClient.CreateStack(stackInput)

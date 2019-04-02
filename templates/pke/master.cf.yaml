@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Master Node(s) for Banzai Cloud Pipeline Kubernetes Engine'
+Description: 'Master Node and SGs for Banzai Cloud Pipeline Kubernetes Engine'
 
 Parameters:
   SSHLocation:
@@ -29,9 +29,6 @@ Parameters:
   ClusterName:
     Description: PKE Cluster name
     Type: String
-  AvailabilityZone:
-    Type: 'AWS::EC2::AvailabilityZone::Name'
-    Description: Specify Availability Zones for Autoscaling
   VPCId:
     Type: 'AWS::EC2::VPC::Id'
     Description: Specify VPC Id for Autoscaling
@@ -153,8 +150,8 @@ Resources:
 
 Outputs:
   ClusterSecurityGroup:
-    Description: 'Cluster security group'
+    Description: 'ID of the cluster security group created'
     Value: !Ref ClusterSecurityGroup
   MasterSecurityGroup:
-    Description: 'Cluster security group'
+    Description: 'ID of the master security group'
     Value: !Ref MasterSecurityGroup

@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Master Nodepool for Banzai Cloud Pipeline Kubernetes Engine'
+Parameters:
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  InstanceType:
+    Description: EC2 instance type(s)
+    Type: String
+  ImageId:
+    Type: 'AWS::EC2::Image::Id'
+    Description: Amazon image
+  ClusterName:
+    Description: PKE Cluster name
+    Type: String
+  NodeGroupName:
+    Description: Unique identifier for the PKE Node Group
+    Type: String
+    Default: "master"
+  TargetGroup:
+    Type: String
+    Description: ID of the external network load balancer's target group the instances should register to
+  NLBSecurityGroup:
+    Type: String
+    Description: ID of the security group the NLB is part of
+  VPCId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: Specify VPC Id for Autoscaling
+  SubnetIds:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: Specify Subnet Id for Autoscaling
+  IamInstanceProfile:
+    Type: String
+  ClusterSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup::Id'
+  PkeCommand:
+    Type: String
+  PkeVersion:
+    Type: String
+  KeyName:
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Default: ""
+  MinSize:
+    Type: Number
+    Default: 3
+    Description: Minimum count of nodes in the pool
+  MaxSize:
+    Type: Number
+    Default: 3
+    Description: Maximum count of nodes in the pool
+  DesiredCapacity:
+    Type: Number
+    Default: 3
+    Description: Initial count of nodes in the pool
+  NodeSpotPrice:
+    Type: String
+    Description: The spot price for this ASG
+
+Conditions:
+  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
+
+Resources:
+
+  MasterSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Enable external SSH and NLB K8S api access and internal K8S api access'
+      VpcId:
+        Ref: VPCId
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref SSHLocation
+      - IpProtocol: -1
+        SourceSecurityGroupId: !Ref "ClusterSecurityGroup"
+      - IpProtocol: tcp
+        FromPort: 6443
+        ToPort: 6443
+        SourceSecurityGroupId: !Ref "NLBSecurityGroup"
+      Tags:
+      - Key: Name
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-sg-master"]]
+
+
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      KeyName: !Ref KeyName
+      InstanceType: !Ref InstanceType
+      SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
+      ImageId: !Ref ImageId
+      IamInstanceProfile: !Ref IamInstanceProfile
+      AssociatePublicIpAddress: true
+      SecurityGroups:
+      - !Ref MasterSecurityGroup
+      - !Ref ClusterSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/sda1
+        Ebs:
+          VolumeSize: '50' # TODO make it configurable or fine tune
+      UserData:
+        Fn::Base64:
+          Fn::Sub:
+          - |
+            #!/usr/bin/env bash
+            set -e
+            SIGNAL_URL="${SignalUrl}"
+
+            curl -v https://banzaicloud.com/downloads/pke/pke-${PkeVersion} -o /usr/local/bin/pke
+            chmod +x /usr/local/bin/pke
+            export PATH=$PATH:/usr/local/bin/
+
+            ${PkeCommand} --ip=
+
+            curl -X PUT -H 'Content-Type: ' --data-binary "{\"Status\":\"SUCCESS\",\"Reason\":\"Configuration Complete\",\"UniqueId\":\"$(date +%s)\"}" $SIGNAL_URL
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchConfigurationName:
+        Ref: LaunchConfiguration
+      DesiredCapacity: !Ref DesiredCapacity
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
+      VPCZoneIdentifier: !Ref SubnetIds
+      TargetGroupARNs:
+        - !Ref TargetGroup
+      Tags:
+      - Key: ClusterName
+        Value: !Ref ClusterName
+        PropagateAtLaunch: True
+      - Key: Name
+        Value: !Join ["", ["pke-", !Ref ClusterName, "-", !Ref NodeGroupName] ]
+        PropagateAtLaunch: True
+      - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
+        Value: "owned"
+        PropagateAtLaunch: True
+      - Key: 'k8s.io/cluster-autoscaler/disabled'
+        Value: 'true'
+        PropagateAtLaunch: 'false'
+
+Outputs:
+  AutoScalingGroupId:
+    Description: 'ID of the created ASG'
+    Value: !Ref AutoScalingGroup

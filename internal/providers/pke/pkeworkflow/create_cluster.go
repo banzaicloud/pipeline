@@ -196,31 +196,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
-	var eip CreateElasticIPActivityOutput
-
-	// Create EIP
-	{
-		activityInput := &CreateElasticIPActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID, ClusterName: input.ClusterName}
-		err := workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, activityInput).Get(ctx, &eip)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Update cluster network
-	{
-		activityInput := &UpdateClusterNetworkActivityInput{
-			ClusterID:       input.ClusterID,
-			APISeverAddress: eip.PublicIp,
-			VPCID:           vpcOutput["VpcId"],
-			Subnets:         vpcOutput["SubnetIds"],
-		}
-		err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-	}
-
 	var nodePools []NodePool
 
 	// List node pools
@@ -229,6 +204,17 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, activityInput).Get(ctx, &nodePools)
 		if err != nil {
 			return err
+		}
+	}
+
+	var master NodePool
+	for _, np := range nodePools {
+		if np.Master {
+			master = np
+			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
+				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
+			}
+			break
 		}
 	}
 
@@ -256,38 +242,78 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
-	var masterAvailabilityZone string
-	var master NodePool
-	for _, np := range nodePools {
-		if np.Master {
-			master = np
-			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
-				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
-			}
+	var externalAddress string
 
-			masterAvailabilityZone = np.AvailabilityZones[0]
+	multiMaster := master.MaxCount > 1
 
-			break
+	masterInput := CreateMasterActivityInput{
+		ClusterID:             input.ClusterID,
+		VPCID:                 vpcOutput["VpcId"],
+		SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
+		MultiMaster:           multiMaster,
+		MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
+		ExternalBaseUrl:       input.PipelineExternalURL,
+		Pool:                  master,
+		SSHKeyName:            keyOut.KeyName,
+		AvailabilityZone:      master.AvailabilityZones[0],
+	}
+
+	if multiMaster {
+
+		// Create NLB
+		var activityOutput CreateNLBActivityOutput
+		activityInput := &CreateNLBActivityInput{
+			AWSActivityInput: awsActivityInput,
+			ClusterID:        input.ClusterID,
+			ClusterName:      input.ClusterName,
+		}
+
+		err := workflow.ExecuteActivity(ctx, CreateNLBActivityName, activityInput).Get(ctx, &activityOutput)
+		if err != nil {
+			return err
+		}
+
+		masterInput.TargetGroup = activityOutput.TargetGroup
+		masterInput.NLBSecurityGroup = activityOutput.SecurityGroup
+		externalAddress = activityOutput.DNSName
+
+	} else {
+
+		// Create EIP
+		var eip CreateElasticIPActivityOutput
+		activityInput := &CreateElasticIPActivityInput{
+			AWSActivityInput: awsActivityInput,
+			ClusterID:        input.ClusterID,
+			ClusterName:      input.ClusterName,
+		}
+
+		err := workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, activityInput).Get(ctx, &eip)
+		if err != nil {
+			return err
+		}
+
+		masterInput.EIPAllocationID = eip.AllocationId
+		externalAddress = eip.PublicIp
+	}
+
+	// Update cluster network
+	{
+		activityInput := &UpdateClusterNetworkActivityInput{
+			ClusterID:       input.ClusterID,
+			APISeverAddress: externalAddress,
+			VPCID:           vpcOutput["VpcId"],
+			Subnets:         vpcOutput["SubnetIds"],
+		}
+		err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
 		}
 	}
 
 	var masterStackID string
-
 	// Create master
 	{
-		// TODO refactor network things
-		activityInput := CreateMasterActivityInput{
-			ClusterID:             input.ClusterID,
-			AvailabilityZone:      masterAvailabilityZone,
-			VPCID:                 vpcOutput["VpcId"],
-			SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
-			EIPAllocationID:       eip.AllocationId,
-			MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
-			ExternalBaseUrl:       input.PipelineExternalURL,
-			Pool:                  master,
-			SSHKeyName:            keyOut.KeyName,
-		}
-		err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, activityInput).Get(ctx, &masterStackID)
+		err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, masterInput).Get(ctx, &masterStackID)
 		if err != nil {
 			return err
 		}

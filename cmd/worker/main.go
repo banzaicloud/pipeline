@@ -171,6 +171,9 @@ func main() {
 		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(awsClientFactory)
 		activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
 
+		createNLBActivity := pkeworkflow.NewCreateNLBActivity(awsClientFactory)
+		activity.RegisterWithOptions(createNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateNLBActivityName})
+
 		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
 		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
 
