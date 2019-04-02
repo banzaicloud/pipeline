@@ -132,6 +132,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/yaml.v2 v2.2.2
+	gotest.tools v2.2.0+incompatible
 	honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099 // indirect
 	k8s.io/api v0.0.0-20190404065945-709cf190c7b7
 	k8s.io/apimachinery v0.0.0-20190404065847-4a4abcd45006
