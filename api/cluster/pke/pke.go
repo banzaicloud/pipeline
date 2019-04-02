@@ -33,8 +33,9 @@ type LeaderInfo struct {
 }
 
 type LeaderRepository interface {
-	GetLeader(organizationID, clusterID uint) (LeaderInfo, error)
+	GetLeader(organizationID, clusterID uint) (*LeaderInfo, error)
 	SetLeader(organizationID, clusterID uint, leaderInfo LeaderInfo) error
+	DeleteLeader(organizationID, clusterID uint) error
 }
 
 type API struct {
@@ -79,4 +80,6 @@ func (a *API) RegisterRoutes(r gin.IRouter) {
 	r.GET("ready", a.GetReady)
 	r.POST("ready", a.PostReady)
 	r.POST("leader", a.PostLeaderElection)
+	r.GET("leader", a.GetLeaderElection)
+	r.DELETE("leader", a.DeleteLeaderElection)
 }

@@ -61,11 +61,16 @@ func NewVaultLeaderRepositoryFromClient(client *vault.Client) VaultLeaderReposit
 }
 
 // GetLeader returns information about the leader of the specified cluster
-func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leaderInfo LeaderInfo, err error) {
+func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leaderInfo *LeaderInfo, err error) {
 	path := getSecretPath(organizationID, clusterID)
 
 	secret, err := r.logical.Read(path)
 	if err = emperror.Wrap(err, "failed to read secret"); err != nil {
+		return
+	}
+
+	if secret == nil {
+		// secret not found
 		return
 	}
 
@@ -74,8 +79,10 @@ func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leader
 		return
 	}
 
-	leaderInfo.Hostname = lsd.Hostname
-	leaderInfo.IP = lsd.IP
+	leaderInfo = &LeaderInfo{
+		Hostname: lsd.Hostname,
+		IP:       lsd.IP,
+	}
 	return
 }
 
@@ -104,8 +111,19 @@ func (r VaultLeaderRepository) SetLeader(organizationID, clusterID uint, leaderI
 	return err
 }
 
+func (r VaultLeaderRepository) DeleteLeader(organizationID, clusterID uint) error {
+	path := getMetadataPath(organizationID, clusterID)
+	_, err := r.logical.Delete(path)
+
+	return err
+}
+
 func getSecretPath(organizationID, clusterID uint) string {
 	return fmt.Sprintf("leaderelection/data/orgs/%d/clusters/%d/leader", organizationID, clusterID)
+}
+
+func getMetadataPath(organizationID, clusterID uint) string {
+	return fmt.Sprintf("leaderelection/metadata/orgs/%d/clusters/%d/leader", organizationID, clusterID)
 }
 
 type leaderSetError struct{}
