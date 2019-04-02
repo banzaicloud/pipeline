@@ -56,6 +56,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
+	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
+	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -238,7 +240,13 @@ func main() {
 		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, log, errorHandler, externalBaseURL)
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, log, errorHandler, externalBaseURL, api.ClusterCreators{
+		PKEOnAzure: azurePKEDriver.NewAzurePKEClusterCreator(
+			log,
+			azurePKEAdapter.NewGORMAzurePKEClusterStore(db),
+			workflowClient,
+		),
+	})
 
 	//Initialise Gin router
 	router := gin.New()

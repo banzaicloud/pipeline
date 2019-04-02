@@ -16,62 +16,159 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
+	"github.com/mitchellh/mapstructure"
+
+	clusterAPI "github.com/banzaicloud/pipeline/api/cluster"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
+
+func (a *ClusterAPI) parseRequest(ctx *gin.Context, body map[string]interface{}, req interface{}) bool {
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  req,
+		TagName: "json",
+	})
+
+	if err == nil {
+		err = decoder.Decode(body)
+	}
+
+	if err != nil {
+		err = emperror.Wrapf(err, "failed to parse request into %T", req)
+
+		a.errorHandler.Handle(err)
+		pkgCommon.ErrorResponseWithStatus(ctx, http.StatusBadRequest, err)
+
+		return false
+	}
+	return true
+}
+
+func isInputValidationError(err error) bool {
+	type inputValidationErrorer interface {
+		InputValidationError() bool
+	}
+
+	err = errors.Cause(err)
+	if e, ok := err.(inputValidationErrorer); ok {
+		return e.InputValidationError()
+	}
+
+	return false
+}
+
+func (a *ClusterAPI) handleCreationError(ctx *gin.Context, err error) {
+	a.errorHandler.Handle(err)
+
+	status := http.StatusInternalServerError
+	if isInputValidationError(err) {
+		status = http.StatusBadRequest
+	}
+	pkgCommon.ErrorResponseWithStatus(ctx, status, err)
+}
 
 //CreateClusterRequest gin handler
 func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 	a.logger.Info("Cluster creation started")
 
-	a.logger.Debug("Bind json into CreateClusterRequest struct")
-	// bind request body to struct
-	var createClusterRequest pkgCluster.CreateClusterRequest
-	if err := c.BindJSON(&createClusterRequest); err != nil {
-		a.logger.Error(errors.Wrap(err, "Error parsing request"))
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	if createClusterRequest.SecretId == "" && len(createClusterRequest.SecretIds) == 0 {
-		if createClusterRequest.SecretName == "" {
-			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "either secretId or secretName has to be set",
-			})
-			return
-		}
-
-		createClusterRequest.SecretId = string(secret.GenerateSecretIDFromName(createClusterRequest.SecretName))
-	}
+	ctx := ginutils.Context(context.Background(), c)
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	userID := auth.GetCurrentUser(c.Request).ID
 
-	ctx := ginutils.Context(context.Background(), c)
-	commonCluster, err := a.CreateCluster(ctx, &createClusterRequest, orgID, userID, createClusterRequest.PostHooks)
-	if err != nil {
-		c.JSON(err.Code, err)
+	var requestBody map[string]interface{}
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		a.errorHandler.Handle(err)
+		pkgCommon.ErrorResponseWithStatus(c, http.StatusBadRequest, err)
+		return
+	}
+	if _, ok := requestBody["type"]; !ok {
+		a.logger.Info("request body did not match v2 structure, trying legacy path")
+		var createClusterRequest pkgCluster.CreateClusterRequest
+		if !a.parseRequest(c, requestBody, &createClusterRequest) {
+			return
+		}
+
+		if createClusterRequest.SecretId == "" && len(createClusterRequest.SecretIds) == 0 {
+			if createClusterRequest.SecretName == "" {
+				c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+					Code:    http.StatusBadRequest,
+					Message: "either secretId or secretName has to be set",
+				})
+				return
+			}
+
+			createClusterRequest.SecretId = secret.GenerateSecretIDFromName(createClusterRequest.SecretName)
+		}
+
+		commonCluster, err := a.CreateCluster(ctx, &createClusterRequest, orgID, userID, createClusterRequest.PostHooks)
+		if err != nil {
+			c.JSON(err.Code, err)
+			return
+		}
+
+		c.JSON(http.StatusAccepted, pkgCluster.CreateClusterResponse{
+			Name:       commonCluster.GetName(),
+			ResourceID: commonCluster.GetID(),
+		})
+		return
+	}
+
+	var createClusterRequestBase clusterAPI.CreateClusterRequestBase
+	if !a.parseRequest(c, requestBody, &createClusterRequestBase) {
+		return
+	}
+
+	secretID := clusterAPI.GetSecretIDFromRequest(createClusterRequestBase)
+	if secretID == "" {
+		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "either secret ID or name is required",
+			Error:   "no secret specified",
+		})
+		return
+	}
+
+	var cluster intCluster.Cluster
+
+	switch createClusterRequestBase.Type {
+	case clusterAPI.PKEOnAzure:
+		var req clusterAPI.CreatePKEOnAzureClusterRequest
+		if ok := a.parseRequest(c, requestBody, &req); !ok {
+			return
+		}
+		req.SecretID = secretID
+		params := req.ToAzurePKEClusterCreationParams(orgID, userID)
+		azurePKECluster, err := a.clusterCreators.PKEOnAzure.Create(ctx, params)
+		if err = emperror.Wrap(err, "failed to create cluster from request"); err != nil {
+			a.handleCreationError(c, err)
+			return
+		}
+		cluster = azurePKECluster
+	default:
+		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf("unknown cluster type: %s", createClusterRequestBase.Type),
+		})
 		return
 	}
 
 	c.JSON(http.StatusAccepted, pkgCluster.CreateClusterResponse{
-		Name:       commonCluster.GetName(),
-		ResourceID: commonCluster.GetID(),
+		Name:       cluster.GetName(),
+		ResourceID: cluster.GetID(),
 	})
 }
 
