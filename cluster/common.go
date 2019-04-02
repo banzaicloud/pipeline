@@ -274,17 +274,18 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	switch cloudType {
 	case pkgCluster.Alibaba:
 		//Create Alibaba struct
-		alibabaCluster, err := CreateACSKClusterFromModel(modelCluster)
+
+		alibabaCluster, err := CreateACKClusterFromModel(modelCluster)
 		if err != nil {
 			return nil, err
 		}
 
-		err = db.Where(model.ACSKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACSK).Error
+		err = db.Where(model.ACKClusterModel{ID: alibabaCluster.modelCluster.ID}).First(&alibabaCluster.modelCluster.ACK).Error
 		if err != nil {
 			return nil, err
 		}
 
-		err = db.Model(&alibabaCluster.modelCluster.ACSK).Related(&alibabaCluster.modelCluster.ACSK.NodePools, "NodePools").Error
+		err = db.Model(&alibabaCluster.modelCluster.ACK).Related(&alibabaCluster.modelCluster.ACK.NodePools, "NodePools").Error
 		if err != nil {
 			return nil, err
 		}
@@ -378,7 +379,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	switch cloudType {
 	case pkgCluster.Alibaba:
 		//Create Alibaba struct
-		alibabaCluster, err := CreateACSKClusterFromRequest(createClusterRequest, orgId, userId)
+		alibabaCluster, err := CreateACKClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
 		}
@@ -486,7 +487,7 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 
 	switch cloudType {
 	case pkgCluster.Alibaba:
-		for name, np := range updateRequest.ACSK.NodePools {
+		for name, np := range updateRequest.ACK.NodePools {
 			if np != nil {
 				nodePools[name] = &pkgCluster.NodePoolStatus{
 					InstanceType: np.InstanceType,

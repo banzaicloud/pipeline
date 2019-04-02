@@ -5715,10 +5715,10 @@ components:
       type: object
     CreateACKProperties:
       properties:
-        acsk:
-          $ref: '#/components/schemas/CreateACKProperties_acsk'
+        ack:
+          $ref: '#/components/schemas/CreateACKProperties_ack'
       required:
-      - acsk
+      - ack
       type: object
     NodePoolsACK:
       properties:
@@ -6170,10 +6170,10 @@ components:
       type: object
     UpdateACKProperties:
       properties:
-        acsk:
-          $ref: '#/components/schemas/UpdateACKProperties_acsk'
+        ack:
+          $ref: '#/components/schemas/UpdateACKProperties_ack'
       required:
-      - acsk
+      - ack
       type: object
     UpdateAzureProperties:
       properties:
@@ -9540,7 +9540,7 @@ components:
           type: array
       required:
       - nodePools
-    CreateACKProperties_acsk:
+    CreateACKProperties_ack:
       properties:
         regionId:
           type: string
@@ -9704,7 +9704,7 @@ components:
           type: object
       required:
       - nodePools
-    UpdateACKProperties_acsk:
+    UpdateACKProperties_ack:
       properties:
         nodePools:
           additionalProperties:

@@ -33,7 +33,7 @@ var (
 	location2    = "eu-central-2a"
 	region2      = "eu-central-2"
 	cloud        = "alibaba"
-	distribution = "acsk"
+	distribution = "ack"
 	secretId     = "mySecretId"
 	status       = "RUNNING"
 	statusMsg    = "Cluster is running"
@@ -48,7 +48,7 @@ var (
 		SecretId:       secretId,
 		Status:         status,
 		StatusMessage:  statusMsg,
-		ACSK: model.ACSKClusterModel{
+		ACK: model.ACKClusterModel{
 			ID:                id,
 			ProviderClusterID: idStr,
 			RegionID:          region,
@@ -66,7 +66,7 @@ var (
 		SecretId:       secretId,
 		Status:         status,
 		StatusMessage:  statusMsg,
-		ACSK: model.ACSKClusterModel{
+		ACK: model.ACKClusterModel{
 			ID:                id,
 			ProviderClusterID: idStr,
 			RegionID:          region2,
@@ -99,7 +99,7 @@ var (
 	}
 )
 
-func TestACSKClusterStatus(t *testing.T) {
+func TestACKClusterStatus(t *testing.T) {
 
 	testCases := []struct {
 		name           string
@@ -111,9 +111,9 @@ func TestACSKClusterStatus(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cluster, err := pipCluster.CreateACSKClusterFromModel(tc.model)
+			cluster, err := pipCluster.CreateACKClusterFromModel(tc.model)
 			if err != nil {
-				t.Errorf("error during create ACSK from model: %#v", err)
+				t.Errorf("error during create ACK from model: %#v", err)
 			} else {
 				status, err := cluster.GetStatus()
 				if err != nil {

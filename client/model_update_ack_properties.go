@@ -12,5 +12,5 @@
 package client
 
 type UpdateAckProperties struct {
-	Acsk UpdateAckPropertiesAcsk `json:"acsk"`
+	Ack UpdateAckPropertiesAck `json:"ack"`
 }

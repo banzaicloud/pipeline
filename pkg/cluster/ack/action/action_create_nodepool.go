@@ -16,24 +16,24 @@ package action
 
 import (
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
-// CreateACSKNodePoolAction describes the properties of an Alibaba cluster creation
-type CreateACSKNodePoolAction struct {
+// CreateACKNodePoolAction describes the properties of an Alibaba cluster creation
+type CreateACKNodePoolAction struct {
 	log       logrus.FieldLogger
-	nodePools []*model.ACSKNodePoolModel
+	nodePools []*model.ACKNodePoolModel
 	context   *ACKContext
 	region    string
 }
 
-// NewCreateACSKNodePoolAction creates a new CreateACSKNodePoolAction
-func NewCreateACSKNodePoolAction(log logrus.FieldLogger, nodepools []*model.ACSKNodePoolModel, clusterContext *ACKContext, region string) *CreateACSKNodePoolAction {
-	return &CreateACSKNodePoolAction{
+// NewCreateACKNodePoolAction creates a new CreateACKNodePoolAction
+func NewCreateACKNodePoolAction(log logrus.FieldLogger, nodepools []*model.ACKNodePoolModel, clusterContext *ACKContext, region string) *CreateACKNodePoolAction {
+	return &CreateACKNodePoolAction{
 		log:       log,
 		nodePools: nodepools,
 		context:   clusterContext,
@@ -41,14 +41,14 @@ func NewCreateACSKNodePoolAction(log logrus.FieldLogger, nodepools []*model.ACSK
 	}
 }
 
-// GetName returns the name of this CreateACSKNodePoolAction
-func (a *CreateACSKNodePoolAction) GetName() string {
-	return "CreateACSKNodePoolAction"
+// GetName returns the name of this CreateACKNodePoolAction
+func (a *CreateACKNodePoolAction) GetName() string {
+	return "CreateACKNodePoolAction"
 }
 
-// ExecuteAction executes this CreateACSKNodePoolAction
-func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}, error) {
-	cluster, ok := input.(*acsk.AlibabaDescribeClusterResponse)
+// ExecuteAction executes this CreateACKNodePoolAction
+func (a *CreateACKNodePoolAction) ExecuteAction(input interface{}) (interface{}, error) {
+	cluster, ok := input.(*ack.AlibabaDescribeClusterResponse)
 	if !ok {
 		return nil, errors.New("invalid input")
 	}
@@ -61,7 +61,7 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 
 		return r, nil
 	}
-	a.log.Infoln("EXECUTE CreateACSKNodePoolAction, cluster name", cluster.Name)
+	a.log.Infoln("EXECUTE CreateACKNodePoolAction, cluster name", cluster.Name)
 
 	errChan := make(chan error, len(a.nodePools))
 	instanceIdsChan := make(chan []string, len(a.nodePools))
@@ -95,8 +95,8 @@ func (a *CreateACSKNodePoolAction) ExecuteAction(input interface{}) (interface{}
 	return attachInstancesToCluster(a.log, cluster.ClusterID, instanceIds, a.context.CSClient)
 }
 
-// UndoAction rolls back this CreateACSKNodePoolAction
-func (a *CreateACSKNodePoolAction) UndoAction() (err error) {
-	a.log.Info("EXECUTE UNDO CreateACSKNodePoolAction")
+// UndoAction rolls back this CreateACKNodePoolAction
+func (a *CreateACKNodePoolAction) UndoAction() (err error) {
+	a.log.Info("EXECUTE UNDO CreateACKNodePoolAction")
 	return deleteNodePools(a.log, a.nodePools, a.context.ESSClient, a.region)
 }

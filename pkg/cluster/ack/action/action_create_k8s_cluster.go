@@ -22,7 +22,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
-	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -49,7 +49,7 @@ func NewACKContext(clusterID string, csClient *cs.Client, ecsClient *ecs.Client,
 // ACKClusterCreateContext describes the fields used across ACK cluster create operation
 type ACKClusterCreateContext struct {
 	ACKContext
-	acsk.AlibabaClusterCreateParams
+	ack.AlibabaClusterCreateParams
 }
 
 type AlibabaClusterFailureLogsError struct {
@@ -65,35 +65,35 @@ func (e AlibabaClusterFailureLogsError) Error() string {
 }
 
 // NewACKClusterCreationContext creates a new ACKClusterCreateContext
-func NewACKClusterCreationContext(context ACKContext, params acsk.AlibabaClusterCreateParams) *ACKClusterCreateContext {
+func NewACKClusterCreationContext(context ACKContext, params ack.AlibabaClusterCreateParams) *ACKClusterCreateContext {
 	return &ACKClusterCreateContext{
 		ACKContext:                 context,
 		AlibabaClusterCreateParams: params,
 	}
 }
 
-// CreateACSKClusterAction describes the properties of an Alibaba cluster creation
-type CreateACSKClusterAction struct {
+// CreateACKClusterAction describes the properties of an Alibaba cluster creation
+type CreateACKClusterAction struct {
 	context *ACKClusterCreateContext
 	log     logrus.FieldLogger
 }
 
-// NewCreateACSKClusterAction creates a new CreateACSKClusterAction
-func NewCreateACSKClusterAction(log logrus.FieldLogger, creationContext *ACKClusterCreateContext) *CreateACSKClusterAction {
-	return &CreateACSKClusterAction{
+// NewCreateACKClusterAction creates a new CreateACKClusterAction
+func NewCreateACKClusterAction(log logrus.FieldLogger, creationContext *ACKClusterCreateContext) *CreateACKClusterAction {
+	return &CreateACKClusterAction{
 		context: creationContext,
 		log:     log,
 	}
 }
 
-// GetName returns the name of this CreateACSKClusterAction
-func (a *CreateACSKClusterAction) GetName() string {
-	return "CreateACSKClusterAction"
+// GetName returns the name of this CreateACKClusterAction
+func (a *CreateACKClusterAction) GetName() string {
+	return "CreateACKClusterAction"
 }
 
-// ExecuteAction executes this CreateACSKClusterAction
-func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
-	a.log.Infoln("EXECUTE CreateACSKClusterAction, cluster name", a.context.Name)
+// ExecuteAction executes this CreateACKClusterAction
+func (a *CreateACKClusterAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+	a.log.Infoln("EXECUTE CreateACKClusterAction, cluster name", a.context.Name)
 	csClient := a.context.CSClient
 
 	// setup cluster creation request
@@ -105,7 +105,7 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 
 	req := cs.CreateCreateClusterRequest()
 	req.SetScheme(requests.HTTPS)
-	req.SetDomain(acsk.AlibabaApiDomain)
+	req.SetDomain(ack.AlibabaApiDomain)
 	req.SetContent(p)
 	req.SetContentType(requests.Json)
 
@@ -119,7 +119,7 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	}
 
 	// parse response
-	var r acsk.AlibabaClusterCreateResponse
+	var r ack.AlibabaClusterCreateResponse
 	err = json.Unmarshal(resp.GetHttpContentBytes(), &r)
 	if err != nil {
 		return nil, emperror.With(err, "cluster", a.context.Name)
@@ -140,9 +140,9 @@ func (a *CreateACSKClusterAction) ExecuteAction(input interface{}) (output inter
 	return cluster, nil
 }
 
-// UndoAction rolls back this CreateACSKClusterAction
-func (a *CreateACSKClusterAction) UndoAction() error {
-	a.log.Info("EXECUTE UNDO CreateACSKClusterAction")
+// UndoAction rolls back this CreateACKClusterAction
+func (a *CreateACKClusterAction) UndoAction() error {
+	a.log.Info("EXECUTE UNDO CreateACKClusterAction")
 
 	return emperror.With(deleteCluster(a.log, a.context.ClusterID, a.context.CSClient), "cluster", a.context.Name)
 }

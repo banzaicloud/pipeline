@@ -12,5 +12,5 @@
 package client
 
 type CreateAckProperties struct {
-	Acsk CreateAckPropertiesAcsk `json:"acsk"`
+	Ack CreateAckPropertiesAck `json:"ack"`
 }
