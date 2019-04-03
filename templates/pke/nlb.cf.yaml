@@ -26,7 +26,7 @@ Resources:
   MasterTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: String
+      Name: !Join ["", ["pke-", !Ref ClusterName, "-tg"]]
       Port: 6443
       Protocol: TCP
       Tags:

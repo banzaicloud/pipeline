@@ -106,15 +106,16 @@ Resources:
           - |
             #!/usr/bin/env bash
             set -e
-            SIGNAL_URL="${SignalUrl}"
 
             curl -v https://banzaicloud.com/downloads/pke/pke-${PkeVersion} -o /usr/local/bin/pke
             chmod +x /usr/local/bin/pke
             export PATH=$PATH:/usr/local/bin/
 
-            ${PkeCommand} --ip=
+            ${PkeCommand}
 
-            curl -X PUT -H 'Content-Type: ' --data-binary "{\"Status\":\"SUCCESS\",\"Reason\":\"Configuration Complete\",\"UniqueId\":\"$(date +%s)\"}" $SIGNAL_URL
+          - AwsRegion: !Ref 'AWS::Region'
+            PkeVersion: !Ref PkeVersion
+            PkeCommand: !Ref PkeCommand
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup

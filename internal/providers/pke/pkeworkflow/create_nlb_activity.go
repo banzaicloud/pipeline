@@ -121,7 +121,7 @@ func (a *CreateNLBActivity) Execute(ctx context.Context, input CreateNLBActivity
 		switch *output.OutputKey {
 		case "DNSName":
 			out.DNSName = *output.OutputValue
-		case "TargetGroup ":
+		case "TargetGroup":
 			out.TargetGroup = *output.OutputValue
 		}
 	}

@@ -201,6 +201,9 @@ func main() {
 		deleteElasticIPActivity := pkeworkflow.NewDeleteElasticIPActivity(clusters)
 		activity.RegisterWithOptions(deleteElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteElasticIPActivityName})
 
+		deleteNLBActivity := pkeworkflow.NewDeleteNLBActivity(clusters)
+		activity.RegisterWithOptions(deleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
+
 		deleteVPCActivity := pkeworkflow.NewDeleteVPCActivity(clusters)
 		activity.RegisterWithOptions(deleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteVPCActivityName})
 

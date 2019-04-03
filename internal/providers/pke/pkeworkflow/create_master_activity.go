@@ -125,10 +125,6 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 			ParameterValue: &input.VPCID,
 		},
 		{
-			ParameterKey:   aws.String("SubnetId"),
-			ParameterValue: &input.SubnetID,
-		},
-		{
 			ParameterKey:   aws.String("PkeCommand"),
 			ParameterValue: &bootstrapCommand,
 		},
@@ -155,16 +151,26 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 	if input.MultiMaster {
 
 		params = append(params,
-			&cloudformation.Parameter{
-				ParameterKey:   aws.String("TargetGroup"),
-				ParameterValue: aws.String(input.TargetGroup),
-			})
+			[]*cloudformation.Parameter{
+				{
+					ParameterKey:   aws.String("TargetGroup"),
+					ParameterValue: aws.String(input.TargetGroup),
+				}, {
+					ParameterKey:   aws.String("SubnetIds"), // TODO: support multiple
+					ParameterValue: &input.SubnetID,
+				},
+			}...)
 	} else {
 		params = append(params,
-			&cloudformation.Parameter{
-				ParameterKey:   aws.String("EIPAllocationId"),
-				ParameterValue: aws.String(input.EIPAllocationID),
-			})
+			[]*cloudformation.Parameter{
+				{
+					ParameterKey:   aws.String("EIPAllocationId"),
+					ParameterValue: aws.String(input.EIPAllocationID),
+				}, {
+					ParameterKey:   aws.String("SubnetId"),
+					ParameterValue: &input.SubnetID,
+				},
+			}...)
 	}
 
 	stackInput := &cloudformation.CreateStackInput{
