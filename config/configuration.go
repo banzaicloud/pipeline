@@ -282,7 +282,7 @@ func init() {
 	viper.SetDefault("gitlab.baseURL", "https://gitlab.com/")
 
 	viper.SetDefault(IstioOperatorChartVersion, "0.0.2")
-	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "dashboards", "istio"))
+	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "etc", "dashboards", "istio"))
 
 	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.2")
 
