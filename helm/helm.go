@@ -278,7 +278,6 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 			if DeploymentHasTag(deployment.Deployment, tagFilter) {
 				filteredResp.Releases = append(filteredResp.Releases, deployment.Release)
 				filteredResp.Count++
-				break
 			}
 		}
 
