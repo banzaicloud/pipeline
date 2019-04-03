@@ -266,6 +266,8 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			AWSActivityInput: awsActivityInput,
 			ClusterID:        input.ClusterID,
 			ClusterName:      input.ClusterName,
+			VPCID:            vpcOutput["VpcId"],
+			SubnetIds:        strings.Split(vpcOutput["SubnetIds"], ","),
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateNLBActivityName, activityInput).Get(ctx, &activityOutput)
@@ -324,7 +326,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	// Wait for master
 	{
 		if masterStackID == "" {
-			return errors.New("missing VPC stack ID")
+			return errors.New("missing stack ID")
 		}
 
 		activityInput := WaitCFCompletionActivityInput{AWSActivityInput: awsActivityInput, StackID: masterStackID}

@@ -79,7 +79,7 @@ func (a *CreateNLBActivity) Execute(ctx context.Context, input CreateNLBActivity
 			ParameterValue: &input.VPCID,
 		},
 		{
-			ParameterKey:   aws.String("SubnetId"),
+			ParameterKey:   aws.String("SubnetIds"),
 			ParameterValue: aws.String(strings.Join(input.SubnetIds, ",")),
 		},
 	}

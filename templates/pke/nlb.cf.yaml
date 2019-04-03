@@ -11,9 +11,6 @@ Parameters:
     Type: 'List<AWS::EC2::Subnet::Id>'
     Description: Specify Subnet Ids for the NLB
 
-Conditions:
-  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
-
 Resources:
 
   NLBSecurityGroup:
@@ -34,11 +31,9 @@ Resources:
   MasterNLB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      LoadBalancerAttributes:
-        - LoadBalancerAttributes
-      Name: String
+      Name: !Join ["", ["pke-", !Ref ClusterName, "-nlb"]]
       SecurityGroups:
-        - !Ref MasterSecurityGroup
+        - !Ref NLBSecurityGroup
       Subnets: !Ref SubnetIds
       Tags:
         - Key: ClusterName

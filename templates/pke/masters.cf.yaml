@@ -36,8 +36,6 @@ Parameters:
     Description: Specify Subnet Id for Autoscaling
   IamInstanceProfile:
     Type: String
-  ClusterSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup::Id'
   PkeCommand:
     Type: String
   PkeVersion:
@@ -146,7 +144,25 @@ Resources:
         Value: 'true'
         PropagateAtLaunch: 'false'
 
+  ClusterSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Allow all traffic in cluster'
+      VpcId:
+        Ref: VPCId
+      Tags:
+      - Key: ClusterName
+        Value: !Ref ClusterName
+      - Key: Name
+        Value: !Join ["", ["pke-",!Ref ClusterName, "-sg-cluster" ]]
+      - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
+        Value: "owned"
+
+
 Outputs:
   AutoScalingGroupId:
     Description: 'ID of the created ASG'
     Value: !Ref AutoScalingGroup
+  ClusterSecurityGroup:
+    Description: 'ID of the cluster security group created'
+    Value: !Ref ClusterSecurityGroup
