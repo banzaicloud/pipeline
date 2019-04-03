@@ -25,9 +25,6 @@ Parameters:
   TargetGroup:
     Type: String
     Description: ID of the external network load balancer's target group the instances should register to
-  NLBSecurityGroup:
-    Type: String
-    Description: ID of the security group the NLB is part of
   VPCId:
     Type: 'AWS::EC2::VPC::Id'
     Description: Specify VPC Id for Autoscaling
@@ -56,12 +53,12 @@ Parameters:
     Type: Number
     Default: 3
     Description: Initial count of nodes in the pool
-  NodeSpotPrice:
-    Type: String
-    Description: The spot price for this ASG
 
-Conditions:
-  IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
+#NodeSpotPrice:
+#Type: String
+#Description: The spot price for this ASG
+#Conditions:
+#IsSpotInstance: !Not [ !Equals [ !Ref NodeSpotPrice, "" ] ]
 
 Resources:
 
@@ -79,9 +76,9 @@ Resources:
       - IpProtocol: -1
         SourceSecurityGroupId: !Ref "ClusterSecurityGroup"
       - IpProtocol: tcp
-        FromPort: 6443
-        ToPort: 6443
-        SourceSecurityGroupId: !Ref "NLBSecurityGroup"
+        FromPort: '6443'
+        ToPort: '6443'
+        CidrIp: 0.0.0.0/0
       Tags:
       - Key: Name
         Value: !Join ["", ["pke-", !Ref ClusterName, "-sg-master"]]
@@ -92,7 +89,7 @@ Resources:
     Properties:
       KeyName: !Ref KeyName
       InstanceType: !Ref InstanceType
-      SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
+      #SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
       ImageId: !Ref ImageId
       IamInstanceProfile: !Ref IamInstanceProfile
       AssociatePublicIpAddress: true

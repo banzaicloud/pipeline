@@ -54,8 +54,7 @@ type CreateMasterActivityInput struct {
 
 	EIPAllocationID string
 
-	TargetGroup      string
-	NLBSecurityGroup string
+	TargetGroup string
 }
 
 func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterActivityInput) (string, error) {
@@ -156,16 +155,10 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 	if input.MultiMaster {
 
 		params = append(params,
-			[]*cloudformation.Parameter{
-				{
-					ParameterKey:   aws.String("TargetGroup"),
-					ParameterValue: aws.String(input.TargetGroup),
-				},
-				{
-					ParameterKey:   aws.String("NLBSecurityGroup"),
-					ParameterValue: aws.String(input.NLBSecurityGroup),
-				},
-			}...)
+			&cloudformation.Parameter{
+				ParameterKey:   aws.String("TargetGroup"),
+				ParameterValue: aws.String(input.TargetGroup),
+			})
 	} else {
 		params = append(params,
 			&cloudformation.Parameter{

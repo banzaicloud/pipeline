@@ -13,27 +13,10 @@ Parameters:
 
 Resources:
 
-  NLBSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
-    Properties:
-      GroupDescription: 'Enable external/internal K8S api access'
-      VpcId:
-        Ref: VPCId
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '6443'
-        ToPort: '6443'
-        CidrIp: 0.0.0.0/0
-      Tags:
-      - Key: Name
-        Value: !Join ["", ["pke-", !Ref ClusterName, "-sg-nlb"]]
-
   MasterNLB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: !Join ["", ["pke-", !Ref ClusterName, "-nlb"]]
-      SecurityGroups:
-        - !Ref NLBSecurityGroup
       Subnets: !Ref SubnetIds
       Tags:
         - Key: ClusterName
@@ -68,6 +51,3 @@ Outputs:
   DNSName:
     Description: 'DNS name of the created NLB'
     Value: !GetAtt MasterNLB.DNSName
-  SecurityGroup:
-    Description: 'ID of the SecurityGroup created for the NLB'
-    Value: !Ref NLBSecurityGroup

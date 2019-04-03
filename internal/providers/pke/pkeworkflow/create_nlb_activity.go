@@ -49,9 +49,8 @@ type CreateNLBActivityInput struct {
 }
 
 type CreateNLBActivityOutput struct {
-	DNSName       string
-	TargetGroup   string
-	SecurityGroup string
+	DNSName     string
+	TargetGroup string
 }
 
 func (a *CreateNLBActivity) Execute(ctx context.Context, input CreateNLBActivityInput) (*CreateNLBActivityOutput, error) {
@@ -124,8 +123,6 @@ func (a *CreateNLBActivity) Execute(ctx context.Context, input CreateNLBActivity
 			out.DNSName = *output.OutputValue
 		case "TargetGroup ":
 			out.TargetGroup = *output.OutputValue
-		case "SecurityGroup":
-			out.SecurityGroup = *output.OutputValue
 		}
 	}
 
