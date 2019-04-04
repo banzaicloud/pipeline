@@ -57,17 +57,13 @@ Resources:
           - |
             #!/usr/bin/env bash
             set -e
-            export SIGNAL_URL="${SignalUrl}"
 
             curl -v https://banzaicloud.com/downloads/pke/pke-${PkeVersion} -o /usr/local/bin/pke
             chmod +x /usr/local/bin/pke
             export PATH=$PATH:/usr/local/bin/
 
             ${PkeCommand}
-
-            curl -X PUT -H 'Content-Type: ' --data-binary "{\"Status\":\"SUCCESS\",\"Reason\":\"Configuration Complete\",\"UniqueId\":\"$(date +%s)\",\"Data\":\"\"}" $SIGNAL_URL
           - {
-            SignalUrl: !Ref WaitForFirstInstanceHandle,
             AwsRegion: !Ref 'AWS::Region',
             PkeVersion: !Ref PkeVersion,
             PkeCommand: !Ref PkeCommand,
@@ -124,17 +120,6 @@ Resources:
         Value: !Join ["", ["pke-",!Ref ClusterName, "-sg-cluster" ]]
       - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
         Value: "owned"
-
-  WaitForFirstInstance:
-    Type: AWS::CloudFormation::WaitCondition
-    DependsOn: Ec2Instance
-    Properties:
-      Handle:
-        Ref: "WaitForFirstInstanceHandle"
-      Timeout: 6000
-
-  WaitForFirstInstanceHandle:
-    Type: AWS::CloudFormation::WaitConditionHandle
 
 Outputs:
   ClusterSecurityGroup:
