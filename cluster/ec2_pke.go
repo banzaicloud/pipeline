@@ -790,6 +790,12 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		subcommand = "master"
 	}
 
+	providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+	err := mapstructure.Decode(np.ProviderConfig, &providerConfig)
+	if err != nil {
+		return "", emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
+	}
+
 	version := c.model.Kubernetes.Version
 	if version == "" {
 		version = defaultPKEVersion
@@ -841,6 +847,11 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 
 	// master
 	if subcommand == "master" {
+		masterMode := "default"
+		if providerConfig.AutoScalingGroup.Size.Max > 1 {
+			masterMode = "ha"
+		}
+
 		command := fmt.Sprintf("pke install %s "+
 			"--pipeline-url=%q "+
 			"--pipeline-token=%q "+
@@ -854,7 +865,8 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
 			"--kubernetes-infrastructure-cidr=%q "+
 			"--kubernetes-api-server=%q "+
-			"--kubernetes-cluster-name=%q",
+			"--kubernetes-cluster-name=%q "+
+			"--kubernetes-master-mode=%q",
 			subcommand,
 			url,
 			token,
@@ -865,6 +877,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
+			masterMode,
 		)
 
 		if c.model.DexEnabled {
