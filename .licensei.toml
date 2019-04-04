@@ -37,4 +37,5 @@ ignored = [
   "google.golang.org/grpc",
   "honnef.co/go/tools",
   "vbom.ml/util",
+  "sigs.k8s.io/yaml",
 ]
