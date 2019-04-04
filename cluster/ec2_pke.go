@@ -869,7 +869,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--kubernetes-infrastructure-cidr=%q "+
 			"--kubernetes-api-server=%q "+
 			"--kubernetes-cluster-name=%q "+
-			"--kubernetes-master-mode=%q"+
+			"--kubernetes-master-mode=%q "+
 			"--kubernetes-advertise-address=0.0.0.0:6443",
 			subcommand,
 			url,

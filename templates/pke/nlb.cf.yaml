@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Network Load Balancer and SGs for Banzai Cloud Pipeline Kubernetes Engine'
+Description: 'Network Load Balancer for Banzai Cloud Pipeline Kubernetes Engine'
 Parameters:
   ClusterName:
     Description: PKE Cluster name
@@ -33,6 +33,8 @@ Resources:
       - Key: ClusterName
         Value: !Ref ClusterName
       VpcId: !Ref VPCId
+      HealthyThresholdCount: 2 # Member must have value greater than or equal to 2
+      UnhealthyThresholdCount: 2  # Health check healthy threshold and unhealthy threshold must be the same for target groups with the TCP protocol
 
   NLBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
