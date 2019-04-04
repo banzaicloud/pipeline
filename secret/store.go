@@ -727,6 +727,11 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 			return err
 		}
 
+		sshKey, err := GenerateSSHKeyPair()
+		if err != nil {
+			return errors.Wrapf(err, "Error generating SA key pair for cluster %s", clusterID)
+		}
+
 		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA.Key
 		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
 		value.Values[secretTypes.KubernetesCASigningCert] = kubernetesCA.Cert
@@ -734,6 +739,8 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert + "\n" + ca
 		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA.Key
 		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert + "\n" + ca
+		value.Values[secretTypes.SAPub] = sshKey.PublicKeyData
+		value.Values[secretTypes.SAKey] = sshKey.PrivateKeyData
 	}
 
 	return nil
