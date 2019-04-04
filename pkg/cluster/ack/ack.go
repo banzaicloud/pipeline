@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package acsk
+package ack
 
 import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
@@ -28,8 +28,8 @@ type NodePool struct {
 
 type NodePools map[string]*NodePool
 
-// CreateClusterACSK
-type CreateClusterACSK struct {
+// CreateClusterACK
+type CreateClusterACK struct {
 	RegionID                 string    `json:"regionId" yaml:"regionId"`
 	ZoneID                   string    `json:"zoneId" yaml:"zoneId"`
 	MasterInstanceType       string    `json:"masterInstanceType,omitempty" yaml:"masterInstanceType,omitempty"`
@@ -40,13 +40,13 @@ type CreateClusterACSK struct {
 	VSwitchID                string    `json:"vswitchId,omitempty" yaml:"vswitchId,omitempty"`
 }
 
-// UpdateClusterACSK describes Alibaba's node fields of an UpdateCluster request
-type UpdateClusterACSK struct {
+// UpdateClusterACK describes Alibaba's node fields of an UpdateCluster request
+type UpdateClusterACK struct {
 	NodePools NodePools `json:"nodePools,omitempty"`
 }
 
 // AddDefaults puts default values to optional field(s)
-func (c *CreateClusterACSK) AddDefaults() error {
+func (c *CreateClusterACK) AddDefaults() error {
 	if c.MasterInstanceType == "" {
 		c.MasterInstanceType = DefaultMasterInstanceType
 	}
@@ -89,7 +89,7 @@ func ValidateNodePools(nps NodePools) error {
 	return nil
 }
 
-func (c *CreateClusterACSK) Validate() error {
+func (c *CreateClusterACK) Validate() error {
 	if c == nil {
 		return pkgErrors.ErrorAlibabaFieldIsEmpty
 	}
@@ -106,7 +106,7 @@ func (c *CreateClusterACSK) Validate() error {
 	return ValidateNodePools(c.NodePools)
 }
 
-func (c *UpdateClusterACSK) Validate() error {
+func (c *UpdateClusterACK) Validate() error {
 	if c == nil {
 		return pkgErrors.ErrorAlibabaFieldIsEmpty
 	}
@@ -114,8 +114,8 @@ func (c *UpdateClusterACSK) Validate() error {
 	return ValidateNodePools(c.NodePools)
 }
 
-// ClusterProfileACSK describes an Alibaba CS profile
-type ClusterProfileACSK struct {
+// ClusterProfileACK describes an Alibaba CS profile
+type ClusterProfileACK struct {
 	RegionID  string               `json:"regionId"`
 	ZoneID    string               `json:"zoneId"`
 	NodePools map[string]*NodePool `json:"nodePools,omitempty"`

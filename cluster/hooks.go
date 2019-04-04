@@ -1024,7 +1024,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 }
 
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.
-// It's used only used in case of ec2_banzaicloud, ACSK etc. when we're not able to add labels via API.
+// It's used only used in case of ec2_banzaicloud, ACK etc. when we're not able to add labels via API.
 func LabelNodesWithNodePoolName(commonCluster CommonCluster) error {
 
 	switch commonCluster.GetDistribution() {

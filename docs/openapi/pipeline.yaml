@@ -5402,9 +5402,9 @@ components:
         CreateACKProperties:
             type: object
             required:
-                - acsk
+                - ack
             properties:
-                acsk:
+                ack:
                     type: object
                     required:
                         - regionId
@@ -6016,9 +6016,9 @@ components:
         UpdateACKProperties:
             type: object
             required:
-                - acsk
+                - ack
             properties:
-                acsk:
+                ack:
                     type: object
                     required:
                         - nodePools

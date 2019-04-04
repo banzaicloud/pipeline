@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package acsk
+package ack
 
 import (
 	"github.com/banzaicloud/pipeline/config"

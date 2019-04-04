@@ -11,7 +11,7 @@
 
 package client
 
-type CreateAckPropertiesAcsk struct {
+type CreateAckPropertiesAck struct {
 	RegionId  string                  `json:"regionId"`
 	ZoneId    string                  `json:"zoneId"`
 	VswitchId string                  `json:"vswitchId,omitempty"`

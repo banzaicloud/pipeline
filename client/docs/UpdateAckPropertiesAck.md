@@ -1,4 +1,4 @@
-# UpdateAckPropertiesAcsk
+# UpdateAckPropertiesAck
 
 ## Properties
 Name | Type | Description | Notes

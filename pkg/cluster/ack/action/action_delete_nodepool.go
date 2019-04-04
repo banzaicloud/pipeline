@@ -19,27 +19,27 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// DeleteACSKNodePoolAction describes the properties of an Alibaba cluster deletion
-type DeleteACSKNodePoolAction struct {
-	context *ACSKClusterDeleteContext
+// DeleteACKNodePoolAction describes the properties of an Alibaba cluster deletion
+type DeleteACKNodePoolAction struct {
+	context *ACKClusterDeleteContext
 	log     logrus.FieldLogger
 }
 
-// NewDeleteACSKNodePoolAction create  a new DeleteACSKNodePoolAction
-func NewDeleteACSKNodePoolAction(log logrus.FieldLogger, creationContext *ACSKClusterDeleteContext) *DeleteACSKNodePoolAction {
-	return &DeleteACSKNodePoolAction{
+// NewDeleteACKNodePoolAction create  a new DeleteACKNodePoolAction
+func NewDeleteACKNodePoolAction(log logrus.FieldLogger, creationContext *ACKClusterDeleteContext) *DeleteACKNodePoolAction {
+	return &DeleteACKNodePoolAction{
 		context: creationContext,
 		log:     log,
 	}
 }
 
-// GetName returns the name of this DeleteACSKNodePoolAction
-func (a *DeleteACSKNodePoolAction) GetName() string {
-	return "DeleteACSKNodePoolAction"
+// GetName returns the name of this DeleteACKNodePoolAction
+func (a *DeleteACKNodePoolAction) GetName() string {
+	return "DeleteACKNodePoolAction"
 }
 
-// ExecuteAction executes this DeleteACSKNodePoolAction
-func (a *DeleteACSKNodePoolAction) ExecuteAction(input interface{}) (output interface{}, err error) {
+// ExecuteAction executes this DeleteACKNodePoolAction
+func (a *DeleteACKNodePoolAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	if len(a.context.NodePools) == 0 {
 		return nil, nil
 	}

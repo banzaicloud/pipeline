@@ -419,7 +419,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\":\"alibabacluster-{{username}}-{{$randomInt}}\",\n  \"cloud\": \"alibaba\",\n  \"secretId\": \"{{secretIdAlibaba}}\",\n  \"ttlMinutes\": 120,\n  \"properties\": {\n        \"acsk\": {\n        \t\"regionId\": \"eu-central-1\",\n        \t\"zoneId\": \"eu-central-1a\",\n        \t\"masterInstanceType\": \"ecs.sn1ne.large\",\n        \t\"masterSystemDiskCategory\": \"cloud_efficiency\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"minCount\": 2,\n            \t\t\"maxCount\": 2,\n            \t\t\"instanceType\": \"ecs.sn1ne.large\"\n            \t}\n            }\n        }\n    }\n}"
+							"raw": "{\n  \"name\":\"alibabacluster-{{username}}-{{$randomInt}}\",\n  \"cloud\": \"alibaba\",\n  \"secretId\": \"{{secretIdAlibaba}}\",\n  \"ttlMinutes\": 120,\n  \"properties\": {\n        \"ack\": {\n        \t\"regionId\": \"eu-central-1\",\n        \t\"zoneId\": \"eu-central-1a\",\n        \t\"masterInstanceType\": \"ecs.sn1ne.large\",\n        \t\"masterSystemDiskCategory\": \"cloud_efficiency\",\n            \"nodePools\": {\n            \t\"pool1\": {\n            \t\t\"minCount\": 2,\n            \t\t\"maxCount\": 2,\n            \t\t\"instanceType\": \"ecs.sn1ne.large\"\n            \t}\n            }\n        }\n    }\n}"
 						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",

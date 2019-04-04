@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/cluster/acsk"
+	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -60,7 +60,7 @@ const (
 
 // Distribution constants
 const (
-	ACSK    = "acsk"
+	ACK     = "ack"
 	EKS     = "eks"
 	AKS     = "aks"
 	GKE     = "gke"
@@ -128,7 +128,10 @@ type CreateClusterRequest struct {
 
 // CreateClusterProperties contains the cluster flavor specific properties.
 type CreateClusterProperties struct {
-	CreateClusterACSK       *acsk.CreateClusterACSK             `json:"acsk,omitempty" yaml:"acsk,omitempty"`
+	// TODO (colin): Deprecated
+	CreateClusterACSK *ack.CreateClusterACK `json:"acsk,omitempty" yaml:"acsk,omitempty"`
+	CreateClusterACK  *ack.CreateClusterACK `json:"ack,omitempty" yaml:"ack,omitempty"`
+
 	CreateClusterEKS        *eks.CreateClusterEKS               `json:"eks,omitempty" yaml:"eks,omitempty"`
 	CreateClusterAKS        *aks.CreateClusterAKS               `json:"aks,omitempty" yaml:"aks,omitempty"`
 	CreateClusterGKE        *gke.CreateClusterGKE               `json:"gke,omitempty" yaml:"gke,omitempty"`
@@ -272,7 +275,10 @@ type Ipv4Cidrs struct {
 
 // UpdateProperties describes Pipeline's UpdateCluster request properties
 type UpdateProperties struct {
-	ACSK  *acsk.UpdateClusterACSK     `json:"acsk,omitempty"`
+	// TODO (colin): Deprecated
+	ACSK *ack.UpdateClusterACK `json:"acsk,omitempty"`
+	ACK  *ack.UpdateClusterACK `json:"ack,omitempty"`
+
 	EKS   *eks.UpdateClusterAmazonEKS `json:"eks,omitempty"`
 	AKS   *aks.UpdateClusterAzure     `json:"aks,omitempty"`
 	GKE   *gke.UpdateClusterGoogle    `json:"gke,omitempty"`
@@ -364,7 +370,7 @@ func (r *CreateClusterRequest) Validate() error {
 	switch r.Cloud {
 	case Alibaba:
 		// alibaba validate
-		return r.Properties.CreateClusterACSK.Validate()
+		return r.Properties.CreateClusterACK.Validate()
 	case Amazon:
 		// eks validate
 		if r.Properties.CreateClusterPKE != nil {
@@ -418,7 +424,7 @@ func (r *UpdateClusterRequest) Validate() error {
 
 	switch r.Cloud {
 	case Alibaba:
-		return r.ACSK.Validate()
+		return r.ACK.Validate()
 	case Amazon:
 		return r.EKS.Validate()
 	case Azure:
@@ -448,27 +454,27 @@ func (r *UpdateClusterRequest) preValidate() {
 		break
 	case Amazon:
 		// reset other fields
-		r.ACSK = nil
+		r.ACK = nil
 		r.AKS = nil
 		r.GKE = nil
 		r.OKE = nil
 		break
 	case Azure:
 		// reset other fields
-		r.ACSK = nil
+		r.ACK = nil
 		r.GKE = nil
 		r.OKE = nil
 		r.EKS = nil
 		break
 	case Google:
 		// reset other fields
-		r.ACSK = nil
+		r.ACK = nil
 		r.AKS = nil
 		r.OKE = nil
 		r.EKS = nil
 	case Oracle:
 		// reset other fields
-		r.ACSK = nil
+		r.ACK = nil
 		r.AKS = nil
 		r.GKE = nil
 		r.EKS = nil
@@ -494,11 +500,14 @@ type ClusterProfileRequest struct {
 }
 
 type ClusterProfileProperties struct {
-	ACSK *acsk.ClusterProfileACSK `json:"acsk,omitempty"`
-	EKS  *eks.ClusterProfileEKS   `json:"eks,omitempty"`
-	AKS  *aks.ClusterProfileAKS   `json:"aks,omitempty"`
-	GKE  *gke.ClusterProfileGKE   `json:"gke,omitempty"`
-	OKE  *oke.Cluster             `json:"oke,omitempty"`
+	// TODO (colin): Deprecated
+	ACSK *ack.ClusterProfileACK `json:"acsk,omitempty"`
+	ACK  *ack.ClusterProfileACK `json:"ack,omitempty"`
+
+	EKS *eks.ClusterProfileEKS `json:"eks,omitempty"`
+	AKS *aks.ClusterProfileAKS `json:"aks,omitempty"`
+	GKE *gke.ClusterProfileGKE `json:"gke,omitempty"`
+	OKE *oke.Cluster           `json:"oke,omitempty"`
 }
 
 // CloudInfoRequest describes Cloud info requests
@@ -621,10 +630,10 @@ func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClust
 
 	switch p.Cloud { // TODO(Ecsy): distribution???
 	case Alibaba:
-		response.Properties.CreateClusterACSK = &acsk.CreateClusterACSK{
-			RegionID:  p.Properties.ACSK.RegionID,
-			ZoneID:    p.Properties.ACSK.ZoneID,
-			NodePools: p.Properties.ACSK.NodePools,
+		response.Properties.CreateClusterACK = &ack.CreateClusterACK{
+			RegionID:  p.Properties.ACK.RegionID,
+			ZoneID:    p.Properties.ACK.ZoneID,
+			NodePools: p.Properties.ACK.NodePools,
 		}
 	case Amazon:
 		response.Properties.CreateClusterEKS = &eks.CreateClusterEKS{
