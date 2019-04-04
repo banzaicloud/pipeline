@@ -330,6 +330,9 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 // HasK8sConfig returns true if the cluster's k8s config is available
 func (c *EC2ClusterPKE) HasK8sConfig() (bool, error) {
 	cfg, err := c.GetK8sConfig()
+	if err == ErrConfigNotExists {
+		return false, nil
+	}
 	return len(cfg) > 0, emperror.Wrap(err, "failed to check if k8s config is available")
 }
 
