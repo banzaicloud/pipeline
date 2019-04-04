@@ -22,6 +22,7 @@ import (
 	"github.com/goph/emperror"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -73,7 +74,7 @@ func (s *RestoresSyncService) SyncRestores(clusterManager api.ClusterManager) er
 		}
 
 		err = s.SyncRestoresForCluster(cluster)
-		if err != nil && err != gorm.ErrRecordNotFound {
+		if err != nil && errors.Cause(err) != gorm.ErrRecordNotFound {
 			log.Error(err)
 		}
 	}

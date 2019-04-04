@@ -166,6 +166,11 @@ chartVersion = "1.2.2"
 image = "banzaicloud/ark"
 imageTag = "v0.9.11"
 pullPolicy = "IfNotPresent"
+syncEnabled = true
+logLevel = "info"
+bucketSyncInterval = "10m"
+restoreSyncInterval = "20s"
+backupSyncInterval = "20s"
 restoreWaitTimeout = "5m"
 
 [spotguide]

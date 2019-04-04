@@ -19,6 +19,7 @@ import (
 
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -84,7 +85,7 @@ func (s *BackupsSyncService) SyncBackups(clusterManager api.ClusterManager) erro
 
 		log.Debug("syncing backups for cluster")
 		err = s.SyncBackupsForCluster(cluster)
-		if err != nil && err != gorm.ErrRecordNotFound {
+		if err != nil && errors.Cause(err) != gorm.ErrRecordNotFound {
 			log.Error(err)
 		}
 	}
