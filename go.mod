@@ -84,7 +84,7 @@ require (
 	github.com/garyburd/redigo v1.6.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
-	github.com/gin-gonic/gin v1.3.1-0.20190204012700-5acf6601170b
+	github.com/gin-gonic/gin v1.3.1-0.20190402010134-2e915f4e5083
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-ldap/ldap v3.0.1+incompatible // indirect
 	github.com/go-logr/zapr v0.1.1 // indirect
@@ -98,7 +98,7 @@ require (
 	github.com/gocql/gocql v0.0.0-20190219221429-ec4793573d14 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/mock v1.2.0 // indirect
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.3.0
 	github.com/google/go-github v15.0.0+incompatible
 	github.com/google/martian v2.1.0+incompatible // indirect
 	github.com/google/uuid v1.1.0 // indirect
