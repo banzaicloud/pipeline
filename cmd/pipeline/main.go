@@ -41,7 +41,9 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
+	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
+	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
@@ -54,6 +56,7 @@ import (
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
+	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/model/defaults"
@@ -518,6 +521,21 @@ func main() {
 	}
 
 	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logger)
+	if viper.GetBool(config.ARKSyncEnabled) {
+		go arkSync.RunSyncServices(
+			context.Background(),
+			config.DB(),
+			arkClusterManager.New(clusterManager),
+			platformlog.NewLogger(platformlog.Config{
+				Level:  viper.GetString(config.ARKLogLevel),
+				Format: viper.GetString(config.LoggingLogFormat),
+			}).WithField("subsystem", "ark"),
+			config.ErrorHandler(),
+			viper.GetDuration(config.ARKBucketSyncInterval),
+			viper.GetDuration(config.ARKRestoreSyncInterval),
+			viper.GetDuration(config.ARKBackupSyncInterval),
+		)
+	}
 
 	base.GET("api", api.MetaHandler(router, basePath+"/api"))
 
