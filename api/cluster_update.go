@@ -50,6 +50,11 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		return
 	}
 
+	// TODO (colin): remove this after we deleted the deprecated 'acsk' property from update create request
+	if updateRequest.ACSK != nil {
+		updateRequest.ACK = updateRequest.ACSK
+	}
+
 	updateCtx := cluster.UpdateContext{
 		OrganizationID: auth.GetCurrentOrganization(c.Request).ID,
 		UserID:         auth.GetCurrentUser(c.Request).ID,

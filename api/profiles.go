@@ -187,6 +187,10 @@ func UpdateClusterProfile(c *gin.Context) {
 
 	log.Infof("Load cluster from database: %s[%s]", profileRequest.Name, profileRequest.Cloud)
 
+	if profileRequest.Properties.ACSK != nil {
+		profileRequest.Properties.ACK = profileRequest.Properties.ACSK
+	}
+
 	distribution := pkgCluster.Unknown
 	switch profileRequest.Cloud {
 	case pkgCluster.Amazon:
