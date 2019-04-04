@@ -15,8 +15,6 @@ require (
 	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
-	github.com/PuerkitoBio/purell v1.1.0 // indirect
-	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/SAP/go-hdb v0.13.2 // indirect
 	github.com/SermoDigital/jose v0.9.1 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20180822052843-1c5a1c93a9c1
@@ -55,6 +53,7 @@ require (
 	github.com/coreos/go-oidc v2.0.0+incompatible
 	github.com/coreos/go-systemd v0.0.0-20190212144455-93d5ec2c7f76 // indirect
 	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
+	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/dancannon/gorethink v4.0.0+incompatible // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190204142019-df6d76eb9289 // indirect
 	github.com/dexidp/dex v0.0.0-20190205125449-7bd4071b4c8c
@@ -88,10 +87,7 @@ require (
 	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-ldap/ldap v3.0.1+incompatible // indirect
 	github.com/go-logr/zapr v0.1.1 // indirect
-	github.com/go-openapi/jsonpointer v0.0.0-20180322222829-3a0015ad55fa // indirect
-	github.com/go-openapi/jsonreference v0.0.0-20180322222742-3fb327e6747d // indirect
-	github.com/go-openapi/spec v0.0.0-20180326232708-9acd88844bc1 // indirect
-	github.com/go-openapi/swag v0.0.0-20180302192843-ceb469cb0fdf // indirect
+	github.com/go-openapi/spec v0.19.0 // indirect
 	github.com/go-stomp/stomp v2.0.2+incompatible // indirect
 	github.com/go-test/deep v1.0.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
@@ -151,7 +147,6 @@ require (
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
 	github.com/lib/pq v1.0.0 // indirect
-	github.com/mailru/easyjson v0.0.0-20180323154445-8b799c424f57 // indirect
 	github.com/mattbaird/elastigo v0.0.0-20170123220020-2fe47fd29e4b // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/michaelklishin/rabbit-hole v1.5.0 // indirect
@@ -235,6 +230,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890
 	golang.org/x/tools v0.0.0-20190318200714-bb1270c20edf // indirect
 	google.golang.org/api v0.0.0-20190111181425-455dee39f703
+	google.golang.org/appengine v1.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20181202183823-bd91e49a0898
 	google.golang.org/grpc v1.17.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
@@ -246,21 +242,33 @@ require (
 	gopkg.in/yaml.v2 v2.2.2
 	gotest.tools v2.2.0+incompatible // indirect
 	honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099 // indirect
-	k8s.io/api v0.0.0-20180712090710-2d6f90ab1293
+	k8s.io/api v0.0.0-20190404065945-709cf190c7b7
 	k8s.io/apiextensions-apiserver v0.0.0-20180328075702-9beab23b2663 // indirect
-	k8s.io/apimachinery v0.0.0-20180621070125-103fd098999d
+	k8s.io/apimachinery v0.0.0-20190404065847-4a4abcd45006
 	k8s.io/apiserver v0.0.0-20180327065226-f4a9d3132586 // indirect
-	k8s.io/client-go v8.0.0+incompatible
-	k8s.io/helm v2.11.0+incompatible
-	k8s.io/kubernetes v1.11.5
-	k8s.io/utils v0.0.0-20180208044234-258e2a2fa645 // indirect
+	k8s.io/cli-runtime v0.0.0-20190404071300-cbd7455f4bce // indirect
+	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/cluster-bootstrap v0.0.0-20190404071559-03c28a85c7b7
+	k8s.io/helm v2.12.2+incompatible
+	k8s.io/klog v0.2.0 // indirect
+	k8s.io/kubernetes v1.13.5
+	k8s.io/utils v0.0.0-20190221042446-c2654d5206da // indirect
 	layeh.com/radius v0.0.0-20190118135028-0f678f039617 // indirect
 	sigs.k8s.io/controller-runtime v0.1.10 // indirect
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
+	sigs.k8s.io/yaml v1.1.0 // indirect
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 
 replace (
 	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa => github.com/banzaicloud/auth v0.1.1
 	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
+
+	// Kubernetes 1.13.5
+	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190325193600-475668423e9f
+	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
+	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20190319190228-a4358799e4fe
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20190325194458-f2b4781c3ae1
+	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
 )
