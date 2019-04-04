@@ -64,6 +64,15 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 	}
 
+	// release NLB
+
+	deleteNLBActivityInput := &DeleteNLBActivityInput{
+		ClusterID: input.ClusterID,
+	}
+	if err := workflow.ExecuteActivity(ctx, DeleteNLBActivityName, deleteNLBActivityInput).Get(ctx, nil); err != nil {
+		return err
+	}
+
 	poolActivities = []workflow.Future{}
 
 	for _, np := range nodePools {
@@ -98,15 +107,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		ClusterID: input.ClusterID,
 	}
 	if err := workflow.ExecuteActivity(ctx, DeleteElasticIPActivityName, deleteElasticIPActivityInput).Get(ctx, nil); err != nil {
-		return err
-	}
-
-	// release NLB
-
-	deleteNLBActivityInput := &DeleteNLBActivityInput{
-		ClusterID: input.ClusterID,
-	}
-	if err := workflow.ExecuteActivity(ctx, DeleteNLBActivityName, deleteNLBActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
