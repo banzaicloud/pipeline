@@ -70,7 +70,6 @@ Resources:
       SpotPrice: !If [ IsSpotInstance, !Ref NodeSpotPrice, !Ref "AWS::NoValue" ]
       ImageId: !Ref ImageId
       IamInstanceProfile: !Ref IamInstanceProfile
-      AssociatePublicIpAddress: true
       SecurityGroups:
       - !Ref SecurityGroup
       - !Ref ClusterSecurityGroup
