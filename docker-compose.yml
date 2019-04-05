@@ -115,7 +115,7 @@ services:
         image: cassandra:3.11
 
     cadence:
-        image: ubercadence/server:0.5.1
+        image: ubercadence/server:0.5.5
         environment:
             - "LOG_LEVEL=debug,info"
             - "CASSANDRA_SEEDS=cassandra"
