@@ -111,6 +111,7 @@ Resources:
       CidrBlock:
         Ref: Subnet01Block
       VpcId: !If [ CreateVpc, !Ref VPC,  !Ref VpcId ]
+      MapPublicIpOnLaunch: true
       Tags:
       - Key: Name
         Value: !Sub "${AWS::StackName}-Subnet01"
