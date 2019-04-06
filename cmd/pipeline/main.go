@@ -364,7 +364,7 @@ func main() {
 			orgs.GET("/:orgid/spotguides/:owner/:name/icon", spotguideAPI.GetSpotguideIcon)
 
 			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
-			orgs.POST("/:orgid/clusters", clusterAPI.CreateClusterRequest)
+			orgs.POST("/:orgid/clusters", clusterAPI.CreateCluster)
 			//v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 			orgs.GET("/:orgid/clusters/:id", clusterAPI.GetCluster)

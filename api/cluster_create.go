@@ -80,8 +80,8 @@ func (a *ClusterAPI) handleCreationError(ctx *gin.Context, err error) {
 	pkgCommon.ErrorResponseWithStatus(ctx, status, err)
 }
 
-//CreateClusterRequest gin handler
-func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
+// CreateCluster creates a K8S cluster in the cloud.
+func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 	a.logger.Info("Cluster creation started")
 
 	ctx := ginutils.Context(context.Background(), c)
@@ -114,7 +114,7 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 			createClusterRequest.SecretId = secret.GenerateSecretIDFromName(createClusterRequest.SecretName)
 		}
 
-		commonCluster, err := a.CreateCluster(ctx, &createClusterRequest, orgID, userID, createClusterRequest.PostHooks)
+		commonCluster, err := a.createCluster(ctx, &createClusterRequest, orgID, userID, createClusterRequest.PostHooks)
 		if err != nil {
 			c.JSON(err.Code, err)
 			return
@@ -172,8 +172,8 @@ func (a *ClusterAPI) CreateClusterRequest(c *gin.Context) {
 	})
 }
 
-// CreateCluster creates a K8S cluster in the cloud
-func (a *ClusterAPI) CreateCluster(
+// createCluster creates a K8S cluster in the cloud.
+func (a *ClusterAPI) createCluster(
 	ctx context.Context,
 	createClusterRequest *pkgCluster.CreateClusterRequest,
 	organizationID uint,
