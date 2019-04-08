@@ -119,6 +119,8 @@ const (
 	SAPub = "saPub"
 	SAKey = "saKey"
 
+	EncryptionSecret = "enc"
+
 	// some useful helpers
 	KubernetesCACommonName           = "kubernetes-ca"
 	EtcdCACommonName                 = "etcd-ca"

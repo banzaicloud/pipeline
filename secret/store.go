@@ -19,6 +19,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -737,10 +738,19 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 			return err
 		}
 
+		// Service Account key-pair
 		saPub, saPriv, err := generateSAKeyPair(clusterID)
 		if err != nil {
 			return err
 		}
+
+		// Encryption Secret
+		var rnd = make([]byte, 32)
+		_, err = rand.Read(rnd)
+		if err != nil {
+			return err
+		}
+		encryptionSecret := base64.StdEncoding.EncodeToString(rnd)
 
 		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA.Key
 		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
@@ -751,6 +761,7 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert + "\n" + ca
 		value.Values[secretTypes.SAPub] = saPub
 		value.Values[secretTypes.SAKey] = saPriv
+		value.Values[secretTypes.EncryptionSecret] = encryptionSecret
 	}
 
 	return nil
