@@ -14,6 +14,10 @@
 
 package workflow
 
+import (
+	"go.uber.org/cadence/workflow"
+)
+
 const CreateClusterWorkflowName = "pke-azure-create-cluster"
 
 // CreateClusterWorkflowInput
@@ -24,4 +28,9 @@ type CreateClusterWorkflowInput struct {
 	ClusterName    string
 	SecretID       string
 	Location       string
+}
+
+func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
+
+	return nil
 }
