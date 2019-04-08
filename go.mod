@@ -9,7 +9,7 @@ require (
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.15.0+incompatible
-	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190308093441-53f19b3c6bee
+	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190408123700-6ae3b7a159fd
 	github.com/aliyun/aliyun-oss-go-sdk v0.0.0-20180615125516-36bf7aa2f916
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
 	github.com/antihax/optional v0.0.0-20180407024304-ca021399b1a6
@@ -18,7 +18,7 @@ require (
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.16.11
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20181204185657-bf9806201a4e
-	github.com/banzaicloud/bank-vaults v0.0.0-20190404125521-334a186932a4
+	github.com/banzaicloud/bank-vaults v0.0.0-20190408133613-dc8e83242b1b
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
 	github.com/banzaicloud/istio-operator v0.0.0-20190312122926-a4debb5bafe9
@@ -68,6 +68,7 @@ require (
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
+	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/microcosm-cc/bluemonday v0.0.0-20180327211928-995366fdf961
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
@@ -140,11 +141,11 @@ require (
 	k8s.io/cli-runtime v0.0.0-20190404071300-cbd7455f4bce // indirect
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cluster-bootstrap v0.0.0-20190404071559-03c28a85c7b7
+	k8s.io/code-generator v0.0.0-20190311155051-e4c2b1329cf7 // indirect
+	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/helm v2.12.2+incompatible
 	k8s.io/kubernetes v1.13.5
 	k8s.io/utils v0.0.0-20190221042446-c2654d5206da // indirect
-	sigs.k8s.io/controller-runtime v0.1.10 // indirect
-	sigs.k8s.io/yaml v1.1.0 // indirect
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 
