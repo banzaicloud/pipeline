@@ -120,7 +120,7 @@ services:
             - "LOG_LEVEL=debug,info"
             - "CASSANDRA_SEEDS=cassandra"
         volumes:
-            - ./config/cadence.yml:/go/src/github.com/uber/cadence/config/docker_template.yaml
+            - ./config/cadence.yml:/cadence/config/docker_template.yaml
         depends_on:
             - cassandra
 
