@@ -779,12 +779,13 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (string, error) {
 	subcommand := "worker"
 	var np internalPke.NodePool
+outerLoop:
 	for _, np = range c.model.NodePools {
 		if np.Name == nodePoolName {
 			for _, role := range np.Roles {
 				if role == internalPke.RoleMaster {
 					subcommand = "master"
-					break
+					break outerLoop
 				}
 			}
 		}
