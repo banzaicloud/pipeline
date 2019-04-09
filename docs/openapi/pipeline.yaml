@@ -7589,7 +7589,6 @@ components:
                     description: deployment notes in base64 encoded format
                 values:
                     type: object
-                    additionalProperties: true
                     description: current values of the deployment
                     example: { "metrics": { "enabled": "true" } }
 

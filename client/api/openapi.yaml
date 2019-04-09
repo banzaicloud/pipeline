@@ -8519,7 +8519,6 @@ components:
           format: base64
           type: string
         values:
-          additionalProperties: true
           description: current values of the deployment
           example:
             metrics:
