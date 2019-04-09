@@ -121,6 +121,7 @@ func main() {
 
 		// Azure PKE
 		workflow.RegisterWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})
+		workflow.RegisterWithOptions(azurepkeworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateInfraWorkflowName})
 
 		db, err := database.Connect(config.Database)
 		if err != nil {
