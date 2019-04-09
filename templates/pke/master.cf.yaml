@@ -126,5 +126,5 @@ Outputs:
     Description: 'ID of the cluster security group created'
     Value: !Ref ClusterSecurityGroup
   MasterSecurityGroup:
-    Description: 'ID of the master security group'
+    Description: 'ID of the created master security group'
     Value: !Ref MasterSecurityGroup
