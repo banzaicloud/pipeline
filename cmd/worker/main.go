@@ -171,6 +171,9 @@ func main() {
 		createElasticIPActivity := pkeworkflow.NewCreateElasticIPActivity(awsClientFactory)
 		activity.RegisterWithOptions(createElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateElasticIPActivityName})
 
+		createNLBActivity := pkeworkflow.NewCreateNLBActivity(awsClientFactory)
+		activity.RegisterWithOptions(createNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateNLBActivityName})
+
 		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
 		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
 
@@ -197,6 +200,9 @@ func main() {
 
 		deleteElasticIPActivity := pkeworkflow.NewDeleteElasticIPActivity(clusters)
 		activity.RegisterWithOptions(deleteElasticIPActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteElasticIPActivityName})
+
+		deleteNLBActivity := pkeworkflow.NewDeleteNLBActivity(clusters)
+		activity.RegisterWithOptions(deleteNLBActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteNLBActivityName})
 
 		deleteVPCActivity := pkeworkflow.NewDeleteVPCActivity(clusters)
 		activity.RegisterWithOptions(deleteVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.DeleteVPCActivityName})

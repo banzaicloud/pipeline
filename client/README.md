@@ -63,12 +63,14 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**ClusterPostHooks**](docs/ClustersApi.md#clusterposthooks) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/posthooks | Run posthook functions
 *ClustersApi* | [**CreateCluster**](docs/ClustersApi.md#createcluster) | **Post** /api/v1/orgs/{orgId}/clusters | Create cluster
 *ClustersApi* | [**DeleteCluster**](docs/ClustersApi.md#deletecluster) | **Delete** /api/v1/orgs/{orgId}/clusters/{id} | Delete cluster
+*ClustersApi* | [**DeleteLeaderElection**](docs/ClustersApi.md#deleteleaderelection) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Delete cluster leader
 *ClustersApi* | [**DeleteNamespace**](docs/ClustersApi.md#deletenamespace) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace} | Delete namespace from a cluster
 *ClustersApi* | [**GetAPIEndpoint**](docs/ClustersApi.md#getapiendpoint) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint | Get API endpoint
 *ClustersApi* | [**GetCluster**](docs/ClustersApi.md#getcluster) | **Get** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**GetClusterBootstrap**](docs/ClustersApi.md#getclusterbootstrap) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/bootstrap | Get cluster bootstrap info
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
+*ClustersApi* | [**GetLeaderElection**](docs/ClustersApi.md#getleaderelection) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Query cluster leader
 *ClustersApi* | [**GetPKECommands**](docs/ClustersApi.md#getpkecommands) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/commands | List bootstrap commands for namespaces
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 *ClustersApi* | [**GetReadyPKENode**](docs/ClustersApi.md#getreadypkenode) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Query reported node readiness information
@@ -265,6 +267,7 @@ Class | Method | HTTP request | Description
  - [GetClusterStatusResponse](docs/GetClusterStatusResponse.md)
  - [GetDeploymentResponse](docs/GetDeploymentResponse.md)
  - [GetDomainResponse](docs/GetDomainResponse.md)
+ - [GetLeaderElectionResponse](docs/GetLeaderElectionResponse.md)
  - [GetPkeCommandsResponse](docs/GetPkeCommandsResponse.md)
  - [GetRestoreResponse](docs/GetRestoreResponse.md)
  - [GetRestoreResultsResponse](docs/GetRestoreResultsResponse.md)

@@ -69,13 +69,23 @@ func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leader
 		return
 	}
 
+	if secret == nil {
+		// secret not found
+		err = leaderNotFound{
+			path: path,
+		}
+		return
+	}
+
 	var lsd leaderSecretData
 	if err = emperror.Wrap(mapstructure.Decode(secret.Data["data"], &lsd), "failed to decode secret data"); err != nil {
 		return
 	}
 
-	leaderInfo.Hostname = lsd.Hostname
-	leaderInfo.IP = lsd.IP
+	leaderInfo = LeaderInfo{
+		Hostname: lsd.Hostname,
+		IP:       lsd.IP,
+	}
 	return
 }
 
@@ -104,8 +114,25 @@ func (r VaultLeaderRepository) SetLeader(organizationID, clusterID uint, leaderI
 	return err
 }
 
+func (r VaultLeaderRepository) DeleteLeader(organizationID, clusterID uint) error {
+	path := getMetadataPath(organizationID, clusterID)
+	secret, err := r.logical.Delete(path)
+
+	if secret == nil && err == nil {
+		return leaderNotFound{
+			path: path,
+		}
+	}
+
+	return emperror.Wrap(err, "failed to delete leader from repository")
+}
+
 func getSecretPath(organizationID, clusterID uint) string {
 	return fmt.Sprintf("leaderelection/data/orgs/%d/clusters/%d/leader", organizationID, clusterID)
+}
+
+func getMetadataPath(organizationID, clusterID uint) string {
+	return fmt.Sprintf("leaderelection/metadata/orgs/%d/clusters/%d/leader", organizationID, clusterID)
 }
 
 type leaderSetError struct{}
@@ -115,5 +142,17 @@ func (leaderSetError) Error() string {
 }
 
 func (leaderSetError) LeaderSet() bool {
+	return true
+}
+
+type leaderNotFound struct {
+	path string
+}
+
+func (e leaderNotFound) Error() string {
+	return fmt.Sprintf("No leader found with path %s", e.path)
+}
+
+func (leaderNotFound) LeaderNotFound() bool {
 	return true
 }

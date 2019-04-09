@@ -4782,6 +4782,55 @@ paths:
                                 $ref: '#/components/schemas/BaseError_500'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/leader':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: Query cluster leader
+            operationId: GetLeaderElection
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+            responses:
+                '200':
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetLeaderElectionResponse'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: No leader found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaderNotFound'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
         post:
             security:
                 -
@@ -4836,6 +4885,51 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PostLeaderElectionResponse'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
+
+        delete:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: Delete cluster leader
+            operationId: DeleteLeaderElection
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Selected cluster identification (number)
+                    required: true
+                    schema:
+                        type: integer
+            responses:
+                '200':
+                    description: Leader deletion successful
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: No leader found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaderNotFound'
                 '500':
                     description: Internal server error
                     content:
@@ -4999,7 +5093,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/BaseError_500'
-
 
     '/api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}':
         delete:
@@ -6860,6 +6953,9 @@ components:
                 error:
                     type: string
                     example: "repo not found"
+
+        LeaderNotFound:
+            type: object
 
         ClusterConfig:
             type: object
@@ -10185,3 +10281,14 @@ components:
                 error:
                     type: string
                     example: "record not found"
+        GetLeaderElectionResponse:
+            type: object
+            required:
+                - hostname
+            properties:
+                hostname:
+                    type: string
+                    example: node-0.my.cloud.com
+                ip:
+                    type: string
+                    example: 10.20.30.40

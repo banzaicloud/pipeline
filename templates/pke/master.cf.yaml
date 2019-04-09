@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Master Node(s) for Banzai Cloud Pipeline Kubernetes Engine'
+Description: 'Master Node and SGs for Banzai Cloud Pipeline Kubernetes Engine'
 
 Parameters:
   SSHLocation:
@@ -11,27 +11,12 @@ Parameters:
   InstanceType:
     Description: EC2 instance type(s)
     Type: String
-    AllowedValues:
-    - c5.large
-    - c5.xlarge
-    - c5.2xlarge
-    - c5.4xlarge
-    - c5.9xlarge
-    - c4.large
-    - c4.xlarge
-    - c4.2xlarge
-    - c4.4xlarge
-    - c4.8xlarge
-    ConstraintDescription: must be a valid PKE supported EC2 instance type.
   ImageId:
     Type: 'AWS::EC2::Image::Id'
     Description: Amazon image
   ClusterName:
     Description: PKE Cluster name
     Type: String
-  AvailabilityZone:
-    Type: 'AWS::EC2::AvailabilityZone::Name'
-    Description: Specify Availability Zones for Autoscaling
   VPCId:
     Type: 'AWS::EC2::VPC::Id'
     Description: Specify VPC Id for Autoscaling
@@ -72,17 +57,13 @@ Resources:
           - |
             #!/usr/bin/env bash
             set -e
-            export SIGNAL_URL="${SignalUrl}"
 
             curl -v https://banzaicloud.com/downloads/pke/pke-${PkeVersion} -o /usr/local/bin/pke
             chmod +x /usr/local/bin/pke
             export PATH=$PATH:/usr/local/bin/
 
             ${PkeCommand}
-
-            curl -X PUT -H 'Content-Type: ' --data-binary "{\"Status\":\"SUCCESS\",\"Reason\":\"Configuration Complete\",\"UniqueId\":\"$(date +%s)\",\"Data\":\"\"}" $SIGNAL_URL
           - {
-            SignalUrl: !Ref WaitForFirstInstanceHandle,
             AwsRegion: !Ref 'AWS::Region',
             PkeVersion: !Ref PkeVersion,
             PkeCommand: !Ref PkeCommand,
@@ -140,21 +121,10 @@ Resources:
       - Key: !Join [ "", [ "kubernetes.io/cluster/", !Ref ClusterName] ]
         Value: "owned"
 
-  WaitForFirstInstance:
-    Type: AWS::CloudFormation::WaitCondition
-    DependsOn: Ec2Instance
-    Properties:
-      Handle:
-        Ref: "WaitForFirstInstanceHandle"
-      Timeout: 6000
-
-  WaitForFirstInstanceHandle:
-    Type: AWS::CloudFormation::WaitConditionHandle
-
 Outputs:
   ClusterSecurityGroup:
-    Description: 'Cluster security group'
+    Description: 'ID of the cluster security group created'
     Value: !Ref ClusterSecurityGroup
   MasterSecurityGroup:
-    Description: 'Cluster security group'
+    Description: 'ID of the created master security group'
     Value: !Ref MasterSecurityGroup
