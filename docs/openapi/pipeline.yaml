@@ -4807,7 +4807,7 @@ paths:
                         type: integer
             responses:
                 '200':
-                    description: Application successful
+                    description: Success
                     content:
                         application/json:
                             schema:
