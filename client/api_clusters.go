@@ -423,6 +423,16 @@ func (a *ClustersApiService) DeleteLeaderElection(ctx context.Context, orgId int
 			newErr.model = v
 			return localVarHttpResponse, newErr
 		}
+		if localVarHttpResponse.StatusCode == 404 {
+			var v map[string]interface{}
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarHttpResponse, newErr
+		}
 		if localVarHttpResponse.StatusCode == 500 {
 			var v BaseError500
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))

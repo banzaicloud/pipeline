@@ -5015,6 +5015,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Unauthorized'
           description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderNotFound'
+          description: No leader found
         500:
           content:
             application/json:
@@ -5053,7 +5059,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetLeaderElectionResponse'
-          description: Application successful
+          description: Success
         401:
           content:
             application/json:
