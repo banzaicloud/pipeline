@@ -72,7 +72,9 @@ func (a *API) DeleteLeaderElection(c *gin.Context) {
 	status := http.StatusOK
 
 	err := a.leaderRepository.DeleteLeader(cluster.GetOrganizationId(), cluster.GetID())
-	if err != nil {
+	if isLeaderNotFound(err) {
+		status = http.StatusNotFound
+	} else if err != nil {
 		status = http.StatusInternalServerError
 	}
 

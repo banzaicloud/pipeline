@@ -116,9 +116,15 @@ func (r VaultLeaderRepository) SetLeader(organizationID, clusterID uint, leaderI
 
 func (r VaultLeaderRepository) DeleteLeader(organizationID, clusterID uint) error {
 	path := getMetadataPath(organizationID, clusterID)
-	_, err := r.logical.Delete(path)
+	secret, err := r.logical.Delete(path)
 
-	return err
+	if secret == nil && err == nil {
+		return leaderNotFound{
+			path: path,
+		}
+	}
+
+	return emperror.Wrap(err, "failed to delete leader from repository")
 }
 
 func getSecretPath(organizationID, clusterID uint) string {

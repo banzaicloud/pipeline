@@ -4924,6 +4924,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: No leader found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LeaderNotFound'
                 '500':
                     description: Internal server error
                     content:
