@@ -782,6 +782,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 	for _, nodePool := range c.model.NodePools {
 		if nodePool.Name == nodePoolName {
 			np = &nodePool
+			break
 		}
 	}
 
