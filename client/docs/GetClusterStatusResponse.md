@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **Name** | **string** |  | [optional] 
 **Cloud** | **string** |  | [optional] 
 **Distribution** | **string** |  | [optional] 
+**Version** | **string** |  | [optional] 
 **Spot** | **bool** |  | [optional] 
 **Location** | **string** |  | [optional] 
 **Id** | **int32** |  | [optional] 

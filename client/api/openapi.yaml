@@ -9342,6 +9342,7 @@ components:
         ttlMinutes: 120
         distribution: gke
         monitoring: true
+        version: 1.12.6-gke.10
         statusMessage: Cluster is running
         cloud: google
         createdAt: 2018-07-03T14:23:19+02:00
@@ -9372,6 +9373,9 @@ components:
           type: string
         distribution:
           example: gke
+          type: string
+        version:
+          example: 1.12.6-gke.10
           type: string
         spot:
           type: boolean

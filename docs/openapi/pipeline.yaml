@@ -8424,6 +8424,9 @@ components:
                 distribution:
                     type: string
                     example: "gke"
+                version:
+                    type: string
+                    example: "1.12.6-gke.10"
                 spot:
                     type: boolean
                     example: false
