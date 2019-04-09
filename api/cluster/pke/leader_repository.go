@@ -61,7 +61,7 @@ func NewVaultLeaderRepositoryFromClient(client *vault.Client) VaultLeaderReposit
 }
 
 // GetLeader returns information about the leader of the specified cluster
-func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leaderInfo *LeaderInfo, err error) {
+func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leaderInfo LeaderInfo, err error) {
 	path := getSecretPath(organizationID, clusterID)
 
 	secret, err := r.logical.Read(path)
@@ -71,6 +71,9 @@ func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leader
 
 	if secret == nil {
 		// secret not found
+		err = leaderNotFound{
+			path: path,
+		}
 		return
 	}
 
@@ -79,7 +82,7 @@ func (r VaultLeaderRepository) GetLeader(organizationID, clusterID uint) (leader
 		return
 	}
 
-	leaderInfo = &LeaderInfo{
+	leaderInfo = LeaderInfo{
 		Hostname: lsd.Hostname,
 		IP:       lsd.IP,
 	}
@@ -133,5 +136,17 @@ func (leaderSetError) Error() string {
 }
 
 func (leaderSetError) LeaderSet() bool {
+	return true
+}
+
+type leaderNotFound struct {
+	path string
+}
+
+func (e leaderNotFound) Error() string {
+	return fmt.Sprintf("No leader found with path %s", e.path)
+}
+
+func (leaderNotFound) LeaderNotFound() bool {
 	return true
 }

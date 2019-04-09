@@ -33,7 +33,7 @@ type LeaderInfo struct {
 }
 
 type LeaderRepository interface {
-	GetLeader(organizationID, clusterID uint) (*LeaderInfo, error)
+	GetLeader(organizationID, clusterID uint) (LeaderInfo, error)
 	SetLeader(organizationID, clusterID uint, leaderInfo LeaderInfo) error
 	DeleteLeader(organizationID, clusterID uint) error
 }

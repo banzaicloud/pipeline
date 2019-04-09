@@ -41,17 +41,17 @@ func (a *API) GetLeaderElection(c *gin.Context) {
 	}
 
 	leaderInfo, err := a.leaderRepository.GetLeader(cluster.GetOrganizationId(), cluster.GetID())
+	if isLeaderNotFound(err) {
+		c.JSON(http.StatusNotFound, nil)
+		return
+	}
+
 	if err != nil {
 		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "failed to get leader",
 			Error:   err.Error(),
 		})
-		return
-	}
-
-	if leaderInfo == nil {
-		c.JSON(http.StatusNotFound, nil)
 		return
 	}
 
@@ -97,14 +97,14 @@ func (a *API) PostLeaderElection(c *gin.Context) {
 		return
 	}
 
-	leaderInfo := &LeaderInfo{
+	leaderInfo := LeaderInfo{
 		Hostname: req.Hostname,
 		IP:       req.IP,
 	}
 
 	status := http.StatusCreated
 
-	if err := a.leaderRepository.SetLeader(cluster.GetOrganizationId(), cluster.GetID(), *leaderInfo); err != nil {
+	if err := a.leaderRepository.SetLeader(cluster.GetOrganizationId(), cluster.GetID(), leaderInfo); err != nil {
 		if !isLeaderSet(err) {
 			ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
 				Code:    http.StatusInternalServerError,
@@ -141,6 +141,19 @@ func isLeaderSet(err error) bool {
 	err = errors.Cause(err)
 	if e, ok := err.(leaderSetter); ok {
 		return e.LeaderSet()
+	}
+
+	return false
+}
+
+func isLeaderNotFound(err error) bool {
+	type leaderNotFounder interface {
+		LeaderNotFound() bool
+	}
+
+	err = errors.Cause(err)
+	if e, ok := err.(leaderNotFounder); ok {
+		return e.LeaderNotFound()
 	}
 
 	return false
