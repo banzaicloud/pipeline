@@ -14,20 +14,106 @@
 
 package workflow
 
+import (
+	"context"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/goph/emperror"
+	"go.uber.org/cadence/activity"
+)
+
+// CreateVnetActivityName is the default registration name of the activity
 const CreateVnetActivityName = "pke-azure-create-vnet"
 
+// CreateVnetActivity represents an activity for creating an Azure virtual network
 type CreateVnetActivity struct {
 	azureClientFactory *AzureClientFactory
 }
 
+// NewCreateVnetActivity returns a new CreateVnetActivity
 func NewCreateVnetActivity(azureClientFactory *AzureClientFactory) *CreateVnetActivity {
 	return &CreateVnetActivity{
 		azureClientFactory: azureClientFactory,
 	}
 }
 
+// CreateVnetActivityInput represents the input needed for executing a CreateVnetActivity
 type CreateVnetActivityInput struct {
 	Name     string
 	CIDR     string
 	Location string
+
+	ResourceGroupName string
+	OrganizationID    uint
+	SecretID          string
+}
+
+// Execute performs the activity
+func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivityInput) error {
+	logger := activity.GetLogger(ctx).Sugar().With(
+		"organization", input.OrganizationID,
+		"secret", input.SecretID,
+		"resourceGroup", input.ResourceGroupName,
+		"networkName", input.Name,
+		"networkLocation", input.Location,
+	)
+
+	keyvals := []interface{}{
+		"resourceGroup", input.ResourceGroupName,
+		"networkName", input.Name,
+	}
+
+	logger.Info("create virtual network")
+
+	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to create cloud connection")
+	}
+
+	tags := map[string]string{
+		"creator": "banzai-pipeline",
+	}
+
+	vnTags := resourceTags(tags)
+
+	cidrs := []string{input.CIDR}
+
+	vnParams := network.VirtualNetwork{
+		Location: &input.Location,
+		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
+			AddressSpace: &network.AddressSpace{
+				AddressPrefixes: &cidrs,
+			},
+		},
+		Tags: vnTags,
+	}
+
+	logger.Debug("sending request to create or update virtual network")
+
+	client := cc.GetVirtualNetworksClient()
+
+	createOrUpdateFuture, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.Name, vnParams)
+	if err != nil {
+		return emperror.WrapWith(err, "sending request to create or update virtual network failed", keyvals...)
+	}
+
+	logger.Debug("waiting for the completion of create or update virtual network operation")
+
+	err = createOrUpdateFuture.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return emperror.WrapWith(err, "waiting for the completion of create or update virtual network operation failed", keyvals...)
+	}
+
+	return nil
+}
+
+// resourceTags converts map[string]string to map[string]*string
+func resourceTags(tags map[string]string) map[string]*string {
+	azTags := make(map[string]*string, len(tags))
+	for k, v := range tags {
+		v := v
+		azTags[k] = &v
+	}
+
+	return azTags
 }

@@ -135,6 +135,7 @@ func main() {
 		auth.InitTokenStore()
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
+		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
 
 		clusterSecretStore := clustersecret.NewStore(
 			clustersecretadapter.NewClusterManagerAdapter(clusterManager),
@@ -148,7 +149,7 @@ func main() {
 		registerAwsWorkflows(clusters, tokenGenerator)
 
 		// Register azure specific workflows
-		registerAzureWorkflows()
+		registerAzureWorkflows(secretStore)
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})

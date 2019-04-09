@@ -21,25 +21,16 @@ import (
 	"github.com/goph/emperror"
 )
 
-type AzureActivityInput struct {
-	OrganizationID uint
-	SecretID       string
-	Region         string
-}
-
-// AWSClientFactory creates a new AWS client.
 type AzureClientFactory struct {
-	secrets pkeworkflow.SecretStore
+	secretStore pkeworkflow.SecretStore
 }
 
-// NewAWSClientFactory returns a new AWS client factory.
-func NewAzureClientFactory(secrets pkeworkflow.SecretStore) *AzureClientFactory {
-	return &AzureClientFactory{secrets: secrets}
+func NewAzureClientFactory(secretStore pkeworkflow.SecretStore) *AzureClientFactory {
+	return &AzureClientFactory{secretStore: secretStore}
 }
 
-// New creates a new AWS client.
 func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzure.CloudConnection, error) {
-	s, err := f.secrets.GetSecret(organizationID, secretID)
+	s, err := f.secretStore.GetSecret(organizationID, secretID)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get AWS secret")
 	}

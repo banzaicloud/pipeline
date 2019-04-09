@@ -21,13 +21,14 @@ import (
 	"go.uber.org/cadence/workflow"
 )
 
-func registerAzureWorkflows(secrets pkeworkflow.SecretStore) {
+func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 
 	// Azure PKE
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateInfraWorkflowName})
 
 	azureClientFactory := azurepkeworkflow.NewAzureClientFactory(secrets)
+
 	createVnetActivity := azurepkeworkflow.NewCreateVnetActivity(azureClientFactory)
 	activity.RegisterWithOptions(createVnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVnetActivityName})
 
