@@ -12,24 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkeworkflowadapter
+package workflow
 
-type tokenHandler interface {
-	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
+const CreateVnetActivityName = "pke-azure-create-vnet"
+
+type CreateVnetActivity struct {
+	azureClientFactory *AzureClientFactory
 }
 
-// ClusterManagerAdapter provides an adapter for pkeworkflow.Clusters.
-type TokenGenerator struct {
-	tokenHandler tokenHandler
-}
-
-// NewClusterManagerAdapter creates a new ClusterManagerAdapter.
-func NewTokenGenerator(tokenHandler tokenHandler) *TokenGenerator {
-	return &TokenGenerator{
-		tokenHandler: tokenHandler,
+func NewCreateVnetActivity(azureClientFactory *AzureClientFactory) *CreateVnetActivity {
+	return &CreateVnetActivity{
+		azureClientFactory: azureClientFactory,
 	}
 }
 
-func (g *TokenGenerator) GenerateClusterToken(orgID, clusterID uint) (string, string, error) {
-	return g.tokenHandler.GenerateClusterToken(orgID, clusterID)
+type CreateVnetActivityInput struct {
+	Name     string
+	CIDR     string
+	Location string
 }

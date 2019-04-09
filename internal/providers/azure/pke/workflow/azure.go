@@ -1,0 +1,58 @@
+// Copyright © 2019 Banzai Cloud
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package workflow
+
+import (
+	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
+	"github.com/goph/emperror"
+)
+
+type AzureActivityInput struct {
+	OrganizationID uint
+	SecretID       string
+	Region         string
+}
+
+// AWSClientFactory creates a new AWS client.
+type AzureClientFactory struct {
+	secrets pkeworkflow.SecretStore
+}
+
+// NewAWSClientFactory returns a new AWS client factory.
+func NewAzureClientFactory(secrets pkeworkflow.SecretStore) *AzureClientFactory {
+	return &AzureClientFactory{secrets: secrets}
+}
+
+// New creates a new AWS client.
+func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzure.CloudConnection, error) {
+	s, err := f.secrets.GetSecret(organizationID, secretID)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to get AWS secret")
+	}
+
+	err = s.ValidateSecretType(pkgAzure.Provider)
+	if err != nil {
+		return nil, err
+	}
+
+	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(s.GetValues()))
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to create cloud connection")
+	}
+
+	return cc, nil
+}
