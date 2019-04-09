@@ -69,9 +69,7 @@ func (a *CreateACKNodePoolAction) ExecuteAction(input interface{}) (interface{},
 	defer close(instanceIdsChan)
 
 	for _, nodePool := range a.nodePools {
-		// TODO: run node pool creation in parallel once Alibaba ESS API permits running multiple CreateScalingGroupRequest in parallel
-		// TODO: Currently running multiple CreateScalingGroupRequest in parallel may fail with throttling error
-		createNodePool(a.log, nodePool, a.context.ESSClient, cluster, instanceIdsChan, errChan)
+		go createNodePool(a.log, nodePool, a.context.ESSClient, cluster, instanceIdsChan, errChan)
 	}
 
 	caughtErrors := emperror.NewMultiErrorBuilder()
