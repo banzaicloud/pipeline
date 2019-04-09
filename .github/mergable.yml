@@ -4,7 +4,7 @@ mergeable:
     validate:
       - do: title
         must_exclude:
-          regex: '^(\[[wW][iI][pP]\]|[wW][iI][pP]:)'
+          regex: '^(\[wip\]|wip:)'
           message: 'WIP tag in PR title'
       - do: label
         must_exclude:
