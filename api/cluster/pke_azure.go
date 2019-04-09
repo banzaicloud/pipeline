@@ -50,12 +50,12 @@ type AzureNetwork struct {
 }
 
 type CreatePKEOnAzureClusterRequest struct {
-	CreateClusterRequestBase
-	Location      string          `json:"location"`
-	ResourceGroup string          `json:"resourceGroup"`
-	NodePools     []AzureNodePool `json:"nodepools,omitempty" binding:"required"`
-	Kubernetes    Kubernetes      `json:"kubernetes,omitempty" binding:"required"`
-	Network       AzureNetwork    `json:"network"`
+	CreateClusterRequestBase `json:",squash"`
+	Location                 string          `json:"location"`
+	ResourceGroup            string          `json:"resourceGroup"`
+	NodePools                []AzureNodePool `json:"nodepools,omitempty" binding:"required"`
+	Kubernetes               Kubernetes      `json:"kubernetes,omitempty" binding:"required"`
+	Network                  AzureNetwork    `json:"network"`
 }
 
 func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.AzurePKEClusterCreationParams {
