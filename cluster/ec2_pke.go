@@ -330,6 +330,9 @@ func (c *EC2ClusterPKE) CreatePKECluster(tokenGenerator TokenGenerator, external
 // HasK8sConfig returns true if the cluster's k8s config is available
 func (c *EC2ClusterPKE) HasK8sConfig() (bool, error) {
 	cfg, err := c.GetK8sConfig()
+	if err == ErrConfigNotExists {
+		return false, nil
+	}
 	return len(cfg) > 0, emperror.Wrap(err, "failed to check if k8s config is available")
 }
 
@@ -775,19 +778,32 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
 func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (string, error) {
 	subcommand := "worker"
-	var np internalPke.NodePool
-	for _, np = range c.model.NodePools {
-		if np.Name == nodePoolName {
-			for _, role := range np.Roles {
-				if role == internalPke.RoleMaster {
-					subcommand = "master"
-					break
-				}
-			}
+	var np *internalPke.NodePool
+	for _, nodePool := range c.model.NodePools {
+		if nodePool.Name == nodePoolName {
+			np = &nodePool
+			break
+		}
+	}
+
+	if np == nil {
+		return "", errors.New(fmt.Sprintf("can't find nodepool %q", nodePoolName))
+	}
+
+	for _, role := range np.Roles {
+		if role == internalPke.RoleMaster {
+			subcommand = "master"
+			break
 		}
 	}
 	if nodePoolName == "master" {
-		subcommand = "master"
+		subcommand = "master" // TODO remove this if not needed anymore
+	}
+
+	providerConfig := internalPke.NodePoolProviderConfigAmazon{}
+	err := mapstructure.Decode(np.ProviderConfig, &providerConfig)
+	if err != nil {
+		return "", emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 	}
 
 	version := c.model.Kubernetes.Version
@@ -841,6 +857,11 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 
 	// master
 	if subcommand == "master" {
+		masterMode := "default"
+		if providerConfig.AutoScalingGroup.Size.Max > 1 {
+			masterMode = "ha"
+		}
+
 		command := fmt.Sprintf("pke install %s "+
 			"--pipeline-url=%q "+
 			"--pipeline-token=%q "+
@@ -854,7 +875,9 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--kubernetes-pod-network-cidr=10.20.0.0/16 "+
 			"--kubernetes-infrastructure-cidr=%q "+
 			"--kubernetes-api-server=%q "+
-			"--kubernetes-cluster-name=%q",
+			"--kubernetes-cluster-name=%q "+
+			"--kubernetes-master-mode=%q "+
+			"--kubernetes-advertise-address=0.0.0.0:6443",
 			subcommand,
 			url,
 			token,
@@ -865,6 +888,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			infrastructureCIDR,
 			apiAddress,
 			c.GetName(),
+			masterMode,
 		)
 
 		if c.model.DexEnabled {

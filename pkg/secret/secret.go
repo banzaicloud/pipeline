@@ -116,6 +116,11 @@ const (
 	FrontProxyCACert = "frontProxyCaCert"
 	FrontProxyCAKey  = "frontProxyCaKey"
 
+	SAPub = "saPub"
+	SAKey = "saKey"
+
+	EncryptionSecret = "enc"
+
 	// some useful helpers
 	KubernetesCACommonName           = "kubernetes-ca"
 	EtcdCACommonName                 = "etcd-ca"
@@ -265,6 +270,9 @@ var DefaultRules = map[string]Meta{
 
 			{Name: FrontProxyCACert, Required: false},
 			{Name: FrontProxyCAKey, Required: false},
+
+			{Name: SAPub, Required: false},
+			{Name: SAKey, Required: false},
 		},
 		Sourcing: Volume,
 	},

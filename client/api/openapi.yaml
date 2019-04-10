@@ -4985,6 +4985,104 @@ paths:
       tags:
       - imagescan
   /api/v1/orgs/{orgId}/clusters/{id}/pke/leader:
+    delete:
+      operationId: DeleteLeaderElection
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: Leader deletion successful
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderNotFound'
+          description: No leader found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Delete cluster leader
+      tags:
+      - clusters
+    get:
+      operationId: GetLeaderElection
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetLeaderElectionResponse'
+          description: Success
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderNotFound'
+          description: No leader found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Query cluster leader
+      tags:
+      - clusters
     post:
       operationId: PostLeaderElection
       parameters:
@@ -7716,6 +7814,8 @@ components:
           example: repo not found
           type: string
       type: object
+    LeaderNotFound:
+      type: object
     ClusterConfig:
       example:
         data: |-
@@ -8419,7 +8519,6 @@ components:
           format: base64
           type: string
         values:
-          additionalProperties: true
           description: current values of the deployment
           example:
             metrics:
@@ -11884,6 +11983,20 @@ components:
         error:
           example: record not found
           type: string
+      type: object
+    GetLeaderElectionResponse:
+      example:
+        hostname: node-0.my.cloud.com
+        ip: 10.20.30.40
+      properties:
+        hostname:
+          example: node-0.my.cloud.com
+          type: string
+        ip:
+          example: 10.20.30.40
+          type: string
+      required:
+      - hostname
       type: object
     CreateEKSProperties_eks:
       properties:
