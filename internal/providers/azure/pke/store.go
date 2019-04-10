@@ -35,4 +35,5 @@ type AzurePKEClusterStore interface {
 	Create(params CreateParams) (PKEOnAzureCluster, error)
 	GetByID(clusterID uint) (PKEOnAzureCluster, error)
 	SetStatus(clusterID uint, status, message string) error
+	SetActiveWorkflowID(clusterID uint, workflowID string) error
 }

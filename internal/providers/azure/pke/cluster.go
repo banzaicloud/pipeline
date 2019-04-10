@@ -51,8 +51,13 @@ type NodePool struct {
 type PKEOnAzureCluster struct {
 	intCluster.ClusterBase
 
-	Location       string
-	NodePools      []NodePool
-	ResourceGroup  ResourceGroup
-	VirtualNetwork VirtualNetwork
+	Location         string
+	NodePools        []NodePool
+	ResourceGroup    ResourceGroup
+	VirtualNetwork   VirtualNetwork
+	ActiveWorkflowID string
+}
+
+func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
+	return c.ActiveWorkflowID != ""
 }

@@ -74,6 +74,8 @@ type gormAzurePKEClusterModel struct {
 	VirtualNetworkLocation string
 	VirtualNetworkName     string
 
+	ActiveWorkflowID string
+
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID"`
 }
@@ -156,6 +158,8 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 
 	cluster.VirtualNetwork.Name = model.VirtualNetworkName
 	cluster.VirtualNetwork.Location = model.VirtualNetworkLocation
+
+	cluster.ActiveWorkflowID = model.ActiveWorkflowID
 }
 
 func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAzureCluster, err error) {
@@ -253,4 +257,11 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 	}
 
 	return nil
+}
+
+func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
+	model := gormAzurePKEClusterModel{
+		ClusterID: clusterID,
+	}
+	return emperror.Wrap(s.db.Model(&model).Update("ActiveWorkflowID", workflowID).Error, "failed to update PKE-on-Azure cluster model")
 }

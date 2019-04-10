@@ -123,7 +123,15 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
 	}
 
-	_, err = cc.workflowClient.ExecuteWorkflow(ctx, workflowOptions, workflow.CreateClusterWorkflowName, input)
+	wfexec, err := cc.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateClusterWorkflowName, input)
+	if err != nil {
+		return
+	}
+
+	err = cc.store.SetActiveWorkflowID(cl.ID, wfexec.ID)
+	if err != nil {
+		return
+	}
 
 	return
 }
