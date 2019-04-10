@@ -27,9 +27,9 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateInfraWorkflowName})
 
-	azureClientFactory := azurepkeworkflow.NewAzureClientFactory(secrets)
+	azureClientFactory := azurepkeworkflow.NewAzureClientFactory(secretStore)
 
-	createVnetActivity := azurepkeworkflow.NewCreateVnetActivity(azureClientFactory)
+	createVnetActivity := azurepkeworkflow.MakeCreateVnetActivity(azureClientFactory)
 	activity.RegisterWithOptions(createVnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVnetActivityName})
 
 }

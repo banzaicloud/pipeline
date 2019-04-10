@@ -23,6 +23,9 @@ import (
 const CreateInfraWorkflowName = "pke-azure-create-infra"
 
 type CreateAzureInfrastructureWorkflowInput struct {
+	OrganizationID    uint
+	SecretID          string
+	ResourceGroupName string
 }
 
 func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrastructureWorkflowInput) error {
@@ -38,9 +41,12 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	// Create VNET
 	{
 		activityInput := CreateVnetActivityInput{
-			Name:     "",
-			CIDR:     "",
-			Location: "",
+			Name:              "",
+			CIDR:              "",
+			Location:          "",
+			ResourceGroupName: input.ResourceGroupName,
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateVnetActivityName, activityInput).Get(ctx, nil)

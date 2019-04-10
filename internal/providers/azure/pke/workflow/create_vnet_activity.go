@@ -30,11 +30,17 @@ type CreateVnetActivity struct {
 	azureClientFactory *AzureClientFactory
 }
 
-// NewCreateVnetActivity returns a new CreateVnetActivity
-func NewCreateVnetActivity(azureClientFactory *AzureClientFactory) *CreateVnetActivity {
-	return &CreateVnetActivity{
+// MakeCreateVnetActivity returns a new CreateVnetActivity
+func MakeCreateVnetActivity(azureClientFactory *AzureClientFactory) CreateVnetActivity {
+	return CreateVnetActivity{
 		azureClientFactory: azureClientFactory,
 	}
+}
+
+// NewCreateVnetActivity returns a new CreateVnetActivity
+func NewCreateVnetActivity(azureClientFactory *AzureClientFactory) *CreateVnetActivity {
+	a := MakeCreateVnetActivity(azureClientFactory)
+	return &a
 }
 
 // CreateVnetActivityInput represents the input needed for executing a CreateVnetActivity
@@ -70,36 +76,34 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 		return emperror.Wrap(err, "failed to create cloud connection")
 	}
 
-	tags := map[string]string{
+	tags := resourceTags(map[string]string{
 		"creator": "banzai-pipeline",
-	}
-
-	vnTags := resourceTags(tags)
+	})
 
 	cidrs := []string{input.CIDR}
 
-	vnParams := network.VirtualNetwork{
+	params := network.VirtualNetwork{
 		Location: &input.Location,
 		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 			AddressSpace: &network.AddressSpace{
 				AddressPrefixes: &cidrs,
 			},
 		},
-		Tags: vnTags,
+		Tags: tags,
 	}
 
 	logger.Debug("sending request to create or update virtual network")
 
 	client := cc.GetVirtualNetworksClient()
 
-	createOrUpdateFuture, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.Name, vnParams)
+	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.Name, params)
 	if err != nil {
 		return emperror.WrapWith(err, "sending request to create or update virtual network failed", keyvals...)
 	}
 
 	logger.Debug("waiting for the completion of create or update virtual network operation")
 
-	err = createOrUpdateFuture.WaitForCompletionRef(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return emperror.WrapWith(err, "waiting for the completion of create or update virtual network operation failed", keyvals...)
 	}
