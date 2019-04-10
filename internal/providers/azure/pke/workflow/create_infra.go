@@ -54,7 +54,23 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			return err
 		}
 	}
+
 	// Create Subnet
+	{
+		activityInput := CreateSubnetActivityInput{
+			Name:               "",
+			CIDR:               "",
+			VirtualNetworkName: "",
+			ResourceGroupName:  input.ResourceGroupName,
+			OrganizationID:     input.OrganizationID,
+			SecretID:           input.SecretID,
+		}
+
+		err := workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
 	// CreateNetworkSecurity Group
 
