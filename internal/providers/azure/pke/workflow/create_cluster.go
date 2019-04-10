@@ -15,6 +15,8 @@
 package workflow
 
 import (
+	"time"
+
 	"go.uber.org/cadence/workflow"
 )
 
@@ -31,6 +33,18 @@ type CreateClusterWorkflowInput struct {
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
+
+	cwo := workflow.ChildWorkflowOptions{
+		ExecutionStartToCloseTimeout: time.Minute,
+	}
+	ctx = workflow.WithChildOptions(ctx, cwo)
+
+	// TODO fill input
+	infraInput := CreateAzureInfrastructureWorkflowInput{}
+	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
