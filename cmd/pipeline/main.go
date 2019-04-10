@@ -249,6 +249,8 @@ func main() {
 		),
 	})
 
+	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, log, errorHandler)
+
 	//Initialise Gin router
 	router := gin.New()
 
@@ -419,8 +421,8 @@ func main() {
 
 			clusters := orgs.Group("/:orgid/clusters/:id")
 
-			clusters.GET("/nodepools/labels", api.GetNodepoolLabelSets)
-			clusters.POST("/nodepools/labels", api.SetNodepoolLabelSets)
+			clusters.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
+			clusters.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
 
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
