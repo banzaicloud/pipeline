@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Network Load Balancer for Banzai Cloud Pipeline Kubernetes Engine'
+Parameters:
+  ClusterName:
+    Description: PKE Cluster name
+    Type: String
+  VPCId:
+    Type: 'AWS::EC2::VPC::Id'
+    Description: ID of the VPC the NLB target group is created in
+  SubnetIds:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: Specify Subnet Ids for the NLB
+
+Resources:
+
+  MasterNLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Join ["", ["pke-", !Ref ClusterName, "-nlb"]]
+      Subnets: !Ref SubnetIds
+      Tags:
+        - Key: ClusterName
+          Value: !Ref ClusterName
+      Type: network
+
+  MasterTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Join ["", ["pke-", !Ref ClusterName, "-tg"]]
+      Port: 6443
+      Protocol: TCP
+      Tags:
+      - Key: ClusterName
+        Value: !Ref ClusterName
+      VpcId: !Ref VPCId
+      HealthyThresholdCount: 2 # Member must have value greater than or equal to 2
+      UnhealthyThresholdCount: 2  # Health check healthy threshold and unhealthy threshold must be the same for target groups with the TCP protocol
+
+  NLBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref MasterTargetGroup
+      LoadBalancerArn: !Ref MasterNLB
+      Port: 6443
+      Protocol: TCP
+
+Outputs:
+  TargetGroup:
+    Description: 'ID of the created TargetGroup'
+    Value: !Ref MasterTargetGroup
+  DNSName:
+    Description: 'DNS name of the created NLB'
+    Value: !GetAtt MasterNLB.DNSName

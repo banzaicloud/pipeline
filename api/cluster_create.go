@@ -36,17 +36,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (a *ClusterAPI) parseRequest(ctx *gin.Context, body map[string]interface{}, req interface{}) bool {
+func decodeRequest(input map[string]interface{}, output interface{}) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  req,
+		Result:  output,
 		TagName: "json",
 	})
 
-	if err == nil {
-		err = decoder.Decode(body)
+	if err != nil {
+		return err
 	}
 
-	if err != nil {
+	return decoder.Decode(input)
+}
+
+func (a *ClusterAPI) parseRequest(ctx *gin.Context, body map[string]interface{}, req interface{}) bool {
+	if err := decodeRequest(body, req); err != nil {
 		err = emperror.Wrapf(err, "failed to parse request into %T", req)
 
 		a.errorHandler.Handle(err)

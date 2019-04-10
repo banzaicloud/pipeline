@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **Status** | **string** |  | [optional] 
 **CreatedAt** | **string** |  | [optional] 
 **Notes** | **string** | deployment notes in base64 encoded format | [optional] 
-**Values** | [**map[string]map[string]interface{}**](map[string]interface{}.md) | current values of the deployment | [optional] 
+**Values** | [**map[string]interface{}**](.md) | current values of the deployment | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

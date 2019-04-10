@@ -15,8 +15,13 @@
 package secret
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"sort"
 	"strconv"
@@ -35,6 +40,12 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"k8s.io/apimachinery/pkg/util/validation"
+)
+
+const (
+	rsaKeySize             = 2048
+	RSAPrivateKeyBlockType = "RSA PRIVATE KEY"
+	PublicKeyBlockType     = "PUBLIC KEY"
 )
 
 // Store object that wraps up vault logical store
@@ -727,6 +738,20 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 			return err
 		}
 
+		// Service Account key-pair
+		saPub, saPriv, err := generateSAKeyPair(clusterID)
+		if err != nil {
+			return err
+		}
+
+		// Encryption Secret
+		var rnd = make([]byte, 32)
+		_, err = rand.Read(rnd)
+		if err != nil {
+			return err
+		}
+		encryptionSecret := base64.StdEncoding.EncodeToString(rnd)
+
 		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA.Key
 		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
 		value.Values[secretTypes.KubernetesCASigningCert] = kubernetesCA.Cert
@@ -734,6 +759,9 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert + "\n" + ca
 		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA.Key
 		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert + "\n" + ca
+		value.Values[secretTypes.SAPub] = saPub
+		value.Values[secretTypes.SAKey] = saPriv
+		value.Values[secretTypes.EncryptionSecret] = encryptionSecret
 	}
 
 	return nil
@@ -816,4 +844,39 @@ func getClusterIDFromTags(tags []string) string {
 
 func clusterPKIPath(organizationID uint, clusterID string) string {
 	return fmt.Sprintf("clusters/%d/%s/pki", organizationID, clusterID)
+}
+
+func generateSAKeyPair(clusterID string) (pub, priv string, err error) {
+	pk, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
+	if err != nil {
+		return "", "", errors.Wrapf(err, "Error generating SA key pair for cluster %s, generate key failed", clusterID)
+	}
+
+	saPub, err := encodePublicKeyPEM(&pk.PublicKey)
+	if err != nil {
+		return "", "", errors.Wrapf(err, "Error generating SA key pair for cluster %s, encode public key failed", clusterID)
+	}
+	saPriv := encodePrivateKeyPEM(pk)
+
+	return string(saPub), string(saPriv), nil
+}
+
+func encodePublicKeyPEM(key *rsa.PublicKey) ([]byte, error) {
+	der, err := x509.MarshalPKIXPublicKey(key)
+	if err != nil {
+		return []byte{}, err
+	}
+	block := pem.Block{
+		Type:  PublicKeyBlockType,
+		Bytes: der,
+	}
+	return pem.EncodeToMemory(&block), nil
+}
+
+func encodePrivateKeyPEM(key *rsa.PrivateKey) []byte {
+	block := pem.Block{
+		Type:  RSAPrivateKeyBlockType,
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}
+	return pem.EncodeToMemory(&block)
 }
