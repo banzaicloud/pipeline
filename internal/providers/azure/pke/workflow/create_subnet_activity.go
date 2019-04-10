@@ -39,8 +39,9 @@ func MakeCreateSubnetActivity(azureClientFactory *AzureClientFactory) CreateSubn
 
 // CreateSubnetActivityInput represents the input needed for executing a CreateSubnetActivity
 type CreateSubnetActivityInput struct {
-	Name string
-	CIDR string
+	Name                   string
+	CIDR                   string
+	NetworkSecurityGroupID string
 
 	VirtualNetworkName string
 	ResourceGroupName  string
@@ -76,6 +77,9 @@ func (a CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAct
 	params := network.Subnet{
 		SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
 			AddressPrefix: &input.CIDR,
+			NetworkSecurityGroup: &network.SecurityGroup{
+				ID: &input.NetworkSecurityGroupID,
+			},
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.VirtualNetworkName, input.Name, params)

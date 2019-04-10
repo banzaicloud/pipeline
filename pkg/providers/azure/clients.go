@@ -205,6 +205,20 @@ func (cc *CloudConnection) GetRoleDefinitionsClient() *RoleDefinitionsClient {
 	}
 }
 
+// SecurityGroupsClient extends network.SecurityGroupsClient
+type SecurityGroupsClient struct {
+	network.SecurityGroupsClient
+}
+
+// GetSecurityGroupsClient returns a SecurityGroupsClient instance
+func (cc *CloudConnection) GetSecurityGroupsClient() *SecurityGroupsClient {
+	return &SecurityGroupsClient{
+		network.SecurityGroupsClient{
+			BaseClient: *cc.getNetworkBaseClient(),
+		},
+	}
+}
+
 // SubnetsClient extends network.SubnetsClient
 type SubnetsClient struct {
 	network.SubnetsClient

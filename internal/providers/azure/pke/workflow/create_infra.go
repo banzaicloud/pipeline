@@ -55,15 +55,33 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
+	// CreateNetworkSecurity Group
+	var nsgID string
+	{
+		activityInput := CreateNSGActivityInput{
+			Name:              "",
+			Location:          "",
+			Rules:             nil,
+			ResourceGroupName: input.ResourceGroupName,
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+		}
+		err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &nsgID)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Create Subnet
 	{
 		activityInput := CreateSubnetActivityInput{
-			Name:               "",
-			CIDR:               "",
-			VirtualNetworkName: "",
-			ResourceGroupName:  input.ResourceGroupName,
-			OrganizationID:     input.OrganizationID,
-			SecretID:           input.SecretID,
+			Name:                   "",
+			CIDR:                   "",
+			NetworkSecurityGroupID: nsgID,
+			VirtualNetworkName:     "",
+			ResourceGroupName:      input.ResourceGroupName,
+			OrganizationID:         input.OrganizationID,
+			SecretID:               input.SecretID,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput).Get(ctx, nil)
@@ -71,8 +89,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			return err
 		}
 	}
-
-	// CreateNetworkSecurity Group
 
 	// Create BasicLoadbalancer
 
