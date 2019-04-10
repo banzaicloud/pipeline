@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 jobs:
     build:
@@ -172,3 +172,9 @@ jobs:
             -
                 store_artifacts:
                     path: build/
+
+workflows:
+    version: 2
+    ci:
+        jobs:
+            - build
