@@ -45,19 +45,31 @@ func NewCreateVnetActivity(azureClientFactory *AzureClientFactory) *CreateVnetAc
 
 // CreateVnetActivityInput represents the input needed for executing a CreateVnetActivity
 type CreateVnetActivityInput struct {
+	VirtualNetwork    VirtualNetwork
+	ResourceGroupName string
+	OrganizationID    uint
+	ClusterName       string
+	SecretID          string
+}
+
+type VirtualNetwork struct {
 	Name     string
 	CIDR     string
 	Location string
+	Subnets  []Subnet
+}
 
-	ResourceGroupName string
-	OrganizationID    uint
-	SecretID          string
+type Subnet struct {
+	Name                   string
+	CIDR                   string
+	NetworkSecurityGroupID string
 }
 
 // Execute performs the activity
 func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivityInput) error {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
+		"cluster", input.ClusterName,
 		"secret", input.SecretID,
 		"resourceGroup", input.ResourceGroupName,
 		"networkName", input.Name,
@@ -76,11 +88,25 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 		return emperror.Wrap(err, "failed to create cloud connection")
 	}
 
-	tags := resourceTags(map[string]string{
-		"creator": "banzai-pipeline",
-	})
-
 	cidrs := []string{input.CIDR}
+
+	subnets := make([]network.Subnet, len(input.Subnets))
+	for i, s := range input.Subnets {
+		subnets[i] = network.Subnet{
+			Name: s.CIDR,
+			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
+				AddressPrefix: &s.CIDR,
+			},
+		}
+		if s.NetworkSecurityGroupID != "" {
+			if subnets[i].NetworkSecurityGroup == nil {
+				subnets[i].NetworkSecurityGroup = new(network.SecurityGroup)
+			}
+			subnets[i].NetworkSecurityGroup.ID = &s.NetworkSecurityGroupID
+		}
+	}
+
+	tags := resourceTags(tagsFrom(getOwnedTag(input.ClusterName)))
 
 	params := network.VirtualNetwork{
 		Location: &input.Location,
@@ -88,6 +114,7 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 			AddressSpace: &network.AddressSpace{
 				AddressPrefixes: &cidrs,
 			},
+			Subnets: &subnets,
 		},
 		Tags: tags,
 	}
@@ -109,15 +136,4 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 	}
 
 	return nil
-}
-
-// resourceTags converts map[string]string to map[string]*string
-func resourceTags(tags map[string]string) map[string]*string {
-	azTags := make(map[string]*string, len(tags))
-	for k, v := range tags {
-		v := v
-		azTags[k] = &v
-	}
-
-	return azTags
 }

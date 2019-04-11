@@ -15,6 +15,8 @@
 package workflow
 
 import (
+	"fmt"
+
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
@@ -46,4 +48,41 @@ func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzur
 	}
 
 	return cc, nil
+}
+
+func getOwnedTag(clusterName string) (string, string) {
+	return fmt.Sprintf("kubernetes.io/cluster/%s", clusterName), "owned"
+}
+
+func getSharedTag(clusterName string) (string, string) {
+	return fmt.Sprintf("kubernetes.io/cluster/%s", clusterName), "shared"
+}
+
+func stringDeref(s *string) {
+	if s != nil {
+		return *s
+	}
+	return ""
+}
+
+// resourceTags converts map[string]string to map[string]*string
+func resourceTags(tags map[string]string) map[string]*string {
+	azTags := make(map[string]*string, len(tags))
+	for k, v := range tags {
+		v := v
+		azTags[k] = &v
+	}
+
+	return azTags
+}
+
+func tagsFrom(key, value string) map[string]string {
+	return map[string]string{
+		key: value,
+	}
+}
+
+func withTag(tags map[string]string, key, value string) map[string]string {
+	tags[key] = value
+	return tags
 }

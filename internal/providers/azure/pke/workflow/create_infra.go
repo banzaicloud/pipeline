@@ -24,6 +24,7 @@ const CreateInfraWorkflowName = "pke-azure-create-infra"
 
 type CreateAzureInfrastructureWorkflowInput struct {
 	OrganizationID    uint
+	ClusterName       string
 	SecretID          string
 	ResourceGroupName string
 }
@@ -38,14 +39,40 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	// Create VNET
+	// Create network security group
+	var nsgID string
 	{
-		activityInput := CreateVnetActivityInput{
+		activityInput := CreateNSGActivityInput{
 			Name:              "",
-			CIDR:              "",
 			Location:          "",
+			Rules:             nil,
 			ResourceGroupName: input.ResourceGroupName,
 			OrganizationID:    input.OrganizationID,
+			ClusterName:       input.ClusterName,
+			SecretID:          input.SecretID,
+		}
+		err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &nsgID)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Create virtual network and subnets
+	{
+		activityInput := CreateVnetActivityInput{
+			Name:     "",
+			CIDR:     "",
+			Location: "",
+			Subnets: []Subnet{
+				{
+					Name:                   "",
+					CIDR:                   "",
+					NetworkSecurityGroupID: nsgID,
+				},
+			},
+			ResourceGroupName: input.ResourceGroupName,
+			OrganizationID:    input.OrganizationID,
+			ClusterName:       input.ClusterName,
 			SecretID:          input.SecretID,
 		}
 
@@ -55,44 +82,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
-	// CreateNetworkSecurity Group
-	var nsgID string
-	{
-		activityInput := CreateNSGActivityInput{
-			Name:              "",
-			Location:          "",
-			Rules:             nil,
-			ResourceGroupName: input.ResourceGroupName,
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-		}
-		err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &nsgID)
-		if err != nil {
-			return err
-		}
-	}
+	// Create basic load balancer
 
-	// Create Subnet
-	{
-		activityInput := CreateSubnetActivityInput{
-			Name:                   "",
-			CIDR:                   "",
-			NetworkSecurityGroupID: nsgID,
-			VirtualNetworkName:     "",
-			ResourceGroupName:      input.ResourceGroupName,
-			OrganizationID:         input.OrganizationID,
-			SecretID:               input.SecretID,
-		}
-
-		err := workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Create BasicLoadbalancer
-
-	// Create ScaleSet
+	// Create scale set
 
 	// Set AssignRolePolicy
 	return nil

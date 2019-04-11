@@ -32,9 +32,6 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 	createVnetActivity := azurepkeworkflow.MakeCreateVnetActivity(azureClientFactory)
 	activity.RegisterWithOptions(createVnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVnetActivityName})
 
-	createSubnetActivity := azurepkeworkflow.MakeCreateSubnetActivity(azureClientFactory)
-	activity.RegisterWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateSubnetActivityName})
-
 	createNSGActivity := azurepkeworkflow.MakeCreateNSGActivity(azureClientFactory)
 	activity.RegisterWithOptions(createNSGActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateNSGActivityName})
 }

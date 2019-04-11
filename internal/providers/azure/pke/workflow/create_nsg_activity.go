@@ -41,15 +41,16 @@ func MakeCreateNSGActivity(azureClientFactory *AzureClientFactory) CreateNSGActi
 type CreateNSGActivityInput struct {
 	Name     string
 	Location string
-	Rules    []NetworkSecurityGroupRule
+	Rules []SecurityRule
 
 	ResourceGroupName string
 	OrganizationID    uint
+	ClusterName string
 	SecretID          string
 }
 
-// NetworkSecurityGroupRule represents a network security group rule
-type NetworkSecurityGroupRule struct {
+// SecurityRule represents a network security rule
+type SecurityRule struct {
 	Name                 string
 	Access               string
 	Description          string
@@ -64,10 +65,11 @@ type NetworkSecurityGroupRule struct {
 
 // Execute performs the activity
 func (a CreateNSGActivity) Execute(ctx context.Context, input CreateNSGActivityInput) (string, error) {
-	result := ""
+	nsgID := ""
 
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
+		"cluster": input.ClusterName,
 		"secret", input.SecretID,
 		"resourceGroup", input.ResourceGroupName,
 		"nsgName", input.Name,
@@ -82,59 +84,59 @@ func (a CreateNSGActivity) Execute(ctx context.Context, input CreateNSGActivityI
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err != nil {
-		return result, emperror.Wrap(err, "failed to create cloud connection")
+		return nsgID, emperror.Wrap(err, "failed to create cloud connection")
+	}
+
+	securityRules := make([]network.SecurityRule, len(input.Rules))
+	for i, r := range input.Rules {
+		securityRules[i] := network.SecurityRule{
+			Name: &r.Name,
+			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
+				Access: network.SecurityRuleAccess(r.Access),
+				Description: &r.Description,
+				DestinationAddressPrefix: &r.Destination,
+				DestinationPortRange: &r.DestinationPortRange,
+				Direction: network.SecurityRuleDirection(r.Direction),
+				Priority: &r.Priority,
+				Protocol: network.SecurityRuleProtocol(r.Protocol),
+				SourceAddressPrefix: &r.Source,
+				SourcePortRange: &r.SourcePortRange,
+			},
+		}
+	}
+
+	tags := resourceTags(tagsFrom(getOwnedTag(input.ClusterName)))
+
+	params := network.SecurityGroup{
+		Location: &input.Location,
+		SecurityGroupPropertiesFormat: network.SecurityGroupPropertiesFormat{
+			SecurityRules: &securityRules,
+		},
+		Tags:     tags,
 	}
 
 	client := cc.GetSecurityGroupsClient()
 
-	tags := resourceTags(map[string]string{
-		"creator": "banzai-pipeline",
-	})
+	logger.Debug("sending request to create or update network security group")
 
-	securityRules := make([]network.SecurityRule, len(input.Rules))
-	for i, r := range input.Rules {
-		securityRules[i] = network.SecurityRule{
-			Name: &r.Name,
-			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
-				Access:                   network.SecurityRuleAccess(r.Access),
-				Description:              &r.Description,
-				DestinationAddressPrefix: &r.Destination,
-				DestinationPortRange:     &r.DestinationPortRange,
-				Direction:                network.SecurityRuleDirection(r.Direction),
-				Priority:                 &r.Priority,
-				Protocol:                 network.SecurityRuleProtocol(r.Protocol),
-				SourceAddressPrefix:      &r.Source,
-				SourcePortRange:          &r.SourcePortRange,
-			},
-		}
-	}
-	params := network.SecurityGroup{
-		Location: &input.Location,
-		SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
-			SecurityRules: &securityRules,
-		},
-		Tags: tags,
-	}
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.Name, params)
 	if err != nil {
-		return result, emperror.WrapWith(err, "sending request to create or update network security group failed", keyvals...)
+		return nsgID, emperror.WrapWith(err, "sending request to create or update network security group failed", keyvals...)
 	}
 
 	logger.Debug("waiting for the completion of create or update network security group operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return result, emperror.WrapWith(err, "waiting for the completion of create or update network security group operation failed", keyvals...)
+		return nsgID, emperror.WrapWith(err, "waiting for the completion of create or update network security group operation failed", keyvals...)
 	}
 
 	nsg, err := future.Result(client.SecurityGroupsClient)
 	if err != nil {
-		return result, emperror.WrapWith(err, "getting network security group create or update result failed", keyvals...)
+		return nsgID, emperror.WrapWith(err, "getting network security group create or update result failed", keyvals...)
 	}
 
-	if nsg.ID != nil {
-		result = *nsg.ID
-	}
+	nsgID = stringDeref(nsg.ID)
 
-	return result, nil
+	return nsgID, nil
 }
