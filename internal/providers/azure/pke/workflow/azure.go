@@ -51,14 +51,14 @@ func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzur
 }
 
 func getOwnedTag(clusterName string) (string, string) {
-	return fmt.Sprintf("kubernetes.io/cluster/%s", clusterName), "owned"
+	return fmt.Sprintf("kubernetesCluster-%s", clusterName), "owned"
 }
 
 func getSharedTag(clusterName string) (string, string) {
-	return fmt.Sprintf("kubernetes.io/cluster/%s", clusterName), "shared"
+	return fmt.Sprintf("kubernetesCluster-%s", clusterName), "shared"
 }
 
-func stringDeref(s *string) {
+func stringDeref(s *string) string {
 	if s != nil {
 		return *s
 	}

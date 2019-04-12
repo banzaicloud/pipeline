@@ -17,6 +17,7 @@ package workflow
 import (
 	"time"
 
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -24,12 +25,15 @@ const CreateClusterWorkflowName = "pke-azure-create-cluster"
 
 // CreateClusterWorkflowInput
 type CreateClusterWorkflowInput struct {
-	OrganizationID uint
-	ClusterID      uint
-	ClusterUID     string
-	ClusterName    string
-	SecretID       string
-	Location       string
+	OrganizationID     uint
+	ClusterID          uint
+	ClusterUID         string
+	ClusterName        string
+	SecretID           string
+	Location           string
+	ResourceGroupName  string
+	VirtualNetworkName string
+	NodePools          []pke.NodePool
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -40,7 +44,12 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	ctx = workflow.WithChildOptions(ctx, cwo)
 
 	// TODO fill input
-	infraInput := CreateAzureInfrastructureWorkflowInput{}
+	infraInput := CreateAzureInfrastructureWorkflowInput{
+		OrganizationID:    input.OrganizationID,
+		ClusterName:       input.ClusterName,
+		SecretID:          input.SecretID,
+		ResourceGroupName: input.ResourceGroupName,
+	}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {
 		return err

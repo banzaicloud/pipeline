@@ -26,6 +26,7 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	OrganizationID    uint
 	ClusterName       string
 	SecretID          string
+	Location          string
 	ResourceGroupName string
 }
 
@@ -43,8 +44,8 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	var nsgID string
 	{
 		activityInput := CreateNSGActivityInput{
-			Name:              "",
-			Location:          "",
+			Name:              input.ClusterName + "-nsg",
+			Location:          input.Location,
 			Rules:             nil,
 			ResourceGroupName: input.ResourceGroupName,
 			OrganizationID:    input.OrganizationID,
@@ -58,15 +59,17 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	// Create virtual network and subnets
+	// TODO review these CIDR etc values
+
 	{
 		activityInput := CreateVnetActivityInput{
-			Name:     "",
-			CIDR:     "",
-			Location: "",
+			Name:     input.ClusterName + "-vnet",
+			CIDR:     "10.240.0.0/16",
+			Location: input.Location,
 			Subnets: []Subnet{
 				{
-					Name:                   "",
-					CIDR:                   "",
+					Name:                   input.ClusterName + "-subnet-1",
+					CIDR:                   "10.240.0.0/24",
 					NetworkSecurityGroupID: nsgID,
 				},
 			},

@@ -95,14 +95,15 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 	createParams := pke.CreateParams{
-		Name:           params.Name,
-		OrganizationID: params.OrganizationID,
-		CreatedBy:      params.CreatedBy,
-		Location:       params.Network.Location,
-		SecretID:       params.SecretID,
-		SSHSecretID:    params.SSHSecretID,
-		RBAC:           params.Kubernetes.RBAC,
-		ScaleOptions:   params.ScaleOptions,
+		Name:              params.Name,
+		OrganizationID:    params.OrganizationID,
+		CreatedBy:         params.CreatedBy,
+		Location:          params.Network.Location,
+		SecretID:          params.SecretID,
+		SSHSecretID:       params.SSHSecretID,
+		RBAC:              params.Kubernetes.RBAC,
+		ScaleOptions:      params.ScaleOptions,
+		ResourceGroupName: params.ResourceGroup,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
@@ -110,12 +111,13 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 
 	input := workflow.CreateClusterWorkflowInput{
-		OrganizationID: cl.OrganizationID,
-		ClusterID:      cl.ID,
-		ClusterUID:     cl.UID,
-		ClusterName:    cl.Name,
-		SecretID:       cl.SecretID,
-		Location:       cl.Location,
+		OrganizationID:    cl.OrganizationID,
+		ClusterID:         cl.ID,
+		ClusterUID:        cl.UID,
+		ClusterName:       cl.Name,
+		SecretID:          cl.SecretID,
+		Location:          cl.Location,
+		ResourceGroupName: cl.ResourceGroup.Name,
 	}
 
 	workflowOptions := client.StartWorkflowOptions{

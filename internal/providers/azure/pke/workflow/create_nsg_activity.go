@@ -39,13 +39,12 @@ func MakeCreateNSGActivity(azureClientFactory *AzureClientFactory) CreateNSGActi
 
 // CreateNSGActivityInput represents the input needed for executing a CreateNSGActivity
 type CreateNSGActivityInput struct {
-	Name     string
-	Location string
-	Rules []SecurityRule
-
+	Name              string
+	Location          string
+	Rules             []SecurityRule
 	ResourceGroupName string
 	OrganizationID    uint
-	ClusterName string
+	ClusterName       string
 	SecretID          string
 }
 
@@ -69,7 +68,7 @@ func (a CreateNSGActivity) Execute(ctx context.Context, input CreateNSGActivityI
 
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
-		"cluster": input.ClusterName,
+		"cluster", input.ClusterName,
 		"secret", input.SecretID,
 		"resourceGroup", input.ResourceGroupName,
 		"nsgName", input.Name,
@@ -89,18 +88,18 @@ func (a CreateNSGActivity) Execute(ctx context.Context, input CreateNSGActivityI
 
 	securityRules := make([]network.SecurityRule, len(input.Rules))
 	for i, r := range input.Rules {
-		securityRules[i] := network.SecurityRule{
+		securityRules[i] = network.SecurityRule{
 			Name: &r.Name,
 			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
-				Access: network.SecurityRuleAccess(r.Access),
-				Description: &r.Description,
+				Access:                   network.SecurityRuleAccess(r.Access),
+				Description:              &r.Description,
 				DestinationAddressPrefix: &r.Destination,
-				DestinationPortRange: &r.DestinationPortRange,
-				Direction: network.SecurityRuleDirection(r.Direction),
-				Priority: &r.Priority,
-				Protocol: network.SecurityRuleProtocol(r.Protocol),
-				SourceAddressPrefix: &r.Source,
-				SourcePortRange: &r.SourcePortRange,
+				DestinationPortRange:     &r.DestinationPortRange,
+				Direction:                network.SecurityRuleDirection(r.Direction),
+				Priority:                 &r.Priority,
+				Protocol:                 network.SecurityRuleProtocol(r.Protocol),
+				SourceAddressPrefix:      &r.Source,
+				SourcePortRange:          &r.SourcePortRange,
 			},
 		}
 	}
@@ -109,10 +108,10 @@ func (a CreateNSGActivity) Execute(ctx context.Context, input CreateNSGActivityI
 
 	params := network.SecurityGroup{
 		Location: &input.Location,
-		SecurityGroupPropertiesFormat: network.SecurityGroupPropertiesFormat{
+		SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 			SecurityRules: &securityRules,
 		},
-		Tags:     tags,
+		Tags: tags,
 	}
 
 	client := cc.GetSecurityGroupsClient()

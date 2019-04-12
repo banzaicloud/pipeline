@@ -37,19 +37,16 @@ func MakeCreateVnetActivity(azureClientFactory *AzureClientFactory) CreateVnetAc
 	}
 }
 
-// NewCreateVnetActivity returns a new CreateVnetActivity
-func NewCreateVnetActivity(azureClientFactory *AzureClientFactory) *CreateVnetActivity {
-	a := MakeCreateVnetActivity(azureClientFactory)
-	return &a
-}
-
 // CreateVnetActivityInput represents the input needed for executing a CreateVnetActivity
 type CreateVnetActivityInput struct {
-	VirtualNetwork    VirtualNetwork
 	ResourceGroupName string
 	OrganizationID    uint
 	ClusterName       string
 	SecretID          string
+	Name              string
+	Location          string
+	CIDR              string
+	Subnets           []Subnet
 }
 
 type VirtualNetwork struct {
@@ -93,7 +90,7 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 	subnets := make([]network.Subnet, len(input.Subnets))
 	for i, s := range input.Subnets {
 		subnets[i] = network.Subnet{
-			Name: s.CIDR,
+			Name: &s.Name,
 			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
 				AddressPrefix: &s.CIDR,
 			},
