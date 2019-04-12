@@ -136,6 +136,7 @@ func (c *ACKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 	request.SetScheme(requests.HTTPS)
 	request.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, c.modelCluster.ACK.RegionID))
 	request.SetContentType(requests.Json)
+
 	nodes := make(pkgCommon.NodeNames, 0)
 	for _, nodepool := range c.modelCluster.ACK.NodePools {
 		request.ScalingGroupId = nodepool.AsgID
@@ -1130,6 +1131,7 @@ func createAlibabaCSClient(auth *credentials.AccessKeyCredential, regionID strin
 
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := cs.NewClientWithOptions(regionID, cfg, cred)
+	client.SetReadTimeout(ack.ACKRequestReadTimeout)
 	return client, emperror.Wrap(err, "could not create Alibaba CSClient")
 }
 
@@ -1140,6 +1142,7 @@ func createAlibabaECSClient(auth *credentials.AccessKeyCredential, regionID stri
 
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := ecs.NewClientWithOptions(regionID, cfg, cred)
+	client.SetReadTimeout(ack.ACKRequestReadTimeout)
 	return client, emperror.Wrap(err, "could not create Alibaba ECSClient")
 }
 
@@ -1149,6 +1152,7 @@ func createAlibabaESSClient(auth *credentials.AccessKeyCredential, regionID stri
 	}
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := ess.NewClientWithOptions(regionID, cfg, cred)
+	client.SetReadTimeout(ack.ACKRequestReadTimeout)
 	return client, emperror.Wrap(err, "could not create Alibaba ESSClient")
 }
 
@@ -1158,6 +1162,7 @@ func createAlibabaVPCClient(auth *credentials.AccessKeyCredential, regionID stri
 	}
 	cred := credentials.NewAccessKeyCredential(auth.AccessKeyId, auth.AccessKeySecret)
 	client, err := vpc.NewClientWithOptions(regionID, cfg, cred)
+	client.SetReadTimeout(ack.ACKRequestReadTimeout)
 	return client, emperror.Wrap(err, "could not create Alibaba VPCClient")
 }
 

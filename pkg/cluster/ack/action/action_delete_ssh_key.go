@@ -53,6 +53,7 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 
 	req := ecs.CreateDeleteKeyPairsRequest()
 	req.SetScheme(requests.HTTPS)
+
 	jsonData := []string{a.sshKeyName}
 	marshaledValue, err := json.Marshal(jsonData)
 	if err != nil {

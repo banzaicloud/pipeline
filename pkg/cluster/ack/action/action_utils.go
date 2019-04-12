@@ -152,6 +152,7 @@ func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 	deleteSGRequest.SetScheme(requests.HTTPS)
 	deleteSGRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, regionId))
 	deleteSGRequest.SetContentType(requests.Json)
+
 	if nodePool.AsgID == "" {
 		// Asg could not be created nothing to remove
 		errChan <- nil
