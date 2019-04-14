@@ -288,3 +288,27 @@ func (cc *CloudConnection) GetVirtualNetworksClient() *VirtualNetworksClient {
 		},
 	}
 }
+
+type PublicIPClient struct {
+	network.PublicIPAddressesClient
+}
+
+func (cc *CloudConnection) GetPublicIPClient() *PublicIPClient {
+	return &PublicIPClient{
+		network.PublicIPAddressesClient{
+			BaseClient: *cc.getNetworkBaseClient(),
+		},
+	}
+}
+
+type LoadBalancerClient struct {
+	network.LoadBalancersClient
+}
+
+func (cc *CloudConnection) GetLoadBalancerClient() *LoadBalancerClient {
+	return &LoadBalancerClient{
+		network.LoadBalancersClient{
+			BaseClient: *cc.getNetworkBaseClient(),
+		},
+	}
+}

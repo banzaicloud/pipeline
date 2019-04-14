@@ -87,6 +87,10 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 
 	// Create basic load balancer
 
+	{
+
+	}
+
 	// Create scale set
 
 	// Set AssignRolePolicy
