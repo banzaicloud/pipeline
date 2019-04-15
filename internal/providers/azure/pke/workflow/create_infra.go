@@ -88,7 +88,24 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	// Create basic load balancer
 
 	{
+		activityInput := CreateLoadBalancerActivityInput{
+			Name:                     input.ClusterName + "-lb",
+			Location:                 input.Location,
+			SKU:                      "Standard",
+			BackendAddressPools:      []BackendAddressPool{},
+			FrontendIPConfigurations: []FrontendIPConfiguration{},
+			LoadBalancingRules:       []LoadBalancingRule{},
+			Probes:                   []Probe{},
+			ResourceGroupName:        input.ResourceGroupName,
+			OrganizationID:           input.OrganizationID,
+			ClusterName:              input.ClusterName,
+			SecretID:                 input.SecretID,
+		}
 
+		err := workflow.ExecuteActivity(ctx, CreateLoadBalancerActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Create scale set

@@ -34,4 +34,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 
 	createNSGActivity := azurepkeworkflow.MakeCreateNSGActivity(azureClientFactory)
 	activity.RegisterWithOptions(createNSGActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateNSGActivityName})
+
+	createLBActivity := azurepkeworkflow.MakeCreateLoadBalancerActivity(azureClientFactory)
+	activity.RegisterWithOptions(createLBActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateLoadBalancerActivityName})
 }

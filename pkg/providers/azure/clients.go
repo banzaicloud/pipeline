@@ -149,6 +149,20 @@ func (cc *CloudConnection) GetGroupsClient() *GroupsClient {
 	}
 }
 
+// LoadBalancersClient extends network.LoadBalancersClient
+type LoadBalancersClient struct {
+	network.LoadBalancersClient
+}
+
+// GetLoadBalancersClient returns a LoadBalancersClient instance
+func (cc *CloudConnection) GetLoadBalancersClient() *LoadBalancersClient {
+	return &LoadBalancersClient{
+		network.LoadBalancersClient{
+			BaseClient: *cc.getNetworkBaseClient(),
+		},
+	}
+}
+
 // ManagedClustersClient extends containerservice.ManagedClustersClient
 type ManagedClustersClient struct {
 	containerservice.ManagedClustersClient
@@ -173,6 +187,20 @@ func (cc *CloudConnection) GetProvidersClient() *ProvidersClient {
 	return &ProvidersClient{
 		resources.ProvidersClient{
 			BaseClient: *cc.getResourcesBaseClient(),
+		},
+	}
+}
+
+// PublicIPAddressesClient extends network.PublicIPAddressesClient
+type PublicIPAddressesClient struct {
+	network.PublicIPAddressesClient
+}
+
+// GetPublicIPAddressesClient returns a PublicIPAddressesClient instance
+func (cc *CloudConnection) GetPublicIPAddressesClient() *PublicIPAddressesClient {
+	return &PublicIPAddressesClient{
+		network.PublicIPAddressesClient{
+			BaseClient: *cc.getNetworkBaseClient(),
 		},
 	}
 }
@@ -284,30 +312,6 @@ type VirtualNetworksClient struct {
 func (cc *CloudConnection) GetVirtualNetworksClient() *VirtualNetworksClient {
 	return &VirtualNetworksClient{
 		network.VirtualNetworksClient{
-			BaseClient: *cc.getNetworkBaseClient(),
-		},
-	}
-}
-
-type PublicIPClient struct {
-	network.PublicIPAddressesClient
-}
-
-func (cc *CloudConnection) GetPublicIPClient() *PublicIPClient {
-	return &PublicIPClient{
-		network.PublicIPAddressesClient{
-			BaseClient: *cc.getNetworkBaseClient(),
-		},
-	}
-}
-
-type LoadBalancerClient struct {
-	network.LoadBalancersClient
-}
-
-func (cc *CloudConnection) GetLoadBalancerClient() *LoadBalancerClient {
-	return &LoadBalancerClient{
-		network.LoadBalancersClient{
 			BaseClient: *cc.getNetworkBaseClient(),
 		},
 	}
