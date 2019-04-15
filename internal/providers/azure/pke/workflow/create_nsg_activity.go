@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 )
@@ -104,7 +105,7 @@ func (a CreateNSGActivity) Execute(ctx context.Context, input CreateNSGActivityI
 		}
 	}
 
-	tags := resourceTags(tagsFrom(getOwnedTag(input.ClusterName)))
+	tags := *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName)))
 
 	params := network.SecurityGroup{
 		Location: &input.Location,
@@ -135,7 +136,7 @@ func (a CreateNSGActivity) Execute(ctx context.Context, input CreateNSGActivityI
 		return nsgID, emperror.WrapWith(err, "getting network security group create or update result failed", keyvals...)
 	}
 
-	nsgID = stringDeref(nsg.ID)
+	nsgID = to.String(nsg.ID)
 
 	return nsgID, nil
 }

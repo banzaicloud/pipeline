@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 )
@@ -103,7 +104,7 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 		}
 	}
 
-	tags := resourceTags(tagsFrom(getOwnedTag(input.ClusterName)))
+	tags := *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName)))
 
 	params := network.VirtualNetwork{
 		Location: &input.Location,

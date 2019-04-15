@@ -58,24 +58,6 @@ func getSharedTag(clusterName string) (string, string) {
 	return fmt.Sprintf("kubernetesCluster-%s", clusterName), "shared"
 }
 
-func stringDeref(s *string) string {
-	if s != nil {
-		return *s
-	}
-	return ""
-}
-
-// resourceTags converts map[string]string to map[string]*string
-func resourceTags(tags map[string]string) map[string]*string {
-	azTags := make(map[string]*string, len(tags))
-	for k, v := range tags {
-		v := v
-		azTags[k] = &v
-	}
-
-	return azTags
-}
-
 func tagsFrom(key, value string) map[string]string {
 	return map[string]string{
 		key: value,
