@@ -132,9 +132,7 @@ func deleteNodePools(log logrus.FieldLogger, nodePools []*model.ACKNodePoolModel
 	defer close(errChan)
 
 	for _, nodePool := range nodePools {
-		// TODO: run node pool deletion in parallel once Alibaba ESS API permits running multiple DeleteScalingGroup requests in parallel
-		// TODO: Currently running DeleteScalingGroup requests in parallel may fail with throttling error
-		deleteNodePool(log, nodePool, essClient, regionId, errChan)
+		go deleteNodePool(log, nodePool, essClient, regionId, errChan)
 	}
 	var err error
 	caughtErrors := emperror.NewMultiErrorBuilder()
@@ -154,6 +152,7 @@ func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 	deleteSGRequest.SetScheme(requests.HTTPS)
 	deleteSGRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, regionId))
 	deleteSGRequest.SetContentType(requests.Json)
+
 	if nodePool.AsgID == "" {
 		// Asg could not be created nothing to remove
 		errChan <- nil
