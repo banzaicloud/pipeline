@@ -54,17 +54,12 @@ func getOwnedTag(clusterName string) (string, string) {
 	return fmt.Sprintf("kubernetesCluster-%s", clusterName), "owned"
 }
 
-func getSharedTag(clusterName string) (string, string) {
-	return fmt.Sprintf("kubernetesCluster-%s", clusterName), "shared"
-}
+// func getSharedTag(clusterName string) (string, string) {
+// 	return fmt.Sprintf("kubernetesCluster-%s", clusterName), "shared"
+// }
 
 func tagsFrom(key, value string) map[string]string {
 	return map[string]string{
 		key: value,
 	}
-}
-
-func withTag(tags map[string]string, key, value string) map[string]string {
-	tags[key] = value
-	return tags
 }
