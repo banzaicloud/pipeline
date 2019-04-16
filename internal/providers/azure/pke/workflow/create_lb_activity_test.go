@@ -23,7 +23,7 @@ import (
 )
 
 func TestFillLoadBalancerParams(t *testing.T) {
-	t.Run("", func(t *testing.T) {
+	t.Run("typical input", func(t *testing.T) {
 		input := CreateLoadBalancerActivityInput{
 			BackendAddressPools: []BackendAddressPool{
 				{

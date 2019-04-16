@@ -37,4 +37,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 
 	createLBActivity := azurepkeworkflow.MakeCreateLoadBalancerActivity(azureClientFactory)
 	activity.RegisterWithOptions(createLBActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateLoadBalancerActivityName})
+
+	createVMSSActivity := azurepkeworkflow.MakeCreateVMSSActivity(azureClientFactory)
+	activity.RegisterWithOptions(createVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVMSSActivityName})
 }

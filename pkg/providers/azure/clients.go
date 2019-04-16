@@ -289,6 +289,20 @@ func (cc *CloudConnection) GetVirtualMachinesClient() *VirtualMachinesClient {
 	}
 }
 
+// VirtualMachineScaleSetsClient extends compute.VirtualMachineScaleSetsClient
+type VirtualMachineScaleSetsClient struct {
+	compute.VirtualMachineScaleSetsClient
+}
+
+// GetVirtualMachineScaleSetsClient returns a VirtualMachineScaleSetsClient instance
+func (cc *CloudConnection) GetVirtualMachineScaleSetsClient() *VirtualMachineScaleSetsClient {
+	return &VirtualMachineScaleSetsClient{
+		compute.VirtualMachineScaleSetsClient{
+			BaseClient: *cc.getComputeBaseClient(),
+		},
+	}
+}
+
 // VirtualMachineSizesClient extends compute.VirtualMachineSizesClient
 type VirtualMachineSizesClient struct {
 	compute.VirtualMachineSizesClient

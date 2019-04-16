@@ -86,7 +86,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	// Create basic load balancer
-
 	{
 		activityInput := CreateLoadBalancerActivityInput{
 			Name:                     input.ClusterName + "-lb",
@@ -109,6 +108,33 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	// Create scale set
+	{
+		activityInput := CreateVMSSActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			ScaleSet: VirtualMachineScaleSet{
+				AdminUsername:          "pipeline",
+				InstanceCount:          int64(1),
+				InstanceType:           "Standard_B2s",
+				LBBackendAddressPoolID: "???", // TODO
+				LBInboundNATPoolID:     "???", // TODO
+				Location:               input.Location,
+				Name:                   input.ClusterName + "controller-vmss",
+				NetworkSecurityGroupID: nsgID,
+				SSHPublicKey:           "???", // TODO
+				SubnetID:               "???", // TODO
+				UserDataScript:         "???", // TODO
+				Zones:                  []string{"1"},
+			},
+		}
+
+		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
 	// Set AssignRolePolicy
 	return nil
