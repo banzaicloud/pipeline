@@ -46,8 +46,12 @@ func TestFillLoadBalancerParams(t *testing.T) {
 			},
 			LoadBalancingRules: []LoadBalancingRule{
 				{
-					Name:      "lbr-1",
-					ProbeName: "probe-1",
+					Name: "lbr-1",
+					Probe: &Probe{
+						Name:     "probe-1",
+						Port:     1234,
+						Protocol: "Tcp",
+					},
 				},
 				{
 					Name: "lbr-2",
@@ -57,7 +61,7 @@ func TestFillLoadBalancerParams(t *testing.T) {
 			Name:           "lb-1",
 			OrganizationID: 1,
 			Probes: []Probe{
-				{
+				Probe{
 					Name:     "probe-1",
 					Port:     1234,
 					Protocol: "Tcp",
@@ -128,8 +132,7 @@ func TestFillLoadBalancerParams(t *testing.T) {
 			},
 		}
 
-		var result network.LoadBalancer
-		fillLoadBalancerParams(&result, input, "subscription-1")
+		result := input.getCreateOrUpdateLoadBalancerParams("subscription-1")
 		assert.Equal(t, expected, result)
 	})
 }

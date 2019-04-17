@@ -40,19 +40,72 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	// Create network security group
-	var nsgID string
+	// Create master network security group
+	var masterNSGOutput CreateNSGActivityOutput
 	{
 		activityInput := CreateNSGActivityInput{
-			Name:              input.ClusterName + "-nsg",
-			Location:          input.Location,
-			Rules:             nil,
-			ResourceGroupName: input.ResourceGroupName,
 			OrganizationID:    input.OrganizationID,
-			ClusterName:       input.ClusterName,
 			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			SecurityGroup: SecurityGroup{
+				Name:     input.ClusterName + "-nsg-master",
+				Location: input.Location,
+				Rules: []SecurityRule{
+					SecurityRule{
+						Access:               "Allow",
+						Description:          "Allow K8s API inbound",
+						Destination:          "*",
+						DestinationPortRange: "6443",
+						Direction:            "Inbound",
+						Priority:             1001,
+						Protocol:             "Tcp",
+						Source:               "*",
+						SourcePortRange:      "*",
+					},
+				},
+			},
 		}
-		err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &nsgID)
+		err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &masterNSGOutput)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Create worker network security group
+	var workerNSGOutput CreateNSGActivityOutput
+	{
+		activityInput := CreateNSGActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			SecurityGroup: SecurityGroup{
+				Name:     input.ClusterName + "-nsg-worker",
+				Location: input.Location,
+				Rules:    []SecurityRule{},
+			},
+		}
+		err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &masterNSGOutput)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Create route table
+	var createRouteTableOutput CreateRouteTableActivityOutput
+	{
+		activityInput := CreateRouteTableActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			RouteTable: RouteTable{
+				Name:     input.ClusterName + "-route-table",
+				Location: input.Location,
+			},
+		}
+		err := workflow.ExecuteActivity(ctx, CreateRouteTableActivityName, activityInput).Get(ctx, &createRouteTableOutput)
 		if err != nil {
 			return err
 		}
@@ -60,45 +113,97 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 
 	// Create virtual network and subnets
 	// TODO review these CIDR etc values
-
+	var createVnetOutput CreateVnetActivityOutput
 	{
 		activityInput := CreateVnetActivityInput{
-			Name:     input.ClusterName + "-vnet",
-			CIDR:     "10.240.0.0/16",
-			Location: input.Location,
-			Subnets: []Subnet{
-				{
-					Name:                   input.ClusterName + "-subnet-1",
-					CIDR:                   "10.240.0.0/24",
-					NetworkSecurityGroupID: nsgID,
-				},
-			},
 			ResourceGroupName: input.ResourceGroupName,
 			OrganizationID:    input.OrganizationID,
 			ClusterName:       input.ClusterName,
 			SecretID:          input.SecretID,
+			VirtualNetwork: VirtualNetwork{
+				Name:     input.ClusterName + "-vnet",
+				CIDRs:    []string{"10.240.0.0/16"},
+				Location: input.Location,
+				Subnets: []Subnet{
+					Subnet{
+						Name:                   input.ClusterName + "-subnet-master",
+						CIDR:                   "10.240.0.0/24",
+						NetworkSecurityGroupID: masterNSGOutput.NetworkSecurityGroupID,
+						RouteTableID:           createRouteTableOutput.RouteTableID,
+					},
+					Subnet{
+						Name:                   input.ClusterName + "-subnet-worker",
+						CIDR:                   "10.240.1.0/24",
+						NetworkSecurityGroupID: workerNSGOutput.NetworkSecurityGroupID,
+						RouteTableID:           createRouteTableOutput.RouteTableID,
+					},
+				},
+			},
 		}
-
-		err := workflow.ExecuteActivity(ctx, CreateVnetActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, CreateVnetActivityName, activityInput).Get(ctx, &createVnetOutput)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Create basic load balancer
+	var createLBOutput CreateLoadBalancerActivityOutput
 	{
+		bap := BackendAddressPool{
+			Name: "backend-pool-master",
+		}
+		fic := FrontendIPConfiguration{
+			Name: "frontend-ip-config",
+			PublicIPAddress: PublicIPAddress{
+				Location: input.Location,
+				Name:     input.ClusterName + "-pip-in",
+				SKU:      "Standard",
+			},
+		}
+		probe := Probe{
+			Name:     "api-server-probe",
+			Port:     int32(6443),
+			Protocol: "Tcp",
+		}
 		activityInput := CreateLoadBalancerActivityInput{
-			Name:                     input.ClusterName + "-lb",
-			Location:                 input.Location,
-			SKU:                      "Standard",
-			BackendAddressPools:      []BackendAddressPool{},
-			FrontendIPConfigurations: []FrontendIPConfiguration{},
-			LoadBalancingRules:       []LoadBalancingRule{},
-			Probes:                   []Probe{},
-			ResourceGroupName:        input.ResourceGroupName,
-			OrganizationID:           input.OrganizationID,
-			ClusterName:              input.ClusterName,
-			SecretID:                 input.SecretID,
+			Name:     "kubernetes",
+			Location: input.Location,
+			SKU:      "Standard",
+			BackendAddressPools: []BackendAddressPool{
+				bap,
+			},
+			FrontendIPConfigurations: []FrontendIPConfiguration{
+				fic,
+			},
+			InboundNATPools: []InboundNATPool{
+				InboundNATPool{
+					Name:                   "ssh-in-nat-pool",
+					BackendPort:            int32(22),
+					FrontendIPConfig:       &fic,
+					FrontendPortRangeEnd:   int32(50000),
+					FrontendPortRangeStart: int32(50010),
+					Protocol:               "Tcp",
+				},
+			},
+			LoadBalancingRules: []LoadBalancingRule{
+				LoadBalancingRule{
+					Name:                "api-server-rule",
+					BackendAddressPool:  &bap,
+					BackendPort:         int32(6443),
+					DisableOutboundSNAT: false,
+					FrontendIPConfig:    &fic,
+					FrontendPort:        int32(6443),
+					Probe:               &probe,
+					Protocol:            "Tcp",
+				},
+			},
+			Probes: []Probe{
+				probe,
+			},
+			ResourceGroupName: input.ResourceGroupName,
+			OrganizationID:    input.OrganizationID,
+			ClusterName:       input.ClusterName,
+			SecretID:          input.SecretID,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateLoadBalancerActivityName, activityInput).Get(ctx, nil)
@@ -107,7 +212,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
-	// Create scale set
+	// Create master scale set
 	{
 		activityInput := CreateVMSSActivityInput{
 			OrganizationID:    input.OrganizationID,
@@ -118,13 +223,13 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				AdminUsername:          "pipeline",
 				InstanceCount:          int64(1),
 				InstanceType:           "Standard_B2s",
-				LBBackendAddressPoolID: "???", // TODO
-				LBInboundNATPoolID:     "???", // TODO
+				LBBackendAddressPoolID: createLBOutput.BackendAddressPoolIDs["backend-pool-master"],
+				LBInboundNATPoolID:     createLBOutput.InboundNATPoolIDs["ssh-in-nat-pool"],
 				Location:               input.Location,
-				Name:                   input.ClusterName + "controller-vmss",
-				NetworkSecurityGroupID: nsgID,
+				Name:                   input.ClusterName + "-controller-vmss",
+				NetworkSecurityGroupID: masterNSGOutput.NetworkSecurityGroupID,
 				SSHPublicKey:           "???", // TODO
-				SubnetID:               "???", // TODO
+				SubnetID:               createVnetOutput.SubnetIDs[input.ClusterName+"-subnet-1"],
 				UserDataScript:         "???", // TODO
 				Zones:                  []string{"1"},
 			},

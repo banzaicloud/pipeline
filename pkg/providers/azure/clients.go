@@ -233,6 +233,20 @@ func (cc *CloudConnection) GetRoleDefinitionsClient() *RoleDefinitionsClient {
 	}
 }
 
+// RouteTablesClient extends network.RouteTablesClient
+type RouteTablesClient struct {
+	network.RouteTablesClient
+}
+
+// GetRouteTablesClient returns a RouteTablesClient instance
+func (cc *CloudConnection) GetRouteTablesClient() *RouteTablesClient {
+	return &RouteTablesClient{
+		network.RouteTablesClient{
+			BaseClient: *cc.getNetworkBaseClient(),
+		},
+	}
+}
+
 // SecurityGroupsClient extends network.SecurityGroupsClient
 type SecurityGroupsClient struct {
 	network.SecurityGroupsClient

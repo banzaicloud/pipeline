@@ -40,19 +40,16 @@ func MakeCreateVnetActivity(azureClientFactory *AzureClientFactory) CreateVnetAc
 
 // CreateVnetActivityInput represents the input needed for executing a CreateVnetActivity
 type CreateVnetActivityInput struct {
-	ResourceGroupName string
 	OrganizationID    uint
-	ClusterName       string
 	SecretID          string
-	Name              string
-	Location          string
-	CIDR              string
-	Subnets           []Subnet
+	ClusterName       string
+	ResourceGroupName string
+	VirtualNetwork    VirtualNetwork
 }
 
 type VirtualNetwork struct {
 	Name     string
-	CIDR     string
+	CIDRs    []string
 	Location string
 	Subnets  []Subnet
 }
@@ -61,77 +58,94 @@ type Subnet struct {
 	Name                   string
 	CIDR                   string
 	NetworkSecurityGroupID string
+	RouteTableID           string
+}
+
+type CreateVnetActivityOutput struct {
+	VirtualNetworkID string
+	SubnetIDs        map[string]string
 }
 
 // Execute performs the activity
-func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivityInput) error {
+func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivityInput) (output CreateVnetActivityOutput, err error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
 		"secret", input.SecretID,
 		"resourceGroup", input.ResourceGroupName,
-		"networkName", input.Name,
-		"networkLocation", input.Location,
+		"networkName", input.VirtualNetwork.Name,
+		"networkLocation", input.VirtualNetwork.Location,
 	)
 
 	keyvals := []interface{}{
 		"resourceGroup", input.ResourceGroupName,
-		"networkName", input.Name,
+		"networkName", input.VirtualNetwork.Name,
 	}
 
 	logger.Info("create virtual network")
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to create cloud connection")
+	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+		return
 	}
 
-	cidrs := []string{input.CIDR}
-
-	subnets := make([]network.Subnet, len(input.Subnets))
-	for i, s := range input.Subnets {
+	subnets := make([]network.Subnet, len(input.VirtualNetwork.Subnets))
+	for i, s := range input.VirtualNetwork.Subnets {
 		subnets[i] = network.Subnet{
-			Name: &s.Name,
+			Name: to.StringPtr(s.Name),
 			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
-				AddressPrefix: &s.CIDR,
+				AddressPrefix: to.StringPtr(s.CIDR),
+				NetworkSecurityGroup: &network.SecurityGroup{
+					ID: to.StringPtr(s.NetworkSecurityGroupID),
+				},
+				RouteTable: &network.RouteTable{
+					ID: to.StringPtr(s.RouteTableID),
+				},
 			},
 		}
-		if s.NetworkSecurityGroupID != "" {
-			if subnets[i].NetworkSecurityGroup == nil {
-				subnets[i].NetworkSecurityGroup = new(network.SecurityGroup)
-			}
-			subnets[i].NetworkSecurityGroup.ID = &s.NetworkSecurityGroupID
-		}
 	}
 
-	tags := *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName)))
-
 	params := network.VirtualNetwork{
-		Location: &input.Location,
+		Location: to.StringPtr(input.VirtualNetwork.Location),
 		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 			AddressSpace: &network.AddressSpace{
-				AddressPrefixes: &cidrs,
+				AddressPrefixes: to.StringSlicePtr(input.VirtualNetwork.CIDRs),
 			},
 			Subnets: &subnets,
 		},
-		Tags: tags,
+		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
 	}
 
 	logger.Debug("sending request to create or update virtual network")
 
 	client := cc.GetVirtualNetworksClient()
 
-	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.Name, params)
-	if err != nil {
-		return emperror.WrapWith(err, "sending request to create or update virtual network failed", keyvals...)
+	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.VirtualNetwork.Name, params)
+	if err = emperror.WrapWith(err, "sending request to create or update virtual network failed", keyvals...); err != nil {
+		return
 	}
 
 	logger.Debug("waiting for the completion of create or update virtual network operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return emperror.WrapWith(err, "waiting for the completion of create or update virtual network operation failed", keyvals...)
+	if err = emperror.WrapWith(err, "waiting for the completion of create or update virtual network operation failed", keyvals...); err != nil {
+		return
 	}
 
-	return nil
+	vnet, err := future.Result(client.VirtualNetworksClient)
+	if err = emperror.WrapWith(err, "getting virtual network create or update result failed", keyvals...); err != nil {
+		return
+	}
+
+	output.VirtualNetworkID = to.String(vnet.ID)
+	output.SubnetIDs = make(map[string]string)
+	if vnet.Subnets != nil {
+		for _, s := range *vnet.Subnets {
+			if s.Name != nil && s.ID != nil {
+				output.SubnetIDs[*s.Name] = *s.ID
+			}
+		}
+	}
+
+	return
 }
