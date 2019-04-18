@@ -40,4 +40,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 
 	createVMSSActivity := azurepkeworkflow.MakeCreateVMSSActivity(azureClientFactory)
 	activity.RegisterWithOptions(createVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVMSSActivityName})
+
+	createRouteTableActivity := azurepkeworkflow.MakeCreateRouteTableActivity(azureClientFactory)
+	activity.RegisterWithOptions(createRouteTableActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateRouteTableActivityName})
 }
