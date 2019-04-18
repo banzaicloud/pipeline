@@ -41,6 +41,14 @@ func MakeCreateLoadBalancerActivity(azureClientFactory *AzureClientFactory) Crea
 
 // CreateLoadBalancerActivityInput represents the input needed for executing a CreateLoadBalancerActivity
 type CreateLoadBalancerActivityInput struct {
+	OrganizationID    uint
+	SecretID          string
+	ClusterName       string
+	ResourceGroupName string
+	LoadBalancer      LoadBalancer
+}
+
+type LoadBalancer struct {
 	Name                     string
 	Location                 string
 	SKU                      string
@@ -49,11 +57,6 @@ type CreateLoadBalancerActivityInput struct {
 	InboundNATPools          []InboundNATPool
 	LoadBalancingRules       []LoadBalancingRule
 	Probes                   []Probe
-
-	ResourceGroupName string
-	OrganizationID    uint
-	ClusterName       string
-	SecretID          string
 }
 
 type BackendAddressPool struct {
@@ -110,12 +113,12 @@ func (a CreateLoadBalancerActivity) Execute(ctx context.Context, input CreateLoa
 		"cluster", input.ClusterName,
 		"secret", input.SecretID,
 		"resourceGroup", input.ResourceGroupName,
-		"loadBalancer", input.Name,
+		"loadBalancer", input.LoadBalancer.Name,
 	)
 
 	keyvals := []interface{}{
 		"resourceGroup", input.ResourceGroupName,
-		"loadBalancer", input.Name,
+		"loadBalancer", input.LoadBalancer.Name,
 	}
 
 	logger.Info("create load balancer")
@@ -129,7 +132,7 @@ func (a CreateLoadBalancerActivity) Execute(ctx context.Context, input CreateLoa
 
 	params := input.getCreateOrUpdateLoadBalancerParams(client.SubscriptionID)
 
-	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.Name, params)
+	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.LoadBalancer.Name, params)
 	if err = emperror.WrapWith(err, "sending request to create or update load balancer failed", keyvals...); err != nil {
 		return
 	}
@@ -166,15 +169,15 @@ func (a CreateLoadBalancerActivity) Execute(ctx context.Context, input CreateLoa
 }
 
 func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams(subscriptionID string) network.LoadBalancer {
-	backendAddressPools := make([]network.BackendAddressPool, len(input.BackendAddressPools))
-	for i, bap := range input.BackendAddressPools {
+	backendAddressPools := make([]network.BackendAddressPool, len(input.LoadBalancer.BackendAddressPools))
+	for i, bap := range input.LoadBalancer.BackendAddressPools {
 		backendAddressPools[i] = network.BackendAddressPool{
 			Name: to.StringPtr(bap.Name),
 		}
 	}
 
-	frontendIPConfigurations := make([]network.FrontendIPConfiguration, len(input.FrontendIPConfigurations))
-	for i, fic := range input.FrontendIPConfigurations {
+	frontendIPConfigurations := make([]network.FrontendIPConfiguration, len(input.LoadBalancer.FrontendIPConfigurations))
+	for i, fic := range input.LoadBalancer.FrontendIPConfigurations {
 		frontendIPConfigurations[i] = network.FrontendIPConfiguration{
 			Name: to.StringPtr(fic.Name),
 			FrontendIPConfigurationPropertiesFormat: &network.FrontendIPConfigurationPropertiesFormat{
@@ -195,12 +198,12 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 		}
 	}
 
-	inboundNATPools := make([]network.InboundNatPool, len(input.InboundNATPools))
-	for i, inp := range input.InboundNATPools {
+	inboundNATPools := make([]network.InboundNatPool, len(input.LoadBalancer.InboundNATPools))
+	for i, inp := range input.LoadBalancer.InboundNATPools {
 		var ficRef *network.SubResource
 		if inp.FrontendIPConfig != nil {
 			ficRef = &network.SubResource{
-				ID: to.StringPtr(getLoadBalancerFrontendIPConfigurationID(subscriptionID, input.ResourceGroupName, input.Name, inp.FrontendIPConfig.Name)),
+				ID: to.StringPtr(getLoadBalancerFrontendIPConfigurationID(subscriptionID, input.ResourceGroupName, input.LoadBalancer.Name, inp.FrontendIPConfig.Name)),
 			}
 		}
 		inboundNATPools[i] = network.InboundNatPool{
@@ -215,24 +218,24 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 		}
 	}
 
-	loadBalancingRules := make([]network.LoadBalancingRule, len(input.LoadBalancingRules))
-	for i, lbr := range input.LoadBalancingRules {
+	loadBalancingRules := make([]network.LoadBalancingRule, len(input.LoadBalancer.LoadBalancingRules))
+	for i, lbr := range input.LoadBalancer.LoadBalancingRules {
 		var bapRef *network.SubResource
 		if lbr.BackendAddressPool != nil {
 			bapRef = &network.SubResource{
-				ID: to.StringPtr(getLoadBalancerBackendAddressPoolID(subscriptionID, input.ResourceGroupName, input.Name, lbr.BackendAddressPool.Name)),
+				ID: to.StringPtr(getLoadBalancerBackendAddressPoolID(subscriptionID, input.ResourceGroupName, input.LoadBalancer.Name, lbr.BackendAddressPool.Name)),
 			}
 		}
 		var ficRef *network.SubResource
 		if lbr.FrontendIPConfig != nil {
 			ficRef = &network.SubResource{
-				ID: to.StringPtr(getLoadBalancerFrontendIPConfigurationID(subscriptionID, input.ResourceGroupName, input.Name, lbr.FrontendIPConfig.Name)),
+				ID: to.StringPtr(getLoadBalancerFrontendIPConfigurationID(subscriptionID, input.ResourceGroupName, input.LoadBalancer.Name, lbr.FrontendIPConfig.Name)),
 			}
 		}
 		var probeRef *network.SubResource
 		if lbr.Probe != nil {
 			probeRef = &network.SubResource{
-				ID: to.StringPtr(getLoadBalancerProbeID(subscriptionID, input.ResourceGroupName, input.Name, lbr.Probe.Name)),
+				ID: to.StringPtr(getLoadBalancerProbeID(subscriptionID, input.ResourceGroupName, input.LoadBalancer.Name, lbr.Probe.Name)),
 			}
 		}
 		loadBalancingRules[i] = network.LoadBalancingRule{
@@ -249,8 +252,8 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 		}
 	}
 
-	probes := make([]network.Probe, len(input.Probes))
-	for i, p := range input.Probes {
+	probes := make([]network.Probe, len(input.LoadBalancer.Probes))
+	for i, p := range input.LoadBalancer.Probes {
 		probes[i] = network.Probe{
 			Name: to.StringPtr(p.Name),
 			ProbePropertiesFormat: &network.ProbePropertiesFormat{
@@ -268,9 +271,9 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 			LoadBalancingRules:       &loadBalancingRules,
 			Probes:                   &probes,
 		},
-		Location: to.StringPtr(input.Location),
+		Location: to.StringPtr(input.LoadBalancer.Location),
 		Sku: &network.LoadBalancerSku{
-			Name: network.LoadBalancerSkuName(input.SKU),
+			Name: network.LoadBalancerSkuName(input.LoadBalancer.SKU),
 		},
 		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
 	}

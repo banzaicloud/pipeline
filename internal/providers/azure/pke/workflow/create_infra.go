@@ -166,39 +166,41 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			Protocol: "Tcp",
 		}
 		activityInput := CreateLoadBalancerActivityInput{
-			Name:     "kubernetes",
-			Location: input.Location,
-			SKU:      "Standard",
-			BackendAddressPools: []BackendAddressPool{
-				bap,
-			},
-			FrontendIPConfigurations: []FrontendIPConfiguration{
-				fic,
-			},
-			InboundNATPools: []InboundNATPool{
-				InboundNATPool{
-					Name:                   "ssh-in-nat-pool",
-					BackendPort:            int32(22),
-					FrontendIPConfig:       &fic,
-					FrontendPortRangeEnd:   int32(50000),
-					FrontendPortRangeStart: int32(50010),
-					Protocol:               "Tcp",
+			LoadBalancer: LoadBalancer{
+				Name:     "kubernetes",
+				Location: input.Location,
+				SKU:      "Standard",
+				BackendAddressPools: []BackendAddressPool{
+					bap,
 				},
-			},
-			LoadBalancingRules: []LoadBalancingRule{
-				LoadBalancingRule{
-					Name:                "api-server-rule",
-					BackendAddressPool:  &bap,
-					BackendPort:         int32(6443),
-					DisableOutboundSNAT: false,
-					FrontendIPConfig:    &fic,
-					FrontendPort:        int32(6443),
-					Probe:               &probe,
-					Protocol:            "Tcp",
+				FrontendIPConfigurations: []FrontendIPConfiguration{
+					fic,
 				},
-			},
-			Probes: []Probe{
-				probe,
+				InboundNATPools: []InboundNATPool{
+					InboundNATPool{
+						Name:                   "ssh-in-nat-pool",
+						BackendPort:            int32(22),
+						FrontendIPConfig:       &fic,
+						FrontendPortRangeEnd:   int32(50000),
+						FrontendPortRangeStart: int32(50010),
+						Protocol:               "Tcp",
+					},
+				},
+				LoadBalancingRules: []LoadBalancingRule{
+					LoadBalancingRule{
+						Name:                "api-server-rule",
+						BackendAddressPool:  &bap,
+						BackendPort:         int32(6443),
+						DisableOutboundSNAT: false,
+						FrontendIPConfig:    &fic,
+						FrontendPort:        int32(6443),
+						Probe:               &probe,
+						Protocol:            "Tcp",
+					},
+				},
+				Probes: []Probe{
+					probe,
+				},
 			},
 			ResourceGroupName: input.ResourceGroupName,
 			OrganizationID:    input.OrganizationID,
