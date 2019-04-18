@@ -132,12 +132,12 @@ func (c *ACKCluster) SetTTL(ttl time.Duration) {
 func (c *ACKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 	essClient, err := c.GetAlibabaESSClient(nil)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get Alibaba ESS client")
+		return nil, err
 	}
 
 	ecsClient, err := c.GetAlibabaECSClient(nil)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get Alibaba ECS client")
+		return nil, err
 	}
 
 	request := ess.CreateDescribeScalingInstancesRequest()
@@ -161,7 +161,7 @@ func (c *ACKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 
 		var instanceIds []string
 		for _, instance := range response.ScalingInstances.ScalingInstance {
-			instanceIds = append(instanceIds,  strconv.Quote(instance.InstanceId))
+			instanceIds = append(instanceIds, strconv.Quote(instance.InstanceId))
 		}
 
 		if len(instanceIds) > 0 {
