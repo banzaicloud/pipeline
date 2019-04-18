@@ -31,7 +31,13 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 			ClusterName:       "test-cluster",
 			ResourceGroupName: "test-rg",
 			ScaleSet: VirtualMachineScaleSet{
-				AdminUsername:          "test-admin",
+				AdminUsername: "test-admin",
+				Image: Image{
+					Offer:     "CentOS-CI",
+					Publisher: "OpenLogic",
+					SKU:       "7-CI",
+					Version:   "7.6.20190306",
+				},
 				InstanceCount:          int64(42),
 				InstanceType:           "Standard_B2s",
 				LBBackendAddressPoolID: "/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/loadBalancers/test-lb/backendAddressPools/test-bap",
