@@ -15,6 +15,8 @@
 package workflow
 
 import (
+	"strings"
+	"text/template"
 	"time"
 
 	"go.uber.org/cadence/workflow"
@@ -23,11 +25,15 @@ import (
 const CreateInfraWorkflowName = "pke-azure-create-infra"
 
 type CreateAzureInfrastructureWorkflowInput struct {
-	OrganizationID    uint
-	ClusterName       string
-	SecretID          string
-	Location          string
-	ResourceGroupName string
+	OrganizationID               uint
+	ClusterName                  string
+	SecretID                     string
+	Location                     string
+	ResourceGroupName            string
+	TenantID                     string
+	SSHPublicKey                 string
+	MasterUserDataScriptTemplate string
+	WorkerUserDataScriptTemplate string
 }
 
 func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrastructureWorkflowInput) error {
@@ -39,6 +45,15 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	masterUserDataScriptTemplate, err := template.New("masterUserDataScript").Parse(input.MasterUserDataScriptTemplate)
+	if err != nil {
+		return err
+	}
+	workerUserDataScriptTemplate, err := template.New("workerUserDataScript").Parse(input.WorkerUserDataScriptTemplate)
+	if err != nil {
+		return err
+	}
 
 	// Create master network security group
 	var masterNSGOutput CreateNSGActivityOutput
@@ -53,8 +68,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				Location: input.Location,
 				Rules: []SecurityRule{
 					{
+						Name:                 "kubernetes-allow-api-server-inbound",
 						Access:               "Allow",
-						Description:          "Allow K8s API inbound",
+						Description:          "Allow K8s API server inbound connections",
 						Destination:          "*",
 						DestinationPortRange: "6443",
 						Direction:            "Inbound",
@@ -162,7 +178,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 		probe := Probe{
 			Name:     "api-server-probe",
-			Port:     int32(6443),
+			Port:     6443,
 			Protocol: "Tcp",
 		}
 		activityInput := CreateLoadBalancerActivityInput{
@@ -178,11 +194,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				},
 				InboundNATPools: []InboundNATPool{
 					{
-						Name:                   "ssh-in-nat-pool",
-						BackendPort:            int32(22),
+						Name:                   "ssh-inbound-nat-pool",
+						BackendPort:            22,
 						FrontendIPConfig:       &fic,
-						FrontendPortRangeEnd:   int32(50000),
-						FrontendPortRangeStart: int32(50010),
+						FrontendPortRangeEnd:   50000,
+						FrontendPortRangeStart: 50010,
 						Protocol:               "Tcp",
 					},
 				},
@@ -190,10 +206,10 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 					{
 						Name:                "api-server-rule",
 						BackendAddressPool:  &bap,
-						BackendPort:         int32(6443),
+						BackendPort:         6443,
 						DisableOutboundSNAT: false,
 						FrontendIPConfig:    &fic,
-						FrontendPort:        int32(6443),
+						FrontendPort:        6443,
 						Probe:               &probe,
 						Protocol:            "Tcp",
 					},
@@ -214,30 +230,153 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
+	// #!/bin/sh
+	// # TODO: make IP obtainment more robust
+	// export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+	// curl -v https://banzaicloud.com/downloads/pke/pke-0.3.0 -o /usr/local/bin/pke
+	// chmod +x /usr/local/bin/pke
+	// export PATH=$PATH:/usr/local/bin/
+	//
+	// pke install master --kubernetes-cloud-provider=azure \
+	// --azure-tenant-id={{.TenantID}} \
+	// --azure-subnet-name={{.SubnetName}} \
+	// --azure-security-group-name={{.NSGName}} \
+	// --azure-vnet-name={{.VnetName}} \
+	// --azure-vnet-resource-group={{.VnetResourceGroupName}} \
+	// --azure-vm-type=vmss \
+	// --azure-loadbalancer-sku=standard \
+	// --azure-route-table-name={{.RouteTableName}} \
+	// --kubernetes-advertise-address=$PRIVATE_IP:6443 \
+	// --kubernetes-api-server=$PRIVATE_IP:6443 \
+	// --kubernetes-infrastructure-cidr={{.InfraCIDR}} \
+	// --kubernetes-api-server-cert-sans={{.PublicAddress}}
+
 	// Create master scale set
+	var masterVMSSOutput CreateVMSSActivityOutput
 	{
+		var userDataScript strings.Builder
+		masterUserDataScriptTemplate.Execute(&userDataScript, struct {
+			TenantID              string
+			SubnetName            string
+			NSGName               string
+			VnetName              string
+			VnetResourceGroupName string
+			RouteTableName        string
+			InfraCIDR             string
+			PublicAddress         string
+		}{
+			TenantID:              input.TenantID,
+			SubnetName:            input.ClusterName + "-subnet-master",
+			NSGName:               input.ClusterName + "-nsg-worker",
+			VnetName:              input.ClusterName + "-vnet",
+			VnetResourceGroupName: input.ResourceGroupName,
+			RouteTableName:        input.ClusterName + "-route-table",
+			InfraCIDR:             "10.240.0.0/16",
+			PublicAddress:         createLBOutput.PublicIPAddress,
+		})
+
 		activityInput := CreateVMSSActivityInput{
 			OrganizationID:    input.OrganizationID,
 			SecretID:          input.SecretID,
 			ClusterName:       input.ClusterName,
 			ResourceGroupName: input.ResourceGroupName,
 			ScaleSet: VirtualMachineScaleSet{
-				AdminUsername:          "pipeline",
-				InstanceCount:          int64(1),
+				AdminUsername: "azureuser",
+				Image: Image{
+					Offer:     "CentOS-CI",
+					Publisher: "OpenLogic",
+					SKU:       "7-CI",
+					Version:   "7.6.20190306",
+				},
+				InstanceCount:          1,
 				InstanceType:           "Standard_B2s",
 				LBBackendAddressPoolID: createLBOutput.BackendAddressPoolIDs["backend-pool-master"],
-				LBInboundNATPoolID:     createLBOutput.InboundNATPoolIDs["ssh-in-nat-pool"],
+				LBInboundNATPoolID:     createLBOutput.InboundNATPoolIDs["ssh-inbound-nat-pool"],
 				Location:               input.Location,
-				Name:                   input.ClusterName + "-controller-vmss",
+				Name:                   input.ClusterName + "-vmss-master",
 				NetworkSecurityGroupID: masterNSGOutput.NetworkSecurityGroupID,
-				SSHPublicKey:           "???", // TODO
-				SubnetID:               createVnetOutput.SubnetIDs[input.ClusterName+"-subnet-1"],
-				UserDataScript:         "???", // TODO
-				Zones:                  []string{"1"},
+				SSHPublicKey:           input.SSHPublicKey,
+				SubnetID:               createVnetOutput.SubnetIDs[input.ClusterName+"-subnet-master"],
+				UserDataScript:         userDataScript.String(),
+				Zones:                  []string{"1", "2", "3"},
 			},
 		}
 
-		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &masterVMSSOutput)
+		if err != nil {
+			return err
+		}
+	}
+
+	// #!/bin/sh
+	// export TOKEN=m5rpex.wqd7dgacft3k5x63
+	// export CERTHASH=sha256:37e646935d8ac3f50b1deb268431db213c4414ef4b839633153960eb186b5fdb
+	//
+	// pke install worker --kubernetes-cloud-provider=azure \
+	// --azure-tenant-id={{.TenantID}} \
+	// --azure-subnet-name={{.SubnetName}} \
+	// --azure-security-group-name={{.NSGName}} \
+	// --azure-vnet-name={{.VnetName}} \
+	// --azure-vnet-resource-group={{.VnetResourceGroupName}} \
+	// --azure-vm-type=vmss \
+	// --azure-loadbalancer-sku=standard \
+	// --azure-route-table-name={{.RouteTableName}} \
+	// --kubernetes-infrastructure-cidr={{.InfraCIDR}} \
+	// --kubernetes-pod-network-cidr=""
+	// --kubernetes-api-server={{.PublicAddress}}:6443 \
+	// --kubernetes-node-token=$TOKEN \
+	// --kubernetes-api-server-ca-cert-hash=$CERTHASH \
+
+	// Create worker scale set
+	var workerVMSSOutput CreateVMSSActivityOutput
+	{
+		var userDataScript strings.Builder
+		workerUserDataScriptTemplate.Execute(&userDataScript, struct {
+			TenantID              string
+			SubnetName            string
+			NSGName               string
+			VnetName              string
+			VnetResourceGroupName string
+			RouteTableName        string
+			InfraCIDR             string
+			PublicAddress         string
+		}{
+			TenantID:              input.TenantID,
+			SubnetName:            input.ClusterName + "-subnet-worker",
+			NSGName:               input.ClusterName + "-nsg-worker",
+			VnetName:              input.ClusterName + "-vnet",
+			VnetResourceGroupName: input.ResourceGroupName,
+			RouteTableName:        input.ClusterName + "-route-table",
+			InfraCIDR:             "10.240.0.0/16",
+			PublicAddress:         createLBOutput.PublicIPAddress,
+		})
+
+		activityInput := CreateVMSSActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			ScaleSet: VirtualMachineScaleSet{
+				AdminUsername: "azureuser",
+				Image: Image{
+					Offer:     "CentOS-CI",
+					Publisher: "OpenLogic",
+					SKU:       "7-CI",
+					Version:   "7.6.20190306",
+				},
+				InstanceCount:          1,
+				InstanceType:           "Standard_B2s",
+				Location:               input.Location,
+				Name:                   input.ClusterName + "-vmss-worker",
+				NetworkSecurityGroupID: workerNSGOutput.NetworkSecurityGroupID,
+				SSHPublicKey:           input.SSHPublicKey,
+				SubnetID:               createVnetOutput.SubnetIDs[input.ClusterName+"-subnet-worker"],
+				UserDataScript:         userDataScript.String(),
+				Zones:                  []string{"1", "2", "3"},
+			},
+		}
+
+		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &workerVMSSOutput)
 		if err != nil {
 			return err
 		}

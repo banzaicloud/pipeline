@@ -104,6 +104,7 @@ type PublicIPAddress struct {
 type CreateLoadBalancerActivityOutput struct {
 	BackendAddressPoolIDs map[string]string
 	InboundNATPoolIDs     map[string]string
+	PublicIPAddress       string
 }
 
 // Execute performs the activity
@@ -162,6 +163,14 @@ func (a CreateLoadBalancerActivity) Execute(ctx context.Context, input CreateLoa
 		for _, inp := range *lb.InboundNatPools {
 			if inp.Name != nil && inp.ID != nil {
 				output.InboundNATPoolIDs[*inp.Name] = *inp.ID
+			}
+		}
+	}
+	if lb.FrontendIPConfigurations != nil && len(*lb.FrontendIPConfigurations) > 0 {
+		for _, fic := range *lb.FrontendIPConfigurations {
+			if fic.PublicIPAddress != nil {
+				output.PublicIPAddress = to.String(fic.PublicIPAddress.IPAddress)
+				break
 			}
 		}
 	}

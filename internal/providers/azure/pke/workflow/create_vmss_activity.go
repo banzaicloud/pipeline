@@ -51,6 +51,7 @@ type CreateVMSSActivityInput struct {
 // VirtualMachineScaleSet represents an Azure virtual machine scale set
 type VirtualMachineScaleSet struct {
 	AdminUsername          string
+	Image                  Image
 	InstanceCount          int64
 	InstanceType           string
 	LBBackendAddressPoolID string
@@ -64,8 +65,19 @@ type VirtualMachineScaleSet struct {
 	Zones                  []string
 }
 
+type Image struct {
+	Offer     string
+	Publisher string
+	SKU       string
+	Version   string
+}
+
+type CreateVMSSActivityOutput struct {
+	PrincipalID string
+}
+
 // Execute performs the activity
-func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivityInput) error {
+func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivityInput) (output CreateVMSSActivityOutput, err error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -82,32 +94,57 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 	logger.Info("create virtual machine scale set")
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to create cloud connection")
+	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+		return
 	}
 
 	params := input.getCreateOrUpdateVirtualMachineScaleSetParams()
 
-	logger.Debug("sending request to create or update virtual machine scale set")
-
 	client := cc.GetVirtualMachineScaleSetsClient()
 
+	logger.Debug("sending request to create or update virtual machine scale set")
+
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.ScaleSet.Name, params)
-	if err != nil {
-		return emperror.WrapWith(err, "sending request to create or update virtual machine scale set failed", keyvals...)
+	if err = emperror.WrapWith(err, "sending request to create or update virtual machine scale set failed", keyvals...); err != nil {
+		return
 	}
 
 	logger.Debug("waiting for the completion of create or update virtual machine scale set operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return emperror.WrapWith(err, "waiting for the completion of create or update virtual machine scale set operation failed", keyvals...)
+	if err = emperror.WrapWith(err, "waiting for the completion of create or update virtual machine scale set operation failed", keyvals...); err != nil {
+		return
 	}
 
-	return nil
+	vmss, err := future.Result(client.VirtualMachineScaleSetsClient)
+	if err = emperror.WrapWith(err, "getting virtual machine scale set create or update result failed", keyvals...); err != nil {
+		return
+	}
+
+	if vmss.Identity != nil {
+		output.PrincipalID = to.String(vmss.Identity.PrincipalID)
+	}
+
+	return
 }
 
 func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetParams() compute.VirtualMachineScaleSet {
+	var bapRefs *[]compute.SubResource
+	if input.ScaleSet.LBBackendAddressPoolID != "" {
+		bapRefs = &[]compute.SubResource{
+			{
+				ID: to.StringPtr(input.ScaleSet.LBBackendAddressPoolID),
+			},
+		}
+	}
+	var inpRefs *[]compute.SubResource
+	if input.ScaleSet.LBInboundNATPoolID != "" {
+		inpRefs = &[]compute.SubResource{
+			{
+				ID: to.StringPtr(input.ScaleSet.LBInboundNATPoolID),
+			},
+		}
+	}
 	return compute.VirtualMachineScaleSet{
 		Identity: &compute.VirtualMachineScaleSetIdentity{
 			Type: compute.ResourceIdentityTypeSystemAssigned,
@@ -127,16 +164,8 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 								IPConfigurations: &[]compute.VirtualMachineScaleSetIPConfiguration{
 									{
 										VirtualMachineScaleSetIPConfigurationProperties: &compute.VirtualMachineScaleSetIPConfigurationProperties{
-											LoadBalancerBackendAddressPools: &[]compute.SubResource{
-												{
-													ID: to.StringPtr(input.ScaleSet.LBBackendAddressPoolID),
-												},
-											},
-											LoadBalancerInboundNatPools: &[]compute.SubResource{
-												{
-													ID: to.StringPtr(input.ScaleSet.LBInboundNATPoolID),
-												},
-											},
+											LoadBalancerBackendAddressPools: bapRefs,
+											LoadBalancerInboundNatPools:     inpRefs,
 											Subnet: &compute.APIEntityReference{
 												ID: to.StringPtr(input.ScaleSet.SubnetID),
 											},
@@ -166,10 +195,10 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 				},
 				StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{
 					ImageReference: &compute.ImageReference{
-						Offer:     to.StringPtr("CentOS-CI"),
-						Publisher: to.StringPtr("OpenLogic"),
-						Sku:       to.StringPtr("7-CI"),
-						Version:   to.StringPtr("7.6.20190306"),
+						Offer:     to.StringPtr(input.ScaleSet.Image.Offer),
+						Publisher: to.StringPtr(input.ScaleSet.Image.Publisher),
+						Sku:       to.StringPtr(input.ScaleSet.Image.SKU),
+						Version:   to.StringPtr(input.ScaleSet.Image.Version),
 					},
 					OsDisk: &compute.VirtualMachineScaleSetOSDisk{
 						CreateOption: compute.DiskCreateOptionTypesFromImage,
