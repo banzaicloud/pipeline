@@ -122,18 +122,18 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 			VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 				NetworkProfile: &compute.VirtualMachineScaleSetNetworkProfile{
 					NetworkInterfaceConfigurations: &[]compute.VirtualMachineScaleSetNetworkConfiguration{
-						compute.VirtualMachineScaleSetNetworkConfiguration{
+						{
 							VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
 								IPConfigurations: &[]compute.VirtualMachineScaleSetIPConfiguration{
-									compute.VirtualMachineScaleSetIPConfiguration{
+									{
 										VirtualMachineScaleSetIPConfigurationProperties: &compute.VirtualMachineScaleSetIPConfigurationProperties{
 											LoadBalancerBackendAddressPools: &[]compute.SubResource{
-												compute.SubResource{
+												{
 													ID: to.StringPtr(input.ScaleSet.LBBackendAddressPoolID),
 												},
 											},
 											LoadBalancerInboundNatPools: &[]compute.SubResource{
-												compute.SubResource{
+												{
 													ID: to.StringPtr(input.ScaleSet.LBInboundNATPoolID),
 												},
 											},
@@ -157,7 +157,7 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 						DisablePasswordAuthentication: to.BoolPtr(true),
 						SSH: &compute.SSHConfiguration{
 							PublicKeys: &[]compute.SSHPublicKey{
-								compute.SSHPublicKey{
+								{
 									KeyData: to.StringPtr(input.ScaleSet.SSHPublicKey),
 								},
 							},

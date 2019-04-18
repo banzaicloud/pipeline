@@ -31,12 +31,12 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 			ResourceGroupName: "test-rg",
 			LoadBalancer: LoadBalancer{
 				BackendAddressPools: []BackendAddressPool{
-					BackendAddressPool{
+					{
 						Name: "test-bap",
 					},
 				},
 				FrontendIPConfigurations: []FrontendIPConfiguration{
-					FrontendIPConfiguration{
+					{
 						Name: "test-fic",
 						PublicIPAddress: PublicIPAddress{
 							Location: "test-location",
@@ -47,7 +47,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 					},
 				},
 				InboundNATPools: []InboundNATPool{
-					InboundNATPool{
+					{
 						BackendPort: int32(42),
 						FrontendIPConfig: &FrontendIPConfiguration{
 							Name: "test-fic",
@@ -65,7 +65,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 					},
 				},
 				LoadBalancingRules: []LoadBalancingRule{
-					LoadBalancingRule{
+					{
 						BackendAddressPool: &BackendAddressPool{
 							Name: "test-bap",
 						},
@@ -93,7 +93,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 				Location: "test-location",
 				Name:     "test-lb",
 				Probes: []Probe{
-					Probe{
+					{
 						Name:     "test-probe",
 						Port:     1234,
 						Protocol: "Tcp",
@@ -105,12 +105,12 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 		expected := network.LoadBalancer{
 			LoadBalancerPropertiesFormat: &network.LoadBalancerPropertiesFormat{
 				BackendAddressPools: &[]network.BackendAddressPool{
-					network.BackendAddressPool{
+					{
 						Name: to.StringPtr("test-bap"),
 					},
 				},
 				FrontendIPConfigurations: &[]network.FrontendIPConfiguration{
-					network.FrontendIPConfiguration{
+					{
 						FrontendIPConfigurationPropertiesFormat: &network.FrontendIPConfigurationPropertiesFormat{
 							PrivateIPAllocationMethod: network.Dynamic,
 							PublicIPAddress: &network.PublicIPAddress{
@@ -130,7 +130,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 					},
 				},
 				InboundNatPools: &[]network.InboundNatPool{
-					network.InboundNatPool{
+					{
 						InboundNatPoolPropertiesFormat: &network.InboundNatPoolPropertiesFormat{
 							BackendPort: to.Int32Ptr(int32(42)),
 							FrontendIPConfiguration: &network.SubResource{
@@ -144,7 +144,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 					},
 				},
 				LoadBalancingRules: &[]network.LoadBalancingRule{
-					network.LoadBalancingRule{
+					{
 						LoadBalancingRulePropertiesFormat: &network.LoadBalancingRulePropertiesFormat{
 							BackendAddressPool: &network.SubResource{
 								ID: to.StringPtr("/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/loadBalancers/test-lb/backendAddressPools/test-bap"),
@@ -164,7 +164,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 					},
 				},
 				Probes: &[]network.Probe{
-					network.Probe{
+					{
 						ProbePropertiesFormat: &network.ProbePropertiesFormat{
 							Port:     to.Int32Ptr(1234),
 							Protocol: network.ProbeProtocolTCP,

@@ -61,18 +61,18 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 				VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 					NetworkProfile: &compute.VirtualMachineScaleSetNetworkProfile{
 						NetworkInterfaceConfigurations: &[]compute.VirtualMachineScaleSetNetworkConfiguration{
-							compute.VirtualMachineScaleSetNetworkConfiguration{
+							{
 								VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
 									IPConfigurations: &[]compute.VirtualMachineScaleSetIPConfiguration{
-										compute.VirtualMachineScaleSetIPConfiguration{
+										{
 											VirtualMachineScaleSetIPConfigurationProperties: &compute.VirtualMachineScaleSetIPConfigurationProperties{
 												LoadBalancerBackendAddressPools: &[]compute.SubResource{
-													compute.SubResource{
+													{
 														ID: to.StringPtr("/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/loadBalancers/test-lb/backendAddressPools/test-bap"),
 													},
 												},
 												LoadBalancerInboundNatPools: &[]compute.SubResource{
-													compute.SubResource{
+													{
 														ID: to.StringPtr("/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/loadBalancers/test-lb/inboundNatPools/test-inp"),
 													},
 												},
@@ -96,7 +96,7 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 							DisablePasswordAuthentication: to.BoolPtr(true),
 							SSH: &compute.SSHConfiguration{
 								PublicKeys: &[]compute.SSHPublicKey{
-									compute.SSHPublicKey{
+									{
 										KeyData: to.StringPtr("ssh-rsa 2048bitBASE64key test-key"),
 									},
 								},

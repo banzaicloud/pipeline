@@ -52,7 +52,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				Name:     input.ClusterName + "-nsg-master",
 				Location: input.Location,
 				Rules: []SecurityRule{
-					SecurityRule{
+					{
 						Access:               "Allow",
 						Description:          "Allow K8s API inbound",
 						Destination:          "*",
@@ -125,13 +125,13 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				CIDRs:    []string{"10.240.0.0/16"},
 				Location: input.Location,
 				Subnets: []Subnet{
-					Subnet{
+					{
 						Name:                   input.ClusterName + "-subnet-master",
 						CIDR:                   "10.240.0.0/24",
 						NetworkSecurityGroupID: masterNSGOutput.NetworkSecurityGroupID,
 						RouteTableID:           createRouteTableOutput.RouteTableID,
 					},
-					Subnet{
+					{
 						Name:                   input.ClusterName + "-subnet-worker",
 						CIDR:                   "10.240.1.0/24",
 						NetworkSecurityGroupID: workerNSGOutput.NetworkSecurityGroupID,
@@ -177,7 +177,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 					fic,
 				},
 				InboundNATPools: []InboundNATPool{
-					InboundNATPool{
+					{
 						Name:                   "ssh-in-nat-pool",
 						BackendPort:            int32(22),
 						FrontendIPConfig:       &fic,
@@ -187,7 +187,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 					},
 				},
 				LoadBalancingRules: []LoadBalancingRule{
-					LoadBalancingRule{
+					{
 						Name:                "api-server-rule",
 						BackendAddressPool:  &bap,
 						BackendPort:         int32(6443),
