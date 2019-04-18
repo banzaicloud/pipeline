@@ -255,7 +255,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	var masterVMSSOutput CreateVMSSActivityOutput
 	{
 		var userDataScript strings.Builder
-		masterUserDataScriptTemplate.Execute(&userDataScript, struct {
+		err := masterUserDataScriptTemplate.Execute(&userDataScript, struct {
 			TenantID              string
 			SubnetName            string
 			NSGName               string
@@ -302,10 +302,21 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			},
 		}
 
-		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &masterVMSSOutput)
+		err = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &masterVMSSOutput)
 		if err != nil {
 			return err
 		}
+	}
+	{
+		activityInput := AssignRoleActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			PrincipalID:       masterVMSSOutput.PrincipalID,
+		}
+		err := workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput).Get(ctx, nil)
+		return err
 	}
 
 	// #!/bin/sh
@@ -381,7 +392,5 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			return err
 		}
 	}
-
-	// Set AssignRolePolicy
 	return nil
 }

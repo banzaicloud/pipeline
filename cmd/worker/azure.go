@@ -43,4 +43,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 
 	createRouteTableActivity := azurepkeworkflow.MakeCreateRouteTableActivity(azureClientFactory)
 	activity.RegisterWithOptions(createRouteTableActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateRouteTableActivityName})
+
+	assignRoleActivity := azurepkeworkflow.MakeAssignRoleActivity(azureClientFactory)
+	activity.RegisterWithOptions(assignRoleActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.AssignRoleActivityName})
 }
