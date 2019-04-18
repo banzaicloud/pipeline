@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -83,7 +84,7 @@ func deleteCluster(log logrus.FieldLogger, clusterID string, csClient *cs.Client
 func describeScalingInstances(essClient *ess.Client, asgId, scalingConfId, regionId string) (*ess.DescribeScalingInstancesResponse, error) {
 	describeScalingInstancesRequest := ess.CreateDescribeScalingInstancesRequest()
 	describeScalingInstancesRequest.SetScheme(requests.HTTPS)
-	describeScalingInstancesRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, regionId))
+	describeScalingInstancesRequest.SetDomain(alibaba.GetESSServiceEndpoint(regionId))
 	describeScalingInstancesRequest.SetContentType(requests.Json)
 
 	describeScalingInstancesRequest.ScalingGroupId = asgId
@@ -150,7 +151,7 @@ func deleteNodePools(log logrus.FieldLogger, nodePools []*model.ACKNodePoolModel
 func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, essClient *ess.Client, regionId string, errChan chan<- error) {
 	deleteSGRequest := ess.CreateDeleteScalingGroupRequest()
 	deleteSGRequest.SetScheme(requests.HTTPS)
-	deleteSGRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, regionId))
+	deleteSGRequest.SetDomain(alibaba.GetESSServiceEndpoint(regionId))
 	deleteSGRequest.SetContentType(requests.Json)
 
 	if nodePool.AsgID == "" {
@@ -189,7 +190,7 @@ func deleteNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel, essClient *ess.Client, cluster *ack.AlibabaDescribeClusterResponse, instanceIdsChan chan<- []string, errChan chan<- error) {
 	scalingGroupRequest := ess.CreateCreateScalingGroupRequest()
 	scalingGroupRequest.SetScheme(requests.HTTPS)
-	scalingGroupRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, cluster.RegionID))
+	scalingGroupRequest.SetDomain(alibaba.GetESSServiceEndpoint(cluster.RegionID))
 	scalingGroupRequest.SetContentType(requests.Json)
 
 	log := logger.WithFields(logrus.Fields{
@@ -220,7 +221,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 
 	scalingConfigurationRequest := ess.CreateCreateScalingConfigurationRequest()
 	scalingConfigurationRequest.SetScheme(requests.HTTPS)
-	scalingConfigurationRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, cluster.RegionID))
+	scalingConfigurationRequest.SetDomain(alibaba.GetESSServiceEndpoint(cluster.RegionID))
 	scalingConfigurationRequest.SetContentType(requests.Json)
 
 	scalingConfigurationRequest.ScalingGroupId = nodePool.AsgID
@@ -246,7 +247,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 
 	enableSGRequest := ess.CreateEnableScalingGroupRequest()
 	enableSGRequest.SetScheme(requests.HTTPS)
-	enableSGRequest.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, cluster.RegionID))
+	enableSGRequest.SetDomain(alibaba.GetESSServiceEndpoint(cluster.RegionID))
 	enableSGRequest.SetContentType(requests.Json)
 
 	enableSGRequest.ScalingGroupId = nodePool.AsgID
@@ -282,7 +283,7 @@ func updateNodePool(log logrus.FieldLogger, nodePool *model.ACKNodePoolModel, es
 	}
 
 	modifyScalingGroupReq := ess.CreateModifyScalingGroupRequest()
-	modifyScalingGroupReq.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, regionId))
+	modifyScalingGroupReq.SetDomain(alibaba.GetESSServiceEndpoint(regionId))
 	modifyScalingGroupReq.SetScheme(requests.HTTPS)
 	modifyScalingGroupReq.RegionId = regionId
 	modifyScalingGroupReq.ScalingGroupId = nodePool.AsgID
