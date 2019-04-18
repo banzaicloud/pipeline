@@ -28,16 +28,16 @@ func GetESSServiceEndpoint(region string) string {
 	region = strings.ToLower(region)
 
 	switch strings.ToLower(region) {
-	case "cn-zhangjiakou":
-	case "cn-huhehaote":
-	case "ap-southeast-2":
-	case "ap-southeast-3":
-	case "ap-southeast-5":
-	case "ap-northeast-1":
-	case "eu-west-1":
-	case "eu-central-1":
-	case "me-east-1":
-	case "ap-south-1":
+	case "cn-zhangjiakou",
+		"cn-huhehaote",
+		"ap-southeast-2",
+		"ap-southeast-3",
+		"ap-southeast-5",
+		"ap-northeast-1",
+		"eu-west-1",
+		"eu-central-1",
+		"me-east-1",
+		"ap-south-1":
 		return fmt.Sprintf("ess.%s.aliyuncs.com", region)
 	}
 

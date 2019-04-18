@@ -197,6 +197,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 		"region":        cluster.RegionID,
 		"zone":          cluster.ZoneID,
 		"instance_type": nodePool.InstanceType,
+		"nodePoolName":  nodePool.Name,
 	})
 
 	log.Info("creating scaling group")

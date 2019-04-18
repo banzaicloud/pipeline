@@ -852,6 +852,7 @@ func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 
 // InstallHelmPostHook this posthook installs the helm related things
 func InstallHelmPostHook(cluster CommonCluster) error {
+	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "clusterID": cluster.GetID()})
 	helmInstall := &pkgHelm.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
@@ -870,15 +871,14 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
-		log.Errorf("Error retrieving kubernetes config: %s", err.Error())
 		return err
 	}
 
-	err = helm.RetryHelmInstall(helmInstall, kubeconfig)
+	err = helm.RetryHelmInstall(log, helmInstall, kubeconfig)
 	if err == nil {
 		log.Info("Getting K8S Config Succeeded")
 
-		if err := WaitingForTillerComeUp(kubeconfig); err != nil {
+		if err := WaitingForTillerComeUp(log, kubeconfig); err != nil {
 			return err
 		}
 

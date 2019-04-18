@@ -20,6 +20,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/backoff"
@@ -27,7 +28,7 @@ import (
 )
 
 // WaitingForTillerComeUp waits until till to come up
-func WaitingForTillerComeUp(kubeConfig []byte) error {
+func WaitingForTillerComeUp(log logrus.FieldLogger, kubeConfig []byte) error {
 	requiredHelmVersion, err := semver.NewVersion(viper.GetString("helm.tillerVersion"))
 	if err != nil {
 		return err
@@ -46,6 +47,7 @@ func WaitingForTillerComeUp(kubeConfig []byte) error {
 
 	err = backoff.Retry(func() error {
 		log.WithField("attempt", fmt.Sprintf("%d/%d", i, retryAttempts)).Info("waiting for tiller to come up")
+		i++
 
 		client, err := pkgHelm.NewClient(kubeConfig, log)
 		if err != nil {
