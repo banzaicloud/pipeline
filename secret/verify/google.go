@@ -17,19 +17,18 @@ package verify
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/serviceusage/v1"
+
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 const (
@@ -77,8 +76,7 @@ func checkRequiredServices(serviceAccount *ServiceAccount) ([]string, error) {
 
 	enabledServices, err := listEnabledServices(serviceAccount)
 	if err != nil {
-		logrus.Error(err)
-		return nil, errors.New("list enabled services failed")
+		return nil, emperror.Wrap(err, "list enabled services failed")
 	}
 
 	var missingServices []string
