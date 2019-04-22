@@ -64,14 +64,19 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 				"kubernetesCluster-test-cluster": to.StringPtr("owned"),
 			},
 			VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
+				UpgradePolicy: &compute.UpgradePolicy{Mode: compute.Manual},
 				VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 					NetworkProfile: &compute.VirtualMachineScaleSetNetworkProfile{
 						NetworkInterfaceConfigurations: &[]compute.VirtualMachineScaleSetNetworkConfiguration{
 							{
+								Name: to.StringPtr("test-vmss-nic-1"),
 								VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
+									Primary: to.BoolPtr(true),
 									IPConfigurations: &[]compute.VirtualMachineScaleSetIPConfiguration{
 										{
+											Name: to.StringPtr("test-vmss-pip-1"),
 											VirtualMachineScaleSetIPConfigurationProperties: &compute.VirtualMachineScaleSetIPConfigurationProperties{
+												Primary: to.BoolPtr(true),
 												LoadBalancerBackendAddressPools: &[]compute.SubResource{
 													{
 														ID: to.StringPtr("/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/loadBalancers/test-lb/backendAddressPools/test-bap"),
@@ -96,13 +101,15 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 						},
 					},
 					OsProfile: &compute.VirtualMachineScaleSetOSProfile{
-						AdminUsername: to.StringPtr("test-admin"),
-						CustomData:    to.StringPtr("IyEvYmluL2Jhc2gKZWNobyAiSSB3YXMgaGVyZSIgPiAvdG1wL3doZXJlLXdhcy1p"),
+						ComputerNamePrefix: to.StringPtr("test-vmss"),
+						AdminUsername:      to.StringPtr("test-admin"),
+						CustomData:         to.StringPtr("IyEvYmluL2Jhc2gKZWNobyAiSSB3YXMgaGVyZSIgPiAvdG1wL3doZXJlLXdhcy1p"),
 						LinuxConfiguration: &compute.LinuxConfiguration{
 							DisablePasswordAuthentication: to.BoolPtr(true),
 							SSH: &compute.SSHConfiguration{
 								PublicKeys: &[]compute.SSHPublicKey{
 									{
+										Path:    to.StringPtr("/home/test-admin/.ssh/authorized_keys"),
 										KeyData: to.StringPtr("ssh-rsa 2048bitBASE64key test-key"),
 									},
 								},
@@ -117,6 +124,8 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 							Version:   to.StringPtr("7.6.20190306"),
 						},
 						OsDisk: &compute.VirtualMachineScaleSetOSDisk{
+							Caching:      compute.CachingTypesReadWrite,
+							OsType:       compute.Linux,
 							CreateOption: compute.DiskCreateOptionTypesFromImage,
 							ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
 								StorageAccountType: compute.StorageAccountTypesStandardLRS,
