@@ -23,13 +23,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
-	"github.com/banzaicloud/pipeline/internal/federation"
-
-	"github.com/banzaicloud/pipeline/internal/clustergroup"
-
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
 	"github.com/banzaicloud/pipeline/api/ark/backupservice"
@@ -55,8 +58,11 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
+	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
+	"github.com/banzaicloud/pipeline/internal/federation"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/notification"
@@ -73,16 +79,9 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
-//Common logger for package
+// Common logger for package
 // nolint: gochecknoglobals
 var log *logrus.Logger
 
@@ -185,7 +184,7 @@ func main() {
 		Count    int
 	}
 	totalClusters := make([]totalClusterMetric, 0)
-	//SELECT count(id) as count, location, cloud FROM clusters GROUP BY location, cloud; (init values)
+	// SELECT count(id) as count, location, cloud FROM clusters GROUP BY location, cloud; (init values)
 	if err := db.Raw("SELECT count(id) as count, location, cloud FROM clusters GROUP BY location, cloud").Scan(&totalClusters).Error; err != nil {
 		logger.Error(err)
 	}
@@ -294,7 +293,7 @@ func main() {
 
 	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, log, errorHandler)
 
-	//Initialise Gin router
+	// Initialise Gin router
 	router := gin.New()
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
@@ -364,7 +363,17 @@ func main() {
 		log.Errorf("failed to create shared Spotguide organization: %s", err)
 	}
 
-	spotguideManager := spotguide.NewSpotguideManager(config.DB(), version, scmFactory, sharedSpotguideOrg)
+	spotguidePlatformData := spotguide.PlatformData{
+		AutoDNSEnabled: viper.GetString(config.DNSBaseDomain) != "",
+	}
+
+	spotguideManager := spotguide.NewSpotguideManager(
+		config.DB(),
+		version,
+		scmFactory,
+		sharedSpotguideOrg,
+		spotguidePlatformData,
+	)
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
@@ -411,7 +420,7 @@ func main() {
 
 			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateCluster)
-			//v1.GET("/status", api.Status)
+			// v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 			orgs.GET("/:orgid/clusters/:id", clusterAPI.GetCluster)
 			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
@@ -618,7 +627,7 @@ func main() {
 }
 
 func createInternalAPIRouter(skipPaths []string, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI) *gin.Engine {
-	//Initialise Gin router for Internal API
+	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
 	internalRouter.Use(ginlog.Middleware(log, skipPaths...))
