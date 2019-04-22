@@ -389,7 +389,9 @@ func TestCICDRepoConfigPipeline(t *testing.T) {
 		t.Fatal("Unmarshal expected to succeed but got error: ", err.Error())
 	}
 
-	cicdConfig, err := createCICDRepoConfig([]byte(testPipelineYAML), &launchRequest)
+	spotguidePlatformData := PlatformData{}
+
+	cicdConfig, err := createCICDRepoConfig([]byte(testPipelineYAML), &launchRequest, spotguidePlatformData)
 
 	if err != nil {
 		t.Fatal("createCICDRepoConfig expected to succeed but got error: ", err.Error())
@@ -513,7 +515,9 @@ func TestCICDRepoConfigPipelineClusterBlock(t *testing.T) {
 	launchRequest := LaunchRequest{}
 	json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest)
 
-	cicdConfig, err := createCICDRepoConfig([]byte(testClusterPipelineYAML), &launchRequest)
+	spotguidePlatformData := PlatformData{}
+
+	cicdConfig, err := createCICDRepoConfig([]byte(testClusterPipelineYAML), &launchRequest, spotguidePlatformData)
 	if err != nil {
 		t.Fatal("createCICDRepoConfig expected to succeed but got error: ", err.Error())
 	}
