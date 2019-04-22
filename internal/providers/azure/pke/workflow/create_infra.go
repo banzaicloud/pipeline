@@ -20,6 +20,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/goph/emperror"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -212,7 +213,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 		activityInput := CreateLoadBalancerActivityInput{
 			LoadBalancer: LoadBalancer{
-				Name:     "kubernetes",
+				Name:     "kubernetes", // TODO: lb name should be unique per cluster unless it's shared by multiple clusters
 				Location: input.Location,
 				SKU:      "Standard",
 				BackendAddressPools: []BackendAddressPool{
@@ -303,6 +304,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			InfraCIDR:             "10.240.0.0/16",
 			PublicAddress:         createPublicIPOutput.PublicIPAddress,
 		})
+		if err != nil {
+			return emperror.Wrap(err, "failed to execute master user data script")
+		}
 
 		activityInput := CreateVMSSActivityInput{
 			OrganizationID:    input.OrganizationID,
@@ -373,7 +377,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	var workerVMSSOutput CreateVMSSActivityOutput
 	{
 		var userDataScript strings.Builder
-		workerUserDataScriptTemplate.Execute(&userDataScript, struct {
+		err := workerUserDataScriptTemplate.Execute(&userDataScript, struct {
 			TenantID              string
 			SubnetName            string
 			NSGName               string
@@ -392,6 +396,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			InfraCIDR:             "10.240.0.0/16",
 			PublicAddress:         createPublicIPOutput.PublicIPAddress,
 		})
+		if err != nil {
+			return emperror.Wrap(err, "failed to execute worker user data script")
+		}
 
 		activityInput := CreateVMSSActivityInput{
 			OrganizationID:    input.OrganizationID,
@@ -418,7 +425,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			},
 		}
 
-		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &workerVMSSOutput)
+		err = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &workerVMSSOutput)
 		if err != nil {
 			return err
 		}

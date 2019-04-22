@@ -26,6 +26,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 	// Azure PKE
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateInfraWorkflowName})
+	workflow.RegisterWithOptions(azurepkeworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteInfraWorkflowName})
 
 	azureClientFactory := azurepkeworkflow.NewAzureClientFactory(secretStore)
 
@@ -49,4 +50,8 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 
 	createPublicIPActivity := azurepkeworkflow.MakeCreatePublicIPActivity(azureClientFactory)
 	activity.RegisterWithOptions(createPublicIPActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreatePublicIPActivityName})
+
+	// delete infra activities
+	deleteLoadBalancerActivity := azurepkeworkflow.MakeDeleteLoadBalancerActivity(azureClientFactory)
+	activity.RegisterWithOptions(deleteLoadBalancerActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteLoadBalancerActivityName})
 }

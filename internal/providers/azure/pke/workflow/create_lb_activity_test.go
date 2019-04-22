@@ -37,26 +37,18 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 				},
 				FrontendIPConfigurations: []FrontendIPConfiguration{
 					{
-						Name: "test-fic",
-						PublicIPAddress: PublicIPAddress{
-							Location: "test-location",
-							Name:     "test-public-ip",
-							SKU:      "Standard",
-						},
-						Zones: []string{"1", "3"},
+						Name:              "test-fic",
+						PublicIPAddressID: "test-public-ip",
+						Zones:             []string{"1", "3"},
 					},
 				},
 				InboundNATPools: []InboundNATPool{
 					{
 						BackendPort: int32(42),
 						FrontendIPConfig: &FrontendIPConfiguration{
-							Name: "test-fic",
-							PublicIPAddress: PublicIPAddress{
-								Location: "test-location",
-								Name:     "test-public-ip",
-								SKU:      "Standard",
-							},
-							Zones: []string{"1", "3"},
+							Name:              "test-fic",
+							PublicIPAddressID: "test-public-ip",
+							Zones:             []string{"1", "3"},
 						},
 						FrontendPortRangeEnd:   int32(42424),
 						FrontendPortRangeStart: int32(42422),
@@ -72,13 +64,9 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 						BackendPort:         int32(4242),
 						DisableOutboundSNAT: false,
 						FrontendIPConfig: &FrontendIPConfiguration{
-							Name: "test-fic",
-							PublicIPAddress: PublicIPAddress{
-								Location: "test-location",
-								Name:     "test-public-ip",
-								SKU:      "Standard",
-							},
-							Zones: []string{"1", "3"},
+							Name:              "test-fic",
+							PublicIPAddressID: "test-public-ip",
+							Zones:             []string{"1", "3"},
 						},
 						FrontendPort: int32(24242),
 						Name:         "test-lbr",
@@ -114,15 +102,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 						FrontendIPConfigurationPropertiesFormat: &network.FrontendIPConfigurationPropertiesFormat{
 							PrivateIPAllocationMethod: network.Dynamic,
 							PublicIPAddress: &network.PublicIPAddress{
-								Location: to.StringPtr("test-location"),
-								Name:     to.StringPtr("test-public-ip"),
-								PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
-									PublicIPAddressVersion:   network.IPv4,
-									PublicIPAllocationMethod: network.Static,
-								},
-								Sku: &network.PublicIPAddressSku{
-									Name: network.PublicIPAddressSkuNameStandard,
-								},
+								ID: to.StringPtr("test-public-ip"),
 							},
 						},
 						Name:  to.StringPtr("test-fic"),
