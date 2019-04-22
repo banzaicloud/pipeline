@@ -16,6 +16,7 @@ package workflow
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -156,14 +157,21 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 		},
 		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
+			UpgradePolicy: &compute.UpgradePolicy{
+				Mode: compute.Manual,
+			},
 			VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 				NetworkProfile: &compute.VirtualMachineScaleSetNetworkProfile{
 					NetworkInterfaceConfigurations: &[]compute.VirtualMachineScaleSetNetworkConfiguration{
 						{
+							Name: to.StringPtr(fmt.Sprintf("%s-nic-1", input.ScaleSet.Name)),
 							VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
+								Primary: to.BoolPtr(true),
 								IPConfigurations: &[]compute.VirtualMachineScaleSetIPConfiguration{
 									{
+										Name: to.StringPtr(fmt.Sprintf("%s-pip-1", input.ScaleSet.Name)),
 										VirtualMachineScaleSetIPConfigurationProperties: &compute.VirtualMachineScaleSetIPConfigurationProperties{
+											Primary:                         to.BoolPtr(true),
 											LoadBalancerBackendAddressPools: bapRefs,
 											LoadBalancerInboundNatPools:     inpRefs,
 											Subnet: &compute.APIEntityReference{
@@ -180,14 +188,16 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 					},
 				},
 				OsProfile: &compute.VirtualMachineScaleSetOSProfile{
-					AdminUsername: to.StringPtr(input.ScaleSet.AdminUsername),
-					CustomData:    to.StringPtr(input.ScaleSet.UserDataScript),
+					ComputerNamePrefix: to.StringPtr(input.ScaleSet.Name),
+					AdminUsername:      to.StringPtr(input.ScaleSet.AdminUsername),
+					CustomData:         to.StringPtr(input.ScaleSet.UserDataScript),
 					LinuxConfiguration: &compute.LinuxConfiguration{
 						DisablePasswordAuthentication: to.BoolPtr(true),
 						SSH: &compute.SSHConfiguration{
 							PublicKeys: &[]compute.SSHPublicKey{
 								{
 									KeyData: to.StringPtr(input.ScaleSet.SSHPublicKey),
+									Path:    to.StringPtr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", input.ScaleSet.AdminUsername)),
 								},
 							},
 						},
@@ -205,6 +215,8 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 						ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
 							StorageAccountType: compute.StorageAccountTypesStandardLRS,
 						},
+						Caching: compute.CachingTypesReadWrite,
+						OsType:  compute.Linux,
 					},
 				},
 			},

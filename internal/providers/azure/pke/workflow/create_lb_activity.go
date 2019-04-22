@@ -64,9 +64,9 @@ type BackendAddressPool struct {
 }
 
 type FrontendIPConfiguration struct {
-	Name            string
-	PublicIPAddress PublicIPAddress
-	Zones           []string
+	Name              string
+	PublicIPAddressID string
+	Zones             []string
 }
 
 type InboundNATPool struct {
@@ -95,16 +95,9 @@ type Probe struct {
 	Protocol string
 }
 
-type PublicIPAddress struct {
-	Location string
-	Name     string
-	SKU      string
-}
-
 type CreateLoadBalancerActivityOutput struct {
 	BackendAddressPoolIDs map[string]string
 	InboundNATPoolIDs     map[string]string
-	PublicIPAddress       string
 }
 
 // Execute performs the activity
@@ -166,14 +159,6 @@ func (a CreateLoadBalancerActivity) Execute(ctx context.Context, input CreateLoa
 			}
 		}
 	}
-	if lb.FrontendIPConfigurations != nil && len(*lb.FrontendIPConfigurations) > 0 {
-		for _, fic := range *lb.FrontendIPConfigurations {
-			if fic.PublicIPAddress != nil {
-				output.PublicIPAddress = to.String(fic.PublicIPAddress.IPAddress)
-				break
-			}
-		}
-	}
 	return
 }
 
@@ -192,15 +177,7 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 			FrontendIPConfigurationPropertiesFormat: &network.FrontendIPConfigurationPropertiesFormat{
 				PrivateIPAllocationMethod: network.Dynamic,
 				PublicIPAddress: &network.PublicIPAddress{
-					Name:     to.StringPtr(fic.PublicIPAddress.Name),
-					Location: to.StringPtr(fic.PublicIPAddress.Location),
-					PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
-						PublicIPAddressVersion:   network.IPv4,
-						PublicIPAllocationMethod: network.Static,
-					},
-					Sku: &network.PublicIPAddressSku{
-						Name: network.PublicIPAddressSkuName(fic.PublicIPAddress.SKU),
-					},
+					ID: to.StringPtr(fic.PublicIPAddressID),
 				},
 			},
 			Zones: to.StringSlicePtr(fic.Zones),

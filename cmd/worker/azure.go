@@ -46,4 +46,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 
 	assignRoleActivity := azurepkeworkflow.MakeAssignRoleActivity(azureClientFactory)
 	activity.RegisterWithOptions(assignRoleActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.AssignRoleActivityName})
+
+	createPublicIPActivity := azurepkeworkflow.MakeCreatePublicIPActivity(azureClientFactory)
+	activity.RegisterWithOptions(createPublicIPActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreatePublicIPActivityName})
 }

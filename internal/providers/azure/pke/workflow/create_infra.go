@@ -15,6 +15,7 @@
 package workflow
 
 import (
+	"encoding/base64"
 	"strings"
 	"text/template"
 	"time"
@@ -68,6 +69,18 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				Location: input.Location,
 				Rules: []SecurityRule{
 					{
+						Name:                 "server-allow-ssh-inbound",
+						Access:               "Allow",
+						Description:          "Allow SSH server inbound connections",
+						Destination:          "*",
+						DestinationPortRange: "22",
+						Direction:            "Inbound",
+						Priority:             1000,
+						Protocol:             "Tcp",
+						Source:               "*",
+						SourcePortRange:      "*",
+					},
+					{
 						Name:                 "kubernetes-allow-api-server-inbound",
 						Access:               "Allow",
 						Description:          "Allow K8s API server inbound connections",
@@ -102,7 +115,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				Rules:    []SecurityRule{},
 			},
 		}
-		err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &masterNSGOutput)
+		err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &workerNSGOutput)
 		if err != nil {
 			return err
 		}
@@ -161,6 +174,26 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			return err
 		}
 	}
+	var createPublicIPOutput CreatePublicIPActivityOutput
+	// Create PublicIP
+	{
+		activityInput := CreatePublicIPActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			PublicIPAddress: PublicIPAddress{
+				Location: input.Location,
+				Name:     input.ClusterName + "-pip-in",
+				SKU:      "Standard",
+			},
+		}
+		err := workflow.ExecuteActivity(ctx, CreatePublicIPActivityName, activityInput).Get(ctx, &createPublicIPOutput)
+		if err != nil {
+			return err
+		}
+
+	}
 
 	// Create basic load balancer
 	var createLBOutput CreateLoadBalancerActivityOutput
@@ -169,12 +202,8 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			Name: "backend-pool-master",
 		}
 		fic := FrontendIPConfiguration{
-			Name: "frontend-ip-config",
-			PublicIPAddress: PublicIPAddress{
-				Location: input.Location,
-				Name:     input.ClusterName + "-pip-in",
-				SKU:      "Standard",
-			},
+			Name:              "frontend-ip-config",
+			PublicIPAddressID: createPublicIPOutput.PublicIPAddressID,
 		}
 		probe := Probe{
 			Name:     "api-server-probe",
@@ -224,7 +253,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			SecretID:          input.SecretID,
 		}
 
-		err := workflow.ExecuteActivity(ctx, CreateLoadBalancerActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, CreateLoadBalancerActivityName, activityInput).Get(ctx, &createLBOutput)
 		if err != nil {
 			return err
 		}
@@ -272,7 +301,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			VnetResourceGroupName: input.ResourceGroupName,
 			RouteTableName:        input.ClusterName + "-route-table",
 			InfraCIDR:             "10.240.0.0/16",
-			PublicAddress:         createLBOutput.PublicIPAddress,
+			PublicAddress:         createPublicIPOutput.PublicIPAddress,
 		})
 
 		activityInput := CreateVMSSActivityInput{
@@ -297,7 +326,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				NetworkSecurityGroupID: masterNSGOutput.NetworkSecurityGroupID,
 				SSHPublicKey:           input.SSHPublicKey,
 				SubnetID:               createVnetOutput.SubnetIDs[input.ClusterName+"-subnet-master"],
-				UserDataScript:         userDataScript.String(),
+				UserDataScript:         base64.StdEncoding.EncodeToString([]byte(userDataScript.String())),
 				Zones:                  []string{"1", "2", "3"},
 			},
 		}
@@ -316,7 +345,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			PrincipalID:       masterVMSSOutput.PrincipalID,
 		}
 		err := workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput).Get(ctx, nil)
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	// #!/bin/sh
@@ -359,7 +390,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			VnetResourceGroupName: input.ResourceGroupName,
 			RouteTableName:        input.ClusterName + "-route-table",
 			InfraCIDR:             "10.240.0.0/16",
-			PublicAddress:         createLBOutput.PublicIPAddress,
+			PublicAddress:         createPublicIPOutput.PublicIPAddress,
 		})
 
 		activityInput := CreateVMSSActivityInput{
@@ -382,12 +413,25 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				NetworkSecurityGroupID: workerNSGOutput.NetworkSecurityGroupID,
 				SSHPublicKey:           input.SSHPublicKey,
 				SubnetID:               createVnetOutput.SubnetIDs[input.ClusterName+"-subnet-worker"],
-				UserDataScript:         userDataScript.String(),
+				UserDataScript:         base64.StdEncoding.EncodeToString([]byte(userDataScript.String())),
 				Zones:                  []string{"1", "2", "3"},
 			},
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &workerVMSSOutput)
+		if err != nil {
+			return err
+		}
+	}
+	{
+		activityInput := AssignRoleActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			PrincipalID:       workerVMSSOutput.PrincipalID,
+		}
+		err := workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}

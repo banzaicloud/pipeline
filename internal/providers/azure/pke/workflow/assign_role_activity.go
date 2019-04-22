@@ -17,11 +17,13 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/authorization/mgmt/authorization"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
+	"go.uber.org/cadence/activity"
 )
 
 // AssignRoleActivityName is the default registration name of the activity
@@ -48,7 +50,12 @@ type AssignRoleActivityInput struct {
 }
 
 func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivityInput) error {
-
+	logger := activity.GetLogger(ctx).Sugar().With(
+		"organization", input.OrganizationID,
+		"cluster", input.ClusterName,
+		"secret", input.SecretID,
+		"resourceGroup", input.ResourceGroupName,
+	)
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
 		return err
@@ -59,9 +66,13 @@ func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivit
 	if err != nil {
 		return err
 	}
-	_, err = client.Create(
+	resourceGroup, err := cc.GetGroupsClient().Get(ctx, input.ResourceGroupName)
+	if err != nil {
+		return err
+	}
+	result, err := client.Create(
 		ctx,
-		input.ResourceGroupName,
+		*resourceGroup.ID,
 		uuid.Must(uuid.NewV1()).String(),
 		authorization.RoleAssignmentCreateParameters{
 			Properties: &authorization.RoleAssignmentProperties{
@@ -69,5 +80,9 @@ func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivit
 				RoleDefinitionID: role.ID,
 			},
 		})
+	if result.Response.StatusCode == http.StatusConflict {
+		logger.Infof("RoleAssignment %s already exists", result.ID)
+		return nil
+	}
 	return err
 }

@@ -127,17 +127,17 @@ func (input CreateNSGActivityInput) getCreateOrUpdateSecurityGroupParams() netwo
 	securityRules := make([]network.SecurityRule, len(input.SecurityGroup.Rules))
 	for i, r := range input.SecurityGroup.Rules {
 		securityRules[i] = network.SecurityRule{
-			Name: &r.Name,
+			Name: to.StringPtr(r.Name),
 			SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
 				Access:                   network.SecurityRuleAccess(r.Access),
-				Description:              &r.Description,
-				DestinationAddressPrefix: &r.Destination,
-				DestinationPortRange:     &r.DestinationPortRange,
+				Description:              to.StringPtr(r.Description),
+				DestinationAddressPrefix: to.StringPtr(r.Destination),
+				DestinationPortRange:     to.StringPtr(r.DestinationPortRange),
 				Direction:                network.SecurityRuleDirection(r.Direction),
-				Priority:                 &r.Priority,
+				Priority:                 to.Int32Ptr(r.Priority),
 				Protocol:                 network.SecurityRuleProtocol(r.Protocol),
-				SourceAddressPrefix:      &r.Source,
-				SourcePortRange:          &r.SourcePortRange,
+				SourceAddressPrefix:      to.StringPtr(r.Source),
+				SourcePortRange:          to.StringPtr(r.SourcePortRange),
 			},
 		}
 	}
