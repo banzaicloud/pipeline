@@ -16,12 +16,10 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/authorization/mgmt/authorization"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 )
@@ -46,7 +44,9 @@ type AssignRoleActivityInput struct {
 	SecretID          string
 	ClusterName       string
 	ResourceGroupName string
+	Name              string
 	PrincipalID       string
+	RoleName          string
 }
 
 func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivityInput) error {
@@ -56,33 +56,39 @@ func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivit
 		"secret", input.SecretID,
 		"resourceGroup", input.ResourceGroupName,
 	)
+
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
 		return err
 	}
-	scope := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", cc.GetSubscriptionID(), input.ResourceGroupName)
-	client := cc.GetRoleAssignmentsClient()
-	role, err := cc.GetRoleDefinitionsClient().FindByRoleName(ctx, scope, "Contributor")
-	if err != nil {
-		return err
-	}
+
 	resourceGroup, err := cc.GetGroupsClient().Get(ctx, input.ResourceGroupName)
 	if err != nil {
-		return err
+		return emperror.WrapWith(err, "failed to retreive resource group", "resourceGroup", input.ResourceGroupName)
 	}
-	result, err := client.Create(
-		ctx,
-		*resourceGroup.ID,
-		uuid.Must(uuid.NewV1()).String(),
-		authorization.RoleAssignmentCreateParameters{
-			Properties: &authorization.RoleAssignmentProperties{
-				PrincipalID:      to.StringPtr(input.PrincipalID),
-				RoleDefinitionID: role.ID,
-			},
-		})
+
+	scope := *resourceGroup.ID
+
+	role, err := cc.GetRoleDefinitionsClient().FindByRoleName(ctx, scope, input.RoleName)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to find role by name", "scope", scope, "roleName", input.RoleName)
+	}
+
+	params := input.getRoleAssignmentCreateParams(*role)
+
+	result, err := cc.GetRoleAssignmentsClient().Create(ctx, scope, input.Name, params)
 	if result.Response.StatusCode == http.StatusConflict {
-		logger.Infof("RoleAssignment %s already exists", result.ID)
+		logger.Infof("Role [%s] is already assigned to principal [%s] as [%s]", input.RoleName, input.PrincipalID, result.ID)
 		return nil
 	}
-	return err
+	return emperror.WrapWith(err, "failed to create role assignment", "scope", scope, "roleName", input.RoleName, "principalID", input.PrincipalID)
+}
+
+func (input AssignRoleActivityInput) getRoleAssignmentCreateParams(role authorization.RoleDefinition) authorization.RoleAssignmentCreateParameters {
+	return authorization.RoleAssignmentCreateParameters{
+		Properties: &authorization.RoleAssignmentProperties{
+			PrincipalID:      to.StringPtr(input.PrincipalID),
+			RoleDefinitionID: role.ID,
+		},
+	}
 }

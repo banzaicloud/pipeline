@@ -20,6 +20,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/workflow"
 )
@@ -347,6 +348,8 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			ClusterName:       input.ClusterName,
 			ResourceGroupName: input.ResourceGroupName,
 			PrincipalID:       masterVMSSOutput.PrincipalID,
+			RoleName:          "Contributor",
+			Name:              uuid.Must(uuid.NewV1()).String(),
 		}
 		err := workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
@@ -437,6 +440,8 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			ClusterName:       input.ClusterName,
 			ResourceGroupName: input.ResourceGroupName,
 			PrincipalID:       workerVMSSOutput.PrincipalID,
+			RoleName:          "Contributor",
+			Name:              uuid.Must(uuid.NewV1()).String(),
 		}
 		err := workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
