@@ -124,7 +124,7 @@ func (a CreateLoadBalancerActivity) Execute(ctx context.Context, input CreateLoa
 
 	client := cc.GetLoadBalancersClient()
 
-	params := input.getCreateOrUpdateLoadBalancerParams(client.SubscriptionID)
+	params := input.getCreateOrUpdateLoadBalancerParams(cc.GetSubscriptionID())
 
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.LoadBalancer.Name, params)
 	if err = emperror.WrapWith(err, "sending request to create or update load balancer failed", keyvals...); err != nil {
