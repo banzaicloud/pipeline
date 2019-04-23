@@ -15,9 +15,10 @@
 package restores
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -30,6 +31,7 @@ func AddRoutes(group *gin.RouterGroup) {
 	group.Use(common.ARKMiddleware(config.DB(), common.Log))
 	group.GET("", List)
 	group.POST("", Create)
+	group.PUT("/sync", Sync)
 	item := group.Group("/:" + IDParamName)
 	{
 		item.GET("", Get)

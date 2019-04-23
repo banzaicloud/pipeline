@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ark
+package posthook
 
 import (
 	"time"
@@ -24,7 +24,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+	"github.com/banzaicloud/pipeline/internal/ark/sync"
 )
 
 const (
@@ -55,7 +57,7 @@ func RestoreFromBackup(
 		return err
 	}
 
-	svc := NewARKService(org, cluster, db, logger)
+	svc := ark.NewARKService(org, cluster, db, logger)
 	backupsSvc := svc.GetBackupsService()
 
 	backup, err := backupsSvc.GetModelByID(params.BackupID)
@@ -80,7 +82,7 @@ func RestoreFromBackup(
 		},
 	})
 	if err == nil {
-		err = WaitingForRestoreToFinish(restoresSvc, restore, logger, waitTimeout)
+		err = WaitingForRestoreToFinish(restoresSvc, sync.NewRestoresSyncService(org, db, logger), cluster, restore, logger, waitTimeout)
 	}
 	if err != nil {
 		errorHandler.Handle(emperror.Wrap(err, "could not restore"))
@@ -95,11 +97,18 @@ func RestoreFromBackup(
 }
 
 // WaitingForRestoreToFinish waits until restoration process finishes
-func WaitingForRestoreToFinish(restoresSvc *RestoresService, restore *api.Restore, logger logrus.FieldLogger, waitTimeout time.Duration) error {
+func WaitingForRestoreToFinish(restoresSvc *ark.RestoresService, restoresSyncSvc *sync.RestoresSyncService, cluster api.Cluster, restore *api.Restore, logger logrus.FieldLogger, waitTimeout time.Duration) error {
 	retryAttempts := int(waitTimeout.Seconds() / retrySleepSeconds)
 
 	for i := 0; i <= retryAttempts; i++ {
-		r, _ := restoresSvc.GetByName(restore.Name)
+		err := restoresSyncSvc.SyncRestoresForCluster(cluster)
+		if err != nil {
+			return emperror.WrapWith(err, "could not sync restores for cluster", "cluster", cluster.GetName())
+		}
+		r, err := restoresSvc.GetByName(restore.Name)
+		if err != nil {
+			return emperror.WrapWith(err, "could not get restore by name", "restore", restore.Name, "cluster", cluster.GetName())
+		}
 		if r.Status == "Completed" {
 			return nil
 		}

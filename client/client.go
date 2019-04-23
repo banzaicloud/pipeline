@@ -47,6 +47,16 @@ type APIClient struct {
 
 	// API Services
 
+	ArkApi *ArkApiService
+
+	ArkBackupsApi *ArkBackupsApiService
+
+	ArkBucketsApi *ArkBucketsApiService
+
+	ArkRestoresApi *ArkRestoresApiService
+
+	ArkSchedulesApi *ArkSchedulesApiService
+
 	AuthApi *AuthApiService
 
 	ClustersApi *ClustersApiService
@@ -106,6 +116,11 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.common.client = c
 
 	// API Services
+	c.ArkApi = (*ArkApiService)(&c.common)
+	c.ArkBackupsApi = (*ArkBackupsApiService)(&c.common)
+	c.ArkBucketsApi = (*ArkBucketsApiService)(&c.common)
+	c.ArkRestoresApi = (*ArkRestoresApiService)(&c.common)
+	c.ArkSchedulesApi = (*ArkSchedulesApiService)(&c.common)
 	c.AuthApi = (*AuthApiService)(&c.common)
 	c.ClustersApi = (*ClustersApiService)(&c.common)
 	c.CommonApi = (*CommonApiService)(&c.common)

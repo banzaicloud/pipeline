@@ -22,20 +22,22 @@ import (
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
-// ListAll lists every ARK backup for the organization
-func ListAll(c *gin.Context) {
+type orgBackups struct {
+	clusterManager *cluster.Manager
+}
+
+// List lists every ARK backup for the organization
+func (b *orgBackups) List(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
 	logger.Info("getting backups")
 
-	org := auth.GetCurrentOrganization(c.Request)
-	bs := ark.BackupsServiceFactory(org, config.DB(), logger)
-
-	backups, err := bs.List()
+	backups, err := ark.BackupsServiceFactory(auth.GetCurrentOrganization(c.Request), config.DB(), logger).List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get backups")
 		common.ErrorHandler.Handle(err)

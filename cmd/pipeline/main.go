@@ -41,6 +41,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
+	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
@@ -248,6 +249,8 @@ func main() {
 		),
 	})
 
+	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, log, errorHandler)
+
 	//Initialise Gin router
 	router := gin.New()
 
@@ -418,8 +421,8 @@ func main() {
 
 			clusters := orgs.Group("/:orgid/clusters/:id")
 
-			clusters.GET("/nodepools/labels", api.GetNodepoolLabelSets)
-			clusters.POST("/nodepools/labels", api.SetNodepoolLabelSets)
+			clusters.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
+			clusters.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
 
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
@@ -516,15 +519,15 @@ func main() {
 		restores.AddRoutes(orgs.Group("/:orgid/clusters/:id/restores"))
 		schedules.AddRoutes(orgs.Group("/:orgid/clusters/:id/schedules"))
 		buckets.AddRoutes(orgs.Group("/:orgid/backupbuckets"))
-		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"))
+		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"), clusterManager)
 	}
 
+	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logger)
 	if viper.GetBool(config.ARKSyncEnabled) {
-		arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logger)
 		go arkSync.RunSyncServices(
 			context.Background(),
 			config.DB(),
-			clusterManager,
+			arkClusterManager.New(clusterManager),
 			platformlog.NewLogger(platformlog.Config{
 				Level:  viper.GetString(config.ARKLogLevel),
 				Format: viper.GetString(config.LoggingLogFormat),

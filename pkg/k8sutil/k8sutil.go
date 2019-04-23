@@ -263,8 +263,9 @@ func formatCPUQuantity(q *resource.Quantity) string {
 func IsK8sErrorPermanent(err error) bool {
 	if k8sapierrors.IsAlreadyExists(err) {
 		return false
-		// Newly instantiated AKS cluster's ETCD is flaky
 	} else if strings.Contains(err.Error(), "etcdserver: request timed out") {
+		return false // Newly instantiated AKS cluster's ETCD is flaky
+	} else if strings.Contains(err.Error(), "connection refused") {
 		return false
 	}
 

@@ -39,6 +39,16 @@ tags:
   name: projects
 - description: Domain related information
   name: domain
+- description: ARK service related functions
+  name: ark
+- description: 'ARK: buckets related functions'
+  name: ark-buckets
+- description: 'ARK: backups related functions'
+  name: ark-backups
+- description: 'ARK: schedules related functions'
+  name: ark-schedules
+- description: 'ARK: restores related functions'
+  name: ark-restores
 paths:
   /api/v1/orgs/{orgId}/domain:
     get:
@@ -4975,6 +4985,104 @@ paths:
       tags:
       - imagescan
   /api/v1/orgs/{orgId}/clusters/{id}/pke/leader:
+    delete:
+      operationId: DeleteLeaderElection
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: Leader deletion successful
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderNotFound'
+          description: No leader found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Delete cluster leader
+      tags:
+      - clusters
+    get:
+      operationId: GetLeaderElection
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetLeaderElectionResponse'
+          description: Success
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderNotFound'
+          description: No leader found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Query cluster leader
+      tags:
+      - clusters
     post:
       operationId: PostLeaderElection
       parameters:
@@ -5310,6 +5418,1452 @@ paths:
       summary: Retrieves projects visible for the user identified by the secret id
       tags:
       - projects
+  /api/v1/orgs/{orgId}/clusters/{id}/backupservice/enable:
+    post:
+      description: Enable ARK service
+      operationId: EnableARK
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableARKRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnableARKResponse'
+          description: ARK service deployed successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Enable ARK service
+      tags:
+      - ark
+  /api/v1/orgs/{orgId}/clusters/{id}/backupservice/disable:
+    post:
+      description: Disable ARK service
+      operationId: DisableARK
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisableARKResponse'
+          description: ARK service removed successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Disable ARK service
+      tags:
+      - ark
+  /api/v1/orgs/{orgId}/clusters/{id}/backupservice/status:
+    head:
+      description: Check ARK service status
+      operationId: CheckARKStatus
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: ARK service running
+        401:
+          description: Unauthorized
+        404:
+          description: ARK service not deployed
+      security:
+      - bearerAuth: []
+      summary: Check ARK service status
+      tags:
+      - ark
+  /api/v1/orgs/{orgId}/backupbuckets:
+    get:
+      description: List backup buckets
+      operationId: ListBackupBuckets
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListBackupBucketsResponse'
+          description: All buckets listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: List backup buckets
+      tags:
+      - ark-buckets
+    post:
+      description: Create backup bucket
+      operationId: CreateBackupBucket
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBackupBucketRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateBackupBucketResponse'
+          description: Backup bucket added successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Create backup bucket
+      tags:
+      - ark-buckets
+  /api/v1/orgs/{orgId}/backupbuckets/{bucketId}:
+    delete:
+      description: Delete backup bucket by ID
+      operationId: DeleteBackupBucket
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the bucket
+        explode: false
+        in: path
+        name: bucketId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteBackupBucketResponse'
+          description: Deleting backup succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Delete backup bucket by ID
+      tags:
+      - ark-buckets
+    get:
+      description: Get backup bucket by ID
+      operationId: GetBackupBucket
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the bucket
+        explode: false
+        in: path
+        name: bucketId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetBackupBucketResponse'
+          description: Getting backup succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Get backup bucket by ID
+      tags:
+      - ark-buckets
+  /api/v1/orgs/{orgId}/backupbuckets/sync:
+    put:
+      description: Sync backup buckets
+      operationId: SyncBackupBucket
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: Backup buckets synced successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Sync backup buckets
+      tags:
+      - ark-buckets
+  /api/v1/orgs/{orgId}/backups:
+    get:
+      description: List ARK backups of an Organization
+      operationId: ListARKBackupsForOrganization
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListBackupsResponse'
+          description: All backups listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: List ARK backups of an Organization
+      tags:
+      - ark-backups
+  /api/v1/orgs/{orgId}/backups/sync:
+    put:
+      description: Sync ARK backups of an Organization
+      operationId: SyncOrgBackups
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: Backups synced successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: Sync ARK backups of an Organization
+      tags:
+      - ark-backups
+  /api/v1/orgs/{orgId}/clusters/{id}/backups:
+    get:
+      description: List ARK backups of a cluster
+      operationId: ListARKBackupsOfACluster
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListBackupsResponse'
+          description: All backups listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: List ARK backups of a cluster
+      tags:
+      - ark-backups
+    post:
+      description: Create ARK backup of a cluster
+      operationId: CreateARKBackupOfACluster
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBackupRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateBackupResponse'
+          description: Backup created successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Create ARK backup
+      tags:
+      - ark-backups
+  /api/v1/orgs/{orgId}/backups/{id}/sync:
+    put:
+      description: Sync ARK backups of a cluster
+      operationId: SyncARKBackupsOfACluster
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: Backups synced successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Sync ARK backups of a cluster
+      tags:
+      - ark-backups
+  /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId}:
+    delete:
+      description: Delete ARK backup
+      operationId: DeleteARKBackup
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the backup
+        explode: false
+        in: path
+        name: backupId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteBackupResponse'
+          description: Backup removed successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Delete ARK backup
+      tags:
+      - ark-backups
+    get:
+      description: Get ARK backup
+      operationId: GetARKBackup
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the backup
+        explode: false
+        in: path
+        name: backupId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetBackupResponse'
+          description: Getting backup succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Get ARK backup
+      tags:
+      - ark-backups
+  /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId}/logs:
+    get:
+      description: Get ARK backup logs
+      operationId: GetARKBackupLogs
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the backup
+        explode: false
+        in: path
+        name: backupId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            text/plain:
+              schema:
+                example: |
+                  time="2018-09-10T00:23:33Z" level=info msg="Not including resource" groupResource=events logSource="pkg/restore/restore.go:124"
+                  time="2018-09-10T00:23:33Z" level=info msg="Not including resource" groupResource=nodes logSource="pkg/restore/restore.go:124"
+                  time="2018-09-10T00:23:33Z" level=info msg="Not including resource"
+                type: string
+          description: Getting backup logs succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Get ARK backup logs
+      tags:
+      - ark-backups
+  /api/v1/orgs/{orgId}/clusters/{id}/backups/{backupId}/download:
+    get:
+      description: Download ARK backup contents
+      operationId: DownloadARKBackupContents
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the backup
+        explode: false
+        in: path
+        name: backupId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/x-gzip:
+              schema:
+                format: file
+                type: string
+          description: Getting backup contents succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Download ARK backup contents
+      tags:
+      - ark-backups
+  /api/v1/orgs/{orgId}/clusters/{id}/schedules:
+    get:
+      description: List ARK schedules
+      operationId: ListARKSchedules
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSchedulesResponse'
+          description: Schedules listed successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: List ARK schedules
+      tags:
+      - ark-schedules
+    post:
+      description: Create ARK schedule
+      operationId: CreateARKSchedule
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduleRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateScheduleResponse'
+          description: Schedule created successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Create ARK schedule
+      tags:
+      - ark-schedules
+  /api/v1/orgs/{orgId}/clusters/{id}/schedules/{scheduleName}:
+    delete:
+      description: Delete ARK schedule
+      operationId: DeleteARKSchedule
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Name of the schedule
+        explode: false
+        in: path
+        name: scheduleName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteScheduleResponse'
+          description: Schedule delete succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Delete ARK schedule
+      tags:
+      - ark-schedules
+    get:
+      description: Get ARK schedule
+      operationId: GetARKSchedule
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Name of the schedule
+        explode: false
+        in: path
+        name: scheduleName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+          description: Schedule retrieved succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Get ARK schedule
+      tags:
+      - ark-schedules
+  /api/v1/orgs/{orgId}/clusters/{id}/restores:
+    get:
+      description: List ARK restores
+      operationId: ListARKRestores
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRestoresResponse'
+          description: Restores listed successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: List ARK restores
+      tags:
+      - ark-restores
+    post:
+      description: Create ARK restore
+      operationId: CreateARKRestore
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRestoreRequest'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRestoreResponse'
+          description: Restore created successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Create ARK restore
+      tags:
+      - ark-restores
+  /api/v1/orgs/{orgId}/restores/{id}/sync:
+    put:
+      description: Sync ARK restores of a cluster
+      operationId: SyncARKRestoresOfACluster
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          description: Restores synced successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Sync ARK restores of a cluster
+      tags:
+      - ark-restores
+  /api/v1/orgs/{orgId}/clusters/{id}/restores/{restoreId}:
+    delete:
+      description: Delete ARK restore
+      operationId: DeleteARKRestore
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the restore
+        explode: false
+        in: path
+        name: restoreId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteRestoreResponse'
+          description: Restore deleted successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Delete ARK restore
+      tags:
+      - ark-restores
+    get:
+      description: Get ARK restore
+      operationId: GetARKRestore
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the restore
+        explode: false
+        in: path
+        name: restoreId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRestoreResponse'
+          description: Restore retrieved successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Get ARK restore
+      tags:
+      - ark-restores
+  /api/v1/orgs/{orgId}/clusters/{id}/restores/{restoreId}/results:
+    get:
+      description: Get ARK restore results
+      operationId: GetARKRestoreResuts
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: ID of the restore
+        explode: false
+        in: path
+        name: restoreId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetRestoreResultsResponse'
+          description: Restore retrieved successfully
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during processing request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordNotFound'
+          description: record not found
+      security:
+      - bearerAuth: []
+      summary: Get ARK restore results
+      tags:
+      - ark-restores
 components:
   schemas:
     UpdateUserRequest:
@@ -6260,6 +7814,8 @@ components:
           example: repo not found
           type: string
       type: object
+    LeaderNotFound:
+      type: object
     ClusterConfig:
       example:
         data: |-
@@ -6963,7 +8519,6 @@ components:
           format: base64
           type: string
         values:
-          additionalProperties: true
           description: current values of the deployment
           example:
             metrics:
@@ -7886,6 +9441,7 @@ components:
         ttlMinutes: 120
         distribution: gke
         monitoring: true
+        version: 1.12.6-gke.10
         statusMessage: Cluster is running
         cloud: google
         createdAt: 2018-07-03T14:23:19+02:00
@@ -7916,6 +9472,9 @@ components:
           type: string
         distribution:
           example: gke
+          type: string
+        version:
+          example: 1.12.6-gke.10
           type: string
         spot:
           type: boolean
@@ -9711,6 +11270,721 @@ components:
       - hostname
       type: object
     PostLeaderElectionResponse:
+      example:
+        hostname: node-0.my.cloud.com
+        ip: 10.20.30.40
+      properties:
+        hostname:
+          example: node-0.my.cloud.com
+          type: string
+        ip:
+          example: 10.20.30.40
+          type: string
+      required:
+      - hostname
+      type: object
+    GetRestoreResponse:
+      $ref: '#/components/schemas/RestoreResponse'
+    GetRestoreResultsResponse:
+      $ref: '#/components/schemas/RestoreResultsResponse'
+    ListRestoresResponse:
+      items:
+        $ref: '#/components/schemas/RestoreResponse'
+      type: array
+    ListSchedulesResponse:
+      items:
+        $ref: '#/components/schemas/ScheduleResponse'
+      type: array
+    ListBackupsResponse:
+      items:
+        $ref: '#/components/schemas/BackupResponse'
+      type: array
+    GetBackupResponse:
+      $ref: '#/components/schemas/BackupResponse'
+    CreateBackupBucketResponse:
+      $ref: '#/components/schemas/BackupBucketResponse'
+    ListBackupBucketsResponse:
+      items:
+        $ref: '#/components/schemas/BackupBucketResponse'
+      type: array
+    GetBackupBucketResponse:
+      $ref: '#/components/schemas/DeployedBackupBucketResponse'
+    RestoreResultARK:
+      example: []
+      items:
+        type: string
+      type: array
+    RestoreResultCluster:
+      example: []
+      items:
+        type: string
+      type: array
+    RestoreResultNamespaces:
+      items:
+        type: object
+      type: array
+    RestoreResultNamespacesWarnings:
+      items:
+        additionalProperties: true
+        description: warnings during restoration process
+        example:
+          default:
+          - 'not restored: services "kubernetes" already exists and is different from
+            backed up version.'
+          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
+            exists and is different from backed up version.'
+          - 'not restored: services "pipeline-traefik" already exists and is different
+            from backed up version.'
+        type: object
+      type: array
+    RestoreResultErrors:
+      example:
+        cluster: []
+        ark: []
+        namespaces:
+        - '{}'
+        - '{}'
+      properties:
+        ark:
+          example: []
+          items:
+            type: string
+          type: array
+        cluster:
+          example: []
+          items:
+            type: string
+          type: array
+        namespaces:
+          items:
+            type: object
+          type: array
+      type: object
+    RestoreResultWarnings:
+      example:
+        cluster: []
+        ark: []
+        namespaces:
+        - default:
+          - 'not restored: services "kubernetes" already exists and is different from
+            backed up version.'
+          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
+            exists and is different from backed up version.'
+          - 'not restored: services "pipeline-traefik" already exists and is different
+            from backed up version.'
+        - default:
+          - 'not restored: services "kubernetes" already exists and is different from
+            backed up version.'
+          - 'not restored: services "pipeline-traefik-metrics-prometheus" already
+            exists and is different from backed up version.'
+          - 'not restored: services "pipeline-traefik" already exists and is different
+            from backed up version.'
+      properties:
+        ark:
+          example: []
+          items:
+            type: string
+          type: array
+        cluster:
+          example: []
+          items:
+            type: string
+          type: array
+        namespaces:
+          items:
+            additionalProperties: true
+            description: warnings during restoration process
+            example:
+              default:
+              - 'not restored: services "kubernetes" already exists and is different
+                from backed up version.'
+              - 'not restored: services "pipeline-traefik-metrics-prometheus" already
+                exists and is different from backed up version.'
+              - 'not restored: services "pipeline-traefik" already exists and is different
+                from backed up version.'
+            type: object
+          type: array
+      type: object
+    RestoreResultsResponse:
+      example:
+        warnings:
+          cluster: []
+          ark: []
+          namespaces:
+          - default:
+            - 'not restored: services "kubernetes" already exists and is different
+              from backed up version.'
+            - 'not restored: services "pipeline-traefik-metrics-prometheus" already
+              exists and is different from backed up version.'
+            - 'not restored: services "pipeline-traefik" already exists and is different
+              from backed up version.'
+          - default:
+            - 'not restored: services "kubernetes" already exists and is different
+              from backed up version.'
+            - 'not restored: services "pipeline-traefik-metrics-prometheus" already
+              exists and is different from backed up version.'
+            - 'not restored: services "pipeline-traefik" already exists and is different
+              from backed up version.'
+        errors:
+          cluster: []
+          ark: []
+          namespaces:
+          - '{}'
+          - '{}'
+      properties:
+        errors:
+          $ref: '#/components/schemas/RestoreResultErrors'
+        warnings:
+          $ref: '#/components/schemas/RestoreResultWarnings'
+      type: object
+    RestoreResponse:
+      example:
+        uid: 494ec414-b6cb-11e8-9916-42010aa400f6
+        warnings: 3
+        name: full-backup-schedule-20180912223445
+        options:
+          includedNamespaces:
+          - '*'
+          includedResources:
+          - '*'
+          excludedNamespaces: []
+          excludedResources: []
+          snapshotVolumes: true
+          includeClusterResources: true
+        id: 1
+        backupName: full-backup-schedule
+        errors: 0
+        status: InProgress
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        uid:
+          example: 494ec414-b6cb-11e8-9916-42010aa400f6
+          type: string
+        name:
+          example: full-backup-schedule-20180912223445
+          type: string
+        backupName:
+          example: full-backup-schedule
+          type: string
+        options:
+          $ref: '#/components/schemas/BackupOptions'
+        status:
+          example: InProgress
+          type: string
+        warnings:
+          example: 3
+          format: int32
+          type: integer
+        errors:
+          example: 0
+          format: int32
+          type: integer
+      type: object
+    CreateRestoreRequest:
+      example:
+        options:
+          includedNamespaces:
+          - '*'
+          includedResources:
+          - '*'
+          excludedNamespaces: []
+          excludedResources: []
+          snapshotVolumes: true
+          includeClusterResources: true
+        backupName: full-backup
+      properties:
+        backupName:
+          example: full-backup
+          type: string
+        options:
+          $ref: '#/components/schemas/BackupOptions'
+      required:
+      - backupName
+      type: object
+    CreateRestoreResponse:
+      example:
+        restore:
+          uid: 494ec414-b6cb-11e8-9916-42010aa400f6
+          warnings: 3
+          name: full-backup-schedule-20180912223445
+          options:
+            includedNamespaces:
+            - '*'
+            includedResources:
+            - '*'
+            excludedNamespaces: []
+            excludedResources: []
+            snapshotVolumes: true
+            includeClusterResources: true
+          id: 1
+          backupName: full-backup-schedule
+          errors: 0
+          status: InProgress
+        status: 200
+      properties:
+        restore:
+          $ref: '#/components/schemas/RestoreResponse'
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    DeleteRestoreResponse:
+      example:
+        id: 1
+        status: 200
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    CreateScheduleRequest:
+      example:
+        schedule: 0 */6 * * *
+        name: full-backup-schedule
+        options:
+          includedNamespaces:
+          - '*'
+          includedResources:
+          - '*'
+          excludedNamespaces: []
+          excludedResources: []
+          snapshotVolumes: true
+          includeClusterResources: true
+        ttl: 720h0m0s
+        labels:
+          backup-type: full
+      properties:
+        name:
+          example: full-backup-schedule
+          type: string
+        schedule:
+          example: 0 */6 * * *
+          type: string
+        ttl:
+          example: 720h0m0s
+          type: string
+        labels:
+          $ref: '#/components/schemas/Labels'
+        options:
+          $ref: '#/components/schemas/BackupOptions'
+      required:
+      - name
+      - schedule
+      - ttl
+      type: object
+    DeleteScheduleResponse:
+      example:
+        name: full-backup-schedule
+        status: 200
+      properties:
+        name:
+          example: full-backup-schedule
+          type: string
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    CreateScheduleResponse:
+      example:
+        name: full-backup-schedule
+        status: 200
+      properties:
+        name:
+          example: full-backup-schedule
+          type: string
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    ScheduleResponse:
+      example:
+        uid: 432d4d27-b48f-11e8-9916-42010aa400f6
+        schedule: 0 */6 * * *
+        lastBackup: 2018-09-13T11:59:11+02:00
+        name: full-backup-schedule
+        options:
+          includedNamespaces:
+          - '*'
+          includedResources:
+          - '*'
+          excludedNamespaces: []
+          excludedResources: []
+          snapshotVolumes: true
+          includeClusterResources: true
+        ttl: 720h0m0s
+        labels:
+          backup-type: full
+        status: Enabled
+      properties:
+        uid:
+          example: 432d4d27-b48f-11e8-9916-42010aa400f6
+          type: string
+        name:
+          example: full-backup-schedule
+          type: string
+        schedule:
+          example: 0 */6 * * *
+          type: string
+        ttl:
+          example: 720h0m0s
+          type: string
+        labels:
+          $ref: '#/components/schemas/Labels'
+        options:
+          $ref: '#/components/schemas/BackupOptions'
+        status:
+          example: Enabled
+          type: string
+        lastBackup:
+          example: 2018-09-13T11:59:11+02:00
+          type: string
+      type: object
+    CreateBackupRequest:
+      example:
+        name: full-backup
+        options:
+          includedNamespaces:
+          - '*'
+          includedResources:
+          - '*'
+          excludedNamespaces: []
+          excludedResources: []
+          snapshotVolumes: true
+          includeClusterResources: true
+        ttl: 30m
+        labels:
+          backup-type: full
+      properties:
+        name:
+          example: full-backup
+          type: string
+        ttl:
+          example: 30m
+          type: string
+        labels:
+          $ref: '#/components/schemas/Labels'
+        options:
+          $ref: '#/components/schemas/BackupOptions'
+      required:
+      - name
+      - ttl
+      type: object
+    CreateBackupResponse:
+      example:
+        id: 1
+        status: 200
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    DeleteBackupResponse:
+      example:
+        id: 1
+        status: 200
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    BackupResponse:
+      example:
+        cloud: google
+        uid: 432d4d27-b48f-11e8-9916-42010aa400f6
+        name: full-backup
+        options:
+          includedNamespaces:
+          - '*'
+          includedResources:
+          - '*'
+          excludedNamespaces: []
+          excludedResources: []
+          snapshotVolumes: true
+          includeClusterResources: true
+        id: 1
+        clusterId: 1
+        distribution: gke
+        expireAt: 2018-10-10T02:20:03+02:00
+        ttl: 720h0m0s
+        startAt: 2018-09-10T02:20:03+02:00
+        labels:
+          backup-type: full
+        status: Completed
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        uid:
+          example: 432d4d27-b48f-11e8-9916-42010aa400f6
+          type: string
+        name:
+          example: full-backup
+          type: string
+        ttl:
+          example: 720h0m0s
+          type: string
+        labels:
+          $ref: '#/components/schemas/Labels'
+        options:
+          $ref: '#/components/schemas/BackupOptions'
+        cloud:
+          example: google
+          type: string
+        distribution:
+          example: gke
+          type: string
+        status:
+          example: Completed
+          type: string
+        startAt:
+          example: 2018-09-10T02:20:03+02:00
+          type: string
+        expireAt:
+          example: 2018-10-10T02:20:03+02:00
+          type: string
+        clusterId:
+          example: 1
+          format: int32
+          type: integer
+      type: object
+    CreateBackupBucketRequest:
+      example:
+        cloud: google
+        bucketName: ark-backup-bucket-123
+        secretId: 61b9707ca463cad79188bb0ddfa1345e41fc01b651feddf06eea58a25c56d717
+      properties:
+        cloud:
+          example: google
+          type: string
+        bucketName:
+          example: ark-backup-bucket-123
+          type: string
+        secretId:
+          example: 61b9707ca463cad79188bb0ddfa1345e41fc01b651feddf06eea58a25c56d717
+          type: string
+      required:
+      - bucketName
+      - cloud
+      - secretId
+      type: object
+    BackupBucketResponse:
+      example:
+        cloud: google
+        name: ark-backup-bucket-123
+        inUse: true
+        secretId: 61b9707ca463cad79188bb0ddfa1345e41fc01b651feddf06eea58a25c56d717
+        id: 5
+        status: available
+      properties:
+        id:
+          example: 5
+          format: int32
+          type: integer
+        name:
+          example: ark-backup-bucket-123
+          type: string
+        cloud:
+          example: google
+          type: string
+        secretId:
+          example: 61b9707ca463cad79188bb0ddfa1345e41fc01b651feddf06eea58a25c56d717
+          type: string
+        status:
+          example: available
+          type: string
+        inUse:
+          type: boolean
+      type: object
+    DeployedBackupBucketResponse:
+      example:
+        cloud: google
+        deploymentId: 1
+        name: ark-backup-bucket-123
+        inUse: true
+        secretId: 61b9707ca463cad79188bb0ddfa1345e41fc01b651feddf06eea58a25c56d717
+        id: 5
+        clusterId: 1
+        clusterCloud: google
+        status: deployed
+        clusterDistribution: gke
+      properties:
+        id:
+          example: 5
+          format: int32
+          type: integer
+        name:
+          example: ark-backup-bucket-123
+          type: string
+        cloud:
+          example: google
+          type: string
+        secretId:
+          example: 61b9707ca463cad79188bb0ddfa1345e41fc01b651feddf06eea58a25c56d717
+          type: string
+        status:
+          example: deployed
+          type: string
+        inUse:
+          type: boolean
+        deploymentId:
+          example: 1
+          format: int32
+          type: integer
+        clusterId:
+          example: 1
+          format: int32
+          type: integer
+        clusterCloud:
+          example: google
+          type: string
+        clusterDistribution:
+          example: gke
+          type: string
+      type: object
+    DeleteBackupBucketResponse:
+      example:
+        id: 1
+        status: 200
+      properties:
+        id:
+          example: 1
+          format: int32
+          type: integer
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    DisableARKResponse:
+      example:
+        status: 200
+      properties:
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    EnableARKResponse:
+      example:
+        status: 200
+      properties:
+        status:
+          example: 200
+          format: int32
+          type: integer
+      type: object
+    EnableARKRequest:
+      properties:
+        cloud:
+          example: google
+          type: string
+        bucketName:
+          example: ark-backup-bucket-123
+          type: string
+        schedule:
+          example: 0 */6 * * *
+          type: string
+        ttl:
+          example: 1h
+          type: string
+        secretId:
+          example: 62bc3c75-91fb-4670-bad4-24b401a9deac
+          type: string
+        labels:
+          $ref: '#/components/schemas/Labels'
+        options:
+          $ref: '#/components/schemas/BackupOptions'
+      required:
+      - bucketName
+      - cloud
+      - schedule
+      - secretId
+      - ttl
+      type: object
+    Labels:
+      example:
+        backup-type: full
+      properties:
+        backup-type:
+          example: full
+          type: string
+      title: Labels
+      type: object
+    BackupOptions:
+      example:
+        includedNamespaces:
+        - '*'
+        includedResources:
+        - '*'
+        excludedNamespaces: []
+        excludedResources: []
+        snapshotVolumes: true
+        includeClusterResources: true
+      properties:
+        includedNamespaces:
+          example:
+          - '*'
+          items:
+            type: string
+          type: array
+        includedResources:
+          example:
+          - '*'
+          items:
+            type: string
+          type: array
+        excludedNamespaces:
+          example: []
+          items:
+            type: string
+          type: array
+        excludedResources:
+          example: []
+          items:
+            type: string
+          type: array
+        snapshotVolumes:
+          type: boolean
+        includeClusterResources:
+          type: boolean
+      title: Backup Options
+      type: object
+    RecordNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: record not found
+          type: string
+        error:
+          example: record not found
+          type: string
+      type: object
+    GetLeaderElectionResponse:
       example:
         hostname: node-0.my.cloud.com
         ip: 10.20.30.40

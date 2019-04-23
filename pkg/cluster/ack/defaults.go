@@ -14,6 +14,8 @@
 
 package ack
 
+import "time"
+
 const (
 	AlibabaClusterStateRunning      = "running"
 	AlibabaClusterStateFailed       = "failed"
@@ -32,4 +34,7 @@ const (
 	AlibabaESSEndPointFmt           = "ess.%s.aliyuncs.com"
 	AlibabaMaxNodePoolSize          = 20
 	AlibabaDefaultImageId           = "centos_7_06_64_20G_alibase_20190218.vhd"
+
+	// ACKRequestReadTimeout is the read timeout setting for ACK rest API calls
+	ACKRequestReadTimeout = 30 * time.Second
 )

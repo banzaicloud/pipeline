@@ -1,0 +1,19 @@
+version: 2
+mergeable:
+  - when: pull_request.*
+    validate:
+      - do: title
+        must_exclude:
+          regex: '^(\[wip\]|wip:)'
+          message: 'WIP tag in PR title'
+      - do: label
+        must_exclude:
+          regex: 'wip'
+          message: 'WIP label on PR'
+      - do: description
+        must_exclude:
+          regex: '\[ \]'
+          message: 'Remaining tasks in the description.'
+        no_empty:
+          enabled: true
+          message: 'Description matter and should not be empty. Provide detail with **what** was changed, **why** it was changed, and **how** it was changed.'

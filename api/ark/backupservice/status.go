@@ -34,7 +34,6 @@ func Status(c *gin.Context) {
 	_, err := schedulesSvc.List()
 	if err != nil {
 		err = errors.New("backup service not deployed")
-		common.ErrorHandler.Handle(err)
 		pkgCommon.ErrorResponseWithStatus(c, http.StatusNotFound, err)
 		return
 	}

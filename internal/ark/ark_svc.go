@@ -26,6 +26,7 @@ import (
 type Service struct {
 	cluster api.Cluster
 	org     *auth.Organization
+	db      *gorm.DB
 
 	deploymentsSvc    *DeploymentsService
 	bucketsSvc        *BucketsService
@@ -57,6 +58,7 @@ func NewARKService(org *auth.Organization, cluster api.Cluster, db *gorm.DB, log
 		schedulesSvc:      schedules,
 		restoresSvc:       restores,
 		logger:            logger,
+		db:                db,
 	}
 }
 
@@ -88,4 +90,19 @@ func (s *Service) GetBackupsService() *BackupsService {
 // GetRestoresService returns the initialized RestoresService
 func (s *Service) GetRestoresService() *RestoresService {
 	return s.restoresSvc
+}
+
+// GetDB returns the DB instance used in the service
+func (s *Service) GetDB() *gorm.DB {
+	return s.db
+}
+
+// GetCluster returns the cluster used in the service
+func (s *Service) GetCluster() api.Cluster {
+	return s.cluster
+}
+
+// GetOrganization returns the organization used in the service
+func (s *Service) GetOrganization() *auth.Organization {
+	return s.org
 }

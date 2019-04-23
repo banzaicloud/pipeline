@@ -44,8 +44,8 @@ import (
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/internal/ark"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
+	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -1203,7 +1203,7 @@ func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) er
 		return err
 	}
 
-	return ark.RestoreFromBackup(params, cluster, pipConfig.DB(), log, errorHandler, viper.GetDuration(pipConfig.ARKRestoreWaitTimeout))
+	return arkPosthook.RestoreFromBackup(params, cluster, pipConfig.DB(), log, errorHandler, viper.GetDuration(pipConfig.ARKRestoreWaitTimeout))
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts

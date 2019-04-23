@@ -27,10 +27,10 @@ func AddRoutes(group *gin.RouterGroup) {
 
 	group.GET("", List)
 	group.POST("", Create)
+	group.PUT("/sync", Sync)
 	item := group.Group("/:" + IDParamName)
 	{
 		item.GET("", Get)
-		item.PUT("", List)
 		item.DELETE("", Delete)
 	}
 }

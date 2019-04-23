@@ -72,8 +72,7 @@ func (a *UpdateACKNodePoolAction) ExecuteAction(input interface{}) (interface{},
 		defer close(createdInstanceIdsChan)
 
 		for _, nodePool := range a.nodePools {
-			// TODO: update node pools in parallel once Alibaba ESS API permits running multiple ModifyScalingGroupRequest in parallel
-			updateNodePool(a.log, nodePool, a.context.ESSClient, a.region, a.clusterName, createdInstanceIdsChan, errChan)
+			go updateNodePool(a.log, nodePool, a.context.ESSClient, a.region, a.clusterName, createdInstanceIdsChan, errChan)
 		}
 
 		caughtErrors := emperror.NewMultiErrorBuilder()

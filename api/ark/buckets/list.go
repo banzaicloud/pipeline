@@ -32,8 +32,7 @@ func List(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
 	logger.Info("getting buckets")
 
-	org := auth.GetCurrentOrganization(c.Request)
-	bs := ark.BucketsServiceFactory(org, config.DB(), logger)
+	bs := ark.BucketsServiceFactory(auth.GetCurrentOrganization(c.Request), config.DB(), logger)
 	buckets, err := bs.List()
 	if err != nil {
 		err = emperror.Wrap(err, "could not get buckets")

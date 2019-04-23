@@ -24,34 +24,68 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.2.3"
+const pkeVersion = "0.3.0-dev.5"
 
 func getDefaultImageID(region, kubernetesVersion string) string {
 	switch kubernetesVersion {
-	case "1.14.0":
-		fallthrough
-	case "1.13.3":
-		fallthrough
 	case "1.12.2":
+		return map[string]string{
+			"ap-northeast-1": "ami-08a85b1563efcdbfa",
+			"ap-northeast-2": "ami-01ad53644d5e714e0",
+			"ap-south-1":     "ami-0552dbb025034dd47",
+			"ap-southeast-1": "ami-0a4e5de01c309fcdb",
+			"ap-southeast-2": "ami-00b39bd845ecf13f8",
+			"ca-central-1":   "ami-05b3f0a65b7cc5edb",
+			"eu-central-1":   "ami-05b74dc857dc64612",
+			"eu-north-1":     "ami-00ccc3f51ebcd20d1",
+			"eu-west-1":      "ami-0e47f158914d41337",
+			"eu-west-2":      "ami-04213a12ded35d40a",
+			"eu-west-3":      "ami-0df179038236c5fe1",
+			"sa-east-1":      "ami-0557d1fefc68884c0",
+			"us-east-1":      "ami-03d6c616f020991c6",
+			"us-east-2":      "ami-017ff3156c58d64de",
+			"us-west-1":      "ami-0ed166e4d66056cba",
+			"us-west-2":      "ami-0ee06a6e5ea34c447",
+		}[region]
+	case "1.13.3":
+		return map[string]string{
+			"ap-northeast-1": "ami-0e51ebcaab2ee7f64",
+			"ap-northeast-2": "ami-03f97043746d70ea8",
+			"ap-south-1":     "ami-0743f092ee208761e",
+			"ap-southeast-1": "ami-021810a22ae6a6972",
+			"ap-southeast-2": "ami-0707af9819a36d29b",
+			"ca-central-1":   "ami-01d9e44948e56a6c1",
+			"eu-central-1":   "ami-04943b3a24081a11a",
+			"eu-north-1":     "ami-0a81717b1f805ac46",
+			"eu-west-1":      "ami-08bd41dfe9b6ace0c",
+			"eu-west-2":      "ami-0bae46bc373695303",
+			"eu-west-3":      "ami-067a77cf9189870df",
+			"sa-east-1":      "ami-02ed55f4ee9db122a",
+			"us-east-1":      "ami-0259f84ec3cbc54a1",
+			"us-east-2":      "ami-047712e13d40b4739",
+			"us-west-1":      "ami-0e56d84477e285018",
+			"us-west-2":      "ami-0209e5179cf144bb1",
+		}[region]
+	case "1.14.0":
 		fallthrough
 	default:
 		return map[string]string{
-			"eu-north-1":     "ami-b133bccf",
-			"ap-south-1":     "ami-1780a878",
-			"eu-west-3":      "ami-262e9f5b",
-			"eu-west-2":      "ami-00846a67",
-			"eu-west-1":      "ami-3548444c",
-			"ap-northeast-2": "ami-bf9c36d1",
-			"ap-northeast-1": "ami-8e8847f1",
-			"sa-east-1":      "ami-cb5803a7",
-			"ca-central-1":   "ami-e802818c",
-			"ap-southeast-1": "ami-8e0205f2",
-			"ap-southeast-2": "ami-d8c21dba",
-			"eu-central-1":   "ami-dd3c0f36",
-			"us-east-1":      "ami-77ec9308",
-			"us-east-2":      "ami-9c0638f9",
-			"us-west-1":      "ami-4826c22b",
-			"us-west-2":      "ami-3ecc8f46",
+			"ap-northeast-1": "ami-050580615eb00d744",
+			"ap-northeast-2": "ami-051b65659a2c549b0",
+			"ap-south-1":     "ami-03adffe261d08c4ec",
+			"ap-southeast-1": "ami-0c0f3a44506a4f470",
+			"ap-southeast-2": "ami-06d552a20a61ab8fe",
+			"ca-central-1":   "ami-07b0387c0bc3bf4d0",
+			"eu-central-1":   "ami-0dc9154691d8a1757",
+			"eu-north-1":     "ami-044edb04df20f127b",
+			"eu-west-1":      "ami-0be08db35d79874b9",
+			"eu-west-2":      "ami-062ce851cb781d581",
+			"eu-west-3":      "ami-0f78066d649b69b51",
+			"sa-east-1":      "ami-08401edb5361125d5",
+			"us-east-1":      "ami-09b34d885e47bb377",
+			"us-east-2":      "ami-030f8c953c69c25c0",
+			"us-west-1":      "ami-0d87a1f4e1743e1d6",
+			"us-west-2":      "ami-0dbd115d30cda6652",
 		}[region]
 	}
 }
@@ -162,31 +196,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
-	var eip CreateElasticIPActivityOutput
-
-	// Create EIP
-	{
-		activityInput := &CreateElasticIPActivityInput{AWSActivityInput: awsActivityInput, ClusterID: input.ClusterID, ClusterName: input.ClusterName}
-		err := workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, activityInput).Get(ctx, &eip)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Update cluster network
-	{
-		activityInput := &UpdateClusterNetworkActivityInput{
-			ClusterID:       input.ClusterID,
-			APISeverAddress: eip.PublicIp,
-			VPCID:           vpcOutput["VpcId"],
-			Subnets:         vpcOutput["SubnetIds"],
-		}
-		err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-	}
-
 	var nodePools []NodePool
 
 	// List node pools
@@ -195,6 +204,17 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, activityInput).Get(ctx, &nodePools)
 		if err != nil {
 			return err
+		}
+	}
+
+	var master NodePool
+	for _, np := range nodePools {
+		if np.Master {
+			master = np
+			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
+				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
+			}
+			break
 		}
 	}
 
@@ -222,38 +242,79 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
-	var masterAvailabilityZone string
-	var master NodePool
-	for _, np := range nodePools {
-		if np.Master {
-			master = np
-			if len(np.AvailabilityZones) <= 0 || np.AvailabilityZones[0] == "" {
-				return errors.Errorf("missing availability zone for nodepool %q", np.Name)
-			}
+	var externalAddress string
 
-			masterAvailabilityZone = np.AvailabilityZones[0]
+	multiMaster := master.MaxCount > 1
 
-			break
+	masterInput := CreateMasterActivityInput{
+		ClusterID:             input.ClusterID,
+		VPCID:                 vpcOutput["VpcId"],
+		SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
+		MultiMaster:           multiMaster,
+		MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
+		ExternalBaseUrl:       input.PipelineExternalURL,
+		Pool:                  master,
+		SSHKeyName:            keyOut.KeyName,
+		AvailabilityZone:      master.AvailabilityZones[0],
+	}
+
+	if multiMaster {
+
+		// Create NLB
+		var activityOutput CreateNLBActivityOutput
+		activityInput := &CreateNLBActivityInput{
+			AWSActivityInput: awsActivityInput,
+			ClusterID:        input.ClusterID,
+			ClusterName:      input.ClusterName,
+			VPCID:            vpcOutput["VpcId"],
+			SubnetIds:        strings.Split(vpcOutput["SubnetIds"], ","),
+		}
+
+		err := workflow.ExecuteActivity(ctx, CreateNLBActivityName, activityInput).Get(ctx, &activityOutput)
+		if err != nil {
+			return err
+		}
+
+		masterInput.TargetGroup = activityOutput.TargetGroup
+		externalAddress = activityOutput.DNSName
+
+	} else {
+
+		// Create EIP
+		var eip CreateElasticIPActivityOutput
+		activityInput := &CreateElasticIPActivityInput{
+			AWSActivityInput: awsActivityInput,
+			ClusterID:        input.ClusterID,
+			ClusterName:      input.ClusterName,
+		}
+
+		err := workflow.ExecuteActivity(ctx, CreateElasticIPActivityName, activityInput).Get(ctx, &eip)
+		if err != nil {
+			return err
+		}
+
+		masterInput.EIPAllocationID = eip.AllocationId
+		externalAddress = eip.PublicIp
+	}
+
+	// Update cluster network
+	{
+		activityInput := &UpdateClusterNetworkActivityInput{
+			ClusterID:       input.ClusterID,
+			APISeverAddress: externalAddress,
+			VPCID:           vpcOutput["VpcId"],
+			Subnets:         vpcOutput["SubnetIds"],
+		}
+		err := workflow.ExecuteActivity(ctx, UpdateClusterNetworkActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
 		}
 	}
 
 	var masterStackID string
-
 	// Create master
 	{
-		// TODO refactor network things
-		activityInput := CreateMasterActivityInput{
-			ClusterID:             input.ClusterID,
-			AvailabilityZone:      masterAvailabilityZone,
-			VPCID:                 vpcOutput["VpcId"],
-			SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
-			EIPAllocationID:       eip.AllocationId,
-			MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
-			ExternalBaseUrl:       input.PipelineExternalURL,
-			Pool:                  master,
-			SSHKeyName:            keyOut.KeyName,
-		}
-		err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, activityInput).Get(ctx, &masterStackID)
+		err := workflow.ExecuteActivity(ctx, CreateMasterActivityName, masterInput).Get(ctx, &masterStackID)
 		if err != nil {
 			return err
 		}
@@ -264,7 +325,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	// Wait for master
 	{
 		if masterStackID == "" {
-			return errors.New("missing VPC stack ID")
+			return errors.New("missing stack ID")
 		}
 
 		activityInput := WaitCFCompletionActivityInput{AWSActivityInput: awsActivityInput, StackID: masterStackID}
