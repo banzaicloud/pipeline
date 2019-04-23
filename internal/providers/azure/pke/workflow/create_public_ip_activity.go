@@ -42,6 +42,7 @@ type PublicIPAddress struct {
 	Location string
 	Name     string
 	SKU      string
+	Zones    []string
 }
 
 type CreatePublicIPActivityOutput struct {
@@ -69,24 +70,15 @@ func (a CreatePublicIPActivity) Execute(ctx context.Context, input CreatePublicI
 		"resourceGroup", input.ResourceGroupName,
 	}
 
-	params := network.PublicIPAddress{
-		Name:     to.StringPtr(input.PublicIPAddress.Name),
-		Location: to.StringPtr(input.PublicIPAddress.Location),
-		PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
-			PublicIPAddressVersion:   network.IPv4,
-			PublicIPAllocationMethod: network.Static,
-		},
-		Sku: &network.PublicIPAddressSku{
-			Name: network.PublicIPAddressSkuName(input.PublicIPAddress.SKU),
-		},
-	}
-
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
+	params := input.getCreateOrUpdatePublicIPAddressParams()
+
 	client := cc.GetPublicIPAddressesClient()
+
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.PublicIPAddress.Name, params)
 	if err = emperror.WrapWith(err, "sending request to create or update public ip failed", keyvals...); err != nil {
 		return
@@ -108,4 +100,19 @@ func (a CreatePublicIPActivity) Execute(ctx context.Context, input CreatePublicI
 	output.PublicIPAddress = to.String(publicIP.IPAddress)
 
 	return
+}
+
+func (input CreatePublicIPActivityInput) getCreateOrUpdatePublicIPAddressParams() network.PublicIPAddress {
+	return network.PublicIPAddress{
+		Location: to.StringPtr(input.PublicIPAddress.Location),
+		PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
+			PublicIPAddressVersion:   network.IPv4,
+			PublicIPAllocationMethod: network.Static,
+		},
+		Sku: &network.PublicIPAddressSku{
+			Name: network.PublicIPAddressSkuName(input.PublicIPAddress.SKU),
+		},
+		Tags:  *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
+		Zones: to.StringSlicePtr(input.PublicIPAddress.Zones),
+	}
 }
