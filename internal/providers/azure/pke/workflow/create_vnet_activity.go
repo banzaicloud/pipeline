@@ -89,32 +89,7 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 		return
 	}
 
-	subnets := make([]network.Subnet, len(input.VirtualNetwork.Subnets))
-	for i, s := range input.VirtualNetwork.Subnets {
-		subnets[i] = network.Subnet{
-			Name: to.StringPtr(s.Name),
-			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
-				AddressPrefix: to.StringPtr(s.CIDR),
-				NetworkSecurityGroup: &network.SecurityGroup{
-					ID: to.StringPtr(s.NetworkSecurityGroupID),
-				},
-				RouteTable: &network.RouteTable{
-					ID: to.StringPtr(s.RouteTableID),
-				},
-			},
-		}
-	}
-
-	params := network.VirtualNetwork{
-		Location: to.StringPtr(input.VirtualNetwork.Location),
-		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
-			AddressSpace: &network.AddressSpace{
-				AddressPrefixes: to.StringSlicePtr(input.VirtualNetwork.CIDRs),
-			},
-			Subnets: &subnets,
-		},
-		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
-	}
+	params := input.getCreateOrUpdateVirtualNetworkParams()
 
 	logger.Debug("sending request to create or update virtual network")
 
@@ -148,4 +123,33 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 	}
 
 	return
+}
+
+func (input CreateVnetActivityInput) getCreateOrUpdateVirtualNetworkParams() network.VirtualNetwork {
+	subnets := make([]network.Subnet, len(input.VirtualNetwork.Subnets))
+	for i, s := range input.VirtualNetwork.Subnets {
+		subnets[i] = network.Subnet{
+			Name: to.StringPtr(s.Name),
+			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
+				AddressPrefix: to.StringPtr(s.CIDR),
+				NetworkSecurityGroup: &network.SecurityGroup{
+					ID: to.StringPtr(s.NetworkSecurityGroupID),
+				},
+				RouteTable: &network.RouteTable{
+					ID: to.StringPtr(s.RouteTableID),
+				},
+			},
+		}
+	}
+
+	return network.VirtualNetwork{
+		Location: to.StringPtr(input.VirtualNetwork.Location),
+		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
+			AddressSpace: &network.AddressSpace{
+				AddressPrefixes: to.StringSlicePtr(input.VirtualNetwork.CIDRs),
+			},
+			Subnets: &subnets,
+		},
+		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
+	}
 }
