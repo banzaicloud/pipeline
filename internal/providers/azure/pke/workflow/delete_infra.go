@@ -56,6 +56,19 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 		return err
 	}
 
+	// delete public ip
+	deletePublicIPActivityInput := DeletePublicIPActivityInput{
+		OrganizationID:      input.OrganizationID,
+		SecretID:            input.SecretID,
+		ClusterName:         input.ClusterName,
+		ResourceGroupName:   input.ResourceGroupName,
+		PublicIPAddressName: input.ClusterName + "-pip-in",
+	}
+	err = workflow.ExecuteActivity(ctx, DeletePublicIPActivityName, deletePublicIPActivityInput).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	// delete virtual network
 	deleteVNetActivityInput := DeleteVNetActivityInput{
 		OrganizationID:    input.OrganizationID,

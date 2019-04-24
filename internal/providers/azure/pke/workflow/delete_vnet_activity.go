@@ -42,7 +42,7 @@ type DeleteVNetActivityInput struct {
 	VNetName          string
 }
 
-// MakeDeleteVNetActivity returns a new MakeDeleteVNetActivity
+// MakeDeleteVNetActivity returns a new DeleteVNetActivity
 func MakeDeleteVNetActivity(azureClientFactory *AzureClientFactory) DeleteVNetActivity {
 	return DeleteVNetActivity{
 		azureClientFactory: azureClientFactory,

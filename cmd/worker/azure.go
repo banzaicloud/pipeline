@@ -55,6 +55,9 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 	deleteLoadBalancerActivity := azurepkeworkflow.MakeDeleteLoadBalancerActivity(azureClientFactory)
 	activity.RegisterWithOptions(deleteLoadBalancerActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteLoadBalancerActivityName})
 
+	deletePublicIPActivity := azurepkeworkflow.MakeDeletePublicIPActivity(azureClientFactory)
+	activity.RegisterWithOptions(deletePublicIPActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeletePublicIPActivityName})
+
 	deleteVNetActivity := azurepkeworkflow.MakeDeleteVNetActivity(azureClientFactory)
 	activity.RegisterWithOptions(deleteVNetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteVNetActivityName})
 }
