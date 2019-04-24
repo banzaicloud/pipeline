@@ -42,7 +42,6 @@ type PublicIPAddress struct {
 	Location string
 	Name     string
 	SKU      string
-	Zones    []string
 }
 
 type CreatePublicIPActivityOutput struct {
@@ -112,7 +111,6 @@ func (input CreatePublicIPActivityInput) getCreateOrUpdatePublicIPAddressParams(
 		Sku: &network.PublicIPAddressSku{
 			Name: network.PublicIPAddressSkuName(input.PublicIPAddress.SKU),
 		},
-		Tags:  *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
-		Zones: to.StringSlicePtr(input.PublicIPAddress.Zones),
+		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
 	}
 }

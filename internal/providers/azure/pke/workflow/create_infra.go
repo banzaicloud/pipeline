@@ -188,7 +188,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				Location: input.Location,
 				Name:     input.ClusterName + "-pip-in",
 				SKU:      "Standard",
-				Zones:    []string{"1", "2", "3"},
 			},
 		}
 		err := workflow.ExecuteActivity(ctx, CreatePublicIPActivityName, activityInput).Get(ctx, &createPublicIPOutput)

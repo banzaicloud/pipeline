@@ -33,7 +33,6 @@ func TestGetCreateOrUpdatePublicIPAddressParams(t *testing.T) {
 				Location: "test-location",
 				Name:     "test-public-ip",
 				SKU:      "Standard",
-				Zones:    []string{"1", "2"},
 			},
 		}
 		expected := network.PublicIPAddress{
@@ -48,7 +47,6 @@ func TestGetCreateOrUpdatePublicIPAddressParams(t *testing.T) {
 			Tags: map[string]*string{
 				"kubernetesCluster-test-cluster": to.StringPtr("owned"),
 			},
-			Zones: &[]string{"1", "2"},
 		}
 		result := input.getCreateOrUpdatePublicIPAddressParams()
 		assert.Equal(t, expected, result)
