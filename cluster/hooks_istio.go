@@ -19,6 +19,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
+	"github.com/sirupsen/logrus"
 )
 
 // InstallServiceMeshParams describes InstallServiceMesh posthook params
@@ -38,6 +39,8 @@ func InstallServiceMesh(cluster CommonCluster, param cluster.PostHookParam) erro
 	if err != nil {
 		return emperror.Wrap(err, "failed to cast posthook param")
 	}
+
+	log := log.WithFields(logrus.Fields{"cluster": cluster.GetName(), "clusterID": cluster.GetID()})
 
 	log.Infof("istio params: %#v", params)
 
