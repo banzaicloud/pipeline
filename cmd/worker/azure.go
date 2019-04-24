@@ -54,4 +54,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 	// delete infra activities
 	deleteLoadBalancerActivity := azurepkeworkflow.MakeDeleteLoadBalancerActivity(azureClientFactory)
 	activity.RegisterWithOptions(deleteLoadBalancerActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteLoadBalancerActivityName})
+
+	deleteVNetActivity := azurepkeworkflow.MakeDeleteVNetActivity(azureClientFactory)
+	activity.RegisterWithOptions(deleteVNetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteVNetActivityName})
 }

@@ -56,6 +56,20 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 		return err
 	}
 
+	// delete virtual network
+	deleteVNetActivityInput := DeleteVNetActivityInput{
+		OrganizationID:    input.OrganizationID,
+		SecretID:          input.SecretID,
+		ClusterName:       input.ClusterName,
+		ResourceGroupName: input.ResourceGroupName,
+		VNetName:          input.ClusterName + "-vnet", // TODO: vnet name should come from workflow input instead of deriving it here
+	}
+
+	err = workflow.ExecuteActivity(ctx, DeleteVNetActivityName, deleteVNetActivityInput).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	return nil
 
 }
