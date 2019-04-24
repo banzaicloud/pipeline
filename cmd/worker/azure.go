@@ -60,4 +60,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 
 	deleteVNetActivity := azurepkeworkflow.MakeDeleteVNetActivity(azureClientFactory)
 	activity.RegisterWithOptions(deleteVNetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteVNetActivityName})
+
+	deleteRouteTableActivity := azurepkeworkflow.MakeDeleteRouteTableActivity(azureClientFactory)
+	activity.RegisterWithOptions(deleteRouteTableActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteRouteTableActivityName})
 }

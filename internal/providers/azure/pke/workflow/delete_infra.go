@@ -83,6 +83,20 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 		return err
 	}
 
+	// delete route table
+	deleteRouteTableActivityInput := DeleteRouteTableActivityInput{
+		OrganizationID:    input.OrganizationID,
+		SecretID:          input.SecretID,
+		ClusterName:       input.ClusterName,
+		ResourceGroupName: input.ResourceGroupName,
+		RouteTableName:    input.ClusterName + "-route-table",
+	}
+
+	err = workflow.ExecuteActivity(ctx, DeleteRouteTableActivityName, deleteRouteTableActivityInput).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	return nil
 
 }
