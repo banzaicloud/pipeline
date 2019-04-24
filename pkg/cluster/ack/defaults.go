@@ -31,7 +31,6 @@ const (
 	AlibabaDeleteClusterFailedLog   = "start to update cluster status delete_failed"
 	AlibabaApiDomain                = "cs.aliyuncs.com"
 	AlibabaInstanceHealthyStatus    = "Healthy"
-	AlibabaESSEndPointFmt           = "ess.%s.aliyuncs.com"
 	AlibabaMaxNodePoolSize          = 20
 	AlibabaDefaultImageId           = "centos_7_06_64_20G_alibase_20190218.vhd"
 

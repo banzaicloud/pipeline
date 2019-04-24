@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,6 +38,7 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/providers/alibaba"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -132,10 +134,21 @@ func (c *ACKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	ecsClient, err := c.GetAlibabaECSClient(nil)
+	if err != nil {
+		return nil, err
+	}
+
 	request := ess.CreateDescribeScalingInstancesRequest()
 	request.SetScheme(requests.HTTPS)
-	request.SetDomain(fmt.Sprintf(ack.AlibabaESSEndPointFmt, c.modelCluster.ACK.RegionID))
+	request.SetDomain(alibaba.GetESSServiceEndpoint(c.modelCluster.ACK.RegionID))
 	request.SetContentType(requests.Json)
+
+	describeInstancesRequest := ecs.CreateDescribeInstancesRequest()
+	describeInstancesRequest.SetScheme(requests.HTTPS)
+	describeInstancesRequest.SetContentType(requests.Json)
+	describeInstancesRequest.RegionId = c.modelCluster.ACK.RegionID
 
 	nodes := make(pkgCommon.NodeNames, 0)
 	for _, nodepool := range c.modelCluster.ACK.NodePools {
@@ -145,11 +158,32 @@ func (c *ACKCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
 		if err != nil {
 			return nil, emperror.WrapWith(err, "error listing nodepool instances", "scalingGroupName", nodepool.AsgID)
 		}
-		var instances []string
+
+		var instanceIds []string
 		for _, instance := range response.ScalingInstances.ScalingInstance {
-			instances = append(instances, fmt.Sprint(c.modelCluster.ACK.RegionID, ".", instance.InstanceId))
+			instanceIds = append(instanceIds, strconv.Quote(instance.InstanceId))
 		}
-		nodes[nodepool.Name] = instances
+
+		if len(instanceIds) > 0 {
+			describeInstancesRequest.InstanceIds = fmt.Sprint("[", strings.Join(instanceIds, ","), "]")
+
+			instancesResponse, err := ecsClient.DescribeInstances(describeInstancesRequest)
+			if err != nil {
+				return nil, emperror.WrapWith(err, "error getting instances details", "scalingGroupName", nodepool.AsgID)
+			}
+
+			var nodeNames []string
+			for _, instance := range instancesResponse.Instances.Instance {
+				c.log.Debugln("instance details", instance)
+
+				if len(instance.VpcAttributes.PrivateIpAddress.IpAddress) > 0 {
+					nodeName := fmt.Sprint(c.modelCluster.ACK.RegionID, ".", instance.VpcAttributes.PrivateIpAddress.IpAddress[0])
+					nodeNames = append(nodeNames, nodeName)
+				}
+			}
+
+			nodes[nodepool.Name] = nodeNames
+		}
 	}
 	return nodes, nil
 }
