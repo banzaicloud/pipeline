@@ -41,6 +41,24 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// delete VMSSes
+	nodePools := []string{input.ClusterName + "-vmss-master", input.ClusterName + "-vmss-worker"}
+
+	deleteVMSSActivityInput := DeleteVMSSActivityInput{
+		OrganizationID:    input.OrganizationID,
+		SecretID:          input.SecretID,
+		ClusterName:       input.ClusterName,
+		ResourceGroupName: input.ResourceGroupName,
+	}
+
+	for _, np := range nodePools {
+
+		deleteVMSSActivityInput.VMSSName = np
+
+		err := workflow.ExecuteActivity(ctx, DeleteVMSSActivityName, deleteVMSSActivityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
 	// delete LB
 	deleteLbActivityInput := DeleteLoadBalancerActivityInput{
