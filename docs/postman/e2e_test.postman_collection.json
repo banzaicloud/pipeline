@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "661b4571-7cd4-4b0c-838e-8298e2516ac3",
+		"_postman_id": "bb194272-1086-4762-866b-224e1604ff6e",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -504,9 +504,9 @@
 							],
 							"variable": [
 								{
-									"description": "Organization identifier",
 									"key": "orgId",
-									"value": "{{orgId}}"
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
 								}
 							]
 						},
@@ -770,6 +770,71 @@
 									"key": "orgId",
 									"value": "{{orgId}}",
 									"description": "Organization identifier"
+								}
+							]
+						},
+						"description": "Creates a K8S cluster in the Google Kubernetes Engine"
+					},
+					"response": []
+				},
+				{
+					"name": "Cluster Create PKE/Azure",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "503b7a30-118b-4023-aa47-c71fbcafa0e8",
+								"exec": [
+									"if (responseCode.code === 202) {",
+									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+									"",
+									"    pm.environment.set(\"timestampHeader\", new Date());",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"clusterId\", dataJSON.id);",
+									"    tests[\"Cluster ID: \" + dataJSON.id] = true;",
+									"",
+									"    postman.setNextRequest(\"Cluster Status\");",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    console.warn(responseBody);",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"bnz-azure-pke-{{$randomInt}}\",\n\t\"location\": \"eu-central-1\",\n\t\"type\": \"pke-on-azure\",\n\t\"secretId\": \"{{secretIdAzure}}\",\n\t\"resourceGroup\": \"testRs\",\n\t\"nodepools\": [\n\t\t{\n\t\t\t\"name\": \"distrMaster\",\n\t\t\t\"roles\": [\n\t\t\t\t\"master\",\n\t\t\t\t\"pipeline-system\"\n\t\t\t],\n\t\t\t\"subnet\": {\n\t\t\t\t\"name\": \"subnetA\",\n\t\t\t\t\"cidr\": \"10.10.10.0/24\"\n\t\t\t},\n\t\t\t\"zones\": [\"1\", \"2\", \"3\"],\n\t\t\t\"instanceType\": \"Standard_B2s\"\n\t\t},\n\t\t{\n\t\t\t\"name\": \"distrWorker\",\n\t\t\t\"roles\": [\n\t\t\t\t\"worker\"\n\t\t\t\t],\n\t\t\t\"subnet\": {\n\t\t\t\t\"name\": \"subnetB\",\n\t\t\t\t\"cidr\": \"10.10.20.0/24\"\n\t\t\t},\n\t\t\t\"zones\": [\"1\", \"2\", \"3\"],\n\t\t\t\"instanceType\": \"Standard_B2s\"\n\t\t}],\n\t\"kubernetes\": {\n\t\t\"version\": \"v1.12.2\",\n\t\t\"rbac\": true,\n\t\t\"network\": {\n\t\t\t\"serviceCIDR\": \"10.32.0.0/24\",\n\t\t\t\"podCIDR\": \"10.200.0.0/16\",\n\t\t\t\"provider\": \"weave\"\n\t\t},\n\t\t\"cri\": {\n\t\t\t\"runtime\": \"containerd\"\n\t\t}\n\t},\n\t\"network\": {\n\t\t\"name\": \"vnet\",\n\t\t\"cidr\": \"10.0.0.0/16\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters"
+							],
+							"variable": [
+								{
+									"description": "Organization identifier",
+									"key": "orgId",
+									"value": "{{orgId}}"
 								}
 							]
 						},
