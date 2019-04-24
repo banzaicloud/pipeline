@@ -97,6 +97,26 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 		return err
 	}
 
+	// delete network security groups
+	nsgs := []string{input.ClusterName + "-nsg-master", input.ClusterName + "-nsg-worker"}
+
+	deleteNSGActivityInput := DeleteNSGActivityInput{
+		OrganizationID:    input.OrganizationID,
+		SecretID:          input.SecretID,
+		ClusterName:       input.ClusterName,
+		ResourceGroupName: input.ResourceGroupName,
+	}
+
+	for _, nsgName := range nsgs {
+
+		deleteNSGActivityInput.NSGName = nsgName
+
+		err = workflow.ExecuteActivity(ctx, DeleteNSGActivityName, deleteNSGActivityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 
 }

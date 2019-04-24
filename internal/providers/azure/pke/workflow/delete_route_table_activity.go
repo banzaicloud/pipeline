@@ -28,7 +28,6 @@ import (
 // DeleteRouteTableActivityName is the default registration name of the activity
 const DeleteRouteTableActivityName = "pke-azure-delete-route-table"
 
-
 // DeleteRouteTableActivity represents an activity for deleting a route table
 type DeleteRouteTableActivity struct {
 	azureClientFactory *AzureClientFactory
@@ -50,7 +49,7 @@ func MakeDeleteRouteTableActivity(azureClientFactory *AzureClientFactory) Delete
 	}
 }
 
-func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRouteTableActivityInput) (err error){
+func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRouteTableActivityInput) (err error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,

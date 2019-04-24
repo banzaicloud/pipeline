@@ -52,6 +52,7 @@ func MakeDeleteVNetActivity(azureClientFactory *AzureClientFactory) DeleteVNetAc
 func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivityInput) (err error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
+		"resourceGroup", input.ResourceGroupName,
 		"cluster", input.ClusterName,
 		"vnet", input.VNetName,
 	)

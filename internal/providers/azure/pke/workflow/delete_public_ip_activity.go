@@ -49,7 +49,7 @@ func MakeDeletePublicIPActivity(azureClientFactory *AzureClientFactory) DeletePu
 	}
 }
 
-func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicIPActivityInput) (err error){
+func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicIPActivityInput) (err error) {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -109,7 +109,3 @@ func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicI
 
 	return
 }
-
-
-
-
