@@ -15,20 +15,18 @@
 package workflow
 
 import (
-	"encoding/base64"
-	"strings"
-	"text/template"
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/goph/emperror"
 	"go.uber.org/cadence/workflow"
 )
 
 const CreateInfraWorkflowName = "pke-azure-create-infra"
 
 type CreateAzureInfrastructureWorkflowInput struct {
+	PipelineURL                  string
 	OrganizationID               uint
+	ClusterID                    uint
 	ClusterName                  string
 	SecretID                     string
 	Location                     string
@@ -39,6 +37,61 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	WorkerUserDataScriptTemplate string
 }
 
+// MasterUserDataScriptTemplate is the template to execute PKE command to initialise cluster
+
+const MasterUserDataScriptTemplate = `#!/bin/sh
+# TODO: make IP obtainment more robust
+export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion}} -o /usr/local/bin/pke
+chmod +x /usr/local/bin/pke
+export PATH=$PATH:/usr/local/bin/
+	
+pke install master --pipeline-url="{{ .PipelineURL }}" \
+--pipeline-token="{{ .PipelineToken }}" \
+--pipeline-org-id={{ .OrgID }} \
+--pipeline-cluster-id={{ .ClusterID}} \
+--pipeline-nodepool={{ .NodePoolName }} \
+--kubernetes-cloud-provider=azure \
+--azure-tenant-id={{ .TenantID }} \
+--azure-subnet-name={{ .SubnetName }} \
+--azure-security-group-name={{ .NSGName }} \
+--azure-vnet-name={{ .VnetName }} \
+--azure-vnet-resource-group={{ .VnetResourceGroupName }} \
+--azure-vm-type=vmss \
+--azure-loadbalancer-sku=standard \
+--azure-route-table-name={{ .RouteTableName }} \
+--kubernetes-advertise-address=$PRIVATE_IP:6443 \
+--kubernetes-api-server=$PRIVATE_IP:6443 \
+--kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-api-server-cert-sans={{ .PublicAddress }}`
+
+const WorkerUserDataScriptTemplate = `
+#!/bin/sh
+# TODO: make IP obtainment more robust
+export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
+chmod +x /usr/local/bin/pke
+export PATH=$PATH:/usr/local/bin/
+	
+pke install worker --pipeline-url="{{ .PipelineURL }}" \
+--pipeline-token="{{ .PipelineToken }}" \
+--pipeline-org-id={{ .OrgID }} \
+--pipeline-cluster-id={{ .ClusterID}} \
+--pipeline-nodepool={{ .NodePoolName }} \
+--kubernetes-cloud-provider=azure \
+--azure-tenant-id={{ .TenantID }} \
+--azure-subnet-name={{ .SubnetName }} \
+--azure-security-group-name={{ .NSGName }} \
+--azure-vnet-name={{ .VnetName }} \
+--azure-vnet-resource-group={{ .VnetResourceGroupName }} \
+--azure-vm-type=standard \
+--azure-loadbalancer-sku=standard \
+--azure-route-table-name={{ .RouteTableName }} \
+--kubernetes-api-server=$PRIVATEIP:6443 \
+--kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-pod-network-cidr=""
+`
+
 func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrastructureWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
@@ -48,15 +101,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	masterUserDataScriptTemplate, err := template.New("masterUserDataScript").Parse(input.MasterUserDataScriptTemplate)
-	if err != nil {
-		return err
-	}
-	workerUserDataScriptTemplate, err := template.New("workerUserDataScript").Parse(input.WorkerUserDataScriptTemplate)
-	if err != nil {
-		return err
-	}
 
 	// Create master network security group
 	var masterNSGOutput CreateNSGActivityOutput
@@ -261,59 +305,27 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
-	// #!/bin/sh
-	// # TODO: make IP obtainment more robust
-	// export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
-	// curl -v https://banzaicloud.com/downloads/pke/pke-0.3.0 -o /usr/local/bin/pke
-	// chmod +x /usr/local/bin/pke
-	// export PATH=$PATH:/usr/local/bin/
-	//
-	// pke install master --kubernetes-cloud-provider=azure \
-	// --azure-tenant-id={{.TenantID}} \
-	// --azure-subnet-name={{.SubnetName}} \
-	// --azure-security-group-name={{.NSGName}} \
-	// --azure-vnet-name={{.VnetName}} \
-	// --azure-vnet-resource-group={{.VnetResourceGroupName}} \
-	// --azure-vm-type=vmss \
-	// --azure-loadbalancer-sku=standard \
-	// --azure-route-table-name={{.RouteTableName}} \
-	// --kubernetes-advertise-address=$PRIVATE_IP:6443 \
-	// --kubernetes-api-server=$PRIVATE_IP:6443 \
-	// --kubernetes-infrastructure-cidr={{.InfraCIDR}} \
-	// --kubernetes-api-server-cert-sans={{.PublicAddress}}
-
 	// Create master scale set
 	var masterVMSSOutput CreateVMSSActivityOutput
 	{
-		var userDataScript strings.Builder
-		err := masterUserDataScriptTemplate.Execute(&userDataScript, struct {
-			TenantID              string
-			SubnetName            string
-			NSGName               string
-			VnetName              string
-			VnetResourceGroupName string
-			RouteTableName        string
-			InfraCIDR             string
-			PublicAddress         string
-		}{
-			TenantID:              input.TenantID,
-			SubnetName:            input.ClusterName + "-subnet-master",
-			NSGName:               input.ClusterName + "-nsg-worker",
-			VnetName:              input.ClusterName + "-vnet",
-			VnetResourceGroupName: input.ResourceGroupName,
-			RouteTableName:        input.ClusterName + "-route-table",
-			InfraCIDR:             "10.240.0.0/16",
-			PublicAddress:         createPublicIPOutput.PublicIPAddress,
-		})
-		if err != nil {
-			return emperror.Wrap(err, "failed to execute master user data script")
-		}
-
 		activityInput := CreateVMSSActivityInput{
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-			ClusterName:       input.ClusterName,
-			ResourceGroupName: input.ResourceGroupName,
+			OrganizationID:         input.OrganizationID,
+			ClusterID:              input.ClusterID,
+			SecretID:               input.SecretID,
+			ClusterName:            input.ClusterName,
+			ResourceGroupName:      input.ResourceGroupName,
+			UserDataScriptTemplate: MasterUserDataScriptTemplate,
+			UserDataScriptParams: map[string]string{
+				"PipelineURL":           input.PipelineURL,
+				"TenantID":              input.TenantID,
+				"SubnetName":            input.ClusterName + "-subnet-worker",
+				"NSGName":               input.ClusterName + "-nsg-worker",
+				"VnetName":              input.ClusterName + "-vnet",
+				"VnetResourceGroupName": input.ResourceGroupName,
+				"RouteTableName":        input.ClusterName + "-route-table",
+				"InfraCIDR":             "10.240.0.0/16",
+				"PublicAddress":         createPublicIPOutput.PublicIPAddress,
+			},
 			ScaleSet: VirtualMachineScaleSet{
 				AdminUsername: "azureuser",
 				Image: Image{
@@ -331,12 +343,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				NetworkSecurityGroupID: masterNSGOutput.NetworkSecurityGroupID,
 				SSHPublicKey:           input.SSHPublicKey,
 				SubnetID:               createVnetOutput.SubnetIDs[input.ClusterName+"-subnet-master"],
-				UserDataScript:         base64.StdEncoding.EncodeToString([]byte(userDataScript.String())),
 				Zones:                  []string{"1", "2", "3"},
 			},
 		}
 
-		err = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &masterVMSSOutput)
+		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &masterVMSSOutput)
 		if err != nil {
 			return err
 		}
@@ -357,57 +368,19 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
-	// #!/bin/sh
-	// export TOKEN=m5rpex.wqd7dgacft3k5x63
-	// export CERTHASH=sha256:37e646935d8ac3f50b1deb268431db213c4414ef4b839633153960eb186b5fdb
-	//
-	// pke install worker --kubernetes-cloud-provider=azure \
-	// --azure-tenant-id={{.TenantID}} \
-	// --azure-subnet-name={{.SubnetName}} \
-	// --azure-security-group-name={{.NSGName}} \
-	// --azure-vnet-name={{.VnetName}} \
-	// --azure-vnet-resource-group={{.VnetResourceGroupName}} \
-	// --azure-vm-type=vmss \
-	// --azure-loadbalancer-sku=standard \
-	// --azure-route-table-name={{.RouteTableName}} \
-	// --kubernetes-infrastructure-cidr={{.InfraCIDR}} \
-	// --kubernetes-pod-network-cidr=""
-	// --kubernetes-api-server={{.PublicAddress}}:6443 \
-	// --kubernetes-node-token=$TOKEN \
-	// --kubernetes-api-server-ca-cert-hash=$CERTHASH \
-
 	// Create worker scale set
 	var workerVMSSOutput CreateVMSSActivityOutput
 	{
-		var userDataScript strings.Builder
-		err := workerUserDataScriptTemplate.Execute(&userDataScript, struct {
-			TenantID              string
-			SubnetName            string
-			NSGName               string
-			VnetName              string
-			VnetResourceGroupName string
-			RouteTableName        string
-			InfraCIDR             string
-			PublicAddress         string
-		}{
-			TenantID:              input.TenantID,
-			SubnetName:            input.ClusterName + "-subnet-worker",
-			NSGName:               input.ClusterName + "-nsg-worker",
-			VnetName:              input.ClusterName + "-vnet",
-			VnetResourceGroupName: input.ResourceGroupName,
-			RouteTableName:        input.ClusterName + "-route-table",
-			InfraCIDR:             "10.240.0.0/16",
-			PublicAddress:         createPublicIPOutput.PublicIPAddress,
-		})
-		if err != nil {
-			return emperror.Wrap(err, "failed to execute worker user data script")
-		}
-
 		activityInput := CreateVMSSActivityInput{
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-			ClusterName:       input.ClusterName,
-			ResourceGroupName: input.ResourceGroupName,
+			OrganizationID:         input.OrganizationID,
+			SecretID:               input.SecretID,
+			ClusterName:            input.ClusterName,
+			ClusterID:              input.ClusterID,
+			ResourceGroupName:      input.ResourceGroupName,
+			UserDataScriptTemplate: WorkerUserDataScriptTemplate,
+			UserDataScriptParams: map[string]string{
+				"": "",
+			},
 			ScaleSet: VirtualMachineScaleSet{
 				AdminUsername: "azureuser",
 				Image: Image{
@@ -423,12 +396,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				NetworkSecurityGroupID: workerNSGOutput.NetworkSecurityGroupID,
 				SSHPublicKey:           input.SSHPublicKey,
 				SubnetID:               createVnetOutput.SubnetIDs[input.ClusterName+"-subnet-worker"],
-				UserDataScript:         base64.StdEncoding.EncodeToString([]byte(userDataScript.String())),
 				Zones:                  []string{"1", "2", "3"},
 			},
 		}
 
-		err = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &workerVMSSOutput)
+		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &workerVMSSOutput)
 		if err != nil {
 			return err
 		}

@@ -17,11 +17,12 @@ package main
 import (
 	azurepkeworkflow "github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 )
 
-func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
+func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator *pkeworkflowadapter.TokenGenerator) {
 
 	// Azure PKE
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})
@@ -39,7 +40,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore) {
 	createLBActivity := azurepkeworkflow.MakeCreateLoadBalancerActivity(azureClientFactory)
 	activity.RegisterWithOptions(createLBActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateLoadBalancerActivityName})
 
-	createVMSSActivity := azurepkeworkflow.MakeCreateVMSSActivity(azureClientFactory)
+	createVMSSActivity := azurepkeworkflow.MakeCreateVMSSActivity(azureClientFactory, tokenGenerator)
 	activity.RegisterWithOptions(createVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateVMSSActivityName})
 
 	createRouteTableActivity := azurepkeworkflow.MakeCreateRouteTableActivity(azureClientFactory)

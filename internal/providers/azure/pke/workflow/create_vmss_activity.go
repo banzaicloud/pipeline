@@ -16,10 +16,14 @@ package workflow
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"strings"
+	"text/template"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 )
@@ -30,23 +34,27 @@ const CreateVMSSActivityName = "pke-azure-create-vmss"
 // CreateVMSSActivity represents an activity for creating an Azure virtual machine scale set
 type CreateVMSSActivity struct {
 	azureClientFactory *AzureClientFactory
+	tokenGenerator     *pkeworkflowadapter.TokenGenerator
 }
 
 // MakeCreateVMSSActivity returns a new CreateVMSSActivity
-func MakeCreateVMSSActivity(azureClientFactory *AzureClientFactory) CreateVMSSActivity {
+func MakeCreateVMSSActivity(azureClientFactory *AzureClientFactory, tokenGenerator *pkeworkflowadapter.TokenGenerator) CreateVMSSActivity {
 	return CreateVMSSActivity{
 		azureClientFactory: azureClientFactory,
+		tokenGenerator:     tokenGenerator,
 	}
 }
 
 // CreateVMSSActivityInput represents the input needed for executing a CreateVMSSActivity
 type CreateVMSSActivityInput struct {
-	OrganizationID    uint
-	SecretID          string
-	ClusterName       string
-	ResourceGroupName string
-
-	ScaleSet VirtualMachineScaleSet
+	OrganizationID         uint
+	ClusterID              uint
+	SecretID               string
+	ClusterName            string
+	ResourceGroupName      string
+	UserDataScriptParams   map[string]string
+	UserDataScriptTemplate string
+	ScaleSet               VirtualMachineScaleSet
 }
 
 // VirtualMachineScaleSet represents an Azure virtual machine scale set
@@ -62,7 +70,6 @@ type VirtualMachineScaleSet struct {
 	NetworkSecurityGroupID string
 	SSHPublicKey           string
 	SubnetID               string
-	UserDataScript         string
 	Zones                  []string
 }
 
@@ -94,12 +101,31 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 
 	logger.Info("create virtual machine scale set")
 
+	var userDataScript strings.Builder
+	userDataScriptTemplate, err := template.New("masterUserDataScript").Parse(input.UserDataScriptTemplate)
+	if err != nil {
+		return
+	}
+
+	// Inject TOKEN into params
+	_, token, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
+	if err != nil {
+		return
+	}
+
+	input.UserDataScriptParams["PipelineToken"] = token
+
+	err = userDataScriptTemplate.Execute(&userDataScript, input.UserDataScriptParams)
+	if err != nil {
+		err = emperror.Wrap(err, "failed to execute master user data script")
+		return
+	}
+
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
 		return
 	}
-
-	params := input.getCreateOrUpdateVirtualMachineScaleSetParams()
+	params := input.getCreateOrUpdateVirtualMachineScaleSetParams(userDataScript.String())
 
 	client := cc.GetVirtualMachineScaleSetsClient()
 
@@ -129,7 +155,7 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 	return
 }
 
-func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetParams() compute.VirtualMachineScaleSet {
+func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetParams(UserDataScript string) compute.VirtualMachineScaleSet {
 	var bapRefs *[]compute.SubResource
 	if input.ScaleSet.LBBackendAddressPoolID != "" {
 		bapRefs = &[]compute.SubResource{
@@ -190,7 +216,7 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 				OsProfile: &compute.VirtualMachineScaleSetOSProfile{
 					ComputerNamePrefix: to.StringPtr(input.ScaleSet.Name),
 					AdminUsername:      to.StringPtr(input.ScaleSet.AdminUsername),
-					CustomData:         to.StringPtr(input.ScaleSet.UserDataScript),
+					CustomData:         to.StringPtr(base64.StdEncoding.EncodeToString([]byte(UserDataScript))),
 					LinuxConfiguration: &compute.LinuxConfiguration{
 						DisablePasswordAuthentication: to.BoolPtr(true),
 						SSH: &compute.SSHConfiguration{

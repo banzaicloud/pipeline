@@ -45,10 +45,12 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	// TODO fill input
 	infraInput := CreateAzureInfrastructureWorkflowInput{
-		OrganizationID:    input.OrganizationID,
-		ClusterName:       input.ClusterName,
-		SecretID:          input.SecretID,
-		ResourceGroupName: input.ResourceGroupName,
+		OrganizationID:               input.OrganizationID,
+		ClusterName:                  input.ClusterName,
+		SecretID:                     input.SecretID,
+		ResourceGroupName:            input.ResourceGroupName,
+		MasterUserDataScriptTemplate: MasterUserDataScriptTemplate,
+		WorkerUserDataScriptTemplate: WorkerUserDataScriptTemplate,
 	}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {
