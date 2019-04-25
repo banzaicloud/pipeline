@@ -25,10 +25,12 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
+	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -268,7 +270,12 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	cloudType := modelCluster.Cloud
 
 	if modelCluster.Distribution == pkgCluster.PKE {
-		return createCommonClusterWithDistributionFromModel(modelCluster)
+		switch cloudType {
+		case providers.Azure:
+			return pkeAzureAdapter.GetCommonClusterByID(modelCluster.ID, db)
+		default:
+			return createCommonClusterWithDistributionFromModel(modelCluster)
+		}
 	}
 
 	switch cloudType {
