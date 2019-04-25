@@ -16,6 +16,7 @@ package adapter
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -25,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -264,4 +266,24 @@ func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID
 		ClusterID: clusterID,
 	}
 	return emperror.Wrap(s.db.Model(&model).Update("ActiveWorkflowID", workflowID).Error, "failed to update PKE-on-Azure cluster model")
+}
+
+// Migrate executes the table migrations for the provider.
+func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+	tables := []interface{}{
+		&gormAzurePKENodePoolModel{},
+		&gormAzurePKEClusterModel{},
+	}
+
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
+	}
+
+	logger.WithFields(logrus.Fields{
+		"provider":    pke.PKEOnAzure,
+		"table_names": strings.TrimSpace(tableNames),
+	}).Info("migrating provider tables")
+
+	return db.AutoMigrate(tables...).Error
 }
