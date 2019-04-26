@@ -15,8 +15,9 @@
 package workflow
 
 import (
-	"encoding/base64"
+	"strings"
 	"testing"
+	"text/template"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -27,6 +28,7 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 	t.Run("typical input", func(t *testing.T) {
 		input := CreateVMSSActivityInput{
 			OrganizationID:    1,
+			ClusterID:         123,
 			SecretID:          "0123456789abcdefghijklmnopqrstuvwxyz",
 			ClusterName:       "test-cluster",
 			ResourceGroupName: "test-rg",
@@ -47,8 +49,12 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 				NetworkSecurityGroupID: "/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/networkSecurityGroups/test-nsg",
 				SSHPublicKey:           "ssh-rsa 2048bitBASE64key test-key",
 				SubnetID:               "/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/test-subnet",
-				UserDataScript:         base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\necho \"I was here\" > /tmp/where-was-i")),
-				Zones:                  []string{"1", "2", "3"},
+				UserDataScriptTemplate: "#!/bin/bash\necho \"{{ .Message }}\" > {{ .FilePath }}",
+				UserDataScriptParams: map[string]string{
+					"Message":  "I was here",
+					"FilePath": "/tmp/where-i-was",
+				},
+				Zones: []string{"1", "2", "3"},
 			},
 		}
 		expected := compute.VirtualMachineScaleSet{
@@ -103,7 +109,7 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 					OsProfile: &compute.VirtualMachineScaleSetOSProfile{
 						ComputerNamePrefix: to.StringPtr("test-vmss"),
 						AdminUsername:      to.StringPtr("test-admin"),
-						CustomData:         to.StringPtr("IyEvYmluL2Jhc2gKZWNobyAiSSB3YXMgaGVyZSIgPiAvdG1wL3doZXJlLXdhcy1p"),
+						CustomData:         to.StringPtr("IyEvYmluL2Jhc2gKZWNobyAiSSB3YXMgaGVyZSIgPiAvdG1wL3doZXJlLWktd2Fz"),
 						LinuxConfiguration: &compute.LinuxConfiguration{
 							DisablePasswordAuthentication: to.BoolPtr(true),
 							SSH: &compute.SSHConfiguration{
@@ -136,7 +142,9 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 			},
 			Zones: &[]string{"1", "2", "3"},
 		}
-		result := input.getCreateOrUpdateVirtualMachineScaleSetParams()
+		var userDataScript strings.Builder
+		assert.NoError(t, template.Must(template.New("TestUserTemplate").Parse(input.ScaleSet.UserDataScriptTemplate)).Execute(&userDataScript, input.ScaleSet.UserDataScriptParams))
+		result := input.getCreateOrUpdateVirtualMachineScaleSetParams(userDataScript.String())
 		assert.Equal(t, expected, result)
 	})
 }

@@ -47,14 +47,12 @@ func MakeCreateVMSSActivity(azureClientFactory *AzureClientFactory, tokenGenerat
 
 // CreateVMSSActivityInput represents the input needed for executing a CreateVMSSActivity
 type CreateVMSSActivityInput struct {
-	OrganizationID         uint
-	ClusterID              uint
-	SecretID               string
-	ClusterName            string
-	ResourceGroupName      string
-	UserDataScriptParams   map[string]string
-	UserDataScriptTemplate string
-	ScaleSet               VirtualMachineScaleSet
+	OrganizationID    uint
+	ClusterID         uint
+	SecretID          string
+	ClusterName       string
+	ResourceGroupName string
+	ScaleSet          VirtualMachineScaleSet
 }
 
 // VirtualMachineScaleSet represents an Azure virtual machine scale set
@@ -70,6 +68,8 @@ type VirtualMachineScaleSet struct {
 	NetworkSecurityGroupID string
 	SSHPublicKey           string
 	SubnetID               string
+	UserDataScriptParams   map[string]string
+	UserDataScriptTemplate string
 	Zones                  []string
 }
 
@@ -101,23 +101,21 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 
 	logger.Info("create virtual machine scale set")
 
-	var userDataScript strings.Builder
-	userDataScriptTemplate, err := template.New("masterUserDataScript").Parse(input.UserDataScriptTemplate)
+	userDataScriptTemplate, err := template.New(input.ScaleSet.Name + "UserDataScript").Parse(input.ScaleSet.UserDataScriptTemplate)
 	if err != nil {
 		return
 	}
 
-	// Inject TOKEN into params
 	_, token, err := a.tokenGenerator.GenerateClusterToken(input.OrganizationID, input.ClusterID)
 	if err != nil {
 		return
 	}
 
-	input.UserDataScriptParams["PipelineToken"] = token
+	input.ScaleSet.UserDataScriptParams["PipelineToken"] = token
 
-	err = userDataScriptTemplate.Execute(&userDataScript, input.UserDataScriptParams)
-	if err != nil {
-		err = emperror.Wrap(err, "failed to execute master user data script")
+	var userDataScript strings.Builder
+	err = userDataScriptTemplate.Execute(&userDataScript, input.ScaleSet.UserDataScriptParams)
+	if err = emperror.Wrap(err, "failed to execute user data script template"); err != nil {
 		return
 	}
 
@@ -125,9 +123,10 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
 		return
 	}
-	params := input.getCreateOrUpdateVirtualMachineScaleSetParams(userDataScript.String())
 
 	client := cc.GetVirtualMachineScaleSetsClient()
+
+	params := input.getCreateOrUpdateVirtualMachineScaleSetParams(userDataScript.String())
 
 	logger.Debug("sending request to create or update virtual machine scale set")
 

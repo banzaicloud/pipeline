@@ -111,15 +111,38 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 
 	input := workflow.CreateClusterWorkflowInput{
-		OrganizationID:    cl.OrganizationID,
 		ClusterID:         cl.ID,
-		ClusterUID:        cl.UID,
 		ClusterName:       cl.Name,
-		SecretID:          cl.SecretID,
-		Location:          cl.Location,
+		OrganizationID:    cl.OrganizationID,
 		ResourceGroupName: cl.ResourceGroup.Name,
+		SecretID:          cl.SecretID,
+		// TODO: fill with real data
+		VirtualNetworkTemplate: workflow.VirtualNetworkTemplate{
+			Name:     "",
+			CIDRs:    nil,
+			Location: "",
+			Subnets:  nil,
+		},
+		LoadBalancerTemplate: workflow.LoadBalancerTemplate{
+			Name:                   "",
+			Location:               "",
+			SKU:                    "",
+			BackendAddressPoolName: "",
+			InboundNATPoolName:     "",
+		},
+		PublicIPAddress: workflow.PublicIPAddress{
+			Location: "",
+			Name:     "",
+			SKU:      "",
+		},
+		RoleAssignmentTemplates: nil,
+		RouteTable: workflow.RouteTable{
+			Name:     "",
+			Location: "",
+		},
+		SecurityGroups:                  nil,
+		VirtualMachineScaleSetTemplates: nil,
 	}
-
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
@@ -330,3 +353,55 @@ func (e validationError) Error() string {
 func (e validationError) InputValidationError() bool {
 	return true
 }
+
+const masterUserDataScriptTemplate = `#!/bin/sh
+# TODO: make IP obtainment more robust
+export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion}} -o /usr/local/bin/pke
+chmod +x /usr/local/bin/pke
+export PATH=$PATH:/usr/local/bin/
+	
+pke install master --pipeline-url="{{ .PipelineURL }}" \
+--pipeline-token="{{ .PipelineToken }}" \
+--pipeline-org-id={{ .OrgID }} \
+--pipeline-cluster-id={{ .ClusterID}} \
+--pipeline-nodepool={{ .NodePoolName }} \
+--kubernetes-cloud-provider=azure \
+--azure-tenant-id={{ .TenantID }} \
+--azure-subnet-name={{ .SubnetName }} \
+--azure-security-group-name={{ .NSGName }} \
+--azure-vnet-name={{ .VnetName }} \
+--azure-vnet-resource-group={{ .VnetResourceGroupName }} \
+--azure-vm-type=vmss \
+--azure-loadbalancer-sku=standard \
+--azure-route-table-name={{ .RouteTableName }} \
+--kubernetes-advertise-address=$PRIVATE_IP:6443 \
+--kubernetes-api-server=$PRIVATE_IP:6443 \
+--kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-api-server-cert-sans={{ .PublicAddress }}`
+
+const workerUserDataScriptTemplate = `
+#!/bin/sh
+# TODO: make IP obtainment more robust
+export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
+curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
+chmod +x /usr/local/bin/pke
+export PATH=$PATH:/usr/local/bin/
+	
+pke install worker --pipeline-url="{{ .PipelineURL }}" \
+--pipeline-token="{{ .PipelineToken }}" \
+--pipeline-org-id={{ .OrgID }} \
+--pipeline-cluster-id={{ .ClusterID}} \
+--pipeline-nodepool={{ .NodePoolName }} \
+--kubernetes-cloud-provider=azure \
+--azure-tenant-id={{ .TenantID }} \
+--azure-subnet-name={{ .SubnetName }} \
+--azure-security-group-name={{ .NSGName }} \
+--azure-vnet-name={{ .VnetName }} \
+--azure-vnet-resource-group={{ .VnetResourceGroupName }} \
+--azure-vm-type=standard \
+--azure-loadbalancer-sku=standard \
+--azure-route-table-name={{ .RouteTableName }} \
+--kubernetes-api-server=$PRIVATEIP:6443 \
+--kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-pod-network-cidr=""`

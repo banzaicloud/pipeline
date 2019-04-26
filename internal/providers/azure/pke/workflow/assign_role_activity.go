@@ -44,9 +44,13 @@ type AssignRoleActivityInput struct {
 	SecretID          string
 	ClusterName       string
 	ResourceGroupName string
-	Name              string
-	PrincipalID       string
-	RoleName          string
+	RoleAssignment    RoleAssignment
+}
+
+type RoleAssignment struct {
+	Name        string
+	PrincipalID string
+	RoleName    string
 }
 
 func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivityInput) error {
@@ -69,25 +73,25 @@ func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivit
 
 	scope := *resourceGroup.ID
 
-	role, err := cc.GetRoleDefinitionsClient().FindByRoleName(ctx, scope, input.RoleName)
+	role, err := cc.GetRoleDefinitionsClient().FindByRoleName(ctx, scope, input.RoleAssignment.RoleName)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to find role by name", "scope", scope, "roleName", input.RoleName)
+		return emperror.WrapWith(err, "failed to find role by name", "scope", scope, "roleName", input.RoleAssignment.RoleName)
 	}
 
 	params := input.getRoleAssignmentCreateParams(*role)
 
-	result, err := cc.GetRoleAssignmentsClient().Create(ctx, scope, input.Name, params)
+	result, err := cc.GetRoleAssignmentsClient().Create(ctx, scope, input.RoleAssignment.Name, params)
 	if result.Response.StatusCode == http.StatusConflict {
-		logger.Infof("Role [%s] is already assigned to principal [%s] as [%s]", input.RoleName, input.PrincipalID, result.ID)
+		logger.Infof("Role [%s] is already assigned to principal [%s] as [%s]", input.RoleAssignment.RoleName, input.RoleAssignment.PrincipalID, result.ID)
 		return nil
 	}
-	return emperror.WrapWith(err, "failed to create role assignment", "scope", scope, "roleName", input.RoleName, "principalID", input.PrincipalID)
+	return emperror.WrapWith(err, "failed to create role assignment", "scope", scope, "roleName", input.RoleAssignment.RoleName, "principalID", input.RoleAssignment.PrincipalID)
 }
 
 func (input AssignRoleActivityInput) getRoleAssignmentCreateParams(role authorization.RoleDefinition) authorization.RoleAssignmentCreateParameters {
 	return authorization.RoleAssignmentCreateParameters{
 		Properties: &authorization.RoleAssignmentProperties{
-			PrincipalID:      to.StringPtr(input.PrincipalID),
+			PrincipalID:      to.StringPtr(input.RoleAssignment.PrincipalID),
 			RoleDefinitionID: role.ID,
 		},
 	}
