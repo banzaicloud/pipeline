@@ -294,3 +294,11 @@ func (a *AzurePkeCluster) HasK8sConfig() (bool, error) {
 	config, err := a.GetK8sConfig()
 	return len(config) > 0, err
 }
+
+func (a *AzurePkeCluster) IsMasterReady() (bool, error) {
+	return a.HasK8sConfig()
+}
+
+func (a *AzurePkeCluster) GetCurrentWorkflowID() string {
+	return a.model.ActiveWorkflowID
+}
