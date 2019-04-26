@@ -156,7 +156,7 @@ func (f VirtualMachineScaleSetsFactory) Make(
 	publicIPAddress := publicIPAddressProvider.Get()
 	sss := make([]VirtualMachineScaleSet, len(f.Templates))
 	for i, t := range f.Templates {
-		t.UserDataScriptParams["PublicIPAddress"] = publicIPAddress
+		t.UserDataScriptParams["PublicAddress"] = publicIPAddress
 		sss[i] = VirtualMachineScaleSet{
 			AdminUsername:          t.AdminUsername,
 			Image:                  t.Image,
