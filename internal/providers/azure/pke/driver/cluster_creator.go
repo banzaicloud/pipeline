@@ -22,8 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofrs/uuid"
-
 	autoazure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/banzaicloud/pipeline/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
