@@ -158,8 +158,8 @@ func (a *AzurePkeCluster) DownloadK8sConfig() ([]byte, error) {
 	panic("not implemented")
 }
 
-func (c *AzurePkeCluster) GetAPIEndpoint() (string, error) {
-	config, err := c.GetK8sConfig()
+func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
+	config, err := a.GetK8sConfig()
 	if err != nil {
 		return "", emperror.Wrap(err, "failed to get cluster's Kubeconfig")
 	}
