@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	apiv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/rbac/v1"
@@ -43,7 +44,7 @@ import (
 )
 
 //PreInstall create's serviceAccount and AccountRoleBinding
-func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
+func PreInstall(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []byte) error {
 	log.Info("start pre-install")
 
 	var backoffConfig = backoff.ConstantBackoffConfig{
@@ -160,12 +161,12 @@ func PreInstall(helmInstall *phelm.Install, kubeConfig []byte) error {
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
-func RetryHelmInstall(helmInstall *phelm.Install, kubeconfig []byte) error {
+func RetryHelmInstall(log logrus.FieldLogger, helmInstall *phelm.Install, kubeconfig []byte) error {
 	retryAttempts := viper.GetInt(phelm.HELM_RETRY_ATTEMPT_CONFIG)
 	retrySleepSeconds := viper.GetInt(phelm.HELM_RETRY_SLEEP_SECONDS)
 	for i := 0; i <= retryAttempts; i++ {
 		log.Infof("Waiting %d/%d", i, retryAttempts)
-		err := Install(helmInstall, kubeconfig)
+		err := Install(log, helmInstall, kubeconfig)
 		if err != nil {
 			if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
 				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
@@ -305,9 +306,9 @@ func InstallLocalHelm(env helmEnv.EnvSettings) error {
 }
 
 // Install uses Kubernetes client to install Tiller.
-func Install(helmInstall *phelm.Install, kubeConfig []byte) error {
+func Install(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []byte) error {
 
-	err := PreInstall(helmInstall, kubeConfig)
+	err := PreInstall(log, helmInstall, kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -344,7 +345,6 @@ func Install(helmInstall *phelm.Install, kubeConfig []byte) error {
 			if err := installer.Upgrade(kubeClient, &opts); err != nil {
 				return errors.Wrap(err, "error when upgrading")
 			}
-
 			log.Info("Tiller (the Helm server-side component) has been upgraded to the current version.")
 		} else {
 			log.Info("Warning: Tiller is already installed in the cluster.")

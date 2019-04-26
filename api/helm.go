@@ -24,11 +24,13 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -309,6 +311,7 @@ func GetDeploymentResources(c *gin.Context) {
 
 // InitHelmOnCluster installs Helm on AKS cluster and configure the Helm client
 func InitHelmOnCluster(c *gin.Context) {
+	log := correlationid.Logger(log, c)
 	log.Info("Start helm install")
 
 	commonCluster, ok := getClusterFromRequest(c)
@@ -326,6 +329,9 @@ func InitHelmOnCluster(c *gin.Context) {
 		})
 		return
 	}
+
+	log = log.WithFields(logrus.Fields{"cluster": commonCluster.GetName(), "clusterID": commonCluster.GetID()})
+
 	// bind request body to struct
 	var helmInstall pkgHelm.Install
 	if err := c.BindJSON(&helmInstall); err != nil {
@@ -338,7 +344,7 @@ func InitHelmOnCluster(c *gin.Context) {
 		})
 		return
 	}
-	err = helm.Install(&helmInstall, kubeConfig)
+	err = helm.Install(log, &helmInstall, kubeConfig)
 	if err != nil {
 		log.Errorf("Unable to install chart: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{

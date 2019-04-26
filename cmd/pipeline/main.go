@@ -59,6 +59,7 @@ import (
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -401,25 +402,26 @@ func main() {
 			orgs.HEAD("/:orgid/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
 			orgs.POST("/:orgid/clusters/:id/helminit", api.InitHelmOnCluster)
 
-			orgs.GET("/:orgid/clusters/:id/scanlog", api.GetScanLog)
-			orgs.GET("/:orgid/clusters/:id/scanlog/:releaseName", api.GetScanLog)
-			orgs.GET("/:orgid/clusters/:id/whitelists", api.GetWhiteLists)
-			orgs.POST("/:orgid/clusters/:id/whitelists", api.CreateWhiteList)
-			orgs.DELETE("/:orgid/clusters/:id/whitelists/:name", api.DeleteWhiteList)
-			orgs.GET("/:orgid/clusters/:id/policies", api.GetPolicies)
-			orgs.GET("/:orgid/clusters/:id/policies/:policyId", api.GetPolicies)
-			orgs.POST("/:orgid/clusters/:id/policies", api.CreatePolicy)
-			orgs.PUT("/:orgid/clusters/:id/policies/:policyId", api.UpdatePolicies)
-			orgs.DELETE("/:orgid/clusters/:id/policies/:policyId", api.DeletePolicy)
-
 			orgs.GET("/:orgid/clusters/:id/images", api.ListImages)
 			orgs.GET("/:orgid/clusters/:id/images/:imageDigest/deployments", api.GetImageDeployments)
 			orgs.GET("/:orgid/clusters/:id/deployments/:name/images", api.GetDeploymentImages)
 
-			orgs.POST("/:orgid/clusters/:id/imagescan", api.ScanImages)
-			orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest", api.GetScanResult)
-			orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+			if anchore.AnchoreEnabled {
+				orgs.GET("/:orgid/clusters/:id/scanlog", api.GetScanLog)
+				orgs.GET("/:orgid/clusters/:id/scanlog/:releaseName", api.GetScanLog)
+				orgs.GET("/:orgid/clusters/:id/whitelists", api.GetWhiteLists)
+				orgs.POST("/:orgid/clusters/:id/whitelists", api.CreateWhiteList)
+				orgs.DELETE("/:orgid/clusters/:id/whitelists/:name", api.DeleteWhiteList)
+				orgs.GET("/:orgid/clusters/:id/policies", api.GetPolicies)
+				orgs.GET("/:orgid/clusters/:id/policies/:policyId", api.GetPolicies)
+				orgs.POST("/:orgid/clusters/:id/policies", api.CreatePolicy)
+				orgs.PUT("/:orgid/clusters/:id/policies/:policyId", api.UpdatePolicies)
+				orgs.DELETE("/:orgid/clusters/:id/policies/:policyId", api.DeletePolicy)
 
+				orgs.POST("/:orgid/clusters/:id/imagescan", api.ScanImages)
+				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest", api.GetScanResult)
+				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+			}
 			clusters := orgs.Group("/:orgid/clusters/:id")
 
 			clusters.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
