@@ -40,26 +40,177 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	VirtualNetwork  VirtualNetworkFactory
 }
 
-type LoadBalancerFactory interface {
-	Make(publicIPAddressIDProvider IDProvider) LoadBalancer
+type LoadBalancerFactory struct {
+	Template LoadBalancerTemplate
 }
 
-type RoleAssignmentsFactory interface {
-	Make(vmssPrincipalIDProvider IDByNameProvider) []RoleAssignment
+type LoadBalancerTemplate struct {
+	Name                   string
+	Location               string
+	SKU                    string
+	BackendAddressPoolName string
+	InboundNATPoolName     string
 }
 
-type VirtualMachineScaleSetsFactory interface {
-	Make(
-		backendAddressPoolIDProvider IDByNameProvider,
-		inboundNATPoolIDProvider IDByNameProvider,
-		publicIPAddressProvider IPAddressProvider,
-		securityGroupIDProvider IDByNameProvider,
-		subnetIDProvider IDByNameProvider,
-	) []VirtualMachineScaleSet
+func (f LoadBalancerFactory) Make(publicIPAddressIDProvider IDProvider) LoadBalancer {
+	bap := BackendAddressPool{
+		Name: f.Template.BackendAddressPoolName,
+	}
+	fic := FrontendIPConfiguration{
+		Name:              "frontend-ip-config",
+		PublicIPAddressID: publicIPAddressIDProvider.Get(),
+	}
+	probe := Probe{
+		Name:     "api-server-probe",
+		Port:     6443,
+		Protocol: "Tcp",
+	}
+	return LoadBalancer{
+		Name:     f.Template.Name,
+		Location: f.Template.Location,
+		SKU:      f.Template.SKU,
+		BackendAddressPools: []BackendAddressPool{
+			bap,
+		},
+		FrontendIPConfigurations: []FrontendIPConfiguration{
+			fic,
+		},
+		InboundNATPools: []InboundNATPool{
+			{
+				Name:                   f.Template.InboundNATPoolName,
+				BackendPort:            22,
+				FrontendIPConfig:       &fic,
+				FrontendPortRangeEnd:   50100,
+				FrontendPortRangeStart: 50000,
+				Protocol:               "Tcp",
+			},
+		},
+		LoadBalancingRules: []LoadBalancingRule{
+			{
+				Name:                "api-server-rule",
+				BackendAddressPool:  &bap,
+				BackendPort:         6443,
+				DisableOutboundSNAT: false,
+				FrontendIPConfig:    &fic,
+				FrontendPort:        6443,
+				Probe:               &probe,
+				Protocol:            "Tcp",
+			},
+		},
+		Probes: []Probe{
+			probe,
+		},
+	}
 }
 
-type VirtualNetworkFactory interface {
-	Make(routeTableIDProvider IDProvider, securityGroupIDProvider IDByNameProvider) VirtualNetwork
+type RoleAssignmentsFactory struct {
+	Templates []RoleAssignmentTemplate
+}
+
+type RoleAssignmentTemplate struct {
+	Name     string
+	VMSSName string
+	RoleName string
+}
+
+func (f RoleAssignmentsFactory) Make(vmssPrincipalIDProvider IDByNameProvider) []RoleAssignment {
+	ras := make([]RoleAssignment, len(f.Templates))
+	for i, ra := range f.Templates {
+		ras[i] = RoleAssignment{
+			Name:        ra.Name,
+			PrincipalID: vmssPrincipalIDProvider.Get(ra.VMSSName),
+			RoleName:    ra.RoleName,
+		}
+	}
+	return ras
+}
+
+type VirtualMachineScaleSetsFactory struct {
+	Templates []VirtualMachineScaleSetTemplate
+}
+
+type VirtualMachineScaleSetTemplate struct {
+	AdminUsername            string
+	Image                    Image
+	InstanceCount            uint
+	InstanceType             string
+	BackendAddressPoolName   string
+	InboundNATPoolName       string
+	Location                 string
+	Name                     string
+	NetworkSecurityGroupName string
+	SSHPublicKey             string
+	SubnetName               string
+	UserDataScriptParams     map[string]string
+	UserDataScriptTemplate   string
+	Zones                    []string
+}
+
+func (f VirtualMachineScaleSetsFactory) Make(
+	backendAddressPoolIDProvider IDByNameProvider,
+	inboundNATPoolIDProvider IDByNameProvider,
+	publicIPAddressProvider IPAddressProvider,
+	securityGroupIDProvider IDByNameProvider,
+	subnetIDProvider IDByNameProvider,
+) []VirtualMachineScaleSet {
+	publicIPAddress := publicIPAddressProvider.Get()
+	sss := make([]VirtualMachineScaleSet, len(f.Templates))
+	for i, t := range f.Templates {
+		t.UserDataScriptParams["PublicIPAddress"] = publicIPAddress
+		sss[i] = VirtualMachineScaleSet{
+			AdminUsername:          t.AdminUsername,
+			Image:                  t.Image,
+			InstanceCount:          int64(t.InstanceCount),
+			InstanceType:           t.InstanceType,
+			LBBackendAddressPoolID: backendAddressPoolIDProvider.Get(t.BackendAddressPoolName),
+			LBInboundNATPoolID:     inboundNATPoolIDProvider.Get(t.InboundNATPoolName),
+			Location:               t.Location,
+			Name:                   t.Name,
+			NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
+			SSHPublicKey:           t.SSHPublicKey,
+			SubnetID:               subnetIDProvider.Get(t.SubnetName),
+			UserDataScriptTemplate: t.UserDataScriptTemplate,
+			UserDataScriptParams:   t.UserDataScriptParams,
+			Zones:                  t.Zones,
+		}
+	}
+	return sss
+}
+
+type VirtualNetworkFactory struct {
+	Template VirtualNetworkTemplate
+}
+
+type VirtualNetworkTemplate struct {
+	Name     string
+	CIDRs    []string
+	Location string
+	Subnets  []SubnetTemplate
+}
+
+type SubnetTemplate struct {
+	Name                     string
+	CIDR                     string
+	NetworkSecurityGroupName string
+}
+
+func (f VirtualNetworkFactory) Make(routeTableIDProvider IDProvider, securityGroupIDProvider IDByNameProvider) VirtualNetwork {
+	subnets := make([]Subnet, len(f.Template.Subnets))
+	routeTableID := routeTableIDProvider.Get()
+	for i, s := range f.Template.Subnets {
+		subnets[i] = Subnet{
+			Name:                   s.Name,
+			CIDR:                   s.CIDR,
+			NetworkSecurityGroupID: securityGroupIDProvider.Get(s.NetworkSecurityGroupName),
+			RouteTableID:           routeTableID,
+		}
+	}
+	return VirtualNetwork{
+		Name:     f.Template.Name,
+		CIDRs:    f.Template.CIDRs,
+		Location: f.Template.Location,
+		Subnets:  subnets,
+	}
 }
 
 type IDProvider interface {
