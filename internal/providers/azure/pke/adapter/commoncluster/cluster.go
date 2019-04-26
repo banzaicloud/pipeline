@@ -154,7 +154,7 @@ func (a *AzurePkeCluster) GetTTL() time.Duration {
 }
 
 func (a *AzurePkeCluster) SetTTL(t time.Duration) {
-	a.model.TtlMinutes = uint(t / time.Minute)
+	a.model.TtlMinutes = uint(t.Minutes())
 	// TODO: persist
 }
 
