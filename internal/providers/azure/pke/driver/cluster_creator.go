@@ -557,15 +557,13 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --azure-vm-type=vmss \
 --azure-loadbalancer-sku=standard \
 --azure-route-table-name={{ .RouteTableName }} \
---kubernetes-advertise-address=$PRIVATE_IP:6443 \
---kubernetes-api-server=$PRIVATE_IP:6443 \
+--kubernetes-advertise-address={{ .PublicAddress }}:6443 \
+--kubernetes-api-server=0.0.0.0:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-api-server-cert-sans={{ .PublicAddress }}`
 
 const workerUserDataScriptTemplate = `
 #!/bin/sh
-# TODO: make IP obtainment more robust
-export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
@@ -584,7 +582,7 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --azure-vm-type=standard \
 --azure-loadbalancer-sku=standard \
 --azure-route-table-name={{ .RouteTableName }} \
---kubernetes-api-server=$PRIVATEIP:6443 \
+--kubernetes-api-server=0.0.0.0:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-pod-network-cidr=""`
 
