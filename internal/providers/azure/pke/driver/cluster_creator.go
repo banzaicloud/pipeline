@@ -115,9 +115,20 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
-	sshKeyPair, err := getOrCreateSSHKeyPair(params.OrganizationID, params.SSHSecretID)
-	if err != nil {
-		return
+	var sshKeyPair secret.SSHKeyPair
+	if params.SSHSecretID == "" {
+		sshKeyPair, sshSecretID, err := newSSHKeyPair(cl.OrganizationID, cl.ID, cl.Name, cl.UID)
+		if err != nil {
+			return
+		}
+		if err = cc.store.SetSSHSecretID(cl.ID, sshSecretID); err != nil {
+			return
+		}
+	} else {
+		sshKeyPair, err = getSSHKeyPair(cl.OrganizationID, params.SSHSecretID)
+		if err != nil {
+			return
+		}
 	}
 	sshPublicKey := sshKeyPair.PublicKeyData
 
@@ -553,13 +564,19 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-pod-network-cidr=""`
 
-func getOrCreateSSHKeyPair(orgID uint, sshSecretID string) (*secret.SSHKeyPair, error) {
-	if sshSecretID == "" {
-		return secret.GenerateSSHKeyPair()
-	}
+func getSSHKeyPair(orgID uint, sshSecretID string) (*secret.SSHKeyPair, error) {
 	sir, err := secret.Store.Get(orgID, sshSecretID)
 	if err != nil {
 		return nil, err
 	}
 	return secret.NewSSHKeyPair(sir), nil
+}
+
+func newSSHKeyPair(orgID uint, clusterID uint, clusterName string, clusterUID string) (sshKeyPair *secret.SSHKeyPair, sshSecretID string, err error) {
+	sshKeyPair, err = secret.GenerateSSHKeyPair()
+	if err != nil {
+		return
+	}
+	sshSecretID, err = secret.StoreSSHKeyPair(sshKeyPair, orgID, clusterID, clusterName, clusterUID)
+	return
 }

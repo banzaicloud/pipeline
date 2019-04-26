@@ -36,5 +36,6 @@ type AzurePKEClusterStore interface {
 	GetByID(clusterID uint) (PKEOnAzureCluster, error)
 	SetStatus(clusterID uint, status, message string) error
 	SetActiveWorkflowID(clusterID uint, workflowID string) error
-	SetConfigSecretId(clusterID uint, secretID string) error
+	SetConfigSecretID(clusterID uint, secretID string) error
+	SetSSHSecretID(clusterID uint, sshSecretID string) error
 }

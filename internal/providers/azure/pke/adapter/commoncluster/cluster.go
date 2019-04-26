@@ -91,7 +91,7 @@ func (a *AzurePkeCluster) SaveSshSecretId(string) error {
 
 func (a *AzurePkeCluster) SaveConfigSecretId(secretID string) error {
 	a.model.K8sSecretID = secretID
-	return a.store.SetConfigSecretId(a.model.ID, secretID)
+	return a.store.SetConfigSecretID(a.model.ID, secretID)
 }
 
 func (a *AzurePkeCluster) GetConfigSecretId() string {

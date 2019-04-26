@@ -268,7 +268,7 @@ func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID
 	return emperror.Wrap(s.db.Model(&model).Update("ActiveWorkflowID", workflowID).Error, "failed to update PKE-on-Azure cluster model")
 }
 
-func (s gormAzurePKEClusterStore) SetConfigSecretId(clusterID uint, secretID string) error {
+func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
 	if clusterID == 0 {
 		return errors.New("cluster ID cannot be 0")
 	}
@@ -279,6 +279,22 @@ func (s gormAzurePKEClusterStore) SetConfigSecretId(clusterID uint, secretID str
 
 	fields := map[string]interface{}{
 		"ConfigSecretID": secretID,
+	}
+
+	return emperror.Wrap(s.db.Model(&model).Updates(fields).Error, "failed to update cluster model")
+}
+
+func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+
+	fields := map[string]interface{}{
+		"SSHSecretID": secretID,
 	}
 
 	return emperror.Wrap(s.db.Model(&model).Updates(fields).Error, "failed to update cluster model")
