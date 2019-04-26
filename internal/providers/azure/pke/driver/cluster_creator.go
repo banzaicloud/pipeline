@@ -17,11 +17,12 @@ package driver
 import (
 	"context"
 	"fmt"
-	"github.com/gofrs/uuid"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gofrs/uuid"
 
 	autoazure "github.com/Azure/go-autorest/autorest/azure"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
