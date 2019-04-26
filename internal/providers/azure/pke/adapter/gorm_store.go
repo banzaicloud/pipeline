@@ -300,6 +300,20 @@ func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string
 	return emperror.Wrap(s.db.Model(&model).Updates(fields).Error, "failed to update cluster model")
 }
 
+func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, error) {
+	if clusterID == 0 {
+		return "", errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+	if err := emperror.Wrap(s.db.Where(&model).First(&model).Error, "failed to load cluster model"); err != nil {
+		return "", err
+	}
+	return model.ConfigSecretID, nil
+}
+
 // Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{

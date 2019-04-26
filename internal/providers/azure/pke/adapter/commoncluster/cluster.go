@@ -14,15 +14,20 @@
 package commoncluster
 
 import (
+	"encoding/base64"
+	"fmt"
 	"time"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 )
 
 type AzurePkeCluster struct {
@@ -50,7 +55,7 @@ func (a *AzurePkeCluster) GetID() uint {
 }
 
 func (a *AzurePkeCluster) GetUID() string {
-	panic("not implemented")
+	panic("not implemented") // TODO?
 }
 
 func (a *AzurePkeCluster) GetOrganizationId() uint {
@@ -58,35 +63,36 @@ func (a *AzurePkeCluster) GetOrganizationId() uint {
 }
 
 func (a *AzurePkeCluster) GetName() string {
+	fmt.Printf("%#v\n", a.model)
 	return a.model.Name
 }
 
 func (a *AzurePkeCluster) GetCloud() string {
-	panic("not implemented")
+	return "azure" // TODO
 }
 
 func (a *AzurePkeCluster) GetDistribution() string {
-	panic("not implemented")
+	return "pke" // TODO
 }
 
 func (a *AzurePkeCluster) GetLocation() string {
-	panic("not implemented")
+	return a.model.Location
 }
 
 func (a *AzurePkeCluster) GetCreatedBy() uint {
-	panic("not implemented")
+	return a.model.CreatedBy
 }
 
 func (a *AzurePkeCluster) GetSecretId() string {
-	panic("not implemented")
+	return a.model.SecretID
 }
 
 func (a *AzurePkeCluster) GetSshSecretId() string {
-	panic("not implemented")
+	return a.model.SSHSecretID
 }
 
 func (a *AzurePkeCluster) SaveSshSecretId(string) error {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) SaveConfigSecretId(secretID string) error {
@@ -103,11 +109,11 @@ func (a *AzurePkeCluster) GetSecretWithValidation() (*secret.SecretItemResponse,
 }
 
 func (a *AzurePkeCluster) Persist() error {
-	panic("not implemented")
+	panic("not implemented") // TODO?
 }
 
 func (a *AzurePkeCluster) DeleteFromDatabase() error {
-	panic("not implemented")
+	panic("not implemented") // TODO?
 }
 
 func (a *AzurePkeCluster) CreateCluster() error {
@@ -139,11 +145,11 @@ func (a *AzurePkeCluster) DeleteCluster() error {
 }
 
 func (a *AzurePkeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return nil
+	return nil // TODO
 }
 
 func (a *AzurePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetTTL() time.Duration {
@@ -168,31 +174,72 @@ func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 }
 
 func (a *AzurePkeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
-	panic("not implemented")
+	if a.model.K8sSecretID == "" {
+		return nil, errors.New("there is no K8s config for the cluster")
+	}
+	configSecret, err := secret.Store.Get(a.model.OrganizationID, a.model.K8sSecretID)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't get config from Vault")
+	}
+	configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pkgSecret.K8SConfig))
+	if err != nil {
+		return nil, errors.Wrap(err, "can't decode Kubernetes config")
+	}
+	return []byte(configStr), nil
 }
 
 func (a *AzurePkeCluster) RequiresSshPublicKey() bool {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) RbacEnabled() bool {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) NeedAdminRights() bool {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetKubernetesUserName() (string, error) {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	return &pkgCluster.GetClusterStatusResponse{}, nil
+	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
+	for _, np := range a.model.NodePools {
+		nodePools[np.Name] = &pkgCluster.NodePoolStatus{
+			Autoscaling:  np.Autoscaling,
+			Count:        int(np.DesiredCount),
+			InstanceType: np.InstanceType,
+			MinCount:     int(np.Min),
+			MaxCount:     int(np.Max),
+			Labels:       np.Labels,
+		}
+	}
+
+	return &pkgCluster.GetClusterStatusResponse{
+		Status:        a.model.Status,
+		StatusMessage: a.model.StatusMessage,
+		Name:          a.model.Name,
+		Location:      a.model.Location,
+		Cloud:         a.GetCloud(),
+		Distribution:  a.GetDistribution(),
+		ResourceID:    a.model.ID,
+		Logging:       a.GetLogging(),
+		Monitoring:    a.GetMonitoring(),
+		ServiceMesh:   a.GetServiceMesh(),
+		SecurityScan:  a.GetSecurityScan(),
+		//Version:       a.model.MasterVersion,
+		NodePools: nodePools,
+		CreatorBaseFields: pkgCommon.CreatorBaseFields{
+			CreatedAt:   a.model.CreationTime,
+			CreatorName: auth.GetUserNickNameById(a.model.CreatedBy),
+			CreatorId:   a.model.CreatedBy,
+		}}, nil
 }
 
 func (a *AzurePkeCluster) IsReady() (bool, error) {
@@ -200,52 +247,53 @@ func (a *AzurePkeCluster) IsReady() (bool, error) {
 }
 
 func (a *AzurePkeCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) NodePoolExists(nodePoolName string) bool {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetSecurityScan() bool {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) SetSecurityScan(scan bool) {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetLogging() bool {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) SetLogging(l bool) {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetMonitoring() bool {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) SetMonitoring(m bool) {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetServiceMesh() bool {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) SetServiceMesh(m bool) {
-	panic("not implemented")
+	panic("TODO")
 }
 
 func (a *AzurePkeCluster) SetStatus(status string, statusMessage string) error {
-	panic("not implemented")
+	return a.store.SetStatus(a.model.ID, status, statusMessage)
 }
 
 // non-commoncluster methods
 
 // HasK8sConfig returns true if the cluster's k8s config is available
 func (a *AzurePkeCluster) HasK8sConfig() (bool, error) {
-	panic("todo")
+	config, err := a.GetK8sConfig()
+	return len(config) > 0, err
 }
