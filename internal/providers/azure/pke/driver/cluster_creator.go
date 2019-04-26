@@ -177,12 +177,12 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				{
 					Name:                     "master-subnet",
 					CIDR:                     "10.240.0.0/24",
-					NetworkSecurityGroupName: params.Name + "master-nsg",
+					NetworkSecurityGroupName: params.Name + "-master-nsg",
 				},
 				{
 					Name:                     "worker-subnet",
 					CIDR:                     "10.240.1.0/24",
-					NetworkSecurityGroupName: params.Name + "worker-nsg",
+					NetworkSecurityGroupName: params.Name + "-worker-nsg",
 				},
 			},
 		},
@@ -201,12 +201,12 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		RoleAssignmentTemplates: []workflow.RoleAssignmentTemplate{
 			{
 				Name:     uuid.Must(uuid.NewV1()).String(),
-				VMSSName: params.Name + "master-vmss",
+				VMSSName: params.Name + "-master-vmss",
 				RoleName: "Contributor",
 			},
 			{
 				Name:     uuid.Must(uuid.NewV1()).String(),
-				VMSSName: params.Name + "worker-vmss",
+				VMSSName: params.Name + "-worker-vmss",
 				RoleName: "Contributor",
 			},
 		},
@@ -216,7 +216,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		},
 		SecurityGroups: []workflow.SecurityGroup{
 			{
-				Name:     params.Name + "master-nsg",
+				Name:     params.Name + "-master-nsg",
 				Location: params.Network.Location,
 				Rules: []workflow.SecurityRule{
 					{
@@ -246,7 +246,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				},
 			},
 			{
-				Name:     params.Name + "worker-nsg",
+				Name:     params.Name + "-worker-nsg",
 				Location: params.Network.Location,
 				Rules:    []workflow.SecurityRule{},
 			},
@@ -265,7 +265,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				BackendAddressPoolName:   "backend-address-pool",
 				InboundNATPoolName:       "ssh-inbound-nat-pool",
 				Location:                 params.Network.Location,
-				Name:                     params.Name + "master-vmss",
+				Name:                     params.Name + "-master-vmss",
 				NetworkSecurityGroupName: params.Name + "-master-nsg",
 				SSHPublicKey:             sshPublicKey,
 				SubnetName:               "master-subnet",
@@ -300,7 +300,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				InstanceCount:            1,
 				InstanceType:             "Standard_B2s",
 				Location:                 params.Network.Location,
-				Name:                     params.Name + "worker-vmss",
+				Name:                     params.Name + "-worker-vmss",
 				NetworkSecurityGroupName: params.Name + "-worker-nsg",
 				SSHPublicKey:             sshPublicKey,
 				SubnetName:               "worker-subnet",
