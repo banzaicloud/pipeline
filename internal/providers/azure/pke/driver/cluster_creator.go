@@ -354,13 +354,14 @@ func (e validationError) InputValidationError() bool {
 	return true
 }
 
+/*
 const masterUserDataScriptTemplate = `#!/bin/sh
 # TODO: make IP obtainment more robust
 export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion}} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
-	
+
 pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-token="{{ .PipelineToken }}" \
 --pipeline-org-id={{ .OrgID }} \
@@ -387,7 +388,7 @@ export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
-	
+
 pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-token="{{ .PipelineToken }}" \
 --pipeline-org-id={{ .OrgID }} \
@@ -405,3 +406,4 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server=$PRIVATEIP:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-pod-network-cidr=""`
+*/
