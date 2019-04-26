@@ -52,7 +52,8 @@ func (a *AzurePkeCluster) GetID() uint {
 }
 
 func (a *AzurePkeCluster) GetUID() string {
-	panic("not implemented") // TODO?
+	// TODO
+	return fmt.Sprintf("azure-pke-%d", a.model.ID)
 }
 
 func (a *AzurePkeCluster) GetOrganizationId() uint {
@@ -60,7 +61,6 @@ func (a *AzurePkeCluster) GetOrganizationId() uint {
 }
 
 func (a *AzurePkeCluster) GetName() string {
-	fmt.Printf("%#v\n", a.model)
 	return a.model.Name
 }
 
