@@ -115,9 +115,10 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
-	var sshKeyPair secret.SSHKeyPair
+	var sshKeyPair *secret.SSHKeyPair
 	if params.SSHSecretID == "" {
-		sshKeyPair, sshSecretID, err := newSSHKeyPair(cl.OrganizationID, cl.ID, cl.Name, cl.UID)
+		var sshSecretID string
+		sshKeyPair, sshSecretID, err = newSSHKeyPair(cl.OrganizationID, cl.ID, cl.Name, cl.UID)
 		if err != nil {
 			return
 		}
