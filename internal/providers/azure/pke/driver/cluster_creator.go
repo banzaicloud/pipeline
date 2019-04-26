@@ -25,10 +25,12 @@ import (
 	"github.com/gofrs/uuid"
 
 	autoazure "github.com/Azure/go-autorest/autorest/azure"
+	"github.com/banzaicloud/pipeline/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -91,7 +93,7 @@ type AzurePKEClusterCreationParams struct {
 	NodePools      []NodePool
 	OrganizationID uint
 	ResourceGroup  string
-	ScaleOptions   cluster.ScaleOptions
+	ScaleOptions   pkgCluster.ScaleOptions
 	SecretID       string
 	SSHSecretID    string
 }
@@ -140,6 +142,26 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
+
+	postHooks := make(pkgCluster.PostHooks) // TODO: create post hooks from features
+	{
+		var commonCluster cluster.CommonCluster
+		commonCluster, err = commoncluster.GetCommonClusterByID(cl.ID, cc.store)
+		if err != nil {
+			return
+		}
+		var labelsMap map[string]map[string]string
+		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nil, false)
+		if err != nil {
+			_ = cc.store.SetStatus(cl.ID, pkgCluster.Error, "failed to get desired labels")
+
+			return
+		}
+
+		postHooks[pkgCluster.SetupNodePoolLabelsSet] = cluster.NodePoolLabelParam{
+			Labels: labelsMap,
+		}
+	}
 
 	input := workflow.CreateClusterWorkflowInput{
 		ClusterID:         cl.ID,
@@ -305,6 +327,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				Zones:                  []string{"1", "2", "3"},
 			},
 		},
+		PostHooks: postHooks,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",

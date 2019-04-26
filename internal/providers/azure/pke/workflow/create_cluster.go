@@ -15,13 +15,11 @@
 package workflow
 
 import (
-	"context"
 	"time"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	"go.uber.org/cadence/workflow"
-
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"go.uber.org/cadence/workflow"
 )
 
 const CreateClusterWorkflowName = "pke-azure-create-cluster"
@@ -250,42 +248,15 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	postHookWorkflowInput, err := createPostHookWorkflowInput(ctx, input)
-	if err != nil {
-		return err
+	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
+		ClusterID: input.ClusterID,
+		PostHooks: cluster.BuildWorkflowPostHookFunctions(input.PostHooks, true),
 	}
 
-	err = workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, *postHookWorkflowInput).Get(ctx, nil)
+	err = workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func createPostHookWorkflowInput(ctx workflow.Context, createClusterWorkflowInput CreateClusterWorkflowInput) (*cluster.RunPostHooksWorkflowInput, error) {
-	var cl cluster.CommonCluster // TODO: where do get common cluster from?
-
-	labelsMap, err := cluster.GetDesiredLabelsForCluster(context.TODO(), cl, nil, false)
-	if err != nil {
-		_ = cl.SetStatus(pkgCluster.Error, "failed to get desired labels")
-
-		return nil, err
-	}
-
-	postHooks := createClusterWorkflowInput.PostHooks
-
-	if createClusterWorkflowInput.PostHooks == nil {
-		postHooks = make(pkgCluster.PostHooks)
-	}
-
-	postHooks[pkgCluster.SetupNodePoolLabelsSet] = cluster.NodePoolLabelParam{
-		Labels: labelsMap,
-	}
-	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
-		ClusterID: createClusterWorkflowInput.ClusterID,
-		PostHooks: cluster.BuildWorkflowPostHookFunctions(postHooks, true),
-	}
-
-	return &postHookWorkflowInput, nil
 }
