@@ -150,11 +150,12 @@ func (a *AzurePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
 }
 
 func (a *AzurePkeCluster) GetTTL() time.Duration {
-	panic("not implemented")
+	return time.Duration(a.model.TtlMinutes) * time.Minute
 }
 
-func (a *AzurePkeCluster) SetTTL(time.Duration) {
-	panic("not implemented")
+func (a *AzurePkeCluster) SetTTL(t time.Duration) {
+	a.model.TtlMinutes = uint(t / time.Minute)
+	// TODO: persist
 }
 
 func (a *AzurePkeCluster) DownloadK8sConfig() ([]byte, error) {
@@ -252,35 +253,39 @@ func (a *AzurePkeCluster) NodePoolExists(nodePoolName string) bool {
 }
 
 func (a *AzurePkeCluster) GetSecurityScan() bool {
-	return false // TODO
+	return a.model.SecurityScan
 }
 
 func (a *AzurePkeCluster) SetSecurityScan(scan bool) {
-	panic("TODO")
+	a.model.SecurityScan = scan
+	// TODO: persist
 }
 
 func (a *AzurePkeCluster) GetLogging() bool {
-	return false // TODO
+	return a.model.Logging
 }
 
 func (a *AzurePkeCluster) SetLogging(l bool) {
-	panic("TODO")
+	a.model.Logging = l
+	// TODO: persist
 }
 
 func (a *AzurePkeCluster) GetMonitoring() bool {
-	return false // TODO
+	return a.model.Monitoring
 }
 
 func (a *AzurePkeCluster) SetMonitoring(m bool) {
-	panic("TODO")
+	a.model.Monitoring = m
+	// TODO: persist
 }
 
 func (a *AzurePkeCluster) GetServiceMesh() bool {
-	return false // TODO
+	return a.model.ServiceMesh
 }
 
 func (a *AzurePkeCluster) SetServiceMesh(m bool) {
-	panic("TODO")
+	a.model.ServiceMesh = m
+	// TODO: persist
 }
 
 func (a *AzurePkeCluster) SetStatus(status string, statusMessage string) error {

@@ -56,6 +56,13 @@ type PKEOnAzureCluster struct {
 	ResourceGroup    ResourceGroup
 	VirtualNetwork   VirtualNetwork
 	ActiveWorkflowID string
+
+	RbacEnabled  bool
+	Monitoring   bool
+	Logging      bool
+	ServiceMesh  bool
+	SecurityScan bool
+	TtlMinutes   uint
 }
 
 func (c PKEOnAzureCluster) HasActiveWorkflow() bool {

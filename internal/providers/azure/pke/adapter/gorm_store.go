@@ -106,6 +106,13 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.ScaleOptions.Excludes = deserializeExcludes(model.ScaleOptions.Excludes)
 	cl.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
 	cl.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
+
+	cl.RbacEnabled = model.RbacEnabled
+	cl.Monitoring = model.Monitoring
+	cl.Logging = model.Logging
+	cl.ServiceMesh = model.ServiceMesh
+	cl.SecurityScan = model.SecurityScan
+	cl.TtlMinutes = model.TtlMinutes
 }
 
 func deserializeExcludes(excludes string) []string {
