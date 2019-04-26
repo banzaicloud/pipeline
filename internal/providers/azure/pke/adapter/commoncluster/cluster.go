@@ -46,7 +46,7 @@ func GetCommonClusterByID(clusterID uint, db *gorm.DB) (*AzurePkeCluster, error)
 }
 
 func (a *AzurePkeCluster) GetID() uint {
-	panic("not implemented")
+	return a.model.ID
 }
 
 func (a *AzurePkeCluster) GetUID() string {
@@ -54,11 +54,11 @@ func (a *AzurePkeCluster) GetUID() string {
 }
 
 func (a *AzurePkeCluster) GetOrganizationId() uint {
-	panic("not implemented")
+	return a.model.OrganizationID
 }
 
 func (a *AzurePkeCluster) GetName() string {
-	panic("not implemented")
+	return a.model.Name
 }
 
 func (a *AzurePkeCluster) GetCloud() string {
@@ -89,16 +89,17 @@ func (a *AzurePkeCluster) SaveSshSecretId(string) error {
 	panic("not implemented")
 }
 
-func (a *AzurePkeCluster) SaveConfigSecretId(string) error {
-	panic("not implemented")
+func (a *AzurePkeCluster) SaveConfigSecretId(secretID string) error {
+	a.model.K8sSecretID = secretID
+	return a.store.SetConfigSecretId(a.model.ID, secretID)
 }
 
 func (a *AzurePkeCluster) GetConfigSecretId() string {
-	panic("not implemented")
+	return a.model.K8sSecretID
 }
 
 func (a *AzurePkeCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
-	panic("not implemented")
+	return secret.Store.Get(a.model.OrganizationID, a.model.SecretID)
 }
 
 func (a *AzurePkeCluster) Persist() error {
@@ -138,7 +139,7 @@ func (a *AzurePkeCluster) DeleteCluster() error {
 }
 
 func (a *AzurePkeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	panic("not implemented")
+	return nil
 }
 
 func (a *AzurePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
@@ -191,11 +192,11 @@ func (a *AzurePkeCluster) GetKubernetesUserName() (string, error) {
 }
 
 func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	panic("not implemented")
+	return &pkgCluster.GetClusterStatusResponse{}, nil
 }
 
 func (a *AzurePkeCluster) IsReady() (bool, error) {
-	panic("not implemented")
+	return true, nil
 }
 
 func (a *AzurePkeCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
@@ -246,9 +247,5 @@ func (a *AzurePkeCluster) SetStatus(status string, statusMessage string) error {
 
 // HasK8sConfig returns true if the cluster's k8s config is available
 func (a *AzurePkeCluster) HasK8sConfig() (bool, error) {
-	cfg, err := a.GetK8sConfig()
-	if err == ErrConfigNotExists {
-		return false, nil
-	}
-	return len(cfg) > 0, emperror.Wrap(err, "failed to check if k8s config is available")
+	panic("todo")
 }

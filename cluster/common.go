@@ -25,18 +25,19 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
+	pkeAzure "github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/banzaicloud/pipeline/pkg/providers"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 // CommonCluster interface for clusters.
@@ -269,13 +270,11 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	cloudType := modelCluster.Cloud
 
-	if modelCluster.Distribution == pkgCluster.PKE {
-		switch cloudType {
-		case providers.Azure:
-			return pkeAzureAdapter.GetCommonClusterByID(modelCluster.ID, db)
-		default:
-			return createCommonClusterWithDistributionFromModel(modelCluster)
-		}
+	if modelCluster.Distribution == pkeAzure.PKEOnAzure {
+		logrus.Debugf("azure adapter stuff")
+		return pkeAzureAdapter.GetCommonClusterByID(modelCluster.ID, db)
+	} else if modelCluster.Distribution == pkgCluster.PKE {
+		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}
 
 	switch cloudType {
