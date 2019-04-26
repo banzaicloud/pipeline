@@ -16,6 +16,7 @@ package workflow
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,12 +24,29 @@ import (
 
 func TestCreateAzureInfrastructureWorkflowInputSerializable(t *testing.T) {
 	t.Run("default CreateAzureInfrastructureWorkflowInput marshall-unmarshall", func(t *testing.T) {
-		input := CreateAzureInfrastructureWorkflowInput{}
-		var output CreateAzureInfrastructureWorkflowInput
-		data, err := json.Marshal(input)
-		assert.NoError(t, err)
-		err = json.Unmarshal(data, &output)
-		assert.NoError(t, err)
-		assert.Equal(t, input, output)
+		testJSONSerializationIdempotent(t, CreateAzureInfrastructureWorkflowInput{})
 	})
+}
+
+func testJSONMarshallable(t *testing.T, value interface{}) []byte {
+	data, err := json.Marshal(value)
+	assert.NoError(t, err)
+	return data
+}
+
+func testJSONUnmarshallable(t *testing.T, data []byte, output interface{}) {
+	err := json.Unmarshal(data, output)
+	assert.NoError(t, err)
+}
+
+func testJSONSerializable(t *testing.T, value interface{}) reflect.Value {
+	data := testJSONMarshallable(t, value)
+	output := reflect.New(reflect.TypeOf(value))
+	testJSONUnmarshallable(t, data, output.Interface())
+	return output
+}
+
+func testJSONSerializationIdempotent(t *testing.T, value interface{}) {
+	output := testJSONSerializable(t, value)
+	assert.Equal(t, value, output.Elem().Interface())
 }
