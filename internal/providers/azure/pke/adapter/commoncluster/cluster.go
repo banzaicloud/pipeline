@@ -255,7 +255,7 @@ func (a *AzurePkeCluster) NodePoolExists(nodePoolName string) bool {
 }
 
 func (a *AzurePkeCluster) GetSecurityScan() bool {
-	panic("TODO")
+	return false // TODO
 }
 
 func (a *AzurePkeCluster) SetSecurityScan(scan bool) {
@@ -263,7 +263,7 @@ func (a *AzurePkeCluster) SetSecurityScan(scan bool) {
 }
 
 func (a *AzurePkeCluster) GetLogging() bool {
-	panic("TODO")
+	return false // TODO
 }
 
 func (a *AzurePkeCluster) SetLogging(l bool) {
@@ -271,7 +271,7 @@ func (a *AzurePkeCluster) SetLogging(l bool) {
 }
 
 func (a *AzurePkeCluster) GetMonitoring() bool {
-	panic("TODO")
+	return false // TODO
 }
 
 func (a *AzurePkeCluster) SetMonitoring(m bool) {
@@ -279,7 +279,7 @@ func (a *AzurePkeCluster) SetMonitoring(m bool) {
 }
 
 func (a *AzurePkeCluster) GetServiceMesh() bool {
-	panic("TODO")
+	return false // TODO
 }
 
 func (a *AzurePkeCluster) SetServiceMesh(m bool) {
