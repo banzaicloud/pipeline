@@ -3,7 +3,6 @@
         "PIPELINE_CONFIG_DIR": "${workspaceFolder}/config",
         "VAULT_ADDR": "http://127.0.0.1:8200"
     },
-    "go.formatFlags": ["-s", "-w"],
-    "go.formatTool": "gofmt",
+    "go.formatTool": "goimports",
     "go.lintTool": "golangci-lint"
 }
