@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	pkeAzure "github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -272,7 +273,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	if modelCluster.Distribution == pkeAzure.PKEOnAzure {
 		logrus.Debugf("azure adapter stuff")
-		return pkeAzureAdapter.GetCommonClusterByID(modelCluster.ID, db)
+		return pkeAzureAdapter.GetCommonClusterByID(modelCluster.ID, adapter.NewGORMAzurePKEClusterStore(db))
 	} else if modelCluster.Distribution == pkgCluster.PKE {
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}

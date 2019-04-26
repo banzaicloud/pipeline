@@ -20,13 +20,11 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 )
 
@@ -35,8 +33,7 @@ type AzurePkeCluster struct {
 	model pke.PKEOnAzureCluster
 }
 
-func GetCommonClusterByID(clusterID uint, db *gorm.DB) (*AzurePkeCluster, error) {
-	store := adapter.NewGORMAzurePKEClusterStore(db)
+func GetCommonClusterByID(clusterID uint, store pke.AzurePKEClusterStore) (*AzurePkeCluster, error) {
 	model, err := store.GetByID(clusterID)
 	if err != nil {
 		return nil, err
