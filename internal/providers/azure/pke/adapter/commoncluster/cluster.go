@@ -14,7 +14,11 @@
 package commoncluster
 
 import (
+	"crypto/sha256"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
+	"encoding/pem"
 	"fmt"
 	"time"
 
@@ -306,4 +310,22 @@ func (a *AzurePkeCluster) IsMasterReady() (bool, error) {
 
 func (a *AzurePkeCluster) GetCurrentWorkflowID() string {
 	return a.model.ActiveWorkflowID
+}
+
+func (a *AzurePkeCluster) GetCAHash() (string, error) {
+	secret, err := secret.Store.GetByName(a.GetOrganizationId(), fmt.Sprintf("cluster-%d-ca", a.GetID()))
+	if err != nil {
+		return "", err
+	}
+	crt := secret.Values[pkgSecret.KubernetesCACert]
+	block, _ := pem.Decode([]byte(crt))
+	if block == nil {
+		return "", errors.New("failed to parse certificate")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return "", emperror.Wrapf(err, "failed to parse certificate")
+	}
+	h := sha256.Sum256(cert.RawSubjectPublicKeyInfo)
+	return fmt.Sprintf("sha256:%s", hex.EncodeToString(h[:])), nil
 }
