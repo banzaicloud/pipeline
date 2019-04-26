@@ -334,6 +334,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 
 	wfexec, err := cc.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateClusterWorkflowName, input)
 	if err != nil {
+		cc.store.SetStatus(cl.ID, pkgCluster.Error, err.Error())
 		return
 	}
 
