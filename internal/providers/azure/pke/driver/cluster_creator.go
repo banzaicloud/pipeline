@@ -251,7 +251,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 					"InfraCIDR":             "10.240.0.0/24",
 					"LoadBalancerSKU":       "standard",
 					"NodePoolName":          "master-node-pool",
-					"NSGName":               params.Name + "-master-nsg",
+					"NSGName":               params.Name + "-worker-nsg",
 					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
 					"PipelineURL":           cc.pipelineExternalURL,
 					"PipelineToken":         "<not yet set>",
