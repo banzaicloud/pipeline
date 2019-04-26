@@ -15,10 +15,11 @@
 package driver
 
 import (
-	"strconv"
 	"context"
 	"fmt"
+	"github.com/gofrs/uuid"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,20 +38,20 @@ import (
 
 func NewAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
-		logger:         logger,
-		paramsPreparer: MakeAzurePKEClusterCreationParamsPreparer(logger),
-		store:          store,
-		workflowClient: workflowClient,
+		logger:              logger,
+		paramsPreparer:      MakeAzurePKEClusterCreationParamsPreparer(logger),
+		store:               store,
+		workflowClient:      workflowClient,
 		pipelineExternalURL: pipelineExternalURL,
 	}
 }
 
 // AzurePKEClusterCreator creates new PKE-on-Azure clusters
 type AzurePKEClusterCreator struct {
-	logger         logrus.FieldLogger
-	paramsPreparer AzurePKEClusterCreationParamsPreparer
-	store          pke.AzurePKEClusterStore
-	workflowClient client.Client
+	logger              logrus.FieldLogger
+	paramsPreparer      AzurePKEClusterCreationParamsPreparer
+	store               pke.AzurePKEClusterStore
+	workflowClient      client.Client
 	pipelineExternalURL string
 }
 
@@ -114,7 +115,12 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
-	var sshPublicKey string
+	sshKeyPair, err := getOrCreateSSHKeyPair(params.OrganizationID, params.SSHSecretID)
+	if err != nil {
+		return
+	}
+	sshPublicKey := sshKeyPair.PublicKeyData
+
 	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
 	if err != nil {
 		return
@@ -128,20 +134,20 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		ResourceGroupName: params.ResourceGroup,
 		SecretID:          params.SecretID,
 		VirtualNetworkTemplate: workflow.VirtualNetworkTemplate{
-			Name:     params.Name + "-vnet"
-			CIDRs:    []string{
+			Name: params.Name + "-vnet",
+			CIDRs: []string{
 				"10.240.0.0/16",
 			},
 			Location: params.Network.Location,
-			Subnets:  []workflow.SubnetTemplate{
+			Subnets: []workflow.SubnetTemplate{
 				{
-					Name: "master-subnet",
-					CIDR: "10.240.0.0/24",
+					Name:                     "master-subnet",
+					CIDR:                     "10.240.0.0/24",
 					NetworkSecurityGroupName: params.Name + "master-nsg",
 				},
 				{
-					Name: "worker-subnet",
-					CIDR: "10.240.1.0/24",
+					Name:                     "worker-subnet",
+					CIDR:                     "10.240.1.0/24",
 					NetworkSecurityGroupName: params.Name + "worker-nsg",
 				},
 			},
@@ -160,12 +166,12 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		},
 		RoleAssignmentTemplates: []workflow.RoleAssignmentTemplate{
 			{
-				Name: uuid.Must(uuid.NewV1()).String(),
+				Name:     uuid.Must(uuid.NewV1()).String(),
 				VMSSName: params.Name + "master-vmss",
 				RoleName: "Contributor",
 			},
 			{
-				Name: uuid.Must(uuid.NewV1()).String(),
+				Name:     uuid.Must(uuid.NewV1()).String(),
 				VMSSName: params.Name + "worker-vmss",
 				RoleName: "Contributor",
 			},
@@ -174,115 +180,115 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			Name:     params.Name + "-route-table",
 			Location: params.Network.Location,
 		},
-		SecurityGroups:                []workflow.SecurityGroup{
+		SecurityGroups: []workflow.SecurityGroup{
 			{
-				Name: params.Name + "master-nsg",
+				Name:     params.Name + "master-nsg",
 				Location: params.Network.Location,
-				Rules: []workflow.SecurityRule{	
-					{	
-						Name:                 "server-allow-ssh-inbound",	
-						Access:               "Allow",	
-						Description:          "Allow SSH server inbound connections",	
-						Destination:          "*",	
-						DestinationPortRange: "22",	
-						Direction:            "Inbound",	
-						Priority:             1000,	
-						Protocol:             "Tcp",	
-						Source:               "*",	
-						SourcePortRange:      "*",	
-					},	
-					{	
-						Name:                 "kubernetes-allow-api-server-inbound",	
-						Access:               "Allow",	
-						Description:          "Allow K8s API server inbound connections",	
-						Destination:          "*",	
-						DestinationPortRange: "6443",	
-						Direction:            "Inbound",	
-						Priority:             1001,	
-						Protocol:             "Tcp",	
-						Source:               "*",	
-						SourcePortRange:      "*",	
+				Rules: []workflow.SecurityRule{
+					{
+						Name:                 "server-allow-ssh-inbound",
+						Access:               "Allow",
+						Description:          "Allow SSH server inbound connections",
+						Destination:          "*",
+						DestinationPortRange: "22",
+						Direction:            "Inbound",
+						Priority:             1000,
+						Protocol:             "Tcp",
+						Source:               "*",
+						SourcePortRange:      "*",
+					},
+					{
+						Name:                 "kubernetes-allow-api-server-inbound",
+						Access:               "Allow",
+						Description:          "Allow K8s API server inbound connections",
+						Destination:          "*",
+						DestinationPortRange: "6443",
+						Direction:            "Inbound",
+						Priority:             1001,
+						Protocol:             "Tcp",
+						Source:               "*",
+						SourcePortRange:      "*",
 					},
 				},
 			},
 			{
-				Name: params.Name + "worker-nsg",
+				Name:     params.Name + "worker-nsg",
 				Location: params.Network.Location,
-				Rules: []workflow.SecurityRule{},
-			}
+				Rules:    []workflow.SecurityRule{},
+			},
 		},
 		VirtualMachineScaleSetTemplates: []workflow.VirtualMachineScaleSetTemplate{
 			{
 				AdminUsername: "azureuser",
-				Image: Image{	
-					Offer:     "CentOS-CI",	
-					Publisher: "OpenLogic",	
-					SKU:       "7-CI",	
-					Version:   "7.6.20190306",	
+				Image: workflow.Image{
+					Offer:     "CentOS-CI",
+					Publisher: "OpenLogic",
+					SKU:       "7-CI",
+					Version:   "7.6.20190306",
 				},
-				InstanceCount: 1,
-				InstanceType: "Standard_B2s",
-				BackendAddressPoolName: "backend-address-pool",
-				InboundNATPoolName: "ssh-inbound-nat-pool",
-				Location: params.Network.Location,
-				Name: params.Name + "master-vmss",
+				InstanceCount:            1,
+				InstanceType:             "Standard_B2s",
+				BackendAddressPoolName:   "backend-address-pool",
+				InboundNATPoolName:       "ssh-inbound-nat-pool",
+				Location:                 params.Network.Location,
+				Name:                     params.Name + "master-vmss",
 				NetworkSecurityGroupName: params.Name + "-master-nsg",
-				SSHPublicKey: sshPublicKey,
-				SubnetName: "master-subnet",
+				SSHPublicKey:             sshPublicKey,
+				SubnetName:               "master-subnet",
 				UserDataScriptParams: map[string]string{
-					"ClusterID": strconv.FormatUint(cl.ID, 10),
-					"InfraCIDR": "10.240.0.0/24",
-					"LoadBalancerSKU": "standard",
-					"NodePoolName": "master-node-pool",
-					"NSGName": params.Name + "-master-nsg",
-					"OrgID": params.OrganizationID,
-					"PipelineURL": cc.pipelineExternalURL,
-					"PipelineToken": "<not yet set>",
-					"PKEVersion": "0.4.0", // TODO: remove hard-coded constant
-					"PublicAddress": "<not yet set>",
-					"RouteTableName": params.Name + "-route-table",
-					"SubnetName": "master-subnet",
-					"TenantID": tenantID,
-					"VnetName": params.Name + "-vnet",
+					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
+					"InfraCIDR":             "10.240.0.0/24",
+					"LoadBalancerSKU":       "standard",
+					"NodePoolName":          "master-node-pool",
+					"NSGName":               params.Name + "-master-nsg",
+					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
+					"PipelineURL":           cc.pipelineExternalURL,
+					"PipelineToken":         "<not yet set>",
+					"PKEVersion":            "0.4.0", // TODO: remove hard-coded constant
+					"PublicAddress":         "<not yet set>",
+					"RouteTableName":        params.Name + "-route-table",
+					"SubnetName":            "master-subnet",
+					"TenantID":              tenantID,
+					"VnetName":              params.Name + "-vnet",
 					"VnetResourceGroupName": params.ResourceGroup,
 				},
 				UserDataScriptTemplate: masterUserDataScriptTemplate,
-				Zones: []string{"1", "2", "3"},
+				Zones:                  []string{"1", "2", "3"},
 			},
 			{
 				AdminUsername: "azureuser",
-				Image: Image{	
-					Offer:     "CentOS-CI",	
-					Publisher: "OpenLogic",	
-					SKU:       "7-CI",	
-					Version:   "7.6.20190306",	
+				Image: workflow.Image{
+					Offer:     "CentOS-CI",
+					Publisher: "OpenLogic",
+					SKU:       "7-CI",
+					Version:   "7.6.20190306",
 				},
-				InstanceCount: 1,
-				InstanceType: "Standard_B2s",
-				Location: params.Network.Location,
-				Name: params.Name + "worker-vmss",
+				InstanceCount:            1,
+				InstanceType:             "Standard_B2s",
+				Location:                 params.Network.Location,
+				Name:                     params.Name + "worker-vmss",
 				NetworkSecurityGroupName: params.Name + "-worker-nsg",
-				SSHPublicKey: sshPublicKey,
-				SubnetName: "worker-subnet",
+				SSHPublicKey:             sshPublicKey,
+				SubnetName:               "worker-subnet",
 				UserDataScriptParams: map[string]string{
-					"ClusterID": strconv.FormatUint(cl.ID, 10),
-					"InfraCIDR": "10.240.1.0/24",
-					"LoadBalancerSKU": "standard",
-					"NodePoolName": "worker-node-pool",
-					"NSGName": params.Name + "-worker-nsg",
-					"OrgID": params.OrganizationID,
-					"PipelineURL": cc.pipelineExternalURL,
-					"PipelineToken": "<not yet set>",
-					"PKEVersion": "0.4.0", // TODO: remove hard-coded constant
-					"PublicAddress": "<not yet set>",
-					"RouteTableName": params.Name + "-route-table",
-					"SubnetName": "worker-subnet",
-					"TenantID": tenantID,
-					"VnetName": params.Name + "-vnet",
+					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
+					"InfraCIDR":             "10.240.1.0/24",
+					"LoadBalancerSKU":       "standard",
+					"NodePoolName":          "worker-node-pool",
+					"NSGName":               params.Name + "-worker-nsg",
+					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
+					"PipelineURL":           cc.pipelineExternalURL,
+					"PipelineToken":         "<not yet set>",
+					"PKEVersion":            "0.4.0", // TODO: remove hard-coded constant
+					"PublicAddress":         "<not yet set>",
+					"RouteTableName":        params.Name + "-route-table",
+					"SubnetName":            "worker-subnet",
+					"TenantID":              tenantID,
+					"VnetName":              params.Name + "-vnet",
 					"VnetResourceGroupName": params.ResourceGroup,
 				},
 				UserDataScriptTemplate: workerUserDataScriptTemplate,
-				Zones: []string{"1", "2", "3"},
+				Zones:                  []string{"1", "2", "3"},
 			},
 		},
 	}
@@ -546,3 +552,14 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server=$PRIVATEIP:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-pod-network-cidr=""`
+
+func getOrCreateSSHKeyPair(orgID uint, sshSecretID string) (*secret.SSHKeyPair, error) {
+	if sshSecretID == "" {
+		return secret.GenerateSSHKeyPair()
+	}
+	sir, err := secret.Store.Get(orgID, sshSecretID)
+	if err != nil {
+		return nil, err
+	}
+	return secret.NewSSHKeyPair(sir), nil
+}
