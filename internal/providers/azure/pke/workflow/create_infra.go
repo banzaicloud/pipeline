@@ -133,7 +133,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// Create network security groups
-	var createNSGActivityOutputs map[string]CreateNSGActivityOutput
+	createNSGActivityOutputs := make(map[string]CreateNSGActivityOutput)
 	for _, sg := range input.SecurityGroups {
 		activityInput := CreateNSGActivityInput{
 			OrganizationID:    input.OrganizationID,
@@ -210,7 +210,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	// Create scale sets
-	var createVMSSActivityOutputs map[string]CreateVMSSActivityOutput
+	createVMSSActivityOutputs := make(map[string]CreateVMSSActivityOutput)
 	for _, vmss := range input.ScaleSets.Make(
 		backendAddressPoolIDProvider(createLBActivityOutput),
 		inboundNATPoolIDProvider(createLBActivityOutput),
