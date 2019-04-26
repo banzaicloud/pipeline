@@ -246,6 +246,7 @@ func main() {
 			log,
 			azurePKEAdapter.NewGORMAzurePKEClusterStore(db),
 			workflowClient,
+			externalBaseURL,
 		),
 	})
 

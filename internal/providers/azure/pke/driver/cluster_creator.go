@@ -15,6 +15,7 @@
 package driver
 
 import (
+	"strconv"
 	"context"
 	"fmt"
 	"net/http"
@@ -27,18 +28,20 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 )
 
-func NewAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterCreator {
+func NewAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
 		logger:         logger,
 		paramsPreparer: MakeAzurePKEClusterCreationParamsPreparer(logger),
 		store:          store,
 		workflowClient: workflowClient,
+		pipelineExternalURL: pipelineExternalURL,
 	}
 }
 
@@ -48,6 +51,7 @@ type AzurePKEClusterCreator struct {
 	paramsPreparer AzurePKEClusterCreationParamsPreparer
 	store          pke.AzurePKEClusterStore
 	workflowClient client.Client
+	pipelineExternalURL string
 }
 
 type VirtualNetwork struct {
@@ -110,38 +114,177 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
+	var sshPublicKey string
+	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
+	if err != nil {
+		return
+	}
+	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
+
 	input := workflow.CreateClusterWorkflowInput{
 		ClusterID:         cl.ID,
-		ClusterName:       cl.Name,
-		OrganizationID:    cl.OrganizationID,
-		ResourceGroupName: cl.ResourceGroup.Name,
-		SecretID:          cl.SecretID,
-		// TODO: fill with real data
+		ClusterName:       params.Name,
+		OrganizationID:    params.OrganizationID,
+		ResourceGroupName: params.ResourceGroup,
+		SecretID:          params.SecretID,
 		VirtualNetworkTemplate: workflow.VirtualNetworkTemplate{
-			Name:     "",
-			CIDRs:    nil,
-			Location: "",
-			Subnets:  nil,
+			Name:     params.Name + "-vnet"
+			CIDRs:    []string{
+				"10.240.0.0/16",
+			},
+			Location: params.Network.Location,
+			Subnets:  []workflow.SubnetTemplate{
+				{
+					Name: "master-subnet",
+					CIDR: "10.240.0.0/24",
+					NetworkSecurityGroupName: params.Name + "master-nsg",
+				},
+				{
+					Name: "worker-subnet",
+					CIDR: "10.240.1.0/24",
+					NetworkSecurityGroupName: params.Name + "worker-nsg",
+				},
+			},
 		},
 		LoadBalancerTemplate: workflow.LoadBalancerTemplate{
-			Name:                   "",
-			Location:               "",
-			SKU:                    "",
-			BackendAddressPoolName: "",
-			InboundNATPoolName:     "",
+			Name:                   params.Name + "-lb",
+			Location:               params.Network.Location,
+			SKU:                    "Standard",
+			BackendAddressPoolName: "backend-address-pool",
+			InboundNATPoolName:     "ssh-inbound-nat-pool",
 		},
 		PublicIPAddress: workflow.PublicIPAddress{
-			Location: "",
-			Name:     "",
-			SKU:      "",
+			Location: params.Network.Location,
+			Name:     params.Name + "-pip-in",
+			SKU:      "Standard",
 		},
-		RoleAssignmentTemplates: nil,
+		RoleAssignmentTemplates: []workflow.RoleAssignmentTemplate{
+			{
+				Name: uuid.Must(uuid.NewV1()).String(),
+				VMSSName: params.Name + "master-vmss",
+				RoleName: "Contributor",
+			},
+			{
+				Name: uuid.Must(uuid.NewV1()).String(),
+				VMSSName: params.Name + "worker-vmss",
+				RoleName: "Contributor",
+			},
+		},
 		RouteTable: workflow.RouteTable{
-			Name:     "",
-			Location: "",
+			Name:     params.Name + "-route-table",
+			Location: params.Network.Location,
 		},
-		SecurityGroups:                  nil,
-		VirtualMachineScaleSetTemplates: nil,
+		SecurityGroups:                []workflow.SecurityGroup{
+			{
+				Name: params.Name + "master-nsg",
+				Location: params.Network.Location,
+				Rules: []workflow.SecurityRule{	
+					{	
+						Name:                 "server-allow-ssh-inbound",	
+						Access:               "Allow",	
+						Description:          "Allow SSH server inbound connections",	
+						Destination:          "*",	
+						DestinationPortRange: "22",	
+						Direction:            "Inbound",	
+						Priority:             1000,	
+						Protocol:             "Tcp",	
+						Source:               "*",	
+						SourcePortRange:      "*",	
+					},	
+					{	
+						Name:                 "kubernetes-allow-api-server-inbound",	
+						Access:               "Allow",	
+						Description:          "Allow K8s API server inbound connections",	
+						Destination:          "*",	
+						DestinationPortRange: "6443",	
+						Direction:            "Inbound",	
+						Priority:             1001,	
+						Protocol:             "Tcp",	
+						Source:               "*",	
+						SourcePortRange:      "*",	
+					},
+				},
+			},
+			{
+				Name: params.Name + "worker-nsg",
+				Location: params.Network.Location,
+				Rules: []workflow.SecurityRule{},
+			}
+		},
+		VirtualMachineScaleSetTemplates: []workflow.VirtualMachineScaleSetTemplate{
+			{
+				AdminUsername: "azureuser",
+				Image: Image{	
+					Offer:     "CentOS-CI",	
+					Publisher: "OpenLogic",	
+					SKU:       "7-CI",	
+					Version:   "7.6.20190306",	
+				},
+				InstanceCount: 1,
+				InstanceType: "Standard_B2s",
+				BackendAddressPoolName: "backend-address-pool",
+				InboundNATPoolName: "ssh-inbound-nat-pool",
+				Location: params.Network.Location,
+				Name: params.Name + "master-vmss",
+				NetworkSecurityGroupName: params.Name + "-master-nsg",
+				SSHPublicKey: sshPublicKey,
+				SubnetName: "master-subnet",
+				UserDataScriptParams: map[string]string{
+					"ClusterID": strconv.FormatUint(cl.ID, 10),
+					"InfraCIDR": "10.240.0.0/24",
+					"LoadBalancerSKU": "standard",
+					"NodePoolName": "master-node-pool",
+					"NSGName": params.Name + "-master-nsg",
+					"OrgID": params.OrganizationID,
+					"PipelineURL": cc.pipelineExternalURL,
+					"PipelineToken": "<not yet set>",
+					"PKEVersion": "0.4.0", // TODO: remove hard-coded constant
+					"PublicAddress": "<not yet set>",
+					"RouteTableName": params.Name + "-route-table",
+					"SubnetName": "master-subnet",
+					"TenantID": tenantID,
+					"VnetName": params.Name + "-vnet",
+					"VnetResourceGroupName": params.ResourceGroup,
+				},
+				UserDataScriptTemplate: masterUserDataScriptTemplate,
+				Zones: []string{"1", "2", "3"},
+			},
+			{
+				AdminUsername: "azureuser",
+				Image: Image{	
+					Offer:     "CentOS-CI",	
+					Publisher: "OpenLogic",	
+					SKU:       "7-CI",	
+					Version:   "7.6.20190306",	
+				},
+				InstanceCount: 1,
+				InstanceType: "Standard_B2s",
+				Location: params.Network.Location,
+				Name: params.Name + "worker-vmss",
+				NetworkSecurityGroupName: params.Name + "-worker-nsg",
+				SSHPublicKey: sshPublicKey,
+				SubnetName: "worker-subnet",
+				UserDataScriptParams: map[string]string{
+					"ClusterID": strconv.FormatUint(cl.ID, 10),
+					"InfraCIDR": "10.240.1.0/24",
+					"LoadBalancerSKU": "standard",
+					"NodePoolName": "worker-node-pool",
+					"NSGName": params.Name + "-worker-nsg",
+					"OrgID": params.OrganizationID,
+					"PipelineURL": cc.pipelineExternalURL,
+					"PipelineToken": "<not yet set>",
+					"PKEVersion": "0.4.0", // TODO: remove hard-coded constant
+					"PublicAddress": "<not yet set>",
+					"RouteTableName": params.Name + "-route-table",
+					"SubnetName": "worker-subnet",
+					"TenantID": tenantID,
+					"VnetName": params.Name + "-vnet",
+					"VnetResourceGroupName": params.ResourceGroup,
+				},
+				UserDataScriptTemplate: workerUserDataScriptTemplate,
+				Zones: []string{"1", "2", "3"},
+			},
+		},
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
@@ -354,11 +497,8 @@ func (e validationError) InputValidationError() bool {
 	return true
 }
 
-/*
 const masterUserDataScriptTemplate = `#!/bin/sh
-# TODO: make IP obtainment more robust
-export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
-curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion}} -o /usr/local/bin/pke
+curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
@@ -406,4 +546,3 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server=$PRIVATEIP:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-pod-network-cidr=""`
-*/
