@@ -21,6 +21,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 )
 
@@ -156,8 +157,13 @@ func (a *AzurePkeCluster) DownloadK8sConfig() ([]byte, error) {
 	panic("not implemented")
 }
 
-func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
-	panic("not implemented")
+func (c *AzurePkeCluster) GetAPIEndpoint() (string, error) {
+	config, err := c.GetK8sConfig()
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to get cluster's Kubeconfig")
+	}
+
+	return pkgCluster.GetAPIEndpointFromKubeconfig(config)
 }
 
 func (a *AzurePkeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
