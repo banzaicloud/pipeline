@@ -32,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
