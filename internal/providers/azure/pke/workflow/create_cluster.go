@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"go.uber.org/cadence/workflow"
 )
@@ -42,9 +43,26 @@ type CreateClusterWorkflowInput struct {
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 5 * time.Minute,
+		StartToCloseTimeout:    10 * time.Minute,
+		ScheduleToCloseTimeout: 15 * time.Minute,
+		WaitForCancellation:    true,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+	// Generate CA certificates
+	{
+		activityInput := pkeworkflow.GenerateCertificatesActivityInput{ClusterID: input.ClusterID}
+
+		err := workflow.ExecuteActivity(ctx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
 	cwo := workflow.ChildWorkflowOptions{
-		ExecutionStartToCloseTimeout: time.Minute,
+		ExecutionStartToCloseTimeout: 30 * time.Minute,
 	}
 	ctx = workflow.WithChildOptions(ctx, cwo)
 
