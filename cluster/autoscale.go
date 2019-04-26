@@ -35,6 +35,7 @@ const cloudProviderAws = "aws"
 const autoScalerChart = "banzaicloud-stable/cluster-autoscaler"
 const expanderStrategy = "least-waste"
 const logLevel = "5"
+const AzureVirtualMachineScaleSet = "vmss"
 
 const releaseName = "autoscaler"
 
@@ -61,6 +62,7 @@ type azureInfo struct {
 	ResourceGroup     string `json:"resourceGroup"`
 	NodeResourceGroup string `json:"nodeResourceGroup"`
 	ClusterName       string `json:"clusterName"`
+	VMType            string `json:"vmType,omitempty"`
 }
 
 type autoDiscovery struct {
@@ -191,7 +193,7 @@ func getNodeResourceGroup(cluster CommonCluster) *string {
 	return nil
 }
 
-func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autoscalingInfo {
+func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType string) *autoscalingInfo {
 	clusterSecret, err := cluster.GetSecretWithValidation()
 	if err != nil {
 		return nil
@@ -208,7 +210,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 		log.Errorf("could not get resource group: %s", err.Error())
 	}
 
-	return &autoscalingInfo{
+	autoscalingInfo := &autoscalingInfo{
 		CloudProvider:     cloudProviderAzure,
 		AutoscalingGroups: groups,
 		ExtraArgs: map[string]string{
@@ -228,6 +230,10 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup) *autos
 		Affinity:    getHeadNodeAffinity(cluster),
 		Tolerations: getHeadNodeTolerations(),
 	}
+	if len(vmType) > 0 {
+		autoscalingInfo.Azure.VMType = vmType
+	}
+	return autoscalingInfo
 }
 
 //DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
@@ -303,10 +309,17 @@ func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
 func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeConfig []byte, action deploymentAction) error {
 	var values *autoscalingInfo
 	switch cluster.GetDistribution() {
-	case pkgCluster.EKS, pkgCluster.PKE:
+	case pkgCluster.EKS:
 		values = createAutoscalingForEks(cluster, nodeGroups)
 	case pkgCluster.AKS:
-		values = createAutoscalingForAzure(cluster, nodeGroups)
+		values = createAutoscalingForAzure(cluster, nodeGroups, "")
+	case pkgCluster.PKE:
+		switch cluster.GetCloud() {
+		case pkgCluster.Amazon:
+			values = createAutoscalingForEks(cluster, nodeGroups)
+		case pkgCluster.Azure:
+			values = createAutoscalingForAzure(cluster, nodeGroups, AzureVirtualMachineScaleSet)
+		}
 	default:
 		return nil
 	}
