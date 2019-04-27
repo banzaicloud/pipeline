@@ -596,8 +596,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-api-server-cert-sans={{ .PublicAddress }}`
 
-const workerUserDataScriptTemplate = `
-#!/bin/sh
+const workerUserDataScriptTemplate = `#!/bin/sh
 curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/

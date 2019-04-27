@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -129,19 +130,40 @@ func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	var nodeGroups []nodeGroup
 
-	nodePools, err := GetAKSNodePools(cluster)
-	if err != nil {
-		return nil, err
-	}
-	for _, nodePool := range nodePools {
-		if nodePool.Autoscaling {
-			nodeGroups = append(nodeGroups, nodeGroup{
-				Name:    nodePool.Name,
-				MinSize: nodePool.NodeMinCount,
-				MaxSize: nodePool.NodeMaxCount,
-			})
+	switch cluster.GetDistribution() {
+	case pkgCluster.AKS:
+		nodePools, err := GetAKSNodePools(cluster)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, nodePool := range nodePools {
+			if nodePool.Autoscaling {
+				nodeGroups = append(nodeGroups, nodeGroup{
+					Name:    nodePool.Name,
+					MinSize: nodePool.NodeMinCount,
+					MaxSize: nodePool.NodeMaxCount,
+				})
+			}
+		}
+	case pkgCluster.PKE:
+		pke, ok := cluster.(*commoncluster.AzurePkeCluster)
+		if !ok {
+			return nil, errors.New("could not cast Azure/PKE cluster to AzurePkeCluster")
+		}
+
+		nodePools := pke.GetNodePools()
+		for _, nodePool := range nodePools {
+			if nodePool.Autoscaling {
+				nodeGroups = append(nodeGroups, nodeGroup{
+					Name:    nodePool.Name,
+					MinSize: nodePool.MinCount,
+					MaxSize: nodePool.MaxCount,
+				})
+			}
 		}
 	}
+
 	return nodeGroups, nil
 }
 
