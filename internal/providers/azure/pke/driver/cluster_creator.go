@@ -122,14 +122,17 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		var sshSecretID string
 		sshKeyPair, sshSecretID, err = newSSHKeyPair(cl.OrganizationID, cl.ID, cl.Name, cl.UID)
 		if err != nil {
+			cc.handleError(cl.ID, err)
 			return
 		}
 		if err = cc.store.SetSSHSecretID(cl.ID, sshSecretID); err != nil {
+			cc.handleError(cl.ID, err)
 			return
 		}
 	} else {
 		sshKeyPair, err = getSSHKeyPair(cl.OrganizationID, params.SSHSecretID)
 		if err != nil {
+			cc.handleError(cl.ID, err)
 			return
 		}
 	}
@@ -137,6 +140,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 
 	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
 	if err != nil {
+		cc.handleError(cl.ID, err)
 		return
 	}
 	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
@@ -146,13 +150,13 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		var commonCluster cluster.CommonCluster
 		commonCluster, err = commoncluster.GetCommonClusterByID(cl.ID, cc.store)
 		if err != nil {
+			cc.handleError(cl.ID, err)
 			return
 		}
 		var labelsMap map[string]map[string]string
 		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nil, false)
 		if err != nil {
-			_ = cc.store.SetStatus(cl.ID, pkgCluster.Error, "failed to get desired labels")
-
+			cc.handleError(cl.ID, err)
 			return
 		}
 
@@ -334,16 +338,25 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 
 	wfexec, err := cc.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateClusterWorkflowName, input)
 	if err != nil {
-		cc.store.SetStatus(cl.ID, pkgCluster.Error, err.Error())
+		cc.handleError(cl.ID, err)
 		return
 	}
 
-	err = cc.store.SetActiveWorkflowID(cl.ID, wfexec.ID)
-	if err != nil {
+	if err = cc.store.SetActiveWorkflowID(cl.ID, wfexec.ID); err != nil {
+		cc.handleError(cl.ID, err)
 		return
 	}
 
 	return
+}
+
+func (cc AzurePKEClusterCreator) handleError(clusterID uint, err error) error {
+	if clusterID != 0 && err != nil {
+		if err := cc.store.SetStatus(clusterID, pkgCluster.Error, err.Error()); err != nil {
+			cc.logger.Errorf("failed to set cluster error status: %s", err.Error())
+		}
+	}
+	return err
 }
 
 // AzurePKEClusterCreationParamsPreparer implements AzurePKEClusterCreationParams preparation
