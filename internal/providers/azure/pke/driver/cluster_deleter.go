@@ -82,3 +82,11 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 
 	return nil
 }
+
+func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint) error {
+	cl, err := cd.store.GetByID(clusterID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to load cluster from data store")
+	}
+	return cd.Delete(ctx, cl)
+}
