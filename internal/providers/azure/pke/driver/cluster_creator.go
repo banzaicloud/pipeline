@@ -101,6 +101,24 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	if err = cc.paramsPreparer.Prepare(ctx, &params); err != nil {
 		return
 	}
+	nodePools := make([]pke.NodePool, len(params.NodePools))
+	for i, np := range params.NodePools {
+		nodePools[i] = pke.NodePool{
+			Autoscaling:  np.Autoscaling,
+			CreatedBy:    np.CreatedBy,
+			DesiredCount: uint(np.Count),
+			InstanceType: np.InstanceType,
+			Labels:       np.Labels,
+			Max:          uint(np.Max),
+			Min:          uint(np.Min),
+			Name:         np.Name,
+			Roles:        np.Roles,
+			Subnet: pke.Subnetwork{
+				Name: np.Subnet.Name,
+			},
+			Zones: np.Zones,
+		}
+	}
 	createParams := pke.CreateParams{
 		Name:              params.Name,
 		OrganizationID:    params.OrganizationID,
@@ -111,6 +129,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		RBAC:              params.Kubernetes.RBAC,
 		ScaleOptions:      params.ScaleOptions,
 		ResourceGroupName: params.ResourceGroup,
+		NodePools:         nodePools,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
