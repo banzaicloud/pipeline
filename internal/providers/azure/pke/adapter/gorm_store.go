@@ -32,8 +32,6 @@ import (
 const (
 	GORMAzurePKEClustersTableName  = "azure_pke_clusters"
 	GORMAzurePKENodePoolsTableName = "azure_pke_node_pools"
-	GORMLabelSeparator             = ","
-	GORMLabelKVSeparator           = ":"
 	GORMRoleSeparator              = ","
 	GORMZoneSeparator              = ","
 )
@@ -56,7 +54,6 @@ type gormAzurePKENodePoolModel struct {
 	CreatedBy    uint
 	DesiredCount uint
 	InstanceType string
-	Labels       string
 	Max          uint
 	Min          uint
 	Name         string
@@ -122,28 +119,6 @@ func deserializeExcludes(excludes string) []string {
 	return strings.Split(excludes, cluster.InstanceTypeSeparator)
 }
 
-func serializeLabels(labels map[string]string) string {
-	var b strings.Builder
-	for k, v := range labels {
-		if b.Len() != 0 {
-			b.WriteString(GORMLabelSeparator)
-		}
-		b.WriteString(k)
-		b.WriteString(GORMLabelKVSeparator)
-		b.WriteString(v)
-	}
-	return b.String()
-}
-
-func deserializeLabels(labels string) map[string]string {
-	res := make(map[string]string)
-	for _, l := range strings.Split(labels, GORMLabelSeparator) {
-		kv := strings.Split(l, GORMLabelKVSeparator)
-		res[kv[0]] = kv[1]
-	}
-	return res
-}
-
 func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) {
 	fillClusterFromClusterModel(cluster, model.Cluster)
 
@@ -156,7 +131,6 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 		cluster.NodePools[i].CreatedBy = np.CreatedBy
 		cluster.NodePools[i].DesiredCount = np.DesiredCount
 		cluster.NodePools[i].InstanceType = np.InstanceType
-		cluster.NodePools[i].Labels = deserializeLabels(np.Labels)
 		cluster.NodePools[i].Max = np.Max
 		cluster.NodePools[i].Min = np.Min
 		cluster.NodePools[i].Name = np.Name
@@ -178,7 +152,6 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		nodePools[i].CreatedBy = np.CreatedBy
 		nodePools[i].DesiredCount = np.DesiredCount
 		nodePools[i].InstanceType = np.InstanceType
-		nodePools[i].Labels = serializeLabels(np.Labels)
 		nodePools[i].Max = np.Max
 		nodePools[i].Min = np.Min
 		nodePools[i].Name = np.Name
