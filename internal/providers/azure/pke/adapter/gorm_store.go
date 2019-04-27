@@ -187,7 +187,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		VirtualNetworkName:     params.VirtualNetworkName,
 		NodePools:              nodePools,
 	}
-	if err = emperror.Wrap(s.db.Preload("Cluster").Create(&model).Error, "failed to create cluster model"); err != nil {
+	if err = emperror.Wrap(s.db.Preload("Cluster").Preload("NodePools").Create(&model).Error, "failed to create cluster model"); err != nil {
 		return
 	}
 	fillClusterFromAzurePKEClusterModel(&c, model)
@@ -210,7 +210,7 @@ func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzur
 	model := gormAzurePKEClusterModel{
 		ClusterID: clusterID,
 	}
-	if err = emperror.Wrap(s.db.Preload("Cluster").Where(&model).First(&model).Error, "failed to load model from database"); err != nil {
+	if err = emperror.Wrap(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model).Error, "failed to load model from database"); err != nil {
 		return
 	}
 	fillClusterFromAzurePKEClusterModel(&cluster, model)
