@@ -33,6 +33,7 @@ type CreateParams struct {
 // AzurePKEClusterStore defines behaviors of PKEOnAzureCluster persistent storage
 type AzurePKEClusterStore interface {
 	Create(params CreateParams) (PKEOnAzureCluster, error)
+	Delete(clusterID uint) error
 	GetByID(clusterID uint) (PKEOnAzureCluster, error)
 	SetStatus(clusterID uint, status, message string) error
 	SetActiveWorkflowID(clusterID uint, workflowID string) error

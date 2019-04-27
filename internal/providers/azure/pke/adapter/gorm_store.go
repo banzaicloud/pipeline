@@ -221,6 +221,18 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 	return
 }
 
+func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+
+	return emperror.Wrap(s.db.Delete(model).Error, "failed to soft-delete model from database")
+}
+
 func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, err error) {
 	model := gormAzurePKEClusterModel{
 		ClusterID: clusterID,
