@@ -364,7 +364,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 
 	if err = cc.store.SetActiveWorkflowID(cl.ID, wfexec.ID); err != nil {
-		cc.handleError(cl.ID, err)
+		cc.logger.WithField("clusterID", cl.ID).WithField("workflowID", wfexec.ID).Error("failed to set active workflow ID", err)
 		return
 	}
 
