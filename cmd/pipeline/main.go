@@ -243,7 +243,7 @@ func main() {
 	}
 
 	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, log, errorHandler, externalBaseURL, api.ClusterCreators{
-		PKEOnAzure: azurePKEDriver.NewAzurePKEClusterCreator(
+		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
 			log,
 			azurePKEAdapter.NewGORMAzurePKEClusterStore(db),
 			workflowClient,

@@ -38,7 +38,7 @@ import (
 	"go.uber.org/cadence/client"
 )
 
-func NewAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
+func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
 		logger:              logger,
 		paramsPreparer:      MakeAzurePKEClusterCreationParamsPreparer(logger),
