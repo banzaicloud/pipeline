@@ -156,7 +156,7 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 		for _, nodePool := range nodePools {
 			if nodePool.Autoscaling {
 				nodeGroups = append(nodeGroups, nodeGroup{
-					Name:    nodePool.Name,
+					Name:    nodePool.Name, // TODO: this must be the name of the vmss that corresponds to the node pool
 					MinSize: nodePool.MinCount,
 					MaxSize: nodePool.MaxCount,
 				})
