@@ -202,7 +202,7 @@ func (a *AzurePkeCluster) RbacEnabled() bool {
 }
 
 func (a *AzurePkeCluster) NeedAdminRights() bool {
-	panic("TODO")
+	return false
 }
 
 func (a *AzurePkeCluster) GetKubernetesUserName() (string, error) {

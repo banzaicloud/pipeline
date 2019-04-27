@@ -281,7 +281,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 					"PKEVersion":            "0.4.0", // TODO: remove hard-coded constant
 					"PublicAddress":         "<not yet set>",
 					"RouteTableName":        params.Name + "-route-table",
-					"SubnetName":            "master-subnet",
+					"SubnetName":            "worker-subnet",
 					"TenantID":              tenantID,
 					"VnetName":              params.Name + "-vnet",
 					"VnetResourceGroupName": params.ResourceGroup,
@@ -540,6 +540,7 @@ func (e validationError) InputValidationError() bool {
 }
 
 const masterUserDataScriptTemplate = `#!/bin/sh
+export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
