@@ -17,10 +17,12 @@ package workflow
 import (
 	"time"
 
+	"go.uber.org/cadence/workflow"
+	"go.uber.org/zap"
+
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"go.uber.org/cadence/workflow"
 )
 
 const CreateClusterWorkflowName = "pke-azure-create-cluster"
@@ -66,6 +68,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 	ctx = workflow.WithChildOptions(ctx, cwo)
 
+	signalName := "master-ready"
+	signalChan := workflow.GetSignalChannel(ctx, signalName)
+	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
+		c.Receive(ctx, nil)
+		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
+	})
+
 	infraInput := CreateAzureInfrastructureWorkflowInput{
 		OrganizationID:    input.OrganizationID,
 		ClusterID:         input.ClusterID,
@@ -92,6 +101,8 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	if err != nil {
 		return err
 	}
+
+	signalSelector.Select(ctx) // wait for signal
 
 	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
 		ClusterID: input.ClusterID,
