@@ -194,11 +194,11 @@ func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
 }
 
 func (a *AzurePkeCluster) RequiresSshPublicKey() bool {
-	panic("TODO")
+	return true
 }
 
 func (a *AzurePkeCluster) RbacEnabled() bool {
-	panic("TODO")
+	return a.model.RbacEnabled
 }
 
 func (a *AzurePkeCluster) NeedAdminRights() bool {
@@ -247,12 +247,18 @@ func (a *AzurePkeCluster) IsReady() (bool, error) {
 	return true, nil
 }
 
-func (a *AzurePkeCluster) ListNodeNames() (pkgCommon.NodeNames, error) {
-	panic("TODO")
+func (a *AzurePkeCluster) ListNodeNames() (nodeNames pkgCommon.NodeNames, err error) {
+	// nodes are labeled in create request
+	return
 }
 
 func (a *AzurePkeCluster) NodePoolExists(nodePoolName string) bool {
-	panic("TODO")
+	for _, np := range a.model.NodePools {
+		if np.Name == nodePoolName {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *AzurePkeCluster) GetSecurityScan() bool {

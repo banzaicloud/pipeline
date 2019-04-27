@@ -1024,11 +1024,11 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 }
 
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.
-// It's used only used in case of ec2_banzaicloud, ACK etc. when we're not able to add labels via API.
+// It's used only used in case of ACK etc. when we're not able to add labels via API.
 func LabelNodesWithNodePoolName(commonCluster CommonCluster) error {
 
 	switch commonCluster.GetDistribution() {
-	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE:
+	case pkgCluster.EKS, pkgCluster.OKE, pkgCluster.GKE, pkgCluster.PKE:
 		log.Infof("nodes are already labelled on : %v", commonCluster.GetDistribution())
 		return nil
 	}
