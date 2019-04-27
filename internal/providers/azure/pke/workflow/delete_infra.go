@@ -27,7 +27,13 @@ type DeleteAzureInfrastructureWorkflowInput struct {
 	ClusterName       string
 	SecretID          string
 	ResourceGroupName string
-	TenantID          string
+
+	LoadBalancerName    string
+	PublicIPAddressName string
+	RouteTableName      string
+	ScaleSetNames       []string
+	SecurityGroupNames  []string
+	VirtualNetworkName  string
 }
 
 func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrastructureWorkflowInput) error {
@@ -40,97 +46,92 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	// delete VMSSes
-	nodePools := []string{input.ClusterName + "-vmss-master", input.ClusterName + "-vmss-worker"}
+	// Delete VMSSs
+	for _, n := range input.ScaleSetNames {
+		activityInput := DeleteVMSSActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			VMSSName:          n,
+		}
 
-	deleteVMSSActivityInput := DeleteVMSSActivityInput{
-		OrganizationID:    input.OrganizationID,
-		SecretID:          input.SecretID,
-		ClusterName:       input.ClusterName,
-		ResourceGroupName: input.ResourceGroupName,
-	}
-
-	for _, np := range nodePools {
-
-		deleteVMSSActivityInput.VMSSName = np
-
-		err := workflow.ExecuteActivity(ctx, DeleteVMSSActivityName, deleteVMSSActivityInput).Get(ctx, nil)
-		if err != nil {
+		if err := workflow.ExecuteActivity(ctx, DeleteVMSSActivityName, activityInput).Get(ctx, nil); err != nil {
 			return err
 		}
 	}
 
-	// delete LB
-	deleteLbActivityInput := DeleteLoadBalancerActivityInput{
-		OrganizationID:    input.OrganizationID,
-		SecretID:          input.SecretID,
-		ClusterName:       input.ClusterName,
-		ResourceGroupName: input.ResourceGroupName,
-		LoadBalancerName:  "kubernetes", // TODO: lb name should be unique per cluster unless it's shared by multiple clusters
+	// Delete load balancer
+	{
+		activityInput := DeleteLoadBalancerActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			LoadBalancerName:  input.LoadBalancerName,
+		}
+
+		if err := workflow.ExecuteActivity(ctx, DeleteLoadBalancerActivityName, activityInput).Get(ctx, nil); err != nil {
+			return err
+		}
 	}
 
-	err := workflow.ExecuteActivity(ctx, DeleteLoadBalancerActivityName, deleteLbActivityInput).Get(ctx, nil)
-	if err != nil {
-		return err
+	// Delete public IP
+	{
+		activityInput := DeletePublicIPActivityInput{
+			OrganizationID:      input.OrganizationID,
+			SecretID:            input.SecretID,
+			ClusterName:         input.ClusterName,
+			ResourceGroupName:   input.ResourceGroupName,
+			PublicIPAddressName: input.PublicIPAddressName,
+		}
+
+		if err := workflow.ExecuteActivity(ctx, DeletePublicIPActivityName, activityInput).Get(ctx, nil); err != nil {
+			return err
+		}
 	}
 
-	// delete public ip
-	deletePublicIPActivityInput := DeletePublicIPActivityInput{
-		OrganizationID:      input.OrganizationID,
-		SecretID:            input.SecretID,
-		ClusterName:         input.ClusterName,
-		ResourceGroupName:   input.ResourceGroupName,
-		PublicIPAddressName: input.ClusterName + "-pip-in",
-	}
-	err = workflow.ExecuteActivity(ctx, DeletePublicIPActivityName, deletePublicIPActivityInput).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
+	// Delete virtual network
+	{
+		activityInput := DeleteVNetActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			VNetName:          input.VirtualNetworkName,
+		}
 
-	// delete virtual network
-	deleteVNetActivityInput := DeleteVNetActivityInput{
-		OrganizationID:    input.OrganizationID,
-		SecretID:          input.SecretID,
-		ClusterName:       input.ClusterName,
-		ResourceGroupName: input.ResourceGroupName,
-		VNetName:          input.ClusterName + "-vnet", // TODO: vnet name should come from workflow input instead of deriving it here
+		if err := workflow.ExecuteActivity(ctx, DeleteVNetActivityName, activityInput).Get(ctx, nil); err != nil {
+			return err
+		}
 	}
 
-	err = workflow.ExecuteActivity(ctx, DeleteVNetActivityName, deleteVNetActivityInput).Get(ctx, nil)
-	if err != nil {
-		return err
+	// Delete route table
+	{
+		activityInput := DeleteRouteTableActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			RouteTableName:    input.RouteTableName,
+		}
+
+		if err := workflow.ExecuteActivity(ctx, DeleteRouteTableActivityName, activityInput).Get(ctx, nil); err != nil {
+			return err
+		}
 	}
 
-	// delete route table
-	deleteRouteTableActivityInput := DeleteRouteTableActivityInput{
-		OrganizationID:    input.OrganizationID,
-		SecretID:          input.SecretID,
-		ClusterName:       input.ClusterName,
-		ResourceGroupName: input.ResourceGroupName,
-		RouteTableName:    input.ClusterName + "-route-table",
-	}
+	// Delete network security groups
+	for _, n := range input.SecurityGroupNames {
+		activityInput := DeleteNSGActivityInput{
+			OrganizationID:    input.OrganizationID,
+			SecretID:          input.SecretID,
+			ClusterName:       input.ClusterName,
+			ResourceGroupName: input.ResourceGroupName,
+			NSGName:           n,
+		}
 
-	err = workflow.ExecuteActivity(ctx, DeleteRouteTableActivityName, deleteRouteTableActivityInput).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	// delete network security groups
-	nsgs := []string{input.ClusterName + "-nsg-master", input.ClusterName + "-nsg-worker"}
-
-	deleteNSGActivityInput := DeleteNSGActivityInput{
-		OrganizationID:    input.OrganizationID,
-		SecretID:          input.SecretID,
-		ClusterName:       input.ClusterName,
-		ResourceGroupName: input.ResourceGroupName,
-	}
-
-	for _, nsgName := range nsgs {
-
-		deleteNSGActivityInput.NSGName = nsgName
-
-		err = workflow.ExecuteActivity(ctx, DeleteNSGActivityName, deleteNSGActivityInput).Get(ctx, nil)
-		if err != nil {
+		if err := workflow.ExecuteActivity(ctx, DeleteNSGActivityName, activityInput).Get(ctx, nil); err != nil {
 			return err
 		}
 	}
