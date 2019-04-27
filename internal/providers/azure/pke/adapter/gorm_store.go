@@ -23,7 +23,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -164,8 +163,8 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 			CreatedBy:      params.CreatedBy,
 			Name:           params.Name,
 			Location:       params.Location,
-			Cloud:          providers.Azure,
-			Distribution:   pke.PKEOnAzure,
+			Cloud:          pkgCluster.Azure,
+			Distribution:   pkgCluster.PKE,
 			OrganizationID: params.OrganizationID,
 			SecretID:       params.SecretID,
 			SSHSecretID:    params.SSHSecretID,
