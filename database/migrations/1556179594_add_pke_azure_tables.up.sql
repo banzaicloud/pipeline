@@ -18,7 +18,6 @@ CREATE TABLE `azure_pke_node_pools` (
   `created_by` int(10) unsigned DEFAULT NULL,
   `desired_count` int(10) unsigned DEFAULT NULL,
   `instance_type` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `labels` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `max` int(10) unsigned DEFAULT NULL,
   `min` int(10) unsigned DEFAULT NULL,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
