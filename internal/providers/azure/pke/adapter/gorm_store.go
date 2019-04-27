@@ -197,6 +197,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 			SecretID:       params.SecretID,
 			SSHSecretID:    params.SSHSecretID,
 			Status:         pkgCluster.Creating,
+			StatusMessage:  pkgCluster.CreatingMessage,
 			RbacEnabled:    params.RBAC,
 			ScaleOptions: model.ScaleOptions{
 				Enabled:             params.ScaleOptions.Enabled,
