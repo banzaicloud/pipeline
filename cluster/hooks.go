@@ -449,8 +449,11 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 }
 
 func CreateDefaultStorageclass(commonCluster CommonCluster) error {
-	if distro := commonCluster.GetDistribution(); distro != pkgCluster.PKE {
-		log.Infof("Not creating storageclass for %s", distro)
+	distro := commonCluster.GetDistribution()
+	provider := commonCluster.GetCloud()
+
+	if distro != pkgCluster.PKE || provider == pkgCluster.Azure {
+		log.Infof("Not creating storageclass for %s on %s ", distro, provider)
 		return nil
 	}
 	log.Debug("get K8S config")

@@ -68,11 +68,11 @@ func (a *AzurePkeCluster) GetName() string {
 }
 
 func (a *AzurePkeCluster) GetCloud() string {
-	return "azure" // TODO
+	return pkgCluster.Azure
 }
 
 func (a *AzurePkeCluster) GetDistribution() string {
-	return "pke" // TODO
+	return pkgCluster.PKE
 }
 
 func (a *AzurePkeCluster) GetLocation() string {

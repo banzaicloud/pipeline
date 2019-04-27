@@ -210,7 +210,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			},
 		},
 		LoadBalancerTemplate: workflow.LoadBalancerTemplate{
-			Name:                   params.Name + "-lb",
+			Name:                   params.Name, // LB name must match the value passed to pke install master --kubernetes-cluster-name
 			Location:               params.Network.Location,
 			SKU:                    "Standard",
 			BackendAddressPoolName: "backend-address-pool",
@@ -294,6 +294,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				SubnetName:               "master-subnet",
 				UserDataScriptParams: map[string]string{
 					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
+					"ClusterName":           params.Name,
 					"InfraCIDR":             "10.240.0.0/24",
 					"LoadBalancerSKU":       "standard",
 					"NodePoolName":          "master-node-pool",
@@ -329,6 +330,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				SubnetName:               "worker-subnet",
 				UserDataScriptParams: map[string]string{
 					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
+					"ClusterName":           params.Name,
 					"InfraCIDR":             "10.240.1.0/24",
 					"LoadBalancerSKU":       "standard",
 					"NodePoolName":          "worker-node-pool",
@@ -581,6 +583,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-token="{{ .PipelineToken }}" \
 --pipeline-org-id={{ .OrgID }} \
 --pipeline-cluster-id={{ .ClusterID}} \
+--kubernetes-cluster-name={{ .ClusterName }} \
 --pipeline-nodepool={{ .NodePoolName }} \
 --kubernetes-cloud-provider=azure \
 --azure-tenant-id={{ .TenantID }} \
