@@ -90,6 +90,7 @@ func NewClusterAPI(
 		logger:          logger,
 		errorHandler:    errorHandler,
 		clusterCreators: clusterCreators,
+		clusterDeleters: clusterDeleters,
 	}
 }
 
