@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"fmt"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
@@ -221,17 +223,6 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		return nil
 	}
 
-	nodeResourceGroup := getNodeResourceGroup(cluster)
-	if nodeResourceGroup == nil {
-		log.Errorf("Error nodeResourceGroup not found")
-		return nil
-	}
-
-	resourceGroup, err := GetAKSResourceGroup(cluster)
-	if err != nil {
-		log.Errorf("could not get resource group: %s", err.Error())
-	}
-
 	autoscalingInfo := &autoscalingInfo{
 		CloudProvider:     cloudProviderAzure,
 		AutoscalingGroups: groups,
@@ -241,20 +232,47 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		},
 		Rbac: rbac{Create: true},
 		Azure: azureInfo{
-			ClientID:          clusterSecret.Values[pkgSecret.AzureClientID],
-			ClientSecret:      clusterSecret.Values[pkgSecret.AzureClientSecret],
-			SubscriptionID:    clusterSecret.Values[pkgSecret.AzureSubscriptionID],
-			TenantID:          clusterSecret.Values[pkgSecret.AzureTenantID],
-			ResourceGroup:     resourceGroup,
-			NodeResourceGroup: *nodeResourceGroup,
-			ClusterName:       cluster.GetName(),
+			ClientID:       clusterSecret.Values[pkgSecret.AzureClientID],
+			ClientSecret:   clusterSecret.Values[pkgSecret.AzureClientSecret],
+			SubscriptionID: clusterSecret.Values[pkgSecret.AzureSubscriptionID],
+			TenantID:       clusterSecret.Values[pkgSecret.AzureTenantID],
+			ClusterName:    cluster.GetName(),
 		},
 		Affinity:    getHeadNodeAffinity(cluster),
 		Tolerations: getHeadNodeTolerations(),
 	}
-	if len(vmType) > 0 {
-		autoscalingInfo.Azure.VMType = vmType
+
+	switch cluster.GetDistribution() {
+	case pkgCluster.AKS:
+		nodeResourceGroup := getNodeResourceGroup(cluster)
+		if nodeResourceGroup == nil {
+			log.Errorf("Error nodeResourceGroup not found")
+			return nil
+		}
+
+		resourceGroup, err := GetAKSResourceGroup(cluster)
+		if err != nil {
+			log.Errorf("could not get resource group: %s", err.Error())
+		}
+
+		autoscalingInfo.Azure.ResourceGroup = resourceGroup
+		autoscalingInfo.Azure.NodeResourceGroup = *nodeResourceGroup
+
+	case pkgCluster.PKE:
+		pke, ok := cluster.(*commoncluster.AzurePkeCluster)
+		if !ok {
+			return nil
+		}
+		resourceGroup := pke.GetResourceGroup()
+		if err != nil {
+			log.Errorf("could not get resource group: %s", err.Error())
+		}
+		autoscalingInfo.Azure.ResourceGroup = resourceGroup
+		if len(vmType) > 0 {
+			autoscalingInfo.Azure.VMType = vmType
+		}
 	}
+
 	return autoscalingInfo
 }
 
@@ -340,11 +358,15 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		case pkgCluster.Amazon:
 			values = createAutoscalingForEks(cluster, nodeGroups)
 		case pkgCluster.Azure:
-			//values = createAutoscalingForAzure(cluster, nodeGroups, AzureVirtualMachineScaleSet)
-			return nil // TODO: fixme
+			values = createAutoscalingForAzure(cluster, nodeGroups, AzureVirtualMachineScaleSet)
 		}
 	default:
 		return nil
+	}
+	if values == nil {
+		err := errors.New(fmt.Sprintf("Cluster autoscaler configuration error on %s %s", cluster.GetCloud(), cluster.GetDistribution()))
+		log.Errorf(err.Error())
+		return err
 	}
 	yamlValues, err := yaml.Marshal(*values)
 	if err != nil {

@@ -67,6 +67,10 @@ func (a *AzurePkeCluster) GetName() string {
 	return a.model.Name
 }
 
+func (a *AzurePkeCluster) GetResourceGroup() string {
+	return a.model.ResourceGroup.Name
+}
+
 func (a *AzurePkeCluster) GetCloud() string {
 	return pkgCluster.Azure
 }
