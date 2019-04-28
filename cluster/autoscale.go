@@ -340,7 +340,8 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		case pkgCluster.Amazon:
 			values = createAutoscalingForEks(cluster, nodeGroups)
 		case pkgCluster.Azure:
-			values = createAutoscalingForAzure(cluster, nodeGroups, AzureVirtualMachineScaleSet)
+			//values = createAutoscalingForAzure(cluster, nodeGroups, AzureVirtualMachineScaleSet)
+			return nil // TODO: fixme
 		}
 	default:
 		return nil
