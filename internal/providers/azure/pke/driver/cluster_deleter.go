@@ -53,7 +53,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		SecretID:            cluster.SecretID,
 		ClusterName:         cluster.Name,
 		ResourceGroupName:   cluster.ResourceGroup.Name,
-		LoadBalancerName:    cluster.Name + "-lb",
+		LoadBalancerName:    cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
 		PublicIPAddressName: cluster.Name + "-pip-in",
 		RouteTableName:      cluster.Name + "-route-table",
 		ScaleSetNames:       []string{cluster.Name + "-master-vmss", cluster.Name + "-worker-vmss"},
