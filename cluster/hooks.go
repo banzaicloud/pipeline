@@ -1261,9 +1261,9 @@ func InitSpotConfig(cluster CommonCluster) error {
 
 // DeployInstanceTerminationHandler deploys the instance termination handler
 func DeployInstanceTerminationHandler(cluster CommonCluster) error {
-	distribution := cluster.GetDistribution()
+	cloud := cluster.GetCloud()
 
-	if distribution != pkgCluster.GKE && distribution != pkgCluster.EKS && distribution != pkgCluster.PKE {
+	if cloud != pkgCluster.Amazon && cloud != pkgCluster.Google {
 		return nil
 	}
 
