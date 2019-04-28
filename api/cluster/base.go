@@ -20,13 +20,14 @@ import (
 
 // CreateClusterRequestBase defines the common properties of cluster creation requests
 type CreateClusterRequestBase struct {
-	Name         string       `json:"name" binding:"required"`
-	Features     []Feature    `json:"features"`
-	SecretID     string       `json:"secretId"`
-	SecretName   string       `json:"secretName"`
-	SSHSecretID  string       `json:"sshSecretId"`
-	ScaleOptions ScaleOptions `json:"scaleOptions,omitempty"`
-	Type         string       `json:"type" binding:"required"`
+	Name         string                 `json:"name" binding:"required"`
+	Features     []Feature              `json:"features"`
+	SecretID     string                 `json:"secretId"`
+	SecretName   string                 `json:"secretName"`
+	SSHSecretID  string                 `json:"sshSecretId"`
+	ScaleOptions ScaleOptions           `json:"scaleOptions,omitempty"`
+	Type         string                 `json:"type" binding:"required"`
+	PostHooks    map[string]interface{} `json:"postHooks" yaml:"postHooks"`
 }
 
 // Feature defines a cluster feature's properties

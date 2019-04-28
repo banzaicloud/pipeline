@@ -156,7 +156,7 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 		}
 		req.SecretID = secretID
 		params := req.ToAzurePKEClusterCreationParams(orgID, userID)
-		azurePKECluster, err := a.clusterCreators.PKEOnAzure.Create(ctx, params)
+		azurePKECluster, err := a.clusterCreators.PKEOnAzure.Create(ctx, params, req.PostHooks)
 		if err = emperror.Wrap(err, "failed to create cluster from request"); err != nil {
 			a.handleCreationError(c, err)
 			return

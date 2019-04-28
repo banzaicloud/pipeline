@@ -97,7 +97,7 @@ type AzurePKEClusterCreationParams struct {
 }
 
 // Create
-func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
+func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams, phs map[string]interface{}) (cl pke.PKEOnAzureCluster, err error) {
 	if err = cc.paramsPreparer.Prepare(ctx, &params); err != nil {
 		return
 	}
@@ -165,6 +165,11 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
 
 	postHooks := make(pkgCluster.PostHooks) // TODO: create post hooks from features
+	if phs != nil {
+		for k, v := range phs {
+			postHooks[k] = v
+		}
+	}
 	{
 		var commonCluster cluster.CommonCluster
 		commonCluster, err = commoncluster.GetCommonClusterByID(cl.ID, cc.store)
@@ -347,7 +352,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 					"VnetResourceGroupName": params.ResourceGroup,
 				},
 				UserDataScriptTemplate: workerUserDataScriptTemplate,
-				Zones:                  []string{"1", "2", "3"},
+				Zones:                  []string{"1"},
 			},
 		},
 		PostHooks: postHooks,

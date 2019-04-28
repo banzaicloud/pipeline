@@ -227,6 +227,7 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 		StatusMessage: a.model.StatusMessage,
 		Name:          a.model.Name,
 		Location:      a.model.Location,
+		Region:        a.model.VirtualNetwork.Location,
 		Cloud:         a.GetCloud(),
 		Distribution:  a.GetDistribution(),
 		ResourceID:    a.model.ID,
