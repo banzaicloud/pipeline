@@ -339,7 +339,7 @@ func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, sta
 	}
 
 	if !features[feature] {
-		return errors.New(fmt.Sprintf("unknown feature: %q", feature))
+		return fmt.Errorf("unknown feature: %q", feature)
 	}
 
 	fields := map[string]interface{}{
