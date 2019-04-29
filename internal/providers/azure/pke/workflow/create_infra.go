@@ -17,6 +17,7 @@ package workflow
 import (
 	"time"
 
+	"github.com/goph/emperror"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -360,6 +361,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	// Create scale sets
+	createVMSSActivityFutures := make(map[string]workflow.Future)
 	createVMSSActivityOutputs := make(map[string]CreateVMSSActivityOutput)
 	for _, vmss := range input.ScaleSets.Make(
 		backendAddressPoolIDProvider(createLBActivityOutput),
@@ -376,12 +378,16 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			ResourceGroupName: input.ResourceGroupName,
 			ScaleSet:          vmss,
 		}
+		createVMSSActivityFutures[vmss.Name] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
+	}
+
+	for name, future := range createVMSSActivityFutures {
 		var activityOutput CreateVMSSActivityOutput
-		err := workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput).Get(ctx, &activityOutput)
+		err := future.Get(ctx, &activityOutput)
 		if err != nil {
-			return err
+			return emperror.Wrapf(err, "creating scaling set %q", name)
 		}
-		createVMSSActivityOutputs[vmss.Name] = activityOutput
+		createVMSSActivityOutputs[name] = activityOutput
 	}
 
 	// Create role assignments
