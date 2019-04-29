@@ -3,6 +3,25 @@
         "PIPELINE_CONFIG_DIR": "${workspaceFolder}/config",
         "VAULT_ADDR": "http://127.0.0.1:8200"
     },
-    "go.formatTool": "goimports",
-    "go.lintTool": "golangci-lint"
+    "go.languageServerExperimentalFeatures": {
+        "format": true,
+        "autoComplete": true,
+        "rename": true,
+        "goToDefinition": true,
+        "hover": true,
+        "signatureHelp": true,
+        "goToTypeDefinition": true,
+        "goToImplementation": true,
+        "documentSymbols": true,
+        "workspaceSymbols": true,
+        "findReferences": true,
+        "diagnostics": false
+    },
+    "go.useLanguageServer": true,
+    "[go]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    }
 }
