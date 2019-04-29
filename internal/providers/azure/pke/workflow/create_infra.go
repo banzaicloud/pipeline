@@ -27,7 +27,6 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	ClusterID         uint
 	ClusterName       string
 	SecretID          string
-	Location          string
 	ResourceGroupName string
 	TenantID          string
 
