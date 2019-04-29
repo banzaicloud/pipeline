@@ -306,6 +306,33 @@ func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, err
 	return model.ConfigSecretID, nil
 }
 
+func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, state bool) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+
+	features := map[string]bool{
+		"SecurityScan": true,
+		"Logging":      true,
+		"Monitoring":   true,
+		"ServiceMesh":  true,
+	}
+
+	if !features[feature] {
+		return errors.New(fmt.Sprintf("unknown feature: %q", feature))
+	}
+
+	fields := map[string]interface{}{
+		feature: state,
+	}
+
+	return emperror.Wrapf(s.db.Model(&model).Updates(fields).Error, "failed to update %q feature state")
+}
+
 // Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{

@@ -272,7 +272,7 @@ func (a *AzurePkeCluster) GetSecurityScan() bool {
 
 func (a *AzurePkeCluster) SetSecurityScan(scan bool) {
 	a.model.SecurityScan = scan
-	// TODO: persist
+	a.store.SetFeature(a.model.ID, "SecurityScan", scan)
 }
 
 func (a *AzurePkeCluster) GetLogging() bool {
@@ -281,7 +281,7 @@ func (a *AzurePkeCluster) GetLogging() bool {
 
 func (a *AzurePkeCluster) SetLogging(l bool) {
 	a.model.Logging = l
-	// TODO: persist
+	a.store.SetFeature(a.model.ID, "Logging", l)
 }
 
 func (a *AzurePkeCluster) GetMonitoring() bool {
@@ -290,7 +290,7 @@ func (a *AzurePkeCluster) GetMonitoring() bool {
 
 func (a *AzurePkeCluster) SetMonitoring(m bool) {
 	a.model.Monitoring = m
-	// TODO: persist
+	a.store.SetFeature(a.model.ID, "Monitoring", m)
 }
 
 func (a *AzurePkeCluster) GetServiceMesh() bool {
@@ -299,7 +299,8 @@ func (a *AzurePkeCluster) GetServiceMesh() bool {
 
 func (a *AzurePkeCluster) SetServiceMesh(m bool) {
 	a.model.ServiceMesh = m
-	// TODO: persist
+	a.store.SetFeature(a.model.ID, "ServiceMesh", m)
+
 }
 
 func (a *AzurePkeCluster) SetStatus(status string, statusMessage string) error {
