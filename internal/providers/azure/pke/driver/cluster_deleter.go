@@ -18,12 +18,15 @@ import (
 	"context"
 	"time"
 
+	"github.com/banzaicloud/pipeline/secret"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
@@ -38,10 +41,9 @@ func MakeAzurePKEClusterDeleter(logger logrus.FieldLogger, store pke.AzurePKEClu
 }
 
 type AzurePKEClusterDeleter struct {
-	cloudConnection azure.CloudConnection
-	logger          logrus.FieldLogger
-	store           pke.AzurePKEClusterStore
-	workflowClient  client.Client
+	logger         logrus.FieldLogger
+	store          pke.AzurePKEClusterStore
+	workflowClient client.Client
 }
 
 func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAzureCluster) error {
@@ -51,7 +53,16 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		return emperror.Wrap(err, "failed to set cluster status")
 	}
 
-	lb, err := cd.cloudConnection.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, cluster.Name, "")
+	// TODO: do not use global secret store
+	sir, err := secret.Store.Get(cluster.OrganizationID, cluster.SecretID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get secret")
+	}
+	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
+	if err != nil {
+		return emperror.Wrap(err, "failed to create cloud connection")
+	}
+	lb, err := cc.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, cluster.Name, "")
 	if err != nil {
 		return emperror.Wrap(err, "failed to retrieve load balancer")
 	}
