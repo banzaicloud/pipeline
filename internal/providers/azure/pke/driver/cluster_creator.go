@@ -39,6 +39,9 @@ import (
 	"go.uber.org/cadence/client"
 )
 
+const MasterRole = "master"
+const pkeVersion = "0.4.0"
+
 func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
 		logger:              logger,
@@ -76,6 +79,15 @@ type NodePool struct {
 	Count        int
 	Min          int
 	Max          int
+}
+
+func (n NodePool) Master() bool {
+	for _, role := range n.Roles {
+		if role == MasterRole {
+			return true
+		}
+	}
+	return false
 }
 
 type Subnet struct {
@@ -189,6 +201,95 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		}
 	}
 
+	vmssTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(params.NodePools))
+
+	for i, np := range params.NodePools {
+		if np.Master() {
+			vmssTemplates[i] = workflow.VirtualMachineScaleSetTemplate{
+				// TODO: Autoscaling:  np.Autoscaling,
+				// TODO: Max:          uint(np.Max),
+				// TODO: Min:          uint(np.Min),
+				// TODO: Subnet: pke.Subnetwork{
+				// TODO: Name: np.Subnet.Name,
+				// TODO: },
+				// TODO: Zones: np.Zones,
+				AdminUsername: "azureuser",
+				Image: workflow.Image{
+					Offer:     "CentOS-CI",
+					Publisher: "OpenLogic",
+					SKU:       "7-CI",
+					Version:   "7.6.20190306",
+				},
+				InstanceCount:            uint(np.Count),
+				InstanceType:             np.InstanceType,
+				BackendAddressPoolName:   "backend-address-pool",
+				InboundNATPoolName:       "ssh-inbound-nat-pool",
+				Location:                 params.Network.Location,
+				Name:                     params.Name + "-master-vmss",
+				NetworkSecurityGroupName: params.Name + "-master-nsg",
+				SSHPublicKey:             sshPublicKey,
+				SubnetName:               "master-subnet",
+				UserDataScriptParams: map[string]string{
+					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
+					"ClusterName":           params.Name,
+					"InfraCIDR":             "10.240.0.0/24",
+					"LoadBalancerSKU":       "standard",
+					"NodePoolName":          np.Name,
+					"NSGName":               params.Name + "-master-nsg",
+					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
+					"PipelineURL":           cc.pipelineExternalURL,
+					"PipelineToken":         "<not yet set>",
+					"PKEVersion":            pkeVersion,
+					"PublicAddress":         "<not yet set>",
+					"RouteTableName":        params.Name + "-route-table",
+					"SubnetName":            "master-subnet",
+					"TenantID":              tenantID,
+					"VnetName":              params.Name + "-vnet",
+					"VnetResourceGroupName": params.ResourceGroup,
+				},
+				UserDataScriptTemplate: masterUserDataScriptTemplate,
+				Zones:                  []string{"1"},
+			}
+		} else { // worker
+			vmssTemplates[i] = workflow.VirtualMachineScaleSetTemplate{
+				AdminUsername: "azureuser",
+				Image: workflow.Image{
+					Offer:     "CentOS-CI",
+					Publisher: "OpenLogic",
+					SKU:       "7-CI",
+					Version:   "7.6.20190306",
+				},
+				InstanceCount:            uint(np.Count),
+				InstanceType:             np.InstanceType,
+				Location:                 params.Network.Location,
+				Name:                     params.Name + "-worker-vmss",
+				NetworkSecurityGroupName: params.Name + "-worker-nsg",
+				SSHPublicKey:             sshPublicKey,
+				SubnetName:               "worker-subnet",
+				UserDataScriptParams: map[string]string{
+					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
+					"ClusterName":           params.Name,
+					"InfraCIDR":             "10.240.1.0/24",
+					"LoadBalancerSKU":       "standard",
+					"NodePoolName":          np.Name,
+					"NSGName":               params.Name + "-worker-nsg",
+					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
+					"PipelineURL":           cc.pipelineExternalURL,
+					"PipelineToken":         "<not yet set>",
+					"PKEVersion":            pkeVersion,
+					"PublicAddress":         "<not yet set>",
+					"RouteTableName":        params.Name + "-route-table",
+					"SubnetName":            "worker-subnet",
+					"TenantID":              tenantID,
+					"VnetName":              params.Name + "-vnet",
+					"VnetResourceGroupName": params.ResourceGroup,
+				},
+				UserDataScriptTemplate: workerUserDataScriptTemplate,
+				Zones:                  []string{"1"},
+			}
+		}
+	}
+
 	input := workflow.CreateClusterWorkflowInput{
 		ClusterID:         cl.ID,
 		ClusterName:       params.Name,
@@ -279,83 +380,8 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				Rules:    []workflow.SecurityRule{},
 			},
 		},
-		VirtualMachineScaleSetTemplates: []workflow.VirtualMachineScaleSetTemplate{
-			{
-				AdminUsername: "azureuser",
-				Image: workflow.Image{
-					Offer:     "CentOS-CI",
-					Publisher: "OpenLogic",
-					SKU:       "7-CI",
-					Version:   "7.6.20190306",
-				},
-				InstanceCount:            1,
-				InstanceType:             "Standard_B2s",
-				BackendAddressPoolName:   "backend-address-pool",
-				InboundNATPoolName:       "ssh-inbound-nat-pool",
-				Location:                 params.Network.Location,
-				Name:                     params.Name + "-master-vmss",
-				NetworkSecurityGroupName: params.Name + "-master-nsg",
-				SSHPublicKey:             sshPublicKey,
-				SubnetName:               "master-subnet",
-				UserDataScriptParams: map[string]string{
-					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
-					"ClusterName":           params.Name,
-					"InfraCIDR":             "10.240.0.0/24",
-					"LoadBalancerSKU":       "standard",
-					"NodePoolName":          "master-node-pool",
-					"NSGName":               params.Name + "-worker-nsg",
-					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
-					"PipelineURL":           cc.pipelineExternalURL,
-					"PipelineToken":         "<not yet set>",
-					"PKEVersion":            "0.4.0", // TODO: remove hard-coded constant
-					"PublicAddress":         "<not yet set>",
-					"RouteTableName":        params.Name + "-route-table",
-					"SubnetName":            "worker-subnet",
-					"TenantID":              tenantID,
-					"VnetName":              params.Name + "-vnet",
-					"VnetResourceGroupName": params.ResourceGroup,
-				},
-				UserDataScriptTemplate: masterUserDataScriptTemplate,
-				Zones:                  []string{"1", "2", "3"},
-			},
-			{
-				AdminUsername: "azureuser",
-				Image: workflow.Image{
-					Offer:     "CentOS-CI",
-					Publisher: "OpenLogic",
-					SKU:       "7-CI",
-					Version:   "7.6.20190306",
-				},
-				InstanceCount:            1,
-				InstanceType:             "Standard_B2s",
-				Location:                 params.Network.Location,
-				Name:                     params.Name + "-worker-vmss",
-				NetworkSecurityGroupName: params.Name + "-worker-nsg",
-				SSHPublicKey:             sshPublicKey,
-				SubnetName:               "worker-subnet",
-				UserDataScriptParams: map[string]string{
-					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
-					"ClusterName":           params.Name,
-					"InfraCIDR":             "10.240.1.0/24",
-					"LoadBalancerSKU":       "standard",
-					"NodePoolName":          "worker-node-pool",
-					"NSGName":               params.Name + "-worker-nsg",
-					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
-					"PipelineURL":           cc.pipelineExternalURL,
-					"PipelineToken":         "<not yet set>",
-					"PKEVersion":            "0.4.0", // TODO: remove hard-coded constant
-					"PublicAddress":         "<not yet set>",
-					"RouteTableName":        params.Name + "-route-table",
-					"SubnetName":            "worker-subnet",
-					"TenantID":              tenantID,
-					"VnetName":              params.Name + "-vnet",
-					"VnetResourceGroupName": params.ResourceGroup,
-				},
-				UserDataScriptTemplate: workerUserDataScriptTemplate,
-				Zones:                  []string{"1"},
-			},
-		},
-		PostHooks: postHooks,
+		VirtualMachineScaleSetTemplates: vmssTemplates,
+		PostHooks:                       postHooks,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
