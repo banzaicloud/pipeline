@@ -271,6 +271,5 @@ func IsK8sErrorPermanent(err error) bool {
 		return false
 	}
 
-
 	return true
 }
