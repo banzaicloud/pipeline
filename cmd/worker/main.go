@@ -43,6 +43,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/secret"
@@ -148,8 +149,10 @@ func main() {
 		// Register amazon specific workflows and activities
 		registerAwsWorkflows(clusters, tokenGenerator)
 
+		azurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
+
 		// Register azure specific workflows
-		registerAzureWorkflows(secretStore, tokenGenerator)
+		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})

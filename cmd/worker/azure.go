@@ -15,6 +15,7 @@
 package main
 
 import (
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	azurepkeworkflow "github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
@@ -22,7 +23,7 @@ import (
 	"go.uber.org/cadence/workflow"
 )
 
-func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator *pkeworkflowadapter.TokenGenerator) {
+func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator *pkeworkflowadapter.TokenGenerator, store pke.AzurePKEClusterStore) {
 
 	// Azure PKE
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})
@@ -71,4 +72,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator 
 
 	deleteNSGActivity := azurepkeworkflow.MakeDeleteNSGActivity(azureClientFactory)
 	activity.RegisterWithOptions(deleteNSGActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteNSGActivityName})
+
+	setClusterStatusActivity := azurepkeworkflow.MakeSetClusterStatusActivity(store)
+	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.SetClusterStatusActivityName})
 }
