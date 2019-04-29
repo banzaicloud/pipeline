@@ -158,6 +158,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		nodePools[i].SubnetName = np.Subnet.Name
 		nodePools[i].Zones = strings.Join(np.Zones, GORMZoneSeparator)
 	}
+
 	model := gormAzurePKEClusterModel{
 		Cluster: cluster.ClusterModel{
 			CreatedBy:      params.CreatedBy,
@@ -185,6 +186,21 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		VirtualNetworkLocation: params.Location,
 		VirtualNetworkName:     params.VirtualNetworkName,
 		NodePools:              nodePools,
+	}
+	{
+		// Adapting to legacy format. TODO: Please remove this as soon as possible.
+		for _, f := range params.Features {
+			switch f.Kind {
+			case "InstallLogging":
+				model.Cluster.Logging = true
+			case "InstallMonitoring":
+				model.Cluster.Monitoring = true
+			case "InstallAnchoreImageValidator":
+				model.Cluster.SecurityScan = true
+			case "InstallServiceMesh":
+				model.Cluster.ServiceMesh = true
+			}
+		}
 	}
 	if err = emperror.Wrap(s.db.Preload("Cluster").Preload("NodePools").Create(&model).Error, "failed to create cluster model"); err != nil {
 		return
@@ -330,7 +346,7 @@ func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, sta
 		feature: state,
 	}
 
-	return emperror.Wrapf(s.db.Model(&model).Updates(fields).Error, "failed to update %q feature state")
+	return emperror.Wrapf(s.db.Model(&model).Updates(fields).Error, "failed to update %q feature state", feature)
 }
 
 // Migrate executes the table migrations for the provider.

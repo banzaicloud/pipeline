@@ -24,6 +24,7 @@ import (
 
 	autoazure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/banzaicloud/pipeline/cluster"
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
@@ -85,6 +86,7 @@ type Subnet struct {
 // AzurePKEClusterCreationParams defines parameters for PKE-on-Azure cluster creation
 type AzurePKEClusterCreationParams struct {
 	CreatedBy      uint
+	Features       []intCluster.Feature
 	Kubernetes     intPKE.Kubernetes
 	Name           string
 	Network        VirtualNetwork
@@ -97,7 +99,7 @@ type AzurePKEClusterCreationParams struct {
 }
 
 // Create
-func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams, phs map[string]interface{}) (cl pke.PKEOnAzureCluster, err error) {
+func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
 	if err = cc.paramsPreparer.Prepare(ctx, &params); err != nil {
 		return
 	}
@@ -164,11 +166,9 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
 
-	postHooks := make(pkgCluster.PostHooks) // TODO: create post hooks from features
-	if phs != nil {
-		for k, v := range phs {
-			postHooks[k] = v
-		}
+	postHooks := make(pkgCluster.PostHooks, len(params.Features))
+	for _, f := range params.Features {
+		postHooks[f.Kind] = f.Params
 	}
 	{
 		var commonCluster cluster.CommonCluster

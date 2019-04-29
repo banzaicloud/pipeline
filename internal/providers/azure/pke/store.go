@@ -14,7 +14,10 @@
 
 package pke
 
-import "github.com/banzaicloud/pipeline/pkg/cluster"
+import (
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+)
 
 type CreateParams struct {
 	Name               string
@@ -24,10 +27,11 @@ type CreateParams struct {
 	SecretID           string
 	SSHSecretID        string
 	RBAC               bool
-	ScaleOptions       cluster.ScaleOptions
+	ScaleOptions       pkgCluster.ScaleOptions
 	ResourceGroupName  string
 	VirtualNetworkName string
 	NodePools          []NodePool
+	Features           []intCluster.Feature
 }
 
 // AzurePKEClusterStore defines behaviors of PKEOnAzureCluster persistent storage
