@@ -606,7 +606,7 @@ func (e validationError) InputValidationError() bool {
 
 const masterUserDataScriptTemplate = `#!/bin/sh
 export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
-curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
+curl -v --retry 5 --retry-connrefused --retry-delay 5 https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
