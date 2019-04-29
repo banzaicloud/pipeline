@@ -28,12 +28,12 @@ type DeleteAzureInfrastructureWorkflowInput struct {
 	SecretID          string
 	ResourceGroupName string
 
-	LoadBalancerName    string
-	PublicIPAddressName string
-	RouteTableName      string
-	ScaleSetNames       []string
-	SecurityGroupNames  []string
-	VirtualNetworkName  string
+	LoadBalancerName     string
+	PublicIPAddressNames []string
+	RouteTableName       string
+	ScaleSetNames        []string
+	SecurityGroupNames   []string
+	VirtualNetworkName   string
 }
 
 func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrastructureWorkflowInput) error {
@@ -77,13 +77,13 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 	}
 
 	// Delete public IP
-	{
+	for _, n := range input.PublicIPAddressNames {
 		activityInput := DeletePublicIPActivityInput{
 			OrganizationID:      input.OrganizationID,
 			SecretID:            input.SecretID,
 			ClusterName:         input.ClusterName,
 			ResourceGroupName:   input.ResourceGroupName,
-			PublicIPAddressName: input.PublicIPAddressName,
+			PublicIPAddressName: n,
 		}
 
 		if err := workflow.ExecuteActivity(ctx, DeletePublicIPActivityName, activityInput).Get(ctx, nil); err != nil {
@@ -137,5 +137,4 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 	}
 
 	return nil
-
 }

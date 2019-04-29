@@ -18,10 +18,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
-
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
@@ -36,9 +38,10 @@ func MakeAzurePKEClusterDeleter(logger logrus.FieldLogger, store pke.AzurePKEClu
 }
 
 type AzurePKEClusterDeleter struct {
-	logger         logrus.FieldLogger
-	store          pke.AzurePKEClusterStore
-	workflowClient client.Client
+	cloudConnection azure.CloudConnection
+	logger          logrus.FieldLogger
+	store           pke.AzurePKEClusterStore
+	workflowClient  client.Client
 }
 
 func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAzureCluster) error {
@@ -48,18 +51,23 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		return emperror.Wrap(err, "failed to set cluster status")
 	}
 
+	lb, err := cd.cloudConnection.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, cluster.Name, "")
+	if err != nil {
+		return emperror.Wrap(err, "failed to retrieve load balancer")
+	}
+
 	input := workflow.DeleteClusterWorkflowInput{
-		OrganizationID:      cluster.OrganizationID,
-		SecretID:            cluster.SecretID,
-		ClusterID:           cluster.ID,
-		ClusterName:         cluster.Name,
-		ResourceGroupName:   cluster.ResourceGroup.Name,
-		LoadBalancerName:    cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
-		PublicIPAddressName: cluster.Name + "-pip-in",
-		RouteTableName:      cluster.Name + "-route-table",
-		ScaleSetNames:       []string{cluster.Name + "-master-vmss", cluster.Name + "-worker-vmss"},
-		SecurityGroupNames:  []string{cluster.Name + "-master-nsg", cluster.Name + "-worker-nsg"},
-		VirtualNetworkName:  cluster.Name + "-vnet",
+		OrganizationID:       cluster.OrganizationID,
+		SecretID:             cluster.SecretID,
+		ClusterID:            cluster.ID,
+		ClusterName:          cluster.Name,
+		ResourceGroupName:    cluster.ResourceGroup.Name,
+		LoadBalancerName:     cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
+		PublicIPAddressNames: collectPublicIPAddressNames(lb),
+		RouteTableName:       cluster.Name + "-route-table",
+		ScaleSetNames:        []string{cluster.Name + "-master-vmss", cluster.Name + "-worker-vmss"},
+		SecurityGroupNames:   []string{cluster.Name + "-master-nsg", cluster.Name + "-worker-nsg"},
+		VirtualNetworkName:   cluster.Name + "-vnet",
 	}
 
 	workflowOptions := client.StartWorkflowOptions{
@@ -85,4 +93,28 @@ func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint)
 		return emperror.Wrap(err, "failed to load cluster from data store")
 	}
 	return cd.Delete(ctx, cl)
+}
+
+func collectPublicIPAddressNames(lb network.LoadBalancer) []string {
+	names := make(map[string]bool)
+
+	if lb.LoadBalancerPropertiesFormat != nil {
+		if fics := lb.LoadBalancerPropertiesFormat.FrontendIPConfigurations; fics != nil {
+			for _, fic := range *fics {
+				if fic.FrontendIPConfigurationPropertiesFormat != nil {
+					if pip := fic.FrontendIPConfigurationPropertiesFormat.PublicIPAddress; pip != nil {
+						if name := to.String(pip.Name); name != "" {
+							names[name] = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	result := make([]string, 0, len(names))
+	for name := range names {
+		result = append(result, name)
+	}
+	return result
 }

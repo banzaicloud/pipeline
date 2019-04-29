@@ -23,17 +23,17 @@ import (
 const DeleteClusterWorkflowName = "pke-azure-delete-cluster"
 
 type DeleteClusterWorkflowInput struct {
-	OrganizationID      uint
-	SecretID            string
-	ClusterID           uint
-	ClusterName         string
-	ResourceGroupName   string
-	LoadBalancerName    string
-	PublicIPAddressName string
-	RouteTableName      string
-	ScaleSetNames       []string
-	SecurityGroupNames  []string
-	VirtualNetworkName  string
+	OrganizationID       uint
+	SecretID             string
+	ClusterID            uint
+	ClusterName          string
+	ResourceGroupName    string
+	LoadBalancerName     string
+	PublicIPAddressNames []string
+	RouteTableName       string
+	ScaleSetNames        []string
+	SecurityGroupNames   []string
+	VirtualNetworkName   string
 }
 
 func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
@@ -53,16 +53,16 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 	{
 		infraInput := DeleteAzureInfrastructureWorkflowInput{
-			OrganizationID:      input.OrganizationID,
-			SecretID:            input.SecretID,
-			ClusterName:         input.ClusterName,
-			ResourceGroupName:   input.ResourceGroupName,
-			LoadBalancerName:    input.LoadBalancerName,
-			PublicIPAddressName: input.PublicIPAddressName,
-			RouteTableName:      input.RouteTableName,
-			ScaleSetNames:       input.ScaleSetNames,
-			SecurityGroupNames:  input.SecurityGroupNames,
-			VirtualNetworkName:  input.VirtualNetworkName,
+			OrganizationID:       input.OrganizationID,
+			SecretID:             input.SecretID,
+			ClusterName:          input.ClusterName,
+			ResourceGroupName:    input.ResourceGroupName,
+			LoadBalancerName:     input.LoadBalancerName,
+			PublicIPAddressNames: input.PublicIPAddressNames,
+			RouteTableName:       input.RouteTableName,
+			ScaleSetNames:        input.ScaleSetNames,
+			SecurityGroupNames:   input.SecurityGroupNames,
+			VirtualNetworkName:   input.VirtualNetworkName,
 		}
 		err := workflow.ExecuteChildWorkflow(childWFCtx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
 		if err != nil {
