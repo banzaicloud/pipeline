@@ -73,7 +73,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator 
 	deleteNSGActivity := azurepkeworkflow.MakeDeleteNSGActivity(azureClientFactory)
 	activity.RegisterWithOptions(deleteNSGActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteNSGActivityName})
 
-	deleteClusterFromStoreActivity := azurepkeworkflow.MakeDeleteClusterFromAtoreActivity(store)
+	deleteClusterFromStoreActivity := azurepkeworkflow.MakeDeleteClusterFromStoreActivity(store)
 	activity.RegisterWithOptions(deleteClusterFromStoreActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteClusterFromStoreActivityName})
 
 	setClusterStatusActivity := azurepkeworkflow.MakeSetClusterStatusActivity(store)

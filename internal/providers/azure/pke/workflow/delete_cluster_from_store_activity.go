@@ -25,7 +25,7 @@ type DeleteClusterFromStoreActivity struct {
 	store pke.AzurePKEClusterStore
 }
 
-func MakeDeleteClusterFromAtoreActivity(store pke.AzurePKEClusterStore) DeleteClusterFromStoreActivity {
+func MakeDeleteClusterFromStoreActivity(store pke.AzurePKEClusterStore) DeleteClusterFromStoreActivity {
 	return DeleteClusterFromStoreActivity{
 		store: store,
 	}
