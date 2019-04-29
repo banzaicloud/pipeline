@@ -267,7 +267,10 @@ func IsK8sErrorPermanent(err error) bool {
 		return false // Newly instantiated AKS cluster's ETCD is flaky
 	} else if strings.Contains(err.Error(), "connection refused") {
 		return false
+	} else if strings.Contains(err.Error(), " i/o timeout") {
+		return false
 	}
+
 
 	return true
 }
