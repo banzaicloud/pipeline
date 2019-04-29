@@ -25,6 +25,7 @@ const DeleteClusterWorkflowName = "pke-azure-delete-cluster"
 type DeleteClusterWorkflowInput struct {
 	OrganizationID      uint
 	SecretID            string
+	ClusterID           uint
 	ClusterName         string
 	ResourceGroupName   string
 	LoadBalancerName    string
@@ -40,23 +41,45 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	cwo := workflow.ChildWorkflowOptions{
 		ExecutionStartToCloseTimeout: 30 * time.Minute,
 	}
-	ctx = workflow.WithChildOptions(ctx, cwo)
+	childWFCtx := workflow.WithChildOptions(ctx, cwo)
 
-	infraInput := DeleteAzureInfrastructureWorkflowInput{
-		OrganizationID:      input.OrganizationID,
-		SecretID:            input.SecretID,
-		ClusterName:         input.ClusterName,
-		ResourceGroupName:   input.ResourceGroupName,
-		LoadBalancerName:    input.LoadBalancerName,
-		PublicIPAddressName: input.PublicIPAddressName,
-		RouteTableName:      input.RouteTableName,
-		ScaleSetNames:       input.ScaleSetNames,
-		SecurityGroupNames:  input.SecurityGroupNames,
-		VirtualNetworkName:  input.VirtualNetworkName,
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 5 * time.Minute,
+		StartToCloseTimeout:    10 * time.Minute,
+		ScheduleToCloseTimeout: 15 * time.Minute,
+		WaitForCancellation:    true,
 	}
-	err := workflow.ExecuteChildWorkflow(ctx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
-	if err != nil {
-		return err
+	activityCtx := workflow.WithActivityOptions(ctx, ao)
+
+	{
+		infraInput := DeleteAzureInfrastructureWorkflowInput{
+			OrganizationID:      input.OrganizationID,
+			SecretID:            input.SecretID,
+			ClusterName:         input.ClusterName,
+			ResourceGroupName:   input.ResourceGroupName,
+			LoadBalancerName:    input.LoadBalancerName,
+			PublicIPAddressName: input.PublicIPAddressName,
+			RouteTableName:      input.RouteTableName,
+			ScaleSetNames:       input.ScaleSetNames,
+			SecurityGroupNames:  input.SecurityGroupNames,
+			VirtualNetworkName:  input.VirtualNetworkName,
+		}
+		err := workflow.ExecuteChildWorkflow(childWFCtx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
+		if err != nil {
+			setClusterErrorStatus(activityCtx, input.ClusterID, err)
+			return err
+		}
+	}
+
+	{
+		activityInput := DeleteClusterFromStoreActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		err := workflow.ExecuteActivity(activityCtx, DeleteClusterFromStoreActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			setClusterErrorStatus(activityCtx, input.ClusterID, err)
+			return err
+		}
 	}
 
 	return nil

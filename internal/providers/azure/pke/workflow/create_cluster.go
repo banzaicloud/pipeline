@@ -118,11 +118,3 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	return nil
 }
-
-func setClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) {
-	workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, SetClusterStatusActivityInput{
-		ClusterID:     clusterID,
-		Status:        pkgCluster.Error,
-		StatusMessage: err.Error(),
-	})
-}

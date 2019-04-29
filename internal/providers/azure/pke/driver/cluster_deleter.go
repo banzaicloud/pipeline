@@ -51,6 +51,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	input := workflow.DeleteClusterWorkflowInput{
 		OrganizationID:      cluster.OrganizationID,
 		SecretID:            cluster.SecretID,
+		ClusterID:           cluster.ID,
 		ClusterName:         cluster.Name,
 		ResourceGroupName:   cluster.ResourceGroup.Name,
 		LoadBalancerName:    cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
@@ -73,11 +74,6 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 
 	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfexec.ID); err != nil {
 		return emperror.WrapWith(err, "failed to set active workflow ID for cluster", "cluster", cluster.Name, "workflowID", wfexec.ID)
-	}
-
-	if err := cd.store.Delete(cluster.ID); err != nil {
-		_ = cd.store.SetStatus(cluster.ID, pkgCluster.Error, "failed to delete cluster from data store")
-		return emperror.Wrap(err, "failed to delete cluster from data store")
 	}
 
 	return nil
