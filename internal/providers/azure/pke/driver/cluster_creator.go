@@ -331,7 +331,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			{
 				Name:     uuid.Must(uuid.NewV1()).String(),
 				VMSSName: params.Name + "-master-vmss",
-				RoleName: "Contributor",
+				RoleName: "Owner",
 			},
 			{
 				Name:     uuid.Must(uuid.NewV1()).String(),

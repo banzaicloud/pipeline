@@ -21,6 +21,7 @@ import (
 
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 
@@ -40,10 +41,17 @@ type RunPostHooksWorkflowInputPostHook struct {
 }
 
 func RunPostHooksWorkflow(ctx workflow.Context, input RunPostHooksWorkflowInput) error {
+	retryPolicy := &cadence.RetryPolicy{
+		InitialInterval:    time.Second * 3,
+		BackoffCoefficient: 2,
+		ExpirationInterval: time.Minute * 3,
+		MaximumAttempts:    5,
+	}
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 10 * time.Minute,
 		StartToCloseTimeout:    30 * time.Minute,
 		WaitForCancellation:    true,
+		RetryPolicy:            retryPolicy,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
