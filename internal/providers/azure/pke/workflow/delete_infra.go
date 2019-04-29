@@ -47,17 +47,23 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// Delete VMSSs
-	for _, n := range input.ScaleSetNames {
-		activityInput := DeleteVMSSActivityInput{
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-			ClusterName:       input.ClusterName,
-			ResourceGroupName: input.ResourceGroupName,
-			VMSSName:          n,
-		}
+	{
+		futures := make([]workflow.Future, 0, len(input.ScaleSetNames))
+		for _, n := range input.ScaleSetNames {
+			activityInput := DeleteVMSSActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				VMSSName:          n,
+			}
 
-		if err := workflow.ExecuteActivity(ctx, DeleteVMSSActivityName, activityInput).Get(ctx, nil); err != nil {
-			return err
+			futures = append(futures, workflow.ExecuteActivity(ctx, DeleteVMSSActivityName, activityInput))
+		}
+		for _, future := range futures {
+			if err := future.Get(ctx, nil); err != nil {
+				return err
+			}
 		}
 	}
 
