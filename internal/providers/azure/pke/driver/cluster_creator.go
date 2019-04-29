@@ -40,7 +40,7 @@ import (
 )
 
 const MasterRole = "master"
-const pkeVersion = "0.4.0"
+const pkeVersion = "0.4.2"
 
 func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
