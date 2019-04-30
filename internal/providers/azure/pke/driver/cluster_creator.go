@@ -211,7 +211,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		var azureRole string
 
 		switch {
-		case np.hasRole("master"):
+		case np.hasRole(MasterRole):
 			bapn = "backend-address-pool"
 			inpn = "ssh-inbound-nat-pool"
 			nsgn = params.Name + "-master-nsg"
