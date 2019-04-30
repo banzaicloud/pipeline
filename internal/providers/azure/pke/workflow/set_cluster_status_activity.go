@@ -15,6 +15,8 @@
 package workflow
 
 import (
+	"context"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"go.uber.org/cadence/workflow"
@@ -38,7 +40,7 @@ type SetClusterStatusActivityInput struct {
 	StatusMessage string
 }
 
-func (a SetClusterStatusActivity) Execute(ctx workflow.Context, input SetClusterStatusActivityInput) error {
+func (a SetClusterStatusActivity) Execute(ctx context.Context, input SetClusterStatusActivityInput) error {
 	return a.store.SetStatus(input.ClusterID, input.Status, input.StatusMessage)
 }
 
