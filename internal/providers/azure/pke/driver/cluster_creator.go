@@ -209,6 +209,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		var inpn string
 		var nsgn string
 		var azureRole string
+		var userDataScriptTemplate string
 
 		switch {
 		case np.hasRole(MasterRole):
@@ -216,9 +217,11 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			inpn = "ssh-inbound-nat-pool"
 			nsgn = params.Name + "-master-nsg"
 			azureRole = "Owner"
+			userDataScriptTemplate = masterUserDataScriptTemplate
 		default:
 			nsgn = params.Name + "-worker-nsg"
 			azureRole = "Contributor"
+			userDataScriptTemplate = workerUserDataScriptTemplate
 		}
 
 		subnets[np.Subnet.Name] = workflow.SubnetTemplate{
@@ -263,7 +266,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				"VnetName":              params.Network.Name,
 				"VnetResourceGroupName": params.ResourceGroup,
 			},
-			UserDataScriptTemplate: masterUserDataScriptTemplate,
+			UserDataScriptTemplate: userDataScriptTemplate,
 			Zones:                  []string{"1"},
 		}
 
@@ -579,7 +582,7 @@ func (e validationError) InputValidationError() bool {
 
 const masterUserDataScriptTemplate = `#!/bin/sh
 export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
-curl -v --retry 5 --retry-connrefused --retry-delay 5 https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
+curl -v --retry 5 --retry-delay 5 https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
@@ -604,7 +607,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server-cert-sans={{ .PublicAddress }}`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
-curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
+curl -v --retry 5 --retry-delay 5 https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
