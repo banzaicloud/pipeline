@@ -15,8 +15,9 @@
 package workflow
 
 import (
+	"context"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"go.uber.org/cadence/workflow"
 )
 
 const DeleteClusterFromStoreActivityName = "pke-azure-delete-cluster-from-store"
@@ -35,6 +36,6 @@ type DeleteClusterFromStoreActivityInput struct {
 	ClusterID uint
 }
 
-func (a DeleteClusterFromStoreActivity) Execute(ctx workflow.Context, input DeleteClusterFromStoreActivityInput) error {
+func (a DeleteClusterFromStoreActivity) Execute(ctx context.Context, input DeleteClusterFromStoreActivityInput) error {
 	return a.store.Delete(input.ClusterID)
 }
