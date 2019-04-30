@@ -246,6 +246,6 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 				},
 			},
 		},
-		//Zones: to.StringSlicePtr(input.ScaleSet.Zones),
+		Zones: to.StringSlicePtr(input.ScaleSet.Zones),
 	}
 }

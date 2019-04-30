@@ -270,7 +270,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				"VnetResourceGroupName": params.ResourceGroup,
 			},
 			UserDataScriptTemplate: userDataScriptTemplate,
-			Zones:                  []string{"1"},
+			Zones:                  np.Zones,
 		}
 
 		roleAssignmentTemplates[i] = workflow.RoleAssignmentTemplate{
