@@ -62,7 +62,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	if err != nil {
 		return emperror.Wrap(err, "failed to create cloud connection")
 	}
-	lb, err := cc.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, cluster.Name, "")
+	lb, err := cc.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, cluster.Name, "frontendIPConfigurations/publicIPAddress")
 	if err != nil {
 		return emperror.Wrap(err, "failed to retrieve load balancer")
 	}
