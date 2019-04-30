@@ -585,7 +585,7 @@ func (e validationError) InputValidationError() bool {
 
 const masterUserDataScriptTemplate = `#!/bin/sh
 export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
-curl -v --retry 5 --retry-delay 5 https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
+until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
@@ -611,7 +611,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server-cert-sans={{ .PublicAddress }}`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
-curl -v --retry 5 --retry-delay 5 https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke
+until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
