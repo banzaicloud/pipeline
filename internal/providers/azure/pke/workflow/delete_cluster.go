@@ -38,18 +38,16 @@ type DeleteClusterWorkflowInput struct {
 
 func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
 
-	cwo := workflow.ChildWorkflowOptions{
-		ExecutionStartToCloseTimeout: 30 * time.Minute,
-	}
-	childWFCtx := workflow.WithChildOptions(ctx, cwo)
-
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,
 		ScheduleToCloseTimeout: 15 * time.Minute,
 		WaitForCancellation:    true,
 	}
-	activityCtx := workflow.WithActivityOptions(ctx, ao)
+	cwo := workflow.ChildWorkflowOptions{
+		ExecutionStartToCloseTimeout: 30 * time.Minute,
+	}
+	ctx = workflow.WithChildOptions(workflow.WithActivityOptions(ctx, ao), cwo)
 
 	{
 		infraInput := DeleteAzureInfrastructureWorkflowInput{
@@ -64,9 +62,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			SecurityGroupNames:   input.SecurityGroupNames,
 			VirtualNetworkName:   input.VirtualNetworkName,
 		}
-		err := workflow.ExecuteChildWorkflow(childWFCtx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
+		err := workflow.ExecuteChildWorkflow(ctx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
 		if err != nil {
-			setClusterErrorStatus(activityCtx, input.ClusterID, err)
+			setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
@@ -75,9 +73,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		activityInput := DeleteClusterFromStoreActivityInput{
 			ClusterID: input.ClusterID,
 		}
-		err := workflow.ExecuteActivity(activityCtx, DeleteClusterFromStoreActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, DeleteClusterFromStoreActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			setClusterErrorStatus(activityCtx, input.ClusterID, err)
+			setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}

@@ -51,13 +51,16 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		ScheduleToCloseTimeout: 15 * time.Minute,
 		WaitForCancellation:    true,
 	}
-	activityCtx := workflow.WithActivityOptions(ctx, ao)
+	cwo := workflow.ChildWorkflowOptions{
+		ExecutionStartToCloseTimeout: 30 * time.Minute,
+	}
+	ctx = workflow.WithChildOptions(workflow.WithActivityOptions(ctx, ao), cwo)
 
 	// Generate CA certificates
 	{
 		activityInput := pkeworkflow.GenerateCertificatesActivityInput{ClusterID: input.ClusterID}
 
-		err := workflow.ExecuteActivity(activityCtx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -69,11 +72,6 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		c.Receive(ctx, nil)
 		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
 	})
-
-	cwo := workflow.ChildWorkflowOptions{
-		ExecutionStartToCloseTimeout: 30 * time.Minute,
-	}
-	childWFCtx := workflow.WithChildOptions(ctx, cwo)
 
 	infraInput := CreateAzureInfrastructureWorkflowInput{
 		OrganizationID:    input.OrganizationID,
@@ -97,9 +95,9 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			Template: input.VirtualNetworkTemplate,
 		},
 	}
-	err := workflow.ExecuteChildWorkflow(childWFCtx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
+	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {
-		setClusterErrorStatus(activityCtx, input.ClusterID, err)
+		setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
 	}
 
@@ -110,9 +108,9 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		PostHooks: cluster.BuildWorkflowPostHookFunctions(input.PostHooks, true),
 	}
 
-	err = workflow.ExecuteChildWorkflow(childWFCtx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
+	err = workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
 	if err != nil {
-		setClusterErrorStatus(activityCtx, input.ClusterID, err)
+		setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
 	}
 
