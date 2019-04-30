@@ -206,10 +206,12 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	subnets := make(map[string]workflow.SubnetTemplate)
 	vmssTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(params.NodePools))
 	roleAssignmentTemplates := make([]workflow.RoleAssignmentTemplate, len(params.NodePools))
+	npLen := len(params.NodePools)
 	for i, np := range params.NodePools {
 		var bapn string
 		var inpn string
 		var nsgn string
+		var cnsgn string
 		var azureRole string
 		var userDataScriptTemplate string
 
@@ -224,6 +226,11 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			nsgn = params.Name + "-worker-nsg"
 			azureRole = "Contributor"
 			userDataScriptTemplate = workerUserDataScriptTemplate
+		}
+		cnsgn = nsgn
+		if npLen > 1 {
+			// Ingress traffic flow target. In case of multiple NSGs workers can only receive traffic.
+			cnsgn = params.Name + "-worker-nsg"
 		}
 
 		subnets[np.Subnet.Name] = workflow.SubnetTemplate{
@@ -256,7 +263,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				"InfraCIDR":             np.Subnet.CIDR,
 				"LoadBalancerSKU":       "standard",
 				"NodePoolName":          np.Name,
-				"NSGName":               nsgn,
+				"NSGName":               cnsgn,
 				"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
 				"PipelineURL":           cc.pipelineExternalURL,
 				"PipelineToken":         "<not yet set>",
@@ -604,6 +611,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --azure-vm-type=vmss \
 --azure-loadbalancer-sku=standard \
 --azure-route-table-name={{ .RouteTableName }} \
+--azure-storage-kind managed \
 --kubernetes-advertise-address=$PRIVATE_IP:6443 \
 --kubernetes-api-server={{ .PublicAddress }}:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
