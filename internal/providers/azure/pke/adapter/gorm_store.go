@@ -220,6 +220,9 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 	model := cluster.ClusterModel{
 		ID: clusterID,
 	}
+	if err := s.db.Where(model).First(&model).Error; err != nil {
+		return emperror.Wrap(err, "failed to load model from database")
+	}
 
 	return emperror.Wrap(s.db.Delete(model).Error, "failed to soft-delete model from database")
 }
