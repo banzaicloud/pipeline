@@ -44,8 +44,8 @@ func (a SetClusterStatusActivity) Execute(ctx context.Context, input SetClusterS
 	return a.store.SetStatus(input.ClusterID, input.Status, input.StatusMessage)
 }
 
-func setClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) {
-	workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, SetClusterStatusActivityInput{
+func setClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) error {
+	return workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, SetClusterStatusActivityInput{
 		ClusterID:     clusterID,
 		Status:        pkgCluster.Error,
 		StatusMessage: err.Error(),
