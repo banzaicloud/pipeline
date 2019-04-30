@@ -16,6 +16,7 @@ package driver
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/banzaicloud/pipeline/secret"
@@ -63,7 +64,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		return emperror.Wrap(err, "failed to create cloud connection")
 	}
 	lb, err := cc.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, cluster.Name, "frontendIPConfigurations/publicIPAddress")
-	if err != nil {
+	if err != nil && lb.StatusCode != http.StatusNotFound {
 		return emperror.Wrap(err, "failed to retrieve load balancer")
 	}
 
