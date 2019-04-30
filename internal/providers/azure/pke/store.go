@@ -27,6 +27,7 @@ type CreateParams struct {
 	SecretID           string
 	SSHSecretID        string
 	RBAC               bool
+	KubernetesVersion  string
 	ScaleOptions       pkgCluster.ScaleOptions
 	ResourceGroupName  string
 	VirtualNetworkName string

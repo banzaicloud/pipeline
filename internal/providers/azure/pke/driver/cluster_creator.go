@@ -145,6 +145,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		ResourceGroupName:  params.ResourceGroup,
 		NodePools:          nodePools,
 		VirtualNetworkName: params.Network.Name,
+		KubernetesVersion:  params.Kubernetes.Version,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
@@ -260,6 +261,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				"PipelineURL":           cc.pipelineExternalURL,
 				"PipelineToken":         "<not yet set>",
 				"PKEVersion":            pkeVersion,
+				"KubernetesVersion":     params.Kubernetes.Version,
 				"PublicAddress":         "<not yet set>",
 				"RouteTableName":        params.Name + "-route-table",
 				"SubnetName":            np.Subnet.Name,
@@ -605,6 +607,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-advertise-address=$PRIVATE_IP:6443 \
 --kubernetes-api-server={{ .PublicAddress }}:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-api-server-cert-sans={{ .PublicAddress }}`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
@@ -628,6 +631,7 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --azure-route-table-name={{ .RouteTableName }} \
 --kubernetes-api-server={{ .PublicAddress }}:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
+--kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-pod-network-cidr=""`
 
 func getSSHKeyPair(orgID uint, sshSecretID string) (*secret.SSHKeyPair, error) {

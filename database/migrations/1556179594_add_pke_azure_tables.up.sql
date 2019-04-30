@@ -5,6 +5,7 @@ CREATE TABLE `azure_pke_clusters` (
   `virtual_network_location` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `virtual_network_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `active_workflow_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kubernetes_version` varchar(255),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

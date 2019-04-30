@@ -72,7 +72,8 @@ type gormAzurePKEClusterModel struct {
 	VirtualNetworkLocation string
 	VirtualNetworkName     string
 
-	ActiveWorkflowID string
+	ActiveWorkflowID  string
+	KubernetesVersion string
 
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID"`
@@ -141,6 +142,7 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 	cluster.VirtualNetwork.Name = model.VirtualNetworkName
 	cluster.VirtualNetwork.Location = model.VirtualNetworkLocation
 
+	cluster.KubernetesVersion = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
 }
 
@@ -182,6 +184,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 				KeepDesiredCapacity: params.ScaleOptions.KeepDesiredCapacity,
 			},
 		},
+		KubernetesVersion:      params.KubernetesVersion,
 		ResourceGroupName:      params.ResourceGroupName,
 		VirtualNetworkLocation: params.Location,
 		VirtualNetworkName:     params.VirtualNetworkName,
