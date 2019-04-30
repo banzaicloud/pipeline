@@ -128,17 +128,22 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 	}
 
 	// Delete network security groups
-	for _, n := range input.SecurityGroupNames {
-		activityInput := DeleteNSGActivityInput{
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-			ClusterName:       input.ClusterName,
-			ResourceGroupName: input.ResourceGroupName,
-			NSGName:           n,
+	{
+		futures := make([]workflow.Future, len(input.SecurityGroupNames))
+		for i, n := range input.SecurityGroupNames {
+			activityInput := DeleteNSGActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				NSGName:           n,
+			}
+			futures[i] = workflow.ExecuteActivity(ctx, DeleteNSGActivityName, activityInput)
 		}
-
-		if err := workflow.ExecuteActivity(ctx, DeleteNSGActivityName, activityInput).Get(ctx, nil); err != nil {
-			return err
+		for _, future := range futures {
+			if err := future.Get(ctx, nil); err != nil {
+				return err
+			}
 		}
 	}
 
