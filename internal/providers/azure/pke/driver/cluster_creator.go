@@ -134,16 +134,17 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		}
 	}
 	createParams := pke.CreateParams{
-		Name:              params.Name,
-		OrganizationID:    params.OrganizationID,
-		CreatedBy:         params.CreatedBy,
-		Location:          params.Network.Location,
-		SecretID:          params.SecretID,
-		SSHSecretID:       params.SSHSecretID,
-		RBAC:              params.Kubernetes.RBAC,
-		ScaleOptions:      params.ScaleOptions,
-		ResourceGroupName: params.ResourceGroup,
-		NodePools:         nodePools,
+		Name:               params.Name,
+		OrganizationID:     params.OrganizationID,
+		CreatedBy:          params.CreatedBy,
+		Location:           params.Network.Location,
+		SecretID:           params.SecretID,
+		SSHSecretID:        params.SSHSecretID,
+		RBAC:               params.Kubernetes.RBAC,
+		ScaleOptions:       params.ScaleOptions,
+		ResourceGroupName:  params.ResourceGroup,
+		NodePools:          nodePools,
+		VirtualNetworkName: params.Network.Name,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
