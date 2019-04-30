@@ -29,7 +29,6 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	ClusterName       string
 	SecretID          string
 	ResourceGroupName string
-	TenantID          string
 
 	LoadBalancer    LoadBalancerFactory
 	PublicIPAddress PublicIPAddress
@@ -285,19 +284,25 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 
 	// Create network security groups
 	createNSGActivityOutputs := make(map[string]CreateNSGActivityOutput)
-	for _, sg := range input.SecurityGroups {
-		activityInput := CreateNSGActivityInput{
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-			ClusterName:       input.ClusterName,
-			ResourceGroupName: input.ResourceGroupName,
-			SecurityGroup:     sg,
+	{
+		futures := make(map[string]workflow.Future, len(input.SecurityGroups))
+		for _, sg := range input.SecurityGroups {
+			activityInput := CreateNSGActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				SecurityGroup:     sg,
+			}
+			futures[sg.Name] = workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput)
 		}
-		var activityOutput CreateNSGActivityOutput
-		if err := workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput).Get(ctx, &activityOutput); err != nil {
-			return err
+		for name, future := range futures {
+			var activityOutput CreateNSGActivityOutput
+			if err := future.Get(ctx, &activityOutput); err != nil {
+				return err
+			}
+			createNSGActivityOutputs[name] = activityOutput
 		}
-		createNSGActivityOutputs[sg.Name] = activityOutput
 	}
 
 	// Create route table
@@ -361,47 +366,55 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	// Create scale sets
-	createVMSSActivityFutures := make(map[string]workflow.Future)
 	createVMSSActivityOutputs := make(map[string]CreateVMSSActivityOutput)
-	for _, vmss := range input.ScaleSets.Make(
-		backendAddressPoolIDProvider(createLBActivityOutput),
-		inboundNATPoolIDProvider(createLBActivityOutput),
-		publicIPAddressIPAddressProvider(createPublicIPActivityOutput),
-		mapSecurityGroupIDProvider(createNSGActivityOutputs),
-		subnetIDProvider(createVnetOutput),
-	) {
-		activityInput := CreateVMSSActivityInput{
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-			ClusterID:         input.ClusterID,
-			ClusterName:       input.ClusterName,
-			ResourceGroupName: input.ResourceGroupName,
-			ScaleSet:          vmss,
+	{
+		scaleSets := input.ScaleSets.Make(
+			backendAddressPoolIDProvider(createLBActivityOutput),
+			inboundNATPoolIDProvider(createLBActivityOutput),
+			publicIPAddressIPAddressProvider(createPublicIPActivityOutput),
+			mapSecurityGroupIDProvider(createNSGActivityOutputs),
+			subnetIDProvider(createVnetOutput),
+		)
+		futures := make(map[string]workflow.Future, len(scaleSets))
+		for _, vmss := range scaleSets {
+			activityInput := CreateVMSSActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterID:         input.ClusterID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				ScaleSet:          vmss,
+			}
+			futures[vmss.Name] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
 		}
-		createVMSSActivityFutures[vmss.Name] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
-	}
 
-	for name, future := range createVMSSActivityFutures {
-		var activityOutput CreateVMSSActivityOutput
-		err := future.Get(ctx, &activityOutput)
-		if err != nil {
-			return emperror.Wrapf(err, "creating scaling set %q", name)
+		for name, future := range futures {
+			var activityOutput CreateVMSSActivityOutput
+			if err := future.Get(ctx, &activityOutput); err != nil {
+				return emperror.Wrapf(err, "creating scaling set %q", name)
+			}
+			createVMSSActivityOutputs[name] = activityOutput
 		}
-		createVMSSActivityOutputs[name] = activityOutput
 	}
 
 	// Create role assignments
-	for _, ra := range input.RoleAssignments.Make(mapVMSSPrincipalIDProvider(createVMSSActivityOutputs)) {
-		activityInput := AssignRoleActivityInput{
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-			ClusterName:       input.ClusterName,
-			ResourceGroupName: input.ResourceGroupName,
-			RoleAssignment:    ra,
+	{
+		roleAssignments := input.RoleAssignments.Make(mapVMSSPrincipalIDProvider(createVMSSActivityOutputs))
+		futures := make([]workflow.Future, len(roleAssignments))
+		for i, ra := range roleAssignments {
+			activityInput := AssignRoleActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				RoleAssignment:    ra,
+			}
+			futures[i] = workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput)
 		}
-		err := workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput).Get(ctx, nil)
-		if err != nil {
-			return err
+		for _, future := range futures {
+			if err := future.Get(ctx, nil); err != nil {
+				return err
+			}
 		}
 	}
 

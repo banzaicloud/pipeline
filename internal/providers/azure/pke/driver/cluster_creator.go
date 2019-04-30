@@ -81,9 +81,9 @@ type NodePool struct {
 	Max          int
 }
 
-func (n NodePool) Master() bool {
-	for _, role := range n.Roles {
-		if role == MasterRole {
+func (np NodePool) hasRole(roleName string) bool {
+	for _, r := range np.Roles {
+		if r == roleName {
 			return true
 		}
 	}
@@ -201,93 +201,82 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		}
 	}
 
+	subnets := make(map[string]workflow.SubnetTemplate)
 	vmssTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(params.NodePools))
-
+	roleAssignmentTemplates := make([]workflow.RoleAssignmentTemplate, len(params.NodePools))
 	for i, np := range params.NodePools {
-		if np.Master() {
-			vmssTemplates[i] = workflow.VirtualMachineScaleSetTemplate{
-				// TODO: Autoscaling:  np.Autoscaling,
-				// TODO: Max:          uint(np.Max),
-				// TODO: Min:          uint(np.Min),
-				// TODO: Subnet: pke.Subnetwork{
-				// TODO: Name: np.Subnet.Name,
-				// TODO: },
-				// TODO: Zones: np.Zones,
-				AdminUsername: "azureuser",
-				Image: workflow.Image{
-					Offer:     "CentOS-CI",
-					Publisher: "OpenLogic",
-					SKU:       "7-CI",
-					Version:   "7.6.20190306",
-				},
-				InstanceCount:            uint(np.Count),
-				InstanceType:             np.InstanceType,
-				BackendAddressPoolName:   "backend-address-pool",
-				InboundNATPoolName:       "ssh-inbound-nat-pool",
-				Location:                 params.Network.Location,
-				Name:                     params.Name + "-" + np.Name + "-vmss",
-				NetworkSecurityGroupName: params.Name + "-master-nsg",
-				SSHPublicKey:             sshPublicKey,
-				SubnetName:               "master-subnet",
-				UserDataScriptParams: map[string]string{
-					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
-					"ClusterName":           params.Name,
-					"InfraCIDR":             "10.240.0.0/24",
-					"LoadBalancerSKU":       "standard",
-					"NodePoolName":          np.Name,
-					"NSGName":               params.Name + "-master-nsg",
-					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
-					"PipelineURL":           cc.pipelineExternalURL,
-					"PipelineToken":         "<not yet set>",
-					"PKEVersion":            pkeVersion,
-					"PublicAddress":         "<not yet set>",
-					"RouteTableName":        params.Name + "-route-table",
-					"SubnetName":            "master-subnet",
-					"TenantID":              tenantID,
-					"VnetName":              params.Name + "-vnet",
-					"VnetResourceGroupName": params.ResourceGroup,
-				},
-				UserDataScriptTemplate: masterUserDataScriptTemplate,
-				Zones:                  []string{"1"},
-			}
-		} else { // worker
-			vmssTemplates[i] = workflow.VirtualMachineScaleSetTemplate{
-				AdminUsername: "azureuser",
-				Image: workflow.Image{
-					Offer:     "CentOS-CI",
-					Publisher: "OpenLogic",
-					SKU:       "7-CI",
-					Version:   "7.6.20190306",
-				},
-				InstanceCount:            uint(np.Count),
-				InstanceType:             np.InstanceType,
-				Location:                 params.Network.Location,
-				Name:                     params.Name + "-" + np.Name + "-vmss",
-				NetworkSecurityGroupName: params.Name + "-worker-nsg",
-				SSHPublicKey:             sshPublicKey,
-				SubnetName:               "worker-subnet",
-				UserDataScriptParams: map[string]string{
-					"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
-					"ClusterName":           params.Name,
-					"InfraCIDR":             "10.240.1.0/24",
-					"LoadBalancerSKU":       "standard",
-					"NodePoolName":          np.Name,
-					"NSGName":               params.Name + "-worker-nsg",
-					"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
-					"PipelineURL":           cc.pipelineExternalURL,
-					"PipelineToken":         "<not yet set>",
-					"PKEVersion":            pkeVersion,
-					"PublicAddress":         "<not yet set>",
-					"RouteTableName":        params.Name + "-route-table",
-					"SubnetName":            "worker-subnet",
-					"TenantID":              tenantID,
-					"VnetName":              params.Name + "-vnet",
-					"VnetResourceGroupName": params.ResourceGroup,
-				},
-				UserDataScriptTemplate: workerUserDataScriptTemplate,
-				Zones:                  []string{"1"},
-			}
+		var bapn string
+		var inpn string
+		var nsgn string
+		var azureRole string
+
+		switch {
+		case np.hasRole("master"):
+			bapn = "backend-address-pool"
+			inpn = "ssh-inbound-nat-pool"
+			nsgn = params.Name + "-master-nsg"
+			azureRole = "Owner"
+		default:
+			nsgn = params.Name + "-worker-nsg"
+			azureRole = "Contributor"
 		}
+
+		subnets[np.Subnet.Name] = workflow.SubnetTemplate{
+			Name:                     np.Subnet.Name,
+			CIDR:                     np.Subnet.CIDR,
+			NetworkSecurityGroupName: nsgn,
+		}
+
+		vmssName := pke.GetVMSSName(params.Name, np.Name)
+		vmssTemplates[i] = workflow.VirtualMachineScaleSetTemplate{
+			AdminUsername: "azureuser",
+			Image: workflow.Image{
+				Offer:     "CentOS-CI",
+				Publisher: "OpenLogic",
+				SKU:       "7-CI",
+				Version:   "7.6.20190306",
+			},
+			InstanceCount:            uint(np.Count),
+			InstanceType:             np.InstanceType,
+			BackendAddressPoolName:   bapn,
+			InboundNATPoolName:       inpn,
+			Location:                 params.Network.Location,
+			Name:                     vmssName,
+			NetworkSecurityGroupName: nsgn,
+			SSHPublicKey:             sshPublicKey,
+			SubnetName:               np.Subnet.Name,
+			UserDataScriptParams: map[string]string{
+				"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
+				"ClusterName":           params.Name,
+				"InfraCIDR":             np.Subnet.CIDR,
+				"LoadBalancerSKU":       "standard",
+				"NodePoolName":          np.Name,
+				"NSGName":               nsgn,
+				"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
+				"PipelineURL":           cc.pipelineExternalURL,
+				"PipelineToken":         "<not yet set>",
+				"PKEVersion":            pkeVersion,
+				"PublicAddress":         "<not yet set>",
+				"RouteTableName":        params.Name + "-route-table",
+				"SubnetName":            np.Subnet.Name,
+				"TenantID":              tenantID,
+				"VnetName":              params.Network.Name,
+				"VnetResourceGroupName": params.ResourceGroup,
+			},
+			UserDataScriptTemplate: masterUserDataScriptTemplate,
+			Zones:                  []string{"1"},
+		}
+
+		roleAssignmentTemplates[i] = workflow.RoleAssignmentTemplate{
+			Name:     uuid.Must(uuid.NewV1()).String(),
+			VMSSName: vmssName,
+			RoleName: azureRole,
+		}
+	}
+
+	subnetTemplates := make([]workflow.SubnetTemplate, 0, len(subnets))
+	for _, s := range subnets {
+		subnetTemplates = append(subnetTemplates, s)
 	}
 
 	input := workflow.CreateClusterWorkflowInput{
@@ -297,23 +286,12 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		ResourceGroupName: params.ResourceGroup,
 		SecretID:          params.SecretID,
 		VirtualNetworkTemplate: workflow.VirtualNetworkTemplate{
-			Name: params.Name + "-vnet",
+			Name: params.Network.Name,
 			CIDRs: []string{
-				"10.240.0.0/16",
+				params.Network.CIDR,
 			},
 			Location: params.Network.Location,
-			Subnets: []workflow.SubnetTemplate{
-				{
-					Name:                     "master-subnet",
-					CIDR:                     "10.240.0.0/24",
-					NetworkSecurityGroupName: params.Name + "-master-nsg",
-				},
-				{
-					Name:                     "worker-subnet",
-					CIDR:                     "10.240.1.0/24",
-					NetworkSecurityGroupName: params.Name + "-worker-nsg",
-				},
-			},
+			Subnets:  subnetTemplates,
 		},
 		LoadBalancerTemplate: workflow.LoadBalancerTemplate{
 			Name:                   params.Name, // LB name must match the value passed to pke install master --kubernetes-cluster-name
@@ -327,18 +305,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			Name:     params.Name + "-pip-in",
 			SKU:      "Standard",
 		},
-		RoleAssignmentTemplates: []workflow.RoleAssignmentTemplate{
-			{
-				Name:     uuid.Must(uuid.NewV1()).String(),
-				VMSSName: params.Name + "-master-vmss",
-				RoleName: "Owner",
-			},
-			{
-				Name:     uuid.Must(uuid.NewV1()).String(),
-				VMSSName: params.Name + "-worker-vmss",
-				RoleName: "Contributor",
-			},
-		},
+		RoleAssignmentTemplates: roleAssignmentTemplates,
 		RouteTable: workflow.RouteTable{
 			Name:     params.Name + "-route-table",
 			Location: params.Network.Location,
@@ -502,6 +469,12 @@ func (p NodePoolsPreparer) Prepare(nodePools []NodePool) error {
 	for i := range nodePools {
 		if err := p.getNodePoolPreparer(i).Prepare(&nodePools[i]); err != nil {
 			return emperror.Wrap(err, "failed to prepare node pools")
+		}
+		if nodePools[i].Subnet.Name == "" {
+			if nodePools[i].Subnet.CIDR == "" {
+				nodePools[i].Subnet.CIDR = fmt.Sprintf("10.0.%d.0/24", i)
+			}
+			nodePools[i].Subnet.Name = fmt.Sprintf("subnet-%d", i)
 		}
 	}
 	return nil

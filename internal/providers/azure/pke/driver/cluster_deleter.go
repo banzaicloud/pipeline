@@ -68,6 +68,10 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		return emperror.Wrap(err, "failed to retrieve load balancer")
 	}
 
+	ssns := make([]string, len(cluster.NodePools))
+	for i, np := range cluster.NodePools {
+		ssns[i] = pke.GetVMSSName(cluster.Name, np.Name)
+	}
 	input := workflow.DeleteClusterWorkflowInput{
 		OrganizationID:       cluster.OrganizationID,
 		SecretID:             cluster.SecretID,
@@ -77,9 +81,9 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		LoadBalancerName:     cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
 		PublicIPAddressNames: collectPublicIPAddressNames(lb),
 		RouteTableName:       cluster.Name + "-route-table",
-		ScaleSetNames:        []string{cluster.Name + "-master-vmss", cluster.Name + "-worker-vmss"},
+		ScaleSetNames:        ssns,
 		SecurityGroupNames:   []string{cluster.Name + "-master-nsg", cluster.Name + "-worker-nsg"},
-		VirtualNetworkName:   cluster.Name + "-vnet",
+		VirtualNetworkName:   cluster.VirtualNetwork.Name,
 	}
 
 	workflowOptions := client.StartWorkflowOptions{

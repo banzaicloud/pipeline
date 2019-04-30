@@ -68,3 +68,7 @@ type PKEOnAzureCluster struct {
 func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
 	return c.ActiveWorkflowID != ""
 }
+
+func GetVMSSName(clusterName, nodePoolName string) string {
+	return clusterName + "-" + nodePoolName
+}
