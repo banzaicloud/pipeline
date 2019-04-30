@@ -239,8 +239,8 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 		Monitoring:    a.GetMonitoring(),
 		ServiceMesh:   a.GetServiceMesh(),
 		SecurityScan:  a.GetSecurityScan(),
-		//Version:       a.model.MasterVersion,
-		NodePools: nodePools,
+		Version:       a.model.KubernetesVersion,
+		NodePools:     nodePools,
 		CreatorBaseFields: pkgCommon.CreatorBaseFields{
 			CreatedAt:   a.model.CreationTime,
 			CreatorName: auth.GetUserNickNameById(a.model.CreatedBy),
