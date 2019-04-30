@@ -34,7 +34,7 @@ func NewAzureClientFactory(secretStore pkeworkflow.SecretStore) *AzureClientFact
 func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzure.CloudConnection, error) {
 	s, err := f.secretStore.GetSecret(organizationID, secretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get AWS secret")
+		return nil, emperror.Wrap(err, "failed to get secret")
 	}
 
 	err = s.ValidateSecretType(pkgAzure.Provider)
