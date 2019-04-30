@@ -49,5 +49,5 @@ func setClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) {
 		ClusterID:     clusterID,
 		Status:        pkgCluster.Error,
 		StatusMessage: err.Error(),
-	})
+	}).Get(ctx, nil)
 }
