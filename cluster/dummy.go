@@ -66,7 +66,7 @@ func (c *DummyCluster) Persist() error {
 
 // DownloadK8sConfig downloads the kubeconfig file from cloud
 func (c *DummyCluster) DownloadK8sConfig() ([]byte, error) {
-	return yaml.Marshal(createDummyConfig())
+	return yaml.Marshal(pkgCluster.CreateDummyConfig())
 }
 
 //GetName returns the name of the cluster
@@ -188,62 +188,6 @@ func (c *DummyCluster) SaveSshSecretId(sshSecretId string) error {
 // RequiresSshPublicKey returns false
 func (c *DummyCluster) RequiresSshPublicKey() bool {
 	return true
-}
-
-// createDummyConfig creates a (dummy) kubeconfig
-func createDummyConfig() *kubeConfig {
-	return &kubeConfig{
-		APIVersion: "v1",
-		Clusters: []configCluster{
-			{
-				Cluster: dataCluster{
-					Server: "http://cow.org:8080",
-				},
-				Name: "cow-cluster",
-			}, {
-				Cluster: dataCluster{
-					Server: "https://horse.org:4443",
-				},
-				Name: "horse-cluster",
-			},
-			{
-				Cluster: dataCluster{
-					Server: "https://pig.org:443",
-				},
-				Name: "pig-cluster",
-			},
-		},
-		Contexts: []configContext{
-			{
-				Context: contextData{
-					Cluster: "horse-cluster",
-					User:    "green-user",
-				},
-				Name: "federal-context",
-			}, {
-				Context: contextData{
-					Cluster: "pig-cluster",
-					User:    "black-user",
-				},
-				Name: "queen-anne-context",
-			},
-		},
-		Users: []configUser{
-			{
-				Name: "blue-user",
-				User: userData{
-					Token: "blue-token",
-				},
-			},
-			{
-				Name: "green-user",
-				User: userData{},
-			},
-		},
-		CurrentContext: "federal-context",
-		Kind:           "Config",
-	}
-
 }
 
 //CreateDummyClusterFromModel creates the cluster from the model

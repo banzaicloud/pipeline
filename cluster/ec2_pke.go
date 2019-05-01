@@ -48,7 +48,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
-	"gopkg.in/yaml.v2"
 )
 
 const defaultPKEVersion = "1.12.2"
@@ -587,14 +586,7 @@ func (c *EC2ClusterPKE) GetAPIEndpoint() (string, error) {
 		return "", emperror.Wrap(err, "failed to get cluster's Kubeconfig")
 	}
 
-	kubeConf := kubeConfig{}
-	err = yaml.Unmarshal(config, &kubeConf)
-	if err != nil {
-		return "", emperror.Wrap(err, "failed to parse cluster's Kubeconfig")
-	}
-
-	c.APIEndpoint = kubeConf.Clusters[0].Cluster.Server
-	return c.APIEndpoint, nil
+	return pkgCluster.GetAPIEndpointFromKubeconfig(config)
 }
 
 // GetK8sIpv4Cidrs returns possible IP ranges for pods and services in the cluster
