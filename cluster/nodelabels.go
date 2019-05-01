@@ -75,6 +75,12 @@ func getNodePoolLabelSets(nodePoolLabels map[string]map[string]string) npls.Node
 	return desiredLabels
 }
 
+func normalizeValue(value string) string {
+	var re = regexp.MustCompile(`[^-A-Za-z0-9_.]`)
+	norm := re.ReplaceAllString(value, "_")
+	return norm
+}
+
 func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgCluster.GetClusterStatusResponse, nodePoolName string,
 	nodePool *pkgCluster.NodePoolStatus, headNodePoolName string, noReturnIfNoUserLabels bool) map[string]string {
 
@@ -92,7 +98,9 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 	// copy user labels unless they are not reserved keys
 	for labelKey, labelValue := range nodePool.Labels {
 		if !IsReservedDomainKey(labelKey) {
-			desiredLabels[labelKey] = labelValue
+			nKey := normalizeValue(labelKey)
+			nValue := normalizeValue(labelValue)
+			desiredLabels[nKey] = nValue
 		}
 	}
 

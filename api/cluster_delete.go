@@ -20,6 +20,8 @@ import (
 
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,7 +47,15 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 
 	ctx := ginutils.Context(c.Request.Context(), c)
 
-	a.clusterManager.DeleteCluster(ctx, commonCluster, force)
+	switch {
+	case commonCluster.GetDistribution() == pkgCluster.PKE && commonCluster.GetCloud() == pkgCluster.Azure:
+		if err := a.clusterDeleters.PKEOnAzure.DeleteByID(ctx, commonCluster.GetID()); err != nil {
+			pkgCommon.ErrorResponseWithStatus(c, http.StatusInternalServerError, err)
+			return
+		}
+	default:
+		a.clusterManager.DeleteCluster(ctx, commonCluster, force)
+	}
 
 	if anchore.AnchoreEnabled && commonCluster.GetSecurityScan() {
 		anchore.RemoveAnchoreUser(commonCluster.GetOrganizationId(), commonCluster.GetUID())

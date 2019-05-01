@@ -15,6 +15,7 @@
 package api
 
 import (
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -59,6 +60,13 @@ type CreatePKEOnAzureClusterRequest struct {
 }
 
 func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.AzurePKEClusterCreationParams {
+	features := make([]intCluster.Feature, len(req.Features))
+	for i, f := range req.Features {
+		features[i] = intCluster.Feature{
+			Kind:   f.Kind,
+			Params: f.Params,
+		}
+	}
 	nodepools := make([]driver.NodePool, len(req.NodePools))
 	for i, node := range req.NodePools {
 		nodepools[i] = driver.NodePool{
@@ -114,5 +122,6 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 			Location: req.Location,
 		},
 		NodePools: nodepools,
+		Features:  features,
 	}
 }

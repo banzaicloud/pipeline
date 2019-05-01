@@ -58,10 +58,15 @@ type ClusterAPI struct {
 	logger          logrus.FieldLogger
 	errorHandler    emperror.Handler
 	clusterCreators ClusterCreators
+	clusterDeleters ClusterDeleters
 }
 
 type ClusterCreators struct {
 	PKEOnAzure driver.AzurePKEClusterCreator
+}
+
+type ClusterDeleters struct {
+	PKEOnAzure driver.AzurePKEClusterDeleter
 }
 
 // NewClusterAPI returns a new ClusterAPI instance.
@@ -73,6 +78,7 @@ func NewClusterAPI(
 	errorHandler emperror.Handler,
 	externalBaseURL string,
 	clusterCreators ClusterCreators,
+	clusterDeleters ClusterDeleters,
 
 ) *ClusterAPI {
 	return &ClusterAPI{
@@ -84,6 +90,7 @@ func NewClusterAPI(
 		logger:          logger,
 		errorHandler:    errorHandler,
 		clusterCreators: clusterCreators,
+		clusterDeleters: clusterDeleters,
 	}
 }
 

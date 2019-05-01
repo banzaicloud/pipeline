@@ -21,6 +21,7 @@ import (
 
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
 

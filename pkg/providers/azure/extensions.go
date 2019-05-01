@@ -16,6 +16,7 @@ package azure
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
@@ -123,19 +124,11 @@ func (client *RoleAssignmentsClient) ListAll(ctx context.Context, filter string)
 
 // FindByRoleName returns a role definition with the matching name or nil, if no such definition can be found
 func (client *RoleDefinitionsClient) FindByRoleName(ctx context.Context, scope, roleName string) (*authorization.RoleDefinition, error) {
-	rp, err := client.List(ctx, scope, "")
-	for rp.NotDone() {
-		if err != nil {
-			return nil, err
-		}
-		for _, def := range rp.Values() {
-			if *def.Properties.RoleName == roleName {
-				return &def, nil
-			}
-		}
-		err = rp.NextWithContext(ctx)
+	rp, err := client.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", roleName))
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	return &rp.Values()[0], err
 }
 
 // CreateOrUpdateAndWaitForIt creates or updates the specified virtual machine and waits for the operation to finish, returning the resulting VM
