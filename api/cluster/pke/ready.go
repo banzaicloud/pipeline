@@ -18,13 +18,13 @@ import (
 	"encoding/base64"
 	"net/http"
 
-	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-
 	"github.com/banzaicloud/pipeline/cluster"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+	"go.uber.org/cadence/.gen/go/shared"
 )
 
 // GetReady responds to requests with information about the specified cluster's readiness
@@ -131,16 +131,32 @@ func (a *API) PostReady(c *gin.Context) {
 		}
 		log.Info("Kubeconfig saved")
 
+		workflowID := commonCluster.(interface {
+			GetCurrentWorkflowID() string
+		}).GetCurrentWorkflowID()
+
 		err = a.workflowClient.SignalWorkflow(
 			c.Request.Context(),
-			commonCluster.(interface {
-				GetCurrentWorkflowID() string
-			}).GetCurrentWorkflowID(),
+			workflowID,
 			"",
 			"master-ready",
 			nil,
 		)
 		if err != nil {
+			if _, ok := err.(*shared.EntityNotExistsError); ok {
+				desc, derr := a.workflowClient.DescribeWorkflowExecution(
+					c.Request.Context(),
+					workflowID,
+					"",
+				)
+				// Workflow execution already completed.
+				if derr == nil && desc.WorkflowExecutionInfo != nil && desc.WorkflowExecutionInfo.CloseStatus != nil {
+					log.Infof("Workflow execution already completed with status: %s", desc.WorkflowExecutionInfo.CloseStatus)
+					err = nil
+					return
+				}
+			}
+
 			err := emperror.Wrap(err, "could signal workflow")
 			a.errorHandler.Handle(err)
 

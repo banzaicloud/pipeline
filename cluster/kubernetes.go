@@ -26,7 +26,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
-	"gopkg.in/yaml.v2"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -224,13 +223,8 @@ func (c *KubeCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	kubeConf := kubeConfig{}
-	err = yaml.Unmarshal(config, &kubeConf)
-	if err != nil {
-		return "", err
-	}
-	c.APIEndpoint = kubeConf.Clusters[0].Cluster.Server
-	return c.APIEndpoint, nil
+
+	return pkgCluster.GetAPIEndpointFromKubeconfig(config)
 }
 
 // DeleteFromDatabase deletes model from the database

@@ -48,7 +48,6 @@ import (
 	gkeCompute "google.golang.org/api/compute/v1"
 	gke "google.golang.org/api/container/v1"
 	"google.golang.org/api/googleapi"
-	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -1185,7 +1184,7 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 		return nil, emperror.Wrap(err, "getting service account for GKE cluster failed")
 	}
 
-	finalCl := kubernetesCluster{
+	finalCl := pkgCluster.KubernetesCluster{
 		ClientCertificate:   cl.MasterAuth.ClientCertificate,
 		ClientKey:           cl.MasterAuth.ClientKey,
 		RootCACert:          cl.MasterAuth.ClusterCaCertificate,
@@ -1202,7 +1201,7 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 
 	finalCl.Metadata["nodePools"] = fmt.Sprintf("%v", cl.NodePools)
 
-	config, err := storeConfig(&finalCl)
+	config, err := pkgCluster.StoreConfig(&finalCl)
 	if err != nil {
 		return nil, emperror.Wrap(err, "storing kubernetes config failed")
 	}
@@ -1346,212 +1345,6 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 		}
 	}
 	return "", errors.New("failed to configure serviceAccountToken")
-}
-
-// storeConfig saves config file
-func storeConfig(c *kubernetesCluster) ([]byte, error) {
-	isBasicOn := false
-	if c.Username != "" && c.Password != "" {
-		isBasicOn = true
-	}
-	username, password, token := "", "", ""
-	if isBasicOn {
-		username = c.Username
-		password = c.Password
-	} else {
-		token = c.ServiceAccountToken
-	}
-
-	config := kubeConfig{}
-	config.APIVersion = "v1"
-	config.Kind = "Config"
-
-	// setup clusters
-	host := c.Endpoint
-	if !strings.HasPrefix(host, "https://") {
-		host = fmt.Sprintf("https://%s", host)
-	}
-	cluster := configCluster{
-		Cluster: dataCluster{
-			CertificateAuthorityData: string(c.RootCACert),
-			Server:                   host,
-		},
-		Name: c.Name,
-	}
-	if config.Clusters == nil || len(config.Clusters) == 0 {
-		config.Clusters = []configCluster{cluster}
-	} else {
-		exist := false
-		for _, cluster := range config.Clusters {
-			if cluster.Name == c.Name {
-				exist = true
-				break
-			}
-		}
-		if !exist {
-			config.Clusters = append(config.Clusters, cluster)
-		}
-	}
-
-	var provider authProvider
-	if len(c.AuthProviderName) != 0 || len(c.AuthAccessToken) != 0 {
-		provider = authProvider{
-			ProviderConfig: providerConfig{
-				AccessToken: c.AuthAccessToken,
-				Expiry:      c.AuthAccessTokenExpiry,
-			},
-			Name: c.AuthProviderName,
-		}
-	}
-
-	// setup users
-	user := configUser{
-		User: userData{
-			Token:        token,
-			Username:     username,
-			Password:     password,
-			AuthProvider: provider,
-		},
-		Name: c.Name,
-	}
-	if config.Users == nil || len(config.Users) == 0 {
-		config.Users = []configUser{user}
-	} else {
-		exist := false
-		for _, user := range config.Users {
-			if user.Name == c.Name {
-				exist = true
-				break
-			}
-		}
-		if !exist {
-			config.Users = append(config.Users, user)
-		}
-	}
-
-	// setup context
-	context := configContext{
-		Context: contextData{
-			Cluster: c.Name,
-			User:    c.Name,
-		},
-		Name: c.Name,
-	}
-
-	config.CurrentContext = context.Name
-
-	if config.Contexts == nil || len(config.Contexts) == 0 {
-		config.Contexts = []configContext{context}
-	} else {
-		exist := false
-		for _, context := range config.Contexts {
-			if context.Name == c.Name {
-				exist = true
-				break
-			}
-		}
-		if !exist {
-			config.Contexts = append(config.Contexts, context)
-		}
-	}
-
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return nil, emperror.Wrap(err, "marshaling kubernetes config failed")
-	}
-
-	return data, nil
-}
-
-// kubernetesCluster represents a kubernetes cluster
-type kubernetesCluster struct {
-	// The name of the cluster
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
-	// The status of the cluster
-	Status string `json:"status,omitempty" yaml:"status,omitempty"`
-	// Kubernetes cluster version
-	Version string `json:"version,omitempty" yaml:"version,omitempty"`
-	// Service account token to access kubernetes API
-	ServiceAccountToken string `json:"serviceAccountToken,omitempty" yaml:"service_account_token,omitempty"`
-	// Kubernetes API master endpoint
-	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`
-	// Username for http basic authentication
-	Username string `json:"username,omitempty" yaml:"username,omitempty"`
-	// Password for http basic authentication
-	Password string `json:"password,omitempty" yaml:"password,omitempty"`
-	// Root CaCertificate for API server(base64 encoded)
-	RootCACert string `json:"rootCACert,omitempty" yaml:"root_ca_cert,omitempty"`
-	// Client Certificate(base64 encoded)
-	ClientCertificate string `json:"clientCertificate,omitempty" yaml:"client_certificate,omitempty"`
-	// Client private key(base64 encoded)
-	ClientKey string `json:"clientKey,omitempty" yaml:"client_key,omitempty"`
-	// Node count in the cluster
-	NodeCount int64 `json:"nodeCount,omitempty" yaml:"node_count,omitempty"`
-	// Metadata store specific driver options per cloud provider
-	Metadata map[string]string `json:"metadata,omitempty" yaml:"metadata,omitempty"`
-
-	AuthProviderName      string `json:"auth_provider_name,omitempty"`
-	AuthAccessToken       string `json:"auth_access_token,omitempty"`
-	AuthAccessTokenExpiry string `json:"auth_access_token_expiry,omitempty"`
-	CurrentContext        string `json:"current_context,omitempty"`
-}
-
-type kubeConfig struct {
-	APIVersion     string          `yaml:"apiVersion,omitempty"`
-	Clusters       []configCluster `yaml:"clusters,omitempty"`
-	Contexts       []configContext `yaml:"contexts,omitempty"`
-	Users          []configUser    `yaml:"users,omitempty"`
-	CurrentContext string          `yaml:"current-context,omitempty"`
-	Kind           string          `yaml:"kind,omitempty"`
-	//Kubernetes config contains an invalid map for the go yaml parser,
-	//preferences field always look like this {} this should be {{}} so
-	//yaml.Unmarshal fails with a cryptic error message which says string
-	//cannot be casted as !map
-	//Preferences    string          `yaml:"preferences,omitempty"`
-}
-
-type configCluster struct {
-	Cluster dataCluster `yaml:"cluster,omitempty"`
-	Name    string      `yaml:"name,omitempty"`
-}
-
-type dataCluster struct {
-	CertificateAuthorityData string `yaml:"certificate-authority-data,omitempty"`
-	Server                   string `yaml:"server,omitempty"`
-}
-
-type configContext struct {
-	Context contextData `yaml:"context,omitempty"`
-	Name    string      `yaml:"name,omitempty"`
-}
-
-type contextData struct {
-	Cluster string `yaml:"cluster,omitempty"`
-	User    string `yaml:"user,omitempty"`
-}
-
-type configUser struct {
-	Name string   `yaml:"name,omitempty"`
-	User userData `yaml:"user,omitempty"`
-}
-
-type userData struct {
-	Token                 string       `yaml:"token,omitempty"`
-	Username              string       `yaml:"username,omitempty"`
-	Password              string       `yaml:"password,omitempty"`
-	ClientCertificateData string       `yaml:"client-certificate-data,omitempty"`
-	ClientKeyData         string       `yaml:"client-key-data,omitempty"`
-	AuthProvider          authProvider `yaml:"auth-provider,omitempty"`
-}
-
-type authProvider struct {
-	ProviderConfig providerConfig `yaml:"config,omitempty"`
-	Name           string         `yaml:"name,omitempty"`
-}
-
-type providerConfig struct {
-	AccessToken string `yaml:"access-token,omitempty"`
-	Expiry      string `yaml:"expiry,omitempty"`
 }
 
 //CreateGKEClusterFromModel creates ClusterModel struct from model
