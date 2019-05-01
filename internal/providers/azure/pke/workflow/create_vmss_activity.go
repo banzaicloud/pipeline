@@ -238,7 +238,7 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 					OsDisk: &compute.VirtualMachineScaleSetOSDisk{
 						CreateOption: compute.DiskCreateOptionTypesFromImage,
 						ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
-							StorageAccountType: compute.StorageAccountTypesStandardLRS,
+							StorageAccountType: compute.StorageAccountTypesStandardSSDLRS,
 						},
 						Caching: compute.CachingTypesReadWrite,
 						OsType:  compute.Linux,
