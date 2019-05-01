@@ -17,6 +17,7 @@ package cluster
 import (
 	"fmt"
 
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
@@ -81,6 +82,7 @@ type autoscalingInfo struct {
 	Azure             azureInfo         `json:"azure"`
 	AutoDiscovery     autoDiscovery     `json:"autoDiscovery"`
 	SslCertPath       *string           `json:"sslCertPath,omitempty"`
+	SslCertHostPath   *string           `json:"sslCertHostPath,omitempty"`
 	Affinity          v1.Affinity       `json:"affinity,omitempty"`
 	Tolerations       []v1.Toleration   `json:"tolerations,omitempty"`
 }
@@ -149,16 +151,17 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 			}
 		}
 	case pkgCluster.PKE:
-		pke, ok := cluster.(*commoncluster.AzurePkeCluster)
+		pkeCluster, ok := cluster.(*commoncluster.AzurePkeCluster)
 		if !ok {
 			return nil, errors.New("could not cast Azure/PKE cluster to AzurePkeCluster")
 		}
 
-		nodePools := pke.GetNodePools()
+		nodePools := pkeCluster.GetNodePools()
 		for _, nodePool := range nodePools {
 			if nodePool.Autoscaling {
+				vmssName := pke.GetVMSSName(pkeCluster.GetName(), nodePool.Name)
 				nodeGroups = append(nodeGroups, nodeGroup{
-					Name:    nodePool.Name, // TODO: this must be the name of the vmss that corresponds to the node pool
+					Name:    vmssName,
 					MinSize: nodePool.MinCount,
 					MaxSize: nodePool.MaxCount,
 				})
@@ -271,6 +274,8 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		if len(vmType) > 0 {
 			autoscalingInfo.Azure.VMType = vmType
 		}
+		sslCertHostPath := "/etc/kubernetes/pki/ca.crt"
+		autoscalingInfo.SslCertHostPath = &sslCertHostPath
 	}
 
 	return autoscalingInfo
