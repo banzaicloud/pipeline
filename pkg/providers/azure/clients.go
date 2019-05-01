@@ -149,6 +149,20 @@ func (cc *CloudConnection) GetGroupsClient() *GroupsClient {
 	}
 }
 
+// LoadBalancersClient extends network.LoadBalancersClient
+type LoadBalancersClient struct {
+	network.LoadBalancersClient
+}
+
+// GetLoadBalancersClient returns a LoadBalancersClient instance
+func (cc *CloudConnection) GetLoadBalancersClient() *LoadBalancersClient {
+	return &LoadBalancersClient{
+		network.LoadBalancersClient{
+			BaseClient: *cc.getNetworkBaseClient(),
+		},
+	}
+}
+
 // ManagedClustersClient extends containerservice.ManagedClustersClient
 type ManagedClustersClient struct {
 	containerservice.ManagedClustersClient
@@ -177,6 +191,20 @@ func (cc *CloudConnection) GetProvidersClient() *ProvidersClient {
 	}
 }
 
+// PublicIPAddressesClient extends network.PublicIPAddressesClient
+type PublicIPAddressesClient struct {
+	network.PublicIPAddressesClient
+}
+
+// GetPublicIPAddressesClient returns a PublicIPAddressesClient instance
+func (cc *CloudConnection) GetPublicIPAddressesClient() *PublicIPAddressesClient {
+	return &PublicIPAddressesClient{
+		network.PublicIPAddressesClient{
+			BaseClient: *cc.getNetworkBaseClient(),
+		},
+	}
+}
+
 // RoleAssignmentsClient extends authorization.RoleAssignmentsClient
 type RoleAssignmentsClient struct {
 	authorization.RoleAssignmentsClient
@@ -201,6 +229,34 @@ func (cc *CloudConnection) GetRoleDefinitionsClient() *RoleDefinitionsClient {
 	return &RoleDefinitionsClient{
 		authorization.RoleDefinitionsClient{
 			BaseClient: *cc.getAuthorizationBaseClient(),
+		},
+	}
+}
+
+// RouteTablesClient extends network.RouteTablesClient
+type RouteTablesClient struct {
+	network.RouteTablesClient
+}
+
+// GetRouteTablesClient returns a RouteTablesClient instance
+func (cc *CloudConnection) GetRouteTablesClient() *RouteTablesClient {
+	return &RouteTablesClient{
+		network.RouteTablesClient{
+			BaseClient: *cc.getNetworkBaseClient(),
+		},
+	}
+}
+
+// SecurityGroupsClient extends network.SecurityGroupsClient
+type SecurityGroupsClient struct {
+	network.SecurityGroupsClient
+}
+
+// GetSecurityGroupsClient returns a SecurityGroupsClient instance
+func (cc *CloudConnection) GetSecurityGroupsClient() *SecurityGroupsClient {
+	return &SecurityGroupsClient{
+		network.SecurityGroupsClient{
+			BaseClient: *cc.getNetworkBaseClient(),
 		},
 	}
 }
@@ -242,6 +298,20 @@ type VirtualMachinesClient struct {
 func (cc *CloudConnection) GetVirtualMachinesClient() *VirtualMachinesClient {
 	return &VirtualMachinesClient{
 		compute.VirtualMachinesClient{
+			BaseClient: *cc.getComputeBaseClient(),
+		},
+	}
+}
+
+// VirtualMachineScaleSetsClient extends compute.VirtualMachineScaleSetsClient
+type VirtualMachineScaleSetsClient struct {
+	compute.VirtualMachineScaleSetsClient
+}
+
+// GetVirtualMachineScaleSetsClient returns a VirtualMachineScaleSetsClient instance
+func (cc *CloudConnection) GetVirtualMachineScaleSetsClient() *VirtualMachineScaleSetsClient {
+	return &VirtualMachineScaleSetsClient{
+		compute.VirtualMachineScaleSetsClient{
 			BaseClient: *cc.getComputeBaseClient(),
 		},
 	}

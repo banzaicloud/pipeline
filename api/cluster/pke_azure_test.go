@@ -17,6 +17,7 @@ package api
 import (
 	"testing"
 
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
@@ -91,7 +92,8 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			out: driver.AzurePKEClusterCreationParams{
 				OrganizationID: orgID,
 				CreatedBy:      userID,
-				NodePools:      make([]driver.NodePool, 0),
+				Features:       []intCluster.Feature{},
+				NodePools:      []driver.NodePool{},
 			},
 		},
 		{
@@ -118,6 +120,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			},
 			out: driver.AzurePKEClusterCreationParams{
 				CreatedBy: userID,
+				Features:  []intCluster.Feature{},
 				Kubernetes: pke.Kubernetes{
 					Version: Version,
 					RBAC:    RBAC,
