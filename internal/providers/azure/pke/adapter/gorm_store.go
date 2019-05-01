@@ -16,22 +16,21 @@ package adapter
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	GORMAzurePKEClustersTableName  = "azure_pke_clusters"
 	GORMAzurePKENodePoolsTableName = "azure_pke_node_pools"
-	GORMLabelSeparator             = ","
-	GORMLabelKVSeparator           = ":"
 	GORMRoleSeparator              = ","
 	GORMZoneSeparator              = ","
 )
@@ -54,7 +53,6 @@ type gormAzurePKENodePoolModel struct {
 	CreatedBy    uint
 	DesiredCount uint
 	InstanceType string
-	Labels       string
 	Max          uint
 	Min          uint
 	Name         string
@@ -73,6 +71,9 @@ type gormAzurePKEClusterModel struct {
 	ResourceGroupName      string
 	VirtualNetworkLocation string
 	VirtualNetworkName     string
+
+	ActiveWorkflowID  string
+	KubernetesVersion string
 
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID"`
@@ -102,6 +103,13 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.ScaleOptions.Excludes = deserializeExcludes(model.ScaleOptions.Excludes)
 	cl.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
 	cl.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
+
+	cl.RbacEnabled = model.RbacEnabled
+	cl.Monitoring = model.Monitoring
+	cl.Logging = model.Logging
+	cl.ServiceMesh = model.ServiceMesh
+	cl.SecurityScan = model.SecurityScan
+	cl.TtlMinutes = model.TtlMinutes
 }
 
 func deserializeExcludes(excludes string) []string {
@@ -109,28 +117,6 @@ func deserializeExcludes(excludes string) []string {
 		return nil
 	}
 	return strings.Split(excludes, cluster.InstanceTypeSeparator)
-}
-
-func serializeLabels(labels map[string]string) string {
-	var b strings.Builder
-	for k, v := range labels {
-		if b.Len() != 0 {
-			b.WriteString(GORMLabelSeparator)
-		}
-		b.WriteString(k)
-		b.WriteString(GORMLabelKVSeparator)
-		b.WriteString(v)
-	}
-	return b.String()
-}
-
-func deserializeLabels(labels string) map[string]string {
-	res := make(map[string]string)
-	for _, l := range strings.Split(labels, GORMLabelSeparator) {
-		kv := strings.Split(l, GORMLabelKVSeparator)
-		res[kv[0]] = kv[1]
-	}
-	return res
 }
 
 func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) {
@@ -145,7 +131,6 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 		cluster.NodePools[i].CreatedBy = np.CreatedBy
 		cluster.NodePools[i].DesiredCount = np.DesiredCount
 		cluster.NodePools[i].InstanceType = np.InstanceType
-		cluster.NodePools[i].Labels = deserializeLabels(np.Labels)
 		cluster.NodePools[i].Max = np.Max
 		cluster.NodePools[i].Min = np.Min
 		cluster.NodePools[i].Name = np.Name
@@ -156,6 +141,9 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 
 	cluster.VirtualNetwork.Name = model.VirtualNetworkName
 	cluster.VirtualNetwork.Location = model.VirtualNetworkLocation
+
+	cluster.KubernetesVersion = model.KubernetesVersion
+	cluster.ActiveWorkflowID = model.ActiveWorkflowID
 }
 
 func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAzureCluster, err error) {
@@ -165,7 +153,6 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		nodePools[i].CreatedBy = np.CreatedBy
 		nodePools[i].DesiredCount = np.DesiredCount
 		nodePools[i].InstanceType = np.InstanceType
-		nodePools[i].Labels = serializeLabels(np.Labels)
 		nodePools[i].Max = np.Max
 		nodePools[i].Min = np.Min
 		nodePools[i].Name = np.Name
@@ -173,17 +160,19 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		nodePools[i].SubnetName = np.Subnet.Name
 		nodePools[i].Zones = strings.Join(np.Zones, GORMZoneSeparator)
 	}
+
 	model := gormAzurePKEClusterModel{
 		Cluster: cluster.ClusterModel{
 			CreatedBy:      params.CreatedBy,
 			Name:           params.Name,
 			Location:       params.Location,
-			Cloud:          providers.Azure,
-			Distribution:   pke.PKEOnAzure,
+			Cloud:          pkgCluster.Azure,
+			Distribution:   pkgCluster.PKE,
 			OrganizationID: params.OrganizationID,
 			SecretID:       params.SecretID,
 			SSHSecretID:    params.SSHSecretID,
 			Status:         pkgCluster.Creating,
+			StatusMessage:  pkgCluster.CreatingMessage,
 			RbacEnabled:    params.RBAC,
 			ScaleOptions: model.ScaleOptions{
 				Enabled:             params.ScaleOptions.Enabled,
@@ -195,23 +184,54 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 				KeepDesiredCapacity: params.ScaleOptions.KeepDesiredCapacity,
 			},
 		},
+		KubernetesVersion:      params.KubernetesVersion,
 		ResourceGroupName:      params.ResourceGroupName,
 		VirtualNetworkLocation: params.Location,
 		VirtualNetworkName:     params.VirtualNetworkName,
 		NodePools:              nodePools,
 	}
-	if err = emperror.Wrap(s.db.Preload("Cluster").Create(&model).Error, "failed to create cluster model"); err != nil {
+	{
+		// Adapting to legacy format. TODO: Please remove this as soon as possible.
+		for _, f := range params.Features {
+			switch f.Kind {
+			case "InstallLogging":
+				model.Cluster.Logging = true
+			case "InstallMonitoring":
+				model.Cluster.Monitoring = true
+			case "InstallAnchoreImageValidator":
+				model.Cluster.SecurityScan = true
+			case "InstallServiceMesh":
+				model.Cluster.ServiceMesh = true
+			}
+		}
+	}
+	if err = emperror.Wrap(s.db.Preload("Cluster").Preload("NodePools").Create(&model).Error, "failed to create cluster model"); err != nil {
 		return
 	}
 	fillClusterFromAzurePKEClusterModel(&c, model)
 	return
 }
 
+func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+	if err := s.db.Where(model).First(&model).Error; err != nil {
+		return emperror.Wrap(err, "failed to load model from database")
+	}
+
+	return emperror.Wrap(s.db.Delete(model).Error, "failed to soft-delete model from database")
+}
+
 func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, err error) {
 	model := gormAzurePKEClusterModel{
 		ClusterID: clusterID,
 	}
-	if err = emperror.Wrap(s.db.Preload("Cluster").Where(&model).First(&model).Error, "failed to load model from database"); err != nil {
+	if err = emperror.Wrap(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model).Error, "failed to load model from database"); err != nil {
 		return
 	}
 	fillClusterFromAzurePKEClusterModel(&cluster, model)
@@ -253,4 +273,104 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 	}
 
 	return nil
+}
+
+func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
+	model := gormAzurePKEClusterModel{
+		ClusterID: clusterID,
+	}
+	return emperror.Wrap(s.db.Model(&model).Update("ActiveWorkflowID", workflowID).Error, "failed to update PKE-on-Azure cluster model")
+}
+
+func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+
+	fields := map[string]interface{}{
+		"ConfigSecretID": secretID,
+	}
+
+	return emperror.Wrap(s.db.Model(&model).Updates(fields).Error, "failed to update cluster model")
+}
+
+func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+
+	fields := map[string]interface{}{
+		"SSHSecretID": secretID,
+	}
+
+	return emperror.Wrap(s.db.Model(&model).Updates(fields).Error, "failed to update cluster model")
+}
+
+func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, error) {
+	if clusterID == 0 {
+		return "", errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+	if err := emperror.Wrap(s.db.Where(&model).First(&model).Error, "failed to load cluster model"); err != nil {
+		return "", err
+	}
+	return model.ConfigSecretID, nil
+}
+
+func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, state bool) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+
+	model := cluster.ClusterModel{
+		ID: clusterID,
+	}
+
+	features := map[string]bool{
+		"SecurityScan": true,
+		"Logging":      true,
+		"Monitoring":   true,
+		"ServiceMesh":  true,
+	}
+
+	if !features[feature] {
+		return fmt.Errorf("unknown feature: %q", feature)
+	}
+
+	fields := map[string]interface{}{
+		feature: state,
+	}
+
+	return emperror.Wrapf(s.db.Model(&model).Updates(fields).Error, "failed to update %q feature state", feature)
+}
+
+// Migrate executes the table migrations for the provider.
+func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+	tables := []interface{}{
+		&gormAzurePKENodePoolModel{},
+		&gormAzurePKEClusterModel{},
+	}
+
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
+	}
+
+	logger.WithFields(logrus.Fields{
+		"provider":    pke.PKEOnAzure,
+		"table_names": strings.TrimSpace(tableNames),
+	}).Info("migrating provider tables")
+
+	return db.AutoMigrate(tables...).Error
 }
