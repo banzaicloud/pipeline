@@ -84,7 +84,7 @@ func (a DeleteLoadBalancerActivity) Execute(ctx context.Context, input DeleteLoa
 		return emperror.WrapWith(err, "failed to get load balancer details", keyvals...)
 	}
 
-	if !hasOwnedTag(input.ClusterName, to.StringMap(lb.Tags)) {
+	if !HasOwnedTag(input.ClusterName, to.StringMap(lb.Tags)) {
 		logger.Info("skip deleting load balancer as it's not owned by cluster")
 		return
 	}

@@ -83,7 +83,7 @@ func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRoute
 		return emperror.WrapWith(err, "failed to get route table details", keyvals...)
 	}
 
-	if !hasOwnedTag(input.ClusterName, to.StringMap(rt.Tags)) {
+	if !HasOwnedTag(input.ClusterName, to.StringMap(rt.Tags)) {
 		logger.Info("skip deleting route table as it's not owned by cluster")
 		return
 	}

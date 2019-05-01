@@ -83,11 +83,6 @@ func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicI
 		return emperror.WrapWith(err, "failed to get public ip details", keyvals...)
 	}
 
-	if !hasOwnedTag(input.ClusterName, to.StringMap(pip.Tags)) {
-		logger.Info("skip deleting public ip as it's not owned by cluster")
-		return
-	}
-
 	pipProvisioningState := network.ProvisioningState(to.String(pip.ProvisioningState))
 	if pipProvisioningState == network.Deleting || pipProvisioningState == network.Updating {
 		return fmt.Errorf("can not delete public ip in %q provisioning state", pipProvisioningState)

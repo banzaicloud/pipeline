@@ -83,7 +83,7 @@ func (a DeleteNSGActivity) Execute(ctx context.Context, input DeleteNSGActivityI
 		return emperror.WrapWith(err, "failed to get network security group details", keyvals...)
 	}
 
-	if !hasOwnedTag(input.ClusterName, to.StringMap(rt.Tags)) {
+	if !HasOwnedTag(input.ClusterName, to.StringMap(rt.Tags)) {
 		logger.Info("skip deleting route table as it's not owned by cluster")
 		return
 	}

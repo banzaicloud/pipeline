@@ -83,7 +83,7 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 		return emperror.WrapWith(err, "failed to get virtual network details", keyvals...)
 	}
 
-	if !hasOwnedTag(input.ClusterName, to.StringMap(vnet.Tags)) {
+	if !HasOwnedTag(input.ClusterName, to.StringMap(vnet.Tags)) {
 		logger.Info("skip deleting virtual network as it's not owned by cluster")
 		return
 	}

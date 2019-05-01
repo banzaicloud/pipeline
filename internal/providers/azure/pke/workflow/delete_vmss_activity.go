@@ -83,7 +83,7 @@ func (a DeleteVMSSActivity) Execute(ctx context.Context, input DeleteVMSSActivit
 		return emperror.WrapWith(err, "failed to get virtual machine scale set details", keyvals...)
 	}
 
-	if !hasOwnedTag(input.ClusterName, to.StringMap(vmss.Tags)) {
+	if !HasOwnedTag(input.ClusterName, to.StringMap(vmss.Tags)) {
 		logger.Info("skip deleting virtual machine scale set as it's not owned by cluster")
 		return
 	}
