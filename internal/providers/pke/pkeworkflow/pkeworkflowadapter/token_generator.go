@@ -19,17 +19,17 @@ type tokenHandler interface {
 }
 
 // ClusterManagerAdapter provides an adapter for pkeworkflow.Clusters.
-type tokenGenerator struct {
+type TokenGenerator struct {
 	tokenHandler tokenHandler
 }
 
 // NewClusterManagerAdapter creates a new ClusterManagerAdapter.
-func NewTokenGenerator(tokenHandler tokenHandler) *tokenGenerator {
-	return &tokenGenerator{
+func NewTokenGenerator(tokenHandler tokenHandler) *TokenGenerator {
+	return &TokenGenerator{
 		tokenHandler: tokenHandler,
 	}
 }
 
-func (g *tokenGenerator) GenerateClusterToken(orgID, clusterID uint) (string, string, error) {
+func (g *TokenGenerator) GenerateClusterToken(orgID, clusterID uint) (string, string, error) {
 	return g.tokenHandler.GenerateClusterToken(orgID, clusterID)
 }
