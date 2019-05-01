@@ -51,8 +51,25 @@ type NodePool struct {
 type PKEOnAzureCluster struct {
 	intCluster.ClusterBase
 
-	Location       string
-	NodePools      []NodePool
-	ResourceGroup  ResourceGroup
-	VirtualNetwork VirtualNetwork
+	Location         string
+	NodePools        []NodePool
+	ResourceGroup    ResourceGroup
+	VirtualNetwork   VirtualNetwork
+	ActiveWorkflowID string
+
+	RbacEnabled       bool
+	KubernetesVersion string
+	Monitoring        bool
+	Logging           bool
+	ServiceMesh       bool
+	SecurityScan      bool
+	TtlMinutes        uint
+}
+
+func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
+	return c.ActiveWorkflowID != ""
+}
+
+func GetVMSSName(clusterName, nodePoolName string) string {
+	return clusterName + "-" + nodePoolName
 }
