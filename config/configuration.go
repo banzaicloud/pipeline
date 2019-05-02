@@ -209,6 +209,7 @@ func init() {
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
 	viper.SetDefault("database.host", "localhost")
+	viper.SetDefault("database.tls", "")
 	viper.SetDefault("database.user", "kellyslater")
 	viper.SetDefault("database.password", "pipemaster123!")
 	viper.SetDefault("database.dbname", "pipelinedb")

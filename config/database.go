@@ -54,9 +54,10 @@ func DB() *gorm.DB {
 // NewDBConfig returns a new DB configuration struct.
 func NewDBConfig() database.Config {
 	return database.Config{
-		Dialect:   viper.GetInt("database.dialect"),
+		Dialect:   viper.GetString("database.dialect"),
 		Host:      viper.GetString("database.host"),
 		Port:      viper.GetInt("database.port"),
+		TLS:       viper.GetString("database.tls"),
 		Role:      viper.GetString("database.role"),
 		User:      viper.GetString("database.user"),
 		Pass:      viper.GetString("database.password"),

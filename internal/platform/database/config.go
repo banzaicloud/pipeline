@@ -24,6 +24,7 @@ type Config struct {
 	User    string
 	Pass    string
 	Name    string
+	TLS     string
 
 	Role string
 

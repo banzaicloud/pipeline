@@ -22,6 +22,7 @@ signupRedirectPath = "http://localhost:4200/ui"
 dialect = "mysql"
 host = "localhost"
 port = 3306
+tls  = "false"
 user = "sparky"
 role = ""
 password = "sparky123"
