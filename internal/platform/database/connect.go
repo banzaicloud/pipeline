@@ -30,10 +30,16 @@ func Connect(c Config) (*gorm.DB, error) {
 			"parseTime": "True",
 			"loc":       "Local",
 		}
+		if c.TLS != "" {
+			c.Params["tls"] = c.TLS
+		}
 	case "postgres":
 		c.Params = map[string]string{
 			"client_encoding": "utf8",
 			// "loc":             "Local", TODO timezone settings
+		}
+		if c.TLS != "" {
+			c.Params["sslmode"] = c.TLS
 		}
 	default:
 		return nil, errors.Errorf("unsupported db dialect: %s", c.Dialect)
