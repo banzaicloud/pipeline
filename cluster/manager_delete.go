@@ -263,12 +263,8 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 
 	logger.Info("deleting cluster")
 
-	err := cluster.SetStatus(pkgCluster.Deleting, pkgCluster.DeletingMessage)
-	if err != nil {
-		return emperror.With(
-			emperror.Wrap(err, "cluster status update failed"),
-			"cluster_id", cluster.GetID(),
-		)
+	if err := cluster.SetStatus(pkgCluster.Deleting, pkgCluster.DeletingMessage); err != nil {
+		return emperror.WrapWith(err, "cluster status update failed", "cluster_id", cluster.GetID())
 	}
 
 	/*
