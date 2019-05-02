@@ -18,11 +18,12 @@ import "github.com/pkg/errors"
 
 // Config holds information necessary for connecting to a database.
 type Config struct {
-	Host string
-	Port int
-	User string
-	Pass string
-	Name string
+	Dialect string
+	Host    string
+	Port    int
+	User    string
+	Pass    string
+	Name    string
 
 	Role string
 
@@ -33,6 +34,10 @@ type Config struct {
 
 // Validate checks that the configuration is valid.
 func (c Config) Validate() error {
+	if c.Dialect == "" {
+		return errors.New("database dialect is required")
+	}
+
 	if c.Host == "" {
 		return errors.New("database host is required")
 	}

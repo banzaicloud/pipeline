@@ -18,21 +18,33 @@ import (
 	"fmt"
 
 	database "github.com/banzaicloud/bank-vaults/pkg/db"
+	"github.com/pkg/errors"
 )
 
 // GetDSN returns a DSN string from a config.
 func GetDSN(c Config) (string, error) {
-	dsn := fmt.Sprintf("@tcp(%s:%d)/%s", c.Host, c.Port, c.Name)
+	var dsn string
 
-	if c.Role != "" {
-		var err error
+	switch c.Dialect {
+	case "mysql":
+		dsn = fmt.Sprintf("@tcp(%s:%d)/%s", c.Host, c.Port, c.Name)
 
-		dsn, err = database.DynamicSecretDataSource("mysql", c.Role+dsn)
-		if err != nil {
-			return "", err
+		if c.Role != "" {
+			var err error
+
+			dsn, err = database.DynamicSecretDataSource("mysql", c.Role+dsn)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			dsn = fmt.Sprintf("%s:%s%s", c.User, c.Pass, dsn)
 		}
-	} else {
-		dsn = fmt.Sprintf("%s:%s%s", c.User, c.Pass, dsn)
+
+	case "postgres":
+		dsn = fmt.Sprintf("postgres://%s:%s@%s:%d/%s", c.User, c.Pass, c.Host, c.Port, c.Name)
+
+	default:
+		return "", errors.Errorf("unsupported db dialect: %s", c.Dialect)
 	}
 
 	var params string
