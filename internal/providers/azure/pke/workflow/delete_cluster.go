@@ -15,7 +15,11 @@
 package workflow
 
 import (
+	"fmt"
 	"time"
+
+	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 
 	"go.uber.org/cadence/workflow"
 )
@@ -53,6 +57,13 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	}
 	ctx = workflow.WithChildOptions(workflow.WithActivityOptions(ctx, ao), cwo)
 
+	// TODO: start Prometheus timer
+
+	// delete k8s resources
+
+	// TODO: clean up DNS records
+
+	// delete infra
 	{
 		infraInput := DeleteAzureInfrastructureWorkflowInput{
 			OrganizationID:       input.OrganizationID,
@@ -73,6 +84,20 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 	}
 
+	// TODO: delete KubeProxy
+
+	// delete unused secrets
+	{
+		activityInput := intClusterWorkflow.DeleteUnusedClusterSecretsActivityInput{
+			OrganizationID: input.OrganizationID,
+			ClusterUID:     input.ClusterUID,
+		}
+		if err := workflow.ExecuteActivity(ctx, intClusterWorkflow.DeleteUnusedClusterSecretsActivityName, activityInput).Get(ctx, nil); err != nil {
+			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err))
+		}
+	}
+
+	// delete cluster from data store
 	{
 		activityInput := DeleteClusterFromStoreActivityInput{
 			ClusterID: input.ClusterID,
@@ -83,6 +108,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			return err
 		}
 	}
+
+	// TODO: clean state store?
+
+	// TODO: cluster deleted event
+
+	// TODO: stop Prometheus timer
 
 	return nil
 }

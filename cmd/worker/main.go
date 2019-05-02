@@ -38,6 +38,7 @@ import (
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
+	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -173,6 +174,9 @@ func main() {
 
 		updateClusterStatusActivity := cluster.NewUpdateClusterStatusActivity(clusterManager)
 		activity.RegisterWithOptions(updateClusterStatusActivity.Execute, activity.RegisterOptions{Name: cluster.UpdateClusterStatusActivityName})
+
+		deleteUnusedClusterSecretsActivity := intClusterWorkflow.MakeDeleteUnusedClusterSecretsActivity(secret.Store)
+		activity.RegisterWithOptions(deleteUnusedClusterSecretsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteUnusedClusterSecretsActivityName})
 
 		var closeCh = make(chan struct{})
 
