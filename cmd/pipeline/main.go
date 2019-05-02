@@ -253,6 +253,7 @@ func main() {
 	clusterDeleters := api.ClusterDeleters{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterDeleter(
 			log,
+			secret.Store,
 			azurePKEAdapter.NewGORMAzurePKEClusterStore(db),
 			workflowClient,
 		),
