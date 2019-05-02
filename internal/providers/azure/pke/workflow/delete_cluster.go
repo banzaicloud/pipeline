@@ -27,6 +27,8 @@ type DeleteClusterWorkflowInput struct {
 	SecretID             string
 	ClusterID            uint
 	ClusterName          string
+	ClusterUID           string
+	K8sConfig            []byte
 	ResourceGroupName    string
 	LoadBalancerName     string
 	PublicIPAddressNames []string
@@ -34,6 +36,8 @@ type DeleteClusterWorkflowInput struct {
 	ScaleSetNames        []string
 	SecurityGroupNames   []string
 	VirtualNetworkName   string
+
+	Forced bool
 }
 
 func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
