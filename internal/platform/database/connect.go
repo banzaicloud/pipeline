@@ -16,15 +16,27 @@ package database
 
 import (
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql" // blank import is used here for simplicity
+	_ "github.com/jinzhu/gorm/dialects/mysql"    // blank import is used here for simplicity
+	_ "github.com/jinzhu/gorm/dialects/postgres" // blank import is used here for sql driver inclusion
+	"github.com/pkg/errors"
 )
 
 func Connect(c Config) (*gorm.DB, error) {
 	// Custom parameters
-	c.Params = map[string]string{
-		"charset":   "utf8",
-		"parseTime": "True",
-		"loc":       "Local",
+	switch c.Dialect {
+	case "mysql":
+		c.Params = map[string]string{
+			"charset":   "utf8",
+			"parseTime": "True",
+			"loc":       "Local",
+		}
+	case "postgres":
+		c.Params = map[string]string{
+			"client_encoding": "utf8",
+			// "loc":             "Local", TODO timezone settings
+		}
+	default:
+		return nil, errors.Errorf("unsupported db dialect: %s", c.Dialect)
 	}
 
 	dsn, err := GetDSN(c)
@@ -32,7 +44,7 @@ func Connect(c Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db, err := gorm.Open("mysql", dsn)
+	db, err := gorm.Open(c.Dialect, dsn)
 	if err != nil {
 		return nil, err
 	}
