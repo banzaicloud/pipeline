@@ -44,18 +44,14 @@ func (a SetClusterStatusActivity) Execute(ctx context.Context, input SetClusterS
 	return a.store.SetStatus(input.ClusterID, input.Status, input.StatusMessage)
 }
 
-func setClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) error {
+func setClusterStatus(ctx workflow.Context, clusterID uint, status, statusMessage string) error {
 	return workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, SetClusterStatusActivityInput{
 		ClusterID:     clusterID,
-		Status:        pkgCluster.Error,
-		StatusMessage: err.Error(),
+		Status:        status,
+		StatusMessage: statusMessage,
 	}).Get(ctx, nil)
 }
 
-func setClusterCreatingStatus(ctx workflow.Context, clusterID uint, message string) {
-	workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, SetClusterStatusActivityInput{
-		ClusterID:     clusterID,
-		Status:        pkgCluster.Creating,
-		StatusMessage: message,
-	}).Get(ctx, nil)
+func setClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) error {
+	return setClusterStatus(ctx, clusterID, pkgCluster.Error, err.Error())
 }
