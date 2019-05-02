@@ -24,7 +24,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.4.4"
+const pkeVersion = "0.4.6"
 
 func getDefaultImageID(region, kubernetesVersion string) string {
 	switch kubernetesVersion {
