@@ -95,7 +95,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
-	setClusterCreatingStatus(ctx, input.ClusterID, "waiting for Kubernetes master")
+	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master")
 
 	signalName := "master-ready"
 	signalChan := workflow.GetSignalChannel(ctx, signalName)
