@@ -49,7 +49,7 @@ func MakeDeletePublicIPActivity(azureClientFactory *AzureClientFactory) DeletePu
 	}
 }
 
-func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicIPActivityInput) (err error) {
+func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicIPActivityInput) error {
 	logger := activity.GetLogger(ctx).Sugar().With(
 		"organization", input.OrganizationID,
 		"cluster", input.ClusterName,
@@ -62,45 +62,43 @@ func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicI
 		"publicIPAddress", input.PublicIPAddressName,
 	}
 
-	logger.Info("delete public ip")
+	logger.Info("delete public IP")
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
-		return
+	if err != nil {
+		return emperror.Wrap(err, "failed to create cloud connection")
 	}
 
 	client := cc.GetPublicIPAddressesClient()
 
-	logger.Debug("get public ip details")
+	logger.Debug("get public IP details")
 
 	pip, err := client.Get(ctx, input.ResourceGroupName, input.PublicIPAddressName, "")
 	if err != nil {
 		if pip.StatusCode == http.StatusNotFound {
-			logger.Warn("public ip not found")
+			logger.Warn("public IP not found")
 			return nil
 		}
 
-		return emperror.WrapWith(err, "failed to get public ip details", keyvals...)
+		return emperror.WrapWith(err, "failed to get public IP details", keyvals...)
 	}
 
-	pipProvisioningState := network.ProvisioningState(to.String(pip.ProvisioningState))
-	if pipProvisioningState == network.Deleting || pipProvisioningState == network.Updating {
-		return fmt.Errorf("can not delete public ip in %q provisioning state", pipProvisioningState)
+	if ps := network.ProvisioningState(to.String(pip.ProvisioningState)); ps == network.Deleting || ps == network.Updating {
+		return fmt.Errorf("can not delete public IP in %q provisioning state", ps)
 	}
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.PublicIPAddressName)
-	if err = emperror.WrapWith(err, "sending request to delete public ip failed", keyvals...); err != nil {
-		return
+	if err != nil {
+		return emperror.WrapWith(err, "sending request to delete public IP failed", keyvals...)
 	}
 
-	logger.Debug("waiting for the completion of delete public ip operation")
+	logger.Debug("waiting for the completion of delete public IP operation")
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of delete public ip operation failed", keyvals...); err != nil {
-		return
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return emperror.WrapWith(err, "waiting for the completion of delete public IP operation failed", keyvals...)
 	}
 
-	logger.Debug("public ip deletion completed")
+	logger.Debug("public IP deletion completed")
 
-	return
+	return nil
 }
