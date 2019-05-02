@@ -26,6 +26,11 @@ type AKSCluster interface {
 	GetResourceGroupName() string
 }
 
+type AzurePKECluster interface {
+	Cluster
+	GetResourceGroup() string
+}
+
 // Cluster interface for cluster implementations
 type Cluster interface {
 	GetID() uint

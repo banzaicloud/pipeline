@@ -134,8 +134,12 @@ func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMo
 
 	var resourceGroup string
 	if s.cluster.GetCloud() == providers.Azure {
-		m := s.cluster.(api.AKSCluster)
-		resourceGroup = m.GetResourceGroupName()
+		if m, ok := s.cluster.(api.AKSCluster); ok {
+			resourceGroup = m.GetResourceGroupName()
+		}
+		if m, ok := s.cluster.(api.AzurePKECluster); ok {
+			resourceGroup = m.GetResourceGroup()
+		}
 	}
 
 	config, err := s.getChartConfig(ConfigRequest{
