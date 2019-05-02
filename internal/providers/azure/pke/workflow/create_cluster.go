@@ -62,16 +62,10 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		err := workflow.ExecuteActivity(ctx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
+			setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
-
-	signalName := "master-ready"
-	signalChan := workflow.GetSignalChannel(ctx, signalName)
-	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
-		c.Receive(ctx, nil)
-		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
-	})
 
 	infraInput := CreateAzureInfrastructureWorkflowInput{
 		OrganizationID:    input.OrganizationID,
@@ -101,6 +95,14 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
+	setClusterCreatingStatus(ctx, input.ClusterID, "waiting for Kubernetes master")
+
+	signalName := "master-ready"
+	signalChan := workflow.GetSignalChannel(ctx, signalName)
+	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
+		c.Receive(ctx, nil)
+		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
+	})
 	signalSelector.Select(ctx) // wait for signal
 
 	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{

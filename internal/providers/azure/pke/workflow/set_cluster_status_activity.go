@@ -51,3 +51,11 @@ func setClusterErrorStatus(ctx workflow.Context, clusterID uint, err error) {
 		StatusMessage: err.Error(),
 	}).Get(ctx, nil)
 }
+
+func setClusterCreatingStatus(ctx workflow.Context, clusterID uint, message string) {
+	workflow.ExecuteActivity(ctx, SetClusterStatusActivityName, SetClusterStatusActivityInput{
+		ClusterID:     clusterID,
+		Status:        pkgCluster.Creating,
+		StatusMessage: message,
+	}).Get(ctx, nil)
+}
