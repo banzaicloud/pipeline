@@ -34,6 +34,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+const labelFormatRegexp = "[^-A-Za-z0-9_.]"
+
 // GetDesiredLabelsForCluster returns desired set of labels for each node pool name, adding Banzaicloud prefixed labels like:
 // head node, ondemand labels + cloudinfo to user defined labels in specified nodePools map.
 // noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
@@ -75,8 +77,8 @@ func getNodePoolLabelSets(nodePoolLabels map[string]map[string]string) npls.Node
 	return desiredLabels
 }
 
-func normalizeValue(value string) string {
-	var re = regexp.MustCompile(`[^-A-Za-z0-9_.]`)
+func formatValue(value string) string {
+	var re = regexp.MustCompile(labelFormatRegexp)
 	norm := re.ReplaceAllString(value, "_")
 	return norm
 }
@@ -98,8 +100,8 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 	// copy user labels unless they are not reserved keys
 	for labelKey, labelValue := range nodePool.Labels {
 		if !IsReservedDomainKey(labelKey) {
-			nKey := normalizeValue(labelKey)
-			nValue := normalizeValue(labelValue)
+			nKey := formatValue(labelKey)
+			nValue := formatValue(labelValue)
 			desiredLabels[nKey] = nValue
 		}
 	}
@@ -118,8 +120,10 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 		}).Warn(errors.Wrap(err, "failed to get instance attributes from Cloud Info"))
 	} else {
 		for attrKey, attrValue := range machineDetails.Attributes {
-			cloudInfoAttrkey := common.CloudInfoLabelKeyPrefix + attrKey
-			desiredLabels[cloudInfoAttrkey] = attrValue
+			nKey := formatValue(attrKey)
+			cloudInfoAttrKey := common.CloudInfoLabelKeyPrefix + nKey
+			nValue := formatValue(attrValue)
+			desiredLabels[cloudInfoAttrKey] = nValue
 		}
 	}
 
