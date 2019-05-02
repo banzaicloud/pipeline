@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter/commoncluster"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
