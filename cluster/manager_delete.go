@@ -22,13 +22,10 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // DeleteCluster deletes a cluster.
@@ -101,53 +98,8 @@ func deleteResources(kubeConfig []byte, ns string, logger *logrus.Entry) error {
 
 // deleteServices deletes all services one by one from a namespace
 func deleteServices(kubeConfig []byte, ns string, logger *logrus.Entry) error {
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-	services, err := client.CoreV1().Services(ns).List(metav1.ListOptions{})
-	if err != nil {
-		return emperror.Wrap(err, "could not list services to delete")
-	}
-
-	for _, service := range services.Items {
-		switch service.Name {
-		case "kubernetes":
-			continue
-		}
-		err := retry(func() error {
-			logger.Infof("deleting kubernetes service %q", service.Name)
-			err := client.CoreV1().Services(ns).Delete(service.Name, &metav1.DeleteOptions{})
-			if err != nil {
-				return emperror.Wrapf(err, "failed to delete %q service", service.Name)
-			}
-			return nil
-		}, 3, 1)
-		if err != nil {
-			return err
-		}
-	}
-	err = retry(func() error {
-		services, err := client.CoreV1().Services(ns).List(metav1.ListOptions{})
-		if err != nil {
-			return emperror.Wrap(err, "could not list remaining services")
-		}
-		left := []string{}
-		for _, svc := range services.Items {
-			switch svc.Name {
-			case "kubernetes":
-				continue
-			default:
-				logger.Infof("service %q still %s", svc.Name, svc.Status)
-				left = append(left, svc.Name)
-			}
-		}
-		if len(left) > 0 {
-			return emperror.With(errors.Errorf("services remained after deletion: %v", left), "services", left)
-		}
-		return nil
-	}, 6, 30)
-	return err
+	deleter := intClusterK8s.MakeNamespaceServicesDeleter(logger)
+	return deleter.Delete(kubeConfig, ns)
 }
 
 // deleteDnsRecordsOwnedByCluster deletes DNS records owned by the cluster. These are the DNS records
