@@ -171,6 +171,12 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 			},
 		}
 	}
+	var nsgRef *compute.SubResource
+	if input.ScaleSet.NetworkSecurityGroupID != "" {
+		nsgRef = &compute.SubResource{
+			ID: to.StringPtr(input.ScaleSet.NetworkSecurityGroupID),
+		}
+	}
 	return compute.VirtualMachineScaleSet{
 		Identity: &compute.VirtualMachineScaleSetIdentity{
 			Type: compute.ResourceIdentityTypeSystemAssigned,
@@ -205,9 +211,7 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 										},
 									},
 								},
-								NetworkSecurityGroup: &compute.SubResource{
-									ID: to.StringPtr(input.ScaleSet.NetworkSecurityGroupID),
-								},
+								NetworkSecurityGroup: nsgRef,
 							},
 						},
 					},
