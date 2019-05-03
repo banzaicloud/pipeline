@@ -29,9 +29,9 @@ type NodePool struct {
 	CreatedAt  time.Time
 	CreatedBy  uint
 
-	ClusterID uint `gorm:"foreignkey:ClusterIDl;association_foreignkey:ClusterID;unique_index:idx_cluster_id_name"`
+	ClusterID uint `gorm:"foreignkey:ClusterIDl;association_foreignkey:ClusterID;unique_index:idx_pke_np_cluster_id_name"`
 
-	Name           string            `yaml:"name" gorm:"unique_index:idx_cluster_id_name"`
+	Name           string            `yaml:"name" gorm:"unique_index:idx_pke_np_cluster_id_name"`
 	Roles          Roles             `yaml:"roles" gorm:"type:varchar(255)"`
 	Hosts          Hosts             `yaml:"hosts" gorm:"foreignkey:NodePoolID"`
 	Provider       NodePoolProvider  `yaml:"provider"`

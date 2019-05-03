@@ -30,9 +30,9 @@ type ObjectStoreBucketModel struct {
 	Organization   auth.Organization `gorm:"foreignkey:OrganizationID"`
 	OrganizationID uint              `gorm:"index;not null"`
 
-	Name           string `gorm:"unique_index:idx_bucket_name"`
-	ResourceGroup  string `gorm:"unique_index:idx_bucket_name"`
-	StorageAccount string `gorm:"unique_index:idx_bucket_name"`
+	Name           string `gorm:"unique_index:idx_azure_bucket_name"`
+	ResourceGroup  string `gorm:"unique_index:idx_azure_bucket_name"`
+	StorageAccount string `gorm:"unique_index:idx_azure_bucket_name"`
 	Location       string
 
 	SecretRef       string

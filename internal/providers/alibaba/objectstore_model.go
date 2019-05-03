@@ -28,7 +28,7 @@ type ObjectStoreBucketModel struct {
 	ID           uint              `gorm:"primary_key"`
 	Organization auth.Organization `gorm:"foreignkey:OrgID"`
 	OrgID        uint              `gorm:"index;not null"`
-	Name         string            `gorm:"unique_index:idx_bucket_name"`
+	Name         string            `gorm:"unique_index:idx_alibaba_bucket_name"`
 	Region       string
 	SecretRef    string
 

@@ -67,14 +67,14 @@ type Question map[string]interface{}
 
 type SpotguideRepo struct {
 	ID               uint      `json:"id" gorm:"primary_key"`
-	OrganizationID   uint      `json:"organizationId" gorm:"unique_index:name_and_version"`
+	OrganizationID   uint      `json:"organizationId" gorm:"unique_index:udx_spotguide_name_and_version"`
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`
-	Name             string    `json:"name" gorm:"unique_index:name_and_version"`
+	Name             string    `json:"name" gorm:"unique_index:udx_spotguide_name_and_version"`
 	DisplayName      string    `json:"displayName" gorm:"-"`
-	Icon             []byte    `json:"-" gorm:"type:mediumblob"`
-	Readme           string    `json:"readme" gorm:"type:mediumtext"`
-	Version          string    `json:"version" gorm:"unique_index:name_and_version"`
+	Icon             []byte    `json:"-" gorm:"size:65536"`
+	Readme           string    `json:"readme" gorm:"type:text"`
+	Version          string    `json:"version" gorm:"unique_index:udx_spotguide_name_and_version"`
 	SpotguideYAMLRaw []byte    `json:"-" gorm:"type:text"`
 	SpotguideYAML    `gorm:"-"`
 }
