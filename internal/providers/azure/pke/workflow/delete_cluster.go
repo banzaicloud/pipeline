@@ -76,7 +76,21 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 	}
 
-	// TODO: clean up DNS records
+	// clean up DNS records
+	{
+		activityInput := intClusterWorkflow.DeleteClusterDNSRecordsActivityInput{
+			OrganizationID: input.OrganizationID,
+			ClusterUID:     input.ClusterUID,
+		}
+		if err := workflow.ExecuteActivity(ctx, intClusterWorkflow.DeleteClusterDNSRecordsActivityName, activityInput).Get(ctx, nil); err != nil {
+			if input.Forced {
+				logger.Errorw("deleting cluster DNS records failed", "error", err)
+			} else {
+				setClusterErrorStatus(ctx, input.ClusterID, err)
+				return err
+			}
+		}
+	}
 
 	// delete infra
 	{
