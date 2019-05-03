@@ -32,7 +32,7 @@ func GetDSN(c Config) (string, error) {
 		if c.Role != "" {
 			var err error
 
-			dsn, err = database.DynamicSecretDataSource("mysql", c.Role+dsn)
+			dsn, err = database.DynamicSecretDataSource(c.Dialect, c.Role+dsn)
 			if err != nil {
 				return "", err
 			}
@@ -41,7 +41,18 @@ func GetDSN(c Config) (string, error) {
 		}
 
 	case "postgres":
-		dsn = fmt.Sprintf("postgres://%s:%s@%s:%d/%s", c.User, c.Pass, c.Host, c.Port, c.Name)
+		dsn = fmt.Sprintf("@%s:%d/%s", c.Host, c.Port, c.Name)
+
+		if c.Role != "" {
+			var err error
+
+			dsn, err = database.DynamicSecretDataSource(c.Dialect, "postgresql://"+c.Role+dsn)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			dsn = fmt.Sprintf("postgresql://%s:%s%s", c.User, c.Pass, dsn)
+		}
 
 	default:
 		return "", errors.Errorf("unsupported db dialect: %s", c.Dialect)
