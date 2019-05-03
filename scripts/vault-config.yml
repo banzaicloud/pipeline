@@ -5,22 +5,22 @@ secrets:
     options:
       version: 2
 
-  - type: database
-    description: MySQL Database secret engine.
-    configuration:
-      config:
-        - name: my-mysql
-          plugin_name: "mysql-database-plugin"
-          connection_url: "{{username}}:{{password}}@tcp(db:3306)/"
-          allowed_roles: [pipeline]
-          username: "root"
-          password: "example"
-      roles:
-        - name: pipeline
-          db_name: my-mysql
-          creation_statements: "GRANT ALL ON *.* TO '{{name}}'@'%' IDENTIFIED BY '{{password}}';"
-          default_ttl: "10m"
-          max_ttl: "24h"
+  # - type: database
+  #   description: MySQL Database secret engine.
+  #   configuration:
+  #     config:
+  #       - name: my-mysql
+  #         plugin_name: "mysql-database-plugin"
+  #         connection_url: "{{username}}:{{password}}@tcp(db:3306)/"
+  #         allowed_roles: [pipeline]
+  #         username: "root"
+  #         password: "example"
+  #     roles:
+  #       - name: pipeline
+  #         db_name: my-mysql
+  #         creation_statements: "GRANT ALL ON *.* TO '{{name}}'@'%' IDENTIFIED BY '{{password}}';"
+  #         default_ttl: "10m"
+  #         max_ttl: "24h"
 
   - path: leaderelection
     type: kv

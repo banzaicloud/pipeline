@@ -1,7 +1,7 @@
 version: "3.1"
 
 services:
-    db:
+    mysql:
         image: mysql:5.7
         command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
         environment:
@@ -10,7 +10,7 @@ services:
             MYSQL_USER: sparky
             MYSQL_PASSWORD: sparky123
         volumes:
-            - ${PWD}/database/docker-init.sql:/docker-entrypoint-initdb.d/docker-init.sql
+            - ${PWD}/database/docker-init-mysql.sql:/docker-entrypoint-initdb.d/docker-init.sql
 
     adminer:
         image: adminer
@@ -25,7 +25,7 @@ services:
             - ./scripts/vault.hcl:/vault/config/vault.hcl
 
     vault-unsealer:
-        image: banzaicloud/bank-vaults:0.4.10
+        image: banzaicloud/bank-vaults:0.4.15-rc.13
         depends_on:
             - vault
         restart: on-failure
@@ -34,22 +34,18 @@ services:
             VAULT_ADDR: http://vault:8200
         volumes:
             - ./scripts/vault-config.yml:/vault-config.yml
-            - ./scripts/wait-for-it.sh:/wait-for-it.sh
 
     vault-configurer:
-        image: banzaicloud/bank-vaults:0.4.10
+        image: banzaicloud/bank-vaults:0.4.15-rc.13
         depends_on:
-            - db
             - vault
             - vault-unsealer
         restart: on-failure
-        entrypoint: "./wait-for-it.sh"
-        command: db:3306 -- bank-vaults configure --mode file --file-path /vault/keys
+        command: configure --mode file --file-path /vault/keys
         environment:
             VAULT_ADDR: http://vault:8200
         volumes:
             - ./scripts/vault-config.yml:/vault-config.yml
-            - ./scripts/wait-for-it.sh:/wait-for-it.sh
 
     vault-token-helper:
         image: alpine
@@ -62,8 +58,6 @@ services:
 
     cicd-server:
         image: banzaicloud/cicd:0.8.6
-        depends_on:
-            - db
         entrypoint:
             - /bin/cicd-server
         restart: on-failure
@@ -74,7 +68,7 @@ services:
             CICD_OPEN:                "true"
             CICD_ORGS:
             CICD_DATABASE_DRIVER:     mysql
-            CICD_DATABASE_DATASOURCE: root:example@tcp(db:3306)/drone?parseTime=true
+            CICD_DATABASE_DATASOURCE: sparky:sparky123@tcp(mysql:3306)/drone?parseTime=true
             CICD_SECRET:              "s3cr3t"
             CICD_REPO_CONFIG:         ".banzaicloud/pipeline.yaml"
 
@@ -106,7 +100,7 @@ services:
             RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
 
     dex:
-        image: banzaicloud/dex-shim:0.3.1
+        image: banzaicloud/dex-shim:0.3.4
         command: serve /dex.yml
         volumes:
             - ./config/dex.yml:/dex.yml
