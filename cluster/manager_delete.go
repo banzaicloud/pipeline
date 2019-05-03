@@ -18,8 +18,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
+	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
@@ -105,21 +105,12 @@ func deleteServices(kubeConfig []byte, ns string, logger *logrus.Entry) error {
 // deleteDnsRecordsOwnedByCluster deletes DNS records owned by the cluster. These are the DNS records
 // created for the public endpoints of the services hosted by the cluster.
 func deleteDnsRecordsOwnedByCluster(cluster CommonCluster) error {
-	dnsSvc, err := dns.GetExternalDnsServiceClient()
+	deleter, err := intClusterDNS.MakeDefaultRecordsDeleter()
 	if err != nil {
-		return emperror.Wrap(err, "getting external dns service client failed")
+		return emperror.Wrap(err, "failed to create default cluster DNS records deleter")
 	}
 
-	if dnsSvc == nil {
-		return nil
-	}
-
-	err = dnsSvc.DeleteDnsRecordsOwnedBy(cluster.GetUID(), cluster.GetOrganizationId())
-	if err != nil {
-		return emperror.Wrapf(err, "deleting DNS records owned by cluster failed")
-	}
-
-	return nil
+	return deleter.Delete(cluster.GetOrganizationId(), cluster.GetUID())
 }
 
 func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
