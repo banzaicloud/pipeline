@@ -19,7 +19,7 @@ services:
         ports:
             - "127.0.0.1:5432:5432"
         volumes:
-            - ./.docker/volumes/postgres:/var/lib/postgresql/data/pgdata/:z
+            - ./.docker/volumes/postgres:/var/lib/postgresql/data/pgdata/
             - ${PWD}/database/docker-init-postgres.sql:/docker-entrypoint-initdb.d/docker-init.sql
 
     adminer:
