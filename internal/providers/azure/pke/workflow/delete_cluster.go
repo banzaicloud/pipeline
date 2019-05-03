@@ -46,6 +46,8 @@ type DeleteClusterWorkflowInput struct {
 
 func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInput) error {
 
+	logger := workflow.GetLogger(ctx).Sugar()
+
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,
@@ -60,6 +62,19 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	// TODO: start Prometheus timer
 
 	// delete k8s resources
+	if len(input.K8sConfig) > 0 {
+		wfInput := intClusterWorkflow.DeleteK8sResourcesWorkflowInput{
+			K8sConfig: input.K8sConfig,
+		}
+		if err := workflow.ExecuteChildWorkflow(ctx, intClusterWorkflow.DeleteK8sResourcesWorkflowName, wfInput).Get(ctx, nil); err != nil {
+			if input.Forced {
+				logger.Errorw("deleting k8s resources failed", "error", err)
+			} else {
+				setClusterErrorStatus(ctx, input.ClusterID, err)
+				return err
+			}
+		}
+	}
 
 	// TODO: clean up DNS records
 
