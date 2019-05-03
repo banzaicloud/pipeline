@@ -63,7 +63,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **CreateCluster**
-> CreateClusterResponse202 CreateCluster(ctx, orgId, createClusterRequest)
+> CreateClusterResponse202 CreateCluster(ctx, orgId, body)
 Create cluster
 
 Create a new K8S cluster in the cloud
@@ -74,7 +74,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
   **orgId** | **int32**| Organization identification | 
-  **createClusterRequest** | [**CreateClusterRequest**](CreateClusterRequest.md)|  | 
+  **body** | **map[string]interface{}**|  | 
 
 ### Return type
 

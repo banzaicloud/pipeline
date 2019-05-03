@@ -188,7 +188,6 @@ pipeline:
               maxCount: 2
               minCount: 1
           nodeVersion: "1.10"
-          projectId: ""
       secretId: c8f9c9fc3835b9a3721165afea97ffb78e1375552ab112ed54aee30b29c962ae
       secretName: ""
     cluster_secret:
