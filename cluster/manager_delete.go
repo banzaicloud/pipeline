@@ -20,6 +20,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
+	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
@@ -88,53 +89,8 @@ func deleteAllResources(kubeConfig []byte, logger *logrus.Entry) error {
 
 // deleteUserNamespaces deletes all namespace in the context expect the protected ones
 func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-	namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-	if err != nil {
-		return emperror.Wrap(err, "could not list namespaces to delete")
-	}
-
-	for _, ns := range namespaces.Items {
-		switch ns.Name {
-		case "default", "kube-system", "kube-public":
-			continue
-		}
-		err := retry(func() error {
-			logger.Infof("deleting kubernetes namespace %q", ns.Name)
-			err := client.CoreV1().Namespaces().Delete(ns.Name, &metav1.DeleteOptions{})
-			if err != nil {
-				return emperror.Wrapf(err, "failed to delete %q namespace", ns.Name)
-			}
-			return nil
-		}, 3, 1)
-		if err != nil {
-			return err
-		}
-	}
-	err = retry(func() error {
-		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-		if err != nil {
-			return emperror.Wrap(err, "could not list remaining namespaces")
-		}
-		left := []string{}
-		for _, ns := range namespaces.Items {
-			switch ns.Name {
-			case "default", "kube-system", "kube-public":
-				continue
-			default:
-				logger.Infof("namespace %q still %s", ns.Name, ns.Status)
-				left = append(left, ns.Name)
-			}
-		}
-		if len(left) > 0 {
-			return emperror.With(errors.Errorf("namespaces remained after deletion: %v", left), "namespaces", left)
-		}
-		return nil
-	}, 20, 30)
-	return err
+	deleter := intClusterK8s.MakeUserNamespaceDeleter(logger)
+	return deleter.Delete(kubeConfig)
 }
 
 // deleteResources deletes all Services, Deployments, DaemonSets, StatefulSets, ReplicaSets, Pods, and PersistentVolumeClaims of a namespace
