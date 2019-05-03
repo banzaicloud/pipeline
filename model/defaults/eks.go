@@ -44,9 +44,9 @@ type EKSNodePoolProfile struct {
 // of an EKS cluster profile
 type EKSNodePoolLabelsProfile struct {
 	ID                uint   `gorm:"primary_key"`
-	Name              string `gorm:"unique_index:idx_node_pool_profile_id_name"`
+	Name              string `gorm:"unique_index:idx_eks_profile_node_pool_labels_id_name"`
 	Value             string
-	NodePoolProfileID uint `gorm:"unique_index:idx_node_pool_profile_id_name"`
+	NodePoolProfileID uint `gorm:"unique_index:idx_eks_profile_node_pool_labels_id_name"`
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }

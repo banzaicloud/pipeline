@@ -154,9 +154,9 @@ func (m GKENodePoolModel) String() string {
 // GKENodePoolLabelModel stores labels for node pools
 type GKENodePoolLabelModel struct {
 	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_node_pool_id_name"`
+	Name       string `gorm:"unique_index:idx_gke_node_pool_labels_id_name"`
 	Value      string
-	NodePoolID uint `gorm:"unique_index:idx_node_pool_id_name"`
+	NodePoolID uint `gorm:"unique_index:idx_gke_node_pool_labels_id_name"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
