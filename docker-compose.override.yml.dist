@@ -1,13 +1,26 @@
 version: "3.1"
 
 services:
-    db:
+    mysql:
         # needed for Linux users
         # user: "${uid}:${gid}"
         ports:
             - 127.0.0.1:3306:3306
         volumes:
             - ./.docker/volumes/mysql:/var/lib/mysql
+
+    postgres:
+        image: "bitnami/postgresql:10.6.0"
+        environment:
+            POSTGRES_DB: pipeline
+            POSTGRES_USER: sparky
+            POSTGRES_PASSWORD: sparky123
+            PGDATA: /var/lib/postgresql/data/pgdata/
+        ports:
+            - "127.0.0.1:5432:5432"
+        volumes:
+            - ./.docker/volumes/postgres:/var/lib/postgresql/data/pgdata/:z
+            - ${PWD}/database/docker-init-postgres.sql:/docker-entrypoint-initdb.d/docker-init.sql
 
     adminer:
         ports:
@@ -42,6 +55,8 @@ services:
             - 127.0.0.1:8000:8000
             - 127.0.0.1:9000:9000
         environment:
+            # CICD_DATABASE_DRIVER:        postgres
+            # CICD_DATABASE_DATASOURCE:    postgres://sparky:sparky123@postgres:5432/drone?sslmode=disable
             # CICD_GITLAB:               "true"
             CICD_CORS_ALLOW_ALL_ORIGINS: "false"
             CICD_CORS_ALLOW_ORIGINS:     "http://localhost:4200"
