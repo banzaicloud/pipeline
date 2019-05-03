@@ -35,20 +35,27 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			return emperror.Wrap(err, "failed to delete Help deployments")
 		}
 	}
+
+	// delete user namespaces
+	{
+		activityInput := DeleteUserNamespacesActivityInput{
+			K8sConfig: input.K8sConfig,
+		}
+		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, nil); err != nil {
+			return emperror.Wrap(err, "failed to delete user namespaces")
+		}
+	}
 	{
 		/*
-				err = deleteAllResources(config, logger)
-			   	if err != nil {
-			   		err = emperror.Wrap(err, "failed to delete Kubernetes resources")
+			err = deleteResources(kubeConfig, "default", logger)
+			if err != nil {
+				return emperror.Wrap(err, "failed to delete resources in default namespace")
+			}
 
-			   		if !force {
-			   			cluster.SetStatus(pkgCluster.Error, err.Error())
-
-			   			return err
-			   		}
-
-			   		logger.Error(err)
-			   	}
+			err = deleteServices(kubeConfig, "default", logger)
+			if err != nil {
+				return emperror.Wrap(err, "failed to delete services in default namespace")
+			}
 		*/
 	}
 	return nil
