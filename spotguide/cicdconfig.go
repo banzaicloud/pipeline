@@ -15,7 +15,6 @@
 package spotguide
 
 import (
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	libcompose "github.com/docker/libcompose/yaml"
 	yaml2 "github.com/ghodss/yaml"
@@ -97,7 +96,7 @@ type cicdContainer struct {
 	Repo          *string                                `yaml:"repo,omitempty"`
 	Tags          *string                                `yaml:"tags,omitempty"`
 	Log           *string                                `yaml:"log,omitempty"`
-	Cluster       *pkgCluster.CreateClusterRequest       `yaml:"cluster,omitempty"`
+	Cluster       map[string]interface{}                 `yaml:"cluster,omitempty"`
 	Deployment    *pkgHelm.CreateUpdateDeploymentRequest `yaml:"deployment,omitempty"`
 	ClusterSecret map[string]interface{}                 `yaml:"cluster_secret,omitempty"`
 }

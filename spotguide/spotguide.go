@@ -114,7 +114,7 @@ type LaunchRequest struct {
 	RepoName         string                        `json:"repoName" binding:"required"`
 	RepoPrivate      bool                          `json:"repoPrivate"`
 	RepoLatent       bool                          `json:"repoLatent"`
-	Cluster          *client.CreateClusterRequest  `json:"cluster" binding:"required"`
+	Cluster          map[string]interface{}        `json:"cluster" binding:"required"`
 	Secrets          []*secret.CreateSecretRequest `json:"secrets,omitempty"`
 	Pipeline         map[string]interface{}        `json:"pipeline,omitempty"`
 }
