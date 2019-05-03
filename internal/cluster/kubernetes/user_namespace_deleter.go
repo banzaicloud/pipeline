@@ -15,8 +15,6 @@
 package kubernetes
 
 import (
-	"time"
-
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -82,16 +80,4 @@ func (d UserNamespaceDeleter) Delete(k8sConfig []byte) error {
 		return nil
 	}, 20, 30)
 	return err
-}
-
-func retry(function func() error, count int, delaySeconds int) error {
-	i := 1
-	for {
-		err := function()
-		if err == nil || i == count {
-			return err
-		}
-		time.Sleep(time.Second * time.Duration(delaySeconds))
-		i++
-	}
 }

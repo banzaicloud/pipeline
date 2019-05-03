@@ -95,39 +95,8 @@ func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
 
 // deleteResources deletes all Services, Deployments, DaemonSets, StatefulSets, ReplicaSets, Pods, and PersistentVolumeClaims of a namespace
 func deleteResources(kubeConfig []byte, ns string, logger *logrus.Entry) error {
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-	resourceTypes := []struct {
-		DeleteCollectioner interface {
-			DeleteCollection(*metav1.DeleteOptions, metav1.ListOptions) error
-		}
-		Name string
-	}{
-		{client.AppsV1().Deployments(ns), "Deployments"},
-		{client.AppsV1().DaemonSets(ns), "DaemonSets"},
-		{client.AppsV1().StatefulSets(ns), "StatefulSets"},
-		{client.AppsV1().ReplicaSets(ns), "ReplicaSets"},
-		{client.CoreV1().Pods(ns), "Pods"},
-		{client.CoreV1().PersistentVolumeClaims(ns), "PersistentVolumeClaims"},
-	}
-
-	for _, resourceType := range resourceTypes {
-		err := retry(func() error {
-			logger.Debugf("deleting %s", resourceType.Name)
-			err := resourceType.DeleteCollectioner.DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
-			if err != nil {
-				logger.Infof("could not delete %s: %v", resourceType.Name, err)
-			}
-			return err
-		}, 6, 1)
-		if err != nil {
-			return emperror.Wrapf(err, "could not delete %s", resourceType.Name)
-		}
-	}
-
-	return nil
+	deleter := intClusterK8s.MakeNamespaceResourcesDeleter(logger)
+	return deleter.Delete(kubeConfig, ns)
 }
 
 // deleteServices deletes all services one by one from a namespace
