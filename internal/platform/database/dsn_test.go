@@ -19,24 +19,34 @@ import "testing"
 func TestConfig_Validate(t *testing.T) {
 	tests := map[string]Config{
 		"database host is required": {
-			Port: 3306,
-			User: "root",
-			Pass: "",
-			Name: "database",
+			Dialect: "postgres",
+			Port:    3306,
+			User:    "root",
+			Pass:    "",
+			Name:    "database",
 		},
 		"database port is required": {
-			Host: "localhost",
-			User: "root",
-			Pass: "",
-			Name: "database",
+			Dialect: "mysql",
+			Host:    "localhost",
+			User:    "root",
+			Pass:    "",
+			Name:    "database",
 		},
 		"database user is required if no secret role is provided": {
-			Host: "localhost",
-			Port: 3306,
-			Pass: "",
-			Name: "database",
+			Dialect: "postgres",
+			Host:    "localhost",
+			Port:    3306,
+			Pass:    "",
+			Name:    "database",
 		},
 		"database name is required": {
+			Dialect: "mysql",
+			Host:    "localhost",
+			Port:    3306,
+			User:    "root",
+			Pass:    "",
+		},
+		"database dialect is required": {
 			Host: "localhost",
 			Port: 3306,
 			User: "root",
@@ -56,24 +66,37 @@ func TestConfig_Validate(t *testing.T) {
 }
 
 func TestGetDSN(t *testing.T) {
-	config := Config{
-		Host: "host",
-		Port: 3306,
-		User: "root",
-		Pass: "",
-		Name: "database",
-		Params: map[string]string{
-			"parseTime": "true",
+
+	configs := map[string]Config{
+		"root:@tcp(host:3306)/database?parseTime=true": {
+			Dialect: "mysql",
+			Host:    "host",
+			Port:    3306,
+			User:    "root",
+			Pass:    "",
+			Name:    "database",
+			Params: map[string]string{
+				"parseTime": "true",
+			},
+		},
+		"postgresql://root:@host:5432/database": {
+			Dialect: "postgres",
+			Host:    "host",
+			Port:    5432,
+			User:    "root",
+			Pass:    "",
+			Name:    "database",
 		},
 	}
 
-	dsn, err := GetDSN(config)
-	if err != nil {
-		t.Fatal("unexpected error:", err.Error())
-	}
+	for expectedDsn, config := range configs {
+		dsn, err := GetDSN(config)
+		if err != nil {
+			t.Fatal("unexpected error:", err.Error())
+		}
 
-	expectedDsn := "root:@tcp(host:3306)/database?parseTime=true"
-	if dsn != expectedDsn {
-		t.Errorf("expected DSN to be %q, got: %q", expectedDsn, dsn)
+		if dsn != expectedDsn {
+			t.Errorf("expected DSN to be %q, got: %q", expectedDsn, dsn)
+		}
 	}
 }
