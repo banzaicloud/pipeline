@@ -34,8 +34,8 @@ type Route53Domain struct {
 
 	Organization auth.Organization `gorm:"foreignkey:OrganizationId"`
 
-	OrganizationId uint   `gorm:"unique_index;not null"`
-	Domain         string `gorm:"unique_index;not null"`
+	OrganizationId uint   `gorm:"unique_index:idx_amazon_route53_domains_organization_id;not null"`
+	Domain         string `gorm:"unique_index:idx_amazon_route53_domains_domain;not null"`
 	HostedZoneId   string
 	PolicyArn      string
 	IamUser        string

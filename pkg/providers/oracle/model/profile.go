@@ -32,7 +32,7 @@ const (
 // Profile describes the Oracle cluster profile model
 type Profile struct {
 	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_name"`
+	Name       string `gorm:"unique_index:idx_oke_profiles_name"`
 	Location   string `gorm:"default:'eu-frankfurt-1'"`
 	Version    string `gorm:"default:'v1.10.3'"`
 	NodePools  []*ProfileNodePool
@@ -44,13 +44,13 @@ type Profile struct {
 // ProfileNodePool describes Oracle node pool profile model of a cluster
 type ProfileNodePool struct {
 	ID        uint   `gorm:"primary_key"`
-	Name      string `gorm:"unique_index:idx_name_profile_id"`
+	Name      string `gorm:"unique_index:idx_oke_profile_node_pools_name_profile_id"`
 	Count     uint   `gorm:"default:'1'"`
 	Image     string `gorm:"default:'Oracle-Linux-7.4'"`
 	Shape     string `gorm:"default:'VM.Standard1.1'"`
 	Version   string `gorm:"default:'v1.10.3'"`
 	Labels    []*ProfileNodePoolLabel
-	ProfileID uint `gorm:"unique_index:idx_name_profile_id; foreignKey"`
+	ProfileID uint `gorm:"unique_index:idx_oke_profile_node_pools_name_profile_id; foreignKey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -58,9 +58,9 @@ type ProfileNodePool struct {
 // ProfileNodePoolLabel stores labels for node pools
 type ProfileNodePoolLabel struct {
 	ID                uint   `gorm:"primary_key"`
-	Name              string `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	Name              string `gorm:"unique_index:idx_oke_profile_node_pool_labels_name_profile_id"`
 	Value             string
-	ProfileNodePoolID uint `gorm:"unique_index:idx_name_profile_node_pool_id"`
+	ProfileNodePoolID uint `gorm:"unique_index:idx_oke_profile_node_pool_labels_name_profile_id"`
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }

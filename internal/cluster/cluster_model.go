@@ -35,19 +35,19 @@ const (
 // ClusterModel describes the common cluster model.
 type ClusterModel struct {
 	ID  uint   `gorm:"primary_key"`
-	UID string `gorm:"unique_index:idx_uid"`
+	UID string `gorm:"unique_index:idx_clusters_uid"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time `gorm:"unique_index:idx_unique_id" sql:"index"`
+	DeletedAt *time.Time `gorm:"unique_index:idx_clusters_unique_id" sql:"index"`
 	StartedAt *time.Time
 	CreatedBy uint
 
-	Name           string `gorm:"unique_index:idx_unique_id"`
+	Name           string `gorm:"unique_index:idx_clusters_unique_id"`
 	Location       string
 	Cloud          string
 	Distribution   string
-	OrganizationID uint `gorm:"unique_index:idx_unique_id"`
+	OrganizationID uint `gorm:"unique_index:idx_clusters_unique_id"`
 	SecretID       string
 	ConfigSecretID string
 	SSHSecretID    string

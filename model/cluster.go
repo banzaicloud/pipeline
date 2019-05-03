@@ -51,16 +51,16 @@ const (
 // Note: this model is being moved to github.com/banzaicloud/pipeline/pkg/model.ClusterModel
 type ClusterModel struct {
 	ID             uint   `gorm:"primary_key"`
-	UID            string `gorm:"unique_index:idx_cluster_uid"`
+	UID            string `gorm:"unique_index:idx_clusters_uid"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-	DeletedAt      *time.Time `gorm:"unique_index:idx_cluster_unique_id" sql:"index"`
+	DeletedAt      *time.Time `gorm:"unique_index:idx_clusters_unique_id" sql:"index"`
 	StartedAt      *time.Time
-	Name           string `gorm:"unique_index:idx_cluster_unique_id"`
+	Name           string `gorm:"unique_index:idx_clusters_unique_id"`
 	Location       string
 	Cloud          string
 	Distribution   string
-	OrganizationId uint `gorm:"unique_index:idx_cluster_unique_id"`
+	OrganizationId uint `gorm:"unique_index:idx_clusters_unique_id"`
 	SecretId       string
 	ConfigSecretId string
 	SshSecretId    string
@@ -85,7 +85,7 @@ type ClusterModel struct {
 // ScaleOptions describes scale options
 type ScaleOptions struct {
 	ID                  uint `gorm:"primary_key"`
-	ClusterID           uint `gorm:"unique_index:ux_cluster_id"`
+	ClusterID           uint `gorm:"unique_index:idx_scale_options_cluster_id"`
 	Enabled             bool
 	DesiredCpu          float64
 	DesiredMem          float64
@@ -100,8 +100,8 @@ type ACKNodePoolModel struct {
 	ID                           uint `gorm:"primary_key"`
 	CreatedAt                    time.Time
 	CreatedBy                    uint
-	ClusterID                    uint   `gorm:"unique_index:idx_ack_np_cluster_id_name"`
-	Name                         string `gorm:"unique_index:idx_ack_np_cluster_id_name"`
+	ClusterID                    uint   `gorm:"unique_index:idx_ack_node_pools_cluster_id_name"`
+	Name                         string `gorm:"unique_index:idx_ack_node_pools_cluster_id_name"`
 	InstanceType                 string
 	DeprecatedSystemDiskCategory string `gorm:"column:system_disk_category"`
 	DeprecatedSystemDiskSize     int    `gorm:"column:system_disk_size"`
@@ -136,8 +136,8 @@ type AmazonNodePoolsModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
-	ClusterID        uint   `gorm:"unique_index:idx_amazon_np_cluster_id_name"`
-	Name             string `gorm:"unique_index:idx_amazon_np_cluster_id_name"`
+	ClusterID        uint   `gorm:"unique_index:idx_amazon_node_pools_cluster_id_name"`
+	Name             string `gorm:"unique_index:idx_amazon_node_pools_cluster_id_name"`
 	NodeSpotPrice    string
 	Autoscaling      bool
 	NodeMinCount     int
@@ -171,7 +171,7 @@ type EKSSubnetModel struct {
 	ID         uint `gorm:"primary_key"`
 	CreatedAt  time.Time
 	EKSCluster EKSClusterModel
-	ClusterID  uint    `gorm:"index:idx_eks_subnet_cluster_id"`
+	ClusterID  uint    `gorm:"index:idx_eks_subnets_cluster_id"`
 	SubnetId   *string `gorm:"size:32"`
 	Cidr       *string `gorm:"size:18"`
 }
@@ -179,7 +179,7 @@ type EKSSubnetModel struct {
 //EKSClusterModel describes the EKS cluster model
 type EKSClusterModel struct {
 	ID        uint `gorm:"primary_key"`
-	ClusterID uint `gorm:"unique_index:ux_eks_cluster_cluster_id"`
+	ClusterID uint `gorm:"unique_index:idx_eks_clusters_cluster_id"`
 
 	Version      string
 	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
@@ -202,8 +202,8 @@ type AKSNodePoolModel struct {
 	ID               uint `gorm:"primary_key"`
 	CreatedAt        time.Time
 	CreatedBy        uint
-	ClusterID        uint   `gorm:"unique_index:idx_aks_np_cluster_id_name"`
-	Name             string `gorm:"unique_index:idx_aks_np_cluster_id_name"`
+	ClusterID        uint   `gorm:"unique_index:idx_aks_node_pools_cluster_id_name"`
+	Name             string `gorm:"unique_index:idx_aks_node_pools_cluster_id_name"`
 	Autoscaling      bool
 	NodeMinCount     int
 	NodeMaxCount     int
@@ -472,9 +472,9 @@ func (cs *ClusterModel) UpdateSshSecret(sshSecretId string) error {
 // AmazonNodePoolLabelModel stores labels for node pools
 type AmazonNodePoolLabelModel struct {
 	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_amazon_npl_id_name"`
+	Name       string `gorm:"unique_index:idx_amazon_node_pool_labels_id_name"`
 	Value      string
-	NodePoolID uint `gorm:"unique_index:idx_amazon_npl_id_name"`
+	NodePoolID uint `gorm:"unique_index:idx_amazon_node_pool_labels_id_name"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 

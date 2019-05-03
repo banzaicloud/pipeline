@@ -34,7 +34,7 @@ const (
 // Cluster describes the Oracle cluster model
 type Cluster struct {
 	ID             uint   `gorm:"primary_key"`
-	Name           string `gorm:"unique_index:idx_oracle_cluster_name"`
+	Name           string `gorm:"unique_index:idx_oke_clusters_name"`
 	Version        string
 	VCNID          string
 	LBSubnetID1    string
@@ -52,13 +52,13 @@ type Cluster struct {
 // NodePool describes Oracle node pools model of a cluster
 type NodePool struct {
 	ID                uint   `gorm:"primary_key"`
-	Name              string `gorm:"unique_index:idx_oracle_cluster_id_name"`
+	Name              string `gorm:"unique_index:idx_oke_node_pools_cluster_id_name"`
 	Image             string `gorm:"default:'Oracle-Linux-7.4'"`
 	Shape             string `gorm:"default:'VM.Standard1.1'"`
 	Version           string `gorm:"default:'v1.10.3'"`
 	QuantityPerSubnet uint   `gorm:"default:1"`
 	OCID              string `gorm:"column:ocid"`
-	ClusterID         uint   `gorm:"unique_index:idx_oracle_cluster_id_name"`
+	ClusterID         uint   `gorm:"unique_index:idx_oke_node_pools_cluster_id_name"`
 	Subnets           []*NodePoolSubnet
 	Labels            map[string]string `gorm:"-"`
 	CreatedBy         uint
@@ -71,8 +71,8 @@ type NodePool struct {
 // NodePoolSubnet describes subnets for a NodePool
 type NodePoolSubnet struct {
 	ID         uint   `gorm:"primary_key"`
-	SubnetID   string `gorm:"unique_index:idx_oracle_node_pool_id_subnet_id"`
-	NodePoolID uint   `gorm:"unique_index:idx_oracle_node_pool_id_subnet_id"`
+	SubnetID   string `gorm:"unique_index:idx_oke_node_pool_subnets_id_subnet_id"`
+	NodePoolID uint   `gorm:"unique_index:idx_oke_node_pool_subnets_id_subnet_id"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
@@ -251,9 +251,9 @@ func (c *Cluster) GetClusterRequestFromModel() *cluster.Cluster {
 // NodePoolLabel stores labels for node pools
 type NodePoolLabel struct {
 	ID         uint   `gorm:"primary_key"`
-	Name       string `gorm:"unique_index:idx_oracle_node_pool_id_name"`
+	Name       string `gorm:"unique_index:idx_oke_node_pool_labels_node_pool_id_name"`
 	Value      string
-	NodePoolID uint `gorm:"unique_index:idx_oracle_node_pool_id_name"`
+	NodePoolID uint `gorm:"unique_index:idx_oke_node_pool_labels_node_pool_id_name"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }

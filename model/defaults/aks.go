@@ -41,17 +41,17 @@ type AKSNodePoolProfile struct {
 	MaxCount         int                         `gorm:"default:2"`
 	Count            int                         `gorm:"default:1"`
 	NodeInstanceType string                      `gorm:"default:'Standard_D4_v2'"`
-	Name             string                      `gorm:"unique_index:idx_aks_name_node_name"`
-	NodeName         string                      `gorm:"unique_index:idx_aks_name_node_name"`
+	Name             string                      `gorm:"unique_index:idx_aks_profile_node_pools_name_node_name"`
+	NodeName         string                      `gorm:"unique_index:idx_aks_profile_node_pools_name_node_name"`
 	Labels           []*AKSNodePoolLabelsProfile `gorm:"foreignkey:NodePoolProfileID"`
 }
 
 // AKSNodePoolLabelsProfile stores labels for Azure cluster profile's nodepools
 type AKSNodePoolLabelsProfile struct {
 	ID                uint   `gorm:"primary_key"`
-	Name              string `gorm:"unique_index:idx_aks_name_profile_node_pool_id"`
+	Name              string `gorm:"unique_index:idx_aks_profile_node_pool_labels_name_id"`
 	Value             string
-	NodePoolProfileID uint `gorm:"unique_index:idx_aks_name_profile_node_pool_id"`
+	NodePoolProfileID uint `gorm:"unique_index:idx_aks_profile_node_pool_labels_name_id"`
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }
