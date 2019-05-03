@@ -266,7 +266,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		if !ok {
 			return nil
 		}
-		resourceGroup := pke.GetResourceGroup()
+		resourceGroup := pke.GetResourceGroupName()
 		if err != nil {
 			log.Errorf("could not get resource group: %s", err.Error())
 		}

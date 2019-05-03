@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -61,7 +62,7 @@ func Enable(c *gin.Context) {
 		return
 	}
 
-	if len(request.Location) == 0 {
+	if len(request.Location) == 0 && (request.Cloud == providers.Alibaba || request.Cloud == providers.Amazon) {
 		// location field is empty in request, get bucket location
 		organizationID := auth.GetCurrentOrganization(c.Request).ID
 
