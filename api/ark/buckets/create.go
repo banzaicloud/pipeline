@@ -17,6 +17,7 @@ package buckets
 import (
 	"net/http"
 
+	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/jinzhu/gorm"
 
 	"github.com/gin-gonic/gin"
@@ -46,7 +47,7 @@ func Create(c *gin.Context) {
 
 	org := auth.GetCurrentOrganization(c.Request)
 
-	if len(request.Location) == 0 {
+	if len(request.Location) == 0 && (request.Cloud == providers.Alibaba || request.Cloud == providers.Amazon) {
 		// location field is empty in request, get bucket location
 		location, err := common.GetBucketLocation(request.Cloud, request.BucketName, request.SecretID, org.ID, logger)
 		if err != nil {
