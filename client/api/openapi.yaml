@@ -272,7 +272,7 @@ paths:
                     gke:
                       $ref: '#/components/schemas/CreateGKEProperties'
             schema:
-              $ref: '#/components/schemas/CreateClusterRequest'
+              type: object
         required: true
       responses:
         202:
