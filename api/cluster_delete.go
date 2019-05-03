@@ -49,7 +49,7 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 
 	switch {
 	case commonCluster.GetDistribution() == pkgCluster.PKE && commonCluster.GetCloud() == pkgCluster.Azure:
-		if err := a.clusterDeleters.PKEOnAzure.DeleteByID(ctx, commonCluster.GetID()); err != nil {
+		if err := a.clusterDeleters.PKEOnAzure.DeleteByID(ctx, commonCluster.GetID(), force); err != nil {
 			pkgCommon.ErrorResponseWithStatus(c, http.StatusInternalServerError, err)
 			return
 		}

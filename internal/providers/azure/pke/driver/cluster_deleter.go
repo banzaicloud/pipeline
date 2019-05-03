@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -52,8 +53,9 @@ type AzurePKEClusterDeleter struct {
 	workflowClient client.Client
 }
 
-func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAzureCluster) error {
-	cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).Info("Deleting cluster")
+func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAzureCluster, force bool) error {
+	logger := cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).WithField("force", force)
+	logger.Info("Deleting cluster")
 
 	if err := cd.store.SetStatus(cluster.ID, pkgCluster.Deleting, pkgCluster.DeletingMessage); err != nil {
 		return emperror.Wrap(err, "failed to set cluster status")
@@ -91,9 +93,13 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		ssns[i] = pke.GetVMSSName(cluster.Name, np.Name)
 	}
 
-	servicePips, err := getServicesPublicIPs(cd.logger, k8sConfig)
+	servicePips, err := getServicesPublicIPs(logger, k8sConfig)
 	if err != nil {
-		return emperror.Wrap(err, "failed to retrieve services public IPs")
+		if !force {
+			return emperror.Wrap(err, "failed to retrieve services public IPs")
+		}
+
+		logger.Warningln(emperror.Wrap(err, "failed to retrieve services public IPs"), " - continue deletion flow")
 	}
 
 	input := workflow.DeleteClusterWorkflowInput{
@@ -103,16 +109,24 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		ClusterName:          cluster.Name,
 		ResourceGroupName:    cluster.ResourceGroup.Name,
 		LoadBalancerName:     cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
-		PublicIPAddressNames: collectPublicIPAddressNames(cd.logger, lb, cluster.Name, servicePips),
+		PublicIPAddressNames: collectPublicIPAddressNames(logger, lb, cluster.Name, servicePips),
 		RouteTableName:       cluster.Name + "-route-table",
 		ScaleSetNames:        ssns,
 		SecurityGroupNames:   []string{cluster.Name + "-master-nsg", cluster.Name + "-worker-nsg"},
 		VirtualNetworkName:   cluster.VirtualNetwork.Name,
 	}
 
+	retryPolicy := &cadence.RetryPolicy{
+		InitialInterval:    time.Second * 3,
+		BackoffCoefficient: 2,
+		ExpirationInterval: time.Minute * 3,
+		MaximumAttempts:    5,
+	}
+
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+		RetryPolicy:                  retryPolicy,
 	}
 
 	wfexec, err := cd.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.DeleteClusterWorkflowName, input)
@@ -127,12 +141,12 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	return nil
 }
 
-func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint) error {
+func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, force bool) error {
 	cl, err := cd.store.GetByID(clusterID)
 	if err != nil {
 		return emperror.Wrap(err, "failed to load cluster from data store")
 	}
-	return cd.Delete(ctx, cl)
+	return cd.Delete(ctx, cl, force)
 }
 
 func collectPublicIPAddressNames(logger logrus.FieldLogger, lb network.LoadBalancer, clusterName string, servicesPips []string) []string {
