@@ -56,13 +56,17 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			return emperror.Wrapf(err, "failed to delete resources in namespace %q", activityInput.Namespace)
 		}
 	}
+
+	// delete services in default namespace
 	{
-		/*
-			err = deleteServices(kubeConfig, "default", logger)
-			if err != nil {
-				return emperror.Wrap(err, "failed to delete services in default namespace")
-			}
-		*/
+		activityInput := DeleteNamespaceServicesActivityInput{
+			K8sConfig: input.K8sConfig,
+			Namespace: "default",
+		}
+		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceServicesActivityName, activityInput).Get(ctx, nil); err != nil {
+			return emperror.Wrapf(err, "failed to delete services in namespace %q", activityInput.Namespace)
+		}
 	}
+
 	return nil
 }
