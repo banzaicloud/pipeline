@@ -255,7 +255,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/CreateClusterRequest'
+                            type: object
                             ## oneOf not properly supported by generator
                             #oneOf:
                             #    - $ref: '#/components/schemas/CreateClusterRequest'
