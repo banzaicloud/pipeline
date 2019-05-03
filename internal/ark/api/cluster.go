@@ -21,14 +21,9 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-type AKSCluster interface {
+type AzureCluster interface {
 	Cluster
 	GetResourceGroupName() string
-}
-
-type AzurePKECluster interface {
-	Cluster
-	GetResourceGroup() string
 }
 
 // Cluster interface for cluster implementations
