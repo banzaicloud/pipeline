@@ -20,7 +20,7 @@ ALTER TABLE `alibaba_buckets` RENAME INDEX idx_alibaba_bucket_name TO idx_bucket
 ALTER TABLE `amazon_buckets` RENAME INDEX idx_amazon_bucket_name TO idx_bucket_name;
 ALTER TABLE `azure_buckets` RENAME INDEX idx_azure_bucket_name TO idx_bucket_name;
 ALTER TABLE `google_buckets` RENAME INDEX idx_google_bucket_name TO idx_bucket_name;
-DROP INDEX idx_gke_cluster_id ON `google_gke_clusters`;
+-- DROP INDEX idx_gke_cluster_id ON `google_gke_clusters`;
 ALTER TABLE `google_gke_node_pools` RENAME INDEX idx_gke_np_cluster_id_name TO idx_cluster_id_name;
 ALTER TABLE `google_gke_node_pool_labels` RENAME INDEX idx_gke_node_pool_labels_id_name TO idx_node_pool_id_name;
 ALTER TABLE `oracle_buckets` RENAME INDEX idx_oracle_buckets_org_id TO idx_oracle_buckets_org_id;
