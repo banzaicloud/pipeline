@@ -13,10 +13,13 @@ jobs:
                 environment:
                     MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
             -
-                image: vault:0.11.5
+                image: postgres:9.6
+
+            -
+                image: vault:1.1.0
                 environment:
                     SKIP_SETCAP: true
-                    VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+                    VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf                
 
         steps:
             - checkout
@@ -44,7 +47,7 @@ jobs:
             -
                 run:
                     name: Install build dependencies
-                    command: sudo apt-get install -y mysql-client mysql-utilities
+                    command: sudo apt-get install -y mysql-client mysql-utilities postgresql-client
 
             -
                 save_cache:
@@ -116,21 +119,21 @@ jobs:
 
             -
                 run:
-                    name: Create databases
+                    name: Create MySQL databases
                     command: |
                         mysql -h 127.0.0.1 -u root -e "CREATE DATABASE pipeline_migrations;"
                         mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_automigrate; USE pipeline_automigrate; CREATE TABLE `schema_migrations` (`version` bigint(20) NOT NULL, `dirty` tinyint(1) NOT NULL, PRIMARY KEY (`version`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
 
             -
                 run:
-                    name: Test database migrations
+                    name: Test MySQL database migrations
                     command: |
                         make bin/migrate
                         bin/migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
 
             -
                 run:
-                    name: Test database auto migrations
+                    name: Test MySQL database auto migrations
                     command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go
                     environment:
                         PIPELINE_DATABASE_HOST: 127.0.0.1
@@ -143,20 +146,68 @@ jobs:
 
             -
                 run:
-                    name: Test database schema diff
+                    name: Test MySQL database schema diff
                     command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
 
             -
                 run:
-                    name: Test database migrations are reversible
+                    name: Test MySQL database migrations are reversible
                     command: |
                         bin/migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" down
                         bin/migrate -source "file://database/migrations" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
 
             -
                 run:
-                    name: Test database schema diff again
+                    name: Test MySQL database schema diff again
                     command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+
+            -
+                run:
+                    name: Create PostgreSQL databases
+                    command: |
+                        psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE pipeline_migrations;"
+                        psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE pipeline_automigrate;"
+                        # psql -h 127.0.0.1 -U postgres -d pipeline_automigrate -c 'CREATE TABLE schema_migrations (version bigint NOT NULL, dirty SMALLINT NOT NULL, PRIMARY KEY (version));'
+
+            -
+                run:
+                    name: Test PostgreSQL database migrations
+                    command: |
+                        make bin/migrate
+                        bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" up
+
+            -
+                run:
+                    name: Test PostgreSQL database auto migrations
+                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go
+                    environment:
+                        PIPELINE_DATABASE_DIALECT: postgres
+                        PIPELINE_DATABASE_HOST: 127.0.0.1
+                        PIPELINE_DATABASE_PORT: 5432
+                        PIPELINE_DATABASE_TLS: disable
+                        PIPELINE_DATABASE_USER: postgres
+                        PIPELINE_DATABASE_PASSWORD: postgres
+                        PIPELINE_DATABASE_ROLE: ""
+                        PIPELINE_DATABASE_DBNAME: pipeline_automigrate
+                        VAULT_ADDR: http://localhost:8200
+                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+            # -
+            #     run:
+            #         name: Test PostgreSQL database schema diff
+            #         command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+
+            -
+                run:
+                    name: Test PostgreSQL database migrations are reversible
+                    command: |
+                        bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" down
+                        bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" up
+
+            # -
+            #     run:
+            #         name: Test PostgreSQL database schema diff again
+            #         command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
 
             -
                 save_cache:
