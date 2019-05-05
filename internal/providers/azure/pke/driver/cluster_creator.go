@@ -186,7 +186,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 	{
 		var commonCluster cluster.CommonCluster
-		commonCluster, err = commoncluster.GetCommonClusterByID(cl.ID, cc.store)
+		commonCluster, err = commoncluster.GetCommonClusterByID(cl.ID, secret.Store, cc.store)
 		if err != nil {
 			cc.handleError(cl.ID, err)
 			return

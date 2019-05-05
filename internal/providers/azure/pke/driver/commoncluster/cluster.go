@@ -33,19 +33,26 @@ import (
 )
 
 type AzurePkeCluster struct {
-	store pke.AzurePKEClusterStore
-	model pke.PKEOnAzureCluster
+	model   pke.PKEOnAzureCluster
+	secrets SecretStore
+	store   pke.AzurePKEClusterStore
 }
 
-func GetCommonClusterByID(clusterID uint, store pke.AzurePKEClusterStore) (*AzurePkeCluster, error) {
+type SecretStore interface {
+	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
+	GetByName(organizationID uint, secretName string) (*secret.SecretItemResponse, error)
+}
+
+func GetCommonClusterByID(clusterID uint, secrets SecretStore, store pke.AzurePKEClusterStore) (*AzurePkeCluster, error) {
 	model, err := store.GetByID(clusterID)
 	if err != nil {
 		return nil, err
 	}
 
 	cluster := AzurePkeCluster{
-		store: store,
-		model: model,
+		model:   model,
+		secrets: secrets,
+		store:   store,
 	}
 
 	return &cluster, nil
@@ -109,7 +116,7 @@ func (a *AzurePkeCluster) GetConfigSecretId() string {
 }
 
 func (a *AzurePkeCluster) GetSecretWithValidation() (*secret.SecretItemResponse, error) {
-	return secret.Store.Get(a.model.OrganizationID, a.model.SecretID)
+	return a.secrets.Get(a.model.OrganizationID, a.model.SecretID)
 }
 
 func (a *AzurePkeCluster) Persist() error {
@@ -186,7 +193,7 @@ func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
 	if a.model.K8sSecretID == "" {
 		return nil, errors.New("there is no K8s config for the cluster")
 	}
-	configSecret, err := secret.Store.Get(a.model.OrganizationID, a.model.K8sSecretID)
+	configSecret, err := a.secrets.Get(a.model.OrganizationID, a.model.K8sSecretID)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't get config from Vault")
 	}
@@ -324,7 +331,7 @@ func (a *AzurePkeCluster) GetCurrentWorkflowID() string {
 }
 
 func (a *AzurePkeCluster) GetCAHash() (string, error) {
-	secret, err := secret.Store.GetByName(a.GetOrganizationId(), fmt.Sprintf("cluster-%d-ca", a.GetID()))
+	secret, err := a.secrets.GetByName(a.GetOrganizationId(), fmt.Sprintf("cluster-%d-ca", a.GetID()))
 	if err != nil {
 		return "", err
 	}
