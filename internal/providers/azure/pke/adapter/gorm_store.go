@@ -104,7 +104,7 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
 	cl.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
 
-	cl.RbacEnabled = model.RbacEnabled
+	cl.Kubernetes.RBAC = model.RbacEnabled
 	cl.Monitoring = model.Monitoring
 	cl.Logging = model.Logging
 	cl.ServiceMesh = model.ServiceMesh
@@ -142,7 +142,7 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 	cluster.VirtualNetwork.Name = model.VirtualNetworkName
 	cluster.VirtualNetwork.Location = model.VirtualNetworkLocation
 
-	cluster.KubernetesVersion = model.KubernetesVersion
+	cluster.Kubernetes.Version = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
 }
 
