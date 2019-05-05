@@ -341,41 +341,6 @@ func (a *AzurePkeCluster) GetCAHash() (string, error) {
 	return fmt.Sprintf("sha256:%s", hex.EncodeToString(h[:])), nil
 }
 
-type AzurePKENodePool struct {
-	Name              string
-	MinCount          int
-	MaxCount          int
-	Count             int
-	Autoscaling       bool
-	Master            bool
-	Worker            bool
-	InstanceType      string
-	AvailabilityZones []string
-}
-
-func (a *AzurePkeCluster) GetNodePools() []AzurePKENodePool {
-	pools := make([]AzurePKENodePool, len(a.model.NodePools), len(a.model.NodePools))
-
-	for i, np := range a.model.NodePools {
-		pools[i] = AzurePKENodePool{
-			Name:              np.Name,
-			MinCount:          int(np.Min),
-			MaxCount:          int(np.Max),
-			Count:             int(np.DesiredCount),
-			Autoscaling:       np.Autoscaling,
-			InstanceType:      np.InstanceType,
-			AvailabilityZones: np.Zones,
-		}
-
-		for _, role := range np.Roles {
-			if role == "master" {
-				pools[i].Master = true
-			}
-			if role == "worker" {
-				pools[i].Worker = true
-			}
-		}
-	}
-
-	return pools
+func (a *AzurePkeCluster) GetPKEOnAzureCluster() pke.PKEOnAzureCluster {
+	return a.model
 }

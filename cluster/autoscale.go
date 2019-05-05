@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -151,19 +150,20 @@ func getAzureNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 			}
 		}
 	case pkgCluster.PKE:
-		pkeCluster, ok := cluster.(*commoncluster.AzurePkeCluster)
+		i, ok := cluster.(interface {
+			GetPKEOnAzureCluster() pke.PKEOnAzureCluster
+		})
 		if !ok {
-			return nil, errors.New("could not cast Azure/PKE cluster to AzurePkeCluster")
+			return nil, errors.New("Azure/PKE cluster does not implement method GetPKEOnAzureCluster")
 		}
 
-		nodePools := pkeCluster.GetNodePools()
-		for _, nodePool := range nodePools {
+		cl := i.GetPKEOnAzureCluster()
+		for _, nodePool := range cl.NodePools {
 			if nodePool.Autoscaling {
-				vmssName := pke.GetVMSSName(pkeCluster.GetName(), nodePool.Name)
 				nodeGroups = append(nodeGroups, nodeGroup{
-					Name:    vmssName,
-					MinSize: nodePool.MinCount,
-					MaxSize: nodePool.MaxCount,
+					Name:    pke.GetVMSSName(cl.Name, nodePool.Name),
+					MinSize: int(nodePool.Min),
+					MaxSize: int(nodePool.Max),
 				})
 			}
 		}
@@ -262,15 +262,13 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		autoscalingInfo.Azure.NodeResourceGroup = *nodeResourceGroup
 
 	case pkgCluster.PKE:
-		pke, ok := cluster.(*commoncluster.AzurePkeCluster)
+		i, ok := cluster.(interface {
+			GetResourceGroupName() string
+		})
 		if !ok {
 			return nil
 		}
-		resourceGroup := pke.GetResourceGroupName()
-		if err != nil {
-			log.Errorf("could not get resource group: %s", err.Error())
-		}
-		autoscalingInfo.Azure.ResourceGroup = resourceGroup
+		autoscalingInfo.Azure.ResourceGroup = i.GetResourceGroupName()
 		if len(vmType) > 0 {
 			autoscalingInfo.Azure.VMType = vmType
 		}
