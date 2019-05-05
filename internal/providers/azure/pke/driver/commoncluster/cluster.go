@@ -202,7 +202,7 @@ func (a *AzurePkeCluster) RequiresSshPublicKey() bool {
 }
 
 func (a *AzurePkeCluster) RbacEnabled() bool {
-	return a.model.RbacEnabled
+	return a.model.Kubernetes.RBAC
 }
 
 func (a *AzurePkeCluster) NeedAdminRights() bool {
@@ -239,7 +239,7 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 		Monitoring:    a.GetMonitoring(),
 		ServiceMesh:   a.GetServiceMesh(),
 		SecurityScan:  a.GetSecurityScan(),
-		Version:       a.model.KubernetesVersion,
+		Version:       a.model.Kubernetes.Version,
 		NodePools:     nodePools,
 		CreatorBaseFields: pkgCommon.CreatorBaseFields{
 			CreatedAt:   a.model.CreationTime,

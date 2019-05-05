@@ -16,6 +16,7 @@ package pke
 
 import (
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 )
 
 const PKEOnAzure = "pke-on-azure"
@@ -55,15 +56,14 @@ type PKEOnAzureCluster struct {
 	NodePools        []NodePool
 	ResourceGroup    ResourceGroup
 	VirtualNetwork   VirtualNetwork
+	Kubernetes       intPKE.Kubernetes
 	ActiveWorkflowID string
 
-	RbacEnabled       bool
-	KubernetesVersion string
-	Monitoring        bool
-	Logging           bool
-	ServiceMesh       bool
-	SecurityScan      bool
-	TtlMinutes        uint
+	Monitoring   bool
+	Logging      bool
+	ServiceMesh  bool
+	SecurityScan bool
+	TtlMinutes   uint
 }
 
 func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
