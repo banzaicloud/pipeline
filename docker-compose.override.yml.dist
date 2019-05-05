@@ -10,7 +10,7 @@ services:
             - ./.docker/volumes/mysql:/var/lib/mysql
 
     postgres:
-        image: "bitnami/postgresql:10.6.0"
+        image: postgres:9.6
         environment:
             POSTGRES_DB: pipeline
             POSTGRES_USER: sparky
