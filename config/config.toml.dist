@@ -19,9 +19,12 @@ uipath = "http://localhost:4200/ui"
 signupRedirectPath = "http://localhost:4200/ui"
 
 [database]
+# dialect = "postgres"
 dialect = "mysql"
 host = "localhost"
+# port = 5432
 port = 3306
+# tls  = "disable"
 tls  = "false"
 user = "sparky"
 role = ""
