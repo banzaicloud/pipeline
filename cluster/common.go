@@ -268,8 +268,6 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	db := config.DB()
 
-	cloudType := modelCluster.Cloud
-
 	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
 		logrus.Debugf("azure adapter stuff")
 		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewGORMAzurePKEClusterStore(db)).GetByID(modelCluster.ID)
@@ -277,7 +275,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}
 
-	switch cloudType {
+	switch modelCluster.Cloud {
 	case pkgCluster.Alibaba:
 		//Create Alibaba struct
 
