@@ -16,8 +16,8 @@ package database
 
 import (
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"    // blank import is used here for simplicity
-	_ "github.com/jinzhu/gorm/dialects/postgres" // blank import is used here for sql driver inclusion
+	_ "github.com/jinzhu/gorm/dialects/mysql"    // import mysql driver
+	_ "github.com/jinzhu/gorm/dialects/postgres" // import postgres driver
 	"github.com/pkg/errors"
 )
 
