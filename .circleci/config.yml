@@ -167,7 +167,7 @@ jobs:
                     command: |
                         psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE pipeline_migrations;"
                         psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE pipeline_automigrate;"
-                        # psql -h 127.0.0.1 -U postgres -d pipeline_automigrate -c 'CREATE TABLE schema_migrations (version bigint NOT NULL, dirty SMALLINT NOT NULL, PRIMARY KEY (version));'
+                        psql -h 127.0.0.1 -U postgres -d pipeline_automigrate -c 'CREATE TABLE schema_migrations (version bigint NOT NULL, dirty BOOLEAN NOT NULL, PRIMARY KEY (version));'
 
             -
                 run:
@@ -192,10 +192,13 @@ jobs:
                         VAULT_ADDR: http://localhost:8200
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
-            # -
-            #     run:
-            #         name: Test PostgreSQL database schema diff
-            #         command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+            -
+                run:
+                    name: Test PostgreSQL database schema diff
+                    command: |
+                        pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
+                        pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
+                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt
 
             -
                 run:
@@ -204,10 +207,13 @@ jobs:
                         bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" down
                         bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" up
 
-            # -
-            #     run:
-            #         name: Test PostgreSQL database schema diff again
-            #         command: mysqldiff --skip-table-options --server1=root:@127.0.0.1:3306 --server2=root:@127.0.0.1:3306 pipeline_migrations:pipeline_automigrate
+            -
+                run:
+                    name: Test PostgreSQL database schema diff again
+                    command: |
+                        pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
+                        pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
+                        diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt
 
             -
                 save_cache:
