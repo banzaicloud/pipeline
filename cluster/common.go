@@ -272,7 +272,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
 		logrus.Debugf("azure adapter stuff")
-		return pkeAzureAdapter.GetCommonClusterByID(modelCluster.ID, secret.Store, adapter.NewGORMAzurePKEClusterStore(db))
+		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewGORMAzurePKEClusterStore(db)).GetByID(modelCluster.ID)
 	} else if modelCluster.Distribution == pkgCluster.PKE {
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}

@@ -43,16 +43,28 @@ type SecretStore interface {
 	GetByName(organizationID uint, secretName string) (*secret.SecretItemResponse, error)
 }
 
-func GetCommonClusterByID(clusterID uint, secrets SecretStore, store pke.AzurePKEClusterStore) (*AzurePkeCluster, error) {
-	model, err := store.GetByID(clusterID)
+type CommonClusterGetter struct {
+	secrets SecretStore
+	store   pke.AzurePKEClusterStore
+}
+
+func MakeCommonClusterGetter(secrets SecretStore, store pke.AzurePKEClusterStore) CommonClusterGetter {
+	return CommonClusterGetter{
+		secrets: secrets,
+		store:   store,
+	}
+}
+
+func (g CommonClusterGetter) GetByID(clusterID uint) (*AzurePkeCluster, error) {
+	model, err := g.store.GetByID(clusterID)
 	if err != nil {
 		return nil, err
 	}
 
 	cluster := AzurePkeCluster{
 		model:   model,
-		secrets: secrets,
-		store:   store,
+		secrets: g.secrets,
+		store:   g.store,
 	}
 
 	return &cluster, nil
