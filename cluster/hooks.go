@@ -102,7 +102,7 @@ func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (er
 	return
 }
 
-func getHeadNodeAffinity(cluster CommonCluster) v1.Affinity {
+func GetHeadNodeAffinity(cluster CommonCluster) v1.Affinity {
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 	if len(headNodePoolName) == 0 {
 		return v1.Affinity{}
@@ -132,7 +132,7 @@ func getHeadNodeAffinity(cluster CommonCluster) v1.Affinity {
 	}
 }
 
-func getHeadNodeTolerations() []v1.Toleration {
+func GetHeadNodeTolerations() []v1.Toleration {
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 	if len(headNodePoolName) == 0 {
 		return []v1.Toleration{}
@@ -350,8 +350,8 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 				"create": false,
 				"name":   serviceAccount.Name,
 			},
-			"affinity":    getHeadNodeAffinity(cluster),
-			"tolerations": getHeadNodeTolerations(),
+			"affinity":    GetHeadNodeAffinity(cluster),
+			"tolerations": GetHeadNodeTolerations(),
 		}
 
 		valuesJson, err = yaml.Marshal(values)
@@ -431,14 +431,14 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
 
 	values := map[string]interface{}{
-		"affinity":    getHeadNodeAffinity(cluster),
-		"tolerations": getHeadNodeTolerations(),
+		"affinity":    GetHeadNodeAffinity(cluster),
+		"tolerations": GetHeadNodeTolerations(),
 		"kube-metrics-adapter": map[string]interface{}{
 			"prometheus": map[string]interface{}{
 				"url": fmt.Sprintf("http://%s.%s.svc/%s", promServiceName, infraNamespace, serviceContext),
 			},
-			"affinity":    getHeadNodeAffinity(cluster),
-			"tolerations": getHeadNodeTolerations(),
+			"affinity":    GetHeadNodeAffinity(cluster),
+			"tolerations": GetHeadNodeTolerations(),
 		},
 	}
 
@@ -451,8 +451,8 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 				"enabled": true,
 			}
 			values["metrics-server"] = map[string]interface{}{
-				"affinity":    getHeadNodeAffinity(cluster),
-				"tolerations": getHeadNodeTolerations(),
+				"affinity":    GetHeadNodeAffinity(cluster),
+				"tolerations": GetHeadNodeTolerations(),
 			}
 		} else {
 			log.Infof("Metrics Server is already installed")
@@ -472,8 +472,8 @@ func InstallPVCOperatorPostHook(cluster CommonCluster) error {
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
 	values := map[string]interface{}{
-		"affinity":    getHeadNodeAffinity(cluster),
-		"tolerations": getHeadNodeTolerations(),
+		"affinity":    GetHeadNodeAffinity(cluster),
+		"tolerations": GetHeadNodeTolerations(),
 	}
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
@@ -519,8 +519,8 @@ func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHo
 			"anchoreUser": anchoreUserName,
 			"anchorePass": anchorePassword,
 		},
-		"affinity":    getHeadNodeAffinity(cluster),
-		"tolerations": getHeadNodeTolerations(),
+		"affinity":    GetHeadNodeAffinity(cluster),
+		"tolerations": GetHeadNodeTolerations(),
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
@@ -659,8 +659,8 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 		headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 		if headNodePoolName != "" {
 			if cluster.NodePoolExists(headNodePoolName) {
-				helmInstall.Tolerations = getHeadNodeTolerations()                   // add toleration for system node
-				helmInstall.NodeAffinity = getHeadNodeAffinity(cluster).NodeAffinity // try to schedule to system node
+				helmInstall.Tolerations = GetHeadNodeTolerations()                   // add toleration for system node
+				helmInstall.NodeAffinity = GetHeadNodeAffinity(cluster).NodeAffinity // try to schedule to system node
 			} else {
 				log.Warnf("head node pool %q not found, tiller deployment is not targeted to any node pool.", headNodePoolName)
 			}
@@ -807,8 +807,8 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		"domainFilters": []string{domain},
 		"policy":        "sync",
 		"txtOwnerId":    commonCluster.GetUID(),
-		"affinity":      getHeadNodeAffinity(commonCluster),
-		"tolerations":   getHeadNodeTolerations(),
+		"affinity":      GetHeadNodeAffinity(commonCluster),
+		"tolerations":   GetHeadNodeTolerations(),
 	}
 
 	externalDnsValuesJson, err := yaml.Marshal(externalDnsValues)
@@ -1038,8 +1038,8 @@ func InitSpotConfig(cluster CommonCluster) error {
 	}
 
 	values := map[string]interface{}{
-		"affinity":    getHeadNodeAffinity(cluster),
-		"tolerations": getHeadNodeTolerations(),
+		"affinity":    GetHeadNodeAffinity(cluster),
+		"tolerations": GetHeadNodeTolerations(),
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
