@@ -17,8 +17,8 @@ package statestore
 import (
 	"os"
 
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/config"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // CleanStateStore deletes state store folder by cluster name
