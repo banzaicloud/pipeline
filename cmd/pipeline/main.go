@@ -23,8 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
-
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
@@ -50,6 +48,7 @@ import (
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
+	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/notification"
@@ -69,6 +68,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -155,13 +155,7 @@ func main() {
 	clusterEvents := cluster.NewClusterEvents(clusterEventBus)
 	clusters := intCluster.NewClusters(db)
 	secretValidator := providers.NewSecretValidator(secret.Store)
-	statusChangeDurationMetric := prometheus.NewSummaryVec(prometheus.SummaryOpts{
-		Namespace: "pipeline",
-		Name:      "cluster_status_change_duration",
-		Help:      "Cluster status change duration in seconds",
-	},
-		[]string{"provider", "location", "status", "orgName", "clusterName"},
-	)
+	statusChangeDurationMetric := prometheusMetrics.MakePrometheusClusterStatusChangeDurationMetric()
 	// Initialise cluster total metric
 	clusterTotalMetric := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "pipeline",
@@ -254,6 +248,7 @@ func main() {
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterDeleter(
 			log,
 			secret.Store,
+			statusChangeDurationMetric,
 			azurePKEAdapter.NewGORMAzurePKEClusterStore(db),
 			workflowClient,
 		),

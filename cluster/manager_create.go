@@ -121,7 +121,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 
 	m.clusterTotalMetric.WithLabelValues(cluster.GetCloud(), cluster.GetLocation()).Inc()
 
-	timer, err := m.getPrometheusTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Creating, cluster.GetOrganizationId(), cluster.GetName())
+	timer, err := m.getClusterStatusChangeMetricTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Creating, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 			errorHandler.Handle(err)
 			return
 		}
-		timer.ObserveDuration()
+		timer.RecordDuration()
 	}()
 
 	return cluster, nil
