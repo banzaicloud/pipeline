@@ -44,8 +44,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func MakeAzurePKEClusterDeleter(logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterDeleter {
+func MakeAzurePKEClusterDeleter(events ClusterDeleterEvents, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterDeleter {
 	return AzurePKEClusterDeleter{
+		events:                     events,
 		logger:                     logger,
 		secrets:                    secrets,
 		statusChangeDurationMetric: statusChangeDurationMetric,
@@ -55,6 +56,7 @@ func MakeAzurePKEClusterDeleter(logger logrus.FieldLogger, secrets SecretStore, 
 }
 
 type AzurePKEClusterDeleter struct {
+	events                     ClusterDeleterEvents
 	logger                     logrus.FieldLogger
 	secrets                    SecretStore
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
@@ -64,6 +66,10 @@ type AzurePKEClusterDeleter struct {
 
 type SecretStore interface {
 	Get(orgnaizationID uint, secretID string) (*secret.SecretItemResponse, error)
+}
+
+type ClusterDeleterEvents interface {
+	ClusterDeleted(organizationID uint, clusterName string)
 }
 
 func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAzureCluster, forced bool) error {
@@ -137,7 +143,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		}
 		// TODO: delete KubeProxy
 		statestore.CleanStateStore(cluster.Name)
-		// TODO: cluster deleted event
+		cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
 	}()
 
 	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfrun.GetID()); err != nil {
