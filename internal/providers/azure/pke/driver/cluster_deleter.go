@@ -24,6 +24,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/banzaicloud/pipeline/internal/cluster/statestore"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
@@ -34,26 +37,29 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func MakeAzurePKEClusterDeleter(logger logrus.FieldLogger, secrets SecretStore, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterDeleter {
+func MakeAzurePKEClusterDeleter(logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterDeleter {
 	return AzurePKEClusterDeleter{
-		logger:         logger,
-		secrets:        secrets,
-		store:          store,
-		workflowClient: workflowClient,
+		logger:                     logger,
+		secrets:                    secrets,
+		statusChangeDurationMetric: statusChangeDurationMetric,
+		store:                      store,
+		workflowClient:             workflowClient,
 	}
 }
 
 type AzurePKEClusterDeleter struct {
-	logger         logrus.FieldLogger
-	secrets        SecretStore
-	store          pke.AzurePKEClusterStore
-	workflowClient client.Client
+	logger                     logrus.FieldLogger
+	secrets                    SecretStore
+	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
+	store                      pke.AzurePKEClusterStore
+	workflowClient             client.Client
 }
 
 type SecretStore interface {
@@ -106,13 +112,24 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		return emperror.Wrap(err, "failed to set cluster status")
 	}
 
+	timer, err := cd.getClusterStatusChangeDurationTimer(cluster)
+	if err = emperror.Wrap(err, "failed to start status change duration metric timer"); err != nil {
+		if forced {
+			cd.logger.Error(err)
+			timer = metrics.NoopDurationMetricTimer{}
+		} else {
+			return err
+		}
+	}
+
 	wfrun, err := cd.workflowClient.ExecuteWorkflow(ctx, workflowOptions, workflow.DeleteClusterWorkflowName, input)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to start cluster deletion workflow", "cluster", cluster.Name)
+	if err = emperror.WrapWith(err, "failed to start cluster deletion workflow", "cluster", cluster.Name); err != nil {
+		return err
 	}
 
 	go func() {
-		// TODO: start Prometheus timer
+		defer timer.RecordDuration()
+
 		if err := wfrun.Get(ctx, nil); err != nil {
 			cd.logger.Error("cluster deleting workflow failed", err)
 			return
@@ -120,7 +137,6 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		// TODO: delete KubeProxy
 		statestore.CleanStateStore(cluster.Name)
 		// TODO: cluster deleted event
-		// TODO: stop Prometheus timer
 	}()
 
 	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfrun.GetID()); err != nil {
@@ -128,6 +144,23 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	}
 
 	return nil
+}
+
+func (cd AzurePKEClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke.PKEOnAzureCluster) (metrics.DurationMetricTimer, error) {
+	values := metrics.ClusterStatusChangeDurationMetricValues{
+		ProviderName: pkgCluster.Azure,
+		LocationName: cluster.Location,
+		Status:       pkgCluster.Deleting,
+	}
+	if viper.GetBool(config.MetricsDebug) {
+		org, err := auth.GetOrganizationById(cluster.OrganizationID)
+		if err != nil {
+			return nil, emperror.Wrap(err, "Error during getting organization.")
+		}
+		values.OrganizationName = org.Name
+		values.ClusterName = cluster.Name
+	}
+	return cd.statusChangeDurationMetric.StartTimer(values), nil
 }
 
 func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced bool) error {
