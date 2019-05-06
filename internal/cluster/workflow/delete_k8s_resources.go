@@ -15,6 +15,8 @@
 package workflow
 
 import (
+	"time"
+
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/workflow"
 )
@@ -26,6 +28,15 @@ type DeleteK8sResourcesWorkflowInput struct {
 }
 
 func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWorkflowInput) error {
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 5 * time.Minute,
+		StartToCloseTimeout:    10 * time.Minute,
+		ScheduleToCloseTimeout: 15 * time.Minute,
+		WaitForCancellation:    true,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
 	// delete all Helm deployments
 	{
 		activityInput := DeleteHelmDeploymentsActivityInput{
