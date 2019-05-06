@@ -561,15 +561,6 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 	return nodePools
 }
 
-// CleanStateStore deletes state store folder by cluster name
-func CleanStateStore(path string) error {
-	if len(path) != 0 {
-		stateStorePath := config.GetStateStorePath(path)
-		return os.RemoveAll(stateStorePath)
-	}
-	return pkgErrors.ErrStateStorePathEmpty
-}
-
 // CleanHelmFolder deletes helm path
 func CleanHelmFolder(organizationName string) error {
 	helmPath := config.GetHelmPath(organizationName)

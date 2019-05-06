@@ -357,11 +357,7 @@ func GetCORS() cors.Config {
 // GetStateStorePath returns the state store path
 func GetStateStorePath(clusterName string) string {
 	stateStorePath := viper.GetString("statestore.path")
-	if len(clusterName) == 0 {
-		return stateStorePath
-	}
-
-	return fmt.Sprintf("%s/%s", stateStorePath, clusterName)
+	return filepath.Join(stateStorePath, clusterName)
 }
 
 // GetHelmPath returns local helm path
