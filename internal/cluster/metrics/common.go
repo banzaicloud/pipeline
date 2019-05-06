@@ -29,3 +29,7 @@ type ClusterStatusChangeDurationMetric interface {
 type DurationMetricTimer interface {
 	RecordDuration()
 }
+
+type NoopDurationMetricTimer struct{}
+
+func (NoopDurationMetricTimer) RecordDuration() {}
