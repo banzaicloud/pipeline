@@ -24,6 +24,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/banzaicloud/pipeline/internal/cluster/statestore"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -117,7 +118,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 			return
 		}
 		// TODO: delete KubeProxy
-		// TODO: clean state store
+		statestore.CleanStateStore(cluster.Name)
 		// TODO: cluster deleted event
 		// TODO: stop Prometheus timer
 	}()
