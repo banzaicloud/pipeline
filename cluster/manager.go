@@ -29,6 +29,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/model"
 )
@@ -60,7 +61,7 @@ type Manager struct {
 	clusters                   clusterRepository
 	secrets                    secretValidator
 	events                     clusterEvents
-	statusChangeDurationMetric *prometheus.SummaryVec
+	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
 	clusterTotalMetric         *prometheus.CounterVec
 	kubeProxyCache             kubeProxyCache
 	workflowClient             client.Client
@@ -71,7 +72,7 @@ type Manager struct {
 func NewManager(clusters clusterRepository,
 	secrets secretValidator,
 	events clusterEvents,
-	statusChangeDurationMetric *prometheus.SummaryVec,
+	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric,
 	clusterTotalMetric *prometheus.CounterVec,
 	workflowClient client.Client,
 	logger logrus.FieldLogger,
@@ -138,16 +139,22 @@ func (m *Manager) getClusterErrorHandler(ctx context.Context, commonCluster Comm
 	}
 }
 
-func (m *Manager) getPrometheusTimer(provider, location, status string, orgId uint, clusterName string) (*prometheus.Timer, error) {
+func (m *Manager) getClusterStatusChangeMetricTimer(provider, location, status string, orgId uint, clusterName string) (metrics.DurationMetricTimer, error) {
+	values := metrics.ClusterStatusChangeDurationMetricValues{
+		ProviderName: provider,
+		LocationName: location,
+		Status:       status,
+	}
 	if viper.GetBool(config.MetricsDebug) {
 		org, err := auth.GetOrganizationById(orgId)
 		if err != nil {
 			return nil, emperror.Wrap(err, "Error during getting organization. ")
 		}
 
-		return prometheus.NewTimer(m.statusChangeDurationMetric.WithLabelValues(provider, location, status, org.Name, clusterName)), nil
+		values.OrganizationName = org.Name
+		values.ClusterName = clusterName
 	}
-	return prometheus.NewTimer(m.statusChangeDurationMetric.WithLabelValues(provider, location, status, "", "")), nil
+	return m.statusChangeDurationMetric.StartTimer(values), nil
 }
 
 func (m *Manager) GetKubeProxy(requestSchema string, requestHost string, apiProxyPrefix string, commonCluster CommonCluster) (*KubeAPIProxy, error) {

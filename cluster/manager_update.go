@@ -63,7 +63,7 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 		return errors.WithMessage(err, "could not prepare cluster")
 	}
 
-	timer, err := m.getPrometheusTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, cluster.GetOrganizationId(), cluster.GetName())
+	timer, err := m.getClusterStatusChangeMetricTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Updating, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (m *Manager) UpdateCluster(ctx context.Context, updateCtx UpdateContext, up
 			errorHandler.Handle(err)
 			return
 		}
-		timer.ObserveDuration()
+		timer.RecordDuration()
 	}()
 
 	return nil

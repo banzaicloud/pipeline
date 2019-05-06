@@ -31,7 +31,7 @@ import (
 // DeleteCluster deletes a cluster.
 func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, force bool) error {
 
-	timer, err := m.getPrometheusTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, cluster.GetOrganizationId(), cluster.GetName())
+	timer, err := m.getClusterStatusChangeMetricTimer(cluster.GetCloud(), cluster.GetLocation(), pkgCluster.Deleting, cluster.GetOrganizationId(), cluster.GetName())
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 			errorHandler.Handle(err)
 			return
 		}
-		timer.ObserveDuration()
+		timer.RecordDuration()
 	}()
 
 	return nil
