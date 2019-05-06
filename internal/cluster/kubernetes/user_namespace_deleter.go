@@ -66,6 +66,11 @@ func (d UserNamespaceDeleter) Delete(k8sConfig []byte) error {
 		}
 		left := []string{}
 		for _, ns := range namespaces.Items {
+			if len(ns.Spec.Finalizers) > 0 {
+				d.logger.Infof("can't delete namespace %q with finalizers %s", ns.Name, ns.Spec.Finalizers)
+				continue
+			}
+
 			switch ns.Name {
 			case "default", "kube-system", "kube-public":
 				continue
