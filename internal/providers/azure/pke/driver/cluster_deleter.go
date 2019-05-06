@@ -44,9 +44,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func MakeAzurePKEClusterDeleter(events ClusterDeleterEvents, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterDeleter {
+func MakeAzurePKEClusterDeleter(events ClusterDeleterEvents, kubeProxyCache KubeProxyCache, logger logrus.FieldLogger, secrets SecretStore, statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterDeleter {
 	return AzurePKEClusterDeleter{
 		events:                     events,
+		kubeProxyCache:             kubeProxyCache,
 		logger:                     logger,
 		secrets:                    secrets,
 		statusChangeDurationMetric: statusChangeDurationMetric,
@@ -57,6 +58,7 @@ func MakeAzurePKEClusterDeleter(events ClusterDeleterEvents, logger logrus.Field
 
 type AzurePKEClusterDeleter struct {
 	events                     ClusterDeleterEvents
+	kubeProxyCache             KubeProxyCache
 	logger                     logrus.FieldLogger
 	secrets                    SecretStore
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
@@ -70,6 +72,10 @@ type SecretStore interface {
 
 type ClusterDeleterEvents interface {
 	ClusterDeleted(organizationID uint, clusterName string)
+}
+
+type KubeProxyCache interface {
+	Delete(clusterUID string)
 }
 
 func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAzureCluster, forced bool) error {
@@ -141,7 +147,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 			cd.logger.Error("cluster deleting workflow failed", err)
 			return
 		}
-		// TODO: delete KubeProxy
+		cd.kubeProxyCache.Delete(cluster.UID)
 		statestore.CleanStateStore(cluster.Name)
 		cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
 	}()

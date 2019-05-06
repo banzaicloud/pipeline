@@ -247,6 +247,7 @@ func main() {
 	clusterDeleters := api.ClusterDeleters{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterDeleter(
 			clusterEvents,
+			clusterManager.GetKubeProxyCache(),
 			log,
 			secret.Store,
 			statusChangeDurationMetric,

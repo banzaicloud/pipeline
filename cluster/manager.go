@@ -47,7 +47,7 @@ type secretValidator interface {
 	ValidateSecretType(organizationID uint, secretID string, cloud string) error
 }
 
-type kubeProxyCache interface {
+type KubeProxyCache interface {
 	Get(clusterUID string) (*KubeAPIProxy, bool)
 	Put(clusterUID string, proxy *KubeAPIProxy)
 	Delete(clusterUID string)
@@ -63,7 +63,7 @@ type Manager struct {
 	events                     clusterEvents
 	statusChangeDurationMetric metrics.ClusterStatusChangeDurationMetric
 	clusterTotalMetric         *prometheus.CounterVec
-	kubeProxyCache             kubeProxyCache
+	kubeProxyCache             KubeProxyCache
 	workflowClient             client.Client
 	logger                     logrus.FieldLogger
 	errorHandler               emperror.Handler
@@ -193,4 +193,8 @@ func (c *goCacheKubeProxyCache) Put(clusterUID string, kubeProxy *KubeAPIProxy) 
 
 func (c *goCacheKubeProxyCache) Delete(clusterUID string) {
 	c.cache.Delete(clusterUID)
+}
+
+func (m *Manager) GetKubeProxyCache() KubeProxyCache {
+	return m.kubeProxyCache
 }
