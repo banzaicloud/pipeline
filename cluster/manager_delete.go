@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"context"
-	"time"
 
 	"github.com/banzaicloud/pipeline/helm"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
@@ -51,18 +50,6 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	}()
 
 	return nil
-}
-
-func retry(function func() error, count int, delaySeconds int) error {
-	i := 1
-	for {
-		err := function()
-		if err == nil || i == count {
-			return err
-		}
-		time.Sleep(time.Second * time.Duration(delaySeconds))
-		i++
-	}
 }
 
 func deleteAllResources(kubeConfig []byte, logger *logrus.Entry) error {
