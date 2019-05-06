@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -28,12 +27,39 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/config"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 const (
 	getJsonFailed      = "failed to get Istio Grafana dashboard.json"
 	addDashboardFailed = "couldn't add Istio Grafana dashboard"
+
+	createdByLabel = pkgCommon.PipelineSpecificLabelsCommonPart + "/created-by"
+	appLabel       = pkgCommon.PipelineSpecificLabelsCommonPart + "/app"
 )
+
+func DeleteGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) error {
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+
+	cms, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).List(metav1.ListOptions{
+		LabelSelector: createdByLabel + "=pipeline," + appLabel + "=grafana",
+	})
+	if err != nil {
+		return emperror.Wrap(err, "could not list configmaps")
+	}
+
+	caughtErrors := emperror.NewMultiErrorBuilder()
+	for _, cm := range cms.Items {
+		err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Delete(cm.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			caughtErrors.Add(emperror.Wrap(err, "could not delete configmap"))
+		}
+	}
+
+	return caughtErrors.ErrOrNil()
+}
 
 func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) error {
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
@@ -51,6 +77,8 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 				Name: fmt.Sprintf("%s-grafana-dashboard", dashboard),
 				Labels: map[string]string{
 					"pipeline_grafana_dashboard": "1",
+					createdByLabel:               "pipeline",
+					appLabel:                     "grafana",
 				},
 			},
 		})

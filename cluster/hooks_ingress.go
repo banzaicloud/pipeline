@@ -130,8 +130,8 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 				DefaultCert: base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[pkgSecret.ServerCert])),
 				DefaultKey:  base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[pkgSecret.ServerKey])),
 			},
-			Affinity:    getHeadNodeAffinity(cluster),
-			Tolerations: getHeadNodeTolerations(),
+			Affinity:    GetHeadNodeAffinity(cluster),
+			Tolerations: GetHeadNodeTolerations(),
 		},
 	}
 

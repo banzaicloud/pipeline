@@ -111,8 +111,15 @@ chartVersion = ""
 imageTag = "0.1.2"
 
 [servicemesh]
-istioOperatorChartVersion = "0.0.3"
+istioOperatorChartVersion = "0.0.7"
 grafanaDashboardLocation = "https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards"
+istioOperatorChartName = "istio-operator"
+istioPilotImage = "banzaicloud/istio-pilot:1.1.4-bzc"
+istioMixerImage = "banzaicloud/istio-mixer:1.1.4-bzc"
+
+[uistio]
+chartVersion = "0.0.2"
+chartName = "uistio"
 
 # DNS service settings
 [dns]
