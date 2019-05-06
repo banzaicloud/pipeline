@@ -99,6 +99,8 @@ github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182 h1:U3i2pc5I/dw
 github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182/go.mod h1:OeOXKxwBf3IGkKdrjisjo3pb+RlQNRMXpaGgiDdyRfA=
 github.com/banzaicloud/istio-operator v0.0.0-20190312122926-a4debb5bafe9 h1:uiQxbQXF4Qs6EISKMRmO7tOBJ22uMrFWj9uX/8S/nK0=
 github.com/banzaicloud/istio-operator v0.0.0-20190312122926-a4debb5bafe9/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
+github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f h1:51U6NGVl3M6Da4BhC+dzK1diR4FkqMoGhtb/E4xS3oA=
+github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f h1:WeGZeO6I+lI1IG2vm1iXTeMrHLcMUjfoYm+rubBM5c4=
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f/go.mod h1:2GxaTh0YYmhQEMQ4wJ8Izr7sBecWZtnXlDzybR1hSO8=
 github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190219103855-a13c1b05f240 h1:pLHpxaNE0W05haXqKRp4JuUJDwxNR3Wd5Vs+Ux594go=

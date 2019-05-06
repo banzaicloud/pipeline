@@ -186,8 +186,8 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 			ClusterName: cluster.GetName(),
 		},
 		SslCertPath: &eksCertPath,
-		Affinity:    getHeadNodeAffinity(cluster),
-		Tolerations: getHeadNodeTolerations(),
+		Affinity:    GetHeadNodeAffinity(cluster),
+		Tolerations: GetHeadNodeTolerations(),
 	}
 }
 
@@ -241,8 +241,8 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			TenantID:       clusterSecret.Values[pkgSecret.AzureTenantID],
 			ClusterName:    cluster.GetName(),
 		},
-		Affinity:    getHeadNodeAffinity(cluster),
-		Tolerations: getHeadNodeTolerations(),
+		Affinity:    GetHeadNodeAffinity(cluster),
+		Tolerations: GetHeadNodeTolerations(),
 	}
 
 	switch cluster.GetDistribution() {

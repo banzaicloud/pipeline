@@ -49,8 +49,8 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
 	reservedNodeLabelDomains := viper.GetStringSlice(pipConfig.ForbiddenLabelDomains)
 
-	headNodeAffinity := getHeadNodeAffinity(cluster)
-	headNodeTolerations := getHeadNodeTolerations()
+	headNodeAffinity := GetHeadNodeAffinity(cluster)
+	headNodeTolerations := GetHeadNodeTolerations()
 
 	chartName := helm.BanzaiRepository + nodePoolLabelsOperatorName
 	chartVersion := viper.GetString(config.NodePoolLabelSetOperatorChartVersion)

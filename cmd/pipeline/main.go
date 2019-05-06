@@ -57,6 +57,7 @@ import (
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
+	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/notification"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
@@ -274,8 +275,10 @@ func main() {
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, log), log, errorHandler)
 	federationHandler := federation.NewFederationHandler(log, errorHandler)
 	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, log, errorHandler)
+	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, log, errorHandler)
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 	clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
+	clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
 
 	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, clusterGroupManager, log, errorHandler, externalBaseURL, clusterCreators, clusterDeleters)
 

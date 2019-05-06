@@ -32,6 +32,46 @@ const (
 	promCmName      = "-prometheus-server"
 )
 
+func RemovePrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface) error {
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+
+	currPromConfStr, err := k8sutil.GetConfigMapEntry(client, pipelineSystemNamespace, config.MonitorReleaseName+promCmName, promConfigEntry)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get Prometheus config")
+	}
+
+	var currPromConf prometheus.Config
+	err = yamlv2.Unmarshal([]byte(currPromConfStr), &currPromConf)
+	if err != nil {
+		return emperror.Wrap(err, "failed to patch Prometheus config")
+	}
+
+	istioScrapeConfigs := make([]*prometheus.ScrapeConfig, 0)
+
+	for _, scrapeConfig := range currPromConf.ScrapeConfigs {
+		switch scrapeConfig.JobName {
+		case "istio-mesh", "istio-policy", "istio-telemetry", "pilot", "galley":
+			continue
+		default:
+			istioScrapeConfigs = append(istioScrapeConfigs, scrapeConfig)
+		}
+	}
+
+	newPromConf := currPromConf
+	newPromConf.ScrapeConfigs = istioScrapeConfigs
+
+	newPromConfStr, err := yamlv2.Marshal(newPromConf)
+	if err != nil {
+		return emperror.Wrap(err, "failed to patch Prometheus config")
+	}
+
+	err = k8sutil.PatchConfigMapDataEntry(log, client, pipelineSystemNamespace, config.MonitorReleaseName+promCmName, promConfigEntry, string(newPromConfStr))
+	if err != nil {
+		return emperror.Wrap(err, "failed to patch Prometheus config")
+	}
+	return nil
+}
+
 func AddPrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface) error {
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
 
