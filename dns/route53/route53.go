@@ -913,7 +913,7 @@ func (dns *awsRoute53) startNewWorker() chan workerTask {
 				domain, err = dns.getOrgDomain(task.organisationId)
 				if err == nil {
 					hostedZoneId, err = dns.hostedZoneExistsByDomain(domain)
-					if err == nil {
+					if err == nil && hostedZoneId != "" {
 						err = dns.deleteHostedZoneResourceRecordSetsOwnedBy(aws.String(hostedZoneId), aws.StringValue(task.dnsRecordownerId))
 					}
 				}
