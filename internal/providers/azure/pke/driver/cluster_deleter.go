@@ -124,6 +124,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 
 	wfrun, err := cd.workflowClient.ExecuteWorkflow(ctx, workflowOptions, workflow.DeleteClusterWorkflowName, input)
 	if err = emperror.WrapWith(err, "failed to start cluster deletion workflow", "cluster", cluster.Name); err != nil {
+		cd.store.SetStatus(cluster.ID, pkgCluster.Error, err.Error())
 		return err
 	}
 
