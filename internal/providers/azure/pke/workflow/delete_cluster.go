@@ -59,8 +59,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	}
 	ctx = workflow.WithChildOptions(workflow.WithActivityOptions(ctx, ao), cwo)
 
-	// TODO: start Prometheus timer
-
 	// delete k8s resources
 	if len(input.K8sConfig) > 0 {
 		wfInput := intClusterWorkflow.DeleteK8sResourcesWorkflowInput{
@@ -113,8 +111,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 	}
 
-	// TODO: delete KubeProxy
-
 	// delete unused secrets
 	{
 		activityInput := intClusterWorkflow.DeleteUnusedClusterSecretsActivityInput{
@@ -137,12 +133,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			return err
 		}
 	}
-
-	// TODO: clean state store?
-
-	// TODO: cluster deleted event
-
-	// TODO: stop Prometheus timer
 
 	return nil
 }
