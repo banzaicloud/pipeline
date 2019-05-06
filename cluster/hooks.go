@@ -843,10 +843,14 @@ func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[s
 
 // TaintHeadNodes add taints to the given node in nodepool
 func TaintHeadNodes(commonCluster CommonCluster) error {
-
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 	if len(headNodePoolName) == 0 {
 		log.Infof("headNodePoolName not specified")
+		return nil
+	}
+
+	if commonCluster.GetCloud() == pkgCluster.Azure && commonCluster.GetDistribution() == pkgCluster.PKE {
+		log.Info("head node already tainted")
 		return nil
 	}
 

@@ -30,6 +30,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -37,10 +39,11 @@ import (
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
+	corev1 "k8s.io/api/core/v1"
 )
 
-const MasterRole = "master"
 const pkeVersion = "0.4.6"
+const MasterNodeTaint = "node-role.kubernetes.io/master:" + string(corev1.TaintEffectNoSchedule)
 
 func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
@@ -81,9 +84,9 @@ type NodePool struct {
 	Max          int
 }
 
-func (np NodePool) hasRole(roleName string) bool {
+func (np NodePool) hasRole(role pkgPKE.Role) bool {
 	for _, r := range np.Roles {
-		if r == roleName {
+		if r == string(role) {
 			return true
 		}
 	}
@@ -213,19 +216,31 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		var nsgn string
 		var cnsgn string
 		var azureRole string
+		var taints string
 		var userDataScriptTemplate string
 
 		switch {
-		case np.hasRole(MasterRole):
+		case np.hasRole(pkgPKE.RoleMaster):
 			bapn = "backend-address-pool"
 			inpn = "ssh-inbound-nat-pool"
 			nsgn = params.Name + "-master-nsg"
 			azureRole = "Owner"
+
+			if npLen > 1 {
+				taints = MasterNodeTaint
+			} else {
+				taints = "," // do not taint single-nodepool cluster's master node
+			}
+
 			userDataScriptTemplate = masterUserDataScriptTemplate
 		default:
 			nsgn = params.Name + "-worker-nsg"
 			azureRole = "Contributor"
+			if npLen > 1 && np.hasRole(pkgPKE.RolePipelineSystem) {
+				taints = fmt.Sprintf("%s=%s:%s", pkgCommon.HeadNodeTaintKey, np.Name, corev1.TaintEffectPreferNoSchedule)
+			}
 			userDataScriptTemplate = workerUserDataScriptTemplate
+
 		}
 		cnsgn = nsgn
 		if npLen > 1 {
@@ -262,6 +277,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				"InfraCIDR":             np.Subnet.CIDR,
 				"LoadBalancerSKU":       "standard",
 				"NodePoolName":          np.Name,
+				"Taints":                taints,
 				"NSGName":               cnsgn,
 				"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
 				"PipelineURL":           cc.pipelineExternalURL,
@@ -601,6 +617,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-cluster-id={{ .ClusterID}} \
 --kubernetes-cluster-name={{ .ClusterName }} \
 --pipeline-nodepool={{ .NodePoolName }} \
+--taints={{ .Taints }} \
 --kubernetes-cloud-provider=azure \
 --azure-tenant-id={{ .TenantID }} \
 --azure-subnet-name={{ .SubnetName }} \
@@ -627,6 +644,7 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-org-id={{ .OrgID }} \
 --pipeline-cluster-id={{ .ClusterID}} \
 --pipeline-nodepool={{ .NodePoolName }} \
+--taints={{ .Taints }} \
 --kubernetes-cloud-provider=azure \
 --azure-tenant-id={{ .TenantID }} \
 --azure-subnet-name={{ .SubnetName }} \
