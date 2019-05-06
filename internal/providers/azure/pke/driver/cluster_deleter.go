@@ -96,6 +96,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		SecretID:             cluster.SecretID,
 		ClusterID:            cluster.ID,
 		ClusterName:          cluster.Name,
+		ClusterUID:           cluster.UID,
 		K8sConfig:            k8sConfig,
 		ResourceGroupName:    cluster.ResourceGroup.Name,
 		LoadBalancerName:     cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
