@@ -105,13 +105,25 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		return emperror.Wrap(err, "failed to set cluster status")
 	}
 
-	wfexec, err := cd.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.DeleteClusterWorkflowName, input)
+	wfrun, err := cd.workflowClient.ExecuteWorkflow(ctx, workflowOptions, workflow.DeleteClusterWorkflowName, input)
 	if err != nil {
 		return emperror.WrapWith(err, "failed to start cluster deletion workflow", "cluster", cluster.Name)
 	}
 
-	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfexec.ID); err != nil {
-		return emperror.WrapWith(err, "failed to set active workflow ID for cluster", "cluster", cluster.Name, "workflowID", wfexec.ID)
+	go func() {
+		// TODO: start Prometheus timer
+		if err := wfrun.Get(ctx, nil); err != nil {
+			cd.logger.Error("cluster deleting workflow failed", err)
+			return
+		}
+		// TODO: delete KubeProxy
+		// TODO: clean state store
+		// TODO: cluster deleted event
+		// TODO: stop Prometheus timer
+	}()
+
+	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfrun.GetID()); err != nil {
+		return emperror.WrapWith(err, "failed to set active workflow ID for cluster", "cluster", cluster.Name, "workflowID", wfrun.GetID())
 	}
 
 	return nil
