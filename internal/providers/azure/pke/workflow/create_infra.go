@@ -275,8 +275,8 @@ func (p mapVMSSPrincipalIDProvider) Get(name string) string {
 func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrastructureWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
-		StartToCloseTimeout:    10 * time.Minute,
-		ScheduleToCloseTimeout: 15 * time.Minute,
+		StartToCloseTimeout:    15 * time.Minute,
+		ScheduleToCloseTimeout: 20 * time.Minute,
 		WaitForCancellation:    true,
 	}
 
