@@ -119,11 +119,13 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 			"region":       clusterStatus.Region,
 		}).Warn(errors.Wrap(err, "failed to get instance attributes from Cloud Info"))
 	} else {
-		for attrKey, attrValue := range machineDetails.Attributes {
-			nKey := formatValue(attrKey)
-			cloudInfoAttrKey := common.CloudInfoLabelKeyPrefix + nKey
-			nValue := formatValue(attrValue)
-			desiredLabels[cloudInfoAttrKey] = nValue
+		if machineDetails != nil {
+			for attrKey, attrValue := range machineDetails.Attributes {
+				nKey := formatValue(attrKey)
+				cloudInfoAttrKey := common.CloudInfoLabelKeyPrefix + nKey
+				nValue := formatValue(attrValue)
+				desiredLabels[cloudInfoAttrKey] = nValue
+			}
 		}
 	}
 
