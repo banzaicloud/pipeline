@@ -911,7 +911,7 @@ func (dns *awsRoute53) startNewWorker() chan workerTask {
 				var err error
 				var domain, hostedZoneId string
 				domain, err = dns.getOrgDomain(task.organisationId)
-				if err == nil {
+				if err == nil && domain != "" {
 					hostedZoneId, err = dns.hostedZoneExistsByDomain(domain)
 					if err == nil && hostedZoneId != "" {
 						err = dns.deleteHostedZoneResourceRecordSetsOwnedBy(aws.String(hostedZoneId), aws.StringValue(task.dnsRecordownerId))
