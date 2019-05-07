@@ -16,10 +16,10 @@ package driver
 
 import (
 	"context"
-	"encoding/base64"
-	"errors"
 	"net/http"
 	"time"
+
+	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -33,7 +33,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
@@ -82,11 +81,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	logger := cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).WithField("forced", forced)
 	logger.Info("Deleting cluster")
 
-	k8sConfig, err := getK8sConfig(cd.secrets, cluster.OrganizationID, cluster.K8sSecretID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get k8s config")
-	}
-	pipNames, err := collectPublicIPAddressNames(ctx, logger, cd.secrets, cluster, k8sConfig, forced)
+	pipNames, err := collectPublicIPAddressNames(ctx, logger, cd.secrets, cluster, forced)
 	if err != nil {
 		return emperror.Wrap(err, "failed to collect public IP address resource names")
 	}
@@ -97,7 +92,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		ClusterID:            cluster.ID,
 		ClusterName:          cluster.Name,
 		ClusterUID:           cluster.UID,
-		K8sConfig:            k8sConfig,
+		K8sSecretID:          cluster.K8sSecretID,
 		ResourceGroupName:    cluster.ResourceGroup.Name,
 		LoadBalancerName:     cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
 		PublicIPAddressNames: pipNames,
@@ -187,22 +182,7 @@ func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint,
 	return cd.Delete(ctx, cl, forced)
 }
 
-func getK8sConfig(secrets SecretStore, organizationID uint, k8sSecretID string) ([]byte, error) {
-	if secrets == nil || k8sSecretID == "" {
-		return nil, nil
-	}
-	sir, err := secrets.Get(organizationID, k8sSecretID)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get k8s config from secret store")
-	}
-	k8sConfig, err := base64.StdEncoding.DecodeString(sir.GetValue(pkgSecret.K8SConfig))
-	if err != nil {
-		return nil, emperror.Wrap(err, "can't decode Kubernetes config")
-	}
-	return k8sConfig, nil
-}
-
-func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger, secrets SecretStore, cluster pke.PKEOnAzureCluster, k8sConfig []byte, forced bool) ([]string, error) {
+func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger, secrets SecretStore, cluster pke.PKEOnAzureCluster, forced bool) ([]string, error) {
 	sir, err := secrets.Get(cluster.OrganizationID, cluster.SecretID)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get cluster secret from secret store")
@@ -223,8 +203,8 @@ func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger,
 	}
 	names = gatherOwnedPublicIPAddressNames(lb, cluster.Name, names)
 
-	names, err = gatherK8sServicePublicIPs(ctx, cc.GetPublicIPAddressesClient(), cluster, k8sConfig, names)
-	if emperror.Wrap(err, "failed to gather k8s services' public IP addresses"); err != nil {
+	names, err = gatherK8sServicePublicIPs(ctx, cc.GetPublicIPAddressesClient(), cluster, secrets, names)
+	if err = emperror.Wrap(err, "failed to gather k8s services' public IP addresses"); err != nil {
 		if forced {
 			logger.Warning(err)
 		} else {
@@ -261,9 +241,14 @@ func gatherOwnedPublicIPAddressNames(lb network.LoadBalancer, clusterName string
 	return names
 }
 
-func gatherK8sServicePublicIPs(ctx context.Context, client *pkgAzure.PublicIPAddressesClient, cluster pke.PKEOnAzureCluster, k8sConfig []byte, names map[string]bool) (map[string]bool, error) {
-	if k8sConfig == nil {
-		return names, errors.New("no k8s config")
+func gatherK8sServicePublicIPs(ctx context.Context, client *pkgAzure.PublicIPAddressesClient, cluster pke.PKEOnAzureCluster, secrets SecretStore, names map[string]bool) (map[string]bool, error) {
+	if cluster.K8sSecretID == "" {
+		return names, nil
+	}
+
+	k8sConfig, err := intSecret.MakeKubeSecretStore(secrets).Get(cluster.OrganizationID, cluster.K8sSecretID)
+	if err != nil {
+		return names, emperror.Wrap(err, "failed to get k8s config")
 	}
 
 	resPage, err := client.List(ctx, cluster.ResourceGroup.Name)
@@ -279,7 +264,9 @@ func gatherK8sServicePublicIPs(ctx context.Context, client *pkgAzure.PublicIPAdd
 			}
 		}
 		if resPage.NotDone() {
-			resPage.Next()
+			if err := resPage.NextWithContext(ctx); err != nil {
+				return nil, err
+			}
 		} else {
 			break
 		}

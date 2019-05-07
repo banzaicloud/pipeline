@@ -27,7 +27,7 @@ const DeleteK8sResourcesWorkflowName = "delete-k8s-resources"
 type DeleteK8sResourcesWorkflowInput struct {
 	OrganizationID uint
 	ClusterName    string
-	K8sConfig      []byte
+	K8sSecretID    string
 }
 
 func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWorkflowInput) error {
@@ -47,7 +47,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 		activityInput := DeleteHelmDeploymentsActivityInput{
 			OrganizationID: input.OrganizationID,
 			ClusterName:    input.ClusterName,
-			K8sConfig:      input.K8sConfig,
+			K8sSecretID:    input.K8sSecretID,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteHelmDeploymentsActivityName, activityInput).Get(ctx, nil); err != nil {
 			if strings.Contains(err.Error(), "could not find tiller") {
@@ -65,7 +65,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 		activityInput := DeleteUserNamespacesActivityInput{
 			OrganizationID: input.OrganizationID,
 			ClusterName:    input.ClusterName,
-			K8sConfig:      input.K8sConfig,
+			K8sSecretID:    input.K8sSecretID,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, &deleteUserNamespacesOutput); err != nil {
 			logger.Info(emperror.Wrap(err, "failed to delete user namespaces")) // retry later after resource deletion
@@ -77,7 +77,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 		activityInput := DeleteNamespaceResourcesActivityInput{
 			OrganizationID: input.OrganizationID,
 			ClusterName:    input.ClusterName,
-			K8sConfig:      input.K8sConfig,
+			K8sSecretID:    input.K8sSecretID,
 			Namespace:      ns,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceResourcesActivityName, activityInput).Get(ctx, nil); err != nil {
@@ -90,7 +90,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 		activityInput := DeleteNamespaceServicesActivityInput{
 			OrganizationID: input.OrganizationID,
 			ClusterName:    input.ClusterName,
-			K8sConfig:      input.K8sConfig,
+			K8sSecretID:    input.K8sSecretID,
 			Namespace:      ns,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceServicesActivityName, activityInput).Get(ctx, nil); err != nil {
@@ -101,7 +101,9 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 	// delete user namespaces
 	{
 		activityInput := DeleteUserNamespacesActivityInput{
-			K8sConfig: input.K8sConfig,
+			OrganizationID: input.OrganizationID,
+			ClusterName:    input.ClusterName,
+			K8sSecretID:    input.K8sSecretID,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, nil); err != nil {
 			return emperror.Wrap(err, "failed to delete user namespaces")
