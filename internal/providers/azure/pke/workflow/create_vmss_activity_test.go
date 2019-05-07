@@ -134,8 +134,9 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 							OsType:       compute.Linux,
 							CreateOption: compute.DiskCreateOptionTypesFromImage,
 							ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
-								StorageAccountType: compute.StorageAccountTypesStandardSSDLRS,
+								StorageAccountType: compute.StorageAccountTypesPremiumLRS,
 							},
+							DiskSizeGB: to.Int32Ptr(128),
 						},
 					},
 				},

@@ -177,6 +177,10 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 			ID: to.StringPtr(input.ScaleSet.NetworkSecurityGroupID),
 		}
 	}
+	storageAccountType := compute.StorageAccountTypesStandardSSDLRS
+	if supportsPremiumStorage(input.ScaleSet.InstanceType) {
+		storageAccountType = compute.StorageAccountTypesPremiumLRS
+	}
 	return compute.VirtualMachineScaleSet{
 		Identity: &compute.VirtualMachineScaleSetIdentity{
 			Type: compute.ResourceIdentityTypeSystemAssigned,
@@ -242,14 +246,22 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 					OsDisk: &compute.VirtualMachineScaleSetOSDisk{
 						CreateOption: compute.DiskCreateOptionTypesFromImage,
 						ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
-							StorageAccountType: compute.StorageAccountTypesStandardLRS,
+							StorageAccountType: storageAccountType,
 						},
-						Caching: compute.CachingTypesReadWrite,
-						OsType:  compute.Linux,
+						DiskSizeGB: to.Int32Ptr(128),
+						Caching:    compute.CachingTypesReadWrite,
+						OsType:     compute.Linux,
 					},
 				},
 			},
 		},
 		Zones: to.StringSlicePtr(input.ScaleSet.Zones),
 	}
+}
+
+func supportsPremiumStorage(instanceType string) bool {
+	if i := strings.Index(instanceType, "_"); i >= 0 {
+		return strings.ContainsAny(instanceType[i:], "Ss")
+	}
+	return false
 }
