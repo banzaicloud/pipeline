@@ -25,7 +25,7 @@ const DeleteUserNamespacesActivityName = "delete-user-namespaces"
 type DeleteUserNamespacesActivityInput struct {
 	OrganizationID uint
 	ClusterName    string
-	K8sConfig      []byte
+	K8sSecretID    string
 }
 
 type DeleteUserNamespacesActivityOutput struct {
@@ -33,20 +33,26 @@ type DeleteUserNamespacesActivityOutput struct {
 }
 
 type DeleteUserNamespacesActivity struct {
-	deleter UserNamespaceDeleter
+	deleter         UserNamespaceDeleter
+	k8sConfigGetter K8sConfigGetter
 }
 
 type UserNamespaceDeleter interface {
 	Delete(organizationID uint, clusterName string, k8sConfig []byte) ([]string, error)
 }
 
-func MakeDeleteUserNamespacesActivity(deleter UserNamespaceDeleter) DeleteUserNamespacesActivity {
+func MakeDeleteUserNamespacesActivity(deleter UserNamespaceDeleter, k8sConfigGetter K8sConfigGetter) DeleteUserNamespacesActivity {
 	return DeleteUserNamespacesActivity{
-		deleter: deleter,
+		deleter:         deleter,
+		k8sConfigGetter: k8sConfigGetter,
 	}
 }
 
 func (a DeleteUserNamespacesActivity) Execute(ctx context.Context, input DeleteUserNamespacesActivityInput) (DeleteUserNamespacesActivityOutput, error) {
-	left, err := a.deleter.Delete(input.OrganizationID, input.ClusterName, input.K8sConfig)
+	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
+	if err != nil {
+		return DeleteUserNamespacesActivityOutput{}, emperror.Wrap(err, "failed to get k8s config")
+	}
+	left, err := a.deleter.Delete(input.OrganizationID, input.ClusterName, k8sConfig)
 	return DeleteUserNamespacesActivityOutput{left}, emperror.Wrap(err, "failed to delete user namespaces")
 }

@@ -15,9 +15,12 @@
 package secret
 
 import (
+	"encoding/base64"
 	"encoding/json"
 
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -112,4 +115,30 @@ func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 	}
 
 	return kubeSecret, nil
+}
+
+type KubeSecretStore struct {
+	secrets SecretStore
+}
+
+func MakeKubeSecretStore(secrets SecretStore) KubeSecretStore {
+	return KubeSecretStore{
+		secrets: secrets,
+	}
+}
+
+type SecretStore interface {
+	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
+}
+
+func (s KubeSecretStore) Get(organizationID uint, k8sSecretID string) ([]byte, error) {
+	sir, err := s.secrets.Get(organizationID, k8sSecretID)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to get k8s config from secret store")
+	}
+	k8sConfig, err := base64.StdEncoding.DecodeString(sir.GetValue(secretTypes.K8SConfig))
+	if err != nil {
+		return nil, emperror.Wrap(err, "can't decode Kubernetes config")
+	}
+	return k8sConfig, nil
 }
