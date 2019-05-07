@@ -75,7 +75,8 @@ func deleteAllResources(organizationID uint, clusterName string, kubeConfig []by
 // deleteUserNamespaces deletes all namespace in the context expect the protected ones
 func deleteUserNamespaces(organizationID uint, clusterName string, kubeConfig []byte, logger *logrus.Entry) error {
 	deleter := intClusterK8s.MakeUserNamespaceDeleter(logger)
-	return deleter.Delete(organizationID, clusterName, kubeConfig)
+	_, err := deleter.Delete(organizationID, clusterName, kubeConfig)
+	return err
 }
 
 // deleteResources deletes all Services, Deployments, DaemonSets, StatefulSets, ReplicaSets, Pods, and PersistentVolumeClaims of a namespace
