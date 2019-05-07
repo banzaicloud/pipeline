@@ -15,6 +15,7 @@
 package workflow
 
 import (
+	"strings"
 	"time"
 
 	"github.com/goph/emperror"
@@ -30,6 +31,8 @@ type DeleteK8sResourcesWorkflowInput struct {
 }
 
 func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWorkflowInput) error {
+	logger := workflow.GetLogger(ctx).Sugar()
+
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
 		StartToCloseTimeout:    10 * time.Minute,
@@ -47,9 +50,15 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			K8sConfig:      input.K8sConfig,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteHelmDeploymentsActivityName, activityInput).Get(ctx, nil); err != nil {
-			return emperror.Wrap(err, "failed to delete Help deployments")
+			if strings.Contains(err.Error(), "could not find tiller") {
+				logger.Info("could not delete helm deployment because tiller is not running")
+			} else {
+				return emperror.Wrap(err, "failed to delete Help deployments")
+			}
 		}
 	}
+
+	var deleteUserNamespacesOutput DeleteUserNamespacesActivityOutput
 
 	// delete user namespaces
 	{
