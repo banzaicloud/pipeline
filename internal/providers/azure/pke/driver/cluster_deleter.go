@@ -144,8 +144,10 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	go func() {
 		defer timer.RecordDuration()
 
+		ctx := context.Background()
+
 		if err := wfrun.Get(ctx, nil); err != nil {
-			cd.logger.Error("cluster deleting workflow failed", err)
+			cd.logger.Errorf("cluster deleting workflow failed: %v", err)
 			return
 		}
 		cd.kubeProxyCache.Delete(cluster.UID)
