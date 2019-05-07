@@ -32,8 +32,8 @@ func MakeNamespaceServicesDeleter(logger logrus.FieldLogger) NamespaceServicesDe
 	}
 }
 
-func (d NamespaceServicesDeleter) Delete(k8sConfig []byte, namespace string) error {
-	logger := d.logger.WithField("namespace", namespace)
+func (d NamespaceServicesDeleter) Delete(organizationID uint, clusterName string, k8sConfig []byte, namespace string) error {
+	logger := d.logger.WithField("organizationID", organizationID).WithField("clusterName", clusterName).WithField("namespace", namespace)
 
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
 	if err != nil {

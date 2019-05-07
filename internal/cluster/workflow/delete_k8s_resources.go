@@ -24,7 +24,9 @@ import (
 const DeleteK8sResourcesWorkflowName = "delete-k8s-resources"
 
 type DeleteK8sResourcesWorkflowInput struct {
-	K8sConfig []byte
+	OrganizationID uint
+	ClusterName    string
+	K8sConfig      []byte
 }
 
 func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWorkflowInput) error {
@@ -40,7 +42,9 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 	// delete all Helm deployments
 	{
 		activityInput := DeleteHelmDeploymentsActivityInput{
-			K8sConfig: input.K8sConfig,
+			OrganizationID: input.OrganizationID,
+			ClusterName:    input.ClusterName,
+			K8sConfig:      input.K8sConfig,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteHelmDeploymentsActivityName, activityInput).Get(ctx, nil); err != nil {
 			return emperror.Wrap(err, "failed to delete Help deployments")
@@ -50,7 +54,9 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 	// delete user namespaces
 	{
 		activityInput := DeleteUserNamespacesActivityInput{
-			K8sConfig: input.K8sConfig,
+			OrganizationID: input.OrganizationID,
+			ClusterName:    input.ClusterName,
+			K8sConfig:      input.K8sConfig,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, nil); err != nil {
 			return emperror.Wrap(err, "failed to delete user namespaces")
@@ -60,8 +66,10 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 	// delete resources in default namespace
 	{
 		activityInput := DeleteNamespaceResourcesActivityInput{
-			K8sConfig: input.K8sConfig,
-			Namespace: "default",
+			OrganizationID: input.OrganizationID,
+			ClusterName:    input.ClusterName,
+			K8sConfig:      input.K8sConfig,
+			Namespace:      "default",
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceResourcesActivityName, activityInput).Get(ctx, nil); err != nil {
 			return emperror.Wrapf(err, "failed to delete resources in namespace %q", activityInput.Namespace)
@@ -71,8 +79,10 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 	// delete services in default namespace
 	{
 		activityInput := DeleteNamespaceServicesActivityInput{
-			K8sConfig: input.K8sConfig,
-			Namespace: "default",
+			OrganizationID: input.OrganizationID,
+			ClusterName:    input.ClusterName,
+			K8sConfig:      input.K8sConfig,
+			Namespace:      "default",
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceServicesActivityName, activityInput).Get(ctx, nil); err != nil {
 			return emperror.Wrapf(err, "failed to delete services in namespace %q", activityInput.Namespace)

@@ -23,7 +23,9 @@ import (
 const DeleteUserNamespacesActivityName = "delete-user-namespaces"
 
 type DeleteUserNamespacesActivityInput struct {
-	K8sConfig []byte
+	OrganizationID uint
+	ClusterName    string
+	K8sConfig      []byte
 }
 
 type DeleteUserNamespacesActivity struct {
@@ -31,7 +33,7 @@ type DeleteUserNamespacesActivity struct {
 }
 
 type UserNamespaceDeleter interface {
-	Delete(k8sConfig []byte) error
+	Delete(organizationID uint, clusterName string, k8sConfig []byte) error
 }
 
 func MakeDeleteUserNamespacesActivity(deleter UserNamespaceDeleter) DeleteUserNamespacesActivity {
@@ -41,5 +43,5 @@ func MakeDeleteUserNamespacesActivity(deleter UserNamespaceDeleter) DeleteUserNa
 }
 
 func (a DeleteUserNamespacesActivity) Execute(ctx context.Context, input DeleteUserNamespacesActivityInput) error {
-	return emperror.Wrap(a.deleter.Delete(input.K8sConfig), "failed to delete user namespaces")
+	return emperror.Wrap(a.deleter.Delete(input.OrganizationID, input.ClusterName, input.K8sConfig), "failed to delete user namespaces")
 }

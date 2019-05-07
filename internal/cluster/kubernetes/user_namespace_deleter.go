@@ -32,7 +32,8 @@ func MakeUserNamespaceDeleter(logger logrus.FieldLogger) UserNamespaceDeleter {
 	}
 }
 
-func (d UserNamespaceDeleter) Delete(k8sConfig []byte) error {
+func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8sConfig []byte) error {
+	logger := d.logger.WithField("organizationID", organizationID).WithField("clusterName", clusterName)
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
 	if err != nil {
 		return emperror.Wrap(err, "failed to create k8s client")
@@ -43,12 +44,13 @@ func (d UserNamespaceDeleter) Delete(k8sConfig []byte) error {
 	}
 
 	for _, ns := range namespaces.Items {
+		logger := logger.WithField("namespace", ns.Name)
 		switch ns.Name {
 		case "default", "kube-system", "kube-public":
 			continue
 		}
 		err := retry(func() error {
-			d.logger.Infof("deleting kubernetes namespace %q", ns.Name)
+			logger.Info("deleting kubernetes namespace")
 			err := client.CoreV1().Namespaces().Delete(ns.Name, &metav1.DeleteOptions{})
 			if err != nil {
 				return emperror.Wrapf(err, "failed to delete %q namespace", ns.Name)
@@ -66,8 +68,9 @@ func (d UserNamespaceDeleter) Delete(k8sConfig []byte) error {
 		}
 		left := []string{}
 		for _, ns := range namespaces.Items {
+			logger := logger.WithField("namespace", ns.Name)
 			if len(ns.Spec.Finalizers) > 0 {
-				d.logger.Infof("can't delete namespace %q with finalizers %s", ns.Name, ns.Spec.Finalizers)
+				logger.Infof("can't delete namespace with finalizers %v", ns.Spec.Finalizers)
 				continue
 			}
 
@@ -75,7 +78,7 @@ func (d UserNamespaceDeleter) Delete(k8sConfig []byte) error {
 			case "default", "kube-system", "kube-public":
 				continue
 			default:
-				d.logger.Infof("namespace %q still %s", ns.Name, ns.Status)
+				logger.Infof("namespace is still %s", ns.Status)
 				left = append(left, ns.Name)
 			}
 		}

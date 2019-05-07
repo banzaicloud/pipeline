@@ -62,7 +62,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	// delete k8s resources
 	if len(input.K8sConfig) > 0 {
 		wfInput := intClusterWorkflow.DeleteK8sResourcesWorkflowInput{
-			K8sConfig: input.K8sConfig,
+			OrganizationID: input.OrganizationID,
+			ClusterName:    input.ClusterName,
+			K8sConfig:      input.K8sConfig,
 		}
 		if err := workflow.ExecuteChildWorkflow(ctx, intClusterWorkflow.DeleteK8sResourcesWorkflowName, wfInput).Get(ctx, nil); err != nil {
 			if input.Forced {
