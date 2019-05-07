@@ -23,8 +23,10 @@ import (
 const DeleteNamespaceServicesActivityName = "delete-namespace-services"
 
 type DeleteNamespaceServicesActivityInput struct {
-	K8sConfig []byte
-	Namespace string
+	OrganizationID uint
+	ClusterName    string
+	K8sConfig      []byte
+	Namespace      string
 }
 
 type DeleteNamespaceServicesActivity struct {
@@ -32,7 +34,7 @@ type DeleteNamespaceServicesActivity struct {
 }
 
 type NamespaceServicesDeleter interface {
-	Delete(k8sConfig []byte, namespace string) error
+	Delete(organizationID uint, clusterName string, k8sConfig []byte, namespace string) error
 }
 
 func MakeDeleteNamespaceServicesActivity(deleter NamespaceServicesDeleter) DeleteNamespaceServicesActivity {
@@ -42,5 +44,5 @@ func MakeDeleteNamespaceServicesActivity(deleter NamespaceServicesDeleter) Delet
 }
 
 func (a DeleteNamespaceServicesActivity) Execute(ctx context.Context, input DeleteNamespaceServicesActivityInput) error {
-	return emperror.Wrapf(a.deleter.Delete(input.K8sConfig, input.Namespace), "failed to delete services in namespace %q", input.Namespace)
+	return emperror.Wrapf(a.deleter.Delete(input.OrganizationID, input.ClusterName, input.K8sConfig, input.Namespace), "failed to delete services in namespace %q", input.Namespace)
 }

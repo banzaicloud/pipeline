@@ -23,8 +23,10 @@ import (
 const DeleteNamespaceResourcesActivityName = "delete-namespace-resources"
 
 type DeleteNamespaceResourcesActivityInput struct {
-	K8sConfig []byte
-	Namespace string
+	OrganizationID uint
+	ClusterName    string
+	K8sConfig      []byte
+	Namespace      string
 }
 
 type DeleteNamespaceResourcesActivity struct {
@@ -32,7 +34,7 @@ type DeleteNamespaceResourcesActivity struct {
 }
 
 type NamespaceResourcesDeleter interface {
-	Delete(k8sConfig []byte, namespace string) error
+	Delete(organizationID uint, clusterName string, k8sConfig []byte, namespace string) error
 }
 
 func MakeDeleteNamespaceResourcesActivity(deleter NamespaceResourcesDeleter) DeleteNamespaceResourcesActivity {
@@ -42,5 +44,5 @@ func MakeDeleteNamespaceResourcesActivity(deleter NamespaceResourcesDeleter) Del
 }
 
 func (a DeleteNamespaceResourcesActivity) Execute(ctx context.Context, input DeleteNamespaceResourcesActivityInput) error {
-	return emperror.Wrapf(a.deleter.Delete(input.K8sConfig, input.Namespace), "failed to delete resources in namespace %q", input.Namespace)
+	return emperror.Wrapf(a.deleter.Delete(input.OrganizationID, input.ClusterName, input.K8sConfig, input.Namespace), "failed to delete resources in namespace %q", input.Namespace)
 }

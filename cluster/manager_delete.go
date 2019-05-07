@@ -52,19 +52,19 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	return nil
 }
 
-func deleteAllResources(kubeConfig []byte, logger *logrus.Entry) error {
+func deleteAllResources(organizationID uint, clusterName string, kubeConfig []byte, logger *logrus.Entry) error {
 
-	err := deleteUserNamespaces(kubeConfig, logger)
+	err := deleteUserNamespaces(organizationID, clusterName, kubeConfig, logger)
 	if err != nil {
 		return emperror.Wrap(err, "failed to delete user namespaces")
 	}
 
-	err = deleteResources(kubeConfig, "default", logger)
+	err = deleteResources(organizationID, clusterName, kubeConfig, "default", logger)
 	if err != nil {
 		return emperror.Wrap(err, "failed to delete resources in default namespace")
 	}
 
-	err = deleteServices(kubeConfig, "default", logger)
+	err = deleteServices(organizationID, clusterName, kubeConfig, "default", logger)
 	if err != nil {
 		return emperror.Wrap(err, "failed to delete services in default namespace")
 	}
@@ -73,21 +73,21 @@ func deleteAllResources(kubeConfig []byte, logger *logrus.Entry) error {
 }
 
 // deleteUserNamespaces deletes all namespace in the context expect the protected ones
-func deleteUserNamespaces(kubeConfig []byte, logger *logrus.Entry) error {
+func deleteUserNamespaces(organizationID uint, clusterName string, kubeConfig []byte, logger *logrus.Entry) error {
 	deleter := intClusterK8s.MakeUserNamespaceDeleter(logger)
-	return deleter.Delete(kubeConfig)
+	return deleter.Delete(organizationID, clusterName, kubeConfig)
 }
 
 // deleteResources deletes all Services, Deployments, DaemonSets, StatefulSets, ReplicaSets, Pods, and PersistentVolumeClaims of a namespace
-func deleteResources(kubeConfig []byte, ns string, logger *logrus.Entry) error {
+func deleteResources(organizationID uint, clusterName string, kubeConfig []byte, ns string, logger *logrus.Entry) error {
 	deleter := intClusterK8s.MakeNamespaceResourcesDeleter(logger)
-	return deleter.Delete(kubeConfig, ns)
+	return deleter.Delete(organizationID, clusterName, kubeConfig, ns)
 }
 
 // deleteServices deletes all services one by one from a namespace
-func deleteServices(kubeConfig []byte, ns string, logger *logrus.Entry) error {
+func deleteServices(organizationID uint, clusterName string, kubeConfig []byte, ns string, logger *logrus.Entry) error {
 	deleter := intClusterK8s.MakeNamespaceServicesDeleter(logger)
-	return deleter.Delete(kubeConfig, ns)
+	return deleter.Delete(organizationID, clusterName, kubeConfig, ns)
 }
 
 // deleteDnsRecordsOwnedByCluster deletes DNS records owned by the cluster. These are the DNS records
@@ -180,7 +180,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			logger.Error(err)
 		}
 
-		err = deleteAllResources(config, logger)
+		err = deleteAllResources(cluster.GetOrganizationId(), cluster.GetName(), config, logger)
 		if err != nil {
 			err = emperror.Wrap(err, "failed to delete Kubernetes resources")
 

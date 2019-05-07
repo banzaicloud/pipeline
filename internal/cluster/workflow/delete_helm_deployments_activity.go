@@ -25,7 +25,9 @@ import (
 const DeleteHelmDeploymentsActivityName = "delete-helm-deployments"
 
 type DeleteHelmDeploymentsActivityInput struct {
-	K8sConfig []byte
+	OrganizationID uint
+	ClusterName    string
+	K8sConfig      []byte
 }
 
 type DeleteHelmDeploymentsActivity struct {
@@ -39,5 +41,6 @@ func MakeDeleteHelmDeploymentsActivity(logger logrus.FieldLogger) DeleteHelmDepl
 }
 
 func (a DeleteHelmDeploymentsActivity) Execute(ctx context.Context, input DeleteHelmDeploymentsActivityInput) error {
-	return emperror.Wrap(helm.DeleteAllDeployment(a.logger, input.K8sConfig), "failed to delete all Helm deployments")
+	logger := a.logger.WithField("organizationID", input.OrganizationID).WithField("clusterName", input.ClusterName)
+	return emperror.Wrap(helm.DeleteAllDeployment(logger, input.K8sConfig), "failed to delete all Helm deployments")
 }
