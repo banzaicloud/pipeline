@@ -39,29 +39,31 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to create k8s client")
 	}
-	namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-	if err != nil {
-		return nil, emperror.Wrap(err, "could not list namespaces to delete")
-	}
 
-	for _, ns := range namespaces.Items {
-		logger := logger.WithField("namespace", ns.Name)
-		switch ns.Name {
-		case "default", "kube-system", "kube-public":
-			continue
+	err = retry(func() error {
+		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
+		if err != nil {
+			return emperror.Wrap(err, "could not list namespaces to delete")
 		}
-		err := retry(func() error {
+
+		for _, ns := range namespaces.Items {
+			logger := logger.WithField("namespace", ns.Name)
+			switch ns.Name {
+			case "default", "kube-system", "kube-public":
+				continue
+			}
 			logger.Info("deleting kubernetes namespace")
 			err := client.CoreV1().Namespaces().Delete(ns.Name, &metav1.DeleteOptions{})
 			if err != nil {
 				return emperror.Wrapf(err, "failed to delete %q namespace", ns.Name)
 			}
-			return nil
-		}, 3, 1)
-		if err != nil {
-			return nil, err
 		}
+		return nil
+	}, 3, 1)
+	if err != nil {
+		return nil, err
 	}
+
 	var left, gaveUp []string
 	err = retry(func() error {
 		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
