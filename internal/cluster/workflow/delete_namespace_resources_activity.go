@@ -25,24 +25,30 @@ const DeleteNamespaceResourcesActivityName = "delete-namespace-resources"
 type DeleteNamespaceResourcesActivityInput struct {
 	OrganizationID uint
 	ClusterName    string
-	K8sConfig      []byte
+	K8sSecretID    string
 	Namespace      string
 }
 
 type DeleteNamespaceResourcesActivity struct {
-	deleter NamespaceResourcesDeleter
+	deleter         NamespaceResourcesDeleter
+	k8sConfigGetter K8sConfigGetter
 }
 
 type NamespaceResourcesDeleter interface {
 	Delete(organizationID uint, clusterName string, k8sConfig []byte, namespace string) error
 }
 
-func MakeDeleteNamespaceResourcesActivity(deleter NamespaceResourcesDeleter) DeleteNamespaceResourcesActivity {
+func MakeDeleteNamespaceResourcesActivity(deleter NamespaceResourcesDeleter, k8sConfigGetter K8sConfigGetter) DeleteNamespaceResourcesActivity {
 	return DeleteNamespaceResourcesActivity{
-		deleter: deleter,
+		deleter:         deleter,
+		k8sConfigGetter: k8sConfigGetter,
 	}
 }
 
 func (a DeleteNamespaceResourcesActivity) Execute(ctx context.Context, input DeleteNamespaceResourcesActivityInput) error {
-	return emperror.Wrapf(a.deleter.Delete(input.OrganizationID, input.ClusterName, input.K8sConfig, input.Namespace), "failed to delete resources in namespace %q", input.Namespace)
+	k8sConfig, err := a.k8sConfigGetter.Get(input.OrganizationID, input.K8sSecretID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get k8s config")
+	}
+	return emperror.Wrapf(a.deleter.Delete(input.OrganizationID, input.ClusterName, k8sConfig, input.Namespace), "failed to delete resources in namespace %q", input.Namespace)
 }

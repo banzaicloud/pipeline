@@ -32,7 +32,7 @@ type DeleteClusterWorkflowInput struct {
 	ClusterID            uint
 	ClusterName          string
 	ClusterUID           string
-	K8sConfig            []byte
+	K8sSecretID          string
 	ResourceGroupName    string
 	LoadBalancerName     string
 	PublicIPAddressNames []string
@@ -60,11 +60,11 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	ctx = workflow.WithChildOptions(workflow.WithActivityOptions(ctx, ao), cwo)
 
 	// delete k8s resources
-	if len(input.K8sConfig) > 0 {
+	if input.K8sSecretID != "" {
 		wfInput := intClusterWorkflow.DeleteK8sResourcesWorkflowInput{
 			OrganizationID: input.OrganizationID,
 			ClusterName:    input.ClusterName,
-			K8sConfig:      input.K8sConfig,
+			K8sSecretID:    input.K8sSecretID,
 		}
 		if err := workflow.ExecuteChildWorkflow(ctx, intClusterWorkflow.DeleteK8sResourcesWorkflowName, wfInput).Get(ctx, nil); err != nil {
 			if input.Forced {
