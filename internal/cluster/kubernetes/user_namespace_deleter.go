@@ -32,15 +32,16 @@ func MakeUserNamespaceDeleter(logger logrus.FieldLogger) UserNamespaceDeleter {
 	}
 }
 
-func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8sConfig []byte) error {
+func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8sConfig []byte) ([]string, error) {
 	logger := d.logger.WithField("organizationID", organizationID).WithField("clusterName", clusterName)
+
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create k8s client")
+		return nil, emperror.Wrap(err, "failed to create k8s client")
 	}
 	namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
 	if err != nil {
-		return emperror.Wrap(err, "could not list namespaces to delete")
+		return nil, emperror.Wrap(err, "could not list namespaces to delete")
 	}
 
 	for _, ns := range namespaces.Items {
@@ -58,34 +59,36 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 			return nil
 		}, 3, 1)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
+	var left, gaveUp []string
 	err = retry(func() error {
 		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining namespaces")
 		}
-		left := []string{}
+		left = []string{}
 		for _, ns := range namespaces.Items {
-			logger := logger.WithField("namespace", ns.Name)
-			if len(ns.Spec.Finalizers) > 0 {
-				logger.Infof("can't delete namespace with finalizers %v", ns.Spec.Finalizers)
-				continue
-			}
-
 			switch ns.Name {
 			case "default", "kube-system", "kube-public":
 				continue
-			default:
-				logger.Infof("namespace is still %s", ns.Status)
-				left = append(left, ns.Name)
 			}
+
+			if len(ns.Spec.Finalizers) > 0 {
+				d.logger.Infof("can't delete namespace %q with finalizers %s", ns.Name, ns.Spec.Finalizers)
+				gaveUp = append(gaveUp, ns.Name)
+				continue
+			}
+
+			logger.Infof("namespace %q still %s", ns.Name, ns.Status)
+			left = append(left, ns.Name)
 		}
 		if len(left) > 0 {
 			return emperror.With(errors.Errorf("namespaces remaining after deletion: %v", left), "namespaces", left)
 		}
 		return nil
 	}, 20, 30)
-	return err
+
+	return append(gaveUp, left...), err
 }

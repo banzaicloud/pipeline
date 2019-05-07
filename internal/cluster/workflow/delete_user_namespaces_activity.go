@@ -28,12 +28,16 @@ type DeleteUserNamespacesActivityInput struct {
 	K8sConfig      []byte
 }
 
+type DeleteUserNamespacesActivityOutput struct {
+	NamespacesLeft []string
+}
+
 type DeleteUserNamespacesActivity struct {
 	deleter UserNamespaceDeleter
 }
 
 type UserNamespaceDeleter interface {
-	Delete(organizationID uint, clusterName string, k8sConfig []byte) error
+	Delete(organizationID uint, clusterName string, k8sConfig []byte) ([]string, error)
 }
 
 func MakeDeleteUserNamespacesActivity(deleter UserNamespaceDeleter) DeleteUserNamespacesActivity {
@@ -42,6 +46,7 @@ func MakeDeleteUserNamespacesActivity(deleter UserNamespaceDeleter) DeleteUserNa
 	}
 }
 
-func (a DeleteUserNamespacesActivity) Execute(ctx context.Context, input DeleteUserNamespacesActivityInput) error {
-	return emperror.Wrap(a.deleter.Delete(input.OrganizationID, input.ClusterName, input.K8sConfig), "failed to delete user namespaces")
+func (a DeleteUserNamespacesActivity) Execute(ctx context.Context, input DeleteUserNamespacesActivityInput) (DeleteUserNamespacesActivityOutput, error) {
+	left, err := a.deleter.Delete(input.OrganizationID, input.ClusterName, input.K8sConfig)
+	return DeleteUserNamespacesActivityOutput{left}, emperror.Wrap(err, "failed to delete user namespaces")
 }

@@ -58,34 +58,44 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			ClusterName:    input.ClusterName,
 			K8sConfig:      input.K8sConfig,
 		}
-		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, nil); err != nil {
+		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, &deleteUserNamespacesOutput); err != nil {
 			return emperror.Wrap(err, "failed to delete user namespaces")
 		}
 	}
 
-	// delete resources in default namespace
-	{
+	// delete resources in remaining namespaces
+	for _, ns := range append(deleteUserNamespacesOutput.NamespacesLeft, "default") {
 		activityInput := DeleteNamespaceResourcesActivityInput{
 			OrganizationID: input.OrganizationID,
 			ClusterName:    input.ClusterName,
 			K8sConfig:      input.K8sConfig,
-			Namespace:      "default",
+			Namespace:      ns,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceResourcesActivityName, activityInput).Get(ctx, nil); err != nil {
 			return emperror.Wrapf(err, "failed to delete resources in namespace %q", activityInput.Namespace)
 		}
 	}
 
-	// delete services in default namespace
-	{
+	// delete services in remaining namespaces
+	for _, ns := range append(deleteUserNamespacesOutput.NamespacesLeft, "default") {
 		activityInput := DeleteNamespaceServicesActivityInput{
 			OrganizationID: input.OrganizationID,
 			ClusterName:    input.ClusterName,
 			K8sConfig:      input.K8sConfig,
-			Namespace:      "default",
+			Namespace:      ns,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNamespaceServicesActivityName, activityInput).Get(ctx, nil); err != nil {
 			return emperror.Wrapf(err, "failed to delete services in namespace %q", activityInput.Namespace)
+		}
+	}
+
+	// delete user namespaces
+	{
+		activityInput := DeleteUserNamespacesActivityInput{
+			K8sConfig: input.K8sConfig,
+		}
+		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, nil); err != nil {
+			return emperror.Wrap(err, "failed to delete user namespaces")
 		}
 	}
 
