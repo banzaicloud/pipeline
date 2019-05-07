@@ -68,7 +68,7 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 			K8sConfig:      input.K8sConfig,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, &deleteUserNamespacesOutput); err != nil {
-			return emperror.Wrap(err, "failed to delete user namespaces")
+			logger.Info(emperror.Wrap(err, "failed to delete user namespaces")) // retry later after resource deletion
 		}
 	}
 
