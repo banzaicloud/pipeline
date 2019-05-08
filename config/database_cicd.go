@@ -18,13 +18,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
 // CICDDB returns an initialized DB instance for CICDDB.
 func CICDDB() (*gorm.DB, error) {
 	config := NewDBConfig()
 
-	config.Name = "drone"
+	config.Name = viper.GetString("database.cicddbname")
 
 	err := config.Validate()
 	if err != nil {

@@ -56,7 +56,7 @@ services:
             - 127.0.0.1:9000:9000
         environment:
             # CICD_DATABASE_DRIVER:        postgres
-            # CICD_DATABASE_DATASOURCE:    postgres://sparky:sparky123@postgres:5432/drone?sslmode=disable
+            # CICD_DATABASE_DATASOURCE:    postgres://sparky:sparky123@postgres:5432/cicd?sslmode=disable
             # CICD_GITLAB:               "true"
             CICD_CORS_ALLOW_ALL_ORIGINS: "false"
             CICD_CORS_ALLOW_ORIGINS:     "http://localhost:4200"
