@@ -30,6 +30,7 @@ user = "sparky"
 role = ""
 password = "sparky123"
 dbname = "pipeline"
+cicddbname = "cicd"
 
 # Turn this to true to see all queries in the log
 logging = false

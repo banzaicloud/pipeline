@@ -57,7 +57,7 @@ services:
             - $HOME:/root
 
     cicd-server:
-        image: banzaicloud/cicd:0.8.6
+        image: banzaicloud/cicd:0.8.7
         entrypoint:
             - /bin/cicd-server
         restart: on-failure
@@ -68,12 +68,12 @@ services:
             CICD_OPEN:                "true"
             CICD_ORGS:
             CICD_DATABASE_DRIVER:     mysql
-            CICD_DATABASE_DATASOURCE: sparky:sparky123@tcp(mysql:3306)/drone?parseTime=true
+            CICD_DATABASE_DATASOURCE: sparky:sparky123@tcp(mysql:3306)/cicd?parseTime=true
             CICD_SECRET:              "s3cr3t"
             CICD_REPO_CONFIG:         ".banzaicloud/pipeline.yaml"
 
     cicd-agent:
-        image: banzaicloud/cicd:0.8.6
+        image: banzaicloud/cicd:0.8.7
         depends_on:
             - cicd-server
         volumes:
