@@ -41,10 +41,10 @@ const (
 	Warning  = "WARNING"
 	Error    = "ERROR"
 
-	CreatingMessage = "Cluster is creating"
+	CreatingMessage = "Cluster creation is in progress"
 	RunningMessage  = "Cluster is running"
-	UpdatingMessage = "Cluster is updating"
-	DeletingMessage = "Cluster is deleting"
+	UpdatingMessage = "Update is in progress"
+	DeletingMessage = "Termination is in progress"
 )
 
 // Cloud constants
