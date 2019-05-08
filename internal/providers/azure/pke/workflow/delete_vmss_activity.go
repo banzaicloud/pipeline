@@ -16,10 +16,8 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -88,13 +86,12 @@ func (a DeleteVMSSActivity) Execute(ctx context.Context, input DeleteVMSSActivit
 		return
 	}
 
-	vmssProvisioningState := network.ProvisioningState(to.String(vmss.ProvisioningState))
-	if vmssProvisioningState == network.Deleting || vmssProvisioningState == network.Updating {
-		return fmt.Errorf("can not delete virtual machine scale set in %q provisioning state", vmssProvisioningState)
-	}
-
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.VMSSName)
 	if err = emperror.WrapWith(err, "sending request to delete virtual machine scale set failed", keyvals...); err != nil {
+		if vmss.StatusCode == http.StatusNotFound {
+			logger.Warn("virtual machine scale set not found")
+			return nil
+		}
 		return
 	}
 
