@@ -88,7 +88,7 @@ func (a DeleteVMSSActivity) Execute(ctx context.Context, input DeleteVMSSActivit
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.VMSSName)
 	if err = emperror.WrapWith(err, "sending request to delete virtual machine scale set failed", keyvals...); err != nil {
-		if vmss.StatusCode == http.StatusNotFound {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("virtual machine scale set not found")
 			return nil
 		}
@@ -99,6 +99,10 @@ func (a DeleteVMSSActivity) Execute(ctx context.Context, input DeleteVMSSActivit
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err = emperror.WrapWith(err, "waiting for the completion of delete virtual machine scale set operation failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("virtual machine scale set not found")
+			return nil
+		}
 		return
 	}
 
