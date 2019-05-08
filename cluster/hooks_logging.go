@@ -80,16 +80,14 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		if err != nil {
 			return errors.Errorf("failed generate TLS secrets to logging operator: %s", err)
 		}
-		_, err = InstallSecrets(cluster,
-			&pkgSecret.ListSecretsQuery{
-				Type: pkgSecret.TLSSecretType,
-				Tags: []string{
-					clusterUidTag,
-					releaseTag,
-				},
-			}, loggingParam.GenTLSForLogging.Namespace)
+
+		installLoggingSecretRequest := InstallSecretRequest{
+			SourceSecretName: loggingParam.GenTLSForLogging.GenTLSSecretName,
+			Namespace:        loggingParam.GenTLSForLogging.Namespace,
+		}
+		_, err = InstallSecret(cluster, loggingParam.GenTLSForLogging.GenTLSSecretName, installLoggingSecretRequest)
 		if err != nil {
-			return errors.Errorf("could not install created TLS secret to cluster: %s", err)
+			return emperror.Wrap(err, "failed to install tls secret to cluster")
 		}
 	}
 	operatorValues := map[string]interface{}{
