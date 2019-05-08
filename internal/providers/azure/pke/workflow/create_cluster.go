@@ -15,6 +15,7 @@
 package workflow
 
 import (
+	"fmt"
 	"time"
 
 	"go.uber.org/cadence/workflow"
@@ -97,13 +98,10 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master")
 
-	signalName := "master-ready"
-	signalChan := workflow.GetSignalChannel(ctx, signalName)
-	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
-		c.Receive(ctx, nil)
-		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
-	})
-	signalSelector.Select(ctx) // wait for signal
+	if err = waitForMasterReadySignal(ctx, 1*time.Hour); err != nil {
+		setClusterErrorStatus(ctx, input.ClusterID, err)
+		return err
+	}
 
 	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
 		ClusterID: input.ClusterID,
@@ -116,5 +114,26 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
+	return nil
+}
+
+func waitForMasterReadySignal(ctx workflow.Context, timeout time.Duration) error {
+	signalName := "master-ready"
+	signalChan := workflow.GetSignalChannel(ctx, signalName)
+	signalTimeoutTimer := workflow.NewTimer(ctx, timeout)
+	signalTimeout := false
+
+	signalSelector := workflow.NewSelector(ctx).AddReceive(signalChan, func(c workflow.Channel, more bool) {
+		c.Receive(ctx, nil)
+		workflow.GetLogger(ctx).Info("Received signal!", zap.String("signal", signalName))
+	}).AddFuture(signalTimeoutTimer, func(workflow.Future) {
+		signalTimeout = true
+	})
+
+	signalSelector.Select(ctx) // wait for signal
+
+	if signalTimeout {
+		return fmt.Errorf("timeout while waiting for %q signal", signalName)
+	}
 	return nil
 }
