@@ -56,6 +56,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	}
 	cwo := workflow.ChildWorkflowOptions{
 		ExecutionStartToCloseTimeout: 30 * time.Minute,
+		TaskStartToCloseTimeout:      40 * time.Minute,
 	}
 	ctx = workflow.WithChildOptions(workflow.WithActivityOptions(ctx, ao), cwo)
 

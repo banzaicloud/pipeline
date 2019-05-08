@@ -159,58 +159,69 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 		return
 	}
 
-	totalSummary, err := resourcesummary.GetTotalSummary(client)
-	if err != nil {
-		errorHandler.Handle(err)
+	done := make(chan struct{}, 1)
+	go func() {
+		defer func() { done <- struct{}{} }()
 
-		partialResponse = true
-	} else {
-		cpuResource := Resource(totalSummary.CPU)
-		memoryResource := Resource(totalSummary.Memory)
-		response.TotalSummary = &ResourceSummary{
-			CPU:    &cpuResource,
-			Memory: &memoryResource,
-		}
-	}
-
-	for name, nodePool := range response.NodePools {
-		selector := fmt.Sprintf("%s=%s", common.LabelKey, name)
-
-		nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{
-			LabelSelector: selector,
-		})
+		totalSummary, err := resourcesummary.GetTotalSummary(client)
 		if err != nil {
-			errorHandler.Handle(errors.Wrap(err, "failed to get nodes"))
+			errorHandler.Handle(err)
 
 			partialResponse = true
-
-			continue
+		} else {
+			cpuResource := Resource(totalSummary.CPU)
+			memoryResource := Resource(totalSummary.Memory)
+			response.TotalSummary = &ResourceSummary{
+				CPU:    &cpuResource,
+				Memory: &memoryResource,
+			}
 		}
 
-		nodePool.ResourceSummary = make(map[string]NodeResourceSummary, len(nodes.Items))
+		for name, nodePool := range response.NodePools {
+			selector := fmt.Sprintf("%s=%s", common.LabelKey, name)
 
-		for _, node := range nodes.Items {
-			nodeSummary, err := resourcesummary.GetNodeSummary(client, node)
+			nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{
+				LabelSelector: selector,
+			})
 			if err != nil {
-				errorHandler.Handle(errors.WithMessage(err, "failed to get node resource summary"))
+				errorHandler.Handle(errors.Wrap(err, "failed to get nodes"))
 
 				partialResponse = true
 
 				continue
 			}
 
-			cpuResource := Resource(nodeSummary.CPU)
-			memoryResource := Resource(nodeSummary.Memory)
-			nodePool.ResourceSummary[node.Name] = NodeResourceSummary{
-				ResourceSummary: ResourceSummary{
-					CPU:    &cpuResource,
-					Memory: &memoryResource,
-				},
-				Status: nodeSummary.Status,
-			}
-		}
+			nodePool.ResourceSummary = make(map[string]NodeResourceSummary, len(nodes.Items))
 
-		response.NodePools[name] = nodePool
+			for _, node := range nodes.Items {
+				nodeSummary, err := resourcesummary.GetNodeSummary(client, node)
+				if err != nil {
+					errorHandler.Handle(errors.WithMessage(err, "failed to get node resource summary"))
+
+					partialResponse = true
+
+					continue
+				}
+
+				cpuResource := Resource(nodeSummary.CPU)
+				memoryResource := Resource(nodeSummary.Memory)
+				nodePool.ResourceSummary[node.Name] = NodeResourceSummary{
+					ResourceSummary: ResourceSummary{
+						CPU:    &cpuResource,
+						Memory: &memoryResource,
+					},
+					Status: nodeSummary.Status,
+				}
+			}
+
+			response.NodePools[name] = nodePool
+		}
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		partialResponse = true
 	}
 
 	if partialResponse {
