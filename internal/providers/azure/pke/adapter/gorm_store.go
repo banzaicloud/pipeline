@@ -276,10 +276,15 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 }
 
 func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+
 	model := gormAzurePKEClusterModel{
 		ClusterID: clusterID,
 	}
-	return emperror.Wrap(s.db.Model(&model).Update("ActiveWorkflowID", workflowID).Error, "failed to update PKE-on-Azure cluster model")
+
+	return emperror.Wrap(s.db.Model(&model).Where("cluster_id = ?", clusterID).Update("ActiveWorkflowID", workflowID).Error, "failed to update PKE-on-Azure cluster model")
 }
 
 func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
