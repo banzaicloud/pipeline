@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	autoazure "github.com/Azure/go-autorest/autorest/azure"
@@ -523,31 +522,6 @@ func (p NodePoolPreparer) Prepare(nodePool *NodePool) error {
 		return nil
 	}
 
-	for key, val := range nodePool.Labels {
-		forbidden := ",:"
-		if strings.ContainsAny(key, forbidden) {
-			p.logger.Errorf("key [%s] in %s.Labels contains forbidden characters [%s]", key, p.namespace, forbidden)
-			return validationErrorf("label [%s] contains forbidden characters [%s]", key, forbidden)
-		}
-		if strings.ContainsAny(val, forbidden) {
-			p.logger.Errorf("value [%s] of %s.Labels[%q] contains forbidden characters [%s]", val, p.namespace, key, forbidden)
-			return validationErrorf("value [%s] of label [%s] contains forbidden characters [%s]", val, key, forbidden)
-		}
-	}
-	for i, r := range nodePool.Roles {
-		forbidden := ","
-		if strings.ContainsAny(r, forbidden) {
-			p.logger.Errorf("value [%s] of %s.Roles[%d] contains forbidden characters [%s]", r, p.namespace, i, forbidden)
-			return validationErrorf("role [%s] contains forbidden characters [%s]", r, forbidden)
-		}
-	}
-	for i, z := range nodePool.Zones {
-		forbidden := ","
-		if strings.ContainsAny(z, forbidden) {
-			p.logger.Errorf("value [%s] of %s.Zones[%d] contains forbidden characters [%s]", z, p.namespace, i, forbidden)
-			return validationErrorf("zone [%s] contains forbidden characters [%s]", z, forbidden)
-		}
-	}
 	return nil
 }
 
