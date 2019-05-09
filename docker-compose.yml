@@ -25,7 +25,7 @@ services:
             - ./scripts/vault.hcl:/vault/config/vault.hcl
 
     vault-unsealer:
-        image: banzaicloud/bank-vaults:0.4.15-rc.13
+        image: banzaicloud/bank-vaults:0.4.15
         depends_on:
             - vault
         restart: on-failure
@@ -36,7 +36,7 @@ services:
             - ./scripts/vault-config.yml:/vault-config.yml
 
     vault-configurer:
-        image: banzaicloud/bank-vaults:0.4.15-rc.13
+        image: banzaicloud/bank-vaults:0.4.15
         depends_on:
             - vault
             - vault-unsealer
@@ -100,7 +100,7 @@ services:
             RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
 
     dex:
-        image: banzaicloud/dex-shim:0.3.4
+        image: banzaicloud/dex-shim:0.3.5
         command: serve /dex.yml
         volumes:
             - ./config/dex.yml:/dex.yml
