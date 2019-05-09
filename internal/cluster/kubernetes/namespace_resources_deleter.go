@@ -15,9 +15,12 @@
 package kubernetes
 
 import (
+	"fmt"
+
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -39,23 +42,37 @@ func (d NamespaceResourcesDeleter) Delete(organizationID uint, clusterName strin
 		return err
 	}
 	resourceTypes := []struct {
-		DeleteCollectioner interface {
+		Resource interface {
 			DeleteCollection(*metav1.DeleteOptions, metav1.ListOptions) error
 		}
-		Name string
+		Name  string
+		Check func(interface{}) error
 	}{
-		{client.AppsV1().Deployments(namespace), "Deployments"},
-		{client.AppsV1().DaemonSets(namespace), "DaemonSets"},
-		{client.AppsV1().StatefulSets(namespace), "StatefulSets"},
-		{client.AppsV1().ReplicaSets(namespace), "ReplicaSets"},
-		{client.CoreV1().Pods(namespace), "Pods"},
-		{client.CoreV1().PersistentVolumeClaims(namespace), "PersistentVolumeClaims"},
+		{client.AppsV1().Deployments(namespace), "Deployments", nil},
+		{client.AppsV1().DaemonSets(namespace), "DaemonSets", nil},
+		{client.AppsV1().StatefulSets(namespace), "StatefulSets", nil},
+		{client.AppsV1().ReplicaSets(namespace), "ReplicaSets", nil},
+		{client.CoreV1().Pods(namespace), "Pods", nil},
+		{client.CoreV1().PersistentVolumeClaims(namespace),
+			"PersistentVolumeClaims",
+			func(pvcs interface{}) error {
+				res, err := pvcs.(interface {
+					List(opts metav1.ListOptions) (*corev1.PersistentVolumeClaimList, error)
+				}).List(metav1.ListOptions{})
+				if err != nil {
+					return err
+				}
+				if len(res.Items) > 0 {
+					return fmt.Errorf("PVC remained present after deletion: %v", res.Items)
+				}
+				return nil
+			}},
 	}
 
 	for _, resourceType := range resourceTypes {
 		err := retry(func() error {
 			logger.Debugf("deleting %s", resourceType.Name)
-			err := resourceType.DeleteCollectioner.DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
+			err := resourceType.Resource.DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
 			if err != nil {
 				logger.Infof("could not delete %s: %v", resourceType.Name, err)
 			}
@@ -63,6 +80,12 @@ func (d NamespaceResourcesDeleter) Delete(organizationID uint, clusterName strin
 		}, 6, 1)
 		if err != nil {
 			return emperror.Wrapf(err, "could not delete %s", resourceType.Name)
+		}
+		if resourceType.Check != nil {
+			err := retry(func() error { return resourceType.Check(resourceType.Resource) }, 10, 20)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
