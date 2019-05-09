@@ -135,6 +135,7 @@ type InstallSecretRequest struct {
 	SourceSecretName string
 	Namespace        string
 	Spec             map[string]InstallSecretRequestSpecItem
+	Update           bool
 }
 
 type InstallSecretRequestSpecItem struct {
@@ -209,6 +210,10 @@ func InstallSecretByK8SConfig(kubeConfig []byte, orgID uint, secretName string, 
 
 	_, err = clusterClient.CoreV1().Secrets(req.Namespace).Create(&kubeSecret)
 	if err != nil && k8sapierrors.IsAlreadyExists(err) {
+		if req.Update {
+			_, err = clusterClient.CoreV1().Secrets(req.Namespace).Update(&kubeSecret)
+			return &sourceMeta, err
+		}
 		return nil, ErrKubernetesSecretAlreadyExists
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "failed to create secret")

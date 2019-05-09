@@ -111,6 +111,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 		Spec: map[string]InstallSecretRequestSpecItem{
 			"auth": {Source: pkgSecret.HtpasswdFile},
 		},
+		Update: true,
 	}
 	prometheusK8Secret, err := InstallSecret(cluster, kubePrometheusSecretName, installPromSecretRequest)
 	if err != nil {
