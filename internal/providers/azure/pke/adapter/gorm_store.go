@@ -228,8 +228,8 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 }
 
 func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
-	if clusterID == 0 {
-		return errors.New("cluster ID cannot be 0")
+	if err := validateClusterID(clusterID); err != nil {
+		return emperror.Wrap(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -243,6 +243,10 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 }
 
 func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, err error) {
+	if err := validateClusterID(clusterID); err != nil {
+		return cluster, emperror.Wrap(err, "invalid cluster ID")
+	}
+
 	model := gormAzurePKEClusterModel{
 		ClusterID: clusterID,
 	}
@@ -254,8 +258,8 @@ func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzur
 }
 
 func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message string) error {
-	if clusterID == 0 {
-		return errors.New("cluster ID cannot be 0")
+	if err := validateClusterID(clusterID); err != nil {
+		return emperror.Wrap(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -291,8 +295,8 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 }
 
 func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
-	if clusterID == 0 {
-		return errors.New("cluster ID cannot be 0")
+	if err := validateClusterID(clusterID); err != nil {
+		return emperror.Wrap(err, "invalid cluster ID")
 	}
 
 	model := gormAzurePKEClusterModel{
@@ -303,8 +307,8 @@ func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID
 }
 
 func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
-	if clusterID == 0 {
-		return errors.New("cluster ID cannot be 0")
+	if err := validateClusterID(clusterID); err != nil {
+		return emperror.Wrap(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -319,8 +323,8 @@ func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID str
 }
 
 func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string) error {
-	if clusterID == 0 {
-		return errors.New("cluster ID cannot be 0")
+	if err := validateClusterID(clusterID); err != nil {
+		return emperror.Wrap(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -335,8 +339,8 @@ func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string
 }
 
 func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, error) {
-	if clusterID == 0 {
-		return "", errors.New("cluster ID cannot be 0")
+	if err := validateClusterID(clusterID); err != nil {
+		return "", emperror.Wrap(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -349,8 +353,8 @@ func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, err
 }
 
 func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, state bool) error {
-	if clusterID == 0 {
-		return errors.New("cluster ID cannot be 0")
+	if err := validateClusterID(clusterID); err != nil {
+		return emperror.Wrap(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -393,4 +397,11 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}).Info("migrating provider tables")
 
 	return db.AutoMigrate(tables...).Error
+}
+
+func validateClusterID(clusterID uint) error {
+	if clusterID == 0 {
+		return errors.New("cluster ID cannot be 0")
+	}
+	return nil
 }
