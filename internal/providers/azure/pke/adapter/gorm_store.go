@@ -15,6 +15,7 @@
 package adapter
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -31,8 +32,6 @@ import (
 const (
 	GORMAzurePKEClustersTableName  = "azure_pke_clusters"
 	GORMAzurePKENodePoolsTableName = "azure_pke_node_pools"
-	GORMRoleSeparator              = ","
-	GORMZoneSeparator              = ","
 )
 
 type gormAzurePKEClusterStore struct {
@@ -100,7 +99,7 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.ScaleOptions.DesiredGpu = model.ScaleOptions.DesiredGpu
 	cl.ScaleOptions.DesiredMem = model.ScaleOptions.DesiredMem
 	cl.ScaleOptions.Enabled = model.ScaleOptions.Enabled
-	cl.ScaleOptions.Excludes = deserializeExcludes(model.ScaleOptions.Excludes)
+	cl.ScaleOptions.Excludes = unmarshalStringSlice(model.ScaleOptions.Excludes)
 	cl.ScaleOptions.KeepDesiredCapacity = model.ScaleOptions.KeepDesiredCapacity
 	cl.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
 
@@ -112,11 +111,23 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.TtlMinutes = model.TtlMinutes
 }
 
-func deserializeExcludes(excludes string) []string {
-	if excludes == "" {
+func marshalStringSlice(s []string) string {
+	data, err := json.Marshal(s)
+	emperror.Panic(emperror.Wrap(err, "failed to marshal string slice"))
+	return string(data)
+}
+
+func unmarshalStringSlice(s string) (result []string) {
+	if s == "" {
+		// empty list in legacy format
 		return nil
 	}
-	return strings.Split(excludes, cluster.InstanceTypeSeparator)
+	err := emperror.Wrap(json.Unmarshal([]byte(s), &result), "failed to unmarshal string slice")
+	if err != nil {
+		// try to parse legacy format
+		result = strings.Split(s, ",")
+	}
+	return
 }
 
 func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) {
@@ -127,16 +138,7 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 
 	cluster.NodePools = make([]pke.NodePool, len(model.NodePools))
 	for i, np := range model.NodePools {
-		cluster.NodePools[i].Autoscaling = np.Autoscaling
-		cluster.NodePools[i].CreatedBy = np.CreatedBy
-		cluster.NodePools[i].DesiredCount = np.DesiredCount
-		cluster.NodePools[i].InstanceType = np.InstanceType
-		cluster.NodePools[i].Max = np.Max
-		cluster.NodePools[i].Min = np.Min
-		cluster.NodePools[i].Name = np.Name
-		cluster.NodePools[i].Roles = strings.Split(np.Roles, GORMRoleSeparator)
-		cluster.NodePools[i].Subnet.Name = np.SubnetName
-		cluster.NodePools[i].Zones = strings.Split(np.Zones, GORMZoneSeparator)
+		fillNodePoolFromModel(&cluster.NodePools[i], np)
 	}
 
 	cluster.VirtualNetwork.Name = model.VirtualNetworkName
@@ -144,6 +146,19 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 
 	cluster.Kubernetes.Version = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
+}
+
+func fillNodePoolFromModel(nodePool *pke.NodePool, model gormAzurePKENodePoolModel) {
+	nodePool.Autoscaling = model.Autoscaling
+	nodePool.CreatedBy = model.CreatedBy
+	nodePool.DesiredCount = model.DesiredCount
+	nodePool.InstanceType = model.InstanceType
+	nodePool.Max = model.Max
+	nodePool.Min = model.Min
+	nodePool.Name = model.Name
+	nodePool.Roles = unmarshalStringSlice(model.Roles)
+	nodePool.Subnet.Name = model.SubnetName
+	nodePool.Zones = unmarshalStringSlice(model.Zones)
 }
 
 func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAzureCluster, err error) {
@@ -156,9 +171,9 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		nodePools[i].Max = np.Max
 		nodePools[i].Min = np.Min
 		nodePools[i].Name = np.Name
-		nodePools[i].Roles = strings.Join(np.Roles, GORMRoleSeparator)
+		nodePools[i].Roles = marshalStringSlice(np.Roles)
 		nodePools[i].SubnetName = np.Subnet.Name
-		nodePools[i].Zones = strings.Join(np.Zones, GORMZoneSeparator)
+		nodePools[i].Zones = marshalStringSlice(np.Zones)
 	}
 
 	model := gormAzurePKEClusterModel{
@@ -180,7 +195,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 				DesiredMem:          params.ScaleOptions.DesiredMem,
 				DesiredGpu:          params.ScaleOptions.DesiredGpu,
 				OnDemandPct:         params.ScaleOptions.OnDemandPct,
-				Excludes:            strings.Join(params.ScaleOptions.Excludes, cluster.InstanceTypeSeparator),
+				Excludes:            marshalStringSlice(params.ScaleOptions.Excludes),
 				KeepDesiredCapacity: params.ScaleOptions.KeepDesiredCapacity,
 			},
 		},
