@@ -11,6 +11,7 @@ statestore/*
 vault/*
 config/config.toml
 config/dex.yml
+config/ui/feature-set.json
 *.swp
 *.pem
 !config/certs/*.pem
