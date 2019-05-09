@@ -81,6 +81,8 @@ services:
         build: etc/docker/uiproxy
         ports:
             - 127.0.0.1:4200:80
+        volumes:
+            - ./config/ui/feature-set.json:/usr/share/nginx/html/assets/config/feature-set.json
 
     dex:
         ports:
