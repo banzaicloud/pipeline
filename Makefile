@@ -35,7 +35,7 @@ GOLANG_VERSION = 1.11.5
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: up
-up: config/dex.yml start config/config.toml ## Set up the development environment
+up: config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -65,6 +65,9 @@ stop: ## Stop docker development environment
 
 config/config.toml:
 	cp config/config.toml.dist config/config.toml
+
+config/ui/feature-set.json:
+	cp -b config/ui/feature-set.json.dist config/ui/feature-set.json
 
 config/dex.yml:
 	cp config/dex.yml.dist config/dex.yml
