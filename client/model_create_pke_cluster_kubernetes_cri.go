@@ -11,7 +11,7 @@
 
 package client
 
-type Feature struct {
-	Kind   string                 `json:"kind"`
-	Params map[string]interface{} `json:"params,omitempty"`
+type CreatePkeClusterKubernetesCri struct {
+	Runtime       string                 `json:"runtime,omitempty"`
+	RuntimeConfig map[string]interface{} `json:"runtimeConfig,omitempty"`
 }

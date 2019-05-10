@@ -11,7 +11,8 @@
 
 package client
 
-type Feature struct {
-	Kind   string                 `json:"kind"`
-	Params map[string]interface{} `json:"params,omitempty"`
+type PkeOnAzureNodePoolSubnet struct {
+	Name string `json:"name,omitempty"`
+	// When referencing an already existing subnetwork this field does not need to be specified.
+	Cidr string `json:"cidr,omitempty"`
 }

@@ -2851,9 +2851,9 @@ Updating an existing K8S cluster
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
- * @param updateClusterRequest
+ * @param body
 */
-func (a *ClustersApiService) UpdateCluster(ctx context.Context, orgId int32, id int32, updateClusterRequest UpdateClusterRequest) (*http.Response, error) {
+func (a *ClustersApiService) UpdateCluster(ctx context.Context, orgId int32, id int32, body map[string]interface{}) (*http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Put")
 		localVarPostBody     interface{}
@@ -2889,7 +2889,7 @@ func (a *ClustersApiService) UpdateCluster(ctx context.Context, orgId int32, id 
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &updateClusterRequest
+	localVarPostBody = &body
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return nil, err
