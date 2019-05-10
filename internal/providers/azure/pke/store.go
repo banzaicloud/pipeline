@@ -17,6 +17,7 @@ package pke
 import (
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/pkg/errors"
 )
 
 type CreateParams struct {
@@ -45,4 +46,18 @@ type AzurePKEClusterStore interface {
 	SetConfigSecretID(clusterID uint, secretID string) error
 	SetSSHSecretID(clusterID uint, sshSecretID string) error
 	SetFeature(clusterID uint, feature string, state bool) error
+}
+
+// IsNotFound returns true if the error is about a resource not being found
+func IsNotFound(err error) bool {
+	// Check the root cause error.
+	err = errors.Cause(err)
+
+	if e, ok := err.(interface {
+		NotFound() bool
+	}); ok {
+		return e.NotFound()
+	}
+
+	return false
 }

@@ -82,6 +82,16 @@ func (gormAzurePKEClusterModel) TableName() string {
 	return GORMAzurePKEClustersTableName
 }
 
+type recordNotFoundError struct{}
+
+func (recordNotFoundError) Error() string {
+	return "record was not found"
+}
+
+func (recordNotFoundError) NotFound() bool {
+	return true
+}
+
 func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.ClusterModel) {
 	cl.CreatedBy = model.CreatedBy
 	cl.CreationTime = model.CreatedAt
@@ -220,7 +230,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 			}
 		}
 	}
-	if err = emperror.Wrap(s.db.Preload("Cluster").Preload("NodePools").Create(&model).Error, "failed to create cluster model"); err != nil {
+	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
 		return
 	}
 	fillClusterFromAzurePKEClusterModel(&c, model)
@@ -235,9 +245,12 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 	model := cluster.ClusterModel{
 		ID: clusterID,
 	}
-	if err := s.db.Where(model).First(&model).Error; err != nil {
-		return emperror.Wrap(err, "failed to load model from database")
+	if err := getError(s.db.Where(model).First(&model), "failed to load model from database"); err != nil {
+		return err
 	}
+
+	return getError(s.db.Delete(model), "failed to soft-delete model from database")
+}
 
 	return emperror.Wrap(s.db.Delete(model).Error, "failed to soft-delete model from database")
 }
@@ -250,7 +263,7 @@ func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzur
 	model := gormAzurePKEClusterModel{
 		ClusterID: clusterID,
 	}
-	if err = emperror.Wrap(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model).Error, "failed to load model from database"); err != nil {
+	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model), "failed to load model from database"); err != nil {
 		return
 	}
 	fillClusterFromAzurePKEClusterModel(&cluster, model)
@@ -265,7 +278,7 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 	model := cluster.ClusterModel{
 		ID: clusterID,
 	}
-	if err := emperror.Wrap(s.db.Where(&model).First(&model).Error, "failed to load cluster model"); err != nil {
+	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
 		return err
 	}
 
@@ -284,11 +297,11 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 			ToStatus:          status,
 			ToStatusMessage:   message,
 		}
-		if err := emperror.Wrap(s.db.Save(&statusHistory).Error, "failed to save status history"); err != nil {
+		if err := getError(s.db.Save(&statusHistory), "failed to save status history"); err != nil {
 			return err
 		}
 
-		return emperror.Wrap(s.db.Model(&model).Updates(fields).Error, "failed to update cluster model")
+		return getError(s.db.Model(&model).Updates(fields), "failed to update cluster model")
 	}
 
 	return nil
@@ -303,7 +316,7 @@ func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID
 		ClusterID: clusterID,
 	}
 
-	return emperror.Wrap(s.db.Model(&model).Where("cluster_id = ?", clusterID).Update("ActiveWorkflowID", workflowID).Error, "failed to update PKE-on-Azure cluster model")
+	return getError(s.db.Model(&model).Where("cluster_id = ?", clusterID).Update("ActiveWorkflowID", workflowID), "failed to update PKE-on-Azure cluster model")
 }
 
 func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
@@ -319,7 +332,7 @@ func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID str
 		"ConfigSecretID": secretID,
 	}
 
-	return emperror.Wrap(s.db.Model(&model).Updates(fields).Error, "failed to update cluster model")
+	return getError(s.db.Model(&model).Updates(fields), "failed to update cluster model")
 }
 
 func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string) error {
@@ -335,7 +348,7 @@ func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string
 		"SSHSecretID": secretID,
 	}
 
-	return emperror.Wrap(s.db.Model(&model).Updates(fields).Error, "failed to update cluster model")
+	return getError(s.db.Model(&model).Updates(fields), "failed to update cluster model")
 }
 
 func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, error) {
@@ -346,7 +359,7 @@ func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, err
 	model := cluster.ClusterModel{
 		ID: clusterID,
 	}
-	if err := emperror.Wrap(s.db.Where(&model).First(&model).Error, "failed to load cluster model"); err != nil {
+	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
 		return "", err
 	}
 	return model.ConfigSecretID, nil
@@ -376,7 +389,7 @@ func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, sta
 		feature: state,
 	}
 
-	return emperror.Wrapf(s.db.Model(&model).Updates(fields).Error, "failed to update %q feature state", feature)
+	return getError(s.db.Model(&model).Updates(fields), "failed to update %q feature state", feature)
 }
 
 // Migrate executes the table migrations for the provider.
@@ -404,4 +417,17 @@ func validateClusterID(clusterID uint) error {
 		return errors.New("cluster ID cannot be 0")
 	}
 	return nil
+}
+
+func getError(db *gorm.DB, message string, args ...interface{}) error {
+	err := db.Error
+	if gorm.IsRecordNotFoundError(err) {
+		err = recordNotFoundError{}
+	}
+	if len(args) == 0 {
+		err = emperror.Wrap(err, message)
+	} else {
+		err = emperror.Wrapf(err, message, args...)
+	}
+	return err
 }
