@@ -458,7 +458,11 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UpdateClusterRequest'
+                            type: object
+                            ## oneOf not properly supported by generator
+                            #oneOf:
+                            #    - $ref: '#/components/schemas/UpdateClusterRequest'
+                            #    - $ref: '#/components/schemas/UpdateClusterRequestV2'
 
         delete:
             security:
@@ -7710,6 +7714,18 @@ components:
                     type: string
                     example: "Chart Not Found!"
 
+
+        UpdateClusterRequestV2:
+            oneOf:
+                - $ref: '#/components/schemas/UpdatePKEOnAzureClusterRequest'
+
+        UpdatePKEOnAzureClusterRequest:
+            type: object
+            properties:
+                nodepools:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PKEOnAzureNodePool'
 
         UpdateClusterRequest:
             type: object
