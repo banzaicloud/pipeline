@@ -89,7 +89,7 @@ const (
 
 // Constant for tainting head node
 const (
-	HeadNodeTaintKey = "nodepool.banzaicloud.io/name"
+	NodePoolNameTaintKey = "nodepool.banzaicloud.io/name"
 )
 
 const (

@@ -85,9 +85,11 @@ type Roles []Role
 type Role string
 
 const (
-	RoleMaster         Role = "master"
-	RoleWorker         Role = "worker"
-	RolePipelineSystem Role = "pipeline-system"
+	RoleMaster               Role   = "master"
+	RoleWorker               Role   = "worker"
+	RolePipelineSystem       Role   = "pipeline-system"
+	TaintKeyMaster           string = "node-role.kubernetes.io/master"
+	NodeLabelKeyMasterWorker string = "node-role.kubernetes.io/master-worker"
 )
 
 type Hosts []Host

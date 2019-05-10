@@ -43,7 +43,7 @@ import (
 )
 
 const pkeVersion = "0.4.6"
-const MasterNodeTaint = "node-role.kubernetes.io/master:" + string(corev1.TaintEffectNoSchedule)
+const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
@@ -237,7 +237,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			nsgn = params.Name + "-worker-nsg"
 			azureRole = "Contributor"
 			if npLen > 1 && np.hasRole(pkgPKE.RolePipelineSystem) {
-				taints = fmt.Sprintf("%s=%s:%s", pkgCommon.HeadNodeTaintKey, np.Name, corev1.TaintEffectPreferNoSchedule)
+				taints = fmt.Sprintf("%s=%s:%s", pkgCommon.NodePoolNameTaintKey, np.Name, corev1.TaintEffectPreferNoSchedule)
 			}
 			userDataScriptTemplate = workerUserDataScriptTemplate
 
