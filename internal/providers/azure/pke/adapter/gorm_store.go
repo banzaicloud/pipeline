@@ -171,6 +171,14 @@ func fillNodePoolFromModel(nodePool *pke.NodePool, model gormAzurePKENodePoolMod
 	nodePool.Zones = unmarshalStringSlice(model.Zones)
 }
 
+func (s gormAzurePKEClusterStore) nodePools() *gorm.DB {
+	return s.db.Table(GORMAzurePKENodePoolsTableName)
+}
+
+func (s gormAzurePKEClusterStore) clusterDetails() *gorm.DB {
+	return s.db.Table(GORMAzurePKEClustersTableName)
+}
+
 func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAzureCluster, err error) {
 	nodePools := make([]gormAzurePKENodePoolModel, len(params.NodePools))
 	for i, np := range params.NodePools {
@@ -252,7 +260,10 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 	return getError(s.db.Delete(model), "failed to soft-delete model from database")
 }
 
-	return emperror.Wrap(s.db.Delete(model).Error, "failed to soft-delete model from database")
+func (s gormAzurePKEClusterStore) Exists(clusterID uint) (bool, error) {
+	var cnt uint
+	err := getError(s.clusterDetails().Where("cluster_id = ?", clusterID).Count(&cnt), "database row existence check failed")
+	return cnt == 1, err
 }
 
 func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, err error) {
@@ -267,6 +278,15 @@ func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzur
 		return
 	}
 	fillClusterFromAzurePKEClusterModel(&cluster, model)
+	return
+}
+
+func (s gormAzurePKEClusterStore) GetNodePoolByName(clusterID uint, nodePoolName string) (np pke.NodePool, err error) {
+	var model gormAzurePKENodePoolModel
+	if err = getError(s.nodePools().Where("cluster_id = ? AND name = ?", clusterID, nodePoolName).First(&model), "failed to load node pool by name"); err != nil {
+		return
+	}
+	fillNodePoolFromModel(&np, model)
 	return
 }
 
