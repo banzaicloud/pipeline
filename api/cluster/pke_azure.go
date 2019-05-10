@@ -15,6 +15,7 @@
 package api
 
 import (
+	"github.com/banzaicloud/pipeline/client"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -24,40 +25,7 @@ import (
 
 const PKEOnAzure = pke.PKEOnAzure
 
-type AzureNodePool struct {
-	Labels map[string]string `json:"labels,omitempty"`
-	Name   string            `json:"name" binding:"required"`
-	Roles  []string          `json:"roles" binding:"required"`
-
-	Subnet AzureSubnet `json:"subnet"`
-	Zones  []string    `json:"zones"`
-
-	InstanceType string `json:"instanceType"`
-
-	Autoscaling bool `json:"autoscaling"`
-	Count       int  `json:"count"`
-	MinCount    int  `json:"minCount"`
-	MaxCount    int  `json:"maxCount"`
-}
-
-type AzureSubnet struct {
-	Name string `json:"name"`
-	CIDR string `json:"cidr"`
-}
-
-type AzureNetwork struct {
-	Name string `json:"name"`
-	CIDR string `json:"cidr"`
-}
-
-type CreatePKEOnAzureClusterRequest struct {
-	CreateClusterRequestBase `json:",squash"`
-	Location                 string          `json:"location"`
-	ResourceGroup            string          `json:"resourceGroup"`
-	NodePools                []AzureNodePool `json:"nodepools,omitempty" binding:"required"`
-	Kubernetes               Kubernetes      `json:"kubernetes,omitempty" binding:"required"`
-	Network                  AzureNetwork    `json:"network"`
-}
+type CreatePKEOnAzureClusterRequest client.CreatePkeOnAzureClusterRequest
 
 func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.AzurePKEClusterCreationParams {
 	features := make([]intCluster.Feature, len(req.Features))
@@ -67,23 +35,23 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 			Params: f.Params,
 		}
 	}
-	nodepools := make([]driver.NodePool, len(req.NodePools))
-	for i, node := range req.NodePools {
+	nodepools := make([]driver.NodePool, len(req.Nodepools))
+	for i, node := range req.Nodepools {
 		nodepools[i] = driver.NodePool{
 			CreatedBy:    userID,
 			Name:         node.Name,
 			InstanceType: node.InstanceType,
 			Subnet: driver.Subnet{
 				Name: node.Subnet.Name,
-				CIDR: node.Subnet.CIDR,
+				CIDR: node.Subnet.Cidr,
 			},
 			Zones:       node.Zones,
 			Roles:       node.Roles,
 			Labels:      node.Labels,
 			Autoscaling: node.Autoscaling,
-			Count:       node.Count,
-			Min:         node.MinCount,
-			Max:         node.MaxCount,
+			Count:       int(node.Count),
+			Min:         int(node.MinCount),
+			Max:         int(node.MaxCount),
 		}
 	}
 	return driver.AzurePKEClusterCreationParams{
@@ -93,18 +61,18 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 		ResourceGroup:  req.ResourceGroup,
 		ScaleOptions: cluster.ScaleOptions{
 			Enabled:             req.ScaleOptions.Enabled,
-			DesiredCpu:          req.ScaleOptions.DesiredCPU,
-			DesiredMem:          req.ScaleOptions.DesiredMEM,
-			DesiredGpu:          req.ScaleOptions.DesiredGPU,
-			OnDemandPct:         req.ScaleOptions.OnDemandPCT,
+			DesiredCpu:          req.ScaleOptions.DesiredCpu,
+			DesiredMem:          req.ScaleOptions.DesiredMem,
+			DesiredGpu:          int(req.ScaleOptions.DesiredGpu),
+			OnDemandPct:         int(req.ScaleOptions.OnDemandPct),
 			Excludes:            req.ScaleOptions.Excludes,
 			KeepDesiredCapacity: req.ScaleOptions.KeepDesiredCapacity,
 		},
-		SecretID:    req.SecretID,
-		SSHSecretID: req.SSHSecretID,
+		SecretID:    req.SecretId,
+		SSHSecretID: req.SshSecretId,
 		Kubernetes: intPKE.Kubernetes{
 			Version: req.Kubernetes.Version,
-			RBAC:    req.Kubernetes.RBAC,
+			RBAC:    req.Kubernetes.Rbac,
 			Network: intPKE.Network{
 				ServiceCIDR:    req.Kubernetes.Network.ServiceCIDR,
 				PodCIDR:        req.Kubernetes.Network.PodCIDR,
@@ -112,13 +80,13 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 				ProviderConfig: req.Kubernetes.Network.ProviderConfig,
 			},
 			CRI: intPKE.CRI{
-				Runtime:       req.Kubernetes.CRI.Runtime,
-				RuntimeConfig: req.Kubernetes.CRI.RuntimeConfig,
+				Runtime:       req.Kubernetes.Cri.Runtime,
+				RuntimeConfig: req.Kubernetes.Cri.RuntimeConfig,
 			},
 		},
 		Network: driver.VirtualNetwork{
 			Name:     req.Network.Name,
-			CIDR:     req.Network.CIDR,
+			CIDR:     req.Network.Cidr,
 			Location: req.Location,
 		},
 		NodePools: nodepools,
