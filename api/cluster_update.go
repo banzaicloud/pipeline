@@ -34,6 +34,15 @@ type UpdateClusterResponse struct {
 
 // UpdateCluster updates a K8S cluster in the cloud (e.g. autoscale)
 func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
+	commonCluster, ok := getClusterFromRequest(c)
+	if ok != true {
+		return
+	}
+
+	if commonCluster.GetCloud() == pkgCluster.Azure && commonCluster.GetDistribution() == pkgCluster.PKE {
+		// V2 request
+	}
+
 	// bind request body to UpdateClusterRequest struct
 	var updateRequest *pkgCluster.UpdateClusterRequest
 	if err := c.BindJSON(&updateRequest); err != nil {
@@ -43,10 +52,6 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 			Message: "Error parsing request",
 			Error:   err.Error(),
 		})
-		return
-	}
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
 		return
 	}
 

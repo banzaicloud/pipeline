@@ -17,6 +17,7 @@ package api
 import (
 	"testing"
 
+	"github.com/banzaicloud/pipeline/client"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -40,11 +41,11 @@ const (
 
 func TestToAzurePKEClusterCreationParams(t *testing.T) {
 	var (
-		Azuresubnet = AzureSubnet{
+		Azuresubnet = client.PkeOnAzureNodePoolSubnet{
 			Name: "test-subnet",
-			CIDR: "1.1.1.1/16",
+			Cidr: "1.1.1.1/16",
 		}
-		Nodepool = AzureNodePool{
+		Nodepool = client.PkeOnAzureNodePool{
 			Labels:       nil,
 			Name:         "nodepool1",
 			Roles:        []string{"role"},
@@ -56,26 +57,26 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			MinCount:     1,
 			MaxCount:     3,
 		}
-		Azurenetwork = AzureNetwork{
+		Azurenetwork = client.PkeOnAzureClusterNetwork{
 			Name: "test-net",
-			CIDR: "1.1.1.1/10",
+			Cidr: "1.1.1.1/10",
 		}
-		cri = CRI{
+		cri = client.CreatePkeClusterKubernetesCri{
 			Runtime:       "containerd",
 			RuntimeConfig: nil,
 		}
-		network = Network{
+		network = client.CreatePkeClusterKubernetesNetwork{
 			PodCIDR:        "192.168.1.1/16",
 			Provider:       "weave",
 			ProviderConfig: nil,
 			ServiceCIDR:    "11.11.1.1/16",
 		}
-		scaleOptions = ScaleOptions{
+		scaleOptions = client.ScaleOptions{
 			Enabled:             false,
-			DesiredCPU:          2,
-			DesiredMEM:          2048,
-			DesiredGPU:          0,
-			OnDemandPCT:         55,
+			DesiredCpu:          2,
+			DesiredMem:          2048,
+			DesiredGpu:          0,
+			OnDemandPct:         55,
 			Excludes:            nil,
 			KeepDesiredCapacity: false,
 		}
@@ -99,21 +100,19 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 		{
 			Name: "FullRequest",
 			in: CreatePKEOnAzureClusterRequest{
-				CreateClusterRequestBase: CreateClusterRequestBase{
-					Name:         Name,
-					Features:     nil,
-					SecretID:     SecretID,
-					SSHSecretID:  SSHSecretID,
-					ScaleOptions: scaleOptions,
-					Type:         PKEOnAzure,
-				},
+				Name:          Name,
+				Features:      nil,
+				SecretId:      SecretID,
+				SshSecretId:   SSHSecretID,
+				ScaleOptions:  scaleOptions,
+				Type:          PKEOnAzure,
 				Location:      Location,
 				ResourceGroup: ResourceGroup,
-				NodePools:     []AzureNodePool{Nodepool},
-				Kubernetes: Kubernetes{
-					CRI:     cri,
+				Nodepools:     []client.PkeOnAzureNodePool{Nodepool},
+				Kubernetes: client.CreatePkeClusterKubernetes{
+					Cri:     cri,
 					Network: network,
-					RBAC:    RBAC,
+					Rbac:    RBAC,
 					Version: Version,
 				},
 				Network: Azurenetwork,
@@ -138,7 +137,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				Name: Name,
 				Network: driver.VirtualNetwork{
 					Name:     Azurenetwork.Name,
-					CIDR:     Azurenetwork.CIDR,
+					CIDR:     Azurenetwork.Cidr,
 					Location: Location,
 				},
 				NodePools: []driver.NodePool{
@@ -148,25 +147,25 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 						InstanceType: Nodepool.InstanceType,
 						Subnet: driver.Subnet{
 							Name: Azuresubnet.Name,
-							CIDR: Azuresubnet.CIDR,
+							CIDR: Azuresubnet.Cidr,
 						},
 						Zones:       Nodepool.Zones,
 						Roles:       Nodepool.Roles,
 						Labels:      Nodepool.Labels,
 						Autoscaling: Nodepool.Autoscaling,
-						Count:       Nodepool.Count,
-						Min:         Nodepool.MinCount,
-						Max:         Nodepool.MaxCount,
+						Count:       int(Nodepool.Count),
+						Min:         int(Nodepool.MinCount),
+						Max:         int(Nodepool.MaxCount),
 					},
 				},
 				OrganizationID: orgID,
 				ResourceGroup:  ResourceGroup,
 				ScaleOptions: cluster.ScaleOptions{
 					Enabled:             scaleOptions.Enabled,
-					DesiredCpu:          scaleOptions.DesiredCPU,
-					DesiredMem:          scaleOptions.DesiredMEM,
-					DesiredGpu:          scaleOptions.DesiredGPU,
-					OnDemandPct:         scaleOptions.OnDemandPCT,
+					DesiredCpu:          scaleOptions.DesiredCpu,
+					DesiredMem:          scaleOptions.DesiredMem,
+					DesiredGpu:          int(scaleOptions.DesiredGpu),
+					OnDemandPct:         int(scaleOptions.OnDemandPct),
 					Excludes:            scaleOptions.Excludes,
 					KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
 				},
