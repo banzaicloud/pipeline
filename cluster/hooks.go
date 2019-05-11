@@ -657,12 +657,12 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 		}
 	} else {
 		headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-		if len(headNodePoolName) > 0 {
+		if headNodePoolName != "" {
 			if cluster.NodePoolExists(headNodePoolName) {
 				helmInstall.Tolerations = getHeadNodeTolerations()                   // add toleration for system node
 				helmInstall.NodeAffinity = getHeadNodeAffinity(cluster).NodeAffinity // try to schedule to system node
 			} else {
-				log.Warnf("head node pool %v not found, tiller deployment is not targeted to any node pool.", headNodePoolName)
+				log.Warnf("head node pool %q not found, tiller deployment is not targeted to any node pool.", headNodePoolName)
 			}
 		}
 	}

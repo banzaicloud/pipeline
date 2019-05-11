@@ -322,20 +322,20 @@ func Install(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []by
 	}
 
 	for i := range helmInstall.Tolerations {
-		if len(helmInstall.Tolerations[i].Key) > 0 {
-			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%v].key=%v", i, helmInstall.Tolerations[i].Key))
+		if helmInstall.Tolerations[i].Key != "" {
+			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%d].key=%s", i, helmInstall.Tolerations[i].Key))
 		}
 
-		if len(helmInstall.Tolerations[i].Operator) > 0 {
-			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%v].operator=%v", i, helmInstall.Tolerations[i].Operator))
+		if helmInstall.Tolerations[i].Operator != "" {
+			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%d].operator=%s", i, helmInstall.Tolerations[i].Operator))
 		}
 
-		if len(helmInstall.Tolerations[i].Value) > 0 {
-			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%v].value=%v", i, helmInstall.Tolerations[i].Value))
+		if helmInstall.Tolerations[i].Value != "" {
+			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%d].value=%s", i, helmInstall.Tolerations[i].Value))
 		}
 
-		if len(helmInstall.Tolerations[i].Effect) > 0 {
-			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%v].effect=%v", i, helmInstall.Tolerations[i].Effect))
+		if helmInstall.Tolerations[i].Effect != "" {
+			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%d].effect=%s", i, helmInstall.Tolerations[i].Effect))
 		}
 	}
 
@@ -343,19 +343,19 @@ func Install(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []by
 		for i := range helmInstall.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution {
 			preferredSchedulingTerm := helmInstall.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution[i]
 
-			schedulingTermString := fmt.Sprintf("spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[%v]", i)
-			opts.Values = append(opts.Values, fmt.Sprintf("%s.weight=%v", schedulingTermString, preferredSchedulingTerm.Weight))
+			schedulingTermString := fmt.Sprintf("spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[%d]", i)
+			opts.Values = append(opts.Values, fmt.Sprintf("%s.weight=%d", schedulingTermString, preferredSchedulingTerm.Weight))
 
 			for j := range preferredSchedulingTerm.Preference.MatchExpressions {
 				matchExpression := preferredSchedulingTerm.Preference.MatchExpressions[j]
 
-				matchExpressionString := fmt.Sprintf("%s.preference.matchExpressions[%v]", schedulingTermString, j)
+				matchExpressionString := fmt.Sprintf("%s.preference.matchExpressions[%d]", schedulingTermString, j)
 
-				opts.Values = append(opts.Values, fmt.Sprintf("%s.key=%v", matchExpressionString, matchExpression.Key))
-				opts.Values = append(opts.Values, fmt.Sprintf("%s.operator=%v", matchExpressionString, matchExpression.Operator))
+				opts.Values = append(opts.Values, fmt.Sprintf("%s.key=%s", matchExpressionString, matchExpression.Key))
+				opts.Values = append(opts.Values, fmt.Sprintf("%s.operator=%s", matchExpressionString, matchExpression.Operator))
 
 				for k := range matchExpression.Values {
-					opts.Values = append(opts.Values, fmt.Sprintf("%s.values[%v]=%v", matchExpressionString, k, matchExpression.Values[i]))
+					opts.Values = append(opts.Values, fmt.Sprintf("%s.values[%d]=%v", matchExpressionString, k, matchExpression.Values[i]))
 				}
 			}
 		}
