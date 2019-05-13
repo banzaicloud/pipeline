@@ -361,16 +361,6 @@ func Install(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []by
 		}
 	}
 
-	/*if len(helmInstall.TargetNodePool) > 0 {
-		opts.Values = []string{
-			fmt.Sprintf("spec.template.spec.tolerations[0].key=%v", pkgCommon.HeadNodeTaintKey),
-			"spec.template.spec.tolerations[0].operator=Equal",
-			fmt.Sprintf("spec.template.spec.tolerations[0].value=%v", helmInstall.TargetNodePool),
-		}
-		// TODO check why this even needed? Soft affinity would be better here.
-		//opts.NodeSelectors = fmt.Sprintf("%s=%s", pkgCommon.LabelKey, helmInstall.TargetNodePool)
-	}*/
-
 	kubeClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return err
