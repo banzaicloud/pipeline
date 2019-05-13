@@ -18,6 +18,7 @@ import (
 	"context"
 	"net/http"
 
+	apicluster "github.com/banzaicloud/pipeline/api/cluster"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -39,38 +40,52 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		return
 	}
 
+	var err error
 	if commonCluster.GetCloud() == pkgCluster.Azure && commonCluster.GetDistribution() == pkgCluster.PKE {
-		// V2 request
+		var updateRequest *apicluster.UpdatePKEOnAzureClusterRequest
+		if err := c.BindJSON(&updateRequest); err != nil {
+			a.logger.Errorf("Error parsing request: %s", err.Error())
+			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error parsing request",
+				Error:   err.Error(),
+			})
+			return
+		}
+		params := updateRequest.ToAzurePKEClusterUpdateParams(commonCluster.GetID(), auth.GetCurrentUser(c.Request).ID)
+		err = a.clusterUpdaters.PKEOnAzure.Update(c, params)
+	} else {
+
+		// bind request body to UpdateClusterRequest struct
+		var updateRequest *pkgCluster.UpdateClusterRequest
+		if err := c.BindJSON(&updateRequest); err != nil {
+			a.logger.Errorf("Error parsing request: %s", err.Error())
+			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "Error parsing request",
+				Error:   err.Error(),
+			})
+			return
+		}
+
+		// TODO (colin): remove this after we deleted the deprecated 'acsk' property from update create request
+		if updateRequest.ACSK != nil {
+			a.logger.Info("deprecated ACSK properties parsed")
+			updateRequest.ACK = updateRequest.ACSK
+		}
+
+		updateCtx := cluster.UpdateContext{
+			OrganizationID: auth.GetCurrentOrganization(c.Request).ID,
+			UserID:         auth.GetCurrentUser(c.Request).ID,
+			ClusterID:      commonCluster.GetID(),
+		}
+
+		updater := cluster.NewCommonClusterUpdater(updateRequest, commonCluster, updateCtx.UserID, a.workflowClient, a.externalBaseURL)
+
+		ctx := ginutils.Context(context.Background(), c)
+
+		err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 	}
-
-	// bind request body to UpdateClusterRequest struct
-	var updateRequest *pkgCluster.UpdateClusterRequest
-	if err := c.BindJSON(&updateRequest); err != nil {
-		a.logger.Errorf("Error parsing request: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	// TODO (colin): remove this after we deleted the deprecated 'acsk' property from update create request
-	if updateRequest.ACSK != nil {
-		updateRequest.ACK = updateRequest.ACSK
-	}
-
-	updateCtx := cluster.UpdateContext{
-		OrganizationID: auth.GetCurrentOrganization(c.Request).ID,
-		UserID:         auth.GetCurrentUser(c.Request).ID,
-		ClusterID:      commonCluster.GetID(),
-	}
-
-	updater := cluster.NewCommonClusterUpdater(updateRequest, commonCluster, updateCtx.UserID, a.workflowClient, a.externalBaseURL)
-
-	ctx := ginutils.Context(context.Background(), c)
-
-	err := a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 	if err != nil {
 		if isInvalid(err) {
 			c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{

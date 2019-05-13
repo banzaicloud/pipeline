@@ -23,6 +23,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func MakeAzurePKEClusterUpdater() AzurePKEClusterUpdater {
+	return AzurePKEClusterUpdater{}
+}
+
 type AzurePKEClusterUpdater struct {
 	paramsPreparer AzurePKEClusterUpdateParamsPreparer
 }

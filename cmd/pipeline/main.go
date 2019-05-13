@@ -279,8 +279,11 @@ func main() {
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 	clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 	clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
+	clusterUpdaters := api.ClusterUpdaters{
+		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterUpdater(),
+	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, clusterGroupManager, log, errorHandler, externalBaseURL, clusterCreators, clusterDeleters)
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, clusterGroupManager, log, errorHandler, externalBaseURL, clusterCreators, clusterDeleters, clusterUpdaters)
 
 	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, log, errorHandler)
 
