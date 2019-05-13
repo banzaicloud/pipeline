@@ -23,7 +23,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
@@ -322,14 +321,44 @@ func Install(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []by
 		AutoMountServiceAccountToken: true,
 	}
 
-	if len(helmInstall.TargetNodePool) > 0 {
-		opts.Values = []string{
-			fmt.Sprintf("spec.template.spec.tolerations[0].key=%v", pkgCommon.HeadNodeTaintKey),
-			"spec.template.spec.tolerations[0].operator=Equal",
-			fmt.Sprintf("spec.template.spec.tolerations[0].value=%v", helmInstall.TargetNodePool),
+	for i := range helmInstall.Tolerations {
+		if helmInstall.Tolerations[i].Key != "" {
+			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%d].key=%s", i, helmInstall.Tolerations[i].Key))
 		}
-		// TODO check why this even needed? Soft affinity would be better here.
-		//opts.NodeSelectors = fmt.Sprintf("%s=%s", pkgCommon.LabelKey, helmInstall.TargetNodePool)
+
+		if helmInstall.Tolerations[i].Operator != "" {
+			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%d].operator=%s", i, helmInstall.Tolerations[i].Operator))
+		}
+
+		if helmInstall.Tolerations[i].Value != "" {
+			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%d].value=%s", i, helmInstall.Tolerations[i].Value))
+		}
+
+		if helmInstall.Tolerations[i].Effect != "" {
+			opts.Values = append(opts.Values, fmt.Sprintf("spec.template.spec.tolerations[%d].effect=%s", i, helmInstall.Tolerations[i].Effect))
+		}
+	}
+
+	if helmInstall.NodeAffinity != nil {
+		for i := range helmInstall.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution {
+			preferredSchedulingTerm := helmInstall.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution[i]
+
+			schedulingTermString := fmt.Sprintf("spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[%d]", i)
+			opts.Values = append(opts.Values, fmt.Sprintf("%s.weight=%d", schedulingTermString, preferredSchedulingTerm.Weight))
+
+			for j := range preferredSchedulingTerm.Preference.MatchExpressions {
+				matchExpression := preferredSchedulingTerm.Preference.MatchExpressions[j]
+
+				matchExpressionString := fmt.Sprintf("%s.preference.matchExpressions[%d]", schedulingTermString, j)
+
+				opts.Values = append(opts.Values, fmt.Sprintf("%s.key=%s", matchExpressionString, matchExpression.Key))
+				opts.Values = append(opts.Values, fmt.Sprintf("%s.operator=%s", matchExpressionString, matchExpression.Operator))
+
+				for k := range matchExpression.Values {
+					opts.Values = append(opts.Values, fmt.Sprintf("%s.values[%d]=%v", matchExpressionString, k, matchExpression.Values[i]))
+				}
+			}
+		}
 	}
 
 	kubeClient, err := k8sclient.NewClientFromKubeConfig(kubeConfig)

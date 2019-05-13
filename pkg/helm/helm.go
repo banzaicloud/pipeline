@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/technosophos/moniker"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // ### [ Constants to helm]
@@ -58,8 +59,11 @@ type Install struct {
 	// Limit the maximum number of revisions saved per release. Use 0 for no limit.
 	MaxHistory int `json:"history_max"`
 
-	// TargetNodePool
-	TargetNodePool string `json:"targetNodePool"`
+	// Tolerations to be applied onto the pod
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// NodeAffinity
+	NodeAffinity *corev1.NodeAffinity `json:"nodeAffinity,omitempty"`
 }
 
 // EndpointResponse describes a service public endpoints

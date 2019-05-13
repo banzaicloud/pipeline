@@ -17,6 +17,7 @@ package pkeworkflow
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -25,7 +26,6 @@ import (
 )
 
 const SetMasterTaintActivityName = "set-master-taint-activity"
-const masterKey = "node-role.kubernetes.io/master"
 
 // SetMasterTaintActivity sets the correct taints and labels for a single-node PKE cluster
 type SetMasterTaintActivity struct {
@@ -60,7 +60,7 @@ func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTai
 		return err
 	}
 
-	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: masterKey})
+	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{LabelSelector: pke.TaintKeyMaster})
 	if err != nil {
 		return emperror.Wrap(err, "failed to list master nodes")
 	}
@@ -70,20 +70,20 @@ func (a *SetMasterTaintActivity) Execute(ctx context.Context, input SetMasterTai
 		var taints []v1.Taint
 
 		for _, taint := range node.Spec.Taints {
-			if taint.Key != masterKey {
+			if taint.Key != pke.TaintKeyMaster {
 				taints = append(taints, taint)
 			}
 		}
 
 		taints = append(taints, v1.Taint{
-			Key:    masterKey,
+			Key:    pke.TaintKeyMaster,
 			Effect: v1.TaintEffectPreferNoSchedule,
 		})
 
 		node.Spec.Taints = taints
 
-		delete(node.ObjectMeta.Labels, masterKey)
-		node.ObjectMeta.Labels["node-role.kubernetes.io/master-worker"] = ""
+		delete(node.ObjectMeta.Labels, pke.TaintKeyMaster)
+		node.ObjectMeta.Labels[pke.NodeLabelKeyMasterWorker] = ""
 
 		_, err = client.CoreV1().Nodes().Update(&node)
 		if err != nil {

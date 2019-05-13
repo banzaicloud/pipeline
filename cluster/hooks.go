@@ -24,6 +24,7 @@ import (
 	"github.com/Masterminds/semver"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
+	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
@@ -138,7 +139,7 @@ func getHeadNodeTolerations() []v1.Toleration {
 	}
 	return []v1.Toleration{
 		{
-			Key:      pkgCommon.HeadNodeTaintKey,
+			Key:      pkgCommon.NodePoolNameTaintKey,
 			Operator: v1.TolerationOpEqual,
 			Value:    headNodePoolName,
 		},
@@ -618,15 +619,53 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 		Upgrade:        true,
 	}
 
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-	if len(headNodePoolName) > 0 {
-		if cluster.NodePoolExists(headNodePoolName) {
-			helmInstall.TargetNodePool = headNodePoolName
-		} else {
-			log.Warnf("head node pool %v not found, tiller deployment is not targeted to any node pool.", headNodePoolName)
+	if cluster.GetDistribution() == pkgCluster.PKE {
+		// add toleration for master node
+		helmInstall.Tolerations = []v1.Toleration{
+			{
+				Key:      pke.TaintKeyMaster,
+				Operator: v1.TolerationOpExists,
+			},
+		}
+
+		// try to schedule to master or master-worker node
+		helmInstall.NodeAffinity = &v1.NodeAffinity{
+			PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
+				{
+					Weight: 100,
+					Preference: v1.NodeSelectorTerm{
+						MatchExpressions: []v1.NodeSelectorRequirement{
+							{
+								Key:      pke.TaintKeyMaster,
+								Operator: v1.NodeSelectorOpExists,
+							},
+						},
+					},
+				},
+				{
+					Weight: 100,
+					Preference: v1.NodeSelectorTerm{
+						MatchExpressions: []v1.NodeSelectorRequirement{
+							{
+								Key:      pke.NodeLabelKeyMasterWorker,
+								Operator: v1.NodeSelectorOpExists,
+							},
+						},
+					},
+				},
+			},
+		}
+	} else {
+		headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
+		if headNodePoolName != "" {
+			if cluster.NodePoolExists(headNodePoolName) {
+				helmInstall.Tolerations = getHeadNodeTolerations()                   // add toleration for system node
+				helmInstall.NodeAffinity = getHeadNodeAffinity(cluster).NodeAffinity // try to schedule to system node
+			} else {
+				log.Warnf("head node pool %q not found, tiller deployment is not targeted to any node pool.", headNodePoolName)
+			}
 		}
 	}
-
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		return err
@@ -929,13 +968,13 @@ func taintNodes(commonCluster CommonCluster, client *kubernetes.Clientset, nodeP
 		// https://github.com/Azure/AKS/issues/363
 		if commonCluster.GetCloud() == pkgCluster.Azure {
 			taints = append(taints, v1.Taint{
-				Key:    pkgCommon.HeadNodeTaintKey,
+				Key:    pkgCommon.NodePoolNameTaintKey,
 				Value:  nodePoolName,
 				Effect: v1.TaintEffectPreferNoSchedule,
 			})
 		} else {
 			taints = append(taints, v1.Taint{
-				Key:    pkgCommon.HeadNodeTaintKey,
+				Key:    pkgCommon.NodePoolNameTaintKey,
 				Value:  nodePoolName,
 				Effect: v1.TaintEffectNoSchedule,
 			})
