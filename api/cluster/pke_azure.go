@@ -35,25 +35,7 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 			Params: f.Params,
 		}
 	}
-	nodepools := make([]driver.NodePool, len(req.Nodepools))
-	for i, node := range req.Nodepools {
-		nodepools[i] = driver.NodePool{
-			CreatedBy:    userID,
-			Name:         node.Name,
-			InstanceType: node.InstanceType,
-			Subnet: driver.Subnet{
-				Name: node.Subnet.Name,
-				CIDR: node.Subnet.Cidr,
-			},
-			Zones:       node.Zones,
-			Roles:       node.Roles,
-			Labels:      node.Labels,
-			Autoscaling: node.Autoscaling,
-			Count:       int(node.Count),
-			Min:         int(node.MinCount),
-			Max:         int(node.MaxCount),
-		}
-	}
+
 	return driver.AzurePKEClusterCreationParams{
 		Name:           req.Name,
 		OrganizationID: organizationID,
@@ -89,7 +71,39 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 			CIDR:     req.Network.Cidr,
 			Location: req.Location,
 		},
-		NodePools: nodepools,
+		NodePools: requestToClusterNodepools(req.Nodepools, userID),
 		Features:  features,
 	}
+}
+
+type UpdatePKEOnAzureClusterRequest client.UpdatePkeOnAzureClusterRequest
+
+func (req UpdatePKEOnAzureClusterRequest) ToAzurePKEClusterUpdateParams(clusterID, userID uint) driver.AzurePKEClusterUpdateParams {
+	return driver.AzurePKEClusterUpdateParams{
+		ClusterID: clusterID,
+		NodePools: requestToClusterNodepools(req.Nodepools, userID),
+	}
+}
+
+func requestToClusterNodepools(request []client.PkeOnAzureNodePool, userID uint) []driver.NodePool {
+	nodepools := make([]driver.NodePool, len(request))
+	for i, node := range request {
+		nodepools[i] = driver.NodePool{
+			CreatedBy:    userID,
+			Name:         node.Name,
+			InstanceType: node.InstanceType,
+			Subnet: driver.Subnet{
+				Name: node.Subnet.Name,
+				CIDR: node.Subnet.Cidr,
+			},
+			Zones:       node.Zones,
+			Roles:       node.Roles,
+			Labels:      node.Labels,
+			Autoscaling: node.Autoscaling,
+			Count:       int(node.Count),
+			Min:         int(node.MinCount),
+			Max:         int(node.MaxCount),
+		}
+	}
+	return nodepools
 }
