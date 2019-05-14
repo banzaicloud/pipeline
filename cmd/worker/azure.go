@@ -30,6 +30,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator 
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateInfraWorkflowName})
 	workflow.RegisterWithOptions(azurepkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteClusterWorkflowName})
 	workflow.RegisterWithOptions(azurepkeworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteInfraWorkflowName})
+	workflow.RegisterWithOptions(azurepkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.UpdateClusterWorkflowName})
 
 	azureClientFactory := azurepkeworkflow.NewAzureClientFactory(secretStore)
 

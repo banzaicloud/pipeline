@@ -260,12 +260,6 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 	return getError(s.db.Delete(model), "failed to soft-delete model from database")
 }
 
-func (s gormAzurePKEClusterStore) Exists(clusterID uint) (bool, error) {
-	var cnt uint
-	err := getError(s.clusterDetails().Where("cluster_id = ?", clusterID).Count(&cnt), "database row existence check failed")
-	return cnt == 1, err
-}
-
 func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, err error) {
 	if err := validateClusterID(clusterID); err != nil {
 		return cluster, emperror.Wrap(err, "invalid cluster ID")
@@ -278,15 +272,6 @@ func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzur
 		return
 	}
 	fillClusterFromAzurePKEClusterModel(&cluster, model)
-	return
-}
-
-func (s gormAzurePKEClusterStore) GetNodePoolByName(clusterID uint, nodePoolName string) (np pke.NodePool, err error) {
-	var model gormAzurePKENodePoolModel
-	if err = getError(s.nodePools().Where("cluster_id = ? AND name = ?", clusterID, nodePoolName).First(&model), "failed to load node pool by name"); err != nil {
-		return
-	}
-	fillNodePoolFromModel(&np, model)
 	return
 }
 

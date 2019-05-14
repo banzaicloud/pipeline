@@ -16,19 +16,47 @@ package driver
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"net"
+	"time"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
+	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
 )
 
-func MakeAzurePKEClusterUpdater() AzurePKEClusterUpdater {
-	return AzurePKEClusterUpdater{}
+type AzurePKEClusterUpdater struct {
+	logger              logrus.FieldLogger
+	paramsPreparer      AzurePKEClusterUpdateParamsPreparer
+	pipelineExternalURL string
+	secrets             clusterUpdaterSecretStore
+	store               pke.AzurePKEClusterStore
+	workflowClient      client.Client
 }
 
-type AzurePKEClusterUpdater struct {
-	paramsPreparer AzurePKEClusterUpdateParamsPreparer
+type clusterUpdaterSecretStore interface {
+	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
+	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
+}
+
+func MakeAzurePKEClusterUpdater(logger logrus.FieldLogger, pipelineExternalURL string, secrets clusterUpdaterSecretStore, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterUpdater {
+	return AzurePKEClusterUpdater{
+		logger: logger,
+		paramsPreparer: AzurePKEClusterUpdateParamsPreparer{
+			logger: logger,
+			store:  store,
+		},
+		pipelineExternalURL: pipelineExternalURL,
+		secrets:             secrets,
+		store:               store,
+		workflowClient:      workflowClient,
+	}
 }
 
 type AzurePKEClusterUpdateParams struct {
@@ -40,7 +68,154 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	if err := cu.paramsPreparer.Prepare(ctx, &params); err != nil {
 		return emperror.Wrap(err, "params preparation failed")
 	}
+
+	cluster, err := cu.store.GetByID(params.ClusterID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cluster by ID")
+	}
+
+	nodePoolsToCreate, nodePoolsToUpdate, nodePoolsToDelete := sortNodePools(params.NodePools, cluster.NodePools)
+	subnetsToCreate, subnetsToDelete := sortSubnets(nodePoolsToCreate, nodePoolsToUpdate, nodePoolsToDelete)
+
+	workflowOptions := client.StartWorkflowOptions{
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+	}
+
+	sshKeyPair, err := GetOrCreateSSHKeyPair(cluster, cu.secrets, cu.store)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get or create SSH key pair")
+	}
+
+	sir, err := cu.secrets.Get(cluster.OrganizationID, cluster.SecretID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cluster secret")
+	}
+	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
+
+	tf := nodePoolTemplateFactory{
+		ClusterID:           cluster.ID,
+		ClusterName:         cluster.Name,
+		KubernetesVersion:   cluster.Kubernetes.Version,
+		Location:            cluster.Location,
+		OrganizationID:      cluster.OrganizationID,
+		PipelineExternalURL: cu.pipelineExternalURL,
+		ResourceGroupName:   cluster.ResourceGroup.Name,
+		SingleNodePool:      (len(nodePoolsToCreate) + len(nodePoolsToUpdate) - len(nodePoolsToDelete)) == 1,
+		SSHPublicKey:        sshKeyPair.PublicKeyData,
+		TenantID:            tenantID,
+		VirtualNetworkName:  cluster.VirtualNetwork.Name,
+	}
+
+	var roleAssignmentTemplates []workflow.RoleAssignmentTemplate
+	subnetTemplates := make(map[string]workflow.SubnetTemplate)
+
+	toCreateVMSSTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(nodePoolsToCreate))
+	for i, np := range nodePoolsToCreate {
+		vmsst, snt, rats := tf.getTemplates(np)
+		toCreateVMSSTemplates[i] = vmsst
+		if subnetsToCreate[snt.Name] {
+			subnetTemplates[snt.Name] = snt
+		}
+		roleAssignmentTemplates = append(roleAssignmentTemplates, rats...)
+	}
+
+	toUpdateVMSSTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(nodePoolsToUpdate))
+	for i, np := range nodePoolsToUpdate {
+		vmsst, _, _ := tf.getTemplates(np)
+		toUpdateVMSSTemplates[i] = vmsst
+	}
+
+	toDeleteVMSSNames := make([]string, len(nodePoolsToDelete))
+	for i, np := range nodePoolsToDelete {
+		toDeleteVMSSNames[i] = np.Name
+	}
+
+	toCreateSubnetTemplates := make([]workflow.SubnetTemplate, 0, len(subnetTemplates))
+	for _, t := range subnetTemplates {
+		toCreateSubnetTemplates = append(toCreateSubnetTemplates, t)
+	}
+
+	input := workflow.UpdateClusterWorkflowInput{
+		ResourceGroupName:  cluster.ResourceGroup.Name,
+		VirtualNetworkName: cluster.VirtualNetwork.Name,
+
+		RoleAssigments:  roleAssignmentTemplates,
+		SubnetsToCreate: toCreateSubnetTemplates,
+		SubnetsToDelete: subnetsToDelete,
+		VMSSToCreate:    toCreateVMSSTemplates,
+		VMSSToDelete:    toDeleteVMSSNames,
+		VMSSToUpdate:    toUpdateVMSSTemplates,
+	}
+
+	wfexec, err := cu.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.UpdateClusterWorkflowName, input)
+	if err = emperror.WrapWith(err, "failed to start workflow", "workflow", workflow.UpdateClusterWorkflowName); err != nil {
+		// TODO: set cluster status
+		return err
+	}
+
+	if err = cu.store.SetActiveWorkflowID(cluster.ID, wfexec.ID); err != nil {
+		cu.logger.WithField("clusterID", cluster.ID).WithField("workflowID", wfexec.ID).Error("failed to set active workflow ID", err)
+		return err
+	}
+
 	return nil
+}
+
+func sortNodePools(incoming []NodePool, existing []pke.NodePool) (toCreate, toUpdate []NodePool, toDelete []pke.NodePool) {
+	existingSet := make(map[string]pke.NodePool)
+	for _, np := range existing {
+		existingSet[np.Name] = np
+	}
+	for _, np := range incoming {
+		if _, ok := existingSet[np.Name]; ok {
+			delete(existingSet, np.Name)
+			toUpdate = append(toUpdate, np)
+		} else {
+			toCreate = append(toCreate, np)
+		}
+	}
+	toDelete = make([]pke.NodePool, 0, len(existingSet))
+	for _, np := range existingSet {
+		toDelete = append(toDelete, np)
+	}
+	return
+}
+
+func sortSubnets(nodePoolsToCreate, nodePoolsToUpdate []NodePool, nodePoolsToDelete []pke.NodePool) (toCreate map[string]bool, toDelete []string) {
+	// sentence to-be-deleted node pools' subnets to deletion
+	toDeleteSet := make(map[string]bool)
+	for _, np := range nodePoolsToDelete {
+		toDeleteSet[np.Subnet.Name] = true
+	}
+
+	// add to-be-updated node pools' subnets to the set of subnets we keep
+	// additionally, if the subnet was to be deleted, keep it from deletion
+	toKeep := make(map[string]bool)
+	for _, np := range nodePoolsToUpdate {
+		if toDeleteSet[np.Subnet.Name] {
+			delete(toDeleteSet, np.Subnet.Name)
+		}
+		toKeep[np.Subnet.Name] = true
+	}
+
+	// if a to-be-created node pool referes to a to-be-deleted subnet, keep the subnet from deletion
+	// otherwise, if the subnet is not in the to-be-kept set, it must be created
+	toCreate = make(map[string]bool)
+	for _, np := range nodePoolsToCreate {
+		if toDeleteSet[np.Subnet.Name] {
+			delete(toDeleteSet, np.Subnet.Name)
+		} else if !toKeep[np.Subnet.Name] {
+			toCreate[np.Subnet.Name] = true
+		}
+	}
+
+	toDelete = make([]string, 0, len(toDeleteSet))
+	for name := range toDeleteSet {
+		toDelete = append(toDelete, name)
+	}
+
+	return
 }
 
 type AzurePKEClusterUpdateParamsPreparer struct {
@@ -52,18 +227,18 @@ func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params
 	if params.ClusterID == 0 {
 		return validationErrorf("ClusterID cannot be 0")
 	}
-	exists, err := p.store.Exists(params.ClusterID)
-	if err != nil {
+	cluster, err := p.store.GetByID(params.ClusterID)
+	if pke.IsNotFound(err) {
+		return validationErrorf("ClusterID must refer to an existing cluster")
+	} else if err != nil {
 		return emperror.Wrap(err, "failed to get cluster by ID")
 	}
-	if !exists {
-		return validationErrorf("ClusterID must refer to an existing cluster")
-	}
-	nodePoolsPreparer := ClusterUpdateNodePoolsPreparer{
-		clusterID: params.ClusterID,
+	nodePoolsPreparer := NodePoolsPreparer{
 		logger:    p.logger,
 		namespace: "NodePools",
-		store:     p.store,
+		dataProvider: clusterUpdaterNodePoolPreparerDataProvider{
+			cluster: cluster,
+		},
 	}
 	if err := nodePoolsPreparer.Prepare(ctx, params.NodePools); err != nil {
 		return emperror.Wrap(err, "failed to prepare node pools")
@@ -71,135 +246,49 @@ func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params
 	return nil
 }
 
-type ClusterUpdateNodePoolsPreparer struct {
-	clusterID uint
-	logger    logrus.FieldLogger
-	namespace string
-	store     pke.AzurePKEClusterStore
+type clusterUpdaterNodePoolPreparerDataProvider struct {
+	cluster               pke.PKEOnAzureCluster
+	resourceGroupName     string
+	subnetsClient         azure.SubnetsClient
+	virtualNetworkName    string
+	virtualNetworksClient azure.VirtualNetworksClient
 }
 
-func (p ClusterUpdateNodePoolsPreparer) getNodePoolPreparer(i int) ClusterUpdateNodePoolPreparer {
-	return ClusterUpdateNodePoolPreparer{
-		clusterID: p.clusterID,
-		logger:    p.logger,
-		namespace: fmt.Sprintf("%s[%d]", p.namespace, i),
-		store:     p.store,
-	}
-}
-
-func (p ClusterUpdateNodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) error {
-	for i := range nodePools {
-		if err := emperror.Wrap(p.getNodePoolPreparer(i).Prepare(ctx, &nodePools[i]), "node pool preparation failed"); err != nil {
-			return err
+func (p clusterUpdaterNodePoolPreparerDataProvider) getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error) {
+	for _, np := range p.cluster.NodePools {
+		if np.Name == nodePoolName {
+			return np, nil
 		}
 	}
-	// TODO: check for conflicts?
-	return nil
+	return pke.NodePool{}, notExistsYetError{}
 }
 
-type ClusterUpdateNodePoolPreparer struct {
-	clusterID uint
-	logger    logrus.FieldLogger
-	namespace string
-	store     pke.AzurePKEClusterStore
+func (p clusterUpdaterNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error) {
+	subnet, err := p.subnetsClient.Get(ctx, p.resourceGroupName, p.virtualNetworkName, nodePool.Subnet.Name, "")
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to get subnet")
+	}
+	return to.String(subnet.AddressPrefix), nil
 }
 
-func (p ClusterUpdateNodePoolPreparer) getNewNodePoolPreparer() NodePoolPreparer {
-	return NodePoolPreparer{
-		logger:    p.logger,
-		namespace: p.namespace,
+func (p clusterUpdaterNodePoolPreparerDataProvider) getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error) {
+	vnet, err := p.virtualNetworksClient.Get(ctx, p.resourceGroupName, p.virtualNetworkName, "")
+	if err != nil {
+		return net.IPNet{}, emperror.Wrap(err, "failed to get virtual network")
 	}
-}
-
-func (p ClusterUpdateNodePoolPreparer) getLogger() logrus.FieldLogger {
-	return p.logger
-}
-
-func (p ClusterUpdateNodePoolPreparer) getNamespace() string {
-	return p.namespace
-}
-
-func (p ClusterUpdateNodePoolPreparer) Prepare(ctx context.Context, nodePool *NodePool) error {
-	if nodePool.Name == "" {
-		return validationErrorf("%s.Name cannot be empty", p.namespace)
-	}
-	np, err := p.store.GetNodePoolByName(p.clusterID, nodePool.Name)
-	if pke.IsNotFound(err) {
-		return p.getNewNodePoolPreparer().Prepare(nodePool)
-	} else if err != nil {
-		return emperror.Wrap(err, "failed to get node pool by name")
-	}
-
-	// check existing node pool details
-	if nodePool.CreatedBy != np.CreatedBy {
-		if nodePool.CreatedBy != 0 {
-			logMismatchOn(p, "CreatedBy", np.CreatedBy, nodePool.CreatedBy)
-		}
-		nodePool.CreatedBy = np.CreatedBy
-	}
-	if nodePool.InstanceType != np.InstanceType {
-		if nodePool.InstanceType != "" {
-			logMismatchOn(p, "InstanceType", np.InstanceType, nodePool.InstanceType)
-		}
-		nodePool.InstanceType = np.InstanceType
-	}
-	if stringSliceSetEqual(nodePool.Roles, np.Roles) {
-		if nodePool.Roles != nil {
-			logMismatchOn(p, "Roles", np.Roles, nodePool.Roles)
-		}
-		nodePool.Roles = np.Roles
-	}
-	if nodePool.Subnet.Name != np.Subnet.Name {
-		if nodePool.Subnet.Name != "" {
-			logMismatchOn(p, "Subnet.Name", np.Subnet.Name, nodePool.Subnet.Name)
-		}
-		nodePool.Subnet.Name = np.Subnet.Name
-	}
-	// TODO: check subnet CIDR
-	if stringSliceSetEqual(nodePool.Zones, np.Zones) {
-		if nodePool.Zones != nil {
-			logMismatchOn(p, "Zones", np.Zones, nodePool.Zones)
-		}
-		nodePool.Zones = np.Zones
-	}
-	return nil
-}
-
-func logMismatchOn(nl interface {
-	getLogger() logrus.FieldLogger
-	getNamespace() string
-}, fieldName string, currentValue, incomingValue interface{}) {
-	logMismatch(nl.getLogger(), nl.getNamespace(), fieldName, currentValue, incomingValue)
-}
-
-func logMismatch(logger logrus.FieldLogger, namespace, fieldName string, currentValue, incomingValue interface{}) {
-	logger.WithField("current", currentValue).WithField("incoming", incomingValue).Warningf("%s.%s does not match existing value", namespace, fieldName)
-}
-
-func stringSliceSetEqual(lhs, rhs []string) bool {
-	lset := make(map[string]bool, len(lhs))
-	for _, e := range lhs {
-		lset[e] = true
-	}
-	if len(lhs) != len(lset) {
-		return false // duplicates in lhs
-	}
-
-	rset := make(map[string]bool, len(rhs))
-	for _, e := range rhs {
-		rset[e] = true
-	}
-	if len(rhs) != len(rset) {
-		return false // duplicates in rhs
-	}
-
-	if len(lset) != len(rset) {
-		return false // different element counts
-	}
-	for e := range lset {
-		if !rset[e] {
-			return false // element in lhs missing from rhs
+	if f := vnet.VirtualNetworkPropertiesFormat; f != nil {
+		if as := f.AddressSpace; as != nil {
+			if apsp := as.AddressPrefixes; apsp != nil {
+				aps := to.StringSlice(apsp)
+				if len(aps) > 0 {
+					_, n, err := net.ParseCIDR(aps[0])
+					if err != nil {
+						return net.IPNet{}, emperror.Wrap(err, "failed to parse CIDR")
+					}
+					return *n, nil
+				}
+			}
 		}
 	}
-	return true
+	return net.IPNet{}, emperror.With(errors.New("virtual network has no address prefixes"), "resourceGroup", p.resourceGroupName, "vnet", p.virtualNetworkName)
 }
