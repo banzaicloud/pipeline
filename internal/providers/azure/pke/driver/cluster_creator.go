@@ -17,8 +17,7 @@ package driver
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strconv"
+	"net"
 	"time"
 
 	autoazure "github.com/Azure/go-autorest/autorest/azure"
@@ -30,11 +29,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/gofrs/uuid"
 	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
@@ -47,7 +44,6 @@ const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectN
 func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
 		logger:              logger,
-		paramsPreparer:      MakeAzurePKEClusterCreationParamsPreparer(logger),
 		store:               store,
 		workflowClient:      workflowClient,
 		pipelineExternalURL: pipelineExternalURL,
@@ -61,6 +57,10 @@ type AzurePKEClusterCreator struct {
 	store               pke.AzurePKEClusterStore
 	workflowClient      client.Client
 	pipelineExternalURL string
+	secrets             interface {
+		Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
+		Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
+	}
 }
 
 type VirtualNetwork struct {
@@ -154,27 +154,6 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
-	var sshKeyPair *secret.SSHKeyPair
-	if params.SSHSecretID == "" {
-		var sshSecretID string
-		sshKeyPair, sshSecretID, err = newSSHKeyPair(cl.OrganizationID, cl.ID, cl.Name, cl.UID)
-		if err != nil {
-			cc.handleError(cl.ID, err)
-			return
-		}
-		if err = cc.store.SetSSHSecretID(cl.ID, sshSecretID); err != nil {
-			cc.handleError(cl.ID, err)
-			return
-		}
-	} else {
-		sshKeyPair, err = getSSHKeyPair(cl.OrganizationID, params.SSHSecretID)
-		if err != nil {
-			cc.handleError(cl.ID, err)
-			return
-		}
-	}
-	sshPublicKey := sshKeyPair.PublicKeyData
-
 	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
 	if err != nil {
 		cc.handleError(cl.ID, err)
@@ -205,102 +184,34 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		}
 	}
 
+	sshKeyPair, err := GetOrCreateSSHKeyPair(cl, cc.secrets, cc.store)
+	if err = emperror.Wrap(err, "failed to get or create SSH key pair"); err != nil {
+		cc.handleError(cl.ID, err)
+		return
+	}
+
+	tf := nodePoolTemplateFactory{
+		ClusterID:           cl.ID,
+		ClusterName:         cl.Name,
+		KubernetesVersion:   cl.Kubernetes.Version,
+		Location:            cl.Location,
+		OrganizationID:      cl.OrganizationID,
+		PipelineExternalURL: cc.pipelineExternalURL,
+		ResourceGroupName:   cl.ResourceGroup.Name,
+		SingleNodePool:      len(cl.NodePools) == 1,
+		SSHPublicKey:        sshKeyPair.PublicKeyData,
+		TenantID:            tenantID,
+		VirtualNetworkName:  cl.VirtualNetwork.Name,
+	}
+
 	subnets := make(map[string]workflow.SubnetTemplate)
 	vmssTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(params.NodePools))
-	roleAssignmentTemplates := make([]workflow.RoleAssignmentTemplate, len(params.NodePools))
-	npLen := len(params.NodePools)
-	obapn := "outbound-backend-address-pool"
+	roleAssignmentTemplates := make([]workflow.RoleAssignmentTemplate, 0, len(params.NodePools))
 	for i, np := range params.NodePools {
-		var bapn string
-		var inpn string
-		var nsgn string
-		var cnsgn string
-		var azureRole string
-		var taints string
-		var userDataScriptTemplate string
-
-		switch {
-		case np.hasRole(pkgPKE.RoleMaster):
-			bapn = "backend-address-pool"
-			inpn = "ssh-inbound-nat-pool"
-			nsgn = params.Name + "-master-nsg"
-			azureRole = "Owner"
-
-			if npLen > 1 {
-				taints = MasterNodeTaint
-			} else {
-				taints = "," // do not taint single-nodepool cluster's master node
-			}
-
-			userDataScriptTemplate = masterUserDataScriptTemplate
-		default:
-			nsgn = params.Name + "-worker-nsg"
-			azureRole = "Contributor"
-			if npLen > 1 && np.hasRole(pkgPKE.RolePipelineSystem) {
-				taints = fmt.Sprintf("%s=%s:%s", pkgCommon.NodePoolNameTaintKey, np.Name, corev1.TaintEffectPreferNoSchedule)
-			}
-			userDataScriptTemplate = workerUserDataScriptTemplate
-
-		}
-		cnsgn = nsgn
-		if npLen > 1 {
-			// Ingress traffic flow target. In case of multiple NSGs workers can only receive traffic.
-			cnsgn = params.Name + "-worker-nsg"
-		}
-
-		subnets[np.Subnet.Name] = workflow.SubnetTemplate{
-			Name:                     np.Subnet.Name,
-			CIDR:                     np.Subnet.CIDR,
-			NetworkSecurityGroupName: nsgn,
-		}
-
-		vmssName := pke.GetVMSSName(params.Name, np.Name)
-		vmssTemplates[i] = workflow.VirtualMachineScaleSetTemplate{
-			AdminUsername: "azureuser",
-			Image: workflow.Image{
-				Offer:     "CentOS-CI",
-				Publisher: "OpenLogic",
-				SKU:       "7-CI",
-				Version:   "7.6.20190306",
-			},
-			InstanceCount:                uint(np.Count),
-			InstanceType:                 np.InstanceType,
-			BackendAddressPoolName:       bapn,
-			OutputBackendAddressPoolName: obapn,
-			InboundNATPoolName:           inpn,
-			Location:                     params.Network.Location,
-			Name:                         vmssName,
-			SSHPublicKey:                 sshPublicKey,
-			SubnetName:                   np.Subnet.Name,
-			UserDataScriptParams: map[string]string{
-				"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
-				"ClusterName":           params.Name,
-				"InfraCIDR":             np.Subnet.CIDR,
-				"LoadBalancerSKU":       "standard",
-				"NodePoolName":          np.Name,
-				"Taints":                taints,
-				"NSGName":               cnsgn,
-				"OrgID":                 strconv.FormatUint(uint64(params.OrganizationID), 10),
-				"PipelineURL":           cc.pipelineExternalURL,
-				"PipelineToken":         "<not yet set>",
-				"PKEVersion":            pkeVersion,
-				"KubernetesVersion":     params.Kubernetes.Version,
-				"PublicAddress":         "<not yet set>",
-				"RouteTableName":        params.Name + "-route-table",
-				"SubnetName":            np.Subnet.Name,
-				"TenantID":              tenantID,
-				"VnetName":              params.Network.Name,
-				"VnetResourceGroupName": params.ResourceGroup,
-			},
-			UserDataScriptTemplate: userDataScriptTemplate,
-			Zones:                  np.Zones,
-		}
-
-		roleAssignmentTemplates[i] = workflow.RoleAssignmentTemplate{
-			Name:     uuid.Must(uuid.NewV1()).String(),
-			VMSSName: vmssName,
-			RoleName: azureRole,
-		}
+		vmsst, snt, rats := tf.getTemplates(np)
+		vmssTemplates[i] = vmsst
+		subnets[snt.Name] = snt
+		roleAssignmentTemplates = append(roleAssignmentTemplates, rats...)
 	}
 
 	subnetTemplates := make([]workflow.SubnetTemplate, 0, len(subnets))
@@ -410,9 +321,8 @@ func (cc AzurePKEClusterCreator) handleError(clusterID uint, err error) error {
 
 // AzurePKEClusterCreationParamsPreparer implements AzurePKEClusterCreationParams preparation
 type AzurePKEClusterCreationParamsPreparer struct {
-	k8sPreparer       intPKE.KubernetesPreparer
-	logger            logrus.FieldLogger
-	nodePoolsPreparer NodePoolsPreparer
+	k8sPreparer intPKE.KubernetesPreparer
+	logger      logrus.FieldLogger
 }
 
 // MakeAzurePKEClusterCreationParamsPreparer returns an instance of AzurePKEClusterCreationParamsPreparer
@@ -420,20 +330,6 @@ func MakeAzurePKEClusterCreationParamsPreparer(logger logrus.FieldLogger) AzureP
 	return AzurePKEClusterCreationParamsPreparer{
 		k8sPreparer: intPKE.MakeKubernetesPreparer(logger, "Kubernetes"),
 		logger:      logger,
-		nodePoolsPreparer: NodePoolsPreparer{
-			logger:    logger,
-			namespace: "NodePools",
-		},
-	}
-}
-
-func (p AzurePKEClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *azure.CloudConnection, clusterName, resourceGroupName string) VirtualNetworkPreparer {
-	return VirtualNetworkPreparer{
-		clusterName:       clusterName,
-		connection:        cloudConnection,
-		logger:            p.logger,
-		namespace:         "Network",
-		resourceGroupName: resourceGroupName,
 	}
 }
 
@@ -474,111 +370,60 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 		return emperror.Wrap(err, "failed to prepare cluster network")
 	}
 
-	if err := p.nodePoolsPreparer.Prepare(params.NodePools); err != nil {
+	_, network, err := net.ParseCIDR(params.Network.CIDR)
+	if err != nil {
+		return emperror.Wrap(err, "failed to parse network CIDR")
+	}
+	if err := p.getNodePoolsPreparer(*network).Prepare(ctx, params.NodePools); err != nil {
 		return emperror.Wrap(err, "failed to prepare node pools")
 	}
 
 	return nil
 }
 
-// NodePoolsPreparer implements []NodePool preparation
-type NodePoolsPreparer struct {
-	logger    logrus.FieldLogger
-	namespace string
+func (p AzurePKEClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *azure.CloudConnection, clusterName, resourceGroupName string) VirtualNetworkPreparer {
+	return VirtualNetworkPreparer{
+		clusterName:       clusterName,
+		connection:        cloudConnection,
+		logger:            p.logger,
+		namespace:         "Network",
+		resourceGroupName: resourceGroupName,
+	}
 }
 
-func (p NodePoolsPreparer) getNodePoolPreparer(i int) NodePoolPreparer {
-	return NodePoolPreparer{
+func (p AzurePKEClusterCreationParamsPreparer) getNodePoolsPreparer(network net.IPNet) NodePoolsPreparer {
+	return NodePoolsPreparer{
 		logger:    p.logger,
-		namespace: fmt.Sprintf("%s[%d]", p.namespace, i),
+		namespace: "NodePools",
+		dataProvider: clusterCreatorNodePoolPreparerDataProvider{
+			network: network,
+		},
 	}
 }
 
-// Prepare validates and provides defaults for a set of NodePools
-func (p NodePoolsPreparer) Prepare(nodePools []NodePool) error {
-	for i := range nodePools {
-		if err := p.getNodePoolPreparer(i).Prepare(&nodePools[i]); err != nil {
-			return emperror.Wrap(err, "failed to prepare node pools")
-		}
-		if nodePools[i].Subnet.Name == "" {
-			if nodePools[i].Subnet.CIDR == "" {
-				nodePools[i].Subnet.CIDR = fmt.Sprintf("10.0.%d.0/24", i)
-			}
-			nodePools[i].Subnet.Name = fmt.Sprintf("subnet-%d", i)
-		}
-	}
-	return nil
+type clusterCreatorNodePoolPreparerDataProvider struct {
+	network net.IPNet
 }
 
-// NodePoolPreparer implements NodePool preparation
-type NodePoolPreparer struct {
-	logger    logrus.FieldLogger
-	namespace string
+func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error) {
+	return pke.NodePool{}, notExistsYetError{}
 }
 
-// Prepare validates and provides defaults for NodePool fields
-func (p NodePoolPreparer) Prepare(nodePool *NodePool) error {
-	if nodePool == nil {
-		return nil
-	}
-
-	return nil
+func (p clusterCreatorNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error) {
+	return "", notExistsYetError{}
 }
 
-// VirtualNetworkPreparer implements VirtualNetwork preparation
-type VirtualNetworkPreparer struct {
-	clusterName       string
-	connection        *azure.CloudConnection
-	logger            logrus.FieldLogger
-	namespace         string
-	resourceGroupName string
+func (p clusterCreatorNodePoolPreparerDataProvider) getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error) {
+	return p.network, nil
 }
 
-const DefaultVirtualNetworkCIDR = "10.0.0.0/16"
+type notExistsYetError struct{}
 
-// Prepare validates and provides defaults for VirtualNetwork fields
-func (p VirtualNetworkPreparer) Prepare(ctx context.Context, vnet *VirtualNetwork) error {
-	if vnet.Name == "" {
-		vnet.Name = fmt.Sprintf("%s-vnet", p.clusterName)
-		p.logger.Debugf("%s.Name not specified, defaulting to [%s]", p.namespace, vnet.Name)
-	}
-	if vnet.CIDR == "" {
-		vnet.CIDR = DefaultVirtualNetworkCIDR
-		p.logger.Debugf("%s.CIDR not specified, defaulting to [%s]", p.namespace, vnet.CIDR)
-	}
-	if vnet.Location == "" {
-		rg, err := p.connection.GetGroupsClient().Get(ctx, p.resourceGroupName)
-		if err != nil && rg.Response.StatusCode != http.StatusNotFound {
-			return emperror.WrapWith(err, "failed to fetch Azure resource group", "resourceGroupName", p.resourceGroupName)
-		}
-		if rg.Response.StatusCode == http.StatusNotFound || rg.Location == nil || *rg.Location == "" {
-			// resource group does not exist (or somehow has no Location), cannot provide default
-			return validationErrorf("%s.Location must be specified", p.namespace)
-		}
-		vnet.Location = *rg.Location
-		p.logger.Debugf("%s.Location not specified, defaulting to resource group location [%s]", p.namespace, vnet.Location)
-	}
-	return nil
+func (notExistsYetError) Error() string {
+	return "this resource does not exist yet"
 }
 
-type validationError struct {
-	msg string
-}
-
-func validationErrorf(msg string, args ...interface{}) validationError {
-	if len(args) > 0 {
-		msg = fmt.Sprintf(msg, args...)
-	}
-	return validationError{
-		msg: msg,
-	}
-}
-
-func (e validationError) Error() string {
-	return e.msg
-}
-
-func (e validationError) InputValidationError() bool {
+func (notExistsYetError) NotFound() bool {
 	return true
 }
 
@@ -635,20 +480,3 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-pod-network-cidr=""`
-
-func getSSHKeyPair(orgID uint, sshSecretID string) (*secret.SSHKeyPair, error) {
-	sir, err := secret.Store.Get(orgID, sshSecretID)
-	if err != nil {
-		return nil, err
-	}
-	return secret.NewSSHKeyPair(sir), nil
-}
-
-func newSSHKeyPair(orgID uint, clusterID uint, clusterName string, clusterUID string) (sshKeyPair *secret.SSHKeyPair, sshSecretID string, err error) {
-	sshKeyPair, err = secret.GenerateSSHKeyPair()
-	if err != nil {
-		return
-	}
-	sshSecretID, err = secret.StoreSSHKeyPair(sshKeyPair, orgID, clusterID, clusterName, clusterUID)
-	return
-}

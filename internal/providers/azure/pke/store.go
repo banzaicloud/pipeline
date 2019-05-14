@@ -40,9 +40,7 @@ type CreateParams struct {
 type AzurePKEClusterStore interface {
 	Create(params CreateParams) (PKEOnAzureCluster, error)
 	Delete(clusterID uint) error
-	Exists(clusterID uint) (bool, error)
 	GetByID(clusterID uint) (PKEOnAzureCluster, error)
-	GetNodePoolByName(clusterID uint, nodePoolName string) (NodePool, error)
 	SetStatus(clusterID uint, status, message string) error
 	SetActiveWorkflowID(clusterID uint, workflowID string) error
 	SetConfigSecretID(clusterID uint, secretID string) error
