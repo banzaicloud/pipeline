@@ -16,11 +16,8 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 )
@@ -83,19 +80,24 @@ func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicI
 		return emperror.WrapWith(err, "failed to get public IP details", keyvals...)
 	}
 
-	if ps := network.ProvisioningState(to.String(pip.ProvisioningState)); ps == network.Deleting || ps == network.Updating {
-		return fmt.Errorf("can not delete public IP in %q provisioning state", ps)
-	}
-
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.PublicIPAddressName)
-	if err != nil {
-		return emperror.WrapWith(err, "sending request to delete public IP failed", keyvals...)
+	if err = emperror.WrapWith(err, "sending request to delete public IP failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("public IP not found")
+			return nil
+		}
+		return err
 	}
 
 	logger.Debug("waiting for the completion of delete public IP operation")
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return emperror.WrapWith(err, "waiting for the completion of delete public IP operation failed", keyvals...)
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err = emperror.WrapWith(err, "waiting for the completion of delete public IP operation failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("public IP not found")
+			return nil
+		}
+		return err
 	}
 
 	logger.Debug("public IP deletion completed")

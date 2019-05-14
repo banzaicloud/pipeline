@@ -16,10 +16,8 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -88,13 +86,12 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 		return
 	}
 
-	vnetProvisioningState := network.ProvisioningState(to.String(vnet.ProvisioningState))
-	if vnetProvisioningState == network.Deleting || vnetProvisioningState == network.Updating {
-		return fmt.Errorf("can not delete virtual network in %q provisioning state", vnetProvisioningState)
-	}
-
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.VNetName)
 	if err = emperror.WrapWith(err, "sending request to delete virtual network failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("virtual network not found")
+			return nil
+		}
 		return
 	}
 
@@ -102,6 +99,10 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err = emperror.WrapWith(err, "waiting for the completion of delete virtual network operation failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("virtual network not found")
+			return nil
+		}
 		return
 	}
 

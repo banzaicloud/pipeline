@@ -16,10 +16,8 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -88,13 +86,12 @@ func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRoute
 		return
 	}
 
-	rtProvisioningState := network.ProvisioningState(to.String(rt.ProvisioningState))
-	if rtProvisioningState == network.Deleting || rtProvisioningState == network.Updating {
-		return fmt.Errorf("can not delete route table in %q provisioning state", rtProvisioningState)
-	}
-
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.RouteTableName)
 	if err = emperror.WrapWith(err, "sending request to delete route table failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("route table not found")
+			return nil
+		}
 		return
 	}
 
@@ -102,6 +99,10 @@ func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRoute
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err = emperror.WrapWith(err, "waiting for the completion of delete route table operation failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("route table not found")
+			return nil
+		}
 		return
 	}
 
