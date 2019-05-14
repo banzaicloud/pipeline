@@ -16,10 +16,8 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -89,15 +87,12 @@ func (a DeleteLoadBalancerActivity) Execute(ctx context.Context, input DeleteLoa
 		return
 	}
 
-	lbProvisioningState := network.ProvisioningState(to.String(lb.LoadBalancerPropertiesFormat.ProvisioningState))
-	if lbProvisioningState == network.Deleting || lbProvisioningState == network.Updating {
-		return fmt.Errorf("can not delete load balancer in %q provisioning state", lbProvisioningState)
-
-		// TODO: if the lb is already in Deleting provisioning state we may just wait until the deletion successfully completes
-	}
-
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.LoadBalancerName)
 	if err = emperror.WrapWith(err, "sending request to delete load balancer failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("load balancer not found")
+			return nil
+		}
 		return
 	}
 
@@ -105,6 +100,10 @@ func (a DeleteLoadBalancerActivity) Execute(ctx context.Context, input DeleteLoa
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err = emperror.WrapWith(err, "waiting for the completion of delete load balancer operation failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("load balancer not found")
+			return nil
+		}
 		return
 	}
 

@@ -16,10 +16,8 @@ package workflow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -88,13 +86,12 @@ func (a DeleteNSGActivity) Execute(ctx context.Context, input DeleteNSGActivityI
 		return
 	}
 
-	nsgProvisioningState := network.ProvisioningState(to.String(rt.ProvisioningState))
-	if nsgProvisioningState == network.Deleting || nsgProvisioningState == network.Updating {
-		return fmt.Errorf("can not delete network security group in %q provisioning state", nsgProvisioningState)
-	}
-
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.NSGName)
 	if err = emperror.WrapWith(err, "sending request to network security group failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("network security group not found")
+			return nil
+		}
 		return
 	}
 
@@ -102,6 +99,10 @@ func (a DeleteNSGActivity) Execute(ctx context.Context, input DeleteNSGActivityI
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err = emperror.WrapWith(err, "waiting for the completion of delete network security group operation failed", keyvals...); err != nil {
+		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+			logger.Warn("network security group not found")
+			return nil
+		}
 		return
 	}
 
