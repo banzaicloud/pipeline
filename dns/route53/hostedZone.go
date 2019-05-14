@@ -23,6 +23,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
+	"github.com/goph/emperror"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -49,6 +51,47 @@ func (dns *awsRoute53) createHostedZone(domain string) (*route53.HostedZone, err
 	log.Infof("route53 hosted zone created")
 
 	return hostedZoneOutput.HostedZone, nil
+}
+
+// setHostedZoneSoaNTTL sets the NTTL value of the SOA record of the Hosted Zone identified by `id`
+func (dns *awsRoute53) setHostedZoneSoaNTTL(id *string, nttl uint) error {
+	const soa = "SOA"
+
+	recordSetInput := &route53.ListResourceRecordSetsInput{HostedZoneId: id}
+	recordSetOutput, err := dns.route53Svc.ListResourceRecordSets(recordSetInput)
+	if err != nil {
+		return emperror.WrapWith(err, "listing hosted zone record sets failed", "hostedZoneId", aws.StringValue(id))
+	}
+
+	var soaSet *route53.ResourceRecordSet
+	for _, recordSet := range recordSetOutput.ResourceRecordSets {
+		if aws.StringValue(recordSet.Type) == route53.RRTypeSoa {
+			soaSet = recordSet
+		}
+	}
+	if soaSet == nil {
+		return errors.New("could not find SOA record")
+	}
+
+	for _, record := range soaSet.ResourceRecords {
+		parts := strings.Split(*record.Value, " ")
+		parts[len(parts)-1] = fmt.Sprintf("%d", nttl)
+		*record.Value = strings.Join(parts, " ")
+	}
+
+	changeRecordSetInput := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: id,
+		ChangeBatch: &route53.ChangeBatch{
+			Changes: []*route53.Change{
+				{Action: aws.String(route53.ChangeActionUpsert),
+					ResourceRecordSet: soaSet,
+				},
+			},
+		},
+	}
+
+	_, err = dns.route53Svc.ChangeResourceRecordSets(changeRecordSetInput)
+	return emperror.Wrap(err, "changing SOA record set")
 }
 
 // getHostedZoneWithNameServers returns the hosted zone and it name servers with given id from AWS Route53

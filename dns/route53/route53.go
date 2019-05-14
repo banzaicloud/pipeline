@@ -50,6 +50,7 @@ const (
 	iamUserNameTemplate                = "%s.r53.%s"
 	hostedZoneAccessPolicyNameTemplate = "%s.r53.%s"
 	IAMUserAccessKeySecretName         = "route53"
+	soaNTTL                            = 60 // negative-cache TTL to set in the SOA record of the created hosted zone
 )
 
 func loggerWithFields(fields logrus.Fields) *logrus.Entry {
@@ -314,6 +315,10 @@ func (dns *awsRoute53) registerDomain(orgId uint, domain string) error {
 
 		hostedZoneIdShort = stripHostedZoneId(aws.StringValue(hostedZone.Id))
 		hostedZoneId = aws.StringValue(hostedZone.Id)
+
+		if err := dns.setHostedZoneSoaNTTL(hostedZone.Id, soaNTTL); err != nil {
+			log.Errorf("could not set NTTL: %v", err)
+		}
 
 	} else {
 		log.Infof("skip creating hosted zone in route53 as it already exists with id: '%s'", hostedZoneIdShort)
