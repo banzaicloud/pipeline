@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"strings"
 
+	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 
 	"github.com/gin-gonic/gin"
@@ -50,10 +51,11 @@ import (
 
 // ClusterAPI implements the Cluster API actions.
 type ClusterAPI struct {
-	clusterManager  *cluster.Manager
-	clusterGetter   common.ClusterGetter
-	externalBaseURL string
-	workflowClient  client.Client
+	clusterManager      *cluster.Manager
+	clusterGetter       common.ClusterGetter
+	clusterGroupManager *intClusterGroup.Manager
+	externalBaseURL     string
+	workflowClient      client.Client
 
 	logger          logrus.FieldLogger
 	errorHandler    emperror.Handler
@@ -74,6 +76,7 @@ func NewClusterAPI(
 	clusterManager *cluster.Manager,
 	clusterGetter common.ClusterGetter,
 	workflowClient client.Client,
+	clusterGroupManager *intClusterGroup.Manager,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 	externalBaseURL string,
@@ -82,15 +85,15 @@ func NewClusterAPI(
 
 ) *ClusterAPI {
 	return &ClusterAPI{
-		clusterManager:  clusterManager,
-		clusterGetter:   clusterGetter,
-		workflowClient:  workflowClient,
-		externalBaseURL: externalBaseURL,
-
-		logger:          logger,
-		errorHandler:    errorHandler,
-		clusterCreators: clusterCreators,
-		clusterDeleters: clusterDeleters,
+		clusterManager:      clusterManager,
+		clusterGetter:       clusterGetter,
+		workflowClient:      workflowClient,
+		clusterGroupManager: clusterGroupManager,
+		externalBaseURL:     externalBaseURL,
+		logger:              logger,
+		errorHandler:        errorHandler,
+		clusterCreators:     clusterCreators,
+		clusterDeleters:     clusterDeleters,
 	}
 }
 

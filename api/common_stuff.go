@@ -54,8 +54,8 @@ func listPods(client *kubernetes.Clientset, fieldSelector string, labelSelector 
 	return podList.Items, nil
 }
 
-// errorResponseFrom translates the given error into a components.ErrorResponse
-func errorResponseFrom(err error) *pkgCommon.ErrorResponse {
+// ErrorResponseFrom translates the given error into a components.ErrorResponse
+func ErrorResponseFrom(err error) *pkgCommon.ErrorResponse {
 	if objectstore.IsNotFoundError(err) {
 		return &pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,

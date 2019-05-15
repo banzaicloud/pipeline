@@ -64,14 +64,14 @@ func GetProjects(c *gin.Context) {
 	cli, err := servicesCtx.httpClient()
 	if err != nil {
 		log.WithError(err).Error("could not build http client")
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 
 	projectsSvc, err := servicesCtx.projectsService(cli)
 	if err != nil {
 		log.WithError(err).Error("could not build projects service")
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 
@@ -81,7 +81,7 @@ func GetProjects(c *gin.Context) {
 		return nil
 	}); err != nil {
 		log.WithError(err).Error("could not retrieve projects")
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 

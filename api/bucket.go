@@ -119,7 +119,7 @@ func ListBuckets(c *gin.Context) {
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
@@ -128,7 +128,7 @@ func ListBuckets(c *gin.Context) {
 
 	if err != nil {
 		logger.Errorf("retrieving object store buckets failed: %s", err.Error())
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
@@ -226,7 +226,7 @@ func CreateBucket(c *gin.Context) {
 
 	cloudType, err := determineCloudProviderFromRequest(createBucketRequest)
 	if err != nil {
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
@@ -241,7 +241,7 @@ func CreateBucket(c *gin.Context) {
 	retrievedSecret, err := getValidatedSecret(organization.ID, createBucketRequest.SecretId, cloudType)
 	if err != nil {
 		logger.Errorf("secret validation failed: %s", err.Error())
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
@@ -276,7 +276,7 @@ func CreateBucket(c *gin.Context) {
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
@@ -357,7 +357,7 @@ func CheckBucket(c *gin.Context) {
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
 		errorHandler.Handle(err)
-		c.Status(errorResponseFrom(err).Code)
+		c.Status(ErrorResponseFrom(err).Code)
 
 		return
 	}
@@ -365,7 +365,7 @@ func CheckBucket(c *gin.Context) {
 	err = objectStore.CheckBucket(bucketName)
 	if err != nil {
 		errorHandler.Handle(err)
-		c.Status(errorResponseFrom(err).Code)
+		c.Status(ErrorResponseFrom(err).Code)
 
 		return
 	}
@@ -441,14 +441,14 @@ func DeleteBucket(c *gin.Context) {
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
 
 	if err = objectStore.DeleteBucket(bucketName); err != nil {
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
@@ -496,7 +496,7 @@ func getBucketContext(c *gin.Context, logger logrus.FieldLogger) (*auth.Organiza
 	s, err := getValidatedSecret(organization.ID, secretID, provider)
 	if err != nil {
 		logger.Errorf("secret validation failed: %s", err.Error())
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return nil, nil, "", false
 	}
@@ -625,7 +625,7 @@ func GetBucket(c *gin.Context) {
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)
 	if err != nil {
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
@@ -633,7 +633,7 @@ func GetBucket(c *gin.Context) {
 	bucketList, err := objectStore.ListManagedBuckets()
 	if err != nil {
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
 		return
 	}
@@ -643,7 +643,7 @@ func GetBucket(c *gin.Context) {
 		return
 	}
 
-	ginutils.ReplyWithErrorResponse(c, errorResponseFrom(BucketNotFoundError{errMessage: fmt.Sprintf("bucket with name: %s not found", bucketName)}))
+	ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(BucketNotFoundError{errMessage: fmt.Sprintf("bucket with name: %s not found", bucketName)}))
 
 	return
 
