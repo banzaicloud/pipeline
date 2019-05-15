@@ -173,7 +173,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 }
 
 func (cu AzurePKEClusterUpdater) handleError(clusterID uint, err error) error {
-	return handleClusterError(cu.logger, cu.store, clusterID, err)
+	return handleClusterError(cu.logger, cu.store, pkgCluster.Warning, clusterID, err)
 }
 
 func sortNodePools(incoming []NodePool, existing []pke.NodePool) (toCreate, toUpdate []NodePool, toDelete []pke.NodePool) {

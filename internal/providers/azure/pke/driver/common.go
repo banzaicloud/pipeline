@@ -20,7 +20,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gofrs/uuid"
@@ -136,9 +135,9 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 		}
 }
 
-func handleClusterError(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, clusterID uint, err error) error {
+func handleClusterError(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, status string, clusterID uint, err error) error {
 	if clusterID != 0 && err != nil {
-		if err := store.SetStatus(clusterID, pkgCluster.Error, err.Error()); err != nil {
+		if err := store.SetStatus(clusterID, status, err.Error()); err != nil {
 			logger.Errorf("failed to set cluster error status: %s", err.Error())
 		}
 	}
