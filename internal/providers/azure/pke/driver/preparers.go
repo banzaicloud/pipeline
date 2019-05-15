@@ -103,6 +103,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 		if cidr == "" {
 			var sn net.IPNet
 			sn.Mask = net.CIDRMask(24, 32)
+			sn.IP = make(net.IP, 4)
 			copy(sn.IP, vnetIP)
 			for reservedRanges[sn.IP.String()] != nil {
 				sn.IP[2]++
@@ -111,6 +112,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 				}
 			}
 			subnets[name] = sn.String()
+			reservedRanges[sn.IP.String()] = &sn
 		}
 	}
 	for i := range nodePools {
