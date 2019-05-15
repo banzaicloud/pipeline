@@ -48,13 +48,13 @@ type gormAzurePKENodePoolModel struct {
 	gorm.Model
 
 	Autoscaling  bool
-	ClusterID    uint
+	ClusterID    uint `gorm:"unique_index:idx_azure_pke_np_cluster_id_name"`
 	CreatedBy    uint
 	DesiredCount uint
 	InstanceType string
 	Max          uint
 	Min          uint
-	Name         string
+	Name         string `gorm:"unique_index:idx_azure_pke_np_cluster_id_name"`
 	Roles        string
 	SubnetName   string
 	Zones        string
@@ -66,7 +66,7 @@ func (gormAzurePKENodePoolModel) TableName() string {
 
 type gormAzurePKEClusterModel struct {
 	ID                     uint `gorm:"primary_key"`
-	ClusterID              uint
+	ClusterID              uint `gorm:"unique_index:idx_azure_pke_cluster_id"`
 	ResourceGroupName      string
 	VirtualNetworkLocation string
 	VirtualNetworkName     string

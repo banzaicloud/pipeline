@@ -1,0 +1,2 @@
+DROP INDEX idx_azure_pke_np_cluster_id_name;
+DROP INDEX idx_azure_pke_cluster_id;
