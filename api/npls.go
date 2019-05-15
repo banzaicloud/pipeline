@@ -83,14 +83,14 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 	if err != nil {
 		errorHandler.Handle(err)
 
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 	k8sClientConfig, err := k8sclient.NewClientConfig(k8sConfig)
 	if err != nil {
 		errorHandler.Handle(err)
 
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 
@@ -99,7 +99,7 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 	if err != nil {
 		errorHandler.Handle(err)
 
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 
@@ -107,7 +107,7 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 	if err != nil {
 		errorHandler.Handle(err)
 
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 
@@ -149,7 +149,7 @@ func (n *NodepoolManagerAPI) SetNodepoolLabelSets(c *gin.Context) {
 		err = errors.WithMessage(err, "failed to check cluster readiness")
 		errorHandler.Handle(err)
 
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 	} else if !ready {
 		err := errors.New("cluster is not ready")
 		errorHandler.Handle(err)
@@ -165,14 +165,14 @@ func (n *NodepoolManagerAPI) SetNodepoolLabelSets(c *gin.Context) {
 	updatedNodePools, err := getNodePoolsWithUpdatedLabels(commonCluster, nodepoolLabelSets)
 	if err != nil {
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 
 	labelsMap, err := cluster.GetDesiredLabelsForCluster(ctx, commonCluster, updatedNodePools, false)
 	if err != nil {
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 
@@ -185,7 +185,7 @@ func (n *NodepoolManagerAPI) SetNodepoolLabelSets(c *gin.Context) {
 			err = pkgErrors.NewMultiErrorWithFormatter(err)
 		}
 		errorHandler.Handle(err)
-		ginutils.ReplyWithErrorResponse(c, errorResponseFrom(err))
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 		return
 	}
 

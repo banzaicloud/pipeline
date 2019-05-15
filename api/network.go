@@ -290,5 +290,5 @@ func getRequiredSecretIDFromContext(ctx *gin.Context, logger logrus.FieldLogger)
 }
 
 func replyWithError(ctx *gin.Context, err error) {
-	ginutils.ReplyWithErrorResponse(ctx, errorResponseFrom(err))
+	ginutils.ReplyWithErrorResponse(ctx, ErrorResponseFrom(err))
 }

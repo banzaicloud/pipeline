@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "bb194272-1086-4762-866b-224e1604ff6e",
+		"_postman_id": "7dc72c95-b3d6-4a56-bb52-6ba711867e21",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -832,9 +832,9 @@
 							],
 							"variable": [
 								{
-									"description": "Organization identifier",
 									"key": "orgId",
-									"value": "{{orgId}}"
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
 								}
 							]
 						},
@@ -2845,6 +2845,1234 @@
 						"description": "Get cluster status"
 					},
 					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cluster Groups",
+			"item": [
+				{
+					"name": "Features",
+					"item": [
+						{
+							"name": "Get All Features",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+										"exec": [
+											"",
+											"if (responseCode.code === 200) {",
+											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+											"",
+											"}",
+											"else if (responseCode.code === 404) {",
+											"    tests[\"Cluster Node Found!\"] = false",
+											"    postman.setNextRequest(null);",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"",
+											"    ",
+											"}",
+											" ",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"features"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Enable Feature on Cluster Group",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+										"exec": [
+											"",
+											"if (responseCode.code === 200) {",
+											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+											"",
+											"}",
+											"else if (responseCode.code === 404) {",
+											"    tests[\"Cluster Node Found!\"] = false",
+											"    postman.setNextRequest(null);",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"",
+											"    ",
+											"}",
+											" ",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"master\": \"masterClusterName\"\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										},
+										{
+											"key": "featureName",
+											"value": "federation",
+											"description": "Name of the feature"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Disable Feature on Cluster Group",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+										"exec": [
+											"",
+											"if (responseCode.code === 200) {",
+											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+											"",
+											"}",
+											"else if (responseCode.code === 404) {",
+											"    tests[\"Cluster Node Found!\"] = false",
+											"    postman.setNextRequest(null);",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"",
+											"    ",
+											"}",
+											" ",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										},
+										{
+											"key": "featureName",
+											"value": "federation",
+											"description": "Name of the feature"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Feature Properties",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+										"exec": [
+											"",
+											"if (responseCode.code === 200) {",
+											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+											"",
+											"}",
+											"else if (responseCode.code === 404) {",
+											"    tests[\"Cluster Node Found!\"] = false",
+											"    postman.setNextRequest(null);",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"",
+											"    ",
+											"}",
+											" ",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"master\": \"masterClusterName\",\n  \"someproperty\": \"whatever\"\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"description": "Organization identifier",
+											"key": "orgId",
+											"value": "{{orgId}}"
+										},
+										{
+											"description": "Cluster Group identifier",
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}"
+										},
+										{
+											"key": "featureName",
+											"value": "federation"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Cluster Group Feature ",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+										"exec": [
+											"",
+											"if (responseCode.code === 200) {",
+											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+											"",
+											"}",
+											"else if (responseCode.code === 404) {",
+											"    tests[\"Cluster Node Found!\"] = false",
+											"    postman.setNextRequest(null);",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"",
+											"    ",
+											"}",
+											" ",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										},
+										{
+											"key": "featureName",
+											"value": "federation",
+											"description": "Name of the feature"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Deployments",
+					"item": [
+						{
+							"name": "Create Deployment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"    pm.environment.set(\"multiClusterDeploymentName\", dataJSON.releaseName);",
+											"",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"stable/tomcat\",\n\t\"releaseName\":\"tomcat\",\n\t\"namespace\":\"test-namespace\",\n\t\"values\": {\n\t\t\"replicaCount\": 1,\n\t\t\"image\": {\n\t\t\t\"tag\": \"2.1\"\n\t\t}\n\t},\n\t\"valueOverrides\": {\n\t\t\"clusterName-3\": {\n\t\t\t\"replicaCount\": 2\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/deployments",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"deployments"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Deployment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"",
+											"    pm.environment.set(\"deploymentName\", dataJSON.releaseName);",
+											"",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"stable/tomcat\",\n\t\"releaseName\":\"tomcat\",\n\t\"namespace\":\"test-namespace\",\n\t\"version\": \"0.2.0\",\n\t\"values\": {\n\t\t\"replicaCount\": 1,\n\t\t\"image\": {\n\t\t\t\"tag\": \"2.1\"\n\t\t}\n\t},\n\t\"valueOverrides\": {\n\t\t\"clusterName-3\": {\n\t\t\t\"replicaCount\": 2\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/deployments/:multiClusterDeploymentName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"deployments",
+										":multiClusterDeploymentName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										},
+										{
+											"key": "multiClusterDeploymentName",
+											"value": "{{multiClusterDeploymentName}}",
+											"description": "Deployment name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Deployment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"",
+											"    pm.environment.set(\"deploymentName\", dataJSON.releaseName);",
+											"",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"stable/tomcat\",\n\t\"releaseName\":\"tomika\",\n\t\"namespace\":\"test-namespace\",\n\t\"values\": {\n\t\t\"replicaCount\": 1,\n\t\t\"image\": {\n\t\t\t\"tag\": \"2.1\"\n\t\t}\n\t},\n\t\"valueOverrides\": {\n\t\t\"sancyx3cmt\": {\n\t\t\t\"replicaCount\": 2\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/deployments/:multiClusterDeploymentName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"deployments",
+										":multiClusterDeploymentName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										},
+										{
+											"key": "multiClusterDeploymentName",
+											"value": "{{multiClusterDeploymentName}}",
+											"description": "Deployment name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Sync Deployment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"",
+											"    pm.environment.set(\"deploymentName\", dataJSON.releaseName);",
+											"",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/deployments/:multiClusterDeploymentName/sync",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"deployments",
+										":multiClusterDeploymentName",
+										"sync"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										},
+										{
+											"key": "multiClusterDeploymentName",
+											"value": "{{multiClusterDeploymentName}}",
+											"description": "Deployment name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Deployment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"",
+											"    pm.environment.set(\"deploymentName\", dataJSON.releaseName);",
+											"",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"stable/tomcat\",\n\t\"releaseName\":\"tomika\",\n\t\"namespace\":\"test-namespace\",\n\t\"values\": {\n\t\t\"replicaCount\": 1,\n\t\t\"image\": {\n\t\t\t\"tag\": \"2.1\"\n\t\t}\n\t},\n\t\"valueOverrides\": {\n\t\t\"sancyx3cmt\": {\n\t\t\t\"replicaCount\": 2\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/deployments/:multiClusterDeploymentName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"deployments",
+										":multiClusterDeploymentName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										},
+										{
+											"key": "multiClusterDeploymentName",
+											"value": "{{multiClusterDeploymentName}}",
+											"description": "Deployment name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List Deployments",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "817e67ae-81c4-4f59-b704-3eedf486144b",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"",
+											"    pm.environment.set(\"deploymentName\", dataJSON.releaseName);",
+											"",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"stable/tomcat\",\n\t\"releaseName\":\"tomika\",\n\t\"namespace\":\"test-namespace\",\n\t\"values\": {\n\t\t\"replicaCount\": 1,\n\t\t\"image\": {\n\t\t\t\"tag\": \"2.1\"\n\t\t}\n\t},\n\t\"valueOverrides\": {\n\t\t\"sancyx3cmt\": {\n\t\t\t\"replicaCount\": 2\t\n\t\t}\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/deployments/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"deployments",
+										""
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Create Cluster Group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+								"exec": [
+									"",
+									"if (responseCode.code === 201) {",
+									"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+									"",
+									"    var dataJSON = JSON.parse(responseBody);",
+									"    pm.environment.set(\"clusterGroupId\", dataJSON.id);",
+									"}",
+									"else if (responseCode.code === 404) {",
+									"    tests[\"Cluster Node Found!\"] = false",
+									"    postman.setNextRequest(null);",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"",
+									"    ",
+									"}",
+									" ",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\":\"{{username}}-cluster-group-{{$randomInt}}\",\n  \"members\": [\n  \t100,\n  \t101,\n  \t102\n  \t]\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clustergroups"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Cluster Group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+								"exec": [
+									"",
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"}",
+									"else if (responseCode.code === 404) {",
+									"    tests[\"Cluster Node Found!\"] = false",
+									"    postman.setNextRequest(null);",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"",
+									"    ",
+									"}",
+									" ",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\":\"{{username}}-cluster-group-{{$randomInt}}\",\n  \"members\": [\n  \t100,\n  \t101,\n  \t105\n  \t]\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clustergroups",
+								":clusterGroupId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterGroupId",
+									"value": "{{clusterGroupId}}",
+									"description": "Cluster Group identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cluster Group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+								"exec": [
+									"",
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"}",
+									"else if (responseCode.code === 404) {",
+									"    tests[\"Cluster Node Found!\"] = false",
+									"    postman.setNextRequest(null);",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"",
+									"    ",
+									"}",
+									" ",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clustergroups",
+								":clusterGroupId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterGroupId",
+									"value": "{{clusterGroupId}}",
+									"description": "Cluster Group identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Cluster Groups",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+								"exec": [
+									"",
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"}",
+									"else if (responseCode.code === 404) {",
+									"    tests[\"Cluster Node Found!\"] = false",
+									"    postman.setNextRequest(null);",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"",
+									"    ",
+									"}",
+									" ",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clustergroups"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Cluster Group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+								"exec": [
+									"",
+									"if (responseCode.code === 200) {",
+									"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+									"",
+									"}",
+									"else if (responseCode.code === 404) {",
+									"    tests[\"Cluster Node Found!\"] = false",
+									"    postman.setNextRequest(null);",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"",
+									"    ",
+									"}",
+									" ",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clustergroups",
+								":clusterGroupId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
+								},
+								{
+									"key": "clusterGroupId",
+									"value": "{{clusterGroupId}}",
+									"description": "Cluster Group identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "e28e334d-a5da-4ab0-9fd7-92b2e794734d",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "68b7cb53-fcb1-405a-adb1-76bd5d22121f",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		},

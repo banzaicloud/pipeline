@@ -60,6 +60,22 @@ Class | Method | HTTP request | Description
 *AuthApi* | [**CreateToken**](docs/AuthApi.md#createtoken) | **Post** /api/v1/tokens | Create token
 *AuthApi* | [**DeleteToken**](docs/AuthApi.md#deletetoken) | **Delete** /api/v1/tokens/{tokenId} | Delete an API token
 *AuthApi* | [**ListTokens**](docs/AuthApi.md#listtokens) | **Get** /api/v1/tokens | List all API tokens
+*ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNameDelete**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentsdeploymentnamedelete) | **Delete** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} | Delete Cluster Group Deployment
+*ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNameGet**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentsdeploymentnameget) | **Get** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} | Get Cluster Group Deployment
+*ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNamePut**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentsdeploymentnameput) | **Put** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} | Update Cluster Group Deployment
+*ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNameSyncPut**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentsdeploymentnamesyncput) | **Put** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName}/sync | Synchronize Cluster Group Deployment
+*ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsGet**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentsget) | **Get** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments | Get All Deployments of a Cluster Group
+*ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsPost**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentspost) | **Post** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments | Create Cluster Group Deployment
+*ClustergroupFeaturesApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdFeaturesFeatureNameDelete**](docs/ClustergroupFeaturesApi.md#apiv1orgsorgidclustergroupsclustergroupidfeaturesfeaturenamedelete) | **Delete** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features/{featureName} | Disable Feature of Cluster Group
+*ClustergroupFeaturesApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdFeaturesFeatureNameGet**](docs/ClustergroupFeaturesApi.md#apiv1orgsorgidclustergroupsclustergroupidfeaturesfeaturenameget) | **Get** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features/{featureName} | Get Feature of Cluster Group
+*ClustergroupFeaturesApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdFeaturesFeatureNamePost**](docs/ClustergroupFeaturesApi.md#apiv1orgsorgidclustergroupsclustergroupidfeaturesfeaturenamepost) | **Post** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features/{featureName} | Enable Feature of Cluster Group
+*ClustergroupFeaturesApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdFeaturesFeatureNamePut**](docs/ClustergroupFeaturesApi.md#apiv1orgsorgidclustergroupsclustergroupidfeaturesfeaturenameput) | **Put** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features/{featureName} | Update Feature of Cluster Group
+*ClustergroupFeaturesApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdFeaturesGet**](docs/ClustergroupFeaturesApi.md#apiv1orgsorgidclustergroupsclustergroupidfeaturesget) | **Get** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features | Get All Features of Cluster Group
+*ClustergroupsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDelete**](docs/ClustergroupsApi.md#apiv1orgsorgidclustergroupsclustergroupiddelete) | **Delete** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId} | Delete Cluster Group
+*ClustergroupsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdGet**](docs/ClustergroupsApi.md#apiv1orgsorgidclustergroupsclustergroupidget) | **Get** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId} | Get Cluster Group
+*ClustergroupsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdPut**](docs/ClustergroupsApi.md#apiv1orgsorgidclustergroupsclustergroupidput) | **Put** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId} | Update Cluster Group
+*ClustergroupsApi* | [**ApiV1OrgsOrgidClustergroupsGet**](docs/ClustergroupsApi.md#apiv1orgsorgidclustergroupsget) | **Get** /api/v1/orgs/{orgid}/clustergroups | List Cluster Groups of an Organization
+*ClustergroupsApi* | [**ApiV1OrgsOrgidClustergroupsPost**](docs/ClustergroupsApi.md#apiv1orgsorgidclustergroupspost) | **Post** /api/v1/orgs/{orgid}/clustergroups | Create Cluster Group
 *ClustersApi* | [**ClusterPostHooks**](docs/ClustersApi.md#clusterposthooks) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/posthooks | Run posthook functions
 *ClustersApi* | [**CreateCluster**](docs/ClustersApi.md#createcluster) | **Post** /api/v1/orgs/{orgId}/clusters | Create cluster
 *ClustersApi* | [**DeleteCluster**](docs/ClustersApi.md#deletecluster) | **Delete** /api/v1/orgs/{orgId}/clusters/{id} | Delete cluster
@@ -175,6 +191,13 @@ Class | Method | HTTP request | Description
  - [AmazonAutoScalingGroupSize](docs/AmazonAutoScalingGroupSize.md)
  - [AmazonPoviderConfig](docs/AmazonPoviderConfig.md)
  - [AnchoreImage](docs/AnchoreImage.md)
+ - [ApiClusterGroup](docs/ApiClusterGroup.md)
+ - [ApiCreateRequest](docs/ApiCreateRequest.md)
+ - [ApiCreateResponse](docs/ApiCreateResponse.md)
+ - [ApiFeatureResponse](docs/ApiFeatureResponse.md)
+ - [ApiMember](docs/ApiMember.md)
+ - [ApiUpdateRequest](docs/ApiUpdateRequest.md)
+ - [ApiUpdateResponse](docs/ApiUpdateResponse.md)
  - [AzureBlobStorageProps](docs/AzureBlobStorageProps.md)
  - [BackupBucketResponse](docs/BackupBucketResponse.md)
  - [BackupOptions](docs/BackupOptions.md)
@@ -198,6 +221,7 @@ Class | Method | HTTP request | Description
  - [ClusterProfileGkeGke](docs/ClusterProfileGkeGke.md)
  - [ClusterProfileGkeGkeMaster](docs/ClusterProfileGkeGkeMaster.md)
  - [ClusterProfileNotFound](docs/ClusterProfileNotFound.md)
+ - [CommonErrorResponse](docs/CommonErrorResponse.md)
  - [Conflict](docs/Conflict.md)
  - [CreateAckProperties](docs/CreateAckProperties.md)
  - [CreateAckPropertiesAck](docs/CreateAckPropertiesAck.md)
@@ -251,8 +275,13 @@ Class | Method | HTTP request | Description
  - [DeleteRestoreResponse](docs/DeleteRestoreResponse.md)
  - [DeleteScheduleResponse](docs/DeleteScheduleResponse.md)
  - [DeployedBackupBucketResponse](docs/DeployedBackupBucketResponse.md)
+ - [DeploymentClusterGroupDeployment](docs/DeploymentClusterGroupDeployment.md)
+ - [DeploymentCreateUpdateDeploymentResponse](docs/DeploymentCreateUpdateDeploymentResponse.md)
+ - [DeploymentDeploymentInfo](docs/DeploymentDeploymentInfo.md)
+ - [DeploymentListDeploymentResponse](docs/DeploymentListDeploymentResponse.md)
  - [DeploymentScaleStatus](docs/DeploymentScaleStatus.md)
  - [DeploymentScalingRequest](docs/DeploymentScalingRequest.md)
+ - [DeploymentTargetClusterStatus](docs/DeploymentTargetClusterStatus.md)
  - [DisableArkResponse](docs/DisableArkResponse.md)
  - [EksSubnet](docs/EksSubnet.md)
  - [EksVpc](docs/EksVpc.md)

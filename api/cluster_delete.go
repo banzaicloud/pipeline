@@ -47,6 +47,17 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 
 	ctx := ginutils.Context(c.Request.Context(), c)
 
+	// delete cluster from cluster group
+	err := a.clusterGroupManager.RemoveClusterFromGroup(ctx, clusterID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Error:   err.Error(),
+		})
+		return
+	}
+
 	switch {
 	case commonCluster.GetDistribution() == pkgCluster.PKE && commonCluster.GetCloud() == pkgCluster.Azure:
 		if err := a.clusterDeleters.PKEOnAzure.DeleteByID(ctx, commonCluster.GetID(), force); err != nil {

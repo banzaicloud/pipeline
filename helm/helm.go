@@ -308,7 +308,7 @@ func DeploymentHasTag(deployment *pkgHelm.GetDeploymentResponse, tagFilter strin
 	return false
 }
 
-func getRequestedChart(releaseName, chartName, chartVersion string, chartPackage []byte, env helm_env.EnvSettings) (requestedChart *chart.Chart, err error) {
+func GetRequestedChart(releaseName, chartName, chartVersion string, chartPackage []byte, env helm_env.EnvSettings) (requestedChart *chart.Chart, err error) {
 
 	// If the request has a chart package sent by the user we install that
 	if chartPackage != nil && len(chartPackage) != 0 {
@@ -342,7 +342,7 @@ func getRequestedChart(releaseName, chartName, chartVersion string, chartPackage
 //UpgradeDeployment upgrades a Helm deployment
 func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
 
-	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
+	chartRequested, err := GetRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
@@ -372,13 +372,13 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 //CreateDeployment creates a Helm deployment in chosen namespace
 func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, odPcts map[string]int, kubeConfig []byte, env helm_env.EnvSettings, overrideOpts ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
 
-	chartRequested, err := getRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
+	chartRequested, err := GetRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
 
 	if len(strings.TrimSpace(releaseName)) == 0 {
-		releaseName, _ = generateName("")
+		releaseName, _ = GenerateName("")
 	}
 
 	if namespace == "" {
@@ -646,7 +646,7 @@ func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
 
 }
 
-func generateName(nameTemplate string) (string, error) {
+func GenerateName(nameTemplate string) (string, error) {
 	t, err := template.New("name-template").Funcs(sprig.TxtFuncMap()).Parse(nameTemplate)
 	if err != nil {
 		return "", err
@@ -682,7 +682,7 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 	return nil
 }
 
-func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[string]interface{} {
+func MergeValues(dest map[string]interface{}, src map[string]interface{}) map[string]interface{} {
 	for k, v := range src {
 		// If the key doesn't exist already, then just set the key to that value
 		if _, exists := dest[k]; !exists {
@@ -708,7 +708,7 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 			continue
 		}
 		// If we got to this point, it is a map in both, so merge them
-		dest[k] = mergeValues(destMap, nextMap)
+		dest[k] = MergeValues(destMap, nextMap)
 	}
 	return dest
 }
