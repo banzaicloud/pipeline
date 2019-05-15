@@ -98,13 +98,15 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 	if err != nil {
 		return emperror.Wrap(err, "failed to get virtual network CIDR")
 	}
+	if ones, bits := vnetAddrRange.Mask.Size(); ones > 16 || bits != 32 {
+		p.logger.WithField("vnetCIDR", vnetAddrRange).Warning("only /16 or larger virtual networks are supported")
+	}
 	vnetIP := vnetAddrRange.IP.To4()
 	for name, cidr := range subnets {
 		if cidr == "" {
 			var sn net.IPNet
+			sn.IP = cloneIP(vnetIP)
 			sn.Mask = net.CIDRMask(24, 32)
-			sn.IP = make(net.IP, 4)
-			copy(sn.IP, vnetIP)
 			for reservedRanges[sn.IP.String()] != nil {
 				sn.IP[2]++
 				if sn.IP[2] == 0 {
@@ -123,6 +125,15 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 
 func sameNet(lhs net.IPNet, rhs net.IPNet) bool {
 	return bytes.Equal(lhs.IP, rhs.IP) && bytes.Equal(lhs.Mask, rhs.Mask)
+}
+
+func cloneIP(ip net.IP) net.IP {
+	if ip == nil {
+		return nil
+	}
+	clone := make(net.IP, len(ip))
+	copy(clone, ip)
+	return clone
 }
 
 // NodePoolPreparer implements NodePool preparation
