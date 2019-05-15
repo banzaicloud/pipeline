@@ -171,6 +171,19 @@ func fillNodePoolFromModel(nodePool *pke.NodePool, model gormAzurePKENodePoolMod
 	nodePool.Zones = unmarshalStringSlice(model.Zones)
 }
 
+func fillModelFromNodePool(model *gormAzurePKENodePoolModel, nodePool pke.NodePool) {
+	model.Autoscaling = nodePool.Autoscaling
+	model.CreatedBy = nodePool.CreatedBy
+	model.DesiredCount = nodePool.DesiredCount
+	model.InstanceType = nodePool.InstanceType
+	model.Max = nodePool.Max
+	model.Min = nodePool.Min
+	model.Name = nodePool.Name
+	model.Roles = marshalStringSlice(nodePool.Roles)
+	model.SubnetName = nodePool.Subnet.Name
+	model.Zones = marshalStringSlice(nodePool.Zones)
+}
+
 func (s gormAzurePKEClusterStore) nodePools() *gorm.DB {
 	return s.db.Table(GORMAzurePKENodePoolsTableName)
 }
@@ -179,19 +192,16 @@ func (s gormAzurePKEClusterStore) clusterDetails() *gorm.DB {
 	return s.db.Table(GORMAzurePKEClustersTableName)
 }
 
+func (s gormAzurePKEClusterStore) CreateNodePool(clusterID uint, nodePool pke.NodePool) error {
+	var np gormAzurePKENodePoolModel
+	fillModelFromNodePool(&np, nodePool)
+	return getError(s.db.Create(&np), "failed to create node pool model")
+}
+
 func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAzureCluster, err error) {
 	nodePools := make([]gormAzurePKENodePoolModel, len(params.NodePools))
 	for i, np := range params.NodePools {
-		nodePools[i].Autoscaling = np.Autoscaling
-		nodePools[i].CreatedBy = np.CreatedBy
-		nodePools[i].DesiredCount = np.DesiredCount
-		nodePools[i].InstanceType = np.InstanceType
-		nodePools[i].Max = np.Max
-		nodePools[i].Min = np.Min
-		nodePools[i].Name = np.Name
-		nodePools[i].Roles = marshalStringSlice(np.Roles)
-		nodePools[i].SubnetName = np.Subnet.Name
-		nodePools[i].Zones = marshalStringSlice(np.Zones)
+		fillModelFromNodePool(&nodePools[i], np)
 	}
 
 	model := gormAzurePKEClusterModel{
@@ -243,6 +253,25 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 	}
 	fillClusterFromAzurePKEClusterModel(&c, model)
 	return
+}
+
+func (s gormAzurePKEClusterStore) DeleteNodePool(clusterID uint, nodePoolName string) error {
+	if err := validateClusterID(clusterID); err != nil {
+		return emperror.Wrap(err, "invalid cluster ID")
+	}
+	if nodePoolName == "" {
+		return errors.New("empty node pool name")
+	}
+
+	model := gormAzurePKENodePoolModel{
+		ClusterID: clusterID,
+		Name:      nodePoolName,
+	}
+	if err := getError(s.db.Where(model).First(&model), "failed to load model from database"); err != nil {
+		return err
+	}
+
+	return getError(s.db.Delete(model), "failed to delete model from database")
 }
 
 func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
@@ -395,6 +424,26 @@ func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, sta
 	}
 
 	return getError(s.db.Model(&model).Updates(fields), "failed to update %q feature state", feature)
+}
+
+func (s gormAzurePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error {
+	if err := validateClusterID(clusterID); err != nil {
+		return emperror.Wrap(err, "invalid cluster ID")
+	}
+
+	model := gormAzurePKENodePoolModel{
+		ClusterID: clusterID,
+		Name:      nodePoolName,
+	}
+
+	fields := map[string]interface{}{
+		"DesiredCount": desiredCount,
+		"Min":          min,
+		"Max":          max,
+		"Autoscaling":  autoscaling,
+	}
+
+	return getError(s.db.Model(&model).Updates(fields), "failed to update nodepool model")
 }
 
 // Migrate executes the table migrations for the provider.
