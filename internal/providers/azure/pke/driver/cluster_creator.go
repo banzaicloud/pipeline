@@ -311,12 +311,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 }
 
 func (cc AzurePKEClusterCreator) handleError(clusterID uint, err error) error {
-	if clusterID != 0 && err != nil {
-		if err := cc.store.SetStatus(clusterID, pkgCluster.Error, err.Error()); err != nil {
-			cc.logger.Errorf("failed to set cluster error status: %s", err.Error())
-		}
-	}
-	return err
+	return handleClusterError(cc.logger, cc.store, clusterID, err)
 }
 
 // AzurePKEClusterCreationParamsPreparer implements AzurePKEClusterCreationParams preparation
