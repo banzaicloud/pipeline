@@ -39,13 +39,16 @@ type CreateParams struct {
 // AzurePKEClusterStore defines behaviors of PKEOnAzureCluster persistent storage
 type AzurePKEClusterStore interface {
 	Create(params CreateParams) (PKEOnAzureCluster, error)
+	CreateNodePool(clusterID uint, nodePool NodePool) error
 	Delete(clusterID uint) error
+	DeleteNodePool(clusterID uint, nodePoolName string) error
 	GetByID(clusterID uint) (PKEOnAzureCluster, error)
 	SetStatus(clusterID uint, status, message string) error
 	SetActiveWorkflowID(clusterID uint, workflowID string) error
 	SetConfigSecretID(clusterID uint, secretID string) error
 	SetSSHSecretID(clusterID uint, sshSecretID string) error
 	SetFeature(clusterID uint, feature string, state bool) error
+	SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error
 }
 
 // IsNotFound returns true if the error is about a resource not being found
