@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -65,6 +66,10 @@ type AzurePKEClusterUpdateParams struct {
 }
 
 func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClusterUpdateParams) error {
+	logger := cu.logger.WithField("clusterID", params.ClusterID)
+
+	logger.Info("updating cluster")
+
 	if err := cu.paramsPreparer.Prepare(ctx, &params); err != nil {
 		return emperror.Wrap(err, "params preparation failed")
 	}
@@ -148,18 +153,27 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		VMSSToUpdate:    toUpdateVMSSTemplates,
 	}
 
+	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
+		return emperror.Wrap(err, "failed to set cluster status")
+	}
+
 	wfexec, err := cu.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.UpdateClusterWorkflowName, input)
-	if err = emperror.WrapWith(err, "failed to start workflow", "workflow", workflow.UpdateClusterWorkflowName); err != nil {
-		// TODO: set cluster status
+	if err := emperror.WrapWith(err, "failed to start workflow", "workflow", workflow.UpdateClusterWorkflowName); err != nil {
+		cu.handleError(cluster.ID, err)
 		return err
 	}
 
-	if err = cu.store.SetActiveWorkflowID(cluster.ID, wfexec.ID); err != nil {
-		cu.logger.WithField("clusterID", cluster.ID).WithField("workflowID", wfexec.ID).Error("failed to set active workflow ID", err)
+	if err := cu.store.SetActiveWorkflowID(cluster.ID, wfexec.ID); err != nil {
+		err = emperror.WrapWith(err, "failed to set active workflow ID", "clusterID", cluster.ID, "workflowID", wfexec.ID)
+		cu.handleError(cluster.ID, err)
 		return err
 	}
 
 	return nil
+}
+
+func (cu AzurePKEClusterUpdater) handleError(clusterID uint, err error) error {
+	return handleClusterError(cu.logger, cu.store, clusterID, err)
 }
 
 func sortNodePools(incoming []NodePool, existing []pke.NodePool) (toCreate, toUpdate []NodePool, toDelete []pke.NodePool) {
