@@ -47,6 +47,7 @@ func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClu
 		store:               store,
 		workflowClient:      workflowClient,
 		pipelineExternalURL: pipelineExternalURL,
+		paramsPreparer:      MakeAzurePKEClusterCreationParamsPreparer(logger),
 	}
 }
 
