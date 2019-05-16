@@ -203,22 +203,29 @@ type VirtualNetworkTemplate struct {
 	Subnets  []SubnetTemplate
 }
 
+type SubnetFactory struct {
+	Template SubnetTemplate
+}
+
 type SubnetTemplate struct {
 	Name                     string
 	CIDR                     string
 	NetworkSecurityGroupName string
 }
 
+func (f SubnetFactory) Make(routeTableIDProvider IDProvider, securityGroupIDProvider IDByNameProvider) Subnet {
+	return Subnet{
+		Name:                   f.Template.Name,
+		CIDR:                   f.Template.CIDR,
+		NetworkSecurityGroupID: securityGroupIDProvider.Get(f.Template.NetworkSecurityGroupName),
+		RouteTableID:           routeTableIDProvider.Get(),
+	}
+}
+
 func (f VirtualNetworkFactory) Make(routeTableIDProvider IDProvider, securityGroupIDProvider IDByNameProvider) VirtualNetwork {
 	subnets := make([]Subnet, len(f.Template.Subnets))
-	routeTableID := routeTableIDProvider.Get()
 	for i, s := range f.Template.Subnets {
-		subnets[i] = Subnet{
-			Name:                   s.Name,
-			CIDR:                   s.CIDR,
-			NetworkSecurityGroupID: securityGroupIDProvider.Get(s.NetworkSecurityGroupName),
-			RouteTableID:           routeTableID,
-		}
+		subnets[i] = SubnetFactory{s}.Make(routeTableIDProvider, securityGroupIDProvider)
 	}
 	return VirtualNetwork{
 		Name:     f.Template.Name,
