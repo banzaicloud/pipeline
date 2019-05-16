@@ -64,7 +64,7 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 	} else {
 		err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Delete(c.GetName(), &metav1.DeleteOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not remove Istio CR")
+			return emperror.Wrap(err, "could not remove Remote Istio CR")
 		}
 
 		err = m.waitForRemoteIstioCRToBeDeleted(c.GetName(), client)
