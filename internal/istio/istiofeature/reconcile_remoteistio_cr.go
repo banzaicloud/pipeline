@@ -93,7 +93,7 @@ func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client *is
 		}
 
 		if err != nil {
-			return emperror.WrapWith(err, "could not check Remote Istio CR existance", "name", name)
+			return emperror.WrapWith(err, "could not check Remote Istio CR existence", "name", name)
 		}
 
 		return emperror.With(errors.New("Remote Istio CR still exists"), "name", name)
