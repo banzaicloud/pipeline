@@ -125,6 +125,11 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 				subnetTemplates[snt.Name] = snt
 			}
 			roleAssignmentTemplates = append(roleAssignmentTemplates, rats...)
+
+			err := cu.store.CreateNodePool(params.ClusterID, np.toPke())
+			if err != nil {
+				return emperror.WrapWith(err, "failed to store new node pool", "clusterID", cluster.ID, "nodepool", np.Name)
+			}
 		}
 
 		toCreateSubnetTemplates = make([]workflow.SubnetTemplate, 0, len(subnetTemplates))
@@ -139,11 +144,17 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 			Name:          pke.GetVMSSName(cluster.Name, np.Name),
 			InstanceCount: uint(np.Count),
 		}
+
+		err := cu.store.SetNodePoolSizes(params.ClusterID, np.Name, uint(np.Min), uint(np.Max), uint(np.Count), np.Autoscaling)
+		if err != nil {
+			return emperror.WrapWith(err, "failed to store updated node pool", "clusterID", cluster.ID, "nodepool", np.Name)
+		}
 	}
 
 	toDeleteVMSSNames := make([]string, len(nodePoolsToDelete))
 	for i, np := range nodePoolsToDelete {
 		toDeleteVMSSNames[i] = np.Name
+		// will only be persisted by the successful workflow
 	}
 
 	input := workflow.UpdateClusterWorkflowInput{

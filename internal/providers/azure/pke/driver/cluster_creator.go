@@ -93,6 +93,22 @@ func (np NodePool) hasRole(role pkgPKE.Role) bool {
 	return false
 }
 
+func (np NodePool) toPke() (pnp pke.NodePool) {
+	pnp.Autoscaling = np.Autoscaling
+	pnp.CreatedBy = np.CreatedBy
+	pnp.DesiredCount = uint(np.Count)
+	pnp.InstanceType = np.InstanceType
+	pnp.Labels = np.Labels
+	pnp.Max = uint(np.Max)
+	pnp.Min = uint(np.Min)
+	pnp.Name = np.Name
+	pnp.Roles = np.Roles
+	pnp.Subnet = pke.Subnetwork{Name: np.Subnet.Name}
+	pnp.Zones = np.Zones
+	return
+
+}
+
 type Subnet struct {
 	Name string
 	CIDR string
