@@ -44,7 +44,7 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 	if desiredState == DesiredStatePresent {
 		_, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Get(c.GetName(), metav1.GetOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not check existance Remote Istio CR")
+			return emperror.Wrap(err, "could not check existence Remote Istio CR")
 		}
 
 		if err == nil {
