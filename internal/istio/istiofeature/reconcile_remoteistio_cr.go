@@ -76,7 +76,7 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 	return nil
 }
 
-// waitForRemoteIstioCRToBeDeleted wait for Istio CR to be deleted
+// waitForRemoteIstioCRToBeDeleted wait for Remote Istio CR to be deleted
 func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client *istiooperatorclientset.Clientset) error {
 	m.logger.WithField("name", name).Debug("waiting for Remote Istio CR to be deleted")
 
