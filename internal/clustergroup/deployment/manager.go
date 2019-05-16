@@ -44,9 +44,9 @@ type CGDeploymentManager struct {
 	errorHandler  emperror.Handler
 }
 
-const SucceededStatus = "DEPLOYED"
-const FailedStatus = "FAILED"
-const DeletedStatus = "DELETED"
+const OperationSucceededStatus = "SUCCEEDED"
+const OperationFailedStatus = "FAILED"
+
 const NotInstalledStatus = "NOT INSTALLED"
 const StaleStatus = "STALE"
 const UnknownStatus = "UNKNOWN"
@@ -248,13 +248,16 @@ func (m CGDeploymentManager) getClusterDeploymentStatus(apiCluster api.Cluster, 
 	}
 	release, err := m.findRelease(apiCluster, name)
 	if err != nil {
-		deploymentStatus.Status = fmt.Sprintf("%s - %s", UnknownStatus, err.Error())
+		deploymentStatus.Error = err.Error()
 		return deploymentStatus, err
 	}
 	if release != nil {
 		deploymentStatus.Version = release.Chart.Metadata.Version
-		deploymentStatus.Stale = m.isStaleDeployment(release, depInfo, apiCluster)
 		deploymentStatus.Status = release.Info.Status.Code.String()
+		deploymentStatus.Stale = m.isStaleDeployment(release, depInfo, apiCluster)
+		if deploymentStatus.Stale {
+			deploymentStatus.Status = StaleStatus
+		}
 		return deploymentStatus, nil
 	}
 
@@ -622,25 +625,26 @@ func (m CGDeploymentManager) deleteDeploymentFromTargetClusters(clusterGroup *ap
 			deploymentCount++
 			go func(clusterID uint, apiCluster api.Cluster, name string) {
 				clErr := m.deleteDeploymentFromCluster(clusterID, apiCluster, name)
-				status := DeletedStatus
+				opStatus := TargetClusterStatus{
+					ClusterId: clusterID,
+					Status:    OperationSucceededStatus,
+				}
 				// if cluster is not found anymore then is fine
 				if _, ok := IsMemberClusterNotFoundError(clErr); clErr != nil && !ok {
 					errMsg := fmt.Sprintf("failed to delete cluster group deployment from cluster: %s", clErr.Error())
 					m.logger.Warn(errMsg)
 					if !forceDelete {
-						status = errMsg
+						opStatus.Status = OperationFailedStatus
+						opStatus.Error = errMsg
 					}
 				}
-				depStatus := TargetClusterStatus{
-					ClusterId: clusterID,
-					Status:    status,
-				}
+
 				if apiCluster != nil {
-					depStatus.ClusterName = apiCluster.GetName()
-					depStatus.Cloud = apiCluster.GetCloud()
-					depStatus.Distribution = apiCluster.GetDistribution()
+					opStatus.ClusterName = apiCluster.GetName()
+					opStatus.Cloud = apiCluster.GetCloud()
+					opStatus.Distribution = apiCluster.GetDistribution()
 				}
-				statusChan <- depStatus
+				statusChan <- opStatus
 			}(clusterOverride.ClusterID, apiCluster, releaseName)
 		}
 
@@ -672,18 +676,19 @@ func (m CGDeploymentManager) upgradeOrInstallDeploymentToTargetClusters(clusterG
 		if _, ok := depInfo.TargetClusters[apiCluster.GetID()]; ok {
 			deploymentCount++
 			go func(apiCluster api.Cluster) {
-				clerr := m.upgradeOrInstallDeploymentOnCluster(apiCluster, orgName, env, depInfo, requestedChart, dryRun)
-				status := SucceededStatus
-				if clerr != nil {
-					status = fmt.Sprintf("%s - %s", FailedStatus, clerr.Error())
-				}
-				statusChan <- TargetClusterStatus{
+				opStatus := TargetClusterStatus{
 					ClusterId:    apiCluster.GetID(),
 					ClusterName:  apiCluster.GetName(),
 					Cloud:        apiCluster.GetCloud(),
 					Distribution: apiCluster.GetDistribution(),
-					Status:       status,
+					Status:       OperationSucceededStatus,
 				}
+				clerr := m.upgradeOrInstallDeploymentOnCluster(apiCluster, orgName, env, depInfo, requestedChart, dryRun)
+				if clerr != nil {
+					opStatus.Status = OperationFailedStatus
+					opStatus.Error = clerr.Error()
+				}
+				statusChan <- opStatus
 			}(apiCluster)
 		}
 	}
