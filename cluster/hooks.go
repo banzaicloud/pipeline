@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Masterminds/semver"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
@@ -32,7 +31,6 @@ import (
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	storagev1 "k8s.io/api/storage/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -204,53 +202,6 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 	return nil
 }
 
-func CreateDefaultStorageclass(commonCluster CommonCluster) error {
-	distro := commonCluster.GetDistribution()
-	provider := commonCluster.GetCloud()
-
-	if distro != pkgCluster.PKE || provider == pkgCluster.Azure {
-		log.Infof("Not creating storageclass for %s on %s ", distro, provider)
-		return nil
-	}
-	log.Debug("get K8S config")
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		return err
-	}
-	log.Debug("get K8S connection")
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return err
-	}
-	version, err := client.ServerVersion()
-	if err != nil {
-		return emperror.Wrap(err, "could not get server version")
-	}
-	semVer, err := semver.NewVersion(version.String())
-	if err != nil {
-		return emperror.Wrap(err, "could not create semver from server version")
-	}
-	constraint, err := semver.NewConstraint(">= 1.12")
-	if err != nil {
-		return emperror.Wrap(err, "could not set  1.12 constraint for semver")
-	}
-	var volumeBindingMode storagev1.VolumeBindingMode
-	if constraint.Check(semVer) {
-		volumeBindingMode = storagev1.VolumeBindingWaitForFirstConsumer
-	} else {
-		volumeBindingMode = storagev1.VolumeBindingImmediate
-	}
-
-	err = createDefaultStorageClass(client, "kubernetes.io/aws-ebs", volumeBindingMode)
-	if err != nil && !strings.Contains(err.Error(), "already exists") {
-		return emperror.WrapWith(err, "failed to create default storage class",
-			"provisioner", "kubernetes.io/aws-ebs",
-			"bindingMode", volumeBindingMode)
-	}
-	return nil
-}
-
-// InstallKubernetesDashboardPostHook post hooks can't return value, they can log error and/or update state?
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
 	k8sDashboardNameSpace := viper.GetString(pipConfig.PipelineSystemNamespace)
