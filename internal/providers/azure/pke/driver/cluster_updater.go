@@ -98,47 +98,52 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	}
 	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
 
-	tf := nodePoolTemplateFactory{
-		ClusterID:           cluster.ID,
-		ClusterName:         cluster.Name,
-		KubernetesVersion:   cluster.Kubernetes.Version,
-		Location:            cluster.Location,
-		OrganizationID:      cluster.OrganizationID,
-		PipelineExternalURL: cu.pipelineExternalURL,
-		ResourceGroupName:   cluster.ResourceGroup.Name,
-		SingleNodePool:      (len(nodePoolsToCreate) + len(nodePoolsToUpdate) - len(nodePoolsToDelete)) == 1,
-		SSHPublicKey:        sshKeyPair.PublicKeyData,
-		TenantID:            tenantID,
-		VirtualNetworkName:  cluster.VirtualNetwork.Name,
-	}
-
-	var roleAssignmentTemplates []workflow.RoleAssignmentTemplate
-	subnetTemplates := make(map[string]workflow.SubnetTemplate)
-
 	toCreateVMSSTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(nodePoolsToCreate))
-	for i, np := range nodePoolsToCreate {
-		vmsst, snt, rats := tf.getTemplates(np)
-		toCreateVMSSTemplates[i] = vmsst
-		if subnetsToCreate[snt.Name] {
-			subnetTemplates[snt.Name] = snt
+	var toCreateSubnetTemplates []workflow.SubnetTemplate
+	var roleAssignmentTemplates []workflow.RoleAssignmentTemplate
+	{
+		subnetTemplates := make(map[string]workflow.SubnetTemplate)
+
+		tf := nodePoolTemplateFactory{
+			ClusterID:           cluster.ID,
+			ClusterName:         cluster.Name,
+			KubernetesVersion:   cluster.Kubernetes.Version,
+			Location:            cluster.Location,
+			OrganizationID:      cluster.OrganizationID,
+			PipelineExternalURL: cu.pipelineExternalURL,
+			ResourceGroupName:   cluster.ResourceGroup.Name,
+			SingleNodePool:      (len(nodePoolsToCreate) + len(nodePoolsToUpdate) - len(nodePoolsToDelete)) == 1,
+			SSHPublicKey:        sshKeyPair.PublicKeyData,
+			TenantID:            tenantID,
+			VirtualNetworkName:  cluster.VirtualNetwork.Name,
 		}
-		roleAssignmentTemplates = append(roleAssignmentTemplates, rats...)
+
+		for i, np := range nodePoolsToCreate {
+			vmsst, snt, rats := tf.getTemplates(np)
+			toCreateVMSSTemplates[i] = vmsst
+			if subnetsToCreate[snt.Name] {
+				subnetTemplates[snt.Name] = snt
+			}
+			roleAssignmentTemplates = append(roleAssignmentTemplates, rats...)
+		}
+
+		toCreateSubnetTemplates = make([]workflow.SubnetTemplate, 0, len(subnetTemplates))
+		for _, t := range subnetTemplates {
+			toCreateSubnetTemplates = append(toCreateSubnetTemplates, t)
+		}
 	}
 
-	toUpdateVMSSTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(nodePoolsToUpdate))
+	toUpdateVMSSChanges := make([]workflow.VirtualMachineScaleSetChanges, len(nodePoolsToUpdate))
 	for i, np := range nodePoolsToUpdate {
-		vmsst, _, _ := tf.getTemplates(np)
-		toUpdateVMSSTemplates[i] = vmsst
+		toUpdateVMSSChanges[i] = workflow.VirtualMachineScaleSetChanges{
+			Name:          pke.GetVMSSName(cluster.Name, np.Name),
+			InstanceCount: uint(np.Count),
+		}
 	}
 
 	toDeleteVMSSNames := make([]string, len(nodePoolsToDelete))
 	for i, np := range nodePoolsToDelete {
 		toDeleteVMSSNames[i] = np.Name
-	}
-
-	toCreateSubnetTemplates := make([]workflow.SubnetTemplate, 0, len(subnetTemplates))
-	for _, t := range subnetTemplates {
-		toCreateSubnetTemplates = append(toCreateSubnetTemplates, t)
 	}
 
 	input := workflow.UpdateClusterWorkflowInput{
@@ -154,7 +159,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		SubnetsToDelete: subnetsToDelete,
 		VMSSToCreate:    toCreateVMSSTemplates,
 		VMSSToDelete:    toDeleteVMSSNames,
-		VMSSToUpdate:    toUpdateVMSSTemplates,
+		VMSSToUpdate:    toUpdateVMSSChanges,
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
