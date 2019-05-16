@@ -38,7 +38,7 @@ type UpdateClusterWorkflowInput struct {
 	SubnetsToDelete []string
 	VMSSToCreate    []VirtualMachineScaleSetTemplate
 	VMSSToDelete    []string
-	VMSSToUpdate    []VirtualMachineScaleSetTemplate
+	VMSSToUpdate    []VirtualMachineScaleSetChanges
 }
 
 func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInput) error {
@@ -89,7 +89,25 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			}
 		}
 	}
-	// TODO: update VMSS
+	{
+		futures := make([]workflow.Future, len(input.VMSSToUpdate))
+		for i, vmssChanges := range input.VMSSToUpdate {
+			activityInput := UpdateVMSSActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				Changes:           vmssChanges,
+			}
+			futures[i] = workflow.ExecuteActivity(ctx, UpdateVMSSActivityName, activityInput)
+		}
+		for _, f := range futures {
+			if err := emperror.WrapWith(f.Get(ctx, nil), "activity failed", "activityName", UpdateVMSSActivityName); err != nil {
+				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
+				return err
+			}
+		}
+	}
 	// TODO: create subnets
 	// TODO: create VMSS
 	// TODO: assign roles

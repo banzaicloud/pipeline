@@ -38,8 +38,12 @@ type UpdateVMSSActivityInput struct {
 	SecretID          string
 	ClusterName       string
 	ResourceGroupName string
-	VMSSName          string
-	InstanceCount     int
+	Changes           VirtualMachineScaleSetChanges
+}
+
+type VirtualMachineScaleSetChanges struct {
+	Name          string
+	InstanceCount uint
 }
 
 // MakeUpdateVMSSActivity returns a new UpdateVMSSActivity
@@ -54,12 +58,12 @@ func (a UpdateVMSSActivity) Execute(ctx context.Context, input UpdateVMSSActivit
 		"organization", input.OrganizationID,
 		"resourceGroup", input.ResourceGroupName,
 		"cluster", input.ClusterName,
-		"vmssName", input.VMSSName,
+		"vmssName", input.Changes.Name,
 	)
 
 	keyvals := []interface{}{
 		"resourceGroup", input.ResourceGroupName,
-		"vmssName", input.VMSSName,
+		"vmssName", input.Changes.Name,
 	}
 
 	logger.Info("update virtual machine scale set")
@@ -73,7 +77,7 @@ func (a UpdateVMSSActivity) Execute(ctx context.Context, input UpdateVMSSActivit
 	// update virtual machine scale set only of owned by current cluster
 	logger.Debug("get virtual machine scale set details")
 
-	vmss, err := client.Get(ctx, input.ResourceGroupName, input.VMSSName)
+	vmss, err := client.Get(ctx, input.ResourceGroupName, input.Changes.Name)
 	if err != nil {
 		if vmss.StatusCode == http.StatusNotFound {
 			logger.Warn("virtual machine scale set not found")
@@ -88,9 +92,9 @@ func (a UpdateVMSSActivity) Execute(ctx context.Context, input UpdateVMSSActivit
 		return
 	}
 
-	future, err := client.Update(ctx, input.ResourceGroupName, input.VMSSName, compute.VirtualMachineScaleSetUpdate{
+	future, err := client.Update(ctx, input.ResourceGroupName, input.Changes.Name, compute.VirtualMachineScaleSetUpdate{
 		Sku: &compute.Sku{
-			Capacity: to.Int64Ptr(int64(input.InstanceCount)),
+			Capacity: to.Int64Ptr(int64(input.Changes.InstanceCount)),
 		},
 	})
 	if err = emperror.WrapWith(err, "sending request to update virtual machine scale set failed", keyvals...); err != nil {
