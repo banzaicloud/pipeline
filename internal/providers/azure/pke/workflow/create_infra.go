@@ -30,17 +30,13 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	SecretID          string
 	ResourceGroupName string
 
-	LoadBalancer    LoadBalancerFactory
+	LoadBalancer    LoadBalancerTemplate
 	PublicIPAddress PublicIPAddress
-	RoleAssignments RoleAssignmentsFactory
+	RoleAssignments []RoleAssignmentTemplate
 	RouteTable      RouteTable
-	ScaleSets       VirtualMachineScaleSetsFactory
+	ScaleSets       []VirtualMachineScaleSetTemplate
 	SecurityGroups  []SecurityGroup
-	VirtualNetwork  VirtualNetworkFactory
-}
-
-type LoadBalancerFactory struct {
-	Template LoadBalancerTemplate
+	VirtualNetwork  VirtualNetworkTemplate
 }
 
 type LoadBalancerTemplate struct {
@@ -52,12 +48,12 @@ type LoadBalancerTemplate struct {
 	InboundNATPoolName             string
 }
 
-func (f LoadBalancerFactory) Make(publicIPAddressIDProvider ResourceIDProvider) LoadBalancer {
+func (t LoadBalancerTemplate) Render(publicIPAddressIDProvider ResourceIDProvider) LoadBalancer {
 	bap := BackendAddressPool{
-		Name: f.Template.BackendAddressPoolName,
+		Name: t.BackendAddressPoolName,
 	}
 	obap := BackendAddressPool{
-		Name: f.Template.OutboundBackendAddressPoolName,
+		Name: t.OutboundBackendAddressPoolName,
 	}
 	fic := FrontendIPConfiguration{
 		Name:              "frontend-ip-config",
@@ -69,9 +65,9 @@ func (f LoadBalancerFactory) Make(publicIPAddressIDProvider ResourceIDProvider) 
 		Protocol: "Tcp",
 	}
 	return LoadBalancer{
-		Name:     f.Template.Name,
-		Location: f.Template.Location,
-		SKU:      f.Template.SKU,
+		Name:     t.Name,
+		Location: t.Location,
+		SKU:      t.SKU,
 		BackendAddressPools: []BackendAddressPool{
 			bap,
 			obap,
@@ -81,7 +77,7 @@ func (f LoadBalancerFactory) Make(publicIPAddressIDProvider ResourceIDProvider) 
 		},
 		InboundNATPools: []InboundNATPool{
 			{
-				Name:                   f.Template.InboundNATPoolName,
+				Name:                   t.InboundNATPoolName,
 				BackendPort:            22,
 				FrontendIPConfig:       &fic,
 				FrontendPortRangeEnd:   50100,
@@ -114,30 +110,18 @@ func (f LoadBalancerFactory) Make(publicIPAddressIDProvider ResourceIDProvider) 
 	}
 }
 
-type RoleAssignmentsFactory struct {
-	Templates []RoleAssignmentTemplate
-}
-
 type RoleAssignmentTemplate struct {
 	Name     string
 	VMSSName string
 	RoleName string
 }
 
-func (f RoleAssignmentsFactory) Make(vmssPrincipalIDProvider ResourceIDByNameProvider) []RoleAssignment {
-	ras := make([]RoleAssignment, len(f.Templates))
-	for i, ra := range f.Templates {
-		ras[i] = RoleAssignment{
-			Name:        ra.Name,
-			PrincipalID: vmssPrincipalIDProvider.Get(ra.VMSSName),
-			RoleName:    ra.RoleName,
-		}
+func (t RoleAssignmentTemplate) Render(vmssPrincipalIDProvider ResourceIDByNameProvider) RoleAssignment {
+	return RoleAssignment{
+		Name:        t.Name,
+		PrincipalID: vmssPrincipalIDProvider.Get(t.VMSSName),
+		RoleName:    t.RoleName,
 	}
-	return ras
-}
-
-type VirtualMachineScaleSetsFactory struct {
-	Templates []VirtualMachineScaleSetTemplate
 }
 
 type VirtualMachineScaleSetTemplate struct {
@@ -158,42 +142,48 @@ type VirtualMachineScaleSetTemplate struct {
 	Zones                        []string
 }
 
-func (f VirtualMachineScaleSetsFactory) Make(
+func (t VirtualMachineScaleSetTemplate) Render(
 	backendAddressPoolIDProvider ResourceIDByNameProvider,
 	inboundNATPoolIDProvider ResourceIDByNameProvider,
 	publicIPAddressProvider IPAddressProvider,
 	securityGroupIDProvider ResourceIDByNameProvider,
 	subnetIDProvider ResourceIDByNameProvider,
-) []VirtualMachineScaleSet {
-	publicIPAddress := publicIPAddressProvider.Get()
-	sss := make([]VirtualMachineScaleSet, len(f.Templates))
-	for i, t := range f.Templates {
-		t.UserDataScriptParams["PublicAddress"] = publicIPAddress
-		sss[i] = VirtualMachineScaleSet{
-			AdminUsername: t.AdminUsername,
-			Image:         t.Image,
-			InstanceCount: int64(t.InstanceCount),
-			InstanceType:  t.InstanceType,
-			LBBackendAddressPoolIDs: []string{
-				backendAddressPoolIDProvider.Get(t.BackendAddressPoolName),
-				backendAddressPoolIDProvider.Get(t.OutputBackendAddressPoolName),
-			},
-			LBInboundNATPoolID:     inboundNATPoolIDProvider.Get(t.InboundNATPoolName),
-			Location:               t.Location,
-			Name:                   t.Name,
-			NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
-			SSHPublicKey:           t.SSHPublicKey,
-			SubnetID:               subnetIDProvider.Get(t.SubnetName),
-			UserDataScriptTemplate: t.UserDataScriptTemplate,
-			UserDataScriptParams:   t.UserDataScriptParams,
-			Zones:                  t.Zones,
-		}
+) VirtualMachineScaleSet {
+	t.UserDataScriptParams["PublicAddress"] = publicIPAddressProvider.Get()
+	return VirtualMachineScaleSet{
+		AdminUsername:          t.AdminUsername,
+		Image:                  t.Image,
+		InstanceCount:          int64(t.InstanceCount),
+		InstanceType:           t.InstanceType,
+		LBBackendAddressPoolIDs: []string{
+			backendAddressPoolIDProvider.Get(t.BackendAddressPoolName),
+			backendAddressPoolIDProvider.Get(t.OutputBackendAddressPoolName),
+		},
+		LBInboundNATPoolID:     inboundNATPoolIDProvider.Get(t.InboundNATPoolName),
+		Location:               t.Location,
+		Name:                   t.Name,
+		NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
+		SSHPublicKey:           t.SSHPublicKey,
+		SubnetID:               subnetIDProvider.Get(t.SubnetName),
+		UserDataScriptTemplate: t.UserDataScriptTemplate,
+		UserDataScriptParams:   t.UserDataScriptParams,
+		Zones:                  t.Zones,
 	}
-	return sss
 }
 
-type VirtualNetworkFactory struct {
-	Template VirtualNetworkTemplate
+type SubnetTemplate struct {
+	Name                     string
+	CIDR                     string
+	NetworkSecurityGroupName string
+}
+
+func (t SubnetTemplate) Render(routeTableIDProvider ResourceIDProvider, securityGroupIDProvider ResourceIDByNameProvider) Subnet {
+	return Subnet{
+		Name:                   t.Name,
+		CIDR:                   t.CIDR,
+		NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
+		RouteTableID:           routeTableIDProvider.Get(),
+	}
 }
 
 type VirtualNetworkTemplate struct {
@@ -203,34 +193,15 @@ type VirtualNetworkTemplate struct {
 	Subnets  []SubnetTemplate
 }
 
-type SubnetFactory struct {
-	Template SubnetTemplate
-}
-
-type SubnetTemplate struct {
-	Name                     string
-	CIDR                     string
-	NetworkSecurityGroupName string
-}
-
-func (f SubnetFactory) Make(routeTableIDProvider ResourceIDProvider, securityGroupIDProvider ResourceIDByNameProvider) Subnet {
-	return Subnet{
-		Name:                   f.Template.Name,
-		CIDR:                   f.Template.CIDR,
-		NetworkSecurityGroupID: securityGroupIDProvider.Get(f.Template.NetworkSecurityGroupName),
-		RouteTableID:           routeTableIDProvider.Get(),
-	}
-}
-
-func (f VirtualNetworkFactory) Make(routeTableIDProvider ResourceIDProvider, securityGroupIDProvider ResourceIDByNameProvider) VirtualNetwork {
-	subnets := make([]Subnet, len(f.Template.Subnets))
-	for i, s := range f.Template.Subnets {
-		subnets[i] = SubnetFactory{s}.Make(routeTableIDProvider, securityGroupIDProvider)
+func (t VirtualNetworkTemplate) Render(routeTableIDProvider ResourceIDProvider, securityGroupIDProvider ResourceIDByNameProvider) VirtualNetwork {
+	subnets := make([]Subnet, len(t.Subnets))
+	for i, s := range t.Subnets {
+		subnets[i] = s.Render(routeTableIDProvider, securityGroupIDProvider)
 	}
 	return VirtualNetwork{
-		Name:     f.Template.Name,
-		CIDRs:    f.Template.CIDRs,
-		Location: f.Template.Location,
+		Name:     t.Name,
+		CIDRs:    t.CIDRs,
+		Location: t.Location,
 		Subnets:  subnets,
 	}
 }
@@ -339,7 +310,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			OrganizationID:    input.OrganizationID,
 			ClusterName:       input.ClusterName,
 			SecretID:          input.SecretID,
-			VirtualNetwork:    input.VirtualNetwork.Make(routeTableIDProvider(createRouteTableActivityOutput), mapSecurityGroupIDProvider(createNSGActivityOutputs)),
+			VirtualNetwork:    input.VirtualNetwork.Render(routeTableIDProvider(createRouteTableActivityOutput), mapSecurityGroupIDProvider(createNSGActivityOutputs)),
 		}
 		if err := workflow.ExecuteActivity(ctx, CreateVnetActivityName, activityInput).Get(ctx, &createVnetOutput); err != nil {
 			return err
@@ -369,7 +340,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			SecretID:          input.SecretID,
 			ClusterName:       input.ClusterName,
 			ResourceGroupName: input.ResourceGroupName,
-			LoadBalancer:      input.LoadBalancer.Make(publicIPAddressIDProvider(createPublicIPActivityOutput)),
+			LoadBalancer:      input.LoadBalancer.Render(publicIPAddressIDProvider(createPublicIPActivityOutput)),
 		}
 		if err := workflow.ExecuteActivity(ctx, CreateLoadBalancerActivityName, activityInput).Get(ctx, &createLBActivityOutput); err != nil {
 			return err
@@ -379,24 +350,23 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	// Create scale sets
 	createVMSSActivityOutputs := make(map[string]CreateVMSSActivityOutput)
 	{
-		scaleSets := input.ScaleSets.Make(
-			backendAddressPoolIDProvider(createLBActivityOutput),
-			inboundNATPoolIDProvider(createLBActivityOutput),
-			publicIPAddressIPAddressProvider(createPublicIPActivityOutput),
-			mapSecurityGroupIDProvider(createNSGActivityOutputs),
-			subnetIDProvider(createVnetOutput),
-		)
-		futures := make(map[string]workflow.Future, len(scaleSets))
-		for _, vmss := range scaleSets {
+		bapIDProvider := backendAddressPoolIDProvider(createLBActivityOutput)
+		inpIDProvider := inboundNATPoolIDProvider(createLBActivityOutput)
+		pipIDProvider := publicIPAddressIPAddressProvider(createPublicIPActivityOutput)
+		nsgIDProvider := mapSecurityGroupIDProvider(createNSGActivityOutputs)
+		subnetIDProvider := subnetIDProvider(createVnetOutput)
+
+		futures := make(map[string]workflow.Future, len(input.ScaleSets))
+		for _, vmssTemplate := range input.ScaleSets {
 			activityInput := CreateVMSSActivityInput{
 				OrganizationID:    input.OrganizationID,
 				SecretID:          input.SecretID,
 				ClusterID:         input.ClusterID,
 				ClusterName:       input.ClusterName,
 				ResourceGroupName: input.ResourceGroupName,
-				ScaleSet:          vmss,
+				ScaleSet:          vmssTemplate.Render(bapIDProvider, inpIDProvider, pipIDProvider, nsgIDProvider, subnetIDProvider),
 			}
-			futures[vmss.Name] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
+			futures[activityInput.ScaleSet.Name] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
 		}
 
 		for name, future := range futures {
@@ -410,15 +380,16 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 
 	// Create role assignments
 	{
-		roleAssignments := input.RoleAssignments.Make(mapVMSSPrincipalIDProvider(createVMSSActivityOutputs))
-		futures := make([]workflow.Future, len(roleAssignments))
-		for i, ra := range roleAssignments {
+		vmssPrincipalIDProvider := mapVMSSPrincipalIDProvider(createVMSSActivityOutputs)
+
+		futures := make([]workflow.Future, len(input.RoleAssignments))
+		for i, t := range input.RoleAssignments {
 			activityInput := AssignRoleActivityInput{
 				OrganizationID:    input.OrganizationID,
 				SecretID:          input.SecretID,
 				ClusterName:       input.ClusterName,
 				ResourceGroupName: input.ResourceGroupName,
-				RoleAssignment:    ra,
+				RoleAssignment:    t.Render(vmssPrincipalIDProvider),
 			}
 			futures[i] = workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput)
 		}

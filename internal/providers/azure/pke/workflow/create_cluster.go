@@ -75,21 +75,13 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		ClusterName:       input.ClusterName,
 		SecretID:          input.SecretID,
 		ResourceGroupName: input.ResourceGroupName,
-		LoadBalancer: LoadBalancerFactory{
-			Template: input.LoadBalancerTemplate,
-		},
-		PublicIPAddress: input.PublicIPAddress,
-		RoleAssignments: RoleAssignmentsFactory{
-			Templates: input.RoleAssignmentTemplates,
-		},
-		RouteTable: input.RouteTable,
-		ScaleSets: VirtualMachineScaleSetsFactory{
-			Templates: input.VirtualMachineScaleSetTemplates,
-		},
-		SecurityGroups: input.SecurityGroups,
-		VirtualNetwork: VirtualNetworkFactory{
-			Template: input.VirtualNetworkTemplate,
-		},
+		LoadBalancer:      input.LoadBalancerTemplate,
+		PublicIPAddress:   input.PublicIPAddress,
+		RoleAssignments:   input.RoleAssignmentTemplates,
+		RouteTable:        input.RouteTable,
+		ScaleSets:         input.VirtualMachineScaleSetTemplates,
+		SecurityGroups:    input.SecurityGroups,
+		VirtualNetwork:    input.VirtualNetworkTemplate,
 	}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {
