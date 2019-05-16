@@ -208,7 +208,7 @@ func CreateDefaultStorageclass(commonCluster CommonCluster) error {
 	distro := commonCluster.GetDistribution()
 	provider := commonCluster.GetCloud()
 
-	if distro != pkgCluster.PKE || provider == pkgCluster.Azure {
+	if true {
 		log.Infof("Not creating storageclass for %s on %s ", distro, provider)
 		return nil
 	}
