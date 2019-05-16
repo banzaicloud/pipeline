@@ -93,7 +93,7 @@ func (g *CGDeploymentRepository) Delete(model *ClusterGroupDeploymentModel, targ
 	deletedCount := 0
 
 	for _, v := range model.TargetClusters {
-		if status, ok := targetClusterStatusMap[v.ClusterID]; ok && status.Status == DeletedStatus {
+		if status, ok := targetClusterStatusMap[v.ClusterID]; ok && status.Status == OperationSucceededStatus {
 			err := g.db.Delete(v).Error
 			if err != nil {
 				return err

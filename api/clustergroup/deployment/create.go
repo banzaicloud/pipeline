@@ -89,6 +89,22 @@ func (n *API) Create(c *gin.Context) {
 		return
 	}
 
+	errMsg := ""
+	for _, status := range targetClusterStatus {
+		if len(status.Error) > 0 {
+			errMsg += fmt.Sprintln("operation failed on cluster " + status.ClusterName + " - " + status.Error)
+		}
+	}
+
+	if len(errMsg) > 0 {
+		c.JSON(http.StatusMultiStatus, pkgCommon.ErrorResponse{
+			Code:    http.StatusMultiStatus,
+			Message: errMsg,
+			Error:   errMsg,
+		})
+		return
+	}
+
 	n.logger.Debug("Release name: ", deployment.ReleaseName)
 	response := pkgDep.CreateUpdateDeploymentResponse{
 		ReleaseName:    deployment.ReleaseName,
