@@ -96,7 +96,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		ResourceGroupName:    cluster.ResourceGroup.Name,
 		LoadBalancerName:     cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
 		PublicIPAddressNames: pipNames,
-		RouteTableName:       cluster.Name + "-route-table",
+		RouteTableName:       pke.GetRouteTableName(cluster.Name),
 		ScaleSetNames:        getVMSSNames(cluster),
 		SecurityGroupNames:   []string{cluster.Name + "-master-nsg", cluster.Name + "-worker-nsg"},
 		VirtualNetworkName:   cluster.VirtualNetwork.Name,
@@ -194,7 +194,7 @@ func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger,
 
 	names := make(map[string]bool)
 
-	lb, err := cc.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, cluster.Name, "frontendIPConfigurations/publicIPAddress")
+	lb, err := cc.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, pke.GetLoadBalancerName(cluster.Name), "frontendIPConfigurations/publicIPAddress")
 	if err != nil {
 		if lb.StatusCode == http.StatusNotFound {
 			return nil, nil

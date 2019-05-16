@@ -40,9 +40,12 @@ type UpdateClusterWorkflowInput struct {
 	VMSSToDelete    []string
 	VMSSToUpdate    []VirtualMachineScaleSetChanges
 
-	RouteTableIDProvider    ConstantResourceIDProvider
-	SecurityGroupIDProvider MapResourceIDByNameProvider
-	SubnetIDProvider        MapResourceIDByNameProvider
+	BackendAddressPoolIDProvider MapResourceIDByNameProvider
+	InboundNATPoolIDProvider     MapResourceIDByNameProvider
+	PublicIPAddressProvider      ConstantIPAddressProvider
+	RouteTableIDProvider         ConstantResourceIDProvider
+	SecurityGroupIDProvider      MapResourceIDByNameProvider
+	SubnetIDProvider             MapResourceIDByNameProvider
 }
 
 func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInput) error {
@@ -134,7 +137,29 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			input.SubnetIDProvider.Put(name, activityOutput.SubnetID)
 		}
 	}
-	// TODO: create VMSS
+	createdVMSSOutputs := make(map[string]CreateVMSSActivityOutput)
+	{
+		futures := make(map[string]workflow.Future, len(input.VMSSToCreate))
+		for _, vmss := range input.VMSSToCreate {
+			activityInput := CreateVMSSActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterID:         input.ClusterID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				ScaleSet:          vmss.Render(input.BackendAddressPoolIDProvider, input.InboundNATPoolIDProvider, input.PublicIPAddressProvider, input.SecurityGroupIDProvider, input.SubnetIDProvider),
+			}
+			futures[activityInput.ScaleSet.Name] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
+		}
+		for name, f := range futures {
+			var activityOutput CreateVMSSActivityOutput
+			if err := emperror.WrapWith(f.Get(ctx, &activityOutput), "activity failed", "activityName", CreateVMSSActivityName); err != nil {
+				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
+				return err
+			}
+			createdVMSSOutputs[name] = activityOutput
+		}
+	}
 	// TODO: assign roles
 	// TODO: redeploy autoscaler
 	return nil

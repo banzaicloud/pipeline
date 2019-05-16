@@ -251,21 +251,21 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			Subnets:  subnetTemplates,
 		},
 		LoadBalancerTemplate: workflow.LoadBalancerTemplate{
-			Name:                           params.Name, // LB name must match the value passed to pke install master --kubernetes-cluster-name
+			Name:                           pke.GetLoadBalancerName(params.Name),
 			Location:                       params.Network.Location,
 			SKU:                            "Standard",
-			BackendAddressPoolName:         "backend-address-pool",
-			OutboundBackendAddressPoolName: "outbound-backend-address-pool",
-			InboundNATPoolName:             "ssh-inbound-nat-pool",
+			BackendAddressPoolName:         pke.GetBackendAddressPoolName(),
+			OutboundBackendAddressPoolName: pke.GetOutboundBackendAddressPoolName(),
+			InboundNATPoolName:             pke.GetInboundNATPoolName(),
 		},
 		PublicIPAddress: workflow.PublicIPAddress{
 			Location: params.Network.Location,
-			Name:     params.Name + "-pip-in",
+			Name:     pke.GetPublicIPAddressName(params.Name),
 			SKU:      "Standard",
 		},
 		RoleAssignmentTemplates: roleAssignmentTemplates,
 		RouteTable: workflow.RouteTable{
-			Name:     params.Name + "-route-table",
+			Name:     pke.GetRouteTableName(params.Name),
 			Location: params.Network.Location,
 		},
 		SecurityGroups: []workflow.SecurityGroup{
