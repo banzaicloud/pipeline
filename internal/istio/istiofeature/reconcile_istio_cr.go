@@ -48,7 +48,7 @@ func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState) error {
 
 		istio, err := client.IstioV1beta1().Istios(istioOperatorNamespace).Get(m.Configuration.name, metav1.GetOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
-			return emperror.Wrap(err, "could not check existance Istio CR")
+			return emperror.Wrap(err, "could not check existence Istio CR")
 		}
 
 		if k8serrors.IsNotFound(err) {
