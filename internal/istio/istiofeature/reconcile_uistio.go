@@ -108,7 +108,7 @@ func (m *MeshReconciler) waitForSidecarInjectorPod(client *kubernetes.Clientset)
 	return err
 }
 
-// waitForMetricCRD
+// waitForMetricCRD waits for Metric CRD to be present in the cluster
 func (m *MeshReconciler) waitForMetricCRD(name string, client *apiextensionsclient.Clientset) error {
 	m.logger.WithField("name", name).Debug("waiting for metric CRD")
 
