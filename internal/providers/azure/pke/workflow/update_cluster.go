@@ -69,7 +69,26 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			}
 		}
 	}
-	// TODO: delete subnets
+	{
+		futures := make([]workflow.Future, len(input.SubnetsToDelete))
+		for i, subnetName := range input.SubnetsToDelete {
+			activityInput := DeleteSubnetActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				VNetName:          input.VirtualNetworkName,
+				SubnetName:        subnetName,
+			}
+			futures[i] = workflow.ExecuteActivity(ctx, DeleteSubnetActivityName, activityInput)
+		}
+		for _, f := range futures {
+			if err := emperror.WrapWith(f.Get(ctx, nil), "activity failed", "activityName", DeleteSubnetActivityName); err != nil {
+				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
+				return err
+			}
+		}
+	}
 	// TODO: update VMSS
 	// TODO: create subnets
 	// TODO: create VMSS
