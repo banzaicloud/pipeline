@@ -20,11 +20,13 @@ import (
 	"net"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest/azure"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -157,6 +159,41 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		// will only be persisted by the successful workflow
 	}
 
+	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
+	if err != nil {
+		return emperror.Wrap(err, "failed to create cloud connection")
+	}
+
+	backendAddressPoolIDs, err := pke.GetBackendAddressPoolIDsForCluster(ctx, *cc.GetLoadBalancersClient(), cluster)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get backend address pool IDs for cluster")
+	}
+
+	inboundNATPoolIDs, err := pke.GetInboundNATPoolIDsForCluster(ctx, *cc.GetLoadBalancersClient(), cluster)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get inbound NAT pool IDs for cluster")
+	}
+
+	publicIPAddress, err := pke.GetPublicIPAddressForCluster(ctx, *cc.GetPublicIPAddressesClient(), cluster)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get public IP address for cluster")
+	}
+
+	routeTableID, err := pke.GetRouteTableIDForCluster(ctx, *cc.GetRouteTablesClient(), cluster)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get route table ID for cluster")
+	}
+
+	securityGroupIDs, err := pke.GetSecurityGroupIDsForCluster(ctx, *cc.GetSecurityGroupsClient(), cluster)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get security group IDs for cluster")
+	}
+
+	subnetIDs, err := pke.GetSubnetIDsForCluster(ctx, *cc.GetSubnetsClient(), cluster)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get subnet IDs for cluster")
+	}
+
 	input := workflow.UpdateClusterWorkflowInput{
 		OrganizationID:     cluster.OrganizationID,
 		SecretID:           cluster.SecretID,
@@ -171,6 +208,13 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		VMSSToCreate:    toCreateVMSSTemplates,
 		VMSSToDelete:    toDeleteVMSSNames,
 		VMSSToUpdate:    toUpdateVMSSChanges,
+
+		BackendAddressPoolIDProvider: workflow.MapResourceIDByNameProvider(backendAddressPoolIDs),
+		InboundNATPoolIDProvider:     workflow.MapResourceIDByNameProvider(inboundNATPoolIDs),
+		PublicIPAddressProvider:      workflow.ConstantIPAddressProvider(publicIPAddress),
+		RouteTableIDProvider:         workflow.ConstantResourceIDProvider(routeTableID),
+		SecurityGroupIDProvider:      workflow.MapResourceIDByNameProvider(securityGroupIDs),
+		SubnetIDProvider:             workflow.MapResourceIDByNameProvider(subnetIDs),
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
@@ -283,9 +327,9 @@ func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params
 type clusterUpdaterNodePoolPreparerDataProvider struct {
 	cluster               pke.PKEOnAzureCluster
 	resourceGroupName     string
-	subnetsClient         azure.SubnetsClient
+	subnetsClient         pkgAzure.SubnetsClient
 	virtualNetworkName    string
-	virtualNetworksClient azure.VirtualNetworksClient
+	virtualNetworksClient pkgAzure.VirtualNetworksClient
 }
 
 func (p clusterUpdaterNodePoolPreparerDataProvider) getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error) {
