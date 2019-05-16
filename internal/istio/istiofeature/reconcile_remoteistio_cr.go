@@ -59,7 +59,7 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 		remoteIstioCR := m.generateRemoteIstioCR(m.Configuration, ipRanges, c)
 		_, err = client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Create(&remoteIstioCR)
 		if err != nil {
-			return emperror.Wrap(err, "could not create Istio CR")
+			return emperror.Wrap(err, "could not create Remote Istio CR")
 		}
 	} else {
 		err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Delete(c.GetName(), &metav1.DeleteOptions{})
