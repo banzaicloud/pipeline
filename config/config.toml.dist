@@ -118,7 +118,7 @@ istioPilotImage = "banzaicloud/istio-pilot:1.1.4-bzc"
 istioMixerImage = "banzaicloud/istio-mixer:1.1.4-bzc"
 
 [uistio]
-chartVersion = "0.0.2"
+chartVersion = "0.0.4"
 chartName = "uistio"
 
 # DNS service settings
