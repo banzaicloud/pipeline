@@ -203,7 +203,7 @@ func main() {
 		deleteClusterDNSRecordsActivity := intClusterWorkflow.MakeDeleteClusterDNSRecordsActivity(clusterDNSRecordsDeleter)
 		activity.RegisterWithOptions(deleteClusterDNSRecordsActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.DeleteClusterDNSRecordsActivityName})
 
-		waitPersistentVolumesDeletionActivity := intClusterWorkflow.MakeCollectPersistentVolumesActivity(k8sConfigGetter, conf.Logger())
+		waitPersistentVolumesDeletionActivity := intClusterWorkflow.MakeWaitPersistentVolumesDeletionActivity(k8sConfigGetter, conf.Logger())
 		activity.RegisterWithOptions(waitPersistentVolumesDeletionActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.WaitPersistentVolumesDeletionActivityName})
 
 		var closeCh = make(chan struct{})
