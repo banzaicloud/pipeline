@@ -142,6 +142,10 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	}
 
 	input := workflow.UpdateClusterWorkflowInput{
+		OrganizationID:     cluster.OrganizationID,
+		SecretID:           cluster.SecretID,
+		ClusterID:          cluster.ID,
+		ClusterName:        cluster.Name,
 		ResourceGroupName:  cluster.ResourceGroup.Name,
 		VirtualNetworkName: cluster.VirtualNetwork.Name,
 

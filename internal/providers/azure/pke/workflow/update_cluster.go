@@ -14,12 +14,22 @@
 
 package workflow
 
-import "go.uber.org/cadence/workflow"
+import (
+	"time"
+
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/goph/emperror"
+	"go.uber.org/cadence/workflow"
+)
 
 const UpdateClusterWorkflowName = "pke-azure-update-cluster"
 
 // UpdateClusterWorkflowInput
 type UpdateClusterWorkflowInput struct {
+	OrganizationID     uint
+	SecretID           string
+	ClusterID          uint
+	ClusterName        string
 	ResourceGroupName  string
 	VirtualNetworkName string
 
@@ -32,7 +42,33 @@ type UpdateClusterWorkflowInput struct {
 }
 
 func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInput) error {
-	// TODO: delete VMSS
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 5 * time.Minute,
+		StartToCloseTimeout:    10 * time.Minute,
+		ScheduleToCloseTimeout: 15 * time.Minute,
+		WaitForCancellation:    true,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	{
+		futures := make([]workflow.Future, len(input.VMSSToDelete))
+		for i, vmssName := range input.VMSSToDelete {
+			activityInput := DeleteVMSSActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				VMSSName:          vmssName,
+			}
+			futures[i] = workflow.ExecuteActivity(ctx, DeleteVMSSActivityName, activityInput)
+		}
+		for _, f := range futures {
+			if err := emperror.WrapWith(f.Get(ctx, nil), "activity failed", "activityName", DeleteVMSSActivityName); err != nil {
+				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
+				return err
+			}
+		}
+	}
 	// TODO: delete subnets
 	// TODO: update VMSS
 	// TODO: create subnets
