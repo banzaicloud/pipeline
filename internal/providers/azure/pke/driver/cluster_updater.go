@@ -165,7 +165,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		ResourceGroupName:  cluster.ResourceGroup.Name,
 		VirtualNetworkName: cluster.VirtualNetwork.Name,
 
-		RoleAssigments:  roleAssignmentTemplates,
+		RoleAssignments: roleAssignmentTemplates,
 		SubnetsToCreate: toCreateSubnetTemplates,
 		SubnetsToDelete: subnetsToDelete,
 		VMSSToCreate:    toCreateVMSSTemplates,

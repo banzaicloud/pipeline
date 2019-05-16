@@ -33,12 +33,16 @@ type UpdateClusterWorkflowInput struct {
 	ResourceGroupName  string
 	VirtualNetworkName string
 
-	RoleAssigments  []RoleAssignmentTemplate
+	RoleAssignments []RoleAssignmentTemplate
 	SubnetsToCreate []SubnetTemplate
 	SubnetsToDelete []string
 	VMSSToCreate    []VirtualMachineScaleSetTemplate
 	VMSSToDelete    []string
 	VMSSToUpdate    []VirtualMachineScaleSetChanges
+
+	RouteTableIDProvider    ConstantResourceIDProvider
+	SecurityGroupIDProvider MapResourceIDByNameProvider
+	SubnetIDProvider        MapResourceIDByNameProvider
 }
 
 func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInput) error {
@@ -108,7 +112,28 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			}
 		}
 	}
-	// TODO: create subnets
+	{
+		futures := make(map[string]workflow.Future, len(input.SubnetsToCreate))
+		for _, subnet := range input.SubnetsToCreate {
+			activityInput := CreateSubnetActivityInput{
+				OrganizationID:     input.OrganizationID,
+				SecretID:           input.SecretID,
+				ClusterName:        input.ClusterName,
+				ResourceGroupName:  input.ResourceGroupName,
+				VirtualNetworkName: input.VirtualNetworkName,
+				Subnet:             subnet.Render(input.RouteTableIDProvider, input.SecurityGroupIDProvider),
+			}
+			futures[activityInput.Subnet.Name] = workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput)
+		}
+		for name, f := range futures {
+			var activityOutput CreateSubnetActivityOutput
+			if err := emperror.WrapWith(f.Get(ctx, &activityOutput), "activity failed", "activityName", CreateSubnetActivityName); err != nil {
+				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
+				return err
+			}
+			input.SubnetIDProvider.Put(name, activityOutput.SubnetID)
+		}
+	}
 	// TODO: create VMSS
 	// TODO: assign roles
 	// TODO: redeploy autoscaler
