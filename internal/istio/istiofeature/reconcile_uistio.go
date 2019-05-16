@@ -78,7 +78,7 @@ func (m *MeshReconciler) ReconcileUistio(desiredState DesiredState) error {
 	return nil
 }
 
-// waitForSidecarInjectorPod
+// waitForSidecarInjectorPod waits for Sidecar Injector Pods to be running
 func (m *MeshReconciler) waitForSidecarInjectorPod(client *kubernetes.Clientset) error {
 	m.logger.Debug("waiting for sidecar injector pod")
 
