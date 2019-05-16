@@ -56,7 +56,7 @@ func (m *MeshReconciler) GetClusterStatus() (map[uint]string, error) {
 
 	remoteistios, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).List(metav1.ListOptions{})
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not list istio CRs")
+		return nil, emperror.Wrap(err, "could not list Remote istio CRs")
 	}
 	for _, remoteistio := range remoteistios.Items {
 		labels := remoteistio.GetLabels()
