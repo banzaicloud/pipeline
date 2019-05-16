@@ -160,7 +160,25 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			createdVMSSOutputs[name] = activityOutput
 		}
 	}
-	// TODO: assign roles
+	{
+		futures := make([]workflow.Future, len(input.RoleAssignments))
+		for i, ra := range input.RoleAssignments {
+			activityInput := AssignRoleActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				RoleAssignment:    ra.Render(mapVMSSPrincipalIDProvider(createdVMSSOutputs)),
+			}
+			futures[i] = workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput)
+		}
+		for _, f := range futures {
+			if err := emperror.WrapWith(f.Get(ctx, nil), "activity failed", "activityName", AssignRoleActivityName); err != nil {
+				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
+				return err
+			}
+		}
+	}
 	// TODO: redeploy autoscaler
 	return nil
 }
