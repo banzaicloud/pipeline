@@ -16,6 +16,7 @@ package deployment
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -75,6 +76,22 @@ func (n *API) Sync(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, response)
+	errMsg := ""
+	for _, status := range response {
+		if len(status.Error) > 0 {
+			errMsg += fmt.Sprintln("operation failed on cluster " + status.ClusterName + " - " + status.Error)
+		}
+	}
+
+	if len(errMsg) > 0 {
+		c.JSON(http.StatusMultiStatus, pkgCommon.ErrorResponse{
+			Code:    http.StatusMultiStatus,
+			Message: errMsg,
+			Error:   errMsg,
+		})
+	} else {
+		c.JSON(http.StatusAccepted, response)
+	}
+
 	return
 }

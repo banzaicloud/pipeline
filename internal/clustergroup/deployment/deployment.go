@@ -93,6 +93,15 @@ type TargetClusterStatus struct {
 	Status       string `json:"status"`
 	Stale        bool   `json:"stale"`
 	Version      string `json:"version,omitempty"`
+	Error        string `json:"error,omitempty"`
+}
+
+// TargetOperationStatus describes a status of a deployment operation (install/upgrade/delete) on a target cluster
+type TargetOperationStatus struct {
+	ClusterId   uint   `json:"clusterId"`
+	ClusterName string `json:"clusterName"`
+	Status      string `json:"status"`
+	Error       string `json:"error,omitempty"`
 }
 
 // ListDeploymentResponse describes a deployment list response
