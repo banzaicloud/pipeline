@@ -41,7 +41,7 @@ type WaitPersistentVolumesDeletionActivity struct {
 	logger          logrus.FieldLogger
 }
 
-func MakeCollectPersistentVolumesActivity(k8sConfigGetter K8sConfigGetter, logger logrus.FieldLogger) WaitPersistentVolumesDeletionActivity {
+func MakeWaitPersistentVolumesDeletionActivity(k8sConfigGetter K8sConfigGetter, logger logrus.FieldLogger) WaitPersistentVolumesDeletionActivity {
 	return WaitPersistentVolumesDeletionActivity{
 		k8sConfigGetter: k8sConfigGetter,
 		logger:          logger,
