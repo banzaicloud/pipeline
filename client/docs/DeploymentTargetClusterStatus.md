@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **ClusterId** | **int32** |  | [optional] 
 **ClusterName** | **string** |  | [optional] 
 **Distribution** | **string** |  | [optional] 
+**Error** | **string** |  | [optional] 
 **Stale** | **bool** |  | [optional] 
 **Status** | **string** |  | [optional] 
 **Version** | **string** |  | [optional] 

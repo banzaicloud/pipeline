@@ -6184,12 +6184,22 @@ paths:
                 required: true
             responses:
                 "201":
-                    description: Created
+                    description: Multi-cluster deployment has been created successfully. All install
+                        / upgrade operations on all targeted clusters returned with no
+                        errors.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.CreateUpdateDeploymentRespon\
-                    se"
+                  se"
+                "207":
+                    description: Partial failure, meaning that Multi-cluster deployment has been
+                        created successfully, however there was as least one failure on one
+                        of the target clusters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/common.ErrorResponse"
                 "400":
                     description: Bad Request
                     content:
@@ -6238,11 +6248,19 @@ paths:
                       type: boolean
             responses:
                 "202":
-                    description: Accepted
+                    description: Multi-cluster deployment has been deleted successfully. All delete
+                        operations on all targeted clusters returned with no errors.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.TargetClusterStatus"
+                "207":
+                    description: Partial failure, meaning that there was as least one failure on one
+                        of the target clusters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/common.ErrorResponse"
                 "400":
                     description: Bad Request
                     content:
@@ -6325,12 +6343,22 @@ paths:
                 required: true
             responses:
                 "202":
-                    description: Accepted
+                    description: Multi-cluster deployment has been updated successfully. All upgrade
+                        / install operations on all targeted clusters returned with no
+                        errors.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.CreateUpdateDeploymentRespon\
-                    se"
+                  se"
+                "207":
+                    description: Partial failure, meaning that Multi-cluster deployment has been
+                        update successfully, however there was as least one failure on one
+                        of the target clusters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/common.ErrorResponse"
                 "400":
                     description: Bad Request
                     content:
@@ -6373,11 +6401,19 @@ paths:
                       type: string
             responses:
                 "202":
-                    description: Accepted
+                    description: Multi-cluster deployment has been synced successfully. All upgrade /
+                        install operations on all targeted clusters returned with no errors.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.TargetClusterStatus"
+                "207":
+                    description: Partial failure, meaning that there was as least one failure on one
+                        of the target clusters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/common.ErrorResponse"
                 "400":
                     description: Bad Request
                     content:
@@ -6606,7 +6642,6 @@ paths:
             summary: Update Feature of Cluster Group
             tags:
                 - clustergroup features
-
 
 components:
     securitySchemes:
@@ -11021,6 +11056,8 @@ components:
                     type: string
                 properties:
                     $ref: "#/components/schemas/api.FeatureRequest"
+                reconcileState:
+                    type: string
                 status:
                     type: object
             type: object
@@ -11036,6 +11073,7 @@ components:
                     example: 1001
                     type: integer
                 name:
+                    example: clusterName
                     type: string
                 status:
                     type: string
@@ -11162,6 +11200,8 @@ components:
                 clusterName:
                     type: string
                 distribution:
+                    type: string
+                error:
                     type: string
                 stale:
                     type: boolean

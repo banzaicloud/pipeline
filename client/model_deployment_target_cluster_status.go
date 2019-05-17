@@ -16,6 +16,7 @@ type DeploymentTargetClusterStatus struct {
 	ClusterId    int32  `json:"clusterId,omitempty"`
 	ClusterName  string `json:"clusterName,omitempty"`
 	Distribution string `json:"distribution,omitempty"`
+	Error        string `json:"error,omitempty"`
 	Stale        bool   `json:"stale,omitempty"`
 	Status       string `json:"status,omitempty"`
 	Version      string `json:"version,omitempty"`

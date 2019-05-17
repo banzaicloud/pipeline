@@ -35,7 +35,8 @@ import (
 // @Param orgid path uint true "Organization ID"
 // @Param clusterGroupId path uint true "Cluster Group ID"
 // @Param deployment body deployment.ClusterGroupDeployment true "Deployment Create Request"
-// @Success 201 {object} deployment.CreateUpdateDeploymentResponse
+// @Success 201 {object} deployment.CreateUpdateDeploymentResponse "Multi-cluster deployment has been created successfully. All install / upgrade operations on all targeted clusters returned with no errors."
+// @Success 207 {object} common.ErrorResponse "Partial failure, meaning that Multi-cluster deployment has been created successfully, however there was as least one failure on one of the target clusters"
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments [post]
@@ -89,19 +90,7 @@ func (n *API) Create(c *gin.Context) {
 		return
 	}
 
-	errMsg := ""
-	for _, status := range targetClusterStatus {
-		if len(status.Error) > 0 {
-			errMsg += fmt.Sprintln("operation failed on cluster " + status.ClusterName + " - " + status.Error)
-		}
-	}
-
-	if len(errMsg) > 0 {
-		c.JSON(http.StatusMultiStatus, pkgCommon.ErrorResponse{
-			Code:    http.StatusMultiStatus,
-			Message: errMsg,
-			Error:   errMsg,
-		})
+	if n.returnOperationErrorsIfAny(c, targetClusterStatus, deployment.ReleaseName) {
 		return
 	}
 
