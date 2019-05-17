@@ -104,7 +104,7 @@ func GetPublicIPAddressName(clusterName string) string {
 }
 
 func GetBackendAddressPoolIDsForCluster(ctx context.Context, client azure.LoadBalancersClient, cluster PKEOnAzureCluster) (bapIDs map[string]string, err error) {
-	lb, err := client.Get(ctx, cluster.ResourceGroup.Name, GetLoadBalancerName(cluster.Name), "backendAddressPools")
+	lb, err := client.Get(ctx, cluster.ResourceGroup.Name, GetLoadBalancerName(cluster.Name), "")
 	if err = emperror.Wrap(err, "failed to get load balancer"); err != nil {
 		return
 	}
@@ -119,7 +119,7 @@ func GetBackendAddressPoolIDsForCluster(ctx context.Context, client azure.LoadBa
 }
 
 func GetInboundNATPoolIDsForCluster(ctx context.Context, client azure.LoadBalancersClient, cluster PKEOnAzureCluster) (inpIDs map[string]string, err error) {
-	lb, err := client.Get(ctx, cluster.ResourceGroup.Name, GetLoadBalancerName(cluster.Name), "inboundNatPools")
+	lb, err := client.Get(ctx, cluster.ResourceGroup.Name, GetLoadBalancerName(cluster.Name), "")
 	if err = emperror.Wrap(err, "failed to get load balancer"); err != nil {
 		return
 	}
