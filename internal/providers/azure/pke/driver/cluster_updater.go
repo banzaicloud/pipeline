@@ -52,8 +52,9 @@ func MakeAzurePKEClusterUpdater(logger logrus.FieldLogger, pipelineExternalURL s
 	return AzurePKEClusterUpdater{
 		logger: logger,
 		paramsPreparer: AzurePKEClusterUpdateParamsPreparer{
-			logger: logger,
-			store:  store,
+			logger:  logger,
+			secrets: secrets,
+			store:   store,
 		},
 		pipelineExternalURL: pipelineExternalURL,
 		secrets:             secrets,
@@ -153,9 +154,12 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		}
 	}
 
-	toDeleteVMSSNames := make([]string, len(nodePoolsToDelete))
+	toDeleteVMSSNames := make([]workflow.NodePoolAndVMSS, len(nodePoolsToDelete))
 	for i, np := range nodePoolsToDelete {
-		toDeleteVMSSNames[i] = np.Name
+		toDeleteVMSSNames[i] = workflow.NodePoolAndVMSS{
+			NodePoolName: np.Name,
+			VMSSName:     pke.GetVMSSName(cluster.Name, np.Name),
+		}
 		// will only be persisted by the successful workflow
 	}
 
@@ -297,8 +301,11 @@ func sortSubnets(nodePoolsToCreate, nodePoolsToUpdate []NodePool, nodePoolsToDel
 }
 
 type AzurePKEClusterUpdateParamsPreparer struct {
-	logger logrus.FieldLogger
-	store  pke.AzurePKEClusterStore
+	logger  logrus.FieldLogger
+	secrets interface {
+		Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
+	}
+	store pke.AzurePKEClusterStore
 }
 
 func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params *AzurePKEClusterUpdateParams) error {
@@ -311,11 +318,23 @@ func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params
 	} else if err != nil {
 		return emperror.Wrap(err, "failed to get cluster by ID")
 	}
+	sir, err := p.secrets.Get(cluster.OrganizationID, cluster.SecretID)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get cluster secret")
+	}
+	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
+	if err != nil {
+		return emperror.Wrap(err, "failed to create cloud connection")
+	}
 	nodePoolsPreparer := NodePoolsPreparer{
 		logger:    p.logger,
 		namespace: "NodePools",
 		dataProvider: clusterUpdaterNodePoolPreparerDataProvider{
-			cluster: cluster,
+			cluster:               cluster,
+			resourceGroupName:     cluster.ResourceGroup.Name,
+			subnetsClient:         *cc.GetSubnetsClient(),
+			virtualNetworkName:    cluster.VirtualNetwork.Name,
+			virtualNetworksClient: *cc.GetVirtualNetworksClient(),
 		},
 	}
 	if err := nodePoolsPreparer.Prepare(ctx, params.NodePools); err != nil {
@@ -330,6 +349,10 @@ type clusterUpdaterNodePoolPreparerDataProvider struct {
 	subnetsClient         pkgAzure.SubnetsClient
 	virtualNetworkName    string
 	virtualNetworksClient pkgAzure.VirtualNetworksClient
+}
+
+func (p clusterUpdaterNodePoolPreparerDataProvider) getExistingNodePools(ctx context.Context) ([]pke.NodePool, error) {
+	return p.cluster.NodePools, nil
 }
 
 func (p clusterUpdaterNodePoolPreparerDataProvider) getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error) {

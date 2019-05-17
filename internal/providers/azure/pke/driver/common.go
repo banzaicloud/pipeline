@@ -94,10 +94,11 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 			InstanceCount:                uint(np.Count),
 			InstanceType:                 np.InstanceType,
 			BackendAddressPoolName:       bapn,
-			InboundNATPoolName:           inpn,
 			OutputBackendAddressPoolName: pke.GetOutboundBackendAddressPoolName(),
+			InboundNATPoolName:           inpn,
 			Location:                     f.Location,
 			Name:                         vmssName,
+			NodePoolName:                 np.Name,
 			SSHPublicKey:                 f.SSHPublicKey,
 			SubnetName:                   np.Subnet.Name,
 			UserDataScriptParams: map[string]string{
