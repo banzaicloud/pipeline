@@ -15,6 +15,8 @@
 package istio
 
 import (
+	"time"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/utils"
@@ -157,6 +159,7 @@ func istioServiceScrapeConfig(jobName string, relabelConfigRegex string) *promet
 		JobName:                jobName,
 		ServiceDiscoveryConfig: kubernetesSDEndpointsRole,
 		RelabelConfigs:         endpointsRoleRelabelConfigs(relabelConfigRegex),
+		ScrapeInterval:         model.Duration(time.Duration(5) * time.Second),
 	}
 }
 
