@@ -299,7 +299,7 @@ func init() {
 	viper.SetDefault(IstioPilotImage, "banzaicloud/istio-pilot:1.1.4-bzc")
 	viper.SetDefault(IstioMixerImage, "banzaicloud/istio-mixer:1.1.4-bzc")
 
-	viper.SetDefault(UistioChartVersion, "0.0.4")
+	viper.SetDefault(UistioChartVersion, "0.0.5")
 	viper.SetDefault(UistioChartName, "uistio")
 
 	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.2")
