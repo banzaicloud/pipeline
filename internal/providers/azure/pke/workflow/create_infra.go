@@ -135,6 +135,7 @@ type VirtualMachineScaleSetTemplate struct {
 	Location                     string
 	Name                         string
 	NetworkSecurityGroupName     string
+	NodePoolName                 string
 	SSHPublicKey                 string
 	SubnetName                   string
 	UserDataScriptParams         map[string]string
@@ -151,10 +152,10 @@ func (t VirtualMachineScaleSetTemplate) Render(
 ) VirtualMachineScaleSet {
 	t.UserDataScriptParams["PublicAddress"] = publicIPAddressProvider.Get()
 	return VirtualMachineScaleSet{
-		AdminUsername:          t.AdminUsername,
-		Image:                  t.Image,
-		InstanceCount:          int64(t.InstanceCount),
-		InstanceType:           t.InstanceType,
+		AdminUsername: t.AdminUsername,
+		Image:         t.Image,
+		InstanceCount: int64(t.InstanceCount),
+		InstanceType:  t.InstanceType,
 		LBBackendAddressPoolIDs: []string{
 			backendAddressPoolIDProvider.Get(t.BackendAddressPoolName),
 			backendAddressPoolIDProvider.Get(t.OutputBackendAddressPoolName),

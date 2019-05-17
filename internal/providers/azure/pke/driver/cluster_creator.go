@@ -417,6 +417,10 @@ type clusterCreatorNodePoolPreparerDataProvider struct {
 	network net.IPNet
 }
 
+func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePools(ctx context.Context) ([]pke.NodePool, error) {
+	return nil, nil
+}
+
 func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error) {
 	return pke.NodePool{}, notExistsYetError{}
 }

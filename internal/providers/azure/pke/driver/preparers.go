@@ -33,6 +33,7 @@ type NodePoolsPreparer struct {
 	logger       logrus.FieldLogger
 	namespace    string
 	dataProvider interface {
+		getExistingNodePools(ctx context.Context) ([]pke.NodePool, error)
 		getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
 		getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error)
 		getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error)
@@ -49,15 +50,34 @@ func (p NodePoolsPreparer) getNodePoolPreparer(i int) NodePoolPreparer {
 
 // Prepare validates and provides defaults for a set of NodePools
 func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) error {
-	names := make(map[string]bool)
+	// check incoming node pool list item uniqueness
+	{
+		names := make(map[string]bool)
+		for _, np := range nodePools {
+			if names[np.Name] {
+				return validationErrorf("multiple node pools named %q", np.Name)
+			}
+			names[np.Name] = true
+		}
+	}
+
 	subnets := make(map[string]string)
+	{
+		nps, err := p.dataProvider.getExistingNodePools(ctx)
+		if err != nil {
+			return emperror.Wrap(err, "failed to get existing node pools")
+		}
+		for _, np := range nps {
+			cidr, err := p.dataProvider.getSubnetCIDR(ctx, np)
+			if err != nil {
+				return emperror.Wrap(err, "failed to get subnet CIDR of existing node pool")
+			}
+			subnets[np.Subnet.Name] = cidr
+		}
+	}
 
 	for i := range nodePools {
 		np := &nodePools[i]
-
-		if names[np.Name] {
-			return validationErrorf("multiple node pools named %q", np.Name)
-		}
 
 		if err := p.getNodePoolPreparer(i).Prepare(ctx, np); err != nil {
 			return emperror.Wrap(err, "failed to prepare node pool")
@@ -74,7 +94,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 			if err != nil {
 				return emperror.Wrap(err, "failed to parse CIDR")
 			}
-			if sameNet(*n1, *n2) {
+			if !sameNet(*n1, *n2) {
 				return emperror.With(errors.New("found identically named subnets with different network ranges"), "subnetName", np.Subnet.Name, "cidr1", cidr, "cidr2", np.Subnet.CIDR)
 			}
 		}
@@ -90,7 +110,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 			if r := reservedRanges[n.IP.String()]; r != nil {
 				return emperror.With(errors.New("overlapping network ranges assigned to subnets"), "cidr1", r.String(), "cidr2", cidr)
 			}
-			reservedRanges[cidr] = n
+			reservedRanges[n.IP.String()] = n
 		}
 	}
 
@@ -180,8 +200,9 @@ func (p NodePoolPreparer) prepareNewNodePool(ctx context.Context, nodePool *Node
 		return validationErrorf("%s.InstanceType must be specified", p.namespace)
 	}
 
-	if len(nodePool.Roles) < 1 {
-		return validationErrorf("%s.Roles must not be empty", p.namespace)
+	if len(nodePool.Roles) == 0 {
+		nodePool.Roles = []string{"worker"}
+		p.logger.Debugf("%s.Roles not specified, defaulting to %v", p.namespace, nodePool.Roles)
 	}
 
 	if nodePool.Min > nodePool.Max {
