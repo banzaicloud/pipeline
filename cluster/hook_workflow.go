@@ -92,6 +92,7 @@ type RunPostHookActivityInput struct {
 	ClusterID uint
 	HookName  string
 	HookParam interface{}
+	Status    string
 }
 
 type RunPostHookActivity struct {
@@ -138,7 +139,11 @@ func (a *RunPostHookActivity) Execute(ctx context.Context, input RunPostHookActi
 		return err
 	}
 
-	if err := cluster.SetStatus(pkgCluster.Creating, statusMsg); err != nil {
+	status := input.Status
+	if status == "" {
+		status = pkgCluster.Creating
+	}
+	if err := cluster.SetStatus(status, statusMsg); err != nil {
 		return emperror.Wrap(err, "failed to write status to db")
 	}
 
