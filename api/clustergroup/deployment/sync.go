@@ -16,7 +16,6 @@ package deployment
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -37,7 +36,8 @@ import (
 // @Param orgid path uint true "Organization ID"
 // @Param clusterGroupId path uint true "Cluster Group ID"
 // @Param deploymentName path string true "release name of a cluster group deployment"
-// @Success 202 {object} deployment.TargetClusterStatus
+// @Success 202 {object} deployment.TargetClusterStatus "Multi-cluster deployment has been synced successfully. All upgrade / install operations on all targeted clusters returned with no errors."
+// @Success 207 {object} common.ErrorResponse "Partial failure, meaning that there was as least one failure on one of the target clusters"
 // @Failure 400 {object} common.ErrorResponse Deployment Not Found
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName}/sync [put]
 // @Security bearerAuth
@@ -76,22 +76,13 @@ func (n *API) Sync(c *gin.Context) {
 		return
 	}
 
-	errMsg := ""
-	for _, status := range response {
-		if len(status.Error) > 0 {
-			errMsg += fmt.Sprintln("operation failed on cluster " + status.ClusterName + " - " + status.Error)
+	if !n.returnOperationErrorsIfAny(c, response, name) {
+		response, err := n.deploymentManager.GetDeployment(clusterGroup, name)
+		if err != nil {
+			n.errorHandler.Handle(c, err)
+			return
 		}
+		c.JSON(http.StatusAccepted, response.TargetClustersStatus)
 	}
 
-	if len(errMsg) > 0 {
-		c.JSON(http.StatusMultiStatus, pkgCommon.ErrorResponse{
-			Code:    http.StatusMultiStatus,
-			Message: errMsg,
-			Error:   errMsg,
-		})
-	} else {
-		c.JSON(http.StatusAccepted, response)
-	}
-
-	return
 }

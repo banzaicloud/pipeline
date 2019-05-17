@@ -16,7 +16,6 @@ package deployment
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -24,7 +23,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // @Summary Delete Cluster Group Deployment
@@ -36,7 +34,8 @@ import (
 // @Param clusterGroupId path uint true "Cluster Group ID"
 // @Param deploymentName path string true "release name of a cluster group deployment"
 // @Param force query boolean false "if true cluster group deployment gets deleted even if some deployments can not be deleted from each target cluster"
-// @Success 202 {object} deployment.TargetClusterStatus
+// @Success 202 {object} deployment.TargetClusterStatus "Multi-cluster deployment has been deleted successfully. All delete operations on all targeted clusters returned with no errors."
+// @Success 207 {object} common.ErrorResponse "Partial failure, meaning that there was as least one failure on one of the target clusters"
 // @Failure 400 {object} common.ErrorResponse Deployment Not Found
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} [delete]
 // @Security bearerAuth
@@ -67,19 +66,7 @@ func (n *API) Delete(c *gin.Context) {
 		return
 	}
 
-	errMsg := ""
-	for _, status := range response {
-		if len(status.Error) > 0 {
-			errMsg += fmt.Sprintln("operation failed on cluster " + status.ClusterName + " - " + status.Error)
-		}
-	}
-
-	if len(errMsg) > 0 {
-		c.JSON(http.StatusMultiStatus, pkgCommon.ErrorResponse{
-			Code:    http.StatusMultiStatus,
-			Message: errMsg,
-			Error:   errMsg,
-		})
+	if n.returnOperationErrorsIfAny(c, response, name) {
 		return
 	}
 

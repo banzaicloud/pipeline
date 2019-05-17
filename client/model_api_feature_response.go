@@ -17,5 +17,6 @@ type ApiFeatureResponse struct {
 	LastReconcileError string                 `json:"lastReconcileError,omitempty"`
 	Name               string                 `json:"name,omitempty"`
 	Properties         map[string]interface{} `json:"properties,omitempty"`
+	ReconcileState     string                 `json:"reconcileState,omitempty"`
 	Status             map[string]interface{} `json:"status,omitempty"`
 }

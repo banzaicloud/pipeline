@@ -7147,7 +7147,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/deployment.CreateUpdateDeploymentResponse'
-          description: Created
+          description: Multi-cluster deployment has been created successfully. All install / upgrade operations on all targeted clusters returned with no errors.
+        207:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/common.ErrorResponse'
+          description: Partial failure, meaning that Multi-cluster deployment has been created successfully, however there was as least one failure on one of the target clusters
         400:
           content:
             application/json:
@@ -7209,7 +7215,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/deployment.TargetClusterStatus'
-          description: Accepted
+          description: Multi-cluster deployment has been deleted successfully. All delete operations on all targeted clusters returned with no errors.
+        207:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/common.ErrorResponse'
+          description: Partial failure, meaning that there was as least one failure on one of the target clusters
         400:
           content:
             application/json:
@@ -7310,7 +7322,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/deployment.CreateUpdateDeploymentResponse'
-          description: Accepted
+          description: Multi-cluster deployment has been updated successfully. All upgrade / install operations on all targeted clusters returned with no errors.
+        207:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/common.ErrorResponse'
+          description: Partial failure, meaning that Multi-cluster deployment has been update successfully, however there was as least one failure on one of the target clusters
         400:
           content:
             application/json:
@@ -7364,7 +7382,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/deployment.TargetClusterStatus'
-          description: Accepted
+          description: Multi-cluster deployment has been synced successfully. All upgrade / install operations on all targeted clusters returned with no errors.
+        207:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/common.ErrorResponse'
+          description: Partial failure, meaning that there was as least one failure on one of the target clusters
         400:
           content:
             application/json:
@@ -12782,12 +12806,12 @@ components:
         - enabledFeatures
         members:
         - cloud: google
-          name: name
+          name: clusterName
           id: 1001
           distribution: gke
           status: status
         - cloud: google
-          name: name
+          name: clusterName
           id: 1001
           distribution: gke
           status: status
@@ -12850,17 +12874,18 @@ components:
           - enabledFeatures
           members:
           - cloud: google
-            name: name
+            name: clusterName
             id: 1001
             distribution: gke
             status: status
           - cloud: google
-            name: name
+            name: clusterName
             id: 1001
             distribution: gke
             status: status
           name: name
           id: 10
+        reconcileState: reconcileState
         name: name
         enabled: true
         properties: '{}'
@@ -12876,13 +12901,15 @@ components:
           type: string
         properties:
           type: object
+        reconcileState:
+          type: string
         status:
           type: object
       type: object
     api.Member:
       example:
         cloud: google
-        name: name
+        name: clusterName
         id: 1001
         distribution: gke
         status: status
@@ -12898,6 +12925,7 @@ components:
           format: int32
           type: integer
         name:
+          example: clusterName
           type: string
         status:
           type: string
@@ -12974,6 +13002,7 @@ components:
           clusterName: clusterName
           clusterId: 0
           distribution: distribution
+          error: error
           version: version
           status: status
         - cloud: cloud
@@ -12981,6 +13010,7 @@ components:
           clusterName: clusterName
           clusterId: 0
           distribution: distribution
+          error: error
           version: version
           status: status
       properties:
@@ -13007,6 +13037,7 @@ components:
           clusterName: clusterName
           clusterId: 0
           distribution: distribution
+          error: error
           version: version
           status: status
         - cloud: cloud
@@ -13014,6 +13045,7 @@ components:
           clusterName: clusterName
           clusterId: 0
           distribution: distribution
+          error: error
           version: version
           status: status
         chart: chart
@@ -13084,6 +13116,7 @@ components:
         clusterName: clusterName
         clusterId: 0
         distribution: distribution
+        error: error
         version: version
         status: status
       properties:
@@ -13095,6 +13128,8 @@ components:
         clusterName:
           type: string
         distribution:
+          type: string
+        error:
           type: string
         stale:
           type: boolean
