@@ -195,6 +195,7 @@ func (s gormAzurePKEClusterStore) clusterDetails() *gorm.DB {
 func (s gormAzurePKEClusterStore) CreateNodePool(clusterID uint, nodePool pke.NodePool) error {
 	var np gormAzurePKENodePoolModel
 	fillModelFromNodePool(&np, nodePool)
+	np.ClusterID = clusterID
 	return getError(s.db.Create(&np), "failed to create node pool model")
 }
 
