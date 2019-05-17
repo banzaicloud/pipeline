@@ -79,4 +79,16 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator 
 
 	setClusterStatusActivity := azurepkeworkflow.MakeSetClusterStatusActivity(store)
 	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.SetClusterStatusActivityName})
+
+	updateVMSSActivity := azurepkeworkflow.MakeUpdateVMSSActivity(azureClientFactory)
+	activity.RegisterWithOptions(updateVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.UpdateVMSSActivityName})
+
+	createSubnetActivity := azurepkeworkflow.MakeCreateSubnetActivity(azureClientFactory)
+	activity.RegisterWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateSubnetActivityName})
+
+	deleteNodePoolFromStoreActivity := azurepkeworkflow.MakeDeleteNodePoolFromStoreActivity(store)
+	activity.RegisterWithOptions(deleteNodePoolFromStoreActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteNodePoolFromStoreActivityName})
+
+	deleteSubnetActivity := azurepkeworkflow.MakeDeleteSubnetActivity(azureClientFactory)
+	activity.RegisterWithOptions(deleteSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteSubnetActivityName})
 }
