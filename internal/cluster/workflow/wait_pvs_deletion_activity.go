@@ -63,7 +63,7 @@ func (a WaitPersistentVolumesDeletionActivity) Execute(ctx context.Context, inpu
 
 	// watch persistent volumes
 	watcher, err := client.CoreV1().PersistentVolumes().Watch(metav1.ListOptions{})
-	if err = emperror.Wrap(err, "failed start watcher for persistent volumes") ;err != nil {
+	if err = emperror.Wrap(err, "failed start watcher for persistent volumes"); err != nil {
 		return
 	}
 	defer watcher.Stop()
