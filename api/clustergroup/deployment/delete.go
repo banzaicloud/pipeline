@@ -16,6 +16,7 @@ package deployment
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -23,6 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // @Summary Delete Cluster Group Deployment
@@ -62,6 +64,22 @@ func (n *API) Delete(c *gin.Context) {
 	response, err := n.deploymentManager.DeleteDeployment(clusterGroup, name, force)
 	if err != nil {
 		n.errorHandler.Handle(c, err)
+		return
+	}
+
+	errMsg := ""
+	for _, status := range response {
+		if len(status.Error) > 0 {
+			errMsg += fmt.Sprintln("operation failed on cluster " + status.ClusterName + " - " + status.Error)
+		}
+	}
+
+	if len(errMsg) > 0 {
+		c.JSON(http.StatusMultiStatus, pkgCommon.ErrorResponse{
+			Code:    http.StatusMultiStatus,
+			Message: errMsg,
+			Error:   errMsg,
+		})
 		return
 	}
 

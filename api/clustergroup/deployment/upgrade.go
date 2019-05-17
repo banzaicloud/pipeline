@@ -16,6 +16,7 @@ package deployment
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -80,11 +81,28 @@ func (n *API) Upgrade(c *gin.Context) {
 		return
 	}
 
+	errMsg := ""
+	for _, status := range targetClusterStatus {
+		if len(status.Error) > 0 {
+			errMsg += fmt.Sprintln("operation failed on cluster " + status.ClusterName + " - " + status.Error)
+		}
+	}
+
+	if len(errMsg) > 0 {
+		c.JSON(http.StatusMultiStatus, pkgCommon.ErrorResponse{
+			Code:    http.StatusMultiStatus,
+			Message: errMsg,
+			Error:   errMsg,
+		})
+		return
+	}
+
 	response := pkgDep.CreateUpdateDeploymentResponse{
 		ReleaseName:    deployment.ReleaseName,
 		TargetClusters: targetClusterStatus,
 	}
 
 	c.JSON(http.StatusAccepted, response)
+
 	return
 }

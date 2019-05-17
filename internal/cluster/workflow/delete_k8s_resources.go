@@ -42,6 +42,17 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
+	// wait for PVs created through PVCs to be deleted
+	var waitPeristentVolumeDelete workflow.Future
+	{
+		activityInput := WaitPersistentVolumesDeletionActivityInput{
+			OrganizationID: input.OrganizationID,
+			ClusterName:    input.ClusterName,
+			K8sSecretID:    input.K8sSecretID,
+		}
+		waitPeristentVolumeDelete = workflow.ExecuteActivity(ctx, WaitPersistentVolumesDeletionActivityName, activityInput)
+	}
+
 	// delete all Helm deployments
 	{
 		activityInput := DeleteHelmDeploymentsActivityInput{
@@ -108,6 +119,10 @@ func DeleteK8sResourcesWorkflow(ctx workflow.Context, input DeleteK8sResourcesWo
 		if err := workflow.ExecuteActivity(ctx, DeleteUserNamespacesActivityName, activityInput).Get(ctx, &deleteUserNamespacesOutput); err != nil {
 			logger.Warn(emperror.Wrap(err, "failed to delete user namespaces"))
 		}
+	}
+
+	if err := waitPeristentVolumeDelete.Get(ctx, nil); err != nil {
+		return emperror.Wrap(err, "waiting for persistent volumes to be deleted failed")
 	}
 
 	return nil

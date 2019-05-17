@@ -100,8 +100,8 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			"enabled":    "true",
 			"secretName": loggingParam.GenTLSForLogging.GenTLSSecretName,
 		},
-		"affinity":    getHeadNodeAffinity(cluster),
-		"tolerations": getHeadNodeTolerations(),
+		"affinity":    GetHeadNodeAffinity(cluster),
+		"tolerations": GetHeadNodeTolerations(),
 	}
 	operatorYamlValues, err := yaml.Marshal(operatorValues)
 	if err != nil {

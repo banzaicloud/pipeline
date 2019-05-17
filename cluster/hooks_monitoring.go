@@ -143,24 +143,24 @@ func InstallMonitoring(cluster CommonCluster) error {
 			"adminUser":     grafanaAdminUsername,
 			"adminPassword": grafanaAdminPass,
 			"ingress":       map[string][]string{"hosts": {host}},
-			"affinity":      getHeadNodeAffinity(cluster),
-			"tolerations":   getHeadNodeTolerations(),
+			"affinity":      GetHeadNodeAffinity(cluster),
+			"tolerations":   GetHeadNodeTolerations(),
 		},
 		"prometheus": map[string]interface{}{
 			"alertmanager": map[string]interface{}{
-				"affinity":    getHeadNodeAffinity(cluster),
-				"tolerations": getHeadNodeTolerations(),
+				"affinity":    GetHeadNodeAffinity(cluster),
+				"tolerations": GetHeadNodeTolerations(),
 			},
 			"kubeStateMetrics": map[string]interface{}{
-				"affinity":    getHeadNodeAffinity(cluster),
-				"tolerations": getHeadNodeTolerations(),
+				"affinity":    GetHeadNodeAffinity(cluster),
+				"tolerations": GetHeadNodeTolerations(),
 			},
 			"nodeExporter": map[string]interface{}{
-				"tolerations": getHeadNodeTolerations(),
+				"tolerations": GetHeadNodeTolerations(),
 			},
 			"server": map[string]interface{}{
-				"affinity":    getHeadNodeAffinity(cluster),
-				"tolerations": getHeadNodeTolerations(),
+				"affinity":    GetHeadNodeAffinity(cluster),
+				"tolerations": GetHeadNodeTolerations(),
 				"ingress": map[string]interface{}{
 					"enabled": true,
 					"annotations": map[string]string{
@@ -173,8 +173,8 @@ func InstallMonitoring(cluster CommonCluster) error {
 				},
 			},
 			"pushgateway": map[string]interface{}{
-				"affinity":    getHeadNodeAffinity(cluster),
-				"tolerations": getHeadNodeTolerations(),
+				"affinity":    GetHeadNodeAffinity(cluster),
+				"tolerations": GetHeadNodeTolerations(),
 			},
 		},
 	}
