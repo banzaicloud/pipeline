@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
@@ -127,6 +128,7 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config, i
 	istio.Spec.MTLS = config.EnableMTLS
 	istio.Spec.AutoInjectionNamespaces = config.AutoSidecarInjectNamespaces
 	istio.Spec.Version = istioVersion
+	istio.Spec.ImagePullPolicy = corev1.PullAlways
 	istio.Spec.Gateways.IngressConfig.MaxReplicas = 1
 	istio.Spec.Gateways.EgressConfig.MaxReplicas = 1
 	istio.Spec.Pilot = v1beta1.PilotConfiguration{
