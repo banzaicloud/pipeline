@@ -17,6 +17,7 @@ package workflow
 import (
 	"time"
 
+	"github.com/banzaicloud/pipeline/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/workflow"
@@ -179,6 +180,18 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			}
 		}
 	}
-	// TODO: redeploy autoscaler
-	return nil
+	// redeploy autoscaler
+	{
+		activityInput := cluster.RunPostHookActivityInput{
+			ClusterID: input.ClusterID,
+			HookName:  pkgCluster.InstallClusterAutoscalerPostHook,
+			Status:    pkgCluster.Updating,
+		}
+
+		err := workflow.ExecuteActivity(ctx, cluster.RunPostHookActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 }
