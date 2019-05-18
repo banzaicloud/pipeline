@@ -56,6 +56,7 @@ type LoadBalancer struct {
 	FrontendIPConfigurations []FrontendIPConfiguration
 	InboundNATPools          []InboundNATPool
 	LoadBalancingRules       []LoadBalancingRule
+	OutboundNATRules         []OutboundNATRule
 	Probes                   []Probe
 }
 
@@ -87,6 +88,12 @@ type LoadBalancingRule struct {
 	FrontendPort        int32
 	Probe               *Probe
 	Protocol            string
+}
+
+type OutboundNATRule struct {
+	Name               string
+	BackendAddressPool *BackendAddressPool
+	FrontendIPConfigs  []*FrontendIPConfiguration
 }
 
 type Probe struct {
@@ -238,6 +245,32 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 		}
 	}
 
+	outboundNATRules := make([]network.OutboundNatRule, len(input.LoadBalancer.OutboundNATRules))
+	for i, onr := range input.LoadBalancer.OutboundNATRules {
+		var bapRef *network.SubResource
+		if onr.BackendAddressPool != nil {
+			bapRef = &network.SubResource{
+				ID: to.StringPtr(getLoadBalancerBackendAddressPoolID(subscriptionID, input.ResourceGroupName, input.LoadBalancer.Name, onr.BackendAddressPool.Name)),
+			}
+		}
+		var ficRefs []network.SubResource
+		if l := len(onr.FrontendIPConfigs); l != 0 {
+			ficRefs = make([]network.SubResource, l)
+			for i, fic := range onr.FrontendIPConfigs {
+				ficRefs[i] = network.SubResource{
+					ID: to.StringPtr(getLoadBalancerFrontendIPConfigurationID(subscriptionID, input.ResourceGroupName, input.LoadBalancer.Name, fic.Name)),
+				}
+			}
+		}
+		outboundNATRules[i] = network.OutboundNatRule{
+			Name: to.StringPtr(onr.Name),
+			OutboundNatRulePropertiesFormat: &network.OutboundNatRulePropertiesFormat{
+				BackendAddressPool:       bapRef,
+				FrontendIPConfigurations: &ficRefs,
+			},
+		}
+	}
+
 	probes := make([]network.Probe, len(input.LoadBalancer.Probes))
 	for i, p := range input.LoadBalancer.Probes {
 		probes[i] = network.Probe{
@@ -255,6 +288,7 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 			FrontendIPConfigurations: &frontendIPConfigurations,
 			InboundNatPools:          &inboundNATPools,
 			LoadBalancingRules:       &loadBalancingRules,
+			OutboundNatRules:         &outboundNATRules,
 			Probes:                   &probes,
 		},
 		Location: to.StringPtr(input.LoadBalancer.Location),

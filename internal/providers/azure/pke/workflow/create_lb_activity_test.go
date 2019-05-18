@@ -87,7 +87,8 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 						Protocol: "Tcp",
 					},
 				},
-				SKU: "Standard",
+				SKU:           "Standard",
+				OutboundRules: []OutboundRule{},
 			},
 		}
 		expected := network.LoadBalancer{
@@ -152,6 +153,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 						Name: to.StringPtr("test-probe"),
 					},
 				},
+				OutboundRules: &[]network.OutboundRule{},
 			},
 			Location: to.StringPtr("test-location"),
 			Sku: &network.LoadBalancerSku{
