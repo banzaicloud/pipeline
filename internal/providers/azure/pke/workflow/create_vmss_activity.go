@@ -57,20 +57,20 @@ type CreateVMSSActivityInput struct {
 
 // VirtualMachineScaleSet represents an Azure virtual machine scale set
 type VirtualMachineScaleSet struct {
-	AdminUsername          string
-	Image                  Image
-	InstanceCount          int64
-	InstanceType           string
-	LBBackendAddressPoolID string
-	LBInboundNATPoolID     string
-	Location               string
-	Name                   string
-	NetworkSecurityGroupID string
-	SSHPublicKey           string
-	SubnetID               string
-	UserDataScriptParams   map[string]string
-	UserDataScriptTemplate string
-	Zones                  []string
+	AdminUsername           string
+	Image                   Image
+	InstanceCount           int64
+	InstanceType            string
+	LBBackendAddressPoolIDs []string
+	LBInboundNATPoolID      string
+	Location                string
+	Name                    string
+	NetworkSecurityGroupID  string
+	SSHPublicKey            string
+	SubnetID                string
+	UserDataScriptParams    map[string]string
+	UserDataScriptTemplate  string
+	Zones                   []string
 }
 
 type Image struct {
@@ -155,12 +155,15 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 }
 
 func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetParams(UserDataScript string) compute.VirtualMachineScaleSet {
-	var bapRefs *[]compute.SubResource
-	if input.ScaleSet.LBBackendAddressPoolID != "" {
-		bapRefs = &[]compute.SubResource{
-			{
-				ID: to.StringPtr(input.ScaleSet.LBBackendAddressPoolID),
-			},
+	var bapRefs []compute.SubResource
+	if input.ScaleSet.LBBackendAddressPoolIDs != nil {
+		for _, id := range input.ScaleSet.LBBackendAddressPoolIDs {
+			if id != "" {
+				bapRef := compute.SubResource{
+					ID: to.StringPtr(id),
+				}
+				bapRefs = append(bapRefs, bapRef)
+			}
 		}
 	}
 	var inpRefs *[]compute.SubResource
@@ -207,7 +210,7 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 										Name: to.StringPtr(fmt.Sprintf("%s-pip-1", input.ScaleSet.Name)),
 										VirtualMachineScaleSetIPConfigurationProperties: &compute.VirtualMachineScaleSetIPConfigurationProperties{
 											Primary:                         to.BoolPtr(true),
-											LoadBalancerBackendAddressPools: bapRefs,
+											LoadBalancerBackendAddressPools: &bapRefs,
 											LoadBalancerInboundNatPools:     inpRefs,
 											Subnet: &compute.APIEntityReference{
 												ID: to.StringPtr(input.ScaleSet.SubnetID),
