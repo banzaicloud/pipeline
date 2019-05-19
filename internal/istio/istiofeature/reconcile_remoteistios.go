@@ -386,7 +386,7 @@ func (m *MeshReconciler) getRemoteClustersByExistingRemoteIstioCRs() (map[uint]c
 		if len(labels) == 0 {
 			continue
 		}
-		cID := remoteistio.Labels["cluster.banzaicloud.com/id"]
+		cID := remoteistio.Labels[clusterIDLabel]
 		if cID == "" {
 			continue
 		}
