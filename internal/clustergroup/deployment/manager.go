@@ -366,6 +366,9 @@ func (m CGDeploymentManager) updateDeploymentModel(clusterGroup *api.ClusterGrou
 				if err != nil {
 					return err
 				}
+				if currentValues == nil {
+					currentValues = make(map[string]interface{})
+				}
 				valuesOverride = helm.MergeValues(currentValues, valuesOverride)
 			}
 
