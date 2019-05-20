@@ -57,13 +57,15 @@ type DeploymentInfo struct {
 func (c *DeploymentInfo) GetValuesForCluster(clusterName string) ([]byte, error) {
 	// copy c.values into a new map before merging
 	values := make(map[string]interface{})
-	m, err := json.Marshal(c.Values)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(m, &values)
-	if err != nil {
-		return nil, err
+	if c.Values != nil {
+		m, err := json.Marshal(c.Values)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(m, &values)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	clusterSpecificOverrides, exists := c.ValueOverrides[clusterName]
