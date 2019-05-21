@@ -75,7 +75,7 @@ type gormAzurePKEClusterModel struct {
 	KubernetesVersion string
 
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
-	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID"`
+	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 }
 
 func (gormAzurePKEClusterModel) TableName() string {
