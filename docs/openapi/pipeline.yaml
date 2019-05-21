@@ -8945,6 +8945,10 @@ components:
 
         CreateSecretResponse:
             type: object
+            required:
+                - id
+                - name
+                - type
             properties:
                 name:
                     type: string
@@ -8960,6 +8964,7 @@ components:
                     example: "Validation failed"
                 updatedAt:
                     type: string
+                    format: date-time
                     example: "2018-07-01T08:27:23.2636996Z"
                 updatedBy:
                     type: string
