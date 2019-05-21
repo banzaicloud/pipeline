@@ -11,12 +11,16 @@
 
 package client
 
+import (
+	"time"
+)
+
 type CreateSecretResponse struct {
-	Name      string `json:"name,omitempty"`
-	Type      string `json:"type,omitempty"`
-	Id        string `json:"id,omitempty"`
-	Error     string `json:"error,omitempty"`
-	UpdatedAt string `json:"updatedAt,omitempty"`
-	UpdatedBy string `json:"updatedBy,omitempty"`
-	Version   int32  `json:"version,omitempty"`
+	Name      string    `json:"name"`
+	Type      string    `json:"type"`
+	Id        string    `json:"id"`
+	Error     string    `json:"error,omitempty"`
+	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+	UpdatedBy string    `json:"updatedBy,omitempty"`
+	Version   int32     `json:"version,omitempty"`
 }

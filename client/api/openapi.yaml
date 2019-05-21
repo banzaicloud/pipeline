@@ -9911,7 +9911,7 @@ components:
         type: google
         error: Validation failed
         version: 1
-        updatedAt: 2018-07-01T08:27:23.2636996Z
+        updatedAt: 2000-01-23T04:56:07.000+00:00
       properties:
         name:
           example: My-google-secret
@@ -9926,7 +9926,7 @@ components:
           example: Validation failed
           type: string
         updatedAt:
-          example: 2018-07-01T08:27:23.2636996Z
+          format: date-time
           type: string
         updatedBy:
           example: username
@@ -9935,6 +9935,10 @@ components:
           example: 1
           format: int32
           type: integer
+      required:
+      - id
+      - name
+      - type
       type: object
     CreateSecretRequest:
       example:
