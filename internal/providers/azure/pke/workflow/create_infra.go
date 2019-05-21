@@ -101,7 +101,7 @@ func (f LoadBalancerFactory) Make(publicIPAddressIDProvider IDProvider) LoadBala
 				Protocol:            "Tcp",
 			},
 		},
-		OutboundNATRules: []OutboundNATRule{
+		OutboundRules: []OutboundRule{
 			{
 				Name:               "outbound-nat-rule",
 				BackendAddressPool: &obap,
