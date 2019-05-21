@@ -91,4 +91,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator 
 
 	deleteSubnetActivity := azurepkeworkflow.MakeDeleteSubnetActivity(azureClientFactory)
 	activity.RegisterWithOptions(deleteSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteSubnetActivityName})
+
+	collectUpdateClusterProvidersActivity := azurepkeworkflow.MakeCollectUpdateClusterProvidersActivity(azureClientFactory)
+	activity.RegisterWithOptions(collectUpdateClusterProvidersActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CollectUpdateClusterProvidersActivityName})
 }

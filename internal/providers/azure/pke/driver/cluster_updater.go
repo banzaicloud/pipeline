@@ -163,48 +163,16 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		// will only be persisted by the successful workflow
 	}
 
-	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
-	if err != nil {
-		return emperror.Wrap(err, "failed to create cloud connection")
-	}
-
-	backendAddressPoolIDs, err := pke.GetBackendAddressPoolIDsForCluster(ctx, *cc.GetLoadBalancersClient(), cluster)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get backend address pool IDs for cluster")
-	}
-
-	inboundNATPoolIDs, err := pke.GetInboundNATPoolIDsForCluster(ctx, *cc.GetLoadBalancersClient(), cluster)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get inbound NAT pool IDs for cluster")
-	}
-
-	publicIPAddress, err := pke.GetPublicIPAddressForCluster(ctx, *cc.GetPublicIPAddressesClient(), cluster)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get public IP address for cluster")
-	}
-
-	routeTableID, err := pke.GetRouteTableIDForCluster(ctx, *cc.GetRouteTablesClient(), cluster)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get route table ID for cluster")
-	}
-
-	securityGroupIDs, err := pke.GetSecurityGroupIDsForCluster(ctx, *cc.GetSecurityGroupsClient(), cluster)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get security group IDs for cluster")
-	}
-
-	subnetIDs, err := pke.GetSubnetIDsForCluster(ctx, *cc.GetSubnetsClient(), cluster)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get subnet IDs for cluster")
-	}
-
 	input := workflow.UpdateClusterWorkflowInput{
-		OrganizationID:     cluster.OrganizationID,
-		SecretID:           cluster.SecretID,
-		ClusterID:          cluster.ID,
-		ClusterName:        cluster.Name,
-		ResourceGroupName:  cluster.ResourceGroup.Name,
-		VirtualNetworkName: cluster.VirtualNetwork.Name,
+		OrganizationID:      cluster.OrganizationID,
+		SecretID:            cluster.SecretID,
+		ClusterID:           cluster.ID,
+		ClusterName:         cluster.Name,
+		ResourceGroupName:   cluster.ResourceGroup.Name,
+		LoadBalancerName:    pke.GetLoadBalancerName(cluster.Name),
+		PublicIPAddressName: pke.GetPublicIPAddressName(cluster.Name),
+		RouteTableName:      pke.GetRouteTableName(cluster.Name),
+		VirtualNetworkName:  cluster.VirtualNetwork.Name,
 
 		RoleAssignments: roleAssignmentTemplates,
 		SubnetsToCreate: toCreateSubnetTemplates,
@@ -212,13 +180,6 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		VMSSToCreate:    toCreateVMSSTemplates,
 		VMSSToDelete:    toDeleteVMSSNames,
 		VMSSToUpdate:    toUpdateVMSSChanges,
-
-		BackendAddressPoolIDProvider: workflow.MapResourceIDByNameProvider(backendAddressPoolIDs),
-		InboundNATPoolIDProvider:     workflow.MapResourceIDByNameProvider(inboundNATPoolIDs),
-		PublicIPAddressProvider:      workflow.ConstantIPAddressProvider(publicIPAddress),
-		RouteTableIDProvider:         workflow.ConstantResourceIDProvider(routeTableID),
-		SecurityGroupIDProvider:      workflow.MapResourceIDByNameProvider(securityGroupIDs),
-		SubnetIDProvider:             workflow.MapResourceIDByNameProvider(subnetIDs),
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {

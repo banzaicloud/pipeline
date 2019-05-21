@@ -27,12 +27,15 @@ const UpdateClusterWorkflowName = "pke-azure-update-cluster"
 
 // UpdateClusterWorkflowInput
 type UpdateClusterWorkflowInput struct {
-	OrganizationID     uint
-	SecretID           string
-	ClusterID          uint
-	ClusterName        string
-	ResourceGroupName  string
-	VirtualNetworkName string
+	OrganizationID      uint
+	SecretID            string
+	ClusterID           uint
+	ClusterName         string
+	ResourceGroupName   string
+	LoadBalancerName    string
+	PublicIPAddressName string
+	RouteTableName      string
+	VirtualNetworkName  string
 
 	RoleAssignments []RoleAssignmentTemplate
 	SubnetsToCreate []SubnetTemplate
@@ -40,13 +43,6 @@ type UpdateClusterWorkflowInput struct {
 	VMSSToCreate    []VirtualMachineScaleSetTemplate
 	VMSSToDelete    []NodePoolAndVMSS
 	VMSSToUpdate    []VirtualMachineScaleSetChanges
-
-	BackendAddressPoolIDProvider MapResourceIDByNameProvider
-	InboundNATPoolIDProvider     MapResourceIDByNameProvider
-	PublicIPAddressProvider      ConstantIPAddressProvider
-	RouteTableIDProvider         ConstantResourceIDProvider
-	SecurityGroupIDProvider      MapResourceIDByNameProvider
-	SubnetIDProvider             MapResourceIDByNameProvider
 }
 
 type NodePoolAndVMSS struct {
@@ -63,6 +59,23 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
+	var providers CollectUpdateClusterProvidersActivityOutput
+	{
+		activityInput := CollectUpdateClusterProvidersActivityInput{
+			OrganizationID:      input.OrganizationID,
+			SecretID:            input.SecretID,
+			ResourceGroupName:   input.ResourceGroupName,
+			LoadBalancerName:    input.LoadBalancerName,
+			PublicIPAddressName: input.PublicIPAddressName,
+			RouteTableName:      input.RouteTableName,
+			VirtualNetworkName:  input.VirtualNetworkName,
+		}
+		err := workflow.ExecuteActivity(ctx, CollectUpdateClusterProvidersActivityName, activityInput).Get(ctx, &providers)
+		if err = emperror.Wrapf(err, "%q activity failed", CollectUpdateClusterProvidersActivityName); err != nil {
+			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
+			return err
+		}
+	}
 	{
 		futures := make([]workflow.Future, len(input.VMSSToDelete))
 		for i, npAndVMSS := range input.VMSSToDelete {
@@ -145,7 +158,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				ClusterName:        input.ClusterName,
 				ResourceGroupName:  input.ResourceGroupName,
 				VirtualNetworkName: input.VirtualNetworkName,
-				Subnet:             subnet.Render(input.RouteTableIDProvider, input.SecurityGroupIDProvider),
+				Subnet:             subnet.Render(providers.RouteTableIDProvider, providers.SecurityGroupIDProvider),
 			}
 			futures[activityInput.Subnet.Name] = workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput)
 		}
@@ -155,7 +168,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
 				return err
 			}
-			input.SubnetIDProvider.Put(name, activityOutput.SubnetID)
+			providers.SubnetIDProvider.Put(name, activityOutput.SubnetID)
 		}
 	}
 	createdVMSSOutputs := make(map[string]CreateVMSSActivityOutput)
@@ -172,7 +185,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				ClusterID:         input.ClusterID,
 				ClusterName:       input.ClusterName,
 				ResourceGroupName: input.ResourceGroupName,
-				ScaleSet:          vmss.Render(input.BackendAddressPoolIDProvider, input.InboundNATPoolIDProvider, input.PublicIPAddressProvider, input.SecurityGroupIDProvider, input.SubnetIDProvider),
+				ScaleSet:          vmss.Render(providers.BackendAddressPoolIDProvider, providers.InboundNATPoolIDProvider, providers.PublicIPAddressProvider, providers.SecurityGroupIDProvider, providers.SubnetIDProvider),
 			}
 			futures[activityInput.ScaleSet.Name] = futureAndNodePoolName{
 				future:       workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput),
