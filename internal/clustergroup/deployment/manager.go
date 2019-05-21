@@ -297,6 +297,9 @@ func (m CGDeploymentManager) createDeploymentModel(clusterGroup *api.ClusterGrou
 		Namespace:             cgDeployment.Namespace,
 		OrganizationName:      orgName,
 	}
+	if cgDeployment.Values == nil {
+		cgDeployment.Values = make(map[string]interface{})
+	}
 	values, err := json.Marshal(cgDeployment.Values)
 	if err != nil {
 		return nil, err
@@ -329,12 +332,18 @@ func (m CGDeploymentManager) updateDeploymentModel(clusterGroup *api.ClusterGrou
 	// ReUseValues = true - merge current values with request values
 	// ReUseValues = true - override current values with request values
 	if cgDeployment.ReUseValues {
-		var currentValues map[string]interface{}
-		err := json.Unmarshal(deploymentModel.Values, &currentValues)
-		if err != nil {
-			return err
+		currentValues := make(map[string]interface{})
+		if deploymentModel.Values != nil {
+			err := json.Unmarshal(deploymentModel.Values, &currentValues)
+			if err != nil {
+				return err
+			}
 		}
 		cgDeployment.Values = helm.MergeValues(currentValues, cgDeployment.Values)
+	}
+
+	if cgDeployment.Values == nil {
+		cgDeployment.Values = make(map[string]interface{})
 	}
 
 	values, err := json.Marshal(cgDeployment.Values)
@@ -361,13 +370,12 @@ func (m CGDeploymentManager) updateDeploymentModel(clusterGroup *api.ClusterGrou
 		if valuesOverride, ok := cgDeployment.ValueOverrides[cluster.GetName()]; ok {
 
 			if cgDeployment.ReUseValues {
-				var currentValues map[string]interface{}
-				err := json.Unmarshal(target.Values, &currentValues)
-				if err != nil {
-					return err
-				}
-				if currentValues == nil {
-					currentValues = make(map[string]interface{})
+				currentValues := make(map[string]interface{})
+				if target.Values != nil {
+					err := json.Unmarshal(target.Values, &currentValues)
+					if err != nil {
+						return err
+					}
 				}
 				valuesOverride = helm.MergeValues(currentValues, valuesOverride)
 			}
