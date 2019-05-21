@@ -444,7 +444,7 @@ func (s gormAzurePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName 
 		"Autoscaling":  autoscaling,
 	}
 
-	return getError(s.db.Model(&model).Updates(fields), "failed to update nodepool model")
+	return getError(s.db.Model(&model).Where("cluster_id = ? AND name = ?", clusterID, nodePoolName).Updates(fields), "failed to update nodepool model")
 }
 
 // Migrate executes the table migrations for the provider.
