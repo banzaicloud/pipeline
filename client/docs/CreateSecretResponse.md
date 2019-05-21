@@ -3,11 +3,11 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Name** | **string** |  | [optional] 
-**Type** | **string** |  | [optional] 
-**Id** | **string** |  | [optional] 
+**Name** | **string** |  | 
+**Type** | **string** |  | 
+**Id** | **string** |  | 
 **Error** | **string** |  | [optional] 
-**UpdatedAt** | **string** |  | [optional] 
+**UpdatedAt** | [**time.Time**](time.Time.md) |  | [optional] 
 **UpdatedBy** | **string** |  | [optional] 
 **Version** | **int32** |  | [optional] 
 
