@@ -197,9 +197,16 @@ func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 
 func (a *AzurePkeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
 	return &pkgCluster.Ipv4Cidrs{
-		ServiceClusterIPRanges: []string{a.model.Kubernetes.Network.ServiceCIDR},
-		PodIPRanges:            []string{a.model.Kubernetes.Network.PodCIDR},
+		ServiceClusterIPRanges: []string{"10.10.0.0/16"},
+		PodIPRanges:            []string{"10.20.0.0/16"},
 	}, nil
+	// TODO: use model values once stored/used
+	/*
+		return &pkgCluster.Ipv4Cidrs{
+			ServiceClusterIPRanges: []string{a.model.Kubernetes.Network.ServiceCIDR},
+			PodIPRanges:            []string{a.model.Kubernetes.Network.PodCIDR},
+		}, nil
+	*/
 }
 
 func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
