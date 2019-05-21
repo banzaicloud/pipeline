@@ -1449,19 +1449,12 @@ paths:
                     schema:
                         type: string
                     required: True
-                -
-                    name: active
-                    in: query
-                    schema:
-                        type: boolean
-                    required: false
-                    description: Mark policy as active
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/PolicyBundleRecord"
+                            $ref: "#/components/schemas/PolicyBundleActivate"
             responses:
                 200:
                     description: A list with a single updated policy bundle record
@@ -10264,6 +10257,16 @@ components:
                     description: Source location of where the policy bundle originated
                 policybundle:
                     $ref: "#/components/schemas/PolicyBundle"
+        PolicyBundleActivate:
+            description: Policy bundle activation
+            type: object
+            properties:
+                params:
+                    type: object
+                    properties:
+                        active:
+                            type: string
+
         PolicyBundleList:
             type: array
             description: List of PolicyBundleRecord objects
