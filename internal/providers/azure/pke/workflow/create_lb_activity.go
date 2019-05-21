@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -56,7 +56,7 @@ type LoadBalancer struct {
 	FrontendIPConfigurations []FrontendIPConfiguration
 	InboundNATPools          []InboundNATPool
 	LoadBalancingRules       []LoadBalancingRule
-	OutboundNATRules         []OutboundNATRule
+	OutboundRules            []OutboundRule
 	Probes                   []Probe
 }
 
@@ -90,7 +90,7 @@ type LoadBalancingRule struct {
 	Protocol            string
 }
 
-type OutboundNATRule struct {
+type OutboundRule struct {
 	Name               string
 	BackendAddressPool *BackendAddressPool
 	FrontendIPConfigs  []*FrontendIPConfiguration
@@ -245,8 +245,8 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 		}
 	}
 
-	outboundNATRules := make([]network.OutboundNatRule, len(input.LoadBalancer.OutboundNATRules))
-	for i, onr := range input.LoadBalancer.OutboundNATRules {
+	outboundRules := make([]network.OutboundRule, len(input.LoadBalancer.OutboundRules))
+	for i, onr := range input.LoadBalancer.OutboundRules {
 		var bapRef *network.SubResource
 		if onr.BackendAddressPool != nil {
 			bapRef = &network.SubResource{
@@ -262,9 +262,9 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 				}
 			}
 		}
-		outboundNATRules[i] = network.OutboundNatRule{
+		outboundRules[i] = network.OutboundRule{
 			Name: to.StringPtr(onr.Name),
-			OutboundNatRulePropertiesFormat: &network.OutboundNatRulePropertiesFormat{
+			OutboundRulePropertiesFormat: &network.OutboundRulePropertiesFormat{
 				BackendAddressPool:       bapRef,
 				FrontendIPConfigurations: &ficRefs,
 			},
@@ -288,7 +288,7 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 			FrontendIPConfigurations: &frontendIPConfigurations,
 			InboundNatPools:          &inboundNATPools,
 			LoadBalancingRules:       &loadBalancingRules,
-			OutboundNatRules:         &outboundNATRules,
+			OutboundRules:            &outboundRules,
 			Probes:                   &probes,
 		},
 		Location: to.StringPtr(input.LoadBalancer.Location),
