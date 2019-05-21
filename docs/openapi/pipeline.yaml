@@ -100,7 +100,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetDomainResponse'
-    '/api/v1/orgs/{orgId}/spotguides':
+    '/api/v1/orgs/{orgId}/spotgxuides':
         get:
             security:
                 -
