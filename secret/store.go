@@ -70,17 +70,6 @@ type secretStore struct {
 	Logical *vaultapi.Logical
 }
 
-// CreateSecretResponse API response for AddSecrets
-type CreateSecretResponse struct {
-	Name      string    `json:"name" binding:"required"`
-	Type      string    `json:"type" binding:"required"`
-	ID        string    `json:"id"`
-	Error     string    `json:"error,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
-	UpdatedBy string    `json:"updatedBy,omitempty"`
-	Version   int       `json:"version,omitempty"`
-}
-
 // CreateSecretRequest param for Store.Store
 // Only fields with `mapstructure` tag are getting written to Vault
 type CreateSecretRequest struct {

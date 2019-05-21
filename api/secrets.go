@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
@@ -182,14 +183,14 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, secret.CreateSecretResponse{
+	c.JSON(http.StatusCreated, client.CreateSecretResponse{
 		Name:      s.Name,
 		Type:      s.Type,
-		ID:        secretID,
+		Id:        secretID,
 		Error:     errorMsg,
 		UpdatedAt: s.UpdatedAt,
 		UpdatedBy: s.UpdatedBy,
-		Version:   s.Version,
+		Version:   int32(s.Version),
 	})
 }
 
@@ -278,14 +279,14 @@ func UpdateSecrets(c *gin.Context) {
 		errorMsg = validationError.Error()
 	}
 
-	c.JSON(http.StatusOK, secret.CreateSecretResponse{
+	c.JSON(http.StatusOK, client.CreateSecretResponse{
 		Name:      s.Name,
 		Type:      s.Type,
-		ID:        secretID,
+		Id:        secretID,
 		Error:     errorMsg,
 		UpdatedAt: s.UpdatedAt,
 		UpdatedBy: s.UpdatedBy,
-		Version:   s.Version,
+		Version:   int32(s.Version),
 	})
 }
 
