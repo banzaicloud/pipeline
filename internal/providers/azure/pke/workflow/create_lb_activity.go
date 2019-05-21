@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -56,6 +56,7 @@ type LoadBalancer struct {
 	FrontendIPConfigurations []FrontendIPConfiguration
 	InboundNATPools          []InboundNATPool
 	LoadBalancingRules       []LoadBalancingRule
+	OutboundRules            []OutboundRule
 	Probes                   []Probe
 }
 
@@ -87,6 +88,12 @@ type LoadBalancingRule struct {
 	FrontendPort        int32
 	Probe               *Probe
 	Protocol            string
+}
+
+type OutboundRule struct {
+	Name               string
+	BackendAddressPool *BackendAddressPool
+	FrontendIPConfigs  []*FrontendIPConfiguration
 }
 
 type Probe struct {
@@ -238,6 +245,32 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 		}
 	}
 
+	outboundRules := make([]network.OutboundRule, len(input.LoadBalancer.OutboundRules))
+	for i, onr := range input.LoadBalancer.OutboundRules {
+		var bapRef *network.SubResource
+		if onr.BackendAddressPool != nil {
+			bapRef = &network.SubResource{
+				ID: to.StringPtr(getLoadBalancerBackendAddressPoolID(subscriptionID, input.ResourceGroupName, input.LoadBalancer.Name, onr.BackendAddressPool.Name)),
+			}
+		}
+		var ficRefs []network.SubResource
+		if l := len(onr.FrontendIPConfigs); l != 0 {
+			ficRefs = make([]network.SubResource, l)
+			for i, fic := range onr.FrontendIPConfigs {
+				ficRefs[i] = network.SubResource{
+					ID: to.StringPtr(getLoadBalancerFrontendIPConfigurationID(subscriptionID, input.ResourceGroupName, input.LoadBalancer.Name, fic.Name)),
+				}
+			}
+		}
+		outboundRules[i] = network.OutboundRule{
+			Name: to.StringPtr(onr.Name),
+			OutboundRulePropertiesFormat: &network.OutboundRulePropertiesFormat{
+				BackendAddressPool:       bapRef,
+				FrontendIPConfigurations: &ficRefs,
+			},
+		}
+	}
+
 	probes := make([]network.Probe, len(input.LoadBalancer.Probes))
 	for i, p := range input.LoadBalancer.Probes {
 		probes[i] = network.Probe{
@@ -255,6 +288,7 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 			FrontendIPConfigurations: &frontendIPConfigurations,
 			InboundNatPools:          &inboundNATPools,
 			LoadBalancingRules:       &loadBalancingRules,
+			OutboundRules:            &outboundRules,
 			Probes:                   &probes,
 		},
 		Location: to.StringPtr(input.LoadBalancer.Location),
