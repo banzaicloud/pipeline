@@ -19,7 +19,7 @@ import (
 
 	"github.com/goph/emperror"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/banzaicloud/pipeline/secret"
 
