@@ -1530,19 +1530,11 @@ paths:
         schema:
           type: string
         style: simple
-      - description: Mark policy as active
-        explode: true
-        in: query
-        name: active
-        required: false
-        schema:
-          type: boolean
-        style: form
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyBundleRecord'
+              $ref: '#/components/schemas/PolicyBundleActivate'
         required: true
       responses:
         200:
@@ -11704,6 +11696,15 @@ components:
         policybundle:
           $ref: '#/components/schemas/PolicyBundle'
       type: object
+    PolicyBundleActivate:
+      description: Policy bundle activation
+      example:
+        params:
+          active: active
+      properties:
+        params:
+          $ref: '#/components/schemas/PolicyBundleActivate_params'
+      type: object
     PolicyBundleList:
       description: List of PolicyBundleRecord objects
       items:
@@ -13953,6 +13954,12 @@ components:
       required:
       - name
       - value
+    PolicyBundleActivate_params:
+      example:
+        active: active
+      properties:
+        active:
+          type: string
     PKEClusterReadinessResponse_master:
       example:
         ready: true

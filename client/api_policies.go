@@ -441,17 +441,10 @@ Update/replace and existing policy
  * @param id Selected cluster identification (number)
  * @param orgId Organization identification
  * @param policyId
- * @param policyBundleRecord
- * @param optional nil or *UpdatePolicyOpts - Optional Parameters:
- * @param "Active" (optional.Bool) -  Mark policy as active
+ * @param policyBundleActivate
 @return []PolicyBundleRecord
 */
-
-type UpdatePolicyOpts struct {
-	Active optional.Bool
-}
-
-func (a *PoliciesApiService) UpdatePolicy(ctx context.Context, id int32, orgId int32, policyId string, policyBundleRecord PolicyBundleRecord, localVarOptionals *UpdatePolicyOpts) ([]PolicyBundleRecord, *http.Response, error) {
+func (a *PoliciesApiService) UpdatePolicy(ctx context.Context, id int32, orgId int32, policyId string, policyBundleActivate PolicyBundleActivate) ([]PolicyBundleRecord, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Put")
 		localVarPostBody     interface{}
@@ -471,9 +464,6 @@ func (a *PoliciesApiService) UpdatePolicy(ctx context.Context, id int32, orgId i
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if localVarOptionals != nil && localVarOptionals.Active.IsSet() {
-		localVarQueryParams.Add("active", parameterToString(localVarOptionals.Active.Value(), ""))
-	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{"application/json"}
 
@@ -492,7 +482,7 @@ func (a *PoliciesApiService) UpdatePolicy(ctx context.Context, id int32, orgId i
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
 	// body params
-	localVarPostBody = &policyBundleRecord
+	localVarPostBody = &policyBundleActivate
 	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return localVarReturnValue, nil, err
