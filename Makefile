@@ -67,7 +67,7 @@ config/config.toml:
 	cp config/config.toml.dist config/config.toml
 
 config/ui/feature-set.json:
-	cp -b config/ui/feature-set.json.dist config/ui/feature-set.json
+	mv config/ui/feature-set.json{,~} || true && cp config/ui/feature-set.json.dist config/ui/feature-set.json
 
 config/dex.yml:
 	cp config/dex.yml.dist config/dex.yml
