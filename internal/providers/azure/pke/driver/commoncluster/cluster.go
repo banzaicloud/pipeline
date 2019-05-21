@@ -198,7 +198,10 @@ func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 }
 
 func (a *AzurePkeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	panic("TODO")
+	return &pkgCluster.Ipv4Cidrs{
+		ServiceClusterIPRanges: []string{a.model.Kubernetes.Network.ServiceCIDR},
+		PodIPRanges:            []string{a.model.Kubernetes.Network.PodCIDR},
+	}, nil
 }
 
 func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
