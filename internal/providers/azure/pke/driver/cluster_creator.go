@@ -210,6 +210,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	vmssTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(params.NodePools))
 	roleAssignmentTemplates := make([]workflow.RoleAssignmentTemplate, len(params.NodePools))
 	npLen := len(params.NodePools)
+	obapn := "outbound-backend-address-pool"
 	for i, np := range params.NodePools {
 		var bapn string
 		var inpn string
@@ -263,14 +264,15 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 				SKU:       "7-CI",
 				Version:   "7.6.20190306",
 			},
-			InstanceCount:          uint(np.Count),
-			InstanceType:           np.InstanceType,
-			BackendAddressPoolName: bapn,
-			InboundNATPoolName:     inpn,
-			Location:               params.Network.Location,
-			Name:                   vmssName,
-			SSHPublicKey:           sshPublicKey,
-			SubnetName:             np.Subnet.Name,
+			InstanceCount:                uint(np.Count),
+			InstanceType:                 np.InstanceType,
+			BackendAddressPoolName:       bapn,
+			OutputBackendAddressPoolName: obapn,
+			InboundNATPoolName:           inpn,
+			Location:                     params.Network.Location,
+			Name:                         vmssName,
+			SSHPublicKey:                 sshPublicKey,
+			SubnetName:                   np.Subnet.Name,
 			UserDataScriptParams: map[string]string{
 				"ClusterID":             strconv.FormatUint(uint64(cl.ID), 10),
 				"ClusterName":           params.Name,
@@ -322,11 +324,12 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			Subnets:  subnetTemplates,
 		},
 		LoadBalancerTemplate: workflow.LoadBalancerTemplate{
-			Name:                   params.Name, // LB name must match the value passed to pke install master --kubernetes-cluster-name
-			Location:               params.Network.Location,
-			SKU:                    "Standard",
-			BackendAddressPoolName: "backend-address-pool",
-			InboundNATPoolName:     "ssh-inbound-nat-pool",
+			Name:                           params.Name, // LB name must match the value passed to pke install master --kubernetes-cluster-name
+			Location:                       params.Network.Location,
+			SKU:                            "Standard",
+			BackendAddressPoolName:         "backend-address-pool",
+			OutboundBackendAddressPoolName: "outbound-backend-address-pool",
+			InboundNATPoolName:             "ssh-inbound-nat-pool",
 		},
 		PublicIPAddress: workflow.PublicIPAddress{
 			Location: params.Network.Location,

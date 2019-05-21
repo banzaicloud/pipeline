@@ -44,16 +44,20 @@ type LoadBalancerFactory struct {
 }
 
 type LoadBalancerTemplate struct {
-	Name                   string
-	Location               string
-	SKU                    string
-	BackendAddressPoolName string
-	InboundNATPoolName     string
+	Name                           string
+	Location                       string
+	SKU                            string
+	BackendAddressPoolName         string
+	OutboundBackendAddressPoolName string
+	InboundNATPoolName             string
 }
 
 func (f LoadBalancerFactory) Make(publicIPAddressIDProvider IDProvider) LoadBalancer {
 	bap := BackendAddressPool{
 		Name: f.Template.BackendAddressPoolName,
+	}
+	obap := BackendAddressPool{
+		Name: f.Template.OutboundBackendAddressPoolName,
 	}
 	fic := FrontendIPConfiguration{
 		Name:              "frontend-ip-config",
@@ -70,6 +74,7 @@ func (f LoadBalancerFactory) Make(publicIPAddressIDProvider IDProvider) LoadBala
 		SKU:      f.Template.SKU,
 		BackendAddressPools: []BackendAddressPool{
 			bap,
+			obap,
 		},
 		FrontendIPConfigurations: []FrontendIPConfiguration{
 			fic,
@@ -89,11 +94,18 @@ func (f LoadBalancerFactory) Make(publicIPAddressIDProvider IDProvider) LoadBala
 				Name:                "api-server-rule",
 				BackendAddressPool:  &bap,
 				BackendPort:         6443,
-				DisableOutboundSNAT: false,
+				DisableOutboundSNAT: true,
 				FrontendIPConfig:    &fic,
 				FrontendPort:        6443,
 				Probe:               &probe,
 				Protocol:            "Tcp",
+			},
+		},
+		OutboundRules: []OutboundRule{
+			{
+				Name:               "outbound-nat-rule",
+				BackendAddressPool: &obap,
+				FrontendIPConfigs:  []*FrontendIPConfiguration{&fic},
 			},
 		},
 		Probes: []Probe{
@@ -129,20 +141,21 @@ type VirtualMachineScaleSetsFactory struct {
 }
 
 type VirtualMachineScaleSetTemplate struct {
-	AdminUsername            string
-	Image                    Image
-	InstanceCount            uint
-	InstanceType             string
-	BackendAddressPoolName   string
-	InboundNATPoolName       string
-	Location                 string
-	Name                     string
-	NetworkSecurityGroupName string
-	SSHPublicKey             string
-	SubnetName               string
-	UserDataScriptParams     map[string]string
-	UserDataScriptTemplate   string
-	Zones                    []string
+	AdminUsername                string
+	Image                        Image
+	InstanceCount                uint
+	InstanceType                 string
+	BackendAddressPoolName       string
+	OutputBackendAddressPoolName string
+	InboundNATPoolName           string
+	Location                     string
+	Name                         string
+	NetworkSecurityGroupName     string
+	SSHPublicKey                 string
+	SubnetName                   string
+	UserDataScriptParams         map[string]string
+	UserDataScriptTemplate       string
+	Zones                        []string
 }
 
 func (f VirtualMachineScaleSetsFactory) Make(
@@ -157,11 +170,14 @@ func (f VirtualMachineScaleSetsFactory) Make(
 	for i, t := range f.Templates {
 		t.UserDataScriptParams["PublicAddress"] = publicIPAddress
 		sss[i] = VirtualMachineScaleSet{
-			AdminUsername:          t.AdminUsername,
-			Image:                  t.Image,
-			InstanceCount:          int64(t.InstanceCount),
-			InstanceType:           t.InstanceType,
-			LBBackendAddressPoolID: backendAddressPoolIDProvider.Get(t.BackendAddressPoolName),
+			AdminUsername: t.AdminUsername,
+			Image:         t.Image,
+			InstanceCount: int64(t.InstanceCount),
+			InstanceType:  t.InstanceType,
+			LBBackendAddressPoolIDs: []string{
+				backendAddressPoolIDProvider.Get(t.BackendAddressPoolName),
+				backendAddressPoolIDProvider.Get(t.OutputBackendAddressPoolName),
+			},
 			LBInboundNATPoolID:     inboundNATPoolIDProvider.Get(t.InboundNATPoolName),
 			Location:               t.Location,
 			Name:                   t.Name,
