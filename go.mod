@@ -70,7 +70,6 @@ require (
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
-	github.com/mattbaird/jsonpatch v0.0.0-20171005235357-81af80346b1a // indirect
 	github.com/microcosm-cc/bluemonday v0.0.0-20180327211928-995366fdf961
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
@@ -145,8 +144,6 @@ require (
 	k8s.io/cli-runtime v0.0.0-20190404071300-cbd7455f4bce // indirect
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cluster-bootstrap v0.0.0-20190404071559-03c28a85c7b7
-	k8s.io/code-generator v0.0.0-20190311155051-e4c2b1329cf7 // indirect
-	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
 	k8s.io/helm v2.12.2+incompatible
 	k8s.io/kubernetes v1.13.5
 	k8s.io/utils v0.0.0-20190221042446-c2654d5206da // indirect
@@ -154,7 +151,7 @@ require (
 )
 
 replace (
-	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa => github.com/banzaicloud/auth v0.1.1
+	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa => github.com/banzaicloud/auth v0.1.2
 	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
 
 	// Kubernetes 1.13.5
