@@ -17,7 +17,7 @@ package workflow
 import (
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-01-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/stretchr/testify/assert"
 )
@@ -87,7 +87,8 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 						Protocol: "Tcp",
 					},
 				},
-				SKU: "Standard",
+				SKU:           "Standard",
+				OutboundRules: []OutboundRule{},
 			},
 		}
 		expected := network.LoadBalancer{
@@ -152,6 +153,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 						Name: to.StringPtr("test-probe"),
 					},
 				},
+				OutboundRules: &[]network.OutboundRule{},
 			},
 			Location: to.StringPtr("test-location"),
 			Sku: &network.LoadBalancerSku{

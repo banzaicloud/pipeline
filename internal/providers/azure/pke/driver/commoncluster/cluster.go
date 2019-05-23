@@ -115,7 +115,7 @@ func (a *AzurePkeCluster) GetSshSecretId() string {
 }
 
 func (a *AzurePkeCluster) SaveSshSecretId(string) error {
-	panic("TODO")
+	return errors.New("AzurePkeCluster.SaveSshSecretId is not implemented")
 }
 
 func (a *AzurePkeCluster) SaveConfigSecretId(secretID string) error {
@@ -132,47 +132,45 @@ func (a *AzurePkeCluster) GetSecretWithValidation() (*secret.SecretItemResponse,
 }
 
 func (a *AzurePkeCluster) Persist() error {
-	panic("not implemented") // TODO?
+	return errors.New("AzurePkeCluster.Persist is not implemented")
 }
 
 func (a *AzurePkeCluster) DeleteFromDatabase() error {
-	panic("not implemented") // TODO?
+	return errors.New("AzurePkeCluster.DeleteFromDatabase is not implemented")
 }
 
 func (a *AzurePkeCluster) CreateCluster() error {
-	panic("not implemented")
+	return errors.New("AzurePkeCluster.CreateCluster is not implemented")
 }
 
 func (a *AzurePkeCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-	panic("not implemented")
+	return errors.New("AzurePkeCluster.ValidateCreationFields is not implemented")
 }
 
 func (a *AzurePkeCluster) UpdateCluster(*pkgCluster.UpdateClusterRequest, uint) error {
-	panic("not implemented")
+	return errors.New("AzurePkeCluster.UpdateCluster is not implemented")
 }
 
 func (a *AzurePkeCluster) UpdateNodePools(*pkgCluster.UpdateNodePoolsRequest, uint) error {
-	panic("not implemented")
+	return errors.New("AzurePkeCluster.UpdateNodePools is not implemented")
 }
 
 func (a *AzurePkeCluster) CheckEqualityToUpdate(*pkgCluster.UpdateClusterRequest) error {
-	panic("not implemented")
+	return errors.New("AzurePkeCluster.CheckEqualityToUpdate is not implemented")
 }
 
 func (a *AzurePkeCluster) AddDefaultsToUpdate(*pkgCluster.UpdateClusterRequest) {
-	panic("not implemented")
 }
 
 func (a *AzurePkeCluster) DeleteCluster() error {
-	panic("not implemented")
+	return errors.New("AzurePkeCluster.DeleteCluster is not implemented")
 }
 
 func (a *AzurePkeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
-	return nil // TODO
+	return nil
 }
 
 func (a *AzurePkeCluster) SetScaleOptions(*pkgCluster.ScaleOptions) {
-	panic("TODO")
 }
 
 func (a *AzurePkeCluster) GetTTL() time.Duration {
@@ -185,7 +183,7 @@ func (a *AzurePkeCluster) SetTTL(t time.Duration) {
 }
 
 func (a *AzurePkeCluster) DownloadK8sConfig() ([]byte, error) {
-	panic("not implemented")
+	return nil, errors.New("AzurePkeCluster.DownloadK8sConfig is not implemented")
 }
 
 func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
@@ -198,7 +196,17 @@ func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 }
 
 func (a *AzurePkeCluster) GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error) {
-	panic("TODO")
+	return &pkgCluster.Ipv4Cidrs{
+		ServiceClusterIPRanges: []string{"10.10.0.0/16"},
+		PodIPRanges:            []string{"10.20.0.0/16"},
+	}, nil
+	// TODO: use model values once stored/used
+	/*
+		return &pkgCluster.Ipv4Cidrs{
+			ServiceClusterIPRanges: []string{a.model.Kubernetes.Network.ServiceCIDR},
+			PodIPRanges:            []string{a.model.Kubernetes.Network.PodCIDR},
+		}, nil
+	*/
 }
 
 func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
@@ -229,7 +237,7 @@ func (a *AzurePkeCluster) NeedAdminRights() bool {
 }
 
 func (a *AzurePkeCluster) GetKubernetesUserName() (string, error) {
-	panic("TODO")
+	return "", errors.New("AzurePkeCluster.GetKubernetesUserName is not implemented")
 }
 
 func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {

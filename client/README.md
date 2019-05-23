@@ -363,6 +363,8 @@ Class | Method | HTTP request | Description
  - [PodItemLabels](docs/PodItemLabels.md)
  - [Policy](docs/Policy.md)
  - [PolicyBundle](docs/PolicyBundle.md)
+ - [PolicyBundleActivate](docs/PolicyBundleActivate.md)
+ - [PolicyBundleActivateParams](docs/PolicyBundleActivateParams.md)
  - [PolicyBundleRecord](docs/PolicyBundleRecord.md)
  - [PolicyRule](docs/PolicyRule.md)
  - [PolicyRuleParams](docs/PolicyRuleParams.md)

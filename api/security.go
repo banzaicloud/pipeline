@@ -41,6 +41,12 @@ import (
 
 const policyPath string = "policies"
 
+type activatePolicy struct {
+	Params struct {
+		Active string `json:"active"`
+	} `json:"params"`
+}
+
 func init() {
 	v1alpha1.AddToScheme(scheme.Scheme)
 }
@@ -265,6 +271,7 @@ func GetPolicies(c *gin.Context) {
 		URL:       endPoint,
 		Body:      nil,
 	}
+
 	response, err := anchore.DoAnchoreRequest(anchoreRequest)
 	if err != nil {
 		log.Error(err)
@@ -341,6 +348,19 @@ func UpdatePolicies(c *gin.Context) {
 		return
 	}
 
+	var activatePolicy *activatePolicy
+	err := c.BindJSON(&activatePolicy)
+	if err != nil {
+		err := errors.Wrap(err, "Error parsing request:")
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
 	commonCluster, ok := getClusterFromRequest(c)
 	if !ok {
 		return
@@ -359,7 +379,7 @@ func UpdatePolicies(c *gin.Context) {
 		Body:      nil,
 	}
 
-	if active, _ := strconv.ParseBool(c.Query("active")); active {
+	if active, _ := strconv.ParseBool(activatePolicy.Params.Active); active {
 		anchoreRequest.Method = http.MethodGet
 		response, err := anchore.DoAnchoreRequest(anchoreRequest)
 		if err != nil {

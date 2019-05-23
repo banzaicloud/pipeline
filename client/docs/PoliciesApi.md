@@ -152,7 +152,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **UpdatePolicy**
-> []PolicyBundleRecord UpdatePolicy(ctx, id, orgId, policyId, policyBundleRecord, optional)
+> []PolicyBundleRecord UpdatePolicy(ctx, id, orgId, policyId, policyBundleActivate)
 Update policy
 
 Update/replace and existing policy
@@ -165,19 +165,7 @@ Name | Type | Description  | Notes
   **id** | **int32**| Selected cluster identification (number) | 
   **orgId** | **int32**| Organization identification | 
   **policyId** | **string**|  | 
-  **policyBundleRecord** | [**PolicyBundleRecord**](PolicyBundleRecord.md)|  | 
- **optional** | ***UpdatePolicyOpts** | optional parameters | nil if no parameters
-
-### Optional Parameters
-Optional parameters are passed through a pointer to a UpdatePolicyOpts struct
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
-
-
-
-
- **active** | **optional.Bool**| Mark policy as active | 
+  **policyBundleActivate** | [**PolicyBundleActivate**](PolicyBundleActivate.md)|  | 
 
 ### Return type
 

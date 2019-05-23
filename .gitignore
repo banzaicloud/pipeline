@@ -12,6 +12,7 @@ vault/*
 config/config.toml
 config/dex.yml
 config/ui/feature-set.json
+config/ui/*~
 *.swp
 *.pem
 !config/certs/*.pem

@@ -220,9 +220,10 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 	})
 
 	dexProvider := dex.New(&dex.Config{
-		ClientID:     viper.GetString("auth.clientid"),
-		ClientSecret: viper.GetString("auth.clientsecret"),
-		IssuerURL:    viper.GetString("auth.dexURL"),
+		ClientID:           viper.GetString("auth.clientid"),
+		ClientSecret:       viper.GetString("auth.clientsecret"),
+		IssuerURL:          viper.GetString("auth.dexURL"),
+		InsecureSkipVerify: viper.GetBool("auth.dexInsecure"),
 	})
 	Auth.RegisterProvider(dexProvider)
 
