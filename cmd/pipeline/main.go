@@ -502,6 +502,7 @@ func main() {
 				clusterAuthService,
 				viper.GetString("auth.tokensigningkey"),
 				viper.GetString("auth.dexURL"),
+				viper.GetBool("auth.dexInsecure"),
 				pipelineExternalURL.String(),
 			)
 			emperror.Panic(emperror.Wrap(err, "failed to create ClusterAuthAPI"))
