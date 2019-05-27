@@ -158,7 +158,7 @@ func NewCICDClient(apiToken string) cicd.Client {
 		},
 	}
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, oauth2.HTTPClient, httpClient)
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, &httpClient)
 	client := config.Client(
 		ctx,
 		&oauth2.Token{
