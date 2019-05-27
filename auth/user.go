@@ -16,6 +16,7 @@ package auth
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -148,8 +149,18 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 func NewCICDClient(apiToken string) cicd.Client {
 	cicdURL := viper.GetString("cicd.url")
 	config := new(oauth2.Config)
+	httpClient := http.Client{
+		Timeout: time.Second * 10,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: viper.GetBool("cicd.insecure"),
+			},
+		},
+	}
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, httpClient)
 	client := config.Client(
-		context.Background(),
+		ctx,
 		&oauth2.Token{
 			AccessToken: apiToken,
 		},
