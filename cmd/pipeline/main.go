@@ -364,7 +364,7 @@ func main() {
 	}
 
 	spotguidePlatformData := spotguide.PlatformData{
-		AutoDNSEnabled: viper.GetString(config.DNSBaseDomain) != "",
+		AutoDNSEnabled: viper.GetString(config.DNSBaseDomain) != "" && viper.GetString(config.DNSBaseDomain) != "example.com",
 	}
 
 	spotguideManager := spotguide.NewSpotguideManager(
