@@ -857,7 +857,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 
 		command := fmt.Sprintf("pke install %s "+
 			"--pipeline-url=%q "+
-			"--pipeline-insecure=%q"+
+			"--pipeline-insecure=%q "+
 			"--pipeline-token=%q "+
 			"--pipeline-org-id=%d "+
 			"--pipeline-cluster-id=%d "+
@@ -905,7 +905,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 	// worker
 	return fmt.Sprintf("pke install %s "+
 		"--pipeline-url=%q "+
-		"--pipeline-insecure=%q"+
+		"--pipeline-insecure=%q "+
 		"--pipeline-token=%q "+
 		"--pipeline-org-id=%d "+
 		"--pipeline-cluster-id=%d "+
