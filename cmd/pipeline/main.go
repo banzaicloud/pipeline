@@ -203,6 +203,8 @@ func main() {
 		log.Errorf("no pipeline.external_url set. falling back to %q", externalBaseURL)
 	}
 
+	externalURLInsecure := viper.GetBool(config.PipelineExternalURLInsecure)
+
 	workflowClient, err := config.CadenceClient()
 	if err != nil {
 		errorHandler.Handle(emperror.Wrap(err, "Failed to configure Cadence client"))
@@ -257,6 +259,7 @@ func main() {
 			gormAzurePKEClusterStore,
 			workflowClient,
 			externalBaseURL,
+			externalURLInsecure,
 		),
 	}
 	clusterDeleters := api.ClusterDeleters{
@@ -283,13 +286,14 @@ func main() {
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterUpdater(
 			log,
 			externalBaseURL,
+			externalURLInsecure,
 			secret.Store,
 			gormAzurePKEClusterStore,
 			workflowClient,
 		),
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, clusterGroupManager, log, errorHandler, externalBaseURL, clusterCreators, clusterDeleters, clusterUpdaters)
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, clusterGroupManager, log, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
 
 	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, log, errorHandler)
 

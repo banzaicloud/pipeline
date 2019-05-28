@@ -412,7 +412,7 @@ func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.
 	return out
 }
 
-func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, workflowClient client.Client, externalBaseURL string) error {
+func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, workflowClient client.Client, externalBaseURL string, externalBaseURLInsecure bool) error {
 
 	vpcid, ok := c.model.Network.CloudProviderConfig["vpcID"].(string)
 	if !ok {
@@ -434,16 +434,17 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 
 	newNodepools := createNodePoolsFromPKERequest(request.PKE.NodePools)
 	input := pkeworkflow.UpdateClusterWorkflowInput{
-		ClusterID:           uint(c.GetID()),
-		NodePools:           newNodepools,
-		OrganizationID:      uint(c.GetOrganizationId()),
-		ClusterUID:          c.GetUID(),
-		ClusterName:         c.GetName(),
-		SecretID:            string(c.GetSecretId()),
-		Region:              c.GetLocation(),
-		PipelineExternalURL: externalBaseURL,
-		VPCID:               vpcid,
-		SubnetIDs:           subnets,
+		ClusterID:                   uint(c.GetID()),
+		NodePools:                   newNodepools,
+		OrganizationID:              uint(c.GetOrganizationId()),
+		ClusterUID:                  c.GetUID(),
+		ClusterName:                 c.GetName(),
+		SecretID:                    string(c.GetSecretId()),
+		Region:                      c.GetLocation(),
+		PipelineExternalURL:         externalBaseURL,
+		PipelineExternalURLInsecure: externalBaseURLInsecure,
+		VPCID:                       vpcid,
+		SubnetIDs:                   subnets,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
@@ -768,7 +769,7 @@ func (c *EC2ClusterPKE) GetPipelineToken(tokenGenerator interface{}) (string, er
 }
 
 // GetBootstrapCommand returns a command line to use to install a node in the given nodepool
-func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (string, error) {
+func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecure bool, token string) (string, error) {
 	subcommand := "worker"
 	var np *internalPke.NodePool
 	for _, nodePool := range c.model.NodePools {
@@ -856,6 +857,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 
 		command := fmt.Sprintf("pke install %s "+
 			"--pipeline-url=%q "+
+			"--pipeline-insecure=%q"+
 			"--pipeline-token=%q "+
 			"--pipeline-org-id=%d "+
 			"--pipeline-cluster-id=%d "+
@@ -872,6 +874,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 			"--kubernetes-advertise-address=0.0.0.0:6443",
 			subcommand,
 			url,
+			strconv.FormatBool(urlInsecure),
 			token,
 			c.model.Cluster.OrganizationID,
 			c.model.Cluster.ID,
@@ -902,6 +905,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 	// worker
 	return fmt.Sprintf("pke install %s "+
 		"--pipeline-url=%q "+
+		"--pipeline-insecure=%q"+
 		"--pipeline-token=%q "+
 		"--pipeline-org-id=%d "+
 		"--pipeline-cluster-id=%d "+
@@ -911,6 +915,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url, token string) (st
 		"--kubernetes-infrastructure-cidr=%q",
 		subcommand,
 		url,
+		strconv.FormatBool(urlInsecure),
 		token,
 		c.model.Cluster.OrganizationID,
 		c.model.Cluster.ID,

@@ -33,6 +33,7 @@ type commonUpdater struct {
 	clusterPropertiesChanged bool
 	workflowClient           client.Client
 	externalBaseURL          string
+	externalBaseURLInsecure  bool
 }
 
 type commonUpdateValidationError struct {
@@ -55,13 +56,14 @@ func (e *commonUpdateValidationError) IsPreconditionFailed() bool {
 }
 
 // NewCommonClusterUpdater returns a new cluster creator instance.
-func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID uint, workflowClient client.Client, externalBaseURL string) *commonUpdater {
+func NewCommonClusterUpdater(request *cluster.UpdateClusterRequest, cluster CommonCluster, userID uint, workflowClient client.Client, externalBaseURL string, externalBaseURLInsecure bool) *commonUpdater {
 	return &commonUpdater{
-		request:         request,
-		cluster:         cluster,
-		userID:          userID,
-		workflowClient:  workflowClient,
-		externalBaseURL: externalBaseURL,
+		request:                 request,
+		cluster:                 cluster,
+		userID:                  userID,
+		workflowClient:          workflowClient,
+		externalBaseURL:         externalBaseURL,
+		externalBaseURLInsecure: externalBaseURLInsecure,
 	}
 }
 
@@ -150,9 +152,9 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 	}
 
 	if updater, ok := c.cluster.(interface {
-		UpdatePKECluster(context.Context, *cluster.UpdateClusterRequest, client.Client, string) error
+		UpdatePKECluster(context.Context, *cluster.UpdateClusterRequest, client.Client, string, bool) error
 	}); ok {
-		err = updater.UpdatePKECluster(ctx, c.request, c.workflowClient, c.externalBaseURL)
+		err = updater.UpdatePKECluster(ctx, c.request, c.workflowClient, c.externalBaseURL, c.externalBaseURLInsecure)
 	} else {
 		err = c.cluster.UpdateCluster(c.request, c.userID)
 	}

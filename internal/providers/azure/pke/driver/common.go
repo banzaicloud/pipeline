@@ -28,17 +28,18 @@ import (
 )
 
 type nodePoolTemplateFactory struct {
-	ClusterID           uint
-	ClusterName         string
-	KubernetesVersion   string
-	Location            string
-	OrganizationID      uint
-	PipelineExternalURL string
-	ResourceGroupName   string
-	SingleNodePool      bool
-	SSHPublicKey        string
-	TenantID            string
-	VirtualNetworkName  string
+	ClusterID                   uint
+	ClusterName                 string
+	KubernetesVersion           string
+	Location                    string
+	OrganizationID              uint
+	PipelineExternalURL         string
+	PipelineExternalURLInsecure bool
+	ResourceGroupName           string
+	SingleNodePool              bool
+	SSHPublicKey                string
+	TenantID                    string
+	VirtualNetworkName          string
 }
 
 func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMachineScaleSetTemplate, workflow.SubnetTemplate, []workflow.RoleAssignmentTemplate) {
@@ -111,6 +112,7 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 				"NSGName":               cnsgn,
 				"OrgID":                 strconv.FormatUint(uint64(f.OrganizationID), 10),
 				"PipelineURL":           f.PipelineExternalURL,
+				"PipelineURLInsecure":   strconv.FormatBool(f.PipelineExternalURLInsecure),
 				"PipelineToken":         "<not yet set>",
 				"PKEVersion":            pkeVersion,
 				"KubernetesVersion":     f.KubernetesVersion,

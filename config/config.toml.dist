@@ -3,6 +3,7 @@
 [pipeline]
 # Pipeline configs
 bindaddr = "127.0.0.1:9090"
+externalURLInsecure = false
 
 # Bind address for Internal API
 internalBindaddr = "127.0.0.1:9091"

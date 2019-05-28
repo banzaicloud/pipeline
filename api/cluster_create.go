@@ -291,14 +291,15 @@ func (a *ClusterAPI) createCluster(
 	}
 
 	creationCtx := cluster.CreationContext{
-		OrganizationID:  organizationID,
-		UserID:          userID,
-		Name:            createClusterRequest.Name,
-		SecretID:        createClusterRequest.SecretId,
-		SecretIDs:       createClusterRequest.SecretIds,
-		Provider:        createClusterRequest.Cloud,
-		PostHooks:       postHooks,
-		ExternalBaseURL: a.externalBaseURL,
+		OrganizationID:          organizationID,
+		UserID:                  userID,
+		Name:                    createClusterRequest.Name,
+		SecretID:                createClusterRequest.SecretId,
+		SecretIDs:               createClusterRequest.SecretIds,
+		Provider:                createClusterRequest.Cloud,
+		PostHooks:               postHooks,
+		ExternalBaseURL:         a.externalBaseURL,
+		ExternalBaseURLInsecure: a.externalBaseURLInsecure,
 	}
 
 	creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.workflowClient)
