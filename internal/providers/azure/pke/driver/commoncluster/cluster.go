@@ -249,7 +249,6 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 			InstanceType: np.InstanceType,
 			MinCount:     int(np.Min),
 			MaxCount:     int(np.Max),
-			Labels:       np.Labels,
 		}
 	}
 

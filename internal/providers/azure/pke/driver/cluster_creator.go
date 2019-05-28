@@ -98,7 +98,6 @@ func (np NodePool) toPke() (pnp pke.NodePool) {
 	pnp.CreatedBy = np.CreatedBy
 	pnp.DesiredCount = uint(np.Count)
 	pnp.InstanceType = np.InstanceType
-	pnp.Labels = np.Labels
 	pnp.Max = uint(np.Max)
 	pnp.Min = uint(np.Min)
 	pnp.Name = np.Name
@@ -141,7 +140,6 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			CreatedBy:    np.CreatedBy,
 			DesiredCount: uint(np.Count),
 			InstanceType: np.InstanceType,
-			Labels:       np.Labels,
 			Max:          uint(np.Max),
 			Min:          uint(np.Min),
 			Name:         np.Name,

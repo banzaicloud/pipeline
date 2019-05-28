@@ -39,7 +39,6 @@ type NodePool struct {
 	CreatedBy    uint
 	DesiredCount uint
 	InstanceType string
-	Labels       map[string]string
 	Max          uint
 	Min          uint
 	Name         string
