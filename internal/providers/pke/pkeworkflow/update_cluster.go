@@ -27,16 +27,17 @@ import (
 const UpdateClusterWorkflowName = "pke-update-cluster"
 
 type UpdateClusterWorkflowInput struct {
-	OrganizationID      uint
-	ClusterID           uint
-	ClusterUID          string
-	ClusterName         string
-	SecretID            string
-	Region              string
-	PipelineExternalURL string
-	NodePools           []NodePool
-	VPCID               string
-	SubnetIDs           []string
+	OrganizationID              uint
+	ClusterID                   uint
+	ClusterUID                  string
+	ClusterName                 string
+	SecretID                    string
+	Region                      string
+	PipelineExternalURL         string
+	PipelineExternalURLInsecure bool
+	NodePools                   []NodePool
+	VPCID                       string
+	SubnetIDs                   []string
 }
 
 func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInput) error {
@@ -147,14 +148,15 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 
 		createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 			//AWSActivityInput:      awsActivityInput,
-			ClusterID:             input.ClusterID,
-			Pool:                  np,
-			WorkerInstanceProfile: PkeGlobalStackName + "-worker-profile",
-			VPCID:                 input.VPCID,
-			SubnetID:              strings.Join(input.SubnetIDs, ","),
-			ClusterSecurityGroup:  clusterSecurityGroup,
-			ExternalBaseUrl:       input.PipelineExternalURL,
-			SSHKeyName:            "pke-ssh-" + input.ClusterName,
+			ClusterID:               input.ClusterID,
+			Pool:                    np,
+			WorkerInstanceProfile:   PkeGlobalStackName + "-worker-profile",
+			VPCID:                   input.VPCID,
+			SubnetID:                strings.Join(input.SubnetIDs, ","),
+			ClusterSecurityGroup:    clusterSecurityGroup,
+			ExternalBaseUrl:         input.PipelineExternalURL,
+			ExternalBaseUrlInsecure: input.PipelineExternalURLInsecure,
+			SSHKeyName:              "pke-ssh-" + input.ClusterName,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)

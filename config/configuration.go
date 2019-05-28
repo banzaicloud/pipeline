@@ -62,6 +62,10 @@ const (
 	//PipelineLabelDomain reserved node pool label domains
 	PipelineLabelDomain = "infra.pipelineLabelDomain"
 
+	// PipelineExternalURLInsecure specifies whether the external URL of the Pipeline is insecure
+	// as uses self-signed CA cert
+	PipelineExternalURLInsecure = "pipeline.externalURLInsecure"
+
 	//ForbiddenLabelDomains reserved node pool label domains
 	ForbiddenLabelDomains = "infra.forbiddenLabelDomains"
 
@@ -207,6 +211,7 @@ func init() {
 	viper.SetDefault(SetCookieDomain, false)
 
 	viper.SetDefault("pipeline.bindaddr", "127.0.0.1:9090")
+	viper.SetDefault(PipelineExternalURLInsecure, false)
 	viper.SetDefault("pipeline.certfile", "")
 	viper.SetDefault("pipeline.keyfile", "")
 	viper.SetDefault("pipeline.uipath", "/ui")

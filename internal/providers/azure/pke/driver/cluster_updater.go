@@ -35,12 +35,13 @@ import (
 )
 
 type AzurePKEClusterUpdater struct {
-	logger              logrus.FieldLogger
-	paramsPreparer      AzurePKEClusterUpdateParamsPreparer
-	pipelineExternalURL string
-	secrets             clusterUpdaterSecretStore
-	store               pke.AzurePKEClusterStore
-	workflowClient      client.Client
+	logger                      logrus.FieldLogger
+	paramsPreparer              AzurePKEClusterUpdateParamsPreparer
+	pipelineExternalURL         string
+	pipelineExternalURLInsecure bool
+	secrets                     clusterUpdaterSecretStore
+	store                       pke.AzurePKEClusterStore
+	workflowClient              client.Client
 }
 
 type clusterUpdaterSecretStore interface {
@@ -48,7 +49,7 @@ type clusterUpdaterSecretStore interface {
 	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
 }
 
-func MakeAzurePKEClusterUpdater(logger logrus.FieldLogger, pipelineExternalURL string, secrets clusterUpdaterSecretStore, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterUpdater {
+func MakeAzurePKEClusterUpdater(logger logrus.FieldLogger, pipelineExternalURL string, pipelineExternalURLInsecure bool, secrets clusterUpdaterSecretStore, store pke.AzurePKEClusterStore, workflowClient client.Client) AzurePKEClusterUpdater {
 	return AzurePKEClusterUpdater{
 		logger: logger,
 		paramsPreparer: AzurePKEClusterUpdateParamsPreparer{
@@ -56,10 +57,11 @@ func MakeAzurePKEClusterUpdater(logger logrus.FieldLogger, pipelineExternalURL s
 			secrets: secrets,
 			store:   store,
 		},
-		pipelineExternalURL: pipelineExternalURL,
-		secrets:             secrets,
-		store:               store,
-		workflowClient:      workflowClient,
+		pipelineExternalURL:         pipelineExternalURL,
+		pipelineExternalURLInsecure: pipelineExternalURLInsecure,
+		secrets:                     secrets,
+		store:                       store,
+		workflowClient:              workflowClient,
 	}
 }
 
@@ -108,17 +110,18 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		subnetTemplates := make(map[string]workflow.SubnetTemplate)
 
 		tf := nodePoolTemplateFactory{
-			ClusterID:           cluster.ID,
-			ClusterName:         cluster.Name,
-			KubernetesVersion:   cluster.Kubernetes.Version,
-			Location:            cluster.Location,
-			OrganizationID:      cluster.OrganizationID,
-			PipelineExternalURL: cu.pipelineExternalURL,
-			ResourceGroupName:   cluster.ResourceGroup.Name,
-			SingleNodePool:      (len(nodePoolsToCreate) + len(nodePoolsToUpdate) - len(nodePoolsToDelete)) == 1,
-			SSHPublicKey:        sshKeyPair.PublicKeyData,
-			TenantID:            tenantID,
-			VirtualNetworkName:  cluster.VirtualNetwork.Name,
+			ClusterID:                   cluster.ID,
+			ClusterName:                 cluster.Name,
+			KubernetesVersion:           cluster.Kubernetes.Version,
+			Location:                    cluster.Location,
+			OrganizationID:              cluster.OrganizationID,
+			PipelineExternalURL:         cu.pipelineExternalURL,
+			PipelineExternalURLInsecure: cu.pipelineExternalURLInsecure,
+			ResourceGroupName:           cluster.ResourceGroup.Name,
+			SingleNodePool:              (len(nodePoolsToCreate) + len(nodePoolsToUpdate) - len(nodePoolsToDelete)) == 1,
+			SSHPublicKey:                sshKeyPair.PublicKeyData,
+			TenantID:                    tenantID,
+			VirtualNetworkName:          cluster.VirtualNetwork.Name,
 		}
 
 		for i, np := range nodePoolsToCreate {

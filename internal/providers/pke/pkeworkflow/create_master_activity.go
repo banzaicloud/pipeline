@@ -42,15 +42,16 @@ func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator) *
 }
 
 type CreateMasterActivityInput struct {
-	ClusterID             uint
-	AvailabilityZone      string
-	VPCID                 string
-	SubnetID              string
-	MultiMaster           bool
-	MasterInstanceProfile string
-	ExternalBaseUrl       string
-	Pool                  NodePool
-	SSHKeyName            string
+	ClusterID               uint
+	AvailabilityZone        string
+	VPCID                   string
+	SubnetID                string
+	MultiMaster             bool
+	MasterInstanceProfile   string
+	ExternalBaseUrl         string
+	ExternalBaseUrlInsecure bool
+	Pool                    NodePool
+	SSHKeyName              string
 
 	EIPAllocationID string
 
@@ -84,7 +85,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		return "", emperror.Wrap(err, "can't generate Pipeline token")
 	}
 
-	bootstrapCommand, err := awsCluster.GetBootstrapCommand("master", input.ExternalBaseUrl, signedToken)
+	bootstrapCommand, err := awsCluster.GetBootstrapCommand("master", input.ExternalBaseUrl, input.ExternalBaseUrlInsecure, signedToken)
 	if err != nil {
 		return "", emperror.Wrap(err, "failed to fetch bootstrap command")
 	}

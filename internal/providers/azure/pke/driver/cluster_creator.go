@@ -38,27 +38,29 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-const pkeVersion = "0.4.6"
+const pkeVersion = "0.4.7"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
-func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string) AzurePKEClusterCreator {
+func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string, pipelineExternalURLInsecure bool) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
-		logger:              logger,
-		store:               store,
-		workflowClient:      workflowClient,
-		pipelineExternalURL: pipelineExternalURL,
-		paramsPreparer:      MakeAzurePKEClusterCreationParamsPreparer(logger),
+		logger:                      logger,
+		store:                       store,
+		workflowClient:              workflowClient,
+		pipelineExternalURL:         pipelineExternalURL,
+		pipelineExternalURLInsecure: pipelineExternalURLInsecure,
+		paramsPreparer:              MakeAzurePKEClusterCreationParamsPreparer(logger),
 	}
 }
 
 // AzurePKEClusterCreator creates new PKE-on-Azure clusters
 type AzurePKEClusterCreator struct {
-	logger              logrus.FieldLogger
-	paramsPreparer      AzurePKEClusterCreationParamsPreparer
-	store               pke.AzurePKEClusterStore
-	workflowClient      client.Client
-	pipelineExternalURL string
-	secrets             interface {
+	logger                      logrus.FieldLogger
+	paramsPreparer              AzurePKEClusterCreationParamsPreparer
+	store                       pke.AzurePKEClusterStore
+	workflowClient              client.Client
+	pipelineExternalURL         string
+	pipelineExternalURLInsecure bool
+	secrets                     interface {
 		Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 		Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
 	}
@@ -206,17 +208,18 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 
 	tf := nodePoolTemplateFactory{
-		ClusterID:           cl.ID,
-		ClusterName:         cl.Name,
-		KubernetesVersion:   cl.Kubernetes.Version,
-		Location:            cl.Location,
-		OrganizationID:      cl.OrganizationID,
-		PipelineExternalURL: cc.pipelineExternalURL,
-		ResourceGroupName:   cl.ResourceGroup.Name,
-		SingleNodePool:      len(cl.NodePools) == 1,
-		SSHPublicKey:        sshKeyPair.PublicKeyData,
-		TenantID:            tenantID,
-		VirtualNetworkName:  cl.VirtualNetwork.Name,
+		ClusterID:                   cl.ID,
+		ClusterName:                 cl.Name,
+		KubernetesVersion:           cl.Kubernetes.Version,
+		Location:                    cl.Location,
+		OrganizationID:              cl.OrganizationID,
+		PipelineExternalURL:         cc.pipelineExternalURL,
+		PipelineExternalURLInsecure: cc.pipelineExternalURLInsecure,
+		ResourceGroupName:           cl.ResourceGroup.Name,
+		SingleNodePool:              len(cl.NodePools) == 1,
+		SSHPublicKey:                sshKeyPair.PublicKeyData,
+		TenantID:                    tenantID,
+		VirtualNetworkName:          cl.VirtualNetwork.Name,
 	}
 
 	subnets := make(map[string]workflow.SubnetTemplate)
@@ -448,6 +451,7 @@ chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
 pke install master --pipeline-url="{{ .PipelineURL }}" \
+--pipeline-insecure="{{ .PipelineURLInsecure }}" \
 --pipeline-token="{{ .PipelineToken }}" \
 --pipeline-org-id={{ .OrgID }} \
 --pipeline-cluster-id={{ .ClusterID}} \
@@ -476,6 +480,7 @@ chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
 
 pke install worker --pipeline-url="{{ .PipelineURL }}" \
+--pipeline-insecure="{{ .PipelineURLInsecure }}" \
 --pipeline-token="{{ .PipelineToken }}" \
 --pipeline-org-id={{ .OrgID }} \
 --pipeline-cluster-id={{ .ClusterID}} \

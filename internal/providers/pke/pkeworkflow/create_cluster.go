@@ -24,7 +24,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.4.6"
+const pkeVersion = "0.4.7"
 
 func getDefaultImageID(region, kubernetesVersion string) string {
 	switch kubernetesVersion {
@@ -95,16 +95,17 @@ type TokenGenerator interface {
 }
 
 type CreateClusterWorkflowInput struct {
-	OrganizationID      uint
-	ClusterID           uint
-	ClusterUID          string
-	ClusterName         string
-	SecretID            string
-	Region              string
-	PipelineExternalURL string
-	DexEnabled          bool
-	VPCID               string
-	SubnetID            string
+	OrganizationID              uint
+	ClusterID                   uint
+	ClusterUID                  string
+	ClusterName                 string
+	SecretID                    string
+	Region                      string
+	PipelineExternalURL         string
+	PipelineExternalURLInsecure bool
+	DexEnabled                  bool
+	VPCID                       string
+	SubnetID                    string
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -247,15 +248,16 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	multiMaster := master.MaxCount > 1
 
 	masterInput := CreateMasterActivityInput{
-		ClusterID:             input.ClusterID,
-		VPCID:                 vpcOutput["VpcId"],
-		SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
-		MultiMaster:           multiMaster,
-		MasterInstanceProfile: rolesOutput["MasterInstanceProfile"],
-		ExternalBaseUrl:       input.PipelineExternalURL,
-		Pool:                  master,
-		SSHKeyName:            keyOut.KeyName,
-		AvailabilityZone:      master.AvailabilityZones[0],
+		ClusterID:               input.ClusterID,
+		VPCID:                   vpcOutput["VpcId"],
+		SubnetID:                strings.Split(vpcOutput["SubnetIds"], ",")[0],
+		MultiMaster:             multiMaster,
+		MasterInstanceProfile:   rolesOutput["MasterInstanceProfile"],
+		ExternalBaseUrl:         input.PipelineExternalURL,
+		ExternalBaseUrlInsecure: input.PipelineExternalURLInsecure,
+		Pool:                    master,
+		SSHKeyName:              keyOut.KeyName,
+		AvailabilityZone:        master.AvailabilityZones[0],
 	}
 
 	if multiMaster {
@@ -359,14 +361,15 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		for _, np := range nodePools {
 			if !np.Master {
 				createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
-					ClusterID:             input.ClusterID,
-					Pool:                  np,
-					WorkerInstanceProfile: rolesOutput["WorkerInstanceProfile"],
-					VPCID:                 vpcOutput["VpcId"],
-					SubnetID:              strings.Split(vpcOutput["SubnetIds"], ",")[0],
-					ClusterSecurityGroup:  masterOutput["ClusterSecurityGroup"],
-					ExternalBaseUrl:       input.PipelineExternalURL,
-					SSHKeyName:            keyOut.KeyName,
+					ClusterID:               input.ClusterID,
+					Pool:                    np,
+					WorkerInstanceProfile:   rolesOutput["WorkerInstanceProfile"],
+					VPCID:                   vpcOutput["VpcId"],
+					SubnetID:                strings.Split(vpcOutput["SubnetIds"], ",")[0],
+					ClusterSecurityGroup:    masterOutput["ClusterSecurityGroup"],
+					ExternalBaseUrl:         input.PipelineExternalURL,
+					ExternalBaseUrlInsecure: input.PipelineExternalURLInsecure,
+					SSHKeyName:              keyOut.KeyName,
 				}
 
 				err := workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)

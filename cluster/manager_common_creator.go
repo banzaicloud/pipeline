@@ -98,20 +98,25 @@ type pkeCreator struct {
 // Create implements the clusterCreator interface.
 func (c *pkeCreator) Create(ctx context.Context) error {
 	var externalBaseURL string
+	var externalBaseURLInsecure bool
 	var ok bool
 	if externalBaseURL, ok = ctx.Value(ExternalBaseURLKey).(string); !ok {
 		return errors.New("externalBaseURL missing from context")
 	}
+	if externalBaseURLInsecure, ok = ctx.Value(ExternalBaseURLInsecureKey).(bool); !ok {
+		return errors.New("externalBaseURLInsecure missing from context")
+	}
 
 	input := pkeworkflow.CreateClusterWorkflowInput{
-		OrganizationID:      uint(c.cluster.GetOrganizationId()),
-		ClusterID:           uint(c.cluster.GetID()),
-		ClusterUID:          c.cluster.GetUID(),
-		ClusterName:         c.cluster.GetName(),
-		SecretID:            string(c.cluster.GetSecretId()),
-		Region:              c.cluster.GetLocation(),
-		PipelineExternalURL: externalBaseURL,
-		DexEnabled:          c.dexEnabled,
+		OrganizationID:              uint(c.cluster.GetOrganizationId()),
+		ClusterID:                   uint(c.cluster.GetID()),
+		ClusterUID:                  c.cluster.GetUID(),
+		ClusterName:                 c.cluster.GetName(),
+		SecretID:                    string(c.cluster.GetSecretId()),
+		Region:                      c.cluster.GetLocation(),
+		PipelineExternalURL:         externalBaseURL,
+		PipelineExternalURLInsecure: externalBaseURLInsecure,
+		DexEnabled:                  c.dexEnabled,
 	}
 
 	providerConfig := c.request.Properties.CreateClusterPKE.Network.ProviderConfig

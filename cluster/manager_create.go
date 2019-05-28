@@ -32,19 +32,21 @@ import (
 
 // CreationContext represents the data necessary to do generic cluster creation steps/checks.
 type CreationContext struct {
-	OrganizationID  uint
-	UserID          uint
-	ExternalBaseURL string
-	Name            string
-	Provider        string
-	SecretID        string
-	SecretIDs       []string
-	PostHooks       pkgCluster.PostHooks
+	OrganizationID          uint
+	UserID                  uint
+	ExternalBaseURL         string
+	ExternalBaseURLInsecure bool
+	Name                    string
+	Provider                string
+	SecretID                string
+	SecretIDs               []string
+	PostHooks               pkgCluster.PostHooks
 }
 
 type contextKey string
 
 const ExternalBaseURLKey = contextKey("ExternalBaseURL")
+const ExternalBaseURLInsecureKey = contextKey("ExternalBaseURLInsecure")
 
 var ErrAlreadyExists = stderrors.New("cluster already exists with this name")
 
@@ -138,6 +140,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 		defer emperror.HandleRecover(errorHandler.WithStatus(pkgCluster.Error, "internal error while creating cluster"))
 
 		ctx = context.WithValue(ctx, ExternalBaseURLKey, creationCtx.ExternalBaseURL)
+		ctx = context.WithValue(ctx, ExternalBaseURLInsecureKey, creationCtx.ExternalBaseURLInsecure)
 		err := m.createCluster(ctx, cluster, creator, creationCtx.PostHooks, logger)
 		if err != nil {
 			errorHandler.Handle(err)
