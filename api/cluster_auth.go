@@ -16,6 +16,7 @@ package api
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -55,12 +56,22 @@ func NewClusterAuthAPI(
 	clusterAuthService auth.ClusterAuthService,
 	tokenSigningKey string,
 	issuerURL string,
+	insecureSkipVerify bool,
 	redirectURI string,
 ) (*ClusterAuthAPI, error) {
 
+	httpClient := http.Client{
+		Timeout: time.Second * 10,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: insecureSkipVerify,
+			},
+		},
+	}
+
 	a := ClusterAuthAPI{
 		tokenSigningKey:    []byte(tokenSigningKey),
-		client:             http.DefaultClient,
+		client:             &httpClient,
 		clusterGetter:      clusterGetter,
 		clusterAuthService: clusterAuthService,
 		redirectURI:        redirectURI,

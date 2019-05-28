@@ -521,7 +521,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateClusterRequest'
+              type: object
         required: true
       responses:
         202:
@@ -8050,7 +8050,6 @@ components:
         kind:
           type: string
         params:
-          additionalProperties: true
           type: object
       required:
       - kind
@@ -8085,44 +8084,41 @@ components:
       required:
       - enabled
       type: object
+    CreatePKEClusterKubernetes:
+      properties:
+        version:
+          example: v1.12.2
+          type: string
+        rbac:
+          type: boolean
+        cri:
+          $ref: '#/components/schemas/CreatePKEClusterKubernetes_cri'
+        network:
+          $ref: '#/components/schemas/CreatePKEClusterKubernetesNetwork'
+      required:
+      - version
+      type: object
+    CreatePKEClusterKubernetesNetwork:
+      properties:
+        serviceCIDR:
+          example: 10.32.0.0/24
+          type: string
+        podCIDR:
+          example: 10.200.0.0/16
+          type: string
+        provider:
+          enum:
+          - weave
+          type: string
+        providerConfig:
+          type: object
+      type: object
     CreatePKEClusterRequestBase:
       allOf:
       - $ref: '#/components/schemas/CreateClusterRequestBase'
       - properties:
           kubernetes:
-            properties:
-              version:
-                example: v1.12.2
-                type: string
-              rbac:
-                type: boolean
-              cri:
-                properties:
-                  runtime:
-                    type: string
-                  runtimeConfig:
-                    additionalProperties: true
-                    type: object
-                type: object
-              network:
-                properties:
-                  serviceCIDR:
-                    example: 10.32.0.0/24
-                    type: string
-                  podCIDR:
-                    example: 10.200.0.0/16
-                    type: string
-                  provider:
-                    enum:
-                    - weave
-                    type: string
-                  providerConfig:
-                    additionalProperties: true
-                    type: object
-                type: object
-            required:
-            - version
-            type: object
+            $ref: '#/components/schemas/CreatePKEClusterKubernetes'
         required:
         - kubernetes
         type: object
@@ -8139,79 +8135,75 @@ components:
             example: my-resource-group-1
             type: string
           network:
-            properties:
-              name:
-                example: my-azure-virtual-network
-                type: string
-              cidr:
-                description: When referencing an already existing virtual network this field does not need to be specified.
-                example: 10.0.0.0/16
-                type: string
-            type: object
+            $ref: '#/components/schemas/PKEOnAzureClusterNetwork'
           nodepools:
             items:
-              properties:
-                name:
-                  type: string
-                roles:
-                  items:
-                    enum:
-                    - master
-                    - system
-                    - worker
-                    type: string
-                  type: array
-                labels:
-                  additionalProperties:
-                    type: string
-                  type: object
-                subnet:
-                  properties:
-                    name:
-                      example: my-azure-subnet
-                      type: string
-                    cidr:
-                      description: When referencing an already existing subnetwork this field does not need to be specified.
-                      example: 10.0.0.0/24
-                      type: string
-                  type: object
-                zones:
-                  example:
-                  - "1"
-                  - "3"
-                  items:
-                    enum:
-                    - "1"
-                    - "2"
-                    - "3"
-                    type: string
-                  type: array
-                autoscaling:
-                  type: boolean
-                minCount:
-                  format: int32
-                  minimum: 1
-                  type: integer
-                maxCount:
-                  format: int32
-                  minimum: 1
-                  type: integer
-                count:
-                  format: int32
-                  minimum: 1
-                  type: integer
-                instanceType:
-                  example: Standard_B2ms
-                  type: string
-              required:
-              - instanceType
-              - name
-              - roles
-              type: object
+              $ref: '#/components/schemas/PKEOnAzureNodePool'
             type: array
         required:
         - resourceGroup
         type: object
+    PKEOnAzureClusterNetwork:
+      properties:
+        name:
+          example: my-azure-virtual-network
+          type: string
+        cidr:
+          description: When referencing an already existing virtual network this field does not need to be specified.
+          example: 10.0.0.0/16
+          type: string
+      type: object
+    PKEOnAzureNodePool:
+      properties:
+        name:
+          type: string
+        roles:
+          items:
+            enum:
+            - master
+            - system
+            - worker
+            type: string
+          type: array
+        labels:
+          additionalProperties:
+            type: string
+          type: object
+        subnet:
+          $ref: '#/components/schemas/PKEOnAzureNodePool_subnet'
+        zones:
+          example:
+          - "1"
+          - "3"
+          items:
+            enum:
+            - "1"
+            - "2"
+            - "3"
+            type: string
+          type: array
+        autoscaling:
+          type: boolean
+        minCount:
+          format: int32
+          minimum: 1
+          type: integer
+        maxCount:
+          format: int32
+          minimum: 1
+          type: integer
+        count:
+          format: int32
+          minimum: 1
+          type: integer
+        instanceType:
+          example: Standard_B2ms
+          type: string
+      required:
+      - instanceType
+      - name
+      - roles
+      type: object
     CreateClusterRequestV2:
       discriminator:
         mapping:
@@ -8650,18 +8642,17 @@ components:
           example: Chart Not Found!
           type: string
       type: object
+    UpdateClusterRequestV2:
+      oneOf:
+      - $ref: '#/components/schemas/UpdatePKEOnAzureClusterRequest'
+    UpdatePKEOnAzureClusterRequest:
+      properties:
+        nodepools:
+          items:
+            $ref: '#/components/schemas/PKEOnAzureNodePool'
+          type: array
+      type: object
     UpdateClusterRequest:
-      example:
-        cloud: google
-        ttlMinutes: 120
-        properties:
-          google:
-            master:
-              version: "1.10"
-            nodePools:
-              pool1:
-                count: 2
-                instanceType: n1-standard-2
       properties:
         cloud:
           example: google
@@ -9920,7 +9911,7 @@ components:
         type: google
         error: Validation failed
         version: 1
-        updatedAt: 2018-07-01T08:27:23.2636996Z
+        updatedAt: 2000-01-23T04:56:07.000+00:00
       properties:
         name:
           example: My-google-secret
@@ -9935,7 +9926,7 @@ components:
           example: Validation failed
           type: string
         updatedAt:
-          example: 2018-07-01T08:27:23.2636996Z
+          format: date-time
           type: string
         updatedBy:
           example: username
@@ -9944,6 +9935,10 @@ components:
           example: 1
           format: int32
           type: integer
+      required:
+      - id
+      - name
+      - type
       type: object
     CreateSecretRequest:
       example:
@@ -13139,6 +13134,21 @@ components:
         version:
           type: string
       type: object
+    CreatePKEClusterKubernetes_cri:
+      properties:
+        runtime:
+          type: string
+        runtimeConfig:
+          type: object
+    PKEOnAzureNodePool_subnet:
+      properties:
+        name:
+          example: my-azure-subnet
+          type: string
+        cidr:
+          description: When referencing an already existing subnetwork this field does not need to be specified.
+          example: 10.0.0.0/24
+          type: string
     CreateEKSProperties_eks:
       properties:
         version:

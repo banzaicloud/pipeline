@@ -30,11 +30,6 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/cicd-go/cicd"
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/client"
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/spotguide/scm"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
 	"github.com/goph/emperror"
@@ -42,6 +37,12 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/spotguide/scm"
 )
 
 const SpotguideGithubTopic = "spotguide"
@@ -133,6 +134,7 @@ type SpotguideManager struct {
 	pipelineVersion           *semver.Version
 	scmFactory                scm.SCMFactory
 	sharedLibraryOrganization *auth.Organization
+	platformData              PlatformData
 }
 
 func CreateSharedSpotguideOrganization(db *gorm.DB, scm string, sharedLibraryOrganization string) (*auth.Organization, error) {
@@ -152,8 +154,13 @@ func CreateSharedSpotguideOrganization(db *gorm.DB, scm string, sharedLibraryOrg
 	return sharedOrg, nil
 }
 
-func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, scmFactory scm.SCMFactory, sharedLibraryOrganization *auth.Organization) *SpotguideManager {
-
+func NewSpotguideManager(
+	db *gorm.DB,
+	pipelineVersionString string,
+	scmFactory scm.SCMFactory,
+	sharedLibraryOrganization *auth.Organization,
+	platformData PlatformData,
+) *SpotguideManager {
 	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
 
 	return &SpotguideManager{
@@ -161,6 +168,7 @@ func NewSpotguideManager(db *gorm.DB, pipelineVersionString string, scmFactory s
 		pipelineVersion:           pipelineVersion,
 		scmFactory:                scmFactory,
 		sharedLibraryOrganization: sharedLibraryOrganization,
+		platformData:              platformData,
 	}
 }
 
@@ -375,7 +383,7 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 	}
 
 	// Prepare the spotguide content
-	spotguideContent, err := getSpotguideContent(userSCM, request, sourceRepo)
+	spotguideContent, err := getSpotguideContent(userSCM, request, sourceRepo, s.platformData)
 	if err != nil {
 		return emperror.Wrap(err, "failed to prepare spotguide git content")
 	}
@@ -390,9 +398,9 @@ func (s *SpotguideManager) LaunchSpotguide(request *LaunchRequest, org *auth.Org
 	return nil
 }
 
-func preparePipelineYAML(request *LaunchRequest, sourceRepo *SpotguideRepo, pipelineYAML []byte) ([]byte, error) {
+func preparePipelineYAML(request *LaunchRequest, sourceRepo *SpotguideRepo, pipelineYAML []byte, platformData PlatformData) ([]byte, error) {
 	// Create repo config that drives the CICD flow from LaunchRequest
-	repoConfig, err := createCICDRepoConfig(pipelineYAML, request)
+	repoConfig, err := createCICDRepoConfig(pipelineYAML, request, platformData)
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to initialize repo config")
 	}
@@ -405,7 +413,7 @@ func preparePipelineYAML(request *LaunchRequest, sourceRepo *SpotguideRepo, pipe
 	return repoConfigRaw, nil
 }
 
-func getSpotguideContent(sourceSCM scm.SCM, request *LaunchRequest, sourceRepo *SpotguideRepo) ([]scm.RepositoryFile, error) {
+func getSpotguideContent(sourceSCM scm.SCM, request *LaunchRequest, sourceRepo *SpotguideRepo, platformData PlatformData) ([]scm.RepositoryFile, error) {
 	// Download source repo zip
 	sourceRepoParts := strings.Split(sourceRepo.Name, "/")
 	sourceRepoOwner := sourceRepoParts[0]
@@ -449,7 +457,7 @@ func getSpotguideContent(sourceSCM scm.SCM, request *LaunchRequest, sourceRepo *
 
 		// Prepare pipeline.yaml
 		if path == PipelineYAMLPath {
-			content, err = preparePipelineYAML(request, sourceRepo, content)
+			content, err = preparePipelineYAML(request, sourceRepo, content, platformData)
 			if err != nil {
 				return nil, emperror.Wrap(err, "failed to prepare pipeline.yaml")
 			}
@@ -527,7 +535,13 @@ func enableCICD(cicdClient cicd.Client, request *LaunchRequest, org string) erro
 	return nil
 }
 
-func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*cicdRepoConfig, error) {
+// PlatformData contains information about the underlying Pipeline instance
+// that can be passed to the pipeline.yaml template.
+type PlatformData struct {
+	AutoDNSEnabled bool
+}
+
+func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest, platformData PlatformData) (*cicdRepoConfig, error) {
 	// Pre-process pipeline.yaml
 	yamlTemplate, err := template.New("pipeline.yaml").
 		Delims("{{{{", "}}}}").
@@ -538,7 +552,7 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*cicdRep
 	}
 	buffer := bytes.NewBuffer(nil)
 
-	data := map[string]map[string]interface{}{}
+	data := map[string]interface{}{}
 	cluster := map[string]interface{}{}
 	pipeline := map[string]interface{}{}
 
@@ -564,6 +578,7 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest) (*cicdRep
 
 	data["cluster"] = cluster
 	data["pipeline"] = pipeline
+	data["platform"] = platformData
 
 	err = yamlTemplate.Execute(buffer, data)
 	if err != nil {

@@ -70,6 +70,7 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 				"kubernetesCluster-test-cluster": to.StringPtr("owned"),
 			},
 			VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
+				Overprovision: to.BoolPtr(false),
 				UpgradePolicy: &compute.UpgradePolicy{Mode: compute.Manual},
 				VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 					NetworkProfile: &compute.VirtualMachineScaleSetNetworkProfile{

@@ -176,6 +176,7 @@ func init() {
 
 	// Set defaults TODO expand defaults
 	viper.SetDefault("cicd.url", "http://localhost:8000")
+	viper.SetDefault("cicd.insecure", false)
 	viper.SetDefault("cicd.scm", "github")
 	viper.SetDefault("helm.retryAttempt", 30)
 	viper.SetDefault("helm.retrySleepSeconds", 15)

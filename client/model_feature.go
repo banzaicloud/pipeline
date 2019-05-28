@@ -12,6 +12,6 @@
 package client
 
 type Feature struct {
-	Kind   string                            `json:"kind"`
-	Params map[string]map[string]interface{} `json:"params,omitempty"`
+	Kind   string                 `json:"kind"`
+	Params map[string]interface{} `json:"params,omitempty"`
 }

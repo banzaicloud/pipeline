@@ -73,3 +73,27 @@ func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
 func GetVMSSName(clusterName, nodePoolName string) string {
 	return clusterName + "-" + nodePoolName
 }
+
+func GetRouteTableName(clusterName string) string {
+	return clusterName + "-route-table"
+}
+
+func GetBackendAddressPoolName() string {
+	return "backend-address-pool"
+}
+
+func GetOutboundBackendAddressPoolName() string {
+	return "outbound-backend-address-pool"
+}
+
+func GetInboundNATPoolName() string {
+	return "ssh-inbound-nat-pool"
+}
+
+func GetLoadBalancerName(clusterName string) string {
+	return clusterName // LB name must match the value passed to pke install master --kubernetes-cluster-name
+}
+
+func GetPublicIPAddressName(clusterName string) string {
+	return clusterName + "-pip-in"
+}

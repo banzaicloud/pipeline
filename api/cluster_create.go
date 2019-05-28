@@ -23,6 +23,7 @@ import (
 
 	clusterAPI "github.com/banzaicloud/pipeline/api/cluster"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/cluster"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -131,19 +132,23 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 		return
 	}
 
-	var createClusterRequestBase clusterAPI.CreateClusterRequestBase
+	var createClusterRequestBase client.CreateClusterRequestBase
 	if !a.parseRequest(c, requestBody, &createClusterRequestBase) {
 		return
 	}
 
-	secretID := clusterAPI.GetSecretIDFromRequest(createClusterRequestBase)
+	secretID := createClusterRequestBase.SecretId
 	if secretID == "" {
-		ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "either secret ID or name is required",
-			Error:   "no secret specified",
-		})
-		return
+		if createClusterRequestBase.SecretName != "" {
+			secretID = secret.GenerateSecretIDFromName(createClusterRequestBase.SecretName)
+		} else {
+			ginutils.ReplyWithErrorResponse(c, &pkgCommon.ErrorResponse{
+				Code:    http.StatusBadRequest,
+				Message: "either secret ID or name is required",
+				Error:   "no secret specified",
+			})
+			return
+		}
 	}
 
 	var cluster intCluster.Cluster
@@ -154,17 +159,17 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 		if ok := a.parseRequest(c, requestBody, &req); !ok {
 			return
 		}
-		req.SecretID = secretID
+		req.SecretId = secretID
 		{
 			// Adapting legacy format. TODO: Please remove this as soon as possible.
 			if _, ok := requestBody["features"]; !ok {
 				if postHooks, ok := requestBody["postHooks"]; ok {
 					log.Warn("Got post hooks in request. Post hooks are deprecated, please use features instead.")
 					if phs, ok := postHooks.(map[string]interface{}); ok {
-						req.Features = make([]clusterAPI.Feature, 0, len(phs))
+						req.Features = make([]client.Feature, 0, len(phs))
 						for kind, params := range phs {
 							if p, ok := params.(map[string]interface{}); ok {
-								req.Features = append(req.Features, clusterAPI.Feature{
+								req.Features = append(req.Features, client.Feature{
 									Kind:   kind,
 									Params: p,
 								})

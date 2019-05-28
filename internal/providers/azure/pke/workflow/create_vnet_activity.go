@@ -128,13 +128,17 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 func (input CreateVnetActivityInput) getCreateOrUpdateVirtualNetworkParams() network.VirtualNetwork {
 	subnets := make([]network.Subnet, len(input.VirtualNetwork.Subnets))
 	for i, s := range input.VirtualNetwork.Subnets {
+		var nsg *network.SecurityGroup
+		if s.NetworkSecurityGroupID != "" {
+			nsg = &network.SecurityGroup{
+				ID: to.StringPtr(s.NetworkSecurityGroupID),
+			}
+		}
 		subnets[i] = network.Subnet{
 			Name: to.StringPtr(s.Name),
 			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
-				AddressPrefix: to.StringPtr(s.CIDR),
-				NetworkSecurityGroup: &network.SecurityGroup{
-					ID: to.StringPtr(s.NetworkSecurityGroupID),
-				},
+				AddressPrefix:        to.StringPtr(s.CIDR),
+				NetworkSecurityGroup: nsg,
 				RouteTable: &network.RouteTable{
 					ID: to.StringPtr(s.RouteTableID),
 				},

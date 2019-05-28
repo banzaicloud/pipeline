@@ -30,6 +30,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator 
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateInfraWorkflowName})
 	workflow.RegisterWithOptions(azurepkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteClusterWorkflowName})
 	workflow.RegisterWithOptions(azurepkeworkflow.DeleteInfrastructureWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.DeleteInfraWorkflowName})
+	workflow.RegisterWithOptions(azurepkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.UpdateClusterWorkflowName})
 
 	azureClientFactory := azurepkeworkflow.NewAzureClientFactory(secretStore)
 
@@ -78,4 +79,19 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator 
 
 	setClusterStatusActivity := azurepkeworkflow.MakeSetClusterStatusActivity(store)
 	activity.RegisterWithOptions(setClusterStatusActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.SetClusterStatusActivityName})
+
+	updateVMSSActivity := azurepkeworkflow.MakeUpdateVMSSActivity(azureClientFactory)
+	activity.RegisterWithOptions(updateVMSSActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.UpdateVMSSActivityName})
+
+	createSubnetActivity := azurepkeworkflow.MakeCreateSubnetActivity(azureClientFactory)
+	activity.RegisterWithOptions(createSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CreateSubnetActivityName})
+
+	deleteNodePoolFromStoreActivity := azurepkeworkflow.MakeDeleteNodePoolFromStoreActivity(store)
+	activity.RegisterWithOptions(deleteNodePoolFromStoreActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteNodePoolFromStoreActivityName})
+
+	deleteSubnetActivity := azurepkeworkflow.MakeDeleteSubnetActivity(azureClientFactory)
+	activity.RegisterWithOptions(deleteSubnetActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.DeleteSubnetActivityName})
+
+	collectUpdateClusterProvidersActivity := azurepkeworkflow.MakeCollectUpdateClusterProvidersActivity(azureClientFactory)
+	activity.RegisterWithOptions(collectUpdateClusterProvidersActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CollectUpdateClusterProvidersActivityName})
 }
