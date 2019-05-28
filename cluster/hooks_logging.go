@@ -155,8 +155,11 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		loggingValues := map[string]interface{}{
 			"bucketName": loggingParam.BucketName,
 			"region":     loggingParam.Region,
-			"secret": map[string]interface{}{
-				"secretName": installedSecretValues[0].Name,
+			"awsCredentialsAccess": map[string]interface{}{
+				"enabled": true,
+				"secret": map[string]interface{}{
+					"secretName": installedSecretValues[0].Name,
+				},
 			},
 		}
 		marshaledValues, err := yaml.Marshal(loggingValues)
