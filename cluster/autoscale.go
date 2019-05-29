@@ -329,7 +329,6 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 		}
 		// install
 		return deployAutoscalerChart(cluster, nodeGroups, kubeConfig, install)
-
 	}
 
 	return nil
@@ -382,11 +381,13 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		return err
 	}
 
+	chartVersion := viper.GetString(config.AutoscaleClusterAutoscalerChartVersion)
+
 	switch action {
 	case install:
-		_, err = helm.CreateDeployment(autoScalerChart, "", nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.ValueOverrides(yamlValues))
+		_, err = helm.CreateDeployment(autoScalerChart, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.ValueOverrides(yamlValues))
 	case upgrade:
-		_, err = helm.UpgradeDeployment(releaseName, autoScalerChart, "", nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+		_, err = helm.UpgradeDeployment(releaseName, autoScalerChart, chartVersion, nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	default:
 		return err
 	}
