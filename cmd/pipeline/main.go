@@ -63,6 +63,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
+	"github.com/banzaicloud/pipeline/internal/global"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/notification"
@@ -367,8 +368,9 @@ func main() {
 		log.Errorf("failed to create shared Spotguide organization: %s", err)
 	}
 
+	global.AutoDNSEnabled = viper.GetString(config.DNSBaseDomain) != "" && viper.GetString(config.DNSBaseDomain) != "example.com"
 	spotguidePlatformData := spotguide.PlatformData{
-		AutoDNSEnabled: viper.GetString(config.DNSBaseDomain) != "" && viper.GetString(config.DNSBaseDomain) != "example.com",
+		AutoDNSEnabled: global.AutoDNSEnabled,
 	}
 
 	spotguideManager := spotguide.NewSpotguideManager(
