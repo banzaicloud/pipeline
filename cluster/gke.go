@@ -323,8 +323,7 @@ func (c *GKECluster) CreateCluster() error {
 		return errors.New(be.Message)
 	}
 	if gkeCluster.Status == statusError {
-		be := getBanzaiErrorFromError(err)
-		return errors.New(be.Message)
+		return errors.New(gkeCluster.StatusMessage)
 	}
 
 	c.googleCluster = gkeCluster
