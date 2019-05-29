@@ -61,6 +61,7 @@ import (
 const (
 	statusRunning = "RUNNING"
 	statusDone    = "DONE"
+	statusError   = "ERROR"
 )
 
 const (
@@ -320,6 +321,9 @@ func (c *GKECluster) CreateCluster() error {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
 		return errors.New(be.Message)
+	}
+	if gkeCluster.Status == statusError {
+		return errors.New(gkeCluster.StatusMessage)
 	}
 
 	c.googleCluster = gkeCluster
