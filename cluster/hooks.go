@@ -380,6 +380,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	promServiceName := viper.GetString(pipConfig.PrometheusServiceName)
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
+	chartVersion := viper.GetString(pipConfig.AutoscaleHpaOperatorChartVersion)
 
 	values := map[string]interface{}{
 		"affinity":    GetHeadNodeAffinity(cluster),
@@ -415,7 +416,8 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 		return err
 	}
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator", "hpa-operator", valuesOverride, "", false)
+	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator",
+		"hpa-operator", valuesOverride, chartVersion, false)
 }
 
 // InstallPVCOperatorPostHook installs the PVC operator
