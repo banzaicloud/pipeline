@@ -32,12 +32,14 @@ import (
 type NodePoolsPreparer struct {
 	logger       logrus.FieldLogger
 	namespace    string
-	dataProvider interface {
-		getExistingNodePools(ctx context.Context) ([]pke.NodePool, error)
-		getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
-		getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error)
-		getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error)
-	}
+	dataProvider nodePoolsDataProvider
+}
+
+type nodePoolsDataProvider interface {
+	getExistingNodePools(ctx context.Context) ([]pke.NodePool, error)
+	getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
+	getSubnetCIDR(ctx context.Context, subnetName string) (string, error)
+	getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error)
 }
 
 func (p NodePoolsPreparer) getNodePoolPreparer(i int) NodePoolPreparer {
@@ -68,7 +70,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 			return emperror.Wrap(err, "failed to get existing node pools")
 		}
 		for _, np := range nps {
-			cidr, err := p.dataProvider.getSubnetCIDR(ctx, np)
+			cidr, err := p.dataProvider.getSubnetCIDR(ctx, np.Subnet.Name)
 			if err != nil {
 				return emperror.Wrap(err, "failed to get subnet CIDR of existing node pool")
 			}
@@ -162,7 +164,7 @@ type NodePoolPreparer struct {
 	namespace    string
 	dataProvider interface {
 		getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
-		getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error)
+		getSubnetCIDR(ctx context.Context, subnetName string) (string, error)
 		getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error)
 	}
 }
@@ -231,6 +233,13 @@ func (p NodePoolPreparer) prepareNewNodePool(ctx context.Context, nodePool *Node
 		if vnetOnes > subnetOnes {
 			return emperror.With(validationErrorf("%s.Subnet.CIDR is bigger than virtual network address range"), "vnetCIDR", vnetAddrRange.String(), "subnetCIDR", cidr)
 		}
+	} else {
+		cidr, err := p.dataProvider.getSubnetCIDR(ctx, nodePool.Subnet.Name)
+		if err == nil {
+			nodePool.Subnet.CIDR = cidr
+		} else if !pke.IsNotFound(err) {
+			return emperror.Wrap(err, "failed to get subnet CIDR")
+		}
 	}
 
 	return nil
@@ -261,7 +270,7 @@ func (p NodePoolPreparer) prepareExistingNodePool(ctx context.Context, nodePool 
 		}
 		nodePool.Subnet.Name = existing.Subnet.Name
 	}
-	existingSubnetCIDR, err := p.dataProvider.getSubnetCIDR(ctx, existing)
+	existingSubnetCIDR, err := p.dataProvider.getSubnetCIDR(ctx, existing.Subnet.Name)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get subnet CIDR")
 	}

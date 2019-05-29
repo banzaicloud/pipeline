@@ -387,7 +387,12 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 	if err != nil {
 		return emperror.Wrap(err, "failed to parse network CIDR")
 	}
-	if err := p.getNodePoolsPreparer(*network).Prepare(ctx, params.NodePools); err != nil {
+	if err := p.getNodePoolsPreparer(clusterCreatorNodePoolPreparerDataProvider{
+		resourceGroupName:  params.ResourceGroup,
+		subnetsClient:      *cc.GetSubnetsClient(),
+		virtualNetworkCIDR: *network,
+		virtualNetworkName: params.Network.Name,
+	}).Prepare(ctx, params.NodePools); err != nil {
 		return emperror.Wrap(err, "failed to prepare node pools")
 	}
 
@@ -404,18 +409,19 @@ func (p AzurePKEClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *
 	}
 }
 
-func (p AzurePKEClusterCreationParamsPreparer) getNodePoolsPreparer(network net.IPNet) NodePoolsPreparer {
+func (p AzurePKEClusterCreationParamsPreparer) getNodePoolsPreparer(dataProvider nodePoolsDataProvider) NodePoolsPreparer {
 	return NodePoolsPreparer{
-		logger:    p.logger,
-		namespace: "NodePools",
-		dataProvider: clusterCreatorNodePoolPreparerDataProvider{
-			network: network,
-		},
+		logger:       p.logger,
+		namespace:    "NodePools",
+		dataProvider: dataProvider,
 	}
 }
 
 type clusterCreatorNodePoolPreparerDataProvider struct {
-	network net.IPNet
+	resourceGroupName  string
+	subnetsClient      azure.SubnetsClient
+	virtualNetworkCIDR net.IPNet
+	virtualNetworkName string
 }
 
 func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePools(ctx context.Context) ([]pke.NodePool, error) {
@@ -426,22 +432,12 @@ func (p clusterCreatorNodePoolPreparerDataProvider) getExistingNodePoolByName(ct
 	return pke.NodePool{}, notExistsYetError{}
 }
 
-func (p clusterCreatorNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error) {
-	return "", notExistsYetError{}
+func (p clusterCreatorNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Context, subnetName string) (string, error) {
+	return getSubnetCIDR(ctx, p.subnetsClient, p.resourceGroupName, p.virtualNetworkName, subnetName)
 }
 
 func (p clusterCreatorNodePoolPreparerDataProvider) getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error) {
-	return p.network, nil
-}
-
-type notExistsYetError struct{}
-
-func (notExistsYetError) Error() string {
-	return "this resource does not exist yet"
-}
-
-func (notExistsYetError) NotFound() bool {
-	return true
+	return p.virtualNetworkCIDR, nil
 }
 
 const masterUserDataScriptTemplate = `#!/bin/sh
