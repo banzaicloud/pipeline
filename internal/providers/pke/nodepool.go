@@ -20,6 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/spf13/cast"
 )
 
 type NodePools []NodePool
@@ -76,8 +78,9 @@ var _ sql.Scanner = (*NodePoolProvider)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *NodePoolProvider) Scan(src interface{}) error {
-	*n = NodePoolProvider(string(src.([]uint8)))
-	return nil
+	value, err := cast.ToStringE(src)
+	*n = NodePoolProvider(value)
+	return err
 }
 
 type Roles []Role
@@ -104,7 +107,11 @@ var _ sql.Scanner = (*Roles)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Roles) Scan(src interface{}) error {
-	return json.Unmarshal([]byte(string(src.([]uint8))), &n)
+	value, err := cast.ToStringE(src)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(value), &n)
 }
 
 var _ driver.Valuer = (*Role)(nil)
@@ -177,7 +184,11 @@ var _ sql.Scanner = (*Labels)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Labels) Scan(src interface{}) error {
-	return json.Unmarshal([]byte(string(src.([]uint8))), &n)
+	value, err := cast.ToStringE(src)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(value), &n)
 }
 
 type Taints []Taint
@@ -198,5 +209,9 @@ var _ sql.Scanner = (*Taints)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Taints) Scan(src interface{}) error {
-	return json.Unmarshal([]byte(string(src.([]uint8))), &n)
+	value, err := cast.ToStringE(src)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(value), &n)
 }

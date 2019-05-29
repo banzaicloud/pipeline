@@ -18,6 +18,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+
+	"github.com/spf13/cast"
 )
 
 type Config map[string]interface{}
@@ -37,5 +39,9 @@ var _ sql.Scanner = (*Config)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Config) Scan(src interface{}) error {
-	return json.Unmarshal([]byte(string(src.([]uint8))), &n)
+	value, err := cast.ToStringE(src)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(value), &n)
 }
