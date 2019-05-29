@@ -18,6 +18,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+
+	"github.com/spf13/cast"
 )
 
 // Network is the schema for the DB.
@@ -69,8 +71,9 @@ var _ sql.Scanner = (*NetworkProvider)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *NetworkProvider) Scan(src interface{}) error {
-	*n = NetworkProvider(string(src.([]uint8)))
-	return nil
+	value, err := cast.ToStringE(src)
+	*n = NetworkProvider(value)
+	return err
 }
 
 // NetworkProvider is the schema for the DB.
@@ -91,6 +94,7 @@ var _ sql.Scanner = (*CloudNetworkProvider)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *CloudNetworkProvider) Scan(src interface{}) error {
-	*n = CloudNetworkProvider(string(src.([]uint8)))
-	return nil
+	value, err := cast.ToStringE(src)
+	*n = CloudNetworkProvider(value)
+	return err
 }

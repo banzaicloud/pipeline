@@ -18,6 +18,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+
+	"github.com/spf13/cast"
 )
 
 // CRI is the schema for the DB.
@@ -63,6 +65,7 @@ var _ sql.Scanner = (*Runtime)(nil)
 
 // Scan implements the sql.Scanner interface
 func (n *Runtime) Scan(src interface{}) error {
-	*n = Runtime(string(src.([]uint8)))
-	return nil
+	value, err := cast.ToStringE(src)
+	*n = Runtime(value)
+	return err
 }
