@@ -51,23 +51,29 @@ func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzur
 }
 
 func getOwnedTag(clusterName string) (string, string) {
-	return fmt.Sprintf("kubernetesCluster-%s", clusterName), "owned"
+	return getOwnershipTagKey(clusterName), "owned"
 }
 
-func HasOwnedTag(clusterName string, tags map[string]string) bool {
-	ownedTag := fmt.Sprintf("kubernetesCluster-%s", clusterName)
-
-	v, ok := tags[ownedTag]
-
-	return ok && v == "owned"
+func getSharedTag(clusterName string) (string, string) {
+	return getOwnershipTagKey(clusterName), "shared"
 }
 
-// func getSharedTag(clusterName string) (string, string) {
-// 	return fmt.Sprintf("kubernetesCluster-%s", clusterName), "shared"
-// }
+func getOwnershipTagKey(clusterName string) string {
+	return fmt.Sprintf("kubernetesCluster-%s", clusterName)
+}
 
 func tagsFrom(key, value string) map[string]string {
 	return map[string]string{
 		key: value,
 	}
+}
+
+func HasOwnedTag(clusterName string, tags map[string]string) bool {
+	key, val := getOwnedTag(clusterName)
+	return hasTag(tags, key, val)
+}
+
+func hasTag(tags map[string]string, key string, value string) bool {
+	v, ok := tags[key]
+	return ok && v == value
 }
