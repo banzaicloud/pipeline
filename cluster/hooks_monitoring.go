@@ -18,15 +18,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/dns"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/auth"
+	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
+	"github.com/banzaicloud/pipeline/internal/global"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 // InstallMonitoring installs monitoring tools (Prometheus, Grafana) to a cluster.
@@ -125,15 +127,19 @@ func InstallMonitoring(cluster CommonCluster) error {
 		return emperror.WrapWith(err, "failed to get organization", "organizationId", orgId)
 	}
 
-	baseDomain, err := dns.GetBaseDomain()
-	if err != nil {
-		return emperror.Wrap(err, "failed to get base domain")
-	}
+	var host string
 
-	host := strings.ToLower(fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, baseDomain))
-	err = dns.ValidateSubdomain(host)
-	if err != nil {
-		return emperror.Wrap(err, "invalid grafana ingress host")
+	if global.AutoDNSEnabled {
+		baseDomain, err := dns.GetBaseDomain()
+		if err != nil {
+			return emperror.Wrap(err, "failed to get base domain")
+		}
+
+		host = strings.ToLower(fmt.Sprintf("%s.%s.%s", cluster.GetName(), org.Name, baseDomain))
+		err = dns.ValidateSubdomain(host)
+		if err != nil {
+			return emperror.Wrap(err, "invalid grafana ingress host")
+		}
 	}
 
 	log.Debugf("grafana ingress host: %s", host)
