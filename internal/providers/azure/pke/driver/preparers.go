@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/goph/emperror"
@@ -342,25 +343,44 @@ const DefaultVirtualNetworkCIDR = "10.0.0.0/16"
 
 // Prepare validates and provides defaults for VirtualNetwork fields
 func (p VirtualNetworkPreparer) Prepare(ctx context.Context, vnet *VirtualNetwork) error {
+	vnetNameGenerated := false
 	if vnet.Name == "" {
 		vnet.Name = fmt.Sprintf("%s-vnet", p.clusterName)
-		p.logger.Debugf("%s.Name not specified, defaulting to [%s]", p.namespace, vnet.Name)
+		vnetNameGenerated = true
+		p.logger.Debugf("%s.Name not specified, defaulting to %q", p.namespace, vnet.Name)
+	}
+	vn, err := p.connection.GetVirtualNetworksClient().Get(ctx, p.resourceGroupName, vnet.Name, "")
+	if vn.StatusCode == http.StatusOK && vnetNameGenerated {
+		return validationErrorf("a virtual network already exists in the resource group with the generated name %q", vnet.Name)
+	}
+	if err != nil && vn.StatusCode != http.StatusNotFound {
+		return emperror.Wrap(err, "failed to fetch virtual network")
 	}
 	if vnet.CIDR == "" {
-		vnet.CIDR = DefaultVirtualNetworkCIDR
-		p.logger.Debugf("%s.CIDR not specified, defaulting to [%s]", p.namespace, vnet.CIDR)
+		if vn.StatusCode == http.StatusOK && vn.VirtualNetworkPropertiesFormat != nil && vn.AddressSpace != nil && len(to.StringSlice(vn.AddressSpace.AddressPrefixes)) > 0 {
+			vnet.CIDR = to.StringSlice(vn.AddressSpace.AddressPrefixes)[0]
+			p.logger.Debugf("%s.CIDR not specified, loading value %q from resource", p.namespace, vnet.CIDR)
+		} else {
+			vnet.CIDR = DefaultVirtualNetworkCIDR
+			p.logger.Debugf("%s.CIDR not specified, defaulting to %q", p.namespace, vnet.CIDR)
+		}
 	}
 	if vnet.Location == "" {
-		rg, err := p.connection.GetGroupsClient().Get(ctx, p.resourceGroupName)
-		if err != nil && rg.Response.StatusCode != http.StatusNotFound {
-			return emperror.WrapWith(err, "failed to fetch Azure resource group", "resourceGroupName", p.resourceGroupName)
+		if vn.StatusCode == http.StatusOK && vn.Location != nil {
+			vnet.Location = to.String(vn.Location)
+			p.logger.Debugf("%s.Location not specified, loading value %q from resource", p.namespace, vnet.Location)
+		} else {
+			rg, err := p.connection.GetGroupsClient().Get(ctx, p.resourceGroupName)
+			if err != nil && rg.Response.StatusCode != http.StatusNotFound {
+				return emperror.WrapWith(err, "failed to fetch Azure resource group", "resourceGroupName", p.resourceGroupName)
+			}
+			if rg.Response.StatusCode == http.StatusNotFound || rg.Location == nil || *rg.Location == "" {
+				// resource group does not exist (or somehow has no Location), cannot provide default
+				return validationErrorf("%s.Location must be specified", p.namespace)
+			}
+			vnet.Location = *rg.Location
+			p.logger.Debugf("%s.Location not specified, defaulting to resource group location %q", p.namespace, vnet.Location)
 		}
-		if rg.Response.StatusCode == http.StatusNotFound || rg.Location == nil || *rg.Location == "" {
-			// resource group does not exist (or somehow has no Location), cannot provide default
-			return validationErrorf("%s.Location must be specified", p.namespace)
-		}
-		vnet.Location = *rg.Location
-		p.logger.Debugf("%s.Location not specified, defaulting to resource group location [%s]", p.namespace, vnet.Location)
 	}
 	return nil
 }
