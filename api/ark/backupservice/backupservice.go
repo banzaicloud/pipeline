@@ -25,7 +25,8 @@ import (
 func AddRoutes(group *gin.RouterGroup) {
 
 	group.Use(common.ARKMiddleware(config.DB(), common.Log))
-	group.HEAD("/status", Status)
+	group.HEAD("/status", StatusDeprecated)
+	group.GET("/status", Status)
 	group.POST("/enable", Enable)
 	group.POST("/disable", Disable)
 }

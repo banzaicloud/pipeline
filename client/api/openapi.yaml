@@ -5523,6 +5523,44 @@ paths:
       tags:
       - ark
   /api/v1/orgs/{orgId}/clusters/{id}/backupservice/status:
+    get:
+      description: Check ARK service status
+      operationId: CheckARKStatusGET
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupServiceStatusResponse'
+          description: ARK service running
+        401:
+          description: Unauthorized
+        404:
+          description: ARK service not deployed
+      security:
+      - bearerAuth: []
+      summary: Check ARK service status
+      tags:
+      - ark
     head:
       description: Check ARK service status
       operationId: CheckARKStatus
@@ -12098,6 +12136,8 @@ components:
       $ref: '#/components/schemas/BackupResponse'
     CreateBackupBucketResponse:
       $ref: '#/components/schemas/BackupBucketResponse'
+    BackupServiceStatusResponse:
+      $ref: '#/components/schemas/BackupServiceResponse'
     ListBackupBucketsResponse:
       items:
         $ref: '#/components/schemas/BackupBucketResponse'
@@ -13133,6 +13173,13 @@ components:
           type: string
         version:
           type: string
+      type: object
+    BackupServiceResponse:
+      example:
+        enabled: true
+      properties:
+        enabled:
+          type: boolean
       type: object
     CreatePKEClusterKubernetes_cri:
       properties:
