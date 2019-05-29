@@ -15,14 +15,19 @@
 package driver
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/gofrs/uuid"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -145,4 +150,24 @@ func handleClusterError(logger logrus.FieldLogger, store pke.AzurePKEClusterStor
 		}
 	}
 	return err
+}
+
+type notExistsYetError struct{}
+
+func (notExistsYetError) Error() string {
+	return "this resource does not exist yet"
+}
+
+func (notExistsYetError) NotFound() bool {
+	return true
+}
+
+func getSubnetCIDR(ctx context.Context, client pkgAzure.SubnetsClient, resourceGroupName, virtualNetworkName, subnetName string) (string, error) {
+	subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
+	if subnet.StatusCode == http.StatusNotFound {
+		return "", notExistsYetError{}
+	} else if err != nil {
+		return "", emperror.Wrap(err, "failed to get subnet")
+	}
+	return to.String(subnet.AddressPrefix), nil
 }

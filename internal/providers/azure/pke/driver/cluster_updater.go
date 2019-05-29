@@ -328,12 +328,8 @@ func (p clusterUpdaterNodePoolPreparerDataProvider) getExistingNodePoolByName(ct
 	return pke.NodePool{}, notExistsYetError{}
 }
 
-func (p clusterUpdaterNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error) {
-	subnet, err := p.subnetsClient.Get(ctx, p.resourceGroupName, p.virtualNetworkName, nodePool.Subnet.Name, "")
-	if err != nil {
-		return "", emperror.Wrap(err, "failed to get subnet")
-	}
-	return to.String(subnet.AddressPrefix), nil
+func (p clusterUpdaterNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Context, subnetName string) (string, error) {
+	return getSubnetCIDR(ctx, p.subnetsClient, p.resourceGroupName, p.virtualNetworkName, subnetName)
 }
 
 func (p clusterUpdaterNodePoolPreparerDataProvider) getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error) {
