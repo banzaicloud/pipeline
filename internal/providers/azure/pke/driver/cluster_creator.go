@@ -38,7 +38,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-const pkeVersion = "0.4.7"
+const pkeVersion = "0.4.8"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string, pipelineExternalURLInsecure bool) AzurePKEClusterCreator {

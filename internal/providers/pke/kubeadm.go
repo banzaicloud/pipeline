@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/gorm"
+	"github.com/spf13/cast"
 )
 
 // KubeADM is the schema for the DB.
@@ -105,6 +106,7 @@ var _ sql.Scanner = (*ExtraArg)(nil)
 
 // Scan implements the sql.Scanner interface
 func (e *ExtraArg) Scan(src interface{}) error {
-	*e = ExtraArg(string(src.([]uint8)))
-	return nil
+	value, err := cast.ToStringE(src)
+	*e = ExtraArg(value)
+	return err
 }
