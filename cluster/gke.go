@@ -61,6 +61,7 @@ import (
 const (
 	statusRunning = "RUNNING"
 	statusDone    = "DONE"
+	statusError   = "ERROR"
 )
 
 const (
@@ -319,6 +320,10 @@ func (c *GKECluster) CreateCluster() error {
 	if err != nil {
 		be := getBanzaiErrorFromError(err)
 		// TODO status code !?
+		return errors.New(be.Message)
+	}
+	if gkeCluster.Status == statusError {
+		be := getBanzaiErrorFromError(err)
 		return errors.New(be.Message)
 	}
 
