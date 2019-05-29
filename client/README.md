@@ -31,6 +31,7 @@ All URIs are relative to *http://localhost:9090*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *ArkApi* | [**CheckARKStatus**](docs/ArkApi.md#checkarkstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id}/backupservice/status | Check ARK service status
+*ArkApi* | [**CheckARKStatusGET**](docs/ArkApi.md#checkarkstatusget) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/backupservice/status | Check ARK service status
 *ArkApi* | [**DisableARK**](docs/ArkApi.md#disableark) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/backupservice/disable | Disable ARK service
 *ArkApi* | [**EnableARK**](docs/ArkApi.md#enableark) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/backupservice/enable | Enable ARK service
 *ArkBackupsApi* | [**CreateARKBackupOfACluster**](docs/ArkBackupsApi.md#createarkbackupofacluster) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/backups | Create ARK backup
@@ -202,6 +203,8 @@ Class | Method | HTTP request | Description
  - [BackupBucketResponse](docs/BackupBucketResponse.md)
  - [BackupOptions](docs/BackupOptions.md)
  - [BackupResponse](docs/BackupResponse.md)
+ - [BackupServiceResponse](docs/BackupServiceResponse.md)
+ - [BackupServiceStatusResponse](docs/BackupServiceStatusResponse.md)
  - [BaseError](docs/BaseError.md)
  - [BaseError400](docs/BaseError400.md)
  - [BaseError500](docs/BaseError500.md)

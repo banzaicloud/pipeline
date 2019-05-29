@@ -5276,6 +5276,28 @@ paths:
                     description: Unauthorized
                 '404':
                     description: ARK service not deployed
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - ark
+            summary: Check ARK service status
+            description: Check ARK service status
+            operationId: CheckARKStatusGET
+            parameters:
+                - { name: orgId, in: path, required: true, description: Organization identification, schema: { type: integer } }
+                - { name: id, in: path, required: true, description: Selected cluster identification (number), schema: { type: integer } }
+            responses:
+                '200':
+                    description: ARK service running
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BackupServiceStatusResponse'
+                '401':
+                    description: Unauthorized
+                '404':
+                    description: ARK service not deployed
     '/api/v1/orgs/{orgId}/backupbuckets':
         post:
             security:
@@ -10606,6 +10628,8 @@ components:
 
         CreateBackupBucketResponse:
             "$ref": "#/components/schemas/BackupBucketResponse"
+        BackupServiceStatusResponse:
+            "$ref": "#/components/schemas/BackupServiceResponse"
         ListBackupBucketsResponse:
             type: array
             items:
@@ -11245,3 +11269,8 @@ components:
                 version:
                     type: string
             type: object
+        BackupServiceResponse:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
