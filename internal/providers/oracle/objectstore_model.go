@@ -35,6 +35,7 @@ type ObjectStoreBucketModel struct {
 	Location      string `gorm:"unique_index:idx_bucket_name_location_compartment"`
 
 	SecretRef string
+	Namespace string
 	Status    string
 	StatusMsg string `sql:"type:text;"`
 }
