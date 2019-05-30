@@ -108,8 +108,7 @@ func (scm *gitLabSCM) ListRepositoryReleases(owner, name string) ([]RepositoryRe
 
 		for _, gitlabTag := range gitlabTags {
 			release := RepositoryRelease{
-				tag:  gitlabTag.Release.TagName,
-				body: gitlabTag.Release.Description,
+				tag: gitlabTag.Name,
 			}
 			releases = append(releases, release)
 		}
