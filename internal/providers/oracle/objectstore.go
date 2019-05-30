@@ -39,6 +39,8 @@ func (bucketNotFoundError) NotFound() bool { return true }
 
 type oracleObjectStore interface {
 	commonObjectstore.ObjectStore
+	// GetNamespace returns client namespace
+	GetNamespace() string
 }
 
 // ObjectStore stores all required parameters for container creation
@@ -160,6 +162,8 @@ func (o *ObjectStore) CreateBucket(bucketName string) error {
 	}
 
 	bucket.Status = providers.BucketCreated
+	// save Namespace
+	bucket.Namespace = o.objectStore.GetNamespace()
 	bucket.StatusMsg = "bucket successfully created"
 	if err := o.db.Save(bucket).Error; err != nil {
 		return o.createFailed(bucket, emperror.Wrap(err, "failed to save bucket"))
@@ -234,6 +238,9 @@ func (o *ObjectStore) ListManagedBuckets() ([]*objectstore.BucketInfo, error) {
 			Location:  bucket.Location,
 			SecretRef: bucket.SecretRef,
 			Cloud:     providers.Oracle,
+			Oracle: &objectstore.BlobStoragePropsForOracle{
+				Namespace: bucket.Namespace,
+			},
 			Status:    bucket.Status,
 			StatusMsg: bucket.StatusMsg,
 		})
