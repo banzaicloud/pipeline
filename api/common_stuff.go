@@ -76,7 +76,7 @@ func ErrorResponseFrom(err error) *pkgCommon.ErrorResponse {
 	// aws specific errors
 	if awsErr, ok := err.(awserr.Error); ok {
 		code := http.StatusBadRequest
-		if awsReqFailure, ok := err.(awserr.RequestFailure); ok {
+		if awsReqFailure, ok := err.(awserr.RequestFailure); ok && awsReqFailure.StatusCode() != http.StatusUnauthorized {
 			code = awsReqFailure.StatusCode()
 		}
 
