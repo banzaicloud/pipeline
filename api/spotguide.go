@@ -159,7 +159,8 @@ func (s *SpotguideAPI) LaunchSpotguide(c *gin.Context) {
 
 	err := s.spotguide.LaunchSpotguide(&launchRequest, org, user)
 	if err != nil {
-		log.Errorf("failed to Launch spotguide %s: %s", launchRequest.RepoFullname(), err.Error())
+		log.Errorf("failed to Launch spotguide %s", launchRequest.RepoFullname())
+		s.errorHandler.Handle(err)
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "error launching spotguide",
