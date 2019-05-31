@@ -188,6 +188,9 @@ func (input CreateVnetActivityInput) extendVirtualNetwork(vnet *network.VirtualN
 
 	tagKey, tagValue := getSharedTag(input.ClusterName)
 	if _, exists := vnet.Tags[tagKey]; !exists {
+		if vnet.Tags == nil {
+			vnet.Tags = make(map[string]*string)
+		}
 		vnet.Tags[tagKey] = to.StringPtr(tagValue)
 	}
 }

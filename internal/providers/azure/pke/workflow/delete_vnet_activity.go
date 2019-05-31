@@ -18,6 +18,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
@@ -81,9 +82,28 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 		return emperror.WrapWith(err, "failed to get virtual network details", keyvals...)
 	}
 
-	if !HasOwnedTag(input.ClusterName, to.StringMap(vnet.Tags)) {
+	tags := to.StringMap(vnet.Tags)
+	if !HasOwnedTag(input.ClusterName, tags) {
 		logger.Info("skip deleting virtual network as it's not owned by cluster")
-		return
+
+		tags = RemoveSharedTag(tags, input.ClusterName)
+		future, err := client.UpdateTags(ctx, input.ResourceGroupName, input.VNetName, network.TagsObject{Tags: *to.StringMapPtr(tags)})
+		if err = emperror.WrapWith(err, "sending request to update virtual network tags failed", keyvals...); err != nil {
+			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+				logger.Warn("virtual network not found")
+				return nil
+			}
+			return err
+		}
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err = emperror.WrapWith(err, "waiting for the completion of virtual network tags update operation failed", keyvals...); err != nil {
+			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
+				logger.Warn("virtual network not found")
+				return nil
+			}
+			return err
+		}
+		return nil
 	}
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.VNetName)
