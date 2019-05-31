@@ -18,9 +18,11 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"time"
 
-	autoazure "github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/cluster"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
@@ -29,7 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
-	"github.com/banzaicloud/pipeline/pkg/providers/azure"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/emperror"
@@ -48,14 +50,12 @@ func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClu
 		workflowClient:              workflowClient,
 		pipelineExternalURL:         pipelineExternalURL,
 		pipelineExternalURLInsecure: pipelineExternalURLInsecure,
-		paramsPreparer:              MakeAzurePKEClusterCreationParamsPreparer(logger),
 	}
 }
 
 // AzurePKEClusterCreator creates new PKE-on-Azure clusters
 type AzurePKEClusterCreator struct {
 	logger                      logrus.FieldLogger
-	paramsPreparer              AzurePKEClusterCreationParamsPreparer
 	store                       pke.AzurePKEClusterStore
 	workflowClient              client.Client
 	pipelineExternalURL         string
@@ -107,7 +107,6 @@ func (np NodePool) toPke() (pnp pke.NodePool) {
 	pnp.Subnet = pke.Subnetwork{Name: np.Subnet.Name}
 	pnp.Zones = np.Zones
 	return
-
 }
 
 type Subnet struct {
@@ -132,9 +131,39 @@ type AzurePKEClusterCreationParams struct {
 
 // Create
 func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
-	if err = cc.paramsPreparer.Prepare(ctx, &params); err != nil {
+	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
+	if err = emperror.Wrap(err, "failed to get secret"); err != nil {
 		return
 	}
+
+	conn, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
+	if err = emperror.Wrap(err, "failed to create new Azure cloud connection"); err != nil {
+		return
+	}
+
+	if err = MakeAzurePKEClusterCreationParamsPreparer(conn, cc.logger).Prepare(ctx, &params); err != nil {
+		return
+	}
+
+	routeTable := workflow.RouteTable{
+		Name:     pke.GetRouteTableName(params.Name),
+		Location: params.Network.Location,
+	}
+
+	sn, err := conn.GetSubnetsClient().Get(ctx, params.ResourceGroup, params.Network.Name, params.NodePools[0].Subnet.Name, "routeTable")
+	if err = emperror.Wrap(err, "failed to get subnet"); err != nil && sn.StatusCode != http.StatusNotFound {
+		cc.handleError(cl.ID, err)
+		return
+	}
+
+	if sn.StatusCode == http.StatusOK && sn.SubnetPropertiesFormat != nil && sn.RouteTable != nil && sn.RouteTable.ID != nil {
+		routeTable = workflow.RouteTable{
+			ID:       to.String(sn.RouteTable.ID),
+			Name:     to.String(sn.RouteTable.Name),
+			Location: to.String(sn.RouteTable.Location),
+		}
+	}
+
 	nodePools := make([]pke.NodePool, len(params.NodePools))
 	for i, np := range params.NodePools {
 		nodePools[i] = pke.NodePool{
@@ -171,11 +200,6 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
-	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
-	if err != nil {
-		cc.handleError(cl.ID, err)
-		return
-	}
 	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
 
 	postHooks := make(pkgCluster.PostHooks, len(params.Features))
@@ -216,6 +240,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		PipelineExternalURL:         cc.pipelineExternalURL,
 		PipelineExternalURLInsecure: cc.pipelineExternalURLInsecure,
 		ResourceGroupName:           cl.ResourceGroup.Name,
+		RouteTableName:              routeTable.Name,
 		SingleNodePool:              len(cl.NodePools) == 1,
 		SSHPublicKey:                sshKeyPair.PublicKeyData,
 		TenantID:                    tenantID,
@@ -237,6 +262,11 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		subnetTemplates = append(subnetTemplates, s)
 	}
 
+	if routeTable.ID != "" {
+		for i := range subnetTemplates {
+			subnetTemplates[i].RouteTableName = routeTable.Name
+		}
+	}
 	input := workflow.CreateClusterWorkflowInput{
 		ClusterID:         cl.ID,
 		ClusterName:       params.Name,
@@ -265,10 +295,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			SKU:      "Standard",
 		},
 		RoleAssignmentTemplates: roleAssignmentTemplates,
-		RouteTable: workflow.RouteTable{
-			Name:     pke.GetRouteTableName(params.Name),
-			Location: params.Network.Location,
-		},
+		RouteTable:              routeTable,
 		SecurityGroups: []workflow.SecurityGroup{
 			{
 				Name:     params.Name + "-master-nsg",
@@ -334,13 +361,15 @@ func (cc AzurePKEClusterCreator) handleError(clusterID uint, err error) error {
 
 // AzurePKEClusterCreationParamsPreparer implements AzurePKEClusterCreationParams preparation
 type AzurePKEClusterCreationParamsPreparer struct {
+	connection  *pkgAzure.CloudConnection
 	k8sPreparer intPKE.KubernetesPreparer
 	logger      logrus.FieldLogger
 }
 
 // MakeAzurePKEClusterCreationParamsPreparer returns an instance of AzurePKEClusterCreationParamsPreparer
-func MakeAzurePKEClusterCreationParamsPreparer(logger logrus.FieldLogger) AzurePKEClusterCreationParamsPreparer {
+func MakeAzurePKEClusterCreationParamsPreparer(connection *pkgAzure.CloudConnection, logger logrus.FieldLogger) AzurePKEClusterCreationParamsPreparer {
 	return AzurePKEClusterCreationParamsPreparer{
+		connection:  connection,
 		k8sPreparer: intPKE.MakeKubernetesPreparer(logger, "Kubernetes"),
 		logger:      logger,
 	}
@@ -371,15 +400,7 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 		return emperror.Wrap(err, "failed to prepare k8s network")
 	}
 
-	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to fetch secret from store")
-	}
-	cc, err := azure.NewCloudConnection(&autoazure.PublicCloud, azure.NewCredentials(sir.Values))
-	if err != nil {
-		return emperror.Wrap(err, "failed to create Azure cloud connection")
-	}
-	if err := p.getVNetPreparer(cc, params.Name, params.ResourceGroup).Prepare(ctx, &params.Network); err != nil {
+	if err := p.getVNetPreparer(p.connection, params.Name, params.ResourceGroup).Prepare(ctx, &params.Network); err != nil {
 		return emperror.Wrap(err, "failed to prepare cluster network")
 	}
 
@@ -389,7 +410,7 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 	}
 	if err := p.getNodePoolsPreparer(clusterCreatorNodePoolPreparerDataProvider{
 		resourceGroupName:  params.ResourceGroup,
-		subnetsClient:      *cc.GetSubnetsClient(),
+		subnetsClient:      *p.connection.GetSubnetsClient(),
 		virtualNetworkCIDR: *network,
 		virtualNetworkName: params.Network.Name,
 	}).Prepare(ctx, params.NodePools); err != nil {
@@ -399,7 +420,7 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 	return nil
 }
 
-func (p AzurePKEClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *azure.CloudConnection, clusterName, resourceGroupName string) VirtualNetworkPreparer {
+func (p AzurePKEClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *pkgAzure.CloudConnection, clusterName, resourceGroupName string) VirtualNetworkPreparer {
 	return VirtualNetworkPreparer{
 		clusterName:       clusterName,
 		connection:        cloudConnection,
@@ -419,7 +440,7 @@ func (p AzurePKEClusterCreationParamsPreparer) getNodePoolsPreparer(dataProvider
 
 type clusterCreatorNodePoolPreparerDataProvider struct {
 	resourceGroupName  string
-	subnetsClient      azure.SubnetsClient
+	subnetsClient      pkgAzure.SubnetsClient
 	virtualNetworkCIDR net.IPNet
 	virtualNetworkName string
 }
