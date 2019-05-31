@@ -176,14 +176,15 @@ type SubnetTemplate struct {
 	Name                     string
 	CIDR                     string
 	NetworkSecurityGroupName string
+	RouteTableName           string
 }
 
-func (t SubnetTemplate) Render(routeTableIDProvider ResourceIDProvider, securityGroupIDProvider ResourceIDByNameProvider) Subnet {
+func (t SubnetTemplate) Render(routeTableIDProvider ResourceIDByNameProvider, securityGroupIDProvider ResourceIDByNameProvider) Subnet {
 	return Subnet{
 		Name:                   t.Name,
 		CIDR:                   t.CIDR,
 		NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
-		RouteTableID:           routeTableIDProvider.Get(),
+		RouteTableID:           routeTableIDProvider.Get(t.RouteTableName),
 	}
 }
 
@@ -194,7 +195,7 @@ type VirtualNetworkTemplate struct {
 	Subnets  []SubnetTemplate
 }
 
-func (t VirtualNetworkTemplate) Render(routeTableIDProvider ResourceIDProvider, securityGroupIDProvider ResourceIDByNameProvider) VirtualNetwork {
+func (t VirtualNetworkTemplate) Render(routeTableIDProvider ResourceIDByNameProvider, securityGroupIDProvider ResourceIDByNameProvider) VirtualNetwork {
 	subnets := make([]Subnet, len(t.Subnets))
 	for i, s := range t.Subnets {
 		subnets[i] = s.Render(routeTableIDProvider, securityGroupIDProvider)
@@ -239,8 +240,11 @@ func (p publicIPAddressIDProvider) Get() string {
 
 type routeTableIDProvider CreateRouteTableActivityOutput
 
-func (p routeTableIDProvider) Get() string {
-	return p.RouteTableID
+func (p routeTableIDProvider) Get(name string) string {
+	if p.RouteTableName == name {
+		return p.RouteTableID
+	}
+	return ""
 }
 
 type mapSecurityGroupIDProvider map[string]CreateNSGActivityOutput
@@ -290,7 +294,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 
 	// Create route table
 	var createRouteTableActivityOutput CreateRouteTableActivityOutput
-	{
+	if input.RouteTable.ID == "" {
 		activityInput := CreateRouteTableActivityInput{
 			OrganizationID:    input.OrganizationID,
 			SecretID:          input.SecretID,
@@ -301,6 +305,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		if err := workflow.ExecuteActivity(ctx, CreateRouteTableActivityName, activityInput).Get(ctx, &createRouteTableActivityOutput); err != nil {
 			return err
 		}
+	} else {
+		createRouteTableActivityOutput.RouteTableID = input.RouteTable.ID
+		createRouteTableActivityOutput.RouteTableName = input.RouteTable.Name
 	}
 
 	// Create virtual network and subnets
