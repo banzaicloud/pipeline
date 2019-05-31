@@ -587,7 +587,7 @@ func createCICDRepoConfig(pipelineYAML []byte, request *LaunchRequest, platformD
 
 	repoConfig := new(cicdRepoConfig)
 	if err := yaml.Unmarshal(buffer.Bytes(), repoConfig); err != nil {
-		return nil, emperror.Wrap(err, "failed to unmarshal initial config")
+		return nil, emperror.WrapWith(err, "failed to unmarshal initial config", "repoConfig", base64.StdEncoding.EncodeToString(buffer.Bytes()))
 	}
 
 	// Configure cluster

@@ -1236,18 +1236,18 @@ func (c *AKSCluster) collectActivityLogsWithErrors(filter string) ([]insights.Ev
 var vnetSubnetIDRegexp = regexp.MustCompile("/subscriptions/([^/]+)/resourceGroups/([^/]+)/providers/Microsoft.Network/virtualNetworks/([^/]+)/subnets/([^/]+)")
 
 func validateVNetSubnet(cc *pkgAzure.CloudConnection, resourceGroupName, vnetSubnetID string) error {
-	if len(vnetSubnetID) != 0 {
+	if vnetSubnetID != "" {
 		matches := vnetSubnetIDRegexp.FindStringSubmatch(vnetSubnetID)
 		if matches == nil {
 			return errors.New("virtual network subnet ID format is invalid")
 		}
-		if matches[0] != cc.GetSubscriptionID() {
+		if matches[1] != cc.GetSubscriptionID() {
 			return errors.New("virtual network subnet is not from same subscription")
 		}
-		if matches[1] != resourceGroupName {
+		if matches[2] != resourceGroupName {
 			return errors.New("virtual network subnet is not from same resource group")
 		}
-		_, err := cc.GetSubnetsClient().Get(context.TODO(), matches[1], matches[2], matches[3], "")
+		_, err := cc.GetSubnetsClient().Get(context.TODO(), matches[2], matches[3], matches[4], "")
 		if err != nil {
 			return emperror.Wrap(err, "request to retreive subnet failed")
 		}

@@ -7871,6 +7871,18 @@ components:
                 maxCount:
                     type: integer
                     example: 2
+                instanceType:
+                    type: string
+                    example: "Standard_B2ms"
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                        example:
+                            example.io/label1: value1
+                vnetSubnetID:
+                    type: string
+                    example: "/subscriptions/12345678-1234-5678-1234-123456789abc/resourceGroups/your-resource-group-name/providers/Microsoft.Network/virtualNetworks/your-vnet-name/subnets/your-vnet-subnet-name"
 
         UpdateGoogleProperties:
             type: object
