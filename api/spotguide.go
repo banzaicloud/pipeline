@@ -142,7 +142,6 @@ func (s *SpotguideAPI) SyncSpotguides(c *gin.Context) {
 
 // LaunchSpotguide creates a spotguide workflow, all secrets, repositories.
 func (s *SpotguideAPI) LaunchSpotguide(c *gin.Context) {
-	log := correlationid.Logger(log, c)
 
 	var launchRequest spotguide.LaunchRequest
 	if err := c.BindJSON(&launchRequest); err != nil {
@@ -159,8 +158,7 @@ func (s *SpotguideAPI) LaunchSpotguide(c *gin.Context) {
 
 	err := s.spotguide.LaunchSpotguide(&launchRequest, org, user)
 	if err != nil {
-		log.Errorf("failed to Launch spotguide %s", launchRequest.RepoFullname())
-		s.errorHandler.Handle(err)
+		s.errorHandler.Handle(emperror.WrapWith(err, "failed to launch spotguide", "spotguide", launchRequest.RepoFullname()))
 		c.JSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "error launching spotguide",
