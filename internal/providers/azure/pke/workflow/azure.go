@@ -50,43 +50,52 @@ func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzur
 	return cc, nil
 }
 
-func getOwnedTag(clusterName string) (string, string) {
-	return getOwnershipTagKey(clusterName), "owned"
+type Tag struct {
+	Key   string
+	Value string
 }
 
-func getSharedTag(clusterName string) (string, string) {
-	return getOwnershipTagKey(clusterName), "shared"
+func (t Tag) Map() map[string]string {
+	return map[string]string{
+		t.Key: t.Value,
+	}
+}
+
+func getOwnedTag(clusterName string) Tag {
+	return Tag{
+		Key:   getOwnershipTagKey(clusterName),
+		Value: "owned",
+	}
+}
+
+func getSharedTag(clusterName string) Tag {
+	return Tag{
+		Key:   getOwnershipTagKey(clusterName),
+		Value: "shared",
+	}
 }
 
 func getOwnershipTagKey(clusterName string) string {
 	return fmt.Sprintf("kubernetesCluster-%s", clusterName)
 }
 
-func tagsFrom(key, value string) map[string]string {
-	return map[string]string{
-		key: value,
-	}
-}
-
 func HasOwnedTag(clusterName string, tags map[string]string) bool {
-	key, val := getOwnedTag(clusterName)
-	return hasTag(tags, key, val)
+	return hasTag(tags, getOwnedTag(clusterName))
 }
 
 func HasSharedTag(clusterName string, tags map[string]string) bool {
-	key, val := getSharedTag(clusterName)
-	return hasTag(tags, key, val)
+	return hasTag(tags, getSharedTag(clusterName))
 }
 
 func RemoveSharedTag(tags map[string]string, clusterName string) map[string]string {
-	key, val := getSharedTag(clusterName)
-	if v, ok := tags[key]; ok && v == val {
-		delete(tags, key)
+	tag := getSharedTag(clusterName)
+	if v, ok := tags[tag.Key]; ok && v == tag.Value {
+		delete(tags, tag.Key)
 	}
 	return tags
 }
 
-func hasTag(tags map[string]string, key string, value string) bool {
-	v, ok := tags[key]
-	return ok && v == value
+func hasTag(tags map[string]string, tag Tag) bool {
+	v, ok := tags[tag.Key]
+	return ok && v == tag.Value
 }

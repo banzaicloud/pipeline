@@ -186,12 +186,12 @@ func (input CreateVnetActivityInput) extendVirtualNetwork(vnet *network.VirtualN
 		vnet.Subnets = &subnets
 	}
 
-	tagKey, tagValue := getSharedTag(input.ClusterName)
-	if _, exists := vnet.Tags[tagKey]; !exists {
+	tag := getSharedTag(input.ClusterName)
+	if _, exists := vnet.Tags[tag.Key]; !exists {
 		if vnet.Tags == nil {
 			vnet.Tags = make(map[string]*string)
 		}
-		vnet.Tags[tagKey] = to.StringPtr(tagValue)
+		vnet.Tags[tag.Key] = to.StringPtr(tag.Value)
 	}
 }
 
@@ -201,8 +201,6 @@ func (input CreateVnetActivityInput) getCreateOrUpdateVirtualNetworkParams() net
 		subnets[i] = subnetToNetworkSubnet(s)
 	}
 
-	tags := tagsFrom(getOwnedTag(input.ClusterName))
-
 	return network.VirtualNetwork{
 		Location: to.StringPtr(input.VirtualNetwork.Location),
 		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
@@ -211,7 +209,7 @@ func (input CreateVnetActivityInput) getCreateOrUpdateVirtualNetworkParams() net
 			},
 			Subnets: &subnets,
 		},
-		Tags: *to.StringMapPtr(tags),
+		Tags: *to.StringMapPtr(getOwnedTag(input.ClusterName).Map()),
 	}
 }
 

@@ -115,6 +115,6 @@ func (a CreateRouteTableActivity) Execute(ctx context.Context, input CreateRoute
 func (input CreateRouteTableActivityInput) getCreateOrUpdateRouteTableParams() network.RouteTable {
 	return network.RouteTable{
 		Location: to.StringPtr(input.RouteTable.Location),
-		Tags:     *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
+		Tags:     *to.StringMapPtr(getOwnedTag(input.ClusterName).Map()),
 	}
 }

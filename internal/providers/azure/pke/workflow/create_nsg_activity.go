@@ -147,6 +147,6 @@ func (input CreateNSGActivityInput) getCreateOrUpdateSecurityGroupParams() netwo
 		SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 			SecurityRules: &securityRules,
 		},
-		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
+		Tags: *to.StringMapPtr(getOwnedTag(input.ClusterName).Map()),
 	}
 }
