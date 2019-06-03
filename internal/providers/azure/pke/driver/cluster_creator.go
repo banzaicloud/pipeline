@@ -262,11 +262,6 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		subnetTemplates = append(subnetTemplates, s)
 	}
 
-	if routeTable.ID != "" {
-		for i := range subnetTemplates {
-			subnetTemplates[i].RouteTableName = routeTable.Name
-		}
-	}
 	input := workflow.CreateClusterWorkflowInput{
 		ClusterID:         cl.ID,
 		ClusterName:       params.Name,

@@ -133,8 +133,9 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 			UserDataScriptTemplate: userDataScriptTemplate,
 			Zones:                  np.Zones,
 		}, workflow.SubnetTemplate{
-			Name: np.Subnet.Name,
-			CIDR: np.Subnet.CIDR,
+			Name:           np.Subnet.Name,
+			CIDR:           np.Subnet.CIDR,
+			RouteTableName: f.RouteTableName,
 		}, []workflow.RoleAssignmentTemplate{
 			{
 				Name:     uuid.Must(uuid.NewV1()).String(),
