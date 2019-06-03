@@ -22,9 +22,10 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/azure"
-
 	"github.com/Azure/go-autorest/autorest/to"
+	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
@@ -47,6 +48,7 @@ type AzurePKEClusterUpdater struct {
 
 type clusterUpdaterSecretStore interface {
 	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
+	GetByName(organizationID uint, secretName string) (*secret.SecretItemResponse, error)
 	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
 }
 
@@ -185,6 +187,29 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		// will only be persisted by the successful workflow
 	}
 
+	var labels map[string]map[string]string
+	{
+		commonCluster, err := commoncluster.MakeCommonClusterGetter(cu.secrets, cu.store).GetByID(cluster.ID)
+		if err != nil {
+			return emperror.Wrap(err, "failed to get Azure PKE common cluster by ID")
+		}
+		nodePoolStatuses := make(map[string]*pkgCluster.NodePoolStatus, len(params.NodePools))
+		for _, np := range params.NodePools {
+			nodePoolStatuses[np.Name] = &pkgCluster.NodePoolStatus{
+				Autoscaling:  np.Autoscaling,
+				Count:        np.Count,
+				InstanceType: np.InstanceType,
+				MinCount:     np.Min,
+				MaxCount:     np.Max,
+				Labels:       np.Labels,
+			}
+		}
+		labels, err = pipCluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, true)
+		if err != nil {
+			return emperror.Wrap(err, "failed to get desired labels for cluster")
+		}
+	}
+
 	input := workflow.UpdateClusterWorkflowInput{
 		OrganizationID:      cluster.OrganizationID,
 		SecretID:            cluster.SecretID,
@@ -202,6 +227,8 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		VMSSToCreate:    toCreateVMSSTemplates,
 		VMSSToDelete:    toDeleteVMSSNames,
 		VMSSToUpdate:    toUpdateVMSSChanges,
+
+		Labels: labels,
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
