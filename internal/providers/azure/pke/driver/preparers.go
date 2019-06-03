@@ -33,6 +33,7 @@ import (
 type NodePoolsPreparer struct {
 	logger       logrus.FieldLogger
 	namespace    string
+	subnetName   string
 	dataProvider nodePoolsDataProvider
 }
 
@@ -47,6 +48,7 @@ func (p NodePoolsPreparer) getNodePoolPreparer(i int) NodePoolPreparer {
 	return NodePoolPreparer{
 		logger:       p.logger,
 		namespace:    fmt.Sprintf("%s[%d]", p.namespace, i),
+		subnetName:   p.subnetName,
 		dataProvider: p.dataProvider,
 	}
 }
@@ -163,6 +165,7 @@ func cloneIP(ip net.IP) net.IP {
 type NodePoolPreparer struct {
 	logger       logrus.FieldLogger
 	namespace    string
+	subnetName   string
 	dataProvider interface {
 		getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
 		getSubnetCIDR(ctx context.Context, subnetName string) (string, error)
@@ -213,7 +216,11 @@ func (p NodePoolPreparer) prepareNewNodePool(ctx context.Context, nodePool *Node
 	}
 
 	if nodePool.Subnet.Name == "" {
-		nodePool.Subnet.Name = fmt.Sprintf("subnet-%s", nodePool.Name)
+		if p.subnetName == "" {
+			nodePool.Subnet.Name = fmt.Sprintf("subnet-%s", nodePool.Name)
+		} else {
+			nodePool.Subnet.Name = p.subnetName
+		}
 		p.logger.Debugf("%s.Subnet.Name not specified, defaulting to [%s]", p.namespace, nodePool.Subnet.Name)
 	}
 

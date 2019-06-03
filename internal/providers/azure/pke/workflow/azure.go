@@ -73,6 +73,11 @@ func HasOwnedTag(clusterName string, tags map[string]string) bool {
 	return hasTag(tags, key, val)
 }
 
+func HasSharedTag(clusterName string, tags map[string]string) bool {
+	key, val := getSharedTag(clusterName)
+	return hasTag(tags, key, val)
+}
+
 func RemoveSharedTag(tags map[string]string, clusterName string) map[string]string {
 	key, val := getSharedTag(clusterName)
 	if v, ok := tags[key]; ok && v == val {
