@@ -111,6 +111,6 @@ func (input CreatePublicIPActivityInput) getCreateOrUpdatePublicIPAddressParams(
 		Sku: &network.PublicIPAddressSku{
 			Name: network.PublicIPAddressSkuName(input.PublicIPAddress.SKU),
 		},
-		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
+		Tags: *to.StringMapPtr(getOwnedTag(input.ClusterName).Map()),
 	}
 }
