@@ -24,7 +24,9 @@ RUN make build-release
 
 FROM alpine:3.9
 
-RUN apk add --update --no-cache ca-certificates tzdata
+RUN apk add --update --no-cache ca-certificates tzdata bash curl
+
+SHELL ["/bin/bash", "-c"]
 
 COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=builder /build/views /views/

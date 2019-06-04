@@ -14,7 +14,9 @@ RUN go get github.com/derekparker/delve/cmd/dlv
 
 FROM alpine:3.9
 
-RUN apk add --no-cache ca-certificates tzdata libc6-compat
+RUN apk add --update --no-cache ca-certificates tzdata bash curl libc6-compat
+
+SHELL ["/bin/bash", "-c"]
 
 COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=builder /go/bin/dlv /

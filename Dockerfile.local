@@ -12,7 +12,9 @@ RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
 
 FROM alpine:3.9
 
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --update --no-cache ca-certificates tzdata bash curl
+
+SHELL ["/bin/bash", "-c"]
 
 COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 
