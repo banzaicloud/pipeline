@@ -49,13 +49,15 @@ type CreateRouteTableActivityInput struct {
 
 // RouteTable represents an Azure route table
 type RouteTable struct {
+	ID       string
 	Name     string
 	Location string
 }
 
 // CreateRouteTableActivityOutput represents the output of executing a CreateRouteTableActivity
 type CreateRouteTableActivityOutput struct {
-	RouteTableID string
+	RouteTableID   string
+	RouteTableName string
 }
 
 // Execute performs the activity
@@ -74,6 +76,8 @@ func (a CreateRouteTableActivity) Execute(ctx context.Context, input CreateRoute
 	}
 
 	logger.Info("create route table")
+
+	output.RouteTableName = input.RouteTable.Name
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {

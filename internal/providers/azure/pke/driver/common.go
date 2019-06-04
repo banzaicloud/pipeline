@@ -15,14 +15,19 @@
 package driver
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/gofrs/uuid"
+	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -36,6 +41,7 @@ type nodePoolTemplateFactory struct {
 	PipelineExternalURL         string
 	PipelineExternalURLInsecure bool
 	ResourceGroupName           string
+	RouteTableName              string
 	SingleNodePool              bool
 	SSHPublicKey                string
 	TenantID                    string
@@ -99,6 +105,7 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 			InboundNATPoolName:           inpn,
 			Location:                     f.Location,
 			Name:                         vmssName,
+			NetworkSecurityGroupName:     nsgn,
 			NodePoolName:                 np.Name,
 			SSHPublicKey:                 f.SSHPublicKey,
 			SubnetName:                   np.Subnet.Name,
@@ -117,7 +124,7 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 				"PKEVersion":            pkeVersion,
 				"KubernetesVersion":     f.KubernetesVersion,
 				"PublicAddress":         "<not yet set>",
-				"RouteTableName":        pke.GetRouteTableName(f.ClusterName),
+				"RouteTableName":        f.RouteTableName,
 				"SubnetName":            np.Subnet.Name,
 				"TenantID":              f.TenantID,
 				"VnetName":              f.VirtualNetworkName,
@@ -126,9 +133,9 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 			UserDataScriptTemplate: userDataScriptTemplate,
 			Zones:                  np.Zones,
 		}, workflow.SubnetTemplate{
-			Name:                     np.Subnet.Name,
-			CIDR:                     np.Subnet.CIDR,
-			NetworkSecurityGroupName: nsgn,
+			Name:           np.Subnet.Name,
+			CIDR:           np.Subnet.CIDR,
+			RouteTableName: f.RouteTableName,
 		}, []workflow.RoleAssignmentTemplate{
 			{
 				Name:     uuid.Must(uuid.NewV1()).String(),
@@ -145,4 +152,24 @@ func handleClusterError(logger logrus.FieldLogger, store pke.AzurePKEClusterStor
 		}
 	}
 	return err
+}
+
+type notExistsYetError struct{}
+
+func (notExistsYetError) Error() string {
+	return "this resource does not exist yet"
+}
+
+func (notExistsYetError) NotFound() bool {
+	return true
+}
+
+func getSubnetCIDR(ctx context.Context, client pkgAzure.SubnetsClient, resourceGroupName, virtualNetworkName, subnetName string) (string, error) {
+	subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
+	if subnet.StatusCode == http.StatusNotFound {
+		return "", notExistsYetError{}
+	} else if err != nil {
+		return "", emperror.Wrap(err, "failed to get subnet")
+	}
+	return to.String(subnet.AddressPrefix), nil
 }
