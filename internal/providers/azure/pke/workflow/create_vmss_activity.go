@@ -180,10 +180,8 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 			ID: to.StringPtr(input.ScaleSet.NetworkSecurityGroupID),
 		}
 	}
-	storageAccountType := compute.StorageAccountTypesStandardSSDLRS
-	if supportsPremiumStorage(input.ScaleSet.InstanceType) {
-		storageAccountType = compute.StorageAccountTypesPremiumLRS
-	}
+	storageAccountType := compute.StorageAccountTypesStandardLRS
+
 	return compute.VirtualMachineScaleSet{
 		Identity: &compute.VirtualMachineScaleSetIdentity{
 			Type: compute.ResourceIdentityTypeSystemAssigned,
