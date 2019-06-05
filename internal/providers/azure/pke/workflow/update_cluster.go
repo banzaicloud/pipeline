@@ -43,6 +43,8 @@ type UpdateClusterWorkflowInput struct {
 	VMSSToCreate    []VirtualMachineScaleSetTemplate
 	VMSSToDelete    []NodePoolAndVMSS
 	VMSSToUpdate    []VirtualMachineScaleSetChanges
+
+	Labels map[string]map[string]string
 }
 
 type NodePoolAndVMSS struct {
@@ -128,6 +130,23 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
 				return err
 			}
+		}
+	}
+	// set up node pool labels set
+	{
+		activityInput := cluster.RunPostHookActivityInput{
+			ClusterID: input.ClusterID,
+			HookName:  pkgCluster.SetupNodePoolLabelsSet,
+			HookParam: cluster.NodePoolLabelParam{
+				Labels: input.Labels,
+			},
+			Status: pkgCluster.Updating,
+		}
+		err := workflow.ExecuteActivity(ctx, cluster.RunPostHookActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
+			err = emperror.Wrapf(err, "%q activity failed", cluster.RunPostHookActivityName)
+			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error())
+			return err
 		}
 	}
 	{

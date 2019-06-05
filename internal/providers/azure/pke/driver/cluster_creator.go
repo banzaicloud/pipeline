@@ -213,8 +213,19 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			cc.handleError(cl.ID, err)
 			return
 		}
+		nodePoolStatuses := make(map[string]*pkgCluster.NodePoolStatus, len(params.NodePools))
+		for _, np := range params.NodePools {
+			nodePoolStatuses[np.Name] = &pkgCluster.NodePoolStatus{
+				Autoscaling:  np.Autoscaling,
+				Count:        np.Count,
+				InstanceType: np.InstanceType,
+				MinCount:     np.Min,
+				MaxCount:     np.Max,
+				Labels:       np.Labels,
+			}
+		}
 		var labelsMap map[string]map[string]string
-		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nil, false)
+		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, false)
 		if err != nil {
 			cc.handleError(cl.ID, err)
 			return
