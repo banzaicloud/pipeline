@@ -16,10 +16,13 @@ package workflow
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/goph/logur/adapters/zapadapter"
 	"go.uber.org/cadence/activity"
 )
 
@@ -82,20 +85,27 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 		"networkName", input.VirtualNetwork.Name,
 	}
 
-	logger.Info("create virtual network")
+	logger.Info("create or update virtual network")
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
-	params := input.getCreateOrUpdateVirtualNetworkParams()
+	client := cc.GetVirtualNetworksClient()
+
+	vnet, err := client.Get(ctx, input.ResourceGroupName, input.VirtualNetwork.Name, "")
+	if vnet.StatusCode == http.StatusNotFound {
+		vnet = input.getCreateOrUpdateVirtualNetworkParams()
+	} else if err = emperror.Wrap(err, "failed to get virtual network"); err != nil {
+		return
+	} else {
+		input.extendVirtualNetwork(&vnet, zapadapter.New(logger.Desugar()))
+	}
 
 	logger.Debug("sending request to create or update virtual network")
 
-	client := cc.GetVirtualNetworksClient()
-
-	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.VirtualNetwork.Name, params)
+	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.VirtualNetwork.Name, vnet)
 	if err = emperror.WrapWith(err, "sending request to create or update virtual network failed", keyvals...); err != nil {
 		return
 	}
@@ -107,7 +117,7 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 		return
 	}
 
-	vnet, err := future.Result(client.VirtualNetworksClient)
+	vnet, err = future.Result(client.VirtualNetworksClient)
 	if err = emperror.WrapWith(err, "getting virtual network create or update result failed", keyvals...); err != nil {
 		return
 	}
@@ -125,26 +135,73 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 	return
 }
 
+func (input CreateVnetActivityInput) extendVirtualNetwork(vnet *network.VirtualNetwork, logger logur.Logger) {
+	if vnet == nil {
+		return
+	}
+
+	if vnet.VirtualNetworkPropertiesFormat == nil {
+		vnet.VirtualNetworkPropertiesFormat = new(network.VirtualNetworkPropertiesFormat)
+		logger.Debug("vnet.VirtualNetworkPropertiesFormat was nil, created new")
+	}
+
+	if loc := to.String(vnet.Location); loc != input.VirtualNetwork.Location {
+		logger.Warn("virtual network location mismatch", map[string]interface{}{
+			"existing": loc,
+			"incoming": input.VirtualNetwork.Location,
+		})
+	}
+
+	if len(input.VirtualNetwork.CIDRs) > 0 {
+		if vnet.AddressSpace == nil {
+			vnet.AddressSpace = new(network.AddressSpace)
+			logger.Debug("vnet.AddressSpace was nil, created new")
+		}
+		lookup := make(map[string]bool)
+		aps := to.StringSlice(vnet.AddressSpace.AddressPrefixes)
+		for _, ap := range aps {
+			lookup[ap] = true
+		}
+		for _, cidr := range input.VirtualNetwork.CIDRs {
+			if !lookup[cidr] {
+				lookup[cidr] = true
+				aps = append(aps, cidr)
+			}
+		}
+		vnet.AddressSpace.AddressPrefixes = to.StringSlicePtr(aps)
+	}
+
+	if len(input.VirtualNetwork.Subnets) > 0 {
+		lookup := make(map[string]bool)
+		subnets := toSubnetSlice(vnet.Subnets)
+		for _, s := range subnets {
+			lookup[to.String(s.Name)] = true
+		}
+		for _, subnet := range input.VirtualNetwork.Subnets {
+			if !lookup[subnet.Name] {
+				lookup[subnet.Name] = true
+				subnets = append(subnets, subnetToNetworkSubnet(subnet))
+			}
+		}
+		vnet.Subnets = &subnets
+	}
+
+	tagKey, tagValue := getSharedTag(input.ClusterName)
+	if _, exists := vnet.Tags[tagKey]; !exists {
+		if vnet.Tags == nil {
+			vnet.Tags = make(map[string]*string)
+		}
+		vnet.Tags[tagKey] = to.StringPtr(tagValue)
+	}
+}
+
 func (input CreateVnetActivityInput) getCreateOrUpdateVirtualNetworkParams() network.VirtualNetwork {
 	subnets := make([]network.Subnet, len(input.VirtualNetwork.Subnets))
 	for i, s := range input.VirtualNetwork.Subnets {
-		var nsg *network.SecurityGroup
-		if s.NetworkSecurityGroupID != "" {
-			nsg = &network.SecurityGroup{
-				ID: to.StringPtr(s.NetworkSecurityGroupID),
-			}
-		}
-		subnets[i] = network.Subnet{
-			Name: to.StringPtr(s.Name),
-			SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
-				AddressPrefix:        to.StringPtr(s.CIDR),
-				NetworkSecurityGroup: nsg,
-				RouteTable: &network.RouteTable{
-					ID: to.StringPtr(s.RouteTableID),
-				},
-			},
-		}
+		subnets[i] = subnetToNetworkSubnet(s)
 	}
+
+	tags := tagsFrom(getOwnedTag(input.ClusterName))
 
 	return network.VirtualNetwork{
 		Location: to.StringPtr(input.VirtualNetwork.Location),
@@ -154,6 +211,33 @@ func (input CreateVnetActivityInput) getCreateOrUpdateVirtualNetworkParams() net
 			},
 			Subnets: &subnets,
 		},
-		Tags: *to.StringMapPtr(tagsFrom(getOwnedTag(input.ClusterName))),
+		Tags: *to.StringMapPtr(tags),
+	}
+}
+
+func toSubnetSlice(ptr *[]network.Subnet) []network.Subnet {
+	if ptr == nil {
+		return nil
+	}
+	return *ptr
+}
+
+func subnetToNetworkSubnet(subnet Subnet) network.Subnet {
+	var nsg *network.SecurityGroup
+	if subnet.NetworkSecurityGroupID != "" {
+		nsg = &network.SecurityGroup{
+			ID: to.StringPtr(subnet.NetworkSecurityGroupID),
+		}
+	}
+
+	return network.Subnet{
+		Name: to.StringPtr(subnet.Name),
+		SubnetPropertiesFormat: &network.SubnetPropertiesFormat{
+			AddressPrefix:        to.StringPtr(subnet.CIDR),
+			NetworkSecurityGroup: nsg,
+			RouteTable: &network.RouteTable{
+				ID: to.StringPtr(subnet.RouteTableID),
+			},
+		},
 	}
 }

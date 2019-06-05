@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/goph/emperror"
@@ -32,18 +33,22 @@ import (
 type NodePoolsPreparer struct {
 	logger       logrus.FieldLogger
 	namespace    string
-	dataProvider interface {
-		getExistingNodePools(ctx context.Context) ([]pke.NodePool, error)
-		getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
-		getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error)
-		getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error)
-	}
+	subnetName   string
+	dataProvider nodePoolsDataProvider
+}
+
+type nodePoolsDataProvider interface {
+	getExistingNodePools(ctx context.Context) ([]pke.NodePool, error)
+	getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
+	getSubnetCIDR(ctx context.Context, subnetName string) (string, error)
+	getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error)
 }
 
 func (p NodePoolsPreparer) getNodePoolPreparer(i int) NodePoolPreparer {
 	return NodePoolPreparer{
 		logger:       p.logger,
 		namespace:    fmt.Sprintf("%s[%d]", p.namespace, i),
+		subnetName:   p.subnetName,
 		dataProvider: p.dataProvider,
 	}
 }
@@ -68,7 +73,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 			return emperror.Wrap(err, "failed to get existing node pools")
 		}
 		for _, np := range nps {
-			cidr, err := p.dataProvider.getSubnetCIDR(ctx, np)
+			cidr, err := p.dataProvider.getSubnetCIDR(ctx, np.Subnet.Name)
 			if err != nil {
 				return emperror.Wrap(err, "failed to get subnet CIDR of existing node pool")
 			}
@@ -160,9 +165,10 @@ func cloneIP(ip net.IP) net.IP {
 type NodePoolPreparer struct {
 	logger       logrus.FieldLogger
 	namespace    string
+	subnetName   string
 	dataProvider interface {
 		getExistingNodePoolByName(ctx context.Context, nodePoolName string) (pke.NodePool, error)
-		getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error)
+		getSubnetCIDR(ctx context.Context, subnetName string) (string, error)
 		getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error)
 	}
 }
@@ -210,7 +216,11 @@ func (p NodePoolPreparer) prepareNewNodePool(ctx context.Context, nodePool *Node
 	}
 
 	if nodePool.Subnet.Name == "" {
-		nodePool.Subnet.Name = fmt.Sprintf("subnet-%s", nodePool.Name)
+		if p.subnetName == "" {
+			nodePool.Subnet.Name = fmt.Sprintf("subnet-%s", nodePool.Name)
+		} else {
+			nodePool.Subnet.Name = p.subnetName
+		}
 		p.logger.Debugf("%s.Subnet.Name not specified, defaulting to [%s]", p.namespace, nodePool.Subnet.Name)
 	}
 
@@ -230,6 +240,13 @@ func (p NodePoolPreparer) prepareNewNodePool(ctx context.Context, nodePool *Node
 		subnetOnes, _ := n.Mask.Size()
 		if vnetOnes > subnetOnes {
 			return emperror.With(validationErrorf("%s.Subnet.CIDR is bigger than virtual network address range"), "vnetCIDR", vnetAddrRange.String(), "subnetCIDR", cidr)
+		}
+	} else {
+		cidr, err := p.dataProvider.getSubnetCIDR(ctx, nodePool.Subnet.Name)
+		if err == nil {
+			nodePool.Subnet.CIDR = cidr
+		} else if !pke.IsNotFound(err) {
+			return emperror.Wrap(err, "failed to get subnet CIDR")
 		}
 	}
 
@@ -261,7 +278,7 @@ func (p NodePoolPreparer) prepareExistingNodePool(ctx context.Context, nodePool 
 		}
 		nodePool.Subnet.Name = existing.Subnet.Name
 	}
-	existingSubnetCIDR, err := p.dataProvider.getSubnetCIDR(ctx, existing)
+	existingSubnetCIDR, err := p.dataProvider.getSubnetCIDR(ctx, existing.Subnet.Name)
 	if err != nil {
 		return emperror.Wrap(err, "failed to get subnet CIDR")
 	}
@@ -333,25 +350,44 @@ const DefaultVirtualNetworkCIDR = "10.0.0.0/16"
 
 // Prepare validates and provides defaults for VirtualNetwork fields
 func (p VirtualNetworkPreparer) Prepare(ctx context.Context, vnet *VirtualNetwork) error {
+	vnetNameGenerated := false
 	if vnet.Name == "" {
 		vnet.Name = fmt.Sprintf("%s-vnet", p.clusterName)
-		p.logger.Debugf("%s.Name not specified, defaulting to [%s]", p.namespace, vnet.Name)
+		vnetNameGenerated = true
+		p.logger.Debugf("%s.Name not specified, defaulting to %q", p.namespace, vnet.Name)
+	}
+	vn, err := p.connection.GetVirtualNetworksClient().Get(ctx, p.resourceGroupName, vnet.Name, "")
+	if vn.StatusCode == http.StatusOK && vnetNameGenerated {
+		return validationErrorf("a virtual network already exists in the resource group with the generated name %q", vnet.Name)
+	}
+	if err != nil && vn.StatusCode != http.StatusNotFound {
+		return emperror.Wrap(err, "failed to fetch virtual network")
 	}
 	if vnet.CIDR == "" {
-		vnet.CIDR = DefaultVirtualNetworkCIDR
-		p.logger.Debugf("%s.CIDR not specified, defaulting to [%s]", p.namespace, vnet.CIDR)
+		if vn.StatusCode == http.StatusOK && vn.VirtualNetworkPropertiesFormat != nil && vn.AddressSpace != nil && len(to.StringSlice(vn.AddressSpace.AddressPrefixes)) > 0 {
+			vnet.CIDR = to.StringSlice(vn.AddressSpace.AddressPrefixes)[0]
+			p.logger.Debugf("%s.CIDR not specified, loading value %q from resource", p.namespace, vnet.CIDR)
+		} else {
+			vnet.CIDR = DefaultVirtualNetworkCIDR
+			p.logger.Debugf("%s.CIDR not specified, defaulting to %q", p.namespace, vnet.CIDR)
+		}
 	}
 	if vnet.Location == "" {
-		rg, err := p.connection.GetGroupsClient().Get(ctx, p.resourceGroupName)
-		if err != nil && rg.Response.StatusCode != http.StatusNotFound {
-			return emperror.WrapWith(err, "failed to fetch Azure resource group", "resourceGroupName", p.resourceGroupName)
+		if vn.StatusCode == http.StatusOK && vn.Location != nil {
+			vnet.Location = to.String(vn.Location)
+			p.logger.Debugf("%s.Location not specified, loading value %q from resource", p.namespace, vnet.Location)
+		} else {
+			rg, err := p.connection.GetGroupsClient().Get(ctx, p.resourceGroupName)
+			if err != nil && rg.Response.StatusCode != http.StatusNotFound {
+				return emperror.WrapWith(err, "failed to fetch Azure resource group", "resourceGroupName", p.resourceGroupName)
+			}
+			if rg.Response.StatusCode == http.StatusNotFound || rg.Location == nil || *rg.Location == "" {
+				// resource group does not exist (or somehow has no Location), cannot provide default
+				return validationErrorf("%s.Location must be specified", p.namespace)
+			}
+			vnet.Location = *rg.Location
+			p.logger.Debugf("%s.Location not specified, defaulting to resource group location %q", p.namespace, vnet.Location)
 		}
-		if rg.Response.StatusCode == http.StatusNotFound || rg.Location == nil || *rg.Location == "" {
-			// resource group does not exist (or somehow has no Location), cannot provide default
-			return validationErrorf("%s.Location must be specified", p.namespace)
-		}
-		vnet.Location = *rg.Location
-		p.logger.Debugf("%s.Location not specified, defaulting to resource group location [%s]", p.namespace, vnet.Location)
 	}
 	return nil
 }

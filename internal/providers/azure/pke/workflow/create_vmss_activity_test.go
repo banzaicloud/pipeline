@@ -78,7 +78,9 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 							{
 								Name: to.StringPtr("test-vmss-nic-1"),
 								VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
-									Primary: to.BoolPtr(true),
+									Primary:                     to.BoolPtr(true),
+									EnableIPForwarding:          to.BoolPtr(true),
+									EnableAcceleratedNetworking: to.BoolPtr(false),
 									IPConfigurations: &[]compute.VirtualMachineScaleSetIPConfiguration{
 										{
 											Name: to.StringPtr("test-vmss-pip-1"),
@@ -135,7 +137,7 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 							OsType:       compute.Linux,
 							CreateOption: compute.DiskCreateOptionTypesFromImage,
 							ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
-								StorageAccountType: compute.StorageAccountTypesPremiumLRS,
+								StorageAccountType: compute.StorageAccountTypesStandardLRS,
 							},
 							DiskSizeGB: to.Int32Ptr(128),
 						},

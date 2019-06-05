@@ -49,7 +49,7 @@ type CollectUpdateClusterProvidersActivityOutput struct {
 	BackendAddressPoolIDProvider MapResourceIDByNameProvider
 	InboundNATPoolIDProvider     MapResourceIDByNameProvider
 	PublicIPAddressProvider      ConstantIPAddressProvider
-	RouteTableIDProvider         ConstantResourceIDProvider
+	RouteTableIDProvider         MapResourceIDByNameProvider
 	SecurityGroupIDProvider      MapResourceIDByNameProvider
 	SubnetIDProvider             MapResourceIDByNameProvider
 }
@@ -90,7 +90,7 @@ func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, inpu
 	if err = emperror.Wrap(err, "failed to get route table"); err != nil {
 		return
 	}
-	output.RouteTableIDProvider = ConstantResourceIDProvider(to.String(rt.ID))
+	output.RouteTableIDProvider = MapResourceIDByNameProvider(map[string]string{to.String(rt.Name): to.String(rt.ID)})
 
 	{
 		var page network.SecurityGroupListResultPage

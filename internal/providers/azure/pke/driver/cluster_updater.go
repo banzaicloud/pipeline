@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -103,6 +104,23 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	}
 	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
 
+	conn, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
+	if err = emperror.Wrap(err, "failed to create new Azure cloud connection"); err != nil {
+		return err
+	}
+
+	sn, err := conn.GetSubnetsClient().Get(ctx, cluster.ResourceGroup.Name, cluster.VirtualNetwork.Name, cluster.NodePools[0].Subnet.Name, "routeTable")
+	if err = emperror.Wrap(err, "failed to get subnet"); err != nil && sn.StatusCode != http.StatusNotFound {
+		return err
+	}
+
+	var routeTableName string
+	if sn.StatusCode == http.StatusOK && sn.SubnetPropertiesFormat != nil && sn.RouteTable != nil && sn.RouteTable.Name != nil {
+		routeTableName = to.String(sn.RouteTable.Name)
+	} else {
+		routeTableName = pke.GetRouteTableName(cluster.Name)
+	}
+
 	toCreateVMSSTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(nodePoolsToCreate))
 	var toCreateSubnetTemplates []workflow.SubnetTemplate
 	var roleAssignmentTemplates []workflow.RoleAssignmentTemplate
@@ -118,6 +136,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 			PipelineExternalURL:         cu.pipelineExternalURL,
 			PipelineExternalURLInsecure: cu.pipelineExternalURLInsecure,
 			ResourceGroupName:           cluster.ResourceGroup.Name,
+			RouteTableName:              routeTableName,
 			SingleNodePool:              (len(nodePoolsToCreate) + len(nodePoolsToUpdate) - len(nodePoolsToDelete)) == 1,
 			SSHPublicKey:                sshKeyPair.PublicKeyData,
 			TenantID:                    tenantID,
@@ -174,7 +193,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		ResourceGroupName:   cluster.ResourceGroup.Name,
 		LoadBalancerName:    pke.GetLoadBalancerName(cluster.Name),
 		PublicIPAddressName: pke.GetPublicIPAddressName(cluster.Name),
-		RouteTableName:      pke.GetRouteTableName(cluster.Name),
+		RouteTableName:      routeTableName,
 		VirtualNetworkName:  cluster.VirtualNetwork.Name,
 
 		RoleAssignments: roleAssignmentTemplates,
@@ -290,9 +309,21 @@ func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params
 	if err != nil {
 		return emperror.Wrap(err, "failed to create cloud connection")
 	}
+	// HACK
+	var subnetName string
+	{
+		vn, err := cc.GetVirtualNetworksClient().Get(ctx, cluster.ResourceGroup.Name, cluster.VirtualNetwork.Name, "")
+		if err != nil && vn.StatusCode != http.StatusNotFound {
+			return emperror.Wrap(err, "failed to get virtual network")
+		}
+		if vn.StatusCode == http.StatusOK && workflow.HasSharedTag(cluster.Name, to.StringMap(vn.Tags)) {
+			subnetName = cluster.NodePools[0].Subnet.Name
+		}
+	}
 	nodePoolsPreparer := NodePoolsPreparer{
-		logger:    p.logger,
-		namespace: "NodePools",
+		logger:     p.logger,
+		namespace:  "NodePools",
+		subnetName: subnetName,
 		dataProvider: clusterUpdaterNodePoolPreparerDataProvider{
 			cluster:               cluster,
 			resourceGroupName:     cluster.ResourceGroup.Name,
@@ -328,12 +359,8 @@ func (p clusterUpdaterNodePoolPreparerDataProvider) getExistingNodePoolByName(ct
 	return pke.NodePool{}, notExistsYetError{}
 }
 
-func (p clusterUpdaterNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Context, nodePool pke.NodePool) (string, error) {
-	subnet, err := p.subnetsClient.Get(ctx, p.resourceGroupName, p.virtualNetworkName, nodePool.Subnet.Name, "")
-	if err != nil {
-		return "", emperror.Wrap(err, "failed to get subnet")
-	}
-	return to.String(subnet.AddressPrefix), nil
+func (p clusterUpdaterNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Context, subnetName string) (string, error) {
+	return getSubnetCIDR(ctx, p.subnetsClient, p.resourceGroupName, p.virtualNetworkName, subnetName)
 }
 
 func (p clusterUpdaterNodePoolPreparerDataProvider) getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error) {
