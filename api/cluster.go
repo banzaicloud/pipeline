@@ -558,12 +558,25 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	if !ok {
 		return
 	}
+
+	logger := a.logger.WithFields(logrus.Fields{
+		"organization": cluster.GetOrganizationId(),
+		"clusterName":  cluster.GetName(),
+		"clusterID":    cluster.GetID(),
+	})
+
+	keys := []interface{}{
+		"organization", cluster.GetOrganizationId(),
+		"clusterName", cluster.GetName(),
+		"clusterID", cluster.GetID(),
+	}
+
 	clusterGetCAHasher, ok := cluster.(interface {
 		GetCAHash() (string, error)
 	})
 	if !ok {
 		err := errors.New(fmt.Sprintf("not implemented for this type of cluster (%T)", cluster))
-		a.errorHandler.Handle(err)
+		a.errorHandler.Handle(emperror.With(err, keys...))
 
 		c.JSON(http.StatusNotFound, pkgCommon.ErrorResponse{
 			Code:    http.StatusNotFound,
@@ -574,9 +587,12 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	}
 	hash, err := clusterGetCAHasher.GetCAHash()
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Kubernetes CA certificate (Kubeconfig) is not available yet",
+		message := "Kubernetes CA certificate (Kubeconfig) is not available yet"
+		a.errorHandler.Handle(emperror.WrapWith(err, message, keys...))
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
 			Error:   err.Error(),
 		})
 		return
@@ -584,36 +600,48 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 
 	masterAddress, err := cluster.GetAPIEndpoint()
 	if err != nil {
+		message := "Error fetching kubernetes API address"
+		logger.Info(emperror.Wrap(err, message))
+
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error fetching kubernetes API address",
+			Message: message,
 			Error:   err.Error(),
 		})
 		return
 	}
 	url, err := url.Parse(masterAddress)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing kubernetes API address",
+		message := "Error parsing kubernetes API address"
+		a.errorHandler.Handle(emperror.WrapWith(err, message, keys...))
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
 			Error:   err.Error(),
 		})
 		return
 	}
 	config, err := cluster.GetK8sConfig()
 	if err != nil {
+		message := "Error fetching Kubernetes config"
+		logger.Info(emperror.Wrap(err, message))
+
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error fetching Kubernetes config",
+			Message: message,
 			Error:   err.Error(),
 		})
 		return
 	}
 	client, err := k8sclient.NewClientFromKubeConfig(config)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Invalid Kubernetes config",
+		message := "Invalid Kubernetes config"
+		a.errorHandler.Handle(emperror.WrapWith(err, message, keys...))
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
 			Error:   err.Error(),
 		})
 		return
@@ -621,9 +649,12 @@ func (a *ClusterAPI) GetBootstrapInfo(c *gin.Context) {
 	// Get an active token
 	token, err := k8sutil.GetOrCreateBootstrapToken(log, client)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Failed to create bootstrap token",
+		message := "Failed to create bootstrap token"
+		logger.Info(emperror.Wrap(err, message))
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, pkgCommon.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: message,
 			Error:   err.Error(),
 		})
 		return
