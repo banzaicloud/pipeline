@@ -56,15 +56,16 @@ type secretData struct {
 // BucketResponseItem encapsulates bucket and secret details to be returned
 // it's purpose is to properly format the response details - especially the secret details
 type BucketResponseItem struct {
-	Name       string                                `json:"name"  binding:"required"`
-	Managed    bool                                  `json:"managed" binding:"required"`
-	Location   string                                `json:"location,omitempty"`
-	Cloud      string                                `json:"cloud,omitempty"`
-	Notes      *string                               `json:"notes,omitempty"`
-	SecretInfo *secretData                           `json:"secret"`
-	Azure      *objectstore.BlobStoragePropsForAzure `json:"aks,omitempty"`
-	Status     string                                `json:"status"`
-	StatusMsg  string                                `json:"statusMessage"`
+	Name       string                                 `json:"name"  binding:"required"`
+	Managed    bool                                   `json:"managed" binding:"required"`
+	Location   string                                 `json:"location,omitempty"`
+	Cloud      string                                 `json:"cloud,omitempty"`
+	Notes      *string                                `json:"notes,omitempty"`
+	SecretInfo *secretData                            `json:"secret"`
+	Azure      *objectstore.BlobStoragePropsForAzure  `json:"aks,omitempty"`
+	Oracle     *objectstore.BlobStoragePropsForOracle `json:"oracle,omitempty"`
+	Status     string                                 `json:"status"`
+	StatusMsg  string                                 `json:"statusMessage"`
 }
 
 // ListAllBuckets handles 	bucket list requests. The handler method directs the flow to the appropriate retrieval
@@ -638,7 +639,7 @@ func GetBucket(c *gin.Context) {
 		return
 	}
 
-	if retBuckets, err := bc.filterBuckets(bucketList, bucketName, *qd); err == nil {
+	if retBuckets, err := bc.filterBuckets(bucketList, bucketName, *qd); err == nil && len(retBuckets) > 0 {
 		c.JSON(http.StatusOK, newBucketResponseItemFromBucketInfo(retBuckets[0], organization.ID, qd.withSecretName()))
 		return
 	}
@@ -713,6 +714,7 @@ func newBucketResponseItemFromBucketInfo(bi *objectstore.BucketInfo, orgid uint,
 		Managed:   bi.Managed,
 		Notes:     &notes,
 		Azure:     bi.Azure,
+		Oracle:    bi.Oracle,
 		SecretInfo: &secretData{
 			SecretName:       secretName,
 			SecretId:         bi.SecretRef,

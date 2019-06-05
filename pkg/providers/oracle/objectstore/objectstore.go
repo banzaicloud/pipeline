@@ -102,6 +102,11 @@ func (o *objectStore) CreateBucket(bucketName string) error {
 	return nil
 }
 
+// GetNamespace returns client namespace
+func (o *objectStore) GetNamespace() string {
+	return o.osClient.Namespace
+}
+
 // ListBuckets lists the current buckets in the object store
 func (o *objectStore) ListBuckets() ([]string, error) {
 	var keys []string

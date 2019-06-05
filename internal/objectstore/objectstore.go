@@ -26,19 +26,25 @@ type ObjectStoreService interface {
 
 // BucketInfo describes a storage bucket
 type BucketInfo struct {
-	Name            string                    `json:"name"  binding:"required"`
-	Managed         bool                      `json:"managed" binding:"required"`
-	Location        string                    `json:"location,omitempty"`
-	SecretRef       string                    `json:"secretId,omitempty"`
-	Cloud           string                    `json:"cloud,omitempty"`
-	Azure           *BlobStoragePropsForAzure `json:"aks,omitempty"`
-	Status          string                    `json:"status,omitempty"`
-	StatusMsg       string                    `json:"statusMsg,omitempty"`
-	AccessSecretRef string                    `json:"accessSecretId,omitempty"`
+	Name            string                     `json:"name"  binding:"required"`
+	Managed         bool                       `json:"managed" binding:"required"`
+	Location        string                     `json:"location,omitempty"`
+	SecretRef       string                     `json:"secretId,omitempty"`
+	Cloud           string                     `json:"cloud,omitempty"`
+	Azure           *BlobStoragePropsForAzure  `json:"aks,omitempty"`
+	Oracle          *BlobStoragePropsForOracle `json:"oracle,omitempty"`
+	Status          string                     `json:"status,omitempty"`
+	StatusMsg       string                     `json:"statusMsg,omitempty"`
+	AccessSecretRef string                     `json:"accessSecretId,omitempty"`
 }
 
 // BlobStoragePropsForAzure describes the Azure specific properties
 type BlobStoragePropsForAzure struct {
 	ResourceGroup  string `json:"resourceGroup" binding:"required"`
 	StorageAccount string `json:"storageAccount" binding:"required"`
+}
+
+// BlobStoragePropsForOracle describes the Oracle specific properties
+type BlobStoragePropsForOracle struct {
+	Namespace string `json:"namespace"`
 }
