@@ -29,23 +29,23 @@ const CreateClusterWorkflowName = "pke-create-cluster"
 const pkeVersion = "0.4.8"
 
 func getDefaultImageID(region, kubernetesVersion string) (string, error) {
-	constraint112, err := semver.NewConstraint(">= 1.12.0, < 1.13.0")
+	constraint112, err := semver.NewConstraint("~1.12.0")
 	if err != nil {
 		return "", emperror.Wrap(err, "could not create semver constraint for Kubernetes version 1.12+")
 	}
 
-	constraint113, err := semver.NewConstraint(">= 1.13.0, < 1.14.0")
+	constraint113, err := semver.NewConstraint("~1.13.0")
 	if err != nil {
 		return "", emperror.Wrap(err, "could not create semver constraint for Kubernetes version 1.13+")
 	}
 
 	kubeVersion, err := semver.NewVersion(kubernetesVersion)
-
 	if err != nil {
 		return "", emperror.WrapWith(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
 	}
 
-	if constraint112.Check(kubeVersion) {
+	switch {
+	case constraint112.Check(kubeVersion):
 		return map[string]string{
 			"ap-northeast-1": "ami-08a85b1563efcdbfa",
 			"ap-northeast-2": "ami-01ad53644d5e714e0",
@@ -64,9 +64,7 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 			"us-west-1":      "ami-0ed166e4d66056cba",
 			"us-west-2":      "ami-0ee06a6e5ea34c447",
 		}[region], nil
-	}
-
-	if constraint113.Check(kubeVersion) {
+	case constraint113.Check(kubeVersion):
 		return map[string]string{
 			"ap-northeast-1": "ami-0e51ebcaab2ee7f64",
 			"ap-northeast-2": "ami-03f97043746d70ea8",
@@ -85,27 +83,27 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 			"us-west-1":      "ami-0e56d84477e285018",
 			"us-west-2":      "ami-0209e5179cf144bb1",
 		}[region], nil
+	default:
+		return map[string]string{
+			"ap-northeast-1": "ami-050580615eb00d744",
+			"ap-northeast-2": "ami-051b65659a2c549b0",
+			"ap-south-1":     "ami-03adffe261d08c4ec",
+			"ap-southeast-1": "ami-0c0f3a44506a4f470",
+			"ap-southeast-2": "ami-06d552a20a61ab8fe",
+			"ca-central-1":   "ami-07b0387c0bc3bf4d0",
+			"eu-central-1":   "ami-0dc9154691d8a1757",
+			"eu-north-1":     "ami-044edb04df20f127b",
+			"eu-west-1":      "ami-0be08db35d79874b9",
+			"eu-west-2":      "ami-062ce851cb781d581",
+			"eu-west-3":      "ami-0f78066d649b69b51",
+			"sa-east-1":      "ami-08401edb5361125d5",
+			"us-east-1":      "ami-09b34d885e47bb377",
+			"us-east-2":      "ami-030f8c953c69c25c0",
+			"us-west-1":      "ami-0d87a1f4e1743e1d6",
+			"us-west-2":      "ami-0dbd115d30cda6652",
+		}[region], nil
+
 	}
-
-	return map[string]string{
-		"ap-northeast-1": "ami-050580615eb00d744",
-		"ap-northeast-2": "ami-051b65659a2c549b0",
-		"ap-south-1":     "ami-03adffe261d08c4ec",
-		"ap-southeast-1": "ami-0c0f3a44506a4f470",
-		"ap-southeast-2": "ami-06d552a20a61ab8fe",
-		"ca-central-1":   "ami-07b0387c0bc3bf4d0",
-		"eu-central-1":   "ami-0dc9154691d8a1757",
-		"eu-north-1":     "ami-044edb04df20f127b",
-		"eu-west-1":      "ami-0be08db35d79874b9",
-		"eu-west-2":      "ami-062ce851cb781d581",
-		"eu-west-3":      "ami-0f78066d649b69b51",
-		"sa-east-1":      "ami-08401edb5361125d5",
-		"us-east-1":      "ami-09b34d885e47bb377",
-		"us-east-2":      "ami-030f8c953c69c25c0",
-		"us-west-1":      "ami-0d87a1f4e1743e1d6",
-		"us-west-2":      "ami-0dbd115d30cda6652",
-	}[region], nil
-
 }
 
 type TokenGenerator interface {
