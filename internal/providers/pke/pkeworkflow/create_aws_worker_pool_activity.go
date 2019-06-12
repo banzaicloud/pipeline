@@ -74,7 +74,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		return "", emperror.Wrap(err, "can't get Kubernetes version")
 	}
 
-	imageID := getDefaultImageID(cluster.GetLocation(), ver)
+	imageID, err := getDefaultImageID(cluster.GetLocation(), ver)
+	if err != nil {
+		return "", emperror.Wrapf(err, "failed to get default image for Kubernetes version %s", ver)
+	}
 	if input.Pool.ImageID != "" {
 		imageID = input.Pool.ImageID
 	}
