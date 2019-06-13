@@ -36,6 +36,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
@@ -250,80 +251,9 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{},
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
 	err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
 	if err != nil {
-		return nil, onAwsStackFailure(a.log, err, a.stackName, cloudformationSrv)
+		return nil, pkgCloudformation.NewAwsStackFailure(err, a.stackName, cloudformationSrv)
 	}
 	return nil, nil
-}
-
-type awsStackFailedError struct {
-	awsStackError   error
-	stackName       string
-	failedEventsMsg []string
-}
-
-func (e awsStackFailedError) Error() string {
-	hdr := "stack " + e.stackName
-	if len(e.failedEventsMsg) > 0 {
-		return hdr + "\n" + strings.Join(e.failedEventsMsg, "\n")
-	}
-
-	return hdr + e.awsStackError.Error()
-}
-
-func (e awsStackFailedError) Cause() error {
-	return e.awsStackError
-}
-
-func onAwsStackFailure(log logrus.FieldLogger, awsStackError error, stackName string, cloudformationSrv *cloudformation.CloudFormation) error {
-	failedStackEvents, err := collectFailedStackEvents(stackName, cloudformationSrv)
-	if err != nil {
-		log.Errorln("retrieving stack events failed:", err.Error())
-		return awsStackError
-	}
-
-	if len(failedStackEvents) > 0 {
-		var failedEventsMsg []string
-
-		for _, event := range failedStackEvents {
-			msg := fmt.Sprintf("%v %v %v", aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
-			failedEventsMsg = append(failedEventsMsg, msg)
-		}
-
-		logFailedStackEvents(log, stackName, failedEventsMsg)
-
-		return awsStackFailedError{
-			awsStackError:   awsStackError,
-			stackName:       stackName,
-			failedEventsMsg: failedEventsMsg,
-		}
-	}
-
-	return awsStackError
-}
-
-func collectFailedStackEvents(stackName string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
-	var failedStackEvents []*cloudformation.StackEvent
-
-	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}
-	describeStackEventsOutput, err := cloudformationSrv.DescribeStackEvents(describeStackEventsInput)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for _, event := range describeStackEventsOutput.StackEvents {
-		if strings.HasSuffix(*event.ResourceStatus, "FAILED") {
-			failedStackEvents = append(failedStackEvents, event)
-		}
-	}
-
-	return failedStackEvents, nil
-}
-
-func logFailedStackEvents(log logrus.FieldLogger, stackName string, eventsLogMsg []string) {
-	for _, msg := range eventsLogMsg {
-		log.Errorf("stack %v event %v", stackName, msg)
-	}
 }
 
 // UndoAction rolls back this CreateVPCAndRolesAction
@@ -962,7 +892,7 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 			}
 
 			if err != nil {
-				errorChan <- onAwsStackFailure(a.log, err, stackName, cloudformationSrv)
+				errorChan <- pkgCloudformation.NewAwsStackFailure(err, stackName, cloudformationSrv)
 				return
 			}
 
@@ -971,8 +901,6 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 				errorChan <- err
 				return
 			}
-
-			// TODO: updating labels on the nodes (will be addressed in a separte PR)
 
 			errorChan <- nil
 
@@ -1421,7 +1349,7 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 			describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 			err = cloudformationSrv.WaitUntilStackDeleteComplete(describeStacksInput)
 			if err != nil {
-				errorChan <- onAwsStackFailure(a.log, err, stackName, cloudformationSrv)
+				errorChan <- pkgCloudformation.NewAwsStackFailure(err, stackName, cloudformationSrv)
 				return
 			}
 
@@ -1429,15 +1357,17 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 		}(stackName)
 	}
 
+	caughtErrors := emperror.NewMultiErrorBuilder()
+
 	// wait for goroutines to finish
 	for i := 0; i < len(a.StackNames); i++ {
 		deleteErr := <-errorChan
 		if deleteErr != nil {
-			err = deleteErr
+			caughtErrors.Add(deleteErr)
 		}
 	}
 
-	return nil, err
+	return nil, pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
 }
 
 //--

@@ -15,7 +15,13 @@
 package cloudformation
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/goph/emperror"
 )
 
 // GetExistingTaggedStackNames gives back existing CF stacks which have the given tags
@@ -53,4 +59,77 @@ func getFlattenedTags(tags []*cloudformation.Tag) map[string]string {
 	}
 
 	return t
+}
+
+type awsStackFailedError struct {
+	awsStackError   error
+	stackName       string
+	failedEventsMsg []string
+}
+
+func (e awsStackFailedError) Error() string {
+	hdr := "stack " + e.stackName
+	if len(e.failedEventsMsg) > 0 {
+		return hdr + "\n" + strings.Join(e.failedEventsMsg, "\n")
+	}
+
+	return hdr + e.awsStackError.Error()
+}
+
+func (e awsStackFailedError) Cause() error {
+	return e.awsStackError
+}
+
+func NewAwsStackFailure(awsStackError error, stackName string, cloudformationSrv *cloudformation.CloudFormation) error {
+	if awsStackError == nil {
+		return nil
+	}
+
+	failedStackEvents, err := collectFailedStackEvents(stackName, cloudformationSrv)
+	if err != nil {
+		caughtErrors := emperror.NewMultiErrorBuilder()
+		caughtErrors.Add(awsStackError)
+		caughtErrors.Add(emperror.Wrap(err, "could not retrieve stack events with 'FAILED' state"))
+
+		return pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
+	}
+
+	if len(failedStackEvents) > 0 {
+		var failedEventsMsg []string
+
+		for _, event := range failedStackEvents {
+			msg := fmt.Sprintf("%v %v %v", aws.StringValue(event.LogicalResourceId), aws.StringValue(event.ResourceStatus), aws.StringValue(event.ResourceStatusReason))
+			failedEventsMsg = append(failedEventsMsg, msg)
+		}
+
+		return awsStackFailedError{
+			awsStackError:   awsStackError,
+			stackName:       stackName,
+			failedEventsMsg: failedEventsMsg,
+		}
+	}
+
+	return awsStackError
+}
+
+func collectFailedStackEvents(stackName string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
+	var failedStackEvents []*cloudformation.StackEvent
+
+	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}
+	err := cloudformationSrv.DescribeStackEventsPages(describeStackEventsInput,
+		func(page *cloudformation.DescribeStackEventsOutput, lastPage bool) bool {
+
+			for _, event := range page.StackEvents {
+				if strings.HasSuffix(*event.ResourceStatus, "FAILED") {
+					failedStackEvents = append(failedStackEvents, event)
+				}
+			}
+
+			return true
+		})
+	if err != nil {
+		return nil, emperror.WrapWith(err, "failed to describe CloudFormation stack events", "stackName", aws.String(stackName))
+	}
+
+	return failedStackEvents, nil
 }
