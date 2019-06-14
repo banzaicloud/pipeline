@@ -59,6 +59,8 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 
 	userDataScriptTemplate := workerUserDataScriptTemplate
 
+	k8sMasterMode := "default"
+
 	if np.hasRole(pkgPKE.RoleMaster) {
 		bapn = pke.GetBackendAddressPoolName()
 		inpn = pke.GetInboundNATPoolName()
@@ -74,6 +76,10 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 		}
 
 		userDataScriptTemplate = masterUserDataScriptTemplate
+
+		if np.Count > 1 {
+			k8sMasterMode = "ha"
+		}
 	}
 
 	if np.hasRole(pkgPKE.RolePipelineSystem) {
@@ -123,6 +129,7 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 				"PipelineToken":         "<not yet set>",
 				"PKEVersion":            pkeVersion,
 				"KubernetesVersion":     f.KubernetesVersion,
+				"KubernetesMasterMode":  k8sMasterMode,
 				"PublicAddress":         "<not yet set>",
 				"RouteTableName":        f.RouteTableName,
 				"SubnetName":            np.Subnet.Name,
