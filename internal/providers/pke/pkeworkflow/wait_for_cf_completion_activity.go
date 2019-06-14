@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/goph/emperror"
 )
 
@@ -51,7 +52,7 @@ func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFComp
 
 	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, describeStacksInput)
 	if err != nil {
-		return nil, emperror.Wrap(err, "error waiting Cloud Formation template")
+		return nil, emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, input.StackID, cfClient), "error waiting Cloud Formation template")
 	}
 
 	output, err := cfClient.DescribeStacks(describeStacksInput)
