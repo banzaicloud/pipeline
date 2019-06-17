@@ -20,6 +20,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
@@ -72,9 +73,6 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 	}
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
-	if err != nil {
-		return emperror.Wrap(err, "waiting for termination")
-	}
 
-	return nil
+	return emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for termination")
 }

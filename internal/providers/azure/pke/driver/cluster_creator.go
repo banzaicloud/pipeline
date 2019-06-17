@@ -495,6 +495,7 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --kubernetes-api-server={{ .PublicAddress }}:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-version={{ .KubernetesVersion }} \
+--kubernetes-master-mode={{ .KubernetesMasterMode }} \
 --kubernetes-api-server-cert-sans={{ .PublicAddress }}`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
