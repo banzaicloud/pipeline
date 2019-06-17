@@ -59,6 +59,8 @@ type APIClient struct {
 
 	AuthApi *AuthApiService
 
+	ClusterFeaturesApi *ClusterFeaturesApiService
+
 	ClustergroupDeploymentsApi *ClustergroupDeploymentsApiService
 
 	ClustergroupFeaturesApi *ClustergroupFeaturesApiService
@@ -128,6 +130,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.ArkRestoresApi = (*ArkRestoresApiService)(&c.common)
 	c.ArkSchedulesApi = (*ArkSchedulesApiService)(&c.common)
 	c.AuthApi = (*AuthApiService)(&c.common)
+	c.ClusterFeaturesApi = (*ClusterFeaturesApiService)(&c.common)
 	c.ClustergroupDeploymentsApi = (*ClustergroupDeploymentsApiService)(&c.common)
 	c.ClustergroupFeaturesApi = (*ClustergroupFeaturesApiService)(&c.common)
 	c.ClustergroupsApi = (*ClustergroupsApiService)(&c.common)

@@ -61,6 +61,11 @@ Class | Method | HTTP request | Description
 *AuthApi* | [**CreateToken**](docs/AuthApi.md#createtoken) | **Post** /api/v1/tokens | Create token
 *AuthApi* | [**DeleteToken**](docs/AuthApi.md#deletetoken) | **Delete** /api/v1/tokens/{tokenId} | Delete an API token
 *AuthApi* | [**ListTokens**](docs/AuthApi.md#listtokens) | **Get** /api/v1/tokens | List all API tokens
+*ClusterFeaturesApi* | [**ActivateClusterFeature**](docs/ClusterFeaturesApi.md#activateclusterfeature) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName} | Activate a cluster feature
+*ClusterFeaturesApi* | [**ClusterFeatureDetails**](docs/ClusterFeaturesApi.md#clusterfeaturedetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName} | Get details of a cluster feature
+*ClusterFeaturesApi* | [**DeactivateClusterFeature**](docs/ClusterFeaturesApi.md#deactivateclusterfeature) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName} | Deactivate a cluster feature
+*ClusterFeaturesApi* | [**ListClusterFeatures**](docs/ClusterFeaturesApi.md#listclusterfeatures) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/features | List enabled features of a cluster
+*ClusterFeaturesApi* | [**UpdateClusterFeature**](docs/ClusterFeaturesApi.md#updateclusterfeature) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName} | Update a cluster feature
 *ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNameDelete**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentsdeploymentnamedelete) | **Delete** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} | Delete Cluster Group Deployment
 *ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNameGet**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentsdeploymentnameget) | **Get** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} | Get Cluster Group Deployment
 *ClustergroupDeploymentsApi* | [**ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNamePut**](docs/ClustergroupDeploymentsApi.md#apiv1orgsorgidclustergroupsclustergroupiddeploymentsdeploymentnameput) | **Put** /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} | Update Cluster Group Deployment
@@ -181,6 +186,7 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [ActivateClusterFeatureRequest](docs/ActivateClusterFeatureRequest.md)
  - [AddClusterProfileAks](docs/AddClusterProfileAks.md)
  - [AddClusterProfileAksAks](docs/AddClusterProfileAksAks.md)
  - [AddClusterProfileEks](docs/AddClusterProfileEks.md)
@@ -214,6 +220,8 @@ Class | Method | HTTP request | Description
  - [ChartNotFound](docs/ChartNotFound.md)
  - [ClusterConfig](docs/ClusterConfig.md)
  - [ClusterDelete200](docs/ClusterDelete200.md)
+ - [ClusterFeatureDetails](docs/ClusterFeatureDetails.md)
+ - [ClusterFeatureNotFound](docs/ClusterFeatureNotFound.md)
  - [ClusterImage](docs/ClusterImage.md)
  - [ClusterNotFound](docs/ClusterNotFound.md)
  - [ClusterProfileAks](docs/ClusterProfileAks.md)
@@ -424,6 +432,7 @@ Class | Method | HTTP request | Description
  - [UpdateAckPropertiesAck](docs/UpdateAckPropertiesAck.md)
  - [UpdateAzureProperties](docs/UpdateAzureProperties.md)
  - [UpdateAzurePropertiesAzure](docs/UpdateAzurePropertiesAzure.md)
+ - [UpdateClusterFeatureRequest](docs/UpdateClusterFeatureRequest.md)
  - [UpdateClusterRequest](docs/UpdateClusterRequest.md)
  - [UpdateClusterRequestV2](docs/UpdateClusterRequestV2.md)
  - [UpdateEksProperties](docs/UpdateEksProperties.md)

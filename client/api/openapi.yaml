@@ -7685,6 +7685,307 @@ paths:
       summary: Update Feature of Cluster Group
       tags:
       - clustergroup features
+  /api/v1/orgs/{orgId}/clusters/{id}/features:
+    get:
+      operationId: ListClusterFeatures
+      parameters:
+      - description: Organization ID
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Cluster ID
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterFeatureList'
+          description: Success
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List enabled features of a cluster
+      tags:
+      - cluster features
+  /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}:
+    delete:
+      operationId: DeactivateClusterFeature
+      parameters:
+      - description: Organization ID
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Cluster ID
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Feature name
+        explode: false
+        in: path
+        name: featureName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        202:
+          description: Accepted
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Deactivate a cluster feature
+      tags:
+      - cluster features
+    get:
+      operationId: ClusterFeatureDetails
+      parameters:
+      - description: Organization ID
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Cluster ID
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Feature name
+        explode: false
+        in: path
+        name: featureName
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterFeatureDetails'
+          description: Success
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Get details of a cluster feature
+      tags:
+      - cluster features
+    post:
+      operationId: ActivateClusterFeature
+      parameters:
+      - description: Organization ID
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Cluster ID
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Feature name
+        explode: false
+        in: path
+        name: featureName
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivateClusterFeatureRequest'
+        required: true
+      responses:
+        202:
+          description: Accepted
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Bad request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Activate a cluster feature
+      tags:
+      - cluster features
+    put:
+      operationId: UpdateClusterFeature
+      parameters:
+      - description: Organization ID
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Cluster ID
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Feature name
+        explode: false
+        in: path
+        name: featureName
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClusterFeatureRequest'
+        required: true
+      responses:
+        202:
+          description: Accepted
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Bad request
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Update a cluster feature
+      tags:
+      - cluster features
 components:
   requestBodies:
     api.FeatureRequest:
@@ -13191,6 +13492,62 @@ components:
       properties:
         enabled:
           type: boolean
+      type: object
+    ClusterFeatureList:
+      additionalProperties:
+        $ref: '#/components/schemas/ClusterFeatureDetails'
+      type: object
+    ActivateClusterFeatureRequest:
+      example:
+        spec: '{}'
+      properties:
+        spec:
+          type: object
+      required:
+      - spec
+      type: object
+    ClusterFeatureDetails:
+      example:
+        output: '{}'
+        spec: '{}'
+        status: inactive
+      properties:
+        output:
+          type: object
+        spec:
+          type: object
+        status:
+          enum:
+          - inactive
+          - pending
+          - active
+          type: string
+      required:
+      - status
+      type: object
+    UpdateClusterFeatureRequest:
+      example:
+        spec: '{}'
+      properties:
+        spec:
+          type: object
+      required:
+      - spec
+      type: object
+    ClusterFeatureSpec:
+      type: object
+    ClusterFeatureNotFound:
+      properties:
+        code:
+          example: 404
+          format: int32
+          type: integer
+        message:
+          example: Cluster feature not found
+          type: string
+        error:
+          example: No cluster feature exists with this name
+          type: string
       type: object
     CreatePKEClusterKubernetes_cri:
       properties:
