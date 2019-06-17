@@ -105,9 +105,6 @@ services:
         volumes:
             - ./config/dex.yml:/dex.yml
 
-    cassandra:
-        image: cassandra:3.11
-
     cadence:
         image: ubercadence/server:0.5.8
         environment:
