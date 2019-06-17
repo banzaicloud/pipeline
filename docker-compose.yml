@@ -109,18 +109,21 @@ services:
         image: cassandra:3.11
 
     cadence:
-        image: ubercadence/server:0.5.5
+        image: ubercadence/server:0.5.8
         environment:
-            - "LOG_LEVEL=debug,info"
-            - "CASSANDRA_SEEDS=cassandra"
+            LOG_LEVEL: debug,info
+            DB: mysql
+            MYSQL_SEEDS: mysql
+            MYSQL_USER: sparky
+            MYSQL_PWD: sparky123
         volumes:
-            - ./config/cadence.yml:/cadence/config/docker_template.yaml
+            - ./config/cadence.yml:/cadence/config/docker_template_mysql.yaml
         depends_on:
-            - cassandra
+            - mysql
 
     cadence-web:
-        image: ubercadence/web:3.2.2
+        image: ubercadence/web:3.3.1
         environment:
-            - "CADENCE_TCHANNEL_PEERS=cadence:7933"
+            CADENCE_TCHANNEL_PEERS: cadence:7933
         depends_on:
             - cadence

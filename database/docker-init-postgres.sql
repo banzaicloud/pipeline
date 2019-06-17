@@ -1,2 +1,8 @@
 CREATE DATABASE cicd;
 GRANT ALL PRIVILEGES ON DATABASE cicd TO sparky;
+
+CREATE DATABASE cadence;
+GRANT ALL PRIVILEGES ON DATABASE cadence TO sparky;
+
+CREATE DATABASE cadence_visibility;
+GRANT ALL PRIVILEGES ON DATABASE cadence_visibility TO sparky;

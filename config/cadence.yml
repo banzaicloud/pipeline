@@ -3,20 +3,26 @@ log:
     level: "${LOG_LEVEL}"
 
 persistence:
-    defaultStore: cass-default
-    visibilityStore: cass-visibility
+    defaultStore: mysql-default
+    visibilityStore: mysql-visibility
     numHistoryShards: ${NUM_HISTORY_SHARDS}
     datastores:
-        cass-default:
-            cassandra:
-                hosts: "${CASSANDRA_SEEDS}"
-                keyspace: "${KEYSPACE}"
-                consistency: "${CASSANDRA_CONSISTENCY}"
-        cass-visibility:
-            cassandra:
-                hosts: "${CASSANDRA_SEEDS}"
-                keyspace: "${VISIBILITY_KEYSPACE}"
-                consistency: "${CASSANDRA_CONSISTENCY}"
+        mysql-default:
+            sql:
+                driverName: "mysql"
+                databaseName: "${DBNAME}"
+                connectAddr: "${MYSQL_SEEDS}:3306"
+                connectProtocol: "tcp"
+                user: "${MYSQL_USER}"
+                password: "${MYSQL_PWD}"
+        mysql-visibility:
+            sql:
+                driverName: "mysql"
+                databaseName: "${VISIBILITY_DBNAME}"
+                connectAddr: "${MYSQL_SEEDS}:3306"
+                connectProtocol: "tcp"
+                user: "${MYSQL_USER}"
+                password: "${MYSQL_PWD}"
 
 ringpop:
     name: cadence
@@ -28,32 +34,48 @@ services:
     frontend:
         rpc:
             port: 7933
-            bindOnLocalHost: ${BIND_ON_LOCALHOST}
+            bindOnIP: ${BIND_ON_IP}
+        metrics:
+            prometheus:
+                timerType: "histogram"
+                listenAddress: "127.0.0.1:8000"
 
     matching:
         rpc:
             port: 7935
-            bindOnLocalHost: ${BIND_ON_LOCALHOST}
+            bindOnIP: ${BIND_ON_IP}
+        metrics:
+            prometheus:
+                timerType: "histogram"
+                listenAddress: "127.0.0.1:8001"
 
     history:
         rpc:
             port: 7934
-            bindOnLocalHost: ${BIND_ON_LOCALHOST}
+            bindOnIP: ${BIND_ON_IP}
+        metrics:
+            prometheus:
+                timerType: "histogram"
+                listenAddress: "127.0.0.1:8002"
 
     worker:
         rpc:
             port: 7939
-            bindOnLocalHost: ${BIND_ON_LOCALHOST}
+            bindOnIP: ${BIND_ON_IP}
+        metrics:
+            prometheus:
+                timerType: "histogram"
+                listenAddress: "127.0.0.1:8003"
 
-clustersInfo:
+clusterMetadata:
     enableGlobalDomain: false
     failoverVersionIncrement: 10
     masterClusterName: "active"
     currentClusterName: "active"
-    clusterInitialFailoverVersion:
-        active: 0
-    clusterAddress:
+    clusterInformation:
         active:
+            enabled: true
+            initialFailoverVersion: 0
             rpcName: "cadence-frontend"
             rpcAddress: "127.0.0.1:7933"
 
@@ -62,8 +84,10 @@ dcRedirectionPolicy:
     toDC: ""
 
 archival:
-    enableArchival: true
-    blobstore:
+    status: "enabled"
+    enableReadFromArchival: true
+    defaultBucket: "cadence-development"
+    filestore:
         storeDirectory: "/tmp/blobstore/"
         defaultBucket:
             name: "cadence-development"
@@ -76,3 +100,10 @@ archival:
             - name: "custom-bucket-2"
               owner: "custom-owner-2"
               retentionDays: 5
+
+publicClient:
+    hostPort: ${BIND_ON_IP}:7933
+
+dynamicConfigClient:
+    filepath: ${DYNAMIC_CONFIG_FILE_PATH}
+    pollInterval: "60s"
