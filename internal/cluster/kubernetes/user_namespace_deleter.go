@@ -19,7 +19,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -63,7 +63,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 					return emperror.Wrapf(err, "failed to get %q namespace details", ns.Name)
 				}
 
-				if namespace.Status.Phase == v1.NamespaceTerminating {
+				if namespace.Status.Phase == corev1.NamespaceTerminating {
 					continue
 				}
 
