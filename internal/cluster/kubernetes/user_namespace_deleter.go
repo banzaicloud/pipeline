@@ -82,8 +82,8 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining namespaces")
 		}
-		left = []string{}
-		gaveUp = []string{}
+		left = nil
+		gaveUp = nil
 		for _, ns := range namespaces.Items {
 			switch ns.Name {
 			case "default", "kube-system", "kube-public":
