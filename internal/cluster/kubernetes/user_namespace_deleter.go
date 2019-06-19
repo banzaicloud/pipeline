@@ -60,7 +60,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 				// ignore the error
 				namespace, errGet := client.CoreV1().Namespaces().Get(ns.Name, metav1.GetOptions{})
 				if errGet != nil {
-					return emperror.Wrapf(err, "failed to get %q namespace details", ns.Name)
+					return emperror.Wrapf(errGet, "failed to get %q namespace details", ns.Name)
 				}
 
 				if namespace.Status.Phase != corev1.NamespaceTerminating {
