@@ -63,11 +63,9 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 					return emperror.Wrapf(err, "failed to get %q namespace details", ns.Name)
 				}
 
-				if namespace.Status.Phase == corev1.NamespaceTerminating {
-					continue
+				if namespace.Status.Phase != corev1.NamespaceTerminating {
+					return emperror.Wrapf(err, "failed to delete %q namespace", ns.Name)
 				}
-
-				return emperror.Wrapf(err, "failed to delete %q namespace", ns.Name)
 			}
 		}
 		return nil
