@@ -17,10 +17,15 @@ package clusterfeature
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/pkg/errors"
 )
 
 type dummyFeatureRepository struct {
+}
+
+func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error) {
+	panic("implement me")
 }
 
 func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error) {
@@ -43,13 +48,22 @@ func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId st
 type dummyClusterRepository struct {
 }
 
-func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId string) bool {
+func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId string) (bool, error) {
 	switch clusterId {
 	case "notready":
-		return false
+		return false, nil
 	}
 
-	return true
+	return true, nil
+
+}
+
+func (dcr *dummyClusterRepository) GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error) {
+	panic("implement me")
+}
+
+func (dcr *dummyClusterRepository) GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error) {
+	panic("implement me")
 }
 
 type dummyFeatureManager struct {
