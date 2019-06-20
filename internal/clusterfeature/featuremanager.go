@@ -56,10 +56,6 @@ type featureClusterRepository struct {
 	clusterGetter clusterGetter
 }
 
-func (fcs *featureClusterRepository) GetOrganizationName(ctx context.Context, clusterId string) (string, error) {
-
-	return "todo", nil
-}
 
 func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error) {
 	// todo use uint everywhere
@@ -76,35 +72,7 @@ func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId s
 	return cluster, nil
 }
 
-func (fcs *featureClusterRepository) IsClusterReady(ctx context.Context, clusterId string) (bool, error) {
-	cluster, err := fcs.GetCluster(ctx, clusterId)
-	if err != nil {
-		return false, err
-	}
 
-	isReady, err := cluster.IsReady()
-	if err != nil {
-		return false, emperror.WrapWith(err, "failed to check cluster", "clusterid", clusterId)
-	}
-
-	return isReady, err
-}
-
-func (fcs *featureClusterRepository) GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error) {
-
-	cluster, err := fcs.GetCluster(ctx, clusterId)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retrieve kubeConfig", "clusterid", clusterId)
-	}
-
-	return kubeConfig, nil
-
-}
 
 func NewClusterRepository(getter clusterGetter) ClusterRepository {
 	return &featureClusterRepository{
