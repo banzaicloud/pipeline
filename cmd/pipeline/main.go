@@ -24,7 +24,6 @@ import (
 	"time"
 
 	evbus "github.com/asaskevich/EventBus"
-	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
@@ -33,12 +32,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
+	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
 	"github.com/banzaicloud/pipeline/api/ark/backupservice"
 	"github.com/banzaicloud/pipeline/api/ark/buckets"
 	"github.com/banzaicloud/pipeline/api/ark/restores"
 	"github.com/banzaicloud/pipeline/api/ark/schedules"
+	clusterFeatures "github.com/banzaicloud/pipeline/api/cluster/features"
 	"github.com/banzaicloud/pipeline/api/cluster/namespace"
 	"github.com/banzaicloud/pipeline/api/cluster/pke"
 	cgroupAPI "github.com/banzaicloud/pipeline/api/clustergroup"
@@ -70,6 +71,7 @@ import (
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -477,6 +479,19 @@ func main() {
 				orgs.POST("/:orgid/clusters/:id/imagescan", api.ScanImages)
 				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest", api.GetScanResult)
 				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+			}
+
+			{
+				var features clusterFeatures.Features // TODO
+				endpoints := clusterFeatures.MakeEndpoints(features)
+				handlers := clusterFeatures.MakeHandlers(endpoints, errorHandler)
+
+				orgs.GET("/:orgid/clusters/:id/features", ginutils.HTTPHandlerToGinHandlerFunc(handlers.ListClusterFeatures))
+
+				orgs.DELETE("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.DeactivateClusterFeature))
+				orgs.GET("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.ClusterFeatureDetails))
+				orgs.POST("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.ActivateClusterFeature))
+				orgs.PUT("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.UpdateClusterFeature))
 			}
 
 			// ClusterGroupAPI
