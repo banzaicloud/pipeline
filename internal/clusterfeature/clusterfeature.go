@@ -17,6 +17,7 @@ package clusterfeature
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
@@ -36,18 +37,15 @@ type FeatureRepository interface {
 	GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error)
 }
 
-// FeatureRepository collects persistence related operations
+// ClusterRepository collects persistence related operations
 type ClusterRepository interface {
 	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running)
-	IsClusterReady(ctx context.Context, clusterId string) bool
-}
+	IsClusterReady(ctx context.Context, clusterId string) (bool, error)
 
-type FeatureManager interface {
-	// Deploys and activates a feature on the given cluster
-	Activate(ctx context.Context, clusterId string, feature Feature) (string, error)
+	// GetKubeConfig looks up the kubeConfig for the given cluster identifier
+	GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error)
 
-	// Updates a feature on the given cluster
-	Update(ctx context.Context, clusterId string, feature Feature) (string, error)
+	GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error)
 }
 
 // Feature represents a cluster feature instance
@@ -69,7 +67,13 @@ type clusterFeatureService struct {
 func (cfs *clusterFeatureService) Activate(ctx context.Context, clusterId string, feature Feature) error {
 	cfs.logger.Info("activate feature", map[string]interface{}{"feature": feature.Name})
 
-	if !cfs.clusterRepository.IsClusterReady(ctx, clusterId) {
+	ready, err := cfs.clusterRepository.IsClusterReady(ctx, clusterId)
+	if err != nil {
+		cfs.logger.Debug("failed to check the cluster", map[string]interface{}{"clusterId": clusterId})
+		return emperror.Wrap(err, "failed to check the cluster")
+	}
+
+	if !ready {
 		cfs.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterId})
 		return errors.New("cluster is not ready")
 	}
