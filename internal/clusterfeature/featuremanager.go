@@ -16,7 +16,6 @@ package clusterfeature
 
 import (
 	"context"
-	"errors"
 	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -117,11 +116,18 @@ func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId string, f
 
 	cluster, err := sfm.clusterRepository.GetCluster(ctx, clusterId)
 	if err != nil {
-		return "", err
+		return "", emperror.WrapWith(err, "failed to activate feature")
 	}
 
-	sfm.helmInstaller.InstallFeature(ctx, cluster, feature)
-	return "", errors.New("implement me")
+	if err := sfm.helmInstaller.InstallFeature(ctx, cluster, feature); err != nil {
+		return "", emperror.WrapWith(err, "failed to install feature")
+	}
+
+	if _, err := sfm.featureRepository.UpdateFeatureStatus(ctx, clusterId, feature, "ACTIVE"); err != nil {
+		return "", emperror.WrapWith(err, "failed to update feature status")
+	}
+
+	return "", nil
 
 }
 
@@ -129,7 +135,9 @@ func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId string, fea
 	panic("implement me")
 }
 
+// helmInstaller interface for helm operations
 type helmInstaller interface {
+	// InstallFeature installs a feature to the given cluster
 	InstallFeature(ctx context.Context, cluster cluster.CommonCluster, feature Feature) error
 }
 
@@ -201,8 +209,15 @@ func (fhi *featureHelmInstaller) installDeployment(cluster cluster.CommonCluster
 	return nil
 }
 
-func NewSyncFeatureManager(clusterRepository ClusterRepository) FeatureManager {
+// NewSyncFeatureManager builds a new feature manager component
+func NewSyncFeatureManager(clusterRepository ClusterRepository, featureRepository FeatureRepository) FeatureManager {
+	l := logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "feature-manager"})
 	return &syncFeatureManager{
-		logger: logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "featuremanager"}),
+		logger:            l,
+		clusterRepository: clusterRepository,
+		featureRepository: featureRepository,
+		helmInstaller: &featureHelmInstaller{
+			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
+		}, // wired private component!
 	}
 }

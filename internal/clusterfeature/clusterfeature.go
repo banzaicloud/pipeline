@@ -35,6 +35,8 @@ type FeatureRepository interface {
 	SaveFeature(ctx context.Context, clusterId string, feature Feature) (string, error)
 
 	GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error)
+
+	UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error)
 }
 
 // ClusterRepository collects persistence related operations
