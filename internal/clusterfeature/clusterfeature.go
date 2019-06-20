@@ -41,12 +41,6 @@ type FeatureRepository interface {
 
 // ClusterRepository collects persistence related operations
 type ClusterRepository interface {
-	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running)
-	IsClusterReady(ctx context.Context, clusterId string) (bool, error)
-
-	// GetKubeConfig looks up the kubeConfig for the given cluster identifier
-	GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error)
-
 	GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error)
 }
 
@@ -69,7 +63,13 @@ type clusterFeatureService struct {
 func (cfs *clusterFeatureService) Activate(ctx context.Context, clusterId string, feature Feature) error {
 	cfs.logger.Info("activate feature", map[string]interface{}{"feature": feature.Name})
 
-	ready, err := cfs.clusterRepository.IsClusterReady(ctx, clusterId)
+	cluster, err := cfs.clusterRepository.GetCluster(ctx, clusterId)
+	if err != nil {
+		cfs.logger.Debug("failed to get cluster", map[string]interface{}{"clusterId": clusterId})
+		return emperror.Wrap(err, "failed retrieve the cluster")
+	}
+
+	ready, err := cluster.IsReady()
 	if err != nil {
 		cfs.logger.Debug("failed to check the cluster", map[string]interface{}{"clusterId": clusterId})
 		return emperror.Wrap(err, "failed to check the cluster")
