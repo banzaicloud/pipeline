@@ -16,7 +16,6 @@ package clusterfeature
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -44,67 +43,6 @@ type syncFeatureManager struct {
 	clusterRepository ClusterRepository
 	featureSelector   FeatureSelector
 	helmInstaller     helmInstaller
-}
-
-// clusterGetter restricts the external dependencies for the repository
-type clusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
-}
-
-//
-type featureClusterRepository struct {
-	clusterGetter clusterGetter
-}
-
-func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error) {
-	// todo use uint everywhere
-	cid, err := strconv.ParseUint(clusterId, 0, 64)
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to parse clusterid", "clusterid", clusterId)
-	}
-
-	cluster, err := fcs.clusterGetter.GetClusterByIDOnly(ctx, uint(cid))
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retrieve cluster", "clusterid", clusterId)
-	}
-
-	return cluster, nil
-}
-
-func (fcs *featureClusterRepository) IsClusterReady(ctx context.Context, clusterId string) (bool, error) {
-	cluster, err := fcs.GetCluster(ctx, clusterId)
-	if err != nil {
-		return false, err
-	}
-
-	isReady, err := cluster.IsReady()
-	if err != nil {
-		return false, emperror.WrapWith(err, "failed to check cluster", "clusterid", clusterId)
-	}
-
-	return isReady, err
-}
-
-func (fcs *featureClusterRepository) GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error) {
-
-	cluster, err := fcs.GetCluster(ctx, clusterId)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retrieve kubeConfig", "clusterid", clusterId)
-	}
-
-	return kubeConfig, nil
-
-}
-
-func NewClusterRepository(getter clusterGetter) ClusterRepository {
-	return &featureClusterRepository{
-		clusterGetter: getter,
-	}
 }
 
 func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId string, feature Feature) (string, error) {
