@@ -58,10 +58,6 @@ func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId
 
 }
 
-func (dcr *dummyClusterRepository) GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error) {
-	panic("implement me")
-}
-
 func (dcr *dummyClusterRepository) GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error) {
 	panic("implement me")
 }
