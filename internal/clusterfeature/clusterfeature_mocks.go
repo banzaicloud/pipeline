@@ -18,14 +18,17 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/goph/logur"
 	"github.com/pkg/errors"
 )
 
 type dummyFeatureRepository struct {
+	logger logur.Logger
 }
 
 func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error) {
-	panic("implement me")
+	dfr.logger.Info("feature repo called", map[string]interface{}{"operation": "UpdateFeatureStatus", "clusterId": clusterId,})
+	return nil, nil
 }
 
 func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error) {
@@ -66,7 +69,12 @@ type dummyFeatureManager struct {
 }
 
 func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId string, feature Feature) (string, error) {
-	panic("implement me")
+	switch feature.Name {
+	case "success":
+		return "ok", nil
+	}
+
+	return "", errors.New("test - failed to activate feature")
 }
 
 func (dfm *dummyFeatureManager) Update(ctx context.Context, clusterId string, feature Feature) (string, error) {

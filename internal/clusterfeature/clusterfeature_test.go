@@ -19,6 +19,8 @@ import (
 	"testing"
 
 	"github.com/goph/logur"
+	"github.com/goph/logur/adapters/logrusadapter"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -71,13 +73,28 @@ func TestActivateClusterFeature(t *testing.T) {
 				assert.EqualError(t, e, "failed to persist feature: persistence error")
 			},
 		},
+		{
+			name:      "activation succeeded",
+			clusterId: "",
+			clusterFeature: Feature{
+				Name: "success",
+				Spec: nil,
+			},
+			checker: func(t *testing.T, response interface{}) {
+				e, ok := response.(error)
+				assert.False(t, ok)
+				assert.Nil(t, e)
+			},
+		},
 	}
 
 	// setup the service, inject mocks
 	featureService := NewClusterFeatureService(
 		logur.NewTestLogger(),
 		&dummyClusterRepository{},
-		&dummyFeatureRepository{},
+		&dummyFeatureRepository{
+			logger: logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"repo": "featurerepo"}),
+		},
 		&dummyFeatureManager{}, )
 
 	for _, test := range tests {
