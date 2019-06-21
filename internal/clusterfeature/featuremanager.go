@@ -42,6 +42,7 @@ type FeatureManager interface {
 type syncFeatureManager struct {
 	logger            logur.Logger
 	clusterRepository ClusterRepository
+	featureSelector   FeatureSelector
 	helmInstaller     helmInstaller
 }
 
@@ -113,7 +114,12 @@ func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId string, f
 		return "", emperror.WrapWith(err, "failed to activate feature")
 	}
 
-	if err := sfm.helmInstaller.InstallFeature(ctx, cluster, feature); err != nil {
+	selectedFeature, err := sfm.featureSelector.SelectFeature(ctx, feature)
+	if err != nil {
+		return "", emperror.WrapWith(err, "failed to select feature")
+	}
+
+	if err := sfm.helmInstaller.InstallFeature(ctx, cluster, *selectedFeature); err != nil {
 		return "", emperror.WrapWith(err, "failed to install feature")
 	}
 
