@@ -144,6 +144,7 @@ type featureHelmInstaller struct {
 
 func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster cluster.CommonCluster, feature Feature) error {
 	// todo process / get information from the feature
+	// eg.:  assemble the values json
 	return fhi.installDeployment(cluster, "default", "test_dep", "test_release_name", nil, "chart_version", false)
 }
 
