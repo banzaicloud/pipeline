@@ -17,7 +17,6 @@ package clusterfeature
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
@@ -33,22 +32,6 @@ type ClusterFeatureService interface {
 
 	// Deactivate removes a feature from the cluster represented by it's identifier
 	Deactivate(ctx context.Context, clusterId string, feature Feature) error
-}
-
-// FeatureRepository collects persistence related operations
-type FeatureRepository interface {
-	SaveFeature(ctx context.Context, clusterId string, feature Feature) (string, error)
-	GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error)
-	UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error)
-}
-
-// ClusterRepository collects persistence related operations
-type ClusterRepository interface {
-	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running)
-	IsClusterReady(ctx context.Context, clusterId string) (bool, error)
-
-	// GetCluster retrieves the cluster representation based on the cluster identifier
-	GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error)
 }
 
 // Feature represents a cluster feature instance

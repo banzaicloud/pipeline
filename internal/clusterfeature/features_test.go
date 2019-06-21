@@ -48,7 +48,8 @@ func TestFeatureSelector_SelectFeature(t *testing.T) {
 			checker: func(t *testing.T, fp *Feature, err error) {
 				assert.Nil(t, err)
 				assert.NotNil(t, fp)
-				assert.Equal(t, "externaldns", fp.Spec["chartName"])
+				assert.Equal(t, "1.6.2", fp.Spec[DNSExternalDnsChartVersion])
+				assert.Equal(t, "v0.5.11", fp.Spec[DNSExternalDnsImageVersion])
 			},
 		},
 	}
