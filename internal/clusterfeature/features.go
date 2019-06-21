@@ -35,6 +35,7 @@ type ExternalDnsFeature struct {
 	DomainFilters []string
 	Provider      string
 	Credentials   interface{}
+	Values        map[string]interface{}
 }
 
 // FeatureSelector operations for identifying supported features.
@@ -53,6 +54,9 @@ func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (
 		// todo add other internals here
 		feature.Spec[DNSExternalDnsChartVersion] = "1.6.2"
 		feature.Spec[DNSExternalDnsImageVersion] = "v0.5.11"
+
+		// TODO assemble values and add the bytearray to the feature
+		// TODO DISCUSS IT FIRST
 
 		return &feature, nil
 	}
