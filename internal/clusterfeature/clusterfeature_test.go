@@ -95,7 +95,7 @@ func TestActivateClusterFeature(t *testing.T) {
 		&dummyFeatureRepository{
 			logger: logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"repo": "featurerepo"}),
 		},
-		&dummyFeatureManager{}, )
+		&dummyFeatureManager{})
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

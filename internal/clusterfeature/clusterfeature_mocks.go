@@ -27,7 +27,7 @@ type dummyFeatureRepository struct {
 }
 
 func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error) {
-	dfr.logger.Info("feature repo called", map[string]interface{}{"operation": "UpdateFeatureStatus", "clusterId": clusterId,})
+	dfr.logger.Info("feature repo called", map[string]interface{}{"operation": "UpdateFeatureStatus", "clusterId": clusterId})
 	return nil, nil
 }
 

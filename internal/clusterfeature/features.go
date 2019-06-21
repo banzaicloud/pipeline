@@ -23,6 +23,11 @@ import (
 
 const (
 	externalDns = "external-dns"
+	// DNSExternalDnsChartVersion set the external-dns chart version default value: "1.6.2"
+	DNSExternalDnsChartVersion = "dns.externalDnsChartVersion"
+
+	// DNSExternalDnsImageVersion set the external-dns image version
+	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
 )
 
 type ExternalDnsFeature struct {
@@ -45,8 +50,10 @@ type featureSelector struct {
 func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (*Feature, error) {
 	switch feature.Name {
 	case externalDns:
-		feature.Spec["chartName"] = "externaldns"
-		feature.Spec["chartVersion"] = "version"
+		// todo add other internals here
+		feature.Spec[DNSExternalDnsChartVersion] = "1.6.2"
+		feature.Spec[DNSExternalDnsImageVersion] = "v0.5.11"
+
 		return &feature, nil
 	}
 
