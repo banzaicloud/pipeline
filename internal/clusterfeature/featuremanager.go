@@ -42,7 +42,6 @@ type FeatureManager interface {
 type syncFeatureManager struct {
 	logger            logur.Logger
 	clusterRepository ClusterRepository
-	featureRepository FeatureRepository
 	helmInstaller     helmInstaller
 }
 
@@ -55,7 +54,6 @@ type clusterGetter interface {
 type featureClusterRepository struct {
 	clusterGetter clusterGetter
 }
-
 
 func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error) {
 	// todo use uint everywhere
@@ -72,7 +70,35 @@ func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId s
 	return cluster, nil
 }
 
+func (fcs *featureClusterRepository) IsClusterReady(ctx context.Context, clusterId string) (bool, error) {
+	cluster, err := fcs.GetCluster(ctx, clusterId)
+	if err != nil {
+		return false, err
+	}
 
+	isReady, err := cluster.IsReady()
+	if err != nil {
+		return false, emperror.WrapWith(err, "failed to check cluster", "clusterid", clusterId)
+	}
+
+	return isReady, err
+}
+
+func (fcs *featureClusterRepository) GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error) {
+
+	cluster, err := fcs.GetCluster(ctx, clusterId)
+	if err != nil {
+		return nil, err
+	}
+
+	kubeConfig, err := cluster.GetK8sConfig()
+	if err != nil {
+		return nil, emperror.WrapWith(err, "failed to retrieve kubeConfig", "clusterid", clusterId)
+	}
+
+	return kubeConfig, nil
+
+}
 
 func NewClusterRepository(getter clusterGetter) ClusterRepository {
 	return &featureClusterRepository{
@@ -89,10 +115,6 @@ func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId string, f
 
 	if err := sfm.helmInstaller.InstallFeature(ctx, cluster, feature); err != nil {
 		return "", emperror.WrapWith(err, "failed to install feature")
-	}
-
-	if _, err := sfm.featureRepository.UpdateFeatureStatus(ctx, clusterId, feature, "ACTIVE"); err != nil {
-		return "", emperror.WrapWith(err, "failed to update feature status")
 	}
 
 	return "", nil
@@ -183,7 +205,6 @@ func NewSyncFeatureManager(clusterRepository ClusterRepository, featureRepositor
 	return &syncFeatureManager{
 		logger:            l,
 		clusterRepository: clusterRepository,
-		featureRepository: featureRepository,
 		helmInstaller: &featureHelmInstaller{
 			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
 		}, // wired private component!

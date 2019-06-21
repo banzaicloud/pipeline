@@ -25,22 +25,29 @@ import (
 
 // ClusterFeatureService collects operations supporting cluster features
 type ClusterFeatureService interface {
+	// Activate deploys / enables a cluster feature to the cluster represented by it's identifier
 	Activate(ctx context.Context, clusterId string, feature Feature) error
+
+	// Update updates an existing feature on the cluster represented by it's identifier
 	Update(ctx context.Context, clusterId string, feature Feature) error
+
+	// Deactivate removes a feature from the cluster represented by it's identifier
 	Deactivate(ctx context.Context, clusterId string, feature Feature) error
 }
 
 // FeatureRepository collects persistence related operations
 type FeatureRepository interface {
 	SaveFeature(ctx context.Context, clusterId string, feature Feature) (string, error)
-
 	GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error)
-
 	UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error)
 }
 
 // ClusterRepository collects persistence related operations
 type ClusterRepository interface {
+	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running)
+	IsClusterReady(ctx context.Context, clusterId string) (bool, error)
+
+	// GetCluster retrieves the cluster representation based on the cluster identifier
 	GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error)
 }
 
@@ -63,13 +70,7 @@ type clusterFeatureService struct {
 func (cfs *clusterFeatureService) Activate(ctx context.Context, clusterId string, feature Feature) error {
 	cfs.logger.Info("activate feature", map[string]interface{}{"feature": feature.Name})
 
-	cluster, err := cfs.clusterRepository.GetCluster(ctx, clusterId)
-	if err != nil {
-		cfs.logger.Debug("failed to get cluster", map[string]interface{}{"clusterId": clusterId})
-		return emperror.Wrap(err, "failed retrieve the cluster")
-	}
-
-	ready, err := cluster.IsReady()
+	ready, err := cfs.clusterRepository.IsClusterReady(ctx, clusterId)
 	if err != nil {
 		cfs.logger.Debug("failed to check the cluster", map[string]interface{}{"clusterId": clusterId})
 		return emperror.Wrap(err, "failed to check the cluster")
@@ -96,6 +97,13 @@ func (cfs *clusterFeatureService) Activate(ctx context.Context, clusterId string
 		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterId, "feature", feature.Name)
 	}
 
+	// todo update the status in case of errors!
+	if _, err := cfs.featureRepository.UpdateFeatureStatus(ctx, clusterId, feature, "ACTIVE"); err != nil {
+		cfs.logger.Debug("failed to update feature status ", map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
+		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterId, "feature", feature.Name)
+	}
+
+	cfs.logger.Info("feature successfully activated ", map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
 	// activation succeeded
 	return nil
 }
