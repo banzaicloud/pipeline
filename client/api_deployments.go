@@ -807,21 +807,21 @@ Listing Helm deployments
  * @param id Selected cluster identification (number)
  * @param optional nil or *ListDeploymentsOpts - Optional Parameters:
  * @param "Tag" (optional.String) -  Deployment tag to filter for
-@return []map[string]interface{}
+@return []ListDeploymentsResponseItem
 */
 
 type ListDeploymentsOpts struct {
 	Tag optional.String
 }
 
-func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32, id int32, localVarOptionals *ListDeploymentsOpts) ([]map[string]interface{}, *http.Response, error) {
+func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32, id int32, localVarOptionals *ListDeploymentsOpts) ([]ListDeploymentsResponseItem, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  []map[string]interface{}
+		localVarReturnValue  []ListDeploymentsResponseItem
 	)
 
 	// create path and map variables
@@ -875,7 +875,7 @@ func (a *DeploymentsApiService) ListDeployments(ctx context.Context, orgId int32
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v []map[string]interface{}
+			var v []ListDeploymentsResponseItem
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

@@ -9466,39 +9466,52 @@ components:
       type: object
     ListDeploymentsResponse:
       items:
-        properties:
-          releaseName:
-            example: pipeline
-            type: string
-          chart:
-            example: pipeline-cluster-ingress-0.0.1
-            type: string
-          chartName:
-            example: pipeline-cluster-ingress
-            type: string
-          chartVersion:
-            example: 0.0.1
-            type: string
-          version:
-            example: 1
-            format: int32
-            type: integer
-          updatedAt:
-            example: 2018-07-03T14:23:19+02:00
-            type: string
-          status:
-            example: DEPLOYED
-            type: string
-          namespace:
-            example: default
-            type: string
-          createdAt:
-            example: 2018-07-03T14:23:19+02:00
-            type: string
-          supported:
-            type: boolean
-        type: object
+        $ref: '#/components/schemas/ListDeploymentsResponseItem'
       type: array
+    ListDeploymentsResponseItem:
+      example:
+        createdAt: 2018-07-03T14:23:19+02:00
+        chartName: pipeline-cluster-ingress
+        chartVersion: 0.0.1
+        releaseName: pipeline
+        namespace: default
+        chart: pipeline-cluster-ingress-0.0.1
+        version: 1
+        updatedAt: 2018-07-03T14:23:19+02:00
+        status: DEPLOYED
+        supported: true
+      properties:
+        releaseName:
+          example: pipeline
+          type: string
+        chart:
+          example: pipeline-cluster-ingress-0.0.1
+          type: string
+        chartName:
+          example: pipeline-cluster-ingress
+          type: string
+        chartVersion:
+          example: 0.0.1
+          type: string
+        version:
+          example: 1
+          format: int32
+          type: integer
+        updatedAt:
+          example: 2018-07-03T14:23:19+02:00
+          type: string
+        status:
+          example: DEPLOYED
+          type: string
+        namespace:
+          example: default
+          type: string
+        createdAt:
+          example: 2018-07-03T14:23:19+02:00
+          type: string
+        supported:
+          type: boolean
+      type: object
     CreateUpdateDeploymentRequest:
       example:
         wait: true

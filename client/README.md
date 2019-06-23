@@ -336,6 +336,7 @@ Class | Method | HTTP request | Description
  - [InstallSecretsRequestQuery](docs/InstallSecretsRequestQuery.md)
  - [Labels](docs/Labels.md)
  - [LaunchSpotguidesRequest](docs/LaunchSpotguidesRequest.md)
+ - [ListDeploymentsResponseItem](docs/ListDeploymentsResponseItem.md)
  - [ListEndpointsResponse](docs/ListEndpointsResponse.md)
  - [ListNodesResponse](docs/ListNodesResponse.md)
  - [ListNodesResponseMetadata](docs/ListNodesResponseMetadata.md)

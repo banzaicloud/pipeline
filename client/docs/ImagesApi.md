@@ -9,7 +9,7 @@ Method | HTTP request | Description
 
 
 # **ListDeploymentsByImage**
-> []map[string]interface{} ListDeploymentsByImage(ctx, orgId, id, imageDigest)
+> []ListDeploymentsResponseItem ListDeploymentsByImage(ctx, orgId, id, imageDigest)
 List Deployments by Image
 
 List Deployments by Image
@@ -25,7 +25,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]map[string]interface{}**](map[string]interface{}.md)
+[**[]ListDeploymentsResponseItem**](ListDeploymentsResponseItem.md)
 
 ### Authorization
 
