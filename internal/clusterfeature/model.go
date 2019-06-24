@@ -24,7 +24,7 @@ import (
 
 // TableName constants
 const (
-	clusterFeatureTableName = "clusterfeatures"
+	clusterFeatureTableName = "clusterfeature"
 )
 
 // ClusterFeatureModel describes the cluster group model.
