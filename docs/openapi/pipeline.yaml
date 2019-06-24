@@ -9310,6 +9310,11 @@ components:
                 version:
                     type: integer
                     example: 1
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    example: [ "repo:pipeline", "tag2" ]
 
         CreateSecretRequest:
             type: object

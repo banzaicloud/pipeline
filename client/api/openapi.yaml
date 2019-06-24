@@ -10262,6 +10262,9 @@ components:
         error: Validation failed
         version: 1
         updatedAt: 2000-01-23T04:56:07.000+00:00
+        tags:
+        - repo:pipeline
+        - tag2
       properties:
         name:
           example: My-google-secret
@@ -10285,6 +10288,13 @@ components:
           example: 1
           format: int32
           type: integer
+        tags:
+          example:
+          - repo:pipeline
+          - tag2
+          items:
+            type: string
+          type: array
       required:
       - id
       - name
