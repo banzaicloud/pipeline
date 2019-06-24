@@ -247,7 +247,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ListDeployments**
-> []map[string]interface{} ListDeployments(ctx, orgId, id, optional)
+> []ListDeploymentsResponseItem ListDeployments(ctx, orgId, id, optional)
 List deployments
 
 Listing Helm deployments
@@ -272,7 +272,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**[]map[string]interface{}**](map[string]interface{}.md)
+[**[]ListDeploymentsResponseItem**](ListDeploymentsResponseItem.md)
 
 ### Authorization
 

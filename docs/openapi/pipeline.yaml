@@ -8507,38 +8507,41 @@ components:
         ListDeploymentsResponse:
             type: array
             items:
-                type: object
-                properties:
-                    releaseName:
-                        type: string
-                        example: "pipeline"
-                    chart:
-                        type: string
-                        example: "pipeline-cluster-ingress-0.0.1"
-                    chartName:
-                        type: string
-                        example: "pipeline-cluster-ingress"
-                    chartVersion:
-                        type: string
-                        example: "0.0.1"
-                    version:
-                        type: integer
-                        example: 1
-                    updatedAt:
-                        type: string
-                        example: "2018-07-03T14:23:19+02:00"
-                    status:
-                        type: string
-                        example: "DEPLOYED"
-                    namespace:
-                        type: string
-                        example: "default"
-                    createdAt:
-                        type: string
-                        example: "2018-07-03T14:23:19+02:00"
-                    supported:
-                        type: boolean
-                        example: true
+                $ref: '#/components/schemas/ListDeploymentsResponseItem'
+
+        ListDeploymentsResponseItem:
+            type: object
+            properties:
+                releaseName:
+                    type: string
+                    example: "pipeline"
+                chart:
+                    type: string
+                    example: "pipeline-cluster-ingress-0.0.1"
+                chartName:
+                    type: string
+                    example: "pipeline-cluster-ingress"
+                chartVersion:
+                    type: string
+                    example: "0.0.1"
+                version:
+                    type: integer
+                    example: 1
+                updatedAt:
+                    type: string
+                    example: "2018-07-03T14:23:19+02:00"
+                status:
+                    type: string
+                    example: "DEPLOYED"
+                namespace:
+                    type: string
+                    example: "default"
+                createdAt:
+                    type: string
+                    example: "2018-07-03T14:23:19+02:00"
+                supported:
+                    type: boolean
+                    example: true
 
         CreateUpdateDeploymentRequest:
             type: object

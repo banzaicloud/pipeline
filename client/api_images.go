@@ -34,16 +34,16 @@ List Deployments by Image
  * @param orgId Organization identification
  * @param id Selected cluster identification (number)
  * @param imageDigest Image digest
-@return []map[string]interface{}
+@return []ListDeploymentsResponseItem
 */
-func (a *ImagesApiService) ListDeploymentsByImage(ctx context.Context, orgId int32, id int32, imageDigest string) ([]map[string]interface{}, *http.Response, error) {
+func (a *ImagesApiService) ListDeploymentsByImage(ctx context.Context, orgId int32, id int32, imageDigest string) ([]ListDeploymentsResponseItem, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  []map[string]interface{}
+		localVarReturnValue  []ListDeploymentsResponseItem
 	)
 
 	// create path and map variables
@@ -95,7 +95,7 @@ func (a *ImagesApiService) ListDeploymentsByImage(ctx context.Context, orgId int
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v []map[string]interface{}
+			var v []ListDeploymentsResponseItem
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
