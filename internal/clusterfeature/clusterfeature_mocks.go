@@ -39,13 +39,13 @@ func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId str
 	return nil, errors.New("feature not found")
 }
 
-func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId string, feature Feature) (string, error) {
+func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId string, feature Feature) (uint, error) {
 	switch feature.Name {
 	case "failtopersist":
-		return "", errors.New("persistence error")
+		return -1, errors.New("persistence error")
 	}
 
-	return "featureId", nil
+	return 111, nil
 }
 
 type dummyClusterRepository struct {

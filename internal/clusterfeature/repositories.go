@@ -157,7 +157,7 @@ func (fr *featureRepository) UpdateFeatureStatus(ctx context.Context, clusterId 
 	if err != nil {
 		return nil, emperror.Wrap(err, "could not update feature status")
 	}
-	
+
 	return ftr, nil
 }
 
