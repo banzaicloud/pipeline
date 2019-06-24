@@ -96,7 +96,7 @@ func NewClusterRepository(getter clusterGetter) ClusterRepository {
 
 // FeatureRepository collects persistence related operations
 type FeatureRepository interface {
-	SaveFeature(ctx context.Context, clusterId string, feature Feature) (uint, error)
+	SaveFeature(ctx context.Context, clusterId string, feature Feature) (int, error)
 	GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error)
 	UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error)
 }
@@ -106,7 +106,7 @@ type featureRepository struct {
 	db *gorm.DB
 }
 
-func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, feature Feature) (uint, error) {
+func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, feature Feature) (int, error) {
 
 	// encode the spec
 	featureSpec, err := json.Marshal(feature.Spec)
