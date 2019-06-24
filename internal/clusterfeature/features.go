@@ -28,6 +28,12 @@ const (
 
 	// DNSExternalDnsImageVersion set the external-dns image version
 	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
+
+	// Status signaling a feature being activated or inactive
+	STATUS_PENDING = "PENDING"
+
+	// Status signaling a feature being active
+	STATUS_ACTIVE = "ACTIVE"
 )
 
 type ExternalDnsFeature struct {
@@ -55,7 +61,7 @@ func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (
 		feature.Spec[DNSExternalDnsChartVersion] = "1.6.2"
 		feature.Spec[DNSExternalDnsImageVersion] = "v0.5.11"
 
-		// TODO assemble values and add the bytearray to the feature
+		// TODO assemble values and add the byte array to the feature
 		// TODO DISCUSS IT FIRST
 
 		return &feature, nil
