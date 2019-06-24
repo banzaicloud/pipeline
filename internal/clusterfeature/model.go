@@ -29,7 +29,7 @@ const (
 
 // ClusterFeatureModel describes the cluster group model.
 type ClusterFeatureModel struct {
-	ID        uint `gorm:"primary_key"`
+	ID        int `gorm:"primary_key"`
 	Name      string
 	Status    string
 	ClusterID uint
