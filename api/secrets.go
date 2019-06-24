@@ -191,6 +191,7 @@ func AddSecrets(c *gin.Context) {
 		UpdatedAt: s.UpdatedAt,
 		UpdatedBy: s.UpdatedBy,
 		Version:   int32(s.Version),
+		Tags:      s.Tags,
 	})
 }
 
