@@ -151,8 +151,8 @@ func NewSyncFeatureManager(clusterRepository ClusterRepository, featureRepositor
 	return &syncFeatureManager{
 		logger:            l,
 		clusterRepository: clusterRepository,
-		helmInstaller: &featureHelmInstaller{
+		helmInstaller: &featureHelmInstaller{ // wired private component!
 			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
-		}, // wired private component!
+		},
 	}
 }
