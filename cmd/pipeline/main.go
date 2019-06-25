@@ -284,7 +284,7 @@ func main() {
 
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, log), log, errorHandler)
-	federationHandler := federation.NewFederationHandler(log, errorHandler)
+	federationHandler := federation.NewFederationHandler(cgroupAdapter, log, errorHandler)
 	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, log, errorHandler)
 	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, log, errorHandler)
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)

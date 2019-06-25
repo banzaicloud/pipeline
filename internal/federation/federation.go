@@ -15,52 +15,237 @@
 package federation
 
 import (
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
+	"context"
+	"strconv"
+	"strings"
 
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/goph/emperror"
+	"github.com/kubernetes-sigs/kubefed/pkg/client/generic"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"k8s.io/client-go/rest"
+	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
+	genericclient "sigs.k8s.io/kubefed/pkg/client/generic"
 )
 
-type Handler struct {
-	logger       logrus.FieldLogger
-	errorHandler emperror.Handler
+type Config struct {
+	// HostClusterID contains the cluster ID where the control plane and the operator runs
+	HostClusterID uint `json:"hostClusterID"`
+	// TargetNamespace target namespace for federation controller
+	TargetNamespace string `json:"targetNamespace,omitempty"`
+	// GlobalScope if true TargetNamespace namespace will be the only target for the control plane.
+	GlobalScope bool `json:"globalScope,omitempty"`
+	// CrossClusterServiceDiscovery if true enables cross cluster service discovery feature
+	CrossClusterServiceDiscovery bool `json:"crossClusterServiceDiscovery,omitempty"`
+	// FederatedIngress if true enables FederatedIngress feature
+	FederatedIngress bool `json:"federatedIngress,omitempty"`
+	// SchedulerPreferences if true enables Scheduler preferences feature
+	SchedulerPreferences bool `json:"schedulerPreferences,omitempty"`
+
+	name         string
+	enabled      bool
+	clusterGroup api.ClusterGroup
 }
 
-const FeatureName = "federation"
+type FederationReconciler struct {
+	Configuration Config
+	Host          cluster.CommonCluster
+	Members       []cluster.CommonCluster
 
-// NewFederationHandler returns a new Handler instance.
-func NewFederationHandler(
-	logger logrus.FieldLogger,
-	errorHandler emperror.Handler,
-) *Handler {
-	return &Handler{
-		logger:       logger.WithField("feature", FeatureName),
-		errorHandler: errorHandler,
+	clusterGetter api.ClusterGetter
+	logger        logrus.FieldLogger
+	errorHandler  emperror.Handler
+}
+
+type Reconciler func(desiredState DesiredState) error
+
+type DesiredState string
+
+const (
+	federationReleaseName = "federationv2"
+	federationCRDSuffix   = "kubefed.k8s.io"
+
+	DesiredStatePresent DesiredState = "present"
+	DesiredStateAbsent  DesiredState = "absent"
+
+	kubefedClusterIdLabel = "clusterId"
+)
+
+// NewFederationReconciler crates a new feature reconciler for Federation
+func NewFederationReconciler(config Config, clusterGetter api.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *FederationReconciler {
+	reconciler := &FederationReconciler{
+		Configuration: config,
+
+		clusterGetter: clusterGetter,
+		logger:        logger,
+		errorHandler:  errorHandler,
 	}
+
+	reconciler.init()
+
+	reconciler.logger = reconciler.logger.WithFields(logrus.Fields{
+		"clusterID":   reconciler.Host.GetID(),
+		"clusterName": reconciler.Host.GetName(),
+	})
+
+	return reconciler
 }
 
-func (f *Handler) ReconcileState(featureState api.Feature) error {
-	logger := f.logger.WithField("clusterGroupName", featureState.ClusterGroup.Name)
-	logger.Infof("reconcile federation state, enabled: %v", featureState.Enabled)
-	//time.Sleep(20 * time.Second)
+func (m *FederationReconciler) init() error {
+	m.Host = m.getHostCluster()
+	m.Members = m.getMemberClusters()
+
 	return nil
 }
 
-func (f *Handler) ValidateState(featureState api.Feature) error {
-	logger := f.logger.WithField("clusterGroupName", featureState.ClusterGroup.Name)
-	logger.Info("validate update state")
+func (m *FederationReconciler) getHostCluster() cluster.CommonCluster {
+	for _, c := range m.Configuration.clusterGroup.Clusters {
+		if m.Configuration.HostClusterID == c.GetID() {
+			return c.(cluster.CommonCluster)
+		}
+	}
 
 	return nil
 }
 
-func (f *Handler) ValidateProperties(clusterGroup api.ClusterGroup, currentProperties, properties interface{}) error {
-	return nil
+func (m *FederationReconciler) getMemberClusters() []cluster.CommonCluster {
+	remotes := make([]cluster.CommonCluster, 0)
+
+	for _, c := range m.Configuration.clusterGroup.Clusters {
+		remotes = append(remotes, c.(cluster.CommonCluster))
+	}
+
+	return remotes
 }
 
-func (f *Handler) GetMembersStatus(featureState api.Feature) (map[uint]string, error) {
+func getRegisteredClusterStatus(fedCluster fedv1b1.KubeFedCluster) string {
+	status := "unknown"
+	conditions := fedCluster.Status.Conditions
+	for _, c := range conditions {
+		if c.Type == "Ready" {
+			if c.Status == "True" {
+				status = "ready"
+			} else {
+				status = "not ready"
+			}
+		} else if c.Type == "Offline" && c.Status == "True" {
+			status = "offline"
+		}
+	}
+	return status
+}
+
+func (m *FederationReconciler) getRegisteredClusters() (*fedv1b1.KubeFedClusterList, error) {
+	client, err := m.getGenericClient()
+	if err != nil {
+		return nil, err
+	}
+
+	clusterList := &fedv1b1.KubeFedClusterList{}
+	err = client.List(context.TODO(), clusterList, m.Configuration.TargetNamespace)
+	if err != nil {
+		if strings.Contains(err.Error(), "no matches for kind") {
+			m.logger.Warnf("cluster not found anymore in registry")
+			clusterList.Items = make([]fedv1b1.KubeFedCluster, 0)
+		} else {
+			return nil, err
+		}
+	}
+	return clusterList, nil
+}
+
+func (m *FederationReconciler) getExistingClusters() (map[uint]cluster.CommonCluster, error) {
+	clusters := make(map[uint]cluster.CommonCluster, 0)
+
+	clusterNameIdMap := make(map[string]cluster.CommonCluster, 0)
+
+	for _, memberCluster := range m.getMemberClusters() {
+		clusterNameIdMap[memberCluster.GetName()] = memberCluster
+	}
+
+	existingClusterList, err := m.getRegisteredClusters()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, cl := range existingClusterList.Items {
+		if len(cl.Labels) == 0 {
+			continue
+		}
+
+		clusterIdStr := cl.Labels[kubefedClusterIdLabel]
+		if len(clusterIdStr) == 0 {
+			continue
+		}
+
+		clusterID, err := strconv.ParseUint(clusterIdStr, 10, 64)
+		if err != nil {
+			m.errorHandler.Handle(errors.WithStack(err))
+			continue
+		}
+
+		c, err := m.clusterGetter.GetClusterByID(context.Background(), m.Host.GetOrganizationId(), uint(clusterID))
+		if err != nil {
+			m.errorHandler.Handle(errors.WithStack(err))
+			continue
+		}
+
+		clusters[c.GetID()] = c.(cluster.CommonCluster)
+	}
+
+	return clusters, nil
+}
+
+func (m *FederationReconciler) GetStatus() (map[uint]string, error) {
 	statusMap := make(map[uint]string, 0)
-	for _, memberCluster := range featureState.ClusterGroup.Clusters {
-		statusMap[memberCluster.GetID()] = "ready"
+
+	clusterNameIdMap := make(map[string]uint, 0)
+	for _, memberCluster := range m.Configuration.clusterGroup.Members {
+		clusterNameIdMap[memberCluster.Name] = memberCluster.ID
 	}
+
+	existingClusterList, err := m.getRegisteredClusters()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, cluster := range existingClusterList.Items {
+		clusterId, ok := clusterNameIdMap[cluster.Name]
+		if ok {
+			statusMap[clusterId] = getRegisteredClusterStatus(cluster)
+		} else {
+			statusMap[0] = getRegisteredClusterStatus(cluster)
+		}
+	}
+
 	return statusMap, nil
+}
+
+func (m *FederationReconciler) getClientConfig(c cluster.CommonCluster) (*rest.Config, error) {
+	kubeConfig, err := c.GetK8sConfig()
+	if err != nil {
+		return nil, emperror.Wrap(err, "could not get k8s config")
+	}
+
+	clientConfig, err := k8sclient.NewClientConfig(kubeConfig)
+	if err != nil {
+		return nil, emperror.Wrap(err, "cloud not create client config from kubeconfig")
+	}
+
+	return clientConfig, nil
+}
+
+func (m *FederationReconciler) getGenericClient() (generic.Client, error) {
+	clientConfig, err := m.getClientConfig(m.Host)
+	if err != nil {
+		return nil, err
+	}
+	client, err := genericclient.New(clientConfig)
+	if err != nil {
+		return nil, emperror.Wrap(err, "could not get kubefed clientset")
+	}
+	return client, nil
 }
