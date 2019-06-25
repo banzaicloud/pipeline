@@ -62,6 +62,7 @@ require (
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/vault v1.0.1
 	github.com/heptio/ark v0.9.3
 	github.com/jessevdk/go-flags v1.4.0 // indirect
@@ -70,6 +71,7 @@ require (
 	github.com/jinzhu/now v0.0.0-20180511015916-ed742868f2ae
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/kisielk/errcheck v1.2.0 // indirect
+	github.com/kubernetes-sigs/kubefed v0.1.0-rc2
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
 	github.com/microcosm-cc/bluemonday v0.0.0-20180327211928-995366fdf961
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
@@ -146,13 +148,19 @@ require (
 	k8s.io/cli-runtime v0.0.0-20190404071300-cbd7455f4bce // indirect
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cluster-bootstrap v0.0.0-20190404071559-03c28a85c7b7
+	k8s.io/cluster-registry v0.0.6 // indirect
 	k8s.io/helm v2.12.2+incompatible
+	k8s.io/klog v0.2.0
+	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30
+	k8s.io/kubectl v0.0.0-20190523211420-5b63b0fd89bb // indirect
 	k8s.io/kubernetes v1.13.5
 	k8s.io/utils v0.0.0-20190221042446-c2654d5206da // indirect
+	sigs.k8s.io/kubefed v0.1.0-rc2
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 
 replace (
+	github.com/kubernetes-sigs/kubefed => github.com/kubernetes-sigs/kubefed v0.1.0-rc2
 	github.com/qor/auth v0.0.0-20190103025640-46aae9fa92fa => github.com/banzaicloud/auth v0.1.3
 	gopkg.in/yaml.v2 => github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182
 
@@ -163,4 +171,6 @@ replace (
 	k8s.io/apiserver => k8s.io/apiserver v0.0.0-20190319190228-a4358799e4fe
 	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20190325194458-f2b4781c3ae1
 	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20180509051136-39cb288412c4
+	sigs.k8s.io/kubefed => sigs.k8s.io/kubefed v0.1.0-rc2
 )

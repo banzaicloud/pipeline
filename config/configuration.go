@@ -170,6 +170,9 @@ const (
 	// Default regions config keys to initialize clients
 	AmazonInitializeRegionKey  = "amazon.defaultApiRegion"
 	AlibabaInitializeRegionKey = "alibaba.defaultApiRegion"
+
+	FederationChartVersion = "federation.chartVersion"
+	FederationChartName    = "federation.chartName"
 )
 
 //Init initializes the configurations
@@ -335,6 +338,9 @@ func init() {
 	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")
 	viper.SetDefault(PrometheusServiceContext, "prometheus")
 	viper.SetDefault(PrometheusLocalPort, 9090)
+
+	viper.SetDefault(FederationChartVersion, "0.1.0-rc2")
+	viper.SetDefault(FederationChartName, "kubefed-charts/kubefed")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
