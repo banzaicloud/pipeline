@@ -81,7 +81,7 @@ const (
 
 // Constants for labeling cluster nodes
 const (
-	LabelKey                = "nodepool.banzaicloud.io/name"
+	LabelKey                = "node.kubernetes.io/poolname"
 	OnDemandLabelKey        = "node.banzaicloud.io/ondemand"
 	CloudInfoLabelKeyPrefix = "node.banzaicloud.io/"
 	HeadNodeLabelKey        = "nodepool.banzaicloud.io/head"

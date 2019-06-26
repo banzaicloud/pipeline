@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/spf13/viper"
@@ -36,12 +37,18 @@ type nodePoolLabelSetOperatorConfig struct {
 
 type configuration struct {
 	// Labeler configuration
-	Labeler labelerConfig `mapstructure:"labeler"`
+	Labeler    labelerConfig    `mapstructure:"labeler"`
+	Controller controllerConfig `mapstructure:"controller"`
 }
 
 type labelerConfig struct {
 	// ForbiddenLabelDomains holds the forbidden domain names, the labeler won't set matching labels
 	ForbiddenLabelDomains []string `mapstructure:"forbiddenLabelDomains"`
+}
+
+type controllerConfig struct {
+	// NodepoolNameLabels holds the possible labels for node pool, as this might be different on PKE, GKE, AKS
+	NodepoolNameLabels []string `mapstructure:"nodepoolNameLabels"`
 }
 
 // InstallNodePoolLabelSetOperator deploys node pool label set operator.
@@ -61,6 +68,14 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 		Configuration: configuration{
 			Labeler: labelerConfig{
 				ForbiddenLabelDomains: reservedNodeLabelDomains,
+			},
+			Controller: controllerConfig{
+				NodepoolNameLabels: []string{
+					common.LabelKey,
+					"nodepool.banzaicloud.io/name",
+					"cloud.google.com/gke-nodepool",
+					"agentpool",
+				},
 			},
 		},
 	}
