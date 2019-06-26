@@ -51,14 +51,15 @@ func (m *FederationReconciler) ReconcileController(desiredState DesiredState) er
 			return emperror.Wrap(err, "could not install Federation controller")
 		}
 	} else {
-		err := m.deleteFederatedTypeConfigs()
-		if err != nil {
-			return emperror.Wrap(err, "could not remove Federation type configs")
-		}
 
-		err = m.removeFederationCRDs()
+		err := m.removeFederationCRDs()
 		if err != nil {
 			return emperror.Wrap(err, "could not remove Federation CRD's")
+		}
+
+		err = m.deleteFederatedTypeConfigs()
+		if err != nil {
+			return emperror.Wrap(err, "could not remove Federation type configs")
 		}
 
 		err = m.uninstallFederationController(m.Host, m.logger)
@@ -122,10 +123,15 @@ func (m *FederationReconciler) removeFederationCRDs() error {
 		}
 	}
 
-	//TODO delete resources before deleting CRD's
 	for _, crd := range crdList.Items {
 		if strings.HasSuffix(crd.Name, federationCRDSuffix) {
-			err = cl.CustomResourceDefinitions().Delete(crd.Name, &apiv1.DeleteOptions{})
+			pp := apiv1.DeletePropagationBackground
+			var secs int64
+			secs = 180
+			err = cl.CustomResourceDefinitions().Delete(crd.Name, &apiv1.DeleteOptions{
+				PropagationPolicy:  &pp,
+				GracePeriodSeconds: &secs,
+			})
 			if err != nil {
 				return err
 			}

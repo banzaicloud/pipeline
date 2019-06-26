@@ -102,7 +102,7 @@ func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState,
 			return err
 		}
 		// label clusters with id
-		err = m.labelRegisteredCluster(c.GetName(), c.GetID())
+		err = m.labelRegisteredCluster(c)
 		if err != nil {
 			return err
 		}
@@ -125,11 +125,14 @@ func (m *FederationReconciler) reconcileMemberCluster(desiredState DesiredState,
 	return nil
 }
 
-func (m *FederationReconciler) labelRegisteredCluster(clusterName string, clusterId uint) error {
+func (m *FederationReconciler) labelRegisteredCluster(c cluster.CommonCluster) error {
 	client, err := m.getGenericClient()
 	if err != nil {
 		return err
 	}
+
+	clusterName := c.GetName()
+	clusterId := c.GetID()
 
 	cluster := &fedv1b1.KubeFedCluster{}
 	err = client.Get(context.TODO(), cluster, m.Configuration.TargetNamespace, clusterName)
@@ -138,7 +141,13 @@ func (m *FederationReconciler) labelRegisteredCluster(clusterName string, cluste
 	}
 	if cluster != nil && cluster.Name == clusterName {
 		cluster.Labels = make(map[string]string, 0)
-		cluster.Labels[kubefedClusterIdLabel] = fmt.Sprintf("%v", clusterId)
+		cluster.Labels[clusterLabelId] = fmt.Sprintf("%v", clusterId)
+
+		cluster.Labels[clusterLabelCloud] = c.GetCloud()
+		cluster.Labels[clusterLabelDistribution] = c.GetDistribution()
+		cluster.Labels[clusterLabelLocation] = c.GetLocation()
+		cluster.Labels[clusterLabelGroupName] = m.ClusterGroupName
+
 		err = client.Update(context.TODO(), cluster)
 		if err != nil {
 			return err

@@ -66,7 +66,7 @@ func (f *Handler) ReconcileState(featureState api.Feature) error {
 		return errors.WithStack(err)
 	}
 
-	fedv2 := NewFederationReconciler(*config, f.clusterGetter, logger, f.errorHandler)
+	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, logger, f.errorHandler)
 	err = fedv2.Reconcile()
 	if err != nil {
 		f.errorHandler.Handle(err)
@@ -133,7 +133,7 @@ func (f *Handler) GetMembersStatus(featureState api.Feature) (map[uint]string, e
 		return nil, errors.WithStack(err)
 	}
 
-	fedv2 := NewFederationReconciler(*config, f.clusterGetter, f.logger, f.errorHandler)
+	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, f.logger, f.errorHandler)
 	statusMap, err = fedv2.GetStatus()
 	if err != nil {
 		f.errorHandler.Handle(err)
