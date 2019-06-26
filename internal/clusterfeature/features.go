@@ -19,6 +19,7 @@ import (
 	"errors"
 
 	"github.com/goph/logur"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -28,6 +29,8 @@ const (
 
 	// DNSExternalDnsImageVersion set the external-dns image version
 	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
+
+	DNSExternalDnsValues = "dns.externalDnsValues"
 
 	// Status signaling a feature being activated or inactive
 	STATUS_PENDING = "PENDING"
@@ -57,14 +60,35 @@ type featureSelector struct {
 func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (*Feature, error) {
 	switch feature.Name {
 	case externalDns:
-		// todo add other internals here
+
+		// todo this is for testing purposes only
+		externalDnsValues := map[string]interface{}{
+			"rbac": map[string]bool{
+				"create": false,
+			},
+			"image": map[string]string{
+				"tag": "v0.5.11",
+			},
+			"aws": map[string]string{
+				"secretKey": "",
+				"accessKey": "",
+				"region":    "",
+			},
+			"domainFilters": []string{"test-domain"},
+			"policy":        "sync",
+			"txtOwnerId":    "testing",
+			"affinity":      "",
+			"tolerations":   "",
+		}
+
+		externalDnsValuesJson, _ := yaml.Marshal(externalDnsValues)
+
 		feature.Spec[DNSExternalDnsChartVersion] = "1.6.2"
 		feature.Spec[DNSExternalDnsImageVersion] = "v0.5.11"
-
-		// TODO assemble values and add the byte array to the feature
-		// TODO DISCUSS IT FIRST
+		feature.Spec[DNSExternalDnsValues] = externalDnsValuesJson
 
 		return &feature, nil
+
 	}
 
 	return nil, errors.New("unsupported feature")

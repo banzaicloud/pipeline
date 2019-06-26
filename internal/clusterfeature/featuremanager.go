@@ -23,6 +23,7 @@ import (
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/goph/logur/adapters/logrusadapter"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -82,9 +83,25 @@ type featureHelmInstaller struct {
 }
 
 func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster cluster.CommonCluster, feature Feature) error {
-	// todo process / get information from the feature
-	// eg.:  assemble the values json
-	return fhi.installDeployment(cluster, "default", "test_dep", "test_release_name", nil, "chart_version", false)
+	ns, ok := feature.Spec["namespace"]
+	if !ok {
+		return errors.New("namespace for feature not provided")
+	}
+
+	// todo: decide chart name = featurename = deploymentname?
+	deploymentName := "externaldns"
+
+	// todo: decide chart name = featurename = deploymentname?
+	releaseName := "testing-externaldns"
+
+	values, ok := feature.Spec[DNSExternalDnsValues]
+	if !ok {
+		return errors.New("values for feature not available")
+	}
+
+	chartVersion := feature.Spec[DNSExternalDnsChartVersion]
+
+	return fhi.installDeployment(cluster, ns.(string), deploymentName, releaseName, values.([]byte), chartVersion.(string), false)
 }
 
 func (fhi *featureHelmInstaller) installDeployment(cluster cluster.CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
