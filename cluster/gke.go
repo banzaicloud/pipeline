@@ -378,7 +378,7 @@ func (c *GKECluster) GetDistribution() string {
 
 //GetStatus gets cluster status
 func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	c.log.Info("Create cluster status response")
+	//c.log.Info("Create cluster status response")
 
 	var hasSpotNodePool bool
 
@@ -1360,7 +1360,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	}
 
 	log := log.WithField("cluster", clusterModel.Name)
-	log.Debug("Load Google props from database")
+	//log.Debug("Load Google props from database")
 
 	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").First(&m).Error
 	if err != nil {

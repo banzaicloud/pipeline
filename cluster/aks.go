@@ -472,7 +472,7 @@ func (c *AKSCluster) GetDistribution() string {
 // GetStatus returns the cluster's status
 func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
-	c.log.Info("Create cluster status response")
+	//c.log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.AKS.NodePools {
