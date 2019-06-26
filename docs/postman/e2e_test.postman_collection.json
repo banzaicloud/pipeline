@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7dc72c95-b3d6-4a56-bb52-6ba711867e21",
+		"_postman_id": "8644a368-88f1-429c-9d2e-ecc98d8585e0",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -118,10 +118,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/bootstrap",
 									"host": [
@@ -192,10 +188,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/bootstrap",
 									"host": [
@@ -339,10 +331,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/pke/ready",
 									"host": [
@@ -2158,10 +2146,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
 							"host": [
@@ -2216,10 +2200,6 @@
 								"value": "application/x-www-form-urlencoded"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/secrets?releaseName={{releaseName}}",
 							"host": [
@@ -2296,10 +2276,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/pods",
 							"host": [
@@ -2341,10 +2317,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/nodes",
 							"host": [
@@ -2415,10 +2387,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters",
 							"host": [
@@ -2482,10 +2450,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/config",
 							"host": [
@@ -2541,10 +2505,6 @@
 								"value": "application/x-www-form-urlencoded"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/endpoints",
 							"host": [
@@ -2600,10 +2560,6 @@
 								"value": "application/x-www-form-urlencoded"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/apiendpoint",
 							"host": [
@@ -2812,10 +2768,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
 							"host": [
@@ -2894,10 +2846,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features",
 									"host": [
@@ -2922,6 +2870,82 @@
 											"key": "clusterGroupId",
 											"value": "{{clusterGroupId}}",
 											"description": "Cluster Group identifier"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Cluster Group Feature ",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
+										"exec": [
+											"",
+											"if (responseCode.code === 200) {",
+											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
+											"",
+											"}",
+											"else if (responseCode.code === 404) {",
+											"    tests[\"Cluster Node Found!\"] = false",
+											"    postman.setNextRequest(null);",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    postman.setNextRequest(null);",
+											"",
+											"    ",
+											"}",
+											" ",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clustergroups",
+										":clusterGroupId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "clusterGroupId",
+											"value": "{{clusterGroupId}}",
+											"description": "Cluster Group identifier"
+										},
+										{
+											"key": "featureName",
+											"value": "federation",
+											"description": "Name of the feature"
 										}
 									]
 								}
@@ -2970,7 +2994,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"master\": \"masterClusterName\"\n}"
+									"raw": "{\n  \"hostClusterID\": 30,\n  \"targetNamespace\": \"federation\",\n  \"globalScope\": true,\n  \"crossClusterServiceDiscovery\": false,\n  \"federatedIngress\": false,\n  \"schedulerPreferences\": true\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features/:featureName",
@@ -3130,86 +3154,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"master\": \"masterClusterName\",\n  \"someproperty\": \"whatever\"\n}"
-								},
-								"url": {
-									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features/:featureName",
-									"host": [
-										"{{url}}"
-									],
-									"path": [
-										"api",
-										"v1",
-										"orgs",
-										":orgId",
-										"clustergroups",
-										":clusterGroupId",
-										"features",
-										":featureName"
-									],
-									"variable": [
-										{
-											"description": "Organization identifier",
-											"key": "orgId",
-											"value": "{{orgId}}"
-										},
-										{
-											"description": "Cluster Group identifier",
-											"key": "clusterGroupId",
-											"value": "{{clusterGroupId}}"
-										},
-										{
-											"key": "featureName",
-											"value": "federation"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get Cluster Group Feature ",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "ecfa754d-6d1d-4cf7-87fd-f9d86bf17855",
-										"exec": [
-											"",
-											"if (responseCode.code === 200) {",
-											"    tests[\"Response Code 200\"] = responseCode.code == 200;",
-											"",
-											"}",
-											"else if (responseCode.code === 404) {",
-											"    tests[\"Cluster Node Found!\"] = false",
-											"    postman.setNextRequest(null);",
-											"} else {",
-											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
-											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
-											"    postman.setNextRequest(null);",
-											"",
-											"    ",
-											"}",
-											" ",
-											"",
-											"",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
+									"raw": "{\n  \"crossClusterServiceDiscovery\": false,\n  \"federatedIngress\": false,\n  \"schedulerPreferences\": true\n}"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/clustergroups/:clusterGroupId/features/:featureName",
@@ -3239,8 +3184,7 @@
 										},
 										{
 											"key": "featureName",
-											"value": "federation",
-											"description": "Name of the feature"
+											"value": "federation"
 										}
 									]
 								}
@@ -4084,10 +4028,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides",
 							"host": [
@@ -4190,10 +4130,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/spotguides/:spotguideName",
 							"host": [
@@ -4397,10 +4333,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments",
 							"host": [
@@ -4470,10 +4402,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments",
 							"host": [
@@ -4548,10 +4476,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments/:deploymentName",
 							"host": [
@@ -4834,10 +4758,6 @@
 								"value": "application/x-www-form-urlencoded"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments/:deploymentName",
 							"host": [
@@ -4907,10 +4827,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments/:deploymentName/resources?resourceTypes=deployment",
 							"host": [
@@ -4967,10 +4883,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/deployments/:deploymentName/images",
 							"host": [
@@ -5511,10 +5423,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/profiles/cluster/:distributionType",
 							"host": [
@@ -5753,10 +5661,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAlibaba",
 									"host": [
@@ -5791,10 +5695,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAlibaba/validate",
 									"host": [
@@ -6021,10 +5921,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAmazon",
 									"host": [
@@ -6059,10 +5955,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAmazon/validate",
 									"host": [
@@ -6289,10 +6181,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAzure",
 									"host": [
@@ -6327,10 +6215,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdAzure/validate",
 									"host": [
@@ -6557,10 +6441,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdGoogle",
 									"host": [
@@ -6595,10 +6475,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdGoogle/validate",
 									"host": [
@@ -6825,10 +6701,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdOracle",
 									"host": [
@@ -6863,10 +6735,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdOracle/validate",
 									"host": [
@@ -7093,10 +6961,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdKubernetes",
 									"host": [
@@ -7321,10 +7185,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdTLS",
 									"host": [
@@ -7550,10 +7410,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdPassword",
 									"host": [
@@ -7779,10 +7635,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdGeneric",
 									"host": [
@@ -7941,10 +7793,6 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdSSH",
 									"host": [
@@ -8039,10 +7887,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/secrets",
 							"host": [
@@ -8076,10 +7920,6 @@
 								"value": "application/x-www-form-urlencoded"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/secrets?type={{secretType}}&tags={{tag}}",
 							"host": [
@@ -8120,10 +7960,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/allowed/secrets",
 							"host": [
@@ -8177,10 +8013,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs",
 							"host": [
@@ -8219,10 +8051,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId",
 							"host": [
@@ -8401,10 +8229,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/users",
 							"host": [
@@ -8476,10 +8300,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/users/:id",
 							"host": [
@@ -8559,10 +8379,6 @@
 								"description": "Secret identifier"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/buckets/:bucketName/?cloudType={{cloudType}}",
 							"host": [
@@ -8821,10 +8637,6 @@
 								"description": "Secret identifier"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=amazon",
 							"host": [
@@ -8866,10 +8678,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=alibaba",
 							"host": [
@@ -8909,10 +8717,6 @@
 								"description": "Secret identifier"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=azure",
 							"host": [
@@ -8954,10 +8758,6 @@
 								"description": "Secret identifier"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=google",
 							"host": [
@@ -8999,10 +8799,6 @@
 								"description": "Secret identifier"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/buckets?cloudType=oracle",
 							"host": [
@@ -9312,10 +9108,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/buckets/:name?cloudType={{cloudType}}",
 							"host": [
@@ -9359,10 +9151,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/helm/charts",
 							"host": [
@@ -9392,10 +9180,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/helm/chart/:repoName/:chartName?version={{chartVersion}}",
 							"host": [
@@ -9444,10 +9228,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/helm/repos/",
 							"host": [
@@ -9651,10 +9431,6 @@
 								"description": "Secret identifier"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/azure/resourcegroups",
 							"host": [
@@ -9827,10 +9603,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/hpa?scaleTarget={{k8sDeploymentName}}",
 							"host": [
@@ -10020,10 +9792,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/scanlog",
 							"host": [
@@ -10065,10 +9833,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/scanlog/:deploymentName",
 							"host": [
@@ -10116,10 +9880,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/whitelists",
 							"host": [
@@ -10252,10 +10012,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/policies",
 							"host": [
@@ -10545,10 +10301,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/imagescan/:imageDigest",
 							"host": [
@@ -10593,10 +10345,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/imagescan/:imageDigest/vuln",
 							"host": [
@@ -10661,10 +10409,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/dashboard/orgs/:orgId/clusters",
 							"host": [
@@ -10697,10 +10441,6 @@
 										"value": "application/json"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": ""
-								},
 								"url": {
 									"raw": "{{url}}/dashboard/orgs/:orgId/clusters",
 									"host": [
@@ -10764,10 +10504,6 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/notifications",
 							"host": [
@@ -10796,10 +10532,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/images",
 							"host": [
@@ -10839,10 +10571,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/images/:imageDigest/deployments",
 							"host": [
@@ -10922,10 +10650,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/{{clusterId}}/nodepools/labels",
 							"host": [
@@ -11031,10 +10755,6 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "{{url}}/api",
 					"host": [

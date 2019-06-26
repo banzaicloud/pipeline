@@ -51,9 +51,10 @@ type Config struct {
 }
 
 type FederationReconciler struct {
-	Configuration Config
-	Host          cluster.CommonCluster
-	Members       []cluster.CommonCluster
+	Configuration    Config
+	ClusterGroupName string
+	Host             cluster.CommonCluster
+	Members          []cluster.CommonCluster
 
 	clusterGetter api.ClusterGetter
 	logger        logrus.FieldLogger
@@ -71,17 +72,21 @@ const (
 	DesiredStatePresent DesiredState = "present"
 	DesiredStateAbsent  DesiredState = "absent"
 
-	kubefedClusterIdLabel = "clusterId"
+	clusterLabelId           = "clusterId"
+	clusterLabelCloud        = "cloud"
+	clusterLabelDistribution = "distribution"
+	clusterLabelLocation     = "location"
+	clusterLabelGroupName    = "groupName"
 )
 
 // NewFederationReconciler crates a new feature reconciler for Federation
-func NewFederationReconciler(config Config, clusterGetter api.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *FederationReconciler {
+func NewFederationReconciler(clusterGroupName string, config Config, clusterGetter api.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *FederationReconciler {
 	reconciler := &FederationReconciler{
-		Configuration: config,
-
-		clusterGetter: clusterGetter,
-		logger:        logger,
-		errorHandler:  errorHandler,
+		Configuration:    config,
+		ClusterGroupName: clusterGroupName,
+		clusterGetter:    clusterGetter,
+		logger:           logger,
+		errorHandler:     errorHandler,
 	}
 
 	reconciler.init()
@@ -176,7 +181,7 @@ func (m *FederationReconciler) getExistingClusters() (map[uint]cluster.CommonClu
 			continue
 		}
 
-		clusterIdStr := cl.Labels[kubefedClusterIdLabel]
+		clusterIdStr := cl.Labels[clusterLabelId]
 		if len(clusterIdStr) == 0 {
 			continue
 		}
