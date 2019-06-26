@@ -616,7 +616,7 @@ func (c *EC2ClusterPKE) GetKubernetesUserName() (string, error) {
 }
 
 func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	log.Info("Create cluster status response")
+	//log.Info("Create cluster status response")
 	hasSpotNodePool := false
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.model.NodePools {
@@ -1043,7 +1043,7 @@ func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2Cluster
 		ClusterID: modelCluster.ID,
 	}
 
-	log.Debug("Load EC2 props from database")
+	//log.Debug("Load EC2 props from database")
 	err := db.Where(m).
 		Preload("Cluster").
 		Preload("Network").
