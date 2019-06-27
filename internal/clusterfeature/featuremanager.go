@@ -88,7 +88,7 @@ func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clu
 		return errors.New("namespace for feature not provided")
 	}
 
-	deploymentName, ok := feature.Spec["chart-name"]
+	deploymentName, ok := feature.Spec[DNSExternalDnsChartName]
 	if !ok {
 		return errors.New("chart-name for feature not provided")
 	}
