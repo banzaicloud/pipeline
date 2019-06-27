@@ -22,16 +22,21 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	clusterNotReady = 100
+
+)
+
 type dummyFeatureRepository struct {
 	logger logur.Logger
 }
 
-func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error) {
+func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error) {
 	dfr.logger.Info("feature repo called", map[string]interface{}{"operation": "UpdateFeatureStatus", "clusterId": clusterId})
 	return nil, nil
 }
 
-func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error) {
+func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error) {
 	switch feature.Name {
 	case "existingfeature":
 		return &Feature{Name: "existingfeature"}, nil
@@ -39,7 +44,7 @@ func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId str
 	return nil, errors.New("feature not found")
 }
 
-func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId string, feature Feature) (uint, error) {
+func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error) {
 	switch feature.Name {
 	case "failtopersist":
 		return 0, errors.New("persistence error")
@@ -51,9 +56,9 @@ func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId st
 type dummyClusterRepository struct {
 }
 
-func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId string) (bool, error) {
+func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId uint) (bool, error) {
 	switch clusterId {
-	case "notready":
+	case clusterNotReady:
 		return false, nil
 	}
 
@@ -61,14 +66,14 @@ func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId
 
 }
 
-func (dcr *dummyClusterRepository) GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error) {
+func (dcr *dummyClusterRepository) GetCluster(ctx context.Context, clusterId uint) (cluster.CommonCluster, error) {
 	panic("implement me")
 }
 
 type dummyFeatureManager struct {
 }
 
-func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId string, feature Feature) (string, error) {
+func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) (string, error) {
 	switch feature.Name {
 	case "success":
 		return "ok", nil
@@ -77,6 +82,6 @@ func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId string, 
 	return "", errors.New("test - failed to activate feature")
 }
 
-func (dfm *dummyFeatureManager) Update(ctx context.Context, clusterId string, feature Feature) (string, error) {
+func (dfm *dummyFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) (string, error) {
 	panic("implement me")
 }
