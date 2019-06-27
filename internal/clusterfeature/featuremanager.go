@@ -88,10 +88,11 @@ func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clu
 		return errors.New("namespace for feature not provided")
 	}
 
-	// todo: decide chart name = featurename = deploymentname?
-	deploymentName := "externaldns"
+	deploymentName, ok := feature.Spec["chart-name"]
+	if !ok {
+		return errors.New("chart-name for feature not provided")
+	}
 
-	// todo: decide chart name = featurename = deploymentname?
 	releaseName := "testing-externaldns"
 
 	values, ok := feature.Spec[DNSExternalDnsValues]
@@ -101,7 +102,7 @@ func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clu
 
 	chartVersion := feature.Spec[DNSExternalDnsChartVersion]
 
-	return fhi.installDeployment(cluster, ns.(string), deploymentName, releaseName, values.([]byte), chartVersion.(string), false)
+	return fhi.installDeployment(cluster, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string), false)
 }
 
 func (fhi *featureHelmInstaller) installDeployment(cluster cluster.CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
