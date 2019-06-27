@@ -7768,8 +7768,8 @@ paths:
           type: string
         style: simple
       responses:
-        202:
-          description: Accepted
+        204:
+          description: No Content
         401:
           content:
             application/json:
