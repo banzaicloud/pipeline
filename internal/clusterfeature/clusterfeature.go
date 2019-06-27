@@ -34,12 +34,12 @@ type ClusterFeatureService interface {
 	Deactivate(ctx context.Context, clusterId uint, feature Feature) error
 }
 
-// Feature represents a cluster feature instance
+// Feature represents the internal state of a cluster feature.
 type Feature struct {
-	Name   string
-	Status string
-	Spec   map[string]interface{}
-	Output map[string]interface{}
+	Name   string                 `json:"name"`
+	Spec   map[string]interface{} `json:"spec"`
+	Output map[string]interface{} `json:"output"`
+	Status string                 `json:"status"`
 }
 
 // clusterFeature component struct, implements the ClusterFeatureService functionality
