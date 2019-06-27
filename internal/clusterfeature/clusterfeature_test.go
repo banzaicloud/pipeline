@@ -32,13 +32,13 @@ import (
 func TestActivateClusterFeature(t *testing.T) {
 	tests := []struct {
 		name           string
-		clusterId      string
+		clusterId      uint
 		clusterFeature Feature
 		checker        func(*testing.T, interface{})
 	}{
 		{
 			name:      "cluster is not ready",
-			clusterId: "notready",
+			clusterId: 1,
 			clusterFeature: Feature{
 				Name: "clusterisnotready",
 				Spec: nil,
@@ -52,7 +52,7 @@ func TestActivateClusterFeature(t *testing.T) {
 		},
 		{
 			name:      "feature exists",
-			clusterId: "",
+			clusterId: 1,
 			clusterFeature: Feature{
 				Name: "existingfeature",
 				Spec: nil,
@@ -66,7 +66,7 @@ func TestActivateClusterFeature(t *testing.T) {
 		},
 		{
 			name:      "could not persist feature",
-			clusterId: "",
+			clusterId: 1,
 			clusterFeature: Feature{
 				Name: "failtopersist",
 				Spec: nil,
@@ -80,7 +80,7 @@ func TestActivateClusterFeature(t *testing.T) {
 		},
 		{
 			name:      "activation succeeded",
-			clusterId: "",
+			clusterId: 1,
 			clusterFeature: Feature{
 				Name: "success",
 				Spec: nil,
@@ -123,7 +123,7 @@ func testClusterFeature(t *testing.T) {
 
 	cps := NewClusterFeatureService(l, cr, fr, fm)
 
-	if err := cps.Activate(context.Background(), "3", Feature{}); err != nil {
+	if err := cps.Activate(context.Background(), 3, Feature{}); err != nil {
 		t.Error(err)
 	}
 
