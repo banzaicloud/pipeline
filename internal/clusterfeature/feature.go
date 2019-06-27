@@ -16,8 +16,8 @@ package clusterfeature
 
 // Feature represents the internal state of a cluster feature.
 type Feature struct {
-	Name   string `json:"name"`
+	Name   string                 `json:"name"`
 	Spec   map[string]interface{} `json:"spec"`
 	Output map[string]interface{} `json:"output"`
-	Status string `json:"status"`
+	Status string                 `json:"status"`
 }
