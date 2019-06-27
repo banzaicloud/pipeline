@@ -32,10 +32,10 @@ import (
 // FeatureManager operations in charge for applying features to the cluster
 type FeatureManager interface {
 	// Deploys and activates a feature on the given cluster
-	Activate(ctx context.Context, clusterId string, feature Feature) (string, error)
+	Activate(ctx context.Context, clusterId uint, feature Feature) (string, error)
 
 	// Updates a feature on the given cluster
-	Update(ctx context.Context, clusterId string, feature Feature) (string, error)
+	Update(ctx context.Context, clusterId uint, feature Feature) (string, error)
 }
 
 // syncFeatureManager synchronous feature manager
@@ -46,7 +46,7 @@ type syncFeatureManager struct {
 	helmInstaller     helmInstaller
 }
 
-func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId string, feature Feature) (string, error) {
+func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) (string, error) {
 
 	cluster, err := sfm.clusterRepository.GetCluster(ctx, clusterId)
 	if err != nil {
@@ -67,7 +67,7 @@ func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId string, f
 
 }
 
-func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId string, feature Feature) (string, error) {
+func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) (string, error) {
 	panic("implement me")
 }
 

@@ -16,7 +16,6 @@ package clusterfeature
 
 import (
 	"encoding/json"
-	"strconv"
 
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/goph/emperror"
@@ -27,10 +26,10 @@ import (
 // ClusterRepository collects persistence related operations
 type ClusterRepository interface {
 	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running)
-	IsClusterReady(ctx context.Context, clusterId string) (bool, error)
+	IsClusterReady(ctx context.Context, clusterId uint) (bool, error)
 
 	// GetCluster retrieves the cluster representation based on the cluster identifier
-	GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error)
+	GetCluster(ctx context.Context, clusterId uint) (cluster.CommonCluster, error)
 }
 
 // clusterGetter restricts the external dependencies for the repository
@@ -43,14 +42,9 @@ type featureClusterRepository struct {
 	clusterGetter clusterGetter
 }
 
-func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId string) (cluster.CommonCluster, error) {
-	// todo use uint everywhere
-	cid, err := strconv.ParseUint(clusterId, 0, 64)
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to parse clusterid", "clusterid", clusterId)
-	}
+func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId uint) (cluster.CommonCluster, error) {
 
-	cluster, err := fcs.clusterGetter.GetClusterByIDOnly(ctx, uint(cid))
+	cluster, err := fcs.clusterGetter.GetClusterByIDOnly(ctx, clusterId)
 	if err != nil {
 		return nil, emperror.WrapWith(err, "failed to retrieve cluster", "clusterid", clusterId)
 	}
@@ -58,7 +52,7 @@ func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId s
 	return cluster, nil
 }
 
-func (fcs *featureClusterRepository) IsClusterReady(ctx context.Context, clusterId string) (bool, error) {
+func (fcs *featureClusterRepository) IsClusterReady(ctx context.Context, clusterId uint) (bool, error) {
 	cluster, err := fcs.GetCluster(ctx, clusterId)
 	if err != nil {
 		return false, err
@@ -72,22 +66,6 @@ func (fcs *featureClusterRepository) IsClusterReady(ctx context.Context, cluster
 	return isReady, err
 }
 
-func (fcs *featureClusterRepository) GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error) {
-
-	cluster, err := fcs.GetCluster(ctx, clusterId)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeConfig, err := cluster.GetK8sConfig()
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retrieve kubeConfig", "clusterid", clusterId)
-	}
-
-	return kubeConfig, nil
-
-}
-
 func NewClusterRepository(getter clusterGetter) ClusterRepository {
 	return &featureClusterRepository{
 		clusterGetter: getter,
@@ -96,9 +74,9 @@ func NewClusterRepository(getter clusterGetter) ClusterRepository {
 
 // FeatureRepository collects persistence related operations
 type FeatureRepository interface {
-	SaveFeature(ctx context.Context, clusterId string, feature Feature) (uint, error)
-	GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error)
-	UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error)
+	SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error)
+	GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error)
+	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error)
 }
 
 // featureRepository component in charge for executing persistence operation on Features
@@ -106,7 +84,7 @@ type featureRepository struct {
 	db *gorm.DB
 }
 
-func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, feature Feature) (uint, error) {
+func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error) {
 
 	// encode the spec
 	featureSpec, err := json.Marshal(feature.Spec)
@@ -114,15 +92,10 @@ func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, 
 		return 0, emperror.WrapWith(err, "failed to marshal feature spec", "feature", feature.Name)
 	}
 
-	clusterIdInt, err := strconv.ParseUint(clusterId, 0, 32)
-	if err != nil {
-		return 0, emperror.WrapWith(err, "failed to parse cluster id", "feature", feature.Name)
-	}
-
 	cfModel := ClusterFeatureModel{
 		Name:      feature.Name,
 		Spec:      featureSpec,
-		ClusterID: uint(clusterIdInt),
+		ClusterID: clusterId,
 		Status:    STATUS_PENDING,
 	}
 
@@ -136,31 +109,24 @@ func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, 
 	return cfModel.ID, nil
 }
 
-func (fr *featureRepository) GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error) {
-	fm := ClusterFeatureModel{
-	}
+func (fr *featureRepository) GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error) {
+	fm := ClusterFeatureModel{}
+
 	err := fr.db.First(&fm, map[string]interface{}{"Name": feature.Name, "cluster_id": clusterId}).Error
+
 	if gorm.IsRecordNotFoundError(err) {
 		return nil, emperror.WrapWith(err, "cluster feature not found", "feature-name", feature.Name)
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "could not retrieve feature")
 	}
 
-	if err := json.Unmarshal(fm.Spec, &feature.Spec); err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve (unmarsha) feature spec")
-	}
-
-	feature.Status = fm.Status
-
-	return &feature, nil
+	return fr.modelToFeature(&fm)
 }
 
-func (fr *featureRepository) UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error) {
-
-	clsId, _ := strconv.ParseUint(clusterId, 0, 32)
+func (fr *featureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error) {
 
 	fm := ClusterFeatureModel{
-		ClusterID: uint(clsId),
+		ClusterID: clusterId,
 		Name:      feature.Name,
 	}
 
@@ -169,16 +135,23 @@ func (fr *featureRepository) UpdateFeatureStatus(ctx context.Context, clusterId 
 		return nil, emperror.Wrap(err, "could not update feature status")
 	}
 
-	if err := json.Unmarshal(fm.Spec, &feature.Spec); err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve (unmarsha) feature spec")
-	}
-
-	feature.Status = fm.Status
-
-	return &feature, nil
+	return fr.modelToFeature(&fm)
 }
 
 // NewClusters returns a new Clusters instance.
 func NewFeatureRepository(db *gorm.DB) FeatureRepository {
 	return &featureRepository{db: db}
+}
+
+func (fr *featureRepository) modelToFeature(cfm *ClusterFeatureModel) (*Feature, error) {
+	f := Feature{
+		Name:   cfm.Name,
+		Status: cfm.Status,
+	}
+
+	if err := json.Unmarshal(cfm.Spec, &f.Spec); err != nil {
+		return nil, emperror.Wrap(err, "failed to retrieve (unmarsha) feature spec")
+	}
+
+	return &f, nil
 }

@@ -27,6 +27,8 @@ const (
 	// DNSExternalDnsChartVersion set the external-dns chart version default value: "1.6.2"
 	DNSExternalDnsChartVersion = "dns.externalDnsChartVersion"
 
+	DNSExternalDnsChartName = "dns.externalDnsChartName"
+
 	// DNSExternalDnsImageVersion set the external-dns image version
 	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
 
@@ -86,6 +88,7 @@ func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (
 		feature.Spec[DNSExternalDnsChartVersion] = "1.6.2"
 		feature.Spec[DNSExternalDnsImageVersion] = "v0.5.11"
 		feature.Spec[DNSExternalDnsValues] = externalDnsValuesJson
+		feature.Spec[DNSExternalDnsChartName] = "stable/external-dns"
 
 		return &feature, nil
 
