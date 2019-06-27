@@ -1,16 +1,17 @@
-CREATE TABLE `clusterfeature` (
-    `id`         int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `name`       varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-    `cluster_id` int(10) unsigned                        DEFAULT NULL,
-    `spec`       text,
-    `status`     text,
-    `created_at` timestamp        NULL                   DEFAULT NULL,
-    `updated_at` timestamp        NULL                   DEFAULT NULL,
-    `deleted_at` timestamp        NULL                   DEFAULT NULL,
-    `created_by` int(10) unsigned                        DEFAULT NULL,
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
+create table if not exists clusterfeature
+(
+    id         int unsigned auto_increment
+        primary key,
+    created_at timestamp      null,
+    updated_at timestamp      null,
+    deleted_at timestamp      null,
+    name       varchar(255)   null,
+    status     varchar(255)   null,
+    cluster_id int unsigned   null,
+    spec       varbinary(255) null,
+    created_by int unsigned   null
+);
 
+create index idx_clusterfeature_deleted_at
+    on clusterfeature (deleted_at);
 
