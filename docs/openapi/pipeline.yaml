@@ -6717,64 +6717,9 @@ paths:
                                 $ref: "#/components/schemas/BaseError_500"
 
     "/api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}":
-        delete:
-            operationId: DeactivateClusterFeature
-            summary: Deactivate a cluster feature 
-            tags:
-                - cluster features
-            security:
-                - bearerAuth: []
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization ID
-                    schema:
-                        type: integer
-                -
-                    name: id
-                    in: path
-                    description: Cluster ID
-                    required: true
-                    schema:
-                        type: integer
-                -
-                    name: featureName
-                    in: path
-                    description: Feature name
-                    required: true
-                    schema:
-                        type: string
-            responses:
-                "202":
-                    description: Accepted
-                "401":
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Unauthorized"
-                "404":
-                    description: Not found
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                ## oneOf not properly supported by generator
-                                #oneOf:
-                                #    - $ref: "#/components/schemas/OrganizationNotFound"
-                                #    - $ref: "#/components/schemas/ClusterNotFound"
-                                #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                "500":
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/BaseError_500"
         get:
             operationId: ClusterFeatureDetails
-            summary: Get details of a cluster feature 
+            summary: Get details of a cluster feature
             tags:
                 - cluster features
             security:
@@ -6831,9 +6776,10 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/BaseError_500"
+
         post:
             operationId: ActivateClusterFeature
-            summary: Activate a cluster feature 
+            summary: Activate a cluster feature
             tags:
                 - cluster features
             security:
@@ -6898,6 +6844,63 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/BaseError_500"
+
+        delete:
+            operationId: DeactivateClusterFeature
+            summary: Deactivate a cluster feature 
+            tags:
+                - cluster features
+            security:
+                - bearerAuth: []
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization ID
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    description: Cluster ID
+                    required: true
+                    schema:
+                        type: integer
+                -
+                    name: featureName
+                    in: path
+                    description: Feature name
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                "204":
+                    description: No Content
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Unauthorized"
+                "404":
+                    description: Not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                ## oneOf not properly supported by generator
+                                #oneOf:
+                                #    - $ref: "#/components/schemas/OrganizationNotFound"
+                                #    - $ref: "#/components/schemas/ClusterNotFound"
+                                #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
+                "500":
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BaseError_500"
+
         put:
             operationId: UpdateClusterFeature
             summary: Update a cluster feature 
