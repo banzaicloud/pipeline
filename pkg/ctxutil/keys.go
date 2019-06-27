@@ -12,22 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ginutils
+package ctxutil
 
-import (
-	"net/http"
+type contextKey string
 
-	"github.com/gin-gonic/gin"
-)
-
-// HTTPHandlerToGinHandlerFunc wraps a http.Handler so that it works as a gin.HandlerFunc.
-func HTTPHandlerToGinHandlerFunc(handler http.Handler) gin.HandlerFunc {
-	return HTTPHandlerFuncToGinHandlerFunc(handler.ServeHTTP)
-}
-
-// HTTPHandlerFuncToGinHandlerFunc wraps a http.HandlerFunc so that it works as a gin.HandlerFunc.
-func HTTPHandlerFuncToGinHandlerFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		handlerFunc(c.Writer, c.Request)
-	}
+func (c contextKey) String() string {
+	return "ctxutils context key " + string(c)
 }

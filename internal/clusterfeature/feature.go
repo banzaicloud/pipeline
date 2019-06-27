@@ -12,22 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ginutils
+package clusterfeature
 
-import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-)
-
-// HTTPHandlerToGinHandlerFunc wraps a http.Handler so that it works as a gin.HandlerFunc.
-func HTTPHandlerToGinHandlerFunc(handler http.Handler) gin.HandlerFunc {
-	return HTTPHandlerFuncToGinHandlerFunc(handler.ServeHTTP)
-}
-
-// HTTPHandlerFuncToGinHandlerFunc wraps a http.HandlerFunc so that it works as a gin.HandlerFunc.
-func HTTPHandlerFuncToGinHandlerFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		handlerFunc(c.Writer, c.Request)
-	}
+// Feature represents the internal state of a cluster feature.
+type Feature struct {
+	Name   string `json:"name"`
+	Spec   map[string]interface{} `json:"spec"`
+	Output map[string]interface{} `json:"output"`
+	Status string `json:"status"`
 }

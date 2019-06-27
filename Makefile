@@ -29,6 +29,7 @@ LICENSEI_VERSION = 0.1.0
 OPENAPI_GENERATOR_VERSION = PR1869
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
+GOBIN_VERSION = 0.0.10
 
 GOLANG_VERSION = 1.11.5
 
@@ -191,6 +192,25 @@ test-all: ## Run all tests
 .PHONY: test-integration
 test-integration: ## Run integration tests
 	@${MAKE} GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
+
+bin/gobin: bin/gobin-${GOBIN_VERSION}
+	@ln -sf gobin-${GOBIN_VERSION} bin/gobin
+bin/gobin-${GOBIN_VERSION}:
+	@mkdir -p bin
+ifeq (${OS}, Darwin)
+	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/darwin-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
+endif
+ifeq (${OS}, Linux)
+	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/linux-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
+endif
+
+bin/mockery: bin/gobin
+	@mkdir -p bin
+	GOBIN=bin/ bin/gobin github.com/vektra/mockery/cmd/mockery
+
+.PHONY: generate-mocks
+generate-mocks: bin/mockery ## Generate mocks
+	MOCKERY=$(abspath bin/mockery) go generate ./...
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
