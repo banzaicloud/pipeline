@@ -17,9 +17,6 @@ package clusterfeature
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/goph/logur/adapters/logrusadapter"
@@ -27,6 +24,8 @@ import (
 	"github.com/sirupsen/logrus"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
+
+	"github.com/banzaicloud/pipeline/helm"
 )
 
 // FeatureManager operations in charge for applying features to the cluster
@@ -40,15 +39,28 @@ type FeatureManager interface {
 
 // syncFeatureManager synchronous feature manager
 type syncFeatureManager struct {
-	logger            logur.Logger
-	clusterRepository ClusterRepository
-	featureSelector   FeatureSelector
-	helmInstaller     helmInstaller
+	logger          logur.Logger
+	clusterService  ClusterService
+	featureSelector FeatureSelector
+	helmInstaller   helmInstaller
+}
+
+// NewSyncFeatureManager builds a new feature manager component
+func NewSyncFeatureManager(clusterService ClusterService) FeatureManager {
+	l := logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "feature-manager"})
+	return &syncFeatureManager{
+		logger:          l,
+		clusterService:  clusterService,
+		featureSelector: NewFeatureSelector(l),
+		helmInstaller: &featureHelmInstaller{ // wired private component!
+			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
+		},
+	}
 }
 
 func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) (string, error) {
 
-	cluster, err := sfm.clusterRepository.GetCluster(ctx, clusterId)
+	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
 		return "", emperror.WrapWith(err, "failed to activate feature")
 	}
@@ -74,7 +86,7 @@ func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId uint, featu
 // helmInstaller interface for helm operations
 type helmInstaller interface {
 	// InstallFeature installs a feature to the given cluster
-	InstallFeature(ctx context.Context, cluster cluster.CommonCluster, feature Feature) error
+	InstallFeature(ctx context.Context, cluster Cluster, feature Feature) error
 }
 
 // component in chrge for installing features from helmcharts
@@ -82,7 +94,7 @@ type featureHelmInstaller struct {
 	logger logur.Logger
 }
 
-func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster cluster.CommonCluster, feature Feature) error {
+func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster Cluster, feature Feature) error {
 	ns, ok := feature.Spec["namespace"]
 	if !ok {
 		return errors.New("namespace for feature not provided")
@@ -105,17 +117,19 @@ func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clu
 	return fhi.installDeployment(cluster, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string), false)
 }
 
-func (fhi *featureHelmInstaller) installDeployment(cluster cluster.CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
+func (fhi *featureHelmInstaller) installDeployment(
+	cluster Cluster,
+	namespace string,
+	deploymentName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+	wait bool,
+) error {
 	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cluster.GetK8sConfig()
+	kubeConfig, err := cluster.GetKubeConfig()
 	if err != nil {
 		fhi.logger.Error("failed to get k8s config", map[string]interface{}{"clusterid": cluster.GetID()})
-		return err
-	}
-
-	org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
-	if err != nil {
-		fhi.logger.Error("failed to get organization", map[string]interface{}{"clusterid": cluster.GetID()})
 		return err
 	}
 
@@ -154,24 +168,22 @@ func (fhi *featureHelmInstaller) installDeployment(cluster cluster.CommonCluster
 		k8sHelm.InstallWait(wait),
 		k8sHelm.ValueOverrides(values),
 	}
-	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), options...)
+	_, err = helm.CreateDeployment(
+		deploymentName,
+		chartVersion,
+		nil,
+		namespace,
+		releaseName,
+		false,
+		nil,
+		kubeConfig,
+		helm.GenerateHelmRepoEnv(cluster.GetOrganizationName()),
+		options...,
+	)
 	if err != nil {
 		fhi.logger.Error("failed to create deployment", map[string]interface{}{"deployment": deploymentName})
 		return err
 	}
 	fhi.logger.Info("installed deployment", map[string]interface{}{"deployment": deploymentName})
 	return nil
-}
-
-// NewSyncFeatureManager builds a new feature manager component
-func NewSyncFeatureManager(clusterRepository ClusterRepository) FeatureManager {
-	l := logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "feature-manager"})
-	return &syncFeatureManager{
-		logger:            l,
-		clusterRepository: clusterRepository,
-		featureSelector:   NewFeatureSelector(l),
-		helmInstaller: &featureHelmInstaller{ // wired private component!
-			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
-		},
-	}
 }

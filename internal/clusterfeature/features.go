@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	externalDns = "external-dns"
+	ExternalDns = "external-dns"
 	// DNSExternalDnsChartVersion set the external-dns chart version default value: "1.6.2"
 	DNSExternalDnsChartVersion = "dns.externalDnsChartVersion"
 
@@ -61,7 +61,7 @@ type featureSelector struct {
 
 func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (*Feature, error) {
 	switch feature.Name {
-	case externalDns:
+	case ExternalDns:
 
 		// todo this is for testing purposes only
 		externalDnsValues := map[string]interface{}{

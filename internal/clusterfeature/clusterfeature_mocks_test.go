@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature
+package clusterfeature_test
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/cluster"
+	. "github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 const (
@@ -56,6 +56,10 @@ func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId ui
 type dummyClusterRepository struct {
 }
 
+func (dcr *dummyClusterRepository) GetCluster(ctx context.Context, clusterID uint) (Cluster, error) {
+	panic("implement me")
+}
+
 func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId uint) (bool, error) {
 	switch clusterId {
 	case clusterNotReady:
@@ -64,10 +68,6 @@ func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId
 
 	return true, nil
 
-}
-
-func (dcr *dummyClusterRepository) GetCluster(ctx context.Context, clusterId uint) (cluster.CommonCluster, error) {
-	panic("implement me")
 }
 
 type dummyFeatureManager struct {

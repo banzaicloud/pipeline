@@ -17,60 +17,10 @@ package clusterfeature
 import (
 	"encoding/json"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/net/context"
 )
-
-// ClusterRepository collects persistence related operations
-type ClusterRepository interface {
-	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running)
-	IsClusterReady(ctx context.Context, clusterId uint) (bool, error)
-
-	// GetCluster retrieves the cluster representation based on the cluster identifier
-	GetCluster(ctx context.Context, clusterId uint) (cluster.CommonCluster, error)
-}
-
-// clusterGetter restricts the external dependencies for the repository
-type clusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
-}
-
-//
-type featureClusterRepository struct {
-	clusterGetter clusterGetter
-}
-
-func (fcs *featureClusterRepository) GetCluster(ctx context.Context, clusterId uint) (cluster.CommonCluster, error) {
-
-	cluster, err := fcs.clusterGetter.GetClusterByIDOnly(ctx, clusterId)
-	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retrieve cluster", "clusterid", clusterId)
-	}
-
-	return cluster, nil
-}
-
-func (fcs *featureClusterRepository) IsClusterReady(ctx context.Context, clusterId uint) (bool, error) {
-	cluster, err := fcs.GetCluster(ctx, clusterId)
-	if err != nil {
-		return false, err
-	}
-
-	isReady, err := cluster.IsReady()
-	if err != nil {
-		return false, emperror.WrapWith(err, "failed to check cluster", "clusterid", clusterId)
-	}
-
-	return isReady, err
-}
-
-func NewClusterRepository(getter clusterGetter) ClusterRepository {
-	return &featureClusterRepository{
-		clusterGetter: getter,
-	}
-}
 
 // FeatureRepository collects persistence related operations
 type FeatureRepository interface {

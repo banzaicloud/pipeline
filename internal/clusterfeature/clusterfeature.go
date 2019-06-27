@@ -22,18 +22,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ClusterFeatureService collects operations supporting cluster features
-type ClusterFeatureService interface {
-	// Activate deploys / enables a cluster feature to the cluster represented by it's identifier
-	Activate(ctx context.Context, clusterId uint, feature Feature) error
-
-	// Update updates an existing feature on the cluster represented by it's identifier
-	Update(ctx context.Context, clusterId uint, feature Feature) error
-
-	// Deactivate removes a feature from the cluster represented by it's identifier
-	Deactivate(ctx context.Context, clusterId uint, feature Feature) error
-}
-
 // Feature represents the internal state of a cluster feature.
 type Feature struct {
 	Name   string                 `json:"name"`
@@ -42,67 +30,100 @@ type Feature struct {
 	Status string                 `json:"status"`
 }
 
-// clusterFeature component struct, implements the ClusterFeatureService functionality
-type clusterFeatureService struct {
+// FeatureService manages features on Kubernetes clusters.
+type FeatureService struct {
 	logger            logur.Logger
-	clusterRepository ClusterRepository
+	clusterService    ClusterService
 	featureRepository FeatureRepository
 	featureManager    FeatureManager
 }
 
-func (cfs *clusterFeatureService) Activate(ctx context.Context, clusterId uint, feature Feature) error {
-	cfs.logger.Info("activate feature", map[string]interface{}{"feature": feature.Name})
+// ClusterService provides a thin access layer to clusters.
+type ClusterService interface {
+	// GetCluster retrieves the cluster representation based on the cluster identifier
+	GetCluster(ctx context.Context, clusterID uint) (Cluster, error)
 
-	ready, err := cfs.clusterRepository.IsClusterReady(ctx, clusterId)
+	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running).
+	IsClusterReady(ctx context.Context, clusterID uint) (bool, error)
+}
+
+// Cluster represents a Kubernetes cluster.
+type Cluster interface {
+	GetID() uint
+	GetOrganizationName() string
+	GetKubeConfig() ([]byte, error)
+}
+
+func NewClusterFeatureService(
+	logger logur.Logger,
+	clusterService ClusterService,
+	featureRepository FeatureRepository,
+	featureManager FeatureManager,
+) *FeatureService {
+	return &FeatureService{
+		logger:            logger,
+		clusterService:    clusterService,
+		featureRepository: featureRepository,
+		featureManager:    featureManager,
+	}
+}
+
+func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
+	s.logger.Info("activate feature", map[string]interface{}{"feature": featureName})
+
+	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
-		cfs.logger.Debug("failed to check the cluster", map[string]interface{}{"clusterId": clusterId})
-		return emperror.Wrap(err, "failed to check the cluster")
+		return err
 	}
 
 	if !ready {
-		cfs.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterId})
+		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
 		return errors.New("cluster is not ready")
 	}
 
-	if _, err := cfs.featureRepository.GetFeature(ctx, clusterId, feature); err == nil {
-		cfs.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
+	feature := Feature{
+		Name: featureName,
+		Spec: spec,
+	}
+
+	if _, err := s.featureRepository.GetFeature(ctx, clusterID, feature); err == nil {
+		s.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 		return errors.New("feature already exists")
 	}
 
-	if _, err := cfs.featureRepository.SaveFeature(ctx, clusterId, feature); err != nil {
-		cfs.logger.Debug("failed to save feature", map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
-		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterId, "feature", feature.Name)
+	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, feature); err != nil {
+		s.logger.Debug("failed to save feature", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	// delegate the task of "deploying" the feature to the manager
-	if _, err := cfs.featureManager.Activate(ctx, clusterId, feature); err != nil {
-		cfs.logger.Debug("failed to activate feature", map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
-		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterId, "feature", feature.Name)
+	if _, err := s.featureManager.Activate(ctx, clusterID, feature); err != nil {
+		s.logger.Debug("failed to activate feature", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
-	if _, err := cfs.featureRepository.UpdateFeatureStatus(ctx, clusterId, feature, STATUS_ACTIVE); err != nil {
-		cfs.logger.Debug("failed to update feature status ", map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
-		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterId, "feature", feature.Name)
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, feature, STATUS_ACTIVE); err != nil {
+		s.logger.Debug("failed to update feature status ", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
 	}
 
-	cfs.logger.Info("feature successfully activated ", map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
+	s.logger.Info("feature successfully activated ", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 	// activation succeeded
 	return nil
 }
 
-func (cfs *clusterFeatureService) Update(ctx context.Context, clusterId uint, feature Feature) error {
+func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
 	panic("implement me")
 }
 
-func (cfs *clusterFeatureService) Deactivate(ctx context.Context, clusterId uint, feature Feature) error {
+func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
 	panic("implement me")
 }
 
-func NewClusterFeatureService(logger logur.Logger, clusterRepository ClusterRepository, featureRepository FeatureRepository, featureManager FeatureManager) ClusterFeatureService {
-	return &clusterFeatureService{
-		logger:            logger,
-		clusterRepository: clusterRepository,
-		featureRepository: featureRepository,
-		featureManager:    featureManager,
-	}
+func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
+	panic("implement me")
+}
+
+func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
+	panic("implement me")
 }

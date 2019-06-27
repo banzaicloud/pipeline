@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature
+package clusterfeature_test
 
 import (
 	"context"
@@ -20,6 +20,8 @@ import (
 
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
+
+	. "github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 func TestFeatureSelector_SelectFeature(t *testing.T) {
@@ -42,7 +44,7 @@ func TestFeatureSelector_SelectFeature(t *testing.T) {
 		{
 			name: "supported feature",
 			feature: Feature{
-				Name: externalDns,
+				Name: ExternalDns,
 				Spec: map[string]interface{}{},
 			},
 			checker: func(t *testing.T, fp *Feature, err error) {
