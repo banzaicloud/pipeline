@@ -137,28 +137,45 @@ func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, 
 }
 
 func (fr *featureRepository) GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error) {
-	err := fr.db.First(&feature, map[string]interface{}{"name": feature.Name, "clusterId": clusterId}).Error
+	fm := ClusterFeatureModel{
+	}
+	err := fr.db.First(&fm, map[string]interface{}{"Name": feature.Name, "cluster_id": clusterId}).Error
 	if gorm.IsRecordNotFoundError(err) {
-		return nil, nil
+		return nil, emperror.WrapWith(err, "cluster feature not found", "feature-name", feature.Name)
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "could not retrieve feature")
 	}
+
+	if err := json.Unmarshal(fm.Spec, &feature.Spec); err != nil {
+		return nil, emperror.Wrap(err, "failed to retrieve (unmarsha) feature spec")
+	}
+
+	feature.Status = fm.Status
 
 	return &feature, nil
 }
 
 func (fr *featureRepository) UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error) {
-	ftr, err := fr.GetFeature(ctx, clusterId, feature)
-	if err != nil {
-		return nil, emperror.Wrap(err, "could not find feature")
+
+	clsId, _ := strconv.ParseUint(clusterId, 0, 32)
+
+	fm := ClusterFeatureModel{
+		ClusterID: uint(clsId),
+		Name:      feature.Name,
 	}
 
-	err = fr.db.Model(ftr).Update("status", status).Error
+	err := fr.db.Model(&fm).Update("status", status).Error
 	if err != nil {
 		return nil, emperror.Wrap(err, "could not update feature status")
 	}
 
-	return ftr, nil
+	if err := json.Unmarshal(fm.Spec, &feature.Spec); err != nil {
+		return nil, emperror.Wrap(err, "failed to retrieve (unmarsha) feature spec")
+	}
+
+	feature.Status = fm.Status
+
+	return &feature, nil
 }
 
 // NewClusters returns a new Clusters instance.
