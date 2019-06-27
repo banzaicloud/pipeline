@@ -17,14 +17,14 @@ package clusterfeature
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/cluster"
 )
 
 const (
 	clusterNotReady = 100
-
 )
 
 type dummyFeatureRepository struct {
