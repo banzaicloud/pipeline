@@ -18,6 +18,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/config"
+	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/logur"
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
@@ -102,4 +107,24 @@ func TestActivateClusterFeature(t *testing.T) {
 			test.checker(t, featureService.Activate(context.Background(), test.clusterId, test.clusterFeature))
 		})
 	}
+}
+
+func testClusterFeature(t *testing.T) {
+	lr := logrus.New()
+	l := logur.WithFields(logrusadapter.New(lr), map[string]interface{}{"app": "clusterfeature-iTest"})
+	db := config.DB()
+
+	secretValidator := providers.NewSecretValidator(secret.Store)
+	cm := cluster.NewManager(cluster2.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, lr, logur.NewErrorHandler(l))
+
+	cr := NewClusterRepository(cm)
+	fr := NewFeatureRepository(db)
+	fm := NewSyncFeatureManager(cr)
+
+	cps := NewClusterFeatureService(l, cr, fr, fm)
+
+	if err := cps.Activate(context.Background(), "3", Feature{}); err != nil {
+		t.Error(err)
+	}
+
 }
