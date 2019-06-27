@@ -12,22 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ginutils
+package ctxutil
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"context"
 )
 
-// HTTPHandlerToGinHandlerFunc wraps a http.Handler so that it works as a gin.HandlerFunc.
-func HTTPHandlerToGinHandlerFunc(handler http.Handler) gin.HandlerFunc {
-	return HTTPHandlerFuncToGinHandlerFunc(handler.ServeHTTP)
+// TODO: move this to an internal pkg?
+
+// nolint: gochecknoglobals
+var contextClusterID = contextKey("cluster-id")
+
+// ClusterID fetches cluster ID from a context (if any).
+func ClusterID(ctx context.Context) (uint, bool) {
+	clusterID, ok := ctx.Value(contextClusterID).(uint)
+	return clusterID, ok
 }
 
-// HTTPHandlerFuncToGinHandlerFunc wraps a http.HandlerFunc so that it works as a gin.HandlerFunc.
-func HTTPHandlerFuncToGinHandlerFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		handlerFunc(c.Writer, c.Request)
-	}
+// WithClusterID appends a cluster ID to a context.
+func WithClusterID(ctx context.Context, clusterID uint) context.Context {
+	return context.WithValue(ctx, contextClusterID, clusterID)
 }

@@ -15,19 +15,16 @@
 package ginutils
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
-// HTTPHandlerToGinHandlerFunc wraps a http.Handler so that it works as a gin.HandlerFunc.
-func HTTPHandlerToGinHandlerFunc(handler http.Handler) gin.HandlerFunc {
-	return HTTPHandlerFuncToGinHandlerFunc(handler.ServeHTTP)
-}
+// ParamsToMap converts a Gin parameter list to a simple string map.
+func ParamsToMap(params gin.Params) map[string]string {
+	paramsMap := make(map[string]string, len(params))
 
-// HTTPHandlerFuncToGinHandlerFunc wraps a http.HandlerFunc so that it works as a gin.HandlerFunc.
-func HTTPHandlerFuncToGinHandlerFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		handlerFunc(c.Writer, c.Request)
+	for _, param := range params {
+		paramsMap[param.Key] = param.Value
 	}
+
+	return paramsMap
 }

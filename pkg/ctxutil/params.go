@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ginutils
+package ctxutil
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"context"
 )
 
-// HTTPHandlerToGinHandlerFunc wraps a http.Handler so that it works as a gin.HandlerFunc.
-func HTTPHandlerToGinHandlerFunc(handler http.Handler) gin.HandlerFunc {
-	return HTTPHandlerFuncToGinHandlerFunc(handler.ServeHTTP)
+// nolint: gochecknoglobals
+var contextParams = contextKey("params")
+
+// WithParams appends parameters to a context.
+func WithParams(ctx context.Context, params map[string]string) context.Context {
+	return context.WithValue(ctx, contextParams, params)
 }
 
-// HTTPHandlerFuncToGinHandlerFunc wraps a http.HandlerFunc so that it works as a gin.HandlerFunc.
-func HTTPHandlerFuncToGinHandlerFunc(handlerFunc http.HandlerFunc) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		handlerFunc(c.Writer, c.Request)
-	}
+// Params fetches parameters from a context (if any).
+func Params(ctx context.Context) (map[string]string, bool) {
+	params, ok := ctx.Value(contextParams).(map[string]string)
+	return params, ok
 }

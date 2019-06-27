@@ -33,13 +33,13 @@ import (
 	"github.com/spf13/viper"
 
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
 	"github.com/banzaicloud/pipeline/api/ark/backupservice"
 	"github.com/banzaicloud/pipeline/api/ark/buckets"
 	"github.com/banzaicloud/pipeline/api/ark/restores"
 	"github.com/banzaicloud/pipeline/api/ark/schedules"
-	clusterFeatures "github.com/banzaicloud/pipeline/api/cluster/features"
 	"github.com/banzaicloud/pipeline/api/cluster/namespace"
 	"github.com/banzaicloud/pipeline/api/cluster/pke"
 	cgroupAPI "github.com/banzaicloud/pipeline/api/clustergroup"
@@ -59,6 +59,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
@@ -77,6 +78,7 @@ import (
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/model/defaults"
+	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -328,6 +330,9 @@ func main() {
 		log.Infoln("Audit enabled, installing Gin audit middleware")
 		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
 	}
+	router.Use(func(c *gin.Context) { // TODO: move to middleware
+		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
+	})
 
 	router.GET("/", api.RedirectRoot)
 
@@ -481,17 +486,29 @@ func main() {
 				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
 			}
 
+			// Cluster Feature API
 			{
-				var features clusterFeatures.Features // TODO
-				endpoints := clusterFeatures.MakeEndpoints(features)
-				handlers := clusterFeatures.MakeHandlers(endpoints, errorHandler)
+				var service clusterfeaturedriver.FeatureService // TODO
+				endpoints := clusterfeaturedriver.MakeEndpoints(service)
+				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 
-				orgs.GET("/:orgid/clusters/:id/features", ginutils.HTTPHandlerToGinHandlerFunc(handlers.ListClusterFeatures))
+				router := orgs.Group("/:orgid/clusters/:id/features")
 
-				orgs.DELETE("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.DeactivateClusterFeature))
-				orgs.GET("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.ClusterFeatureDetails))
-				orgs.POST("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.ActivateClusterFeature))
-				orgs.PUT("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.UpdateClusterFeature))
+				// TODO: move this to a middleware
+				router.Use(func(c *gin.Context) {
+					clusterID, ok := ginutils.UintParam(c, "id")
+					if !ok {
+						return
+					}
+
+					c.Request = c.Request.WithContext(ctxutil.WithClusterID(c.Request.Context(), clusterID))
+				})
+
+				orgs.GET("/:orgid/clusters/:id/features", ginutils.HTTPHandlerToGinHandlerFunc(handlers.List))
+				orgs.GET("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Details))
+				orgs.DELETE("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Deactivate))
+				orgs.POST("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Activate))
+				orgs.PUT("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Update))
 			}
 
 			// ClusterGroupAPI
