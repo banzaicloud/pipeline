@@ -1,5 +1,4 @@
-CREATE TABLE `clusterfeature`
-(
+CREATE TABLE `clusterfeature` (
     `id`         int(10) unsigned NOT NULL AUTO_INCREMENT,
     `name`       varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
     `cluster_id` int(10) unsigned                        DEFAULT NULL,

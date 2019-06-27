@@ -16,7 +16,6 @@ package clusterfeature
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -29,14 +28,13 @@ const (
 
 // ClusterFeatureModel describes the cluster group model.
 type ClusterFeatureModel struct {
-	ID        int `gorm:"primary_key"`
+	// injecting timestamp fields
+	gorm.Model
+
 	Name      string
 	Status    string
 	ClusterID uint
 	Spec      []byte
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
 	CreatedBy uint
 }
 

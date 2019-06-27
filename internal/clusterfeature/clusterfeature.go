@@ -77,7 +77,7 @@ func (cfs *clusterFeatureService) Activate(ctx context.Context, clusterId string
 	// delegate the task of "deploying" the feature to the manager
 	if _, err := cfs.featureManager.Activate(ctx, clusterId, feature); err != nil {
 		cfs.logger.Debug("failed to activate feature", map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
-		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterId, "feature", feature.Name)
+		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterId, "feature", feature.Name)
 	}
 
 	// todo update the status in case of errors! define statuses

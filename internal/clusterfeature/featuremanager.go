@@ -163,11 +163,12 @@ func (fhi *featureHelmInstaller) installDeployment(cluster cluster.CommonCluster
 }
 
 // NewSyncFeatureManager builds a new feature manager component
-func NewSyncFeatureManager(clusterRepository ClusterRepository, featureRepository FeatureRepository) FeatureManager {
+func NewSyncFeatureManager(clusterRepository ClusterRepository) FeatureManager {
 	l := logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "feature-manager"})
 	return &syncFeatureManager{
 		logger:            l,
 		clusterRepository: clusterRepository,
+		featureSelector:   NewFeatureSelector(l),
 		helmInstaller: &featureHelmInstaller{ // wired private component!
 			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
 		},
