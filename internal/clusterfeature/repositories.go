@@ -96,7 +96,7 @@ func NewClusterRepository(getter clusterGetter) ClusterRepository {
 
 // FeatureRepository collects persistence related operations
 type FeatureRepository interface {
-	SaveFeature(ctx context.Context, clusterId string, feature Feature) (int, error)
+	SaveFeature(ctx context.Context, clusterId string, feature Feature) (uint, error)
 	GetFeature(ctx context.Context, clusterId string, feature Feature) (*Feature, error)
 	UpdateFeatureStatus(ctx context.Context, clusterId string, feature Feature, status string) (*Feature, error)
 }
@@ -106,17 +106,17 @@ type featureRepository struct {
 	db *gorm.DB
 }
 
-func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, feature Feature) (int, error) {
+func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, feature Feature) (uint, error) {
 
 	// encode the spec
 	featureSpec, err := json.Marshal(feature.Spec)
 	if err != nil {
-		return -1, emperror.WrapWith(err, "failed to marshal feature spec", "feature", feature.Name)
+		return 0, emperror.WrapWith(err, "failed to marshal feature spec", "feature", feature.Name)
 	}
 
 	clusterIdInt, err := strconv.ParseUint(clusterId, 0, 32)
 	if err != nil {
-		return -1, emperror.WrapWith(err, "failed to parse cluster id", "feature", feature.Name)
+		return 0, emperror.WrapWith(err, "failed to parse cluster id", "feature", feature.Name)
 	}
 
 	cfModel := ClusterFeatureModel{
@@ -126,10 +126,10 @@ func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId string, 
 		Status:    STATUS_PENDING,
 	}
 
-	err = fr.db.Save(cfModel).Error
+	err = fr.db.Save(&cfModel).Error
 	if err != nil {
 		if err != nil {
-			return -1, emperror.WrapWith(err, "failed to persist feature", "feature", feature.Name)
+			return 0, emperror.WrapWith(err, "failed to persist feature", "feature", feature.Name)
 		}
 	}
 
