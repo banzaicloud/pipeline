@@ -12,21 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature
+package clusterfeature_test
 
 import (
 	"context"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
-	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/pkg/providers"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/goph/logur"
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/config"
+	cluster2 "github.com/banzaicloud/pipeline/internal/cluster"
+	. "github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+	"github.com/banzaicloud/pipeline/pkg/providers"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 func TestActivateClusterFeature(t *testing.T) {
@@ -104,7 +107,7 @@ func TestActivateClusterFeature(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.checker(t, featureService.Activate(context.Background(), test.clusterId, test.clusterFeature))
+			test.checker(t, featureService.Activate(context.Background(), test.clusterId, test.clusterFeature.Name, test.clusterFeature.Spec))
 		})
 	}
 }
@@ -117,13 +120,13 @@ func testClusterFeature(t *testing.T) {
 	secretValidator := providers.NewSecretValidator(secret.Store)
 	cm := cluster.NewManager(cluster2.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, lr, logur.NewErrorHandler(l))
 
-	cr := NewClusterRepository(cm)
+	cr := clusterfeatureadapter.NewClusterService(cm)
 	fr := NewFeatureRepository(db)
 	fm := NewSyncFeatureManager(cr)
 
 	cps := NewClusterFeatureService(l, cr, fr, fm)
 
-	if err := cps.Activate(context.Background(), 3, Feature{}); err != nil {
+	if err := cps.Activate(context.Background(), 3, "", map[string]interface{}{}); err != nil {
 		t.Error(err)
 	}
 
