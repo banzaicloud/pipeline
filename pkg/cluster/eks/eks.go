@@ -15,8 +15,10 @@
 package eks
 
 import (
+	"github.com/Masterminds/semver"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	"github.com/goph/emperror"
 )
 
 // CreateClusterEKS describes Pipeline's Amazon EKS fields of a CreateCluster request
@@ -162,7 +164,11 @@ func (eks *CreateClusterEKS) Validate() error {
 	}
 
 	// validate K8s version
-	if !isValidVersion(eks.Version) {
+	isValid, err := isValidVersion(eks.Version)
+	if err != nil {
+		return emperror.Wrap(err, "couldn't validate Kubernetes version")
+	}
+	if !isValid {
 		return pkgErrors.ErrorNotValidKubernetesVersion
 	}
 
@@ -232,13 +238,19 @@ func (eks *UpdateClusterAmazonEKS) Validate() error {
 }
 
 // isValidVersion validates the given K8S version
-func isValidVersion(version string) bool {
-	if len(version) == 0 {
-		return true
+func isValidVersion(version string) (bool, error) {
+	constraint, err := semver.NewConstraint(">= 1.10, < 1.15")
+	if err != nil {
+		return false, emperror.Wrap(err, "couldn't create semver Kubernetes version check constraint")
+	}
+
+	v, err := semver.NewVersion(version)
+	if err != nil {
+		return false, emperror.Wrap(err, "couldn't create semver")
 	}
 
 	// TODO check if there is an AWS API that can tell us supported Kubernetes versions
-	return version == "1.10" || version == "1.11"
+	return constraint.Check(v), nil
 
 }
 
