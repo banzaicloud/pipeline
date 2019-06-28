@@ -26,7 +26,7 @@ import (
 type FeatureRepository interface {
 	SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error)
 	GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error)
-	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error)
+	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status FeatureStatus) (*Feature, error)
 }
 
 // featureRepository component in charge for executing persistence operation on Features
@@ -46,7 +46,7 @@ func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId uint, fe
 		Name:      feature.Name,
 		Spec:      featureSpec,
 		ClusterID: clusterId,
-		Status:    STATUS_PENDING,
+		Status:    string(FeatureStatusPending),
 	}
 
 	err = fr.db.Save(&cfModel).Error
@@ -73,7 +73,7 @@ func (fr *featureRepository) GetFeature(ctx context.Context, clusterId uint, fea
 	return fr.modelToFeature(&fm)
 }
 
-func (fr *featureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error) {
+func (fr *featureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status FeatureStatus) (*Feature, error) {
 
 	fm := ClusterFeatureModel{
 		ClusterID: clusterId,
@@ -96,7 +96,7 @@ func NewFeatureRepository(db *gorm.DB) FeatureRepository {
 func (fr *featureRepository) modelToFeature(cfm *ClusterFeatureModel) (*Feature, error) {
 	f := Feature{
 		Name:   cfm.Name,
-		Status: cfm.Status,
+		Status: FeatureStatus(cfm.Status),
 	}
 
 	if err := json.Unmarshal(cfm.Spec, &f.Spec); err != nil {

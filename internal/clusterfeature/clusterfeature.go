@@ -27,7 +27,21 @@ type Feature struct {
 	Name   string                 `json:"name"`
 	Spec   map[string]interface{} `json:"spec"`
 	Output map[string]interface{} `json:"output"`
-	Status string                 `json:"status"`
+	Status FeatureStatus          `json:"status"`
+}
+
+type FeatureStatus string
+
+const (
+	FeatureStatusActive  FeatureStatus = "ACTIVE"
+	FeatureStatusPending FeatureStatus = "PENDING"
+)
+
+// AllFeatureStatus is a list of the available feature statuses.
+// nolint: gochecknoglobals
+var AllFeatureStatus = []FeatureStatus{
+	FeatureStatusActive,
+	FeatureStatusPending,
 }
 
 // FeatureService manages features on Kubernetes clusters.
@@ -102,7 +116,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
-	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, feature, STATUS_ACTIVE); err != nil {
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, feature, FeatureStatusActive); err != nil {
 		s.logger.Debug("failed to update feature status ", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
 	}
