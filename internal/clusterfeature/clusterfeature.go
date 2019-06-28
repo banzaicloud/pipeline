@@ -37,13 +37,6 @@ const (
 	FeatureStatusPending FeatureStatus = "PENDING"
 )
 
-// AllFeatureStatus is a list of the available feature statuses.
-// nolint: gochecknoglobals
-var AllFeatureStatus = []FeatureStatus{
-	FeatureStatusActive,
-	FeatureStatusPending,
-}
-
 // FeatureService manages features on Kubernetes clusters.
 type FeatureService struct {
 	logger            logur.Logger
