@@ -492,7 +492,7 @@ func main() {
 			// Cluster Feature API
 			{
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-				fr := clusterfeature.NewFeatureRepository(db)
+				fr := clusterfeatureadapter.NewGormFeatureRepository(db)
 				fm := clusterfeature.NewSyncFeatureManager(clusterService)
 				service := clusterfeature.NewClusterFeatureService(logrusadapter.New(log), clusterService, fr, fm)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
