@@ -47,6 +47,7 @@ type FeatureService struct {
 // ClusterService provides a thin access layer to clusters.
 type ClusterService interface {
 	// GetCluster retrieves the cluster representation based on the cluster identifier
+	// TODO: this is an implementation detail for the helm installer. Remove it from here/relocate to another interface.
 	GetCluster(ctx context.Context, clusterID uint) (Cluster, error)
 
 	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running).
@@ -54,6 +55,7 @@ type ClusterService interface {
 }
 
 // Cluster represents a Kubernetes cluster.
+// TODO: this is an implementation detail for the helm installer. Remove it from here/relocate to another interface.
 type Cluster interface {
 	GetID() uint
 	GetOrganizationName() string
@@ -61,9 +63,16 @@ type Cluster interface {
 }
 
 // FeatureRepository collects persistence related operations.
+// TODO: list features
+// TODO: get a feature
+// TODO: delete a feature
 type FeatureRepository interface {
 	SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error)
+
+	// TODO: use feature name
 	GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error)
+
+	// TODO: use feature name
 	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error)
 }
 
@@ -71,6 +80,8 @@ type FeatureRepository interface {
 type FeatureManager interface {
 	// Deploys and activates a feature on the given cluster
 	Activate(ctx context.Context, clusterId uint, feature Feature) (string, error)
+
+	// TODO: deactivate feature
 
 	// Updates a feature on the given cluster
 	Update(ctx context.Context, clusterId uint, feature Feature) (string, error)
@@ -101,6 +112,8 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 
 	if !ready {
 		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
+
+		// TODO: return a business error here
 		return errors.New("cluster is not ready")
 	}
 
@@ -111,9 +124,12 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 
 	if _, err := s.featureRepository.GetFeature(ctx, clusterID, feature); err == nil {
 		s.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+
+		// TODO: return a business error here
 		return errors.New("feature already exists")
 	}
 
+	// TODO: save feature name and spec (pending status?)
 	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, feature); err != nil {
 		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterID, "feature", featureName)
 	}
@@ -123,6 +139,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
+	// TODO: this should be done asynchronously
 	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, feature, FeatureStatusActive); err != nil {
 		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
 	}
@@ -132,18 +149,22 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	return nil
 }
 
+// TODO: implement
 func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
 	panic("implement me")
 }
 
+// TODO: implement
 func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
 	panic("implement me")
 }
 
+// TODO: implement
 func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
 	panic("implement me")
 }
 
+// TODO: implement
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	panic("implement me")
 }

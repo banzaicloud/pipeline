@@ -73,6 +73,7 @@ func (cfm clusterFeatureModel) String() string {
 }
 
 // GormFeatureRepository component in charge for executing persistence operation on Features.
+// TODO: write integration tests
 type GormFeatureRepository struct {
 	db *gorm.DB
 }
