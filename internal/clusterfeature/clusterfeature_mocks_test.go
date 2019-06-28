@@ -25,6 +25,10 @@ import (
 
 const (
 	clusterNotReady = 100
+	clusterReady    = 200
+
+	featureExists          = "existing-feature"
+	featureCouldNotPersist = "feature-fail-to-persist"
 )
 
 type dummyFeatureRepository struct {
@@ -38,19 +42,19 @@ func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clus
 
 func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error) {
 	switch feature.Name {
-	case "existingfeature":
-		return &Feature{Name: "existingfeature"}, nil
+	case featureExists:
+		return &Feature{Name: featureExists}, nil
 	}
 	return nil, errors.New("feature not found")
 }
 
 func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error) {
 	switch feature.Name {
-	case "failtopersist":
+	case featureCouldNotPersist:
 		return 0, errors.New("persistence error")
 	}
 
-	return 111, nil
+	return 0, nil
 }
 
 type dummyClusterRepository struct {

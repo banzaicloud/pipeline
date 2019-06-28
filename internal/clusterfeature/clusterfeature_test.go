@@ -41,7 +41,7 @@ func TestActivateClusterFeature(t *testing.T) {
 	}{
 		{
 			name:      "cluster is not ready",
-			clusterId: 1,
+			clusterId: clusterNotReady,
 			clusterFeature: Feature{
 				Name: "clusterisnotready",
 				Spec: nil,
@@ -55,9 +55,9 @@ func TestActivateClusterFeature(t *testing.T) {
 		},
 		{
 			name:      "feature exists",
-			clusterId: 1,
+			clusterId: clusterReady,
 			clusterFeature: Feature{
-				Name: "existingfeature",
+				Name: featureExists,
 				Spec: nil,
 			},
 			checker: func(t *testing.T, response interface{}) {
@@ -69,9 +69,9 @@ func TestActivateClusterFeature(t *testing.T) {
 		},
 		{
 			name:      "could not persist feature",
-			clusterId: 1,
+			clusterId: clusterReady,
 			clusterFeature: Feature{
-				Name: "failtopersist",
+				Name: featureCouldNotPersist,
 				Spec: nil,
 			},
 			checker: func(t *testing.T, response interface{}) {
@@ -83,7 +83,7 @@ func TestActivateClusterFeature(t *testing.T) {
 		},
 		{
 			name:      "activation succeeded",
-			clusterId: 1,
+			clusterId: clusterReady,
 			clusterFeature: Feature{
 				Name: "success",
 				Spec: nil,

@@ -12,52 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature_test
+package clusterfeatureadapter
 
 import (
 	"context"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/goph/logur"
 	"github.com/stretchr/testify/assert"
-
-	. "github.com/banzaicloud/pipeline/internal/clusterfeature"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 )
 
 func TestFeatureSelector_SelectFeature(t *testing.T) {
 	tests := []struct {
 		name    string
-		feature Feature
-		checker func(t *testing.T, fp *Feature, err error)
+		feature clusterfeature.Feature
+		checker func(t *testing.T, fp *clusterfeature.Feature, err error)
 	}{
 		{
 			name: "unsupported feature",
-			feature: Feature{
+			feature: clusterfeature.Feature{
 				Name: "unsupported",
 				Spec: map[string]interface{}{},
 			},
-			checker: func(t *testing.T, fp *Feature, err error) {
+			checker: func(t *testing.T, fp *clusterfeature.Feature, err error) {
 				assert.NotNil(t, err)
 				assert.Nil(t, fp)
 			},
 		},
 		{
 			name: "supported feature",
-			feature: Feature{
-				Name: clusterfeatureadapter.ExternalDns,
+			feature: clusterfeature.Feature{
+				Name: ExternalDns,
 				Spec: map[string]interface{}{},
 			},
-			checker: func(t *testing.T, fp *Feature, err error) {
+			checker: func(t *testing.T, fp *clusterfeature.Feature, err error) {
 				assert.Nil(t, err)
 				assert.NotNil(t, fp)
-				assert.Equal(t, "1.6.2", fp.Spec[clusterfeatureadapter.DNSExternalDnsChartVersion])
-				assert.Equal(t, "v0.5.11", fp.Spec[clusterfeatureadapter.DNSExternalDnsImageVersion])
+				assert.Equal(t, "1.6.2", fp.Spec[DNSExternalDnsChartVersion])
+				assert.Equal(t, "v0.5.11", fp.Spec[DNSExternalDnsImageVersion])
 			},
 		},
 	}
 
-	fs := clusterfeatureadapter.NewFeatureSelector(logur.NewTestLogger())
+	fs := NewFeatureSelector(logur.NewTestLogger())
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
