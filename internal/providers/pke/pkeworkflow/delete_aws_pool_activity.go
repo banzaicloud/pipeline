@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
@@ -82,7 +83,7 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
 	if err != nil {
-		return emperror.Wrap(err, "waiting for termination")
+		emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for termination")
 	}
 
 	return nil

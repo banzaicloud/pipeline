@@ -35,7 +35,9 @@ type UpdateClusterWorkflowInput struct {
 	Region                      string
 	PipelineExternalURL         string
 	PipelineExternalURLInsecure bool
-	NodePools                   []NodePool
+	NodePoolsToAdd              []NodePool
+	NodePoolsToDelete           []NodePool
+	NodePoolsToUpdate           []NodePool
 	VPCID                       string
 	SubnetIDs                   []string
 }
@@ -69,29 +71,9 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	}
 	clusterSecurityGroup := masterOutput["ClusterSecurityGroup"]
 
-	var oldNodePools []NodePool
-
-	if err := workflow.ExecuteActivity(ctx,
-		ListNodePoolsActivityName,
-		ListNodePoolsActivityInput{
-			ClusterID: input.ClusterID,
-		}).Get(ctx, &oldNodePools); err != nil {
-		return err
-	}
-
-	olds := map[string]bool{}
-	for _, old := range oldNodePools {
-		olds[old.Name] = true
-	}
-
-	news := map[string]bool{}
-	for _, new := range input.NodePools {
-		news[new.Name] = true
-	}
-
 	// delete removed nodepools
-	for _, np := range oldNodePools {
-		if news[np.Name] || np.Master || !np.Worker {
+	for _, np := range input.NodePoolsToDelete {
+		if np.Master || !np.Worker {
 			continue
 		}
 
@@ -106,46 +88,37 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	}
 
 	// create/change nodepools that are not removed
-	for _, np := range input.NodePools {
-		if np.Master || np.Name == "master" {
-			continue
+	for _, np := range input.NodePoolsToUpdate {
+		stackName := fmt.Sprintf("pke-pool-%s-worker-%s", input.ClusterName, np.Name)
+		var cfOut map[string]string
+
+		err := workflow.ExecuteActivity(ctx,
+			WaitCFCompletionActivityName,
+			WaitCFCompletionActivityInput{
+				AWSActivityInput: awsActivityInput,
+				StackID:          stackName}).Get(ctx, &cfOut)
+		if err != nil {
+			return emperror.Wrap(err, fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
 		}
 
-		if olds[np.Name] { // update existing
-
-			stackName := fmt.Sprintf("pke-pool-%s-worker-%s", input.ClusterName, np.Name)
-			var cfOut map[string]string
-
-			err := workflow.ExecuteActivity(ctx,
-				WaitCFCompletionActivityName,
-				WaitCFCompletionActivityInput{
-					AWSActivityInput: awsActivityInput,
-					StackID:          stackName}).Get(ctx, &cfOut)
-			if err != nil {
-				return emperror.Wrap(err, fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
-			}
-
-			asg, ok := cfOut["AutoScalingGroupId"]
-			if !ok {
-				return errors.New(fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
-			}
-
-			err = workflow.ExecuteActivity(ctx,
-				UpdatePoolActivityName,
-				UpdatePoolActivityInput{
-					AWSActivityInput: awsActivityInput,
-					Pool:             np,
-					AutoScalingGroup: asg,
-				}).Get(ctx, nil)
-			if err != nil {
-				return err
-			}
-
-			continue
+		asg, ok := cfOut["AutoScalingGroupId"]
+		if !ok {
+			return errors.New(fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
 		}
 
-		// create new
+		err = workflow.ExecuteActivity(ctx,
+			UpdatePoolActivityName,
+			UpdatePoolActivityInput{
+				AWSActivityInput: awsActivityInput,
+				Pool:             np,
+				AutoScalingGroup: asg,
+			}).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
+	for _, np := range input.NodePoolsToAdd {
 		createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 			//AWSActivityInput:      awsActivityInput,
 			ClusterID:               input.ClusterID,

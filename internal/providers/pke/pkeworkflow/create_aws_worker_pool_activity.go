@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
@@ -206,6 +207,11 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		}
 	} else if err != nil {
 		return "", err
+	}
+
+	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)})
+	if err != nil {
+		emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for stack creation")
 	}
 
 	if output.StackId != nil {
