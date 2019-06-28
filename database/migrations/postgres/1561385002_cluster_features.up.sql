@@ -13,9 +13,6 @@ create table cluster_features
     created_by integer
 );
 
-alter table cluster_features
-    owner to sparky;
-
 create index idx_cluster_features_deleted_at
     on cluster_features (deleted_at);
 
