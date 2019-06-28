@@ -218,7 +218,7 @@ Pipeline installs and runs Kubernetes operators to bring human operational knowl
 
 ### Quick howto
 
-To do a step by step installation there is a detailed howto available [here](docs/pipeline-howto.md).
+To get a Banzai Cloud Control Plane instance up and running quickly follow [these](https://beta.banzaicloud.io/docs/installer/) installation steps.
 
 ### Reporting bugs
 
