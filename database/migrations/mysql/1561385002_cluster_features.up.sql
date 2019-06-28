@@ -1,4 +1,4 @@
-create table cluster_feature
+create table cluster_features
 (
     id         int unsigned auto_increment
         primary key,
@@ -13,5 +13,5 @@ create table cluster_feature
 );
 
 create index idx_cluster_feature_deleted_at
-    on cluster_feature (deleted_at);
+    on cluster_features (deleted_at);
 
