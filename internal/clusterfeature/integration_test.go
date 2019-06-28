@@ -27,5 +27,5 @@ func TestIntegration(t *testing.T) {
 
 	t.Parallel()
 
-	t.Skip("testClusterFeature", testClusterFeature)
+	t.Run("testClusterFeature", testClusterFeature)
 }
