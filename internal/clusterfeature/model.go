@@ -15,43 +15,64 @@
 package clusterfeature
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cast"
 )
 
 // TableName constants
 const (
-	clusterFeatureTableName = "clusterfeature"
+	clusterFeatureTableName = "cluster_feature"
 )
 
-// ClusterFeatureModel describes the cluster group model.
-type ClusterFeatureModel struct {
+type featureSpec map[string]interface{}
+
+func (fs featureSpec) Scan(src interface{}) error {
+	value, err := cast.ToStringE(src)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(value), &fs)
+}
+
+func (fs featureSpec) Value() (driver.Value, error) {
+	v, err := json.Marshal(fs)
+	if err != nil {
+		return "", err
+	}
+	return v, nil
+}
+
+// clusterFeatureModel describes the cluster group model.
+type clusterFeatureModel struct {
 	// injecting timestamp fields
 	gorm.Model
 
 	Name      string
 	Status    string
 	ClusterID uint
-	Spec      []byte
+	Spec      featureSpec `gorm:"type:text"`
 	CreatedBy uint
 }
 
 // TableName changes the default table name.
-func (cfm ClusterFeatureModel) TableName() string {
+func (cfm clusterFeatureModel) TableName() string {
 	return clusterFeatureTableName
 }
 
 // String method prints formatted cluster fields.
-func (cfm ClusterFeatureModel) String() string {
+func (cfm clusterFeatureModel) String() string {
 	return fmt.Sprintf("Id: %d, Creation date: %s, Name: %s", cfm.ID, cfm.CreatedAt, cfm.Name)
 }
 
 // Migrate executes the table migrations for the cluster module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&ClusterFeatureModel{},
+		&clusterFeatureModel{},
 	}
 
 	var tableNames string
