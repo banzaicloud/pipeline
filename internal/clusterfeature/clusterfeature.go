@@ -106,23 +106,20 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	}
 
 	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, feature); err != nil {
-		s.logger.Debug("failed to save feature", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	// delegate the task of "deploying" the feature to the manager
 	if _, err := s.featureManager.Activate(ctx, clusterID, feature); err != nil {
-		s.logger.Debug("failed to activate feature", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, feature, FeatureStatusActive); err != nil {
-		s.logger.Debug("failed to update feature status ", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
 	}
 
 	s.logger.Info("feature successfully activated ", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	// activation succeeded
+
 	return nil
 }
 
