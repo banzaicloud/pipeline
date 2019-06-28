@@ -15,8 +15,6 @@
 package clusterfeature
 
 import (
-	"encoding/json"
-
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/net/context"
@@ -36,31 +34,23 @@ type featureRepository struct {
 
 func (fr *featureRepository) SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error) {
 
-	// encode the spec
-	featureSpec, err := json.Marshal(feature.Spec)
-	if err != nil {
-		return 0, emperror.WrapWith(err, "failed to marshal feature spec", "feature", feature.Name)
-	}
-
-	cfModel := ClusterFeatureModel{
+	cfModel := clusterFeatureModel{
 		Name:      feature.Name,
-		Spec:      featureSpec,
+		Spec:      feature.Spec,
 		ClusterID: clusterId,
 		Status:    string(FeatureStatusPending),
 	}
 
-	err = fr.db.Save(&cfModel).Error
+	err := fr.db.Save(&cfModel).Error
 	if err != nil {
-		if err != nil {
-			return 0, emperror.WrapWith(err, "failed to persist feature", "feature", feature.Name)
-		}
+		return 0, emperror.WrapWith(err, "failed to persist feature", "feature", feature.Name)
 	}
 
 	return cfModel.ID, nil
 }
 
 func (fr *featureRepository) GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error) {
-	fm := ClusterFeatureModel{}
+	fm := clusterFeatureModel{}
 
 	err := fr.db.First(&fm, map[string]interface{}{"Name": feature.Name, "cluster_id": clusterId}).Error
 
@@ -75,7 +65,7 @@ func (fr *featureRepository) GetFeature(ctx context.Context, clusterId uint, fea
 
 func (fr *featureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status FeatureStatus) (*Feature, error) {
 
-	fm := ClusterFeatureModel{
+	fm := clusterFeatureModel{
 		ClusterID: clusterId,
 		Name:      feature.Name,
 	}
@@ -93,14 +83,11 @@ func NewFeatureRepository(db *gorm.DB) FeatureRepository {
 	return &featureRepository{db: db}
 }
 
-func (fr *featureRepository) modelToFeature(cfm *ClusterFeatureModel) (*Feature, error) {
+func (fr *featureRepository) modelToFeature(cfm *clusterFeatureModel) (*Feature, error) {
 	f := Feature{
 		Name:   cfm.Name,
 		Status: FeatureStatus(cfm.Status),
-	}
-
-	if err := json.Unmarshal(cfm.Spec, &f.Spec); err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve (unmarsha) feature spec")
+		Spec:   cfm.Spec,
 	}
 
 	return &f, nil
