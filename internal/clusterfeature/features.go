@@ -33,12 +33,6 @@ const (
 	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
 
 	DNSExternalDnsValues = "dns.externalDnsValues"
-
-	// Status signaling a feature being activated or inactive
-	STATUS_PENDING = "PENDING"
-
-	// Status signaling a feature being active
-	STATUS_ACTIVE = "ACTIVE"
 )
 
 type ExternalDnsFeature struct {
