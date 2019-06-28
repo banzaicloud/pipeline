@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS "cluster_features";
+DROP TABLE IF EXISTS `cluster_features`;
