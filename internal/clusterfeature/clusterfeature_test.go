@@ -121,7 +121,7 @@ func testClusterFeature(t *testing.T) {
 	cm := cluster.NewManager(cluster2.NewClusters(config.DB()), secretValidator, cluster.NewNopClusterEvents(), nil, nil, nil, lr, logur.NewErrorHandler(l))
 
 	cr := clusterfeatureadapter.NewClusterService(cm)
-	fr := NewFeatureRepository(db)
+	fr := clusterfeatureadapter.NewGormFeatureRepository(db)
 	fm := NewSyncFeatureManager(cr)
 
 	cps := NewClusterFeatureService(l, cr, fr, fm)

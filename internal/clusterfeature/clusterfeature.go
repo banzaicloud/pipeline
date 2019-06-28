@@ -68,6 +68,13 @@ type Cluster interface {
 	GetKubeConfig() ([]byte, error)
 }
 
+// FeatureRepository collects persistence related operations.
+type FeatureRepository interface {
+	SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error)
+	GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error)
+	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status FeatureStatus) (*Feature, error)
+}
+
 func NewClusterFeatureService(
 	logger logur.Logger,
 	clusterService ClusterService,
