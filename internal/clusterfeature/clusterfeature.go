@@ -67,6 +67,15 @@ type FeatureRepository interface {
 	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error)
 }
 
+// FeatureManager operations in charge for applying features to the cluster.
+type FeatureManager interface {
+	// Deploys and activates a feature on the given cluster
+	Activate(ctx context.Context, clusterId uint, feature Feature) (string, error)
+
+	// Updates a feature on the given cluster
+	Update(ctx context.Context, clusterId uint, feature Feature) (string, error)
+}
+
 // NewClusterFeatureService returns a new FeatureService instance.
 func NewClusterFeatureService(
 	logger logur.Logger,

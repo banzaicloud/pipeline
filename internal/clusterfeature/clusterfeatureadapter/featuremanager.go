@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature
+package clusterfeatureadapter
 
 import (
 	"context"
@@ -26,29 +26,21 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-// FeatureManager operations in charge for applying features to the cluster
-type FeatureManager interface {
-	// Deploys and activates a feature on the given cluster
-	Activate(ctx context.Context, clusterId uint, feature Feature) (string, error)
-
-	// Updates a feature on the given cluster
-	Update(ctx context.Context, clusterId uint, feature Feature) (string, error)
-}
-
-// syncFeatureManager synchronous feature manager
-type syncFeatureManager struct {
+// SyncFeatureManager synchronous feature manager
+type SyncFeatureManager struct {
 	logger          logur.Logger
-	clusterService  ClusterService
+	clusterService  clusterfeature.ClusterService
 	featureSelector FeatureSelector
 	helmInstaller   helmInstaller
 }
 
 // NewSyncFeatureManager builds a new feature manager component
-func NewSyncFeatureManager(clusterService ClusterService) FeatureManager {
+func NewSyncFeatureManager(clusterService clusterfeature.ClusterService) *SyncFeatureManager {
 	l := logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "feature-manager"})
-	return &syncFeatureManager{
+	return &SyncFeatureManager{
 		logger:          l,
 		clusterService:  clusterService,
 		featureSelector: NewFeatureSelector(l),
@@ -58,7 +50,7 @@ func NewSyncFeatureManager(clusterService ClusterService) FeatureManager {
 	}
 }
 
-func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) (string, error) {
+func (sfm *SyncFeatureManager) Activate(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (string, error) {
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
@@ -79,14 +71,14 @@ func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId uint, fea
 
 }
 
-func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) (string, error) {
+func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (string, error) {
 	panic("implement me")
 }
 
 // helmInstaller interface for helm operations
 type helmInstaller interface {
 	// InstallFeature installs a feature to the given cluster
-	InstallFeature(ctx context.Context, cluster Cluster, feature Feature) error
+	InstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error
 }
 
 // component in chrge for installing features from helmcharts
@@ -94,7 +86,7 @@ type featureHelmInstaller struct {
 	logger logur.Logger
 }
 
-func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster Cluster, feature Feature) error {
+func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
 	ns, ok := feature.Spec["namespace"]
 	if !ok {
 		return errors.New("namespace for feature not provided")
@@ -118,7 +110,7 @@ func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster Clu
 }
 
 func (fhi *featureHelmInstaller) installDeployment(
-	cluster Cluster,
+	cluster clusterfeature.Cluster,
 	namespace string,
 	deploymentName string,
 	releaseName string,

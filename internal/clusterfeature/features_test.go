@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 )
 
 func TestFeatureSelector_SelectFeature(t *testing.T) {
@@ -44,19 +45,19 @@ func TestFeatureSelector_SelectFeature(t *testing.T) {
 		{
 			name: "supported feature",
 			feature: Feature{
-				Name: ExternalDns,
+				Name: clusterfeatureadapter.ExternalDns,
 				Spec: map[string]interface{}{},
 			},
 			checker: func(t *testing.T, fp *Feature, err error) {
 				assert.Nil(t, err)
 				assert.NotNil(t, fp)
-				assert.Equal(t, "1.6.2", fp.Spec[DNSExternalDnsChartVersion])
-				assert.Equal(t, "v0.5.11", fp.Spec[DNSExternalDnsImageVersion])
+				assert.Equal(t, "1.6.2", fp.Spec[clusterfeatureadapter.DNSExternalDnsChartVersion])
+				assert.Equal(t, "v0.5.11", fp.Spec[clusterfeatureadapter.DNSExternalDnsImageVersion])
 			},
 		},
 	}
 
-	fs := NewFeatureSelector(logur.NewTestLogger())
+	fs := clusterfeatureadapter.NewFeatureSelector(logur.NewTestLogger())
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
