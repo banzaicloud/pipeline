@@ -122,7 +122,7 @@ func testClusterFeature(t *testing.T) {
 
 	cr := clusterfeatureadapter.NewClusterService(cm)
 	fr := clusterfeatureadapter.NewGormFeatureRepository(db)
-	fm := NewSyncFeatureManager(cr)
+	fm := clusterfeatureadapter.NewSyncFeatureManager(cr)
 
 	cps := NewClusterFeatureService(l, cr, fr, fm)
 

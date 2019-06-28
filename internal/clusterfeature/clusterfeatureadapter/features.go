@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature
+package clusterfeatureadapter
 
 import (
 	"context"
@@ -20,6 +20,8 @@ import (
 
 	"github.com/goph/logur"
 	"gopkg.in/yaml.v2"
+
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 const (
@@ -46,14 +48,20 @@ type ExternalDnsFeature struct {
 // FeatureSelector operations for identifying supported features.
 type FeatureSelector interface {
 	// SelectFeature selects the feature to be worked with, eventually decorates it with internal information
-	SelectFeature(ctx context.Context, feature Feature) (*Feature, error)
+	SelectFeature(ctx context.Context, feature clusterfeature.Feature) (*clusterfeature.Feature, error)
 }
 
 type featureSelector struct {
 	logger logur.Logger
 }
 
-func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (*Feature, error) {
+func NewFeatureSelector(logger logur.Logger) FeatureSelector {
+	return &featureSelector{
+		logger: logger,
+	}
+}
+
+func (fs *featureSelector) SelectFeature(ctx context.Context, feature clusterfeature.Feature) (*clusterfeature.Feature, error) {
 	switch feature.Name {
 	case ExternalDns:
 
@@ -89,10 +97,4 @@ func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (
 	}
 
 	return nil, errors.New("unsupported feature")
-}
-
-func NewFeatureSelector(logger logur.Logger) FeatureSelector {
-	return &featureSelector{
-		logger: logger,
-	}
 }
