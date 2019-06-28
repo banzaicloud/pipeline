@@ -27,14 +27,12 @@ type Feature struct {
 	Name   string                 `json:"name"`
 	Spec   map[string]interface{} `json:"spec"`
 	Output map[string]interface{} `json:"output"`
-	Status FeatureStatus          `json:"status"`
+	Status string                 `json:"status"`
 }
 
-type FeatureStatus string
-
 const (
-	FeatureStatusActive  FeatureStatus = "ACTIVE"
-	FeatureStatusPending FeatureStatus = "PENDING"
+	FeatureStatusActive  = "ACTIVE"
+	FeatureStatusPending = "PENDING"
 )
 
 // FeatureService manages features on Kubernetes clusters.
@@ -65,7 +63,7 @@ type Cluster interface {
 type FeatureRepository interface {
 	SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error)
 	GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error)
-	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status FeatureStatus) (*Feature, error)
+	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error)
 }
 
 func NewClusterFeatureService(

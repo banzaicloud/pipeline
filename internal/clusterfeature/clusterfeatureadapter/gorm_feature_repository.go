@@ -116,7 +116,7 @@ func (r *GormFeatureRepository) UpdateFeatureStatus(
 	ctx context.Context,
 	clusterId uint,
 	feature clusterfeature.Feature,
-	status clusterfeature.FeatureStatus,
+	status string,
 ) (*clusterfeature.Feature, error) {
 	fm := clusterFeatureModel{
 		ClusterID: clusterId,
@@ -134,7 +134,7 @@ func (r *GormFeatureRepository) UpdateFeatureStatus(
 func (r *GormFeatureRepository) modelToFeature(cfm *clusterFeatureModel) (*clusterfeature.Feature, error) {
 	f := clusterfeature.Feature{
 		Name:   cfm.Name,
-		Status: clusterfeature.FeatureStatus(cfm.Status),
+		Status: cfm.Status,
 		Spec:   cfm.Spec,
 	}
 
