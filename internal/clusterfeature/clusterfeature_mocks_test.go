@@ -31,7 +31,7 @@ type dummyFeatureRepository struct {
 	logger logur.Logger
 }
 
-func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status FeatureStatus) (*Feature, error) {
+func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error) {
 	dfr.logger.Info("feature repo called", map[string]interface{}{"operation": "UpdateFeatureStatus", "clusterId": clusterId})
 	return nil, nil
 }
