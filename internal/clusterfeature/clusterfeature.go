@@ -30,9 +30,10 @@ type Feature struct {
 	Status string                 `json:"status"`
 }
 
+// Feature status constants
 const (
-	FeatureStatusActive  = "ACTIVE"
 	FeatureStatusPending = "PENDING"
+	FeatureStatusActive  = "ACTIVE"
 )
 
 // FeatureService manages features on Kubernetes clusters.
@@ -66,6 +67,7 @@ type FeatureRepository interface {
 	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error)
 }
 
+// NewClusterFeatureService returns a new FeatureService instance.
 func NewClusterFeatureService(
 	logger logur.Logger,
 	clusterService ClusterService,
