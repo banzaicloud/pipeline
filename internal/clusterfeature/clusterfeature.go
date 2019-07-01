@@ -42,6 +42,7 @@ type FeatureService struct {
 	clusterService    ClusterService
 	featureRepository FeatureRepository
 	featureManager    FeatureManager
+	featureSelector   FeatureSelector
 }
 
 // ClusterService provides a thin access layer to clusters.
@@ -93,17 +94,30 @@ func NewClusterFeatureService(
 	clusterService ClusterService,
 	featureRepository FeatureRepository,
 	featureManager FeatureManager,
+
 ) *FeatureService {
 	return &FeatureService{
 		logger:            logger,
 		clusterService:    clusterService,
 		featureRepository: featureRepository,
 		featureManager:    featureManager,
+		featureSelector:   NewFeatureSelector(logger),
 	}
 }
 
 func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	s.logger.Info("activate feature", map[string]interface{}{"feature": featureName})
+
+	selectedFeature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName, Spec: spec,})
+	if err != nil {
+		return featureCouldNotSelectError(featureName)
+	}
+
+	if _, err := s.featureRepository.GetFeature(ctx, clusterID, *selectedFeature); err == nil {
+		s.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+
+		return featureExistsError(featureName)
+	}
 
 	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
@@ -116,29 +130,18 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return clusterNotReadyError(featureName)
 	}
 
-	feature := Feature{
-		Name: featureName,
-		Spec: spec,
-	}
-
-	if _, err := s.featureRepository.GetFeature(ctx, clusterID, feature); err == nil {
-		s.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-
-		return featureExistsError(featureName)
-	}
-
 	// TODO: save feature name and spec (pending status?)
-	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, feature); err != nil {
+	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, *selectedFeature); err != nil {
 		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	// delegate the task of "deploying" the feature to the manager
-	if _, err := s.featureManager.Activate(ctx, clusterID, feature); err != nil {
+	if _, err := s.featureManager.Activate(ctx, clusterID, *selectedFeature); err != nil {
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	// TODO: this should be done asynchronously
-	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, feature, FeatureStatusActive); err != nil {
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, *selectedFeature, FeatureStatusActive); err != nil {
 		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
 	}
 
@@ -190,8 +193,9 @@ func (e featureError) IsBusinnessError() bool {
 }
 
 const (
-	errorFeatureExists   = "feature already exists"
-	errorClusterNotReady = "cluster is not ready"
+	errorFeatureExists    = "feature already exists"
+	errorFeatureSelection = "could not select feature"
+	errorClusterNotReady  = "cluster is not ready"
 )
 
 func featureExistsError(featureName string) error {
@@ -205,5 +209,12 @@ func clusterNotReadyError(featureName string) error {
 	return featureError{
 		featureName: featureName,
 		msg:         errorClusterNotReady,
+	}
+}
+
+func featureCouldNotSelectError(featureName string) error {
+	return featureError{
+		featureName: featureName,
+		msg:         errorFeatureSelection,
 	}
 }

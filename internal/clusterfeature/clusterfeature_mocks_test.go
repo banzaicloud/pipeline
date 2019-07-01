@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature_test
+package clusterfeature
 
 import (
 	"context"
 
 	"github.com/goph/logur"
 	"github.com/pkg/errors"
-
-	. "github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 const (
@@ -29,6 +27,7 @@ const (
 
 	featureExists          = "existing-feature"
 	featureCouldNotPersist = "feature-fail-to-persist"
+	featureCouldNotSelect  = "feature-couldnotselect"
 )
 
 type dummyFeatureRepository struct {
@@ -88,4 +87,16 @@ func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId uint, fe
 
 func (dfm *dummyFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) (string, error) {
 	panic("implement me")
+}
+
+type dummyFeatureSelector struct {
+}
+
+func (fs *dummyFeatureSelector) SelectFeature(ctx context.Context, feature Feature) (*Feature, error) {
+	switch feature.Name {
+	case featureCouldNotSelect:
+		return nil, featureCouldNotSelectError(feature.Name)
+
+	}
+	return &feature, nil
 }

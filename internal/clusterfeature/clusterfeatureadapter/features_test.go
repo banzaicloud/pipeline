@@ -43,19 +43,19 @@ func TestFeatureSelector_SelectFeature(t *testing.T) {
 		{
 			name: "supported feature",
 			feature: clusterfeature.Feature{
-				Name: ExternalDns,
+				Name: clusterfeature.ExternalDns,
 				Spec: map[string]interface{}{},
 			},
 			checker: func(t *testing.T, fp *clusterfeature.Feature, err error) {
 				assert.Nil(t, err)
 				assert.NotNil(t, fp)
-				assert.Equal(t, "1.6.2", fp.Spec[DNSExternalDnsChartVersion])
-				assert.Equal(t, "v0.5.11", fp.Spec[DNSExternalDnsImageVersion])
+				assert.Equal(t, "1.6.2", fp.Spec[clusterfeature.DNSExternalDnsChartVersion])
+				assert.Equal(t, "v0.5.11", fp.Spec[clusterfeature.DNSExternalDnsImageVersion])
 			},
 		},
 	}
 
-	fs := NewFeatureSelector(logur.NewTestLogger())
+	fs := clusterfeature.NewFeatureSelector(logur.NewTestLogger())
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

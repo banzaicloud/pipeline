@@ -31,19 +31,17 @@ import (
 
 // SyncFeatureManager synchronous feature manager
 type SyncFeatureManager struct {
-	logger          logur.Logger
-	clusterService  clusterfeature.ClusterService
-	featureSelector FeatureSelector
-	helmInstaller   helmInstaller
+	logger         logur.Logger
+	clusterService clusterfeature.ClusterService
+	helmInstaller  helmInstaller
 }
 
 // NewSyncFeatureManager builds a new feature manager component
 func NewSyncFeatureManager(clusterService clusterfeature.ClusterService) *SyncFeatureManager {
 	l := logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "feature-manager"})
 	return &SyncFeatureManager{
-		logger:          l,
-		clusterService:  clusterService,
-		featureSelector: NewFeatureSelector(l),
+		logger:         l,
+		clusterService: clusterService,
 		helmInstaller: &featureHelmInstaller{ // wired private component!
 			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
 		},
@@ -58,14 +56,7 @@ func (sfm *SyncFeatureManager) Activate(ctx context.Context, clusterId uint, fea
 		return "", emperror.WrapWith(err, "failed to activate feature")
 	}
 
-	// todo move this out to the service /return early in case the feature is not supported
-	selectedFeature, err := sfm.featureSelector.SelectFeature(ctx, feature)
-	if err != nil {
-
-		return "", emperror.WrapWith(err, "failed to select feature")
-	}
-
-	if err := sfm.helmInstaller.InstallFeature(ctx, cluster, *selectedFeature); err != nil {
+	if err := sfm.helmInstaller.InstallFeature(ctx, cluster, feature); err != nil {
 		return "", emperror.WrapWith(err, "failed to install feature")
 	}
 
@@ -94,19 +85,19 @@ func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clu
 		return errors.New("namespace for feature not provided")
 	}
 
-	deploymentName, ok := feature.Spec[DNSExternalDnsChartName]
+	deploymentName, ok := feature.Spec[clusterfeature.DNSExternalDnsChartName]
 	if !ok {
 		return errors.New("chart-name for feature not provided")
 	}
 
 	releaseName := "testing-externaldns"
 
-	values, ok := feature.Spec[DNSExternalDnsValues]
+	values, ok := feature.Spec[clusterfeature.DNSExternalDnsValues]
 	if !ok {
 		return errors.New("values for feature not available")
 	}
 
-	chartVersion := feature.Spec[DNSExternalDnsChartVersion]
+	chartVersion := feature.Spec[clusterfeature.DNSExternalDnsChartVersion]
 
 	return fhi.installDeployment(cluster, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string), false)
 }
