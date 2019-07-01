@@ -108,7 +108,7 @@ func NewClusterFeatureService(
 func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	s.logger.Info("activate feature", map[string]interface{}{"feature": featureName})
 
-	selectedFeature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName, Spec: spec,})
+	selectedFeature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName, Spec: spec})
 	if err != nil {
 		return newFeatureSelectionError(featureName)
 	}
