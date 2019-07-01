@@ -25,9 +25,9 @@ const (
 	clusterNotReady = 100
 	clusterReady    = 200
 
-	featureExists          = "existing-feature"
-	featureCouldNotPersist = "feature-fail-to-persist"
-	featureSelectionErrorName  = "feature-couldnotselect"
+	featureExists             = "existing-feature"
+	featureCouldNotPersist    = "feature-fail-to-persist"
+	featureSelectionErrorName = "feature-couldnotselect"
 )
 
 type dummyFeatureRepository struct {
