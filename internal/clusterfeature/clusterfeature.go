@@ -110,13 +110,13 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 
 	selectedFeature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName, Spec: spec,})
 	if err != nil {
-		return featureCouldNotSelectError(featureName)
+		return newFeatureSelectionError(featureName)
 	}
 
 	if _, err := s.featureRepository.GetFeature(ctx, clusterID, *selectedFeature); err == nil {
 		s.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 
-		return featureExistsError(featureName)
+		return newFeatureExistsError(featureName)
 	}
 
 	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
@@ -127,7 +127,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	if !ready {
 		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
 
-		return clusterNotReadyError(featureName)
+		return newClusterNotReadyError(featureName)
 	}
 
 	// TODO: save feature name and spec (pending status?)
@@ -198,23 +198,36 @@ const (
 	errorClusterNotReady  = "cluster is not ready"
 )
 
-func featureExistsError(featureName string) error {
-	return featureError{
+type featureExistsError struct {
+	featureError
+}
+
+func newFeatureExistsError(featureName string) error {
+	return featureExistsError{featureError{
 		featureName: featureName,
 		msg:         errorFeatureExists,
-	}
+	}}
 }
 
-func clusterNotReadyError(featureName string) error {
-	return featureError{
+type clusterNotReadyError struct {
+	featureError
+}
+
+func newClusterNotReadyError(featureName string) error {
+
+	return clusterNotReadyError{featureError{
 		featureName: featureName,
 		msg:         errorClusterNotReady,
-	}
+	}}
 }
 
-func featureCouldNotSelectError(featureName string) error {
-	return featureError{
+type featureSelectionError struct {
+	featureError
+}
+
+func newFeatureSelectionError(featureName string) error {
+	return featureSelectionError{featureError{
 		featureName: featureName,
 		msg:         errorFeatureSelection,
-	}
+	}}
 }

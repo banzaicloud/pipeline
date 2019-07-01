@@ -35,11 +35,11 @@ func TestActivateClusterFeature(t *testing.T) {
 			name:      "could not select feature",
 			clusterId: clusterNotReady,
 			clusterFeature: Feature{
-				Name: featureCouldNotSelect,
+				Name: featureSelectionErrorName,
 				Spec: nil,
 			},
 			checker: func(t *testing.T, response interface{}) {
-				e, ok := response.(featureError)
+				e, ok := response.(featureSelectionError)
 				assert.True(t, ok)
 				assert.NotNil(t, e)
 				assert.EqualError(t, e, "Feature: feature-couldnotselect, Message: could not select feature")
@@ -53,10 +53,10 @@ func TestActivateClusterFeature(t *testing.T) {
 				Spec: nil,
 			},
 			checker: func(t *testing.T, response interface{}) {
-				e, ok := response.(featureError)
+				e, ok := response.(featureExistsError)
 				assert.True(t, ok)
 				assert.NotNil(t, e)
-				assert.EqualError(t, e, "Feature: feature-couldnotselect, Message: could not select feature")
+				assert.EqualError(t, e, "Feature: existing-feature, Message: feature already exists")
 			},
 		},
 		{
@@ -67,24 +67,10 @@ func TestActivateClusterFeature(t *testing.T) {
 				Spec: nil,
 			},
 			checker: func(t *testing.T, response interface{}) {
-				e, ok := response.(error)
+				e, ok := response.(clusterNotReadyError)
 				assert.True(t, ok)
 				assert.NotNil(t, e)
-				assert.EqualError(t, e, "cluster is not ready")
-			},
-		},
-		{
-			name:      "feature exists",
-			clusterId: clusterReady,
-			clusterFeature: Feature{
-				Name: featureExists,
-				Spec: nil,
-			},
-			checker: func(t *testing.T, response interface{}) {
-				e, ok := response.(error)
-				assert.True(t, ok)
-				assert.NotNil(t, e)
-				assert.EqualError(t, e, "feature already exists")
+				assert.EqualError(t, e, "Feature: clusterisnotready, Message: cluster is not ready")
 			},
 		},
 		{
@@ -124,6 +110,9 @@ func TestActivateClusterFeature(t *testing.T) {
 			logger: logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"repo": "featurerepo"}),
 		},
 		&dummyFeatureManager{})
+
+	// override the feature selector
+	featureService.featureSelector = &dummyFeatureSelector{}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

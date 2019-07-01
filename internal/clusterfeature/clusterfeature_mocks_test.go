@@ -27,7 +27,7 @@ const (
 
 	featureExists          = "existing-feature"
 	featureCouldNotPersist = "feature-fail-to-persist"
-	featureCouldNotSelect  = "feature-couldnotselect"
+	featureSelectionErrorName  = "feature-couldnotselect"
 )
 
 type dummyFeatureRepository struct {
@@ -94,8 +94,8 @@ type dummyFeatureSelector struct {
 
 func (fs *dummyFeatureSelector) SelectFeature(ctx context.Context, feature Feature) (*Feature, error) {
 	switch feature.Name {
-	case featureCouldNotSelect:
-		return nil, featureCouldNotSelectError(feature.Name)
+	case featureSelectionErrorName:
+		return nil, newFeatureSelectionError(feature.Name)
 
 	}
 	return &feature, nil
