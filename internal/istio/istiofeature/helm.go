@@ -45,7 +45,7 @@ func deleteDeployment(c cluster.CommonCluster, releaseName string) error {
 	return nil
 }
 
-func installDeployment(
+func installOrUpgradeDeployment(
 	c cluster.CommonCluster,
 	namespace string,
 	deploymentName string,
@@ -53,6 +53,7 @@ func installDeployment(
 	values []byte,
 	chartVersion string,
 	wait bool,
+	upgrade bool,
 ) error {
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
@@ -82,6 +83,13 @@ func installDeployment(
 	if foundRelease != nil {
 		switch foundRelease.GetInfo().GetStatus().GetCode() {
 		case pkgHelmRelease.Status_DEPLOYED:
+			if !upgrade {
+				return nil
+			}
+			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+			if err != nil {
+				return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
+			}
 			return nil
 		case pkgHelmRelease.Status_FAILED:
 			err = helm.DeleteDeployment(releaseName, kubeConfig)
