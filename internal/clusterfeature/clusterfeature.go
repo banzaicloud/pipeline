@@ -16,10 +16,10 @@ package clusterfeature
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
-	"github.com/pkg/errors"
 )
 
 // Feature represents the internal state of a cluster feature.
@@ -107,14 +107,13 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 
 	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "could not access cluster")
 	}
 
 	if !ready {
 		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
 
-		// TODO: return a business error here
-		return errors.New("cluster is not ready")
+		return clusterNotReadyError(featureName)
 	}
 
 	feature := Feature{
@@ -125,8 +124,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	if _, err := s.featureRepository.GetFeature(ctx, clusterID, feature); err == nil {
 		s.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 
-		// TODO: return a business error here
-		return errors.New("feature already exists")
+		return featureExistsError(featureName)
 	}
 
 	// TODO: save feature name and spec (pending status?)
@@ -167,4 +165,45 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 // TODO: implement
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	panic("implement me")
+}
+
+// featureError "Business" error type
+type featureError struct {
+	msg         string
+	featureName string
+}
+
+func (e featureError) Error() string {
+	return fmt.Sprintf("Feature: %s, Message: %s", e.featureName, e.msg)
+}
+
+func (e featureError) FeatureName() string {
+	return e.featureName
+}
+
+func (e featureError) Context() []string {
+	return []string{"featureName", e.featureName}
+}
+
+func (e featureError) IsBusinnessError() bool {
+	return true
+}
+
+const (
+	errorFeatureExists   = "feature already exists"
+	errorClusterNotReady = "cluster is not ready"
+)
+
+func featureExistsError(featureName string) error {
+	return featureError{
+		featureName: featureName,
+		msg:         errorFeatureExists,
+	}
+}
+
+func clusterNotReadyError(featureName string) error {
+	return featureError{
+		featureName: featureName,
+		msg:         errorClusterNotReady,
+	}
 }

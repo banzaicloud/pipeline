@@ -54,12 +54,14 @@ func (sfm *SyncFeatureManager) Activate(ctx context.Context, clusterId uint, fea
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
+		// internal error at this point
 		return "", emperror.WrapWith(err, "failed to activate feature")
 	}
 
 	// todo move this out to the service /return early in case the feature is not supported
 	selectedFeature, err := sfm.featureSelector.SelectFeature(ctx, feature)
 	if err != nil {
+
 		return "", emperror.WrapWith(err, "failed to select feature")
 	}
 
