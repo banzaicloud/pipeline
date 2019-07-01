@@ -19,6 +19,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
@@ -53,7 +54,9 @@ func (fs featureSpec) Value() (driver.Value, error) {
 // clusterFeatureModel describes the cluster group model.
 type clusterFeatureModel struct {
 	// injecting timestamp fields
-	gorm.Model
+	ID        uint `gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 
 	Name      string
 	Status    string
