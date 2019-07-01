@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature_test
+package clusterfeature
 
 import (
 	"context"
@@ -22,8 +22,6 @@ import (
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-
-	. "github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 func TestActivateClusterFeature(t *testing.T) {
@@ -33,6 +31,34 @@ func TestActivateClusterFeature(t *testing.T) {
 		clusterFeature Feature
 		checker        func(*testing.T, interface{})
 	}{
+		{
+			name:      "could not select feature",
+			clusterId: clusterNotReady,
+			clusterFeature: Feature{
+				Name: featureCouldNotSelect,
+				Spec: nil,
+			},
+			checker: func(t *testing.T, response interface{}) {
+				e, ok := response.(featureError)
+				assert.True(t, ok)
+				assert.NotNil(t, e)
+				assert.EqualError(t, e, "Feature: feature-couldnotselect, Message: could not select feature")
+			},
+		},
+		{
+			name:      "feature already exists",
+			clusterId: clusterNotReady,
+			clusterFeature: Feature{
+				Name: featureExists,
+				Spec: nil,
+			},
+			checker: func(t *testing.T, response interface{}) {
+				e, ok := response.(featureError)
+				assert.True(t, ok)
+				assert.NotNil(t, e)
+				assert.EqualError(t, e, "Feature: feature-couldnotselect, Message: could not select feature")
+			},
+		},
 		{
 			name:      "cluster is not ready",
 			clusterId: clusterNotReady,
