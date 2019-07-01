@@ -5,7 +5,6 @@ create table cluster_features
             primary key,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
-    deleted_at timestamp with time zone,
     name       text,
     status     text,
     cluster_id integer,
@@ -13,6 +12,4 @@ create table cluster_features
     created_by integer
 );
 
-create index idx_cluster_features_deleted_at
-    on cluster_features (deleted_at);
 
