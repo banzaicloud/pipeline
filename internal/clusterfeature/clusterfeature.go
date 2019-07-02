@@ -164,10 +164,12 @@ func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureNam
 		return nil, newFeatureNotFoundError(featureName)
 	}
 
+	s.logger.Info("successfully retrieved feature details", map[string]interface{}{"clusterid": clusterID, "feature": featureName})
 	return fd, nil
 }
 
 func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
+	s.logger.Info("retrieve features", map[string]interface{}{"clusterid": clusterID})
 	var (
 		featurePtrs []*Feature
 		features    []Feature
@@ -180,11 +182,10 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 	for _, fp := range featurePtrs {
 		features = append(features, *fp)
 	}
-
+	s.logger.Info("successfully retrieved features", map[string]interface{}{"clusterid": clusterID})
 	return features, nil
 }
 
-// todo update -helm
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	s.logger.Info("updating feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
 
