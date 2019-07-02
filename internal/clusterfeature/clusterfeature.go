@@ -161,7 +161,7 @@ func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureNam
 
 	fd, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve feature details")
+		return nil, newFeatureNotFoundError(featureName)
 	}
 
 	return fd, nil
@@ -229,6 +229,7 @@ const (
 	errorFeatureExists    = "feature already exists"
 	errorFeatureSelection = "could not select feature"
 	errorClusterNotReady  = "cluster is not ready"
+	errorFeatureNotFound  = "feature could not be found"
 )
 
 type featureExistsError struct {
@@ -262,5 +263,16 @@ func newFeatureSelectionError(featureName string) error {
 	return featureSelectionError{featureError{
 		featureName: featureName,
 		msg:         errorFeatureSelection,
+	}}
+}
+
+type featureNotFoundError struct {
+	featureError
+}
+
+func newFeatureNotFoundError(featureName string) error {
+	return featureNotFoundError{featureError{
+		featureName: featureName,
+		msg:         errorFeatureNotFound,
 	}}
 }
