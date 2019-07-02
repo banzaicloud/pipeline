@@ -64,6 +64,21 @@ func (sfm *SyncFeatureManager) Activate(ctx context.Context, clusterId uint, fea
 
 }
 
+func (sfm *SyncFeatureManager) Deactivate(ctx context.Context, clusterId uint, feature clusterfeature.Feature) error {
+	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
+	if err != nil {
+		// internal error at this point
+		return emperror.WrapWith(err, "failed to deactivate feature")
+	}
+
+	if err := sfm.helmInstaller.UninstallFeature(ctx, cluster, feature); err != nil {
+		return emperror.WrapWith(err, "failed to uninstall feature")
+	}
+
+	return nil
+
+}
+
 func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (string, error) {
 	panic("implement me")
 }
@@ -72,6 +87,9 @@ func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, featu
 type helmInstaller interface {
 	// InstallFeature installs a feature to the given cluster
 	InstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error
+
+	// UninstallFeature removes a feature to the given cluster
+	UninstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error
 }
 
 // component in chrge for installing features from helmcharts
@@ -102,6 +120,14 @@ func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clu
 	return fhi.installDeployment(cluster, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string), false)
 }
 
+func (fhi *featureHelmInstaller) UninstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
+
+	releaseName := "testing-externaldns"
+
+	return fhi.deleteDeployment(cluster, releaseName)
+
+}
+
 func (fhi *featureHelmInstaller) installDeployment(
 	cluster clusterfeature.Cluster,
 	namespace string,
@@ -127,9 +153,9 @@ func (fhi *featureHelmInstaller) installDeployment(
 	var foundRelease *release.Release
 
 	if deployments != nil {
-		for _, release := range deployments.Releases {
-			if release.Name == releaseName {
-				foundRelease = release
+		for _, rel := range deployments.Releases {
+			if rel.Name == releaseName {
+				foundRelease = rel
 				break
 			}
 		}
@@ -171,4 +197,41 @@ func (fhi *featureHelmInstaller) installDeployment(
 	}
 	fhi.logger.Info("installed deployment", map[string]interface{}{"deployment": deploymentName})
 	return nil
+}
+
+func (fhi *featureHelmInstaller) deleteDeployment(cluster clusterfeature.Cluster, releaseName string) error {
+
+	kubeConfig, err := cluster.GetKubeConfig()
+	if err != nil {
+		fhi.logger.Error("failed to get k8s config", map[string]interface{}{"clusterid": cluster.GetID()})
+		return err
+	}
+
+	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
+	if err != nil {
+		fhi.logger.Error("failed to fetch deployments", map[string]interface{}{"clusterid": cluster.GetID()})
+		return err
+	}
+
+	var foundRelease *release.Release
+
+	if deployments != nil {
+		for _, rel := range deployments.Releases {
+			if rel.Name == releaseName {
+				foundRelease = rel
+				break
+			}
+		}
+	}
+
+	if foundRelease != nil {
+		err = helm.DeleteDeployment(releaseName, kubeConfig)
+		if err != nil {
+			fhi.logger.Error("failed to delete deployment", map[string]interface{}{"deployment": releaseName})
+			return err
+		}
+	}
+
+	return nil
+
 }

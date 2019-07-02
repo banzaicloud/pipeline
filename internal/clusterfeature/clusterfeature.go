@@ -89,7 +89,8 @@ type FeatureManager interface {
 	// Deploys and activates a feature on the given cluster
 	Activate(ctx context.Context, clusterId uint, feature Feature) (string, error)
 
-	// TODO: deactivate feature
+	// Removes feature from the given cluster
+	Deactivate(ctx context.Context, clusterId uint, feature Feature) (error)
 
 	// Updates a feature on the given cluster
 	Update(ctx context.Context, clusterId uint, feature Feature) (string, error)
@@ -156,6 +157,45 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	return nil
 }
 
+func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
+	s.logger.Info("deactivating feature", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+
+	var feature *Feature
+
+	_, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName})
+	if err != nil {
+		return newFeatureSelectionError(featureName)
+	}
+
+	if feature, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
+		s.logger.Debug("feature could not be found", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+
+		return newFeatureNotFoundError(featureName)
+	}
+
+	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
+	if err != nil {
+		return emperror.Wrap(err, "could not access cluster")
+	}
+
+	if !ready {
+		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
+
+		return newClusterNotReadyError(featureName)
+	}
+
+	if err := s.featureManager.Deactivate(ctx, clusterID, *feature); err != nil {
+		s.logger.Debug("failed to deactivate feature on cluster", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+	}
+
+	if err := s.featureRepository.DeleteFeature(ctx, clusterID, featureName); err != nil {
+		return emperror.WrapWith(err, "failed to delete feature", "clusterID", clusterID, "feature", featureName)
+	}
+
+	s.logger.Info("successfully deactivated feature", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	return nil
+}
+
 func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
 	s.logger.Info("retrieving feature details", map[string]interface{}{"clusterid": clusterID, "feature": featureName})
 
@@ -189,25 +229,14 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	s.logger.Info("updating feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
 
-	//todo manager / helm
+	// todo
+	//s.featureManager.Update(ctx, clusterID)
 
 	if _, err := s.featureRepository.UpdateFeatureSpec(ctx, clusterID, featureName, spec); err != nil {
 		return emperror.WrapWith(err, "failed to update feature spec", "clusterID", clusterID, "feature", featureName)
 	}
 
 	s.logger.Info("successfully updated feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
-	return nil
-}
-
-func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
-	s.logger.Info("deactivating feature", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
-
-	// todo manager / helm
-	if err := s.featureRepository.DeleteFeature(ctx, clusterID, featureName); err != nil {
-		return emperror.WrapWith(err, "failed to delete feature spec", "clusterID", clusterID, "feature", featureName)
-	}
-
-	s.logger.Info("successfully deactivated feature", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
 	return nil
 }
 
