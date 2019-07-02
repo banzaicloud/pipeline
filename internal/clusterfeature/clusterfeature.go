@@ -188,19 +188,26 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	s.logger.Info("updating feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
 
-	//todo manager!!
+	//todo manager / helm
 
 	if _, err := s.featureRepository.UpdateFeatureSpec(ctx, clusterID, featureName, spec); err != nil {
-		return emperror.WrapWith(err, "failed to upate feature spec", "clusterID", clusterID, "feature", featureName)
+		return emperror.WrapWith(err, "failed to update feature spec", "clusterID", clusterID, "feature", featureName)
 	}
 
-	s.logger.Info("updated feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	s.logger.Info("successfully updated feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
 	return nil
 }
 
-// TODO: implement
 func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
-	panic("implement me")
+	s.logger.Info("deactivating feature", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+
+	// todo manager / helm
+	if err := s.featureRepository.DeleteFeature(ctx, clusterID, featureName); err != nil {
+		return emperror.WrapWith(err, "failed to delete feature spec", "clusterID", clusterID, "feature", featureName)
+	}
+
+	s.logger.Info("successfully deactivated feature", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	return nil
 }
 
 // featureError "Business" error type
