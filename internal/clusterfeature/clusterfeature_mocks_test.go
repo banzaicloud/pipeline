@@ -34,13 +34,25 @@ type dummyFeatureRepository struct {
 	logger logur.Logger
 }
 
-func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error) {
+func (dfr *dummyFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterId uint, featureName string, spec map[string]interface{}) (*Feature, error) {
+	panic("implement me")
+}
+
+func (dfr *dummyFeatureRepository) DeleteFeature(ctx context.Context, clusterId uint, featureName string) error {
+	panic("implement me")
+}
+
+func (dfr *dummyFeatureRepository) ListFeatures(ctx context.Context, clusterId uint) ([]*Feature, error) {
+	panic("implement me")
+}
+
+func (dfr *dummyFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, featureName string, status string) (*Feature, error) {
 	dfr.logger.Info("feature repo called", map[string]interface{}{"operation": "UpdateFeatureStatus", "clusterId": clusterId})
 	return nil, nil
 }
 
-func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error) {
-	switch feature.Name {
+func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId uint, featureName string) (*Feature, error) {
+	switch featureName {
 	case featureExists:
 		return &Feature{Name: featureExists}, nil
 	}

@@ -64,17 +64,24 @@ type Cluster interface {
 }
 
 // FeatureRepository collects persistence related operations.
-// TODO: list features
-// TODO: get a feature
-// TODO: delete a feature
 type FeatureRepository interface {
+	// SaveFeature persists the feature into the persistent storage
 	SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error)
 
-	// TODO: use feature name
-	GetFeature(ctx context.Context, clusterId uint, feature Feature) (*Feature, error)
+	// GetFeature retrieves the feature from the persistent storage
+	GetFeature(ctx context.Context, clusterId uint, featureName string) (*Feature, error)
 
-	// TODO: use feature name
-	UpdateFeatureStatus(ctx context.Context, clusterId uint, feature Feature, status string) (*Feature, error)
+	// Updates the status of the feature in the persistent storage
+	UpdateFeatureStatus(ctx context.Context, clusterId uint, featureName string, status string) (*Feature, error)
+
+	// Updates the status of the feature in the persistent storage
+	UpdateFeatureSpec(ctx context.Context, clusterId uint, featureName string, spec map[string]interface{}) (*Feature, error)
+
+	// DeleteFeature deletes the feature from the persistent storage
+	DeleteFeature(ctx context.Context, clusterId uint, featureName string) error
+
+	// Retrieves features for a given cluster
+	ListFeatures(ctx context.Context, clusterId uint) ([]*Feature, error)
 }
 
 // FeatureManager operations in charge for applying features to the cluster.
@@ -94,7 +101,6 @@ func NewClusterFeatureService(
 	clusterService ClusterService,
 	featureRepository FeatureRepository,
 	featureManager FeatureManager,
-
 ) *FeatureService {
 	return &FeatureService{
 		logger:            logger,
@@ -113,7 +119,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return newFeatureSelectionError(featureName)
 	}
 
-	if _, err := s.featureRepository.GetFeature(ctx, clusterID, *selectedFeature); err == nil {
+	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err == nil {
 		s.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 
 		return newFeatureExistsError(featureName)
@@ -141,7 +147,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	}
 
 	// TODO: this should be done asynchronously
-	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, *selectedFeature, FeatureStatusActive); err != nil {
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
 		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
 	}
 
@@ -150,23 +156,50 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	return nil
 }
 
-// TODO: implement
-func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
-	panic("implement me")
+func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
+	s.logger.Info("retrieving feature details", map[string]interface{}{"clusterid": clusterID, "feature": featureName})
+
+	fd, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
+	if err != nil {
+		return nil, emperror.Wrap(err, "failed to retrieve feature details")
+	}
+
+	return fd, nil
 }
 
-// TODO: implement
-func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
-	panic("implement me")
+func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
+	var (
+		featurePtrs []*Feature
+		features    []Feature
+		err         error
+	)
+	if featurePtrs, err = s.featureRepository.ListFeatures(ctx, clusterID); err != nil {
+		return nil, emperror.Wrap(err, "failed to retrieve features")
+	}
+
+	for _, fp := range featurePtrs {
+		features = append(features, *fp)
+	}
+
+	return features, nil
+}
+
+// todo update -helm
+func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
+	s.logger.Info("updating feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+
+	//todo manager!!
+
+	if _, err := s.featureRepository.UpdateFeatureSpec(ctx, clusterID, featureName, spec); err != nil {
+		return emperror.WrapWith(err, "failed to upate feature spec", "clusterID", clusterID, "feature", featureName)
+	}
+
+	s.logger.Info("updated feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	return nil
 }
 
 // TODO: implement
 func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
-	panic("implement me")
-}
-
-// TODO: implement
-func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	panic("implement me")
 }
 
