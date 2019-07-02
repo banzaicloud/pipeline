@@ -88,6 +88,10 @@ func (dcr *dummyClusterRepository) IsClusterReady(ctx context.Context, clusterId
 type dummyFeatureManager struct {
 }
 
+func (dfm *dummyFeatureManager) Deactivate(ctx context.Context, clusterId uint, feature Feature) (error) {
+	panic("implement me")
+}
+
 func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) (string, error) {
 	switch feature.Name {
 	case "success":
