@@ -12,12 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature
+package clusterfeatureadapter
 
-// Feature represents the internal state of a cluster feature.
-type Feature struct {
-	Name   string                 `json:"name"`
-	Spec   map[string]interface{} `json:"spec"`
-	Output map[string]interface{} `json:"output"`
-	Status string                 `json:"status"`
+import (
+	"fmt"
+
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
+)
+
+// Migrate executes the table migrations for the cluster module.
+func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+	tables := []interface{}{
+		&clusterFeatureModel{},
+	}
+
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
+	}
+
+	logger.Info("migrating model tables")
+
+	return db.AutoMigrate(tables...).Error
 }
