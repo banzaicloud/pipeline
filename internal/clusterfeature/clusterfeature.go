@@ -90,7 +90,7 @@ type FeatureManager interface {
 	Activate(ctx context.Context, clusterId uint, feature Feature) (string, error)
 
 	// Removes feature from the given cluster
-	Deactivate(ctx context.Context, clusterId uint, feature Feature) (error)
+	Deactivate(ctx context.Context, clusterId uint, feature Feature) error
 
 	// Updates a feature on the given cluster
 	Update(ctx context.Context, clusterId uint, feature Feature) (string, error)
