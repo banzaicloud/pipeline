@@ -43,7 +43,7 @@ func (fs *featureSpec) Scan(src interface{}) error {
 	return json.Unmarshal([]byte(value), fs)
 }
 
-func (fs *featureSpec) Value() (driver.Value, error) {
+func (fs featureSpec) Value() (driver.Value, error) {
 	v, err := json.Marshal(fs)
 	if err != nil {
 		return "", err
@@ -138,7 +138,7 @@ func (r *GormFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterId
 		Name:      featureName,
 	}
 
-	err := r.db.Model(&fm).Update("spec", spec).Error
+	err := r.db.Model(&fm).Update(clusterFeatureModel{Spec: spec}).Error
 	if err != nil {
 		return nil, emperror.Wrap(err, "could not update feature spec")
 	}
