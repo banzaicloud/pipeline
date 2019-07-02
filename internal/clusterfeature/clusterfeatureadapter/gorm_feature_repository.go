@@ -35,15 +35,15 @@ const (
 
 type featureSpec map[string]interface{}
 
-func (fs featureSpec) Scan(src interface{}) error {
+func (fs *featureSpec) Scan(src interface{}) error {
 	value, err := cast.ToStringE(src)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal([]byte(value), &fs)
+	return json.Unmarshal([]byte(value), fs)
 }
 
-func (fs featureSpec) Value() (driver.Value, error) {
+func (fs *featureSpec) Value() (driver.Value, error) {
 	v, err := json.Marshal(fs)
 	if err != nil {
 		return "", err
