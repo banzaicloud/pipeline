@@ -165,13 +165,14 @@ func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monit
 		return emperror.Wrap(err, "could not marshal chart value overrides")
 	}
 
-	err = installDeployment(
+	err = installOrUpgradeDeployment(
 		c,
 		uistioNamespace,
 		pkgHelm.BanzaiRepository+"/"+viper.GetString(pConfig.UistioChartName),
 		uistioReleaseName,
 		valuesOverride,
 		viper.GetString(pConfig.UistioChartVersion),
+		true,
 		true,
 	)
 	if err != nil {

@@ -15,9 +15,11 @@
 package main
 
 import (
-	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 
 	"github.com/banzaicloud/pipeline/auth"
 	route53model "github.com/banzaicloud/pipeline/dns/route53/model"
@@ -79,6 +81,10 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := notification.Migrate(db, logger); err != nil {
+		return err
+	}
+
+	if err := clusterfeatureadapter.Migrate(db, logger); err != nil {
 		return err
 	}
 

@@ -88,13 +88,14 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster, logger lo
 		return emperror.Wrap(err, "could not marshal chart value overrides")
 	}
 
-	err = installDeployment(
+	err = installOrUpgradeDeployment(
 		c,
 		istioOperatorNamespace,
 		pkgHelm.BanzaiRepository+"/"+viper.GetString(pConfig.IstioOperatorChartName),
 		istioOperatorReleaseName,
 		valuesOverride,
 		viper.GetString(pConfig.IstioOperatorChartVersion),
+		true,
 		true,
 	)
 	if err != nil {

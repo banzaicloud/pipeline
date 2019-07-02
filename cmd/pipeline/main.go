@@ -27,6 +27,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -59,6 +60,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
@@ -488,7 +491,10 @@ func main() {
 
 			// Cluster Feature API
 			{
-				var service clusterfeaturedriver.FeatureService // TODO
+				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
+				fr := clusterfeatureadapter.NewGormFeatureRepository(db)
+				fm := clusterfeatureadapter.NewSyncFeatureManager(clusterService)
+				service := clusterfeature.NewClusterFeatureService(logrusadapter.New(log), clusterService, fr, fm)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 
@@ -504,11 +510,11 @@ func main() {
 					c.Request = c.Request.WithContext(ctxutil.WithClusterID(c.Request.Context(), clusterID))
 				})
 
-				orgs.GET("/:orgid/clusters/:id/features", ginutils.HTTPHandlerToGinHandlerFunc(handlers.List))
-				orgs.GET("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Details))
-				orgs.DELETE("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Deactivate))
-				orgs.POST("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Activate))
-				orgs.PUT("/:orgid/clusters/:id/features/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Update))
+				router.GET("", ginutils.HTTPHandlerToGinHandlerFunc(handlers.List))
+				router.GET("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Details))
+				router.DELETE("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Deactivate))
+				router.POST("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Activate))
+				router.PUT("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Update))
 			}
 
 			// ClusterGroupAPI
