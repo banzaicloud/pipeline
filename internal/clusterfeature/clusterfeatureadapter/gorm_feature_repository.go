@@ -102,13 +102,13 @@ func (r *GormFeatureRepository) SaveFeature(ctx context.Context, clusterId uint,
 	return cfModel.ID, nil
 }
 
-func (r *GormFeatureRepository) GetFeature(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (*clusterfeature.Feature, error) {
+func (r *GormFeatureRepository) GetFeature(ctx context.Context, clusterId uint, featureName string) (*clusterfeature.Feature, error) {
 	fm := clusterFeatureModel{}
 
-	err := r.db.First(&fm, map[string]interface{}{"Name": feature.Name, "cluster_id": clusterId}).Error
+	err := r.db.First(&fm, map[string]interface{}{"Name": featureName, "cluster_id": clusterId}).Error
 
 	if gorm.IsRecordNotFoundError(err) {
-		return nil, emperror.WrapWith(err, "cluster feature not found", "feature-name", feature.Name)
+		return nil, emperror.WrapWith(err, "cluster feature not found", "feature-name", featureName)
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "could not retrieve feature")
 	}
@@ -116,20 +116,31 @@ func (r *GormFeatureRepository) GetFeature(ctx context.Context, clusterId uint, 
 	return r.modelToFeature(&fm)
 }
 
-func (r *GormFeatureRepository) UpdateFeatureStatus(
-	ctx context.Context,
-	clusterId uint,
-	feature clusterfeature.Feature,
-	status string,
-) (*clusterfeature.Feature, error) {
+// UpdateFeatureStatus updates the status of the feature
+func (r *GormFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, featureName string, status string) (*clusterfeature.Feature, error) {
 	fm := clusterFeatureModel{
 		ClusterID: clusterId,
-		Name:      feature.Name,
+		Name:      featureName,
 	}
 
 	err := r.db.Model(&fm).Update("status", status).Error
 	if err != nil {
 		return nil, emperror.Wrap(err, "could not update feature status")
+	}
+
+	return r.modelToFeature(&fm)
+}
+
+// UpdateFeatureStatus updates the status of the feature
+func (r *GormFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterId uint, featureName string, spec map[string]interface{}) (*clusterfeature.Feature, error) {
+	fm := clusterFeatureModel{
+		ClusterID: clusterId,
+		Name:      featureName,
+	}
+
+	err := r.db.Model(&fm).Update("spec", spec).Error
+	if err != nil {
+		return nil, emperror.Wrap(err, "could not update feature spec")
 	}
 
 	return r.modelToFeature(&fm)
@@ -143,4 +154,46 @@ func (r *GormFeatureRepository) modelToFeature(cfm *clusterFeatureModel) (*clust
 	}
 
 	return &f, nil
+}
+
+// DeleteFeature permanently deletes the feature record
+func (r *GormFeatureRepository) DeleteFeature(ctx context.Context, clusterId uint, featureName string) error {
+
+	fm := clusterFeatureModel{
+		ClusterID: clusterId,
+		Name:      featureName,
+	}
+
+	if err := r.db.Delete(&fm).Error; err != nil {
+		return emperror.Wrap(err, "could not delete status")
+	}
+
+	return nil
+
+}
+
+func (r *GormFeatureRepository) ListFeatures(ctx context.Context, clusterId uint) ([]*clusterfeature.Feature, error) {
+	var (
+		featureModels []clusterFeatureModel
+	)
+
+	featureList := make([]*clusterfeature.Feature, 0)
+
+	if err := r.db.Find(&featureModels, clusterFeatureModel{ClusterID: clusterId}).Error; err != nil {
+		return nil, emperror.WrapWith(err, "could not retrieve features", "clusterID", clusterId)
+	}
+
+	// model  --> domain
+	for _, feature := range featureModels {
+		f, e := r.modelToFeature(&feature)
+		if e != nil {
+			// skip erroneous model
+			continue
+		}
+
+		featureList = append(featureList, f)
+	}
+
+	return featureList, nil
+
 }
