@@ -23,7 +23,6 @@ Parameters:
   VPCDefaultSecurityGroupId:
     Type: String
     Description: Default security group of the VPC
-    Default: ""
   SubnetId:
     Type: 'AWS::EC2::Subnet::Id'
     Description: Specify Subnet Id for Autoscaling

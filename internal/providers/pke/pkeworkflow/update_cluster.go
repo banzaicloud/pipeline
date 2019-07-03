@@ -84,10 +84,6 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 		return err
 	}
 
-	if vpcDefaultSecurityGroupID == "" {
-		return errors.Errorf("couldn't get the default security group of the VPC %q", input.VPCID)
-	}
-
 	// delete removed nodepools
 	for _, np := range input.NodePoolsToDelete {
 		if np.Master || !np.Worker {

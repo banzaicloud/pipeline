@@ -1116,7 +1116,7 @@ func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return emperror.Wrap(err, "failed to create AWS session")
 	}
 
-	netSvc := pkgEC2.NewNetworkSvc(ec2.New(session), c.log)
+	netSvc := pkgEC2.NewNetworkSvc(ec2.New(session), NewLogurLogger(c.log))
 	if r.Properties.CreateClusterEKS.Vpc != nil {
 
 		if r.Properties.CreateClusterEKS.Vpc.VpcId != "" && r.Properties.CreateClusterEKS.Vpc.Cidr != "" {

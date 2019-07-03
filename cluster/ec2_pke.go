@@ -862,8 +862,8 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		subcommand = "master" // TODO remove this if not needed anymore
 	}
 
-	providerConfig := internalPke.NodePoolProviderConfigAmazon{}
-	err := mapstructure.Decode(np.ProviderConfig, &providerConfig)
+	nodePoolAmazonConfig := internalPke.NodePoolProviderConfigAmazon{}
+	err := mapstructure.Decode(np.ProviderConfig, &nodePoolAmazonConfig)
 	if err != nil {
 		return "", emperror.WrapWith(err, "failed to decode providerconfig", "cluster", c.model.Cluster.Name)
 	}
@@ -876,39 +876,39 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		version = version[1:]
 	}
 	infrastructureCIDR := ""
-	cloudProvider, _, subnets, err := c.GetNetworkCloudProvider()
-	if err != nil {
-		return "", err
-	}
-	switch cloudProvider {
-	case string(internalPke.CNPAmazon):
-		subnetId := ""
-		if len(providerConfig.AutoScalingGroup.Subnets) > 0 {
-			subnetId = string(providerConfig.AutoScalingGroup.Subnets[0])
-		} else if len(subnets) > 0 {
-			idx := 0
-			if nodePoolName != "master" && len(subnets) > 1 {
-				idx = 1
-			}
-			subnetId = subnets[idx]
+
+	// determine the CIDR of the subnet of the node pool
+	subnetId := ""
+	if len(nodePoolAmazonConfig.AutoScalingGroup.Subnets) > 0 {
+		subnetId = string(nodePoolAmazonConfig.AutoScalingGroup.Subnets[0])
+	} else {
+		// subnet not provided for nodepool. fall back to global provider network config
+		_, _, subnets, err := c.GetNetworkCloudProvider()
+		if err != nil {
+			return "", emperror.Wrap(err, "couldn't get cloud provider network config")
 		}
 
-		if subnetId != "" {
-			// query subnet CIDR from amazon
-			client, err := c.GetAWSClient()
-			if err != nil {
-				return "", err
-			}
-			netSvc := pkgEC2.NewNetworkSvc(ec2.New(client), c.log)
-			infrastructureCIDR, err = netSvc.GetSubnetCidr(subnetId)
-			if err != nil {
-				return "", emperror.Wrapf(err, "couldn't get CIDR for subnet %q", subnetId)
-			}
+		if len(subnets) > 0 {
+			subnetId = subnets[0]
+		}
+	}
+
+	if subnetId != "" {
+		// query subnet CIDR from amazon
+		awsClient, err := c.GetAWSClient()
+		if err != nil {
+			return "", err
 		}
 
+		netSvc := pkgEC2.NewNetworkSvc(ec2.New(awsClient), NewLogurLogger(c.log))
+		infrastructureCIDR, err = netSvc.GetSubnetCidr(subnetId)
+		if err != nil {
+			return "", emperror.Wrapf(err, "couldn't get CIDR for subnet %q", subnetId)
+		}
 	}
+
 	if infrastructureCIDR == "" {
-		return "", errors.New("cloud not query nodepool subnet")
+		return "", emperror.Wrapf(err, "couldn't get CIDR for subnet %q", subnetId)
 	}
 
 	apiAddress, _, err := c.GetNetworkApiServerAddress()
@@ -919,7 +919,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 	// master
 	if subcommand == "master" {
 		masterMode := "default"
-		if providerConfig.AutoScalingGroup.Size.Max > 1 {
+		if nodePoolAmazonConfig.AutoScalingGroup.Size.Max > 1 {
 			masterMode = "ha"
 		}
 

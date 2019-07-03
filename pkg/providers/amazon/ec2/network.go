@@ -20,17 +20,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
+	"github.com/goph/logur"
 )
 
 // NetworkSvc describes the fields needed to interact with EC2 to perform network related operations
 type NetworkSvc struct {
 	ec2Api ec2iface.EC2API
-	log    logrus.FieldLogger
+	log    logur.Logger
 }
 
 // NewNetworkSvc instantiates a new NetworkSvc that uses the provided ec2 api to perform network related operations
-func NewNetworkSvc(ec2Api ec2iface.EC2API, logger logrus.FieldLogger) *NetworkSvc {
+func NewNetworkSvc(ec2Api ec2iface.EC2API, logger logur.Logger) *NetworkSvc {
 	return &NetworkSvc{
 		ec2Api: ec2Api,
 		log:    logger,
@@ -39,7 +39,7 @@ func NewNetworkSvc(ec2Api ec2iface.EC2API, logger logrus.FieldLogger) *NetworkSv
 
 // VpcAvailable returns true of the VPC with the given id exists, and is in available state otherwise false
 func (svc *NetworkSvc) VpcAvailable(vpcId string) (bool, error) {
-
+	logger := logur.WithFields(svc.log, map[string]interface{}{"vpcId": vpcId})
 	result, err := svc.ec2Api.DescribeVpcs(&ec2.DescribeVpcsInput{
 		VpcIds: []*string{
 			aws.String(vpcId),
@@ -56,6 +56,7 @@ func (svc *NetworkSvc) VpcAvailable(vpcId string) (bool, error) {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case "InvalidVpcID.NotFound":
+				logger.Info("VPC not found or it's not in available state")
 				return false, nil
 			}
 		}
@@ -72,6 +73,8 @@ func (svc *NetworkSvc) VpcAvailable(vpcId string) (bool, error) {
 // RouteTableAvailable returns true if there is an 'active' route table with the given id and belongs to
 // the VPC with the given id.
 func (svc *NetworkSvc) RouteTableAvailable(routeTableId, vpcId string) (bool, error) {
+	logger := logur.WithFields(svc.log, map[string]interface{}{"vpcId": vpcId, "routeTableId": routeTableId})
+
 	result, err := svc.ec2Api.DescribeRouteTables(&ec2.DescribeRouteTablesInput{
 		RouteTableIds: []*string{
 			aws.String(routeTableId),
@@ -92,6 +95,7 @@ func (svc *NetworkSvc) RouteTableAvailable(routeTableId, vpcId string) (bool, er
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case "InvalidRouteTableID.NotFound":
+				logger.Info("route table not found or it's not in active state")
 				return false, nil
 			}
 		}
@@ -107,6 +111,7 @@ func (svc *NetworkSvc) RouteTableAvailable(routeTableId, vpcId string) (bool, er
 
 // SubnetAvailable returns true if the Subnet with given id exists and belongs to the VPC with the given id.
 func (svc *NetworkSvc) SubnetAvailable(subnetId, vpcId string) (bool, error) {
+	logger := logur.WithFields(svc.log, map[string]interface{}{"vpcId": vpcId, "subnetId": subnetId})
 	result, err := svc.ec2Api.DescribeSubnets(&ec2.DescribeSubnetsInput{
 		SubnetIds: []*string{
 			aws.String(subnetId),
@@ -127,6 +132,7 @@ func (svc *NetworkSvc) SubnetAvailable(subnetId, vpcId string) (bool, error) {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case "InvalidSubnetID.NotFound":
+				logger.Info("subnet not found or it's not in available state")
 				return false, nil
 			}
 		}
@@ -142,6 +148,8 @@ func (svc *NetworkSvc) SubnetAvailable(subnetId, vpcId string) (bool, error) {
 
 // GetVpcDefaultSecurityGroup returns the Id of default security group of the VPC
 func (svc *NetworkSvc) GetVpcDefaultSecurityGroup(vpcId string) (string, error) {
+	logger := logur.WithFields(svc.log, map[string]interface{}{"vpcId": vpcId})
+
 	result, err := svc.ec2Api.DescribeSecurityGroups(&ec2.DescribeSecurityGroupsInput{
 		Filters: []*ec2.Filter{
 			{
@@ -160,7 +168,7 @@ func (svc *NetworkSvc) GetVpcDefaultSecurityGroup(vpcId string) (string, error) 
 	}
 
 	if len(result.SecurityGroups) == 0 {
-		svc.log.WithField("vpcId", vpcId).Info("VPC has no default security group")
+		logger.Info("VPC has no default security group")
 		return "", nil
 	}
 

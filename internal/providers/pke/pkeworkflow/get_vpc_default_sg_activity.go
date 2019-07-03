@@ -20,7 +20,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
+	"github.com/goph/logur"
+	"github.com/goph/logur/adapters/zapadapter"
+	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 )
 
@@ -43,19 +45,23 @@ func NewGetVpcDefaultSecurityGroupActivity(awsClientFactory *AWSClientFactory) *
 }
 
 func (a *GetVpcDefaultSecurityGroupActivity) Execute(ctx context.Context, input GetVpcDefaultSecurityGroupActivityInput) (string, error) {
-	logger := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID, "vpcId", input.VpcID)
+	logger := logur.WithFields(zapadapter.New(activity.GetLogger(ctx)), map[string]interface{}{"clusterID": input.ClusterID, "vpcId": input.VpcID})
 
 	client, err := a.awsClientFactory.New(input.OrganizationID, input.SecretID, input.Region)
 	if err != nil {
 		return "", err
 	}
 
-	netSvc := pkgEC2.NewNetworkSvc(ec2.New(client), logrus.New())
+	netSvc := pkgEC2.NewNetworkSvc(ec2.New(client), logger)
 	sgID, err := netSvc.GetVpcDefaultSecurityGroup(input.VpcID)
 
 	logger.Debug("getting VPC's default security group")
 	if err != nil {
 		return "", emperror.WrapWith(err, "couldn't get the default security group of the VPC", "clusterID", input.ClusterID, "vpcId", input.VpcID)
+	}
+
+	if sgID == "" {
+		return "", emperror.With(errors.New("couldn't get the default security group of the VPC"), "vpcId", input.VpcID)
 	}
 
 	return sgID, nil
