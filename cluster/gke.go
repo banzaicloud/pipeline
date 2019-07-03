@@ -476,7 +476,7 @@ func (c *GKECluster) waitForResourcesDelete() error {
 	}
 
 	log.Info("Get project id")
-	project, err := c.getProjectId()
+	project, err := c.GetProjectId()
 	if err != nil {
 		return errors.Wrap(err, "Error during getting project id")
 	}
@@ -1500,7 +1500,7 @@ func (c *GKECluster) GetGkeServerConfig(zone string) (*gke.ServerConfig, error) 
 		return nil, err
 	}
 
-	projectId, err := c.getProjectId()
+	projectId, err := c.GetProjectId()
 	if err != nil {
 		return nil, err
 	}
@@ -1552,7 +1552,7 @@ func (c *GKECluster) GetAllMachineTypesByZone(zone string) (map[string]pkgCluste
 		return nil, err
 	}
 
-	project, err := c.getProjectId()
+	project, err := c.GetProjectId()
 	if err != nil {
 		return nil, err
 	}
@@ -1568,7 +1568,7 @@ func (c *GKECluster) GetAllMachineTypes() (map[string]pkgCluster.MachineTypes, e
 		return nil, err
 	}
 
-	project, err := c.getProjectId()
+	project, err := c.GetProjectId()
 	if err != nil {
 		return nil, err
 	}
@@ -1658,7 +1658,7 @@ func (c *GKECluster) GetZones() ([]string, error) {
 		return nil, err
 	}
 
-	project, err := c.getProjectId()
+	project, err := c.GetProjectId()
 	if err != nil {
 		return nil, err
 	}
@@ -1675,8 +1675,8 @@ func (c *GKECluster) GetZones() ([]string, error) {
 	return zones, nil
 }
 
-// getProjectId returns with project id from secret
-func (c *GKECluster) getProjectId() (string, error) {
+// GetProjectId returns with project id from secret
+func (c *GKECluster) GetProjectId() (string, error) {
 	s, err := c.GetSecretWithValidation()
 	if err != nil {
 		return "", err
@@ -1810,7 +1810,7 @@ func (c *GKECluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 }
 
 func (c *GKECluster) validateVPCAndSubnet(VPCName string, subnetName string) error {
-	project, err := c.getProjectId()
+	project, err := c.GetProjectId()
 	if err != nil {
 		return emperror.Wrap(err, "could not get project id")
 	}

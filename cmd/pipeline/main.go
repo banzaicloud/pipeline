@@ -348,11 +348,13 @@ func main() {
 
 	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath, errorHandler)
 
+	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logger, errorHandler)
 	dgroup := base.Group(path.Join("dashboard", "orgs"))
 	dgroup.Use(auth.Handler)
 	dgroup.Use(api.OrganizationMiddleware)
 	dgroup.Use(authorizationMiddleware)
-	dgroup.GET("/:orgid/clusters", dashboard.GetDashboard)
+	dgroup.GET("/:orgid/clusters", dashboardAPI.GetDashboard)
+	dgroup.GET("/:orgid/clusters/:id", dashboardAPI.GetClusterDashboard)
 
 	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(orgImporter)
@@ -489,7 +491,7 @@ func main() {
 				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
 			}
 
-			// Cluster Feature API
+			// ClusterInfo Feature API
 			{
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
 				fr := clusterfeatureadapter.NewGormFeatureRepository(db)

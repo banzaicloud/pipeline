@@ -390,6 +390,25 @@ func (g *Manager) getClusterGroupForCluster(clusterID uint) (*uint, error) {
 	return &result.ClusterGroupID, nil
 }
 
+func (g *Manager) GetClusterGroupNameForCluster(clusterID uint, orgID uint) (*string, error) {
+	cgId, err := g.getClusterGroupForCluster(clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	if cgId == nil {
+		return nil, nil
+	}
+	cgModel, err := g.cgRepo.FindOne(ClusterGroupModel{
+		OrganizationID: orgID,
+		ID:             *cgId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &cgModel.Name, nil
+}
+
 func (g *Manager) validateBeforeClusterGroupUpdate(clusterGroup api.ClusterGroup, newClusters map[uint]api.Cluster) error {
 	g.logger.WithField("clusterGroupName", clusterGroup.Name).Debug("validate group members before update")
 
