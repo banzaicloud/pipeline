@@ -24,14 +24,11 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sHelm "k8s.io/helm/pkg/helm"
-	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 	"k8s.io/helm/pkg/repo"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 )
@@ -145,7 +142,7 @@ func (m *FederationReconciler) removeFederationCRDs() error {
 func (m *FederationReconciler) uninstallFederationController(c cluster.CommonCluster, logger logrus.FieldLogger) error {
 	logger.Debug("removing Federation controller")
 
-	err := deleteDeployment(c, federationReleaseName)
+	err := DeleteDeployment(c, federationReleaseName)
 	if err != nil {
 		return emperror.Wrap(err, "could not remove Federation controller")
 	}
@@ -178,85 +175,10 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		return emperror.Wrap(err, "could not marshal chart value overrides")
 	}
 
-	err = installDeployment(
-		c,
-		m.Configuration.TargetNamespace,
-		//pkgHelm.BanzaiRepository+"/"+
-		viper.GetString(pConfig.FederationChartName),
-		federationReleaseName,
-		valuesOverride,
-		viper.GetString(pConfig.FederationChartVersion),
-		true,
-	)
-	if err != nil {
-		return emperror.Wrap(err, "could not install Federation controller")
-	}
-
-	return nil
-}
-
-func deleteDeployment(c cluster.CommonCluster, releaseName string) error {
-	kubeConfig, err := c.GetK8sConfig()
-	if err != nil {
-		return emperror.Wrap(err, "could not get k8s config")
-	}
-
-	err = helm.DeleteDeployment(releaseName, kubeConfig)
-	if err != nil {
-		e := errors.Cause(err)
-		if e != nil && strings.Contains(e.Error(), "not found") {
-			return nil
-		}
-		return emperror.Wrap(err, "could not remove deployment")
-	}
-
-	return nil
-}
-
-func installDeployment(
-	c cluster.CommonCluster,
-	namespace string,
-	deploymentName string,
-	releaseName string,
-	values []byte,
-	chartVersion string,
-	wait bool,
-) error {
-	kubeConfig, err := c.GetK8sConfig()
-	if err != nil {
-		return emperror.Wrap(err, "could not get k8s config")
-	}
-
+	//ensure repo
 	org, err := auth.GetOrganizationById(c.GetOrganizationId())
 	if err != nil {
 		return emperror.Wrap(err, "could not get organization")
-	}
-
-	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
-	if err != nil {
-		return emperror.Wrap(err, "unable to fetch deployments from helm")
-	}
-
-	var foundRelease *pkgHelmRelease.Release
-	if deployments != nil {
-		for _, release := range deployments.Releases {
-			if release.Name == releaseName {
-				foundRelease = release
-				break
-			}
-		}
-	}
-
-	if foundRelease != nil {
-		switch foundRelease.GetInfo().GetStatus().GetCode() {
-		case pkgHelmRelease.Status_DEPLOYED:
-			return nil
-		case pkgHelmRelease.Status_FAILED:
-			err = helm.DeleteDeployment(releaseName, kubeConfig)
-			if err != nil {
-				return emperror.WrapWith(err, "failed to delete failed deployment", "deploymentName", deploymentName)
-			}
-		}
 	}
 
 	env := helm.GenerateHelmRepoEnv(org.Name)
@@ -268,25 +190,19 @@ func installDeployment(
 		return emperror.WrapWith(err, "failed to add kube-chart repo")
 	}
 
-	options := []k8sHelm.InstallOption{
-		k8sHelm.InstallWait(wait),
-		k8sHelm.ValueOverrides(values),
-	}
-
-	_, err = helm.CreateDeployment(
-		deploymentName,
-		chartVersion,
-		nil,
-		namespace,
-		releaseName,
-		false,
-		nil,
-		kubeConfig,
-		env,
-		options...,
+	err = InstallOrUpgradeDeployment(
+		c,
+		m.Configuration.TargetNamespace,
+		//pkgHelm.BanzaiRepository+"/"+
+		viper.GetString(pConfig.FederationChartName),
+		federationReleaseName,
+		valuesOverride,
+		viper.GetString(pConfig.FederationChartVersion),
+		true,
+		true,
 	)
 	if err != nil {
-		return emperror.WrapWith(err, "could not deploy", "deploymentName", deploymentName)
+		return emperror.Wrap(err, "could not install Federation controller")
 	}
 
 	return nil
