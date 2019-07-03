@@ -20,6 +20,9 @@ Parameters:
   VPCId:
     Type: 'AWS::EC2::VPC::Id'
     Description: Specify VPC Id for Autoscaling
+  VPCDefaultSecurityGroupId:
+    Type: String
+    Description: Default security group of the VPC
   SubnetId:
     Type: 'AWS::EC2::Subnet::Id'
     Description: Specify Subnet Id for Autoscaling
@@ -45,8 +48,9 @@ Resources:
       ImageId: !Ref ImageId
       IamInstanceProfile: !Ref IamInstanceProfile
       SecurityGroupIds:
-      - !Ref MasterSecurityGroup
-      - !Ref ClusterSecurityGroup
+        - !Ref MasterSecurityGroup
+        - !Ref ClusterSecurityGroup
+        - !Ref VPCDefaultSecurityGroupId
       BlockDeviceMappings:
       - DeviceName: /dev/sda1
         Ebs:

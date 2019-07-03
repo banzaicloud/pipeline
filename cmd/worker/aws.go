@@ -38,6 +38,9 @@ func registerAwsWorkflows(clusters *pkeworkflowadapter.ClusterManagerAdapter, to
 	createPKEVPCActivity := pkeworkflow.NewCreateVPCActivity(awsClientFactory)
 	activity.RegisterWithOptions(createPKEVPCActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateVPCActivityName})
 
+	getVpcDefaultSecurityGroupActivity := pkeworkflow.NewGetVpcDefaultSecurityGroupActivity(awsClientFactory)
+	activity.RegisterWithOptions(getVpcDefaultSecurityGroupActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GetVpcDefaultSecurityGroupActivityName})
+
 	updateClusterStatusActivitiy := pkeworkflow.NewUpdateClusterStatusActivity(clusters)
 	activity.RegisterWithOptions(updateClusterStatusActivitiy.Execute, activity.RegisterOptions{Name: pkeworkflow.UpdateClusterStatusActivityName})
 

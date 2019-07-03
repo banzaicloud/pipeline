@@ -16,6 +16,8 @@ package cluster
 
 import (
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/goph/logur"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,4 +26,19 @@ var log logrus.FieldLogger
 
 func init() {
 	log = config.Logger()
+}
+
+func NewLogurLogger(fl logrus.FieldLogger) logur.Logger {
+	if l, ok := fl.(*logrus.Logger); ok {
+		return logrusadapter.New(l)
+	}
+
+	entry, ok := fl.(*logrus.Entry)
+	if !ok {
+		entry = fl.WithFields(logrus.Fields{})
+	}
+
+	logger := logrusadapter.New(entry.Logger)
+
+	return logur.WithFields(logger, entry.Data)
 }

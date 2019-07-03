@@ -213,6 +213,23 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 	}
 
+	// Get default security group of the VPC
+	var vpcDefaultSecurityGroupID string
+
+	activityInput := GetVpcDefaultSecurityGroupActivityInput{
+		AWSActivityInput: awsActivityInput,
+		ClusterID:        input.ClusterID,
+		VpcID:            vpcOutput["VpcId"],
+	}
+	err := workflow.ExecuteActivity(ctx, GetVpcDefaultSecurityGroupActivityName, activityInput).Get(ctx, &vpcDefaultSecurityGroupID)
+	if err != nil {
+		return err
+	}
+
+	if vpcDefaultSecurityGroupID == "" {
+		return errors.Errorf("couldn't get the default security group of the VPC %q", vpcOutput["VpcId"])
+	}
+
 	var nodePools []NodePool
 
 	// List node pools
@@ -263,21 +280,25 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	multiMaster := master.MaxCount > 1
 
+	masterNodeSubnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
+	if len(master.Subnets) > 0 {
+		masterNodeSubnetID = master.Subnets[0]
+	}
 	masterInput := CreateMasterActivityInput{
-		ClusterID:               input.ClusterID,
-		VPCID:                   vpcOutput["VpcId"],
-		SubnetID:                strings.Split(vpcOutput["SubnetIds"], ",")[0],
-		MultiMaster:             multiMaster,
-		MasterInstanceProfile:   rolesOutput["MasterInstanceProfile"],
-		ExternalBaseUrl:         input.PipelineExternalURL,
-		ExternalBaseUrlInsecure: input.PipelineExternalURLInsecure,
-		Pool:                    master,
-		SSHKeyName:              keyOut.KeyName,
-		AvailabilityZone:        master.AvailabilityZones[0],
+		ClusterID:                 input.ClusterID,
+		VPCID:                     vpcOutput["VpcId"],
+		VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
+		SubnetID:                  masterNodeSubnetID,
+		MultiMaster:               multiMaster,
+		MasterInstanceProfile:     rolesOutput["MasterInstanceProfile"],
+		ExternalBaseUrl:           input.PipelineExternalURL,
+		ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
+		Pool:                      master,
+		SSHKeyName:                keyOut.KeyName,
+		AvailabilityZone:          master.AvailabilityZones[0],
 	}
 
 	if multiMaster {
-
 		// Create NLB
 		var activityOutput CreateNLBActivityOutput
 		activityInput := &CreateNLBActivityInput{
@@ -285,7 +306,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			ClusterID:        input.ClusterID,
 			ClusterName:      input.ClusterName,
 			VPCID:            vpcOutput["VpcId"],
-			SubnetIds:        strings.Split(vpcOutput["SubnetIds"], ","),
+			SubnetIds:        []string{masterNodeSubnetID},
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateNLBActivityName, activityInput).Get(ctx, &activityOutput)
@@ -376,16 +397,21 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	{
 		for _, np := range nodePools {
 			if !np.Master {
+				subnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
+				if len(np.Subnets) > 0 {
+					subnetID = np.Subnets[0]
+				}
 				createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
-					ClusterID:               input.ClusterID,
-					Pool:                    np,
-					WorkerInstanceProfile:   rolesOutput["WorkerInstanceProfile"],
-					VPCID:                   vpcOutput["VpcId"],
-					SubnetID:                strings.Split(vpcOutput["SubnetIds"], ",")[0],
-					ClusterSecurityGroup:    masterOutput["ClusterSecurityGroup"],
-					ExternalBaseUrl:         input.PipelineExternalURL,
-					ExternalBaseUrlInsecure: input.PipelineExternalURLInsecure,
-					SSHKeyName:              keyOut.KeyName,
+					ClusterID:                 input.ClusterID,
+					Pool:                      np,
+					WorkerInstanceProfile:     rolesOutput["WorkerInstanceProfile"],
+					VPCID:                     vpcOutput["VpcId"],
+					VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
+					SubnetID:                  subnetID,
+					ClusterSecurityGroup:      masterOutput["ClusterSecurityGroup"],
+					ExternalBaseUrl:           input.PipelineExternalURL,
+					ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
+					SSHKeyName:                keyOut.KeyName,
 				}
 
 				err := workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)

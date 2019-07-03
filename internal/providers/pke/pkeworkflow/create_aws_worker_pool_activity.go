@@ -44,16 +44,17 @@ func NewCreateWorkerPoolActivity(clusters Clusters, tokenGenerator TokenGenerato
 }
 
 type CreateWorkerPoolActivityInput struct {
-	ClusterID               uint
-	Pool                    NodePool
-	VPCID                   string
-	SubnetID                string
-	WorkerInstanceProfile   string
-	ClusterSecurityGroup    string
-	ExternalBaseUrl         string
-	ExternalBaseUrlInsecure bool
-	ImageID                 string
-	SSHKeyName              string
+	ClusterID                 uint
+	Pool                      NodePool
+	VPCID                     string
+	VPCDefaultSecurityGroupID string
+	SubnetID                  string
+	WorkerInstanceProfile     string
+	ClusterSecurityGroup      string
+	ExternalBaseUrl           string
+	ExternalBaseUrlInsecure   bool
+	ImageID                   string
+	SSHKeyName                string
 }
 
 func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWorkerPoolActivityInput) (string, error) {
@@ -151,6 +152,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 				ParameterValue: &input.VPCID,
 			},
 			{
+				ParameterKey:   aws.String("VPCDefaultSecurityGroupId"),
+				ParameterValue: &input.VPCDefaultSecurityGroupID,
+			},
+			{
 				ParameterKey:   aws.String("SubnetIds"),
 				ParameterValue: &input.SubnetID,
 			},
@@ -211,7 +216,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 
 	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)})
 	if err != nil {
-		emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for stack creation")
+		return "", emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for stack creation")
 	}
 
 	if output.StackId != nil {
