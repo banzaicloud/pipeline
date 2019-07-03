@@ -80,6 +80,7 @@ func (sfm *SyncFeatureManager) Deactivate(ctx context.Context, clusterId uint, f
 }
 
 func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (string, error) {
+	// todo
 	panic("implement me")
 }
 
@@ -90,11 +91,20 @@ type helmInstaller interface {
 
 	// UninstallFeature removes a feature to the given cluster
 	UninstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error
+
+	// UpdateFeature updates / upgrades an already existing feature
+	UpdateFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error
 }
 
 // component in chrge for installing features from helmcharts
 type featureHelmInstaller struct {
 	logger logur.Logger
+}
+
+func (fhi *featureHelmInstaller) UpdateFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
+	// todo
+
+	panic("implement me")
 }
 
 func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
@@ -191,10 +201,12 @@ func (fhi *featureHelmInstaller) installDeployment(
 		helm.GenerateHelmRepoEnv(cluster.GetOrganizationName()),
 		options...,
 	)
+
 	if err != nil {
 		fhi.logger.Error("failed to create deployment", map[string]interface{}{"deployment": deploymentName})
 		return err
 	}
+
 	fhi.logger.Info("installed deployment", map[string]interface{}{"deployment": deploymentName})
 	return nil
 }
@@ -203,7 +215,7 @@ func (fhi *featureHelmInstaller) deleteDeployment(cluster clusterfeature.Cluster
 
 	kubeConfig, err := cluster.GetKubeConfig()
 	if err != nil {
-		fhi.logger.Error("failed to get k8s config", map[string]interface{}{"clusterid": cluster.GetID()})
+		fhi.logger.Error("failed to get k8s config", map[string]interface{}{"clusterID": cluster.GetID()})
 		return err
 	}
 
