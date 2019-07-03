@@ -63,6 +63,10 @@ func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (
 	switch feature.Name {
 	case ExternalDns:
 
+		if feature.Spec == nil {
+			feature.Spec = make(map[string]interface{})
+		}
+
 		// todo this is for testing purposes only
 		externalDnsValues := map[string]interface{}{
 			"rbac": map[string]bool{

@@ -79,9 +79,18 @@ func (sfm *SyncFeatureManager) Deactivate(ctx context.Context, clusterId uint, f
 
 }
 
-func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (string, error) {
-	// todo
-	panic("implement me")
+func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (error) {
+	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
+	if err != nil {
+		// internal error at this point
+		return emperror.WrapWith(err, "failed to deactivate feature")
+	}
+
+	if err := sfm.helmInstaller.UpdateFeature(ctx, cluster, feature); err != nil {
+		return emperror.WrapWith(err, "failed to uninstall feature")
+	}
+
+	return nil
 }
 
 // helmInstaller interface for helm operations
@@ -102,9 +111,26 @@ type featureHelmInstaller struct {
 }
 
 func (fhi *featureHelmInstaller) UpdateFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
-	// todo
+	ns, ok := feature.Spec["namespace"]
+	if !ok {
+		ns = helm.DefaultNamespace
+	}
 
-	panic("implement me")
+	deploymentName, ok := feature.Spec[clusterfeature.DNSExternalDnsChartName]
+	if !ok {
+		return errors.New("chart-name for feature not provided")
+	}
+
+	releaseName := "testing-externaldns"
+
+	values, ok := feature.Spec[clusterfeature.DNSExternalDnsValues]
+	if !ok {
+		return errors.New("values for feature not available")
+	}
+
+	chartVersion := feature.Spec[clusterfeature.DNSExternalDnsChartVersion]
+
+	return fhi.updateDeployment(cluster, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string))
 }
 
 func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
@@ -246,4 +272,43 @@ func (fhi *featureHelmInstaller) deleteDeployment(cluster clusterfeature.Cluster
 
 	return nil
 
+}
+
+func (fhi *featureHelmInstaller) updateDeployment(c clusterfeature.Cluster, namespace string, deploymentName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+) error {
+	kubeConfig, err := c.GetKubeConfig()
+	if err != nil {
+		return emperror.Wrap(err, "could not get k8s config")
+	}
+
+	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
+	if err != nil {
+		return emperror.Wrap(err, "unable to fetch deployments")
+	}
+
+	var foundRelease *release.Release
+	if deployments != nil {
+		for _, release := range deployments.Releases {
+			if release.Name == releaseName {
+				foundRelease = release
+				break
+			}
+		}
+	}
+
+	if foundRelease != nil {
+		switch foundRelease.GetInfo().GetStatus().GetCode() {
+		case release.Status_DEPLOYED:
+			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GenerateHelmRepoEnv(c.GetOrganizationName()))
+			if err != nil {
+				return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
+			}
+			return nil
+		}
+	}
+
+	return nil
 }

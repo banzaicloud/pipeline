@@ -93,7 +93,7 @@ type FeatureManager interface {
 	Deactivate(ctx context.Context, clusterId uint, feature Feature) error
 
 	// Updates a feature on the given cluster
-	Update(ctx context.Context, clusterId uint, feature Feature) (string, error)
+	Update(ctx context.Context, clusterId uint, feature Feature) error
 }
 
 // NewClusterFeatureService returns a new FeatureService instance.
@@ -229,8 +229,34 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	s.logger.Info("updating feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
 
-	// todo
-	//s.featureManager.Update(ctx, clusterID)
+	var feature *Feature
+
+	feature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName})
+	if err != nil {
+		return newFeatureSelectionError(featureName)
+	}
+
+	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
+		s.logger.Debug("feature could not be found", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+
+		return newFeatureNotFoundError(featureName)
+	}
+
+	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
+	if err != nil {
+		return emperror.Wrap(err, "could not access cluster")
+	}
+
+	if !ready {
+		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
+
+		return newClusterNotReadyError(featureName)
+	}
+
+	// todo - change the manager interface, don't use the feature ...s
+	if err := s.featureManager.Update(ctx, clusterID, *feature); err != nil {
+		return emperror.WrapWith(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
+	}
 
 	if _, err := s.featureRepository.UpdateFeatureSpec(ctx, clusterID, featureName, spec); err != nil {
 		return emperror.WrapWith(err, "failed to update feature spec", "clusterID", clusterID, "feature", featureName)
