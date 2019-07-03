@@ -38,6 +38,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
@@ -742,6 +743,7 @@ type PKENodePool struct {
 	AvailabilityZones []string
 	ImageID           string
 	SpotPrice         string
+	Subnets           []string
 }
 
 func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
@@ -756,6 +758,11 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 			azs = append(azs, string(az))
 		}
 
+		var subnets []string
+		for _, subnet := range amazonPool.AutoScalingGroup.Subnets {
+			subnets = append(subnets, string(subnet))
+		}
+
 		pools[i] = PKENodePool{
 			Name:              np.Name,
 			MinCount:          amazonPool.AutoScalingGroup.Size.Min,
@@ -766,6 +773,7 @@ func (c *EC2ClusterPKE) GetNodePools() []PKENodePool {
 			ImageID:           amazonPool.AutoScalingGroup.Image,
 			SpotPrice:         amazonPool.AutoScalingGroup.SpotPrice,
 			Autoscaling:       np.Autoscaling,
+			Subnets:           subnets,
 		}
 		for _, role := range np.Roles {
 			if role == "master" {
@@ -874,31 +882,30 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 	}
 	switch cloudProvider {
 	case string(internalPke.CNPAmazon):
-		// match subnet
-		if len(subnets) > 0 {
-			s, err := c.GetAWSClient()
-			if err != nil {
-				return "", err
-			}
-			c := ec2.New(s)
-
+		subnetId := ""
+		if len(providerConfig.AutoScalingGroup.Subnets) > 0 {
+			subnetId = string(providerConfig.AutoScalingGroup.Subnets[0])
+		} else if len(subnets) > 0 {
 			idx := 0
 			if nodePoolName != "master" && len(subnets) > 1 {
 				idx = 1
 			}
+			subnetId = subnets[idx]
+		}
+
+		if subnetId != "" {
 			// query subnet CIDR from amazon
-			in := &ec2.DescribeSubnetsInput{
-				SubnetIds: aws.StringSlice([]string{string(subnets[idx])}),
-			}
-			out, err := c.DescribeSubnets(in)
+			client, err := c.GetAWSClient()
 			if err != nil {
 				return "", err
 			}
-			if len(out.Subnets) > 0 {
-				s := out.Subnets
-				infrastructureCIDR = *s[0].CidrBlock
+			netSvc := pkgEC2.NewNetworkSvc(ec2.New(client), c.log)
+			infrastructureCIDR, err = netSvc.GetSubnetCidr(subnetId)
+			if err != nil {
+				return "", emperror.Wrapf(err, "couldn't get CIDR for subnet %q", subnetId)
 			}
 		}
+
 	}
 	if infrastructureCIDR == "" {
 		return "", errors.New("cloud not query nodepool subnet")

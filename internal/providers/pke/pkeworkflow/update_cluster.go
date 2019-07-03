@@ -71,6 +71,23 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	}
 	clusterSecurityGroup := masterOutput["ClusterSecurityGroup"]
 
+	// Get default security group of the VPC
+	var vpcDefaultSecurityGroupID string
+
+	activityInput := GetVpcDefaultSecurityGroupActivityInput{
+		AWSActivityInput: awsActivityInput,
+		ClusterID:        input.ClusterID,
+		VpcID:            input.VPCID,
+	}
+	err = workflow.ExecuteActivity(ctx, GetVpcDefaultSecurityGroupActivityName, activityInput).Get(ctx, &vpcDefaultSecurityGroupID)
+	if err != nil {
+		return err
+	}
+
+	if vpcDefaultSecurityGroupID == "" {
+		return errors.Errorf("couldn't get the default security group of the VPC %q", input.VPCID)
+	}
+
 	// delete removed nodepools
 	for _, np := range input.NodePoolsToDelete {
 		if np.Master || !np.Worker {
@@ -121,15 +138,16 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	for _, np := range input.NodePoolsToAdd {
 		createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 			//AWSActivityInput:      awsActivityInput,
-			ClusterID:               input.ClusterID,
-			Pool:                    np,
-			WorkerInstanceProfile:   PkeGlobalStackName + "-worker-profile",
-			VPCID:                   input.VPCID,
-			SubnetID:                strings.Join(input.SubnetIDs, ","),
-			ClusterSecurityGroup:    clusterSecurityGroup,
-			ExternalBaseUrl:         input.PipelineExternalURL,
-			ExternalBaseUrlInsecure: input.PipelineExternalURLInsecure,
-			SSHKeyName:              "pke-ssh-" + input.ClusterName,
+			ClusterID:                 input.ClusterID,
+			Pool:                      np,
+			WorkerInstanceProfile:     PkeGlobalStackName + "-worker-profile",
+			VPCID:                     input.VPCID,
+			VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
+			SubnetID:                  strings.Join(input.SubnetIDs, ","),
+			ClusterSecurityGroup:      clusterSecurityGroup,
+			ExternalBaseUrl:           input.PipelineExternalURL,
+			ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
+			SSHKeyName:                "pke-ssh-" + input.ClusterName,
 		}
 
 		err := workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)

@@ -44,16 +44,17 @@ func NewCreateWorkerPoolActivity(clusters Clusters, tokenGenerator TokenGenerato
 }
 
 type CreateWorkerPoolActivityInput struct {
-	ClusterID               uint
-	Pool                    NodePool
-	VPCID                   string
-	SubnetID                string
-	WorkerInstanceProfile   string
-	ClusterSecurityGroup    string
-	ExternalBaseUrl         string
-	ExternalBaseUrlInsecure bool
-	ImageID                 string
-	SSHKeyName              string
+	ClusterID                 uint
+	Pool                      NodePool
+	VPCID                     string
+	VPCDefaultSecurityGroupID string
+	SubnetID                  string
+	WorkerInstanceProfile     string
+	ClusterSecurityGroup      string
+	ExternalBaseUrl           string
+	ExternalBaseUrlInsecure   bool
+	ImageID                   string
+	SSHKeyName                string
 }
 
 func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWorkerPoolActivityInput) (string, error) {
@@ -149,6 +150,10 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			{
 				ParameterKey:   aws.String("VPCId"),
 				ParameterValue: &input.VPCID,
+			},
+			{
+				ParameterKey:   aws.String("VPCDefaultSecurityGroupId"),
+				ParameterValue: &input.VPCDefaultSecurityGroupID,
 			},
 			{
 				ParameterKey:   aws.String("SubnetIds"),

@@ -42,16 +42,17 @@ func NewCreateMasterActivity(clusters Clusters, tokenGenerator TokenGenerator) *
 }
 
 type CreateMasterActivityInput struct {
-	ClusterID               uint
-	AvailabilityZone        string
-	VPCID                   string
-	SubnetID                string
-	MultiMaster             bool
-	MasterInstanceProfile   string
-	ExternalBaseUrl         string
-	ExternalBaseUrlInsecure bool
-	Pool                    NodePool
-	SSHKeyName              string
+	ClusterID                 uint
+	AvailabilityZone          string
+	VPCID                     string
+	VPCDefaultSecurityGroupID string
+	SubnetID                  string
+	MultiMaster               bool
+	MasterInstanceProfile     string
+	ExternalBaseUrl           string
+	ExternalBaseUrlInsecure   bool
+	Pool                      NodePool
+	SSHKeyName                string
 
 	EIPAllocationID string
 
@@ -127,6 +128,10 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		{
 			ParameterKey:   aws.String("VPCId"),
 			ParameterValue: &input.VPCID,
+		},
+		{
+			ParameterKey:   aws.String("VPCDefaultSecurityGroupId"),
+			ParameterValue: &input.VPCDefaultSecurityGroupID,
 		},
 		{
 			ParameterKey:   aws.String("PkeCommand"),

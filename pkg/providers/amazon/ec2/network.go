@@ -139,3 +139,48 @@ func (svc *NetworkSvc) SubnetAvailable(subnetId, vpcId string) (bool, error) {
 
 	return false, nil
 }
+
+// GetVpcDefaultSecurityGroup returns the Id of default security group of the VPC
+func (svc *NetworkSvc) GetVpcDefaultSecurityGroup(vpcId string) (string, error) {
+	result, err := svc.ec2Api.DescribeSecurityGroups(&ec2.DescribeSecurityGroupsInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("vpc-id"),
+				Values: []*string{aws.String(vpcId)},
+			},
+			{
+				Name:   aws.String("group-name"),
+				Values: []*string{aws.String("default")},
+			},
+		},
+	})
+
+	if err != nil {
+		return "", emperror.WrapWith(err, "failed to describe default security group of the VPC", "vpcId", vpcId)
+	}
+
+	if len(result.SecurityGroups) == 0 {
+		svc.log.WithField("vpcId", vpcId).Info("VPC has no default security group")
+		return "", nil
+	}
+
+	return aws.StringValue(result.SecurityGroups[0].GroupId), nil
+}
+
+// GetSubnetCidr returns the cidr of the subnet
+func (svc *NetworkSvc) GetSubnetCidr(subnetId string) (string, error) {
+
+	result, err := svc.ec2Api.DescribeSubnets(&ec2.DescribeSubnetsInput{
+		SubnetIds: []*string{aws.String(subnetId)},
+	})
+
+	if err != nil {
+		return "", emperror.WrapWith(err, "failed to describe subnet", "subnetId", subnetId)
+	}
+
+	if len(result.Subnets) > 0 {
+		return aws.StringValue(result.Subnets[0].CidrBlock), nil
+	}
+
+	return "", nil
+}

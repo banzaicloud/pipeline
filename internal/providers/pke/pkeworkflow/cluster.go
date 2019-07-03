@@ -56,4 +56,5 @@ type NodePool struct {
 	AvailabilityZones []string
 	ImageID           string
 	SpotPrice         string
+	Subnets           []string
 }
