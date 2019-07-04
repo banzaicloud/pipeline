@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	conf "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
@@ -41,7 +42,13 @@ import (
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -257,6 +264,32 @@ func main() {
 
 		waitPersistentVolumesDeletionActivity := intClusterWorkflow.MakeWaitPersistentVolumesDeletionActivity(k8sConfigGetter, conf.Logger())
 		activity.RegisterWithOptions(waitPersistentVolumesDeletionActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.WaitPersistentVolumesDeletionActivityName})
+
+		{
+			// External DNS service
+			dnsSvc, err := dns.GetExternalDnsServiceClient()
+			if err != nil {
+				logger.Error("Getting external DNS service client failed", map[string]interface{}{"error": err.Error()})
+				panic(err)
+			}
+
+			if dnsSvc == nil {
+				logger.Info("External DNS service functionality is not enabled")
+			}
+
+			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
+			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
+			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+			secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+			orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
+			dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterManager, helmService, orgDomainService, logger)
+			featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
+				"dns": dnsFeatureManager,
+			})
+
+			registerClusterFeatureWorkflows(featureRegistry, featureRepository)
+		}
 
 		var closeCh = make(chan struct{})
 
