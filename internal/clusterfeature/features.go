@@ -33,6 +33,8 @@ const (
 	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
 
 	DNSExternalDnsValues = "dns.externalDnsValues"
+
+	DNSExternalDnsNamespace = "dns.externalDnsNamespace"
 )
 
 type ExternalDnsFeature struct {
@@ -93,6 +95,7 @@ func (fs *featureSelector) SelectFeature(ctx context.Context, feature Feature) (
 		feature.Spec[DNSExternalDnsImageVersion] = "v0.5.11"
 		feature.Spec[DNSExternalDnsValues] = externalDnsValuesJson
 		feature.Spec[DNSExternalDnsChartName] = "stable/external-dns"
+		feature.Spec[DNSExternalDnsNamespace] = "default"
 
 		return &feature, nil
 

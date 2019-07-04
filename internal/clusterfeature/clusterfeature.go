@@ -87,7 +87,7 @@ type FeatureRepository interface {
 // FeatureManager operations in charge for applying features to the cluster.
 type FeatureManager interface {
 	// Deploys and activates a feature on the given cluster
-	Activate(ctx context.Context, clusterId uint, feature Feature) (string, error)
+	Activate(ctx context.Context, clusterId uint, feature Feature) error
 
 	// Removes feature from the given cluster
 	Deactivate(ctx context.Context, clusterId uint, feature Feature) error
@@ -143,7 +143,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	}
 
 	// delegate the task of "deploying" the feature to the manager
-	if _, err := s.featureManager.Activate(ctx, clusterID, *selectedFeature); err != nil {
+	if err := s.featureManager.Activate(ctx, clusterID, *selectedFeature); err != nil {
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
