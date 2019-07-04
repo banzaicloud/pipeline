@@ -92,13 +92,13 @@ func (dfm *dummyFeatureManager) Deactivate(ctx context.Context, clusterId uint, 
 	panic("implement me")
 }
 
-func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) (string, error) {
+func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) error {
 	switch feature.Name {
 	case "success":
-		return "ok", nil
+		return nil
 	}
 
-	return "", errors.New("test - failed to activate feature")
+	return errors.New("test - failed to activate feature")
 }
 
 func (dfm *dummyFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) error {
