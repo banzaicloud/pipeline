@@ -59,20 +59,16 @@ func NewDashboardAPI(
 	}
 }
 
-// swagger:route GET /dashboard/{orgid}/clusters orgid GetDashboard
-//
-// Returns returns dashboard metrics for selected/all clusters of an organization
-//
-//     Produces:
-//     - application/json
-//
-//     Schemes: http
-//
-//     Security:
-//
-//     Responses:
-//       200: GetDashboardResponse
-// GetDashboard
+// @Summary Get Dashboard info for all clusters of an organization
+// @Description returns dashboard metrics for selected/all clusters of an organization
+// @Tags dashboard
+// @Produce json
+// @Param orgid path int true "Organization ID"
+// @Success 200 {object} dashboard.GetDashboardResponse
+// @Success 206 {object} dashboard.GetDashboardResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Router /dashboard/{orgid}/clusters [get]
+// @Security bearerAuth
 func (d *DashboardAPI) GetDashboard(c *gin.Context) {
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
@@ -124,6 +120,17 @@ func (d *DashboardAPI) GetDashboard(c *gin.Context) {
 
 }
 
+// @Summary Get Dashboard info for a cluster
+// @Description returns dashboard metrics for selected cluster
+// @Tags dashboard
+// @Produce json
+// @Param orgid path int true "Organization ID"
+// @Param id path int true "C~luster ID"
+// @Success 200 {object} dashboard.GetDashboardResponse
+// @Success 206 {object} dashboard.GetDashboardResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Router /dashboard/{orgid}/clusters/{id} [get]
+// @Security bearerAuth
 func (d *DashboardAPI) GetClusterDashboard(c *gin.Context) {
 	clusterID, ok := ginutils.UintParam(c, "id")
 	if !ok {
@@ -209,7 +216,7 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 	clusterInfo.MasterVersion = clusterStatus.Version
 	clusterGroupName, err := d.clusterGroupManager.GetClusterGroupNameForCluster(commonCluster.GetID(), orgID)
 	if err != nil {
-		d.logger.Warnf("error while fetching clustergroup for cluster: %s", err)
+		d.logger.Warn(err.Error())
 	} else if clusterGroupName != nil {
 		clusterInfo.ClusterGroup = *clusterGroupName
 	}
@@ -221,7 +228,7 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 	if gke, ok := commonCluster.(interface{ GetProjectId() (string, error) }); ok {
 		projectId, err := gke.GetProjectId()
 		if err != nil {
-			d.logger.Warnf("error while fetching project id for cluster: %s", err)
+			d.logger.WithField("clusterID", commonCluster.GetID()).Warnf("error while fetching project id for cluster: %s", err)
 		} else {
 			clusterInfo.Project = projectId
 		}
