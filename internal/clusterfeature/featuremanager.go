@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeatureadapter
+package clusterfeature
 
 import (
 	"context"
@@ -23,21 +23,19 @@ import (
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-// SyncFeatureManager synchronous feature manager
-type SyncFeatureManager struct {
+// syncFeatureManager synchronous feature manager
+type syncFeatureManager struct {
 	logger         logur.Logger
-	clusterService clusterfeature.ClusterService
+	clusterService ClusterService
 	helmService    HelmService
 }
 
 // NewSyncFeatureManager builds a new feature manager component
-func NewSyncFeatureManager(clusterService clusterfeature.ClusterService) *SyncFeatureManager {
+func NewSyncFeatureManager(clusterService ClusterService) FeatureManager {
 	l := logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "feature-manager"})
-	return &SyncFeatureManager{
+	return &syncFeatureManager{
 		logger:         l,
 		clusterService: clusterService,
 		helmService: &featureHelmService{ // wired private component!
@@ -46,7 +44,7 @@ func NewSyncFeatureManager(clusterService clusterfeature.ClusterService) *SyncFe
 	}
 }
 
-func (sfm *SyncFeatureManager) Activate(ctx context.Context, clusterId uint, feature clusterfeature.Feature) error {
+func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) error {
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
@@ -54,24 +52,24 @@ func (sfm *SyncFeatureManager) Activate(ctx context.Context, clusterId uint, fea
 		return emperror.WrapWith(err, "failed to activate feature")
 	}
 
-	ns, ok := feature.Spec[clusterfeature.DNSExternalDnsNamespace]
+	ns, ok := feature.Spec[DNSExternalDnsNamespace]
 	if !ok {
 		return errors.New("namespace for feature not provided")
 	}
 
-	deploymentName, ok := feature.Spec[clusterfeature.DNSExternalDnsChartName]
+	deploymentName, ok := feature.Spec[DNSExternalDnsChartName]
 	if !ok {
 		return errors.New("chart-name for feature not provided")
 	}
 
 	releaseName := "testing-externaldns"
 
-	values, ok := feature.Spec[clusterfeature.DNSExternalDnsValues]
+	values, ok := feature.Spec[DNSExternalDnsValues]
 	if !ok {
 		return errors.New("values for feature not available")
 	}
 
-	chartVersion, ok := feature.Spec[clusterfeature.DNSExternalDnsChartVersion]
+	chartVersion, ok := feature.Spec[DNSExternalDnsChartVersion]
 	if !ok {
 		return errors.New("values for feature not available")
 	}
@@ -85,7 +83,7 @@ func (sfm *SyncFeatureManager) Activate(ctx context.Context, clusterId uint, fea
 
 }
 
-func (sfm *SyncFeatureManager) Deactivate(ctx context.Context, clusterId uint, feature clusterfeature.Feature) error {
+func (sfm *syncFeatureManager) Deactivate(ctx context.Context, clusterId uint, feature Feature) error {
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
 		// internal error at this point
@@ -107,7 +105,7 @@ func (sfm *SyncFeatureManager) Deactivate(ctx context.Context, clusterId uint, f
 
 }
 
-func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, feature clusterfeature.Feature) error {
+func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) error {
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
@@ -115,19 +113,19 @@ func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, featu
 		return emperror.WrapWith(err, "failed to deactivate feature")
 	}
 
-	ns, ok := feature.Spec[clusterfeature.DNSExternalDnsNamespace]
+	ns, ok := feature.Spec[DNSExternalDnsNamespace]
 	if !ok {
 		return errors.New("namespace for feature not provided")
 	}
 
-	deploymentName, ok := feature.Spec[clusterfeature.DNSExternalDnsChartName]
+	deploymentName, ok := feature.Spec[DNSExternalDnsChartName]
 	if !ok {
 		return errors.New("chart-name for feature not provided")
 	}
 
 	releaseName := "testing-externaldns"
 
-	values, ok := feature.Spec[clusterfeature.DNSExternalDnsValues]
+	values, ok := feature.Spec[DNSExternalDnsValues]
 	if !ok {
 		return errors.New("values for feature not available")
 	}
@@ -137,7 +135,7 @@ func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, featu
 		return emperror.Wrap(err, "failed to update feature")
 	}
 
-	chartVersion, ok := feature.Spec[clusterfeature.DNSExternalDnsChartVersion]
+	chartVersion, ok := feature.Spec[DNSExternalDnsChartVersion]
 	if !ok {
 		return errors.New("values for feature not available")
 	}

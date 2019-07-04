@@ -509,7 +509,7 @@ func main() {
 			{
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
 				fr := clusterfeatureadapter.NewGormFeatureRepository(db)
-				fm := clusterfeatureadapter.NewSyncFeatureManager(clusterService)
+				fm := clusterfeature.NewSyncFeatureManager(clusterService)
 				service := clusterfeature.NewClusterFeatureService(logrusadapter.New(log), clusterService, fr, fm)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
