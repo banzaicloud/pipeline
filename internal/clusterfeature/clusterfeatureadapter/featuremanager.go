@@ -79,7 +79,7 @@ func (sfm *SyncFeatureManager) Deactivate(ctx context.Context, clusterId uint, f
 
 }
 
-func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (error) {
+func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, feature clusterfeature.Feature) error {
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
 		// internal error at this point
@@ -293,7 +293,7 @@ func (hs *featureHelmService) deleteDeployment(cluster clusterfeature.Cluster, r
 }
 
 func (hs *featureHelmService) updateDeployment(
-	orgName string,    // identifies the organization
+	orgName string, // identifies the organization
 	kubeConfig []byte, // identifies the cluster
 	namespace string,
 	deploymentName string,
