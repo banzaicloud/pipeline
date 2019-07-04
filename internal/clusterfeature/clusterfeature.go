@@ -231,6 +231,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 
 	var feature *Feature
 
+	// todo handle incoming changes
 	feature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName})
 	if err != nil {
 		return newFeatureSelectionError(featureName)
@@ -252,6 +253,9 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 
 		return newClusterNotReadyError(featureName)
 	}
+
+	// override the spec
+	feature.Spec = spec
 
 	// todo - change the manager interface, don't use the feature ...s
 	if err := s.featureManager.Update(ctx, clusterID, *feature); err != nil {
