@@ -255,7 +255,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	}
 
 	// override the spec
-	feature.Spec = spec
+	feature.Spec[DNSExternalDnsValues] = spec
 
 	// todo - change the manager interface, don't use the feature ...s
 	if err := s.featureManager.Update(ctx, clusterID, *feature); err != nil {
