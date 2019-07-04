@@ -151,6 +151,10 @@ func (e ClusterIsNotReadyError) Details() []interface{} {
 	return []interface{}{"clusterId", e.ClusterID}
 }
 
+func (e ClusterIsNotReadyError) ShouldRetry() bool {
+	return true
+}
+
 func (m *syncFeatureManager) isClusterReady(ctx context.Context, clusterID uint) error {
 	ready, err := m.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
