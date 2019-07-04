@@ -101,8 +101,8 @@ func (dfm *dummyFeatureManager) Activate(ctx context.Context, clusterId uint, fe
 	return "", errors.New("test - failed to activate feature")
 }
 
-func (dfm *dummyFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) (string, error) {
-	panic("implement me")
+func (dfm *dummyFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) error {
+	return nil
 }
 
 type dummyFeatureSelector struct {

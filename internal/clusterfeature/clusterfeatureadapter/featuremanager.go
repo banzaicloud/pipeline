@@ -33,7 +33,7 @@ import (
 type SyncFeatureManager struct {
 	logger         logur.Logger
 	clusterService clusterfeature.ClusterService
-	helmInstaller  helmInstaller
+	helmService    helmService
 }
 
 // NewSyncFeatureManager builds a new feature manager component
@@ -42,7 +42,7 @@ func NewSyncFeatureManager(clusterService clusterfeature.ClusterService) *SyncFe
 	return &SyncFeatureManager{
 		logger:         l,
 		clusterService: clusterService,
-		helmInstaller: &featureHelmInstaller{ // wired private component!
+		helmService: &featureHelmService{ // wired private component!
 			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
 		},
 	}
@@ -56,7 +56,7 @@ func (sfm *SyncFeatureManager) Activate(ctx context.Context, clusterId uint, fea
 		return "", emperror.WrapWith(err, "failed to activate feature")
 	}
 
-	if err := sfm.helmInstaller.InstallFeature(ctx, cluster, feature); err != nil {
+	if err := sfm.helmService.InstallFeature(ctx, cluster, feature); err != nil {
 		return "", emperror.WrapWith(err, "failed to install feature")
 	}
 
@@ -71,7 +71,7 @@ func (sfm *SyncFeatureManager) Deactivate(ctx context.Context, clusterId uint, f
 		return emperror.WrapWith(err, "failed to deactivate feature")
 	}
 
-	if err := sfm.helmInstaller.UninstallFeature(ctx, cluster, feature); err != nil {
+	if err := sfm.helmService.UninstallFeature(ctx, cluster, feature); err != nil {
 		return emperror.WrapWith(err, "failed to uninstall feature")
 	}
 
@@ -86,15 +86,15 @@ func (sfm *SyncFeatureManager) Update(ctx context.Context, clusterId uint, featu
 		return emperror.WrapWith(err, "failed to deactivate feature")
 	}
 
-	if err := sfm.helmInstaller.UpdateFeature(ctx, cluster, feature); err != nil {
+	if err := sfm.helmService.UpdateFeature(ctx, cluster, feature); err != nil {
 		return emperror.WrapWith(err, "failed to uninstall feature")
 	}
 
 	return nil
 }
 
-// helmInstaller interface for helm operations
-type helmInstaller interface {
+// helmService interface for helm operations
+type helmService interface {
 	// InstallFeature installs a feature to the given cluster
 	InstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error
 
@@ -106,11 +106,15 @@ type helmInstaller interface {
 }
 
 // component in chrge for installing features from helmcharts
-type featureHelmInstaller struct {
+type featureHelmService struct {
 	logger logur.Logger
 }
 
-func (fhi *featureHelmInstaller) UpdateFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
+func (hs *featureHelmService) UpdateFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
+
+	// processing feature specific configuration
+	// todo factor the manager out to the Feature interface (possibly)
+
 	ns, ok := feature.Spec["namespace"]
 	if !ok {
 		ns = helm.DefaultNamespace
@@ -128,15 +132,26 @@ func (fhi *featureHelmInstaller) UpdateFeature(ctx context.Context, cluster clus
 		return errors.New("values for feature not available")
 	}
 
-	chartVersion := feature.Spec[clusterfeature.DNSExternalDnsChartVersion]
+	chartVersion, ok := feature.Spec[clusterfeature.DNSExternalDnsChartVersion]
+	if !ok {
+		return errors.New("values for feature not available")
+	}
 
-	return fhi.updateDeployment(cluster, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string))
+	kubeConfig, err := cluster.GetKubeConfig()
+	if err != nil {
+		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
+	}
+
+	return hs.updateDeployment(cluster.GetOrganizationName(), kubeConfig, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string))
 }
 
-func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
+func (hs *featureHelmService) InstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
+	// processing feature specific configuration
+	// todo factor the manager out to the Feature interface (possibly)
+
 	ns, ok := feature.Spec["namespace"]
 	if !ok {
-		return errors.New("namespace for feature not provided")
+		ns = helm.DefaultNamespace
 	}
 
 	deploymentName, ok := feature.Spec[clusterfeature.DNSExternalDnsChartName]
@@ -151,21 +166,30 @@ func (fhi *featureHelmInstaller) InstallFeature(ctx context.Context, cluster clu
 		return errors.New("values for feature not available")
 	}
 
-	chartVersion := feature.Spec[clusterfeature.DNSExternalDnsChartVersion]
+	chartVersion, ok := feature.Spec[clusterfeature.DNSExternalDnsChartVersion]
+	if !ok {
+		return errors.New("values for feature not available")
+	}
 
-	return fhi.installDeployment(cluster, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string), false)
+	kubeConfig, err := cluster.GetKubeConfig()
+	if err != nil {
+		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
+	}
+
+	return hs.installDeployment(cluster.GetOrganizationName(), kubeConfig, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string), false)
 }
 
-func (fhi *featureHelmInstaller) UninstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
+func (hs *featureHelmService) UninstallFeature(ctx context.Context, cluster clusterfeature.Cluster, feature clusterfeature.Feature) error {
 
 	releaseName := "testing-externaldns"
 
-	return fhi.deleteDeployment(cluster, releaseName)
+	return hs.deleteDeployment(cluster, releaseName)
 
 }
 
-func (fhi *featureHelmInstaller) installDeployment(
-	cluster clusterfeature.Cluster,
+func (hs *featureHelmService) installDeployment(
+	orgName string,
+	kubeConfig []byte,
 	namespace string,
 	deploymentName string,
 	releaseName string,
@@ -173,16 +197,10 @@ func (fhi *featureHelmInstaller) installDeployment(
 	chartVersion string,
 	wait bool,
 ) error {
-	// --- [ Get K8S Config ] --- //
-	kubeConfig, err := cluster.GetKubeConfig()
-	if err != nil {
-		fhi.logger.Error("failed to get k8s config", map[string]interface{}{"clusterid": cluster.GetID()})
-		return err
-	}
 
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
-		fhi.logger.Error("failed to fetch deployments", map[string]interface{}{"clusterid": cluster.GetID()})
+		hs.logger.Error("failed to fetch deployments", map[string]interface{}{"deployment": deploymentName})
 		return err
 	}
 
@@ -200,12 +218,12 @@ func (fhi *featureHelmInstaller) installDeployment(
 	if foundRelease != nil {
 		switch foundRelease.GetInfo().GetStatus().GetCode() {
 		case release.Status_DEPLOYED:
-			fhi.logger.Info("deployment is already installed", map[string]interface{}{"deployment": deploymentName})
+			hs.logger.Info("deployment is already installed", map[string]interface{}{"deployment": deploymentName})
 			return nil
 		case release.Status_FAILED:
 			err = helm.DeleteDeployment(releaseName, kubeConfig)
 			if err != nil {
-				fhi.logger.Error("failed to delete failed deployment", map[string]interface{}{"deployment": deploymentName})
+				hs.logger.Error("failed to delete failed deployment", map[string]interface{}{"deployment": deploymentName})
 				return err
 			}
 		}
@@ -224,30 +242,30 @@ func (fhi *featureHelmInstaller) installDeployment(
 		false,
 		nil,
 		kubeConfig,
-		helm.GenerateHelmRepoEnv(cluster.GetOrganizationName()),
+		helm.GenerateHelmRepoEnv(orgName),
 		options...,
 	)
 
 	if err != nil {
-		fhi.logger.Error("failed to create deployment", map[string]interface{}{"deployment": deploymentName})
+		hs.logger.Error("failed to create deployment", map[string]interface{}{"deployment": deploymentName})
 		return err
 	}
 
-	fhi.logger.Info("installed deployment", map[string]interface{}{"deployment": deploymentName})
+	hs.logger.Info("installed deployment", map[string]interface{}{"deployment": deploymentName})
 	return nil
 }
 
-func (fhi *featureHelmInstaller) deleteDeployment(cluster clusterfeature.Cluster, releaseName string) error {
+func (hs *featureHelmService) deleteDeployment(cluster clusterfeature.Cluster, releaseName string) error {
 
 	kubeConfig, err := cluster.GetKubeConfig()
 	if err != nil {
-		fhi.logger.Error("failed to get k8s config", map[string]interface{}{"clusterID": cluster.GetID()})
+		hs.logger.Error("failed to get k8s config", map[string]interface{}{"clusterID": cluster.GetID()})
 		return err
 	}
 
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
-		fhi.logger.Error("failed to fetch deployments", map[string]interface{}{"clusterid": cluster.GetID()})
+		hs.logger.Error("failed to fetch deployments", map[string]interface{}{"clusterid": cluster.GetID()})
 		return err
 	}
 
@@ -265,7 +283,7 @@ func (fhi *featureHelmInstaller) deleteDeployment(cluster clusterfeature.Cluster
 	if foundRelease != nil {
 		err = helm.DeleteDeployment(releaseName, kubeConfig)
 		if err != nil {
-			fhi.logger.Error("failed to delete deployment", map[string]interface{}{"deployment": releaseName})
+			hs.logger.Error("failed to delete deployment", map[string]interface{}{"deployment": releaseName})
 			return err
 		}
 	}
@@ -274,15 +292,15 @@ func (fhi *featureHelmInstaller) deleteDeployment(cluster clusterfeature.Cluster
 
 }
 
-func (fhi *featureHelmInstaller) updateDeployment(c clusterfeature.Cluster, namespace string, deploymentName string,
+func (hs *featureHelmService) updateDeployment(
+	orgName string,    // identifies the organization
+	kubeConfig []byte, // identifies the cluster
+	namespace string,
+	deploymentName string,
 	releaseName string,
 	values []byte,
 	chartVersion string,
 ) error {
-	kubeConfig, err := c.GetKubeConfig()
-	if err != nil {
-		return emperror.Wrap(err, "could not get k8s config")
-	}
 
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
@@ -302,7 +320,15 @@ func (fhi *featureHelmInstaller) updateDeployment(c clusterfeature.Cluster, name
 	if foundRelease != nil {
 		switch foundRelease.GetInfo().GetStatus().GetCode() {
 		case release.Status_DEPLOYED:
-			_, err = helm.UpgradeDeployment(releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, helm.GenerateHelmRepoEnv(c.GetOrganizationName()))
+			_, err = helm.UpgradeDeployment(
+				releaseName,
+				deploymentName,
+				chartVersion,
+				nil,
+				values,
+				false,
+				kubeConfig,
+				helm.GenerateHelmRepoEnv(orgName))
 			if err != nil {
 				return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
 			}
