@@ -1,0 +1,221 @@
+openapi: 3.0.0
+info:
+    description: "{{.Description}}"
+    title: Pipeline Dashboard API
+    contact:
+        email: info@banzaicloud.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 0.3.0
+paths:
+    "/dashboard/{orgid}/clusters":
+        get:
+            security:
+                - bearerAuth: []
+            description: returns dashboard metrics for selected/all clusters of an organization
+            tags:
+                - dashboard
+            summary: Get Dashboard info for all clusters of an organization
+            parameters:
+                - description: Organization ID
+                  name: orgid
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/dashboard.GetDashboardResponse"
+                "206":
+                    description: Partial Content
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/dashboard.GetDashboardResponse"
+                "400":
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/common.ErrorResponse"
+    "/dashboard/{orgid}/clusters/{id}":
+        get:
+            security:
+                - bearerAuth: []
+            description: returns dashboard metrics for selected cluster
+            tags:
+                - dashboard
+            summary: Get Dashboard info for a cluster
+            parameters:
+                - description: Organization ID
+                  name: orgid
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+                - description: C~luster ID
+                  name: id
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/dashboard.GetDashboardResponse"
+                "206":
+                    description: Partial Content
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/dashboard.GetDashboardResponse"
+                "400":
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/common.ErrorResponse"
+servers:
+    - url: //{.Host}{.BasePath}
+      variables:
+          .Host:
+              default: unknown
+          .BasePath:
+              default: unknown
+components:
+    schemas:
+        common.ErrorResponse:
+            type: object
+            properties:
+                code:
+                    type: integer
+                error:
+                    type: string
+                message:
+                    type: string
+        dashboard.Allocatable:
+            type: object
+            properties:
+                cpu:
+                    type: string
+                ephemeralStorage:
+                    type: string
+                memory:
+                    type: string
+                pods:
+                    type: integer
+        dashboard.Capacity:
+            type: object
+            properties:
+                cpu:
+                    type: string
+                ephemeralStorage:
+                    type: string
+                memory:
+                    type: string
+                pods:
+                    type: integer
+        dashboard.ClusterInfo:
+            type: object
+            properties:
+                cloud:
+                    type: string
+                clusterGroup:
+                    type: string
+                cpuUsagePercent:
+                    type: number
+                createdAt:
+                    type: string
+                creatorId:
+                    type: integer
+                creatorName:
+                    type: string
+                distribution:
+                    type: string
+                endpoint:
+                    type: string
+                id:
+                    type: string
+                location:
+                    type: string
+                masterVersion:
+                    type: string
+                memoryUsagePercent:
+                    type: number
+                name:
+                    type: string
+                nodePools:
+                    type: object
+                nodes:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/dashboard.Node"
+                project:
+                    type: string
+                region:
+                    type: string
+                resourceGroup:
+                    type: string
+                status:
+                    type: string
+                statusMessage:
+                    type: string
+                storageUsagePercent:
+                    type: number
+        dashboard.GetDashboardResponse:
+            type: object
+            properties:
+                clusters:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/dashboard.ClusterInfo"
+        dashboard.Node:
+            type: object
+            properties:
+                creationTimestamp:
+                    type: string
+                name:
+                    type: string
+                status:
+                    $ref: "#/components/schemas/dashboard.Status"
+        dashboard.Status:
+            type: object
+            properties:
+                allocatable:
+                    $ref: "#/components/schemas/dashboard.Allocatable"
+                capacity:
+                    $ref: "#/components/schemas/dashboard.Capacity"
+                cpuUsagePercent:
+                    type: number
+                diskPressure:
+                    type: string
+                frequentUnregisterNetDevice:
+                    type: string
+                instanceType:
+                    type: string
+                kernelDeadlock:
+                    type: string
+                lastHeartbeatTime:
+                    type: string
+                memoryPressure:
+                    type: string
+                memoryUsagePercent:
+                    type: number
+                networkUnavailable:
+                    type: string
+                outOfDisk:
+                    type: string
+                pidPressure:
+                    type: string
+                ready:
+                    type: string
+                storageUsagePercent:
+                    type: number

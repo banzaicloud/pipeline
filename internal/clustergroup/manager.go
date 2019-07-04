@@ -296,6 +296,12 @@ func (g *Manager) GetClusterGroupFromModel(ctx context.Context, cg *ClusterGroup
 
 	enabledFeatures := make([]string, 0)
 	clusterGroup.EnabledFeatures = enabledFeatures
+	for _, feature := range cg.FeatureParams {
+		if feature.Enabled {
+			enabledFeatures = append(enabledFeatures, feature.Name)
+		}
+	}
+	clusterGroup.EnabledFeatures = enabledFeatures
 
 	for _, m := range cg.Members {
 		cluster, err := g.clusterGetter.GetClusterByIDOnly(ctx, m.ClusterID)
@@ -393,7 +399,7 @@ func (g *Manager) getClusterGroupForCluster(clusterID uint) (*uint, error) {
 func (g *Manager) GetClusterGroupNameForCluster(clusterID uint, orgID uint) (*string, error) {
 	cgId, err := g.getClusterGroupForCluster(clusterID)
 	if err != nil {
-		return nil, err
+		return nil, emperror.WrapWith(err, "error while fetching cluster group for cluster", "clusterID", clusterID)
 	}
 
 	if cgId == nil {
@@ -404,7 +410,7 @@ func (g *Manager) GetClusterGroupNameForCluster(clusterID uint, orgID uint) (*st
 		ID:             *cgId,
 	})
 	if err != nil {
-		return nil, err
+		return nil, emperror.WrapWith(err, "error while fetching cluster group for cluster", "clusterID", clusterID)
 	}
 	return &cgModel.Name, nil
 }
