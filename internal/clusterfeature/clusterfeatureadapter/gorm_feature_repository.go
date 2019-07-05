@@ -108,7 +108,7 @@ func (r *GormFeatureRepository) GetFeature(ctx context.Context, clusterId uint, 
 	err := r.db.First(&fm, map[string]interface{}{"Name": featureName, "cluster_id": clusterId}).Error
 
 	if gorm.IsRecordNotFoundError(err) {
-		return nil, emperror.WrapWith(err, "cluster feature not found", "feature-name", featureName)
+		return nil, emperror.WrapWith(err, "cluster feature not found", "feature", featureName)
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "could not retrieve feature")
 	}
@@ -133,7 +133,7 @@ func (r *GormFeatureRepository) UpdateFeatureStatus(ctx context.Context, cluster
 // UpdateFeatureStatus updates the status of the feature
 func (r *GormFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterId uint, featureName string, spec map[string]interface{}) (*clusterfeature.Feature, error) {
 
-	fm := clusterFeatureModel{ClusterId: clusterId, Name: featureName,}
+	fm := clusterFeatureModel{ClusterId: clusterId, Name: featureName}
 
 	if err := r.db.Find(&fm, fm).Updates(clusterFeatureModel{Spec: spec}).Error; err != nil {
 		return nil, emperror.Wrap(err, "could not update feature spec")
@@ -155,7 +155,7 @@ func (r *GormFeatureRepository) modelToFeature(cfm *clusterFeatureModel) (*clust
 // DeleteFeature permanently deletes the feature record
 func (r *GormFeatureRepository) DeleteFeature(ctx context.Context, clusterId uint, featureName string) error {
 
-	fm := clusterFeatureModel{ClusterId: clusterId, Name: featureName,}
+	fm := clusterFeatureModel{ClusterId: clusterId, Name: featureName}
 
 	if err := r.db.Delete(&fm, fm).Error; err != nil {
 		return emperror.Wrap(err, "could not delete status")
@@ -168,9 +168,8 @@ func (r *GormFeatureRepository) DeleteFeature(ctx context.Context, clusterId uin
 func (r *GormFeatureRepository) ListFeatures(ctx context.Context, clusterId uint) ([]clusterfeature.Feature, error) {
 	var (
 		featureModels []clusterFeatureModel
+		featureList   []clusterfeature.Feature
 	)
-
-	featureList := make([]clusterfeature.Feature, 0)
 
 	if err := r.db.Find(&featureModels, clusterFeatureModel{ClusterId: clusterId}).Error; err != nil {
 		return nil, emperror.WrapWith(err, "could not retrieve features", "clusterID", clusterId)
