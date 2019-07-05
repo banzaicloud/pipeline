@@ -20,9 +20,7 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/goph/logur"
-	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // syncFeatureManager synchronous feature manager
@@ -33,14 +31,14 @@ type syncFeatureManager struct {
 }
 
 // NewSyncFeatureManager builds a new feature manager component
-func NewSyncFeatureManager(clusterService ClusterService) FeatureManager {
-	l := logur.WithFields(logrusadapter.New(logrus.New()), map[string]interface{}{"component": "feature-manager"})
+func NewSyncFeatureManager(logger logur.Logger, clusterService ClusterService) FeatureManager {
+	hs := &featureHelmService{ // wired private component!
+		logger: logur.WithFields(logger, map[string]interface{}{"comp": "helm-installer"}),
+	}
 	return &syncFeatureManager{
-		logger:         l,
+		logger:         logur.WithFields(logger, map[string]interface{}{"component": "feature-manager"}),
 		clusterService: clusterService,
-		helmService: &featureHelmService{ // wired private component!
-			logger: logur.WithFields(l, map[string]interface{}{"comp": "helm-installer"}),
-		},
+		helmService:    hs,
 	}
 }
 
