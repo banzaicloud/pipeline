@@ -157,15 +157,28 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 	if !m.Configuration.GlobalScope {
 		scope = apiextv1b1.NamespaceScoped
 	}
+	schedulerPreferences := "Enabled"
+	if !m.Configuration.SchedulerPreferences {
+		schedulerPreferences = "Disabled"
+	}
+	crossClusterServiceDiscovery := "Enabled"
+	if !m.Configuration.CrossClusterServiceDiscovery {
+		crossClusterServiceDiscovery = "Disabled"
+	}
+	federatedIngress := "Enabled"
+	if !m.Configuration.FederatedIngress {
+		federatedIngress = "Disabled"
+	}
+
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"scope": scope,
 		},
 		"controllermanager": map[string]interface{}{
 			"featureGates": map[string]interface{}{
-				"SchedulerPreferences":         m.Configuration.SchedulerPreferences,
-				"CrossClusterServiceDiscovery": m.Configuration.CrossClusterServiceDiscovery,
-				"FederatedIngress":             m.Configuration.FederatedIngress,
+				"SchedulerPreferences":         schedulerPreferences,
+				"CrossClusterServiceDiscovery": crossClusterServiceDiscovery,
+				"FederatedIngress":             federatedIngress,
 			},
 		},
 	}
