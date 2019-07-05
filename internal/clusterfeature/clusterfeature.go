@@ -178,6 +178,7 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 
 	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
+
 		return emperror.Wrap(err, "could not access cluster")
 	}
 
@@ -189,6 +190,8 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 
 	if err := featureManager.Deactivate(ctx, clusterID, *feature); err != nil {
 		log.Debug("failed to deactivate feature on cluster")
+
+		return emperror.WrapWith(err, "failed to deactivate feature", "clusterID", clusterID, "feature", featureName)
 	}
 
 	if err := s.featureRepository.DeleteFeature(ctx, clusterID, featureName); err != nil {
@@ -206,6 +209,7 @@ func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureNam
 
 	fd, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
+
 		return nil, newDatabaseAccessError(featureName)
 	}
 
@@ -224,6 +228,7 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 
 	if features, err := s.featureRepository.ListFeatures(ctx, clusterID); err == nil {
 		log.Info("successfully retrieved features")
+
 		return features, nil
 	}
 
@@ -237,6 +242,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
+
 		return newUnsupportedFeatureError(featureName)
 	}
 
@@ -248,6 +254,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 
 	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
+
 		return emperror.Wrap(err, "could not access cluster")
 	}
 
@@ -264,6 +271,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	}
 
 	if _, err := s.featureRepository.UpdateFeatureSpec(ctx, clusterID, featureName, spec); err != nil {
+
 		return emperror.WrapWith(err, "failed to update feature spec", "clusterID", clusterID, "feature", featureName)
 	}
 
@@ -278,6 +286,7 @@ type featureError struct {
 }
 
 func (e featureError) Error() string {
+
 	return fmt.Sprintf("Feature: %s, Message: %s", e.featureName, e.msg)
 }
 
@@ -286,10 +295,12 @@ func (e featureError) FeatureName() string {
 }
 
 func (e featureError) Context() []string {
+
 	return []string{"featureName", e.featureName}
 }
 
 func (e featureError) IsBusinnessError() bool {
+	
 	return true
 }
 
