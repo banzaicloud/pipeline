@@ -42,7 +42,7 @@ func (dfr *dummyFeatureRepository) DeleteFeature(ctx context.Context, clusterId 
 	panic("implement me")
 }
 
-func (dfr *dummyFeatureRepository) ListFeatures(ctx context.Context, clusterId uint) ([]*Feature, error) {
+func (dfr *dummyFeatureRepository) ListFeatures(ctx context.Context, clusterId uint) ([]Feature, error) {
 	panic("implement me")
 }
 
