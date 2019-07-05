@@ -173,7 +173,7 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	if feature, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
 		log.Debug("feature could not be found")
 
-		return newFeatureNotFoundError(featureName)
+		return newDatabaseAccessError(featureName)
 	}
 
 	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
@@ -206,7 +206,7 @@ func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureNam
 
 	fd, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
-		return nil, newFeatureNotFoundError(featureName)
+		return nil, newDatabaseAccessError(featureName)
 	}
 
 	log.Info("successfully retrieved feature details")
@@ -243,7 +243,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
 		log.Debug("feature could not be found")
 
-		return newFeatureNotFoundError(featureName)
+		return newDatabaseAccessError(featureName)
 	}
 
 	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
@@ -297,7 +297,7 @@ const (
 	errorFeatureExists      = "feature already exists"
 	errorUnsupportedFeature = "feature is not supported"
 	errorClusterNotReady    = "cluster is not ready"
-	errorFeatureNotFound    = "feature could not be found"
+	errorDatabaseAccess     = "could not access the database"
 )
 
 type featureExistsError struct {
@@ -334,13 +334,13 @@ func newUnsupportedFeatureError(featureName string) error {
 	}}
 }
 
-type featureNotFoundError struct {
+type databaseAccessEerror struct {
 	featureError
 }
 
-func newFeatureNotFoundError(featureName string) error {
-	return featureNotFoundError{featureError{
+func newDatabaseAccessError(featureName string) error {
+	return databaseAccessEerror{featureError{
 		featureName: featureName,
-		msg:         errorFeatureNotFound,
+		msg:         errorDatabaseAccess,
 	}}
 }
