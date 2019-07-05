@@ -20,29 +20,40 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/goph/logur"
-	"github.com/pkg/errors"
 )
 
-// syncFeatureManager synchronous feature manager
-type syncFeatureManager struct {
+const (
+	ExternalDnsChartVersion = "1.6.2"
+
+	ExternalDnsImageVersion = "v0.5.11"
+
+	ExternalDnsChartName = "stable/external-dns"
+
+	ExternalDnsNamespace = "default"
+
+	ExternalDnsRelease = "external-dns"
+)
+
+// externalDnsFeatureManager synchronous feature manager
+type externalDnsFeatureManager struct {
 	logger         logur.Logger
 	clusterService ClusterService
 	helmService    HelmService
 }
 
-// NewSyncFeatureManager builds a new feature manager component
-func NewSyncFeatureManager(logger logur.Logger, clusterService ClusterService) FeatureManager {
+// NewExternalDnsFeatureManager builds a new feature manager component
+func NewExternalDnsFeatureManager(logger logur.Logger, clusterService ClusterService) FeatureManager {
 	hs := &featureHelmService{ // wired private component!
 		logger: logur.WithFields(logger, map[string]interface{}{"comp": "helm-installer"}),
 	}
-	return &syncFeatureManager{
+	return &externalDnsFeatureManager{
 		logger:         logur.WithFields(logger, map[string]interface{}{"component": "feature-manager"}),
 		clusterService: clusterService,
 		helmService:    hs,
 	}
 }
 
-func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) error {
+func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) error {
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
@@ -50,38 +61,38 @@ func (sfm *syncFeatureManager) Activate(ctx context.Context, clusterId uint, fea
 		return emperror.WrapWith(err, "failed to activate feature")
 	}
 
-	ns, ok := feature.Spec[DNSExternalDnsNamespace]
-	if !ok {
-		return errors.New("namespace for feature not provided")
-	}
-
-	deploymentName, ok := feature.Spec[DNSExternalDnsChartName]
-	if !ok {
-		return errors.New("chart-name for feature not provided")
-	}
-
-	releaseName := "testing-externaldns"
-
-	values, ok := feature.Spec[DNSExternalDnsValues]
-	if !ok {
-		return errors.New("values for feature not available")
-	}
-
-	chartVersion, ok := feature.Spec[DNSExternalDnsChartVersion]
-	if !ok {
-		return errors.New("values for feature not available")
-	}
-
 	kubeConfig, err := cluster.GetKubeConfig()
 	if err != nil {
 		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
 	}
 
-	return sfm.helmService.InstallDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ns.(string), deploymentName.(string), releaseName, values.([]byte), chartVersion.(string), false)
+	// todo merge the spec into a template!!!
+	externalDnsValues := map[string]interface{}{
+		"rbac": map[string]bool{
+			"create": false,
+		},
+		"image": map[string]string{
+			"tag": "v0.5.11",
+		},
+		"aws": map[string]string{
+			"secretKey": "",
+			"accessKey": "",
+			"region":    "",
+		},
+		"domainFilters": []string{"test-domain"},
+		"policy":        "sync",
+		"txtOwnerId":    "testing",
+		"affinity":      "",
+		"tolerations":   "",
+	}
+
+	externalDnsValuesJson, _ := yaml.Marshal(externalDnsValues)
+
+	return sfm.helmService.InstallDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace, ExternalDnsChartName, ExternalDnsRelease, externalDnsValuesJson, ExternalDnsChartVersion, false)
 
 }
 
-func (sfm *syncFeatureManager) Deactivate(ctx context.Context, clusterId uint, feature Feature) error {
+func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterId uint, feature Feature) error {
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
 		// internal error at this point
@@ -93,17 +104,14 @@ func (sfm *syncFeatureManager) Deactivate(ctx context.Context, clusterId uint, f
 		return emperror.WrapWith(err, "failed to deactivate feature", "feature", feature.Name)
 	}
 
-	releaseName := "testing-externaldns"
-
-	if err := sfm.helmService.DeleteDeployment(ctx, kubeConfig, releaseName); err != nil {
+	if err := sfm.helmService.DeleteDeployment(ctx, kubeConfig, ExternalDnsRelease); err != nil {
 		return emperror.WrapWith(err, "failed to uninstall feature")
 	}
 
 	return nil
-
 }
 
-func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) error {
+func (sfm *externalDnsFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) error {
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
@@ -111,31 +119,9 @@ func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId uint, featu
 		return emperror.WrapWith(err, "failed to deactivate feature")
 	}
 
-	ns, ok := feature.Spec[DNSExternalDnsNamespace]
-	if !ok {
-		return errors.New("namespace for feature not provided")
-	}
-
-	deploymentName, ok := feature.Spec[DNSExternalDnsChartName]
-	if !ok {
-		return errors.New("chart-name for feature not provided")
-	}
-
-	releaseName := "testing-externaldns"
-
-	values, ok := feature.Spec[DNSExternalDnsValues]
-	if !ok {
-		return errors.New("values for feature not available")
-	}
-
 	var valuesJson []byte
-	if valuesJson, err = json.Marshal(values); err != nil {
+	if valuesJson, err = json.Marshal(feature.Spec); err != nil {
 		return emperror.Wrap(err, "failed to update feature")
-	}
-
-	chartVersion, ok := feature.Spec[DNSExternalDnsChartVersion]
-	if !ok {
-		return errors.New("values for feature not available")
 	}
 
 	kubeConfig, err := cluster.GetKubeConfig()
@@ -143,6 +129,6 @@ func (sfm *syncFeatureManager) Update(ctx context.Context, clusterId uint, featu
 		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
 	}
 
-	return sfm.helmService.UpdateDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ns.(string), deploymentName.(string), releaseName, valuesJson, chartVersion.(string))
+	return sfm.helmService.UpdateDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace, ExternalDnsChartName, ExternalDnsRelease, valuesJson, ExternalDnsChartVersion)
 
 }

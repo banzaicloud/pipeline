@@ -59,8 +59,8 @@ func (dfr *dummyFeatureRepository) GetFeature(ctx context.Context, clusterId uin
 	return nil, errors.New("feature not found")
 }
 
-func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error) {
-	switch feature.Name {
+func (dfr *dummyFeatureRepository) SaveFeature(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) (uint, error) {
+	switch featureSpec.Name {
 	case featureCouldNotPersist:
 		return 0, errors.New("persistence error")
 	}
@@ -111,7 +111,7 @@ type dummyFeatureSelector struct {
 func (fs *dummyFeatureSelector) SelectFeature(ctx context.Context, feature Feature) (*Feature, error) {
 	switch feature.Name {
 	case featureSelectionErrorName:
-		return nil, newFeatureSelectionError(feature.Name)
+		return nil, newUnsupportedFeatureError(feature.Name)
 
 	}
 	return &feature, nil
