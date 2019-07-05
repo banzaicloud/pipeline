@@ -60,7 +60,7 @@ type clusterFeatureModel struct {
 
 	Name      string
 	Status    string
-	ClusterID uint
+	ClusterId uint
 	Spec      featureSpec `gorm:"type:text"`
 	CreatedBy uint
 }
@@ -90,7 +90,7 @@ func (r *GormFeatureRepository) SaveFeature(ctx context.Context, clusterId uint,
 	cfModel := clusterFeatureModel{
 		Name:      feature.Name,
 		Spec:      feature.Spec,
-		ClusterID: clusterId,
+		ClusterId: clusterId,
 		Status:    string(clusterfeature.FeatureStatusPending),
 	}
 
@@ -119,12 +119,11 @@ func (r *GormFeatureRepository) GetFeature(ctx context.Context, clusterId uint, 
 // UpdateFeatureStatus updates the status of the feature
 func (r *GormFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterId uint, featureName string, status string) (*clusterfeature.Feature, error) {
 	fm := clusterFeatureModel{
-		ClusterID: clusterId,
+		ClusterId: clusterId,
 		Name:      featureName,
 	}
 
-	err := r.db.Model(&fm).Update("status", status).Error
-	if err != nil {
+	if err := r.db.Find(&fm, fm).Updates(clusterFeatureModel{Status: status}).Error; err != nil {
 		return nil, emperror.Wrap(err, "could not update feature status")
 	}
 
@@ -133,13 +132,10 @@ func (r *GormFeatureRepository) UpdateFeatureStatus(ctx context.Context, cluster
 
 // UpdateFeatureStatus updates the status of the feature
 func (r *GormFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterId uint, featureName string, spec map[string]interface{}) (*clusterfeature.Feature, error) {
-	fm := clusterFeatureModel{
-		ClusterID: clusterId,
-		Name:      featureName,
-	}
 
-	err := r.db.Model(&fm).Update(clusterFeatureModel{Spec: spec}).Error
-	if err != nil {
+	fm := clusterFeatureModel{ClusterId: clusterId, Name: featureName,}
+
+	if err := r.db.Find(&fm, fm).Updates(clusterFeatureModel{Spec: spec}).Error; err != nil {
 		return nil, emperror.Wrap(err, "could not update feature spec")
 	}
 
@@ -159,12 +155,9 @@ func (r *GormFeatureRepository) modelToFeature(cfm *clusterFeatureModel) (*clust
 // DeleteFeature permanently deletes the feature record
 func (r *GormFeatureRepository) DeleteFeature(ctx context.Context, clusterId uint, featureName string) error {
 
-	fm := clusterFeatureModel{
-		ClusterID: clusterId,
-		Name:      featureName,
-	}
+	fm := clusterFeatureModel{ClusterId: clusterId, Name: featureName,}
 
-	if err := r.db.Delete(&fm).Error; err != nil {
+	if err := r.db.Delete(&fm, fm).Error; err != nil {
 		return emperror.Wrap(err, "could not delete status")
 	}
 
@@ -179,7 +172,7 @@ func (r *GormFeatureRepository) ListFeatures(ctx context.Context, clusterId uint
 
 	featureList := make([]clusterfeature.Feature, 0)
 
-	if err := r.db.Find(&featureModels, clusterFeatureModel{ClusterID: clusterId}).Error; err != nil {
+	if err := r.db.Find(&featureModels, clusterFeatureModel{ClusterId: clusterId}).Error; err != nil {
 		return nil, emperror.WrapWith(err, "could not retrieve features", "clusterID", clusterId)
 	}
 
