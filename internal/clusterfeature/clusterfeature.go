@@ -113,7 +113,8 @@ func NewClusterFeatureService(
 }
 
 func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
-	s.logger.Info("activate feature", map[string]interface{}{"feature": featureName})
+	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+	log.Info("activate feature")
 
 	selectedFeature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName, Spec: spec})
 	if err != nil {
@@ -121,7 +122,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	}
 
 	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err == nil {
-		s.logger.Debug("feature exists", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+		log.Debug("feature exists")
 
 		return newFeatureExistsError(featureName)
 	}
@@ -132,7 +133,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	}
 
 	if !ready {
-		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
+		s.logger.Debug("cluster not ready")
 
 		return newClusterNotReadyError(featureName)
 	}
@@ -152,13 +153,14 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
 	}
 
-	s.logger.Info("feature successfully activated ", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+	log.Info("feature successfully activated ")
 
 	return nil
 }
 
 func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
-	s.logger.Info("deactivating feature", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+	log.Info("deactivating feature")
 
 	var feature *Feature
 
@@ -168,7 +170,7 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	}
 
 	if feature, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
-		s.logger.Debug("feature could not be found", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+		log.Debug("feature could not be found")
 
 		return newFeatureNotFoundError(featureName)
 	}
@@ -179,55 +181,58 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	}
 
 	if !ready {
-		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
+		log.Debug("cluster not ready")
 
 		return newClusterNotReadyError(featureName)
 	}
 
 	if err := s.featureManager.Deactivate(ctx, clusterID, *feature); err != nil {
-		s.logger.Debug("failed to deactivate feature on cluster", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+		log.Debug("failed to deactivate feature on cluster")
 	}
 
 	if err := s.featureRepository.DeleteFeature(ctx, clusterID, featureName); err != nil {
 		return emperror.WrapWith(err, "failed to delete feature", "clusterID", clusterID, "feature", featureName)
 	}
 
-	s.logger.Info("successfully deactivated feature", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	log.Info("successfully deactivated feature")
 	return nil
 }
 
 func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
-	s.logger.Info("retrieving feature details", map[string]interface{}{"clusterid": clusterID, "feature": featureName})
+
+	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+	log.Info("retrieving feature details")
 
 	fd, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
 		return nil, newFeatureNotFoundError(featureName)
 	}
 
-	s.logger.Info("successfully retrieved feature details", map[string]interface{}{"clusterid": clusterID, "feature": featureName})
+	log.Info("successfully retrieved feature details")
 	return fd, nil
 }
 
 func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
-	s.logger.Info("retrieve features", map[string]interface{}{"clusterid": clusterID})
+
+	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID})
+	log.Info("retrieve features")
+
 	var (
-		featurePtrs []*Feature
-		features    []Feature
-		err         error
+		err error
 	)
-	if featurePtrs, err = s.featureRepository.ListFeatures(ctx, clusterID); err != nil {
-		return nil, emperror.Wrap(err, "failed to retrieve features")
+
+	if features, err := s.featureRepository.ListFeatures(ctx, clusterID); err == nil {
+		return features, nil
 	}
 
-	for _, fp := range featurePtrs {
-		features = append(features, *fp)
-	}
-	s.logger.Info("successfully retrieved features", map[string]interface{}{"clusterid": clusterID})
-	return features, nil
+	log.Info("successfully retrieved features")
+	return nil, emperror.Wrap(err, "failed to retrieve features")
 }
 
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
-	s.logger.Info("updating feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+
+	log := logur.WithFields(s.logger, map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	log.Info("updating feature spec")
 
 	var feature *Feature
 
@@ -238,7 +243,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	}
 
 	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
-		s.logger.Debug("feature could not be found", map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+		log.Debug("feature could not be found")
 
 		return newFeatureNotFoundError(featureName)
 	}
@@ -249,7 +254,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	}
 
 	if !ready {
-		s.logger.Debug("cluster not ready", map[string]interface{}{"clusterId": clusterID})
+		log.Debug("cluster not ready")
 
 		return newClusterNotReadyError(featureName)
 	}
@@ -266,7 +271,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 		return emperror.WrapWith(err, "failed to update feature spec", "clusterID", clusterID, "feature", featureName)
 	}
 
-	s.logger.Info("successfully updated feature spec", map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	log.Info("successfully updated feature spec")
 	return nil
 }
 
