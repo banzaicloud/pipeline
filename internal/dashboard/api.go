@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"strings"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -89,21 +88,17 @@ func (d *DashboardAPI) GetDashboard(c *gin.Context) {
 
 	i := 0
 	for _, c := range clusters {
-		status, err := c.GetStatus()
 		if err == nil {
-			if strings.ToUpper(status.Status) == "RUNNING" {
-				go func() {
-					logger := d.logger.WithField("clusterId", c.GetID())
-					cluster, partial := d.getClusterDashboardInfo(logger, c, organizationID)
-					if partial {
-						partialResponse = true
-					}
-					clusterResponseChan <- cluster
-				}()
-				i++
-			}
+			go func(commonCluster cluster.CommonCluster) {
+				logger := d.logger.WithField("clusterId", commonCluster.GetID())
+				cluster, partial := d.getClusterDashboardInfo(logger, commonCluster, organizationID)
+				if partial {
+					partialResponse = true
+				}
+				clusterResponseChan <- cluster
+			}(c)
+			i++
 		}
-
 	}
 
 	clusterResponse := make([]ClusterInfo, 0)
@@ -174,6 +169,8 @@ func createNodeInfoMap(pods []v1.Pod, nodes []v1.Node) map[string]*cache.NodeInf
 }
 
 func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonCluster cluster.CommonCluster, orgID uint) (clusterInfo ClusterInfo, partialResponse bool) {
+	logger.WithField("clusterName", commonCluster.GetName()).Debug("getClusterDashboardInfo for cluster")
+
 	nodeStates := make([]Node, 0)
 	clusterInfo = ClusterInfo{
 		Name:         commonCluster.GetName(),
@@ -181,21 +178,6 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 		Distribution: commonCluster.GetDistribution(),
 		Cloud:        commonCluster.GetCloud(),
 		Nodes:        nodeStates,
-	}
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		clusterInfo.Status = "ERROR"
-		clusterInfo.StatusMessage = err.Error()
-		partialResponse = true
-		return
-	}
-
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		clusterInfo.Status = "ERROR"
-		clusterInfo.StatusMessage = err.Error()
-		partialResponse = true
-		return
 	}
 
 	clusterStatus, err := commonCluster.GetStatus()
@@ -268,10 +250,20 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 		}
 	}
 
+	kubeConfig, err := commonCluster.GetK8sConfig()
+	if err != nil {
+		partialResponse = true
+		return
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		partialResponse = true
+		return
+	}
+
 	nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
-		clusterInfo.Status = "ERROR"
-		clusterInfo.StatusMessage = err.Error()
 		partialResponse = true
 		return
 	}
@@ -279,8 +271,6 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 	logger.Debug("List pods")
 	podList, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
-		clusterInfo.Status = "ERROR"
-		clusterInfo.StatusMessage = err.Error()
 		partialResponse = true
 		return
 	}
