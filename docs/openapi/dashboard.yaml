@@ -142,6 +142,8 @@ components:
                     type: string
                 endpoint:
                     type: string
+                secretName:
+                    type: string
                 id:
                     type: string
                 location:

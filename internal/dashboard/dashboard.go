@@ -87,6 +87,7 @@ type ClusterInfo struct {
 	Project             string              `json:"project,omitempty"`
 	ResourceGroup       string              `json:"resourceGroup,omitempty"`
 	ClusterGroup        string              `json:"clusterGroup,omitempty"`
+	SecretName          string              `json:"secretName,omitempty"`
 	Nodes               []Node              `json:"nodes"`
 	NodePools           map[string]NodePool `json:"nodePools,omitempty"`
 	CreatedAt           time.Time           `json:"createdAt,omitempty"`

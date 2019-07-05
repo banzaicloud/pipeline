@@ -214,6 +214,21 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 	clusterInfo.Region = clusterStatus.Region
 	clusterInfo.Location = clusterStatus.Location
 	clusterInfo.MasterVersion = clusterStatus.Version
+
+	endPoint, err := commonCluster.GetAPIEndpoint()
+	if err != nil {
+		d.logger.Warn(err.Error())
+	} else {
+		clusterInfo.Endpoint = endPoint
+	}
+
+	secret, err := commonCluster.GetSecretWithValidation()
+	if err != nil {
+		d.logger.Warn(err.Error())
+	} else {
+		clusterInfo.SecretName = secret.Name
+	}
+
 	clusterGroupName, err := d.clusterGroupManager.GetClusterGroupNameForCluster(commonCluster.GetID(), orgID)
 	if err != nil {
 		d.logger.Warn(err.Error())
