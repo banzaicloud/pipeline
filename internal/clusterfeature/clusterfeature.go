@@ -300,7 +300,7 @@ func (e featureError) Context() []string {
 }
 
 func (e featureError) IsBusinnessError() bool {
-	
+
 	return true
 }
 
