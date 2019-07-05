@@ -81,7 +81,7 @@ type FeatureRepository interface {
 	DeleteFeature(ctx context.Context, clusterId uint, featureName string) error
 
 	// Retrieves features for a given cluster
-	ListFeatures(ctx context.Context, clusterId uint) ([]*Feature, error)
+	ListFeatures(ctx context.Context, clusterId uint) ([]Feature, error)
 }
 
 // FeatureManager operations in charge for applying features to the cluster.

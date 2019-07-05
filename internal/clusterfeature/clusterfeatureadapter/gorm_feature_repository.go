@@ -172,12 +172,12 @@ func (r *GormFeatureRepository) DeleteFeature(ctx context.Context, clusterId uin
 
 }
 
-func (r *GormFeatureRepository) ListFeatures(ctx context.Context, clusterId uint) ([]*clusterfeature.Feature, error) {
+func (r *GormFeatureRepository) ListFeatures(ctx context.Context, clusterId uint) ([]clusterfeature.Feature, error) {
 	var (
 		featureModels []clusterFeatureModel
 	)
 
-	featureList := make([]*clusterfeature.Feature, 0)
+	featureList := make([]clusterfeature.Feature, 0)
 
 	if err := r.db.Find(&featureModels, clusterFeatureModel{ClusterID: clusterId}).Error; err != nil {
 		return nil, emperror.WrapWith(err, "could not retrieve features", "clusterID", clusterId)
@@ -191,7 +191,7 @@ func (r *GormFeatureRepository) ListFeatures(ctx context.Context, clusterId uint
 			continue
 		}
 
-		featureList = append(featureList, f)
+		featureList = append(featureList, *f)
 	}
 
 	return featureList, nil
