@@ -39,7 +39,7 @@ func TestActivateClusterFeature(t *testing.T) {
 				Spec: nil,
 			},
 			checker: func(t *testing.T, response interface{}) {
-				e, ok := response.(featureSelectionError)
+				e, ok := response.(unsupportedFeatureError)
 				assert.True(t, ok)
 				assert.NotNil(t, e)
 				assert.EqualError(t, e, "Feature: feature-couldnotselect, Message: could not select feature")
@@ -132,7 +132,7 @@ func testClusterFeature(t *testing.T) {
 	//
 	//cr := clusterfeatureadapter.NewClusterService(cm)
 	//fr := clusterfeatureadapter.NewGormFeatureRepository(db)
-	//fm := clusterfeatureadapter.NewSyncFeatureManager(cr)
+	//fm := clusterfeatureadapter.NewExternalDnsFeatureManager(cr)
 	//
 	//cps := NewClusterFeatureService(l, cr, fr, fm)
 	//

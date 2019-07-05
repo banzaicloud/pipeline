@@ -15,6 +15,7 @@
 package clusterfeature
 
 import (
+	"context"
 	"errors"
 
 	"github.com/goph/logur"
@@ -23,10 +24,10 @@ import (
 // FeatureManagerRegistry operations related to the set of features supported by the application
 type FeatureManagerRegistry interface {
 	// RegisterFeatureManager registers the feature manager for the given feature name
-	RegisterFeatureManager(featureName string, featureManager FeatureManager) error
+	RegisterFeatureManager(ctx context.Context, featureName string, featureManager FeatureManager) error
 
 	//GetFeatureManager retrieves a feature manager by the feature name
-	GetFeatureManager(featureName string) (FeatureManager, error)
+	GetFeatureManager(ctx context.Context, featureName string) (FeatureManager, error)
 }
 
 type featureManagerRegistry struct {
@@ -34,7 +35,7 @@ type featureManagerRegistry struct {
 	registry map[string]FeatureManager
 }
 
-func (fr *featureManagerRegistry) RegisterFeatureManager(featureName string, featureManager FeatureManager) error {
+func (fr *featureManagerRegistry) RegisterFeatureManager(ctx context.Context, featureName string, featureManager FeatureManager) error {
 	log := logur.WithFields(fr.logger, map[string]interface{}{"feature": featureName})
 	log.Info("registering feature ...")
 
@@ -49,7 +50,7 @@ func (fr *featureManagerRegistry) RegisterFeatureManager(featureName string, fea
 	return nil
 }
 
-func (fr *featureManagerRegistry) GetFeatureManager(featureName string) (FeatureManager, error) {
+func (fr *featureManagerRegistry) GetFeatureManager(ctx context.Context, featureName string) (FeatureManager, error) {
 	log := logur.WithFields(fr.logger, map[string]interface{}{"feature": featureName})
 	log.Info("retrieving feature ...")
 

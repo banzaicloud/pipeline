@@ -38,11 +38,10 @@ const (
 
 // FeatureService manages features on Kubernetes clusters.
 type FeatureService struct {
-	logger            logur.Logger
-	clusterService    ClusterService
-	featureRepository FeatureRepository
-	featureManager    FeatureManager
-	featureSelector   FeatureSelector
+	logger                 logur.Logger
+	clusterService         ClusterService
+	featureRepository      FeatureRepository
+	featureManagerRegistry FeatureManagerRegistry
 }
 
 // ClusterService provides a thin access layer to clusters.
@@ -66,7 +65,7 @@ type Cluster interface {
 // FeatureRepository collects persistence related operations.
 type FeatureRepository interface {
 	// SaveFeature persists the feature into the persistent storage
-	SaveFeature(ctx context.Context, clusterId uint, feature Feature) (uint, error)
+	SaveFeature(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) (uint, error)
 
 	// GetFeature retrieves the feature from the persistent storage
 	GetFeature(ctx context.Context, clusterId uint, featureName string) (*Feature, error)
@@ -101,14 +100,13 @@ func NewClusterFeatureService(
 	logger logur.Logger,
 	clusterService ClusterService,
 	featureRepository FeatureRepository,
-	featureManager FeatureManager,
+	featureManagerRegistry FeatureManagerRegistry,
 ) *FeatureService {
 	return &FeatureService{
-		logger:            logger,
-		clusterService:    clusterService,
-		featureRepository: featureRepository,
-		featureManager:    featureManager,
-		featureSelector:   NewFeatureSelector(logger),
+		logger:                 logger,
+		clusterService:         clusterService,
+		featureRepository:      featureRepository,
+		featureManagerRegistry: featureManagerRegistry,
 	}
 }
 
@@ -116,9 +114,9 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 	log.Info("activate feature")
 
-	selectedFeature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName, Spec: spec})
+	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
-		return newFeatureSelectionError(featureName)
+		return newUnsupportedFeatureError(featureName)
 	}
 
 	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err == nil {
@@ -129,6 +127,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 
 	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
+
 		return emperror.Wrap(err, "could not access cluster")
 	}
 
@@ -138,18 +137,20 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return newClusterNotReadyError(featureName)
 	}
 
-	// TODO: save feature name and spec (pending status?)
-	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, *selectedFeature); err != nil {
+	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec); err != nil {
+
 		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	// delegate the task of "deploying" the feature to the manager
-	if err := s.featureManager.Activate(ctx, clusterID, *selectedFeature); err != nil {
+	if err := featureManager.Activate(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
+
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	// TODO: this should be done asynchronously
 	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
+
 		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
 	}
 
@@ -164,9 +165,9 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 
 	var feature *Feature
 
-	_, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName})
+	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
-		return newFeatureSelectionError(featureName)
+		return newUnsupportedFeatureError(featureName)
 	}
 
 	if feature, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
@@ -186,7 +187,7 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 		return newClusterNotReadyError(featureName)
 	}
 
-	if err := s.featureManager.Deactivate(ctx, clusterID, *feature); err != nil {
+	if err := featureManager.Deactivate(ctx, clusterID, *feature); err != nil {
 		log.Debug("failed to deactivate feature on cluster")
 	}
 
@@ -234,11 +235,9 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	log := logur.WithFields(s.logger, map[string]interface{}{"clusterID": clusterID, "feature": featureName})
 	log.Info("updating feature spec")
 
-	var feature *Feature
-
-	feature, err := s.featureSelector.SelectFeature(ctx, Feature{Name: featureName})
+	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
-		return newFeatureSelectionError(featureName)
+		return newUnsupportedFeatureError(featureName)
 	}
 
 	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
@@ -258,11 +257,9 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 		return newClusterNotReadyError(featureName)
 	}
 
-	// todo is it ok
-	feature.Spec = spec
+	if err := featureManager.Update(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
+		log.Debug("failed to update feature")
 
-	// todo - change the manager interface, don't use the feature ...s
-	if err := s.featureManager.Update(ctx, clusterID, *feature); err != nil {
 		return emperror.WrapWith(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
 	}
 
@@ -297,10 +294,10 @@ func (e featureError) IsBusinnessError() bool {
 }
 
 const (
-	errorFeatureExists    = "feature already exists"
-	errorFeatureSelection = "could not select feature"
-	errorClusterNotReady  = "cluster is not ready"
-	errorFeatureNotFound  = "feature could not be found"
+	errorFeatureExists      = "feature already exists"
+	errorUnsupportedFeature = "feature is not supported"
+	errorClusterNotReady    = "cluster is not ready"
+	errorFeatureNotFound    = "feature could not be found"
 )
 
 type featureExistsError struct {
@@ -326,14 +323,14 @@ func newClusterNotReadyError(featureName string) error {
 	}}
 }
 
-type featureSelectionError struct {
+type unsupportedFeatureError struct {
 	featureError
 }
 
-func newFeatureSelectionError(featureName string) error {
-	return featureSelectionError{featureError{
+func newUnsupportedFeatureError(featureName string) error {
+	return unsupportedFeatureError{featureError{
 		featureName: featureName,
-		msg:         errorFeatureSelection,
+		msg:         errorUnsupportedFeature,
 	}}
 }
 

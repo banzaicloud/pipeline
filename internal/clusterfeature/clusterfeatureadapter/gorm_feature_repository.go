@@ -86,17 +86,17 @@ func NewGormFeatureRepository(db *gorm.DB) *GormFeatureRepository {
 	return &GormFeatureRepository{db: db}
 }
 
-func (r *GormFeatureRepository) SaveFeature(ctx context.Context, clusterId uint, feature clusterfeature.Feature) (uint, error) {
+func (r *GormFeatureRepository) SaveFeature(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) (uint, error) {
 	cfModel := clusterFeatureModel{
-		Name:      feature.Name,
-		Spec:      feature.Spec,
+		Name:      featureName,
+		Spec:      featureSpec,
 		ClusterId: clusterId,
 		Status:    string(clusterfeature.FeatureStatusPending),
 	}
 
 	err := r.db.Save(&cfModel).Error
 	if err != nil {
-		return 0, emperror.WrapWith(err, "failed to persist feature", "feature", feature.Name)
+		return 0, emperror.WrapWith(err, "failed to persist feature", "feature", featureName)
 	}
 
 	return cfModel.ID, nil
