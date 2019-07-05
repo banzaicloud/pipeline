@@ -222,10 +222,10 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 	)
 
 	if features, err := s.featureRepository.ListFeatures(ctx, clusterID); err == nil {
+		log.Info("successfully retrieved features")
 		return features, nil
 	}
 
-	log.Info("successfully retrieved features")
 	return nil, emperror.Wrap(err, "failed to retrieve features")
 }
 
