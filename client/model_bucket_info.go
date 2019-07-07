@@ -16,10 +16,15 @@ type BucketInfo struct {
 	Name string `json:"name"`
 	// true if the bucket has been created via pipeline
 	Managed bool `json:"managed"`
-	// true if the bucket has been created via pipeline
+	// cloud provider of the bucket
+	Cloud string `json:"cloud"`
+	// location of the bucket
+	Location string `json:"location"`
+	// notes for the bucket
 	Notes  string                `json:"notes,omitempty"`
 	Secret BucketInfoSecret      `json:"secret,omitempty"`
-	Azure  AzureBlobStorageProps `json:"azure,omitempty"`
+	Aks    AzureBlobStorageProps `json:"aks,omitempty"`
+	Oracle OracleStorageProps    `json:"oracle,omitempty"`
 	// the status of the bucket
 	Status string `json:"status"`
 	// the reason for the error status

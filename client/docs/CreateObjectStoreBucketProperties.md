@@ -3,7 +3,8 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Alibaba** | [**CreateAmazonObjectStoreBucketProperties**](CreateAmazonObjectStoreBucketProperties.md) |  | [optional] 
+**Alibaba** | [**CreateAlibabaObjectStoreBucketProperties**](CreateAlibabaObjectStoreBucketProperties.md) |  | [optional] 
+**Amazon** | [**CreateAmazonObjectStoreBucketProperties**](CreateAmazonObjectStoreBucketProperties.md) |  | [optional] 
 **Azure** | [**CreateAzureObjectStoreBucketProperties**](CreateAzureObjectStoreBucketProperties.md) |  | [optional] 
 **Google** | [**CreateGoogleObjectStoreBucketProperties**](CreateGoogleObjectStoreBucketProperties.md) |  | [optional] 
 **Oracle** | [**CreateOracleObjectStoreBucketProperties**](CreateOracleObjectStoreBucketProperties.md) |  | [optional] 

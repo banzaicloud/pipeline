@@ -12,8 +12,9 @@
 package client
 
 type CreateObjectStoreBucketProperties struct {
-	Alibaba CreateAmazonObjectStoreBucketProperties `json:"alibaba,omitempty"`
-	Azure   CreateAzureObjectStoreBucketProperties  `json:"azure,omitempty"`
-	Google  CreateGoogleObjectStoreBucketProperties `json:"google,omitempty"`
-	Oracle  CreateOracleObjectStoreBucketProperties `json:"oracle,omitempty"`
+	Alibaba CreateAlibabaObjectStoreBucketProperties `json:"alibaba,omitempty"`
+	Amazon  CreateAmazonObjectStoreBucketProperties  `json:"amazon,omitempty"`
+	Azure   CreateAzureObjectStoreBucketProperties   `json:"azure,omitempty"`
+	Google  CreateGoogleObjectStoreBucketProperties  `json:"google,omitempty"`
+	Oracle  CreateOracleObjectStoreBucketProperties  `json:"oracle,omitempty"`
 }

@@ -69,6 +69,7 @@ Name | Type | Description  | Notes
  **force** | **optional.Bool**| Is the operation forced | 
  **resourceGroup** | **optional.String**| Azure resource group the storage account that holds the bucket (storage container) to be deleted | 
  **storageAccount** | **optional.String**| Azure storage account to delete the bucket (storage container) from | 
+ **location** | **optional.String**| The region to delete the bucket from. Required on Amazon, Oracle and Alibaba cloud providers. | 
 
 ### Return type
 

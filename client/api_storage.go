@@ -161,12 +161,14 @@ Deletes the object store bucket identified by the given name. The credentials fo
  * @param "Force" (optional.Bool) -  Is the operation forced
  * @param "ResourceGroup" (optional.String) -  Azure resource group the storage account that holds the bucket (storage container) to be deleted
  * @param "StorageAccount" (optional.String) -  Azure storage account to delete the bucket (storage container) from
+ * @param "Location" (optional.String) -  The region to delete the bucket from. Required on Amazon, Oracle and Alibaba cloud providers.
 */
 
 type DeleteObjectStoreBucketOpts struct {
 	Force          optional.Bool
 	ResourceGroup  optional.String
 	StorageAccount optional.String
+	Location       optional.String
 }
 
 func (a *StorageApiService) DeleteObjectStoreBucket(ctx context.Context, orgId int32, name string, secretId string, cloudType string, localVarOptionals *DeleteObjectStoreBucketOpts) (*http.Response, error) {
@@ -196,6 +198,9 @@ func (a *StorageApiService) DeleteObjectStoreBucket(ctx context.Context, orgId i
 	}
 	if localVarOptionals != nil && localVarOptionals.StorageAccount.IsSet() {
 		localVarQueryParams.Add("storageAccount", parameterToString(localVarOptionals.StorageAccount.Value(), ""))
+	}
+	if localVarOptionals != nil && localVarOptionals.Location.IsSet() {
+		localVarQueryParams.Add("location", parameterToString(localVarOptionals.Location.Value(), ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{}
