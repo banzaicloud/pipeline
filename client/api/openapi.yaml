@@ -4215,6 +4215,14 @@ paths:
         schema:
           type: string
         style: form
+      - description: The region to delete the bucket from. Required on Amazon, Oracle and Alibaba cloud providers.
+        explode: true
+        in: query
+        name: location
+        required: false
+        schema:
+          type: string
+        style: form
       responses:
         200:
           description: Storage bucket deleted successfully
@@ -10851,8 +10859,10 @@ components:
         name: mybucket
         secretId: secretId
         properties:
-          alibaba:
+          amazon:
             location: eu-west-1
+          alibaba:
+            location: eu-central-1
           oracle:
             location: location
           google:
@@ -10878,8 +10888,10 @@ components:
       type: object
     CreateObjectStoreBucketProperties:
       example:
-        alibaba:
+        amazon:
           location: eu-west-1
+        alibaba:
+          location: eu-central-1
         oracle:
           location: location
         google:
@@ -10890,6 +10902,8 @@ components:
           storageAccount: mystorageaccount
       properties:
         alibaba:
+          $ref: '#/components/schemas/CreateAlibabaObjectStoreBucketProperties'
+        amazon:
           $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
         azure:
           $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
@@ -10897,6 +10911,17 @@ components:
           $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
         oracle:
           $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
+      type: object
+    CreateAlibabaObjectStoreBucketProperties:
+      example:
+        location: eu-central-1
+      nullable: true
+      properties:
+        location:
+          example: eu-central-1
+          type: string
+      required:
+      - location
       type: object
     CreateAmazonObjectStoreBucketProperties:
       example:
@@ -10973,18 +10998,22 @@ components:
       type: object
     BucketInfo:
       example:
+        cloud: amazon
         notes: There's no secret with this ID
+        oracle:
+          namespace: namespace
         managed: true
         name: mybucket
+        aks:
+          resourceGroup: resourceGroup
+          storageAccount: storageAccount
+        location: eu-west-1
         secret:
           accessId: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dcef
           accessName: myaccesssecretname
           name: mysecretname
           id: cc051aeaf686444e2f125d0e79eb051aaaf4fb73384f7b0f8c89e84a0502dca1
         statusMessage: statusMessage
-        azure:
-          resourceGroup: resourceGroup
-          storageAccount: storageAccount
         status: CREATING
       properties:
         name:
@@ -10994,14 +11023,24 @@ components:
         managed:
           description: true if the bucket has been created via pipeline
           type: boolean
+        cloud:
+          description: cloud provider of the bucket
+          example: amazon
+          type: string
+        location:
+          description: location of the bucket
+          example: eu-west-1
+          type: string
         notes:
-          description: true if the bucket has been created via pipeline
+          description: notes for the bucket
           example: There's no secret with this ID
           type: string
         secret:
           $ref: '#/components/schemas/BucketInfo_secret'
-        azure:
+        aks:
           $ref: '#/components/schemas/AzureBlobStorageProps'
+        oracle:
+          $ref: '#/components/schemas/OracleStorageProps'
         status:
           description: the status of the bucket
           enum:
@@ -11016,6 +11055,7 @@ components:
           type: string
       required:
       - cloud
+      - location
       - managed
       - name
       - status
@@ -11121,6 +11161,15 @@ components:
       required:
       - resourceGroup
       - storageAccount
+      type: object
+    OracleStorageProps:
+      example:
+        namespace: namespace
+      properties:
+        namespace:
+          type: string
+      required:
+      - namespace
       type: object
     PodDetailsResponse:
       items:
