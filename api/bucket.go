@@ -225,7 +225,19 @@ func CreateBucket(c *gin.Context) {
 		createBucketRequest.SecretId = secret.GenerateSecretIDFromName(createBucketRequest.SecretName)
 	}
 
-	cloudType, err := determineCloudProviderFromRequest(createBucketRequest)
+	retrievedSecret, err := secret.Store.Get(organization.ID, createBucketRequest.SecretId)
+	if err != nil {
+		if strings.Contains(err.Error(), "there's no secret with this id") {
+			err = SecretNotFoundError{errMessage: err.Error()}
+		}
+
+		logger.Errorf("could not get secret: %s", err.Error())
+		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
+
+		return
+	}
+
+	cloudType, err := determineCloudProviderFromRequest(createBucketRequest, retrievedSecret.Type)
 	if err != nil {
 		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
 
@@ -239,7 +251,7 @@ func CreateBucket(c *gin.Context) {
 	})
 
 	logger.Debug("validating secret")
-	retrievedSecret, err := getValidatedSecret(organization.ID, createBucketRequest.SecretId, cloudType)
+	retrievedSecret, err = getValidatedSecret(organization.ID, createBucketRequest.SecretId, cloudType)
 	if err != nil {
 		logger.Errorf("secret validation failed: %s", err.Error())
 		ginutils.ReplyWithErrorResponse(c, ErrorResponseFrom(err))
@@ -539,23 +551,23 @@ func getValidatedSecret(organizationId uint, secretId string, cloudType string) 
 	return retrievedSecret, nil
 }
 
-func determineCloudProviderFromRequest(req CreateBucketRequest) (string, error) {
-	if req.Properties.Alibaba != nil {
+func determineCloudProviderFromRequest(req CreateBucketRequest, cloudType string) (string, error) {
+	if req.Properties.Alibaba != nil && cloudType == pkgCluster.Alibaba {
 		return pkgCluster.Alibaba, nil
 	}
-	if req.Properties.Azure != nil {
+	if req.Properties.Azure != nil && cloudType == pkgCluster.Azure {
 		return pkgCluster.Azure, nil
 	}
-	if req.Properties.Amazon != nil {
+	if req.Properties.Amazon != nil && cloudType == pkgCluster.Amazon {
 		return pkgCluster.Amazon, nil
 	}
-	if req.Properties.Google != nil {
+	if req.Properties.Google != nil && cloudType == pkgCluster.Google {
 		return pkgCluster.Google, nil
 	}
-	if req.Properties.Oracle != nil {
+	if req.Properties.Oracle != nil && cloudType == pkgCluster.Oracle {
 		return pkgCluster.Oracle, nil
 	}
-	return "", pkgErrors.ErrorNotSupportedCloudType
+	return "", pkgErrors.ErrorMissingCloudSpecificProperties
 }
 
 // bucketsResponse decorates and formats the list of buckets to be returned
