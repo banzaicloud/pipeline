@@ -30,18 +30,18 @@ type clusterGetter interface {
 }
 
 // ClusterService is an adapter providing access to the core cluster layer.
-type ClusterService struct {
+type clusterService struct {
 	clusterGetter clusterGetter
 }
 
 // NewClusterService returns a new ClusterService instance.
-func NewClusterService(getter clusterGetter) *ClusterService {
-	return &ClusterService{
+func NewClusterService(getter clusterGetter) clusterfeature.ClusterService {
+	return &clusterService{
 		clusterGetter: getter,
 	}
 }
 
-func (s *ClusterService) GetCluster(ctx context.Context, clusterID uint) (clusterfeature.Cluster, error) {
+func (s *clusterService) GetCluster(ctx context.Context, clusterID uint) (clusterfeature.Cluster, error) {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (s *ClusterService) GetCluster(ctx context.Context, clusterID uint) (cluste
 	return clusterAdapter{c, org.Name}, nil
 }
 
-func (s *ClusterService) IsClusterReady(ctx context.Context, clusterID uint) (bool, error) {
+func (s *clusterService) IsClusterReady(ctx context.Context, clusterID uint) (bool, error) {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return false, err

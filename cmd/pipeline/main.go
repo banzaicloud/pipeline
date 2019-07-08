@@ -512,7 +512,7 @@ func main() {
 				fm := clusterfeature.NewExternalDnsFeatureManager(logrusadapter.New(log), clusterService)
 				fmr := clusterfeature.NewFeatureManagerRegistry(logrusadapter.New(log))
 				fmr.RegisterFeatureManager(context.Background(), "external-dns", fm)
-				service := clusterfeature.NewClusterFeatureService(logrusadapter.New(log), clusterService, fr, fmr)
+				service := clusterfeature.NewClusterFeatureService(logrusadapter.New(log), fr, fmr)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 
