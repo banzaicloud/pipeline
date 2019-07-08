@@ -34,6 +34,22 @@ const (
 	ExternalDnsRelease = "external-dns"
 )
 
+// ClusterService provides a thin access layer to clusters.
+type ClusterService interface {
+	// GetCluster retrieves the cluster representation based on the cluster identifier
+	GetCluster(ctx context.Context, clusterID uint) (Cluster, error)
+
+	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running).
+	IsClusterReady(ctx context.Context, clusterID uint) (bool, error)
+}
+
+// Cluster represents a Kubernetes cluster.
+type Cluster interface {
+	GetID() uint
+	GetOrganizationName() string
+	GetKubeConfig() ([]byte, error)
+}
+
 // externalDnsFeatureManager synchronous feature manager
 type externalDnsFeatureManager struct {
 	logger         logur.Logger
@@ -130,5 +146,26 @@ func (sfm *externalDnsFeatureManager) Update(ctx context.Context, clusterId uint
 	}
 
 	return sfm.helmService.UpdateDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace, ExternalDnsChartName, ExternalDnsRelease, valuesJson, ExternalDnsChartVersion)
+
+}
+
+func (sfm *externalDnsFeatureManager) Validate(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) error {
+	fLogger := logur.WithFields(sfm.logger, map[string]interface{}{"clusterId": clusterId, "feature": featureName})
+	fLogger.Info("Validating feature")
+
+	ready, err := sfm.clusterService.IsClusterReady(ctx, clusterId)
+	if err != nil {
+
+		return emperror.Wrap(err, "could not access cluster")
+	}
+
+	if !ready {
+		fLogger.Debug("cluster not ready")
+
+		return newClusterNotReadyError(featureName)
+	}
+
+	fLogger.Info("feature validation succeeded")
+	return nil
 
 }

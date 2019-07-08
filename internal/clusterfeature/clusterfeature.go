@@ -39,27 +39,8 @@ const (
 // FeatureService manages features on Kubernetes clusters.
 type FeatureService struct {
 	logger                 logur.Logger
-	clusterService         ClusterService
 	featureRepository      FeatureRepository
 	featureManagerRegistry FeatureManagerRegistry
-}
-
-// ClusterService provides a thin access layer to clusters.
-type ClusterService interface {
-	// GetCluster retrieves the cluster representation based on the cluster identifier
-	// TODO: this is an implementation detail for the helm installer. Remove it from here/relocate to another interface.
-	GetCluster(ctx context.Context, clusterID uint) (Cluster, error)
-
-	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running).
-	IsClusterReady(ctx context.Context, clusterID uint) (bool, error)
-}
-
-// Cluster represents a Kubernetes cluster.
-// TODO: this is an implementation detail for the helm installer. Remove it from here/relocate to another interface.
-type Cluster interface {
-	GetID() uint
-	GetOrganizationName() string
-	GetKubeConfig() ([]byte, error)
 }
 
 // FeatureRepository collects persistence related operations.
@@ -93,18 +74,19 @@ type FeatureManager interface {
 
 	// Updates a feature on the given cluster
 	Update(ctx context.Context, clusterId uint, feature Feature) error
+
+	// Validate validates the feature, chsecks its prerequisites
+	Validate(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) error
 }
 
 // NewClusterFeatureService returns a new FeatureService instance.
 func NewClusterFeatureService(
 	logger logur.Logger,
-	clusterService ClusterService,
 	featureRepository FeatureRepository,
 	featureManagerRegistry FeatureManagerRegistry,
 ) *FeatureService {
 	return &FeatureService{
 		logger:                 logger,
-		clusterService:         clusterService,
 		featureRepository:      featureRepository,
 		featureManagerRegistry: featureManagerRegistry,
 	}
@@ -119,39 +101,36 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return newUnsupportedFeatureError(featureName)
 	}
 
-	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err == nil {
+	if _, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err == nil {
 		log.Debug("feature exists")
 
 		return newFeatureExistsError(featureName)
 	}
 
-	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
-	if err != nil {
+	if err = featureManager.Validate(ctx, clusterID, featureName, spec); err != nil {
+		log.Debug("feature validation failed")
 
-		return emperror.Wrap(err, "could not access cluster")
-	}
-
-	if !ready {
-		s.logger.Debug("cluster not ready")
-
-		return newClusterNotReadyError(featureName)
+		return emperror.Wrap(err, "failed to activate feature")
 	}
 
 	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec); err != nil {
+		log.Error("failed to persist feature")
 
-		return emperror.WrapWith(err, "failed to persist feature", "clusterId", clusterID, "feature", featureName)
+		return newDatabaseAccessError(featureName)
 	}
 
 	// delegate the task of "deploying" the feature to the manager
 	if err := featureManager.Activate(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
+		log.Error("failed to activate feature")
 
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	// TODO: this should be done asynchronously
 	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
+		log.Error("failed to update feature status")
 
-		return emperror.WrapWith(err, "failed to update feature status", "clusterId", clusterID, "feature", featureName)
+		return newDatabaseAccessError(featureName)
 	}
 
 	log.Info("feature successfully activated ")
@@ -176,16 +155,10 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 		return newDatabaseAccessError(featureName)
 	}
 
-	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
-	if err != nil {
+	if err = featureManager.Validate(ctx, clusterID, featureName, feature.Spec); err != nil {
+		log.Debug("feature validation failed")
 
-		return emperror.Wrap(err, "could not access cluster")
-	}
-
-	if !ready {
-		log.Debug("cluster not ready")
-
-		return newClusterNotReadyError(featureName)
+		return emperror.Wrap(err, "failed to activate feature")
 	}
 
 	if err := featureManager.Deactivate(ctx, clusterID, *feature); err != nil {
@@ -246,22 +219,18 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 		return newUnsupportedFeatureError(featureName)
 	}
 
-	if _, err := s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
+	var featurePtr *Feature
+
+	if featurePtr, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
 		log.Debug("feature could not be found")
 
 		return newDatabaseAccessError(featureName)
 	}
 
-	ready, err := s.clusterService.IsClusterReady(ctx, clusterID)
-	if err != nil {
+	if err = featureManager.Validate(ctx, clusterID, featureName, featurePtr.Spec); err != nil {
+		log.Debug("feature validation failed")
 
-		return emperror.Wrap(err, "could not access cluster")
-	}
-
-	if !ready {
-		log.Debug("cluster not ready")
-
-		return newClusterNotReadyError(featureName)
+		return emperror.Wrap(err, "failed to validate feature")
 	}
 
 	if err := featureManager.Update(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
@@ -271,8 +240,9 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	}
 
 	if _, err := s.featureRepository.UpdateFeatureSpec(ctx, clusterID, featureName, spec); err != nil {
+		log.Error("failed to update feature spec")
 
-		return emperror.WrapWith(err, "failed to update feature spec", "clusterID", clusterID, "feature", featureName)
+		return newDatabaseAccessError(featureName)
 	}
 
 	log.Info("successfully updated feature spec")
