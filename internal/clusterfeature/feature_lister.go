@@ -49,7 +49,7 @@ func (fl *featureLister) List(ctx context.Context, clusterId uint) ([]Feature, e
 
 func NewFeatureLister(logger logur.Logger, featureRepository FeatureRepository) FeatureLister {
 	return &featureLister{
-		logger:            logur.WithFields(logger, map[string]interface{}{"comp": "featureLister"}),
+		logger:            logur.WithFields(logger, map[string]interface{}{"feature-lister": "comp"}),
 		featureRepository: featureRepository,
 	}
 }

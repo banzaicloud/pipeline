@@ -72,7 +72,7 @@ func (fr *featureManagerRegistry) GetFeatureManager(ctx context.Context, feature
 
 func NewFeatureManagerRegistry(logger logur.Logger) FeatureManagerRegistry {
 	return &featureManagerRegistry{
-		logger:   logur.WithFields(logger, map[string]interface{}{"component": "featureManagerRegistry"}),
+		logger:   logur.WithFields(logger, map[string]interface{}{"feature-manager-reistry": "comp"}),
 		registry: make(map[string]FeatureManager),
 	}
 }
