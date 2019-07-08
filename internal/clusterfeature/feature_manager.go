@@ -61,7 +61,7 @@ type externalDnsFeatureManager struct {
 // NewExternalDnsFeatureManager builds a new feature manager component
 func NewExternalDnsFeatureManager(logger logur.Logger, featureRepository FeatureRepository, clusterService ClusterService) FeatureManager {
 	hs := &featureHelmService{ // wired private component!
-		logger: logur.WithFields(logger, map[string]interface{}{"comp": "helm-installer"}),
+		logger: logur.WithFields(logger, map[string]interface{}{"helm-service": "comp"}),
 	}
 	return &externalDnsFeatureManager{
 		logger:            logur.WithFields(logger, map[string]interface{}{"component": "feature-manager"}),
@@ -145,9 +145,9 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterId ui
 
 }
 
-func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterId uint, feature Feature) error {
+func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterId uint, featureName string) error {
 	// method scoped logger
-	mLog := logur.WithFields(sfm.logger, map[string]interface{}{"cluster": clusterId, "feature": feature.Name})
+	mLog := logur.WithFields(sfm.logger, map[string]interface{}{"cluster": clusterId, "feature": featureName})
 	mLog.Info("deactivating feature ...")
 
 	var (
@@ -155,16 +155,16 @@ func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterId 
 		err      error
 	)
 
-	if mFeature, err = sfm.featureRepository.GetFeature(ctx, clusterId, feature.Name); err != nil {
+	if mFeature, err = sfm.featureRepository.GetFeature(ctx, clusterId, featureName); err != nil {
 		mLog.Debug("feature could not be retrieved")
 
-		return newDatabaseAccessError(feature.Name)
+		return newDatabaseAccessError(featureName)
 	}
 
 	if mFeature == nil {
 		mLog.Debug("feature could not found")
 
-		return newFeatureNotFoundError(feature.Name)
+		return newFeatureNotFoundError(featureName)
 	}
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
@@ -175,7 +175,7 @@ func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterId 
 
 	kubeConfig, err := cluster.GetKubeConfig()
 	if err != nil {
-		return emperror.WrapWith(err, "failed to deactivate feature", "feature", feature.Name)
+		return emperror.WrapWith(err, "failed to deactivate feature", "feature", featureName)
 	}
 
 	if err := sfm.helmService.DeleteDeployment(ctx, kubeConfig, ExternalDnsRelease); err != nil {
@@ -184,10 +184,10 @@ func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterId 
 		return emperror.WrapWith(err, "failed to uninstall feature")
 	}
 
-	if err := sfm.featureRepository.DeleteFeature(ctx, clusterId, feature.Name); err != nil {
+	if err := sfm.featureRepository.DeleteFeature(ctx, clusterId, featureName); err != nil {
 		mLog.Debug("feature could not be deleted")
 
-		return newDatabaseAccessError(feature.Name)
+		return newDatabaseAccessError(featureName)
 	}
 
 	mLog.Info("successfully deactivated feature")

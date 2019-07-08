@@ -70,7 +70,7 @@ type FeatureManager interface {
 	Activate(ctx context.Context, clusterId uint, feature Feature) error
 
 	// Removes feature from the given cluster
-	Deactivate(ctx context.Context, clusterId uint, feature Feature) error
+	Deactivate(ctx context.Context, clusterId uint, featureName string) error
 
 	// Updates a feature on the given cluster
 	Update(ctx context.Context, clusterId uint, feature Feature) error
@@ -95,7 +95,7 @@ func NewClusterFeatureService(
 	featureManagerRegistry FeatureManagerRegistry,
 ) *FeatureService {
 	return &FeatureService{
-		logger:                 logger,
+		logger:                 logur.WithFields(logger, map[string]interface{}{"cluster-feature-service": "comp"}),
 		featureManagerRegistry: featureManagerRegistry,
 		featureLister:          featureLister,
 	}
@@ -138,7 +138,6 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	mLogger.Info("deactivating feature")
 
 	var (
-		feature        *Feature
 		featureManager FeatureManager
 		err            error
 	)
@@ -149,13 +148,13 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 		return newUnsupportedFeatureError(featureName)
 	}
 
-	if err = featureManager.Validate(ctx, clusterID, featureName, feature.Spec); err != nil {
+	if err = featureManager.Validate(ctx, clusterID, featureName, nil); err != nil {
 		mLogger.Debug("feature validation failed")
 
 		return emperror.Wrap(err, "failed to activate feature")
 	}
 
-	if err := featureManager.Deactivate(ctx, clusterID, *feature); err != nil {
+	if err := featureManager.Deactivate(ctx, clusterID, featureName); err != nil {
 		mLogger.Debug("failed to deactivate feature on cluster")
 
 		return emperror.WrapWith(err, "failed to deactivate feature", "clusterID", clusterID, "feature", featureName)
