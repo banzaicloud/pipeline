@@ -8726,10 +8726,21 @@ components:
       type: string
     CreatePKEProperties:
       properties:
-        clusterTopology:
-          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology'
+        network:
+          $ref: '#/components/schemas/CreatePKEProperties_network'
+        nodePools:
+          items:
+            $ref: '#/components/schemas/NodePoolsPKE'
+          type: array
+        kubernetes:
+          $ref: '#/components/schemas/CreatePKEProperties_kubernetes'
+        cri:
+          $ref: '#/components/schemas/CreatePKEProperties_cri'
       required:
-      - clusterTopology
+      - cri
+      - kubernetes
+      - network
+      - nodePools
       type: object
     NodePoolsPKE:
       properties:
@@ -8743,6 +8754,15 @@ components:
           items:
             type: string
           type: array
+        labels:
+          additionalProperties:
+            example: '{"example.io/label1":"value1"}'
+            type: string
+          description: user provided custom node labels to be placed onto the nodes of the node pool
+          type: object
+        autoscaling:
+          description: Enables/disables autoscaling of this node pool through Kubernetes cluster autoscaler.
+          type: boolean
         provider:
           example: amazon
           type: string
@@ -8753,7 +8773,7 @@ components:
             $ref: '#/components/schemas/PKEHosts'
           type: array
       required:
-      - hosts
+      - autoscaling
       - name
       - provider
       - providerConfig
@@ -9126,6 +9146,49 @@ components:
           type: string
       required:
       - count
+      type: object
+    UpdatePKEProperties:
+      properties:
+        pke:
+          $ref: '#/components/schemas/UpdatePKEProperties_pke'
+      required:
+      - pke
+      type: object
+    UpdateNodePoolsPKE:
+      properties:
+        instanceType:
+          description: Instance type for the nodes in the node pool. This field is ignored when existing node pool is updated as instance type can not be changed.
+          example: c4.large
+          type: string
+        spotPrice:
+          description: The spot price for a node in the node pool. Provide "" or "0" for on-demand nodes.
+          example: "0.2"
+          type: string
+        autoscaling:
+          description: Whether to enable Kubernetes cluster autoscaler for this node pool.
+          type: boolean
+        minCount:
+          description: If cluster autoscaler is enabled for this node pool it sets the minimum node count the cluster autoscaler can downscale the node pool to.
+          example: 1
+          format: int32
+          type: integer
+        maxCount:
+          description: If cluster autoscaler is enabled for this node pool it sets the maximum node count the cluster autoscaler can upscale the node pool to.
+          example: 2
+          format: int32
+          type: integer
+        count:
+          description: If cluster autoscaler is not enabled this specifies the desired ndoe count in the node pool. If cluster autoscaler is enabled this specifies the initial node count in the ndoe pool.
+          example: 1
+          format: int32
+          type: integer
+        subnets:
+          description: The subnet to create the node pool into. If this field is omitted than the subnet from the cluster level network configuration is used.
+          example:
+          - subnet-0d16a21e9655486af
+          items:
+            type: string
+          type: array
       type: object
     ClusterDelete_200:
       example:
@@ -13691,7 +13754,7 @@ components:
       required:
       - nodePools
       - version
-    CreatePKEProperties_clusterTopology_network:
+    CreatePKEProperties_network:
       properties:
         apiServerAddress:
           example: 10.240.0.204
@@ -13710,46 +13773,29 @@ components:
       - podCIDR
       - provider
       - serviceCIDR
-    CreatePKEProperties_clusterTopology_kubernetes_rbac:
+    CreatePKEProperties_kubernetes_rbac:
       properties:
         enabled:
           type: boolean
       required:
       - enabled
-    CreatePKEProperties_clusterTopology_kubernetes:
+    CreatePKEProperties_kubernetes:
       properties:
         version:
           example: v1.12.2
           type: string
         rbac:
-          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_kubernetes_rbac'
+          $ref: '#/components/schemas/CreatePKEProperties_kubernetes_rbac'
       required:
       - rbac
       - version
-    CreatePKEProperties_clusterTopology_cri:
+    CreatePKEProperties_cri:
       properties:
         runtime:
           example: containerd
           type: string
       required:
       - runtime
-    CreatePKEProperties_clusterTopology:
-      properties:
-        network:
-          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_network'
-        nodePools:
-          items:
-            $ref: '#/components/schemas/NodePoolsPKE'
-          type: array
-        kubernetes:
-          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_kubernetes'
-        cri:
-          $ref: '#/components/schemas/CreatePKEProperties_clusterTopology_cri'
-      required:
-      - cri
-      - kubernetes
-      - network
-      - nodePools
     AmazonAutoScalingGroup_size:
       properties:
         min:
@@ -13789,6 +13835,14 @@ components:
       properties:
         version:
           type: string
+    UpdatePKEProperties_pke:
+      properties:
+        nodePools:
+          additionalProperties:
+            $ref: '#/components/schemas/UpdateNodePoolsPKE'
+          type: object
+      required:
+      - nodePools
     ListNodesResponse_metadata:
       example:
         resourceVersion: "30123"

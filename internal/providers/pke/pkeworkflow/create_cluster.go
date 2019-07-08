@@ -398,9 +398,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		for _, np := range nodePools {
 			if !np.Master {
 				subnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
-				if len(np.Subnets) > 0 {
-					subnetID = np.Subnets[0]
-				}
+
 				createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 					ClusterID:                 input.ClusterID,
 					Pool:                      np,

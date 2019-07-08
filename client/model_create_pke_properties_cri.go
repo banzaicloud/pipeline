@@ -11,6 +11,6 @@
 
 package client
 
-type CreatePkePropertiesClusterTopologyKubernetesRbac struct {
-	Enabled bool `json:"enabled"`
+type CreatePkePropertiesCri struct {
+	Runtime string `json:"runtime"`
 }

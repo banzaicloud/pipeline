@@ -401,12 +401,16 @@ func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.
 	for nodePoolName, nodePool := range nodePools {
 		out[i] = pkeworkflow.NodePool{
 			Name:         nodePoolName,
+			Worker:       true,
 			MinCount:     nodePool.MinCount,
 			MaxCount:     nodePool.MaxCount,
 			Count:        nodePool.Count,
 			Autoscaling:  nodePool.Autoscaling,
 			InstanceType: nodePool.InstanceType,
 			SpotPrice:    nodePool.SpotPrice,
+		}
+		for _, subnet := range nodePool.Subnets {
+			out[i].Subnets = append(out[i].Subnets, string(subnet))
 		}
 		i++
 	}
@@ -436,7 +440,7 @@ func createNodePoolsFromPKENodePools(pkeNodePools []PKENodePool) []pkeworkflow.N
 	return nodePools
 }
 
-func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, workflowClient client.Client, externalBaseURL string, externalBaseURLInsecure bool) error {
+func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluster.UpdateClusterRequest, userID uint, workflowClient client.Client, externalBaseURL string, externalBaseURLInsecure bool) error {
 
 	vpcid, ok := c.model.Network.CloudProviderConfig["vpcID"].(string)
 	if !ok {
@@ -454,6 +458,10 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 		}
 	} else {
 		return errors.New(fmt.Sprintf("Subnet IDs not found (%v %T)", c.model.Network.CloudProviderConfig["subnets"], c.model.Network.CloudProviderConfig["subnets"]))
+	}
+
+	if len(subnets) == 0 {
+		return errors.New("subnet IDs not found in cluster network configuration")
 	}
 
 	reqNodePools := createNodePoolsFromPKERequest(request.PKE.NodePools)
@@ -494,7 +502,6 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 		}
 
 		if _, ok := clusterNodePoolsMap[np.Name]; !ok {
-			// TODO: should roles and AZ come from the update request for new nodes?
 			nodePoolsToAdd = append(nodePoolsToAdd, np)
 		}
 	}
@@ -531,8 +538,13 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 			providerConfig.AutoScalingGroup.Size.Max = np.MaxCount
 			providerConfig.AutoScalingGroup.Size.Desired = np.Count
 			providerConfig.AutoScalingGroup.SpotPrice = np.SpotPrice
+			for _, subnet := range np.Subnets {
+				providerConfig.AutoScalingGroup.Subnets = append(providerConfig.AutoScalingGroup.Subnets, internalPke.Subnet(subnet))
+			}
+
 			modelNodepool := internalPke.NodePool{
 				Name:        np.Name,
+				CreatedBy:   userID,
 				Roles:       internalPke.Roles{"worker"},
 				Autoscaling: np.Autoscaling,
 				Provider:    internalPke.NPPAmazon,
