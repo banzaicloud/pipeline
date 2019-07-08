@@ -51,16 +51,22 @@ func (fr *featureManagerRegistry) RegisterFeatureManager(ctx context.Context, fe
 }
 
 func (fr *featureManagerRegistry) GetFeatureManager(ctx context.Context, featureName string) (FeatureManager, error) {
-	log := logur.WithFields(fr.logger, map[string]interface{}{"feature": featureName})
-	log.Info("retrieving feature ...")
+	mLogger := logur.WithFields(fr.logger, map[string]interface{}{"feature": featureName})
+	mLogger.Debug("retrieving feature manager...")
 
-	if fm, ok := fr.registry[featureName]; ok {
-		log.Info("feature retrieved")
-		return fm, nil
+	var (
+		featureManager FeatureManager
+		ok             bool
+	)
+
+	if featureManager, ok = fr.registry[featureName]; !ok {
+		mLogger.Debug("feature manager not registered for feature")
+
+		return nil, errors.New("feature manager not registered")
 	}
 
-	log.Debug("feature is not supported")
-	return nil, errors.New("feature already registered")
+	mLogger.Debug("successfully retrieved feature manager")
+	return featureManager, nil
 
 }
 

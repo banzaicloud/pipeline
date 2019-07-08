@@ -52,27 +52,38 @@ type Cluster interface {
 
 // externalDnsFeatureManager synchronous feature manager
 type externalDnsFeatureManager struct {
-	logger         logur.Logger
-	clusterService ClusterService
-	helmService    HelmService
+	logger            logur.Logger
+	featureRepository FeatureRepository
+	clusterService    ClusterService
+	helmService       HelmService
 }
 
 // NewExternalDnsFeatureManager builds a new feature manager component
-func NewExternalDnsFeatureManager(logger logur.Logger, clusterService ClusterService) FeatureManager {
+func NewExternalDnsFeatureManager(logger logur.Logger, featureRepository FeatureRepository, clusterService ClusterService) FeatureManager {
 	hs := &featureHelmService{ // wired private component!
 		logger: logur.WithFields(logger, map[string]interface{}{"comp": "helm-installer"}),
 	}
 	return &externalDnsFeatureManager{
-		logger:         logur.WithFields(logger, map[string]interface{}{"component": "feature-manager"}),
-		clusterService: clusterService,
-		helmService:    hs,
+		logger:            logur.WithFields(logger, map[string]interface{}{"component": "feature-manager"}),
+		featureRepository: featureRepository,
+		clusterService:    clusterService,
+		helmService:       hs,
 	}
 }
 
 func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterId uint, feature Feature) error {
+	fLog := logur.WithFields(sfm.logger, map[string]interface{}{"cluster": clusterId, "feature": feature.Name})
+	fLog.Info("activating feature ...")
+
+	if _, err := sfm.featureRepository.GetFeature(ctx, clusterId, feature.Name); err != nil {
+		fLog.Debug("feature exists")
+
+		return newFeatureExistsError(feature.Name)
+	}
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
+		fLog.Debug("failed to activate feature")
 		// internal error at this point
 		return emperror.WrapWith(err, "failed to activate feature")
 	}
@@ -82,7 +93,7 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterId ui
 		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
 	}
 
-	// todo merge the spec into a template!!!
+	// todo implement the configuration fallback mechanism here
 	externalDnsValues := map[string]interface{}{
 		"rbac": map[string]bool{
 			"create": false,
@@ -104,11 +115,58 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterId ui
 
 	externalDnsValuesJson, _ := yaml.Marshal(externalDnsValues)
 
-	return sfm.helmService.InstallDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace, ExternalDnsChartName, ExternalDnsRelease, externalDnsValuesJson, ExternalDnsChartVersion, false)
+	if _, err := sfm.featureRepository.SaveFeature(ctx, clusterId, feature.Name, feature.Spec); err != nil {
+		fLog.Debug("failed to persist feature")
+
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	if err = sfm.helmService.InstallDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace,
+		ExternalDnsChartName, ExternalDnsRelease, externalDnsValuesJson, ExternalDnsChartVersion, false); err != nil {
+		// rollback
+		fLog.Debug("failed to deploy feature  - rolling back ... ")
+		if err = sfm.featureRepository.DeleteFeature(ctx, clusterId, feature.Name); err != nil {
+			fLog.Debug("failed to deploy feature  - failed to roll back")
+
+			return newDatabaseAccessError(feature.Name)
+		}
+
+		return emperror.Wrap(err, "failed to deploy feature")
+	}
+
+	if _, err := sfm.featureRepository.UpdateFeatureStatus(ctx, clusterId, feature.Name, FeatureStatusActive); err != nil {
+		fLog.Debug("failed to persist feature")
+
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	fLog.Info("successfully activated feature")
+	return nil
 
 }
 
 func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterId uint, feature Feature) error {
+	// method scoped logger
+	mLog := logur.WithFields(sfm.logger, map[string]interface{}{"cluster": clusterId, "feature": feature.Name})
+	mLog.Info("deactivating feature ...")
+
+	var (
+		mFeature *Feature
+		err      error
+	)
+
+	if mFeature, err = sfm.featureRepository.GetFeature(ctx, clusterId, feature.Name); err != nil {
+		mLog.Debug("feature could not be retrieved")
+
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	if mFeature == nil {
+		mLog.Debug("feature could not found")
+
+		return newFeatureNotFoundError(feature.Name)
+	}
+
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
 		// internal error at this point
@@ -121,18 +179,48 @@ func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterId 
 	}
 
 	if err := sfm.helmService.DeleteDeployment(ctx, kubeConfig, ExternalDnsRelease); err != nil {
+		mLog.Info("failed to delete feature deployment")
+
 		return emperror.WrapWith(err, "failed to uninstall feature")
 	}
+
+	if err := sfm.featureRepository.DeleteFeature(ctx, clusterId, feature.Name); err != nil {
+		mLog.Debug("feature could not be deleted")
+
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	mLog.Info("successfully deactivated feature")
 
 	return nil
 }
 
 func (sfm *externalDnsFeatureManager) Update(ctx context.Context, clusterId uint, feature Feature) error {
+	mLoger := logur.WithFields(sfm.logger, map[string]interface{}{"clusterId": clusterId, "feature": feature.Name})
+	mLoger.Info("updating feature ...")
+
+	var (
+		persistedFeature *Feature
+		err              error
+	)
+
+	if persistedFeature, err = sfm.featureRepository.GetFeature(ctx, clusterId, feature.Name); err != nil {
+		mLoger.Debug("failed not retrieve feature")
+
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	if persistedFeature == nil {
+		mLoger.Debug("feature not found")
+
+		return newFeatureNotFoundError(feature.Name)
+	}
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterId)
 	if err != nil {
-		// internal error at this point
-		return emperror.WrapWith(err, "failed to deactivate feature")
+		mLoger.Debug("failed to retrieve cluster")
+
+		return emperror.WrapWith(err, "failed to retrieve cluster")
 	}
 
 	var valuesJson []byte
@@ -142,16 +230,48 @@ func (sfm *externalDnsFeatureManager) Update(ctx context.Context, clusterId uint
 
 	kubeConfig, err := cluster.GetKubeConfig()
 	if err != nil {
+		mLoger.Debug("failed to retrieve k8s configuration")
+
 		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
 	}
 
-	return sfm.helmService.UpdateDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace, ExternalDnsChartName, ExternalDnsRelease, valuesJson, ExternalDnsChartVersion)
+	// "suspend" the feature till it gets updated
+	if _, err = sfm.featureRepository.UpdateFeatureStatus(ctx, clusterId, feature.Name, FeatureStatusPending); err != nil {
+		mLoger.Debug("failed to update feature status")
 
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	// todo revise this: we loose the "old" spec here
+	if _, err = sfm.featureRepository.UpdateFeatureSpec(ctx, clusterId, feature.Name, feature.Spec); err != nil {
+		mLoger.Debug("failed to update feature spec")
+
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	if err = sfm.helmService.UpdateDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace,
+		ExternalDnsChartName, ExternalDnsRelease, valuesJson, ExternalDnsChartVersion); err != nil {
+		mLoger.Debug("failed to deploy feature")
+
+		// todo feature status in case the upgrade failed?!
+		return emperror.Wrap(err, "failed to update feature")
+	}
+
+	// feature status set back to active
+	if _, err = sfm.featureRepository.UpdateFeatureStatus(ctx, clusterId, feature.Name, FeatureStatusActive); err != nil {
+		mLoger.Debug("failed to update feature status")
+
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	mLoger.Info("successfully updated feature")
+
+	return nil
 }
 
 func (sfm *externalDnsFeatureManager) Validate(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) error {
-	fLogger := logur.WithFields(sfm.logger, map[string]interface{}{"clusterId": clusterId, "feature": featureName})
-	fLogger.Info("Validating feature")
+	mLoger := logur.WithFields(sfm.logger, map[string]interface{}{"clusterId": clusterId, "feature": featureName})
+	mLoger.Info("Validating feature")
 
 	ready, err := sfm.clusterService.IsClusterReady(ctx, clusterId)
 	if err != nil {
@@ -160,12 +280,36 @@ func (sfm *externalDnsFeatureManager) Validate(ctx context.Context, clusterId ui
 	}
 
 	if !ready {
-		fLogger.Debug("cluster not ready")
+		mLoger.Debug("cluster not ready")
 
 		return newClusterNotReadyError(featureName)
 	}
 
-	fLogger.Info("feature validation succeeded")
+	mLoger.Info("feature validation succeeded")
 	return nil
+
+}
+
+func (sfm *externalDnsFeatureManager) Details(ctx context.Context, clusterId uint, featureName string) (*Feature, error) {
+	mLoger := logur.WithFields(sfm.logger, map[string]interface{}{"clusterId": clusterId, "feature": featureName})
+	mLoger.Debug("retrieving feature details ...")
+
+	var (
+		feature *Feature
+		err     error
+	)
+
+	if feature, err = sfm.featureRepository.GetFeature(ctx, clusterId, featureName); err != nil {
+
+		return nil, newDatabaseAccessError(featureName)
+	}
+
+	if feature == nil {
+
+		return nil, newFeatureNotFoundError(featureName)
+	}
+
+	mLoger.Debug("successfully retrieved feature details")
+	return feature, nil
 
 }
