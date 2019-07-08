@@ -102,13 +102,15 @@ func (r *GormFeatureRepository) SaveFeature(ctx context.Context, clusterId uint,
 	return cfModel.ID, nil
 }
 
+// GetFeature retrieves a featuer by the cluster id and the feature name.
+// Returns (nil, nil) in case the feature is not found
 func (r *GormFeatureRepository) GetFeature(ctx context.Context, clusterId uint, featureName string) (*clusterfeature.Feature, error) {
 	fm := clusterFeatureModel{}
 
 	err := r.db.First(&fm, map[string]interface{}{"Name": featureName, "cluster_id": clusterId}).Error
 
 	if gorm.IsRecordNotFoundError(err) {
-		return nil, emperror.WrapWith(err, "cluster feature not found", "feature", featureName)
+		return nil, nil
 	} else if err != nil {
 		return nil, emperror.Wrap(err, "could not retrieve feature")
 	}

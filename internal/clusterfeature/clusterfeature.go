@@ -39,8 +39,8 @@ const (
 // FeatureService manages features on Kubernetes clusters.
 type FeatureService struct {
 	logger                 logur.Logger
-	featureRepository      FeatureRepository
 	featureManagerRegistry FeatureManagerRegistry
+	featureLister          FeatureLister
 }
 
 // FeatureRepository collects persistence related operations.
@@ -77,18 +77,27 @@ type FeatureManager interface {
 
 	// Validate validates the feature, chsecks its prerequisites
 	Validate(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) error
+
+	// Details returns feature details
+	Details(ctx context.Context, clusterId uint, featureName string) (*Feature, error)
+}
+
+// FeatureLister component interface for listing features
+type FeatureLister interface {
+	// List retrieves the list of features for the given clusterid
+	List(ctx context.Context, clusterId uint) ([]Feature, error)
 }
 
 // NewClusterFeatureService returns a new FeatureService instance.
 func NewClusterFeatureService(
 	logger logur.Logger,
-	featureRepository FeatureRepository,
+	featureLister FeatureLister,
 	featureManagerRegistry FeatureManagerRegistry,
 ) *FeatureService {
 	return &FeatureService{
 		logger:                 logger,
-		featureRepository:      featureRepository,
 		featureManagerRegistry: featureManagerRegistry,
+		featureLister:          featureLister,
 	}
 }
 
@@ -96,15 +105,14 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 	log.Info("activate feature")
 
-	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
+	var (
+		featureManager FeatureManager
+		err            error
+	)
+
+	featureManager, err = s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
 		return newUnsupportedFeatureError(featureName)
-	}
-
-	if _, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err == nil {
-		log.Debug("feature exists")
-
-		return newFeatureExistsError(featureName)
 	}
 
 	if err = featureManager.Validate(ctx, clusterID, featureName, spec); err != nil {
@@ -113,24 +121,11 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return emperror.Wrap(err, "failed to activate feature")
 	}
 
-	if _, err := s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec); err != nil {
-		log.Error("failed to persist feature")
-
-		return newDatabaseAccessError(featureName)
-	}
-
 	// delegate the task of "deploying" the feature to the manager
-	if err := featureManager.Activate(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
+	if err = featureManager.Activate(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
 		log.Error("failed to activate feature")
 
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
-	}
-
-	// TODO: this should be done asynchronously
-	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
-		log.Error("failed to update feature status")
-
-		return newDatabaseAccessError(featureName)
 	}
 
 	log.Info("feature successfully activated ")
@@ -139,113 +134,109 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 }
 
 func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
-	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	log.Info("deactivating feature")
+	mLogger := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+	mLogger.Info("deactivating feature")
 
-	var feature *Feature
+	var (
+		feature        *Feature
+		featureManager FeatureManager
+		err            error
+	)
 
-	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
-	if err != nil {
+	if featureManager, err = s.featureManagerRegistry.GetFeatureManager(ctx, featureName); err != nil {
+		mLogger.Debug("failed to get feature manager")
+
 		return newUnsupportedFeatureError(featureName)
 	}
 
-	if feature, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
-		log.Debug("feature could not be found")
-
-		return newDatabaseAccessError(featureName)
-	}
-
 	if err = featureManager.Validate(ctx, clusterID, featureName, feature.Spec); err != nil {
-		log.Debug("feature validation failed")
+		mLogger.Debug("feature validation failed")
 
 		return emperror.Wrap(err, "failed to activate feature")
 	}
 
 	if err := featureManager.Deactivate(ctx, clusterID, *feature); err != nil {
-		log.Debug("failed to deactivate feature on cluster")
+		mLogger.Debug("failed to deactivate feature on cluster")
 
 		return emperror.WrapWith(err, "failed to deactivate feature", "clusterID", clusterID, "feature", featureName)
 	}
 
-	if err := s.featureRepository.DeleteFeature(ctx, clusterID, featureName); err != nil {
-		return emperror.WrapWith(err, "failed to delete feature", "clusterID", clusterID, "feature", featureName)
-	}
-
-	log.Info("successfully deactivated feature")
+	mLogger.Info("successfully deactivated feature")
 	return nil
 }
 
 func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
 
-	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	log.Info("retrieving feature details")
+	mLogger := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
+	mLogger.Info("retrieving feature details ...")
 
-	fd, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
-	if err != nil {
+	var (
+		feature        *Feature
+		featureManager FeatureManager
+		err            error
+	)
 
-		return nil, newDatabaseAccessError(featureName)
+	if featureManager, err = s.featureManagerRegistry.GetFeatureManager(ctx, featureName); err != nil {
+		mLogger.Info("failed to get feature manager")
+
+		return nil, newUnsupportedFeatureError(featureName)
 	}
 
-	log.Info("successfully retrieved feature details")
-	return fd, nil
+	if feature, err = featureManager.Details(ctx, clusterID, featureName); err != nil {
+		mLogger.Info("failed to retrieve feature details")
+		// wrap the error here?
+		return nil, err
+	}
+
+	mLogger.Info("successfully retrieved feature details")
+	return feature, nil
 }
 
 func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
 
-	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID})
-	log.Info("retrieve features")
+	mLogger := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID})
+	mLogger.Info("retrieving features ...")
 
 	var (
-		err error
+		features []Feature
+		err      error
 	)
 
-	if features, err := s.featureRepository.ListFeatures(ctx, clusterID); err == nil {
-		log.Info("successfully retrieved features")
+	if features, err = s.featureLister.List(ctx, clusterID); err != nil {
+		mLogger.Info("failed to retrieve features")
 
-		return features, nil
+		return nil, emperror.Wrap(err, "failed to retrieve features")
 	}
 
-	return nil, emperror.Wrap(err, "failed to retrieve features")
+	mLogger.Info("features successfully retrieved")
+	return features, nil
 }
 
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 
-	log := logur.WithFields(s.logger, map[string]interface{}{"clusterID": clusterID, "feature": featureName})
-	log.Info("updating feature spec")
+	mLogger := logur.WithFields(s.logger, map[string]interface{}{"clusterID": clusterID, "feature": featureName})
+	mLogger.Info("updating feature spec...")
 
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
+		mLogger.Debug("failed to get feature manager")
 
 		return newUnsupportedFeatureError(featureName)
 	}
 
-	var featurePtr *Feature
-
-	if featurePtr, err = s.featureRepository.GetFeature(ctx, clusterID, featureName); err != nil {
-		log.Debug("feature could not be found")
-
-		return newDatabaseAccessError(featureName)
-	}
-
-	if err = featureManager.Validate(ctx, clusterID, featureName, featurePtr.Spec); err != nil {
-		log.Debug("feature validation failed")
+	if err = featureManager.Validate(ctx, clusterID, featureName, spec); err != nil {
+		mLogger.Debug("feature validation failed")
 
 		return emperror.Wrap(err, "failed to validate feature")
 	}
 
 	if err := featureManager.Update(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
-		log.Debug("failed to update feature")
+		mLogger.Debug("failed to update feature")
 
 		return emperror.WrapWith(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
 	}
 
-	if _, err := s.featureRepository.UpdateFeatureSpec(ctx, clusterID, featureName, spec); err != nil {
-		log.Error("failed to update feature spec")
-
-		return newDatabaseAccessError(featureName)
-	}
-
-	log.Info("successfully updated feature spec")
+	mLogger.Info("successfully updated feature spec")
 	return nil
 }
 
@@ -276,6 +267,7 @@ func (e featureError) IsBusinnessError() bool {
 
 const (
 	errorFeatureExists      = "feature already exists"
+	errorFeatureNotFound    = "feature could not be found"
 	errorUnsupportedFeature = "feature is not supported"
 	errorClusterNotReady    = "cluster is not ready"
 	errorDatabaseAccess     = "could not access the database"
@@ -315,13 +307,24 @@ func newUnsupportedFeatureError(featureName string) error {
 	}}
 }
 
-type databaseAccessEerror struct {
+type databaseAccessError struct {
 	featureError
 }
 
 func newDatabaseAccessError(featureName string) error {
-	return databaseAccessEerror{featureError{
+	return databaseAccessError{featureError{
 		featureName: featureName,
 		msg:         errorDatabaseAccess,
+	}}
+}
+
+type FeatureNotFoundError struct {
+	featureError
+}
+
+func newFeatureNotFoundError(featureName string) error {
+	return databaseAccessError{featureError{
+		featureName: featureName,
+		msg:         errorFeatureNotFound,
 	}}
 }

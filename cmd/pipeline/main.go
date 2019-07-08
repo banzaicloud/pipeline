@@ -508,11 +508,12 @@ func main() {
 			// ClusterInfo Feature API
 			{
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-				fr := clusterfeatureadapter.NewGormFeatureRepository(db)
-				fm := clusterfeature.NewExternalDnsFeatureManager(logrusadapter.New(log), clusterService)
-				fmr := clusterfeature.NewFeatureManagerRegistry(logrusadapter.New(log))
-				fmr.RegisterFeatureManager(context.Background(), "external-dns", fm)
-				service := clusterfeature.NewClusterFeatureService(logrusadapter.New(log), fr, fmr)
+				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db)
+				featureLister := clusterfeature.NewFeatureLister(logrusadapter.New(log), featureRepository)
+				featureManager := clusterfeature.NewExternalDnsFeatureManager(logrusadapter.New(log), featureRepository, clusterService)
+				featureManagerRegistry := clusterfeature.NewFeatureManagerRegistry(logrusadapter.New(log))
+				featureManagerRegistry.RegisterFeatureManager(context.Background(), "external-dns", featureManager)
+				service := clusterfeature.NewClusterFeatureService(logrusadapter.New(log), featureLister, featureManagerRegistry)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 
