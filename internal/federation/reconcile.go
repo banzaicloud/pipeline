@@ -30,10 +30,17 @@ func (m *FederationReconciler) Reconcile() error {
 			m.ReconcileController,
 			m.ReconcileMemberClusters,
 		}
+		// configure ext dns only if FederatedIngress or CrossClusterServiceDiscovery is enabled
+		if m.Configuration.FederatedIngress || m.Configuration.CrossClusterServiceDiscovery {
+			reconcilers = append(reconcilers, m.ReconcileCRBForExtDNS, m.ReconcileExternalDNSController)
+		}
 	case DesiredStateAbsent:
 		reconcilers = []Reconciler{
-			m.ReconcileMemberClusters,
 			m.ReconcileController,
+			m.ReconcileMemberClusters,
+			m.ReconcileCRD,
+			m.ReconcileExternalDNSController,
+			m.ReconcileCRBForExtDNS,
 		}
 	}
 

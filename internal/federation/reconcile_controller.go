@@ -48,15 +48,14 @@ func (m *FederationReconciler) ReconcileController(desiredState DesiredState) er
 			return emperror.Wrap(err, "could not install Federation controller")
 		}
 	} else {
-
-		err := m.removeFederationCRDs()
-		if err != nil {
-			return emperror.Wrap(err, "could not remove Federation CRD's")
-		}
-
-		err = m.deleteFederatedTypeConfigs()
+		err := m.deleteFederatedTypeConfigs()
 		if err != nil {
 			return emperror.Wrap(err, "could not remove Federation type configs")
+		}
+
+		err = m.removeFederationCRDs(false)
+		if err != nil {
+			return emperror.Wrap(err, "could not remove Federation CRD's")
 		}
 
 		err = m.uninstallFederationController(m.Host, m.logger)
@@ -64,6 +63,21 @@ func (m *FederationReconciler) ReconcileController(desiredState DesiredState) er
 			return emperror.Wrap(err, "could not remove Federation controller")
 		}
 
+	}
+
+	return nil
+}
+
+func (m *FederationReconciler) ReconcileCRD(desiredState DesiredState) error {
+	if desiredState == DesiredStatePresent {
+		return nil
+	}
+
+	m.logger.Debug("start removing all remaining CRD's")
+	defer m.logger.Debug("finished removing all remaining CRD's")
+	err := m.removeFederationCRDs(true)
+	if err != nil {
+		return emperror.Wrap(err, "could not remove Federation CRD's")
 	}
 
 	return nil
@@ -79,6 +93,7 @@ func (m *FederationReconciler) deleteFederatedTypeConfigs() error {
 	}
 
 	list := &fedv1b1.FederatedTypeConfigList{}
+	//v1alpha1.DNSEndpoint
 	err = client.List(context.TODO(), list, m.Configuration.TargetNamespace)
 	if err != nil {
 		if strings.Contains(err.Error(), "no matches for kind") {
@@ -98,7 +113,7 @@ func (m *FederationReconciler) deleteFederatedTypeConfigs() error {
 	return nil
 }
 
-func (m *FederationReconciler) removeFederationCRDs() error {
+func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 
 	m.logger.Debug("start deleting Federation CRD's")
 	defer m.logger.Debug("finished deleting Federation CRD's")
@@ -121,10 +136,12 @@ func (m *FederationReconciler) removeFederationCRDs() error {
 	}
 
 	for _, crd := range crdList.Items {
-		if strings.HasSuffix(crd.Name, federationCRDSuffix) {
+		if strings.HasSuffix(crd.Name, federationCRDSuffix) &&
+			(strings.HasPrefix(crd.Name, "federated") || all) {
 			pp := apiv1.DeletePropagationBackground
 			var secs int64
 			secs = 180
+			m.logger.Debugf("removing CRD %s", crd.Name)
 			err = cl.CustomResourceDefinitions().Delete(crd.Name, &apiv1.DeleteOptions{
 				PropagationPolicy:  &pp,
 				GracePeriodSeconds: &secs,

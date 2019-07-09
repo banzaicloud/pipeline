@@ -297,7 +297,8 @@ func (g *Manager) GetClusterGroupFromModel(ctx context.Context, cg *ClusterGroup
 	enabledFeatures := make([]string, 0)
 	clusterGroup.EnabledFeatures = enabledFeatures
 	for _, feature := range cg.FeatureParams {
-		if feature.Enabled {
+		// show not only enabled feature but those not successfully disabled
+		if feature.Enabled || feature.ReconcileState != api.ReconcileSucceded {
 			enabledFeatures = append(enabledFeatures, feature.Name)
 		}
 	}

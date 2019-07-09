@@ -769,8 +769,10 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		return emperror.Wrap(err, "Json Convert Failed")
 	}
 	chartVersion := viper.GetString(pipConfig.DNSExternalDnsChartVersion)
+	chartName := viper.GetString(pipConfig.DNSExternalDnsChartName)
+	releaseName := viper.GetString(pipConfig.DNSExternalDnsReleaseName)
 
-	return installDeployment(commonCluster, route53SecretNamespace, pkgHelm.StableRepository+"/external-dns", "dns", externalDnsValuesJson, chartVersion, false)
+	return installDeployment(commonCluster, route53SecretNamespace, chartName, releaseName, externalDnsValuesJson, chartVersion, false)
 }
 
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.

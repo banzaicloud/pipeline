@@ -60,5 +60,6 @@ func (a *API) AddRoutes(group *gin.RouterGroup) {
 		item.GET("", a.Get)
 		item.PUT("", a.Update)
 		item.DELETE("", a.Disable)
+		item.PUT("/sync", a.Sync)
 	}
 }

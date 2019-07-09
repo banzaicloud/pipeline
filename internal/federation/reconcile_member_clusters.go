@@ -49,7 +49,7 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 					err := m.reconcileMemberCluster(DesiredStatePresent, cluster)
 					if err != nil {
 						err = emperror.Wrap(err, "Error joining cluster")
-						multierror.Append(err, multiErr.Errors...)
+						multiErr = *multierror.Append(err, multiErr.Errors...)
 					}
 				}
 			}
