@@ -36,7 +36,6 @@ import (
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
-	"github.com/qor/auth/providers/dex"
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
 	"github.com/sirupsen/logrus"
@@ -219,7 +218,8 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
 	})
 
-	dexProvider := dex.New(&dex.Config{
+	dexProvider := newDexProvider(&DexConfig{
+		PublicClientID:     viper.GetString("auth.publicclientid"),
 		ClientID:           viper.GetString("auth.clientid"),
 		ClientSecret:       viper.GetString("auth.clientsecret"),
 		IssuerURL:          viper.GetString("auth.dexURL"),
@@ -268,6 +268,7 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 		authGroup.GET("/dex/logout", authHandler)
 		authGroup.GET("/dex/register", authHandler)
 		authGroup.GET("/dex/callback", authHandler)
+		authGroup.POST("/dex/callback", authHandler)
 		authGroup.POST("/tokens", generateTokenHandler)
 		authGroup.GET("/tokens", GetTokens)
 		authGroup.GET("/tokens/:id", GetTokens)

@@ -74,6 +74,7 @@ baseURL = "https://gitlab.com/"
 
 [auth]
 # Dex settings
+publicclientid = "banzai-cli"
 clientid = "pipeline"
 clientsecret = "ZXhhbXBsZS1hcHAtc2VjcmV0"
 dexURL = "http://127.0.0.1:5556/dex"
