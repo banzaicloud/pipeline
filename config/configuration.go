@@ -46,6 +46,9 @@ const (
 	// DNSExternalDnsImageVersion set the external-dns image version
 	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
 
+	DNSExternalDnsReleaseName = "dns.externalDnsReleaseName"
+	DNSExternalDnsChartName   = "dns.externalDnsChartName"
+
 	// Route53MaintenanceWndMinute configuration key for the maintenance window for Route53.
 	// This is the maintenance window before the next AWS Route53 pricing period starts
 	Route53MaintenanceWndMinute = "route53.maintenanceWindowMinute"
@@ -342,6 +345,9 @@ func init() {
 
 	viper.SetDefault(FederationChartVersion, "0.1.0-rc2")
 	viper.SetDefault(FederationChartName, "kubefed-charts/kubefed")
+
+	viper.SetDefault(DNSExternalDnsReleaseName, "dns")
+	viper.SetDefault(DNSExternalDnsChartName, "stable/external-dns")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
