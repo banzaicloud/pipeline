@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
@@ -227,7 +226,7 @@ func CreateBucket(c *gin.Context) {
 
 	retrievedSecret, err := secret.Store.Get(organization.ID, createBucketRequest.SecretId)
 	if err != nil {
-		if strings.Contains(err.Error(), "there's no secret with this id") {
+		if err == secret.ErrSecretNotExists {
 			err = SecretNotFoundError{errMessage: err.Error()}
 		}
 
@@ -533,7 +532,7 @@ func getValidatedSecret(organizationId uint, secretId string, cloudType string) 
 	retrievedSecret, err := secret.Store.Get(organizationId, secretId)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "there's no secret with this id") {
+		if err == secret.ErrSecretNotExists {
 			return nil, SecretNotFoundError{errMessage: err.Error()}
 		}
 
