@@ -22,10 +22,12 @@ import (
 	"github.com/goph/logur"
 )
 
+type FeatureSpec = map[string]interface{}
+
 // Feature represents the internal state of a cluster feature.
 type Feature struct {
 	Name   string                 `json:"name"`
-	Spec   map[string]interface{} `json:"spec"`
+	Spec   FeatureSpec            `json:"spec"`
 	Output map[string]interface{} `json:"output"`
 	Status string                 `json:"status"`
 }
@@ -46,7 +48,7 @@ type FeatureService struct {
 // FeatureRepository collects persistence related operations.
 type FeatureRepository interface {
 	// SaveFeature persists the feature into the persistent storage
-	SaveFeature(ctx context.Context, clusterID uint, featureName string, featureSpec map[string]interface{}) (uint, error)
+	SaveFeature(ctx context.Context, clusterID uint, featureName string, featureSpec FeatureSpec) (uint, error)
 
 	// GetFeature retrieves the feature from the persistent storage
 	GetFeature(ctx context.Context, clusterID uint, featureName string) (*Feature, error)
@@ -55,7 +57,7 @@ type FeatureRepository interface {
 	UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) (*Feature, error)
 
 	// Updates the spec of the feature in the persistent storage
-	UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) (*Feature, error)
+	UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) (*Feature, error)
 
 	// DeleteFeature deletes the feature from the persistent storage
 	DeleteFeature(ctx context.Context, clusterID uint, featureName string) error
@@ -76,7 +78,7 @@ type FeatureManager interface {
 	Update(ctx context.Context, clusterID uint, feature Feature) error
 
 	// Validate validates the feature, chsecks its prerequisites
-	Validate(ctx context.Context, clusterID uint, featureName string, featureSpec map[string]interface{}) error
+	Validate(ctx context.Context, clusterID uint, featureName string, featureSpec FeatureSpec) error
 
 	// Details returns feature details
 	Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error)
@@ -101,7 +103,7 @@ func NewClusterFeatureService(
 	}
 }
 
-func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
+func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
 	log := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 	log.Info("activate feature")
 
@@ -138,10 +140,8 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	mLogger := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 	mLogger.Info("deactivating feature")
 
-
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
-		mLogger.Debug("failed to get feature manager")
 
 		return newUnsupportedFeatureError(featureName)
 	}
@@ -167,19 +167,14 @@ func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureNam
 	mLogger := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 	mLogger.Info("retrieving feature details ...")
 
-	var (
-		feature        *Feature
-		featureManager FeatureManager
-		err            error
-	)
-
-	if featureManager, err = s.featureManagerRegistry.GetFeatureManager(ctx, featureName); err != nil {
-		mLogger.Info("failed to get feature manager")
+	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
+	if err != nil {
 
 		return nil, newUnsupportedFeatureError(featureName)
 	}
 
-	if feature, err = featureManager.Details(ctx, clusterID, featureName); err != nil {
+	feature, err := featureManager.Details(ctx, clusterID, featureName)
+	if err != nil {
 		mLogger.Info("failed to retrieve feature details")
 		// wrap the error here?
 		return nil, err
@@ -209,7 +204,7 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 	return features, nil
 }
 
-func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
+func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
 
 	mLogger := logur.WithFields(s.logger, map[string]interface{}{"clusterID": clusterID, "feature": featureName})
 	mLogger.Info("updating feature spec...")

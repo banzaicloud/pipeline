@@ -90,7 +90,7 @@ func NewGormFeatureRepository(logger logur.Logger, db *gorm.DB) clusterfeature.F
 		db:     db}
 }
 
-func (r *gormFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, featureSpec map[string]interface{}) (uint, error) {
+func (r *gormFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, featureSpec clusterfeature.FeatureSpec) (uint, error) {
 	cfModel := clusterFeatureModel{
 		Name:      featureName,
 		Spec:      featureSpec,
@@ -137,7 +137,7 @@ func (r *gormFeatureRepository) UpdateFeatureStatus(ctx context.Context, cluster
 }
 
 // UpdateFeatureStatus updates the status of the feature
-func (r *gormFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) (*clusterfeature.Feature, error) {
+func (r *gormFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec clusterfeature.FeatureSpec) (*clusterfeature.Feature, error) {
 
 	fm := clusterFeatureModel{ClusterId: clusterID, Name: featureName}
 
