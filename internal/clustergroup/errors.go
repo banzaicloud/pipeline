@@ -226,3 +226,18 @@ func IsInvalidClusterGroupCreateRequestError(err error) bool {
 
 	return ok
 }
+
+type featureReconcileError struct {
+	OriginalError error
+}
+
+func (e *featureReconcileError) Error() string {
+	return "failed to reconcile feature: " + e.OriginalError.Error()
+}
+
+// IsFeatureReconcileError returns true if the passed in error designates a feature reconciliation error
+func IsFeatureReconcileError(err error) bool {
+	_, ok := errors.Cause(err).(*featureReconcileError)
+
+	return ok
+}

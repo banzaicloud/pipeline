@@ -18,11 +18,13 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/auth"
 	cgroupIAPI "github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // @Summary Enable Feature of Cluster Group
@@ -70,9 +72,18 @@ func (n *API) Enable(c *gin.Context) {
 
 	err = n.clusterGroupManager.ReconcileFeature(*clusterGroup, featureName)
 	if err != nil {
-		n.errorHandler.Handle(c, err)
-		return
+		if !clustergroup.IsFeatureReconcileError(err) {
+			n.errorHandler.Handle(c, err)
+			return
+		}
+		// don't return with error status in case of a FeatureReconcileError since the feature is created
+		n.logger.Error(err)
+		c.JSON(http.StatusCreated, &pkgCommon.ErrorResponse{
+			Code:    http.StatusCreated,
+			Message: "Failed to reconcile feature(s)",
+			Error:   err.Error(),
+		})
 	}
 
-	c.Status(http.StatusAccepted)
+	c.Status(http.StatusCreated)
 }
