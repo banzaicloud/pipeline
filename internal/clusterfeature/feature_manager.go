@@ -23,15 +23,15 @@ import (
 )
 
 const (
-	ExternalDnsChartVersion = "1.6.2"
+	externalDnsChartVersion = "1.6.2"
 
-	ExternalDnsImageVersion = "v0.5.11"
+	externalDnsImageVersion = "v0.5.11"
 
-	ExternalDnsChartName = "stable/external-dns"
+	externalDnsChartName = "stable/external-dns"
 
-	ExternalDnsNamespace = "default"
+	externalDnsNamespace = "default"
 
-	ExternalDnsRelease = "external-dns"
+	externalDnsRelease = "external-dns"
 )
 
 // ClusterService provides a thin access layer to clusters.
@@ -72,24 +72,31 @@ func NewExternalDnsFeatureManager(logger logur.Logger, featureRepository Feature
 }
 
 func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterID uint, feature Feature) error {
-	fLog := logur.WithFields(sfm.logger, map[string]interface{}{"cluster": clusterID, "feature": feature.Name})
-	fLog.Info("activating feature ...")
+	mLogger := logur.WithFields(sfm.logger, map[string]interface{}{"cluster": clusterID, "feature": feature.Name})
+	mLogger.Info("activating feature ...")
 
-	if _, err := sfm.featureRepository.GetFeature(ctx, clusterID, feature.Name); err != nil {
-		fLog.Debug("feature exists")
+	f, err := sfm.featureRepository.GetFeature(ctx, clusterID, feature.Name)
+	if err != nil {
+
+		return newDatabaseAccessError(feature.Name)
+	}
+
+	if f != nil {
+		mLogger.Debug("feature exists")
 
 		return newFeatureExistsError(feature.Name)
 	}
 
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterID)
 	if err != nil {
-		fLog.Debug("failed to activate feature")
+		mLogger.Debug("failed to activate feature")
 		// internal error at this point
 		return emperror.WrapWith(err, "failed to activate feature")
 	}
 
 	kubeConfig, err := cluster.GetKubeConfig()
 	if err != nil {
+
 		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
 	}
 
@@ -99,7 +106,7 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterID ui
 			"create": false,
 		},
 		"image": map[string]string{
-			"tag": "v0.5.11",
+			"tag": externalDnsImageVersion,
 		},
 		"aws": map[string]string{
 			"secretKey": "",
@@ -116,17 +123,17 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterID ui
 	externalDnsValuesJson, _ := yaml.Marshal(externalDnsValues)
 
 	if _, err := sfm.featureRepository.SaveFeature(ctx, clusterID, feature.Name, feature.Spec); err != nil {
-		fLog.Debug("failed to persist feature")
+		mLogger.Debug("failed to persist feature")
 
 		return newDatabaseAccessError(feature.Name)
 	}
 
-	if err = sfm.helmService.InstallDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace,
-		ExternalDnsChartName, ExternalDnsRelease, externalDnsValuesJson, ExternalDnsChartVersion, false); err != nil {
+	if err = sfm.helmService.InstallDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, externalDnsNamespace,
+		externalDnsChartName, externalDnsRelease, externalDnsValuesJson, externalDnsChartVersion, false); err != nil {
 		// rollback
-		fLog.Debug("failed to deploy feature  - rolling back ... ")
+		mLogger.Debug("failed to deploy feature  - rolling back ... ")
 		if err = sfm.featureRepository.DeleteFeature(ctx, clusterID, feature.Name); err != nil {
-			fLog.Debug("failed to deploy feature  - failed to roll back")
+			mLogger.Debug("failed to deploy feature  - failed to roll back")
 
 			return newDatabaseAccessError(feature.Name)
 		}
@@ -135,12 +142,12 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterID ui
 	}
 
 	if _, err := sfm.featureRepository.UpdateFeatureStatus(ctx, clusterID, feature.Name, FeatureStatusActive); err != nil {
-		fLog.Debug("failed to persist feature")
+		mLogger.Debug("failed to persist feature")
 
 		return newDatabaseAccessError(feature.Name)
 	}
 
-	fLog.Info("successfully activated feature")
+	mLogger.Info("successfully activated feature")
 	return nil
 
 }
@@ -178,7 +185,7 @@ func (sfm *externalDnsFeatureManager) Deactivate(ctx context.Context, clusterID 
 		return emperror.WrapWith(err, "failed to deactivate feature", "feature", featureName)
 	}
 
-	if err := sfm.helmService.DeleteDeployment(ctx, kubeConfig, ExternalDnsRelease); err != nil {
+	if err := sfm.helmService.DeleteDeployment(ctx, kubeConfig, externalDnsRelease); err != nil {
 		mLog.Info("failed to delete feature deployment")
 
 		return emperror.WrapWith(err, "failed to uninstall feature")
@@ -249,8 +256,8 @@ func (sfm *externalDnsFeatureManager) Update(ctx context.Context, clusterID uint
 		return newDatabaseAccessError(feature.Name)
 	}
 
-	if err = sfm.helmService.UpdateDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, ExternalDnsNamespace,
-		ExternalDnsChartName, ExternalDnsRelease, valuesJson, ExternalDnsChartVersion); err != nil {
+	if err = sfm.helmService.UpdateDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, externalDnsNamespace,
+		externalDnsChartName, externalDnsRelease, valuesJson, externalDnsChartVersion); err != nil {
 		mLoger.Debug("failed to deploy feature")
 
 		// todo feature status in case the upgrade failed?!
