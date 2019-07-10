@@ -46,46 +46,46 @@ type FeatureService struct {
 // FeatureRepository collects persistence related operations.
 type FeatureRepository interface {
 	// SaveFeature persists the feature into the persistent storage
-	SaveFeature(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) (uint, error)
+	SaveFeature(ctx context.Context, clusterID uint, featureName string, featureSpec map[string]interface{}) (uint, error)
 
 	// GetFeature retrieves the feature from the persistent storage
-	GetFeature(ctx context.Context, clusterId uint, featureName string) (*Feature, error)
+	GetFeature(ctx context.Context, clusterID uint, featureName string) (*Feature, error)
 
 	// Updates the status of the feature in the persistent storage
-	UpdateFeatureStatus(ctx context.Context, clusterId uint, featureName string, status string) (*Feature, error)
+	UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) (*Feature, error)
 
 	// Updates the status of the feature in the persistent storage
-	UpdateFeatureSpec(ctx context.Context, clusterId uint, featureName string, spec map[string]interface{}) (*Feature, error)
+	UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) (*Feature, error)
 
 	// DeleteFeature deletes the feature from the persistent storage
-	DeleteFeature(ctx context.Context, clusterId uint, featureName string) error
+	DeleteFeature(ctx context.Context, clusterID uint, featureName string) error
 
 	// Retrieves features for a given cluster
-	ListFeatures(ctx context.Context, clusterId uint) ([]Feature, error)
+	ListFeatures(ctx context.Context, clusterID uint) ([]Feature, error)
 }
 
 // FeatureManager operations in charge for applying features to the cluster.
 type FeatureManager interface {
 	// Deploys and activates a feature on the given cluster
-	Activate(ctx context.Context, clusterId uint, feature Feature) error
+	Activate(ctx context.Context, clusterID uint, feature Feature) error
 
 	// Removes feature from the given cluster
-	Deactivate(ctx context.Context, clusterId uint, featureName string) error
+	Deactivate(ctx context.Context, clusterID uint, featureName string) error
 
 	// Updates a feature on the given cluster
-	Update(ctx context.Context, clusterId uint, feature Feature) error
+	Update(ctx context.Context, clusterID uint, feature Feature) error
 
 	// Validate validates the feature, chsecks its prerequisites
-	Validate(ctx context.Context, clusterId uint, featureName string, featureSpec map[string]interface{}) error
+	Validate(ctx context.Context, clusterID uint, featureName string, featureSpec map[string]interface{}) error
 
 	// Details returns feature details
-	Details(ctx context.Context, clusterId uint, featureName string) (*Feature, error)
+	Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error)
 }
 
 // FeatureLister component interface for listing features
 type FeatureLister interface {
 	// List retrieves the list of features for the given clusterid
-	List(ctx context.Context, clusterId uint) ([]Feature, error)
+	List(ctx context.Context, clusterID uint) ([]Feature, error)
 }
 
 // NewClusterFeatureService returns a new FeatureService instance.
