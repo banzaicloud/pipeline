@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "8644a368-88f1-429c-9d2e-ecc98d8585e0",
+		"_postman_id": "d6185fee-b4cf-42e2-bb6b-426e871713cd",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1528,6 +1528,69 @@
 									"key": "clusterId",
 									"value": "{{clusterId}}",
 									"description": "Cluster identifier"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cluster Update PKE/AWS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5fcc4749-27c9-40ed-a840-bd4f22f43e12",
+								"exec": [
+									"",
+									"if (responseCode.code === 202) {",
+									"    tests[\"Response Code 202\"] = responseCode.code == 202;",
+									"} else {",
+									"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+									"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+									"    postman.setNextRequest(null);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"cloud\": \"amazon\",\n\t\"ttlMinutes\": 240,\n\t\"properties\": {\n\t\t\"pke\": {\n\t\t\t\"nodePools\": {\n\t\t\t\t\"pool1\": {\n\t\t\t\t\t\"minCount\": 1,\n\t\t\t\t\t\"maxCount\": 1,\n\t\t\t\t\t\"count\": 1\n\t\t\t\t\t\n\t\t\t\t},\n\t\t\t\t\"newworkerpool2\": {\n\t\t\t\t\t\"instanceType\": \"c4.xlarge\",\n\t\t\t\t\t\"spotPrice\": \"0.2\",\n\t\t\t\t\t\"autoscaling\": \"true\",\n\t\t\t\t\t\"minCount\": 1,\n\t\t\t\t\t\"maxCount\": 2,\n\t\t\t\t\t\"count\": 1\n\t\t\t\t\t\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orgs",
+								":orgId",
+								"clusters",
+								":clusterId"
+							],
+							"variable": [
+								{
+									"description": "Organization identifier",
+									"key": "orgId",
+									"value": "{{orgId}}"
+								},
+								{
+									"description": "Cluster identifier",
+									"key": "clusterId",
+									"value": "{{clusterId}}"
 								}
 							]
 						}
