@@ -126,6 +126,11 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 		desired = input.Pool.MaxCount
 	}
 
+	subnetID := input.SubnetID
+	if len(input.Pool.Subnets) > 0 {
+		subnetID = input.Pool.Subnets[0]
+	}
+
 	stackInput := &cloudformation.CreateStackInput{
 		StackName:    aws.String(stackName),
 		TemplateBody: aws.String(string(buf)),
@@ -157,7 +162,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 			},
 			{
 				ParameterKey:   aws.String("SubnetIds"),
-				ParameterValue: &input.SubnetID,
+				ParameterValue: &subnetID,
 			},
 			{
 				ParameterKey:   aws.String("IamInstanceProfile"),

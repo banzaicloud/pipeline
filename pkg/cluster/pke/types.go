@@ -41,12 +41,13 @@ func (a *UpdateClusterPKE) Validate() error {
 type UpdateNodePools map[string]UpdateNodePool
 
 type UpdateNodePool struct {
-	InstanceType string `json:"instanceType" yaml:"instanceType"`
-	SpotPrice    string `json:"spotPrice" yaml:"spotPrice"`
-	Autoscaling  bool   `json:"autoscaling" yaml:"autoscaling"`
-	MinCount     int    `json:"minCount" yaml:"minCount"`
-	MaxCount     int    `json:"maxCount" yaml:"maxCount"`
-	Count        int    `json:"count" yaml:"count"`
+	InstanceType string  `json:"instanceType" yaml:"instanceType"`
+	SpotPrice    string  `json:"spotPrice" yaml:"spotPrice"`
+	Autoscaling  bool    `json:"autoscaling" yaml:"autoscaling"`
+	MinCount     int     `json:"minCount" yaml:"minCount"`
+	MaxCount     int     `json:"maxCount" yaml:"maxCount"`
+	Count        int     `json:"count" yaml:"count"`
+	Subnets      Subnets `json:"subnets,omitempty" yaml:"subnets,omitempty"`
 }
 
 type Network struct {

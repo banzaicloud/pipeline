@@ -16,7 +16,6 @@ package pkeworkflow
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/goph/emperror"
@@ -139,7 +138,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			WorkerInstanceProfile:     PkeGlobalStackName + "-worker-profile",
 			VPCID:                     input.VPCID,
 			VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
-			SubnetID:                  strings.Join(input.SubnetIDs, ","),
+			SubnetID:                  input.SubnetIDs[0],
 			ClusterSecurityGroup:      clusterSecurityGroup,
 			ExternalBaseUrl:           input.PipelineExternalURL,
 			ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,

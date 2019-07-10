@@ -11,7 +11,7 @@
 
 package client
 
-type CreatePkePropertiesClusterTopologyNetwork struct {
+type CreatePkePropertiesNetwork struct {
 	ApiServerAddress string `json:"apiServerAddress"`
 	ServiceCIDR      string `json:"serviceCIDR"`
 	PodCIDR          string `json:"podCIDR"`
