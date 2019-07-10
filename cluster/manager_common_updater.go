@@ -152,9 +152,9 @@ func (c *commonUpdater) Update(ctx context.Context) error {
 	}
 
 	if updater, ok := c.cluster.(interface {
-		UpdatePKECluster(context.Context, *cluster.UpdateClusterRequest, client.Client, string, bool) error
+		UpdatePKECluster(context.Context, *cluster.UpdateClusterRequest, uint, client.Client, string, bool) error
 	}); ok {
-		err = updater.UpdatePKECluster(ctx, c.request, c.workflowClient, c.externalBaseURL, c.externalBaseURLInsecure)
+		err = updater.UpdatePKECluster(ctx, c.request, c.userID, c.workflowClient, c.externalBaseURL, c.externalBaseURLInsecure)
 	} else {
 		err = c.cluster.UpdateCluster(c.request, c.userID)
 	}

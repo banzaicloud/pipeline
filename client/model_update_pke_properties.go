@@ -11,6 +11,6 @@
 
 package client
 
-type CreatePkePropertiesClusterTopologyCri struct {
-	Runtime string `json:"runtime"`
+type UpdatePkeProperties struct {
+	Pke UpdatePkePropertiesPke `json:"pke"`
 }

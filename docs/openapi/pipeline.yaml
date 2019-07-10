@@ -7727,65 +7727,60 @@ components:
         CreatePKEProperties:
             type: object
             required:
-                - clusterTopology
+                - network
+                - nodePools
+                - kubernetes
+                - cri
             properties:
-                clusterTopology:
+                network:
                     type: object
                     required:
-                        - network
-                        - nodePools
-                        - kubernetes
-                        - cri
+                        - apiServerAddress
+                        - serviceCIDR
+                        - podCIDR
+                        - provider
                     properties:
-                        network:
+                        apiServerAddress:
+                            type: string
+                            example: "10.240.0.204"
+                        serviceCIDR:
+                            type: string
+                            example: "10.32.0.0/24"
+                        podCIDR:
+                            type: string
+                            example: 10.200.0.0/16"
+                        provider:
+                            type: string
+                            example: "weave"
+                nodePools:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/NodePoolsPKE'
+                kubernetes:
+                    type: object
+                    required:
+                        - version
+                        - rbac
+                    properties:
+                        version:
+                            type: string
+                            example:  "v1.12.2"
+                        rbac:
                             type: object
                             required:
-                                - apiServerAddress
-                                - serviceCIDR
-                                - podCIDR
-                                - provider
+                                - enabled
                             properties:
-                                apiServerAddress:
-                                    type: string
-                                    example: "10.240.0.204"
-                                serviceCIDR:
-                                    type: string
-                                    example: "10.32.0.0/24"
-                                podCIDR:
-                                    type: string
-                                    example: 10.200.0.0/16"
-                                provider:
-                                    type: string
-                                    example: "weave"
-                        nodePools:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/NodePoolsPKE'
-                        kubernetes:
-                            type: object
-                            required:
-                                - version
-                                - rbac
-                            properties:
-                                version:
-                                    type: string
-                                    example:  "v1.12.2"
-                                rbac:
-                                    type: object
-                                    required:
-                                        - enabled
-                                    properties:
-                                        enabled:
-                                            type: boolean
-                                            example: true
-                        cri:
-                            type: object
-                            required:
-                                - runtime
-                            properties:
-                                runtime:
-                                    type: string
-                                    example: "containerd"
+                                enabled:
+                                    type: boolean
+                                    example: true
+                cri:
+                    type: object
+                    required:
+                        - runtime
+                    properties:
+                        runtime:
+                            type: string
+                            example: "containerd"
 
         NodePoolsPKE:
             type: object
@@ -7794,7 +7789,7 @@ components:
                 - roles
                 - provider
                 - providerConfig
-                - hosts
+                - autoscaling
             properties:
                 name:
                     type: string
@@ -7804,6 +7799,16 @@ components:
                     items:
                         type: string
                     example: ["master", "pipeline-system"]
+                labels:
+                    type: object
+                    description: user provided custom node labels to be placed onto the nodes of the node pool
+                    additionalProperties:
+                        type: string
+                        example:
+                            example.io/label1: value1
+                autoscaling:
+                    type: boolean
+                    description: Enables/disables autoscaling of this node pool through Kubernetes cluster autoscaler.
                 provider:
                     type: string
                     example: "amazon"
@@ -8227,6 +8232,54 @@ components:
                 instanceType:
                     type: string
                     example: "n1-standard-2"
+
+        UpdatePKEProperties:
+            type: object
+            required:
+                - pke
+            properties:
+                pke:
+                    type: object
+                    required:
+                        - nodePools
+                    properties:
+                        nodePools:
+                            type: object
+                            additionalProperties:
+                                $ref: '#/components/schemas/UpdateNodePoolsPKE'
+
+        UpdateNodePoolsPKE:
+            type: object
+            properties:
+                instanceType:
+                    type: string
+                    example: c4.large
+                    description: Instance type for the nodes in the node pool. This field is ignored when existing node pool is updated as instance type can not be changed.
+                spotPrice:
+                    type: string
+                    example: "0.2"
+                    description: The spot price for a node in the node pool. Provide "" or "0" for on-demand nodes.
+                autoscaling:
+                    type: boolean
+                    description: Whether to enable Kubernetes cluster autoscaler for this node pool.
+                minCount:
+                    type: integer
+                    example: 1
+                    description: If cluster autoscaler is enabled for this node pool it sets the minimum node count the cluster autoscaler can downscale the node pool to.
+                maxCount:
+                    type: integer
+                    example: 2
+                    description: If cluster autoscaler is enabled for this node pool it sets the maximum node count the cluster autoscaler can upscale the node pool to.
+                count:
+                    type: integer
+                    example: 1
+                    description: If cluster autoscaler is not enabled this specifies the desired ndoe count in the node pool. If cluster autoscaler is enabled this specifies the initial node count in the ndoe pool.
+                subnets:
+                    type: array
+                    items:
+                        type: string
+                    example: ["subnet-0d16a21e9655486af"]
+                    description: The subnet to create the node pool into. If this field is omitted than the subnet from the cluster level network configuration is used.
 
         ClusterDelete_200:
             type: object
