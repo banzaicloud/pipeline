@@ -48,14 +48,15 @@ func (m *FederationReconciler) ReconcileController(desiredState DesiredState) er
 			return emperror.Wrap(err, "could not install Federation controller")
 		}
 	} else {
-		err := m.deleteFederatedTypeConfigs()
-		if err != nil {
-			return emperror.Wrap(err, "could not remove Federation type configs")
-		}
 
-		err = m.removeFederationCRDs(false)
+		err := m.removeFederationCRDs(false)
 		if err != nil {
 			return emperror.Wrap(err, "could not remove Federation CRD's")
+		}
+
+		err = m.deleteFederatedTypeConfigs()
+		if err != nil {
+			return emperror.Wrap(err, "could not remove Federation type configs")
 		}
 
 		err = m.uninstallFederationController(m.Host, m.logger)

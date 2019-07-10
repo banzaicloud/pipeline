@@ -498,7 +498,7 @@ func (g *Manager) reconcileFeature(clusterGroup api.ClusterGroup, featureModel C
 			if dbErr != nil {
 				g.errorHandler.Handle(dbErr)
 			}
-			return err
+			return &featureReconcileError{err}
 		}
 		featureModel.ReconcileState = api.ReconcileSucceded
 		featureModel.LastReconcileError = ""

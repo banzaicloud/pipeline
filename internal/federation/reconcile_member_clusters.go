@@ -134,20 +134,20 @@ func (m *FederationReconciler) labelRegisteredCluster(c cluster.CommonCluster) e
 	clusterName := c.GetName()
 	clusterId := c.GetID()
 
+	clusterLabels := make(map[string]string, 0)
+	clusterLabels[clusterLabelId] = fmt.Sprintf("%v", clusterId)
+	clusterLabels[clusterLabelCloud] = c.GetCloud()
+	clusterLabels[clusterLabelDistribution] = c.GetDistribution()
+	clusterLabels[clusterLabelLocation] = c.GetLocation()
+	clusterLabels[clusterLabelGroupName] = m.ClusterGroupName
+
 	cluster := &fedv1b1.KubeFedCluster{}
 	err = client.Get(context.TODO(), cluster, m.Configuration.TargetNamespace, clusterName)
 	if err != nil {
 		return err
 	}
 	if cluster != nil && cluster.Name == clusterName {
-		cluster.Labels = make(map[string]string, 0)
-		cluster.Labels[clusterLabelId] = fmt.Sprintf("%v", clusterId)
-
-		cluster.Labels[clusterLabelCloud] = c.GetCloud()
-		cluster.Labels[clusterLabelDistribution] = c.GetDistribution()
-		cluster.Labels[clusterLabelLocation] = c.GetLocation()
-		cluster.Labels[clusterLabelGroupName] = m.ClusterGroupName
-
+		cluster.Labels = clusterLabels
 		err = client.Update(context.TODO(), cluster)
 		if err != nil {
 			return err
