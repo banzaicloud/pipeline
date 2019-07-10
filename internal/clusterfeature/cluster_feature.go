@@ -54,7 +54,7 @@ type FeatureRepository interface {
 	// Updates the status of the feature in the persistent storage
 	UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) (*Feature, error)
 
-	// Updates the status of the feature in the persistent storage
+	// Updates the spec of the feature in the persistent storage
 	UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) (*Feature, error)
 
 	// DeleteFeature deletes the feature from the persistent storage
@@ -112,13 +112,14 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 
 	featureManager, err = s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
+
 		return newUnsupportedFeatureError(featureName)
 	}
 
 	if err = featureManager.Validate(ctx, clusterID, featureName, spec); err != nil {
 		log.Debug("feature validation failed")
 
-		return emperror.Wrap(err, "failed to activate feature")
+		return emperror.Wrap(err, "failed to validate feature")
 	}
 
 	// delegate the task of "deploying" the feature to the manager
@@ -128,7 +129,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
-	log.Info("feature successfully activated ")
+	log.Info("feature successfully activated")
 
 	return nil
 }
