@@ -508,7 +508,7 @@ func main() {
 			// ClusterInfo Feature API
 			{
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db)
+				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(logrusadapter.New(log), db)
 				featureLister := clusterfeature.NewFeatureLister(logrusadapter.New(log), featureRepository)
 				featureManager := clusterfeature.NewExternalDnsFeatureManager(logrusadapter.New(log), featureRepository, clusterService)
 				featureManagerRegistry := clusterfeature.NewFeatureManagerRegistry(logrusadapter.New(log))

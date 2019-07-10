@@ -138,12 +138,9 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	mLogger := logur.WithFields(s.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 	mLogger.Info("deactivating feature")
 
-	var (
-		featureManager FeatureManager
-		err            error
-	)
 
-	if featureManager, err = s.featureManagerRegistry.GetFeatureManager(ctx, featureName); err != nil {
+	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
+	if err != nil {
 		mLogger.Debug("failed to get feature manager")
 
 		return newUnsupportedFeatureError(featureName)
