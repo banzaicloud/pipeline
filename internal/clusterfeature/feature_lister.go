@@ -31,12 +31,8 @@ func (fl *featureLister) List(ctx context.Context, clusterID uint) ([]Feature, e
 	mLogger := logur.WithFields(fl.logger, map[string]interface{}{"clusterId": clusterID})
 	mLogger.Debug("retrieving features ...")
 
-	var (
-		features []Feature
-		err      error
-	)
-
-	if features, err = fl.featureRepository.ListFeatures(ctx, clusterID); err != nil {
+	features, err := fl.featureRepository.ListFeatures(ctx, clusterID)
+	if err != nil {
 		mLogger.Debug("failed to retrieve features")
 
 		return nil, emperror.Wrap(err, "failed to retrieve features")
