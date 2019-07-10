@@ -26,9 +26,9 @@ type featureLister struct {
 	featureRepository FeatureRepository
 }
 
-func (fl *featureLister) List(ctx context.Context, clusterId uint) ([]Feature, error) {
+func (fl *featureLister) List(ctx context.Context, clusterID uint) ([]Feature, error) {
 
-	mLogger := logur.WithFields(fl.logger, map[string]interface{}{"clusterId": clusterId})
+	mLogger := logur.WithFields(fl.logger, map[string]interface{}{"clusterId": clusterID})
 	mLogger.Debug("retrieving features ...")
 
 	var (
@@ -36,7 +36,7 @@ func (fl *featureLister) List(ctx context.Context, clusterId uint) ([]Feature, e
 		err      error
 	)
 
-	if features, err = fl.featureRepository.ListFeatures(ctx, clusterId); err != nil {
+	if features, err = fl.featureRepository.ListFeatures(ctx, clusterID); err != nil {
 		mLogger.Debug("failed to retrieve features")
 
 		return nil, emperror.Wrap(err, "failed to retrieve features")
