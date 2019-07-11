@@ -34,7 +34,7 @@ import (
 
 const (
 	clusterRequestName          = "testName"
-	clusterRequestLocation      = "testLocation"
+	clusterRequestLocation      = "eu-west-1"
 	clusterRequestNodeInstance  = "testInstance"
 	clusterRequestNodeCount     = 1
 	clusterRequestRG            = "testResourceGroup"
