@@ -44,7 +44,8 @@ var mappings = []struct {
 	constraint *semver.Constraints
 	images     map[string]string
 }{
-	{constraintForVersion("1.10"),
+	{
+		constraintForVersion("1.10"),
 		map[string]string{
 			endpoints.UsEast2RegionID:      "ami-0295a10750423107d",
 			endpoints.UsEast1RegionID:      "ami-05c9fba3332ccbc43",
