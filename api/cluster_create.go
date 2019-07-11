@@ -302,6 +302,11 @@ func (a *ClusterAPI) createCluster(
 		ExternalBaseURLInsecure: a.externalBaseURLInsecure,
 	}
 
+	switch c := commonCluster.(type) {
+	case *cluster.EKSCluster:
+		c.CloudInfoClient = a.cloudInfoClient
+	}
+
 	creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.workflowClient)
 
 	commonCluster, err = a.clusterManager.CreateCluster(ctx, creationCtx, creator)

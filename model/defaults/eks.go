@@ -21,6 +21,7 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 )
 
@@ -131,7 +132,10 @@ func (d *EKSProfile) GetProfile() *pkgCluster.ClusterProfileResponse {
 // UpdateProfile update profile's data with ClusterProfileRequest's data and if bool is true then update in the database
 func (d *EKSProfile) UpdateProfile(r *pkgCluster.ClusterProfileRequest, withSave bool) error {
 
-	image := eks.DefaultImages[d.Version][d.Region] // the image is fixed for a region
+	image, err := eks.GetDefaultImageID(d.Region, d.Version) // the image is fixed for a region
+	if err != nil {
+		return emperror.Wrapf(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", d.Version, d.Region)
+	}
 
 	if r.Properties.EKS == nil || len(r.Properties.EKS.NodePools) == 0 {
 		for _, np := range d.NodePools {

@@ -213,6 +213,7 @@ func init() {
 	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
 	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	viper.SetDefault("auth.secureCookie", true)
+	viper.SetDefault("auth.publicclientid", "banzai-cli")
 	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
 	viper.SetDefault("auth.dexInsecure", false)
 	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
@@ -242,7 +243,7 @@ func init() {
 	viper.SetDefault(DBAutoMigrateEnabled, false)
 	viper.SetDefault("audit.enabled", true)
 	viper.SetDefault("audit.headers", []string{"secretId"})
-	viper.SetDefault("audit.skippaths", []string{"/auth/github/callback", "/pipeline/api"})
+	viper.SetDefault("audit.skippaths", []string{"/auth/dex/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
 	viper.SetDefault(DNSBaseDomain, "example.org")
 	viper.SetDefault(DNSGcIntervalMinute, 1)

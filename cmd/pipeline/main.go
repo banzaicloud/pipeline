@@ -24,11 +24,13 @@ import (
 	"time"
 
 	evbus "github.com/asaskevich/EventBus"
+	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/emperror"
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -260,6 +262,13 @@ func main() {
 		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
 	}
 
+	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
+	if cloudInfoEndPoint == "" {
+		errorHandler.Handle(errors.New("missing CloudInfo endpoint"))
+		return
+	}
+	cloudInfoClient := cloudinfo.NewClient(cloudInfoEndPoint, log)
+
 	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
@@ -301,7 +310,7 @@ func main() {
 		),
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, clusterGroupManager, log, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, cloudInfoClient, clusterGroupManager, log, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
 
 	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, log, errorHandler)
 
