@@ -36,9 +36,10 @@ func (m *FederationReconciler) Reconcile() error {
 		}
 	case DesiredStateAbsent:
 		reconcilers = []Reconciler{
-			m.ReconcileController,
+			m.ReconcileServiceDiscovery,
 			m.ReconcileMemberClusters,
-			m.ReconcileCRD,
+			m.ReconcileFederatedTypes,
+			m.ReconcileController,
 			m.ReconcileExternalDNSController,
 			m.ReconcileCRBForExtDNS,
 		}
