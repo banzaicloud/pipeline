@@ -80,6 +80,9 @@ const (
 	clusterLabelDistribution = "distribution"
 	clusterLabelLocation     = "location"
 	clusterLabelGroupName    = "groupName"
+
+	multiClusterGroup        = "multiclusterdns.kubefed.k8s.io"
+	multiClusterGroupVersion = "v1alpha1"
 )
 
 // NewFederationReconciler crates a new feature reconciler for Federation
@@ -107,17 +110,17 @@ func (m *FederationReconciler) init() error {
 	m.Members = m.getMemberClusters()
 
 	m.serviceDNSRecordResource = &metav1.APIResource{
-		Group:      "multiclusterdns.kubefed.k8s.io",
+		Group:      multiClusterGroup,
 		Kind:       "ServiceDNSRecord",
-		Version:    "v1alpha1",
+		Version:    multiClusterGroupVersion,
 		Namespaced: true,
 		Name:       "servicednsrecords",
 	}
 
 	m.ingressDNSRecordResource = &metav1.APIResource{
-		Group:      "multiclusterdns.kubefed.k8s.io",
+		Group:      multiClusterGroup,
 		Kind:       "IngressDNSRecord",
-		Version:    "v1alpha1",
+		Version:    multiClusterGroupVersion,
 		Namespaced: true,
 		Name:       "ingressdnsrecords",
 	}
