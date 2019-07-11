@@ -54,11 +54,16 @@ grpc:
 staticClients:
 - id: pipeline
   redirectURIs:
-  - 'http://127.0.0.1:5555/callback'
   - 'http://127.0.0.1:9090/auth/dex/callback'
   - 'http://localhost:9090/auth/dex/callback'
   name: 'Pipeline'
   secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+- id: banzai-cli
+  secret: banzai-cli-secret
+  public: true
+  redirectURIs:
+  - 'http://localhost:5555/callback'
+  name: 'Banzai CLI'
 
 connectors:
 - type: github

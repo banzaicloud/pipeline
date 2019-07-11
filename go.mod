@@ -51,6 +51,7 @@ require (
 	github.com/gin-gonic/gin v1.3.1-0.20190402010134-2e915f4e5083
 	github.com/go-kit/kit v0.8.0
 	github.com/go-logr/zapr v0.1.1 // indirect
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/mock v1.2.0 // indirect
@@ -148,10 +149,7 @@ require (
 	k8s.io/cli-runtime v0.0.0-20190404071300-cbd7455f4bce // indirect
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cluster-bootstrap v0.0.0-20190404071559-03c28a85c7b7
-	k8s.io/cluster-registry v0.0.6 // indirect
 	k8s.io/helm v2.12.2+incompatible
-	k8s.io/klog v0.2.0
-	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30
 	k8s.io/kubectl v0.0.0-20190523211420-5b63b0fd89bb // indirect
 	k8s.io/kubernetes v1.13.5
 	k8s.io/utils v0.0.0-20190221042446-c2654d5206da // indirect
