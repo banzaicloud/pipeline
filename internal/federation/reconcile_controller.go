@@ -28,9 +28,12 @@ import (
 	"github.com/spf13/viper"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/repo"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
+	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
 )
 
 type OperatorImage struct {
@@ -48,18 +51,7 @@ func (m *FederationReconciler) ReconcileController(desiredState DesiredState) er
 			return emperror.Wrap(err, "could not install Federation controller")
 		}
 	} else {
-
-		err := m.removeFederationCRDs(false)
-		if err != nil {
-			return emperror.Wrap(err, "could not remove Federation CRD's")
-		}
-
-		err = m.deleteFederatedTypeConfigs()
-		if err != nil {
-			return emperror.Wrap(err, "could not remove Federation type configs")
-		}
-
-		err = m.uninstallFederationController(m.Host, m.logger)
+		err := m.uninstallFederationController(m.Host, m.logger)
 		if err != nil {
 			return emperror.Wrap(err, "could not remove Federation controller")
 		}
@@ -69,14 +61,38 @@ func (m *FederationReconciler) ReconcileController(desiredState DesiredState) er
 	return nil
 }
 
-func (m *FederationReconciler) ReconcileCRD(desiredState DesiredState) error {
+func (m *FederationReconciler) ReconcileServiceDiscovery(desiredState DesiredState) error {
 	if desiredState == DesiredStatePresent {
 		return nil
 	}
 
-	m.logger.Debug("start removing all remaining CRD's")
-	defer m.logger.Debug("finished removing all remaining CRD's")
-	err := m.removeFederationCRDs(true)
+	err := m.deleteFederatedResources(m.ingressDNSRecordResource)
+	if err != nil {
+		return emperror.Wrap(err, "could not remove ingressDNSRecord(s)")
+	}
+
+	err = m.deleteFederatedResources(m.serviceDNSRecordResource)
+	if err != nil {
+		return emperror.Wrap(err, "could not remove serviceDNSRecord(s)")
+	}
+
+	return nil
+}
+
+func (m *FederationReconciler) ReconcileFederatedTypes(desiredState DesiredState) error {
+	if desiredState == DesiredStatePresent {
+		return nil
+	}
+
+	m.logger.Debug("start removing federated resources and FederatedTypes")
+	defer m.logger.Debug("finished removing federated resources and FederatedTypes")
+
+	err := m.deleteFederatedResourcesAndTypeConfigs()
+	if err != nil {
+		return emperror.Wrap(err, "could not remove Federation resources and typeConfigs")
+	}
+
+	err = m.removeFederationCRDs(true)
 	if err != nil {
 		return emperror.Wrap(err, "could not remove Federation CRD's")
 	}
@@ -84,7 +100,7 @@ func (m *FederationReconciler) ReconcileCRD(desiredState DesiredState) error {
 	return nil
 }
 
-func (m *FederationReconciler) deleteFederatedTypeConfigs() error {
+func (m *FederationReconciler) deleteFederatedResourcesAndTypeConfigs() error {
 	m.logger.Debug("start deleting Federation type configs")
 	defer m.logger.Debug("finished deleting Federation type configs")
 
@@ -94,7 +110,6 @@ func (m *FederationReconciler) deleteFederatedTypeConfigs() error {
 	}
 
 	list := &fedv1b1.FederatedTypeConfigList{}
-	//v1alpha1.DNSEndpoint
 	err = client.List(context.TODO(), list, m.Configuration.TargetNamespace)
 	if err != nil {
 		if strings.Contains(err.Error(), "no matches for kind") {
@@ -105,9 +120,82 @@ func (m *FederationReconciler) deleteFederatedTypeConfigs() error {
 	}
 
 	for _, fedTypeConfig := range list.Items {
+		apiResource := fedTypeConfig.GetFederatedType()
+		err := m.deleteFederatedResources(&apiResource)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, fedTypeConfig := range list.Items {
+		m.logger.Debugf("delete fedTypeConfig %s", fedTypeConfig.Name)
 		err = client.Delete(context.TODO(), &fedTypeConfig, m.Configuration.TargetNamespace, fedTypeConfig.Name)
 		if err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *FederationReconciler) federatedResourcesExists(resource *metav1.APIResource) (bool, error) {
+	clientConfig, err := m.getClientConfig(m.Host)
+	if err != nil {
+		return false, err
+	}
+
+	client, err := ctlutil.NewResourceClient(clientConfig, resource)
+	if err != nil {
+		return false, err
+	}
+
+	list, err := client.Resources("").List(metav1.ListOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			m.logger.Debugf("no %s found", resource.Name)
+		} else {
+			return false, err
+		}
+	}
+	if list != nil && len(list.Items) > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (m *FederationReconciler) deleteFederatedResources(resource *metav1.APIResource) error {
+
+	m.logger.Debugf("start deleting resource %s", resource.Name)
+	defer m.logger.Debugf("finished deleting resource %s", resource.Name)
+
+	clientConfig, err := m.getClientConfig(m.Host)
+	if err != nil {
+		return err
+	}
+
+	client, err := ctlutil.NewResourceClient(clientConfig, resource)
+	if err != nil {
+		return err
+	}
+
+	list, err := client.Resources("").List(metav1.ListOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			m.logger.Debugf("no %s found", resource.Name)
+		} else {
+			return err
+		}
+	}
+	if list == nil || len(list.Items) == 0 {
+		m.logger.Debugf("no %s found", resource.Name)
+	} else {
+		for _, fn := range list.Items {
+			m.logger.Debugf("delete %s %s", fn.GetName(), fn.GetKind())
+			err = client.Resources(fn.GetNamespace()).Delete(fn.GetName(), &metav1.DeleteOptions{}, "")
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -123,6 +211,7 @@ func (m *FederationReconciler) removeFederationCRDs(all bool) error {
 	if err != nil {
 		return err
 	}
+
 	cl, err := v1beta1.NewForConfig(clientConfig)
 	if err != nil {
 		return err

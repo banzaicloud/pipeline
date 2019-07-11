@@ -26,6 +26,7 @@ import (
 	"github.com/kubernetes-sigs/kubefed/pkg/client/generic"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	genericclient "sigs.k8s.io/kubefed/pkg/client/generic"
@@ -56,9 +57,11 @@ type FederationReconciler struct {
 	Host             cluster.CommonCluster
 	Members          []cluster.CommonCluster
 
-	clusterGetter api.ClusterGetter
-	logger        logrus.FieldLogger
-	errorHandler  emperror.Handler
+	clusterGetter            api.ClusterGetter
+	logger                   logrus.FieldLogger
+	errorHandler             emperror.Handler
+	serviceDNSRecordResource *metav1.APIResource
+	ingressDNSRecordResource *metav1.APIResource
 }
 
 type Reconciler func(desiredState DesiredState) error
@@ -103,6 +106,21 @@ func (m *FederationReconciler) init() error {
 	m.Host = m.getHostCluster()
 	m.Members = m.getMemberClusters()
 
+	m.serviceDNSRecordResource = &metav1.APIResource{
+		Group:      "multiclusterdns.kubefed.k8s.io",
+		Kind:       "ServiceDNSRecord",
+		Version:    "v1alpha1",
+		Namespaced: true,
+		Name:       "servicednsrecords",
+	}
+
+	m.ingressDNSRecordResource = &metav1.APIResource{
+		Group:      "multiclusterdns.kubefed.k8s.io",
+		Kind:       "IngressDNSRecord",
+		Version:    "v1alpha1",
+		Namespaced: true,
+		Name:       "ingressdnsrecords",
+	}
 	return nil
 }
 
