@@ -265,6 +265,7 @@ func main() {
 	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
 	if len(cloudInfoEndPoint) == 0 {
 		errorHandler.Handle(errors.New("missing CloudInfo endpoint"))
+		return
 	}
 	cloudInfoClient := cloudinfo.NewClient(cloudInfoEndPoint, log)
 

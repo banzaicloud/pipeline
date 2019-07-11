@@ -302,7 +302,7 @@ func (a *ClusterAPI) createCluster(
 		ExternalBaseURLInsecure: a.externalBaseURLInsecure,
 	}
 
-	switch c := commonCluster.(type){
+	switch c := commonCluster.(type) {
 	case *cluster.EKSCluster:
 		c.CloudInfoClient = a.cloudInfoClient
 	}
