@@ -30,6 +30,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -138,6 +139,7 @@ func createSubnetsFromRequest(subnets []*pkgEks.ClusterSubnet) []*model.EKSSubne
 type EKSCluster struct {
 	modelCluster             *model.ClusterModel
 	APIEndpoint              string
+	CloudInfoClient          *cloudinfo.Client
 	CertificateAuthorityData []byte
 	awsAccessKeyID           string
 	awsSecretAccessKey       string
@@ -987,7 +989,7 @@ func (c *EKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 
 // AddDefaultsToUpdate adds defaults to update request
 func (c *EKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
-	defaultImage := pkgEks.DefaultImages[c.modelCluster.EKS.Version][c.modelCluster.Location]
+	defaultImage, _ := pkgEks.GetDefaultImageID(c.modelCluster.Location, c.modelCluster.EKS.Version)
 
 	// add default node image(s) if needed
 	if r != nil && r.EKS != nil && r.EKS.NodePools != nil {
@@ -1066,7 +1068,7 @@ func (c *EKSCluster) IsReady() (bool, error) {
 
 // ValidateCreationFields validates all fields
 func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-	regions, err := ListEksRegions(c.GetOrganizationId(), c.GetSecretId())
+	regions, err := c.CloudInfoClient.GetServiceRegions(pkgCluster.Amazon, pkgCluster.EKS)
 	if err != nil {
 		return emperror.Wrap(err, "failed to list regions where EKS service is enabled")
 	}
@@ -1083,23 +1085,15 @@ func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return pkgErrors.ErrorNotValidLocation
 	}
 
-	imagesInRegion, err := ListEksImages(r.Properties.CreateClusterEKS.Version, r.Location)
+	image, err := ListEksImages(r.Properties.CreateClusterEKS.Version, r.Location)
 	if err != nil {
-		return emperror.Wrap(err, "failed to list AMIs that that support EKS")
+		return emperror.Wrap(err, "failed to get EKS AMI")
 	}
 
 	for name, nodePool := range r.Properties.CreateClusterEKS.NodePools {
-		images, ok := imagesInRegion[r.Location]
-		if !ok {
+		if image != nodePool.Image {
 			return emperror.With(pkgErrors.ErrorNotValidNodeImage, "image", nodePool.Image, "nodePool", name, "region", r.Location)
 		}
-
-		for _, image := range images {
-			if image != nodePool.Image {
-				return emperror.With(pkgErrors.ErrorNotValidNodeImage, "image", nodePool.Image, "nodePool", name, "region", r.Location)
-			}
-		}
-
 	}
 
 	// validate VPC
@@ -1254,37 +1248,15 @@ func (c *EKSCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-// ListEksRegions returns the regions in which AmazonEKS service is enabled
-func ListEksRegions(orgId uint, secretId string) ([]string, error) {
-	// AWS API https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ doesn't recognizes AmazonEKS service yet
-	// thus we can not use it to query what locations the service is enabled in.
-
-	// We'll use the pricing API to determine what locations the service is enabled in.
-
-	// TODO revisit this later when https://docs.aws.amazon.com/sdk-for-go/api/aws/endpoints/ starts supporting AmazonEKS
-
-	eksRegionIds := make([]string, 0)
-	for region := range pkgEks.DefaultImages[pkgEks.DefaultK8sVersion] {
-		eksRegionIds = append(eksRegionIds, region)
-	}
-
-	return eksRegionIds, nil
-}
-
 // ListEksImages returns AMIs for EKS
-func ListEksImages(version, region string) (map[string][]string, error) {
-	// currently there are only two AMIs for EKS.
-	// TODO: revise this once there is AWS API for retrieving EKS AMIs dynamically at runtime
-	ami, ok := pkgEks.DefaultImages[version][region]
-	if ok {
-		return map[string][]string{
-			region: {ami},
-		}, nil
+func ListEksImages(version, region string) (string, error) {
+	// TODO: revise this once CloudInfo can provide the correct EKS AMIs dynamically at runtime
+	ami, err := pkgEks.GetDefaultImageID(region, version)
+	if err != nil {
+		return "", emperror.Wrapf(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", version, region)
 	}
 
-	return map[string][]string{
-		region: {},
-	}, nil
+	return ami, nil
 }
 
 // RbacEnabled returns true if rbac enabled on the cluster

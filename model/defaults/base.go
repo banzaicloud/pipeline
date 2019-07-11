@@ -93,6 +93,8 @@ func save(i interface{}) error {
 
 // GetDefaultProfiles returns all types of clouds with default profile name.
 func GetDefaultProfiles() []ClusterProfile {
+	image, _ := eks.GetDefaultImageID(eks.DefaultRegion, eks.DefaultK8sVersion)
+
 	return []ClusterProfile{
 		&EKSProfile{
 			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
@@ -102,7 +104,7 @@ func GetDefaultProfiles() []ClusterProfile {
 					NodeName:  DefaultNodeName,
 					SpotPrice: eks.DefaultSpotPrice,
 				},
-				Image: eks.DefaultImages[eks.DefaultK8sVersion][eks.DefaultRegion],
+				Image: image,
 			}},
 			Version: eks.DefaultK8sVersion,
 		},

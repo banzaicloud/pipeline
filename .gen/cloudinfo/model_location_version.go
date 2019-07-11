@@ -11,10 +11,9 @@
 
 package cloudinfo
 
-// GetServicesPathParams is a placeholder for the services related route path parameters
-type GetServicesPathParams struct {
-	// in:path
-	Provider string `json:"provider,omitempty"`
-	// in:path
-	Service string `json:"service,omitempty"`
+// LocationVersion struct for displaying version information per location
+type LocationVersion struct {
+	Default  string   `json:"default,omitempty"`
+	Location string   `json:"location,omitempty"`
+	Versions []string `json:"versions,omitempty"`
 }

@@ -3,7 +3,7 @@
  *
  * The product info application uses the cloud provider APIs to asynchronously fetch and parse instance type attributes and prices, while storing the results in an in memory cache and making it available as structured data through a REST API.
  *
- * API version: 0.4.19
+ * API version: 0.7.0
  * Contact: info@banzaicloud.com
  */
 
@@ -11,7 +11,8 @@
 
 package cloudinfo
 
-// Version represents a version
-type Version struct {
-	Versions string `json:"versions,omitempty"`
+// Continent holds continent and regions of a cloud provider
+type Continent struct {
+	Name    string   `json:"name,omitempty"`
+	Regions []Region `json:"regions,omitempty"`
 }
