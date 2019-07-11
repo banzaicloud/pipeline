@@ -4099,6 +4099,12 @@ paths:
                     description: Azure storage account to delete the bucket (storage container) from
                     schema:
                         type: string
+                -
+                    name: location
+                    in: query
+                    description: The region to delete the bucket from. Required on Amazon, Oracle and Alibaba cloud providers.
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: "Storage bucket deleted successfully"
@@ -6847,7 +6853,7 @@ paths:
 
         delete:
             operationId: DeactivateClusterFeature
-            summary: Deactivate a cluster feature 
+            summary: Deactivate a cluster feature
             tags:
                 - cluster features
             security:
@@ -6903,7 +6909,7 @@ paths:
 
         put:
             operationId: UpdateClusterFeature
-            summary: Update a cluster feature 
+            summary: Update a cluster feature
             tags:
                 - cluster features
             security:
@@ -9835,6 +9841,8 @@ components:
             type: object
             properties:
                 alibaba:
+                    $ref: '#/components/schemas/CreateAlibabaObjectStoreBucketProperties'
+                amazon:
                     $ref: '#/components/schemas/CreateAmazonObjectStoreBucketProperties'
                 azure:
                     $ref: '#/components/schemas/CreateAzureObjectStoreBucketProperties'
@@ -9842,6 +9850,16 @@ components:
                     $ref: '#/components/schemas/CreateGoogleObjectStoreBucketProperties'
                 oracle:
                     $ref: '#/components/schemas/CreateOracleObjectStoreBucketProperties'
+
+        CreateAlibabaObjectStoreBucketProperties:
+            type: object
+            nullable: true
+            required:
+                - location
+            properties:
+                location:
+                    type: string
+                    example: "eu-central-1"
 
         CreateAmazonObjectStoreBucketProperties:
             type: object
@@ -9909,6 +9927,7 @@ components:
                 - name
                 - managed
                 - cloud
+                - location
                 - status
             properties:
                 name:
@@ -9919,8 +9938,16 @@ components:
                     description: "true if the bucket has been created via pipeline"
                     type: boolean
                     example: true
+                cloud:
+                    description: "cloud provider of the bucket"
+                    type: string
+                    example: "amazon"
+                location:
+                    description: "location of the bucket"
+                    type: string
+                    example: "eu-west-1"
                 notes:
-                    description: "true if the bucket has been created via pipeline"
+                    description: "notes for the bucket"
                     type: string
                     example: "There's no secret with this ID"
                 secret:
@@ -9942,8 +9969,10 @@ components:
                             description: "the secret name of the azure access information"
                             type: string
                             example: "myaccesssecretname"
-                azure:
+                aks:
                     $ref: '#/components/schemas/AzureBlobStorageProps'
+                oracle:
+                    $ref: '#/components/schemas/OracleStorageProps'
                 status:
                     description: the status of the bucket
                     type: string
@@ -10041,6 +10070,14 @@ components:
                 resourceGroup:
                     type: string
                 storageAccount:
+                    type: string
+
+        OracleStorageProps:
+            type: object
+            required:
+                - namespace
+            properties:
+                namespace:
                     type: string
 
         PodDetailsResponse:
@@ -11657,7 +11694,7 @@ components:
 
         ClusterFeatureList:
             type: object
-            additionalProperties: 
+            additionalProperties:
                 $ref: "#/components/schemas/ClusterFeatureDetails"
 
         ActivateClusterFeatureRequest:

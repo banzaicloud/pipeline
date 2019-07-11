@@ -63,4 +63,6 @@ var (
 	ErrorGkeVPCRequiredFieldIsEmpty            = errors.New("'vpc' field required if 'subnet' is set")
 
 	ErrorFunctionShouldNotBeCalled = errors.New("error function should not be called")
+
+	ErrorMissingCloudSpecificProperties = errors.New("missing cloud specific properties")
 )
