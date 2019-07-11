@@ -14,20 +14,25 @@
 
 package eks
 
-import "github.com/aws/aws-sdk-go/aws/endpoints"
+import (
+	"fmt"
+
+	"github.com/Masterminds/semver"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/goph/emperror"
+)
 
 // ### [ Constants to EKS cluster default values ] ### //
 const (
 	DefaultInstanceType = "m4.xlarge"
 	DefaultSpotPrice    = "0.0" // 0 spot price stands for on-demand instances
 	DefaultRegion       = endpoints.UsWest2RegionID
-	DefaultK8sVersion   = "1.11"
+	DefaultK8sVersion   = "1.13.7"
 )
 
-// DefaultImages in each supported location in EC2 (from https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html)
-// nolint: gochecknoglobals
-var DefaultImages = map[string]map[string]string{
-	"1.10": {
+var (
+	// nolint: gochecknoglobals
+	amis110 = map[string]string{
 		endpoints.UsEast2RegionID:      "ami-0295a10750423107d",
 		endpoints.UsEast1RegionID:      "ami-05c9fba3332ccbc43",
 		endpoints.UsWest2RegionID:      "ami-0fc349241eb7b1222",
@@ -41,8 +46,10 @@ var DefaultImages = map[string]map[string]string{
 		endpoints.EuWest2RegionID:      "ami-05c9cec73d17bf97f",
 		endpoints.EuWest3RegionID:      "ami-0df95e4cd302d42f7",
 		endpoints.EuNorth1RegionID:     "ami-0ef218c64404e4bdf",
-	},
-	"1.11": {
+	}
+
+	// nolint: gochecknoglobals
+	amis111 = map[string]string{
 		endpoints.UsEast2RegionID:      "ami-088dad958fbfa643e",
 		endpoints.UsEast1RegionID:      "ami-053e2ac42d872cc20",
 		endpoints.UsWest2RegionID:      "ami-0743039b7c66a18f5",
@@ -56,8 +63,10 @@ var DefaultImages = map[string]map[string]string{
 		endpoints.EuWest2RegionID:      "ami-0ff8a4dc1632ee425",
 		endpoints.EuWest3RegionID:      "ami-0569332dde21e3f1a",
 		endpoints.EuNorth1RegionID:     "ami-0fc8c638bc80fcecf",
-	},
-	"1.12": {
+	}
+
+	// nolint: gochecknoglobals
+	amis112 = map[string]string{
 		endpoints.UsEast2RegionID:      "ami-0e8d353285e26a68c",
 		endpoints.UsEast1RegionID:      "ami-0200e65a38edfb7e1",
 		endpoints.UsWest2RegionID:      "ami-0f11fd98b02f12a4c",
@@ -71,8 +80,10 @@ var DefaultImages = map[string]map[string]string{
 		endpoints.EuWest2RegionID:      "ami-0bc8d0262346bd65e",
 		endpoints.EuWest3RegionID:      "ami-0084dea61e480763e",
 		endpoints.EuNorth1RegionID:     "ami-022cd6a50742d611a",
-	},
-	"1.13": {
+	}
+
+	// nolint: gochecknoglobals
+	amis113 = map[string]string{
 		endpoints.UsEast2RegionID:      "ami-07ebcae043cf995aa",
 		endpoints.UsEast1RegionID:      "ami-08c4955bcc43b124e",
 		endpoints.UsWest2RegionID:      "ami-089d3b6350c1769a6",
@@ -86,5 +97,58 @@ var DefaultImages = map[string]map[string]string{
 		endpoints.EuWest2RegionID:      "ami-0f03516f22468f14e",
 		endpoints.EuWest3RegionID:      "ami-051015c2c2b73aaea",
 		endpoints.EuNorth1RegionID:     "ami-0c31ee32297e7397d",
-	},
+	}
+)
+
+// GetDefaultImageID returns the EKS optimized AMI for given Kubernetes version and region
+func GetDefaultImageID(region, kubernetesVersion string) (string, error) {
+	// AMIs taken form https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
+	constraint110, err := semver.NewConstraint("~1.10")
+	if err != nil {
+		return "", emperror.Wrap(err, "could not create semver constraint for Kubernetes version 1.10.x")
+	}
+
+	constraint111, err := semver.NewConstraint("~1.11")
+	if err != nil {
+		return "", emperror.Wrap(err, "could not create semver constraint for Kubernetes version 1.11.x")
+	}
+
+	constraint112, err := semver.NewConstraint("~1.12")
+	if err != nil {
+		return "", emperror.Wrap(err, "could not create semver constraint for Kubernetes version 1.12.x")
+	}
+
+	constraint113, err := semver.NewConstraint("~1.13")
+	if err != nil {
+		return "", emperror.Wrap(err, "could not create semver constraint for Kubernetes version 1.13.x")
+	}
+
+	kubeVersion, err := semver.NewVersion(kubernetesVersion)
+	if err != nil {
+		return "", emperror.WrapWith(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
+	}
+
+	var ami string
+	var ok bool
+
+	switch {
+	case constraint110.Check(kubeVersion):
+		ami, ok = amis110[region]
+	case constraint111.Check(kubeVersion):
+		ami, ok = amis111[region]
+	case constraint112.Check(kubeVersion):
+		ami, ok = amis112[region]
+
+	case constraint113.Check(kubeVersion):
+		ami, ok = amis113[region]
+	default:
+		return "", fmt.Errorf("unsupported Kubernetes version %q", kubeVersion)
+	}
+
+	if !ok {
+		return "", fmt.Errorf("no EKS AMI found for Kubernetes version %q in region %q", kubeVersion, region)
+
+	}
+
+	return ami, nil
 }

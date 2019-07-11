@@ -187,7 +187,10 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 		return pkgErrors.ErrorAmazonEksFieldIsEmpty
 	}
 
-	defaultImage := DefaultImages[eks.Version][location]
+	defaultImage, err := GetDefaultImageID(location, eks.Version)
+	if err != nil {
+		return emperror.Wrapf(err, "couldn't get EKS AMI for Kubernetes version %q in region %q", eks.Version, location)
+	}
 
 	if len(eks.NodePools) == 0 {
 		return pkgErrors.ErrorAmazonEksNodePoolFieldIsEmpty

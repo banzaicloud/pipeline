@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -509,7 +510,13 @@ func (a *CreateEksClusterAction) ExecuteAction(input interface{}) (output interf
 
 	// set Kubernetes version only if provided, otherwise the cloud provider default one will be used
 	if len(a.kubernetesVersion) > 0 {
-		createClusterInput.Version = aws.String(a.kubernetesVersion)
+		// EKS CreateCluster API accepts only major.minor Kubernetes version
+		v, err := semver.NewVersion(a.kubernetesVersion)
+		if err != nil {
+			return nil, emperror.Wrapf(err, "invalid Kubernetes version %q", a.kubernetesVersion)
+		}
+
+		createClusterInput.Version = aws.String(fmt.Sprintf("%d.%d", v.Major(), v.Minor()))
 	}
 
 	result, err := eksSvc.CreateCluster(createClusterInput)

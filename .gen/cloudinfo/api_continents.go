@@ -25,28 +25,114 @@ var (
 	_ context.Context
 )
 
-type RegionsApiService service
+type ContinentsApiService service
 
 /*
-RegionsApiService
-Provides the list of available regions of a cloud provider
+ContinentsApiService
+Returns the supported continents
  * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param provider
- * @param service
-@return []Region
+@return []string
 */
-func (a *RegionsApiService) GetRegions(ctx context.Context, provider string, service string) ([]Region, *http.Response, error) {
+func (a *ContinentsApiService) GetContinents(ctx context.Context) ([]string, *http.Response, error) {
 	var (
 		localVarHttpMethod   = strings.ToUpper("Get")
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  []Region
+		localVarReturnValue  []string
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/providers/{provider}/services/{service}/regions"
+	localVarPath := a.client.cfg.BasePath + "/continents"
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return localVarReturnValue, localVarHttpResponse, err
+	}
+
+	localVarBody, err := ioutil.ReadAll(localVarHttpResponse.Body)
+	localVarHttpResponse.Body.Close()
+	if err != nil {
+		return localVarReturnValue, localVarHttpResponse, err
+	}
+
+	if localVarHttpResponse.StatusCode >= 300 {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHttpResponse.Status,
+		}
+		if localVarHttpResponse.StatusCode == 200 {
+			var v []string
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHttpResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHttpResponse, nil
+}
+
+/*
+ContinentsApiService
+Provides the list of available continents and regions of a cloud provider
+ * @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ * @param provider
+ * @param service
+@return []Continent
+*/
+func (a *ContinentsApiService) GetContinentsData(ctx context.Context, provider string, service string) ([]Continent, *http.Response, error) {
+	var (
+		localVarHttpMethod   = strings.ToUpper("Get")
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  []Continent
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/providers/{provider}/services/{service}/continents"
 	localVarPath = strings.Replace(localVarPath, "{"+"provider"+"}", fmt.Sprintf("%v", provider), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"service"+"}", fmt.Sprintf("%v", service), -1)
 
@@ -93,7 +179,7 @@ func (a *RegionsApiService) GetRegions(ctx context.Context, provider string, ser
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
-			var v []Region
+			var v []Continent
 			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
