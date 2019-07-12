@@ -20,6 +20,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
@@ -40,12 +41,6 @@ func (m *FederationReconciler) ReconcileExternalDNSController(desiredState Desir
 		return emperror.Wrap(err, "could not update ExternalDNS controller")
 	}
 	return nil
-}
-
-type ExtDNSParams struct {
-	Sources   []string          `json:"sources"`
-	ExtraArgs map[string]string `json:"extraArgs"`
-	TxtPrefix string            `json:"txtPrefix,omitempty"`
 }
 
 func (m *FederationReconciler) ensureCRDSourceForExtDNS(
@@ -83,7 +78,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 
 	crdPresent := false
 
-	currentValues := &ExtDNSParams{}
+	currentValues := &dns.ExternalDnsChartValues{}
 	err = yaml.Unmarshal([]byte(resp.Release.Config.Raw), &currentValues)
 	if err != nil {
 		return err
@@ -102,7 +97,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 		return nil
 	}
 
-	values := ExtDNSParams{
+	values := dns.ExternalDnsChartValues{
 		Sources: []string{
 			"service",
 			"ingress",
@@ -116,7 +111,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 	}
 
 	if desiredState == DesiredStateAbsent {
-		values = ExtDNSParams{
+		values = dns.ExternalDnsChartValues{
 			Sources: []string{
 				"service",
 				"ingress",
