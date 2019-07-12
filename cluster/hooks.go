@@ -745,7 +745,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 
 	log.Info("route53 secret successfully installed into cluster.")
 
-	externalDnsValues := map[string]interface{}{
+	/*externalDnsValues := map[string]interface{}{
 		"rbac": map[string]bool{
 			"create": commonCluster.RbacEnabled() == true,
 		},
@@ -762,9 +762,31 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		"txtOwnerId":    commonCluster.GetUID(),
 		"affinity":      GetHeadNodeAffinity(commonCluster),
 		"tolerations":   GetHeadNodeTolerations(),
+	}*/
+
+	externalDnsValues := dns.ExternalDnsChartValues{
+		Rbac: dns.ExternalDnsRbac{
+			Create: commonCluster.RbacEnabled() == true,
+		},
+		Sources: []string{"service", "ingress"},
+		Image: dns.ExternalDnsImage{
+			Tag: viper.GetString(pipConfig.DNSExternalDnsImageVersion),
+		},
+		Aws: dns.ExternalDnsAws{
+			Credentials: dns.ExternalDnsAwsCredentials{
+				SecretKey: route53Secret.Values[pkgSecret.AwsSecretAccessKey],
+				AccessKey: route53Secret.Values[pkgSecret.AwsAccessKeyId],
+			},
+			Region: route53Secret.Values[pkgSecret.AwsRegion],
+		},
+		DomainFilters: []string{domain},
+		Policy:        "sync",
+		TxtOwnerId:    commonCluster.GetUID(),
+		Affinity:      GetHeadNodeAffinity(commonCluster),
+		Tolerations:   GetHeadNodeTolerations(),
 	}
 
-	externalDnsValuesJson, err := yaml.Marshal(externalDnsValues)
+	values, err := yaml.Marshal(externalDnsValues)
 	if err != nil {
 		return emperror.Wrap(err, "Json Convert Failed")
 	}
@@ -772,7 +794,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 	chartName := viper.GetString(pipConfig.DNSExternalDnsChartName)
 	releaseName := viper.GetString(pipConfig.DNSExternalDnsReleaseName)
 
-	return installDeployment(commonCluster, route53SecretNamespace, chartName, releaseName, externalDnsValuesJson, chartVersion, false)
+	return installDeployment(commonCluster, route53SecretNamespace, chartName, releaseName, values, chartVersion, false)
 }
 
 // LabelNodesWithNodePoolName add node pool name labels for all nodes.

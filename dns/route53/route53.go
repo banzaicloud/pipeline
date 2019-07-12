@@ -482,8 +482,8 @@ func (dns *awsRoute53) unregisterDomain(orgId uint, domain string) error {
 	}
 
 	// delete route53 secret
-	secretItem, err := secret.Store.GetByName(orgId, IAMUserAccessKeySecretName)
-	if err != nil && err != secret.ErrSecretNotExists {
+	secretItem, err := dns.getRoute53Secret(orgId)
+	if err != nil {
 		dns.updateStateWithError(state, err)
 		return err
 	}

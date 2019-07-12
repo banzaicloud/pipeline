@@ -20,6 +20,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/goph/logur/integrations/zaplog"
@@ -109,6 +110,8 @@ func main() {
 	buildInfo := buildinfo.New(version, commitHash, buildDate)
 
 	logger.Info("starting application", buildInfo.Fields())
+
+	global.AutoDNSEnabled = viper.GetString(conf.DNSBaseDomain) != "" && viper.GetString(conf.DNSBaseDomain) != "example.com"
 
 	var group run.Group
 
