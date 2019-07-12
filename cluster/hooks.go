@@ -745,34 +745,15 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 
 	log.Info("route53 secret successfully installed into cluster.")
 
-	/*externalDnsValues := map[string]interface{}{
-		"rbac": map[string]bool{
-			"create": commonCluster.RbacEnabled() == true,
-		},
-		"image": map[string]string{
-			"tag": viper.GetString(pipConfig.DNSExternalDnsImageVersion),
-		},
-		"aws": map[string]string{
-			"secretKey": route53Secret.Values[pkgSecret.AwsSecretAccessKey],
-			"accessKey": route53Secret.Values[pkgSecret.AwsAccessKeyId],
-			"region":    route53Secret.Values[pkgSecret.AwsRegion],
-		},
-		"domainFilters": []string{domain},
-		"policy":        "sync",
-		"txtOwnerId":    commonCluster.GetUID(),
-		"affinity":      GetHeadNodeAffinity(commonCluster),
-		"tolerations":   GetHeadNodeTolerations(),
-	}*/
-
 	externalDnsValues := dns.ExternalDnsChartValues{
-		Rbac: dns.ExternalDnsRbac{
+		Rbac: dns.ExternalDnsRbacSettings{
 			Create: commonCluster.RbacEnabled() == true,
 		},
 		Sources: []string{"service", "ingress"},
-		Image: dns.ExternalDnsImage{
+		Image: dns.ExternalDnsImageSettings{
 			Tag: viper.GetString(pipConfig.DNSExternalDnsImageVersion),
 		},
-		Aws: dns.ExternalDnsAws{
+		Aws: dns.ExternalDnsAwsSettings{
 			Credentials: dns.ExternalDnsAwsCredentials{
 				SecretKey: route53Secret.Values[pkgSecret.AwsSecretAccessKey],
 				AccessKey: route53Secret.Values[pkgSecret.AwsAccessKeyId],
