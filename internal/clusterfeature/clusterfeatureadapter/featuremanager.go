@@ -154,6 +154,7 @@ func (fhi *featureHelmInstaller) installDeployment(
 		k8sHelm.ValueOverrides(values),
 	}
 	_, err = helm.CreateDeployment(
+		cluster.GetOrganizationName(),
 		deploymentName,
 		chartVersion,
 		nil,
@@ -162,7 +163,6 @@ func (fhi *featureHelmInstaller) installDeployment(
 		false,
 		nil,
 		kubeConfig,
-		helm.GenerateHelmRepoEnv(cluster.GetOrganizationName()),
 		options...,
 	)
 	if err != nil {

@@ -295,6 +295,7 @@ func (s *DeploymentsService) installDeployment(
 	}
 
 	_, err = helm.CreateDeployment(
+		s.org.Name,
 		deploymentName,
 		chartVersion,
 		nil,
@@ -303,7 +304,6 @@ func (s *DeploymentsService) installDeployment(
 		false,
 		nil,
 		kubeConfig,
-		helm.GenerateHelmRepoEnv(s.org.Name),
 		options...,
 	)
 	if err != nil {

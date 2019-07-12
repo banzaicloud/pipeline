@@ -301,8 +301,12 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		return emperror.Wrap(err, "could not get organization")
 	}
 
-	env := helm.GenerateHelmRepoEnv(org.Name)
-	_, err = helm.ReposAdd(env, &repo.Entry{
+	rs, err := helm.GetDefaultRepoStore(org.Name)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to get repo store")
+	}
+
+	_, err = rs.ReposAdd(&repo.Entry{
 		Name: "kubefed-charts",
 		URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/master/charts",
 	})

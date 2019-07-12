@@ -27,7 +27,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/technosophos/moniker"
 	k8sHelm "k8s.io/helm/pkg/helm"
-	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 
 	"github.com/banzaicloud/pipeline/helm"
@@ -112,7 +111,7 @@ func (m *CGDeploymentManager) GetMembersStatus(featureState api.Feature) (map[ui
 	return statusMap, nil
 }
 
-func (m CGDeploymentManager) installDeploymentOnCluster(log *logrus.Entry, apiCluster api.Cluster, orgName string, env helm_env.EnvSettings, depInfo *DeploymentInfo, requestedChart *chart.Chart, dryRun bool) error {
+func (m CGDeploymentManager) installDeploymentOnCluster(log *logrus.Entry, apiCluster api.Cluster, orgName string, depInfo *DeploymentInfo, requestedChart *chart.Chart, dryRun bool) error {
 	log.Info("install cluster group deployment")
 
 	k8sConfig, err := apiCluster.GetK8sConfig()
@@ -152,7 +151,7 @@ func (m CGDeploymentManager) installDeploymentOnCluster(log *logrus.Entry, apiCl
 	return nil
 }
 
-func (m CGDeploymentManager) upgradeDeploymentOnCluster(log *logrus.Entry, apiCluster api.Cluster, orgName string, env helm_env.EnvSettings, depInfo *DeploymentInfo, requestedChart *chart.Chart, dryRun bool) error {
+func (m CGDeploymentManager) upgradeDeploymentOnCluster(log *logrus.Entry, apiCluster api.Cluster, orgName string, depInfo *DeploymentInfo, requestedChart *chart.Chart, dryRun bool) error {
 	log.Info("upgrade cluster group deployment")
 
 	k8sConfig, err := apiCluster.GetK8sConfig()
@@ -187,7 +186,7 @@ func (m CGDeploymentManager) upgradeDeploymentOnCluster(log *logrus.Entry, apiCl
 	return nil
 }
 
-func (m CGDeploymentManager) upgradeOrInstallDeploymentOnCluster(apiCluster api.Cluster, orgName string, env helm_env.EnvSettings, depInfo *DeploymentInfo, requestedChart *chart.Chart, dryRun bool) error {
+func (m CGDeploymentManager) upgradeOrInstallDeploymentOnCluster(apiCluster api.Cluster, orgName string, depInfo *DeploymentInfo, requestedChart *chart.Chart, dryRun bool) error {
 	log := m.logger.WithFields(logrus.Fields{"deploymentName": depInfo.Chart, "releaseName": depInfo.ReleaseName, "clusterName": apiCluster.GetName(), "clusterId": apiCluster.GetID()})
 
 	status, err := m.getClusterDeploymentStatus(apiCluster, depInfo.ReleaseName, depInfo)
@@ -195,14 +194,14 @@ func (m CGDeploymentManager) upgradeOrInstallDeploymentOnCluster(apiCluster api.
 		return err
 	}
 	if status.Status == NotInstalledStatus {
-		err := m.installDeploymentOnCluster(log, apiCluster, orgName, env, depInfo, requestedChart, dryRun)
+		err := m.installDeploymentOnCluster(log, apiCluster, orgName, depInfo, requestedChart, dryRun)
 		if err != nil {
 			return err
 		}
 	}
 
 	if status.Stale {
-		err := m.upgradeDeploymentOnCluster(log, apiCluster, orgName, env, depInfo, requestedChart, dryRun)
+		err := m.upgradeDeploymentOnCluster(log, apiCluster, orgName, depInfo, requestedChart, dryRun)
 		if err != nil {
 			return err
 		}
@@ -599,12 +598,11 @@ func (m CGDeploymentManager) SyncDeployment(clusterGroup *api.ClusterGroup, orgN
 	// get deployment status for each cluster group member
 	response := make([]TargetClusterStatus, 0)
 
-	env := helm.GenerateHelmRepoEnv(orgName)
-	requestedChart, err := helm.GetRequestedChart(depInfo.ReleaseName, depInfo.Chart, depInfo.ChartVersion, deploymentModel.DeploymentPackage, env)
+	requestedChart, err := helm.GetRequestedChart(orgName, depInfo.ReleaseName, depInfo.Chart, depInfo.ChartVersion, deploymentModel.DeploymentPackage)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
-	targetClustersStatus := m.upgradeOrInstallDeploymentToTargetClusters(clusterGroup, orgName, env, depInfo, requestedChart, false)
+	targetClustersStatus := m.upgradeOrInstallDeploymentToTargetClusters(clusterGroup, orgName, depInfo, requestedChart, false)
 	response = append(response, targetClustersStatus...)
 
 	targetClustersStatus, err = m.deleteDeploymentFromTargetClusters(clusterGroup, releaseName, deploymentModel, false, false)
@@ -675,7 +673,7 @@ func (m CGDeploymentManager) deleteDeploymentFromTargetClusters(clusterGroup *ap
 	return targetClustersStatus, nil
 }
 
-func (m CGDeploymentManager) upgradeOrInstallDeploymentToTargetClusters(clusterGroup *api.ClusterGroup, orgName string, env helm_env.EnvSettings, depInfo *DeploymentInfo, requestedChart *chart.Chart, dryRun bool) []TargetClusterStatus {
+func (m CGDeploymentManager) upgradeOrInstallDeploymentToTargetClusters(clusterGroup *api.ClusterGroup, orgName string, depInfo *DeploymentInfo, requestedChart *chart.Chart, dryRun bool) []TargetClusterStatus {
 	targetClusterStatus := make([]TargetClusterStatus, 0)
 	deploymentCount := 0
 	statusChan := make(chan TargetClusterStatus)
@@ -694,7 +692,7 @@ func (m CGDeploymentManager) upgradeOrInstallDeploymentToTargetClusters(clusterG
 					Distribution: apiCluster.GetDistribution(),
 					Status:       OperationSucceededStatus,
 				}
-				clerr := m.upgradeOrInstallDeploymentOnCluster(apiCluster, orgName, env, depInfo, requestedChart, dryRun)
+				clerr := m.upgradeOrInstallDeploymentOnCluster(apiCluster, orgName, depInfo, requestedChart, dryRun)
 				if clerr != nil {
 					opStatus.Status = OperationFailedStatus
 					opStatus.Error = clerr.Error()
@@ -730,8 +728,7 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 		}
 	}
 
-	env := helm.GenerateHelmRepoEnv(orgName)
-	requestedChart, err := helm.GetRequestedChart(cgDeployment.ReleaseName, cgDeployment.Name, cgDeployment.Version, cgDeployment.Package, env)
+	requestedChart, err := helm.GetRequestedChart(orgName, cgDeployment.ReleaseName, cgDeployment.Name, cgDeployment.Version, cgDeployment.Package)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
@@ -762,7 +759,7 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 		return nil, err
 	}
 
-	targetClusterStatus := m.upgradeOrInstallDeploymentToTargetClusters(clusterGroup, orgName, env, depInfo, requestedChart, cgDeployment.DryRun)
+	targetClusterStatus := m.upgradeOrInstallDeploymentToTargetClusters(clusterGroup, orgName, depInfo, requestedChart, cgDeployment.DryRun)
 	return targetClusterStatus, nil
 }
 
@@ -770,8 +767,7 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 // The deployment is installed on a member cluster in case it's was not installed previously.
 func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, orgName string, cgDeployment *ClusterGroupDeployment) ([]TargetClusterStatus, error) {
 
-	env := helm.GenerateHelmRepoEnv(orgName)
-	requestedChart, err := helm.GetRequestedChart(cgDeployment.ReleaseName, cgDeployment.Name, cgDeployment.Version, cgDeployment.Package, env)
+	requestedChart, err := helm.GetRequestedChart(orgName, cgDeployment.ReleaseName, cgDeployment.Name, cgDeployment.Version, cgDeployment.Package)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
@@ -808,7 +804,7 @@ func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, or
 		return nil, err
 	}
 
-	targetClusterStatus := m.upgradeOrInstallDeploymentToTargetClusters(clusterGroup, orgName, env, depInfo, requestedChart, cgDeployment.DryRun)
+	targetClusterStatus := m.upgradeOrInstallDeploymentToTargetClusters(clusterGroup, orgName, depInfo, requestedChart, cgDeployment.DryRun)
 	return targetClusterStatus, nil
 }
 

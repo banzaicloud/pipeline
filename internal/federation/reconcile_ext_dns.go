@@ -124,7 +124,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 		return emperror.Wrap(err, "could not marshal chart value overrides")
 	}
 
-	_, err = helm.UpgradeDeployment(releaseName, deploymentName, resp.Release.Chart.Metadata.Version, nil, valuesOverride, true, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+	_, err = helm.UpgradeDeployment(org.Name, releaseName, deploymentName, resp.Release.Chart.Metadata.Version, nil, valuesOverride, true, kubeConfig)
 	if err != nil {
 		return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
 	}

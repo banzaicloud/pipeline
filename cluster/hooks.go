@@ -193,7 +193,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		k8sHelm.InstallWait(wait),
 		k8sHelm.ValueOverrides(values),
 	}
-	_, err = helm.CreateDeployment(deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), options...)
+	_, err = helm.CreateDeployment(org.Name, deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, options...)
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err

@@ -284,7 +284,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
-	err = helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(currentUser.Organizations[0].Name))
+	_, err = helm.GetDefaultRepoStore(currentUser.Organizations[0].Name)
 	if err != nil {
 		log.Errorf("Error during local helm install: %s", err.Error())
 	}
