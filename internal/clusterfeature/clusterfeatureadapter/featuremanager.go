@@ -163,6 +163,7 @@ func (fhi *featureHelmInstaller) installDeployment(
 		false,
 		nil,
 		kubeConfig,
+		fhi.logger,
 		options...,
 	)
 	if err != nil {

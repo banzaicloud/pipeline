@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -145,6 +146,7 @@ func GetHeadNodeTolerations() []v1.Toleration {
 }
 
 func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
+	log := pipConfig.Logger()
 	// --- [ Get K8S Config ] --- //
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -193,7 +195,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 		k8sHelm.InstallWait(wait),
 		k8sHelm.ValueOverrides(values),
 	}
-	_, err = helm.CreateDeployment(org.Name, deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, options...)
+	_, err = helm.CreateDeployment(org.Name, deploymentName, chartVersion, nil, namespace, releaseName, false, nil, kubeConfig, logrusadapter.New(log), options...)
 	if err != nil {
 		log.Errorf("Deploying '%s' failed due to: %s", deploymentName, err.Error())
 		return err

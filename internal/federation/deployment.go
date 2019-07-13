@@ -19,8 +19,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
@@ -54,6 +56,9 @@ func InstallOrUpgradeDeployment(
 	wait bool,
 	upgrade bool,
 ) error {
+
+	log := config.Logger()
+
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return emperror.Wrap(err, "could not get k8s config")
@@ -85,7 +90,7 @@ func InstallOrUpgradeDeployment(
 			if !upgrade {
 				return nil
 			}
-			_, err = helm.UpgradeDeployment(org.Name, releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig)
+			_, err = helm.UpgradeDeployment(org.Name, releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, logrusadapter.New(log))
 			if err != nil {
 				return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
 			}
@@ -113,6 +118,7 @@ func InstallOrUpgradeDeployment(
 		false,
 		nil,
 		kubeConfig,
+		logrusadapter.New(log),
 		options...,
 	)
 	if err != nil {

@@ -23,12 +23,16 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
+	"github.com/goph/logur"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	k8sHelm "k8s.io/helm/pkg/helm"
@@ -51,9 +55,17 @@ func GetK8sConfig(c *gin.Context) ([]byte, bool) {
 	if ok != true {
 		return nil, false
 	}
+
+	logger := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
+	log := logur.WithFields(logur.Logger(logger), logur.Fields{
+		"cluster":   commonCluster.GetName(),
+		"clusterID": commonCluster.GetID(),
+		"orgID":     commonCluster.GetOrganizationId(),
+	})
+
 	kubeConfig, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		log.Errorf("Error getting config: %s", err.Error())
+		log.Error(fmt.Sprint("error getting config:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error getting kubeconfig",
@@ -70,6 +82,14 @@ func CreateDeployment(c *gin.Context) {
 	if ok != true {
 		return
 	}
+
+	logger := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
+	log := logur.WithFields(logur.Logger(logger), logur.Fields{
+		"cluster":   commonCluster.GetName(),
+		"clusterID": commonCluster.GetID(),
+		"orgID":     commonCluster.GetOrganizationId(),
+	})
+
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c, commonCluster)
 	if err != nil {
 		log.Error(err.Error())
@@ -100,11 +120,12 @@ func CreateDeployment(c *gin.Context) {
 		parsedRequest.dryRun,
 		parsedRequest.odPcts,
 		parsedRequest.kubeConfig,
+		log,
 		installOptions...,
 	)
 	if err != nil {
 		//TODO distinguish error codes
-		log.Errorf("Error during create deployment. %s", err.Error())
+		log.Error(fmt.Sprint("error during create deployment:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error creating deployment",
@@ -112,7 +133,7 @@ func CreateDeployment(c *gin.Context) {
 		})
 		return
 	}
-	log.Info("Create deployment succeeded")
+	log.Info("create deployment succeeded")
 
 	releaseContent := release.GetRelease()
 
@@ -120,12 +141,13 @@ func CreateDeployment(c *gin.Context) {
 	releaseNotes := base64.StdEncoding.EncodeToString([]byte(releaseContent.GetInfo().GetStatus().GetNotes()))
 	resources, err := helm.ParseReleaseManifest(releaseContent.Manifest, []string{})
 	if err != nil {
-		log.Errorf("Error during parsing release manifest. %s", err.Error())
+		log.Error(fmt.Sprint("error during parsing release manifest: ", err.Error()))
 	}
 
-	log.Debug("Release name: ", releaseName)
-	log.Debug("Release notes: ", releaseNotes)
-	log.Debug("Resources:", resources)
+	log.Debug(fmt.Sprint("release name: ", releaseName))
+	log.Debug(fmt.Sprint("release notes: ", releaseNotes))
+	log.Debug(fmt.Sprint("resources:", resources))
+
 	response := pkgHelm.CreateUpdateDeploymentResponse{
 		ReleaseName: releaseName,
 		Notes:       releaseNotes,
@@ -142,10 +164,12 @@ func ListDeployments(c *gin.Context) {
 		return
 	}
 
-	log.Info("Get deployments")
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
+
+	log.Info("get deployments")
 	response, err := helm.ListDeployments(nil, c.Query("tag"), kubeConfig)
 	if err != nil {
-		log.Error("Error listing deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing deployments",
@@ -154,9 +178,9 @@ func ListDeployments(c *gin.Context) {
 		return
 	}
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -167,7 +191,7 @@ func ListDeployments(c *gin.Context) {
 
 	chartsResponse, err := rs.ChartsGet("", "", "", "")
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing charts for deployments",
@@ -403,11 +427,22 @@ func GetTillerStatus(c *gin.Context) {
 //UpgradeDeployment - Upgrades helm deployment, if --reuse-value is specified reuses the last release's value.
 func UpgradeDeployment(c *gin.Context) {
 	name := c.Param("name")
-	log.Infof("Upgrading deployment: %s", name)
+
+	logger := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
+	log := logur.WithFields(logur.Logger(logger), logur.Fields{"deploymentName": name})
+
 	commonCluster, ok := getClusterFromRequest(c)
 	if ok != true {
 		return
 	}
+	log.Info("upgrading deployment")
+
+	log = logur.WithFields(log, logur.Fields{
+		"cluster":   commonCluster.GetName(),
+		"clusterID": commonCluster.GetID(),
+		"orgID":     commonCluster.GetOrganizationId(),
+	})
+
 	parsedRequest, err := parseCreateUpdateDeploymentRequest(c, commonCluster)
 	if err != nil {
 		log.Error(err.Error())
@@ -421,9 +456,9 @@ func UpgradeDeployment(c *gin.Context) {
 
 	release, err := helm.UpgradeDeployment(parsedRequest.organizationName, name, parsedRequest.deploymentName,
 		parsedRequest.deploymentVersion, parsedRequest.deploymentPackage, parsedRequest.values,
-		parsedRequest.reuseValues, parsedRequest.kubeConfig)
+		parsedRequest.reuseValues, parsedRequest.kubeConfig, log)
 	if err != nil {
-		log.Errorf("Error during upgrading deployment. %s", err.Error())
+		log.Error(fmt.Sprint("error during upgrading deployment:", err.Error()))
 		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error upgrading deployment",
@@ -431,11 +466,11 @@ func UpgradeDeployment(c *gin.Context) {
 		})
 		return
 	}
-	log.Info("Upgrade deployment succeeded")
+	log.Info("upgrade deployment succeeded")
 
 	releaseNotes := base64.StdEncoding.EncodeToString([]byte(release.GetRelease().GetInfo().GetStatus().GetNotes()))
 
-	log.Debug("Release notes: ", releaseNotes)
+	log.Debug(fmt.Sprint("release notes:", releaseNotes))
 	response := pkgHelm.CreateUpdateDeploymentResponse{
 		ReleaseName: name,
 		Notes:       releaseNotes,
@@ -532,12 +567,11 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 
 //HelmReposGet listing helm repositories in the cluster
 func HelmReposGet(c *gin.Context) {
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
-	log.Info("Get helm repository")
-
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -548,7 +582,7 @@ func HelmReposGet(c *gin.Context) {
 
 	response, err := rs.ReposGet()
 	if err != nil {
-		log.Errorf("Error during get helm repo list: %s", err.Error())
+		log.Error(fmt.Sprint("error during get helm repo list:", err.Error()))
 		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error listing helm repos",
@@ -562,12 +596,12 @@ func HelmReposGet(c *gin.Context) {
 
 //HelmReposAdd add a new helm repository
 func HelmReposAdd(c *gin.Context) {
-	log.Info("Add helm repository")
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
 	var r *repo.Entry
 	err := c.BindJSON(&r)
 	if err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
+		log.Error(fmt.Sprint("error parsing request:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error parsing request",
@@ -576,9 +610,9 @@ func HelmReposAdd(c *gin.Context) {
 		return
 	}
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -589,7 +623,7 @@ func HelmReposAdd(c *gin.Context) {
 
 	_, err = rs.ReposAdd(r)
 	if err != nil {
-		log.Errorf("Error adding helm repo: %s", err.Error())
+		log.Error(fmt.Sprint("error adding helm repo:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error adding helm repo",
@@ -605,14 +639,13 @@ func HelmReposAdd(c *gin.Context) {
 
 //HelmReposDelete delete the helm repository
 func HelmReposDelete(c *gin.Context) {
-	log.Info("Delete helm repository")
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
 	repoName := c.Param("name")
-	log.Debugf("repoName: %s", repoName)
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -623,7 +656,7 @@ func HelmReposDelete(c *gin.Context) {
 
 	err = rs.ReposDelete(repoName)
 	if err != nil {
-		log.Error("Error during get helm repo delete.", err.Error())
+		log.Error(fmt.Sprint("error during get helm repo delete:", err.Error()))
 		if err.Error() == helm.ErrRepoNotFound.Error() {
 			c.JSON(http.StatusOK, pkgHelm.DeleteResponse{
 				Status:  http.StatusOK,
@@ -649,15 +682,14 @@ func HelmReposDelete(c *gin.Context) {
 
 //HelmReposModify modify the helm repository
 func HelmReposModify(c *gin.Context) {
-	log.Info("modify helm repository")
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
 	repoName := c.Param("name")
-	log.Debugf("repoName: %s", repoName)
 
 	var newRepo *repo.Entry
 	err := c.BindJSON(&newRepo)
 	if err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
+		log.Error(fmt.Sprint("error parsing request:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error parsing request",
@@ -665,9 +697,9 @@ func HelmReposModify(c *gin.Context) {
 		})
 		return
 	}
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -686,7 +718,7 @@ func HelmReposModify(c *gin.Context) {
 			return
 
 		}
-		log.Errorf("Error during helm repo modified. %s", errModify.Error())
+		log.Error(fmt.Sprint("error during helm repo modified:", errModify.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Error:   errModify.Error(),
@@ -702,13 +734,13 @@ func HelmReposModify(c *gin.Context) {
 
 // HelmReposUpdate update the helm repo
 func HelmReposUpdate(c *gin.Context) {
-	log.Info("update helm repository")
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
 	repoName := c.Param("name")
-	log.Debugf("repoName: %s", repoName)
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -718,7 +750,7 @@ func HelmReposUpdate(c *gin.Context) {
 	}
 	errUpdate := rs.ReposUpdate(repoName)
 	if errUpdate != nil {
-		log.Errorf("Error during helm repo update. %s", errUpdate.Error())
+		log.Error(fmt.Sprint("error during helm repo update:", errUpdate.Error()))
 		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
 			Code:    http.StatusNotFound,
 			Error:   errUpdate.Error(),
@@ -734,12 +766,12 @@ func HelmReposUpdate(c *gin.Context) {
 
 //HelmCharts get available helm chart's list
 func HelmCharts(c *gin.Context) {
-	log.Info("Get helm repository charts")
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
 	var query ChartQuery
 	err := c.BindQuery(&query)
 	if err != nil {
-		log.Errorf("Error parsing request: %s", err.Error())
+		log.Error(fmt.Sprint("error parsing request:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "error parsing request",
@@ -748,10 +780,10 @@ func HelmCharts(c *gin.Context) {
 		return
 	}
 
-	log.Info(query)
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+	log.Debug(fmt.Sprintf("%v", query))
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -761,7 +793,7 @@ func HelmCharts(c *gin.Context) {
 	}
 	response, err := rs.ChartsGet(query.Name, query.Repo, query.Version, query.Keyword)
 	if err != nil {
-		log.Error("Error during get helm repo chart list.", err.Error())
+		log.Error(fmt.Sprint("error during get helm repo chart list:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error listing helm repo charts",
@@ -775,21 +807,15 @@ func HelmCharts(c *gin.Context) {
 
 //HelmChart get helm chart details
 func HelmChart(c *gin.Context) {
-	log.Info("Get helm chart")
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
-	log.Debugf("%#v", c)
 	chartRepo := c.Param("reponame")
-	log.Debugln("chartRepo:", chartRepo)
-
 	chartName := c.Param("name")
-	log.Debugln("chartName:", chartName)
-
 	chartVersion := c.DefaultQuery("version", "")
-	log.Debugln("version:", chartVersion)
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -799,7 +825,7 @@ func HelmChart(c *gin.Context) {
 	}
 	response, err := rs.ChartGet(chartRepo, chartName, chartVersion)
 	if err != nil {
-		log.Error("Error during get helm chart information.", err.Error())
+		log.Error(fmt.Sprint("error during get helm chart information:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during get helm chart information.",
@@ -821,10 +847,11 @@ func HelmChart(c *gin.Context) {
 }
 
 func sendResponseWithRepo(c *gin.Context, repoName string) {
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name)
+	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
-		log.Error("Error listing charts for deployments: ", err.Error())
+		log.Error(fmt.Sprint("Eerror listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error loading repo store",
@@ -835,7 +862,7 @@ func sendResponseWithRepo(c *gin.Context, repoName string) {
 
 	entries, err := rs.ReposGet()
 	if err != nil {
-		log.Errorf("Error during getting helm repo: %s", err.Error())
+		log.Error(fmt.Sprint("error during getting helm repo:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during getting helm repo",
@@ -859,15 +886,16 @@ func sendResponseWithRepo(c *gin.Context, repoName string) {
 
 // ListHelmReleases list helm releases
 func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optparam interface{}) []pkgHelm.ListDeploymentResponse {
+	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
 	// Get WhiteList set
 	releaseWhitelist, ok := GetWhitelistSet(c)
 	if !ok {
-		log.Warnf("whitelist data is not valid: %#v", releaseWhitelist)
+		log.Warn(fmt.Sprintf("whitelist data is not valid: %#v", releaseWhitelist))
 	}
 	releaseScanLogReject, ok := GetReleaseScanLog(c)
 	if !ok {
-		log.Warnf("scanlog data is not valid: %#v", releaseScanLogReject)
+		log.Warn(fmt.Sprintf("scanlog data is not valid: %#v", releaseScanLogReject))
 	}
 
 	releases := make([]pkgHelm.ListDeploymentResponse, 0)
@@ -911,7 +939,7 @@ func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optpar
 			}
 		}
 	} else {
-		log.Info("There are no installed charts.")
+		log.Info("there are no installed charts")
 	}
 	return releases
 }

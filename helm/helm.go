@@ -37,6 +37,8 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/goph/emperror"
+	"github.com/goph/logur"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
@@ -212,7 +214,8 @@ var deploymentCache = cache.New(30*time.Minute, 5*time.Minute)
 
 //ListDeployments lists Helm deployments
 func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
-	hClient, err := pkgHelm.NewClient(kubeConfig, log)
+	log := config.Logger()
+	hClient, err := pkgHelm.NewClient(kubeConfig, logrusadapter.New(log))
 	if err != nil {
 		return nil, err
 	}
@@ -304,18 +307,24 @@ func DeploymentHasTag(deployment *pkgHelm.GetDeploymentResponse, tagFilter strin
 	return false
 }
 
-func GetRequestedChart(orgName, releaseName, chartName, chartVersion string, chartPackage []byte) (requestedChart *chart.Chart, err error) {
+func GetRequestedChart(orgName, releaseName, chartName, chartVersion string, chartPackage []byte, log logur.Logger) (requestedChart *chart.Chart, err error) {
 
-	repoStore, err := GetDefaultRepoStore(orgName)
+	repoStore, err := GetDefaultRepoStore(orgName, log)
 	if err != nil {
 		return nil, err
 	}
+
+	log = logur.WithFields(log, map[string]interface{}{
+		"chartName":    chartName,
+		"chartVersion": chartVersion,
+		"releaseName":  releaseName,
+	})
 
 	// If the request has a chart package sent by the user we install that
 	if chartPackage != nil && len(chartPackage) != 0 {
 		requestedChart, err = chartutil.LoadArchive(bytes.NewReader(chartPackage))
 	} else {
-		log.Infof("Deploying chart=%q, version=%q release name=%q", chartName, chartVersion, releaseName)
+		log.Info("downloading chart")
 		var downloadedChartPath string
 		downloadedChartPath, err = repoStore.DownloadChartFromRepo(chartName, chartVersion)
 		if err != nil {
@@ -341,9 +350,9 @@ func GetRequestedChart(orgName, releaseName, chartName, chartVersion string, cha
 }
 
 //UpgradeDeployment upgrades a Helm deployment
-func UpgradeDeployment(orgName, releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte) (*rls.UpdateReleaseResponse, error) {
+func UpgradeDeployment(orgName, releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, log logur.Logger) (*rls.UpdateReleaseResponse, error) {
 
-	chartRequested, err := GetRequestedChart(orgName, releaseName, chartName, chartVersion, chartPackage)
+	chartRequested, err := GetRequestedChart(orgName, releaseName, chartName, chartVersion, chartPackage, log)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
@@ -371,9 +380,9 @@ func UpgradeDeployment(orgName, releaseName, chartName, chartVersion string, cha
 }
 
 //CreateDeployment creates a Helm deployment in chosen namespace
-func CreateDeployment(orgName, chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, odPcts map[string]int, kubeConfig []byte, overrideOpts ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
+func CreateDeployment(orgName, chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, odPcts map[string]int, kubeConfig []byte, log logur.Logger, overrideOpts ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
 
-	chartRequested, err := GetRequestedChart(orgName, releaseName, chartName, chartVersion, chartPackage)
+	chartRequested, err := GetRequestedChart(orgName, releaseName, chartName, chartVersion, chartPackage, log)
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
@@ -495,7 +504,8 @@ func cleanupSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName 
 
 //DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(releaseName string, kubeConfig []byte) error {
-	hClient, err := pkgHelm.NewClient(kubeConfig, log)
+	log := config.Logger()
+	hClient, err := pkgHelm.NewClient(kubeConfig, logrusadapter.New(log))
 	if err != nil {
 		return err
 	}
@@ -513,7 +523,8 @@ func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 
 // GetDeploymentK8sResources returns K8s resources of a helm deployment
 func GetDeploymentK8sResources(releaseName string, kubeConfig []byte, resourceTypes []string) ([]pkgHelm.DeploymentResource, error) {
-	hClient, err := pkgHelm.NewClient(kubeConfig, log)
+	log := config.Logger()
+	hClient, err := pkgHelm.NewClient(kubeConfig, logrusadapter.New(log))
 	if err != nil {
 		log.Errorf("Getting Helm client failed: %s", err.Error())
 		return nil, err
@@ -577,7 +588,8 @@ func GetDeployment(releaseName string, kubeConfig []byte) (*pkgHelm.GetDeploymen
 
 // GetDeploymentByVersion returns the details of a helm deployment version
 func GetDeploymentByVersion(releaseName string, kubeConfig []byte, version int32) (*pkgHelm.GetDeploymentResponse, error) {
-	helmClient, err := pkgHelm.NewClient(kubeConfig, log)
+	log := config.Logger()
+	helmClient, err := pkgHelm.NewClient(kubeConfig, logrusadapter.New(log))
 	if err != nil {
 		log.Errorf("Getting Helm client failed: %s", err.Error())
 		return nil, err
@@ -627,8 +639,9 @@ func GetDeploymentByVersion(releaseName string, kubeConfig []byte, version int32
 // returns with an error if the release is not found or another error occurs
 // in case of error the status is filled with information to classify the error cause
 func GetDeploymentStatus(releaseName string, kubeConfig []byte) (int32, error) {
+	log := config.Logger()
 
-	helmClient, err := pkgHelm.NewClient(kubeConfig, log)
+	helmClient, err := pkgHelm.NewClient(kubeConfig, logrusadapter.New(log))
 
 	if err != nil {
 		// internal server error

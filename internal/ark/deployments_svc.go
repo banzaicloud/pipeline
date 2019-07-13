@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
 
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -304,6 +305,7 @@ func (s *DeploymentsService) installDeployment(
 		false,
 		nil,
 		kubeConfig,
+		logrusadapter.NewFromEntry(s.logger.WithFields(logrus.Fields{})),
 		options...,
 	)
 	if err != nil {

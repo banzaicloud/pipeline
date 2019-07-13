@@ -25,6 +25,8 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -60,7 +62,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 		return emperror.Wrap(err, "could not get organization")
 	}
 
-	hClient, err := pkgHelm.NewClient(kubeConfig, m.logger)
+	hClient, err := pkgHelm.NewClient(kubeConfig, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 
 		return err
@@ -124,7 +126,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 		return emperror.Wrap(err, "could not marshal chart value overrides")
 	}
 
-	_, err = helm.UpgradeDeployment(org.Name, releaseName, deploymentName, resp.Release.Chart.Metadata.Version, nil, valuesOverride, true, kubeConfig)
+	_, err = helm.UpgradeDeployment(org.Name, releaseName, deploymentName, resp.Release.Chart.Metadata.Version, nil, valuesOverride, true, kubeConfig, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 		return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
 	}

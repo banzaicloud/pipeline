@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
@@ -284,7 +285,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
-	_, err = helm.GetDefaultRepoStore(currentUser.Organizations[0].Name)
+	_, err = helm.GetDefaultRepoStore(currentUser.Organizations[0].Name, logrusadapter.New(config.Logger()))
 	if err != nil {
 		log.Errorf("Error during local helm install: %s", err.Error())
 	}

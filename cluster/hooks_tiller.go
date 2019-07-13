@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -49,7 +50,7 @@ func WaitingForTillerComeUp(log logrus.FieldLogger, kubeConfig []byte) error {
 		log.WithField("attempt", fmt.Sprintf("%d/%d", i, retryAttempts)).Info("waiting for tiller to come up")
 		i++
 
-		client, err := pkgHelm.NewClient(kubeConfig, log)
+		client, err := pkgHelm.NewClient(kubeConfig, logrusadapter.NewFromEntry(log.WithFields(logrus.Fields{})))
 		if err != nil {
 			log.Warnf("error during getting helm client: %s", err.Error())
 

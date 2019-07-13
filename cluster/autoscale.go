@@ -19,6 +19,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/ghodss/yaml"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
@@ -349,6 +350,7 @@ func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
 }
 
 func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeConfig []byte, action deploymentAction) error {
+	log := config.Logger()
 	var values *autoscalingInfo
 	switch cluster.GetDistribution() {
 	case pkgCluster.EKS:
@@ -385,9 +387,9 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 
 	switch action {
 	case install:
-		_, err = helm.CreateDeployment(org.Name, autoScalerChart, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, k8sHelm.ValueOverrides(yamlValues))
+		_, err = helm.CreateDeployment(org.Name, autoScalerChart, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, logrusadapter.New(log), k8sHelm.ValueOverrides(yamlValues))
 	case upgrade:
-		_, err = helm.UpgradeDeployment(org.Name, releaseName, autoScalerChart, chartVersion, nil, yamlValues, false, kubeConfig)
+		_, err = helm.UpgradeDeployment(org.Name, releaseName, autoScalerChart, chartVersion, nil, yamlValues, false, kubeConfig, logrusadapter.New(log))
 	default:
 		return err
 	}

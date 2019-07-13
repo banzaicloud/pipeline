@@ -18,7 +18,9 @@ import (
 	"strings"
 
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
@@ -54,7 +56,9 @@ func installOrUpgradeDeployment(
 	chartVersion string,
 	wait bool,
 	upgrade bool,
+	logger logrus.FieldLogger,
 ) error {
+
 	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
 		return emperror.Wrap(err, "could not get k8s config")
@@ -86,7 +90,7 @@ func installOrUpgradeDeployment(
 			if !upgrade {
 				return nil
 			}
-			_, err = helm.UpgradeDeployment(org.Name, releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig)
+			_, err = helm.UpgradeDeployment(org.Name, releaseName, deploymentName, chartVersion, nil, values, false, kubeConfig, logrusadapter.NewFromEntry(logger.WithFields(logrus.Fields{})))
 			if err != nil {
 				return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
 			}
@@ -114,6 +118,7 @@ func installOrUpgradeDeployment(
 		false,
 		nil,
 		kubeConfig,
+		logrusadapter.NewFromEntry(logger.WithFields(logrus.Fields{})),
 		options...,
 	)
 	if err != nil {

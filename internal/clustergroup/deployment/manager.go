@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/log"
@@ -124,7 +125,7 @@ func (m CGDeploymentManager) installDeploymentOnCluster(log *logrus.Entry, apiCl
 		return err
 	}
 
-	hClient, err := pkgHelm.NewClient(k8sConfig, m.logger)
+	hClient, err := pkgHelm.NewClient(k8sConfig, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 		return err
 	}
@@ -164,7 +165,7 @@ func (m CGDeploymentManager) upgradeDeploymentOnCluster(log *logrus.Entry, apiCl
 		return err
 	}
 
-	hClient, err := pkgHelm.NewClient(k8sConfig, m.logger)
+	hClient, err := pkgHelm.NewClient(k8sConfig, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 		return err
 	}
@@ -218,7 +219,7 @@ func (m CGDeploymentManager) findRelease(apiCluster api.Cluster, name string) (*
 		return nil, err
 	}
 
-	hClient, err := pkgHelm.NewClient(k8sConfig, m.logger)
+	hClient, err := pkgHelm.NewClient(k8sConfig, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 
 		return nil, err
@@ -598,7 +599,7 @@ func (m CGDeploymentManager) SyncDeployment(clusterGroup *api.ClusterGroup, orgN
 	// get deployment status for each cluster group member
 	response := make([]TargetClusterStatus, 0)
 
-	requestedChart, err := helm.GetRequestedChart(orgName, depInfo.ReleaseName, depInfo.Chart, depInfo.ChartVersion, deploymentModel.DeploymentPackage)
+	requestedChart, err := helm.GetRequestedChart(orgName, depInfo.ReleaseName, depInfo.Chart, depInfo.ChartVersion, deploymentModel.DeploymentPackage, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
@@ -728,7 +729,7 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 		}
 	}
 
-	requestedChart, err := helm.GetRequestedChart(orgName, cgDeployment.ReleaseName, cgDeployment.Name, cgDeployment.Version, cgDeployment.Package)
+	requestedChart, err := helm.GetRequestedChart(orgName, cgDeployment.ReleaseName, cgDeployment.Name, cgDeployment.Version, cgDeployment.Package, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
@@ -766,8 +767,7 @@ func (m CGDeploymentManager) CreateDeployment(clusterGroup *api.ClusterGroup, or
 // UpdateDeployment upgrades deployment using provided values or using already provided values if ReUseValues = true.
 // The deployment is installed on a member cluster in case it's was not installed previously.
 func (m CGDeploymentManager) UpdateDeployment(clusterGroup *api.ClusterGroup, orgName string, cgDeployment *ClusterGroupDeployment) ([]TargetClusterStatus, error) {
-
-	requestedChart, err := helm.GetRequestedChart(orgName, cgDeployment.ReleaseName, cgDeployment.Name, cgDeployment.Version, cgDeployment.Package)
+	requestedChart, err := helm.GetRequestedChart(orgName, cgDeployment.ReleaseName, cgDeployment.Name, cgDeployment.Version, cgDeployment.Package, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}

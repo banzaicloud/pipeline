@@ -59,7 +59,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/goph/emperror v0.17.1
-	github.com/goph/logur v0.11.0
+	github.com/goph/logur v0.11.1
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect

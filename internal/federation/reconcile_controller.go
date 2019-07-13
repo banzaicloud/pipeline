@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
+	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -301,7 +302,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		return emperror.Wrap(err, "could not get organization")
 	}
 
-	rs, err := helm.GetDefaultRepoStore(org.Name)
+	rs, err := helm.GetDefaultRepoStore(org.Name, logrusadapter.NewFromEntry(m.logger.WithFields(logrus.Fields{})))
 	if err != nil {
 		return emperror.WrapWith(err, "failed to get repo store")
 	}

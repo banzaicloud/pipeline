@@ -23,6 +23,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/goph/emperror"
+	"github.com/goph/logur"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"k8s.io/helm/pkg/downloader"
@@ -34,13 +36,18 @@ import (
 
 type FileRepositoryStore struct {
 	Env helmEnv.EnvSettings
+
+	log logur.Logger
 }
 
-func NewFileRepositoryStore(orgName string) (*FileRepositoryStore, error) {
+func NewFileRepositoryStore(orgName string, log logur.Logger) (*FileRepositoryStore, error) {
 	var helmPath = config.GetHelmPath(orgName)
 	env := createEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
 
-	repoStore := &FileRepositoryStore{Env: env}
+	repoStore := &FileRepositoryStore{
+		Env: env,
+		log: logur.WithFields(log, logur.Fields{"orgName": orgName}),
+	}
 	err := repoStore.init()
 	if err != nil {
 		return nil, err
@@ -50,9 +57,11 @@ func NewFileRepositoryStore(orgName string) (*FileRepositoryStore, error) {
 
 // ReposGet returns repo
 func (s *FileRepositoryStore) ReposGet() ([]*repo.Entry, error) {
-
 	repoPath := s.Env.Home.RepositoryFile()
-	log.Debugf("helm chart repo path: %s", repoPath)
+
+	log := logur.WithFields(s.log, logur.Fields{"repositoryFile": repoPath})
+
+	log.Debug("loading helm chart repositories")
 
 	f, err := repo.LoadRepositoriesFile(repoPath)
 	if err != nil {
@@ -68,20 +77,22 @@ func (s *FileRepositoryStore) ReposGet() ([]*repo.Entry, error) {
 // ReposAdd adds repo(s)
 func (s *FileRepositoryStore) ReposAdd(helmChartRepo *repo.Entry) (bool, error) {
 	repoFile := s.Env.Home.RepositoryFile()
+
+	log := logur.WithFields(s.log, logur.Fields{"repositoryFile": repoFile})
+
 	var f *repo.RepoFile
 	if _, err := os.Stat(repoFile); err != nil {
-		log.Infof("creating %s", repoFile)
+		log.Info("creating empty helm chart repository file")
 		f = repo.NewRepoFile()
 	} else {
 		f, err = repo.LoadRepositoriesFile(repoFile)
 		if err != nil {
-			return false, errors.Wrap(err, "cannot create a new ChartRepo")
+			return false, errors.Wrap(err, "cannot create a new helm chart repository")
 		}
-		log.Debugf("profile file %q loaded.", repoFile)
+		log.Debug("profile file loaded")
 	}
 
 	for _, n := range f.Repositories {
-		log.Debugf("repo: %s", n.Name)
 		if n.Name == helmChartRepo.Name {
 			return false, nil
 		}
@@ -96,7 +107,7 @@ func (s *FileRepositoryStore) ReposAdd(helmChartRepo *repo.Entry) (bool, error) 
 	if err != nil {
 		return false, errors.Wrap(err, "cannot create a new ChartRepo")
 	}
-	log.Debugf("new repo added: %s", helmChartRepo.Name)
+	s.log.Debug("new repo added", logur.Fields{"repoName": helmChartRepo.Name})
 
 	errIdx := r.DownloadIndexFile("")
 	if errIdx != nil {
@@ -111,8 +122,10 @@ func (s *FileRepositoryStore) ReposAdd(helmChartRepo *repo.Entry) (bool, error) 
 
 // ReposDelete deletes repo(s)
 func (s *FileRepositoryStore) ReposDelete(repoName string) error {
+	log := logur.WithFields(s.log, logur.Fields{"repoName": repoName})
+
 	repoFile := s.Env.Home.RepositoryFile()
-	log.Debugf("repo file: %s", repoFile)
+	log.Debug("remove repo form helm chart repositories file", logur.Fields{"repositoryFile": repoFile})
 
 	r, err := repo.LoadRepositoriesFile(repoFile)
 	if err != nil {
@@ -138,10 +151,11 @@ func (s *FileRepositoryStore) ReposDelete(repoName string) error {
 
 // ReposModify modifies repo(s)
 func (s *FileRepositoryStore) ReposModify(repoName string, newRepo *repo.Entry) error {
-
 	repoFile := s.Env.Home.RepositoryFile()
-	log.Debugf("repo file: %s", repoFile)
-	log.Debugf("new repo content: %#v", newRepo)
+
+	log := logur.WithFields(s.log, logur.Fields{"repoName": repoName, "repositoryFile": repoFile})
+
+	log.Debug(fmt.Sprintf("new repo content: %#v", newRepo))
 
 	f, err := repo.LoadRepositoriesFile(repoFile)
 	if err != nil {
@@ -163,17 +177,14 @@ func (s *FileRepositoryStore) ReposModify(repoName string, newRepo *repo.Entry) 
 	if formerRepo != nil {
 		if len(newRepo.Name) == 0 {
 			newRepo.Name = formerRepo.Name
-			log.Infof("new repo name field is empty, replaced with: %s", formerRepo.Name)
 		}
 
 		if len(newRepo.URL) == 0 {
 			newRepo.URL = formerRepo.URL
-			log.Infof("new repo url field is empty, replaced with: %s", formerRepo.URL)
 		}
 
 		if len(newRepo.Cache) == 0 {
 			newRepo.Cache = formerRepo.Cache
-			log.Infof("new repo cache field is empty, replaced with: %s", formerRepo.Cache)
 		}
 	}
 
@@ -187,9 +198,11 @@ func (s *FileRepositoryStore) ReposModify(repoName string, newRepo *repo.Entry) 
 
 // ReposUpdate updates a repo(s)
 func (s *FileRepositoryStore) ReposUpdate(repoName string) error {
-
 	repoFile := s.Env.Home.RepositoryFile()
-	log.Debugf("repo file: %s", repoFile)
+
+	log := logur.WithFields(s.log, logur.Fields{"repoName": repoName, "repositoryFile": repoFile})
+
+	log.Debug("updating helm chart repository")
 
 	f, err := repo.LoadRepositoriesFile(repoFile)
 
@@ -217,7 +230,10 @@ func (s *FileRepositoryStore) ReposUpdate(repoName string) error {
 
 // ChartsGet returns chart list
 func (s *FileRepositoryStore) ChartsGet(queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
-	log.Debugf("helm chart repo path %s", s.Env.Home.RepositoryFile())
+	repoFile := s.Env.Home.RepositoryFile()
+
+	log := logur.WithFields(s.log, logur.Fields{"repositoryFile": repoFile})
+
 	f, err := repo.LoadRepositoriesFile(s.Env.Home.RepositoryFile())
 	if err != nil {
 		return nil, err
@@ -229,28 +245,27 @@ func (s *FileRepositoryStore) ChartsGet(queryName, queryRepo, queryVersion, quer
 
 	for _, r := range f.Repositories {
 
-		log.Debugf("repository: %s", r.Name)
+		log = logur.WithFields(log, logur.Fields{"repoName": r.Name})
 		i, errIndx := repo.LoadIndexFile(r.Cache)
 		if errIndx != nil {
 			return nil, errIndx
 		}
 		repoMatched, _ := regexp.MatchString(queryRepo, strings.ToLower(r.Name))
 		if repoMatched || queryRepo == "" {
-			log.Debugf("repository: %s Matched", r.Name)
+			log.Debug("repository matched")
 			c := ChartList{
 				Name:   r.Name,
 				Charts: make([]repo.ChartVersions, 0),
 			}
 			for n := range i.Entries {
-				log.Debugf("chart: %s", n)
 				chartMatched, _ := regexp.MatchString("^"+queryName+"$", strings.ToLower(n))
-
 				kwString := strings.ToLower(strings.Join(i.Entries[n][0].Keywords, " "))
-				log.Debugf("kwString: %s", kwString)
+
+				log = logur.WithFields(log, logur.Fields{"chartName": n, "kwString": kwString})
 
 				kwMatched, _ := regexp.MatchString(queryKeyword, kwString)
 				if (chartMatched || queryName == "") && (kwMatched || queryKeyword == "") {
-					log.Debugf("chart: %s Matched", n)
+					log.Debug("chart matched")
 					if queryVersion == "latest" {
 						c.Charts = append(c.Charts, repo.ChartVersions{i.Entries[n][0]})
 					} else {
@@ -268,13 +283,15 @@ func (s *FileRepositoryStore) ChartsGet(queryName, queryRepo, queryVersion, quer
 
 // ChartGet returns chart details
 func (s *FileRepositoryStore) ChartGet(chartRepo, chartName, chartVersion string) (details *ChartDetails, err error) {
-
 	repoPath := s.Env.Home.RepositoryFile()
-	log.Debugf("helm chart repo path: %s", repoPath)
+
+	log := logur.WithFields(s.log, logur.Fields{"repositoryFile": repoPath, "chartRepo": chartRepo, "chartName": chartName, "chartVersion": chartVersion})
+	log.Debug("retrieving chart details from helm chart repository")
+
 	var f *repo.RepoFile
 	f, err = repo.LoadRepositoriesFile(repoPath)
 	if err != nil {
-		return
+		return nil, emperror.WrapWith(err, "failed to load helm chart repositories", "repositoriesFile", repoPath)
 	}
 
 	if len(f.Repositories) == 0 {
@@ -283,7 +300,7 @@ func (s *FileRepositoryStore) ChartGet(chartRepo, chartName, chartVersion string
 
 	for _, repository := range f.Repositories {
 
-		log.Debugf("repository: %s", repository.Name)
+		log = logur.WithFields(log, logur.Fields{"repoName": repository.Name})
 
 		var i *repo.IndexFile
 		i, err = repo.LoadIndexFile(repository.Cache)
@@ -299,14 +316,13 @@ func (s *FileRepositoryStore) ChartGet(chartRepo, chartName, chartVersion string
 		if repository.Name == chartRepo {
 
 			for name, chartVersions := range i.Entries {
-				log.Debugf("chart: %s", name)
 				if chartName == name {
 					for _, v := range chartVersions {
 
 						if v.Version == chartVersion || chartVersion == "" {
 
 							var ver *ChartVersion
-							ver, err = getChartVersion(v)
+							ver, err = s.getChartVersion(v)
 							if err != nil {
 								return
 							}
@@ -315,9 +331,9 @@ func (s *FileRepositoryStore) ChartGet(chartRepo, chartName, chartVersion string
 							return
 						} else if chartVersion == versionAll {
 							var ver *ChartVersion
-							ver, err = getChartVersion(v)
+							ver, err = s.getChartVersion(v)
 							if err != nil {
-								log.Warnf("error during getting helm chart[%s - %s]: %s", v.Name, v.Version, err.Error())
+								log.Warn(fmt.Sprintf("error during getting helm chart[%s - %s]: %s", v.Name, v.Version, err.Error()))
 							} else {
 								details.Versions = append(details.Versions, ver)
 							}
@@ -341,30 +357,33 @@ func (s *FileRepositoryStore) DownloadChartFromRepo(name, version string) (strin
 		HelmHome: s.Env.Home,
 		Getters:  getter.All(s.Env),
 	}
+
+	log := logur.WithFields(s.log, logur.Fields{"chartName": name, "chartVersion": version, "chartArchivesDir": s.Env.Home.Archive()})
+
 	if _, err := os.Stat(s.Env.Home.Archive()); os.IsNotExist(err) {
-		log.Infof("creating '%s' directory.", s.Env.Home.Archive())
+		log.Info("creating helm chart archive directory")
 		os.MkdirAll(s.Env.Home.Archive(), 0744)
 	}
 
-	log.Infof("downloading helm chart %q, version %q to %q", name, version, s.Env.Home.Archive())
+	log.Info("downloading helm chart helm chart archive directory")
 	filename, _, err := dl.DownloadTo(name, version, s.Env.Home.Archive())
 	if err == nil {
 		lname, err := filepath.Abs(filename)
 		if err != nil {
 			return filename, errors.Wrapf(err, "could not create absolute path from %s", filename)
 		}
-		log.Debugf("fetched helm chart %q, version %q to %q", name, version, filename)
+		log.Debug("helm chart fetched successfully", logur.Fields{"path": filename})
 		return lname, nil
 	}
 
 	return filename, errors.Wrapf(err, "failed to download helm chart %q, version %q", name, version)
 }
 
-func getChartVersion(v *repo.ChartVersion) (*ChartVersion, error) {
-	log.Infof("get chart[%s - %s]", v.Name, v.Version)
+func (s *FileRepositoryStore) getChartVersion(v *repo.ChartVersion) (*ChartVersion, error) {
+	log := logur.WithFields(s.log, logur.Fields{"chartName": v.Name, "chartVersion": v.Version})
 
 	chartSource := v.URLs[0]
-	log.Debugf("chartSource: %s", chartSource)
+	log.Info(fmt.Sprintf("downloading chart from %q", chartSource))
 	reader, err := DownloadFile(chartSource)
 	if err != nil {
 		return nil, err
@@ -373,7 +392,7 @@ func getChartVersion(v *repo.ChartVersion) (*ChartVersion, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("values hash: %s", valuesStr)
+	log.Debug(fmt.Sprintf("values hash: %q", valuesStr))
 
 	readmeStr, err := GetChartFile(reader, "README.md")
 	if err != nil {
@@ -398,7 +417,7 @@ func createEnvSettings(helmRepoHome string) helmEnv.EnvSettings {
 func (s *FileRepositoryStore) init() error {
 	// check local helm
 	if _, err := os.Stat(s.Env.Home.String()); os.IsNotExist(err) {
-		log.Infof("helm directories [%s] not exists", s.Env.Home.String())
+		s.log.Info("helm home directories not exists", logur.Fields{"homeDirectory": s.Env.Home.String()})
 		err := s.installLocalHelm()
 		if err != nil {
 			return err
@@ -413,10 +432,10 @@ func (s *FileRepositoryStore) installLocalHelm() error {
 	if err := s.installHelmClient(); err != nil {
 		return err
 	}
-	log.Info("helm client install succeeded")
+	s.log.Info("helm client install succeeded")
 
 	if err := s.ensureDefaultRepos(); err != nil {
-		return errors.Wrap(err, "Setting up default repos failed!")
+		return errors.Wrap(err, "setting up default repos failed!")
 	}
 	return nil
 }
@@ -426,7 +445,7 @@ func (s *FileRepositoryStore) ensureDefaultRepos() error {
 	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
 	banzaiRepositoryURL := viper.GetString("helm.banzaiRepositoryURL")
 
-	log.Infof("setting up default helm chart repos.")
+	s.log.Info("setting up default helm chart repos.")
 
 	_, err := s.ReposAdd(
 		&repo.Entry{
@@ -455,7 +474,7 @@ func (s *FileRepositoryStore) installHelmClient() error {
 		return errors.Wrap(err, "initializing helm directories failed!")
 	}
 
-	log.Info("initializing helm client succeeded, happy helming!")
+	s.log.Info("initializing helm client succeeded, happy helming!")
 	return nil
 }
 
@@ -472,7 +491,7 @@ func (s *FileRepositoryStore) ensureDirectories() error {
 		home.Archive(),
 	}
 
-	log.Info("setting up helm directories.")
+	s.log.Info("setting up helm directories.")
 
 	for _, p := range configDirectories {
 		if fi, err := os.Stat(p); err != nil {

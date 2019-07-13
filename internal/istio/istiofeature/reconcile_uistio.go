@@ -174,6 +174,7 @@ func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monit
 		viper.GetString(pConfig.UistioChartVersion),
 		true,
 		true,
+		m.logger,
 	)
 	if err != nil {
 		return emperror.Wrap(err, "could not install Uistio")

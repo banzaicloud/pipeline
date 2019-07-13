@@ -97,6 +97,7 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster, logger lo
 		viper.GetString(pConfig.IstioOperatorChartVersion),
 		true,
 		true,
+		m.logger,
 	)
 	if err != nil {
 		return emperror.Wrap(err, "could not install Istio operator")

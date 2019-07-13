@@ -15,6 +15,7 @@
 package helm
 
 import (
+	"github.com/goph/logur"
 	"k8s.io/helm/pkg/repo"
 )
 
@@ -40,7 +41,7 @@ type ChartList struct {
 
 // RepositoryStore
 type RepositoryStore interface {
-	ReposAdd(Hrepo *repo.Entry) (bool, error)
+	ReposAdd(helmChartRepo *repo.Entry) (bool, error)
 	ReposDelete(repoName string) error
 	ReposModify(repoName string, newRepo *repo.Entry) error
 	ReposUpdate(repoName string) error
@@ -50,6 +51,6 @@ type RepositoryStore interface {
 	DownloadChartFromRepo(name, version string) (string, error)
 }
 
-func GetDefaultRepoStore(orgName string) (RepositoryStore, error) {
-	return NewFileRepositoryStore(orgName)
+func GetDefaultRepoStore(orgName string, log logur.Logger) (RepositoryStore, error) {
+	return NewFileRepositoryStore(orgName, log)
 }
