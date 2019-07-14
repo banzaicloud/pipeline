@@ -34,7 +34,8 @@ func (m *MeshReconciler) Reconcile() error {
 			m.ReconcileIstioOperator,
 			m.ReconcileIstio,
 			m.ReconcileRemoteIstios,
-			m.ReconcileUistioNamespace,
+			m.ReconcileMeshNamespace,
+			m.ReconcileIRO,
 			m.ReconcileUistio,
 		}
 	case DesiredStateAbsent:
@@ -44,8 +45,9 @@ func (m *MeshReconciler) Reconcile() error {
 			m.ReconcileRemoteIstios,
 			m.ReconcileIstio,
 			m.ReconcileIstioOperator,
+			m.ReconcileIRO,
 			m.ReconcileUistio,
-			m.ReconcileUistioNamespace,
+			m.ReconcileMeshNamespace,
 			m.ReconcileNamespace,
 		}
 	}
