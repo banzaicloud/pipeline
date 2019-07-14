@@ -146,6 +146,15 @@ func (m *MeshReconciler) uninstallUistio(c cluster.CommonCluster, logger logrus.
 func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monitoringConfig, logger logrus.FieldLogger) error {
 	logger.Debug("installing Uistio")
 
+	image := &OperatorImage{}
+	imageRepository := viper.GetString(pConfig.UistioImageRepository)
+	if imageRepository != "" {
+		image.Repository = imageRepository
+	}
+	imageTag := viper.GetString(pConfig.UistioImageTag)
+	if imageTag != "" {
+		image.Tag = imageTag
+	}
 	values := map[string]interface{}{
 		"affinity":    cluster.GetHeadNodeAffinity(c),
 		"tolerations": cluster.GetHeadNodeTolerations(),
@@ -158,6 +167,12 @@ func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monit
 			"host":    monitoring.hostname,
 			"url":     monitoring.url,
 		},
+		"application": map[string]interface{}{
+			"env": map[string]string{
+				"APP_CANARYENABLED": "true",
+			},
+			"image": image,
+		},
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -167,7 +182,7 @@ func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monit
 
 	err = installOrUpgradeDeployment(
 		c,
-		uistioNamespace,
+		meshNamespace,
 		pkgHelm.BanzaiRepository+"/"+viper.GetString(pConfig.UistioChartName),
 		uistioReleaseName,
 		valuesOverride,
