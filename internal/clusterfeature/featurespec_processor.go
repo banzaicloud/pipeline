@@ -19,7 +19,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
-	v1 "k8s.io/api/core/v1"
+	"github.com/mitchellh/mapstructure"
 )
 
 // FeatureSpecProcessor component interface for processing FeatureSpecs
@@ -35,40 +35,16 @@ type externalDnsFeatureSpecProcessor struct {
 // Process method for assembling the "values" for the helm deployment
 func (p *externalDnsFeatureSpecProcessor) Process(spec FeatureSpec) (interface{}, error) {
 
-	// todo check what values exactly should / must be passed in the spec - implement validate!
-	// todo some entries come from secrets - access the secret store from here!
-	rbacEnabled, _ := spec["rbac-enabled"]
-	awsSecretKey, _ := spec["aws-secret-access-key"]
-	awsAccessKey, _ := spec["aws-access-key-id"]
-	region, _ := spec["region"]
-	txtOwner, _ := spec["txt-owner"]
-	domainFilters, _ := spec["domain-filters"]
+	rawValues := dns.ExternalDnsChartValues{}
+	if err := mapstructure.Decode(spec, &rawValues); err != nil {
 
-	externalDnsValues := dns.ExternalDnsChartValues{
-		Rbac: dns.ExternalDnsRbacSettings{
-			Create: rbacEnabled.(bool),
-		},
-		Sources: []string{"service", "ingress"},
-		Image: dns.ExternalDnsImageSettings{
-			Tag: externalDnsImageVersion,
-		},
-		Aws: dns.ExternalDnsAwsSettings{
-			Credentials: dns.ExternalDnsAwsCredentials{
-				SecretKey: awsSecretKey.(string),
-				AccessKey: awsAccessKey.(string),
-			},
-			Region: region.(string),
-		},
-		DomainFilters: domainFilters.([]string),
-		Policy:        "sync",
-		TxtOwnerId:    txtOwner.(string),
-		Affinity:      v1.Affinity{},     // todo process this based on the cluster? (check it - hooks)
-		Tolerations:   []v1.Toleration{}, // todo process this based on the cluster? (check it - hooks)
+		return nil, emperror.Wrap(err, "could not process feature spec")
 	}
 
-	values, err := yaml.Marshal(externalDnsValues)
+	values, err := yaml.Marshal(rawValues)
 	if err != nil {
-		return nil, emperror.Wrap(err, "Json Convert Failed")
+
+		return nil, emperror.Wrap(err, "failed to decode values")
 	}
 
 	return values, nil
