@@ -23,6 +23,7 @@ import (
 )
 
 const (
+	// hardcoded values for externalDns feature
 	externalDnsChartVersion = "1.6.2"
 
 	externalDnsImageVersion = "v0.5.11"
