@@ -52,10 +52,11 @@ type Cluster interface {
 
 // externalDnsFeatureManager synchronous feature manager
 type externalDnsFeatureManager struct {
-	logger            logur.Logger
-	featureRepository FeatureRepository
-	clusterService    ClusterService
-	helmService       HelmService
+	logger               logur.Logger
+	featureRepository    FeatureRepository
+	clusterService       ClusterService
+	helmService          HelmService
+	featureSpecProcessor FeatureSpecProcessor
 }
 
 // NewExternalDnsFeatureManager builds a new feature manager component
@@ -64,10 +65,11 @@ func NewExternalDnsFeatureManager(logger logur.Logger, featureRepository Feature
 		logger: logur.WithFields(logger, map[string]interface{}{"helm-service": "comp"}),
 	}
 	return &externalDnsFeatureManager{
-		logger:            logur.WithFields(logger, map[string]interface{}{"feature-manager": "comp"}),
-		featureRepository: featureRepository,
-		clusterService:    clusterService,
-		helmService:       hs,
+		logger:               logur.WithFields(logger, map[string]interface{}{"feature-manager": "comp"}),
+		featureRepository:    featureRepository,
+		clusterService:       clusterService,
+		helmService:          hs,
+		featureSpecProcessor: NewExternalDnsFeatureProcessor(logger), // todo infer this?
 	}
 }
 
@@ -100,36 +102,21 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterID ui
 		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
 	}
 
-	// todo implement the configuration fallback mechanism here
-	externalDnsValues := map[string]interface{}{
-		"rbac": map[string]bool{
-			"create": false,
-		},
-		"image": map[string]string{
-			"tag": externalDnsImageVersion,
-		},
-		"aws": map[string]string{
-			"secretKey": "",
-			"accessKey": "",
-			"region":    "",
-		},
-		"domainFilters": []string{"test-domain"},
-		"policy":        "sync",
-		"txtOwnerId":    "testing",
-		"affinity":      "",
-		"tolerations":   "",
-	}
-
-	externalDnsValuesJson, _ := yaml.Marshal(externalDnsValues)
-
 	if _, err := sfm.featureRepository.SaveFeature(ctx, clusterID, feature.Name, feature.Spec); err != nil {
 		mLogger.Debug("failed to persist feature")
 
 		return newDatabaseAccessError(feature.Name)
 	}
 
+	values, err := sfm.featureSpecProcessor.Process(feature.Spec)
+	if err != nil {
+		mLogger.Debug("failed to process feature spec")
+
+		return emperror.Wrap(err, "failed to process feature spec")
+	}
+
 	if err = sfm.helmService.InstallDeployment(ctx, cluster.GetOrganizationName(), kubeConfig, externalDnsNamespace,
-		externalDnsChartName, externalDnsRelease, externalDnsValuesJson, externalDnsChartVersion, false); err != nil {
+		externalDnsChartName, externalDnsRelease, values.([]byte), externalDnsChartVersion, false); err != nil {
 		// rollback
 		mLogger.Debug("failed to deploy feature  - rolling back ... ")
 		if err = sfm.featureRepository.DeleteFeature(ctx, clusterID, feature.Name); err != nil {
