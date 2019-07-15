@@ -38,7 +38,6 @@ func (p *externalDnsFeatureSpecProcessor) Process(spec FeatureSpec) (interface{}
 	// todo check what values exactly should / must be passed in the spec - implement validate!
 	// todo some entries come from secrets - access the secret store from here!
 	rbacEnabled, _ := spec["rbac-enabled"]
-	imageVersion, _ := spec["external-dns-image-version"]
 	awsSecretKey, _ := spec["aws-secret-access-key"]
 	awsAccessKey, _ := spec["aws-access-key-id"]
 	region, _ := spec["region"]
@@ -51,7 +50,7 @@ func (p *externalDnsFeatureSpecProcessor) Process(spec FeatureSpec) (interface{}
 		},
 		Sources: []string{"service", "ingress"},
 		Image: dns.ExternalDnsImageSettings{
-			Tag: imageVersion.(string),
+			Tag: externalDnsImageVersion,
 		},
 		Aws: dns.ExternalDnsAwsSettings{
 			Credentials: dns.ExternalDnsAwsCredentials{
