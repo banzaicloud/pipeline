@@ -48,6 +48,7 @@ type ClusterService interface {
 type Cluster interface {
 	GetID() uint
 	GetOrganizationName() string
+	GetOrganizationID() uint
 	GetKubeConfig() ([]byte, error)
 }
 
@@ -58,6 +59,7 @@ type externalDnsFeatureManager struct {
 	clusterService       ClusterService
 	helmService          HelmService
 	featureSpecProcessor FeatureSpecProcessor
+	secretsService       SecretsService
 }
 
 // NewExternalDnsFeatureManager builds a new feature manager component
@@ -93,7 +95,7 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterID ui
 	cluster, err := sfm.clusterService.GetCluster(ctx, clusterID)
 	if err != nil {
 		mLogger.Debug("failed to activate feature")
-		// internal error at this point
+
 		return emperror.WrapWith(err, "failed to activate feature")
 	}
 
@@ -103,13 +105,14 @@ func (sfm *externalDnsFeatureManager) Activate(ctx context.Context, clusterID ui
 		return emperror.WrapWith(err, "failed to upgrade feature", "feature", feature.Name)
 	}
 
+	// todo rollback this if the install failed?
 	if _, err := sfm.featureRepository.SaveFeature(ctx, clusterID, feature.Name, feature.Spec); err != nil {
 		mLogger.Debug("failed to persist feature")
 
 		return newDatabaseAccessError(feature.Name)
 	}
 
-	values, err := sfm.featureSpecProcessor.Process(feature.Spec)
+	values, err := sfm.featureSpecProcessor.Process(nil, cluster.GetOrganizationID(), feature.Spec)
 	if err != nil {
 		mLogger.Debug("failed to process feature spec")
 
