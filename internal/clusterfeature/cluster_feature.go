@@ -77,8 +77,8 @@ type FeatureManager interface {
 	// Updates a feature on the given cluster
 	Update(ctx context.Context, clusterID uint, feature Feature) error
 
-	// Validate validates the feature, chsecks its prerequisites
-	Validate(ctx context.Context, clusterID uint, featureName string, featureSpec FeatureSpec) error
+	// CheckPrerequisites checks whether the prerequisites for the feature are satisfied
+	CheckPrerequisites(ctx context.Context, clusterID uint, featureName string, featureSpec FeatureSpec) error
 
 	// Details returns feature details
 	Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error)
@@ -118,7 +118,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return newUnsupportedFeatureError(featureName)
 	}
 
-	if err = featureManager.Validate(ctx, clusterID, featureName, spec); err != nil {
+	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, spec); err != nil {
 		log.Debug("feature validation failed")
 
 		return emperror.Wrap(err, "failed to validate feature")
@@ -146,7 +146,7 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 		return newUnsupportedFeatureError(featureName)
 	}
 
-	if err = featureManager.Validate(ctx, clusterID, featureName, nil); err != nil {
+	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, nil); err != nil {
 		mLogger.Debug("feature validation failed")
 
 		return emperror.Wrap(err, "failed to activate feature")
@@ -216,7 +216,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 		return newUnsupportedFeatureError(featureName)
 	}
 
-	if err = featureManager.Validate(ctx, clusterID, featureName, spec); err != nil {
+	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, spec); err != nil {
 		mLogger.Debug("feature validation failed")
 
 		return emperror.Wrap(err, "failed to validate feature")
