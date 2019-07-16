@@ -256,7 +256,7 @@ func (sfm *externalDnsFeatureManager) Update(ctx context.Context, clusterID uint
 	return nil
 }
 
-func (sfm *externalDnsFeatureManager) Validate(ctx context.Context, clusterID uint, featureName string, featureSpec FeatureSpec) error {
+func (sfm *externalDnsFeatureManager) CheckPrerequisites(ctx context.Context, clusterID uint, featureName string, featureSpec FeatureSpec) error {
 	mLoger := logur.WithFields(sfm.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
 	mLoger.Info("Validating feature")
 

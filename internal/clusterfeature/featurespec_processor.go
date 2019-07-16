@@ -15,8 +15,9 @@
 package clusterfeature
 
 import (
+	"encoding/json"
+
 	"github.com/banzaicloud/pipeline/dns"
-	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/mitchellh/mapstructure"
@@ -41,7 +42,7 @@ func (p *externalDnsFeatureSpecProcessor) Process(spec FeatureSpec) (interface{}
 		return nil, emperror.Wrap(err, "could not process feature spec")
 	}
 
-	values, err := yaml.Marshal(rawValues)
+	values, err := json.Marshal(rawValues)
 	if err != nil {
 
 		return nil, emperror.Wrap(err, "failed to decode values")
