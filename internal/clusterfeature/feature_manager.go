@@ -59,7 +59,6 @@ type externalDnsFeatureManager struct {
 	clusterService       ClusterService
 	helmService          HelmService
 	featureSpecProcessor FeatureSpecProcessor
-	secretsService       SecretsService
 }
 
 // NewExternalDnsFeatureManager builds a new feature manager component
