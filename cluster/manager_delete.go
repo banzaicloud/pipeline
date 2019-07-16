@@ -109,6 +109,10 @@ func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
 		return emperror.Wrap(err, "deleting cluster secret failed")
 	}
 
+	if err := secret.Store.Delete(cluster.GetOrganizationId(), cluster.GetSecretId()); err != nil {
+		return emperror.Wrap(err, "deleting cluster secret failed")
+	}
+
 	return nil
 }
 
