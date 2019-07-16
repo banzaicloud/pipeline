@@ -28,6 +28,8 @@ import (
 
 // NewMeshReconciler crates a new mesh feature reconciler
 func NewMeshReconciler(config Config, clusterGetter api.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *MeshReconciler {
+	config = config.init()
+
 	reconciler := &MeshReconciler{
 		Configuration: config,
 

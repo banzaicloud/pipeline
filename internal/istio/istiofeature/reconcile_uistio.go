@@ -20,14 +20,12 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	v1 "k8s.io/api/core/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	pConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
@@ -64,12 +62,12 @@ func (m *MeshReconciler) ReconcileUistio(desiredState DesiredState) error {
 		err = m.installUistio(m.Master, monitoringConfig{
 			hostname: prometheusHostname,
 			url:      prometheusURL,
-		}, m.logger)
+		})
 		if err != nil {
 			return emperror.Wrap(err, "could not install Uistio")
 		}
 	} else {
-		err := m.uninstallUistio(m.Master, m.logger)
+		err := m.uninstallUistio(m.Master)
 		if err != nil {
 			return emperror.Wrap(err, "could not remove Uistio")
 		}
@@ -131,8 +129,8 @@ func (m *MeshReconciler) waitForMetricCRD(name string, client *apiextensionsclie
 }
 
 // uninstallIstioOperator removes istio-operator from a cluster
-func (m *MeshReconciler) uninstallUistio(c cluster.CommonCluster, logger logrus.FieldLogger) error {
-	logger.Debug("removing Uistio")
+func (m *MeshReconciler) uninstallUistio(c cluster.CommonCluster) error {
+	m.logger.Debug("removing Uistio")
 
 	err := deleteDeployment(c, uistioReleaseName)
 	if err != nil {
@@ -143,36 +141,53 @@ func (m *MeshReconciler) uninstallUistio(c cluster.CommonCluster, logger logrus.
 }
 
 // installIstioOperator installs istio-operator on a cluster
-func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monitoringConfig, logger logrus.FieldLogger) error {
-	logger.Debug("installing Uistio")
+func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monitoringConfig) error {
+	m.logger.Debug("installing Uistio")
 
-	image := &OperatorImage{}
-	imageRepository := viper.GetString(pConfig.UistioImageRepository)
-	if imageRepository != "" {
-		image.Repository = imageRepository
+	type istio struct {
+		CRname    string `json:"CRName,omitempty"`
+		Namespace string `json:"namespace,omitempty"`
 	}
-	imageTag := viper.GetString(pConfig.UistioImageTag)
-	if imageTag != "" {
-		image.Tag = imageTag
+
+	type application struct {
+		Image imageChartValue   `json:"image,omitempty"`
+		Env   map[string]string `json:"env,omitempty"`
 	}
-	values := map[string]interface{}{
-		"affinity":    cluster.GetHeadNodeAffinity(c),
-		"tolerations": cluster.GetHeadNodeTolerations(),
-		"istio": map[string]interface{}{
-			"CRName":    m.Configuration.name,
-			"namespace": istioOperatorNamespace,
-		},
-		"prometheus": map[string]interface{}{
-			"enabled": true,
-			"host":    monitoring.hostname,
-			"url":     monitoring.url,
-		},
-		"application": map[string]interface{}{
-			"env": map[string]string{
+
+	type Values struct {
+		Affinity    v1.Affinity          `json:"affinity,omitempty"`
+		Tolerations []v1.Toleration      `json:"tolerations,omitempty"`
+		Istio       istio                `json:"istio,omitempty"`
+		Application application          `json:"application,omitempty"`
+		Prometheus  prometheusChartValue `json:"prometheus,omitempty"`
+	}
+
+	values := Values{
+		Affinity:    cluster.GetHeadNodeAffinity(c),
+		Tolerations: cluster.GetHeadNodeTolerations(),
+		Application: application{
+			Image: imageChartValue{},
+			Env: map[string]string{
 				"APP_CANARYENABLED": "true",
 			},
-			"image": image,
 		},
+		Istio: istio{
+			CRname:    m.Configuration.name,
+			Namespace: istioOperatorNamespace,
+		},
+		Prometheus: prometheusChartValue{
+			Enabled:  true,
+			URL:      monitoring.url,
+			Hostname: monitoring.hostname,
+		},
+	}
+
+	if m.Configuration.internalConfig.uistio.imageRepository != "" {
+		values.Application.Image.Repository = m.Configuration.internalConfig.uistio.imageRepository
+	}
+	if m.Configuration.internalConfig.uistio.imageTag != "" {
+		values.Application.Image.Tag = m.Configuration.internalConfig.uistio.imageTag
+
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -183,10 +198,10 @@ func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monit
 	err = installOrUpgradeDeployment(
 		c,
 		meshNamespace,
-		pkgHelm.BanzaiRepository+"/"+viper.GetString(pConfig.UistioChartName),
+		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.uistio.chartName,
 		uistioReleaseName,
 		valuesOverride,
-		viper.GetString(pConfig.UistioChartVersion),
+		m.Configuration.internalConfig.uistio.chartVersion,
 		true,
 		true,
 	)

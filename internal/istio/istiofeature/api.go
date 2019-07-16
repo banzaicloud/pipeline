@@ -62,9 +62,10 @@ type Config struct {
 	// EnableMTLS signals if mutual TLS is enabled in the service mesh
 	EnableMTLS bool `json:"enableMTLS,omitempty"`
 
-	name         string
-	enabled      bool
-	clusterGroup api.ClusterGroup
+	internalConfig internalConfig
+	name           string
+	enabled        bool
+	clusterGroup   api.ClusterGroup
 }
 
 type MeshReconciler struct {
@@ -75,4 +76,44 @@ type MeshReconciler struct {
 	clusterGetter api.ClusterGetter
 	logger        logrus.FieldLogger
 	errorHandler  emperror.Handler
+}
+
+type internalConfig struct {
+	iro           iroConfiguration
+	uistio        uistioConfiguration
+	istioOperator istioOperatorConfiguration
+}
+
+type iroConfiguration struct {
+	chartVersion    string
+	chartName       string
+	imageRepository string
+	imageTag        string
+}
+
+type uistioConfiguration struct {
+	chartVersion    string
+	chartName       string
+	imageRepository string
+	imageTag        string
+}
+
+type istioOperatorConfiguration struct {
+	chartVersion    string
+	chartName       string
+	imageRepository string
+	imageTag        string
+	pilotImage      string
+	mixerImage      string
+}
+
+type imageChartValue struct {
+	Repository string `json:"repository,omitempty"`
+	Tag        string `json:"tag,omitempty"`
+	PullPolicy string `json:"pullPolicy,omitempty"`
+}
+type prometheusChartValue struct {
+	Enabled  bool   `json:"enabled,omitempty"`
+	URL      string `json:"url,omitempty"`
+	Hostname string `json:"host,omitempty"`
 }

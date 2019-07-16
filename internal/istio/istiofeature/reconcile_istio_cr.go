@@ -20,14 +20,12 @@ import (
 
 	"github.com/goph/emperror"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
-	pConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/backoff"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -132,11 +130,11 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config, i
 	istio.Spec.Gateways.IngressConfig.MaxReplicas = 1
 	istio.Spec.Gateways.EgressConfig.MaxReplicas = 1
 	istio.Spec.Pilot = v1beta1.PilotConfiguration{
-		Image:       viper.GetString(pConfig.IstioPilotImage),
+		Image:       m.Configuration.internalConfig.istioOperator.pilotImage,
 		MaxReplicas: 1,
 	}
 	istio.Spec.Mixer = v1beta1.MixerConfiguration{
-		Image:       viper.GetString(pConfig.IstioMixerImage),
+		Image:       m.Configuration.internalConfig.istioOperator.mixerImage,
 		MaxReplicas: 1,
 	}
 
