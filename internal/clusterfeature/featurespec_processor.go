@@ -36,9 +36,9 @@ type externalDnsFeatureSpecProcessor struct {
 }
 
 // wrapper struct for handling user inputs
-type ExternalDnsFeatureSpec struct {
+type externalDnsFeatureSpec struct {
 	// embedding "real" type
-	dns.ExternalDnsChartValues `mapstructure:",squash"`
+	Overrides dns.ExternalDnsChartValues `json:"overrides"`
 
 	SecretName string `json:"secretName"`
 }
@@ -46,7 +46,7 @@ type ExternalDnsFeatureSpec struct {
 // Process method for assembling the "values" for the helm deployment
 func (p *externalDnsFeatureSpecProcessor) Process(ctx context.Context, orgID uint, spec FeatureSpec) (interface{}, error) {
 
-	rawValues := ExternalDnsFeatureSpec{}
+	rawValues := externalDnsFeatureSpec{}
 	if err := mapstructure.Decode(spec, &rawValues); err != nil {
 
 		return nil, emperror.Wrap(err, "could not process feature spec")
@@ -65,12 +65,12 @@ func (p *externalDnsFeatureSpecProcessor) Process(ctx context.Context, orgID uin
 	}
 
 	// set secret values
-	rawValues.ExternalDnsChartValues.Aws.Credentials = dns.ExternalDnsAwsCredentials{
+	rawValues.Overrides.Aws.Credentials = dns.ExternalDnsAwsCredentials{
 		AccessKey: creds.AccessKeyID,
 		SecretKey: creds.SecretAccessKey,
 	}
 
-	values, err := json.Marshal(rawValues.ExternalDnsChartValues)
+	values, err := json.Marshal(rawValues.Overrides)
 	if err != nil {
 
 		return nil, emperror.Wrap(err, "failed to decode values")
