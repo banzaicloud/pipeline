@@ -17,12 +17,10 @@ package istiofeature
 import (
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	pConfig "github.com/banzaicloud/pipeline/config"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func (m *MeshReconciler) ReconcileIRO(desiredState DesiredState) error {
@@ -39,12 +37,12 @@ func (m *MeshReconciler) ReconcileIRO(desiredState DesiredState) error {
 			return emperror.Wrap(err, "error while waiting for running sidecar injector")
 		}
 
-		err = m.installIRO(m.Master, prometheusURL, m.logger)
+		err = m.installIRO(m.Master, prometheusURL)
 		if err != nil {
 			return emperror.Wrap(err, "could not install istio-release-operator")
 		}
 	} else {
-		err := m.uninstallIRO(m.Master, m.logger)
+		err := m.uninstallIRO(m.Master)
 		if err != nil {
 			return emperror.Wrap(err, "could not remove istio-release-operator")
 		}
@@ -54,8 +52,8 @@ func (m *MeshReconciler) ReconcileIRO(desiredState DesiredState) error {
 }
 
 // uninstallIRO removes istio-release-operator from a cluster
-func (m *MeshReconciler) uninstallIRO(c cluster.CommonCluster, logger logrus.FieldLogger) error {
-	logger.Debug("removing istio release operator")
+func (m *MeshReconciler) uninstallIRO(c cluster.CommonCluster) error {
+	m.logger.Debug("removing istio release operator")
 
 	err := deleteDeployment(c, iroReleaseName)
 	if err != nil {
@@ -66,29 +64,36 @@ func (m *MeshReconciler) uninstallIRO(c cluster.CommonCluster, logger logrus.Fie
 }
 
 // installIRO installs istio-release-operator to a cluster
-func (m *MeshReconciler) installIRO(c cluster.CommonCluster, prometheusURL string, logger logrus.FieldLogger) error {
-	logger.Debug("installing istio-release-operator")
+func (m *MeshReconciler) installIRO(c cluster.CommonCluster, prometheusURL string) error {
+	m.logger.Debug("installing istio-release-operator")
 
-	image := &OperatorImage{}
-
-	imageRepository := viper.GetString(pConfig.IROImageRepository)
-	if imageRepository != "" {
-		image.Repository = imageRepository
-	}
-	imageTag := viper.GetString(pConfig.IROImageTag)
-	if imageTag != "" {
-		image.Tag = imageTag
+	type operator struct {
+		Image      imageChartValue      `json:"image,omitempty"`
+		Prometheus prometheusChartValue `json:"prometheus,omitempty"`
 	}
 
-	values := map[string]interface{}{
-		"affinity":    cluster.GetHeadNodeAffinity(c),
-		"tolerations": cluster.GetHeadNodeTolerations(),
-		"operator": map[string]interface{}{
-			"image": image,
-			"prometheus": map[string]string{
-				"url": prometheusURL,
+	type Values struct {
+		Affinity    corev1.Affinity     `json:"affinity,omitempty"`
+		Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+		Operator    operator            `json:"operator,omitempty"`
+	}
+
+	values := Values{
+		Affinity:    cluster.GetHeadNodeAffinity(c),
+		Tolerations: cluster.GetHeadNodeTolerations(),
+		Operator: operator{
+			Image: imageChartValue{},
+			Prometheus: prometheusChartValue{
+				URL: prometheusURL,
 			},
 		},
+	}
+
+	if m.Configuration.internalConfig.iro.imageRepository != "" {
+		values.Operator.Image.Repository = m.Configuration.internalConfig.iro.imageRepository
+	}
+	if m.Configuration.internalConfig.iro.imageTag != "" {
+		values.Operator.Image.Tag = m.Configuration.internalConfig.iro.imageTag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -99,10 +104,10 @@ func (m *MeshReconciler) installIRO(c cluster.CommonCluster, prometheusURL strin
 	err = installOrUpgradeDeployment(
 		c,
 		meshNamespace,
-		pkgHelm.BanzaiRepository+"/"+viper.GetString(pConfig.IROChartName),
+		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.iro.chartName,
 		iroReleaseName,
 		valuesOverride,
-		viper.GetString(pConfig.IROChartVersion),
+		m.Configuration.internalConfig.iro.chartVersion,
 		true,
 		true,
 	)

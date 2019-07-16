@@ -17,30 +17,23 @@ package istiofeature
 import (
 	"github.com/ghodss/yaml"
 	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	pConfig "github.com/banzaicloud/pipeline/config"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
-
-type OperatorImage struct {
-	Repository string `json:"repository,omitempty"`
-	Tag        string `json:"tag,omitempty"`
-}
 
 func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState) error {
 	m.logger.Debug("reconciling Istio operator")
 	defer m.logger.Debug("Istio operator reconciled")
 
 	if desiredState == DesiredStatePresent {
-		err := m.installIstioOperator(m.Master, m.logger)
+		err := m.installIstioOperator(m.Master)
 		if err != nil {
 			return emperror.Wrap(err, "could not install Istio operator")
 		}
 	} else {
-		err := m.uninstallIstioOperator(m.Master, m.logger)
+		err := m.uninstallIstioOperator(m.Master)
 		if err != nil {
 			return emperror.Wrap(err, "could not remove Istio operator")
 		}
@@ -50,8 +43,8 @@ func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState) error
 }
 
 // uninstallIstioOperator removes istio-operator from a cluster
-func (m *MeshReconciler) uninstallIstioOperator(c cluster.CommonCluster, logger logrus.FieldLogger) error {
-	logger.Debug("removing Istio operator")
+func (m *MeshReconciler) uninstallIstioOperator(c cluster.CommonCluster) error {
+	m.logger.Debug("removing Istio operator")
 
 	err := deleteDeployment(c, istioOperatorReleaseName)
 	if err != nil {
@@ -62,25 +55,32 @@ func (m *MeshReconciler) uninstallIstioOperator(c cluster.CommonCluster, logger 
 }
 
 // installIstioOperator installs istio-operator on a cluster
-func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster, logger logrus.FieldLogger) error {
-	logger.Debug("installing Istio operator")
+func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
+	m.logger.Debug("installing Istio operator")
 
-	image := &OperatorImage{}
-	values := map[string]interface{}{
-		"affinity":    cluster.GetHeadNodeAffinity(c),
-		"tolerations": cluster.GetHeadNodeTolerations(),
-		"operator": map[string]*OperatorImage{
-			"image": image,
+	type operator struct {
+		Image imageChartValue `json:"image,omitempty"`
+	}
+
+	type Values struct {
+		Affinity    corev1.Affinity     `json:"affinity,omitempty"`
+		Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+		Operator    operator            `json:"operator,omitempty"`
+	}
+
+	values := Values{
+		Affinity:    cluster.GetHeadNodeAffinity(c),
+		Tolerations: cluster.GetHeadNodeTolerations(),
+		Operator: operator{
+			Image: imageChartValue{},
 		},
 	}
 
-	imageRepository := viper.GetString(pConfig.IstioOperatorImageRepository)
-	if imageRepository != "" {
-		image.Repository = imageRepository
+	if m.Configuration.internalConfig.istioOperator.imageRepository != "" {
+		values.Operator.Image.Repository = m.Configuration.internalConfig.istioOperator.imageRepository
 	}
-	imageTag := viper.GetString(pConfig.IstioOperatorImageTag)
-	if imageTag != "" {
-		image.Tag = imageTag
+	if m.Configuration.internalConfig.istioOperator.imageTag != "" {
+		values.Operator.Image.Tag = m.Configuration.internalConfig.istioOperator.imageTag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -91,10 +91,10 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster, logger lo
 	err = installOrUpgradeDeployment(
 		c,
 		istioOperatorNamespace,
-		pkgHelm.BanzaiRepository+"/"+viper.GetString(pConfig.IstioOperatorChartName),
+		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.istioOperator.chartName,
 		istioOperatorReleaseName,
 		valuesOverride,
-		viper.GetString(pConfig.IstioOperatorChartVersion),
+		m.Configuration.internalConfig.istioOperator.chartVersion,
 		true,
 		true,
 	)
