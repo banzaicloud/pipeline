@@ -74,6 +74,10 @@ type clusterAdapter struct {
 	orgName string
 }
 
+func (c clusterAdapter) GetOrganizationID() uint {
+	return c.cluster.GetOrganizationId()
+}
+
 func (c clusterAdapter) GetID() uint {
 	return c.cluster.GetID()
 }
