@@ -18,10 +18,10 @@ import (
 	"context"
 	"io/ioutil"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 )
 

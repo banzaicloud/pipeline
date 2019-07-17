@@ -18,9 +18,9 @@ import (
 	"context"
 	"net/http"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/authorization/mgmt/authorization"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 )
 

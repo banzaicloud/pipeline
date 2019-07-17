@@ -18,13 +18,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // Manager

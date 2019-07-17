@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 )
 
 const DeleteClusterDNSRecordsActivityName = "delete-cluster-dns-records"

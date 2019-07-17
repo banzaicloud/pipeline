@@ -17,12 +17,13 @@ package defaults
 import (
 	"time"
 
+	"emperror.dev/emperror"
+	"github.com/jinzhu/gorm"
+
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
 )
 
 // EKSProfile describes an Amazon EKS cluster profile

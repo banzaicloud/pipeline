@@ -18,14 +18,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
+	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
+	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
-	istiooperatorclientset "github.com/banzaicloud/istio-operator/pkg/client/clientset/versioned"
 	"github.com/banzaicloud/pipeline/internal/backoff"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )

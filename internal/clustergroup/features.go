@@ -18,8 +18,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
-	"github.com/goph/emperror"
 )
 
 func (g *Manager) RegisterFeatureHandler(featureName string, handler api.FeatureHandler) {

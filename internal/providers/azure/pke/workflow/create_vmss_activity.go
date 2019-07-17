@@ -21,11 +21,12 @@ import (
 	"strings"
 	"text/template"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
-	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
+
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 )
 
 // CreateVMSSActivityName is the default registration name of the activity

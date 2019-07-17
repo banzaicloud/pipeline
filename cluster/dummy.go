@@ -18,12 +18,13 @@ import (
 	"errors"
 	"time"
 
+	"emperror.dev/emperror"
+	"github.com/ghodss/yaml"
+
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
 )
 
 // DummyCluster struct for DC
@@ -53,7 +54,7 @@ func CreateDummyClusterFromRequest(request *pkgCluster.CreateClusterRequest, org
 	return &cluster, nil
 }
 
-//CreateCluster creates a new cluster
+// CreateCluster creates a new cluster
 func (c *DummyCluster) CreateCluster() error {
 	return nil
 }
@@ -69,12 +70,12 @@ func (c *DummyCluster) DownloadK8sConfig() ([]byte, error) {
 	return yaml.Marshal(pkgCluster.CreateDummyConfig())
 }
 
-//GetName returns the name of the cluster
+// GetName returns the name of the cluster
 func (c *DummyCluster) GetName() string {
 	return c.modelCluster.Name
 }
 
-//GetCloud returns the cloud type of the cluster
+// GetCloud returns the cloud type of the cluster
 func (c *DummyCluster) GetCloud() string {
 	return pkgCluster.Dummy
 }
@@ -84,7 +85,7 @@ func (c *DummyCluster) GetDistribution() string {
 	return c.modelCluster.Distribution
 }
 
-//GetStatus gets cluster status
+// GetStatus gets cluster status
 func (c *DummyCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	return &pkgCluster.GetClusterStatusResponse{
@@ -124,7 +125,7 @@ func (c *DummyCluster) UpdateCluster(r *pkgCluster.UpdateClusterRequest, _ uint)
 	return nil
 }
 
-//GetID returns the specified cluster id
+// GetID returns the specified cluster id
 func (c *DummyCluster) GetID() uint {
 	return c.modelCluster.ID
 }
@@ -133,28 +134,28 @@ func (c *DummyCluster) GetUID() string {
 	return c.modelCluster.UID
 }
 
-//GetModel returns the whole clusterModel
+// GetModel returns the whole clusterModel
 func (c *DummyCluster) GetModel() *model.ClusterModel {
 	return c.modelCluster
 }
 
-//CheckEqualityToUpdate validates the update request
+// CheckEqualityToUpdate validates the update request
 func (c *DummyCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	return nil
 }
 
-//AddDefaultsToUpdate adds defaults to update request
+// AddDefaultsToUpdate adds defaults to update request
 func (c *DummyCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 }
 
-//GetAPIEndpoint returns the Kubernetes Api endpoint
+// GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *DummyCluster) GetAPIEndpoint() (string, error) {
 	c.APIEndpoint = "http://cow.org:8080"
 	return c.APIEndpoint, nil
 }
 
-//DeleteFromDatabase deletes model from the database
+// DeleteFromDatabase deletes model from the database
 func (c *DummyCluster) DeleteFromDatabase() error {
 	return c.modelCluster.Delete()
 }
@@ -169,12 +170,12 @@ func (c *DummyCluster) GetLocation() string {
 	return c.modelCluster.Location
 }
 
-//GetSecretId retrieves the secret id
+// GetSecretId retrieves the secret id
 func (c *DummyCluster) GetSecretId() string {
 	return c.modelCluster.SecretId
 }
 
-//GetSshSecretId retrieves the ssh secret id
+// GetSshSecretId retrieves the ssh secret id
 func (c *DummyCluster) GetSshSecretId() string {
 	return c.modelCluster.SshSecretId
 }
@@ -190,7 +191,7 @@ func (c *DummyCluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-//CreateDummyClusterFromModel creates the cluster from the model
+// CreateDummyClusterFromModel creates the cluster from the model
 func CreateDummyClusterFromModel(clusterModel *model.ClusterModel) (*DummyCluster, error) {
 	dummyCluster := DummyCluster{
 		modelCluster: clusterModel,

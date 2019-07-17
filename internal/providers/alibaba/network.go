@@ -17,15 +17,15 @@ package alibaba
 import (
 	"time"
 
-	"github.com/goph/emperror"
-
+	"emperror.dev/emperror"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/network"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/sirupsen/logrus"
 )
 
 type alibabaNetwork struct {

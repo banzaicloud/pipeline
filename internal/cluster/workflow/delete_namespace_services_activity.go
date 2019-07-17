@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 )
 
 const DeleteNamespaceServicesActivityName = "delete-namespace-services"

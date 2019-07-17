@@ -17,16 +17,17 @@ package istio
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	"github.com/banzaicloud/pipeline/utils"
+	"emperror.dev/emperror"
 	prometheus "github.com/banzaicloud/prometheus-config"
-	"github.com/goph/emperror"
 	"github.com/prometheus/common/model"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	yamlv2 "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 const (

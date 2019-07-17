@@ -15,13 +15,13 @@
 package feature
 
 import (
-	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/api/clustergroup/common"
 	cgroup "github.com/banzaicloud/pipeline/internal/clustergroup"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 )
 
 const (

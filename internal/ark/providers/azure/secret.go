@@ -17,11 +17,10 @@ package azure
 import (
 	"fmt"
 
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	"github.com/goph/emperror"
-
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )

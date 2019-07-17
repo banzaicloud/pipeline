@@ -18,7 +18,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"go.uber.org/cadence/.gen/go/shared"
 	"go.uber.org/cadence/worker"
 	"go.uber.org/zap"

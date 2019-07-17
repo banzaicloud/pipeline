@@ -21,14 +21,8 @@ import (
 	"strings"
 	"time"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
-	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/hpa"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	promapi "github.com/prometheus/client_golang/api"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -40,6 +34,13 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+
+	pipConfig "github.com/banzaicloud/pipeline/config"
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/hpa"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
 const hpaAnnotationPrefix = "hpa.autoscaling.banzaicloud.io"
@@ -108,7 +109,7 @@ func PutHpaResource(c *gin.Context) {
 		return
 	}
 
-	//validate custom metrics query
+	// validate custom metrics query
 	if len(scalingRequest.CustomMetrics) > 0 {
 		cluster, _ := getClusterFromRequest(c)
 		if !cluster.GetMonitoring() {
@@ -394,9 +395,9 @@ func getCustomMetricStatus(hpaItem v2beta1.HorizontalPodAutoscaler, metric v2bet
 
 	for _, currentMetricStatus := range hpaItem.Status.CurrentMetrics {
 		if currentMetricStatus.Object != nil && currentMetricStatus.Object.MetricName == metricName {
-			//if !currentMetricStatus.Object.CurrentValue.IsZero() {
+			// if !currentMetricStatus.Object.CurrentValue.IsZero() {
 			metricStatus.CurrentValue = currentMetricStatus.Object.CurrentValue.String()
-			//}
+			// }
 		}
 	}
 
@@ -467,7 +468,7 @@ func deleteDeploymentAutoscalingInfo(kubeConfig []byte, scaleTarget string) erro
 func setDeploymentAutoscalingInfo(client *kubernetes.Clientset, request hpa.DeploymentScalingRequest) error {
 	// find deployment & update hpa annotations
 	// get doesn't work with metav1.NamespaceAll only if you specify the namespace exactly
-	//deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
+	// deployment, err := client.AppsV1().Deployments(metav1.NamespaceAll).Get(request.Name, metav1.GetOptions{})
 	scaleTargetFound := false
 	listOptions := metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%v", request.ScaleTarget),

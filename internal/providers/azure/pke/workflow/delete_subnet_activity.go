@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"go.uber.org/cadence/activity"
 )
 

@@ -15,12 +15,13 @@
 package oracle
 
 import (
+	"emperror.dev/emperror"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/network"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
 )
 
 type oracleNetwork struct {

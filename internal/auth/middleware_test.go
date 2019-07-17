@@ -20,11 +20,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	qorauth "github.com/qor/auth"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/banzaicloud/pipeline/auth"
 )
 
 type enforcerStub struct {

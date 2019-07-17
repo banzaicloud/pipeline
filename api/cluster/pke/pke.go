@@ -15,12 +15,13 @@
 package pke
 
 import (
-	"github.com/banzaicloud/pipeline/api/common"
-	"github.com/banzaicloud/pipeline/cluster"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
+
+	"github.com/banzaicloud/pipeline/api/common"
+	"github.com/banzaicloud/pipeline/cluster"
 )
 
 type tokenGenerator interface {

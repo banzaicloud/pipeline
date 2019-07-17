@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"strings"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/goph/emperror"
 )
 
 // GetExistingTaggedStackNames gives back existing CF stacks which have the given tags

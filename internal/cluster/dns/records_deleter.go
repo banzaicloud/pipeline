@@ -15,8 +15,9 @@
 package dns
 
 import (
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/dns"
-	"github.com/goph/emperror"
 )
 
 type RecordsDeleter struct {

@@ -17,12 +17,13 @@ package api
 import (
 	"net/http"
 
+	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
+
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 )
 
 // Models copied from generated client package.

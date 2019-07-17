@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"

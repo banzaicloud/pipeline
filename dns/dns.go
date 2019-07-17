@@ -18,11 +18,12 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
+
+	"github.com/banzaicloud/pipeline/config"
 )
 
 // ExternalDnsChartValues describes external-dns helm chart values (https://hub.helm.sh/charts/stable/external-dns)

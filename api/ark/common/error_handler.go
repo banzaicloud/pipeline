@@ -15,8 +15,9 @@
 package common
 
 import (
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/goph/emperror"
 )
 
 var ErrorHandler emperror.Handler

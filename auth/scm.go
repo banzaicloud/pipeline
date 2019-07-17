@@ -15,7 +15,7 @@
 package auth
 
 import (
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 )
 
 type organization struct {

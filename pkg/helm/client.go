@@ -17,13 +17,14 @@ package helm
 import (
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/portforwarder"
 	"k8s.io/helm/pkg/kube"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 // Client encapsulates a Helm Client and a Tunnel for that client to interact with the Tiller pod

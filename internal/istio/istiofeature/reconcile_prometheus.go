@@ -15,7 +15,7 @@
 package istiofeature
 
 import (
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 
 	"github.com/banzaicloud/pipeline/internal/istio"
 )

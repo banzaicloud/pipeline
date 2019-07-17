@@ -2,6 +2,9 @@ module github.com/banzaicloud/pipeline
 
 require (
 	cloud.google.com/go v0.33.1
+	emperror.dev/emperror v0.21.0
+	emperror.dev/errors v0.4.1
+	emperror.dev/handler/logrus v0.1.0
 	github.com/Azure/azure-pipeline-go v0.1.8
 	github.com/Azure/azure-sdk-for-go v23.2.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.0.0-20181022225951-5152f14ace1c
@@ -100,7 +103,7 @@ require (
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 // indirect
 	github.com/russross/blackfriday v1.5.1 // indirect
 	github.com/samuel/go-thrift v0.0.0-20160419172024-e9042807f4f5 // indirect
-	github.com/sirupsen/logrus v1.3.0
+	github.com/sirupsen/logrus v1.4.2
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/cast v1.3.0
 	github.com/spf13/cobra v0.0.3

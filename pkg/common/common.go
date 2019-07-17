@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/validation"
 )

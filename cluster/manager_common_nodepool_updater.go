@@ -18,8 +18,9 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/goph/emperror"
 )
 
 type commonNodepoolUpdater struct {

@@ -22,14 +22,15 @@ import (
 	"fmt"
 	"time"
 
+	"emperror.dev/emperror"
+	"github.com/pkg/errors"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
 )
 
 type AzurePkeCluster struct {

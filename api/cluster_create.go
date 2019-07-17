@@ -21,6 +21,11 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
+	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	clusterAPI "github.com/banzaicloud/pipeline/api/cluster"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
@@ -31,10 +36,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 func decodeRequest(input map[string]interface{}, output interface{}) error {

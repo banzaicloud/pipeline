@@ -27,12 +27,12 @@ import (
 	"text/template"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
 	"github.com/Masterminds/sprig"
 	"github.com/banzaicloud/cicd-go/cicd"
 	yaml2 "github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
-	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"

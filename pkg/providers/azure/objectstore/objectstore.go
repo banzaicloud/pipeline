@@ -23,11 +23,12 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	azurePipeline "github.com/Azure/azure-pipeline-go/pipeline"
 	"github.com/Azure/azure-storage-blob-go/azblob"
+
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/goph/emperror"
 )
 
 const (

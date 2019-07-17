@@ -19,16 +19,17 @@ import (
 	"encoding/base64"
 	"net/url"
 
-	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
+	"emperror.dev/emperror"
 	"github.com/dexidp/dex/api"
-	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	k8sClient "k8s.io/client-go/tools/clientcmd"
 	k8sClientApi "k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 const authSecretName = "dex-client"

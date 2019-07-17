@@ -15,10 +15,11 @@
 package eks
 
 import (
+	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
+
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/goph/emperror"
 )
 
 // CreateClusterEKS describes Pipeline's Amazon EKS fields of a CreateCluster request

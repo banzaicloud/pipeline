@@ -15,9 +15,10 @@
 package pke
 
 import (
-	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
 type EC2PKEClusterModel struct {

@@ -20,13 +20,14 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
+
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
 const CreateWorkerPoolActivityName = "pke-create-aws-worker-pool-activity"
@@ -134,7 +135,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 	stackInput := &cloudformation.CreateStackInput{
 		StackName:    aws.String(stackName),
 		TemplateBody: aws.String(string(buf)),
-		//ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
+		// ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
 		Parameters: []*cloudformation.Parameter{
 			{
 				ParameterKey:   aws.String("ClusterName"),

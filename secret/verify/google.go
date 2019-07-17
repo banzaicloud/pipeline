@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/cloudresourcemanager/v1"

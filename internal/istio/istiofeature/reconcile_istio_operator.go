@@ -15,8 +15,8 @@
 package istiofeature
 
 import (
+	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/cluster"

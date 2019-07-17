@@ -24,6 +24,7 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -31,6 +32,13 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
+	"github.com/jmespath/go-jmespath"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
+	storagev1 "k8s.io/api/storage/v1"
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
@@ -42,13 +50,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/goph/emperror"
-	jmespath "github.com/jmespath/go-jmespath"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
-	storagev1 "k8s.io/api/storage/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 var _ CommonCluster = (*ACKCluster)(nil)
@@ -270,7 +271,7 @@ func (c *ACKCluster) createACKNodePoolsModelFromUpdateRequestData(pools ack.Node
 	updatedNodePools := make([]*model.ACKNodePoolModel, 0, len(pools))
 
 	for _, nodePool := range c.modelCluster.ACK.NodePools {
-		//Collect stored node pool info from DB
+		// Collect stored node pool info from DB
 		currentNodePoolMap[nodePool.Name] = nodePool
 
 		// Delete node pool stored in the DB but deleted with Update
@@ -332,7 +333,7 @@ func (c *ACKCluster) createACKNodePoolsModelFromUpdateRequestData(pools ack.Node
 	return updatedNodePools, nil
 }
 
-//CreateACKClusterFromModel creates ClusterModel struct from the Alibaba model
+// CreateACKClusterFromModel creates ClusterModel struct from the Alibaba model
 func CreateACKClusterFromModel(clusterModel *model.ClusterModel) (*ACKCluster, error) {
 	alibabaCluster := ACKCluster{
 		modelCluster: clusterModel,
@@ -1082,7 +1083,7 @@ func (c *ACKCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 	for _, np := range r.Properties.CreateClusterACK.NodePools {
 		var (
 			instanceType = np.InstanceType
-			//diskCategory = np.SystemDiskCategory
+			// diskCategory = np.SystemDiskCategory
 		)
 
 		err = c.validateInstanceType(region, zone, instanceType)

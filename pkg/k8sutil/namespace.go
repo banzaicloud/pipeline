@@ -17,12 +17,13 @@ package k8sutil
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/backoff"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/internal/backoff"
 )
 
 // EnsureNamespace creates a namespace on a cluster if it does not exist.

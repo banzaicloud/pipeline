@@ -15,11 +15,12 @@
 package pkeworkflow
 
 import (
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/goph/emperror"
 )
 
 type AWSActivityInput struct {

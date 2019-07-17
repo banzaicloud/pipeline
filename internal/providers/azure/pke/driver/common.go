@@ -20,16 +20,17 @@ import (
 	"net/http"
 	"strconv"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/gofrs/uuid"
+	"github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/gofrs/uuid"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
-	corev1 "k8s.io/api/core/v1"
 )
 
 type nodePoolTemplateFactory struct {

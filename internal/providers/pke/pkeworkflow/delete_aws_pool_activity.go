@@ -18,12 +18,13 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+
+	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
 const DeletePoolActivityName = "pke-delete-aws-pool-activity"
@@ -68,7 +69,7 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 
 	stackInput := &cloudformation.DeleteStackInput{
 		StackName: aws.String(stackName),
-		//ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
+		// ClientRequestToken: aws.String(string(activity.GetInfo(ctx).ActivityID)),
 	}
 
 	_, err = cfClient.DeleteStack(stackInput)

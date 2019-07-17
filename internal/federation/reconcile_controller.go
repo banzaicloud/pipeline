@@ -18,12 +18,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	pConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/helm"
+	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -34,6 +30,11 @@ import (
 	"k8s.io/helm/pkg/repo"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	ctlutil "sigs.k8s.io/kubefed/pkg/controller/util"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	pConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/helm"
 )
 
 type OperatorImage struct {
@@ -295,7 +296,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		return emperror.Wrap(err, "could not marshal chart value overrides")
 	}
 
-	//ensure repo
+	// ensure repo
 	org, err := auth.GetOrganizationById(c.GetOrganizationId())
 	if err != nil {
 		return emperror.Wrap(err, "could not get organization")
@@ -313,7 +314,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 	err = InstallOrUpgradeDeployment(
 		c,
 		m.Configuration.TargetNamespace,
-		//pkgHelm.BanzaiRepository+"/"+
+		// pkgHelm.BanzaiRepository+"/"+
 		viper.GetString(pConfig.FederationChartName),
 		federationReleaseName,
 		valuesOverride,

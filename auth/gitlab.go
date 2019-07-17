@@ -19,13 +19,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
-	gitlab "github.com/xanzy/go-gitlab"
+	"github.com/xanzy/go-gitlab"
 )
 
 type gitlabUserMeta struct {

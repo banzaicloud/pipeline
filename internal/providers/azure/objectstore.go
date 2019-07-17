@@ -22,6 +22,11 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 
+	"emperror.dev/emperror"
+	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	pipelineAuth "github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
@@ -29,10 +34,6 @@ import (
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // nolint: gochecknoglobals
@@ -527,6 +528,6 @@ func (s *ObjectStore) searchCriteria(bucketName string) *ObjectStoreBucketModel 
 		Name:           bucketName,
 		ResourceGroup:  s.resourceGroup,
 		StorageAccount: s.storageAccount,
-		//Location:       s.location,
+		// Location:       s.location,
 	}
 }

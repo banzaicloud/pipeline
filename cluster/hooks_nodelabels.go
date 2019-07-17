@@ -15,8 +15,8 @@
 package cluster
 
 import (
+	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 

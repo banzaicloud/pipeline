@@ -18,8 +18,8 @@ import (
 	"net/http"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 

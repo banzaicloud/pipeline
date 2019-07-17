@@ -17,10 +17,11 @@ package pkeworkflow
 import (
 	"context"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
-	"github.com/goph/emperror"
 )
 
 const WaitCFCompletionActivityName = "pke-wait-cf-completion-activity"

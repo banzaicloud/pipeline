@@ -17,7 +17,7 @@ package cloudinfo
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 )
 
 // GetServiceRegions returns the cloud provider regions where the specified service is available

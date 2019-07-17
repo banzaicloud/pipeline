@@ -18,9 +18,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
+
+	"github.com/banzaicloud/pipeline/auth"
 )
 
 type basicEnforcer struct {

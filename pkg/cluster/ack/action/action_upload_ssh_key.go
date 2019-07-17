@@ -17,11 +17,12 @@ package action
 import (
 	"strings"
 
+	"emperror.dev/emperror"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 // UploadSSHKeyAction describes how to upload an SSH key
@@ -63,7 +64,7 @@ func (a *UploadSSHKeyAction) ExecuteAction(input interface{}) (interface{}, erro
 // UndoAction rolls back this UploadSSHKeyAction
 func (a *UploadSSHKeyAction) UndoAction() (err error) {
 	a.log.Info("EXECUTE UNDO UploadSSHKeyAction")
-	//delete uploaded keypair
+	// delete uploaded keypair
 	ecsClient := a.context.ECSClient
 
 	req := ecs.CreateDeleteKeyPairsRequest()

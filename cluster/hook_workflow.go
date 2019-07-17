@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"

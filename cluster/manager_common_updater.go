@@ -19,9 +19,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"go.uber.org/cadence/client"
+
+	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 type commonUpdater struct {

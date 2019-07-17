@@ -18,15 +18,16 @@ import (
 	"fmt"
 	"hash/crc32"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/amazon"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/amazon"
 )
 
 // createIAMUser creates a Amazon IAM user with the given name and with no login access to console

@@ -20,8 +20,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/goph/logur"
 	"github.com/goph/logur/integrations/zaplog"
 	"github.com/oklog/run"
@@ -42,6 +41,7 @@ import (
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"

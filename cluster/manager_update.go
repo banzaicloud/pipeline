@@ -17,10 +17,11 @@ package cluster
 import (
 	"context"
 
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // UpdateContext represents the data necessary to do generic cluster update steps/checks.

@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"go.uber.org/cadence/workflow"
 )
 

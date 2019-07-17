@@ -17,15 +17,16 @@ package federation
 import (
 	"strings"
 
+	"emperror.dev/emperror"
+	"github.com/ghodss/yaml"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
-	"github.com/spf13/viper"
 )
 
 func (m *FederationReconciler) ReconcileExternalDNSController(desiredState DesiredState) error {

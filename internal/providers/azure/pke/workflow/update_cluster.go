@@ -17,10 +17,11 @@ package workflow
 import (
 	"time"
 
+	"emperror.dev/emperror"
+	"go.uber.org/cadence/workflow"
+
 	"github.com/banzaicloud/pipeline/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/goph/emperror"
-	"go.uber.org/cadence/workflow"
 )
 
 const UpdateClusterWorkflowName = "pke-azure-update-cluster"

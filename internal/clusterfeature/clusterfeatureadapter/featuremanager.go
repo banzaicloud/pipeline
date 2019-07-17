@@ -17,7 +17,7 @@ package clusterfeatureadapter
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/goph/logur"
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/pkg/errors"

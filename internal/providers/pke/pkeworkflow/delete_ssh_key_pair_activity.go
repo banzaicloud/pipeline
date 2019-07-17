@@ -18,10 +18,10 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
 
@@ -42,7 +42,7 @@ type DeleteSSHKeyPairActivityInput struct {
 }
 
 func (a *DeleteSSHKeyPairActivity) Execute(ctx context.Context, input DeleteSSHKeyPairActivityInput) error {
-	//log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
+	// log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
 	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return err

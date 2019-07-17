@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/workflow"
 )
@@ -90,7 +90,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 		}
 
 		err := workflow.ExecuteActivity(ctx, DeletePoolActivityName, DeletePoolActivityInput{
-			//AWSActivityInput: awsActivityInput,
+			// AWSActivityInput: awsActivityInput,
 			ClusterID: input.ClusterID,
 			Pool:      np,
 		}).Get(ctx, nil)
@@ -132,7 +132,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 
 	for _, np := range input.NodePoolsToAdd {
 		createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
-			//AWSActivityInput:      awsActivityInput,
+			// AWSActivityInput:      awsActivityInput,
 			ClusterID:                 input.ClusterID,
 			Pool:                      np,
 			WorkerInstanceProfile:     PkeGlobalStackName + "-worker-profile",

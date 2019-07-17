@@ -15,16 +15,15 @@
 package clustergroup
 
 import (
-	"github.com/banzaicloud/pipeline/api/clustergroup/deployment"
-	pkgDep "github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/api/clustergroup/common"
-
+	"github.com/banzaicloud/pipeline/api/clustergroup/deployment"
 	"github.com/banzaicloud/pipeline/api/clustergroup/feature"
 	cgroup "github.com/banzaicloud/pipeline/internal/clustergroup"
+	pkgDep "github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 )
 
 const (

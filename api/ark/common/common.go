@@ -17,16 +17,16 @@ package common
 import (
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/internal/providers"
-	"github.com/banzaicloud/pipeline/secret"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 // Log is a logrus.FieldLogger

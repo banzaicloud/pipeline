@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -30,6 +31,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
@@ -41,10 +46,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/gofrs/uuid"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 const awsNoUpdatesError = "No updates are to be performed."
@@ -529,7 +530,7 @@ func (a *CreateEksClusterAction) ExecuteAction(input interface{}) (output interf
 		return nil, err
 	}
 
-	//wait for ready status
+	// wait for ready status
 	startTime := time.Now()
 	a.log.Info("Waiting for EKS cluster creation")
 	describeClusterInput := &eks.DescribeClusterInput{
@@ -961,7 +962,7 @@ func (a *CreateUpdateNodePoolStackAction) UndoAction() (err error) {
 			err = deleteErr
 		}
 	}
-	//TODO delete each created object
+	// TODO delete each created object
 	return
 }
 
@@ -1102,7 +1103,7 @@ func (a *UploadSSHKeyAction) ExecuteAction(input interface{}) (output interface{
 // UndoAction rolls back this UploadSSHKeyAction
 func (a *UploadSSHKeyAction) UndoAction() (err error) {
 	a.log.Info("EXECUTE UNDO UploadSSHKeyAction")
-	//delete uploaded keypair
+	// delete uploaded keypair
 	ec2srv := ec2.New(a.context.Session)
 
 	deleteKeyPairInput := &ec2.DeleteKeyPairInput{
@@ -1170,7 +1171,7 @@ func (a *LoadEksSettingsAction) GetName() string {
 func (a *LoadEksSettingsAction) ExecuteAction(input interface{}) (output interface{}, err error) {
 	a.log.Info("EXECUTE LoadEksSettingsAction")
 	eksSvc := eks.New(a.context.Session)
-	//Store API endpoint, etc..
+	// Store API endpoint, etc..
 	describeClusterInput := &eks.DescribeClusterInput{
 		Name: aws.String(a.context.ClusterName),
 	}
@@ -1185,7 +1186,7 @@ func (a *LoadEksSettingsAction) ExecuteAction(input interface{}) (output interfa
 
 	a.context.APIEndpoint = cluster.Endpoint
 	a.context.CertificateAuthorityData = cluster.CertificateAuthority.Data
-	//TODO store settings in db
+	// TODO store settings in db
 
 	return input, nil
 }
@@ -1258,7 +1259,7 @@ func (a *DeleteClusterUserAccessKeyAction) ExecuteAction(input interface{}) (out
 	return nil, nil
 }
 
-//--
+// --
 
 var _ utils.Action = (*DeleteClusterUserAccessKeySecretAction)(nil)
 
@@ -1377,7 +1378,7 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 	return nil, pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
 }
 
-//--
+// --
 
 var _ utils.Action = (*DeleteClusterAction)(nil)
 
@@ -1469,7 +1470,7 @@ func (a *DeleteClusterAction) waitUntilClusterExists(ctx aws.Context, input *eks
 	return w.WaitWithContext(ctx)
 }
 
-//--
+// --
 
 var _ utils.Action = (*DeleteSSHKeyAction)(nil)
 
@@ -1512,7 +1513,7 @@ func (a *DeleteSSHKeyAction) ExecuteAction(input interface{}) (output interface{
 	return nil, err
 }
 
-//--
+// --
 
 var _ utils.Action = (*WaitResourceDeletionAction)(nil)
 

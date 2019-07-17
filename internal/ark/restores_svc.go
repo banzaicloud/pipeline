@@ -15,7 +15,7 @@
 package ark
 
 import (
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	arkAPI "github.com/heptio/ark/pkg/apis/ark/v1"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"

@@ -17,9 +17,9 @@ package pkeworkflow
 import (
 	"context"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
-	"github.com/goph/emperror"
 )
 
 const UpdatePoolActivityName = "pke-update-aws-pool-activity"

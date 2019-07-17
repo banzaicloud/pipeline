@@ -22,13 +22,14 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	apiStorage "google.golang.org/api/storage/v1"
+
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 type objectStore struct {

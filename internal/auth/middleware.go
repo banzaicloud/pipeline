@@ -19,9 +19,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
+
+	"github.com/banzaicloud/pipeline/auth"
 )
 
 // Enforcer checks if the current user has access to the organization resource under path with method
