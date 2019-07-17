@@ -22,6 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type UserNamespaceDeleter struct {
@@ -34,7 +35,7 @@ func MakeUserNamespaceDeleter(logger logrus.FieldLogger) UserNamespaceDeleter {
 	}
 }
 
-func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8sConfig []byte) ([]string, error) {
+func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, namespaces *corev1.NamespaceList, k8sConfig []byte) ([]string, error) {
 	logger := d.logger.WithField("organizationID", organizationID).WithField("clusterName", clusterName)
 
 	client, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
@@ -43,12 +44,15 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 	}
 
 	err = retry(func() error {
-		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-		if err != nil {
-			return emperror.Wrap(err, "could not list namespaces to delete")
+		nsList := namespaces
+		if nsList == nil {
+			nsList, err = client.CoreV1().Namespaces().List(metav1.ListOptions{})
+			if err != nil {
+				return emperror.Wrap(err, "could not list nsList to delete")
+			}
 		}
 
-		for _, ns := range namespaces.Items {
+		for _, ns := range nsList.Items {
 			logger := logger.WithField("namespace", ns.Name)
 			switch ns.Name {
 			case "default", "kube-system", "kube-public":
@@ -56,7 +60,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 			}
 			logger.Info("deleting kubernetes namespace")
 			err := client.CoreV1().Namespaces().Delete(ns.Name, &metav1.DeleteOptions{})
-			if err != nil {
+			if err != nil && !k8sapierrors.IsNotFound(err) {
 				// check if the namespace transitioned into 'Terminating' phase, if so
 				// ignore the error
 				namespace, errGet := client.CoreV1().Namespaces().Get(ns.Name, metav1.GetOptions{})
@@ -77,26 +81,41 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, k8
 
 	var left, gaveUp []string
 	err = retry(func() error {
-		namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
+		remainingNamespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
 		if err != nil {
 			return emperror.Wrap(err, "could not list remaining namespaces")
 		}
+
 		left = nil
 		gaveUp = nil
-		for _, ns := range namespaces.Items {
-			switch ns.Name {
+		for _, remainingNamespace := range remainingNamespaces.Items {
+			switch remainingNamespace.Name {
 			case "default", "kube-system", "kube-public":
 				continue
 			}
 
-			if len(ns.Spec.Finalizers) > 0 {
-				d.logger.Infof("can't delete namespace %q with finalizers %s", ns.Name, ns.Spec.Finalizers)
-				gaveUp = append(gaveUp, ns.Name)
+			if len(namespaces.Items) > 0 {
+				match := false
+				for _, ns := range namespaces.Items {
+					if remainingNamespace.Name == ns.Name {
+						match = true
+						break
+					}
+				}
+
+				if !match {
+					continue
+				}
+			}
+
+			if len(remainingNamespace.Spec.Finalizers) > 0 {
+				d.logger.Infof("can't delete namespace %q with finalizers %s", remainingNamespace.Name, remainingNamespace.Spec.Finalizers)
+				gaveUp = append(gaveUp, remainingNamespace.Name)
 				continue
 			}
 
-			logger.Infof("namespace %q still %s", ns.Name, ns.Status)
-			left = append(left, ns.Name)
+			logger.Infof("namespace %q still %s", remainingNamespace.Name, remainingNamespace.Status)
+			left = append(left, remainingNamespace.Name)
 		}
 		if len(left) > 0 {
 			return emperror.With(errors.Errorf("namespaces remaining after deletion: %v", left), "namespaces", left)

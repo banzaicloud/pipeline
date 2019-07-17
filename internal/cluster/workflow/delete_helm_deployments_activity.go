@@ -49,5 +49,5 @@ func (a DeleteHelmDeploymentsActivity) Execute(ctx context.Context, input Delete
 	if err != nil {
 		return emperror.Wrap(err, "failed to get k8s config")
 	}
-	return emperror.Wrap(helm.DeleteAllDeployment(logger, k8sConfig), "failed to delete all Helm deployments")
+	return emperror.Wrap(helm.DeleteAllDeployment(logger, k8sConfig, nil), "failed to delete all Helm deployments")
 }

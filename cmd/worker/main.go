@@ -111,7 +111,12 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
-	global.AutoDNSEnabled = viper.GetString(conf.DNSBaseDomain) != "" && viper.GetString(conf.DNSBaseDomain) != "example.com"
+	switch viper.GetString(conf.DNSBaseDomain) {
+	case "", "example.com", "example.org":
+		global.AutoDNSEnabled = false
+	default:
+		global.AutoDNSEnabled = true
+	}
 
 	var group run.Group
 
