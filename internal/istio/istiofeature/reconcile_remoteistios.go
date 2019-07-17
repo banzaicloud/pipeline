@@ -20,6 +20,7 @@ import (
 	"strconv"
 
 	"emperror.dev/emperror"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -212,12 +213,6 @@ func (m *MeshReconciler) reconcileRemoteIstioNamespace(desiredState DesiredState
 		return err
 	}
 
-	resource := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: istioOperatorNamespace,
-		},
-	}
-
 	if desiredState == DesiredStatePresent {
 		_, err := client.CoreV1().Namespaces().Get(istioOperatorNamespace, metav1.GetOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
@@ -226,7 +221,7 @@ func (m *MeshReconciler) reconcileRemoteIstioNamespace(desiredState DesiredState
 		if err == nil {
 			return nil
 		}
-		_, err = client.CoreV1().Namespaces().Create(resource)
+		err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, istioOperatorNamespace, nil)
 		if err != nil {
 			return err
 		}

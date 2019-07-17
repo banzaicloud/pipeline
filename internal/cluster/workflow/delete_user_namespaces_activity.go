@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/emperror"
+	corev1 "k8s.io/api/core/v1"
 )
 
 const DeleteUserNamespacesActivityName = "delete-user-namespaces"
@@ -38,7 +39,7 @@ type DeleteUserNamespacesActivity struct {
 }
 
 type UserNamespaceDeleter interface {
-	Delete(organizationID uint, clusterName string, k8sConfig []byte) ([]string, error)
+	Delete(organizationID uint, clusterName string, nsFilter *corev1.NamespaceList, k8sConfig []byte) ([]string, error)
 }
 
 func MakeDeleteUserNamespacesActivity(deleter UserNamespaceDeleter, k8sConfigGetter K8sConfigGetter) DeleteUserNamespacesActivity {
@@ -53,6 +54,6 @@ func (a DeleteUserNamespacesActivity) Execute(ctx context.Context, input DeleteU
 	if err != nil {
 		return DeleteUserNamespacesActivityOutput{}, emperror.Wrap(err, "failed to get k8s config")
 	}
-	left, err := a.deleter.Delete(input.OrganizationID, input.ClusterName, k8sConfig)
+	left, err := a.deleter.Delete(input.OrganizationID, input.ClusterName, nil, k8sConfig)
 	return DeleteUserNamespacesActivityOutput{left}, emperror.Wrap(err, "failed to delete user namespaces")
 }

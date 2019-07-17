@@ -36,6 +36,8 @@ import (
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 )
 
+const RBAC_API_VERSION = "rbac.authorization.k8s.io"
+
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
 func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*KubeCluster, error) {
 
@@ -417,7 +419,7 @@ func (c *KubeCluster) isRBACEnabled(client *kubernetes.Clientset) (bool, error) 
 	}
 
 	for _, g := range apiGroups.Groups {
-		if strings.Contains(strings.ToLower(g.Name), "rbac.") {
+		if strings.Contains(strings.ToLower(g.Name), RBAC_API_VERSION) {
 			return true, nil
 		}
 	}

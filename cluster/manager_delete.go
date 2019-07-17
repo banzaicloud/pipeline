@@ -26,7 +26,11 @@ import (
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/cluster/statestore"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 // DeleteCluster deletes a cluster.
@@ -53,30 +57,43 @@ func (m *Manager) DeleteCluster(ctx context.Context, cluster CommonCluster, forc
 	return nil
 }
 
-func deleteAllResources(organizationID uint, clusterName string, kubeConfig []byte, logger *logrus.Entry) error {
+func deleteAllResources(organizationID uint, clusterName string, kubeConfig []byte, namespaces *corev1.NamespaceList, logger *logrus.Entry) error {
 
-	err := deleteUserNamespaces(organizationID, clusterName, kubeConfig, logger)
+	err := deleteUserNamespaces(organizationID, clusterName, kubeConfig, namespaces, logger)
 	if err != nil {
 		return emperror.Wrap(err, "failed to delete user namespaces")
 	}
 
-	err = deleteResources(organizationID, clusterName, kubeConfig, "default", logger)
-	if err != nil {
-		return emperror.Wrap(err, "failed to delete resources in default namespace")
+	deleteDefaultNamespaceResources := true
+	if namespaces != nil {
+		deleteDefaultNamespaceResources = false
+		for _, ns := range namespaces.Items {
+			if ns.Name == "default" {
+				deleteDefaultNamespaceResources = true
+				break
+			}
+		}
 	}
 
-	err = deleteServices(organizationID, clusterName, kubeConfig, "default", logger)
-	if err != nil {
-		return emperror.Wrap(err, "failed to delete services in default namespace")
+	if deleteDefaultNamespaceResources {
+		err = deleteResources(organizationID, clusterName, kubeConfig, "default", logger)
+		if err != nil {
+			return emperror.Wrap(err, "failed to delete resources in default namespace")
+		}
+
+		err = deleteServices(organizationID, clusterName, kubeConfig, "default", logger)
+		if err != nil {
+			return emperror.Wrap(err, "failed to delete services in default namespace")
+		}
 	}
 
 	return nil
 }
 
 // deleteUserNamespaces deletes all namespace in the context expect the protected ones
-func deleteUserNamespaces(organizationID uint, clusterName string, kubeConfig []byte, logger *logrus.Entry) error {
+func deleteUserNamespaces(organizationID uint, clusterName string, kubeConfig []byte, namespaces *corev1.NamespaceList, logger *logrus.Entry) error {
 	deleter := intClusterK8s.MakeUserNamespaceDeleter(logger)
-	_, err := deleter.Delete(organizationID, clusterName, kubeConfig)
+	_, err := deleter.Delete(organizationID, clusterName, namespaces, kubeConfig)
 	return err
 }
 
@@ -109,8 +126,11 @@ func deleteUnusedSecrets(cluster CommonCluster, logger *logrus.Entry) error {
 		return emperror.Wrap(err, "deleting cluster secret failed")
 	}
 
-	if err := secret.Store.Delete(cluster.GetOrganizationId(), cluster.GetSecretId()); err != nil {
-		return emperror.Wrap(err, "deleting cluster secret failed")
+	if cluster.GetCloud() == pkgCluster.Kubernetes {
+		// in case of imported cluster delete the secret that holds the k8s config
+		if err := secret.Store.Delete(cluster.GetOrganizationId(), cluster.GetSecretId()); err != nil {
+			return emperror.Wrap(err, "deleting cluster secret failed")
+		}
 	}
 
 	return nil
@@ -173,7 +193,24 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	}
 
 	if deleteResources {
-		err = helm.DeleteAllDeployment(logger, config)
+
+		var namespaceList *corev1.NamespaceList
+		if cluster.GetCloud() == pkgCluster.Kubernetes {
+			// in case of imported cluster delete only resources from namespaces created by Pipeline
+			client, err := k8sclient.NewClientFromKubeConfig(config)
+			if err != nil {
+				return emperror.Wrap(err, "failed to get Kubernetes clientset from kubeconfig")
+			}
+
+			namespaceList, err = client.CoreV1().Namespaces().List(metav1.ListOptions{
+				LabelSelector: labels.Set{"owner": "pipeline"}.AsSelector().String(),
+			})
+			if err != nil {
+				return emperror.Wrap(err, "can not list namespaces")
+			}
+		}
+
+		err = helm.DeleteAllDeployment(logger, config, namespaceList)
 		if err != nil {
 			err = emperror.Wrap(err, "failed to delete deployments")
 
@@ -186,7 +223,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			logger.Error(err)
 		}
 
-		err = deleteAllResources(cluster.GetOrganizationId(), cluster.GetName(), config, logger)
+		err = deleteAllResources(cluster.GetOrganizationId(), cluster.GetName(), config, namespaceList, logger)
 		if err != nil {
 			err = emperror.Wrap(err, "failed to delete Kubernetes resources")
 

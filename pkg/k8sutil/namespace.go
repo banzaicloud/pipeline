@@ -15,9 +15,11 @@
 package k8sutil
 
 import (
+	"fmt"
 	"time"
 
 	"emperror.dev/emperror"
+	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,10 +35,25 @@ func EnsureNamespace(client kubernetes.Interface, namespace string) error {
 
 // EnsureNamespaceWithLabel creates a namespace with optional labels
 func EnsureNamespaceWithLabel(client kubernetes.Interface, namespace string, labels map[string]string) error {
+
+	// add label to mark the namespace that it was created by Pipeline
+	mergedLabels := map[string]string{}
+	for k, v := range labels {
+		mergedLabels[k] = v
+	}
+
+	ownerLabel := "owner"
+	ownerLabelValue := "pipeline"
+
+	if v, ok := mergedLabels[ownerLabel]; ok && v != ownerLabelValue {
+		return errors.WithStack(fmt.Errorf("%q namespace label is reserved for internal use", ownerLabel))
+	}
+	mergedLabels[ownerLabel] = ownerLabelValue
+
 	_, err := client.CoreV1().Namespaces().Create(&corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   namespace,
-			Labels: labels,
+			Labels: mergedLabels,
 		},
 	})
 
