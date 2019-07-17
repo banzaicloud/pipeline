@@ -260,7 +260,7 @@ func (sfm *externalDnsFeatureManager) Update(ctx context.Context, clusterID uint
 
 func (sfm *externalDnsFeatureManager) CheckPrerequisites(ctx context.Context, clusterID uint, featureName string, featureSpec FeatureSpec) error {
 	mLoger := logur.WithFields(sfm.logger, map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	mLoger.Info("Validating feature")
+	mLoger.Info("checking prerequisites for feature")
 
 	ready, err := sfm.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
@@ -274,7 +274,7 @@ func (sfm *externalDnsFeatureManager) CheckPrerequisites(ctx context.Context, cl
 		return newClusterNotReadyError(featureName)
 	}
 
-	mLoger.Info("feature validation succeeded")
+	mLoger.Info("prerequisites satisfied")
 	return nil
 
 }
