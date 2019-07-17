@@ -28,7 +28,7 @@ require (
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
 	github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
-	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190219103855-a13c1b05f240
+	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190717171417-0c590b44cd08
 	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/cactus/go-statsd-client v3.1.1+incompatible // indirect
@@ -61,7 +61,6 @@ require (
 	github.com/golang/protobuf v1.3.0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.0 // indirect
-	github.com/goph/emperror v0.17.1
 	github.com/goph/logur v0.11.0
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gorilla/websocket v1.4.0 // indirect
