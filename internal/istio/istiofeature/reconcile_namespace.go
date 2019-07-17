@@ -18,13 +18,12 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"github.com/banzaicloud/pipeline/internal/backoff"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/pkg/errors"
-	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-
-	"github.com/banzaicloud/pipeline/internal/backoff"
 )
 
 func (m *MeshReconciler) ReconcileNamespace(desiredState DesiredState) error {
@@ -39,11 +38,7 @@ func (m *MeshReconciler) ReconcileNamespace(desiredState DesiredState) error {
 	if desiredState == DesiredStatePresent {
 		_, err := client.CoreV1().Namespaces().Get(istioOperatorNamespace, metav1.GetOptions{})
 		if k8serrors.IsNotFound(err) {
-			_, err := client.CoreV1().Namespaces().Create(&corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: istioOperatorNamespace,
-				},
-			})
+			err := k8sutil.EnsureNamespaceWithLabelWithRetry(client, istioOperatorNamespace, nil)
 			if err != nil {
 				return emperror.Wrap(err, "could not create namespace")
 			}

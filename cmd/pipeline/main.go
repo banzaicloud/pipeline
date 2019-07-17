@@ -388,7 +388,13 @@ func main() {
 		log.Errorf("failed to create shared Spotguide organization: %s", err)
 	}
 
-	global.AutoDNSEnabled = viper.GetString(config.DNSBaseDomain) != "" && viper.GetString(config.DNSBaseDomain) != "example.com"
+	switch viper.GetString(config.DNSBaseDomain) {
+	case "", "example.com", "example.org":
+		global.AutoDNSEnabled = false
+	default:
+		global.AutoDNSEnabled = true
+	}
+
 	spotguidePlatformData := spotguide.PlatformData{
 		AutoDNSEnabled: global.AutoDNSEnabled,
 	}

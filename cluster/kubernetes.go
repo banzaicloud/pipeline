@@ -17,26 +17,33 @@ package cluster
 import (
 	"encoding/base64"
 	"errors"
+	"strings"
 	"time"
 
 	"emperror.dev/emperror"
-	storagev1 "k8s.io/api/storage/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
-
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+
+	"github.com/sirupsen/logrus"
+	storagev1 "k8s.io/api/storage/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 )
+
+const RBAC_API_VERSION = "rbac.authorization.k8s.io"
 
 // CreateKubernetesClusterFromRequest creates ClusterModel struct from the request
 func CreateKubernetesClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*KubeCluster, error) {
 
-	var cluster KubeCluster
+	cluster := KubeCluster{
+		log: log.WithField("cluster", request.Name),
+	}
 
 	cluster.modelCluster = &model.ClusterModel{
 		Name:           request.Name,
@@ -61,16 +68,33 @@ type KubeCluster struct {
 	modelCluster *model.ClusterModel
 	k8sConfig    []byte
 	APIEndpoint  string
+	log          logrus.FieldLogger
+
 	CommonClusterBase
 }
 
 // CreateCluster creates a new cluster
 func (c *KubeCluster) CreateCluster() error {
 
-	// check secret type
-	_, err := c.GetSecretWithValidation()
+	kubeConfig, err := c.GetK8sConfig()
 	if err != nil {
-		return err
+		return emperror.Wrap(err, "couldn't get Kubernetes config")
+	}
+
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return emperror.Wrap(err, "couldn't create Kubernetes client")
+	}
+
+	c.modelCluster.RbacEnabled, err = c.isRBACEnabled(client)
+	if err != nil {
+		return emperror.Wrap(err, "couldn't determine if RBAC is enabled on the cluster")
+	}
+
+	if c.modelCluster.RbacEnabled {
+		c.log.Info("rbac is enabled on the cluster")
+	} else {
+		c.log.Info("rbac is not enabled on the cluster")
 	}
 
 	return nil
@@ -130,7 +154,7 @@ func (c *KubeCluster) GetDistribution() string {
 func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	if len(c.modelCluster.Location) == 0 {
-		log.Debug("Empty location.. reload from db")
+		c.log.Debug("Empty location.. reload from db")
 		// reload from db
 		db := config.DB()
 		db.Find(&c.modelCluster, model.ClusterModel{ID: c.GetID()})
@@ -379,4 +403,26 @@ func (c *KubeCluster) GetTTL() time.Duration {
 // SetTTL sets the lifespan of a cluster
 func (c *KubeCluster) SetTTL(ttl time.Duration) {
 	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
+}
+
+// isRBACEnabled determines if RBAC is enabled on the Kubernetes cluster by investigating if list of
+// api versions enabled on the API server contains 'rbac`
+func (c *KubeCluster) isRBACEnabled(client *kubernetes.Clientset) (bool, error) {
+
+	apiGroups, err := client.ServerGroups()
+	if err != nil {
+		return false, emperror.Wrap(err, "couldn't retrieve Kubernetes API groups")
+	}
+
+	if apiGroups == nil {
+		return false, errors.New("no API groups found")
+	}
+
+	for _, g := range apiGroups.Groups {
+		if strings.Contains(strings.ToLower(g.Name), RBAC_API_VERSION) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

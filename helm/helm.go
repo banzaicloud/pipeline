@@ -177,8 +177,9 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 	return "", nil
 }
 
-// DeleteAllDeployment deletes all Helm deployment
-func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
+//DeleteAllDeployment deletes all Helm deployment
+// namespaces - if provided than delete all helm deployments only from the provided namespaces
+func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte, namespaces *v1.NamespaceList) error {
 	log.Info("getting deployments....")
 	filter := ""
 	releaseResp, err := ListDeployments(&filter, "", kubeconfig)
@@ -187,21 +188,37 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
 	}
 
 	if releaseResp != nil {
+
+		var nsFilter map[string]bool
+		if namespaces != nil {
+			nsFilter = make(map[string]bool, len(namespaces.Items))
+
+			for _, ns := range namespaces.Items {
+				nsFilter[ns.Name] = true
+			}
+		}
+
 		// the returned release items are unique by release name and status
 		// e.g. release name = release1, status = PENDING_UPGRADE
 		//      release name = release1, status = DEPLOYED
 		//
 		// we need only the release name for deleting a release
 		deletedDeployments := make(map[string]bool)
-		for _, r := range releaseResp.Releases {
-			if _, ok := deletedDeployments[r.Name]; !ok {
-				log := log.WithField("deployment", r.Name)
+		for _, r := range releaseResp.GetReleases() {
+			log := log.WithFields(logrus.Fields{"deployment": r.Name, "namespace": r.Namespace})
 
+			_, ok := nsFilter[r.Namespace]
+			if namespaces != nil && !ok {
+				log.Info("skip deleting deployment")
+				continue
+			}
+
+			if _, ok := deletedDeployments[r.Name]; !ok {
 				log.Info("deleting deployment")
 
 				err := DeleteDeployment(r.Name, kubeconfig)
 				if err != nil {
-					return emperror.WrapWith(err, "failed to delete deployment", "deployment", r.Name)
+					return emperror.WrapWith(err, "failed to delete deployment", "deployment", r.Name, "namespace", r.Name)
 				}
 				deletedDeployments[r.Name] = true
 
