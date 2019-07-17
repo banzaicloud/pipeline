@@ -15,12 +15,13 @@
 package kubernetes
 
 import (
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 type UserNamespaceDeleter struct {

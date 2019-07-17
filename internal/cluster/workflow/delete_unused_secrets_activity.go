@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 )
 
 const DeleteUnusedClusterSecretsActivityName = "delete-unused-cluster-secrets"

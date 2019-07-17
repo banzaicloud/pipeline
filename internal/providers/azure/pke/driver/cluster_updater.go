@@ -21,8 +21,12 @@ import (
 	"net/http"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
+
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
@@ -31,9 +35,6 @@ import (
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
-	"go.uber.org/cadence/client"
 )
 
 type AzurePKEClusterUpdater struct {

@@ -21,11 +21,8 @@ import (
 	"net/url"
 	"strings"
 
-	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
-
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -40,6 +37,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
+	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"

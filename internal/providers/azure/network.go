@@ -17,16 +17,15 @@ package azure
 import (
 	"context"
 
-	"github.com/goph/emperror"
-
+	"emperror.dev/emperror"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/banzaicloud/pipeline/secret"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	intNetwork "github.com/banzaicloud/pipeline/internal/network"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 type azureNetwork struct {

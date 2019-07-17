@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"strings"
 
+	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"

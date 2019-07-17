@@ -18,15 +18,16 @@ import (
 	"net/http"
 	"path"
 
+	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/spotguide"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type SpotguideAPI struct {

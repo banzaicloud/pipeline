@@ -14,7 +14,7 @@
 
 package federation
 
-import "github.com/goph/emperror"
+import "emperror.dev/emperror"
 
 func (m *FederationReconciler) Reconcile() error {
 	desiredState := DesiredStatePresent

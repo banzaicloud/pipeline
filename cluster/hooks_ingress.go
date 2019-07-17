@@ -20,7 +20,13 @@ import (
 	"fmt"
 	"strings"
 
+	"emperror.dev/emperror"
 	"github.com/banzaicloud/bank-vaults/pkg/tls"
+	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
+	v1 "k8s.io/api/core/v1"
+
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -28,11 +34,6 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
 )
 
 type ingressControllerValues struct {

@@ -50,8 +50,8 @@ As an alternative to the above anti-pattern, context and stack trace should be a
 ```go
 
 import (
-	"github.com/pkg/errors"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 )
 
 // ...
@@ -75,10 +75,10 @@ err = errors.WithStack(err)
 err = errors.WithMessage(err, "some additional message")
 
 // Attach arbitrary context (mostly key-value pairs) to the error
-err = emperror.With(err, "key1", "value1", "key2", "value2" /*,...*/)
+err = errors.WithDetails(err, "key1", "value1", "key2", "value2" /*,...*/)
 
-// Combination of emperror.Wrap and emperror.With
-err = emperror.WrapWith(err, "key1", "value1", "key2", "value2" /*,...*/)
+// Combination of errors.WrapIf and errors.WithDetails
+err = errors.WrapIfWithDetails(err, "key1", "value1", "key2", "value2" /*,...*/)
 ```
 
 In low level code, using `errors` package is fine, as third-party packages rarely care about stack trace.
@@ -105,18 +105,18 @@ According to the Go recommendation, idiomatic Go error messages start with lower
 Instead of returning formatted error messages, like the following:
 
 ```go
-    return emperror.Wrapf(err, "something %s failed", important)
+    return errors.WrapIff(err, "something %s failed", important)
 ```
 
 one should attach information as context:
 
 ```go
-    return emperror.WrapWith(err, "something failed", "what", important)
+    return errors.WrapIfWithDetails(err, "something failed", "what", important)
 ```
 
 There is one exception from this rule: when the error message is known to be returned to the user directly
 (which itself should happen in very special cases only). Even then information should still be added as context as well:
 
 ```go
-    return emperror.With(emperror.Wrapf(err, "something %s failed", important), "what", important)
+    return errors.WithDetails(errors.WrapIff(err, "something %s failed", important), "what", important)
 ```

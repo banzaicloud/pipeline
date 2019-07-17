@@ -17,13 +17,14 @@ package workflow
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 const WaitPersistentVolumesDeletionActivityName = "wait-persistent-volumes-deletion"

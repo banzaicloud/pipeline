@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"

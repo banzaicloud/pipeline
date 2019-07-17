@@ -17,7 +17,7 @@ package resourcesummary
 import (
 	"fmt"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

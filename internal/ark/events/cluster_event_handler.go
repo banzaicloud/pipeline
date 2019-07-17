@@ -15,7 +15,7 @@
 package events
 
 import (
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 

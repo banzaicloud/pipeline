@@ -17,11 +17,12 @@ package scm
 import (
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/utils"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 type gitLabSCM struct {

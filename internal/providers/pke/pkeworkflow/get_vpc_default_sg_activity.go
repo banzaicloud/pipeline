@@ -17,13 +17,14 @@ package pkeworkflow
 import (
 	"context"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/goph/logur/adapters/zapadapter"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
+
+	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
 
 const GetVpcDefaultSecurityGroupActivityName = "pke-get-vpc-default-sg-activity"

@@ -15,7 +15,7 @@
 package cadence
 
 import (
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"go.uber.org/cadence/client"
 	"go.uber.org/zap"
 )

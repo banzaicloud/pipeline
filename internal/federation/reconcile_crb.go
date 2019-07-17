@@ -17,12 +17,13 @@ package federation
 import (
 	"strings"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/rbac/v1"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
+
+	pipConfig "github.com/banzaicloud/pipeline/config"
 )
 
 const federationClusterRoleBindingName = "feddns-rolebinding"

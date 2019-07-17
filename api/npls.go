@@ -18,7 +18,13 @@ import (
 	"context"
 	"net/http"
 
+	"emperror.dev/emperror"
 	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/cluster"
 	pipConfig "github.com/banzaicloud/pipeline/config"
@@ -27,11 +33,6 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 // NodePoolManagerAPI implements the Node pool Label Management API actions.

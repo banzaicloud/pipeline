@@ -18,11 +18,13 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/goph/emperror"
-	"github.com/goph/emperror/handler/logrushandler"
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
+	logrushandler "emperror.dev/handler/logrus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
 
 var errorHandler emperror.Handler
@@ -46,14 +48,19 @@ func newErrorHandler() emperror.Handler {
 	loggerHandler := logrushandler.New(logger)
 
 	return emperror.HandlerFunc(func(err error) {
-		if stackTrace, ok := emperror.StackTrace(err); ok && len(stackTrace) > 0 {
-			frame := stackTrace[0]
+		var stackTracer interface{ StackTrace() errors.StackTrace }
+		if errors.As(err, &stackTracer) {
+			stackTrace := stackTracer.StackTrace()
 
-			err = emperror.With(
-				err,
-				"func", fmt.Sprintf("%n", frame), // nolint: govet
-				"file", fmt.Sprintf("%v", frame), // nolint: govet
-			)
+			if len(stackTrace) > 0 {
+				frame := stackTrace[0]
+
+				err = emperror.With(
+					err,
+					"func", fmt.Sprintf("%n", frame), // nolint: govet
+					"file", fmt.Sprintf("%v", frame), // nolint: govet
+				)
+			}
 		}
 
 		loggerHandler.Handle(err)

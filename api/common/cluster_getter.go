@@ -19,14 +19,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
 )
 
 type ClusterGetter interface {

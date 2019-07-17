@@ -17,15 +17,16 @@ package cluster
 import (
 	"context"
 
+	"emperror.dev/emperror"
+	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/client"
+
 	"github.com/banzaicloud/pipeline/helm"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/cluster/statestore"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
-	"go.uber.org/cadence/client"
 )
 
 // DeleteCluster deletes a cluster.

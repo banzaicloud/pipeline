@@ -20,9 +20,10 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	"github.com/goph/emperror"
 )
 
 const endpointURLTemplate = "https://oss-%s.aliyuncs.com"

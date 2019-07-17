@@ -19,10 +19,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/kubernetes-sigs/kubefed/pkg/client/generic"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -30,6 +27,10 @@ import (
 	"k8s.io/client-go/rest"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
 	genericclient "sigs.k8s.io/kubefed/pkg/client/generic"
+
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 type Config struct {

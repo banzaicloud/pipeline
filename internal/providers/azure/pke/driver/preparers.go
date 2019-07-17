@@ -22,11 +22,12 @@ import (
 	"net"
 	"net/http"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
 )
 
 // NodePoolsPreparer implements []NodePool preparation

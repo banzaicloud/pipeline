@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"

@@ -23,14 +23,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	pipCluster "github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/dns"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	pipSecret "github.com/banzaicloud/pipeline/secret"
+	"emperror.dev/emperror"
 	promconfig "github.com/banzaicloud/prometheus-config"
-	"github.com/goph/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	promCommon "github.com/prometheus/common/config"
@@ -39,6 +33,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	pipCluster "github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/dns"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	pipSecret "github.com/banzaicloud/pipeline/secret"
 )
 
 type clusterSubscriber struct {

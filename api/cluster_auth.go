@@ -22,16 +22,17 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/banzaicloud/pipeline/api/common"
-	"github.com/banzaicloud/pipeline/internal/cluster/auth"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"emperror.dev/emperror"
 	"github.com/coreos/go-oidc"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"golang.org/x/oauth2"
 	k8sClient "k8s.io/client-go/tools/clientcmd"
 	k8sClientApi "k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/banzaicloud/pipeline/api/common"
+	"github.com/banzaicloud/pipeline/internal/cluster/auth"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 type ClusterAuthAPI struct {

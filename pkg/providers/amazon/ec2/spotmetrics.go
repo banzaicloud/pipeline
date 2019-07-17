@@ -17,8 +17,8 @@ package ec2
 import (
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/goph/emperror"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )

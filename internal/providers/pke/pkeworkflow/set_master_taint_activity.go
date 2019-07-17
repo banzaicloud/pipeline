@@ -17,12 +17,13 @@ package pkeworkflow
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"go.uber.org/cadence/activity"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 const SetMasterTaintActivityName = "set-master-taint-activity"

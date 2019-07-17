@@ -19,8 +19,8 @@ import (
 	"strings"
 	"sync"
 
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/viper"

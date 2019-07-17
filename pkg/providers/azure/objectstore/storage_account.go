@@ -19,9 +19,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )

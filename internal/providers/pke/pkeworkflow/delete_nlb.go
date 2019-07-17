@@ -18,9 +18,9 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
 

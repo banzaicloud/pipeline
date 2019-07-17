@@ -17,10 +17,11 @@ package cluster
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/model"
 )
 
 // GetClusters returns the cluster instances for an organization ID.

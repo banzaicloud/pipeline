@@ -18,9 +18,9 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/goph/emperror"
 	"go.uber.org/cadence/activity"
 )
 

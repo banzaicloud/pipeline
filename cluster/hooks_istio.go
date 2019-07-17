@@ -15,11 +15,12 @@
 package cluster
 
 import (
+	"emperror.dev/emperror"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/istio"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
 )
 
 // InstallServiceMeshParams describes InstallServiceMesh posthook params

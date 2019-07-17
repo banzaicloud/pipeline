@@ -17,7 +17,7 @@ package istiofeature
 import (
 	"strconv"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

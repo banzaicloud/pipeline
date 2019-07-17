@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -29,6 +30,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/ghodss/yaml"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	v1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/model"
@@ -43,15 +53,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
-	storagev1 "k8s.io/api/storage/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
 const mapRolesTemplate = `- rolearn: %s
@@ -69,7 +70,7 @@ const mapUsersTemplate = `- userarn: %s
 
 const asgWaitLoopSleepSeconds = 5
 
-//CreateEKSClusterFromRequest creates ClusterModel struct from the request
+// CreateEKSClusterFromRequest creates ClusterModel struct from the request
 func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
 	cluster := EKSCluster{
 		log: log.WithField("cluster", request.Name),
@@ -135,7 +136,7 @@ func createSubnetsFromRequest(subnets []*pkgEks.ClusterSubnet) []*model.EKSSubne
 	return modelSubnets
 }
 
-//EKSCluster struct for EKS cluster
+// EKSCluster struct for EKS cluster
 type EKSCluster struct {
 	modelCluster             *model.ClusterModel
 	APIEndpoint              string
@@ -172,12 +173,12 @@ func (c *EKSCluster) SaveSshSecretId(sshSecretId string) error {
 	return c.modelCluster.UpdateSshSecret(sshSecretId)
 }
 
-//GetAPIEndpoint returns the Kubernetes Api endpoint
+// GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *EKSCluster) GetAPIEndpoint() (string, error) {
 	return c.APIEndpoint, nil
 }
 
-//CreateEKSClusterFromModel creates ClusterModel struct from the model
+// CreateEKSClusterFromModel creates ClusterModel struct from the model
 func CreateEKSClusterFromModel(clusterModel *model.ClusterModel) *EKSCluster {
 	return &EKSCluster{
 		modelCluster: clusterModel,

@@ -18,13 +18,14 @@ import (
 	"net/http"
 	"strings"
 
+	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 // DomainAPI implements the Domain API actions

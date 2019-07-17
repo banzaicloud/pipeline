@@ -17,10 +17,11 @@ package notification
 import (
 	"net/http"
 
+	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
+
 	"github.com/banzaicloud/pipeline/config"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 )
 
 // GetNotificationsResponse Api object to be mapped to Get notifications request

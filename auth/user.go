@@ -23,12 +23,10 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
 	"github.com/banzaicloud/cicd-go/cicd"
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
@@ -38,6 +36,9 @@ import (
 	"github.com/qor/qor/utils"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
+
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/helm"
 )
 
 const (
@@ -62,7 +63,7 @@ type AuthIdentity struct {
 	auth_identity.SignLogs
 }
 
-//User struct
+// User struct
 type User struct {
 	ID            uint           `gorm:"primary_key" json:"id"`
 	CreatedAt     time.Time      `json:"createdAt"`
@@ -76,7 +77,7 @@ type User struct {
 	APIToken      string         `json:"-" gorm:"-"` // Used only internally
 }
 
-//CICDUser struct
+// CICDUser struct
 type CICDUser struct {
 	ID     int64  `gorm:"column:user_id;primary_key"`
 	Login  string `gorm:"column:user_login"`
@@ -98,7 +99,7 @@ type UserOrganization struct {
 	Role           string `gorm:"default:'admin'"`
 }
 
-//Organization struct
+// Organization struct
 type Organization struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
 	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
@@ -110,17 +111,17 @@ type Organization struct {
 	Role      string    `json:"-" gorm:"-"` // Used only internally
 }
 
-//IDString returns the ID as string
+// IDString returns the ID as string
 func (user *User) IDString() string {
 	return fmt.Sprint(user.ID)
 }
 
-//IDString returns the ID as string
+// IDString returns the ID as string
 func (org *Organization) IDString() string {
 	return fmt.Sprint(org.ID)
 }
 
-//TableName sets CICDUser's table name
+// TableName sets CICDUser's table name
 func (CICDUser) TableName() string {
 	return "users"
 }
@@ -182,7 +183,7 @@ func NewTemporaryCICDClient(login string) (cicd.Client, error) {
 	return NewCICDClient(cicdAPIToken), nil
 }
 
-//BanzaiUserStorer struct
+// BanzaiUserStorer struct
 type BanzaiUserStorer struct {
 	auth.UserStorer
 	signingKeyBase32 string // CICD uses base32 Hash

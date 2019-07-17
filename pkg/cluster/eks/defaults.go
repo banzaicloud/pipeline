@@ -17,9 +17,9 @@ package eks
 import (
 	"fmt"
 
+	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/goph/emperror"
 )
 
 // ### [ Constants to EKS cluster default values ] ### //

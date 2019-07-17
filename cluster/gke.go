@@ -23,21 +23,8 @@ import (
 	"strings"
 	"time"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/cluster"
-	"github.com/banzaicloud/pipeline/internal/providers/google"
-	"github.com/banzaicloud/pipeline/model"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	pkgProviderGoogle "github.com/banzaicloud/pipeline/pkg/providers/google"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/banzaicloud/pipeline/utils"
+	"emperror.dev/emperror"
 	"github.com/golang/protobuf/ptypes/duration"
-	"github.com/goph/emperror"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -56,6 +43,20 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // required by GCP authentication at runtime
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd/api"
+
+	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/providers/google"
+	"github.com/banzaicloud/pipeline/model"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
+	pkgProviderGoogle "github.com/banzaicloud/pipeline/pkg/providers/google"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 const (
@@ -162,11 +163,11 @@ type GKEClusterRepository interface {
 	SaveStatusHistory(model *cluster.StatusHistoryModel) error
 }
 
-//GKECluster struct for GKE cluster
+// GKECluster struct for GKE cluster
 type GKECluster struct {
 	repository    GKEClusterRepository
 	model         *google.GKEClusterModel
-	googleCluster *gke.Cluster //Don't use this directly
+	googleCluster *gke.Cluster // Don't use this directly
 	APIEndpoint   string
 	log           logrus.FieldLogger
 	CommonClusterBase
@@ -232,7 +233,7 @@ func (c *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 	return c.googleCluster, nil
 }
 
-//GetAPIEndpoint returns the Kubernetes Api endpoint
+// GetAPIEndpoint returns the Kubernetes Api endpoint
 func (c *GKECluster) GetAPIEndpoint() (string, error) {
 	if c.APIEndpoint != "" {
 		return c.APIEndpoint, nil
@@ -245,7 +246,7 @@ func (c *GKECluster) GetAPIEndpoint() (string, error) {
 	return c.APIEndpoint, nil
 }
 
-//CreateCluster creates a new cluster
+// CreateCluster creates a new cluster
 func (c *GKECluster) CreateCluster() error {
 
 	c.log.Info("Start create cluster (Google)")
@@ -342,7 +343,7 @@ func (c *GKECluster) updateCurrentVersions(gkeCluster *gke.Cluster) {
 	}
 }
 
-//Persist save the cluster model
+// Persist save the cluster model
 func (c *GKECluster) Persist() error {
 	return emperror.Wrap(c.repository.SaveModel(c.model), "failed to persist cluster")
 }
@@ -361,7 +362,7 @@ func (c *GKECluster) DownloadK8sConfig() ([]byte, error) {
 
 }
 
-//GetName returns the name of the cluster
+// GetName returns the name of the cluster
 func (c *GKECluster) GetName() string {
 	return c.model.Cluster.Name
 }
@@ -376,9 +377,9 @@ func (c *GKECluster) GetDistribution() string {
 	return c.model.Cluster.Distribution
 }
 
-//GetStatus gets cluster status
+// GetStatus gets cluster status
 func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	//c.log.Info("Create cluster status response")
+	// c.log.Info("Create cluster status response")
 
 	var hasSpotNodePool bool
 
@@ -791,7 +792,7 @@ func (c *GKECluster) updateModel(cluster *gke.Cluster, updatedNodePools []*gke.N
 
 }
 
-//GetID returns the specified cluster id
+// GetID returns the specified cluster id
 func (c *GKECluster) GetID() uint {
 	return c.model.Cluster.ID
 }
@@ -807,7 +808,7 @@ func (c *GKECluster) getGoogleServiceClient() (*gke.Service, error) {
 		return nil, emperror.Wrap(err, "retrieving cluster credentials secret failed")
 	}
 
-	//New client from credentials
+	// New client from credentials
 	return gke.New(client)
 }
 
@@ -875,7 +876,7 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 		HttpLoadBalancing:        &gke.HttpLoadBalancing{Disabled: !cc.HTTPLoadBalancing},
 		HorizontalPodAutoscaling: &gke.HorizontalPodAutoscaling{Disabled: !cc.HorizontalPodAutoscaling},
 		KubernetesDashboard:      &gke.KubernetesDashboard{Disabled: !cc.KubernetesDashboard},
-		//	NetworkPolicyConfig:      &gke.NetworkPolicyConfig{Disabled: !cc.NetworkPolicyConfig},
+		// 	NetworkPolicyConfig:      &gke.NetworkPolicyConfig{Disabled: !cc.NetworkPolicyConfig},
 	}
 	request.Cluster.Network = cc.Network
 	request.Cluster.Subnetwork = cc.SubNetwork
@@ -1351,7 +1352,7 @@ func generateServiceAccountToken(clientset *kubernetes.Clientset) (string, error
 	return "", errors.New("failed to configure serviceAccountToken")
 }
 
-//CreateGKEClusterFromModel creates ClusterModel struct from model
+// CreateGKEClusterFromModel creates ClusterModel struct from model
 func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, error) {
 	db := pipConfig.DB()
 
@@ -1360,7 +1361,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	}
 
 	log := log.WithField("cluster", clusterModel.Name)
-	//log.Debug("Load Google props from database")
+	// log.Debug("Load Google props from database")
 
 	err := db.Where(m).Preload("Cluster").Preload("NodePools").Preload("Cluster.ScaleOptions").First(&m).Error
 	if err != nil {
@@ -1380,7 +1381,7 @@ func CreateGKEClusterFromModel(clusterModel *model.ClusterModel) (*GKECluster, e
 	return &gkeCluster, nil
 }
 
-//AddDefaultsToUpdate adds defaults to update request
+// AddDefaultsToUpdate adds defaults to update request
 func (c *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 	// TODO: error handling
@@ -1449,7 +1450,7 @@ func (c *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 }
 
-//CheckEqualityToUpdate validates the update request
+// CheckEqualityToUpdate validates the update request
 func (c *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 
 	// create update request struct with the stored data to check equality
@@ -1468,7 +1469,7 @@ func (c *GKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	return isDifferent(r.GKE, preCl)
 }
 
-//DeleteFromDatabase deletes model from the database
+// DeleteFromDatabase deletes model from the database
 func (c *GKECluster) DeleteFromDatabase() error {
 	if err := c.repository.DeleteClusterModel(&c.model.Cluster); err != nil {
 		return err
@@ -1624,7 +1625,7 @@ func getMachineTypes(csv *gkeCompute.Service, project, zone string) (map[string]
 // getComputeService create a Compute Service from GKECluster
 func (c *GKECluster) getComputeService() (*gkeCompute.Service, error) {
 
-	//New client from credentials
+	// New client from credentials
 	client, err := c.newClientFromCredentials()
 	if err != nil {
 		return nil, emperror.Wrap(err, "creating http client failed")

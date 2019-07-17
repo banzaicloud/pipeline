@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/google/go-github/github"
-	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"

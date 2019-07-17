@@ -22,12 +22,16 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-09-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -37,9 +41,6 @@ import (
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -439,7 +440,7 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 
 	c.loadAKSClusterModelFromDB()
 
-	//TODO check banzairesponses
+	// TODO check banzairesponses
 	roleName := "clusterUser"
 	c.log.Infof("Get %s cluster's config in %s, role name: %s", c.GetName(), c.GetResourceGroupName(), roleName)
 	profile, err := cc.GetManagedClustersClient().GetAccessProfile(context.TODO(), c.GetResourceGroupName(), c.GetName(), roleName)
@@ -454,7 +455,7 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 	return *profile.KubeConfig, nil
 }
 
-//GetName returns the name of the cluster
+// GetName returns the name of the cluster
 func (c *AKSCluster) GetName() string {
 	return c.modelCluster.Name
 }
@@ -472,7 +473,7 @@ func (c *AKSCluster) GetDistribution() string {
 // GetStatus returns the cluster's status
 func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
-	//c.log.Info("Create cluster status response")
+	// c.log.Info("Create cluster status response")
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.modelCluster.AKS.NodePools {
@@ -678,7 +679,7 @@ func (c *AKSCluster) getAzureCluster() (*containerservice.ManagedCluster, error)
 	return &cluster, nil
 }
 
-//CreateAKSClusterFromModel creates ClusterModel struct from model
+// CreateAKSClusterFromModel creates ClusterModel struct from model
 func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) *AKSCluster {
 	return &AKSCluster{
 		modelCluster: clusterModel,
@@ -686,7 +687,7 @@ func CreateAKSClusterFromModel(clusterModel *model.ClusterModel) *AKSCluster {
 	}
 }
 
-//AddDefaultsToUpdate adds defaults to update request
+// AddDefaultsToUpdate adds defaults to update request
 func (c *AKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 	if r.AKS == nil {
 		c.log.Warn("'aks' field is empty.")
@@ -709,7 +710,7 @@ func (c *AKSCluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 	}
 }
 
-//CheckEqualityToUpdate validates the update request
+// CheckEqualityToUpdate validates the update request
 func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 	// create update request struct with the stored data to check equality
 	preProfiles := make(map[string]*pkgClusterAzure.NodePoolUpdate)
@@ -735,7 +736,7 @@ func (c *AKSCluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	return isDifferent(r.AKS, preCl)
 }
 
-//DeleteFromDatabase deletes model from the database
+// DeleteFromDatabase deletes model from the database
 func (c *AKSCluster) DeleteFromDatabase() error {
 	err := c.modelCluster.Delete()
 	if err != nil {

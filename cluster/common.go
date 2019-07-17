@@ -21,6 +21,10 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -35,9 +39,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 // CommonCluster interface for clusters.
@@ -277,7 +278,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	switch modelCluster.Cloud {
 	case pkgCluster.Alibaba:
-		//Create Alibaba struct
+		// Create Alibaba struct
 
 		alibabaCluster, err := CreateACKClusterFromModel(modelCluster)
 		if err != nil {
@@ -297,7 +298,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 		return alibabaCluster, nil
 
 	case pkgCluster.Amazon:
-		//Create Amazon EKS struct
+		// Create Amazon EKS struct
 		eksCluster := CreateEKSClusterFromModel(modelCluster)
 
 		err := db.
@@ -367,7 +368,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	return nil, pkgErrors.ErrorNotSupportedCloudType
 }
 
-//CreateCommonClusterFromRequest creates a CommonCluster from a request
+// CreateCommonClusterFromRequest creates a CommonCluster from a request
 func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (CommonCluster, error) {
 
 	if err := createClusterRequest.AddDefaults(); err != nil {
@@ -382,7 +383,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	cloudType := createClusterRequest.Cloud
 	switch cloudType {
 	case pkgCluster.Alibaba:
-		//Create Alibaba struct
+		// Create Alibaba struct
 		alibabaCluster, err := CreateACKClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
@@ -390,11 +391,11 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 		return alibabaCluster, nil
 
 	case pkgCluster.Amazon:
-		//Check for PKE
+		// Check for PKE
 		if createClusterRequest.Properties.CreateClusterPKE != nil {
 			return createCommonClusterWithDistributionFromRequest(createClusterRequest, orgId, userId)
 		}
-		//Create EKS struct
+		// Create EKS struct
 		eksCluster, err := CreateEKSClusterFromRequest(createClusterRequest, orgId, userId)
 		if err != nil {
 			return nil, err
@@ -447,7 +448,7 @@ func CreateCommonClusterFromRequest(createClusterRequest *pkgCluster.CreateClust
 	return nil, pkgErrors.ErrorNotSupportedCloudType
 }
 
-//createCommonClusterWithDistributionFromRequest creates a CommonCluster from a request
+// createCommonClusterWithDistributionFromRequest creates a CommonCluster from a request
 func createCommonClusterWithDistributionFromRequest(createClusterRequest *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EC2ClusterPKE, error) {
 	switch createClusterRequest.Cloud {
 	case pkgCluster.Amazon:

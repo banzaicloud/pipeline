@@ -20,7 +20,12 @@ import (
 	"strconv"
 	"strings"
 
+	"emperror.dev/emperror"
 	"github.com/banzaicloud/nodepool-labels-operator/pkg/npls"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/config"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
@@ -28,10 +33,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 const labelFormatRegexp = "[^-A-Za-z0-9_.]"

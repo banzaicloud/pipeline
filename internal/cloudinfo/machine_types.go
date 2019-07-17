@@ -18,12 +18,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
+	"github.com/banzaicloud/pipeline/config"
 )
 
 type VMKey struct {
@@ -90,7 +91,7 @@ func fetchMachineTypes(logger logrus.FieldLogger, cloud string, service string, 
 	return nil
 }
 
-//GetMachineDetails returns machine resource details, like cpu/gpu/memory etc. either from local cache or CloudInfo
+// GetMachineDetails returns machine resource details, like cpu/gpu/memory etc. either from local cache or CloudInfo
 func GetMachineDetails(logger logrus.FieldLogger, cloud string, service string, region string, instanceType string) (*cloudinfo.ProductDetails, error) {
 
 	vmKey := VMKey{

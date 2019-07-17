@@ -15,9 +15,9 @@
 package autoscaling
 
 import (
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	awsEC2 "github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"

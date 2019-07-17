@@ -15,8 +15,9 @@
 package auth
 
 import (
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/goph/emperror"
 )
 
 var errorHandler emperror.Handler

@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/pkg/common"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // ListCommands Lists the commands for installing nodes in each nodePool

@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"time"
 
+	"emperror.dev/emperror"
+	"github.com/oracle/oci-go-sdk/containerengine"
+	"github.com/pkg/errors"
+
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -29,9 +33,6 @@ import (
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
-	"github.com/oracle/oci-go-sdk/containerengine"
-	"github.com/pkg/errors"
 )
 
 // OKECluster struct for OKE cluster
@@ -201,7 +202,7 @@ func (o *OKECluster) DownloadK8sConfig() ([]byte, error) {
 	return ce.GetK8SConfig(o.modelCluster.OKE.OCID)
 }
 
-//GetName returns the name of the cluster
+// GetName returns the name of the cluster
 func (o *OKECluster) GetName() string {
 	return o.modelCluster.Name
 }
@@ -216,7 +217,7 @@ func (o *OKECluster) GetDistribution() string {
 	return o.modelCluster.Distribution
 }
 
-//GetStatus gets cluster status
+// GetStatus gets cluster status
 func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
@@ -262,7 +263,7 @@ func getNodeCount(np *modelOracle.NodePool) int {
 	return int(np.QuantityPerSubnet) * len(np.Subnets)
 }
 
-//GetID returns the specified cluster id
+// GetID returns the specified cluster id
 func (o *OKECluster) GetID() uint {
 	return o.modelCluster.ID
 }
@@ -271,12 +272,12 @@ func (o *OKECluster) GetUID() string {
 	return o.modelCluster.UID
 }
 
-//GetModel returns the whole clusterModel
+// GetModel returns the whole clusterModel
 func (o *OKECluster) GetModel() *model.ClusterModel {
 	return o.modelCluster
 }
 
-//CheckEqualityToUpdate validates the update request
+// CheckEqualityToUpdate validates the update request
 func (o *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) error {
 
 	cluster := o.modelCluster.OKE.GetClusterRequestFromModel()
@@ -286,13 +287,13 @@ func (o *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 	return isDifferent(r.OKE, cluster)
 }
 
-//AddDefaultsToUpdate adds defaults to update request
+// AddDefaultsToUpdate adds defaults to update request
 func (o *OKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
 	r.UpdateProperties.OKE.AddDefaults()
 }
 
-//GetAPIEndpoint returns the Kubernetes Api endpoint
+// GetAPIEndpoint returns the Kubernetes Api endpoint
 func (o *OKECluster) GetAPIEndpoint() (string, error) {
 	cluster, err := o.GetCluster()
 	if err != nil {
@@ -330,7 +331,7 @@ func (o *OKECluster) GetLocation() string {
 	return o.modelCluster.Location
 }
 
-//GetSecretId retrieves the secret id
+// GetSecretId retrieves the secret id
 func (o *OKECluster) GetSecretId() string {
 	return o.modelCluster.SecretId
 }
@@ -340,7 +341,7 @@ func (o *OKECluster) RequiresSshPublicKey() bool {
 	return true
 }
 
-//GetSshSecretId retrieves the ssh secret id
+// GetSshSecretId retrieves the ssh secret id
 func (o *OKECluster) GetSshSecretId() string {
 	return o.modelCluster.SshSecretId
 }

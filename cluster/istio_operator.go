@@ -17,11 +17,8 @@ package cluster
 import (
 	"strings"
 
+	"emperror.dev/emperror"
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
-	pConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/istio"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/goph/emperror"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -29,6 +26,10 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	pConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/istio"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 const istioOperatorNamespace = "istio-system"

@@ -18,9 +18,9 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 )

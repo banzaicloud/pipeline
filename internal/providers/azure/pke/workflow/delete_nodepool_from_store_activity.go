@@ -17,8 +17,9 @@ package workflow
 import (
 	"context"
 
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"github.com/goph/emperror"
 )
 
 const DeleteNodePoolFromStoreActivityName = "pke-azure-delete-node-pool-from-store"

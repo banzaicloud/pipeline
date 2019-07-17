@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/cast"
 

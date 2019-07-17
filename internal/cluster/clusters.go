@@ -15,10 +15,11 @@
 package cluster
 
 import (
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/model"
 )
 
 // Clusters acts as a repository interface for clusters.

@@ -17,8 +17,9 @@ package pkeworkflow
 import (
 	"context"
 
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/auth"
-	"github.com/goph/emperror"
 )
 
 const DeleteDexClientActivityName = "pke-delete-dex-client-activity"

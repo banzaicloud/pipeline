@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"strings"
 
+	"emperror.dev/emperror"
 	"github.com/banzaicloud/bank-vaults/pkg/vault"
-	"github.com/goph/emperror"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
 )

@@ -18,10 +18,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/ark/api"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/ark/api"
 )
 
 // RunSyncServices runs ARK sync services

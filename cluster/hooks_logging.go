@@ -17,6 +17,11 @@ package cluster
 import (
 	"fmt"
 
+	"emperror.dev/emperror"
+	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
+
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -25,10 +30,6 @@ import (
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 )
 
 // InstallLogging to install logging deployment

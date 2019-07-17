@@ -17,7 +17,7 @@ package backoff
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/lestrrat-go/backoff"
 )
 

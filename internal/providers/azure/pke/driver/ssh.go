@@ -15,10 +15,11 @@
 package driver
 
 import (
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
 )
 
 // GetOrCreateSSHKeyPair creates and saves a new SSH key pair for the cluster or gets the cluster's SSH key pair if it already exists

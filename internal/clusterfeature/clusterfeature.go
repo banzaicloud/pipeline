@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/goph/logur"
 )
 

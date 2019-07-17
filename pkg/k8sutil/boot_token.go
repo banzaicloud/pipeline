@@ -17,7 +17,7 @@ package k8sutil
 import (
 	"time"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

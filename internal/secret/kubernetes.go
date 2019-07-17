@@ -18,12 +18,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 // KubeSecretRequest contains details for a Kubernetes Secret creation from pipeline secrets.

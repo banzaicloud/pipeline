@@ -25,10 +25,18 @@ import (
 	"strconv"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/jinzhu/gorm"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	"go.uber.org/cadence/client"
+
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
@@ -42,13 +50,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
-	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-	"go.uber.org/cadence/client"
 )
 
 const defaultPKEVersion = "1.12.2"
@@ -58,7 +59,7 @@ var _ CommonCluster = (*EC2ClusterPKE)(nil)
 type EC2ClusterPKE struct {
 	db    *gorm.DB
 	model *internalPke.EC2PKEClusterModel
-	//amazonCluster *ec2.EC2 //Don't use this directly
+	// amazonCluster *ec2.EC2 //Don't use this directly
 	APIEndpoint string
 	log         logrus.FieldLogger
 	session     *session.Session
@@ -690,7 +691,7 @@ func (c *EC2ClusterPKE) GetKubernetesUserName() (string, error) {
 }
 
 func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
-	//log.Info("Create cluster status response")
+	// log.Info("Create cluster status response")
 	hasSpotNodePool := false
 	nodePools := make(map[string]*pkgCluster.NodePoolStatus)
 	for _, np := range c.model.NodePools {
@@ -1123,7 +1124,7 @@ func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2Cluster
 		ClusterID: modelCluster.ID,
 	}
 
-	//log.Debug("Load EC2 props from database")
+	// log.Debug("Load EC2 props from database")
 	err := db.Where(m).
 		Preload("Cluster").
 		Preload("Network").

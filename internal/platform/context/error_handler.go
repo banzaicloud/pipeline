@@ -17,7 +17,7 @@ package context
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 )
 
 // ErrorHandlerWithCorrelationID returns a new error handler with a correlation ID in its context.

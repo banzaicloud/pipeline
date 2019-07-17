@@ -19,12 +19,13 @@ import (
 	"fmt"
 	"time"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+
+	pipConfig "github.com/banzaicloud/pipeline/config"
 )
 
 // CreateCluster creates an OKE cluster specified in the request

@@ -19,7 +19,7 @@ import (
 	"encoding/base64"
 	"strconv"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"

@@ -21,10 +21,11 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
+	"github.com/oracle/oci-go-sdk/common"
+
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
-	"github.com/goph/emperror"
-	"github.com/oracle/oci-go-sdk/common"
 )
 
 type objectStore struct {

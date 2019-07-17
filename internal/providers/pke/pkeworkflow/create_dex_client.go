@@ -18,8 +18,9 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/auth"
-	"github.com/goph/emperror"
 )
 
 const CreateDexClientActivityName = "pke-create-dex-client-activity"

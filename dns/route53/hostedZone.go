@@ -19,13 +19,14 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/route53"
-	"github.com/banzaicloud/pipeline/pkg/amazon"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/pkg/amazon"
 )
 
 // createHostedZone creates a hosted zone on AWS Route53 with the given domain name

@@ -17,7 +17,7 @@ package clusterfeatureadapter
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"

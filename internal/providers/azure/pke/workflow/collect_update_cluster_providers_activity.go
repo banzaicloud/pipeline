@@ -17,9 +17,9 @@ package workflow
 import (
 	"context"
 
+	"emperror.dev/emperror"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/goph/emperror"
 )
 
 const CollectUpdateClusterProvidersActivityName = "pke-azure-collect-update-cluster-providers"

@@ -21,12 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/backoff"
-	phelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -40,9 +35,15 @@ import (
 	helmEnv "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
+
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/backoff"
+	phelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
-//PreInstall create's serviceAccount and AccountRoleBinding
+// PreInstall create's serviceAccount and AccountRoleBinding
 func PreInstall(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []byte) error {
 	log.Info("start pre-install")
 
@@ -367,7 +368,7 @@ func Install(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []by
 	}
 	if err := installer.Install(kubeClient, &opts); err != nil {
 		if !k8sapierrors.IsAlreadyExists(err) {
-			//TODO shouldn'T we just skipp?
+			// TODO shouldn'T we just skipp?
 			return err
 		}
 		if helmInstall.Upgrade {

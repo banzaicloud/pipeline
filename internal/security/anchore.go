@@ -25,11 +25,12 @@ import (
 	"net/http"
 	"path"
 
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 var AnchoreEndpoint string  // nolint: gochecknoglobals
@@ -43,7 +44,7 @@ const (
 	SecurityScanNotEnabledMessage string = "security scan isn't enabled"
 )
 
-//AnchoreError
+// AnchoreError
 type AnchoreError struct {
 	Detail   interface{} `json:"detail"`
 	HttpCode int         `json:"httpcode"`
@@ -201,7 +202,7 @@ func anchoreUserEndPoint(username string) string {
 	return path.Join(accountPath, username, "users", username)
 }
 
-//SetupAnchoreUser sets up a new user in Anchore Postgres DB & creates / updates a secret containng user name /password.
+// SetupAnchoreUser sets up a new user in Anchore Postgres DB & creates / updates a secret containng user name /password.
 func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 	anchoreUserName := fmt.Sprintf("%v-anchore-user", clusterId)
 	var user User

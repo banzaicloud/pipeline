@@ -18,6 +18,11 @@ import (
 	"sort"
 	"strings"
 
+	"emperror.dev/emperror"
+	"github.com/jinzhu/gorm"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
@@ -26,10 +31,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type bucketNotFoundError struct{}

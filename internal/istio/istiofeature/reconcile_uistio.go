@@ -17,8 +17,8 @@ package istiofeature
 import (
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"

@@ -20,13 +20,14 @@ import (
 	"fmt"
 	"strings"
 
+	"emperror.dev/emperror"
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/goph/emperror"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 )
 
 const (

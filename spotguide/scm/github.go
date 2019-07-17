@@ -21,9 +21,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"emperror.dev/emperror"
 	"github.com/google/go-github/github"
-	"github.com/goph/emperror"
+
+	"github.com/banzaicloud/pipeline/auth"
 )
 
 type gitHubSCM struct {

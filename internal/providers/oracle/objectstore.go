@@ -18,7 +18,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"

@@ -17,8 +17,9 @@ package scm
 import (
 	"fmt"
 
+	"emperror.dev/emperror"
+
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/goph/emperror"
 )
 
 const InitialCommitMessage = "initial Banzai Cloud Pipeline commit"

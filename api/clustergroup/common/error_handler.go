@@ -17,12 +17,12 @@ package common
 import (
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
 
 	"github.com/banzaicloud/pipeline/api"
 	cgroup "github.com/banzaicloud/pipeline/internal/clustergroup"
+	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )

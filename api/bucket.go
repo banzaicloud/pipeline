@@ -19,6 +19,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
@@ -30,12 +37,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
-	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -758,9 +759,9 @@ func (bc *bucketController) queryData(ginCtx *gin.Context) (*BucketQueryData, er
 	}
 
 	// this is a similar approach to the above, however it only works if all query params to be bound are uppercase (and correspond to the queryData exported fields with no configuration possibilities)
-	//if  err:= ginCtx.BindQuery(&bqd); err != nil {
-	//	return nil, emperror.WrapWith(err, "failed to parse query params", "bucket")
-	//}
+	// if  err:= ginCtx.BindQuery(&bqd); err != nil {
+	// 	return nil, emperror.WrapWith(err, "failed to parse query params", "bucket")
+	// }
 
 	return &bqd, nil
 }

@@ -15,9 +15,10 @@
 package namespace
 
 import (
-	"github.com/banzaicloud/pipeline/api/common"
+	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/emperror"
+
+	"github.com/banzaicloud/pipeline/api/common"
 )
 
 type API struct {

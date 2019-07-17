@@ -18,11 +18,12 @@ import (
 	"context"
 	"time"
 
-	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/workqueue"
+
+	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 type clusterEventsSubscriber interface {

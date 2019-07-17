@@ -15,8 +15,8 @@
 package istiofeature
 
 import (
+	"emperror.dev/emperror"
 	"github.com/gofrs/uuid"
-	"github.com/goph/emperror"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"

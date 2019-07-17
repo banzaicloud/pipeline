@@ -14,7 +14,7 @@
 
 package istiofeature
 
-import "github.com/goph/emperror"
+import "emperror.dev/emperror"
 
 func (m *MeshReconciler) Reconcile() error {
 	desiredState := DesiredStatePresent

@@ -17,9 +17,10 @@ package workflow
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/helm"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/helm"
 )
 
 const DeleteHelmDeploymentsActivityName = "delete-helm-deployments"

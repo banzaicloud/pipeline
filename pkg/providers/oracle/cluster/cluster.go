@@ -17,9 +17,10 @@ package cluster
 import (
 	"regexp"
 
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
+
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // Cluster describes Pipeline's Oracle fields of a Create/Update request

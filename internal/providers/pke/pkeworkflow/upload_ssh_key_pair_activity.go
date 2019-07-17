@@ -18,10 +18,10 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/goph/emperror"
 	"github.com/pkg/errors"
 )
 
@@ -46,7 +46,7 @@ type UploadSSHKeyPairActivityOutput struct {
 }
 
 func (a *UploadSSHKeyPairActivity) Execute(ctx context.Context, input UploadSSHKeyPairActivityInput) (*UploadSSHKeyPairActivityOutput, error) {
-	//log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
+	// log := activity.GetLogger(ctx).Sugar().With("clusterID", input.ClusterID)
 	c, err := a.clusters.GetCluster(ctx, input.ClusterID)
 	if err != nil {
 		return nil, err

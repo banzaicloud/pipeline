@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/log"
@@ -29,11 +29,11 @@ import (
 	k8sHelm "k8s.io/helm/pkg/helm"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/chart"
+	hapi_release5 "k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	hapi_release5 "k8s.io/helm/pkg/proto/hapi/release"
 )
 
 // CGDeploymentManager
@@ -176,7 +176,7 @@ func (m CGDeploymentManager) upgradeDeploymentOnCluster(log *logrus.Entry, apiCl
 		requestedChart,
 		k8sHelm.UpdateValueOverrides(values),
 		k8sHelm.UpgradeDryRun(dryRun),
-		//helm.ResetValues(u.resetValues),
+		// helm.ResetValues(u.resetValues),
 		k8sHelm.ReuseValues(false),
 	)
 	if err != nil {

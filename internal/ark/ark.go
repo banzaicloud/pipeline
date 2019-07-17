@@ -15,7 +15,7 @@
 package ark
 
 import (
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/config"

@@ -32,12 +32,8 @@ import (
 	"text/template"
 	"time"
 
+	"emperror.dev/emperror"
 	"github.com/Masterminds/sprig"
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/goph/emperror"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
@@ -56,6 +52,11 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/release"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
+
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 // DefaultNamespace default namespace
@@ -176,7 +177,7 @@ func GetChartFile(file []byte, fileName string) (string, error) {
 	return "", nil
 }
 
-//DeleteAllDeployment deletes all Helm deployment
+// DeleteAllDeployment deletes all Helm deployment
 func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
 	log.Info("getting deployments....")
 	filter := ""
@@ -214,7 +215,7 @@ func DeleteAllDeployment(log logrus.FieldLogger, kubeconfig []byte) error {
 // nolint: gochecknoglobals
 var deploymentCache = cache.New(30*time.Minute, 5*time.Minute)
 
-//ListDeployments lists Helm deployments
+// ListDeployments lists Helm deployments
 func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.ListReleasesResponse, error) {
 	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
@@ -232,9 +233,9 @@ func ListDeployments(filter *string, tagFilter string, kubeConfig []byte) (*rls.
 			release.Status_PENDING_INSTALL,
 			release.Status_PENDING_UPGRADE,
 			release.Status_PENDING_ROLLBACK}),
-		//helm.ReleaseListLimit(limit),
-		//helm.ReleaseListFilter(filter),
-		//helm.ReleaseListNamespace(""),
+		// helm.ReleaseListLimit(limit),
+		// helm.ReleaseListFilter(filter),
+		// helm.ReleaseListNamespace(""),
 	}
 	if filter != nil {
 		log.Debug("Apply filters: ", *filter)
@@ -339,7 +340,7 @@ func GetRequestedChart(releaseName, chartName, chartVersion string, chartPackage
 	return requestedChart, err
 }
 
-//UpgradeDeployment upgrades a Helm deployment
+// UpgradeDeployment upgrades a Helm deployment
 func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage []byte, values []byte, reuseValues bool, kubeConfig []byte, env helm_env.EnvSettings) (*rls.UpdateReleaseResponse, error) {
 
 	chartRequested, err := GetRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
@@ -347,7 +348,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 		return nil, fmt.Errorf("error loading chart: %v", err)
 	}
 
-	//Get cluster based on inCluster kubeconfig
+	// Get cluster based on inCluster kubeconfig
 	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		return nil, err
@@ -359,7 +360,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 		chartRequested,
 		helm.UpdateValueOverrides(values),
 		helm.UpgradeDryRun(false),
-		//helm.ResetValues(u.resetValues),
+		// helm.ResetValues(u.resetValues),
 		helm.ReuseValues(reuseValues),
 	)
 	if err != nil {
@@ -369,7 +370,7 @@ func UpgradeDeployment(releaseName, chartName, chartVersion string, chartPackage
 	return upgradeRes, nil
 }
 
-//CreateDeployment creates a Helm deployment in chosen namespace
+// CreateDeployment creates a Helm deployment in chosen namespace
 func CreateDeployment(chartName, chartVersion string, chartPackage []byte, namespace string, releaseName string, dryRun bool, odPcts map[string]int, kubeConfig []byte, env helm_env.EnvSettings, overrideOpts ...helm.InstallOption) (*rls.InstallReleaseResponse, error) {
 
 	chartRequested, err := GetRequestedChart(releaseName, chartName, chartVersion, chartPackage, env)
@@ -492,14 +493,14 @@ func cleanupSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName 
 	return nil
 }
 
-//DeleteDeployment deletes a Helm deployment
+// DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(releaseName string, kubeConfig []byte) error {
 	hClient, err := pkgHelm.NewClient(kubeConfig, log)
 	if err != nil {
 		return err
 	}
 	defer hClient.Close()
-	//TODO sophisticate command options
+	// TODO sophisticate command options
 	opts := []helm.DeleteOption{
 		helm.DeletePurge(true),
 	}

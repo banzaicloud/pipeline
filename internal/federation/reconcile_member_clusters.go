@@ -20,12 +20,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/hashicorp/go-multierror"
 	"github.com/kubernetes-sigs/kubefed/pkg/kubefedctl"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	fedv1b1 "sigs.k8s.io/kubefed/pkg/apis/core/v1beta1"
+
+	"github.com/banzaicloud/pipeline/cluster"
 )
 
 func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState) error {

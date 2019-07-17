@@ -15,11 +15,12 @@
 package manager
 
 import (
-	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/goph/emperror"
+	"emperror.dev/emperror"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/containerengine"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
 )
 
 // CreateCluster creates a new cluster

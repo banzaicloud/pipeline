@@ -17,10 +17,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/auth"
+	"emperror.dev/emperror"
 	"github.com/google/go-github/github"
-	"github.com/goph/emperror"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/auth"
 )
 
 // GitHubIssuer creates an issue on GitHub
