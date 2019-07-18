@@ -20,9 +20,9 @@ import (
 	"net/http"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/moogar0880/problems"
-	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
@@ -90,6 +90,9 @@ func encodeHTTPError(err error, w http.ResponseWriter) error {
 	switch {
 	case isBadRequest(err):
 		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
+	case isNotFound(err):
+		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
+
 	default:
 		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
 	}
@@ -98,7 +101,7 @@ func encodeHTTPError(err error, w http.ResponseWriter) error {
 
 	err = json.NewEncoder(w).Encode(problem)
 
-	return emperror.WrapWith(err, "failed to encode error response", "error", problem.Detail)
+	return errors.WrapIfWithDetails(err, "failed to encode error response", "error", problem.Detail)
 }
 
 func decodeListClusterFeaturesRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
@@ -205,7 +208,8 @@ func decodeUpdateClusterFeatureRequest(ctx context.Context, req *http.Request) (
 
 	var requestBody client.UpdateClusterFeatureRequest
 	if err := decodeRequestBody(req, &requestBody); err != nil {
-		return nil, emperror.Wrap(err, "failed to decode request body")
+
+		return nil, errors.WrapIf(err, "failed to decode request body")
 	}
 
 	return UpdateClusterFeatureRequest{
@@ -224,7 +228,7 @@ func encodeUpdateClusterFeatureResponse(_ context.Context, w http.ResponseWriter
 
 func decodeRequestBody(req *http.Request, result interface{}) error {
 	if err := json.NewDecoder(req.Body).Decode(result); err != nil {
-		return invalidRequestBodyError{emperror.Wrap(err, "failed to decode request body")}
+		return invalidRequestBodyError{errors.WrapIf(err, "failed to decode request body")}
 	}
 	return nil
 }
@@ -247,7 +251,7 @@ func (e invalidRequestBodyError) BadRequest() bool {
 
 func isBadRequest(err error) bool {
 	badRequest := false
-	emperror.ForEachCause(err, func(err error) bool {
+	errors.UnwrapEach(err, func(err error) bool {
 		if brErr, ok := err.(interface{ BadRequest() bool }); ok {
 			badRequest = brErr.BadRequest()
 			return !badRequest
@@ -256,4 +260,17 @@ func isBadRequest(err error) bool {
 	})
 
 	return badRequest
+}
+
+func isNotFound(err error) bool {
+	notFound := false
+	errors.UnwrapEach(err, func(err error) bool {
+		if brErr, ok := err.(interface{ NotFound() bool }); ok {
+			notFound = brErr.NotFound()
+			return !notFound
+		}
+		return true
+	})
+
+	return notFound
 }

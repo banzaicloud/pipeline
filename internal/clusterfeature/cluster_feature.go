@@ -265,58 +265,66 @@ const (
 	errorDatabaseAccess     = "could not access the database"
 )
 
-type featureExistsError struct {
+type businessError struct {
 	featureError
+	notFound   bool
+	dataAccess bool
+	badRequest bool
+}
+
+func (be businessError) NotFound() bool {
+	return be.notFound
+}
+
+func (be businessError) DataAccess() bool {
+	return be.dataAccess
+}
+
+func (be businessError) BadRequest() bool {
+	return be.badRequest
 }
 
 func newFeatureExistsError(featureName string) error {
-	return featureExistsError{featureError{
-		featureName: featureName,
-		msg:         errorFeatureExists,
-	}}
-}
-
-type clusterNotReadyError struct {
-	featureError
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorFeatureExists,
+		},
+		badRequest: true}
 }
 
 func newClusterNotReadyError(featureName string) error {
 
-	return clusterNotReadyError{featureError{
-		featureName: featureName,
-		msg:         errorClusterNotReady,
-	}}
-}
-
-type unsupportedFeatureError struct {
-	featureError
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorClusterNotReady,
+		}, badRequest: true}
 }
 
 func newUnsupportedFeatureError(featureName string) error {
-	return unsupportedFeatureError{featureError{
-		featureName: featureName,
-		msg:         errorUnsupportedFeature,
-	}}
-}
-
-type databaseAccessError struct {
-	featureError
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorUnsupportedFeature,
+		},
+		badRequest: true}
 }
 
 func newDatabaseAccessError(featureName string) error {
-	return databaseAccessError{featureError{
-		featureName: featureName,
-		msg:         errorDatabaseAccess,
-	}}
-}
-
-type FeatureNotFoundError struct {
-	featureError
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorDatabaseAccess,
+		},
+		dataAccess: true}
 }
 
 func newFeatureNotFoundError(featureName string) error {
-	return databaseAccessError{featureError{
-		featureName: featureName,
-		msg:         errorFeatureNotFound,
-	}}
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorFeatureNotFound,
+		},
+		notFound: true}
 }
