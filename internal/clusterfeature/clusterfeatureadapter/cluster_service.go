@@ -17,7 +17,7 @@ package clusterfeatureadapter
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -44,12 +44,14 @@ func NewClusterService(getter clusterGetter) clusterfeature.ClusterService {
 func (s *clusterService) GetCluster(ctx context.Context, clusterID uint) (clusterfeature.Cluster, error) {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-		return nil, err
+
+		return nil, errors.WrapIf(err, "failed to retrieve cluster")
 	}
 
 	org, err := auth.GetOrganizationById(c.GetOrganizationId())
 	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to get organization", "organizationId", c.GetOrganizationId())
+
+		return nil, errors.WrapIfWithDetails(err, "failed to get organization", "organizationId", c.GetOrganizationId())
 	}
 
 	return clusterAdapter{c, org.Name}, nil
@@ -58,12 +60,14 @@ func (s *clusterService) GetCluster(ctx context.Context, clusterID uint) (cluste
 func (s *clusterService) IsClusterReady(ctx context.Context, clusterID uint) (bool, error) {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-		return false, err
+
+		return false, errors.WrapIf(err, "failed to retrieve cluster")
 	}
 
 	isReady, err := c.IsReady()
 	if err != nil {
-		return false, emperror.WrapWith(err, "failed to check cluster", "clusterId", clusterID)
+
+		return false, errors.WrapIfWithDetails(err, "failed to check cluster", "clusterId", clusterID)
 	}
 
 	return isReady, err
@@ -93,7 +97,8 @@ func (c clusterAdapter) GetKubeConfig() ([]byte, error) {
 func (c clusterAdapter) IsReady() (bool, error) {
 	isReady, err := c.cluster.IsReady()
 	if err != nil {
-		return false, emperror.WrapWith(err, "failed to check cluster", "clusterId", c.GetID())
+
+		return false, errors.WrapIfWithDetails(err, "failed to check cluster", "clusterId", c.GetID())
 	}
 
 	return isReady, err

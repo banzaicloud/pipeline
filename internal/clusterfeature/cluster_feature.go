@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/goph/logur"
 )
 
@@ -119,16 +119,16 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, spec); err != nil {
-		log.Debug("feature validation failed")
+		log.Debug("failure while checking prerequisites")
 
-		return emperror.Wrap(err, "failed to validate feature")
+		return errors.WrapIf(err, "prerequisites not satisfied")
 	}
 
 	// delegate the task of "deploying" the feature to the manager
 	if err = featureManager.Activate(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
 		log.Error("failed to activate feature")
 
-		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	log.Info("feature successfully activated")
@@ -147,15 +147,15 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, nil); err != nil {
-		mLogger.Debug("feature validation failed")
+		mLogger.Debug("failure while checking prerequisites")
 
-		return emperror.Wrap(err, "failed to activate feature")
+		return errors.WrapIf(err, "prerequisites not satisfied")
 	}
 
 	if err := featureManager.Deactivate(ctx, clusterID, featureName); err != nil {
 		mLogger.Debug("failed to deactivate feature on cluster")
 
-		return emperror.WrapWith(err, "failed to deactivate feature", "clusterID", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, "failed to deactivate feature", "clusterID", clusterID, "feature", featureName)
 	}
 
 	mLogger.Info("successfully deactivated feature")
@@ -197,7 +197,7 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 	if features, err = s.featureLister.List(ctx, clusterID); err != nil {
 		mLogger.Info("failed to retrieve features")
 
-		return nil, emperror.Wrap(err, "failed to retrieve features")
+		return nil, errors.WrapIf(err, "failed to retrieve features")
 	}
 
 	mLogger.Info("features successfully retrieved")
@@ -217,15 +217,15 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, spec); err != nil {
-		mLogger.Debug("feature validation failed")
+		mLogger.Debug("failure while checking prerequisites")
 
-		return emperror.Wrap(err, "failed to validate feature")
+		return errors.WrapIf(err, "prerequisites not satisfied")
 	}
 
 	if err := featureManager.Update(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
 		mLogger.Debug("failed to update feature")
 
-		return emperror.WrapWith(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
 	}
 
 	mLogger.Info("successfully updated feature spec")
