@@ -17,8 +17,9 @@ package clusterfeature
 import (
 	"context"
 
+	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/goph/emperror"
+
 	"github.com/goph/logur"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -147,7 +148,7 @@ func (hs *featureHelmService) UpdateDeployment(ctx context.Context, orgName stri
 
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
-		return emperror.Wrap(err, "unable to fetch deployments")
+		return errors.WrapIf(err, "unable to fetch deployments	")
 	}
 
 	var foundRelease *release.Release
@@ -173,7 +174,7 @@ func (hs *featureHelmService) UpdateDeployment(ctx context.Context, orgName stri
 				kubeConfig,
 				helm.GenerateHelmRepoEnv(orgName))
 			if err != nil {
-				return emperror.WrapWith(err, "could not upgrade deployment", "deploymentName", deploymentName)
+				return errors.WrapIfWithDetails(err, "could not upgrade deployment", "deploymentName", deploymentName)
 			}
 			return nil
 		}
