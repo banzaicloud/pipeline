@@ -206,7 +206,15 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 				LabelSelector: labels.Set{"owner": "pipeline"}.AsSelector().String(),
 			})
 			if err != nil {
-				return emperror.Wrap(err, "can not list namespaces")
+				err = emperror.Wrap(err, "can not list namespaces")
+
+				if !force {
+					cluster.SetStatus(pkgCluster.Error, err.Error())
+
+					return err
+				}
+
+				logger.Error(err)
 			}
 		}
 

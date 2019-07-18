@@ -48,7 +48,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 		if nsList == nil {
 			nsList, err = client.CoreV1().Namespaces().List(metav1.ListOptions{})
 			if err != nil {
-				return emperror.Wrap(err, "could not list nsList to delete")
+				return emperror.Wrap(err, "could not list namespaces")
 			}
 		}
 
@@ -93,8 +93,7 @@ func (d UserNamespaceDeleter) Delete(organizationID uint, clusterName string, na
 			case "default", "kube-system", "kube-public":
 				continue
 			}
-
-			if len(namespaces.Items) > 0 {
+			if namespaces != nil && len(namespaces.Items) > 0 {
 				match := false
 				for _, ns := range namespaces.Items {
 					if remainingNamespace.Name == ns.Name {
