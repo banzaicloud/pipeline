@@ -41,16 +41,16 @@ type ChartList struct {
 
 // RepositoryStore
 type RepositoryStore interface {
-	ReposAdd(helmChartRepo *repo.Entry) (bool, error)
-	ReposDelete(repoName string) error
-	ReposModify(repoName string, newRepo *repo.Entry) error
-	ReposUpdate(repoName string) error
-	ReposGet() ([]*repo.Entry, error)
-	ChartsGet(queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error)
-	ChartGet(chartRepo, chartName, chartVersion string) (details *ChartDetails, err error)
-	DownloadChartFromRepo(name, version string) (string, error)
+	AddRepo(helmChartRepo *repo.Entry) (bool, error)
+	DeleteRepo(repoName string) error
+	ModifyRepo(repoName string, newRepo *repo.Entry) error
+	UpdateRepo(repoName string) error
+	GetRepos() ([]*repo.Entry, error)
+	GetCharts(queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error)
+	GetChart(chartRepo, chartName, chartVersion string) (details *ChartDetails, err error)
+	DownloadChart(name, version string) (string, error)
 }
 
-func GetDefaultRepoStore(orgName string, log logur.Logger) (RepositoryStore, error) {
-	return NewFileRepositoryStore(orgName, log)
+func CreateDefaultRepoStore(orgName string, log logur.Logger) (RepositoryStore, error) {
+	return newFileRepositoryStore(orgName, log)
 }

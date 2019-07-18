@@ -309,7 +309,7 @@ func DeploymentHasTag(deployment *pkgHelm.GetDeploymentResponse, tagFilter strin
 
 func GetRequestedChart(orgName, releaseName, chartName, chartVersion string, chartPackage []byte, log logur.Logger) (requestedChart *chart.Chart, err error) {
 
-	repoStore, err := GetDefaultRepoStore(orgName, log)
+	repoStore, err := CreateDefaultRepoStore(orgName, log)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +326,7 @@ func GetRequestedChart(orgName, releaseName, chartName, chartVersion string, cha
 	} else {
 		log.Info("downloading chart")
 		var downloadedChartPath string
-		downloadedChartPath, err = repoStore.DownloadChartFromRepo(chartName, chartVersion)
+		downloadedChartPath, err = repoStore.DownloadChart(chartName, chartVersion)
 		if err != nil {
 			return nil, errors.Wrap(err, "error downloading chart")
 		}

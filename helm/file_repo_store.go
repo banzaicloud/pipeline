@@ -40,7 +40,7 @@ type FileRepositoryStore struct {
 	log logur.Logger
 }
 
-func NewFileRepositoryStore(orgName string, log logur.Logger) (*FileRepositoryStore, error) {
+func newFileRepositoryStore(orgName string, log logur.Logger) (*FileRepositoryStore, error) {
 	var helmPath = config.GetHelmPath(orgName)
 	env := createEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
 
@@ -55,8 +55,8 @@ func NewFileRepositoryStore(orgName string, log logur.Logger) (*FileRepositorySt
 	return repoStore, nil
 }
 
-// ReposGet returns repo
-func (s *FileRepositoryStore) ReposGet() ([]*repo.Entry, error) {
+// GetRepos returns repo
+func (s *FileRepositoryStore) GetRepos() ([]*repo.Entry, error) {
 	repoPath := s.Env.Home.RepositoryFile()
 
 	log := logur.WithFields(s.log, logur.Fields{"repositoryFile": repoPath})
@@ -74,8 +74,8 @@ func (s *FileRepositoryStore) ReposGet() ([]*repo.Entry, error) {
 	return f.Repositories, nil
 }
 
-// ReposAdd adds repo(s)
-func (s *FileRepositoryStore) ReposAdd(helmChartRepo *repo.Entry) (bool, error) {
+// AddRepo adds repo(s)
+func (s *FileRepositoryStore) AddRepo(helmChartRepo *repo.Entry) (bool, error) {
 	repoFile := s.Env.Home.RepositoryFile()
 
 	log := logur.WithFields(s.log, logur.Fields{"repositoryFile": repoFile})
@@ -120,8 +120,8 @@ func (s *FileRepositoryStore) ReposAdd(helmChartRepo *repo.Entry) (bool, error) 
 	return true, nil
 }
 
-// ReposDelete deletes repo(s)
-func (s *FileRepositoryStore) ReposDelete(repoName string) error {
+// DeleteRepo deletes repo(s)
+func (s *FileRepositoryStore) DeleteRepo(repoName string) error {
 	log := logur.WithFields(s.log, logur.Fields{"repoName": repoName})
 
 	repoFile := s.Env.Home.RepositoryFile()
@@ -149,8 +149,8 @@ func (s *FileRepositoryStore) ReposDelete(repoName string) error {
 
 }
 
-// ReposModify modifies repo(s)
-func (s *FileRepositoryStore) ReposModify(repoName string, newRepo *repo.Entry) error {
+// ModifyRepo modifies repo(s)
+func (s *FileRepositoryStore) ModifyRepo(repoName string, newRepo *repo.Entry) error {
 	repoFile := s.Env.Home.RepositoryFile()
 
 	log := logur.WithFields(s.log, logur.Fields{"repoName": repoName, "repositoryFile": repoFile})
@@ -196,8 +196,8 @@ func (s *FileRepositoryStore) ReposModify(repoName string, newRepo *repo.Entry) 
 	return nil
 }
 
-// ReposUpdate updates a repo(s)
-func (s *FileRepositoryStore) ReposUpdate(repoName string) error {
+// UpdateRepo updates a repo(s)
+func (s *FileRepositoryStore) UpdateRepo(repoName string) error {
 	repoFile := s.Env.Home.RepositoryFile()
 
 	log := logur.WithFields(s.log, logur.Fields{"repoName": repoName, "repositoryFile": repoFile})
@@ -228,8 +228,8 @@ func (s *FileRepositoryStore) ReposUpdate(repoName string) error {
 	return ErrRepoNotFound
 }
 
-// ChartsGet returns chart list
-func (s *FileRepositoryStore) ChartsGet(queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
+// GetCharts returns chart list
+func (s *FileRepositoryStore) GetCharts(queryName, queryRepo, queryVersion, queryKeyword string) ([]ChartList, error) {
 	repoFile := s.Env.Home.RepositoryFile()
 
 	log := logur.WithFields(s.log, logur.Fields{"repositoryFile": repoFile})
@@ -281,8 +281,8 @@ func (s *FileRepositoryStore) ChartsGet(queryName, queryRepo, queryVersion, quer
 	return cl, nil
 }
 
-// ChartGet returns chart details
-func (s *FileRepositoryStore) ChartGet(chartRepo, chartName, chartVersion string) (details *ChartDetails, err error) {
+// GetChart returns chart details
+func (s *FileRepositoryStore) GetChart(chartRepo, chartName, chartVersion string) (details *ChartDetails, err error) {
 	repoPath := s.Env.Home.RepositoryFile()
 
 	log := logur.WithFields(s.log, logur.Fields{"repositoryFile": repoPath, "chartRepo": chartRepo, "chartName": chartName, "chartVersion": chartVersion})
@@ -351,8 +351,8 @@ func (s *FileRepositoryStore) ChartGet(chartRepo, chartName, chartVersion string
 	return
 }
 
-// DownloadChartFromRepo download a given chart
-func (s *FileRepositoryStore) DownloadChartFromRepo(name, version string) (string, error) {
+// DownloadChart download a given chart
+func (s *FileRepositoryStore) DownloadChart(name, version string) (string, error) {
 	dl := downloader.ChartDownloader{
 		HelmHome: s.Env.Home,
 		Getters:  getter.All(s.Env),
@@ -447,7 +447,7 @@ func (s *FileRepositoryStore) ensureDefaultRepos() error {
 
 	s.log.Info("setting up default helm chart repos.")
 
-	_, err := s.ReposAdd(
+	_, err := s.AddRepo(
 		&repo.Entry{
 			Name:  phelm.StableRepository,
 			URL:   stableRepositoryURL,
@@ -456,7 +456,7 @@ func (s *FileRepositoryStore) ensureDefaultRepos() error {
 	if err != nil {
 		return errors.Wrapf(err, "cannot init repo: %s", phelm.StableRepository)
 	}
-	_, err = s.ReposAdd(
+	_, err = s.AddRepo(
 		&repo.Entry{
 			Name:  phelm.BanzaiRepository,
 			URL:   banzaiRepositoryURL,

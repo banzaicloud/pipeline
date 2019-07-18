@@ -285,7 +285,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
-	_, err = helm.GetDefaultRepoStore(currentUser.Organizations[0].Name, logrusadapter.New(config.Logger()))
+	_, err = helm.CreateDefaultRepoStore(currentUser.Organizations[0].Name, logrusadapter.New(config.Logger()))
 	if err != nil {
 		log.Errorf("Error during local helm install: %s", err.Error())
 	}

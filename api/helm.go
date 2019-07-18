@@ -178,7 +178,7 @@ func ListDeployments(c *gin.Context) {
 		return
 	}
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -189,7 +189,7 @@ func ListDeployments(c *gin.Context) {
 		return
 	}
 
-	chartsResponse, err := rs.ChartsGet("", "", "", "")
+	chartsResponse, err := rs.GetCharts("", "", "", "")
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -569,7 +569,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 func HelmReposGet(c *gin.Context) {
 	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -580,7 +580,7 @@ func HelmReposGet(c *gin.Context) {
 		return
 	}
 
-	response, err := rs.ReposGet()
+	response, err := rs.GetRepos()
 	if err != nil {
 		log.Error(fmt.Sprint("error during get helm repo list:", err.Error()))
 		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
@@ -610,7 +610,7 @@ func HelmReposAdd(c *gin.Context) {
 		return
 	}
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -621,7 +621,7 @@ func HelmReposAdd(c *gin.Context) {
 		return
 	}
 
-	_, err = rs.ReposAdd(r)
+	_, err = rs.AddRepo(r)
 	if err != nil {
 		log.Error(fmt.Sprint("error adding helm repo:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -643,7 +643,7 @@ func HelmReposDelete(c *gin.Context) {
 
 	repoName := c.Param("name")
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -654,7 +654,7 @@ func HelmReposDelete(c *gin.Context) {
 		return
 	}
 
-	err = rs.ReposDelete(repoName)
+	err = rs.DeleteRepo(repoName)
 	if err != nil {
 		log.Error(fmt.Sprint("error during get helm repo delete:", err.Error()))
 		if err.Error() == helm.ErrRepoNotFound.Error() {
@@ -697,7 +697,7 @@ func HelmReposModify(c *gin.Context) {
 		})
 		return
 	}
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -707,7 +707,7 @@ func HelmReposModify(c *gin.Context) {
 		})
 		return
 	}
-	errModify := rs.ReposModify(repoName, newRepo)
+	errModify := rs.ModifyRepo(repoName, newRepo)
 	if errModify != nil {
 		if errModify == helm.ErrRepoNotFound {
 			c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
@@ -738,7 +738,7 @@ func HelmReposUpdate(c *gin.Context) {
 
 	repoName := c.Param("name")
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -748,7 +748,7 @@ func HelmReposUpdate(c *gin.Context) {
 		})
 		return
 	}
-	errUpdate := rs.ReposUpdate(repoName)
+	errUpdate := rs.UpdateRepo(repoName)
 	if errUpdate != nil {
 		log.Error(fmt.Sprint("error during helm repo update:", errUpdate.Error()))
 		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
@@ -781,7 +781,7 @@ func HelmCharts(c *gin.Context) {
 	}
 
 	log.Debug(fmt.Sprintf("%v", query))
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -791,7 +791,7 @@ func HelmCharts(c *gin.Context) {
 		})
 		return
 	}
-	response, err := rs.ChartsGet(query.Name, query.Repo, query.Version, query.Keyword)
+	response, err := rs.GetCharts(query.Name, query.Repo, query.Version, query.Keyword)
 	if err != nil {
 		log.Error(fmt.Sprint("error during get helm repo chart list:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -813,7 +813,7 @@ func HelmChart(c *gin.Context) {
 	chartName := c.Param("name")
 	chartVersion := c.DefaultQuery("version", "")
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("error listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -823,7 +823,7 @@ func HelmChart(c *gin.Context) {
 		})
 		return
 	}
-	response, err := rs.ChartGet(chartRepo, chartName, chartVersion)
+	response, err := rs.GetChart(chartRepo, chartName, chartVersion)
 	if err != nil {
 		log.Error(fmt.Sprint("error during get helm chart information:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -849,7 +849,7 @@ func HelmChart(c *gin.Context) {
 func sendResponseWithRepo(c *gin.Context, repoName string) {
 	log := logrusadapter.NewFromEntry(pipelineContext.LoggerWithCorrelationID(c, config.Logger()).WithFields(logrus.Fields{}))
 
-	rs, err := helm.GetDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
+	rs, err := helm.CreateDefaultRepoStore(auth.GetCurrentOrganization(c.Request).Name, log)
 	if err != nil {
 		log.Error(fmt.Sprint("Eerror listing charts for deployments:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -860,7 +860,7 @@ func sendResponseWithRepo(c *gin.Context, repoName string) {
 		return
 	}
 
-	entries, err := rs.ReposGet()
+	entries, err := rs.GetRepos()
 	if err != nil {
 		log.Error(fmt.Sprint("error during getting helm repo:", err.Error()))
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
