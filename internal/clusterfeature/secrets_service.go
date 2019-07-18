@@ -17,8 +17,8 @@ package clusterfeature
 import (
 	"context"
 
+	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/goph/emperror"
 	"github.com/goph/logur"
 )
 
@@ -39,7 +39,7 @@ func (s *secretsService) GetSecretValues(ctx context.Context, secretName string,
 	if err != nil {
 		s.logger.Debug("failed to get secret", map[string]interface{}{"name": secretName, "orgID": orgID})
 
-		return nil, emperror.Wrap(err, "failed to get secret")
+		return nil, errors.WrapIf(err, "failed to get secret")
 	}
 
 	s.logger.Info("secret resolved", map[string]interface{}{"name": secretName, "orgID": orgID})

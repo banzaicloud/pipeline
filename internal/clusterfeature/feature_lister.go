@@ -17,7 +17,7 @@ package clusterfeature
 import (
 	"context"
 
-	"github.com/goph/emperror"
+	"emperror.dev/errors"
 	"github.com/goph/logur"
 )
 
@@ -35,7 +35,7 @@ func (fl *featureLister) List(ctx context.Context, clusterID uint) ([]Feature, e
 	if err != nil {
 		mLogger.Debug("failed to retrieve features")
 
-		return nil, emperror.Wrap(err, "failed to retrieve features")
+		return nil, errors.WrapIf(err, "failed to retrieve features")
 	}
 
 	mLogger.Debug("features successfully retrieved")

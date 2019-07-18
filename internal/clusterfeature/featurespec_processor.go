@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 
+	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/dns"
-	"github.com/goph/emperror"
 	"github.com/goph/logur"
 	"github.com/mitchellh/mapstructure"
 )
@@ -49,19 +49,19 @@ func (p *externalDnsFeatureSpecProcessor) Process(ctx context.Context, orgID uin
 	rawValues := externalDnsFeatureSpec{}
 	if err := mapstructure.Decode(spec, &rawValues); err != nil {
 
-		return nil, emperror.Wrap(err, "could not process feature spec")
+		return nil, errors.WrapIf(err, "could not process feature spec")
 	}
 
 	secrets, err := p.secretsService.GetSecretValues(ctx, rawValues.SecretName, orgID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to process feature spec secrets")
+		return nil, errors.WrapIf(err, "failed to process feature spec secrets")
 	}
 
 	// parse secrets - aws only for the time being
 	creds := awsCredentials{}
 	if err := mapstructure.Decode(secrets, &creds); err != nil {
 
-		return nil, emperror.Wrap(err, "failed to bind feature spec credentials")
+		return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
 	}
 
 	// set secret values
@@ -73,7 +73,7 @@ func (p *externalDnsFeatureSpecProcessor) Process(ctx context.Context, orgID uin
 	values, err := json.Marshal(rawValues.Overrides)
 	if err != nil {
 
-		return nil, emperror.Wrap(err, "failed to decode values")
+		return nil, errors.WrapIf(err, "failed to decode values")
 	}
 
 	return values, nil
