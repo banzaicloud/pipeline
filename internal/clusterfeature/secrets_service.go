@@ -23,5 +23,3 @@ type SecretsService interface {
 	// Resolves the secret by name
 	GetSecretValues(ctx context.Context, secretName string, orgID uint) (interface{}, error)
 }
-
-

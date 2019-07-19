@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
@@ -31,7 +32,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -217,7 +217,7 @@ func main() {
 
 	workflowClient, err := config.CadenceClient()
 	if err != nil {
-		errorHandler.Handle(emperror.Wrap(err, "Failed to configure Cadence client"))
+		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 	}
 
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, log, errorHandler)
@@ -233,11 +233,11 @@ func main() {
 	if viper.GetBool(config.MonitorEnabled) {
 		client, err := k8sclient.NewInClusterClient()
 		if err != nil {
-			errorHandler.Handle(emperror.Wrap(err, "failed to enable monitoring"))
+			errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
 		} else {
 			dnsBaseDomain, err := dns.GetBaseDomain()
 			if err != nil {
-				errorHandler.Handle(emperror.Wrap(err, "failed to enable monitoring"))
+				errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
 			}
 
 			monitorClusterSubscriber := monitor.NewClusterSubscriber(
@@ -382,7 +382,7 @@ func main() {
 	}
 
 	scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
-	emperror.Panic(emperror.Wrap(err, "failed to create SCMFactory"))
+	emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
 
 	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 	if err != nil {
@@ -556,7 +556,7 @@ func main() {
 			pkeGroup := clusters.Group("/pke")
 
 			leaderRepository, err := pke.NewVaultLeaderRepository()
-			emperror.Panic(emperror.Wrap(err, "failed to create Vault leader repository"))
+			emperror.Panic(errors.WrapIf(err, "failed to create Vault leader repository"))
 
 			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient, leaderRepository)
 			pkeAPI.RegisterRoutes(pkeGroup)
@@ -567,10 +567,10 @@ func main() {
 			)
 
 			clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
-			emperror.Panic(emperror.Wrap(err, "failed to create DexClusterAuthService"))
+			emperror.Panic(errors.WrapIf(err, "failed to create DexClusterAuthService"))
 
 			pipelineExternalURL, err := url.Parse(externalBaseURL)
-			emperror.Panic(emperror.Wrap(err, "failed to parse pipeline externalBaseURL"))
+			emperror.Panic(errors.WrapIf(err, "failed to parse pipeline externalBaseURL"))
 
 			pipelineExternalURL.Path = "/auth/dex/cluster/callback"
 
@@ -582,7 +582,7 @@ func main() {
 				viper.GetBool("auth.dexInsecure"),
 				pipelineExternalURL.String(),
 			)
-			emperror.Panic(emperror.Wrap(err, "failed to create ClusterAuthAPI"))
+			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))
 
 			clusterAuthAPI.RegisterRoutes(pkeGroup, router)
 
@@ -670,7 +670,7 @@ func main() {
 
 	issueHandler, err := api.NewIssueHandler(version, commitHash, buildDate)
 	if err != nil {
-		emperror.Panic(emperror.Wrap(err, "failed to create IssueHandler"))
+		emperror.Panic(errors.WrapIf(err, "failed to create IssueHandler"))
 	}
 	base.POST("issues", auth.Handler, issueHandler)
 

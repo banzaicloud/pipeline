@@ -18,7 +18,6 @@ import (
 	"context"
 )
 
-
 // ClusterService provides a thin access layer to clusters.
 type ClusterService interface {
 	// GetCluster retrieves the cluster representation based on the cluster identifier
