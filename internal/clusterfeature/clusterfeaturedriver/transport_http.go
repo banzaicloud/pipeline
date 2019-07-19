@@ -42,49 +42,46 @@ type HTTPHandlers struct {
 // MakeHTTPHandlers returns an HTTP Handlers struct where each handler invokes
 // the corresponding method on the provided service.
 func MakeHTTPHandlers(endpoints Endpoints, errorHandler emperror.Handler) HTTPHandlers {
-	errorEncoder := httptransport.ServerErrorEncoder(func(ctx context.Context, err error, w http.ResponseWriter) {
-		errorHandler.Handle(err)
-
-		if err := encodeHTTPError(err, w); err != nil {
-			errorHandler.Handle(err)
-		}
-	})
+	options := []httptransport.ServerOption{
+		httptransport.ServerErrorEncoder(encodeHTTPError),
+		httptransport.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+	}
 
 	return HTTPHandlers{
 		List: httptransport.NewServer(
 			endpoints.List,
 			decodeListClusterFeaturesRequest,
 			encodeListClusterFeaturesResponse,
-			errorEncoder,
+			options...,
 		),
 		Details: httptransport.NewServer(
 			endpoints.Details,
 			decodeClusterFeatureDetailsRequest,
 			encodeClusterFeatureDetailsResponse,
-			errorEncoder,
+			options...,
 		),
 		Activate: httptransport.NewServer(
 			endpoints.Activate,
 			decodeActivateClusterFeatureRequest,
 			encodeActivateClusterFeatureResponse,
-			errorEncoder,
+			options...,
 		),
 		Deactivate: httptransport.NewServer(
 			endpoints.Deactivate,
 			decodeDeactivateClusterFeatureRequest,
 			encodeDeactivateClusterFeatureResponse,
-			errorEncoder,
+			options...,
 		),
 		Update: httptransport.NewServer(
 			endpoints.Update,
 			decodeUpdateClusterFeatureRequest,
 			encodeUpdateClusterFeatureResponse,
-			errorEncoder,
+			options...,
 		),
 	}
 }
 
-func encodeHTTPError(err error, w http.ResponseWriter) error {
+func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	var problem *problems.DefaultProblem
 
 	switch {
@@ -98,10 +95,7 @@ func encodeHTTPError(err error, w http.ResponseWriter) error {
 	}
 
 	w.Header().Set("Content-Type", problems.ProblemMediaType)
-
-	err = json.NewEncoder(w).Encode(problem)
-
-	return errors.WrapIfWithDetails(err, "failed to encode error response", "error", problem.Detail)
+	_ = json.NewEncoder(w).Encode(problem)
 }
 
 func decodeListClusterFeaturesRequest(ctx context.Context, _ *http.Request) (interface{}, error) {
