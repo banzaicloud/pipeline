@@ -265,8 +265,8 @@ func isBadRequest(err error) bool {
 func isNotFound(err error) bool {
 	notFound := false
 	errors.UnwrapEach(err, func(err error) bool {
-		if brErr, ok := err.(interface{ NotFound() bool }); ok {
-			notFound = brErr.NotFound()
+		if nfe, ok := err.(interface{ NotFound() bool }); ok {
+			notFound = nfe.NotFound()
 			return !notFound
 		}
 		return true
