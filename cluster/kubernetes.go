@@ -16,11 +16,11 @@ package cluster
 
 import (
 	"encoding/base64"
-	"errors"
 	"strings"
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 
 	"github.com/sirupsen/logrus"
 	storagev1 "k8s.io/api/storage/v1"
@@ -292,7 +293,12 @@ func (c *KubeCluster) IsReady() (bool, error) {
 
 // ValidateCreationFields validates all field
 func (c *KubeCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) error {
-	return nil
+	sir, err := getSecret(c.GetOrganizationId(), r.SecretId)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "secret not found", "secretID", r.SecretId)
+	}
+
+	return verify.CreateKubeConfigSecretVerifier(sir.Values).VerifySecret()
 }
 
 // GetSecretWithValidation returns secret from vault
@@ -411,7 +417,7 @@ func (c *KubeCluster) isRBACEnabled(client *kubernetes.Clientset) (bool, error) 
 
 	apiGroups, err := client.ServerGroups()
 	if err != nil {
-		return false, emperror.Wrap(err, "couldn't retrieve Kubernetes API groups")
+		return false, errors.WrapIf(err, "couldn't retrieve Kubernetes API groups")
 	}
 
 	if apiGroups == nil {
