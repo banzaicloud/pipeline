@@ -357,7 +357,7 @@ func init() {
 	viper.SetDefault(PrometheusServiceContext, "prometheus")
 	viper.SetDefault(PrometheusLocalPort, 9090)
 
-	viper.SetDefault(FederationChartVersion, "0.1.0-rc2")
+	viper.SetDefault(FederationChartVersion, "0.1.0-rc3")
 	viper.SetDefault(FederationChartName, "kubefed-charts/kubefed")
 
 	viper.SetDefault(DNSExternalDnsReleaseName, "dns")
