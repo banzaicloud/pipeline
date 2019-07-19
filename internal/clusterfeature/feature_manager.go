@@ -265,7 +265,9 @@ func (sfm *externalDnsFeatureManager) CheckPrerequisites(ctx context.Context, cl
 	ready, err := sfm.clusterService.IsClusterReady(ctx, clusterID)
 	if err != nil {
 
-		return errors.WrapIf(err, "could not access cluster")
+		//return errors.WrapIf(err, "could not access cluster")
+		// todo refine further the error handling in the underlying call stack
+		return newClusterNotReadyError(featureName)
 	}
 
 	if !ready {
