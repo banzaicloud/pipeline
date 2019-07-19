@@ -38,6 +38,8 @@ func NewVerifier(cloudType string, values map[string]string) Verifier {
 		return CreateGCPSecretVerifier(values)
 	case pkgCluster.Oracle:
 		return oracle.CreateOCISecret(values)
+	case pkgCluster.Kubernetes:
+		return CreateKubeConfigSecretVerifier(values)
 	default:
 		return nil
 	}
