@@ -2,7 +2,7 @@ module github.com/banzaicloud/pipeline
 
 require (
 	cloud.google.com/go v0.33.1
-	emperror.dev/emperror v0.21.0
+	emperror.dev/emperror v0.21.2
 	emperror.dev/errors v0.4.1
 	emperror.dev/handler/logrus v0.1.0
 	github.com/Azure/azure-pipeline-go v0.1.8
@@ -52,7 +52,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
 	github.com/gin-gonic/gin v1.3.1-0.20190402010134-2e915f4e5083
-	github.com/go-kit/kit v0.8.0
+	github.com/go-kit/kit v0.9.0
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
