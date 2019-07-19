@@ -26,6 +26,7 @@ import (
 	"emperror.dev/emperror"
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/logur/adapters/logrusadapter"
@@ -507,13 +508,17 @@ func main() {
 
 			// ClusterInfo Feature API
 			{
+				featureLogger := logrusadapter.New(log)
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(logrusadapter.New(log), db)
-				featureLister := clusterfeature.NewFeatureLister(logrusadapter.New(log), featureRepository)
-				featureManager := clusterfeature.NewExternalDnsFeatureManager(logrusadapter.New(log), featureRepository, clusterService)
-				featureManagerRegistry := clusterfeature.NewFeatureManagerRegistry(logrusadapter.New(log))
+				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(featureLogger, db)
+				helmService := clusterfeatureadapter.NewHelmService(featureLogger)
+				featureLister := clusterfeature.NewFeatureLister(featureLogger, featureRepository)
+				secretsService := clusterfeatureadapter.NewSecretsService(featureLogger)
+				featureSpecProcessor := featureDns.NewDnsFeatureSpecProcessor(featureLogger, secretsService)
+				featureManager := featureDns.NewDnsFeatureManager(featureLogger, featureRepository, clusterService, helmService, featureSpecProcessor)
+				featureManagerRegistry := clusterfeature.NewFeatureManagerRegistry(featureLogger)
 				featureManagerRegistry.RegisterFeatureManager(context.Background(), "external-dns", featureManager)
-				service := clusterfeature.NewClusterFeatureService(logrusadapter.New(log), featureLister, featureManagerRegistry)
+				service := clusterfeature.NewClusterFeatureService(featureLogger, featureLister, featureManagerRegistry)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 

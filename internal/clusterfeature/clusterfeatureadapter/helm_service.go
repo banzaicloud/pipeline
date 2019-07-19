@@ -12,31 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature
+package clusterfeatureadapter
 
 import (
 	"context"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/helm"
-
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/goph/logur"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
 )
-
-// HelmService interface for helm operations
-type HelmService interface {
-	// InstallDeployment installs a feature to the given cluster
-	InstallDeployment(ctx context.Context, orgName string, kubeConfig []byte, namespace string,
-		deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error
-
-	// DeleteDeployment removes a feature to the given cluster
-	DeleteDeployment(ctx context.Context, kubeConfig []byte, releaseName string) error
-
-	UpdateDeployment(ctx context.Context, orgName string, kubeConfig []byte, namespace string,
-		deploymentName string, releaseName string, values []byte, chartVersion string) error
-}
 
 // component in chrge for installing features from helm charts
 type featureHelmService struct {
@@ -181,4 +168,10 @@ func (hs *featureHelmService) UpdateDeployment(ctx context.Context, orgName stri
 	}
 
 	return nil
+}
+
+func NewHelmService(logger logur.Logger) clusterfeature.HelmService {
+	return &featureHelmService{
+		logger: logur.WithFields(logger, map[string]interface{}{"helm-service": "comp"}),
+	}
 }

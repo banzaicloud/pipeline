@@ -115,7 +115,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	featureManager, err = s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
 
-		return newUnsupportedFeatureError(featureName)
+		return NewUnsupportedFeatureError(featureName)
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, spec); err != nil {
@@ -143,7 +143,7 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
 
-		return newUnsupportedFeatureError(featureName)
+		return NewUnsupportedFeatureError(featureName)
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, nil); err != nil {
@@ -170,7 +170,7 @@ func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureNam
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
 
-		return nil, newUnsupportedFeatureError(featureName)
+		return nil, NewUnsupportedFeatureError(featureName)
 	}
 
 	feature, err := featureManager.Details(ctx, clusterID, featureName)
@@ -213,7 +213,7 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	if err != nil {
 		mLogger.Debug("failed to get feature manager")
 
-		return newUnsupportedFeatureError(featureName)
+		return NewUnsupportedFeatureError(featureName)
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, spec); err != nil {
@@ -284,7 +284,7 @@ func (be businessError) BadRequest() bool {
 	return be.badRequest
 }
 
-func newFeatureExistsError(featureName string) error {
+func NewFeatureExistsError(featureName string) error {
 	return businessError{
 		featureError: featureError{
 			featureName: featureName,
@@ -293,7 +293,7 @@ func newFeatureExistsError(featureName string) error {
 		badRequest: true}
 }
 
-func newClusterNotReadyError(featureName string) error {
+func NewClusterNotReadyError(featureName string) error {
 
 	return businessError{
 		featureError: featureError{
@@ -302,7 +302,7 @@ func newClusterNotReadyError(featureName string) error {
 		}, badRequest: true}
 }
 
-func newUnsupportedFeatureError(featureName string) error {
+func NewUnsupportedFeatureError(featureName string) error {
 	return businessError{
 		featureError: featureError{
 			featureName: featureName,
@@ -311,7 +311,7 @@ func newUnsupportedFeatureError(featureName string) error {
 		badRequest: true}
 }
 
-func newDatabaseAccessError(featureName string) error {
+func NewDatabaseAccessError(featureName string) error {
 	return businessError{
 		featureError: featureError{
 			featureName: featureName,
@@ -320,7 +320,7 @@ func newDatabaseAccessError(featureName string) error {
 		dataAccess: true}
 }
 
-func newFeatureNotFoundError(featureName string) error {
+func NewFeatureNotFoundError(featureName string) error {
 	return businessError{
 		featureError: featureError{
 			featureName: featureName,
