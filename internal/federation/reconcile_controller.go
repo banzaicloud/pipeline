@@ -305,7 +305,7 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 	env := helm.GenerateHelmRepoEnv(org.Name)
 	_, err = helm.ReposAdd(env, &repo.Entry{
 		Name: "kubefed-charts",
-		URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/master/charts",
+		URL:  "https://raw.githubusercontent.com/banzaicloud/kubefed/helm_chart/charts",
 	})
 	if err != nil {
 		return emperror.WrapWith(err, "failed to add kube-chart repo")

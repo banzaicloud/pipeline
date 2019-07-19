@@ -26,30 +26,30 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 )
 
-const federationClusterRoleBindingName = "feddns-crb"
-const federationClusterRoleName = "kubefed-role"
+const federationRoleBindingName = "feddns-rb"
+const externalDNSServiceAccount = "dns-external-dns"
+const federationRoleName = "kubefed-role"
 
-func (m *FederationReconciler) ReconcileClusterRoleBindingForExtDNS(desiredState DesiredState) error {
-
+func (m *FederationReconciler) ReconcileRoleBindingForExtDNS(desiredState DesiredState) error {
 	if desiredState == DesiredStatePresent {
-		err := m.createClusterRoleBindingForExternalDNS()
+		err := m.createRoleBindingForExternalDNS()
 		if err != nil {
-			return emperror.Wrap(err, "error creating ClusterRoleBinding for ExternalDNS")
+			return emperror.Wrap(err, "error creating RoleBinding for ExternalDNS")
 		}
 	} else {
-		err := m.deleteClusterRoleBindingForExternalDNS()
+		err := m.deleteRoleBindingForExternalDNS()
 		if err != nil {
-			return emperror.Wrap(err, "error deleting ClusterRoleBinding for ExternalDNS")
+			return emperror.Wrap(err, "error deleting RoleBinding for ExternalDNS")
 		}
 	}
 
 	return nil
 }
 
-func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
+func (m *FederationReconciler) createRoleBindingForExternalDNS() error {
 
-	m.logger.Debug("start creating ClusterRoleBinding for ExternalDNS")
-	defer m.logger.Debug("finished creating ClusterRoleBinding for ExternalDNS")
+	m.logger.Debug("start creating RoleBinding for ExternalDNS")
+	defer m.logger.Debug("finished creating RoleBinding for ExternalDNS")
 
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
@@ -60,28 +60,28 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 		return err
 	}
 
-	crb, err := cl.ClusterRoleBindings().Get(federationClusterRoleBindingName, apiv1.GetOptions{})
+	rb, err := cl.RoleBindings(m.Configuration.TargetNamespace).Get(federationRoleBindingName, apiv1.GetOptions{})
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			m.logger.Warnf("ClusterRoleBinding for ExternalDNS not found, will try to create")
+			m.logger.Warnf("RoleBinding for ExternalDNS not found, will try to create")
 		} else {
 			return err
 		}
-	} else if crb.Name == federationClusterRoleBindingName {
-		m.logger.Debug("ClusterRoleBinding for ExternalDNS found")
+	} else if rb.Name == federationRoleBindingName {
+		m.logger.Debug("RoleBinding for ExternalDNS found")
 		return nil
 	}
 
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
 
-	crb = &v1.ClusterRoleBinding{
+	rb = &v1.RoleBinding{
 		ObjectMeta: apiv1.ObjectMeta{
-			Name: federationClusterRoleBindingName,
+			Name: federationRoleBindingName,
 		},
 		RoleRef: v1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     federationClusterRoleName,
+			Kind:     "Role",
+			Name:     federationRoleName,
 		},
 		Subjects: []v1.Subject{
 			{
@@ -91,7 +91,7 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 			},
 		},
 	}
-	_, err = cl.ClusterRoleBindings().Create(crb)
+	_, err = cl.RoleBindings(m.Configuration.TargetNamespace).Create(rb)
 	if err != nil {
 		return err
 	}
@@ -99,10 +99,10 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 	return nil
 }
 
-func (m *FederationReconciler) deleteClusterRoleBindingForExternalDNS() error {
+func (m *FederationReconciler) deleteRoleBindingForExternalDNS() error {
 
-	m.logger.Debug("start deleting ClusterRoleBinding for ExternalDNS")
-	defer m.logger.Debug("finished deleting ClusterRoleBinding for ExternalDNS")
+	m.logger.Debug("start deleting RoleBinding for ExternalDNS")
+	defer m.logger.Debug("finished deleting RoleBinding for ExternalDNS")
 
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
@@ -112,10 +112,10 @@ func (m *FederationReconciler) deleteClusterRoleBindingForExternalDNS() error {
 	if err != nil {
 		return err
 	}
-	err = cl.ClusterRoleBindings().Delete(federationClusterRoleBindingName, &apiv1.DeleteOptions{})
+	err = cl.RoleBindings(m.Configuration.TargetNamespace).Delete(federationRoleBindingName, &apiv1.DeleteOptions{})
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			m.logger.Warnf("crb for externalDND not found")
+			m.logger.Warnf("rb for externalDND not found")
 		} else {
 			return err
 		}
