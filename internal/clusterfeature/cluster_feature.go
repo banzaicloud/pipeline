@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/goph/logur"
 )
 
@@ -115,20 +115,20 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	featureManager, err = s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
 
-		return newUnsupportedFeatureError(featureName)
+		return NewUnsupportedFeatureError(featureName)
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, spec); err != nil {
-		log.Debug("feature validation failed")
+		log.Debug("failure while checking prerequisites")
 
-		return emperror.Wrap(err, "failed to validate feature")
+		return errors.WrapIf(err, "prerequisites not satisfied")
 	}
 
 	// delegate the task of "deploying" the feature to the manager
 	if err = featureManager.Activate(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
 		log.Error("failed to activate feature")
 
-		return emperror.WrapWith(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, "failed to activate feature", "clusterId", clusterID, "feature", featureName)
 	}
 
 	log.Info("feature successfully activated")
@@ -143,19 +143,19 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
 
-		return newUnsupportedFeatureError(featureName)
+		return NewUnsupportedFeatureError(featureName)
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, nil); err != nil {
-		mLogger.Debug("feature validation failed")
+		mLogger.Debug("failure while checking prerequisites")
 
-		return emperror.Wrap(err, "failed to activate feature")
+		return errors.WrapIf(err, "prerequisites not satisfied")
 	}
 
 	if err := featureManager.Deactivate(ctx, clusterID, featureName); err != nil {
 		mLogger.Debug("failed to deactivate feature on cluster")
 
-		return emperror.WrapWith(err, "failed to deactivate feature", "clusterID", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, "failed to deactivate feature", "clusterID", clusterID, "feature", featureName)
 	}
 
 	mLogger.Info("successfully deactivated feature")
@@ -170,7 +170,7 @@ func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureNam
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(ctx, featureName)
 	if err != nil {
 
-		return nil, newUnsupportedFeatureError(featureName)
+		return nil, NewUnsupportedFeatureError(featureName)
 	}
 
 	feature, err := featureManager.Details(ctx, clusterID, featureName)
@@ -197,7 +197,7 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 	if features, err = s.featureLister.List(ctx, clusterID); err != nil {
 		mLogger.Info("failed to retrieve features")
 
-		return nil, emperror.Wrap(err, "failed to retrieve features")
+		return nil, errors.WrapIf(err, "failed to retrieve features")
 	}
 
 	mLogger.Info("features successfully retrieved")
@@ -213,19 +213,19 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 	if err != nil {
 		mLogger.Debug("failed to get feature manager")
 
-		return newUnsupportedFeatureError(featureName)
+		return NewUnsupportedFeatureError(featureName)
 	}
 
 	if err = featureManager.CheckPrerequisites(ctx, clusterID, featureName, spec); err != nil {
-		mLogger.Debug("feature validation failed")
+		mLogger.Debug("failure while checking prerequisites")
 
-		return emperror.Wrap(err, "failed to validate feature")
+		return errors.WrapIf(err, "prerequisites not satisfied")
 	}
 
 	if err := featureManager.Update(ctx, clusterID, Feature{Name: featureName, Spec: spec}); err != nil {
 		mLogger.Debug("failed to update feature")
 
-		return emperror.WrapWith(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
+		return errors.WrapIfWithDetails(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
 	}
 
 	mLogger.Info("successfully updated feature spec")
@@ -265,58 +265,66 @@ const (
 	errorDatabaseAccess     = "could not access the database"
 )
 
-type featureExistsError struct {
+type businessError struct {
 	featureError
+	notFound   bool
+	dataAccess bool
+	badRequest bool
 }
 
-func newFeatureExistsError(featureName string) error {
-	return featureExistsError{featureError{
-		featureName: featureName,
-		msg:         errorFeatureExists,
-	}}
+func (be businessError) NotFound() bool {
+	return be.notFound
 }
 
-type clusterNotReadyError struct {
-	featureError
+func (be businessError) DataAccess() bool {
+	return be.dataAccess
 }
 
-func newClusterNotReadyError(featureName string) error {
-
-	return clusterNotReadyError{featureError{
-		featureName: featureName,
-		msg:         errorClusterNotReady,
-	}}
+func (be businessError) BadRequest() bool {
+	return be.badRequest
 }
 
-type unsupportedFeatureError struct {
-	featureError
+func NewFeatureExistsError(featureName string) error {
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorFeatureExists,
+		},
+		badRequest: true}
 }
 
-func newUnsupportedFeatureError(featureName string) error {
-	return unsupportedFeatureError{featureError{
-		featureName: featureName,
-		msg:         errorUnsupportedFeature,
-	}}
+func NewClusterNotReadyError(featureName string) error {
+
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorClusterNotReady,
+		}, badRequest: true}
 }
 
-type databaseAccessError struct {
-	featureError
+func NewUnsupportedFeatureError(featureName string) error {
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorUnsupportedFeature,
+		},
+		badRequest: true}
 }
 
-func newDatabaseAccessError(featureName string) error {
-	return databaseAccessError{featureError{
-		featureName: featureName,
-		msg:         errorDatabaseAccess,
-	}}
+func NewDatabaseAccessError(featureName string) error {
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorDatabaseAccess,
+		},
+		dataAccess: true}
 }
 
-type FeatureNotFoundError struct {
-	featureError
-}
-
-func newFeatureNotFoundError(featureName string) error {
-	return databaseAccessError{featureError{
-		featureName: featureName,
-		msg:         errorFeatureNotFound,
-	}}
+func NewFeatureNotFoundError(featureName string) error {
+	return businessError{
+		featureError: featureError{
+			featureName: featureName,
+			msg:         errorFeatureNotFound,
+		},
+		notFound: true}
 }
