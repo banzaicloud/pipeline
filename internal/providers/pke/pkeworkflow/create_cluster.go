@@ -18,9 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
-	"github.com/pkg/errors"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 )
@@ -31,17 +30,17 @@ const pkeVersion = "0.4.9"
 func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 	constraint112, err := semver.NewConstraint("~1.12.0")
 	if err != nil {
-		return "", emperror.Wrap(err, "could not create semver constraint for Kubernetes version 1.12+")
+		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.12+")
 	}
 
 	constraint113, err := semver.NewConstraint("~1.13.0")
 	if err != nil {
-		return "", emperror.Wrap(err, "could not create semver constraint for Kubernetes version 1.13+")
+		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.13+")
 	}
 
 	kubeVersion, err := semver.NewVersion(kubernetesVersion)
 	if err != nil {
-		return "", emperror.WrapWith(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
+		return "", errors.WithDetails(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
 	}
 
 	switch {
@@ -395,6 +394,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	// Create nodes
 	{
+		futures := make(map[string]workflow.Future, len(nodePools))
 		for _, np := range nodePools {
 			if !np.Master {
 				subnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
@@ -412,13 +412,16 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 					SSHKeyName:                keyOut.KeyName,
 				}
 
-				err := workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)
-				if err != nil {
-					return err
-				}
+				futures[createWorkerPoolActivityInput.Pool.Name] = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput)
 			}
 		}
-	}
 
-	return nil
+		var err error
+		for name, future := range futures {
+			err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't create nodepool %q", name))
+
+		}
+
+		return err
+	}
 }
