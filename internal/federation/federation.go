@@ -57,6 +57,7 @@ type FederationReconciler struct {
 	ClusterGroupName string
 	Host             cluster.CommonCluster
 	Members          []cluster.CommonCluster
+	InfraNamespace   string
 
 	clusterGetter            api.ClusterGetter
 	logger                   logrus.FieldLogger
@@ -87,11 +88,12 @@ const (
 )
 
 // NewFederationReconciler crates a new feature reconciler for Federation
-func NewFederationReconciler(clusterGroupName string, config Config, clusterGetter api.ClusterGetter, logger logrus.FieldLogger, errorHandler emperror.Handler) *FederationReconciler {
+func NewFederationReconciler(clusterGroupName string, config Config, clusterGetter api.ClusterGetter, infraNamespace string, logger logrus.FieldLogger, errorHandler emperror.Handler) *FederationReconciler {
 	reconciler := &FederationReconciler{
 		Configuration:    config,
 		ClusterGroupName: clusterGroupName,
 		clusterGetter:    clusterGetter,
+		InfraNamespace:   infraNamespace,
 		logger:           logger,
 		errorHandler:     errorHandler,
 	}

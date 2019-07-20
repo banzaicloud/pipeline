@@ -17,13 +17,11 @@ package federation
 import (
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/rbac/v1"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
-
-	pipConfig "github.com/banzaicloud/pipeline/config"
 )
 
 const federationClusterRoleBindingName = "feddns-crb"
@@ -34,12 +32,12 @@ func (m *FederationReconciler) ReconcileClusterRoleBindingForExtDNS(desiredState
 	if desiredState == DesiredStatePresent {
 		err := m.createClusterRoleBindingForExternalDNS()
 		if err != nil {
-			return emperror.Wrap(err, "error creating ClusterRoleBinding for ExternalDNS")
+			return errors.Wrap(err, "error creating ClusterRoleBinding for ExternalDNS")
 		}
 	} else {
 		err := m.deleteClusterRoleBindingForExternalDNS()
 		if err != nil {
-			return emperror.Wrap(err, "error deleting ClusterRoleBinding for ExternalDNS")
+			return errors.Wrap(err, "error deleting ClusterRoleBinding for ExternalDNS")
 		}
 	}
 
@@ -53,11 +51,11 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 
 	clientConfig, err := m.getClientConfig(m.Host)
 	if err != nil {
-		return err
+		return errors.WithStackIf(err)
 	}
 	cl, err := rbacv1.NewForConfig(clientConfig)
 	if err != nil {
-		return err
+		return errors.WithStackIf(err)
 	}
 
 	crb, err := cl.ClusterRoleBindings().Get(federationClusterRoleBindingName, apiv1.GetOptions{})
@@ -65,14 +63,14 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 		if strings.Contains(err.Error(), "not found") {
 			m.logger.Warnf("ClusterRoleBinding for ExternalDNS not found, will try to create")
 		} else {
-			return err
+			return errors.WithStackIf(err)
 		}
 	} else if crb.Name == federationClusterRoleBindingName {
 		m.logger.Debug("ClusterRoleBinding for ExternalDNS found")
 		return nil
 	}
 
-	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	infraNamespace := viper.GetString(m.InfraNamespace)
 
 	crb = &v1.ClusterRoleBinding{
 		ObjectMeta: apiv1.ObjectMeta{
@@ -93,7 +91,7 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 	}
 	_, err = cl.ClusterRoleBindings().Create(crb)
 	if err != nil {
-		return err
+		return errors.WithStackIf(err)
 	}
 
 	return nil
