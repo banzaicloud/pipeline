@@ -25,9 +25,10 @@ import (
 )
 
 type Handler struct {
-	clusterGetter api.ClusterGetter
-	logger        logrus.FieldLogger
-	errorHandler  emperror.Handler
+	clusterGetter  api.ClusterGetter
+	infraNamespace string
+	logger         logrus.FieldLogger
+	errorHandler   emperror.Handler
 }
 
 const FeatureName = "federation"
@@ -35,13 +36,15 @@ const FeatureName = "federation"
 // NewFederationHandler returns a new Handler instance.
 func NewFederationHandler(
 	clusterGetter api.ClusterGetter,
+	infraNamespace string,
 	logger logrus.FieldLogger,
 	errorHandler emperror.Handler,
 ) *Handler {
 	return &Handler{
-		clusterGetter: clusterGetter,
-		logger:        logger.WithField("feature", FeatureName),
-		errorHandler:  errorHandler,
+		clusterGetter:  clusterGetter,
+		infraNamespace: infraNamespace,
+		logger:         logger.WithField("feature", FeatureName),
+		errorHandler:   errorHandler,
 	}
 }
 
@@ -66,7 +69,7 @@ func (f *Handler) ReconcileState(featureState api.Feature) error {
 		return errors.WithStack(err)
 	}
 
-	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, logger, f.errorHandler)
+	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, f.infraNamespace, logger, f.errorHandler)
 	err = fedv2.Reconcile()
 	if err != nil {
 		f.errorHandler.Handle(err)
@@ -133,7 +136,7 @@ func (f *Handler) GetMembersStatus(featureState api.Feature) (map[uint]string, e
 		return nil, errors.WithStack(err)
 	}
 
-	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, f.logger, f.errorHandler)
+	fedv2 := NewFederationReconciler(featureState.ClusterGroup.Name, *config, f.clusterGetter, f.infraNamespace, f.logger, f.errorHandler)
 	statusMap, err = fedv2.GetStatus()
 	if err != nil {
 		f.errorHandler.Handle(err)
