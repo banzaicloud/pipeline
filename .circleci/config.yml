@@ -4,7 +4,7 @@ jobs:
     build:
         docker:
             -
-                image: circleci/golang:1.12
+                image: circleci/golang:1.12-stretch
                 environment:
                     GOFLAG: -mod=readonly
             -
@@ -47,7 +47,9 @@ jobs:
             -
                 run:
                     name: Install build dependencies
-                    command: sudo apt-get install -y mysql-client mysql-utilities postgresql-client
+                    command: |
+                      sudo apt-get update
+                      sudo apt-get install -y mysql-client mysql-utilities postgresql-client
 
             -
                 save_cache:
