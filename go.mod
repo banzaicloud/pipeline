@@ -3,7 +3,7 @@ module github.com/banzaicloud/pipeline
 require (
 	cloud.google.com/go v0.33.1
 	emperror.dev/emperror v0.21.2
-	emperror.dev/errors v0.4.1
+	emperror.dev/errors v0.4.2
 	emperror.dev/handler/logrus v0.1.0
 	github.com/Azure/azure-pipeline-go v0.1.8
 	github.com/Azure/azure-sdk-for-go v23.2.0+incompatible
