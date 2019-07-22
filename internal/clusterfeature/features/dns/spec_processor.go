@@ -19,15 +19,24 @@ import (
 	"encoding/json"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/dns"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
-	"github.com/goph/logur"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/banzaicloud/pipeline/dns"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
+type ClusterSecretStore interface {
+	// GetSecret gets a secret for a cluster if exists
+	GetSecret(ctx context.Context, clusterID uint, name string) (clustersecret.SecretResponse, error)
+}
+
 type externalDnsFeatureSpecProcessor struct {
-	logger         logur.Logger
-	secretsService clusterfeature.SecretsService
+	secretStore ClusterSecretStore
+
+	logger common.Logger
 }
 
 // wrapper struct for handling user inputs
@@ -39,7 +48,7 @@ type externalDnsFeatureSpec struct {
 }
 
 // Process method for assembling the "values" for the helm deployment
-func (p *externalDnsFeatureSpecProcessor) Process(ctx context.Context, orgID uint, spec clusterfeature.FeatureSpec) (interface{}, error) {
+func (p *externalDnsFeatureSpecProcessor) Process(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) (interface{}, error) {
 
 	rawValues := externalDnsFeatureSpec{}
 	if err := mapstructure.Decode(spec, &rawValues); err != nil {
@@ -47,7 +56,7 @@ func (p *externalDnsFeatureSpecProcessor) Process(ctx context.Context, orgID uin
 		return nil, errors.WrapIf(err, "could not process feature spec")
 	}
 
-	secrets, err := p.secretsService.GetSecretValues(ctx, rawValues.SecretName, orgID)
+	secrets, err := p.secretStore.GetSecret(ctx, clusterID, rawValues.SecretName)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to process feature spec secrets")
 	}
@@ -74,11 +83,11 @@ func (p *externalDnsFeatureSpecProcessor) Process(ctx context.Context, orgID uin
 	return values, nil
 }
 
-func NewDnsFeatureSpecProcessor(logger logur.Logger, secretsService clusterfeature.SecretsService) clusterfeature.FeatureSpecProcessor {
+func NewDnsFeatureSpecProcessor(secretStore ClusterSecretStore, logger common.Logger) features.FeatureSpecProcessor {
 
 	return &externalDnsFeatureSpecProcessor{
-		logger:         logur.WithFields(logger, map[string]interface{}{"feature-processor": "comp"}),
-		secretsService: secretsService,
+		logger:      logger,
+		secretStore: secretStore,
 	}
 }
 

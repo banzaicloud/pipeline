@@ -25,6 +25,7 @@ import (
 	"github.com/moogar0880/problems"
 
 	"github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 )
 
@@ -84,10 +85,21 @@ func MakeHTTPHandlers(endpoints Endpoints, errorHandler emperror.Handler) HTTPHa
 func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	var problem *problems.DefaultProblem
 
+	var badRequest interface{ BadRequest() bool }
+	var notFound interface{ NotFound() bool }
+
 	switch {
-	case isBadRequest(err):
+	case errors.As(err, &clusterfeature.UnknownFeatureError{}):
+		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
+	case errors.As(err, &clusterfeature.FeatureAlreadyActivatedError{}), errors.As(err, &clusterfeature.FeatureNotActiveError{}):
+		problem = problems.NewDetailedProblem(http.StatusConflict, err.Error())
+	case errors.As(err, &clusterfeature.InvalidFeatureSpecError{}):
 		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
-	case isNotFound(err):
+	case errors.As(err, &clusterfeature.ClusterIsNotReadyError{}):
+		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
+	case errors.As(err, &badRequest):
+		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
+	case errors.As(err, &notFound):
 		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
 
 	default:
@@ -228,43 +240,10 @@ func decodeRequestBody(req *http.Request, result interface{}) error {
 }
 
 type invalidRequestBodyError struct {
-	cause error
+	err error
 }
 
-func (e invalidRequestBodyError) Cause() error {
-	return e.cause
-}
-
-func (e invalidRequestBodyError) Error() string {
-	return "invalid request body"
-}
-
-func (e invalidRequestBodyError) BadRequest() bool {
-	return true
-}
-
-func isBadRequest(err error) bool {
-	badRequest := false
-	errors.UnwrapEach(err, func(err error) bool {
-		if brErr, ok := err.(interface{ BadRequest() bool }); ok {
-			badRequest = brErr.BadRequest()
-			return !badRequest
-		}
-		return true
-	})
-
-	return badRequest
-}
-
-func isNotFound(err error) bool {
-	notFound := false
-	errors.UnwrapEach(err, func(err error) bool {
-		if nfe, ok := err.(interface{ NotFound() bool }); ok {
-			notFound = nfe.NotFound()
-			return !notFound
-		}
-		return true
-	})
-
-	return notFound
-}
+func (invalidRequestBodyError) Error() string    { return "invalid request body" }
+func (e invalidRequestBodyError) Cause() error   { return e.err }
+func (e invalidRequestBodyError) Unwrap() error  { return e.err }
+func (invalidRequestBodyError) BadRequest() bool { return true }

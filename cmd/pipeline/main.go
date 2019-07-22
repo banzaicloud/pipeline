@@ -27,7 +27,12 @@ import (
 	"emperror.dev/errors"
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/logur/adapters/logrusadapter"
@@ -507,19 +512,25 @@ func main() {
 				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
 			}
 
+			clusterSecretStore := clustersecret.NewStore(
+				clustersecretadapter.NewClusterManagerAdapter(clusterManager),
+				clustersecretadapter.NewSecretStore(secret.Store),
+			)
+
 			// ClusterInfo Feature API
 			{
-				featureLogger := logrusadapter.New(log)
+				logger := commonadapter.NewLogger(logrusadapter.New(log)) // TODO: make this a context aware logger
+				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
+				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+				featureSpecProcessor := featureDns.NewDnsFeatureSpecProcessor(clusterSecretStore, logger)
+
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(featureLogger, db)
-				helmService := clusterfeatureadapter.NewHelmService(featureLogger)
-				featureLister := clusterfeature.NewFeatureLister(featureLogger, featureRepository)
-				secretsService := clusterfeatureadapter.NewSecretsService(featureLogger)
-				featureSpecProcessor := featureDns.NewDnsFeatureSpecProcessor(featureLogger, secretsService)
-				featureManager := featureDns.NewDnsFeatureManager(featureLogger, featureRepository, clusterService, helmService, featureSpecProcessor)
-				featureManagerRegistry := clusterfeature.NewFeatureManagerRegistry(featureLogger)
-				featureManagerRegistry.RegisterFeatureManager(context.Background(), "external-dns", featureManager)
-				service := clusterfeature.NewClusterFeatureService(featureLogger, featureLister, featureManagerRegistry)
+				dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, helmService, featureSpecProcessor, logger)
+				featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
+					"dns": clusterfeature.NewSyncFeatureManager(dnsFeatureManager, clusterService, featureRepository),
+				})
+
+				service := clusterfeature.NewFeatureService(featureRegistry, featureRepository, logger)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 
@@ -561,11 +572,6 @@ func main() {
 
 			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient, leaderRepository)
 			pkeAPI.RegisterRoutes(pkeGroup)
-
-			clusterSecretStore := clustersecret.NewStore(
-				clustersecretadapter.NewClusterManagerAdapter(clusterManager),
-				clustersecretadapter.NewSecretStore(secret.Store),
-			)
 
 			clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 			emperror.Panic(errors.WrapIf(err, "failed to create DexClusterAuthService"))
