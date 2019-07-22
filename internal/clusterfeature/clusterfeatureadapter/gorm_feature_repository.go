@@ -27,6 +27,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 // TableName constants
@@ -79,21 +80,55 @@ func (cfm clusterFeatureModel) String() string {
 // gormFeatureRepository component in charge for executing persistence operation on Features.
 // TODO: write integration tests
 type gormFeatureRepository struct {
-	logger logur.Logger
-	db     *gorm.DB
+	db *gorm.DB
+
+	logger common.Logger
 }
 
 // NewGormFeatureRepository returns a feature repository persisting feature state into database using Gorm.
-func NewGormFeatureRepository(logger logur.Logger, db *gorm.DB) clusterfeature.FeatureRepository {
+func NewGormFeatureRepository(db *gorm.DB, logger common.Logger) clusterfeature.FeatureRepository {
 	return &gormFeatureRepository{
-		logger: logur.WithFields(logger, map[string]interface{}{"gorm-feature-repo": "comp"}),
-		db:     db}
+		db: db,
+
+		logger: logger,
+	}
 }
 
-func (r *gormFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, featureSpec clusterfeature.FeatureSpec) (uint, error) {
+func (r *gormFeatureRepository) GetFeatures(ctx context.Context, clusterID uint) ([]clusterfeature.Feature, error) {
+	logger := logur.WithFields(r.logger, map[string]interface{}{"clusterID": clusterID})
+	logger.Info("retrieving features for cluster")
+
+	var (
+		featureModels []clusterFeatureModel
+		featureList   []clusterfeature.Feature
+	)
+
+	if err := r.db.Find(&featureModels, clusterFeatureModel{ClusterId: clusterID}).Error; err != nil {
+		logger.Debug("could not retrieve features")
+
+		return nil, errors.WrapIfWithDetails(err, "could not retrieve features", "clusterID", clusterID)
+	}
+
+	// model  --> domain
+	for _, feature := range featureModels {
+		f, e := r.modelToFeature(feature)
+		if e != nil {
+			logger.Debug("failed to convert model to feature")
+			continue
+		}
+
+		featureList = append(featureList, *f)
+	}
+
+	logger.Info("features list for cluster retrieved")
+
+	return featureList, nil
+}
+
+func (r *gormFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, spec clusterfeature.FeatureSpec) error {
 	cfModel := clusterFeatureModel{
 		Name:      featureName,
-		Spec:      featureSpec,
+		Spec:      spec,
 		ClusterId: clusterID,
 		Status:    string(clusterfeature.FeatureStatusPending),
 	}
@@ -101,10 +136,10 @@ func (r *gormFeatureRepository) SaveFeature(ctx context.Context, clusterID uint,
 	err := r.db.Save(&cfModel).Error
 	if err != nil {
 
-		return 0, errors.WrapIfWithDetails(err, "failed to persist feature", "feature", featureName)
+		return errors.WrapIfWithDetails(err, "failed to persist feature", "feature", featureName)
 	}
 
-	return cfModel.ID, nil
+	return nil
 }
 
 // GetFeature retrieves a featuer by the cluster id and the feature name.
@@ -171,36 +206,5 @@ func (r *gormFeatureRepository) DeleteFeature(ctx context.Context, clusterID uin
 	}
 
 	return nil
-
-}
-
-func (r *gormFeatureRepository) ListFeatures(ctx context.Context, clusterID uint) ([]clusterfeature.Feature, error) {
-
-	logger := logur.WithFields(r.logger, map[string]interface{}{"clusterID": clusterID})
-	logger.Info("retrieving features for cluster...")
-
-	var (
-		featureModels []clusterFeatureModel
-		featureList   []clusterfeature.Feature
-	)
-
-	if err := r.db.Find(&featureModels, clusterFeatureModel{ClusterId: clusterID}).Error; err != nil {
-		logger.Debug("could not retrieve features")
-
-		return nil, errors.WrapIfWithDetails(err, "could not retrieve features", "clusterID", clusterID)
-	}
-
-	// model  --> domain
-	for _, feature := range featureModels {
-		f, e := r.modelToFeature(feature)
-		if e != nil {
-			logger.Debug("failed to convert model to feature")
-			continue
-		}
-
-		featureList = append(featureList, *f)
-	}
-	logger.Info("features list for cluster retrieved")
-	return featureList, nil
 
 }

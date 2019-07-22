@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusterfeature
+package features
 
 import (
 	"context"
+
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-// SecretsService component interface for secret handling abstraction
-type SecretsService interface {
-	// Resolves the secret by name
-	GetSecretValues(ctx context.Context, secretName string, orgID uint) (interface{}, error)
+// FeatureSpecProcessor component interface for processing FeatureSpecs
+type FeatureSpecProcessor interface {
+	// Process processes (transforms) the passed in FeatureSpec to produce the feature specific representation
+	Process(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) (interface{}, error)
 }

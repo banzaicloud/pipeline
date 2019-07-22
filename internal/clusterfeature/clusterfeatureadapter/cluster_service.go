@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
@@ -41,22 +40,6 @@ func NewClusterService(getter clusterGetter) clusterfeature.ClusterService {
 	}
 }
 
-func (s *clusterService) GetCluster(ctx context.Context, clusterID uint) (clusterfeature.Cluster, error) {
-	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-
-		return nil, errors.WrapIf(err, "failed to retrieve cluster")
-	}
-
-	org, err := auth.GetOrganizationById(c.GetOrganizationId())
-	if err != nil {
-
-		return nil, errors.WrapIfWithDetails(err, "failed to get organization", "organizationId", c.GetOrganizationId())
-	}
-
-	return clusterAdapter{c, org.Name}, nil
-}
-
 func (s *clusterService) IsClusterReady(ctx context.Context, clusterID uint) (bool, error) {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -68,37 +51,6 @@ func (s *clusterService) IsClusterReady(ctx context.Context, clusterID uint) (bo
 	if err != nil {
 
 		return false, errors.WrapIfWithDetails(err, "failed to check cluster", "clusterId", clusterID)
-	}
-
-	return isReady, err
-}
-
-type clusterAdapter struct {
-	cluster cluster.CommonCluster
-	orgName string
-}
-
-func (c clusterAdapter) GetOrganizationID() uint {
-	return c.cluster.GetOrganizationId()
-}
-
-func (c clusterAdapter) GetID() uint {
-	return c.cluster.GetID()
-}
-
-func (c clusterAdapter) GetOrganizationName() string {
-	return c.orgName
-}
-
-func (c clusterAdapter) GetKubeConfig() ([]byte, error) {
-	return c.cluster.GetK8sConfig()
-}
-
-func (c clusterAdapter) IsReady() (bool, error) {
-	isReady, err := c.cluster.IsReady()
-	if err != nil {
-
-		return false, errors.WrapIfWithDetails(err, "failed to check cluster", "clusterId", c.GetID())
 	}
 
 	return isReady, err
