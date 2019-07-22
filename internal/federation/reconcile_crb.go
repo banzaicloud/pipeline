@@ -18,7 +18,6 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/rbac/v1"
 	apiv1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
@@ -70,8 +69,6 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 		return nil
 	}
 
-	infraNamespace := viper.GetString(m.InfraNamespace)
-
 	crb = &v1.ClusterRoleBinding{
 		ObjectMeta: apiv1.ObjectMeta{
 			Name: federationClusterRoleBindingName,
@@ -85,7 +82,7 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 			{
 				Kind:      "ServiceAccount",
 				Name:      externalDNSServiceAccount,
-				Namespace: infraNamespace,
+				Namespace: m.InfraNamespace,
 			},
 		},
 	}
