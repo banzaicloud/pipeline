@@ -17,6 +17,7 @@ package pkeworkflow
 import (
 	"time"
 
+	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -40,11 +41,13 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		ClusterID: input.ClusterID,
 	}
 
-	if err := workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, listNodePoolsActivityInput).Get(ctx, &nodePools); err != nil {
+	var err error
+	if err = workflow.ExecuteActivity(ctx, ListNodePoolsActivityName, listNodePoolsActivityInput).Get(ctx, &nodePools); err != nil {
 		return err
 	}
 
-	var poolActivities []workflow.Future
+	// terminate worker nodes
+	var poolActivities = make(map[string]workflow.Future)
 
 	for _, np := range nodePools {
 		if !np.Master && np.Worker {
@@ -52,16 +55,16 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 				ClusterID: input.ClusterID,
 				Pool:      np,
 			}
-
-			future := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
-			poolActivities = append(poolActivities, future)
+			poolActivities[np.Name] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
 		}
 	}
 
-	for _, future := range poolActivities {
-		if err := future.Get(ctx, nil); err != nil {
-			return err
-		}
+	for name, future := range poolActivities {
+		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", name))
+	}
+
+	if err != nil {
+		return err
 	}
 
 	// release NLB
@@ -69,12 +72,12 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	deleteNLBActivityInput := &DeleteNLBActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err := workflow.ExecuteActivity(ctx, DeleteNLBActivityName, deleteNLBActivityInput).Get(ctx, nil); err != nil {
+	if err = workflow.ExecuteActivity(ctx, DeleteNLBActivityName, deleteNLBActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
-	poolActivities = []workflow.Future{}
-
+	// terminate master nodes
+	poolActivities = make(map[string]workflow.Future)
 	for _, np := range nodePools {
 		if np.Master || !np.Worker {
 			deletePoolActivityInput := DeletePoolActivityInput{
@@ -82,15 +85,16 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 				Pool:      np,
 			}
 
-			future := workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
-			poolActivities = append(poolActivities, future)
+			poolActivities[np.Name] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
 		}
 	}
 
-	for _, future := range poolActivities {
-		if err := future.Get(ctx, nil); err != nil {
-			return err
-		}
+	for name, future := range poolActivities {
+		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", name))
+	}
+
+	if err != nil {
+		return err
 	}
 
 	// clean-up ssh key
@@ -106,7 +110,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	deleteElasticIPActivityInput := &DeleteElasticIPActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err := workflow.ExecuteActivity(ctx, DeleteElasticIPActivityName, deleteElasticIPActivityInput).Get(ctx, nil); err != nil {
+	if err = workflow.ExecuteActivity(ctx, DeleteElasticIPActivityName, deleteElasticIPActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
@@ -115,7 +119,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	deleteVPCActivityInput := &DeleteVPCActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err := workflow.ExecuteActivity(ctx, DeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
+	if err = workflow.ExecuteActivity(ctx, DeleteVPCActivityName, deleteVPCActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
@@ -124,7 +128,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	deleteDexClientActivityInput := &DeleteDexClientActivityInput{
 		ClusterID: input.ClusterID,
 	}
-	if err := workflow.ExecuteActivity(ctx, DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
+	if err = workflow.ExecuteActivity(ctx, DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
 		return err
 	}
 
