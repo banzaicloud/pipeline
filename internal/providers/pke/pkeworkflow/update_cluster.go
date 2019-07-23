@@ -18,8 +18,7 @@ import (
 	"fmt"
 	"time"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -84,52 +83,72 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	}
 
 	// delete removed nodepools
+	futures := make(map[string]workflow.Future, len(input.NodePoolsToDelete))
 	for _, np := range input.NodePoolsToDelete {
 		if np.Master || !np.Worker {
 			continue
 		}
 
-		err := workflow.ExecuteActivity(ctx, DeletePoolActivityName, DeletePoolActivityInput{
+		futures[np.Name] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, DeletePoolActivityInput{
 			// AWSActivityInput: awsActivityInput,
 			ClusterID: input.ClusterID,
 			Pool:      np,
-		}).Get(ctx, nil)
-		if err != nil {
-			return emperror.Wrapf(err, "deleting %q", np.Name)
-		}
+		})
+	}
+
+	for name, future := range futures {
+		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't delete nodepool %q", name))
+	}
+	if err != nil {
+		return err
 	}
 
 	// create/change nodepools that are not removed
+	futures = make(map[string]workflow.Future, len(input.NodePoolsToUpdate))
 	for _, np := range input.NodePoolsToUpdate {
 		stackName := fmt.Sprintf("pke-pool-%s-worker-%s", input.ClusterName, np.Name)
-		var cfOut map[string]string
 
-		err := workflow.ExecuteActivity(ctx,
+		futures[np.Name] = workflow.ExecuteActivity(ctx,
 			WaitCFCompletionActivityName,
 			WaitCFCompletionActivityInput{
 				AWSActivityInput: awsActivityInput,
-				StackID:          stackName}).Get(ctx, &cfOut)
-		if err != nil {
-			return emperror.Wrap(err, fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
+				StackID:          stackName})
+	}
+
+	asgIDs := make(map[string]string, len(input.NodePoolsToUpdate))
+	for name, future := range futures {
+		var cfOut map[string]string
+
+		err = errors.Append(err, errors.Wrapf(future.Get(ctx, &cfOut), "can't find AutoScalingGroup for pool %q", name))
+		if asgID, ok := cfOut["AutoScalingGroupId"]; ok {
+			asgIDs[name] = asgID
+		} else {
+			err = errors.Append(err, errors.Errorf("can't find AutoScalingGroup for pool %q", name))
 		}
 
-		asg, ok := cfOut["AutoScalingGroupId"]
-		if !ok {
-			return errors.New(fmt.Sprintf("can't find AutoScalingGroup for pool %q", np.Name))
-		}
+	}
+	if err != nil {
+		return err
+	}
 
-		err = workflow.ExecuteActivity(ctx,
+	futures = make(map[string]workflow.Future, len(input.NodePoolsToUpdate))
+	for _, np := range input.NodePoolsToUpdate {
+		futures[np.Name] = workflow.ExecuteActivity(ctx,
 			UpdatePoolActivityName,
 			UpdatePoolActivityInput{
 				AWSActivityInput: awsActivityInput,
 				Pool:             np,
-				AutoScalingGroup: asg,
-			}).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
+				AutoScalingGroup: asgIDs[np.Name],
+			})
+	}
+	for name, future := range futures {
+		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't update nodepool %q", name))
+	}
+	if err != nil {
+		return err
 	}
 
+	futures = make(map[string]workflow.Future, len(input.NodePoolsToAdd))
 	for _, np := range input.NodePoolsToAdd {
 		createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
 			// AWSActivityInput:      awsActivityInput,
@@ -144,12 +163,12 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
 			SSHKeyName:                "pke-ssh-" + input.ClusterName,
 		}
-
-		err := workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
+		futures[np.Name] = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput)
 	}
 
-	return nil
+	for name, future := range futures {
+		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't create nodepool %q", name))
+	}
+
+	return err
 }
