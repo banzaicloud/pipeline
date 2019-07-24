@@ -29,7 +29,7 @@ const (
 	istioOperatorReleaseName = "istio-operator"
 	istioVersion             = "1.1"
 	meshNamespace            = "pipeline-mesh"
-	uistioReleaseName        = "uistio"
+	backyardsReleaseName     = "backyards"
 	iroReleaseName           = "iro"
 	prometheusHostname       = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
 	prometheusURL            = "http://monitor-prometheus-server.pipeline-system.svc.cluster.local/prometheus"
@@ -80,7 +80,7 @@ type MeshReconciler struct {
 
 type internalConfig struct {
 	iro           iroConfiguration
-	uistio        uistioConfiguration
+	backyards     backyardsConfiguration
 	istioOperator istioOperatorConfiguration
 }
 
@@ -91,7 +91,7 @@ type iroConfiguration struct {
 	imageTag        string
 }
 
-type uistioConfiguration struct {
+type backyardsConfiguration struct {
 	chartVersion    string
 	chartName       string
 	imageRepository string

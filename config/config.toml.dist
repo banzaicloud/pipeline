@@ -120,11 +120,11 @@ istioOperatorChartName = "istio-operator"
 istioPilotImage = "banzaicloud/istio-pilot:1.1.8-bzc.1"
 istioMixerImage = "banzaicloud/istio-mixer:1.1.8-bzc.1"
 
-[uistio]
-chartVersion = "0.0.12"
-chartName = "uistio"
-imageRepository = "banzaicloud/uistio"
-imageTag = "0.3.10"
+[backyards]
+chartVersion = "0.1.0"
+chartName = "backyards"
+imageRepository = "banzaicloud/backyards"
+imageTag = "0.1.0"
 
 [iro]
 chartVersion = "0.0.3"

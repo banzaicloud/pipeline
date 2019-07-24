@@ -27,11 +27,11 @@ func (config Config) init() Config {
 		imageTag:        viper.GetString(pConfig.IROImageTag),
 	}
 
-	config.internalConfig.uistio = uistioConfiguration{
-		chartVersion:    viper.GetString(pConfig.UistioChartVersion),
-		chartName:       viper.GetString(pConfig.UistioChartName),
-		imageRepository: viper.GetString(pConfig.UistioImageRepository),
-		imageTag:        viper.GetString(pConfig.UistioImageTag),
+	config.internalConfig.backyards = backyardsConfiguration{
+		chartVersion:    viper.GetString(pConfig.BackyardsChartVersion),
+		chartName:       viper.GetString(pConfig.BackyardsChartName),
+		imageRepository: viper.GetString(pConfig.BackyardsImageRepository),
+		imageTag:        viper.GetString(pConfig.BackyardsImageTag),
 	}
 
 	config.internalConfig.istioOperator = istioOperatorConfiguration{
