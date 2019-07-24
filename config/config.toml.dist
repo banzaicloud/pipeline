@@ -126,11 +126,11 @@ chartName = "backyards"
 imageRepository = "banzaicloud/backyards"
 imageTag = "0.1.0"
 
-[iro]
-chartVersion = "0.0.3"
-chartName = "istio-release-operator"
-imageRepository = "banzaicloud/istio-release-operator"
-imageTag = "0.0.1"
+[canary]
+chartVersion = "0.1.1"
+chartName = "canary-operator"
+imageRepository = "banzaicloud/canary-operator"
+imageTag = "0.1.0"
 
 # DNS service settings
 [dns]

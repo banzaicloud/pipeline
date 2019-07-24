@@ -20,11 +20,11 @@ import (
 )
 
 func (config Config) init() Config {
-	config.internalConfig.iro = iroConfiguration{
-		chartVersion:    viper.GetString(pConfig.IROChartVersion),
-		chartName:       viper.GetString(pConfig.IROChartName),
-		imageRepository: viper.GetString(pConfig.IROImageRepository),
-		imageTag:        viper.GetString(pConfig.IROImageTag),
+	config.internalConfig.canary = canaryOperatorConfiguration{
+		chartVersion:    viper.GetString(pConfig.CanaryOperatorChartVersion),
+		chartName:       viper.GetString(pConfig.CanaryOperatorChartName),
+		imageRepository: viper.GetString(pConfig.CanaryOperatorImageRepository),
+		imageTag:        viper.GetString(pConfig.CanaryOperatorImageTag),
 	}
 
 	config.internalConfig.backyards = backyardsConfiguration{

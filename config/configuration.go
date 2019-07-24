@@ -164,10 +164,10 @@ const (
 	BackyardsImageRepository = "backyards.imageRepository"
 	BackyardsImageTag        = "backyards.imageTag"
 
-	IROChartVersion    = "iro.chartVersion"
-	IROChartName       = "iro.chartName"
-	IROImageRepository = "iro.imageRepository"
-	IROImageTag        = "iro.imageTag"
+	CanaryOperatorChartVersion    = "canary.chartVersion"
+	CanaryOperatorChartName       = "canary.chartName"
+	CanaryOperatorImageRepository = "canary.imageRepository"
+	CanaryOperatorImageTag        = "canary.imageTag"
 
 	// NodePool LabelSet Operator
 	NodePoolLabelSetOperatorChartVersion = "nodepools.labelSetOperatorChartVersion"
@@ -331,10 +331,10 @@ func init() {
 	viper.SetDefault(BackyardsImageRepository, "banzaicloud/backyards")
 	viper.SetDefault(BackyardsImageTag, "0.1.0")
 
-	viper.SetDefault(IROChartName, "istio-release-operator")
-	viper.SetDefault(IROChartVersion, "0.0.3")
-	viper.SetDefault(IROImageRepository, "banzaicloud/istio-release-operator")
-	viper.SetDefault(IROImageTag, "0.0.1")
+	viper.SetDefault(CanaryOperatorChartName, "canary-operator")
+	viper.SetDefault(CanaryOperatorChartVersion, "0.1.1")
+	viper.SetDefault(CanaryOperatorImageRepository, "banzaicloud/canary-operator")
+	viper.SetDefault(CanaryOperatorImageTag, "0.1.0")
 
 	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.2")
 

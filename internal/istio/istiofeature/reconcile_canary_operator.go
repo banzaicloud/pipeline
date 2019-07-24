@@ -23,9 +23,9 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
-func (m *MeshReconciler) ReconcileIRO(desiredState DesiredState) error {
-	m.logger.Debug("reconciling istio-release-operator")
-	defer m.logger.Debug("istio-release-operator reconciled")
+func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState) error {
+	m.logger.Debug("reconciling canary-operator")
+	defer m.logger.Debug("canary-operator reconciled")
 
 	if desiredState == DesiredStatePresent {
 		k8sclient, err := m.getMasterK8sClient()
@@ -37,35 +37,35 @@ func (m *MeshReconciler) ReconcileIRO(desiredState DesiredState) error {
 			return emperror.Wrap(err, "error while waiting for running sidecar injector")
 		}
 
-		err = m.installIRO(m.Master, prometheusURL)
+		err = m.installCanaryOperator(m.Master, prometheusURL)
 		if err != nil {
-			return emperror.Wrap(err, "could not install istio-release-operator")
+			return emperror.Wrap(err, "could not install canary-operator")
 		}
 	} else {
-		err := m.uninstallIRO(m.Master)
+		err := m.uninstallCanaryOperator(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not remove istio-release-operator")
+			return emperror.Wrap(err, "could not remove canary-operator")
 		}
 	}
 
 	return nil
 }
 
-// uninstallIRO removes istio-release-operator from a cluster
-func (m *MeshReconciler) uninstallIRO(c cluster.CommonCluster) error {
+// uninstallCanaryOperator removes canary-operator from a cluster
+func (m *MeshReconciler) uninstallCanaryOperator(c cluster.CommonCluster) error {
 	m.logger.Debug("removing istio release operator")
 
-	err := deleteDeployment(c, iroReleaseName)
+	err := deleteDeployment(c, canaryOperatorReleaseName)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove istio-release-operator")
+		return emperror.Wrap(err, "could not remove canary-operator")
 	}
 
 	return nil
 }
 
-// installIRO installs istio-release-operator to a cluster
-func (m *MeshReconciler) installIRO(c cluster.CommonCluster, prometheusURL string) error {
-	m.logger.Debug("installing istio-release-operator")
+// installCanaryOperator installs canary-operator to a cluster
+func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, prometheusURL string) error {
+	m.logger.Debug("installing canary-operator")
 
 	type operator struct {
 		Image      imageChartValue      `json:"image,omitempty"`
@@ -89,11 +89,11 @@ func (m *MeshReconciler) installIRO(c cluster.CommonCluster, prometheusURL strin
 		},
 	}
 
-	if m.Configuration.internalConfig.iro.imageRepository != "" {
-		values.Operator.Image.Repository = m.Configuration.internalConfig.iro.imageRepository
+	if m.Configuration.internalConfig.canary.imageRepository != "" {
+		values.Operator.Image.Repository = m.Configuration.internalConfig.canary.imageRepository
 	}
-	if m.Configuration.internalConfig.iro.imageTag != "" {
-		values.Operator.Image.Tag = m.Configuration.internalConfig.iro.imageTag
+	if m.Configuration.internalConfig.canary.imageTag != "" {
+		values.Operator.Image.Tag = m.Configuration.internalConfig.canary.imageTag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -104,15 +104,15 @@ func (m *MeshReconciler) installIRO(c cluster.CommonCluster, prometheusURL strin
 	err = installOrUpgradeDeployment(
 		c,
 		meshNamespace,
-		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.iro.chartName,
-		iroReleaseName,
+		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.canary.chartName,
+		canaryOperatorReleaseName,
 		valuesOverride,
-		m.Configuration.internalConfig.iro.chartVersion,
+		m.Configuration.internalConfig.canary.chartVersion,
 		true,
 		true,
 	)
 	if err != nil {
-		return emperror.Wrap(err, "could not install istio-release-operator")
+		return emperror.Wrap(err, "could not install canary-operator")
 	}
 
 	return nil

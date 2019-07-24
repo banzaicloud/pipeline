@@ -25,18 +25,18 @@ import (
 const (
 	FeatureName = "servicemesh"
 
-	istioOperatorNamespace   = "istio-system"
-	istioOperatorReleaseName = "istio-operator"
-	istioVersion             = "1.1"
-	meshNamespace            = "pipeline-mesh"
-	backyardsReleaseName     = "backyards"
-	iroReleaseName           = "iro"
-	prometheusHostname       = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
-	prometheusURL            = "http://monitor-prometheus-server.pipeline-system.svc.cluster.local/prometheus"
-	labelPrefix              = "cluster.banzaicloud.io"
-	clusterIDLabel           = labelPrefix + "/id"
-	cloudLabel               = labelPrefix + "/cloud"
-	distributionLabel        = labelPrefix + "/distribution"
+	istioOperatorNamespace    = "istio-system"
+	istioOperatorReleaseName  = "istio-operator"
+	istioVersion              = "1.1"
+	meshNamespace             = "pipeline-mesh"
+	backyardsReleaseName      = "backyards"
+	canaryOperatorReleaseName = "canary"
+	prometheusHostname        = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
+	prometheusURL             = "http://monitor-prometheus-server.pipeline-system.svc.cluster.local/prometheus"
+	labelPrefix               = "cluster.banzaicloud.io"
+	clusterIDLabel            = labelPrefix + "/id"
+	cloudLabel                = labelPrefix + "/cloud"
+	distributionLabel         = labelPrefix + "/distribution"
 
 	backoffDelaySeconds = 10
 	backoffMaxretries   = 10
@@ -79,12 +79,12 @@ type MeshReconciler struct {
 }
 
 type internalConfig struct {
-	iro           iroConfiguration
+	canary        canaryOperatorConfiguration
 	backyards     backyardsConfiguration
 	istioOperator istioOperatorConfiguration
 }
 
-type iroConfiguration struct {
+type canaryOperatorConfiguration struct {
 	chartVersion    string
 	chartName       string
 	imageRepository string
