@@ -24,7 +24,10 @@ import (
 )
 
 const federationClusterRoleBindingName = "feddns-crb"
+const externalDNSServiceAccount = "dns-external-dns"
+
 const federationClusterRoleName = "kubefed-role"
+const federationDNSClusterRoleName = "kubefed-dns-role"
 
 func (m *FederationReconciler) ReconcileClusterRoleBindingForExtDNS(desiredState DesiredState) error {
 
@@ -69,6 +72,11 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 		return nil
 	}
 
+	clusterRoleName := federationClusterRoleName
+	if !m.Configuration.GlobalScope {
+		clusterRoleName = federationDNSClusterRoleName
+	}
+
 	crb = &v1.ClusterRoleBinding{
 		ObjectMeta: apiv1.ObjectMeta{
 			Name: federationClusterRoleBindingName,
@@ -76,7 +84,7 @@ func (m *FederationReconciler) createClusterRoleBindingForExternalDNS() error {
 		RoleRef: v1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "ClusterRole",
-			Name:     federationClusterRoleName,
+			Name:     clusterRoleName,
 		},
 		Subjects: []v1.Subject{
 			{
