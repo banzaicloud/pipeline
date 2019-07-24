@@ -143,6 +143,17 @@ const (
 	HtpasswdFile = "htpasswd"
 )
 
+// CloudFlare keys
+const (
+	CfApiKey = "CF_API_KEY"
+	CfApiEmail = "CF_API_EMAIL"
+)
+
+// DigitalOcean keys
+const (
+	DoToken = "DO_TOKEN"
+)
+
 // Internal usage
 const (
 	TagKubeConfig     = "KubeConfig"
@@ -173,6 +184,10 @@ const (
 	PasswordSecretType = "password"
 	// HtpasswdSecretType marks secrets as of type "htpasswd"
 	HtpasswdSecretType = "htpasswd"
+	// CloudFlareSecretType marks secrets as of type "cloudflare"
+	CloudFlareSecretType = "cloudflare"
+	//
+	DigitalOceanSecretType = "digitalocean"
 )
 
 // DefaultRules key matching for types
@@ -300,6 +315,17 @@ var DefaultRules = map[string]Meta{
 			{Name: HtpasswdFile, Required: false},
 		},
 		Sourcing: Volume,
+	},
+	CloudFlareSecretType: {
+		Fields: []FieldMeta{
+			{Name: CfApiKey, Required: true, Opaque: true, Description: "Your API key"},
+			{Name: CfApiEmail, Required: true, Opaque: true, Description: "Your API E-mail"},
+		},
+	},
+	DigitalOceanSecretType: {
+		Fields: []FieldMeta{
+			{Name: DoToken, Required: true, Opaque: true, Description: "Your API Token"},
+		},
 	},
 }
 
