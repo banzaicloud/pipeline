@@ -243,24 +243,31 @@ func (g *Manager) setFeatureParams(featureName string, clusterGroup *api.Cluster
 		return emperror.Wrap(err, "could not get feature handler")
 	}
 
+	currentlyEnabled := true
+
 	result, err := g.cgRepo.GetFeature(clusterGroup.Id, featureName)
 	if IsFeatureRecordNotFoundError(err) {
 		result = &ClusterGroupFeatureModel{
 			Name:           featureName,
 			ClusterGroupID: clusterGroup.Id,
 		}
-	} else if err != nil {
-		return emperror.With(err,
-			"clusterGroupId", clusterGroup.Id,
-			"featureName", featureName,
-		)
+	} else {
+		if err != nil {
+			return emperror.With(err,
+				"clusterGroupId", clusterGroup.Id,
+				"featureName", featureName,
+			)
+		}
+		currentlyEnabled = result.Enabled
 	}
 
 	var currentProperties interface{}
-	if result.Properties != nil {
-		err = json.Unmarshal(result.Properties, &currentProperties)
-		if err != nil {
-			return emperror.Wrap(err, "could not marshal current feature properties")
+	if currentlyEnabled {
+		if result.Properties != nil {
+			err = json.Unmarshal(result.Properties, &currentProperties)
+			if err != nil {
+				return emperror.Wrap(err, "could not marshal current feature properties")
+			}
 		}
 	}
 
