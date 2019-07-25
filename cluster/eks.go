@@ -321,7 +321,7 @@ func (c *EKSCluster) CreateCluster() error {
 
 	if storageClassConstraint.Check(kubeVersion) {
 		// create default storage class
-		err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode)
+		err = createDefaultStorageClass(kubeClient, "kubernetes.io/aws-ebs", volumeBindingMode, nil)
 		if err != nil {
 			return emperror.WrapWith(err, "failed to create default storage class",
 				"provisioner", "kubernetes.io/aws-ebs",
