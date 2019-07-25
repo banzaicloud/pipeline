@@ -15,9 +15,8 @@
 package clustergroup
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/clustergroup/api"
@@ -40,11 +39,11 @@ func NewClusterGroupRepository(
 	}
 }
 
-// FindOne returns a cluster group instance for an organization by clusterGroupId.
+// FindOne returns a cluster group instance for an organization by clusterGroupID.
 func (g *ClusterGroupRepository) FindOne(cg ClusterGroupModel) (*ClusterGroupModel, error) {
 	if cg.ID == 0 && len(cg.Name) == 0 {
 		return nil, &invalidClusterGroupCreateRequestError{
-			message: "either clusterGroupId or name is required",
+			message: "either clusterGroupID or name is required",
 		}
 	}
 	var result ClusterGroupModel
@@ -55,10 +54,7 @@ func (g *ClusterGroupRepository) FindOne(cg ClusterGroupModel) (*ClusterGroupMod
 		})
 	}
 	if err != nil {
-		return nil, emperror.With(err,
-			"clusterGroupId", cg.ID,
-			"organizationID", cg.OrganizationID,
-		)
+		return nil, errors.WrapIfWithDetails(err, "could not find cluster group", "ID", cg.ID)
 	}
 
 	return &result, nil
@@ -72,7 +68,7 @@ func (g *ClusterGroupRepository) FindAll(orgID uint) ([]*ClusterGroupModel, erro
 		OrganizationID: orgID,
 	}).Preload("Members").Preload("FeatureParams").Find(&cgroups).Error
 	if err != nil {
-		return nil, errors.Wrap(err, "could not fetch cluster groups")
+		return nil, errors.WrapIf(err, "could not find cluster groups")
 	}
 
 	return cgroups, nil
@@ -88,7 +84,7 @@ func (g *ClusterGroupRepository) Create(name string, orgID uint, memberClusterMo
 
 	err := g.db.Save(clusterGroupModel).Error
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIfWithDetails(err, "error creating cluster group", "name", name)
 	}
 	return &clusterGroupModel.ID, nil
 }
@@ -108,7 +104,7 @@ func (g *ClusterGroupRepository) UpdateMembers(cgroup *api.ClusterGroup, newMemb
 		if _, ok := newMembers[member.ClusterID]; !ok {
 			err = g.db.Delete(member).Error
 			if err != nil {
-				return err
+				return errors.WrapIfWithDetails(err, "could not delete member cluster", "clusterGroupID", cgroup.Id, "clusterID", member.ClusterID)
 			}
 		} else {
 			updatedMembers = append(updatedMembers, member)
@@ -126,7 +122,7 @@ func (g *ClusterGroupRepository) UpdateMembers(cgroup *api.ClusterGroup, newMemb
 	cgModel.Members = updatedMembers
 	err = g.db.Save(cgModel).Error
 	if err != nil {
-		return err
+		return errors.WrapIfWithDetails(err, "could not update member clusters", "clusterGroupID", cgroup.Id)
 	}
 	return nil
 }
@@ -143,13 +139,13 @@ func (g *ClusterGroupRepository) Delete(cgroup *ClusterGroupModel) error {
 	for _, member := range cgroup.Members {
 		err := g.db.Delete(member).Error
 		if err != nil {
-			return err
+			return errors.WrapIfWithDetails(err, "could not delete member cluster", "clusterGroupID", cgroup.ID, "clusterID", member.ClusterID)
 		}
 	}
 
 	err := g.db.Delete(cgroup).Error
 	if err != nil {
-		return err
+		return errors.WrapIfWithDetails(err, "could not delete cluster group", "clusterGroupID", cgroup.ID)
 	}
 
 	return nil
@@ -168,7 +164,7 @@ func (g *ClusterGroupRepository) GetFeature(clusterGroupID uint, featureName str
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIfWithDetails(err, "could not find cluster group feature", "clusterGroupID", clusterGroupID, "name", featureName)
 	}
 
 	return &result, nil
@@ -176,9 +172,12 @@ func (g *ClusterGroupRepository) GetFeature(clusterGroupID uint, featureName str
 
 // SaveFeature persists a cluster group feature
 func (g *ClusterGroupRepository) SaveFeature(feature *ClusterGroupFeatureModel) error {
+	if len(feature.Properties) == 0 {
+		feature.Properties = []byte("{}")
+	}
 	err := g.db.Save(feature).Error
 	if err != nil {
-		return err
+		return errors.WrapIfWithDetails(err, "error saving cluster group feature", "name", feature.Name, "clusterGroupID", feature.ClusterGroupID)
 	}
 	return nil
 }
@@ -195,7 +194,7 @@ func (g *ClusterGroupRepository) GetAllFeatures(clusterGroupID uint) ([]ClusterG
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, errors.WrapIfWithDetails(err, "could not find cluster group features", "clusterGroupID", clusterGroupID)
 	}
 
 	return results, nil
@@ -212,7 +211,7 @@ func (g *ClusterGroupRepository) FindMemberClusterByID(clusterID uint) (*MemberC
 	}
 
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get record")
+		return nil, errors.WrapIfWithDetails(err, "could not find member cluster", "clusterID", clusterID)
 	}
 
 	return &result, nil
