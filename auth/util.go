@@ -18,6 +18,8 @@ import (
 	"net/http"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/gin-gonic/gin/render"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
 )
@@ -69,4 +71,11 @@ func GormErrorToStatusCode(err error) int {
 		return http.StatusNotFound
 	}
 	return http.StatusInternalServerError
+}
+
+func httpJSONError(w http.ResponseWriter, err error, code int) {
+	render := render.JSON{Data: common.ErrorResponse{Error: err.Error()}}
+	render.WriteContentType(w)
+	w.WriteHeader(code)
+	render.Render(w)
 }
