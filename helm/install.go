@@ -172,6 +172,8 @@ func RetryHelmInstall(log logrus.FieldLogger, helmInstall *phelm.Install, kubeco
 				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
 				continue
 			}
+
+			log.Warnln("error during installing tiller", err.Error())
 		}
 		return nil
 	}
@@ -320,6 +322,7 @@ func Install(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []by
 		ImageSpec:                    helmInstall.ImageSpec,
 		MaxHistory:                   helmInstall.MaxHistory,
 		AutoMountServiceAccountToken: true,
+		ForceUpgrade:                 helmInstall.ForceUpgrade,
 	}
 
 	for i := range helmInstall.Tolerations {
@@ -371,7 +374,9 @@ func Install(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig []by
 			// TODO shouldn'T we just skipp?
 			return err
 		}
+		log.Info("Tiller already installed")
 		if helmInstall.Upgrade {
+			log.Info("upgrading Tiller")
 			if err := installer.Upgrade(kubeClient, &opts); err != nil {
 				return errors.Wrap(err, "error when upgrading")
 			}
