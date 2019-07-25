@@ -109,7 +109,7 @@ func (c *KubeCluster) Persist() error {
 
 // createDefaultStorageClass creates a default storage class as some clusters are not created with
 // any storage classes or with default one
-func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode) error {
+func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode, parameters map[string]string) error {
 	defaultStorageClass := storagev1.StorageClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "default",
@@ -119,6 +119,7 @@ func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provision
 		},
 		VolumeBindingMode: &volumeBindingMode,
 		Provisioner:       provisioner,
+		Parameters:        parameters,
 	}
 
 	_, err := kubernetesClient.StorageV1().StorageClasses().Create(&defaultStorageClass)
