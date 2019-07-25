@@ -145,7 +145,7 @@ const (
 
 // CloudFlare keys
 const (
-	CfApiKey = "CF_API_KEY"
+	CfApiKey   = "CF_API_KEY"
 	CfApiEmail = "CF_API_EMAIL"
 )
 
