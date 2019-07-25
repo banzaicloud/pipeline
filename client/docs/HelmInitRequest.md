@@ -6,6 +6,7 @@ Name | Type | Description | Notes
 **KubeContext** | **string** |  | [optional] 
 **Namespace** | **string** |  | 
 **Upgrade** | **bool** |  | [optional] 
+**ForceUpgrade** | **bool** |  | [optional] 
 **ServiceAccount** | **string** |  | 
 **CanaryImage** | **bool** |  | [optional] 
 **TillerImage** | **string** |  | [optional] 

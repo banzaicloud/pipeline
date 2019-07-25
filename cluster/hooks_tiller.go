@@ -59,6 +59,8 @@ func WaitingForTillerComeUp(log logrus.FieldLogger, kubeConfig []byte) error {
 
 		resp, err := client.GetVersion()
 		if err != nil {
+			log.Warnln("error during retrieving tiller version", err.Error())
+
 			return err
 		}
 

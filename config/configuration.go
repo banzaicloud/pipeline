@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/gin-contrib/cors"
 	"github.com/spf13/viper"
 )
@@ -198,9 +199,9 @@ func init() {
 	viper.SetDefault("cicd.url", "http://localhost:8000")
 	viper.SetDefault("cicd.insecure", false)
 	viper.SetDefault("cicd.scm", "github")
-	viper.SetDefault("helm.retryAttempt", 30)
-	viper.SetDefault("helm.retrySleepSeconds", 15)
-	viper.SetDefault("helm.tillerVersion", "v2.10.0")
+	viper.SetDefault(helm.HELM_RETRY_ATTEMPT_CONFIG, 30)
+	viper.SetDefault(helm.HELM_RETRY_SLEEP_SECONDS, 15)
+	viper.SetDefault("helm.tillerVersion", "v2.14.2")
 	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")
 	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault(helmPath, "./orgs")

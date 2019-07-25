@@ -9766,6 +9766,8 @@ components:
           type: string
         upgrade:
           type: boolean
+        force_upgrade:
+          type: boolean
         service_account:
           type: string
         canary_image:

@@ -570,6 +570,7 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 		ServiceAccount: "tiller",
 		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", viper.GetString("helm.tillerVersion")),
 		Upgrade:        true,
+		ForceUpgrade:   true,
 	}
 
 	if cluster.GetDistribution() == pkgCluster.PKE {

@@ -47,6 +47,9 @@ type Install struct {
 	// Upgrade if Tiller is already installed
 	Upgrade bool `json:"upgrade"`
 
+	// Force allows to force upgrading tiller if deployed version is greater than current client version
+	ForceUpgrade bool `json:"force_upgrade"`
+
 	// Name of service account
 	ServiceAccount string `json:"service_account" binding:"required"`
 

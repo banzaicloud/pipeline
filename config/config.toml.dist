@@ -94,7 +94,7 @@ setCookieDomain = false
 [helm]
 retryAttempt = 30
 retrySleepSeconds = 15
-tillerVersion = "v2.12.2"
+tillerVersion = "v2.14.2"
 path = "./var/cache"
 
 #helm repo URLs
