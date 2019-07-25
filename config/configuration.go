@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/gin-contrib/cors"
 	"github.com/spf13/viper"
 )
@@ -159,15 +160,15 @@ const (
 	IstioPilotImage               = "servicemesh.istioPilotImage"
 	IstioMixerImage               = "servicemesh.istioMixerImage"
 
-	UistioChartVersion    = "uistio.chartVersion"
-	UistioChartName       = "uistio.chartName"
-	UistioImageRepository = "uistio.imageRepository"
-	UistioImageTag        = "uistio.imageTag"
+	BackyardsChartVersion    = "backyards.chartVersion"
+	BackyardsChartName       = "backyards.chartName"
+	BackyardsImageRepository = "backyards.imageRepository"
+	BackyardsImageTag        = "backyards.imageTag"
 
-	IROChartVersion    = "iro.chartVersion"
-	IROChartName       = "iro.chartName"
-	IROImageRepository = "iro.imageRepository"
-	IROImageTag        = "iro.imageTag"
+	CanaryOperatorChartVersion    = "canary.chartVersion"
+	CanaryOperatorChartName       = "canary.chartName"
+	CanaryOperatorImageRepository = "canary.imageRepository"
+	CanaryOperatorImageTag        = "canary.imageTag"
 
 	// NodePool LabelSet Operator
 	NodePoolLabelSetOperatorChartVersion = "nodepools.labelSetOperatorChartVersion"
@@ -198,9 +199,9 @@ func init() {
 	viper.SetDefault("cicd.url", "http://localhost:8000")
 	viper.SetDefault("cicd.insecure", false)
 	viper.SetDefault("cicd.scm", "github")
-	viper.SetDefault("helm.retryAttempt", 30)
-	viper.SetDefault("helm.retrySleepSeconds", 15)
-	viper.SetDefault("helm.tillerVersion", "v2.10.0")
+	viper.SetDefault(helm.HELM_RETRY_ATTEMPT_CONFIG, 30)
+	viper.SetDefault(helm.HELM_RETRY_SLEEP_SECONDS, 15)
+	viper.SetDefault("helm.tillerVersion", "v2.14.2")
 	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")
 	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault(helmPath, "./orgs")
@@ -326,15 +327,15 @@ func init() {
 	viper.SetDefault(IstioPilotImage, "banzaicloud/istio-pilot:1.1.8-bzc.1")
 	viper.SetDefault(IstioMixerImage, "banzaicloud/istio-mixer:1.1.8-bzc.1")
 
-	viper.SetDefault(UistioChartVersion, "0.0.12")
-	viper.SetDefault(UistioChartName, "uistio")
-	viper.SetDefault(UistioImageRepository, "banzaicloud/uistio")
-	viper.SetDefault(UistioImageTag, "0.3.10")
+	viper.SetDefault(BackyardsChartVersion, "0.1.0")
+	viper.SetDefault(BackyardsChartName, "backyards")
+	viper.SetDefault(BackyardsImageRepository, "banzaicloud/backyards")
+	viper.SetDefault(BackyardsImageTag, "0.1.0")
 
-	viper.SetDefault(IROChartName, "istio-release-operator")
-	viper.SetDefault(IROChartVersion, "0.0.3")
-	viper.SetDefault(IROImageRepository, "banzaicloud/istio-release-operator")
-	viper.SetDefault(IROImageTag, "0.0.1")
+	viper.SetDefault(CanaryOperatorChartName, "canary-operator")
+	viper.SetDefault(CanaryOperatorChartVersion, "0.1.1")
+	viper.SetDefault(CanaryOperatorImageRepository, "banzaicloud/canary-operator")
+	viper.SetDefault(CanaryOperatorImageTag, "0.1.0")
 
 	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.2")
 

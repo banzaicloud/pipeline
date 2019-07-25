@@ -37,6 +37,8 @@ type DexProvider struct {
 	provider *oidc.Provider
 }
 
+type AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
+
 // DexConfig is the dex Config
 type DexConfig struct {
 	PublicClientID     string
@@ -46,7 +48,7 @@ type DexConfig struct {
 	InsecureSkipVerify bool
 	RedirectURL        string
 	Scopes             []string
-	AuthorizeHandler   func(*auth.Context) (*claims.Claims, error)
+	AuthorizeHandler   AuthorizeHandler
 }
 
 func newDexProvider(config *DexConfig) *DexProvider {
@@ -100,7 +102,6 @@ func newDexProvider(config *DexConfig) *DexProvider {
 				authIdentity = reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
 				req          = context.Request
 				tx           = context.Auth.GetDB(req)
-				w            = context.Writer
 				ok           bool
 			)
 
@@ -114,14 +115,12 @@ func newDexProvider(config *DexConfig) *DexProvider {
 				// Authorization redirect callback from OAuth2 auth flow.
 				if errMsg := req.FormValue("error"); errMsg != "" {
 					err = errors.New(errMsg + ": " + req.FormValue("error_description"))
-					http.Error(w, err.Error(), http.StatusBadRequest)
 					return nil, err
 				}
 
 				code := req.FormValue("code")
 				if code == "" {
 					err = fmt.Errorf("no code in request: %q", req.Form)
-					http.Error(w, err.Error(), http.StatusBadRequest)
 					return nil, err
 				}
 				state := req.FormValue("state")
@@ -131,33 +130,28 @@ func newDexProvider(config *DexConfig) *DexProvider {
 				claims, err = context.Auth.SessionStorer.ValidateClaims(state)
 				if err != nil {
 					err = fmt.Errorf("failed to validate state claims: %s", err.Error())
-					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return nil, err
 				}
 
 				if err := claims.Valid(); err != nil {
 					err = fmt.Errorf("failed to validate state claims: %s", err.Error())
-					http.Error(w, err.Error(), http.StatusBadRequest)
 					return nil, err
 				}
 
 				if claims.Subject != "state" {
 					err = fmt.Errorf("state parameter doesn't match: %s", claims.Subject)
-					http.Error(w, err.Error(), http.StatusBadRequest)
 					return nil, err
 				}
 
 				token, err = oauth2Config.Exchange(ctx, code)
 				if err != nil {
 					err = fmt.Errorf("failed to get token: %s", err.Error())
-					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return nil, err
 				}
 
 				rawIDToken, ok = token.Extra("id_token").(string)
 				if !ok {
 					err = fmt.Errorf("no id_token in token response")
-					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return nil, err
 				}
 
@@ -174,7 +168,6 @@ func newDexProvider(config *DexConfig) *DexProvider {
 					refresh := req.FormValue("refresh_token")
 					if refresh == "" {
 						err = fmt.Errorf("no refresh_token in request: %q", req.Form)
-						http.Error(w, err.Error(), http.StatusBadRequest)
 						return nil, err
 					}
 
@@ -186,27 +179,23 @@ func newDexProvider(config *DexConfig) *DexProvider {
 					token, err = oauth2Config.TokenSource(ctx, t).Token()
 					if err != nil {
 						err = fmt.Errorf("failed to get token: %s", err.Error())
-						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return nil, err
 					}
 
 					rawIDToken, ok = token.Extra("id_token").(string)
 					if !ok {
 						err = fmt.Errorf("no id_token in token response")
-						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return nil, err
 					}
 				}
 			default:
 				err = fmt.Errorf("method not implemented: %s", req.Method)
-				http.Error(w, err.Error(), http.StatusBadRequest)
 				return nil, err
 			}
 
 			idToken, err := verifier.Verify(req.Context(), rawIDToken)
 			if err != nil {
 				err = fmt.Errorf("Failed to verify ID token: %s", err.Error())
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return nil, err
 			}
 
@@ -222,7 +211,6 @@ func newDexProvider(config *DexConfig) *DexProvider {
 			err = idToken.Claims(&claims)
 			if err != nil {
 				err = fmt.Errorf("failed to parse claims: %s", err.Error())
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return nil, err
 			}
 
@@ -326,7 +314,7 @@ func (provider DexProvider) Register(context *auth.Context) {
 
 // Deregister implemented deregister with dex provider
 func (provider DexProvider) Deregister(context *auth.Context) {
-	panic("Not implemented")
+	context.Auth.DeregisterHandler(context)
 }
 
 // Callback implement Callback with dex provider

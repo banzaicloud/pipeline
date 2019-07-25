@@ -94,7 +94,7 @@ setCookieDomain = false
 [helm]
 retryAttempt = 30
 retrySleepSeconds = 15
-tillerVersion = "v2.12.2"
+tillerVersion = "v2.14.2"
 path = "./var/cache"
 
 #helm repo URLs
@@ -120,17 +120,17 @@ istioOperatorChartName = "istio-operator"
 istioPilotImage = "banzaicloud/istio-pilot:1.1.8-bzc.1"
 istioMixerImage = "banzaicloud/istio-mixer:1.1.8-bzc.1"
 
-[uistio]
-chartVersion = "0.0.12"
-chartName = "uistio"
-imageRepository = "banzaicloud/uistio"
-imageTag = "0.3.10"
+[backyards]
+chartVersion = "0.1.0"
+chartName = "backyards"
+imageRepository = "banzaicloud/backyards"
+imageTag = "0.1.0"
 
-[iro]
-chartVersion = "0.0.3"
-chartName = "istio-release-operator"
-imageRepository = "banzaicloud/istio-release-operator"
-imageTag = "0.0.1"
+[canary]
+chartVersion = "0.1.1"
+chartName = "canary-operator"
+imageRepository = "banzaicloud/canary-operator"
+imageTag = "0.1.0"
 
 # DNS service settings
 [dns]

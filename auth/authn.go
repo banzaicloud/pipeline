@@ -214,7 +214,9 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 			accessManager:    accessManager,
 			orgImporter:      orgImporter,
 		},
-		LogoutHandler:     BanzaiLogoutHandler,
+		LoginHandler:      banzaiLoginHandler,
+		LogoutHandler:     banzaiLogoutHandler,
+		RegisterHandler:   banzaiRegisterHandler,
 		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
 	})
 
@@ -544,10 +546,40 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	return nil
 }
 
+func respondAfterLogin(claims *claims.Claims, context *auth.Context) {
+	err := context.Auth.Login(context.Writer, context.Request, claims)
+	if err != nil {
+		httpJSONError(context.Writer, err, http.StatusUnauthorized)
+		return
+	}
+
+	context.Auth.Redirector.Redirect(context.Writer, context.Request, "login")
+}
+
+func banzaiLoginHandler(context *auth.Context, authorize func(*auth.Context) (*claims.Claims, error)) {
+	claims, err := authorize(context)
+	if err == nil && claims != nil {
+		respondAfterLogin(claims, context)
+		return
+	}
+
+	httpJSONError(context.Writer, err, http.StatusUnauthorized)
+}
+
 // BanzaiLogoutHandler does the qor/auth DefaultLogoutHandler default logout behavior + deleting the CICD cookie
-func BanzaiLogoutHandler(context *auth.Context) {
+func banzaiLogoutHandler(context *auth.Context) {
 	DelCookie(context.Writer, context.Request, CICDSessionCookie)
 	DelCookie(context.Writer, context.Request, PipelineSessionCookie)
+}
+
+func banzaiRegisterHandler(context *auth.Context, register func(*auth.Context) (*claims.Claims, error)) {
+	claims, err := register(context)
+	if err == nil && claims != nil {
+		respondAfterLogin(claims, context)
+		return
+	}
+
+	httpJSONError(context.Writer, err, http.StatusUnauthorized)
 }
 
 type banzaiDeregisterHandler struct {
@@ -642,7 +674,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 	// Delete authorization roles for user
 	h.accessManager.RevokeAllAccessFromUser(user.IDString())
 
-	BanzaiLogoutHandler(context)
+	banzaiLogoutHandler(context)
 }
 
 // GetOrgNameFromVirtualUser returns the organization name for which the virtual user has access
