@@ -20,18 +20,18 @@ import (
 )
 
 func (config Config) init() Config {
-	config.internalConfig.iro = iroConfiguration{
-		chartVersion:    viper.GetString(pConfig.IROChartVersion),
-		chartName:       viper.GetString(pConfig.IROChartName),
-		imageRepository: viper.GetString(pConfig.IROImageRepository),
-		imageTag:        viper.GetString(pConfig.IROImageTag),
+	config.internalConfig.canary = canaryOperatorConfiguration{
+		chartVersion:    viper.GetString(pConfig.CanaryOperatorChartVersion),
+		chartName:       viper.GetString(pConfig.CanaryOperatorChartName),
+		imageRepository: viper.GetString(pConfig.CanaryOperatorImageRepository),
+		imageTag:        viper.GetString(pConfig.CanaryOperatorImageTag),
 	}
 
-	config.internalConfig.uistio = uistioConfiguration{
-		chartVersion:    viper.GetString(pConfig.UistioChartVersion),
-		chartName:       viper.GetString(pConfig.UistioChartName),
-		imageRepository: viper.GetString(pConfig.UistioImageRepository),
-		imageTag:        viper.GetString(pConfig.UistioImageTag),
+	config.internalConfig.backyards = backyardsConfiguration{
+		chartVersion:    viper.GetString(pConfig.BackyardsChartVersion),
+		chartName:       viper.GetString(pConfig.BackyardsChartName),
+		imageRepository: viper.GetString(pConfig.BackyardsImageRepository),
+		imageTag:        viper.GetString(pConfig.BackyardsImageTag),
 	}
 
 	config.internalConfig.istioOperator = istioOperatorConfiguration{

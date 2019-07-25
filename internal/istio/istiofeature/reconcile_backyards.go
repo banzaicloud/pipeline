@@ -35,9 +35,9 @@ type monitoringConfig struct {
 	url      string
 }
 
-func (m *MeshReconciler) ReconcileUistio(desiredState DesiredState) error {
-	m.logger.Debug("reconciling Uistio")
-	defer m.logger.Debug("Uistio reconciled")
+func (m *MeshReconciler) ReconcileBackyards(desiredState DesiredState) error {
+	m.logger.Debug("reconciling Backyards")
+	defer m.logger.Debug("Backyards reconciled")
 
 	if desiredState == DesiredStatePresent {
 		apiextclient, err := m.getApiExtensionK8sClient(m.Master)
@@ -59,17 +59,17 @@ func (m *MeshReconciler) ReconcileUistio(desiredState DesiredState) error {
 			return emperror.Wrap(err, "error while waiting for running sidecar injector")
 		}
 
-		err = m.installUistio(m.Master, monitoringConfig{
+		err = m.installBackyards(m.Master, monitoringConfig{
 			hostname: prometheusHostname,
 			url:      prometheusURL,
 		})
 		if err != nil {
-			return emperror.Wrap(err, "could not install Uistio")
+			return emperror.Wrap(err, "could not install Backyards")
 		}
 	} else {
-		err := m.uninstallUistio(m.Master)
+		err := m.uninstallBackyards(m.Master)
 		if err != nil {
-			return emperror.Wrap(err, "could not remove Uistio")
+			return emperror.Wrap(err, "could not remove Backyards")
 		}
 	}
 
@@ -129,20 +129,20 @@ func (m *MeshReconciler) waitForMetricCRD(name string, client *apiextensionsclie
 }
 
 // uninstallIstioOperator removes istio-operator from a cluster
-func (m *MeshReconciler) uninstallUistio(c cluster.CommonCluster) error {
-	m.logger.Debug("removing Uistio")
+func (m *MeshReconciler) uninstallBackyards(c cluster.CommonCluster) error {
+	m.logger.Debug("removing Backyards")
 
-	err := deleteDeployment(c, uistioReleaseName)
+	err := deleteDeployment(c, backyardsReleaseName)
 	if err != nil {
-		return emperror.Wrap(err, "could not remove Uistio")
+		return emperror.Wrap(err, "could not remove Backyards")
 	}
 
 	return nil
 }
 
 // installIstioOperator installs istio-operator on a cluster
-func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monitoringConfig) error {
-	m.logger.Debug("installing Uistio")
+func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring monitoringConfig) error {
+	m.logger.Debug("installing Backyards")
 
 	type istio struct {
 		CRname    string `json:"CRName,omitempty"`
@@ -182,11 +182,11 @@ func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monit
 		},
 	}
 
-	if m.Configuration.internalConfig.uistio.imageRepository != "" {
-		values.Application.Image.Repository = m.Configuration.internalConfig.uistio.imageRepository
+	if m.Configuration.internalConfig.backyards.imageRepository != "" {
+		values.Application.Image.Repository = m.Configuration.internalConfig.backyards.imageRepository
 	}
-	if m.Configuration.internalConfig.uistio.imageTag != "" {
-		values.Application.Image.Tag = m.Configuration.internalConfig.uistio.imageTag
+	if m.Configuration.internalConfig.backyards.imageTag != "" {
+		values.Application.Image.Tag = m.Configuration.internalConfig.backyards.imageTag
 
 	}
 
@@ -198,15 +198,15 @@ func (m *MeshReconciler) installUistio(c cluster.CommonCluster, monitoring monit
 	err = installOrUpgradeDeployment(
 		c,
 		meshNamespace,
-		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.uistio.chartName,
-		uistioReleaseName,
+		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.backyards.chartName,
+		backyardsReleaseName,
 		valuesOverride,
-		m.Configuration.internalConfig.uistio.chartVersion,
+		m.Configuration.internalConfig.backyards.chartVersion,
 		true,
 		true,
 	)
 	if err != nil {
-		return emperror.Wrap(err, "could not install Uistio")
+		return emperror.Wrap(err, "could not install Backyards")
 	}
 
 	return nil
