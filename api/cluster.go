@@ -129,7 +129,18 @@ func GetClusterConfig(c *gin.Context) {
 	}
 	config, err := commonCluster.GetK8sConfig()
 	if err != nil {
-		log.Errorf("Error during getting config: %s", err.Error())
+		log.Errorf("error during getting config: %s", err.Error())
+		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during getting config",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	cleanKubeConfig, err := k8sclient.CleanKubeconfig(config)
+	if err != nil {
+		log.Errorf("error during getting config: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during getting config",
@@ -144,10 +155,10 @@ func GetClusterConfig(c *gin.Context) {
 	case gin.MIMEJSON:
 		c.JSON(http.StatusOK, pkgCluster.GetClusterConfigResponse{
 			Status: http.StatusOK,
-			Data:   string(config),
+			Data:   string(cleanKubeConfig),
 		})
 	default:
-		c.String(http.StatusOK, string(config))
+		c.String(http.StatusOK, string(cleanKubeConfig))
 	}
 	return
 }
