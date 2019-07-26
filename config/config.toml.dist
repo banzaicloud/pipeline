@@ -19,6 +19,9 @@ externalURL = "https://example.com/pipeline"
 uipath = "http://localhost:4200/ui"
 signupRedirectPath = "http://localhost:4200/ui"
 
+# Deny connecting to API servers other than ones listening on globally routable IPv4 addresses
+forceGlobal = false
+
 [database]
 # dialect = "postgres"
 dialect = "mysql"
