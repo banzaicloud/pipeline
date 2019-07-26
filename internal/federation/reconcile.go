@@ -32,11 +32,10 @@ func (m *FederationReconciler) Reconcile() error {
 		}
 		// configure ext dns only if FederatedIngress or CrossClusterServiceDiscovery is enabled
 		if m.Configuration.FederatedIngress || m.Configuration.CrossClusterServiceDiscovery {
-			if m.Configuration.GlobalScope {
-				reconcilers = append(reconcilers, m.ReconcileClusterRoleBindingForExtDNS)
-			} else {
-				reconcilers = append(reconcilers, m.ReconcileRoleBindingForExtDNS)
+			if !m.Configuration.GlobalScope {
+				reconcilers = append(reconcilers, m.ReconcileClusterRoleForExtDNS)
 			}
+			reconcilers = append(reconcilers, m.ReconcileClusterRoleBindingForExtDNS)
 			reconcilers = append(reconcilers, m.ReconcileExternalDNSController)
 		}
 	case DesiredStateAbsent:
@@ -47,11 +46,10 @@ func (m *FederationReconciler) Reconcile() error {
 			m.ReconcileController,
 			m.ReconcileExternalDNSController,
 		}
-		if m.Configuration.GlobalScope {
-			reconcilers = append(reconcilers, m.ReconcileClusterRoleBindingForExtDNS)
-		} else {
-			reconcilers = append(reconcilers, m.ReconcileRoleBindingForExtDNS)
+		if !m.Configuration.GlobalScope {
+			reconcilers = append(reconcilers, m.ReconcileClusterRoleForExtDNS)
 		}
+		reconcilers = append(reconcilers, m.ReconcileClusterRoleBindingForExtDNS)
 	}
 
 	for _, res := range reconcilers {
