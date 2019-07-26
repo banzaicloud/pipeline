@@ -31,6 +31,11 @@ func NewClientConfig(kubeConfig []byte) (*rest.Config, error) {
 		return nil, emperror.Wrap(err, "failed to load kubernetes API config")
 	}
 
+	apiconfig, err = cleanConfig(apiconfig)
+	if err != nil {
+		return nil, err
+	}
+
 	clientConfig := clientcmd.NewDefaultClientConfig(*apiconfig, &clientcmd.ConfigOverrides{})
 	config, err := clientConfig.ClientConfig()
 	if err != nil {
