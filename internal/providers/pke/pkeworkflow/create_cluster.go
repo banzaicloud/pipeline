@@ -38,6 +38,11 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.13+")
 	}
 
+	constraint114, err := semver.NewConstraint("~1.14.0")
+	if err != nil {
+		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.13+")
+	}
+
 	kubeVersion, err := semver.NewVersion(kubernetesVersion)
 	if err != nil {
 		return "", errors.WithDetails(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
@@ -46,62 +51,80 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 	switch {
 	case constraint112.Check(kubeVersion):
 		return map[string]string{
-			"ap-northeast-1": "ami-08a85b1563efcdbfa",
-			"ap-northeast-2": "ami-01ad53644d5e714e0",
-			"ap-south-1":     "ami-0552dbb025034dd47",
-			"ap-southeast-1": "ami-0a4e5de01c309fcdb",
-			"ap-southeast-2": "ami-00b39bd845ecf13f8",
-			"ca-central-1":   "ami-05b3f0a65b7cc5edb",
-			"eu-central-1":   "ami-05b74dc857dc64612",
-			"eu-north-1":     "ami-00ccc3f51ebcd20d1",
-			"eu-west-1":      "ami-0e47f158914d41337",
-			"eu-west-2":      "ami-04213a12ded35d40a",
-			"eu-west-3":      "ami-0df179038236c5fe1",
-			"sa-east-1":      "ami-0557d1fefc68884c0",
-			"us-east-1":      "ami-03d6c616f020991c6",
-			"us-east-2":      "ami-017ff3156c58d64de",
-			"us-west-1":      "ami-0ed166e4d66056cba",
-			"us-west-2":      "ami-0ee06a6e5ea34c447",
+			"ap-northeast-1": "ami-0ea4567d28716b35c",
+			"ap-northeast-2": "ami-02a051bd5fbadc2d9",
+			"ap-south-1":     "ami-00da2ccc1da7c5139",
+			"ap-southeast-1": "ami-0de6124b866d44d9a",
+			"ap-southeast-2": "ami-037779d5bc1df8e07",
+			"ca-central-1":   "ami-00223fdf00dd4fd79",
+			"eu-central-1":   "ami-0e78d61813cdb8a2d",
+			"eu-north-1":     "ami-095299ec23343190f",
+			"eu-west-1":      "ami-0f6ba6a1903651da8",
+			"eu-west-2":      "ami-0fe2d7edaff807a95",
+			"eu-west-3":      "ami-02d28af91ab8abbd6",
+			"sa-east-1":      "ami-07bb2e49b8d780628",
+			"us-east-1":      "ami-079f98b9a949211d9",
+			"us-east-2":      "ami-00cd048cb8c93c0d9",
+			"us-west-1":      "ami-05dcc6a829242cacc",
+			"us-west-2":      "ami-07854d1896aef63d8",
 		}[region], nil
 	case constraint113.Check(kubeVersion):
 		return map[string]string{
-			"ap-northeast-1": "ami-0e51ebcaab2ee7f64",
-			"ap-northeast-2": "ami-03f97043746d70ea8",
-			"ap-south-1":     "ami-0743f092ee208761e",
-			"ap-southeast-1": "ami-021810a22ae6a6972",
-			"ap-southeast-2": "ami-0707af9819a36d29b",
-			"ca-central-1":   "ami-01d9e44948e56a6c1",
-			"eu-central-1":   "ami-04943b3a24081a11a",
-			"eu-north-1":     "ami-0a81717b1f805ac46",
-			"eu-west-1":      "ami-08bd41dfe9b6ace0c",
-			"eu-west-2":      "ami-0bae46bc373695303",
-			"eu-west-3":      "ami-067a77cf9189870df",
-			"sa-east-1":      "ami-02ed55f4ee9db122a",
-			"us-east-1":      "ami-0259f84ec3cbc54a1",
-			"us-east-2":      "ami-047712e13d40b4739",
-			"us-west-1":      "ami-0e56d84477e285018",
-			"us-west-2":      "ami-0209e5179cf144bb1",
+			"ap-northeast-1": "ami-02c668cbe82c52654",
+			"ap-northeast-2": "ami-09a528e2d122f85dd",
+			"ap-south-1":     "ami-0166fe96b7d5dd415",
+			"ap-southeast-1": "ami-0a0dc38e1843a6652",
+			"ap-southeast-2": "ami-08b4248beea1afd65",
+			"ca-central-1":   "ami-0509103cc485dab39",
+			"eu-central-1":   "ami-0ae595ec7057e4b0a",
+			"eu-north-1":     "ami-09c5ee8e94a1dee05",
+			"eu-west-1":      "ami-07eca1d40a370537e",
+			"eu-west-2":      "ami-069b8d46ebd9cc918",
+			"eu-west-3":      "ami-0cb47cb1e061df828",
+			"sa-east-1":      "ami-0402072eb28dd87f1",
+			"us-east-1":      "ami-05431b38d9884a58f",
+			"us-east-2":      "ami-09a6009e74e5d5616",
+			"us-west-1":      "ami-05732d634490519e4",
+			"us-west-2":      "ami-0b971d5cf3d965807",
+		}[region], nil
+	case constraint114.Check(kubeVersion):
+		return map[string]string{
+			"ap-northeast-1": "ami-008a8db9911c3ab9d",
+			"ap-northeast-2": "ami-0e560ec23c16ecc50",
+			"ap-south-1":     "ami-08b549add41f232cc",
+			"ap-southeast-1": "ami-078974aeb0b8b8ae0",
+			"ap-southeast-2": "ami-0073123d17aef15b4",
+			"ca-central-1":   "ami-0f69911233e05029a",
+			"eu-central-1":   "ami-0d4b6d1c3e2fc46d8",
+			"eu-north-1":     "ami-0ef8145828cbc2f39",
+			"eu-west-1":      "ami-0a95b955c65b32fff",
+			"eu-west-2":      "ami-0bf3be45c19287c71",
+			"eu-west-3":      "ami-0b11a2bd7cf2da96d",
+			"sa-east-1":      "ami-0a9fc6325c2f5181a",
+			"us-east-1":      "ami-0055d58addfe009d0",
+			"us-east-2":      "ami-0758a65bfe14b4e62",
+			"us-west-1":      "ami-0bd1e43e4a7280c2c",
+			"us-west-2":      "ami-06797d1f3e822ba1f",
 		}[region], nil
 	default:
 		return map[string]string{
-			"ap-northeast-1": "ami-050580615eb00d744",
-			"ap-northeast-2": "ami-051b65659a2c549b0",
-			"ap-south-1":     "ami-03adffe261d08c4ec",
-			"ap-southeast-1": "ami-0c0f3a44506a4f470",
-			"ap-southeast-2": "ami-06d552a20a61ab8fe",
-			"ca-central-1":   "ami-07b0387c0bc3bf4d0",
-			"eu-central-1":   "ami-0dc9154691d8a1757",
-			"eu-north-1":     "ami-044edb04df20f127b",
-			"eu-west-1":      "ami-0be08db35d79874b9",
-			"eu-west-2":      "ami-062ce851cb781d581",
-			"eu-west-3":      "ami-0f78066d649b69b51",
-			"sa-east-1":      "ami-08401edb5361125d5",
-			"us-east-1":      "ami-09b34d885e47bb377",
-			"us-east-2":      "ami-030f8c953c69c25c0",
-			"us-west-1":      "ami-0d87a1f4e1743e1d6",
-			"us-west-2":      "ami-0dbd115d30cda6652",
+			"ap-northeast-1": "ami-0b5d11ef377baca40",
+			"ap-northeast-2": "ami-0aac730552ec22cb1",
+			"ap-south-1":     "ami-002d6833390304363",
+			"ap-southeast-1": "ami-03e54e36d04bed301",
+			"ap-southeast-2": "ami-002db8ca98bab2a7e",
+			"ca-central-1":   "ami-06dbcc8c9c07ecf17",
+			"eu-central-1":   "ami-00181e08e0300ee8f",
+			"eu-north-1":     "ami-0e2566173c70f9043",
+			"eu-west-1":      "ami-07ee7cde289dd3798",
+			"eu-west-2":      "ami-001a496865332c672",
+			"eu-west-3":      "ami-035002f73b31a49b7",
+			"sa-east-1":      "ami-08b3b0b44b1efcc62",
+			"us-east-1":      "ami-0af44092dcbe1c0c7",
+			"us-east-2":      "ami-09688d5398a56d7c4",
+			"us-west-1":      "ami-084bff033df1b4cf8",
+			"us-west-2":      "ami-0d1a9391f028146bc",
 		}[region], nil
-
 	}
 }
 
