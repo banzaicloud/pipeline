@@ -522,7 +522,7 @@ func main() {
 				logger := commonadapter.NewLogger(logrusadapter.New(log)) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-				featureSecretStore := clusterfeatureadapter.NewClusterSecretsStore(logger, clusterManager, secret.Store)
+				featureSecretStore := clusterfeatureadapter.NewClusterSecretsStore(clusterManager, secret.Store, logger)
 
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)

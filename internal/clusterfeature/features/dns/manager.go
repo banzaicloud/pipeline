@@ -17,6 +17,7 @@ package dns
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/dns"
@@ -327,10 +328,16 @@ func (m *dnsFeatureManager) decorateWithOutput(ctx context.Context, clusterID ui
 	if fSpec.AutoDns.Enabled {
 		domain, _, _ := m.orgDomainService.GetDomain(ctx, clusterID)
 
-		// todo formalize the output better ?!
+		c, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get cluster for output generation")
+		}
+
+		clusterDomain := fmt.Sprintf("%s.%s", c.GetName(), domain)
+
 		type zoneInfo struct {
 			Zone          string `json:"zone"`
-			ClusterDomain string `json:"clusterDomain"`
+			ClusterDomain string `json:"clusterdomain"`
 		}
 
 		// decorate the feature with the output
@@ -340,13 +347,18 @@ func (m *dnsFeatureManager) decorateWithOutput(ctx context.Context, clusterID ui
 
 		o := output{
 			AutoDns: zoneInfo{
-				Zone: domain,
+				Zone:          domain,
+				ClusterDomain: clusterDomain,
 			},
 		}
 
 		var out map[string]interface{}
 		j, _ := json.Marshal(&o)
-		json.Unmarshal(j, &out)
+
+		err = json.Unmarshal(j, &out)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed generate output")
+		}
 
 		feature.Output = out
 	}
