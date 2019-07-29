@@ -41,6 +41,13 @@ type FeatureManager interface {
 	Update(ctx context.Context, clusterID uint, spec FeatureSpec) error
 }
 
+type ClusterSecretStore interface {
+	// GetSecret gets a secret for a cluster if exists
+	GetSecret(ctx context.Context, clusterID uint, secretID string) (map[string]string, error)
+
+	GetSecretByName(ctx context.Context, clusterID uint, secretName string) (map[string]string, error)
+}
+
 // InvalidFeatureSpecError is returned when a feature specification fails the validation.
 type InvalidFeatureSpecError struct {
 	FeatureName string
