@@ -42,6 +42,16 @@ type hostedZoneService struct {
 	logger common.Logger
 }
 
+func NewOrgDomainService(clusterGetter clusterfeatureadapter.ClusterGetter, dnsServiceClient dns.DnsServiceClient, logger common.Logger) OrgDomainService {
+
+	return &hostedZoneService{
+		clusterGetter:    clusterGetter,
+		dnsServiceClient: dnsServiceClient,
+
+		logger: logger,
+	}
+}
+
 func (h *hostedZoneService) GetDomain(ctx context.Context, clusterID uint) (string, uint, error) {
 	cCluster, err := h.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -97,14 +107,4 @@ func (h *hostedZoneService) EnsureOrgDomain(ctx context.Context, clusterID uint)
 	}
 
 	return nil
-}
-
-func NewOrgDomainService(clusterGetter clusterfeatureadapter.ClusterGetter, dnsServiceClient dns.DnsServiceClient, logger common.Logger) OrgDomainService {
-
-	return &hostedZoneService{
-		clusterGetter:    clusterGetter,
-		dnsServiceClient: dnsServiceClient,
-
-		logger: logger,
-	}
 }

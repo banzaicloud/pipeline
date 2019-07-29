@@ -36,6 +36,16 @@ type clusterSecretsService struct {
 	logger common.Logger
 }
 
+func NewClusterSecretsStore(getter ClusterGetter, store secret.SecretStore, logger common.Logger) clusterfeature.ClusterSecretStore {
+
+	return &clusterSecretsService{
+
+		clusterService: getter,
+		secretStore:    store,
+		logger:         logger,
+	}
+}
+
 func (s *clusterSecretsService) GetSecret(ctx context.Context, clusterID uint, secretID string) (map[string]string, error) {
 
 	cluster, err := s.clusterService.GetClusterByIDOnly(ctx, clusterID)
@@ -58,14 +68,4 @@ func (s *clusterSecretsService) GetSecret(ctx context.Context, clusterID uint, s
 func (s *clusterSecretsService) GetSecretByName(ctx context.Context, clusterID uint, secretName string) (map[string]string, error) {
 
 	return s.GetSecret(ctx, clusterID, secret2.GenerateSecretIDFromName(secretName))
-}
-
-func NewClusterSecretsStore(logger common.Logger, getter ClusterGetter, store secret.SecretStore) clusterfeature.ClusterSecretStore {
-
-	return &clusterSecretsService{
-
-		clusterService: getter,
-		secretStore:    store,
-		logger:         logger,
-	}
 }

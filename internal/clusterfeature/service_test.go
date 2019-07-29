@@ -273,7 +273,26 @@ func TestFeatureService_Deactivate_DeactivationFails(t *testing.T) {
 }
 
 func TestFeatureService_Update(t *testing.T) {
-	// TODO(laszlop): write tests for this scenario
+	repository := NewInMemoryFeatureRepository()
+	registry := NewFeatureRegistry(map[string]FeatureManager{
+		"myFeature": &dummyFeatureManager{},
+	})
+	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
+
+	clusterID := uint(1)
+	featureName := "myFeature"
+	spec := map[string]interface{}{"key": "value"}
+
+	err := service.Update(context.Background(), clusterID, featureName, spec)
+	require.NoError(t, err)
+
+	feature, err := repository.GetFeature(context.Background(), clusterID, featureName)
+	require.NoError(t, err)
+
+	assert.Equal(t, featureName, feature.Name)
+	assert.Equal(t, spec["key"], feature.Spec["key"])
+	assert.Equal(t, FeatureStatusActive, feature.Status)
+
 }
 
 func TestFeatureService_Update_NotActive(t *testing.T) {
