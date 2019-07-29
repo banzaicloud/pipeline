@@ -201,7 +201,25 @@ func TestFeatureService_Activate_ActivationFails(t *testing.T) {
 }
 
 func TestFeatureService_Deactivate(t *testing.T) {
-	// TODO(laszlop): write tests for this scenario
+
+	repository := NewInMemoryFeatureRepository()
+
+	registry := NewFeatureRegistry(map[string]FeatureManager{
+		"myFeature": &dummyFeatureManager{},
+	})
+
+	clusterID := uint(2)
+	featureName := "myFeature"
+	spec := map[string]interface{}{"key": "value", "fail": true}
+
+	// a persisted, active feature
+	repository.SaveFeature(context.Background(), clusterID, featureName, spec)
+	repository.UpdateFeatureStatus(context.Background(), clusterID, featureName, FeatureStatusActive)
+
+	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
+
+	err := service.Deactivate(context.Background(), clusterID, featureName)
+	require.NoError(t, err)
 }
 
 // TestFeatureService_Deactivate_NotActive (not found in the persistent store

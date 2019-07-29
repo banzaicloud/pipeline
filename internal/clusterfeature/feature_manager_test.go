@@ -28,9 +28,10 @@ func (m *dummyFeatureManager) Deactivate(ctx context.Context, clusterID uint) er
 	case 1:
 		return errors.NewWithDetails("failed to deactivate", "clistetID", clusterID)
 
+	default:
+		return nil
 	}
 
-	return nil
 }
 
 func (*dummyFeatureManager) Name() string {

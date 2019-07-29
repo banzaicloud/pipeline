@@ -32,8 +32,7 @@ func TestFeatureRegistry_GetFeatureManager(t *testing.T) {
 	featureManager, err := registry.GetFeatureManager("myFeature")
 	require.NoError(t, err)
 
-	// TODO: compare feature manager with something
-	assert.Equal(t, expectedFeatureManager, featureManager)
+	assert.Equal(t, featureManager.Name(), "myFeature")
 }
 
 func TestFeatureRegistry_GetFeatureManager_UnknownFeature(t *testing.T) {
