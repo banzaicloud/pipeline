@@ -106,6 +106,19 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 	return features, nil
 }
 
+// FeatureNotFoundError is returned when a feature is not found.
+type FeatureNotFoundError struct {
+	FeatureName string
+}
+
+func (FeatureNotFoundError) Error() string {
+	return "feature is not found"
+}
+
+func (e FeatureNotFoundError) Details() []interface{} {
+	return []interface{}{"feature", e.FeatureName}
+}
+
 // Details returns the details of an activated feature.
 func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": featureName})

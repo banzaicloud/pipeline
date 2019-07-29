@@ -80,7 +80,7 @@ func (m *dnsFeatureManager) Details(ctx context.Context, clusterID uint) (*clust
 
 	if feature == nil {
 
-		return nil, errors.New("feature not found")
+		return nil, clusterfeature.FeatureNotFoundError{FeatureName:featureName}
 	}
 
 	feature, err = m.decorateWithOutput(ctx, clusterID, feature)
