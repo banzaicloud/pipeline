@@ -92,7 +92,7 @@ func (m *syncFeatureManager) Details(ctx context.Context, clusterID uint) (*Feat
 }
 
 func (m *syncFeatureManager) Name() string {
-	return m.Name()
+	return m.featureManager.Name()
 }
 
 func (m *syncFeatureManager) Activate(ctx context.Context, clusterID uint, spec FeatureSpec) error {
@@ -104,7 +104,7 @@ func (m *syncFeatureManager) Activate(ctx context.Context, clusterID uint, spec 
 }
 
 func (m *syncFeatureManager) ValidateSpec(ctx context.Context, spec FeatureSpec) error {
-	return m.ValidateSpec(ctx, spec)
+	return m.featureManager.ValidateSpec(ctx, spec)
 }
 
 func (m *syncFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {

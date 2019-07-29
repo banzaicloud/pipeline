@@ -164,7 +164,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 
 	logger.Debug("validating feature specification")
 	if err := featureManager.ValidateSpec(ctx, spec); err != nil {
-		return err
+		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
 	}
 
 	err = s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec)
@@ -253,10 +253,21 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 		return err
 	}
 
+	logger.Debug("validating feature specification")
+	if err := featureManager.ValidateSpec(ctx, spec); err != nil {
+
+		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
+	}
+
 	if err := featureManager.Update(ctx, clusterID, spec); err != nil {
 		logger.Debug("failed to update feature")
 
 		return errors.WrapIfWithDetails(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
+	}
+
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
+
+		return err
 	}
 
 	logger.Info("feature updated successfully")
