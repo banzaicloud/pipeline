@@ -19,11 +19,11 @@ const (
 	//
 	// It identifies the service itself, the actual instance needs to be identified via environment
 	// and other details.
-	ServiceName = "pipeline.worker"
+	ServiceName = "pipeline"
 
 	// FriendlyServiceName is the visible name of the service.
-	FriendlyServiceName = "Pipeline Worker"
+	FriendlyServiceName = "Pipeline"
 
 	// EnvPrefix is prepended to environment variables when processing configuration.
-	EnvPrefix = "pipeline"
+	// EnvPrefix = "pipeline"
 )

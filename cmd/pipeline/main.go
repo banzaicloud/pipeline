@@ -27,18 +27,13 @@ import (
 	"emperror.dev/errors"
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
-
-	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/api"
@@ -70,15 +65,20 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
+	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/notification"
+	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
@@ -109,22 +109,24 @@ func initLog() *logrus.Entry {
 	return logger
 }
 
-// @title Pipeline API
-// @version 0.3.0
-// @descriptionPipeline v0.3.0 swagger
-// @contact.email info@banzaicloud.com
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		if commitHash == "" {
-			fmt.Println("version: ", version, " built on ", buildDate)
-		} else {
-			fmt.Printf("version: %s-%s built on %s\n", version, commitHash, buildDate)
-		}
+	v, p := viper.GetViper(), pflag.NewFlagSet(FriendlyServiceName, pflag.ExitOnError)
+
+	configure(v, p)
+
+	p.Bool("version", false, "Show version information")
+
+	_ = p.Parse(os.Args[1:])
+
+	if v, _ := p.GetBool("version"); v {
+		fmt.Printf("%s version %s (%s) built on %s\n", FriendlyServiceName, version, commitHash, buildDate)
+
 		os.Exit(0)
 	}
+
+	var conf configuration
+	err := viper.Unmarshal(&conf)
+	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	logger = initLog()
 	logger.WithFields(logrus.Fields{
@@ -132,14 +134,28 @@ func main() {
 		"commit_hash": commitHash,
 		"build_date":  buildDate,
 	}).Info("Pipeline initialization")
-	errorHandler := config.ErrorHandler()
+
+	err = conf.Validate()
+	if err != nil {
+		logger.Error(err.Error())
+
+		os.Exit(3)
+	}
+
+	errorHandler, err := errorhandler.New(conf.ErrorHandler, logrusadapter.New(log))
+	if err != nil {
+		logger.Error(err.Error())
+
+		os.Exit(1)
+	}
+	defer errorHandler.Close()
+	defer emperror.HandleRecover(errorHandler)
+	global.SetErrorHandler(errorHandler)
 
 	// Connect to database
 	db := config.DB()
 	cicdDB, err := config.CICDDB()
-	if err != nil {
-		logger.Panic(err.Error())
-	}
+	emperror.Panic(err)
 
 	basePath := viper.GetString("pipeline.basepath")
 
@@ -231,9 +247,7 @@ func main() {
 	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, log.WithField("subsystem", "ttl-controller"), errorHandler)
 	defer clusterTTLController.Stop()
 	err = clusterTTLController.Start()
-	if err != nil {
-		logger.Panic(err)
-	}
+	emperror.Panic(err)
 
 	if viper.GetBool(config.MonitorEnabled) {
 		client, err := k8sclient.NewInClusterClient()
@@ -667,7 +681,7 @@ func main() {
 				Level:  viper.GetString(config.ARKLogLevel),
 				Format: viper.GetString(config.LoggingLogFormat),
 			}).WithField("subsystem", "ark"),
-			config.ErrorHandler(),
+			errorHandler,
 			viper.GetDuration(config.ARKBucketSyncInterval),
 			viper.GetDuration(config.ARKRestoreSyncInterval),
 			viper.GetDuration(config.ARKBackupSyncInterval),

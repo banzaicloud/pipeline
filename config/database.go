@@ -17,9 +17,12 @@ package config
 import (
 	"sync"
 
-	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/internal/platform/database"
 )
 
 // nolint: gochecknoglobals
@@ -33,14 +36,12 @@ func initDatabase() {
 
 	err := config.Validate()
 	if err != nil {
-		logger.Panic("invalid database config: ", err.Error())
+		emperror.Panic(errors.WrapIf(err, "invalid database config"))
 	}
-
-	logger := Logger()
 
 	db, err = database.Connect(config)
 	if err != nil {
-		logger.Panic("failed to initialize db: ", err.Error())
+		emperror.Panic(errors.WrapIf(err, "failed to initialize db"))
 	}
 }
 

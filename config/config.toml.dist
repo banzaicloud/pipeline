@@ -51,6 +51,10 @@ endPointUrl = "https://alpha.dev.banzaicloud.com/cloudinfo/api/v1"
 logformat = "text"
 loglevel = "debug"
 
+[errorHandler.stackdriver]
+enabled = false
+projectId = ""
+
 [cloud]
 configRetryCount = 30
 configRetrySleep = 15

@@ -41,4 +41,6 @@ ignored = [
   "emperror.dev/emperror",
   "emperror.dev/errors",
   "emperror.dev/handler/logrus",
+  "emperror.dev/handler/logur",
+  "emperror.dev/handler/stackdriver",
 ]

@@ -17,11 +17,15 @@ package common
 import (
 	"emperror.dev/emperror"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 var ErrorHandler emperror.Handler
 
 func init() {
-	ErrorHandler = config.ErrorHandler()
+	ErrorHandler = global.ErrorHandler()
+
+	global.SubscribeErrorHandler(func(h emperror.Handler) {
+		ErrorHandler = h
+	})
 }

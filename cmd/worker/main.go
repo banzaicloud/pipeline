@@ -87,12 +87,12 @@ func main() {
 	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "service": ServiceName})
 
 	if configFileNotFound {
-		logger.Warn("configuration file not found", nil)
+		logger.Warn("configuration file not found")
 	}
 
 	err = config.Validate()
 	if err != nil {
-		logger.Error(err.Error(), nil)
+		logger.Error(err.Error())
 
 		os.Exit(3)
 	}
@@ -104,8 +104,15 @@ func main() {
 	}
 
 	// Configure error handler
-	errorHandler := errorhandler.New(logger)
+	errorHandler, err := errorhandler.New(config.ErrorHandler, logger)
+	if err != nil {
+		logger.Error(err.Error())
+
+		os.Exit(1)
+	}
+	defer errorHandler.Close()
 	defer emperror.HandleRecover(errorHandler)
+	global.SetErrorHandler(errorHandler)
 
 	buildInfo := buildinfo.New(version, commitHash, buildDate)
 
