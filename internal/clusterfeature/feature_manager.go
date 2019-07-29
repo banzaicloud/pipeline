@@ -137,6 +137,11 @@ func (m *syncFeatureManager) Update(ctx context.Context, clusterID uint, spec Fe
 		return err
 	}
 
+	if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.featureManager.Name(), FeatureStatusPending); err != nil {
+
+		return err
+	}
+
 	return m.featureManager.Update(ctx, clusterID, spec)
 }
 

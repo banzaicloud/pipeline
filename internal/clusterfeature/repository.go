@@ -17,6 +17,8 @@ package clusterfeature
 import (
 	"context"
 	"sync"
+
+	"emperror.dev/errors"
 )
 
 // InMemoryFeatureRepository keeps features in the memory.
@@ -92,7 +94,25 @@ func (r *InMemoryFeatureRepository) SaveFeature(ctx context.Context, clusterID u
 }
 
 func (r *InMemoryFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) (*Feature, error) {
-	panic("implement me")
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	features, ok := r.features[clusterID]
+	if !ok {
+		r.features[clusterID] = make(map[string]Feature)
+	}
+
+	f, ok := features[featureName]
+	if !ok {
+		return nil, errors.NewWithDetails("feature not found", "feature", featureName)
+	}
+
+	f.Status = status
+
+	r.features[clusterID][featureName] = f
+
+	return &f, nil
+
 }
 
 func (r *InMemoryFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) (*Feature, error) {

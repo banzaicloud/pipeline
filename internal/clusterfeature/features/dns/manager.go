@@ -30,22 +30,22 @@ const (
 	featureName = "dns"
 
 	// hardcoded values for externalDns feature
-	externalDnsChartVersion = "1.6.2"
-
-	// externalDnsImageVersion = "v0.5.11"
+	externalDnsChartVersion = "2.3.3"
 
 	externalDnsChartName = "stable/external-dns"
 
-	externalDnsNamespace = "default"
+	externalDnsNamespace = "pipeline-system"
 
-	externalDnsRelease = "external-dns"
+	externalDnsRelease = "dns"
 )
 
 // dnsFeatureManager synchronous feature manager
 type dnsFeatureManager struct {
-	featureRepository    clusterfeature.FeatureRepository
-	helmService          features.HelmService
-	featureSpecProcessor features.FeatureSpecProcessor
+	featureRepository clusterfeature.FeatureRepository
+	secretStore       clusterfeature.ClusterSecretStore
+	clusterGetter     clusterfeatureadapter.ClusterGetter
+	helmService       features.HelmService
+	orgDomainService  OrgDomainService
 
 	logger common.Logger
 }
@@ -53,35 +53,93 @@ type dnsFeatureManager struct {
 // NewDnsFeatureManager builds a new feature manager component
 func NewDnsFeatureManager(
 	featureRepository clusterfeature.FeatureRepository,
+	secretStore clusterfeature.ClusterSecretStore,
+	clusterGetter clusterfeatureadapter.ClusterGetter,
 	helmService features.HelmService,
-	processor features.FeatureSpecProcessor,
+	orgDomainService OrgDomainService,
+
 	logger common.Logger,
 ) clusterfeature.FeatureManager {
 	return &dnsFeatureManager{
-		featureRepository:    featureRepository,
-		helmService:          helmService,
-		featureSpecProcessor: processor,
-
-		logger: logger,
+		featureRepository: featureRepository,
+		secretStore:       secretStore,
+		clusterGetter:     clusterGetter,
+		helmService:       helmService,
+		orgDomainService:  orgDomainService,
+		logger:            logger,
 	}
 }
 
 func (m *dnsFeatureManager) Details(ctx context.Context, clusterID uint) (*clusterfeature.Feature, error) {
-	panic("implement me")
+	feature, err := m.featureRepository.GetFeature(ctx, clusterID, featureName)
+	if err != nil {
+
+		return nil, err
+	}
+
+	if feature == nil {
+
+		return nil, errors.New("feature not found")
+	}
+
+	feature, err = m.decorateWithOutput(ctx, clusterID, feature)
+	if err != nil {
+
+		return nil, errors.WrapIf(err, "failed to decorate with output")
+	}
+
+	return feature, nil
 }
 
 func (m *dnsFeatureManager) Name() string {
-	return "dns"
+	return featureName
 }
 
 func (m *dnsFeatureManager) Activate(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
 	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
 
-	values, err := m.featureSpecProcessor.Process(ctx, clusterID, spec)
+	boundSpec, err := m.bindInput(ctx, spec)
 	if err != nil {
-		logger.Debug("failed to process feature spec")
 
-		return errors.WrapIf(err, "failed to process feature spec")
+		return err
+	}
+
+	dnsChartValues := &dns.ExternalDnsChartValues{}
+
+	if boundSpec.AutoDns.Enabled {
+
+		if err := m.orgDomainService.EnsureOrgDomain(ctx, clusterID); err != nil {
+			logger.Debug("failed to enable autoDNS")
+
+			return errors.WrapIf(err, "failed to register org hosted zone")
+		}
+
+		dnsChartValues, err = m.processAutoDNSFeatureValues(ctx, clusterID, boundSpec.AutoDns)
+		if err != nil {
+			logger.Debug("failed to process autoDNS values")
+
+			return errors.WrapIf(err, "failed to process autoDNS values")
+		}
+		d, _, _ := m.orgDomainService.GetDomain(ctx, clusterID)
+
+		dnsChartValues.DomainFilters = []string{d}
+	}
+
+	if boundSpec.CustomDns.Enabled {
+
+		dnsChartValues, err = m.processCustomDNSFeatureValues(ctx, clusterID, boundSpec.CustomDns)
+		if err != nil {
+			logger.Debug("failed to process customDNS values")
+
+			return errors.WrapIf(err, "failed to process customDNS values")
+		}
+	}
+
+	valuesBytes, err := json.Marshal(dnsChartValues)
+	if err != nil {
+		logger.Debug("failed to marshal values")
+
+		return errors.WrapIf(err, "failed to decode values")
 	}
 
 	if err = m.helmService.InstallDeployment(

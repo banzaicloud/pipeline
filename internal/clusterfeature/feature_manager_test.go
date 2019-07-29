@@ -23,6 +23,16 @@ import (
 type dummyFeatureManager struct {
 }
 
+func (m *dummyFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {
+	switch clusterID {
+	case 1:
+		return errors.NewWithDetails("failed to deactivate", "clistetID", clusterID)
+
+	}
+
+	return nil
+}
+
 func (*dummyFeatureManager) Name() string {
 	return "myFeature"
 }
@@ -45,10 +55,6 @@ func (m *dummyFeatureManager) ValidateSpec(ctx context.Context, spec FeatureSpec
 	}
 
 	return nil
-}
-
-func (*dummyFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {
-	panic("implement me")
 }
 
 func (*dummyFeatureManager) Update(ctx context.Context, clusterID uint, spec FeatureSpec) error {

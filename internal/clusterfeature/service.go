@@ -180,6 +180,11 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return err
 	}
 
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
+
+		return err
+	}
+
 	logger.Info("feature activation request processed successfully")
 
 	return nil
@@ -198,7 +203,7 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	if feature == nil {
 		logger.Info("feature is not activated")
 
-		return nil
+		return FeatureNotActiveError{FeatureName: featureName}
 	}
 
 	featureManager, err := s.featureRegistry.GetFeatureManager(featureName)
