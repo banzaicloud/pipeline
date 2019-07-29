@@ -23,18 +23,18 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-// clusterGetter restricts the external dependencies for the repository
-type clusterGetter interface {
+// ClusterGetter restricts the external dependencies for the repository
+type ClusterGetter interface {
 	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
 }
 
 // ClusterService is an adapter providing access to the core cluster layer.
 type clusterService struct {
-	clusterGetter clusterGetter
+	clusterGetter ClusterGetter
 }
 
 // NewClusterService returns a new ClusterService instance.
-func NewClusterService(getter clusterGetter) clusterfeature.ClusterService {
+func NewClusterService(getter ClusterGetter) clusterfeature.ClusterService {
 	return &clusterService{
 		clusterGetter: getter,
 	}

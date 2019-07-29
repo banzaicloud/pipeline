@@ -106,6 +106,19 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 	return features, nil
 }
 
+// FeatureNotFoundError is returned when a feature is not found.
+type FeatureNotFoundError struct {
+	FeatureName string
+}
+
+func (FeatureNotFoundError) Error() string {
+	return "feature is not found"
+}
+
+func (e FeatureNotFoundError) Details() []interface{} {
+	return []interface{}{"feature", e.FeatureName}
+}
+
 // Details returns the details of an activated feature.
 func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": featureName})
@@ -164,7 +177,7 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 
 	logger.Debug("validating feature specification")
 	if err := featureManager.ValidateSpec(ctx, spec); err != nil {
-		return err
+		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
 	}
 
 	err = s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec)
@@ -176,6 +189,11 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	if err != nil {
 		// Deletion is best effort here, activation failed anyway
 		_ = s.featureRepository.DeleteFeature(ctx, clusterID, featureName)
+
+		return err
+	}
+
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
 
 		return err
 	}
@@ -198,7 +216,7 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	if feature == nil {
 		logger.Info("feature is not activated")
 
-		return nil
+		return FeatureNotActiveError{FeatureName: featureName}
 	}
 
 	featureManager, err := s.featureRegistry.GetFeatureManager(featureName)
@@ -253,10 +271,21 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 		return err
 	}
 
+	logger.Debug("validating feature specification")
+	if err := featureManager.ValidateSpec(ctx, spec); err != nil {
+
+		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
+	}
+
 	if err := featureManager.Update(ctx, clusterID, spec); err != nil {
 		logger.Debug("failed to update feature")
 
 		return errors.WrapIfWithDetails(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
+	}
+
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
+
+		return err
 	}
 
 	logger.Info("feature updated successfully")

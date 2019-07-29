@@ -41,6 +41,13 @@ type FeatureManager interface {
 	Update(ctx context.Context, clusterID uint, spec FeatureSpec) error
 }
 
+type ClusterSecretStore interface {
+	// GetSecret gets a secret for a cluster if exists
+	GetSecret(ctx context.Context, clusterID uint, secretID string) (map[string]string, error)
+
+	GetSecretByName(ctx context.Context, clusterID uint, secretName string) (map[string]string, error)
+}
+
 // InvalidFeatureSpecError is returned when a feature specification fails the validation.
 type InvalidFeatureSpecError struct {
 	FeatureName string
@@ -85,7 +92,7 @@ func (m *syncFeatureManager) Details(ctx context.Context, clusterID uint) (*Feat
 }
 
 func (m *syncFeatureManager) Name() string {
-	return m.Name()
+	return m.featureManager.Name()
 }
 
 func (m *syncFeatureManager) Activate(ctx context.Context, clusterID uint, spec FeatureSpec) error {
@@ -97,7 +104,7 @@ func (m *syncFeatureManager) Activate(ctx context.Context, clusterID uint, spec 
 }
 
 func (m *syncFeatureManager) ValidateSpec(ctx context.Context, spec FeatureSpec) error {
-	return m.ValidateSpec(ctx, spec)
+	return m.featureManager.ValidateSpec(ctx, spec)
 }
 
 func (m *syncFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {
@@ -127,6 +134,11 @@ func (m *syncFeatureManager) Update(ctx context.Context, clusterID uint, spec Fe
 	}
 
 	if err := m.isFeaturePending(ctx, clusterID, m.featureManager.Name()); err != nil {
+		return err
+	}
+
+	if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.featureManager.Name(), FeatureStatusPending); err != nil {
+
 		return err
 	}
 

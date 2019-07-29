@@ -89,7 +89,7 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	var notFound interface{ NotFound() bool }
 
 	switch {
-	case errors.As(err, &clusterfeature.UnknownFeatureError{}):
+	case errors.As(err, &clusterfeature.UnknownFeatureError{}), errors.As(err, &clusterfeature.FeatureNotFoundError{}):
 		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
 	case errors.As(err, &clusterfeature.FeatureAlreadyActivatedError{}), errors.As(err, &clusterfeature.FeatureNotActiveError{}):
 		problem = problems.NewDetailedProblem(http.StatusConflict, err.Error())
