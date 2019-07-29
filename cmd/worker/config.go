@@ -21,11 +21,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/platform/cadence"
-	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/internal/platform/cadence"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
 
 // Config holds any kind of configuration that comes from the outside world and
@@ -43,6 +45,9 @@ type Config struct {
 	// Log configuration
 	Log log.Config
 
+	// ErrorHandler configuration
+	ErrorHandler errorhandler.Config
+
 	// Pipeline configuration
 	Pipeline PipelineConfig
 
@@ -57,6 +62,10 @@ type Config struct {
 func (c Config) Validate() error {
 	if c.Environment == "" {
 		return errors.New("environment is required")
+	}
+
+	if err := c.ErrorHandler.Validate(); err != nil {
+		return err
 	}
 
 	if err := c.Pipeline.Validate(); err != nil {
@@ -102,6 +111,7 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	// Application constants
 	v.Set("serviceName", ServiceName)
+	v.Set("serviceVersion", version)
 
 	// Global configuration
 	v.SetDefault("environment", "production")
@@ -117,6 +127,10 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.RegisterAlias("log.format", "logging.logformat") // TODO: deprecate the above
 	v.RegisterAlias("log.level", "logging.loglevel")
 	v.RegisterAlias("log.noColor", "no_color")
+
+	// ErrorHandler configuration
+	v.RegisterAlias("errorHandler.serviceName", "serviceName")
+	v.RegisterAlias("errorHandler.serviceVersion", "serviceVersion")
 
 	// Pipeline configuration
 	viper.SetDefault("pipeline.basePath", "")
