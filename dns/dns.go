@@ -28,18 +28,18 @@ import (
 
 // ExternalDnsChartValues describes external-dns helm chart values (https://hub.helm.sh/charts/stable/external-dns)
 type ExternalDnsChartValues struct {
-	Sources       []string                     `json:"sources,omitempty" yaml:"sources,omitempty"`
-	Rbac          ExternalDnsRbacSettings      `json:"rbac,omitempty" yaml:"rbac,omitempty"`
-	Image         ExternalDnsImageSettings     `json:"image,omitempty" yaml:"image,omitempty"`
-	DomainFilters []string                     `json:"domainFilters,omitempty" yaml:"domainFilters,omitempty"`
-	Policy        string                       `json:"policy,omitempty" yaml:"policy,omitempty"`
-	TxtOwnerId    string                       `json:"txtOwnerId,omitempty" yaml:"txtOwnerId,omitempty"`
-	Affinity      v1.Affinity                  `json:"affinity,omitempty" yaml:"affinity,omitempty"`
-	Tolerations   []v1.Toleration              `json:"tolerations,omitempty" yaml:"tolerations,omitempty"`
-	ExtraArgs     map[string]string            `json:"extraArgs,omitempty" yaml:"extraArgs,omitempty"`
-	TxtPrefix     string                       `json:"txtPrefix,omitempty" yaml:"txtPrefix,omitempty"`
-	Crd           ExternalDnsCrdSourceSettings `json:"crd,omitempty" yaml:"crd,omitempty"`
-	Aws           ExternalDnsAwsSettings       `json:"aws,omitempty" yaml:"aws,omitempty"`
+	Sources       []string                      `json:"sources,omitempty" yaml:"sources,omitempty"`
+	Rbac          *ExternalDnsRbacSettings      `json:"rbac,omitempty" yaml:"rbac,omitempty"`
+	Image         *ExternalDnsImageSettings     `json:"image,omitempty" yaml:"image,omitempty"`
+	DomainFilters []string                      `json:"domainFilters,omitempty" yaml:"domainFilters,omitempty"`
+	Policy        string                        `json:"policy,omitempty" yaml:"policy,omitempty"`
+	TxtOwnerId    string                        `json:"txtOwnerId,omitempty" yaml:"txtOwnerId,omitempty"`
+	Affinity      *v1.Affinity                  `json:"affinity,omitempty" yaml:"affinity,omitempty"`
+	Tolerations   []v1.Toleration               `json:"tolerations,omitempty" yaml:"tolerations,omitempty"`
+	ExtraArgs     map[string]string             `json:"extraArgs,omitempty" yaml:"extraArgs,omitempty"`
+	TxtPrefix     string                        `json:"txtPrefix,omitempty" yaml:"txtPrefix,omitempty"`
+	Crd           *ExternalDnsCrdSourceSettings `json:"crd,omitempty" yaml:"crd,omitempty"`
+	Aws           *ExternalDnsAwsSettings       `json:"aws,omitempty" yaml:"aws,omitempty"`
 }
 
 type ExternalDnsRbacSettings struct {
@@ -62,11 +62,11 @@ type ExternalDnsCrdSourceSettings struct {
 }
 
 type ExternalDnsAwsSettings struct {
-	Credentials     ExternalDnsAwsCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
-	Region          string                    `json:"region,omitempty" yaml:"region,omitempty"`
-	ZoneType        string                    `json:"zoneType,omitempty" yaml:"zoneType,omitempty"`
-	AssumeRoleArn   string                    `json:"assumeRoleArn,omitempty" yaml:"assumeRoleArn,omitempty"`
-	BatchChangeSize uint                      `json:"batchChangeSize,omitempty" yaml:"batchChangeSize,omitempty"`
+	Credentials     *ExternalDnsAwsCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
+	Region          string                     `json:"region,omitempty" yaml:"region,omitempty"`
+	ZoneType        string                     `json:"zoneType,omitempty" yaml:"zoneType,omitempty"`
+	AssumeRoleArn   string                     `json:"assumeRoleArn,omitempty" yaml:"assumeRoleArn,omitempty"`
+	BatchChangeSize uint                       `json:"batchChangeSize,omitempty" yaml:"batchChangeSize,omitempty"`
 }
 
 type ExternalDnsAwsCredentials struct {

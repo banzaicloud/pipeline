@@ -746,16 +746,17 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 
 	log.Info("route53 secret successfully installed into cluster.")
 
+	hnAffinity := GetHeadNodeAffinity(commonCluster)
 	externalDnsValues := dns.ExternalDnsChartValues{
-		Rbac: dns.ExternalDnsRbacSettings{
+		Rbac: &dns.ExternalDnsRbacSettings{
 			Create: commonCluster.RbacEnabled() == true,
 		},
 		Sources: []string{"service", "ingress"},
-		Image: dns.ExternalDnsImageSettings{
+		Image: &dns.ExternalDnsImageSettings{
 			Tag: viper.GetString(pipConfig.DNSExternalDnsImageVersion),
 		},
-		Aws: dns.ExternalDnsAwsSettings{
-			Credentials: dns.ExternalDnsAwsCredentials{
+		Aws: &dns.ExternalDnsAwsSettings{
+			Credentials: &dns.ExternalDnsAwsCredentials{
 				SecretKey: route53Secret.Values[pkgSecret.AwsSecretAccessKey],
 				AccessKey: route53Secret.Values[pkgSecret.AwsAccessKeyId],
 			},
@@ -764,7 +765,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		DomainFilters: []string{domain},
 		Policy:        "sync",
 		TxtOwnerId:    commonCluster.GetUID(),
-		Affinity:      GetHeadNodeAffinity(commonCluster),
+		Affinity:      &hnAffinity,
 		Tolerations:   GetHeadNodeTolerations(),
 	}
 
