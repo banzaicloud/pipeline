@@ -27,12 +27,14 @@ SHELL ["/bin/bash", "-c"]
 # https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
 RUN [ ! -e /etc/nsswitch.conf.build ] && echo 'hosts: files dns' > /etc/nsswitch.conf.build
 
-FROM scratch
+FROM alpine:3.9
+
+RUN apk add --update --no-cache ca-certificates tzdata bash curl
 
 COPY --from=builder /etc/nsswitch.conf.build /etc/nsswitch.conf
+COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 COPY --from=builder /build/views /views/
 COPY --from=builder /build/templates /templates/
 COPY --from=builder /build/build/release/pipeline /
