@@ -59,7 +59,7 @@ func (m *dummyFeatureManager) ValidateSpec(ctx context.Context, spec FeatureSpec
 }
 
 func (*dummyFeatureManager) Update(ctx context.Context, clusterID uint, spec FeatureSpec) error {
-	panic("implement me")
+	return nil
 }
 
 func (*dummyFeatureManager) Details(ctx context.Context, clusterID uint) (*Feature, error) {
