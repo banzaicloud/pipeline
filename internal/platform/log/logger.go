@@ -22,8 +22,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// NewLogurLogger creates a new logger.
-func NewLogurLogger(config Config) logur.Logger {
+// NewLogger creates a new logger.
+func NewLogger(config Config) logur.Logger {
 	logger := logrus.New()
 
 	logger.SetOutput(os.Stdout)

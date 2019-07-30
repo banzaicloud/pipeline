@@ -37,7 +37,7 @@ func Logger() *logrus.Logger {
 }
 
 func newLogger() *logrus.Logger {
-	logger := log.NewLogger(log.Config{
+	logger := log.NewLogrusLogger(log.Config{
 		Level:  viper.GetString("logging.loglevel"),
 		Format: viper.GetString("logging.logformat"),
 	})

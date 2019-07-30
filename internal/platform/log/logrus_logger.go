@@ -16,9 +16,8 @@ package log
 
 import "github.com/sirupsen/logrus"
 
-// NewLogger creates a new logrus logger instance.
-// TODO: rename to NewLogrusLogger
-func NewLogger(config Config) *logrus.Logger {
+// NewLogrusLogger creates a new logrus logger instance.
+func NewLogrusLogger(config Config) *logrus.Logger {
 	logger := logrus.New()
 
 	level, err := logrus.ParseLevel(config.Level)
