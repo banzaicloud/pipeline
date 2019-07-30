@@ -48,7 +48,7 @@ type activatePolicy struct {
 }
 
 func init() {
-	v1alpha1.AddToScheme(scheme.Scheme)
+	_ = v1alpha1.AddToScheme(scheme.Scheme)
 }
 
 func getSecurityClient(c *gin.Context) *clientV1alpha1.SecurityV1Alpha1Client {
@@ -394,7 +394,7 @@ func UpdatePolicies(c *gin.Context) {
 
 		respBody, _ := ioutil.ReadAll(response.Body)
 		policyBundle := []security.PolicyBundleRecord{}
-		json.Unmarshal(respBody, &policyBundle)
+		json.Unmarshal(respBody, &policyBundle) // nolint: errcheck
 		policyBundle[0].Active = true
 		anchoreRequest.Method = http.MethodPut
 		anchoreRequest.Body = policyBundle[0]

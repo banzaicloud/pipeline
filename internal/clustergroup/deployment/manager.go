@@ -88,10 +88,10 @@ func (m *CGDeploymentManager) ReconcileState(featureState api.Feature) error {
 
 		if !featureState.Enabled {
 			// if feature is disabled delete all deployments belonging to the cluster group
-			m.DeleteDeployment(&featureState.ClusterGroup, deployment.DeploymentReleaseName, true)
+			m.DeleteDeployment(&featureState.ClusterGroup, deployment.DeploymentReleaseName, true) // nolint: errcheck
 		} else {
 			// delete deployment from clusters not belonging to the group anymore
-			m.deleteDeploymentFromTargetClusters(&featureState.ClusterGroup, deployment.DeploymentReleaseName, deployment, false, true)
+			m.deleteDeploymentFromTargetClusters(&featureState.ClusterGroup, deployment.DeploymentReleaseName, deployment, false, true) // nolint: errcheck
 		}
 
 	}

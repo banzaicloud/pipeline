@@ -192,7 +192,7 @@ func getAnchoreUserCredentials(username string) (string, int) {
 	defer response.Body.Close()
 	var usercreds userCred
 	respBody, _ := ioutil.ReadAll(response.Body)
-	json.Unmarshal(respBody, &usercreds)
+	json.Unmarshal(respBody, &usercreds) // nolint: errcheck
 	userPass := usercreds.Value
 
 	return userPass, response.StatusCode

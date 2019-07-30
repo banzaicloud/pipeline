@@ -150,7 +150,7 @@ type ErrorHandler struct {
 }
 
 func (*ErrorHandler) Error(c CommonCluster, err error) {
-	c.SetStatus(pkgCluster.Error, err.Error())
+	_ = c.SetStatus(pkgCluster.Error, err.Error())
 }
 
 // Priority can be used to run post hooks in a specific order

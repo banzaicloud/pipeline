@@ -39,9 +39,9 @@ func NewClusterEvents(eb eventBus) *clusterEventBus {
 }
 
 func (c *clusterEventBus) NotifyClusterCreated(fn interface{}) {
-	c.eb.SubscribeAsync(clusterCreatedTopic, fn, false)
+	c.eb.SubscribeAsync(clusterCreatedTopic, fn, false) // nolint: errcheck
 }
 
 func (c *clusterEventBus) NotifyClusterDeleted(fn interface{}) {
-	c.eb.SubscribeAsync(clusterDeletedTopic, fn, false)
+	c.eb.SubscribeAsync(clusterDeletedTopic, fn, false) // nolint: errcheck
 }

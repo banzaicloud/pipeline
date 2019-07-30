@@ -708,7 +708,7 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 	route53SecretCount := 0
 
 	secretItem := secrets[0]
-	defer func() { secret.Store.Delete(testOrgId, secretItem.ID) }()
+	defer func() { _ = secret.Store.Delete(testOrgId, secretItem.ID) }()
 
 	if secretItem.Name == IAMUserAccessKeySecretName {
 		if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
@@ -1161,7 +1161,7 @@ func cleanupVaultTestSecrets() {
 			if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
 				secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
 
-				secret.Store.Delete(testOrgId, secretItem.ID)
+				_ = secret.Store.Delete(testOrgId, secretItem.ID)
 			}
 		}
 	}

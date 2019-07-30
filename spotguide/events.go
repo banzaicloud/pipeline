@@ -32,7 +32,7 @@ type ebAuthEvents struct {
 }
 
 func (e ebAuthEvents) NotifyOrganizationRegistered(fn interface{}) {
-	e.eb.SubscribeAsync(auth.OrganizationRegisteredTopic, fn, false)
+	e.eb.SubscribeAsync(auth.OrganizationRegisteredTopic, fn, false) // nolint: errcheck
 }
 
 var AuthEventEmitter authEvents = ebAuthEvents{config.EventBus} // nolint: gochecknoglobals

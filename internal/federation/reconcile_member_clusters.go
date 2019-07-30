@@ -67,7 +67,7 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 		err := m.reconcileMemberCluster(DesiredStateAbsent, cluster)
 		if err != nil {
 			err = emperror.Wrap(err, "Error unjoining cluster")
-			multierror.Append(err, multiErr.Errors...)
+			multierror.Append(err, multiErr.Errors...) // nolint: errcheck
 		}
 	}
 

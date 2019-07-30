@@ -676,7 +676,7 @@ func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 
 	googleClusterModel := &google.GKEClusterModel{}
 
-	copier.Copy(googleClusterModel, c.model)
+	copier.Copy(googleClusterModel, c.model) // nolint: errcheck
 	googleClusterModel.NodePools = updateNodePoolsModel
 
 	googleClusterModel.NodeVersion = updateRequest.GKE.NodeVersion

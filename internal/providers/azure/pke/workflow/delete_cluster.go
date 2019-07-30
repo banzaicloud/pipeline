@@ -71,7 +71,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			if input.Forced {
 				logger.Errorw("deleting k8s resources failed", "error", err)
 			} else {
-				setClusterErrorStatus(ctx, input.ClusterID, err)
+				_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 				return err
 			}
 		}
@@ -87,7 +87,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			if input.Forced {
 				logger.Errorw("deleting cluster DNS records failed", "error", err)
 			} else {
-				setClusterErrorStatus(ctx, input.ClusterID, err)
+				_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 				return err
 			}
 		}
@@ -109,7 +109,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		err := workflow.ExecuteChildWorkflow(ctx, DeleteInfraWorkflowName, infraInput).Get(ctx, nil)
 		if err != nil {
-			setClusterErrorStatus(ctx, input.ClusterID, err)
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
@@ -121,7 +121,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			ClusterUID:     input.ClusterUID,
 		}
 		if err := workflow.ExecuteActivity(ctx, intClusterWorkflow.DeleteUnusedClusterSecretsActivityName, activityInput).Get(ctx, nil); err != nil {
-			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err))
+			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err)) // nolint: errcheck
 		}
 	}
 
@@ -132,7 +132,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, DeleteClusterFromStoreActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			setClusterErrorStatus(ctx, input.ClusterID, err)
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}

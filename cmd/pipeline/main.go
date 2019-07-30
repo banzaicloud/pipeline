@@ -709,7 +709,7 @@ func main() {
 
 	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
 	logger.Infof("Pipeline internal API listening on http://%s", internalBindAddr)
-	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI).Run(internalBindAddr)
+	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI).Run(internalBindAddr) // nolint: errcheck
 
 	bindAddr := viper.GetString("pipeline.bindaddr")
 	if port := viper.GetInt("pipeline.listenport"); port != 0 {
@@ -720,10 +720,10 @@ func main() {
 	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
 	if certFile != "" && keyFile != "" {
 		logger.Infof("Pipeline API listening on https://%s", bindAddr)
-		router.RunTLS(bindAddr, certFile, keyFile)
+		_ = router.RunTLS(bindAddr, certFile, keyFile)
 	} else {
 		logger.Infof("Pipeline API listening on http://%s", bindAddr)
-		router.Run(bindAddr)
+		_ = router.Run(bindAddr)
 	}
 }
 

@@ -123,10 +123,10 @@ func TestAddSecret(t *testing.T) {
 
 func TestListSecrets(t *testing.T) {
 
-	secret.Store.Store(orgId, &awsCreateSecretRequest)
-	secret.Store.Store(orgId, &aksCreateSecretRequest)
-	secret.Store.Store(orgId, &gkeCreateSecretRequest)
-	secret.Store.Store(orgId, &OCICreateSecretRequest)
+	_, _ = secret.Store.Store(orgId, &awsCreateSecretRequest)
+	_, _ = secret.Store.Store(orgId, &aksCreateSecretRequest)
+	_, _ = secret.Store.Store(orgId, &gkeCreateSecretRequest)
+	_, _ = secret.Store.Store(orgId, &OCICreateSecretRequest)
 
 	cases := []struct {
 		name           string

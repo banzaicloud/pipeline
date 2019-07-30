@@ -213,8 +213,8 @@ func TestFeatureService_Deactivate(t *testing.T) {
 	spec := map[string]interface{}{"key": "value", "fail": true}
 
 	// a persisted, active feature
-	repository.SaveFeature(context.Background(), clusterID, featureName, spec)
-	repository.UpdateFeatureStatus(context.Background(), clusterID, featureName, FeatureStatusActive)
+	repository.SaveFeature(context.Background(), clusterID, featureName, spec)                        // nolint: errcheck
+	repository.UpdateFeatureStatus(context.Background(), clusterID, featureName, FeatureStatusActive) // nolint: errcheck
 
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
@@ -247,7 +247,7 @@ func TestFeatureService_Deactivate_UnknownFeature(t *testing.T) {
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 	clusterID := uint(1)
 	featureName := "unknownFeature"
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"})
+	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}) // nolint: errcheck
 
 	err := service.Deactivate(context.Background(), clusterID, featureName)
 	require.Error(t, err)
@@ -265,7 +265,7 @@ func TestFeatureService_Deactivate_DeactivationFails(t *testing.T) {
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 	clusterID := uint(1)
 	featureName := "myFeature"
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"fails": true})
+	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"fails": true}) // nolint: errcheck
 	err := service.Deactivate(context.Background(), clusterID, featureName)
 
 	// do we need a specific error for this?
@@ -282,7 +282,7 @@ func TestFeatureService_Update(t *testing.T) {
 	clusterID := uint(1)
 	featureName := "myFeature"
 	spec := map[string]interface{}{"key": "value"}
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"fails": true})
+	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"fails": true}) // nolint: errcheck
 
 	err := service.Update(context.Background(), clusterID, featureName, spec)
 	require.NoError(t, err)
@@ -316,7 +316,7 @@ func TestFeatureService_Update_UnknownFeature(t *testing.T) {
 	featureName := "myFeature"
 	spec := map[string]interface{}{"key": "value"}
 
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"})
+	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}) // nolint: errcheck
 
 	err := service.Update(context.Background(), clusterID, featureName, spec)
 	require.Error(t, err)
@@ -337,7 +337,7 @@ func TestFeatureService_Update_InvalidSpec(t *testing.T) {
 	featureName := "myFeature"
 	spec := map[string]interface{}{}
 
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"})
+	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}) // nolint: errcheck
 
 	err := service.Update(context.Background(), clusterID, featureName, spec)
 	require.Error(t, err)

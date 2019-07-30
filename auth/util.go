@@ -77,5 +77,5 @@ func httpJSONError(w http.ResponseWriter, err error, code int) {
 	render := render.JSON{Data: common.ErrorResponse{Error: err.Error()}}
 	render.WriteContentType(w)
 	w.WriteHeader(code)
-	render.Render(w)
+	_ = render.Render(w)
 }
