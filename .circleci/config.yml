@@ -96,6 +96,7 @@ jobs:
                     name: Restore Go build cache
                     keys:
                         - build-cache-v1-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
+                        - build-cache-v1-{{ .Branch }}
                         - build-cache-v1-master
                     paths:
                         - /tmp/go/cache
