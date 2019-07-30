@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,27 +15,33 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"runtime"
+	"os"
+	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 )
 
-// Provisioned by ldflags
-// nolint: gochecknoglobals
-var (
-	version    string
-	commitHash string
-	buildDate  string
-)
+func TestConfigure(t *testing.T) {
+	var config configuration
 
-func VersionHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"version":     version,
-		"go_version":  runtime.Version(),
-		"commit_hash": commitHash,
-		"build_date":  buildDate,
-		"os_arch":     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
-	})
+	v := viper.New()
+	p := pflag.NewFlagSet("test", pflag.ContinueOnError)
+
+	configure(v, p)
+
+	file, err := os.Open("../../config/config.toml.dist")
+	require.NoError(t, err)
+
+	v.SetConfigType("toml")
+
+	err = v.ReadConfig(file)
+	require.NoError(t, err)
+
+	err = v.Unmarshal(&config)
+	require.NoError(t, err)
+
+	err = config.Validate()
+	require.NoError(t, err)
 }

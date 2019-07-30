@@ -15,15 +15,15 @@
 package main
 
 const (
-	// ServiceName is an identifier-like name used anywhere this app needs to be identified.
+	// appName is an identifier-like name used anywhere this app needs to be identified.
 	//
 	// It identifies the service itself, the actual instance needs to be identified via environment
 	// and other details.
-	ServiceName = "pipeline"
+	appName = "pipeline"
 
-	// FriendlyServiceName is the visible name of the service.
-	FriendlyServiceName = "Pipeline"
+	// friendlyAppName is the visible name of the service.
+	friendlyAppName = "Pipeline"
 
-	// EnvPrefix is prepended to environment variables when processing configuration.
-	// EnvPrefix = "pipeline"
+	// envPrefix is prepended to environment variables when processing configuration.
+	// envPrefix = "pipeline"
 )
