@@ -12,6 +12,7 @@ linters-settings:
 
 linters:
     enable:
+        - govet
         - misspell
         - gofmt
         - golint
