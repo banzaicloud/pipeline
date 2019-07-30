@@ -2,6 +2,7 @@ version: 2.1
 
 jobs:
     build:
+        resource_class: large
         docker:
             -
                 image: circleci/golang:1.12-stretch
