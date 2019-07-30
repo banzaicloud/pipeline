@@ -153,7 +153,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 
 	sn, err := conn.GetSubnetsClient().Get(ctx, params.ResourceGroup, params.Network.Name, params.NodePools[0].Subnet.Name, "routeTable")
 	if err = emperror.Wrap(err, "failed to get subnet"); err != nil && sn.StatusCode != http.StatusNotFound {
-		cc.handleError(cl.ID, err)
+		_ = cc.handleError(cl.ID, err)
 		return
 	}
 
@@ -211,7 +211,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		var commonCluster cluster.CommonCluster
 		commonCluster, err = commoncluster.MakeCommonClusterGetter(secret.Store, cc.store).GetByID(cl.ID)
 		if err != nil {
-			cc.handleError(cl.ID, err)
+			_ = cc.handleError(cl.ID, err)
 			return
 		}
 		nodePoolStatuses := make(map[string]*pkgCluster.NodePoolStatus, len(params.NodePools))
@@ -228,7 +228,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		var labelsMap map[string]map[string]string
 		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, false)
 		if err != nil {
-			cc.handleError(cl.ID, err)
+			_ = cc.handleError(cl.ID, err)
 			return
 		}
 
@@ -239,7 +239,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 
 	sshKeyPair, err := GetOrCreateSSHKeyPair(cl, cc.secrets, cc.store)
 	if err = emperror.Wrap(err, "failed to get or create SSH key pair"); err != nil {
-		cc.handleError(cl.ID, err)
+		_ = cc.handleError(cl.ID, err)
 		return
 	}
 
@@ -350,7 +350,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 
 	wfexec, err := cc.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateClusterWorkflowName, input)
 	if err != nil {
-		cc.handleError(cl.ID, err)
+		_ = cc.handleError(cl.ID, err)
 		return
 	}
 

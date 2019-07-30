@@ -297,7 +297,7 @@ func init() {
 	viper.SetDefault(LoggingOperatorChartVersion, "")
 	viper.SetDefault(LoggingOperatorImageTag, "0.0.5")
 
-	viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
+	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")
 
 	viper.SetDefault(PipelineSystemNamespace, "pipeline-system")

@@ -298,7 +298,7 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		githubUser, err := getGithubUser(accessToken)
 		if err != nil {
 			errorHandler.Handle(errors.Wrap(err, "failed to query GitHub user"))
-			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
+			_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
 			return
 		}
 		user := User{}
@@ -332,7 +332,7 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 
 	if c.Request.Method == http.MethodPost && c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&tokenRequest); err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
+			_ = c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 	}

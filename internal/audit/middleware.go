@@ -60,14 +60,14 @@ func LogWriter(
 		bodyBuffer := bytes.NewBuffer(nil)
 
 		if _, err := io.Copy(bodyBuffer, c.Request.Body); err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
 			logger.Errorf("audit: failed to copy body: %v", err)
 
 			return
 		}
 
 		// We can close the old Body right now, it is fully read
-		c.Request.Body.Close()
+		_ = c.Request.Body.Close()
 
 		rawBody := bodyBuffer.Bytes()
 		c.Request.Body = ioutil.NopCloser(bodyBuffer)
@@ -91,7 +91,7 @@ func LogWriter(
 
 				err := json.Unmarshal(rawBody, &request)
 				if err != nil {
-					c.AbortWithError(http.StatusInternalServerError, err)
+					_ = c.AbortWithError(http.StatusInternalServerError, err)
 					logger.Errorln(err)
 
 					return
@@ -106,7 +106,7 @@ func LogWriter(
 				}
 
 				if err != nil {
-					c.AbortWithError(http.StatusInternalServerError, err)
+					_ = c.AbortWithError(http.StatusInternalServerError, err)
 					logger.Errorln(err)
 
 					return
@@ -146,7 +146,7 @@ func LogWriter(
 
 		headers, err := json.Marshal(filteredHeaders)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
 			logger.Errorf("audit: failed to marshal headers: %v", err)
 
 			return
@@ -165,7 +165,7 @@ func LogWriter(
 		}
 
 		if err := db.Save(&event).Error; err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
 			logger.Errorf("audit: failed to write request to db: %v", err)
 
 			return

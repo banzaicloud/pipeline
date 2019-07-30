@@ -96,7 +96,7 @@ func (oci *OCI) GetLogger() logrus.FieldLogger {
 // Validate is validates the credentials by retrieving and checking the related tenancy information
 func (oci *OCI) Validate() error {
 
-	oci.GetTenancy()
+	oci.GetTenancy() // nolint: errcheck
 
 	tenancyID, err := oci.config.TenancyOCID()
 	if err != nil {

@@ -510,10 +510,10 @@ pipeline:
 func TestCICDRepoConfigPipelineClusterBlock(t *testing.T) {
 
 	config := cicdRepoConfig{}
-	yaml.Unmarshal([]byte(testClusterPipelineYAML), &config)
+	yaml.Unmarshal([]byte(testClusterPipelineYAML), &config) // nolint: errcheck
 
 	launchRequest := LaunchRequest{}
-	json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest)
+	json.Unmarshal([]byte(testLaunchRequestJSON), &launchRequest) // nolint: errcheck
 
 	spotguidePlatformData := PlatformData{}
 
@@ -528,7 +528,7 @@ func TestCICDRepoConfigPipelineClusterBlock(t *testing.T) {
 	}
 
 	expectedConfig := map[string]interface{}{}
-	yaml.Unmarshal([]byte(testExpectedClusterPipelineYAML), &expectedConfig)
+	yaml.Unmarshal([]byte(testExpectedClusterPipelineYAML), &expectedConfig) // nolint: errcheck
 
 	actualConfig := map[string]interface{}{}
 	err = yaml.Unmarshal(actualPipelineYAML, &actualConfig)

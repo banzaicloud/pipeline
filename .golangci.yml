@@ -13,13 +13,13 @@ linters-settings:
 linters:
     enable:
         - govet
+        - errcheck
         - misspell
         - gofmt
         - golint
         - goimports
         - gochecknoglobals
     disable:
-        - errcheck
         - gas
         - megacheck
         - varcheck

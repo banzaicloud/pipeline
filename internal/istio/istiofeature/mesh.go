@@ -38,7 +38,7 @@ func NewMeshReconciler(config Config, clusterGetter api.ClusterGetter, logger lo
 		errorHandler:  errorHandler,
 	}
 
-	reconciler.init()
+	reconciler.init() // nolint: errcheck
 
 	reconciler.logger = reconciler.logger.WithFields(logrus.Fields{
 		"clusterID":   reconciler.Master.GetID(),

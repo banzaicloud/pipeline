@@ -180,23 +180,23 @@ func (m *Manager) createCluster(
 
 		sshKey, err := secret.GenerateSSHKeyPair()
 		if err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			_ = cluster.SetStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to generate SSH key")
 		}
 
 		sshSecretId, err := secret.StoreSSHKeyPair(sshKey, cluster.GetOrganizationId(), cluster.GetID(), cluster.GetName(), cluster.GetUID())
 		if err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			_ = cluster.SetStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to store SSH key")
 		}
 
 		if err := cluster.SaveSshSecretId(sshSecretId); err != nil {
-			cluster.SetStatus(pkgCluster.Error, "internal error")
+			_ = cluster.SetStatus(pkgCluster.Error, "internal error")
 			return emperror.Wrap(err, "failed to save SSH key secret ID")
 		}
 	}
 	if err := creator.Create(ctx); err != nil {
-		cluster.SetStatus(pkgCluster.Error, err.Error())
+		_ = cluster.SetStatus(pkgCluster.Error, err.Error())
 		return err
 	}
 

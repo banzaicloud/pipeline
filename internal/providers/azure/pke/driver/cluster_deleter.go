@@ -132,7 +132,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 
 	wfrun, err := cd.workflowClient.ExecuteWorkflow(ctx, workflowOptions, workflow.DeleteClusterWorkflowName, input)
 	if err = emperror.WrapWith(err, "failed to start cluster deletion workflow", "cluster", cluster.Name); err != nil {
-		cd.store.SetStatus(cluster.ID, pkgCluster.Error, err.Error())
+		_ = cd.store.SetStatus(cluster.ID, pkgCluster.Error, err.Error())
 		return err
 	}
 
@@ -146,7 +146,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 			return
 		}
 		cd.kubeProxyCache.Delete(cluster.UID)
-		statestore.CleanStateStore(cluster.Name)
+		statestore.CleanStateStore(cluster.Name) // nolint: errcheck
 		cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
 	}()
 

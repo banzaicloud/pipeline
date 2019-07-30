@@ -204,7 +204,7 @@ func TestGetSecretWithValidation(t *testing.T) {
 				t.Errorf("Error during saving secret: %s", err.Error())
 				t.FailNow()
 			} else {
-				defer secret.Store.Delete(organizationId, secretID)
+				defer secret.Store.Delete(organizationId, secretID) // nolint: errcheck
 			}
 
 			commonCluster, err := cluster.CreateCommonClusterFromRequest(tc.createClusterRequest, organizationId, userId)

@@ -43,7 +43,7 @@ func NewMiddleware(e Enforcer, basePath string, errorHandler emperror.Handler) g
 		if err != nil {
 			err = emperror.Wrap(err, "failed to check permissions for request")
 			errorHandler.Handle(err)
-			c.AbortWithError(http.StatusInternalServerError, err)
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
 		} else if !granted {
 			c.AbortWithStatus(http.StatusForbidden)
 		}

@@ -38,7 +38,7 @@ func NewClusterEventHandler(events clusterEvents, db *gorm.DB, logger logrus.Fie
 	}
 
 	eh.events.NotifyClusterDeleted(func(orgID uint, clusterName string) {
-		eh.DeleteStaleARKDeployments(orgID)
+		eh.DeleteStaleARKDeployments(orgID) // nolint: errcheck
 	})
 
 	return eh
