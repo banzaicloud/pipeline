@@ -40,6 +40,7 @@ func TestFeatureService_List(t *testing.T) {
 		Name:   featureName,
 		Spec:   spec,
 		Status: FeatureStatusActive,
+		Output: map[string]interface{}{},
 	}
 
 	repository.features[clusterID] = map[string]Feature{
