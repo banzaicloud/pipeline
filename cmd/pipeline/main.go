@@ -688,7 +688,7 @@ func main() {
 			context.Background(),
 			config.DB(),
 			arkClusterManager.New(clusterManager),
-			platformlog.NewLogger(platformlog.Config{
+			platformlog.NewLogrusLogger(platformlog.Config{
 				Level:  viper.GetString(config.ARKLogLevel),
 				Format: viper.GetString(config.LoggingLogFormat),
 			}).WithField("subsystem", "ark"),
