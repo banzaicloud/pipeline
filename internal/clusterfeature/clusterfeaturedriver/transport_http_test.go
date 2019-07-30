@@ -22,10 +22,10 @@ import (
 	"testing"
 
 	"emperror.dev/emperror"
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	client2 "github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 )
@@ -55,9 +55,9 @@ func TestMakeHTTPHandlers_List(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := ts.Client()
+	tsClient := ts.Client()
 
-	resp, err := client.Get(ts.URL)
+	resp, err := tsClient.Get(ts.URL)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -65,12 +65,22 @@ func TestMakeHTTPHandlers_List(t *testing.T) {
 
 	decoder := json.NewDecoder(resp.Body)
 
-	var featureList []clusterfeature.Feature
+	var featureMap map[string]client.ClusterFeatureDetails
 
-	err = decoder.Decode(&featureList)
+	err = decoder.Decode(&featureMap)
 	require.NoError(t, err)
 
-	assert.Equal(t, featureService.FeatureList, featureList)
+	assert.Equal(t, map[string]client.ClusterFeatureDetails{
+		"example": {
+			Status: "ACTIVE",
+			Spec: map[string]interface{}{
+				"hello": "world",
+			},
+			Output: map[string]interface{}{
+				"hello": "world",
+			},
+		},
+	}, featureMap)
 }
 
 func TestMakeHTTPHandlers_Details(t *testing.T) {
@@ -101,9 +111,9 @@ func TestMakeHTTPHandlers_Details(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := ts.Client()
+	tsClient := ts.Client()
 
-	resp, err := client.Get(ts.URL)
+	resp, err := tsClient.Get(ts.URL)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -111,12 +121,20 @@ func TestMakeHTTPHandlers_Details(t *testing.T) {
 
 	decoder := json.NewDecoder(resp.Body)
 
-	var featureDetails clusterfeature.Feature
+	var featureDetails client.ClusterFeatureDetails
 
 	err = decoder.Decode(&featureDetails)
 	require.NoError(t, err)
 
-	assert.Equal(t, featureService.FeatureDetails, featureDetails)
+	assert.Equal(t, client.ClusterFeatureDetails{
+		Spec: map[string]interface{}{
+			"hello": "world",
+		},
+		Output: map[string]interface{}{
+			"hello": "world",
+		},
+		Status: "ACTIVE",
+	}, featureDetails)
 }
 
 func TestMakeHTTPHandlers_Activate(t *testing.T) {
@@ -136,13 +154,13 @@ func TestMakeHTTPHandlers_Activate(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := ts.Client()
+	tsClient := ts.Client()
 
 	var buf bytes.Buffer
 
 	encoder := json.NewEncoder(&buf)
 
-	apiReq := client2.ActivateClusterFeatureRequest{
+	apiReq := client.ActivateClusterFeatureRequest{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},
@@ -154,7 +172,7 @@ func TestMakeHTTPHandlers_Activate(t *testing.T) {
 	req, err := http.NewRequest(http.MethodPost, ts.URL, &buf)
 	require.NoError(t, err)
 
-	resp, err := client.Do(req)
+	resp, err := tsClient.Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -207,13 +225,13 @@ func TestMakeHTTPHandlers_Update(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := ts.Client()
+	tsClient := ts.Client()
 
 	var buf bytes.Buffer
 
 	encoder := json.NewEncoder(&buf)
 
-	apiReq := client2.UpdateClusterFeatureRequest{
+	apiReq := client.UpdateClusterFeatureRequest{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},
@@ -225,7 +243,7 @@ func TestMakeHTTPHandlers_Update(t *testing.T) {
 	req, err := http.NewRequest(http.MethodPut, ts.URL, &buf)
 	require.NoError(t, err)
 
-	resp, err := client.Do(req)
+	resp, err := tsClient.Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
