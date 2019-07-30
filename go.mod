@@ -2,7 +2,7 @@ module github.com/banzaicloud/pipeline
 
 require (
 	cloud.google.com/go v0.43.0
-	emperror.dev/emperror v0.21.2
+	emperror.dev/emperror v0.21.3
 	emperror.dev/errors v0.4.2
 	emperror.dev/handler/logrus v0.1.0
 	emperror.dev/handler/logur v0.1.0

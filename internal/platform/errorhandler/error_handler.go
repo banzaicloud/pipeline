@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"cloud.google.com/go/errorreporting"
+	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"emperror.dev/handler/stackdriver"
 	"github.com/goph/logur"
@@ -45,9 +46,9 @@ func (c Config) Validate() error {
 }
 
 // New returns a new error handler.
-func New(config Config, logger logur.Logger) (Handlers, error) {
+func New(config Config, logger logur.Logger) (emperror.Handlers, error) {
 	logHandler := logur.NewErrorHandler(logger)
-	handlers := Handlers{logHandler}
+	handlers := emperror.Handlers{logHandler}
 
 	if config.Stackdriver.Enabled {
 		ctx := context.Background()
