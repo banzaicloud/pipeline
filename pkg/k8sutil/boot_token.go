@@ -56,11 +56,11 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 	}
 	tokenValue, err := util.GenerateBootstrapToken()
 	if err != nil {
-		emperror.Wrap(err, "bootstrap token generation failed")
+		return "", emperror.Wrap(err, "bootstrap token generation failed")
 	}
 	tokenString, err := kubeadm.NewBootstrapTokenString(tokenValue)
 	if err != nil {
-		emperror.Wrap(err, "bootstrap token generation failed")
+		return "", emperror.Wrap(err, "bootstrap token generation failed")
 	}
 	token := kubeadm.BootstrapToken{
 		Token:       tokenString,
@@ -71,7 +71,7 @@ func GetOrCreateBootstrapToken(log logrus.FieldLogger, client kubernetes.Interfa
 	}
 	_, err = client.CoreV1().Secrets(namespace).Create(token.ToSecret())
 	if err != nil {
-		emperror.Wrap(err, "unable to create token")
+		return "", emperror.Wrap(err, "unable to create token")
 	}
 	return tokenString.String(), nil
 }

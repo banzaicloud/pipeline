@@ -21,16 +21,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/platform/cadence"
-	"github.com/banzaicloud/pipeline/internal/platform/database"
-	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/internal/platform/cadence"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
+	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
 
-// Config holds any kind of configuration that comes from the outside world and
+// configuration holds any kind of configuration that comes from the outside world and
 // is necessary for running the application.
-type Config struct {
+type configuration struct {
 	// Meaningful values are recommended (eg. production, development, staging, release/123, etc)
 	Environment string
 
@@ -43,6 +45,9 @@ type Config struct {
 	// Log configuration
 	Log log.Config
 
+	// ErrorHandler configuration
+	ErrorHandler errorhandler.Config
+
 	// Pipeline configuration
 	Pipeline PipelineConfig
 
@@ -54,9 +59,13 @@ type Config struct {
 }
 
 // Validate validates the configuration.
-func (c Config) Validate() error {
+func (c configuration) Validate() error {
 	if c.Environment == "" {
 		return errors.New("environment is required")
+	}
+
+	if err := c.ErrorHandler.Validate(); err != nil {
+		return err
 	}
 
 	if err := c.Pipeline.Validate(); err != nil {
@@ -84,24 +93,25 @@ func (c PipelineConfig) Validate() error {
 	return nil
 }
 
-// Configure configures some defaults in the Viper instance.
-func Configure(v *viper.Viper, p *pflag.FlagSet) {
+// configure configures some defaults in the Viper instance.
+func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AllowEmptyEnv(true)
 	v.AddConfigPath(".")
-	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(EnvPrefix)))
-	p.Init(FriendlyServiceName, pflag.ExitOnError)
+	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(envPrefix)))
+	p.Init(friendlyAppName, pflag.ExitOnError)
 	pflag.Usage = func() {
-		_, _ = fmt.Fprintf(os.Stderr, "Usage of %s:\n", FriendlyServiceName)
+		_, _ = fmt.Fprintf(os.Stderr, "Usage of %s:\n", friendlyAppName)
 		pflag.PrintDefaults()
 	}
 	_ = v.BindPFlags(p)
 
-	v.SetEnvPrefix(EnvPrefix)
+	v.SetEnvPrefix(envPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	v.AutomaticEnv()
 
 	// Application constants
-	v.Set("serviceName", ServiceName)
+	v.Set("appName", appName)
+	v.Set("appVersion", version)
 
 	// Global configuration
 	v.SetDefault("environment", "production")
@@ -117,6 +127,10 @@ func Configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.RegisterAlias("log.format", "logging.logformat") // TODO: deprecate the above
 	v.RegisterAlias("log.level", "logging.loglevel")
 	v.RegisterAlias("log.noColor", "no_color")
+
+	// ErrorHandler configuration
+	v.RegisterAlias("errorHandler.serviceName", "appName")
+	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
 
 	// Pipeline configuration
 	viper.SetDefault("pipeline.basePath", "")

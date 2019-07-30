@@ -64,7 +64,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		err := workflow.ExecuteActivity(ctx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			setClusterErrorStatus(ctx, input.ClusterID, err)
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
@@ -85,14 +85,14 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {
-		setClusterErrorStatus(ctx, input.ClusterID, err)
+		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
 	}
 
-	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master")
+	setClusterStatus(ctx, input.ClusterID, pkgCluster.Creating, "waiting for Kubernetes master") // nolint: errcheck
 
 	if err = waitForMasterReadySignal(ctx, 1*time.Hour); err != nil {
-		setClusterErrorStatus(ctx, input.ClusterID, err)
+		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
 	}
 
@@ -103,7 +103,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	err = workflow.ExecuteChildWorkflow(ctx, cluster.RunPostHooksWorkflowName, postHookWorkflowInput).Get(ctx, nil)
 	if err != nil {
-		setClusterErrorStatus(ctx, input.ClusterID, err)
+		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
 	}
 

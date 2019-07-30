@@ -15,11 +15,54 @@
 package errorhandler
 
 import (
+	"context"
+
+	"cloud.google.com/go/errorreporting"
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
+	"emperror.dev/handler/stackdriver"
 	"github.com/goph/logur"
 )
 
+// Config holds information for configuring an error handler.
+type Config struct {
+	Stackdriver struct {
+		Enabled   bool
+		ProjectId string
+	}
+
+	ServiceName    string
+	ServiceVersion string
+}
+
+func (c Config) Validate() error {
+	if c.Stackdriver.Enabled {
+		if c.Stackdriver.ProjectId == "" {
+			return errors.New("stackdriver project ID cannot be empty")
+		}
+	}
+
+	return nil
+}
+
 // New returns a new error handler.
-func New(logger logur.Logger) emperror.Handler {
-	return logur.NewErrorHandler(logger)
+func New(config Config, logger logur.Logger) (emperror.Handlers, error) {
+	logHandler := logur.NewErrorHandler(logger)
+	handlers := emperror.Handlers{logHandler}
+
+	if config.Stackdriver.Enabled {
+		ctx := context.Background()
+		client, err := errorreporting.NewClient(ctx, config.Stackdriver.ProjectId, errorreporting.Config{
+			ServiceName:    config.ServiceName,
+			ServiceVersion: config.ServiceVersion,
+			OnError:        logHandler.Handle,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create stackdriver client")
+		}
+
+		handlers = append(handlers, stackdriver.New(client))
+	}
+
+	return handlers, nil
 }

@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,30 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package log
 
 import (
-	"fmt"
-	"net/http"
-	"runtime"
+	"log"
 
-	"github.com/gin-gonic/gin"
+	"github.com/goph/logur"
 )
 
-// Provisioned by ldflags
-// nolint: gochecknoglobals
-var (
-	version    string
-	commitHash string
-	buildDate  string
-)
+// NewErrorStandardLogger returns a new standard logger logging on error level.
+func NewErrorStandardLogger(logger logur.Logger) *log.Logger {
+	return logur.NewErrorStandardLogger(logger, "", 0)
+}
 
-func VersionHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"version":     version,
-		"go_version":  runtime.Version(),
-		"commit_hash": commitHash,
-		"build_date":  buildDate,
-		"os_arch":     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
-	})
+// SetStandardLogger sets the global logger's output to a custom logger instance.
+func SetStandardLogger(logger logur.Logger) {
+	log.SetOutput(logur.NewLevelWriter(logger, logur.Info))
 }

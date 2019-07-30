@@ -153,7 +153,7 @@ func (a *API) PostReady(c *gin.Context) {
 				// Workflow execution already completed.
 				if derr == nil && desc.WorkflowExecutionInfo != nil && desc.WorkflowExecutionInfo.CloseStatus != nil {
 					log.Infof("Workflow execution already completed with status: %s", desc.WorkflowExecutionInfo.CloseStatus)
-					err = nil
+
 					return
 				}
 			}

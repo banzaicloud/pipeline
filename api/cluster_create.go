@@ -225,7 +225,7 @@ func (a *ClusterAPI) createCluster(
 
 		logger.Info("fill data from profile")
 
-		distribution := pkgCluster.Unknown
+		var distribution string
 		switch createClusterRequest.Cloud {
 		case pkgCluster.Amazon:
 			distribution = pkgCluster.EKS

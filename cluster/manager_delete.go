@@ -21,6 +21,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+
 	"github.com/banzaicloud/pipeline/helm"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
@@ -28,9 +32,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 )
 
 // DeleteCluster deletes a cluster.
@@ -182,7 +183,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		err = emperror.Wrap(err, "cannot access Kubernetes cluster")
 
 		if !force {
-			cluster.SetStatus(pkgCluster.Error, err.Error())
+			_ = cluster.SetStatus(pkgCluster.Error, err.Error())
 
 			return err
 		}
@@ -209,7 +210,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 				err = emperror.Wrap(err, "can not list namespaces")
 
 				if !force {
-					cluster.SetStatus(pkgCluster.Error, err.Error())
+					_ = cluster.SetStatus(pkgCluster.Error, err.Error())
 
 					return err
 				}
@@ -223,7 +224,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			err = emperror.Wrap(err, "failed to delete deployments")
 
 			if !force {
-				cluster.SetStatus(pkgCluster.Error, err.Error())
+				_ = cluster.SetStatus(pkgCluster.Error, err.Error())
 
 				return err
 			}
@@ -236,7 +237,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 			err = emperror.Wrap(err, "failed to delete Kubernetes resources")
 
 			if !force {
-				cluster.SetStatus(pkgCluster.Error, err.Error())
+				_ = cluster.SetStatus(pkgCluster.Error, err.Error())
 
 				return err
 			}
@@ -264,7 +265,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if err != nil {
 		err = emperror.Wrap(err, "failed to delete cluster from the provider")
 		if !force {
-			cluster.SetStatus(pkgCluster.Error, err.Error())
+			cluster.SetStatus(pkgCluster.Error, err.Error()) // nolint: errcheck
 			return err
 		}
 		logger.Error(err)
@@ -277,7 +278,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if err != nil {
 		err = emperror.Wrap(err, "failed to delete unused cluster secrets")
 		if !force {
-			cluster.SetStatus(pkgCluster.Error, err.Error())
+			cluster.SetStatus(pkgCluster.Error, err.Error()) // nolint: errcheck
 			return err
 		}
 		logger.Error(err)
@@ -290,7 +291,7 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 	if err != nil {
 		err = emperror.Wrap(err, "failed to delete from the database")
 		if !force {
-			cluster.SetStatus(pkgCluster.Error, err.Error())
+			cluster.SetStatus(pkgCluster.Error, err.Error()) // nolint: errcheck
 			return err
 		}
 		logger.Error(err)

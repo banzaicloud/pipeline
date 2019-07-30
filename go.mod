@@ -1,10 +1,13 @@
 module github.com/banzaicloud/pipeline
 
 require (
-	cloud.google.com/go v0.33.1
-	emperror.dev/emperror v0.21.2
+	cloud.google.com/go v0.43.0
+	emperror.dev/emperror v0.21.3
 	emperror.dev/errors v0.4.2
 	emperror.dev/handler/logrus v0.1.0
+	emperror.dev/handler/logur v0.1.0
+	emperror.dev/handler/stackdriver v0.1.0
+	git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999 // indirect
 	github.com/Azure/azure-pipeline-go v0.1.8
 	github.com/Azure/azure-sdk-for-go v23.2.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.0.0-20181022225951-5152f14ace1c
@@ -57,11 +60,10 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/golang/mock v1.2.0 // indirect
-	github.com/golang/protobuf v1.3.0
+	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.0 // indirect
-	github.com/goph/logur v0.11.0
+	github.com/goph/logur v0.11.2
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
@@ -74,6 +76,7 @@ require (
 	github.com/jinzhu/now v0.0.0-20180511015916-ed742868f2ae
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/kisielk/errcheck v1.2.0 // indirect
+	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kubernetes-sigs/kubefed v0.1.0-rc2
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
 	github.com/microcosm-cc/bluemonday v0.0.0-20180327211928-995366fdf961
@@ -83,6 +86,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/oklog/run v1.0.0
+	github.com/openzipkin/zipkin-go v0.1.1 // indirect
 	github.com/oracle/oci-go-sdk v2.0.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.2.0
@@ -129,21 +133,17 @@ require (
 	go.uber.org/tools v0.0.0-20170523140223-ce2550dad714 // indirect
 	go.uber.org/yarpc v1.36.1
 	go.uber.org/zap v1.9.1
-	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-	golang.org/x/lint v0.0.0-20181217174547-8f45f776aaf1 // indirect
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
-	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890
-	golang.org/x/tools v0.0.0-20190318200714-bb1270c20edf // indirect
-	google.golang.org/api v0.0.0-20190111181425-455dee39f703
-	google.golang.org/appengine v1.5.0 // indirect
-	google.golang.org/genproto v0.0.0-20181202183823-bd91e49a0898
-	google.golang.org/grpc v1.17.0
+	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	google.golang.org/api v0.7.0
+	google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610
+	google.golang.org/grpc v1.21.1
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 	gotest.tools v2.2.0+incompatible
-	honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099 // indirect
 	k8s.io/api v0.0.0-20190404065945-709cf190c7b7
 	k8s.io/apiextensions-apiserver v0.0.0-20190308081736-3a66ae4d2f93
 	k8s.io/apimachinery v0.0.0-20190404065847-4a4abcd45006

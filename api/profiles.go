@@ -135,19 +135,19 @@ func convertRequestToProfile(request *pkgCluster.ClusterProfileRequest) (default
 	switch request.Cloud {
 	case pkgCluster.Amazon:
 		var eksProfile defaults.EKSProfile
-		eksProfile.UpdateProfile(request, false)
+		_ = eksProfile.UpdateProfile(request, false)
 		return &eksProfile, nil
 	case pkgCluster.Azure:
 		var aksProfile defaults.AKSProfile
-		aksProfile.UpdateProfile(request, false)
+		_ = aksProfile.UpdateProfile(request, false)
 		return &aksProfile, nil
 	case pkgCluster.Google:
 		var gkeProfile defaults.GKEProfile
-		gkeProfile.UpdateProfile(request, false)
+		_ = gkeProfile.UpdateProfile(request, false)
 		return &gkeProfile, nil
 	case pkgCluster.Oracle:
 		var okeProfile oracle.Profile
-		okeProfile.UpdateProfile(request, false)
+		_ = okeProfile.UpdateProfile(request, false)
 		return &okeProfile, nil
 	default:
 		return nil, pkgErrors.ErrorNotSupportedCloudType
@@ -191,7 +191,7 @@ func UpdateClusterProfile(c *gin.Context) {
 		profileRequest.Properties.ACK = profileRequest.Properties.ACSK
 	}
 
-	distribution := pkgCluster.Unknown
+	var distribution string
 	switch profileRequest.Cloud {
 	case pkgCluster.Amazon:
 		distribution = pkgCluster.EKS

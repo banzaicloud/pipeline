@@ -189,12 +189,12 @@ func (s *DeploymentsService) Deploy(bucket *ClusterBackupBucketsModel, restoreMo
 	)
 	if err != nil {
 		err = errors.Wrap(err, "error deploying ark")
-		s.repository.UpdateStatus(deployment, "ERROR", err.Error())
-		s.repository.Delete(deployment)
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		_ = s.repository.Delete(deployment)
 		return err
 	}
 
-	s.repository.UpdateStatus(deployment, "DEPLOYED", "")
+	s.repository.UpdateStatus(deployment, "DEPLOYED", "") // nolint: errcheck
 
 	return nil
 }
@@ -210,13 +210,13 @@ func (s *DeploymentsService) Remove() error {
 	config, err := s.cluster.GetK8sConfig()
 	if err != nil {
 		err = errors.Wrap(err, "error getting k8s config")
-		s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
 		return err
 	}
 
 	err = helm.DeleteDeployment(deployment.Name, config)
 	if err != nil {
-		s.repository.UpdateStatus(deployment, "ERROR", err.Error())
+		_ = s.repository.UpdateStatus(deployment, "ERROR", err.Error())
 		return errors.Wrap(err, "error deleting deployment")
 	}
 

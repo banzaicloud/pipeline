@@ -107,7 +107,7 @@ func (ce *ContainerEngine) DeleteNodePoolByName(clusterID *string, name string) 
 	}
 
 	ce.oci.GetLogger().Infof("Deleting NodePool[%s]", *nodePool.Name)
-	ce.DeleteNodePool(nodePool.Id)
+	ce.DeleteNodePool(nodePool.Id) // nolint: errcheck
 
 	return nil
 }

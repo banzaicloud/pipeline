@@ -14,10 +14,34 @@
 
 package main
 
-// Provisioned by ldflags
-// nolint: gochecknoglobals
-var (
-	version    string
-	commitHash string
-	buildDate  string
+import (
+	"os"
+	"testing"
+
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 )
+
+func TestConfigure(t *testing.T) {
+	var config configuration
+
+	v := viper.New()
+	p := pflag.NewFlagSet("test", pflag.ContinueOnError)
+
+	configure(v, p)
+
+	file, err := os.Open("../../config/config.toml.dist")
+	require.NoError(t, err)
+
+	v.SetConfigType("toml")
+
+	err = v.ReadConfig(file)
+	require.NoError(t, err)
+
+	err = v.Unmarshal(&config)
+	require.NoError(t, err)
+
+	err = config.Validate()
+	require.NoError(t, err)
+}

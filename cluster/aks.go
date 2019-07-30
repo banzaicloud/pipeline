@@ -159,7 +159,7 @@ func (c *AKSCluster) GetSecretId() string {
 func (c *AKSCluster) getCloudConnection() (*pkgAzure.CloudConnection, error) {
 	creds, err := c.getCredentials()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retreive AKS credentials")
+		return nil, emperror.Wrap(err, "failed to retrieve AKS credentials")
 	}
 	return pkgAzure.NewCloudConnection(c.getEnvironment(), creds)
 }
@@ -227,9 +227,9 @@ func (c *AKSCluster) CreateCluster() error {
 	c.log.Debug("successfully created new SSH keys")
 	creds, err := c.getCredentials()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retreive AKS credentials")
+		return emperror.Wrap(err, "failed to retrieve AKS credentials")
 	}
-	c.log.Debug("successfully retreived credentials")
+	c.log.Debug("successfully retrieved credentials")
 	dnsPrefix := "dnsprefix"
 	adminUsername := "pipeline"
 	params := &containerservice.ManagedCluster{
@@ -302,10 +302,10 @@ func (c *AKSCluster) assignStorageAccountContributorRole() error {
 	}
 
 	irgName := c.getInfrastructureResourceGroupName()
-	c.log.Infof("Checking infrastructure resource group [%s] existance", irgName)
+	c.log.Infof("Checking infrastructure resource group [%s] existence", irgName)
 	resp, err := cc.GetGroupsClient().CheckExistence(context.TODO(), irgName)
 	if err != nil {
-		return emperror.Wrap(err, "failed to check resource group existance")
+		return emperror.Wrap(err, "failed to check resource group existence")
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		return emperror.Wrap(ErrNoInfrastructureRG, "resource group not found")
@@ -451,7 +451,7 @@ func (c *AKSCluster) DownloadK8sConfig() ([]byte, error) {
 		c.log.Debug("K8s config not set in access profile")
 		return nil, nil
 	}
-	c.log.Info("Successfully retreived k8s config")
+	c.log.Info("Successfully retrieved k8s config")
 	return *profile.KubeConfig, nil
 }
 
@@ -749,7 +749,7 @@ func (c *AKSCluster) DeleteFromDatabase() error {
 func (c *AKSCluster) getCredentials() (*pkgAzure.Credentials, error) {
 	clusterSecret, err := c.GetSecretWithValidation()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retreive AKS secret")
+		return nil, emperror.Wrap(err, "failed to retrieve AKS secret")
 	}
 	return pkgAzure.NewCredentials(clusterSecret.Values), nil
 }
@@ -757,7 +757,7 @@ func (c *AKSCluster) getCredentials() (*pkgAzure.Credentials, error) {
 func getAzureCredentials(orgID uint, secretID string) (*pkgAzure.Credentials, error) {
 	sir, err := getSecret(orgID, secretID)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retreive secret", "orgID", orgID, "secretID", secretID)
+		return nil, emperror.WrapWith(err, "failed to retrieve secret", "orgID", orgID, "secretID", secretID)
 	}
 	err = sir.ValidateSecretType(pkgCluster.Azure)
 	if err != nil {
@@ -831,7 +831,7 @@ func (c *AKSCluster) NodePoolExists(nodePoolName string) bool {
 func (c *AKSCluster) IsReady() (bool, error) {
 	cluster, err := c.getAzureCluster()
 	if err != nil {
-		return false, emperror.Wrap(err, "failed to retreive AKS cluster")
+		return false, emperror.Wrap(err, "failed to retrieve AKS cluster")
 	}
 
 	c.log.Debugf("Cluster provisioning state is: %s", *cluster.ProvisioningState)
@@ -1149,7 +1149,7 @@ func (c *AKSCluster) onClusterCreateFailure(createError error, operationStartTim
 
 	creds, err := c.getCredentials()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retreive AKS credentials")
+		return emperror.Wrap(err, "failed to retrieve AKS credentials")
 	}
 
 	clusterResourceURI := fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.ContainerService/managedClusters/%s",
@@ -1250,7 +1250,7 @@ func validateVNetSubnet(cc *pkgAzure.CloudConnection, resourceGroupName, vnetSub
 		}
 		_, err := cc.GetSubnetsClient().Get(context.TODO(), matches[2], matches[3], matches[4], "")
 		if err != nil {
-			return emperror.Wrap(err, "request to retreive subnet failed")
+			return emperror.Wrap(err, "request to retrieve subnet failed")
 		}
 	}
 	return nil

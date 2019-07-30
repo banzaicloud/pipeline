@@ -238,13 +238,13 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 
 	wfexec, err := cu.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.UpdateClusterWorkflowName, input)
 	if err := emperror.WrapWith(err, "failed to start workflow", "workflow", workflow.UpdateClusterWorkflowName); err != nil {
-		cu.handleError(cluster.ID, err)
+		_ = cu.handleError(cluster.ID, err)
 		return err
 	}
 
 	if err := cu.store.SetActiveWorkflowID(cluster.ID, wfexec.ID); err != nil {
 		err = emperror.WrapWith(err, "failed to set active workflow ID", "clusterID", cluster.ID, "workflowID", wfexec.ID)
-		cu.handleError(cluster.ID, err)
+		_ = cu.handleError(cluster.ID, err)
 		return err
 	}
 

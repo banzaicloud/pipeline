@@ -15,20 +15,12 @@
 package ark
 
 import (
-	"emperror.dev/emperror"
 	"github.com/pkg/errors"
 
-	"github.com/banzaicloud/pipeline/config"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 )
-
-var errorHandler emperror.Handler
-
-func init() {
-	errorHandler = config.ErrorHandler()
-}
 
 // IsProviderSupported checks whether the given provider is supported
 func IsProviderSupported(provider string) error {
