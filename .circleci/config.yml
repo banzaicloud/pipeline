@@ -7,6 +7,7 @@ jobs:
                 image: circleci/golang:1.12-stretch
                 environment:
                     GOFLAG: -mod=readonly
+                    GOCACHE: "/tmp/go/cache"
             -
                 image: mysql:5.7
                 command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -89,6 +90,14 @@ jobs:
                     name: Check generated OpenAPI files
                     command: sha256sum -c client/SHA256SUMS > /dev/null || { echo "Please generate client code using make generate-client"; exit 1; }
 
+            -
+                restore_cache:
+                    name: Restore Go build cache
+                    keys:
+                        - build-cache-v1-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
+                        - build-cache-v1-master
+                    paths:
+                        - /tmp/go/cache
             -
                 run:
                     name: Build
@@ -216,6 +225,13 @@ jobs:
                         pg_dump -s -h localhost -U postgres -d pipeline_migrations > pipeline_migrations.txt
                         pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
                         diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt
+
+            -
+                save_cache:
+                    name: Save Go build cache
+                    key: build-cache-v1-{{ .Branch }}-{{ .Environment.CIRCLE_BUILD_NUM }}
+                    paths:
+                      - /tmp/go/cache
 
             -
                 save_cache:
