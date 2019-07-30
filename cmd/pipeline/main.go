@@ -78,6 +78,7 @@ import (
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/notification"
+	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -109,8 +110,16 @@ func initLog() *logrus.Entry {
 	return logger
 }
 
+// Provisioned by ldflags
+// nolint: gochecknoglobals
+var (
+	version    string
+	commitHash string
+	buildDate  string
+)
+
 func main() {
-	v, p := viper.GetViper(), pflag.NewFlagSet(FriendlyServiceName, pflag.ExitOnError)
+	v, p := viper.GetViper(), pflag.NewFlagSet(friendlyAppName, pflag.ExitOnError)
 
 	configure(v, p)
 
@@ -119,7 +128,7 @@ func main() {
 	_ = p.Parse(os.Args[1:])
 
 	if v, _ := p.GetBool("version"); v {
-		fmt.Printf("%s version %s (%s) built on %s\n", FriendlyServiceName, version, commitHash, buildDate)
+		fmt.Printf("%s version %s (%s) built on %s\n", friendlyAppName, version, commitHash, buildDate)
 
 		os.Exit(0)
 	}
@@ -366,11 +375,13 @@ func main() {
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
 
+	buildInfo := buildinfo.New(version, commitHash, buildDate)
+
 	router.GET("/", api.RedirectRoot)
 
 	base := router.Group(basePath)
 	base.GET("notifications", notification.GetNotifications)
-	base.GET("version", VersionHandler)
+	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
 	auth.Install(router, tokenHandler.GenerateToken)
 	auth.StartTokenStoreGC()
