@@ -99,8 +99,8 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve features", "clusterId", clusterID)
 	}
 
-	retFeatures := make([]Feature, 0)
-	for _, f := range features {
+	retFeatures := make([]Feature, len(features))
+	for i, f := range features {
 
 		featureManager, err := s.featureRegistry.GetFeatureManager(f.Name)
 		if err != nil {
@@ -114,7 +114,7 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 			return nil, err
 		}
 
-		retFeatures = append(retFeatures, *feature)
+		retFeatures[i] = *feature
 	}
 
 	logger.Info("features successfully listed")
