@@ -2,6 +2,10 @@ ARG GO_VERSION=1.12
 
 FROM golang:${GO_VERSION}-alpine AS builder
 
+# set up nsswitch.conf for Go's "netgo" implementation
+# https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
+RUN echo 'hosts: files dns' > /etc/nsswitch.conf.build
+
 RUN apk add --update --no-cache bash ca-certificates make curl git mercurial bzr tzdata
 
 RUN go get -d github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
@@ -21,11 +25,6 @@ RUN go mod download
 COPY . /build
 RUN make build-release
 
-SHELL ["/bin/bash", "-c"]
-
-# set up nsswitch.conf for Go's "netgo" implementation
-# https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
-RUN [ ! -e /etc/nsswitch.conf.build ] && echo 'hosts: files dns' > /etc/nsswitch.conf.build
 
 FROM scratch
 
