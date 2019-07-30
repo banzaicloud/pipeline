@@ -99,11 +99,27 @@ func (s *FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, e
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve features", "clusterId", clusterID)
 	}
 
-	// TODO(laszlop): fetch details by feature managers? (eg. output is not static information)
+	retFeatures := make([]Feature, 0)
+	for _, f := range features {
+
+		featureManager, err := s.featureRegistry.GetFeatureManager(f.Name)
+		if err != nil {
+
+			return nil, err
+		}
+
+		feature, err := featureManager.Details(ctx, clusterID)
+		if err != nil {
+
+			return nil, err
+		}
+
+		retFeatures = append(retFeatures, *feature)
+	}
 
 	logger.Info("features successfully listed")
 
-	return features, nil
+	return retFeatures, nil
 }
 
 // FeatureNotFoundError is returned when a feature is not found.
