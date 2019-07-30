@@ -107,7 +107,7 @@ func NewNetworkService(region string, secret *secret.SecretItemResponse, logger 
 func (ns *oracleNetworkService) ListNetworks() ([]network.Network, error) {
 	vcns, err := ns.client.GetVCNs()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to retreive VCNs")
+		return nil, emperror.Wrap(err, "failed to retrieve VCNs")
 	}
 	networks := make([]network.Network, len(vcns))
 	for idx, item := range vcns {
@@ -124,7 +124,7 @@ func (ns *oracleNetworkService) ListNetworks() ([]network.Network, error) {
 func (ns *oracleNetworkService) ListSubnets(networkID string) ([]network.Subnet, error) {
 	sns, err := ns.client.GetSubnets(&networkID)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retreive subnets", "networkID", networkID)
+		return nil, emperror.WrapWith(err, "failed to retrieve subnets", "networkID", networkID)
 	}
 	subnets := make([]network.Subnet, len(sns))
 	for idx, item := range sns {
@@ -142,7 +142,7 @@ func (ns *oracleNetworkService) ListSubnets(networkID string) ([]network.Subnet,
 func (ns *oracleNetworkService) ListRouteTables(networkID string) ([]network.RouteTable, error) {
 	rts, err := ns.client.GetRouteTables(&networkID)
 	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to retreive route tables", "networkID", networkID)
+		return nil, emperror.WrapWith(err, "failed to retrieve route tables", "networkID", networkID)
 	}
 	routeTables := make([]network.RouteTable, len(rts))
 	for idx, item := range rts {

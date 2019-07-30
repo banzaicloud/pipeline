@@ -71,11 +71,6 @@ func (s *BucketsSyncService) SyncBackupsFromBuckets() error {
 			log.Error(err.Error())
 			continue
 		}
-
-		if err != nil {
-			log.Error(err.Error())
-			continue
-		}
 	}
 
 	return nil

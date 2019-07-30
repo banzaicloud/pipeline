@@ -68,7 +68,7 @@ func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivit
 
 	resourceGroup, err := cc.GetGroupsClient().Get(ctx, input.ResourceGroupName)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to retreive resource group", "resourceGroup", input.ResourceGroupName)
+		return emperror.WrapWith(err, "failed to retrieve resource group", "resourceGroup", input.ResourceGroupName)
 	}
 
 	scope := *resourceGroup.ID

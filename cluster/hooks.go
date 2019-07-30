@@ -454,7 +454,7 @@ func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHo
 
 	_, err = anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
 	if err != nil {
-		return emperror.WrapWith(err, "error creating anchore user", "organiztion", cluster.GetOrganizationId(), "anchoreuser", anchoreUserName)
+		return emperror.WrapWith(err, "error creating anchore user", "organization", cluster.GetOrganizationId(), "anchoreuser", anchoreUserName)
 	}
 	cluster.SetSecurityScan(true)
 
