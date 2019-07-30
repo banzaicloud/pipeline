@@ -12,10 +12,8 @@ linters-settings:
 
 linters:
     enable:
-        - govet
         - errcheck
-        # - staticcheck
-        # Disable staticcheck for now because it fails on Circle
+        - staticcheck
         - deadcode
         - misspell
         - gofmt
@@ -26,4 +24,7 @@ linters:
         - gas
         - megacheck
         - varcheck
+
+        # Disable govet for now because it fails on Circle
+        - govet
     fast: false
