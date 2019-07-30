@@ -307,7 +307,7 @@ func (m *dnsFeatureManager) validateCustomDNS(customDns CustomDns) error {
 	}
 
 	if customDns.Provider.SecretID == "" {
-		return errors.New("secret ID with DNS provider credentials must be provider")
+		return errors.New("secret ID with DNS provider credentials must be provided")
 	}
 
 	return nil
