@@ -17,6 +17,7 @@ package clusterfeaturedriver
 import (
 	"context"
 
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/go-kit/kit/endpoint"
 	kitoc "github.com/go-kit/kit/tracing/opencensus"
 
@@ -73,7 +74,12 @@ func MakeListEndpoint(s FeatureService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ListClusterFeaturesRequest)
 		result, err := s.List(ctx, req.ClusterID)
-		return result, err
+		if err != nil {
+
+			return nil, err
+		}
+
+		return transformList(result), nil
 	}
 }
 
@@ -87,7 +93,12 @@ func MakeDetailsEndpoint(s FeatureService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ClusterFeatureDetailsRequest)
 		result, err := s.Details(ctx, req.ClusterID, req.FeatureName)
-		return result, err
+		if err != nil {
+
+			return nil, err
+		}
+
+		return transformDetails(*result), nil
 	}
 }
 
@@ -133,4 +144,23 @@ func MakeUpdateEndpoint(s FeatureService) endpoint.Endpoint {
 		err := s.Update(ctx, req.ClusterID, req.FeatureName, req.Spec)
 		return nil, err
 	}
+}
+
+func transformDetails(feature clusterfeature.Feature) client.ClusterFeatureDetails {
+	return client.ClusterFeatureDetails{
+		Spec:   feature.Spec,
+		Output: feature.Output,
+		Status: feature.Status,
+	}
+}
+
+func transformList(features []clusterfeature.Feature) map[string]client.ClusterFeatureDetails {
+	featureDetails := make(map[string]client.ClusterFeatureDetails, len(features))
+
+	for _, f := range features {
+		featureDetails[f.Name] = transformDetails(f)
+	}
+
+	return featureDetails
+
 }
