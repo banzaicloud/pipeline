@@ -15,8 +15,6 @@
 package cluster
 
 import (
-	"strings"
-
 	"emperror.dev/emperror"
 	"github.com/banzaicloud/istio-operator/pkg/apis/istio/v1beta1"
 	"github.com/spf13/viper"
@@ -120,11 +118,12 @@ func createIstioConfig(params *InstallServiceMeshParams, cluster CommonCluster) 
 	}
 
 	if params.BypassEgressTraffic {
-		ipRanges, err := cluster.GetK8sIpv4Cidrs()
-		if err != nil {
-			log.Warnf("couldn't set included IP ranges in Envoy config, external requests will be intercepted")
-		} else {
-			istioConfig.Spec.IncludeIPRanges = strings.Join(ipRanges.PodIPRanges, ",") + "," + strings.Join(ipRanges.ServiceClusterIPRanges, ",")
+		istioConfig.Spec.OutboundTrafficPolicy = v1beta1.OutboundTrafficPolicyConfiguration{
+			Mode: "ALLOW_ANY",
+		}
+	} else {
+		istioConfig.Spec.OutboundTrafficPolicy = v1beta1.OutboundTrafficPolicyConfiguration{
+			Mode: "REGISTRY_ONLY",
 		}
 	}
 
