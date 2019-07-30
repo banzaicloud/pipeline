@@ -1,4 +1,5 @@
 ARG GO_VERSION=1.12
+ARG FROM_IMAGE=scratch
 
 FROM golang:${GO_VERSION}-alpine AS builder
 
@@ -25,8 +26,7 @@ RUN go mod download
 COPY . /build
 RUN make build-release
 
-
-FROM scratch
+FROM ${FROM_IMAGE}
 
 COPY --from=builder /etc/nsswitch.conf.build /etc/nsswitch.conf
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
