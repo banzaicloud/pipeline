@@ -66,6 +66,7 @@ type SpotguideYAML struct {
 // Question is an opaque struct from Pipeline's point of view
 type Question map[string]interface{}
 
+// nolint: govet
 type SpotguideRepo struct {
 	ID               uint      `json:"id" gorm:"primary_key"`
 	OrganizationID   uint      `json:"organizationId" gorm:"unique_index:idx_spotguide_name_and_version"`
@@ -241,9 +242,7 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM)
 
 	var oldSpotguides []SpotguideRepo
 	if err := s.db.Where(&where).Find(&oldSpotguides).Error; err != nil {
-		if err != nil {
-			return emperror.Wrap(err, "failed to list old spotguides")
-		}
+		return emperror.Wrap(err, "failed to list old spotguides")
 	}
 
 	oldSpotguidesIndexed := map[SpotguideRepoKey]SpotguideRepo{}

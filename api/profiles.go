@@ -191,7 +191,7 @@ func UpdateClusterProfile(c *gin.Context) {
 		profileRequest.Properties.ACK = profileRequest.Properties.ACSK
 	}
 
-	distribution := pkgCluster.Unknown
+	var distribution string
 	switch profileRequest.Cloud {
 	case pkgCluster.Amazon:
 		distribution = pkgCluster.EKS

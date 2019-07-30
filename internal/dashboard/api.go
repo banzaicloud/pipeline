@@ -89,17 +89,15 @@ func (d *DashboardAPI) GetDashboard(c *gin.Context) {
 
 	i := 0
 	for _, c := range clusters {
-		if err == nil {
-			go func(commonCluster cluster.CommonCluster) {
-				logger := d.logger.WithField("clusterId", commonCluster.GetID())
-				cluster, partial := d.getClusterDashboardInfo(logger, commonCluster, organizationID)
-				if partial {
-					partialResponse = true
-				}
-				clusterResponseChan <- cluster
-			}(c)
-			i++
-		}
+		go func(commonCluster cluster.CommonCluster) {
+			logger := d.logger.WithField("clusterId", commonCluster.GetID())
+			cluster, partial := d.getClusterDashboardInfo(logger, commonCluster, organizationID)
+			if partial {
+				partialResponse = true
+			}
+			clusterResponseChan <- cluster
+		}(c)
+		i++
 	}
 
 	clusterResponse := make([]ClusterInfo, 0)

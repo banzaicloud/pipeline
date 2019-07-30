@@ -147,7 +147,7 @@ func (m *FederationReconciler) labelRegisteredCluster(c cluster.CommonCluster) e
 	if err != nil {
 		return err
 	}
-	if cluster != nil && cluster.Name == clusterName {
+	if cluster != nil && cluster.Name == clusterName { // nolint: govet
 		cluster.Labels = clusterLabels
 		err = client.Update(context.TODO(), cluster)
 		if err != nil {

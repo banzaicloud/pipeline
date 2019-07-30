@@ -398,7 +398,7 @@ func (c *ACKCluster) CreateCluster() error {
 	c.modelCluster.RbacEnabled = true
 	vpcID, err := c.getVPCID()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retreive VPC ID")
+		return emperror.Wrap(err, "failed to retrieve VPC ID")
 	}
 
 	context := action.NewACKContext("", csClient, ecsClient, essClient)
