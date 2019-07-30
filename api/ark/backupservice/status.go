@@ -35,8 +35,8 @@ func StatusDeprecated(c *gin.Context) {
 	schedulesSvc := common.GetARKService(c.Request).GetSchedulesService()
 	_, err := schedulesSvc.List()
 	if err != nil {
-		err = errors.WrapIf(err, "backup service not deployed")
 		if !gorm.IsRecordNotFoundError(errors.Cause(err)) {
+			err = errors.WrapIf(err, "could not check whether ARK is deployed")
 			common.ErrorHandler.Handle(err)
 		}
 		pkgCommon.ErrorResponseWithStatus(c, http.StatusNotFound, err)
@@ -54,8 +54,8 @@ func Status(c *gin.Context) {
 	schedulesSvc := common.GetARKService(c.Request).GetSchedulesService()
 	_, err := schedulesSvc.List()
 	if err != nil {
-		err = errors.WrapIf(err, "backup service not deployed")
 		if !gorm.IsRecordNotFoundError(errors.Cause(err)) {
+			err = errors.WrapIf(err, "could not check whether ARK is deployed")
 			common.ErrorHandler.Handle(err)
 		}
 		statusEnabledResponse(c, false)
