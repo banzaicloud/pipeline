@@ -18,6 +18,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -56,7 +57,17 @@ func TestMakeListEndpoint(t *testing.T) {
 	result, err := e(ctx, req)
 
 	require.NoError(t, err)
-	assert.Equal(t, clusterFeatureList, result)
+	assert.Equal(t, map[string]client.ClusterFeatureDetails{
+		"example": {
+			Spec: map[string]interface{}{
+				"hello": "world",
+			},
+			Output: map[string]interface{}{
+				"hello": "world",
+			},
+			Status: "ACTIVE",
+		},
+	}, result)
 
 	featureService.AssertExpectations(t)
 }
@@ -91,7 +102,15 @@ func TestMakeDetailsEndpoint(t *testing.T) {
 	result, err := e(ctx, req)
 
 	require.NoError(t, err)
-	assert.Equal(t, clusterFeatureDetails, result)
+	assert.Equal(t, client.ClusterFeatureDetails{
+		Spec: map[string]interface{}{
+			"hello": "world",
+		},
+		Output: map[string]interface{}{
+			"hello": "world",
+		},
+		Status: "ACTIVE",
+	}, result)
 
 	featureService.AssertExpectations(t)
 }
