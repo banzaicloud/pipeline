@@ -1,21 +1,21 @@
 version: 2.1
 
-jobs:
-    build:
-        resource_class: large
+executors:
+    go:
         docker:
             -
                 image: circleci/golang:1.12-stretch
                 environment:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
+
+    go_test:
+        docker:
             -
-                image: mysql:5.7
-                command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+                image: circleci/golang:1.12-stretch
                 environment:
-                    MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-            -
-                image: postgres:9.6
+                    GOFLAG: -mod=readonly
+                    GOCACHE: "/tmp/go/cache"
 
             -
                 image: vault:1.1.0
@@ -23,15 +23,19 @@ jobs:
                     SKIP_SETCAP: true
                     VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
+commands:
+    restore_build_dep_cache:
+        description: Restore build cache
         steps:
-            - checkout
-
             -
                 restore_cache:
                     name: Restore build dependencies
                     keys:
                         - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
 
+    restore_go_module_cache:
+        description: Restore Go module cache
+        steps:
             -
                 restore_cache:
                     name: Restore Go module cache
@@ -41,17 +45,52 @@ jobs:
                         - gomod-v1-master
                         - gomod-v1
 
+    restore_build_cache:
+        description: Restore Go build cache
+        parameters:
+            cache_name:
+                type: string
+        steps:
+            -
+                restore_cache:
+                    name: Restore Go build cache
+                    keys:
+                        - << parameters.cache_name >>-build-cache-v1-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
+                        - << parameters.cache_name >>-build-cache-v1-{{ .Branch }}
+                        - << parameters.cache_name >>-build-cache-v1-master
+                        - << parameters.cache_name >>-build-cache-v1
+
+    save_build_cache:
+        description: Save Go build cache
+        parameters:
+            cache_name:
+                type: string
+        steps:
+            -
+                save_cache:
+                    name: Save Go build cache
+                    key: << parameters.cache_name >>-build-cache-v1-{{ .Branch }}-{{ .Environment.CIRCLE_BUILD_NUM }}
+                    paths:
+                        - /tmp/go/cache
+
+jobs:
+    dependencies:
+        executor: go
+
+        steps:
+            - checkout
+            - restore_build_dep_cache
+            - restore_go_module_cache
+
+            -
+                run:
+                    name: Download build dependencies
+                    command: make -j bin/golangci-lint bin/gotestsum bin/licensei bin/migrate
+
             -
                 run:
                     name: Download Go module cache
                     command: go mod download
-
-            -
-                run:
-                    name: Install build dependencies
-                    command: |
-                      sudo apt-get update
-                      sudo apt-get install -y mysql-client mysql-utilities postgresql-client
 
             -
                 save_cache:
@@ -59,6 +98,22 @@ jobs:
                     key: gomod-v1-{{ .Branch }}-{{ checksum "go.sum" }}
                     paths:
                         - /go/pkg/mod
+
+            -
+                save_cache:
+                    name: Save build dependencies
+                    key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
+                    paths:
+                        - bin/
+
+    static-checks:
+        resource_class: large
+        executor: go
+
+        steps:
+            - checkout
+            - restore_build_dep_cache
+            - restore_go_module_cache
 
             -
                 restore_cache:
@@ -92,23 +147,45 @@ jobs:
                     command: sha256sum -c client/SHA256SUMS > /dev/null || { echo "Please generate client code using make generate-client"; exit 1; }
 
             -
-                restore_cache:
-                    name: Restore Go build cache
-                    keys:
-                        - build-cache-v1-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
-                        - build-cache-v1-{{ .Branch }}
-                        - build-cache-v1-master
-                    paths:
-                        - /tmp/go/cache
+                run:
+                    name: Run linter
+                    command: make lint
+
+    build:
+        resource_class: large
+        executor: go
+
+        steps:
+            - checkout
+            - restore_go_module_cache
+            -
+                restore_build_cache:
+                    cache_name: build
+
             -
                 run:
                     name: Build
                     command: make build
 
             -
-                run:
-                    name: Run linter
-                    command: make lint
+                save_build_cache:
+                    cache_name: build
+
+            -
+                store_artifacts:
+                    path: build/
+
+    unit-tests:
+        resource_class: large
+        executor: go_test
+
+        steps:
+            - checkout
+            - restore_build_dep_cache
+            - restore_go_module_cache
+            -
+                restore_build_cache:
+                    cache_name: unit-test
 
             -
                 run:
@@ -121,6 +198,26 @@ jobs:
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             -
+                save_build_cache:
+                    cache_name: unit-test
+
+            -
+                store_test_results:
+                    path: build/test_results/
+
+    integration-tests:
+        resource_class: large
+        executor: go_test
+
+        steps:
+            - checkout
+            - restore_build_dep_cache
+            - restore_go_module_cache
+            -
+                restore_build_cache:
+                    cache_name: integration-test
+
+            -
                 run:
                     name: Run integration tests
                     command: |
@@ -129,6 +226,42 @@ jobs:
                     environment:
                         VAULT_ADDR: http://localhost:8200
                         VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
+
+            -
+                save_build_cache:
+                    cache_name: integration-test
+
+            -
+                store_test_results:
+                    path: build/test_results/
+
+    schema-tests:
+        docker:
+            -
+                image: circleci/golang:1.12-stretch
+                environment:
+                    GOFLAG: -mod=readonly
+                    GOCACHE: "/tmp/go/cache"
+            -
+                image: mysql:5.7
+                command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+                environment:
+                    MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+            -
+                image: postgres:9.6
+
+        steps:
+            - checkout
+            - restore_build_dep_cache
+            - restore_go_module_cache
+
+            -
+                run:
+                    name: Install dependencies
+                    command: |
+                        sudo apt-get update
+                        sudo apt-get install -y mysql-client mysql-utilities postgresql-client
+                        make config/config.toml
 
             -
                 run:
@@ -154,8 +287,6 @@ jobs:
                         PIPELINE_DATABASE_PASSWORD: ""
                         PIPELINE_DATABASE_ROLE: ""
                         PIPELINE_DATABASE_DBNAME: pipeline_automigrate
-                        VAULT_ADDR: http://localhost:8200
-                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             -
                 run:
@@ -202,8 +333,6 @@ jobs:
                         PIPELINE_DATABASE_PASSWORD: postgres
                         PIPELINE_DATABASE_ROLE: ""
                         PIPELINE_DATABASE_DBNAME: pipeline_automigrate
-                        VAULT_ADDR: http://localhost:8200
-                        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
             -
                 run:
@@ -228,30 +357,23 @@ jobs:
                         pg_dump -s -h localhost -U postgres -d pipeline_automigrate > pipeline_automigrate.txt
                         diff -U 10 pipeline_migrations.txt pipeline_automigrate.txt
 
-            -
-                save_cache:
-                    name: Save Go build cache
-                    key: build-cache-v1-{{ .Branch }}-{{ .Environment.CIRCLE_BUILD_NUM }}
-                    paths:
-                      - /tmp/go/cache
-
-            -
-                save_cache:
-                    name: Save build dependencies
-                    key: build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
-                    paths:
-                        - bin/
-
-            -
-                store_test_results:
-                    path: build/test_results/
-
-            -
-                store_artifacts:
-                    path: build/
-
 workflows:
     version: 2
     ci:
         jobs:
-            - build
+            - dependencies
+            - static-checks:
+                  requires:
+                      - dependencies
+            - build:
+                  requires:
+                      - dependencies
+            - unit-tests:
+                  requires:
+                      - dependencies
+            - integration-tests:
+                  requires:
+                      - dependencies
+            - schema-tests:
+                  requires:
+                      - dependencies
