@@ -21,10 +21,10 @@ import (
 	"syscall"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/goph/logur"
 	"github.com/goph/logur/integrations/zaplog"
 	"github.com/oklog/run"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/activity"
@@ -52,6 +52,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/spotguide"
+	"github.com/banzaicloud/pipeline/spotguide/scm"
 )
 
 // Provisioned by ldflags
@@ -127,7 +129,7 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
-	switch viper.GetString(conf.DNSBaseDomain) {
+	switch v.GetString(conf.DNSBaseDomain) {
 	case "", "example.com", "example.org":
 		global.AutoDNSEnabled = false
 	default:
@@ -174,6 +176,29 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
+		scmProvider := v.GetString("cicd.scm")
+		var scmToken string
+		switch scmProvider {
+		case "github":
+			scmToken = v.GetString("github.token")
+		case "gitlab":
+			scmToken = v.GetString("gitlab.token")
+		default:
+			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
+		}
+
+		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
+		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
+
+		spotguideManager := spotguide.NewSpotguideManager(
+			db,
+			version,
+			scmFactory,
+			nil,
+			spotguide.PlatformData{},
+			nil,
+		)
+
 		// Register amazon specific workflows and activities
 		registerAwsWorkflows(clusters, tokenGenerator)
 
@@ -184,6 +209,9 @@ func main() {
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
+
+		scrapeSharedSpotguidesWorkflow := spotguide.NewScrapeSharedSpotguidesWorkflow(spotguideManager)
+		workflow.RegisterWithOptions(scrapeSharedSpotguidesWorkflow.Execute, workflow.RegisterOptions{Name: spotguide.ScrapeSharedSpotguidesWorkflowName})
 
 		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
 		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
