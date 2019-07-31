@@ -337,12 +337,12 @@ func (m *dnsFeatureManager) decorateWithOutput(ctx context.Context, clusterID ui
 
 		type zoneInfo struct {
 			Zone          string `json:"zone"`
-			ClusterDomain string `json:"clusterdomain"`
+			ClusterDomain string `json:"clusterDomain"`
 		}
 
 		// decorate the feature with the output
 		type output struct {
-			AutoDns zoneInfo `json:"autodns"`
+			AutoDns zoneInfo `json:"autoDns"`
 		}
 
 		o := output{
