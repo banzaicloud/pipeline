@@ -29,14 +29,14 @@ import (
 )
 
 type DnsFeatureSpec struct {
-	CustomDns CustomDns `json:"customdns"`
-	AutoDns   AutoDns   `json:"autodns"`
+	CustomDns CustomDns `json:"customDns"`
+	AutoDns   AutoDns   `json:"autoDns"`
 }
 
 type CustomDns struct {
 	Enabled       bool        `json:"enabled"`
-	DomainFilters []string    `json:"domainfilters"`
-	ClusterDomain string      `json:"clusterdomain"`
+	DomainFilters []string    `json:"domainFilters"`
+	ClusterDomain string      `json:"clusterDomain"`
 	Provider      DnsProvider `json:"provider"`
 }
 
@@ -47,7 +47,7 @@ type DnsProvider struct {
 }
 
 type ProviderOptions struct {
-	DnsMasked bool `json:"dnsmasked"`
+	DnsMasked bool `json:"dnsMasked"`
 }
 
 type AutoDns struct {

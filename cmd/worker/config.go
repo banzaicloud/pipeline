@@ -133,9 +133,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
 
 	// Pipeline configuration
-	viper.SetDefault("pipeline.basePath", "")
+	v.SetDefault("pipeline.basePath", "")
 
 	// Database configuration
+	v.SetDefault("database.dialect", "mysql")
 	_ = v.BindEnv("database.host")
 	v.SetDefault("database.port", 3306)
 	_ = v.BindEnv("database.user")

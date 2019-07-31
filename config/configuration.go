@@ -184,6 +184,8 @@ const (
 
 	FederationChartVersion = "federation.chartVersion"
 	FederationChartName    = "federation.chartName"
+
+	DomainHookEnabled = "hooks.domainHookEnabled"
 )
 
 //Init initializes the configurations
@@ -363,6 +365,9 @@ func init() {
 
 	viper.SetDefault(DNSExternalDnsReleaseName, "dns")
 	viper.SetDefault(DNSExternalDnsChartName, "stable/external-dns")
+
+	// enable the domainHook by default
+	viper.SetDefault(DomainHookEnabled, true)
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
