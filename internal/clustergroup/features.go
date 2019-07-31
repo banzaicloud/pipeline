@@ -77,7 +77,7 @@ func (g *Manager) ReconcileFeatures(clusterGroup api.ClusterGroup, onlyEnabledHa
 	}
 
 	for _, featureModel := range features {
-		g.reconcileFeature(clusterGroup, featureModel, onlyEnabledHandlers)
+		g.reconcileFeature(clusterGroup, featureModel, onlyEnabledHandlers) // nolint: errcheck
 	}
 
 	return nil
@@ -113,7 +113,7 @@ func (g *Manager) DisableFeatures(clusterGroup api.ClusterGroup) error {
 
 	for name, feature := range features {
 		if feature.Enabled {
-			g.DisableFeature(name, &clusterGroup)
+			g.DisableFeature(name, &clusterGroup) // nolint: errcheck
 		}
 	}
 

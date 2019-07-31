@@ -220,7 +220,7 @@ func (c *Cluster) RemoveNodePools() error {
 func (c *Cluster) BeforeSave() error {
 	log.Info("BeforeSave oracle cluster...")
 
-	c.RemoveNodePools()
+	c.RemoveNodePools() // nolint: errcheck
 
 	log.Info("BeforeSave oracle cluster...done")
 

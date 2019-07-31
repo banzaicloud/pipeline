@@ -184,7 +184,7 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "syncronization failed",
+			Message: "synchronization failed",
 			Error:   err.Error(),
 		})
 

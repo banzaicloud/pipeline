@@ -138,17 +138,17 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 	case "GET":
 		// Authorization redirect callback from OAuth2 auth flow.
 		if errMsg := r.FormValue("error"); errMsg != "" {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("%s: %s", errMsg, r.FormValue("error_description")))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("%s: %s", errMsg, r.FormValue("error_description")))
 			return
 		}
 		code := r.FormValue("code")
 		if code == "" {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no code in request: %q", r.Form))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no code in request: %q", r.Form))
 			return
 		}
 		stateRaw := r.FormValue("state")
 		if stateRaw == "" {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no state in request: %q", r.Form))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no state in request: %q", r.Form))
 			return
 		}
 
@@ -159,24 +159,24 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 		})
 
 		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("failed to parse state token: %q", err.Error()))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("failed to parse state token: %q", err.Error()))
 			return
 		}
 
 		if err := stateClaims.Valid(); err != nil {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("state token is invalid: %q", err.Error()))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("state token is invalid: %q", err.Error()))
 			return
 		}
 
 		var secret auth.ClusterClientSecret
 		secret, err = api.clusterAuthService.GetClusterClientSecret(c.Request.Context(), stateClaims.ClusterID)
 		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("error getting cluster client secret: %q", err.Error()))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("error getting cluster client secret: %q", err.Error()))
 			return
 		}
 
 		if secret.ClientID != stateClaims.ClientID {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("unexpected state, cluster clientID mismatch: %q", stateClaims.ClientID))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("unexpected state, cluster clientID mismatch: %q", stateClaims.ClientID))
 			return
 		}
 
@@ -191,17 +191,17 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 		// Form request from frontend to refresh a token.
 		refresh := r.FormValue("refresh_token")
 		if refresh == "" {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no refresh_token in request: %q", r.Form))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no refresh_token in request: %q", r.Form))
 			return
 		}
 		clientID = r.FormValue("client_id")
 		if refresh == "" {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no client_id in request: %q", r.Form))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no client_id in request: %q", r.Form))
 			return
 		}
 		clientSecret = r.FormValue("client_secret")
 		if refresh == "" {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no client_secret in request: %q", r.Form))
+			_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("no client_secret in request: %q", r.Form))
 			return
 		}
 		t := &oauth2.Token{
@@ -213,18 +213,18 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 
 		token, err = oauth2Config.TokenSource(ctx, t).Token()
 	default:
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("method not implemented: %s", r.Method))
+		_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("method not implemented: %s", r.Method))
 		return
 	}
 
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to get token: %q", err.Error()))
+		_ = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to get token: %q", err.Error()))
 		return
 	}
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("no id_token in token response"))
+		_ = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("no id_token in token response"))
 		return
 	}
 
@@ -232,20 +232,20 @@ func (api *ClusterAuthAPI) dexCallback(c *gin.Context) {
 
 	idToken, err := verifier.Verify(r.Context(), rawIDToken)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to verify ID token: %q", err.Error()))
+		_ = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to verify ID token: %q", err.Error()))
 		return
 	}
 
 	var claims claim
 	err = idToken.Claims(&claims)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to parse claims: %q", err.Error()))
+		_ = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to parse claims: %q", err.Error()))
 		return
 	}
 
 	configBuffer, err := api.generateKubeConfig(r.Context(), rawIDToken, token.RefreshToken, claims, clientID, clientSecret, clusterID)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to generate kubeconfig: %q", err.Error()))
+		_ = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Failed to generate kubeconfig: %q", err.Error()))
 		return
 	}
 

@@ -98,7 +98,7 @@ func NewFederationReconciler(clusterGroupName string, config Config, clusterGett
 		errorHandler:     errorHandler,
 	}
 
-	reconciler.init()
+	reconciler.init() // nolint: errcheck
 
 	reconciler.logger = reconciler.logger.WithFields(logrus.Fields{
 		"clusterID":   reconciler.Host.GetID(),

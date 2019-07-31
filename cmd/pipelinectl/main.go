@@ -27,15 +27,23 @@ import (
 	"github.com/banzaicloud/pipeline/internal/pipelinectl/cli/commands"
 )
 
+// Provisioned by ldflags
+// nolint: gochecknoglobals
+var (
+	version    string
+	commitHash string
+	buildDate  string
+)
+
 func main() {
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
-		Use:     ServiceName,
-		Short:   ServiceName + " manages a Pipeline instance.",
+		Use:     appName,
+		Short:   appName + " manages a Pipeline instance.",
 		Version: version,
 	}
 
-	rootCmd.SetVersionTemplate(fmt.Sprintf("pipelinectl version %s (%s) built on %s\n", version, commitHash, buildDate))
+	rootCmd.SetVersionTemplate(fmt.Sprintf("%s version %s (%s) built on %s\n", appName, version, commitHash, buildDate))
 
 	flags := rootCmd.PersistentFlags()
 
@@ -45,7 +53,7 @@ func main() {
 	flags.Bool("verify", true, "Verify root CA")
 	_ = viper.BindPFlag("api.verify", flags.Lookup("verify"))
 
-	viper.SetEnvPrefix(EnvPrefix)
+	viper.SetEnvPrefix(envPrefix)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	viper.AutomaticEnv()
 

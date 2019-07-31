@@ -67,7 +67,7 @@ func (m *FederationReconciler) ReconcileMemberClusters(desiredState DesiredState
 		err := m.reconcileMemberCluster(DesiredStateAbsent, cluster)
 		if err != nil {
 			err = emperror.Wrap(err, "Error unjoining cluster")
-			multierror.Append(err, multiErr.Errors...)
+			multierror.Append(err, multiErr.Errors...) // nolint: errcheck
 		}
 	}
 
@@ -147,7 +147,7 @@ func (m *FederationReconciler) labelRegisteredCluster(c cluster.CommonCluster) e
 	if err != nil {
 		return err
 	}
-	if cluster != nil && cluster.Name == clusterName {
+	if cluster != nil && cluster.Name == clusterName { // nolint: govet
 		cluster.Labels = clusterLabels
 		err = client.Update(context.TODO(), cluster)
 		if err != nil {

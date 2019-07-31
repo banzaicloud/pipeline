@@ -398,7 +398,7 @@ func (c *ACKCluster) CreateCluster() error {
 	c.modelCluster.RbacEnabled = true
 	vpcID, err := c.getVPCID()
 	if err != nil {
-		return emperror.Wrap(err, "failed to retreive VPC ID")
+		return emperror.Wrap(err, "failed to retrieve VPC ID")
 	}
 
 	context := action.NewACKContext("", csClient, ecsClient, essClient)
@@ -595,7 +595,7 @@ func (c *ACKCluster) DownloadK8sConfig() ([]byte, error) {
 	}
 	defer sshSession.Close()
 	sshSession.Stdout = w
-	sshSession.Run(fmt.Sprintf("cat %s", "/etc/kubernetes/kube.conf"))
+	sshSession.Run(fmt.Sprintf("cat %s", "/etc/kubernetes/kube.conf")) // nolint: errcheck
 	w.Flush()
 	return buff.Bytes(), emperror.With(err, "cluster", c.modelCluster.Name)
 

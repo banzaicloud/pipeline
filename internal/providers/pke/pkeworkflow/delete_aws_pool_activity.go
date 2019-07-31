@@ -84,7 +84,7 @@ func (a *DeletePoolActivity) Execute(ctx context.Context, input DeletePoolActivi
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
 	if err != nil {
-		emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for termination")
+		return emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for termination")
 	}
 
 	return nil

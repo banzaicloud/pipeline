@@ -59,10 +59,10 @@ func (c *TTLController) Start() error {
 	}
 
 	// we are interested in clusters created later
-	c.clusterEvents.SubscribeAsync(clusterCreatedTopic, c.enqueueCluster, false)
+	c.clusterEvents.SubscribeAsync(clusterCreatedTopic, c.enqueueCluster, false) // nolint: errcheck
 
 	// we are interested in clusters being updated as their TTL setting may change
-	c.clusterEvents.SubscribeAsync(clusterUpdatedTopic, c.enqueueCluster, false)
+	c.clusterEvents.SubscribeAsync(clusterUpdatedTopic, c.enqueueCluster, false) // nolint: errcheck
 
 	go c.runWorker()
 

@@ -67,7 +67,7 @@ func RegisterCadenceDomain(logger logrus.FieldLogger) {
 
 	domainRequest := &shared.RegisterDomainRequest{Name: &config.Domain}
 
-	client.Register(context.Background(), domainRequest)
+	err = client.Register(context.Background(), domainRequest)
 	if err != nil {
 		if _, ok := err.(*shared.DomainAlreadyExistsError); !ok {
 			panic(err)

@@ -299,7 +299,7 @@ func (a *AzurePkeCluster) GetSecurityScan() bool {
 
 func (a *AzurePkeCluster) SetSecurityScan(scan bool) {
 	a.model.SecurityScan = scan
-	a.store.SetFeature(a.model.ID, "SecurityScan", scan)
+	a.store.SetFeature(a.model.ID, "SecurityScan", scan) // nolint: errcheck
 }
 
 func (a *AzurePkeCluster) GetLogging() bool {
@@ -308,7 +308,7 @@ func (a *AzurePkeCluster) GetLogging() bool {
 
 func (a *AzurePkeCluster) SetLogging(l bool) {
 	a.model.Logging = l
-	a.store.SetFeature(a.model.ID, "Logging", l)
+	a.store.SetFeature(a.model.ID, "Logging", l) // nolint: errcheck
 }
 
 func (a *AzurePkeCluster) GetMonitoring() bool {
@@ -317,7 +317,7 @@ func (a *AzurePkeCluster) GetMonitoring() bool {
 
 func (a *AzurePkeCluster) SetMonitoring(m bool) {
 	a.model.Monitoring = m
-	a.store.SetFeature(a.model.ID, "Monitoring", m)
+	a.store.SetFeature(a.model.ID, "Monitoring", m) // nolint: errcheck
 }
 
 func (a *AzurePkeCluster) GetServiceMesh() bool {
@@ -326,7 +326,7 @@ func (a *AzurePkeCluster) GetServiceMesh() bool {
 
 func (a *AzurePkeCluster) SetServiceMesh(m bool) {
 	a.model.ServiceMesh = m
-	a.store.SetFeature(a.model.ID, "ServiceMesh", m)
+	a.store.SetFeature(a.model.ID, "ServiceMesh", m) // nolint: errcheck
 
 }
 

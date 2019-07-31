@@ -290,7 +290,7 @@ func (o *OKECluster) CheckEqualityToUpdate(r *pkgCluster.UpdateClusterRequest) e
 // AddDefaultsToUpdate adds defaults to update request
 func (o *OKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 
-	r.UpdateProperties.OKE.AddDefaults()
+	r.UpdateProperties.OKE.AddDefaults() // nolint: errcheck
 }
 
 // GetAPIEndpoint returns the Kubernetes Api endpoint

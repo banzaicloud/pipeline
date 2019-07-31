@@ -618,7 +618,7 @@ func (dns *awsRoute53) ProcessUnfinishedTasks() {
 		domainState := pendingUnregister[i]
 		log.Infof("continue un-registering domain '%s'", domainState.domain)
 
-		go dns.UnregisterDomain(domainState.organisationId, domainState.domain)
+		go dns.UnregisterDomain(domainState.organisationId, domainState.domain) // nolint: errcheck
 	}
 
 	// continue processing unfinished domain registrations
@@ -632,7 +632,7 @@ func (dns *awsRoute53) ProcessUnfinishedTasks() {
 		domainState := pendingRegister[i]
 		log.Infof("continue registering domain '%s'", domainState.domain)
 
-		go dns.RegisterDomain(domainState.organisationId, domainState.domain)
+		go dns.RegisterDomain(domainState.organisationId, domainState.domain) // nolint: errcheck
 	}
 }
 
@@ -839,7 +839,7 @@ func (dns *awsRoute53) updateStateWithError(state *domainState, err error) {
 	state.status = FAILED
 	state.errMsg = extractErrorMessage(err)
 
-	dns.stateStore.update(state)
+	_ = dns.stateStore.update(state)
 }
 
 // TODO: test if this is necessary

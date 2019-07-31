@@ -54,37 +54,51 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-// nolint: gochecknoinits
-func init() {
-	pflag.Bool("version", false, "Show version information")
-	pflag.Bool("dump-config", false, "Dump configuration to the console (and exit)")
-}
+// Provisioned by ldflags
+// nolint: gochecknoglobals
+var (
+	version    string
+	commitHash string
+	buildDate  string
+)
 
 func main() {
-	Configure(viper.GetViper(), pflag.CommandLine)
+	v, p := viper.New(), pflag.NewFlagSet(friendlyAppName, pflag.ExitOnError)
 
-	pflag.Parse()
+	configure(v, p)
 
-	if viper.GetBool("version") {
-		fmt.Printf("%s version %s (%s) built on %s\n", FriendlyServiceName, version, commitHash, buildDate)
+	p.String("config", "", "Configuration file")
+	p.Bool("version", false, "Show version information")
+
+	_ = p.Parse(os.Args[1:])
+
+	if v, _ := p.GetBool("version"); v {
+		fmt.Printf("%s version %s (%s) built on %s\n", friendlyAppName, version, commitHash, buildDate)
 
 		os.Exit(0)
 	}
-	err := viper.ReadInConfig()
+
+	if c, _ := p.GetString("config"); c != "" {
+		v.SetConfigFile(c)
+	}
+
+	err := v.ReadInConfig()
 	_, configFileNotFound := err.(viper.ConfigFileNotFoundError)
 	if !configFileNotFound {
 		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
 	}
 
-	var config Config
-	err = viper.Unmarshal(&config)
+	var config configuration
+	err = v.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	// Create logger (first thing after configuration loading)
-	logger := log.NewLogurLogger(config.Log)
+	logger := log.NewLogger(config.Log)
 
 	// Provide some basic context to all log lines
-	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "service": ServiceName})
+	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "application": appName})
+
+	log.SetStandardLogger(logger)
 
 	if configFileNotFound {
 		logger.Warn("configuration file not found")
@@ -95,12 +109,6 @@ func main() {
 		logger.Error(err.Error())
 
 		os.Exit(3)
-	}
-
-	if viper.GetBool("dump-config") {
-		fmt.Printf("%+v\n", config)
-
-		os.Exit(0)
 	}
 
 	// Configure error handler

@@ -435,11 +435,11 @@ func (m *VCNManager) removeRouteTables() error {
 	for _, table := range tables {
 		if *m.vcn.DefaultRouteTableId == *table.Id {
 			if len(table.RouteRules) > 0 {
-				m.removeRoutesFromRouteTable(table.Id)
+				m.removeRoutesFromRouteTable(table.Id) // nolint: errcheck
 			}
 		} else {
 			m.oci.GetLogger().Debugf("Removing Route Table '%s'", *table.DisplayName)
-			m.vn.DeleteRouteTable(table.Id)
+			m.vn.DeleteRouteTable(table.Id) // nolint: errcheck
 		}
 	}
 
@@ -455,7 +455,7 @@ func (m *VCNManager) removeInternetGateways() error {
 
 	for _, igw := range igws {
 		m.oci.GetLogger().Debugf("Removing Internet Gateway '%s'", *igw.DisplayName)
-		m.vn.DeleteInternetGateway(igw.Id)
+		m.vn.DeleteInternetGateway(igw.Id) // nolint: errcheck
 	}
 
 	return nil

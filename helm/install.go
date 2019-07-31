@@ -195,7 +195,7 @@ func GenerateHelmRepoEnv(orgName string) (env helmEnv.EnvSettings) {
 	// check local helm
 	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
 		log.Infof("Helm directories [%s] not exists", helmPath)
-		InstallLocalHelm(env)
+		InstallLocalHelm(env) // nolint: errcheck
 	}
 
 	return
@@ -209,7 +209,7 @@ func DownloadChartFromRepo(name, version string, env helmEnv.EnvSettings) (strin
 	}
 	if _, err := os.Stat(env.Home.Archive()); os.IsNotExist(err) {
 		log.Infof("Creating '%s' directory.", env.Home.Archive())
-		os.MkdirAll(env.Home.Archive(), 0744)
+		os.MkdirAll(env.Home.Archive(), 0744) // nolint: errcheck
 	}
 
 	log.Infof("Downloading helm chart %q, version %q to %q", name, version, env.Home.Archive())

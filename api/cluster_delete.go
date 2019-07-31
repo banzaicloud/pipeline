@@ -65,7 +65,7 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 			return
 		}
 	default:
-		a.clusterManager.DeleteCluster(ctx, commonCluster, force)
+		_ = a.clusterManager.DeleteCluster(ctx, commonCluster, force)
 	}
 
 	if anchore.AnchoreEnabled && commonCluster.GetSecurityScan() {

@@ -40,10 +40,10 @@ func (c configuration) Validate() error {
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// Application constants
-	v.Set("serviceName", ServiceName)
-	v.Set("serviceVersion", version)
+	v.Set("appName", appName)
+	v.Set("appVersion", version)
 
 	// ErrorHandler configuration
-	v.RegisterAlias("errorHandler.serviceName", "serviceName")
-	v.RegisterAlias("errorHandler.serviceVersion", "serviceVersion")
+	v.RegisterAlias("errorHandler.serviceName", "appName")
+	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
 }

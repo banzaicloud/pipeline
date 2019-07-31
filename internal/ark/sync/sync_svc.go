@@ -87,14 +87,14 @@ func (s *Service) syncRegisteredBucketsLoop(
 ) {
 
 	logger.WithField("interval", interval.String()).Debug("syncing backups from buckets")
-	go s.syncRegisteredBuckets(db, logger)
+	go s.syncRegisteredBuckets(db, logger) // nolint: errcheck
 	ticker := time.NewTicker(interval)
 	func() {
 		for {
 			select {
 			case <-ticker.C:
 				logger.WithField("interval", interval.String()).Debug("syncing backups from buckets")
-				s.syncRegisteredBuckets(db, logger)
+				s.syncRegisteredBuckets(db, logger) // nolint: errcheck
 			case <-ctx.Done():
 				logger.Debug("closing ticker")
 				ticker.Stop()
@@ -133,14 +133,14 @@ func (s *Service) syncRestoresLoop(
 ) {
 
 	logger.WithField("interval", interval.String()).Debug("syncing restores")
-	go s.syncRestores(db, logger)
+	go s.syncRestores(db, logger) // nolint: errcheck
 	ticker := time.NewTicker(interval)
 	func() {
 		for {
 			select {
 			case <-ticker.C:
 				logger.WithField("interval", interval.String()).Debug("syncing restores")
-				s.syncRestores(db, logger)
+				s.syncRestores(db, logger) // nolint: errcheck
 			case <-ctx.Done():
 				logger.Debug("closing ticker")
 				ticker.Stop()
@@ -179,14 +179,14 @@ func (s *Service) syncBackupsLoop(
 ) {
 
 	logger.WithField("interval", interval.String()).Debug("syncing backups for organizations")
-	go s.syncBackups(db, logger)
+	go s.syncBackups(db, logger) // nolint: errcheck
 	ticker := time.NewTicker(interval)
 	func() {
 		for {
 			select {
 			case <-ticker.C:
 				logger.WithField("interval", interval.String()).Debug("syncing backups for organizations")
-				s.syncBackups(db, logger)
+				s.syncBackups(db, logger) // nolint: errcheck
 			case <-ctx.Done():
 				logger.Debug("closing ticker")
 				ticker.Stop()
