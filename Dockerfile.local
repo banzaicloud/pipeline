@@ -2,24 +2,24 @@ ARG GO_VERSION=1.12
 
 FROM golang:${GO_VERSION}-alpine AS builder
 
-RUN apk add --update --no-cache ca-certificates git
+# set up nsswitch.conf for Go's "netgo" implementation
+# https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
+RUN echo 'hosts: files dns' > /etc/nsswitch.conf.build
+
+RUN apk add --update --no-cache ca-certificates git tzdata
 
 RUN go get -d github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
 RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
     git checkout 981ecbe && \
     go install ./cmd/aws-iam-authenticator
 
-
 FROM alpine:3.9
 
-RUN apk add --update --no-cache ca-certificates tzdata bash curl
+RUN apk add --update --no-cache bash curl
 
-# set up nsswitch.conf for Go's "netgo" implementation
-# https://github.com/gliderlabs/docker-alpine/issues/367#issuecomment-424546457
-RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
-
-SHELL ["/bin/bash", "-c"]
-
+COPY --from=builder /etc/nsswitch.conf.build /etc/nsswitch.conf
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
 
 COPY build/release/pipeline /

@@ -107,6 +107,8 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	}
 
 	w.Header().Set("Content-Type", problems.ProblemMediaType)
+	w.WriteHeader(problem.Status)
+
 	_ = json.NewEncoder(w).Encode(problem)
 }
 

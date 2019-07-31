@@ -97,6 +97,7 @@ func (c PipelineConfig) Validate() error {
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AllowEmptyEnv(true)
 	v.AddConfigPath(".")
+	v.AddConfigPath("./config")
 	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(envPrefix)))
 	p.Init(friendlyAppName, pflag.ExitOnError)
 	pflag.Usage = func() {
@@ -133,9 +134,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
 
 	// Pipeline configuration
-	viper.SetDefault("pipeline.basePath", "")
+	v.SetDefault("pipeline.basePath", "")
 
 	// Database configuration
+	v.SetDefault("database.dialect", "mysql")
 	_ = v.BindEnv("database.host")
 	v.SetDefault("database.port", 3306)
 	_ = v.BindEnv("database.user")
