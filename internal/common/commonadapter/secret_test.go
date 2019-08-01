@@ -51,7 +51,7 @@ func TestSecretStore_GetSecretValues(t *testing.T) {
 		}),
 	)
 
-	ctx := context.WithValue(context.Background(), orgIdKey, organizationID)
+	ctx := context.WithValue(context.Background(), orgIdKey, organizationID) // nolint: golint
 
 	values, err := store.GetSecretValues(ctx, secretID)
 	require.NoError(t, err)
@@ -77,7 +77,7 @@ func TestSecretStore_GetSecretValues_SecretNotFound(t *testing.T) {
 		}),
 	)
 
-	ctx := context.WithValue(context.Background(), orgIdKey, organizationID)
+	ctx := context.WithValue(context.Background(), orgIdKey, organizationID) // nolint: golint
 
 	values, err := store.GetSecretValues(ctx, secretID)
 	require.Error(t, err)
@@ -111,7 +111,7 @@ func TestSecretStore_GetSecretValues_SomethingWentWrong(t *testing.T) {
 		}),
 	)
 
-	ctx := context.WithValue(context.Background(), orgIdKey, organizationID)
+	ctx := context.WithValue(context.Background(), orgIdKey, organizationID) // nolint: golint
 
 	values, err := store.GetSecretValues(ctx, secretID)
 	require.Error(t, err)
