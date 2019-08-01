@@ -43,7 +43,7 @@ const (
 // dnsFeatureManager synchronous feature manager
 type dnsFeatureManager struct {
 	featureRepository clusterfeature.FeatureRepository
-	secretStore       clusterfeature.ClusterSecretStore
+	secretStore       features.SecretStore
 	clusterGetter     clusterfeatureadapter.ClusterGetter
 	helmService       features.HelmService
 	orgDomainService  OrgDomainService
@@ -54,7 +54,7 @@ type dnsFeatureManager struct {
 // NewDnsFeatureManager builds a new feature manager component
 func NewDnsFeatureManager(
 	featureRepository clusterfeature.FeatureRepository,
-	secretStore clusterfeature.ClusterSecretStore,
+	secretStore features.SecretStore,
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	helmService features.HelmService,
 	orgDomainService OrgDomainService,
