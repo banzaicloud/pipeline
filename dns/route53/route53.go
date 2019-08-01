@@ -27,15 +27,16 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
+	"github.com/jinzhu/now"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/jinzhu/now"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 // nolint: gochecknoglobals
@@ -52,6 +53,9 @@ const (
 	IAMUserAccessKeySecretName         = "route53"
 	soaNTTL                            = 60 // negative-cache TTL to set in the SOA record of the created hosted zone
 )
+
+// nolint: gochecknoglobals,golint
+var IAMUserAccessKeySecretID = secret.GenerateSecretIDFromName(IAMUserAccessKeySecretName)
 
 func loggerWithFields(fields logrus.Fields) *logrus.Entry {
 	fields["tag"] = "AmazonRoute53"
@@ -569,7 +573,7 @@ func (dns *awsRoute53) cleanup(wg *sync.WaitGroup, domainState *domainState) {
 	//
 	// To allow testing, a hosted zone that is deleted within 12 hours of creation is not charged
 
-	if hostedZoneAge < 12*time.Hour { //grace period
+	if hostedZoneAge < 12*time.Hour { // grace period
 		log.Infof("cleanup hosted zone '%s' as it is not used by organisation '%d' and it's age '%s' is less than 12hrs", domainState.hostedZoneId, domainState.organisationId, hostedZoneAge.String())
 
 		err := dns.UnregisterDomain(domainState.organisationId, domainState.domain)

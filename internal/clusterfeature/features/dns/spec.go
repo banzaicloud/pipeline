@@ -77,7 +77,7 @@ func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clu
 	}
 
 	// todo make this "provider agnostic"
-	route53Secret, err := m.secretStore.GetSecretByName(ctx, clusterID, route53.IAMUserAccessKeySecretName)
+	route53Secret, err := m.secretStore.GetSecretValues(ctx, route53.IAMUserAccessKeySecretID)
 	if err != nil {
 
 		return nil, errors.WrapIf(err, "failed to get secret")
@@ -101,7 +101,7 @@ func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clu
 }
 
 func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, clusterID uint, customDns CustomDns) (*dns.ExternalDnsChartValues, error) {
-	secrets, err := m.secretStore.GetSecret(ctx, clusterID, customDns.Provider.SecretID)
+	secrets, err := m.secretStore.GetSecretValues(ctx, customDns.Provider.SecretID)
 	if err != nil {
 
 		return nil, errors.WrapIf(err, "failed to process feature spec secrets")
