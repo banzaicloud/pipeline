@@ -541,11 +541,10 @@ func main() {
 				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
 				dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterManager, helmService, orgDomainService, logger)
 				featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
-					"dns": clusterfeature.NewSyncFeatureManager(dnsFeatureManager, clusterService, featureRepository),
+					"dns": clusterfeatureadapter.NewAsyncFeatureManagerStub(dnsFeatureManager, workflowClient),
 				})
 
 				service := clusterfeature.NewFeatureService(featureRegistry, featureRepository, logger)
