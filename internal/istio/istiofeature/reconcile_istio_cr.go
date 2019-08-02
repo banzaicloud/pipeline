@@ -27,7 +27,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/internal/backoff"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState) error {
@@ -40,11 +39,6 @@ func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState) error {
 	}
 
 	if desiredState == DesiredStatePresent {
-		ipRanges, err := m.Master.GetK8sIpv4Cidrs()
-		if err != nil {
-			return emperror.Wrap(err, "could not get ipv4 ranges for cluster")
-		}
-
 		istio, err := client.IstioV1beta1().Istios(istioOperatorNamespace).Get(m.Configuration.name, metav1.GetOptions{})
 		if err != nil && !k8serrors.IsNotFound(err) {
 			return emperror.Wrap(err, "could not check existence Istio CR")
@@ -58,7 +52,7 @@ func (m *MeshReconciler) ReconcileIstio(desiredState DesiredState) error {
 			}
 		}
 
-		istio = m.configureIstioCR(istio, m.Configuration, ipRanges)
+		istio = m.configureIstioCR(istio, m.Configuration)
 
 		if k8serrors.IsNotFound(err) {
 			_, err = client.IstioV1beta1().Istios(istioOperatorNamespace).Create(istio)
@@ -113,7 +107,7 @@ func (m *MeshReconciler) waitForIstioCRToBeDeleted(client *istiooperatorclientse
 }
 
 // configureIstioCR configures istio-operator specific CR based on the given params
-func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config, ipRanges *pkgCluster.Ipv4Cidrs) *v1beta1.Istio {
+func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *v1beta1.Istio {
 	labels := istio.GetLabels()
 	if labels == nil {
 		labels = make(map[string]string, 0)
