@@ -34,17 +34,8 @@ jobs:
                         - build-deps-v1-{{ .Branch }}-{{ checksum "Makefile" }}
 
             -
-                restore_cache:
-                    name: Restore Go module cache
-                    keys:
-                        - gomod-v1-{{ .Branch }}-{{ checksum "go.sum" }}
-                        - gomod-v1-{{ .Branch }}
-                        - gomod-v1-master
-                        - gomod-v1
-
-            -
                 run:
-                    name: Download Go module cache
+                    name: Download Go modules
                     command: go mod download
 
             -
@@ -53,13 +44,6 @@ jobs:
                     command: |
                       sudo apt-get update
                       sudo apt-get install -y mysql-client mysql-utilities postgresql-client
-
-            -
-                save_cache:
-                    name: Save Go module cache
-                    key: gomod-v1-{{ .Branch }}-{{ checksum "go.sum" }}
-                    paths:
-                        - /go/pkg/mod
 
             -
                 restore_cache:
