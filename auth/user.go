@@ -146,6 +146,15 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 	return nil
 }
 
+// GetCurrentOrganizationID return the user's organization ID.
+func GetCurrentOrganizationID(ctx context.Context) (uint, bool) {
+	if organization := ctx.Value(CurrentOrganization); organization != nil {
+		return organization.(*Organization).ID, true
+	}
+
+	return 0, false
+}
+
 // NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
 func NewCICDClient(apiToken string) cicd.Client {
 	cicdURL := viper.GetString("cicd.url")

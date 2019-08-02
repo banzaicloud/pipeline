@@ -97,6 +97,7 @@ func (c PipelineConfig) Validate() error {
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AllowEmptyEnv(true)
 	v.AddConfigPath(".")
+	v.AddConfigPath("./config")
 	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(envPrefix)))
 	p.Init(friendlyAppName, pflag.ExitOnError)
 	pflag.Usage = func() {

@@ -17,9 +17,9 @@ package backupservice
 import (
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
+	"github.com/jinzhu/gorm"
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -30,12 +30,15 @@ import (
 // Deprecated: use GET method instead
 func StatusDeprecated(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
-	logger.Info("checking ARK deployment status")
+	logger.Debug("checking ARK deployment status")
 
 	schedulesSvc := common.GetARKService(c.Request).GetSchedulesService()
 	_, err := schedulesSvc.List()
 	if err != nil {
-		err = errors.New("backup service not deployed")
+		if !gorm.IsRecordNotFoundError(errors.Cause(err)) {
+			err = errors.WrapIf(err, "could not check whether ARK is deployed")
+			common.ErrorHandler.Handle(err)
+		}
 		pkgCommon.ErrorResponseWithStatus(c, http.StatusNotFound, err)
 		return
 	}
@@ -46,13 +49,15 @@ func StatusDeprecated(c *gin.Context) {
 // Status gets an ARK backup deployment status by trying to create ARK client
 func Status(c *gin.Context) {
 	logger := correlationid.Logger(common.Log, c)
-	logger.Info("checking ARK deployment status")
+	logger.Debug("checking ARK deployment status")
 
 	schedulesSvc := common.GetARKService(c.Request).GetSchedulesService()
 	_, err := schedulesSvc.List()
 	if err != nil {
-		err = emperror.Wrap(err, "backup service not deployed")
-		common.ErrorHandler.Handle(err)
+		if !gorm.IsRecordNotFoundError(errors.Cause(err)) {
+			err = errors.WrapIf(err, "could not check whether ARK is deployed")
+			common.ErrorHandler.Handle(err)
+		}
 		statusEnabledResponse(c, false)
 		return
 	}

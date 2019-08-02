@@ -52,10 +52,15 @@ func NewClientFromKubeConfig(kubeConfig []byte) (*kubernetes.Clientset, error) {
 func NewInClusterClient() (*kubernetes.Clientset, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to fetch in-cluster configuration")
+		return nil, errors.Wrap(err, "failed to fetch in-cluster configuration")
 	}
 
-	return NewClientFromConfig(config)
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create client for config")
+	}
+
+	return client, nil
 }
 
 // globallyRoutable decides if an address is a globally routable IPv4 address

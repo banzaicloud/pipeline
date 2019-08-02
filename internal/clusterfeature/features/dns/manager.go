@@ -43,7 +43,7 @@ const (
 // dnsFeatureManager synchronous feature manager
 type dnsFeatureManager struct {
 	featureRepository clusterfeature.FeatureRepository
-	secretStore       clusterfeature.ClusterSecretStore
+	secretStore       features.SecretStore
 	clusterGetter     clusterfeatureadapter.ClusterGetter
 	helmService       features.HelmService
 	orgDomainService  OrgDomainService
@@ -54,7 +54,7 @@ type dnsFeatureManager struct {
 // NewDnsFeatureManager builds a new feature manager component
 func NewDnsFeatureManager(
 	featureRepository clusterfeature.FeatureRepository,
-	secretStore clusterfeature.ClusterSecretStore,
+	secretStore features.SecretStore,
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	helmService features.HelmService,
 	orgDomainService OrgDomainService,
@@ -337,12 +337,12 @@ func (m *dnsFeatureManager) decorateWithOutput(ctx context.Context, clusterID ui
 
 		type zoneInfo struct {
 			Zone          string `json:"zone"`
-			ClusterDomain string `json:"clusterdomain"`
+			ClusterDomain string `json:"clusterDomain"`
 		}
 
 		// decorate the feature with the output
 		type output struct {
-			AutoDns zoneInfo `json:"autodns"`
+			AutoDns zoneInfo `json:"autoDns"`
 		}
 
 		o := output{
