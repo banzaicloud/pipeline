@@ -16,7 +16,6 @@ package istiofeature
 
 import (
 	"strconv"
-	"strings"
 	"time"
 
 	"emperror.dev/emperror"
@@ -29,7 +28,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/backoff"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c cluster.CommonCluster) error {
@@ -52,11 +50,7 @@ func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c clust
 			return nil
 		}
 
-		ipRanges, err := c.GetK8sIpv4Cidrs()
-		if err != nil {
-			return emperror.Wrap(err, "could not get ipv4 ranges for cluster")
-		}
-		remoteIstioCR := m.generateRemoteIstioCR(m.Configuration, ipRanges, c)
+		remoteIstioCR := m.generateRemoteIstioCR(m.Configuration, c)
 		_, err = client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Create(&remoteIstioCR)
 		if err != nil {
 			return emperror.Wrap(err, "could not create Remote Istio CR")
@@ -103,7 +97,7 @@ func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client *is
 }
 
 // generateRemoteIstioCR generates istio-operator specific CR based on the given params
-func (m *MeshReconciler) generateRemoteIstioCR(config Config, ipRanges *pkgCluster.Ipv4Cidrs, c cluster.CommonCluster) v1beta1.RemoteIstio {
+func (m *MeshReconciler) generateRemoteIstioCR(config Config, c cluster.CommonCluster) v1beta1.RemoteIstio {
 	enabled := true
 	istioConfig := v1beta1.RemoteIstio{
 		ObjectMeta: metav1.ObjectMeta{
@@ -153,10 +147,6 @@ func (m *MeshReconciler) generateRemoteIstioCR(config Config, ipRanges *pkgClust
 				ReplicaCount: 1,
 			},
 		},
-	}
-
-	if config.BypassEgressTraffic {
-		istioConfig.Spec.IncludeIPRanges = strings.Join(ipRanges.PodIPRanges, ",") + "," + strings.Join(ipRanges.ServiceClusterIPRanges, ",")
 	}
 
 	return istioConfig
