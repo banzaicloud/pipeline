@@ -47,24 +47,28 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	}
 
 	// terminate worker nodes
-	var poolActivities = make(map[string]workflow.Future)
+	{
+		futures := make([]workflow.Future, len(nodePools))
 
-	for _, np := range nodePools {
-		if !np.Master && np.Worker {
-			deletePoolActivityInput := DeletePoolActivityInput{
-				ClusterID: input.ClusterID,
-				Pool:      np,
+		for i, np := range nodePools {
+			if !np.Master && np.Worker {
+				deletePoolActivityInput := DeletePoolActivityInput{
+					ClusterID: input.ClusterID,
+					Pool:      np,
+				}
+
+				futures[i] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
 			}
-			poolActivities[np.Name] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
 		}
-	}
 
-	for name, future := range poolActivities {
-		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", name))
-	}
+		errs := make([]error, len(futures))
+		for i, future := range futures {
+			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+		}
 
-	if err != nil {
-		return err
+		if err := errors.Combine(errs...); err != nil {
+			return err
+		}
 	}
 
 	// release NLB
@@ -77,24 +81,28 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 	}
 
 	// terminate master nodes
-	poolActivities = make(map[string]workflow.Future)
-	for _, np := range nodePools {
-		if np.Master || !np.Worker {
-			deletePoolActivityInput := DeletePoolActivityInput{
-				ClusterID: input.ClusterID,
-				Pool:      np,
+	{
+		futures := make([]workflow.Future, len(nodePools))
+
+		for i, np := range nodePools {
+			if np.Master || !np.Worker {
+				deletePoolActivityInput := DeletePoolActivityInput{
+					ClusterID: input.ClusterID,
+					Pool:      np,
+				}
+
+				futures[i] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
 			}
-
-			poolActivities[np.Name] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, deletePoolActivityInput)
 		}
-	}
 
-	for name, future := range poolActivities {
-		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", name))
-	}
+		errs := make([]error, len(futures))
+		for i, future := range futures {
+			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+		}
 
-	if err != nil {
-		return err
+		if err := errors.Combine(errs...); err != nil {
+			return err
+		}
 	}
 
 	// clean-up ssh key

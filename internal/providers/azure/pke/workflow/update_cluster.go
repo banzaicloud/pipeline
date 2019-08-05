@@ -17,7 +17,7 @@ package workflow
 import (
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/cluster"
@@ -74,7 +74,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			VirtualNetworkName:  input.VirtualNetworkName,
 		}
 		err := workflow.ExecuteActivity(ctx, CollectUpdateClusterProvidersActivityName, activityInput).Get(ctx, &providers)
-		if err = emperror.Wrapf(err, "%q activity failed", CollectUpdateClusterProvidersActivityName); err != nil {
+		if err = errors.WrapIff(err, "%q activity failed", CollectUpdateClusterProvidersActivityName); err != nil {
 			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 			return err
 		}
@@ -92,7 +92,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			futures[i] = workflow.ExecuteActivity(ctx, DeleteVMSSActivityName, activityInput)
 		}
 		for _, f := range futures {
-			if err := emperror.Wrapf(f.Get(ctx, nil), "%q activity failed", DeleteVMSSActivityName); err != nil {
+			if err := errors.WrapIff(f.Get(ctx, nil), "%q activity failed", DeleteVMSSActivityName); err != nil {
 				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 				return err
 			}
@@ -108,7 +108,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			NodePoolNames: nodePoolsToDelete,
 		}
 		if err := workflow.ExecuteActivity(ctx, DeleteNodePoolFromStoreActivityName, activityInput).Get(ctx, nil); err != nil {
-			err = emperror.Wrapf(err, "%q activity failed", DeleteNodePoolFromStoreActivityName)
+			err = errors.WrapIff(err, "%q activity failed", DeleteNodePoolFromStoreActivityName)
 			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 			return err
 		}
@@ -127,7 +127,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			futures[i] = workflow.ExecuteActivity(ctx, DeleteSubnetActivityName, activityInput)
 		}
 		for _, f := range futures {
-			if err := emperror.Wrapf(f.Get(ctx, nil), "%q activity failed", DeleteSubnetActivityName); err != nil {
+			if err := errors.WrapIff(f.Get(ctx, nil), "%q activity failed", DeleteSubnetActivityName); err != nil {
 				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 				return err
 			}
@@ -145,7 +145,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, cluster.RunPostHookActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			err = emperror.Wrapf(err, "%q activity failed", cluster.RunPostHookActivityName)
+			err = errors.WrapIff(err, "%q activity failed", cluster.RunPostHookActivityName)
 			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 			return err
 		}
@@ -163,15 +163,17 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			futures[i] = workflow.ExecuteActivity(ctx, UpdateVMSSActivityName, activityInput)
 		}
 		for _, f := range futures {
-			if err := emperror.Wrapf(f.Get(ctx, nil), "%q activity failed", UpdateVMSSActivityName); err != nil {
+			if err := errors.WrapIff(f.Get(ctx, nil), "%q activity failed", UpdateVMSSActivityName); err != nil {
 				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 				return err
 			}
 		}
 	}
+
 	{
-		futures := make(map[string]workflow.Future, len(input.SubnetsToCreate))
-		for _, subnet := range input.SubnetsToCreate {
+		futures := make([]workflow.Future, len(input.SubnetsToCreate))
+
+		for i, subnet := range input.SubnetsToCreate {
 			activityInput := CreateSubnetActivityInput{
 				OrganizationID:     input.OrganizationID,
 				SecretID:           input.SecretID,
@@ -180,25 +182,28 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				VirtualNetworkName: input.VirtualNetworkName,
 				Subnet:             subnet.Render(providers.RouteTableIDProvider, providers.SecurityGroupIDProvider),
 			}
-			futures[activityInput.Subnet.Name] = workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput)
+
+			futures[i] = workflow.ExecuteActivity(ctx, CreateSubnetActivityName, activityInput)
 		}
-		for name, f := range futures {
+
+		for i, future := range futures {
 			var activityOutput CreateSubnetActivityOutput
-			if err := emperror.Wrapf(f.Get(ctx, &activityOutput), "%q activity failed", CreateSubnetActivityName); err != nil {
+
+			if err := errors.WrapIff(future.Get(ctx, &activityOutput), "%q activity failed", CreateSubnetActivityName); err != nil {
 				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
+
 				return err
 			}
-			providers.SubnetIDProvider.Put(name, activityOutput.SubnetID)
+
+			providers.SubnetIDProvider.Put(input.SubnetsToCreate[i].Name, activityOutput.SubnetID)
 		}
 	}
+
 	createdVMSSOutputs := make(map[string]CreateVMSSActivityOutput)
 	{
-		type futureAndNodePoolName struct {
-			future       workflow.Future
-			nodePoolName string
-		}
-		futures := make(map[string]futureAndNodePoolName, len(input.VMSSToCreate))
-		for _, vmss := range input.VMSSToCreate {
+		futures := make([]workflow.Future, len(input.VMSSToCreate))
+
+		for i, vmss := range input.VMSSToCreate {
 			activityInput := CreateVMSSActivityInput{
 				OrganizationID:    input.OrganizationID,
 				SecretID:          input.SecretID,
@@ -207,36 +212,41 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 				ResourceGroupName: input.ResourceGroupName,
 				ScaleSet:          vmss.Render(providers.BackendAddressPoolIDProvider, providers.InboundNATPoolIDProvider, providers.PublicIPAddressProvider, providers.SecurityGroupIDProvider, providers.SubnetIDProvider),
 			}
-			futures[activityInput.ScaleSet.Name] = futureAndNodePoolName{
-				future:       workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput),
-				nodePoolName: vmss.NodePoolName,
-			}
+
+			futures[i] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
 		}
+
 		var createVMSSErr error
 		var nodePoolsToDelete []string
-		for name, f := range futures {
+		for i, future := range futures {
 			var activityOutput CreateVMSSActivityOutput
-			if createVMSSErr = emperror.Wrapf(f.future.Get(ctx, &activityOutput), "%q activity failed", CreateVMSSActivityName); createVMSSErr != nil {
+			if createVMSSErr = errors.WrapIff(future.Get(ctx, &activityOutput), "%q activity failed", CreateVMSSActivityName); createVMSSErr != nil {
 				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, createVMSSErr.Error()) // nolint: errcheck
-				nodePoolsToDelete = append(nodePoolsToDelete, f.nodePoolName)
+
+				nodePoolsToDelete = append(nodePoolsToDelete, input.VMSSToCreate[i].NodePoolName)
 			} else {
-				createdVMSSOutputs[name] = activityOutput
+				createdVMSSOutputs[input.VMSSToCreate[i].Name] = activityOutput
 			}
 		}
+
 		if createVMSSErr != nil {
 			{
 				activityInput := DeleteNodePoolFromStoreActivityInput{
 					ClusterID:     input.ClusterID,
 					NodePoolNames: nodePoolsToDelete,
 				}
+
 				if err := workflow.ExecuteActivity(ctx, DeleteNodePoolFromStoreActivityName, activityInput).Get(ctx, nil); err != nil {
-					err = emperror.Wrapf(err, "%q activity failed", DeleteNodePoolFromStoreActivityName)
+					err = errors.WrapIff(err, "%q activity failed", DeleteNodePoolFromStoreActivityName)
+
 					setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 				}
 			}
+
 			return createVMSSErr
 		}
 	}
+
 	{
 		futures := make([]workflow.Future, len(input.RoleAssignments))
 		for i, ra := range input.RoleAssignments {
@@ -250,7 +260,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			futures[i] = workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput)
 		}
 		for _, f := range futures {
-			if err := emperror.Wrapf(f.Get(ctx, nil), "%q activity failed", AssignRoleActivityName); err != nil {
+			if err := errors.WrapIff(f.Get(ctx, nil), "%q activity failed", AssignRoleActivityName); err != nil {
 				setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 				return err
 			}
@@ -266,7 +276,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 
 		err := workflow.ExecuteActivity(ctx, cluster.RunPostHookActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			err = emperror.Wrapf(err, "%q activity failed", cluster.RunPostHookActivityName)
+			err = errors.WrapIff(err, "%q activity failed", cluster.RunPostHookActivityName)
 			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, err.Error()) // nolint: errcheck
 			return err
 		}
