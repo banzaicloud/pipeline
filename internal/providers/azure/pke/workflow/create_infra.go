@@ -286,14 +286,18 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			futures[i] = workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput)
 		}
 
+		errs := make([]error, len(futures))
+
 		for i, future := range futures {
 			var activityOutput CreateNSGActivityOutput
 
-			if err := future.Get(ctx, &activityOutput); err != nil {
-				return err
-			}
+			errs[i] = future.Get(ctx, &activityOutput)
 
 			createNSGActivityOutputs[input.SecurityGroups[i].Name] = activityOutput
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
 		}
 	}
 
@@ -383,14 +387,18 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			futures[i] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
 		}
 
+		errs := make([]error, len(futures))
+
 		for i, future := range futures {
 			var activityOutput CreateVMSSActivityOutput
 
-			if err := future.Get(ctx, &activityOutput); err != nil {
-				return errors.WrapIff(err, "creating scaling set %q", input.ScaleSets[i].Name)
-			}
+			errs[i] = errors.WrapIff(future.Get(ctx, &activityOutput), "creating scaling set %q", input.ScaleSets[i].Name)
 
 			createVMSSActivityOutputs[input.ScaleSets[i].Name] = activityOutput
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
 		}
 	}
 
@@ -399,6 +407,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		vmssPrincipalIDProvider := mapVMSSPrincipalIDProvider(createVMSSActivityOutputs)
 
 		futures := make([]workflow.Future, len(input.RoleAssignments))
+
 		for i, t := range input.RoleAssignments {
 			activityInput := AssignRoleActivityInput{
 				OrganizationID:    input.OrganizationID,
@@ -409,10 +418,15 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			}
 			futures[i] = workflow.ExecuteActivity(ctx, AssignRoleActivityName, activityInput)
 		}
-		for _, future := range futures {
-			if err := future.Get(ctx, nil); err != nil {
-				return err
-			}
+
+		errs := make([]error, len(futures))
+
+		for i, future := range futures {
+			errs[i] = future.Get(ctx, nil)
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
 		}
 	}
 
