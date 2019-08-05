@@ -102,7 +102,9 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 
 		errs := make([]error, len(futures))
 		for i, future := range futures {
-			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't delete node pool %q", input.NodePoolsToDelete[i].Name)
+			if future != nil {
+				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't delete node pool %q", input.NodePoolsToDelete[i].Name)
+			}
 		}
 
 		if err := errors.Combine(errs...); err != nil {
