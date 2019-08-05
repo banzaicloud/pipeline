@@ -9,11 +9,6 @@ RUN echo 'hosts: files dns' > /etc/nsswitch.conf.build
 
 RUN apk add --update --no-cache bash ca-certificates make curl git mercurial bzr tzdata
 
-RUN go get -d github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
-RUN cd $GOPATH/src/github.com/kubernetes-sigs/aws-iam-authenticator && \
-    git checkout 981ecbe && \
-    go install ./cmd/aws-iam-authenticator
-
 ENV GOFLAGS="-mod=readonly"
 ARG GOPROXY
 
@@ -26,12 +21,26 @@ RUN go mod download
 COPY . /build
 RUN make build-release
 
+
+FROM alpine:3.10 AS iamauth
+
+WORKDIR /tmp
+
+ENV IAM_AUTH_VERSION 0.4.0
+ENV IAM_AUTH_URL "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${IAM_AUTH_VERSION}"
+RUN set -xe \
+    && wget ${IAM_AUTH_URL}/aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 \
+    && wget ${IAM_AUTH_URL}/authenticator_${IAM_AUTH_VERSION}_checksums.txt \
+    && cat authenticator_${IAM_AUTH_VERSION}_checksums.txt | grep "_linux_amd64" | sha256sum -c - \
+    && mv aws-iam-authenticator_${IAM_AUTH_VERSION}_linux_amd64 aws-iam-authenticator
+
+
 FROM ${FROM_IMAGE}
 
 COPY --from=builder /etc/nsswitch.conf.build /etc/nsswitch.conf
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /go/bin/aws-iam-authenticator /usr/bin/
+COPY --from=iamauth /tmp/aws-iam-authenticator /usr/bin/
 COPY --from=builder /build/views /views/
 COPY --from=builder /build/templates /templates/
 COPY --from=builder /build/build/release/pipeline /
