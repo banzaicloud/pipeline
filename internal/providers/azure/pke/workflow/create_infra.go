@@ -17,7 +17,7 @@ package workflow
 import (
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -272,8 +272,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	// Create network security groups
 	createNSGActivityOutputs := make(map[string]CreateNSGActivityOutput)
 	{
-		futures := make(map[string]workflow.Future, len(input.SecurityGroups))
-		for _, sg := range input.SecurityGroups {
+		futures := make([]workflow.Future, len(input.SecurityGroups))
+
+		for i, sg := range input.SecurityGroups {
 			activityInput := CreateNSGActivityInput{
 				OrganizationID:    input.OrganizationID,
 				SecretID:          input.SecretID,
@@ -281,14 +282,18 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				ResourceGroupName: input.ResourceGroupName,
 				SecurityGroup:     sg,
 			}
-			futures[sg.Name] = workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput)
+
+			futures[i] = workflow.ExecuteActivity(ctx, CreateNSGActivityName, activityInput)
 		}
-		for name, future := range futures {
+
+		for i, future := range futures {
 			var activityOutput CreateNSGActivityOutput
+
 			if err := future.Get(ctx, &activityOutput); err != nil {
 				return err
 			}
-			createNSGActivityOutputs[name] = activityOutput
+
+			createNSGActivityOutputs[input.SecurityGroups[i].Name] = activityOutput
 		}
 	}
 
@@ -364,8 +369,9 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		nsgIDProvider := mapSecurityGroupIDProvider(createNSGActivityOutputs)
 		subnetIDProvider := subnetIDProvider(createVnetOutput)
 
-		futures := make(map[string]workflow.Future, len(input.ScaleSets))
-		for _, vmssTemplate := range input.ScaleSets {
+		futures := make([]workflow.Future, len(input.ScaleSets))
+
+		for i, vmssTemplate := range input.ScaleSets {
 			activityInput := CreateVMSSActivityInput{
 				OrganizationID:    input.OrganizationID,
 				SecretID:          input.SecretID,
@@ -374,15 +380,17 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				ResourceGroupName: input.ResourceGroupName,
 				ScaleSet:          vmssTemplate.Render(bapIDProvider, inpIDProvider, pipIDProvider, nsgIDProvider, subnetIDProvider),
 			}
-			futures[activityInput.ScaleSet.Name] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
+			futures[i] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
 		}
 
-		for name, future := range futures {
+		for i, future := range futures {
 			var activityOutput CreateVMSSActivityOutput
+
 			if err := future.Get(ctx, &activityOutput); err != nil {
-				return emperror.Wrapf(err, "creating scaling set %q", name)
+				return errors.WrapIff(err, "creating scaling set %q", input.ScaleSets[i].Name)
 			}
-			createVMSSActivityOutputs[name] = activityOutput
+
+			createVMSSActivityOutputs[input.ScaleSets[i].Name] = activityOutput
 		}
 	}
 

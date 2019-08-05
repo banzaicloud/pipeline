@@ -83,92 +83,128 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	}
 
 	// delete removed nodepools
-	futures := make(map[string]workflow.Future, len(input.NodePoolsToDelete))
-	for _, np := range input.NodePoolsToDelete {
-		if np.Master || !np.Worker {
-			continue
+	{
+		futures := make([]workflow.Future, len(input.NodePoolsToDelete))
+
+		for i, np := range input.NodePoolsToDelete {
+			if np.Master || !np.Worker {
+				continue
+			}
+
+			activityInput := DeletePoolActivityInput{
+				// AWSActivityInput: awsActivityInput,
+				ClusterID: input.ClusterID,
+				Pool:      np,
+			}
+
+			futures[i] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, activityInput)
 		}
 
-		futures[np.Name] = workflow.ExecuteActivity(ctx, DeletePoolActivityName, DeletePoolActivityInput{
-			// AWSActivityInput: awsActivityInput,
-			ClusterID: input.ClusterID,
-			Pool:      np,
-		})
+		errs := make([]error, len(futures))
+		for i, future := range futures {
+			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't delete node pool %q", input.NodePoolsToDelete[i].Name)
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
+		}
 	}
 
-	for name, future := range futures {
-		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't delete nodepool %q", name))
-	}
-	if err != nil {
-		return err
-	}
+	asgIDs := make([]string, len(input.NodePoolsToUpdate))
 
 	// create/change nodepools that are not removed
-	futures = make(map[string]workflow.Future, len(input.NodePoolsToUpdate))
-	for _, np := range input.NodePoolsToUpdate {
-		stackName := fmt.Sprintf("pke-pool-%s-worker-%s", input.ClusterName, np.Name)
+	{
+		futures := make([]workflow.Future, len(input.NodePoolsToUpdate))
 
-		futures[np.Name] = workflow.ExecuteActivity(ctx,
-			WaitCFCompletionActivityName,
-			WaitCFCompletionActivityInput{
+		for i, np := range input.NodePoolsToUpdate {
+			stackName := fmt.Sprintf("pke-pool-%s-worker-%s", input.ClusterName, np.Name)
+
+			activityInput := WaitCFCompletionActivityInput{
 				AWSActivityInput: awsActivityInput,
-				StackID:          stackName})
-	}
+				StackID:          stackName,
+			}
 
-	asgIDs := make(map[string]string, len(input.NodePoolsToUpdate))
-	for name, future := range futures {
-		var cfOut map[string]string
-
-		err = errors.Append(err, errors.Wrapf(future.Get(ctx, &cfOut), "can't find AutoScalingGroup for pool %q", name))
-		if asgID, ok := cfOut["AutoScalingGroupId"]; ok {
-			asgIDs[name] = asgID
-		} else {
-			err = errors.Append(err, errors.Errorf("can't find AutoScalingGroup for pool %q", name))
+			futures[i] = workflow.ExecuteActivity(ctx, WaitCFCompletionActivityName, activityInput)
 		}
 
-	}
-	if err != nil {
-		return err
+		errs := make([]error, len(futures))
+		for i, future := range futures {
+			var cfOut map[string]string
+			err := future.Get(ctx, &cfOut)
+			if err != nil {
+				errs[i] = errors.Wrapf(err, "can't find AutoScalingGroup for pool %q", input.NodePoolsToUpdate[i].Name)
+
+				continue
+			}
+
+			asgID, ok := cfOut["AutoScalingGroupId"]
+			if !ok {
+				errs[i] = errors.Errorf("can't find AutoScalingGroup for pool %q", input.NodePoolsToUpdate[i].Name)
+
+				continue
+			}
+
+			asgIDs[i] = asgID
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
+		}
 	}
 
-	futures = make(map[string]workflow.Future, len(input.NodePoolsToUpdate))
-	for _, np := range input.NodePoolsToUpdate {
-		futures[np.Name] = workflow.ExecuteActivity(ctx,
-			UpdatePoolActivityName,
-			UpdatePoolActivityInput{
+	{
+		futures := make([]workflow.Future, len(input.NodePoolsToUpdate))
+
+		for i, np := range input.NodePoolsToUpdate {
+			activityInput := UpdatePoolActivityInput{
 				AWSActivityInput: awsActivityInput,
 				Pool:             np,
-				AutoScalingGroup: asgIDs[np.Name],
-			})
-	}
-	for name, future := range futures {
-		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't update nodepool %q", name))
-	}
-	if err != nil {
-		return err
-	}
+				AutoScalingGroup: asgIDs[i],
+			}
 
-	futures = make(map[string]workflow.Future, len(input.NodePoolsToAdd))
-	for _, np := range input.NodePoolsToAdd {
-		createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
-			// AWSActivityInput:      awsActivityInput,
-			ClusterID:                 input.ClusterID,
-			Pool:                      np,
-			WorkerInstanceProfile:     PkeGlobalStackName + "-worker-profile",
-			VPCID:                     input.VPCID,
-			VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
-			SubnetID:                  input.SubnetIDs[0],
-			ClusterSecurityGroup:      clusterSecurityGroup,
-			ExternalBaseUrl:           input.PipelineExternalURL,
-			ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
-			SSHKeyName:                "pke-ssh-" + input.ClusterName,
+			futures[i] = workflow.ExecuteActivity(ctx, UpdatePoolActivityName, activityInput)
 		}
-		futures[np.Name] = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput)
+
+		errs := make([]error, len(futures))
+		for i, future := range futures {
+			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't update node pool %q", input.NodePoolsToUpdate[i].Name)
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
+		}
 	}
 
-	for name, future := range futures {
-		err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't create nodepool %q", name))
+	{
+		futures := make([]workflow.Future, len(input.NodePoolsToAdd))
+
+		for i, np := range input.NodePoolsToAdd {
+			createWorkerPoolActivityInput := CreateWorkerPoolActivityInput{
+				// AWSActivityInput:      awsActivityInput,
+				ClusterID:                 input.ClusterID,
+				Pool:                      np,
+				WorkerInstanceProfile:     PkeGlobalStackName + "-worker-profile",
+				VPCID:                     input.VPCID,
+				VPCDefaultSecurityGroupID: vpcDefaultSecurityGroupID,
+				SubnetID:                  input.SubnetIDs[0],
+				ClusterSecurityGroup:      clusterSecurityGroup,
+				ExternalBaseUrl:           input.PipelineExternalURL,
+				ExternalBaseUrlInsecure:   input.PipelineExternalURLInsecure,
+				SSHKeyName:                "pke-ssh-" + input.ClusterName,
+			}
+
+			futures[i] = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput)
+		}
+
+		errs := make([]error, len(futures))
+		for i, future := range futures {
+			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't create node pool %q", input.NodePoolsToAdd[i].Name)
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
+		}
 	}
 
-	return err
+	return nil
 }

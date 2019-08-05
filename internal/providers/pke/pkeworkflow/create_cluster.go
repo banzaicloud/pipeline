@@ -417,8 +417,9 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	// Create nodes
 	{
-		futures := make(map[string]workflow.Future, len(nodePools))
-		for _, np := range nodePools {
+		futures := make([]workflow.Future, len(nodePools))
+
+		for i, np := range nodePools {
 			if !np.Master {
 				subnetID := strings.Split(vpcOutput["SubnetIds"], ",")[0]
 
@@ -435,16 +436,15 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 					SSHKeyName:                keyOut.KeyName,
 				}
 
-				futures[createWorkerPoolActivityInput.Pool.Name] = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput)
+				futures[i] = workflow.ExecuteActivity(ctx, CreateWorkerPoolActivityName, createWorkerPoolActivityInput)
 			}
 		}
 
-		var err error
-		for name, future := range futures {
-			err = errors.Append(err, errors.Wrapf(future.Get(ctx, nil), "couldn't create nodepool %q", name))
-
+		errs := make([]error, len(futures))
+		for i, future := range futures {
+			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't create nodepool %q", nodePools[i].Name)
 		}
 
-		return err
+		return errors.Combine(errs...)
 	}
 }
