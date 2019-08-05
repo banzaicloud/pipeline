@@ -63,7 +63,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 		errs := make([]error, len(futures))
 		for i, future := range futures {
-			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+			if future != nil {
+				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+			}
 		}
 
 		if err := errors.Combine(errs...); err != nil {
@@ -97,7 +99,9 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 
 		errs := make([]error, len(futures))
 		for i, future := range futures {
-			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+			if future != nil {
+				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't terminate node pool %q", nodePools[i].Name)
+			}
 		}
 
 		if err := errors.Combine(errs...); err != nil {
