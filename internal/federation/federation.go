@@ -72,7 +72,7 @@ type DesiredState string
 
 const (
 	federationReleaseName = "federationv2"
-	federationCRDSuffix   = "kubefed.k8s.io"
+	federationCRDSuffix   = "kubefed.io"
 
 	DesiredStatePresent DesiredState = "present"
 	DesiredStateAbsent  DesiredState = "absent"
@@ -83,7 +83,7 @@ const (
 	clusterLabelLocation     = "location"
 	clusterLabelGroupName    = "groupName"
 
-	multiClusterGroup        = "multiclusterdns.kubefed.k8s.io"
+	multiClusterGroup        = "multiclusterdns.kubefed.io"
 	multiClusterGroupVersion = "v1alpha1"
 )
 

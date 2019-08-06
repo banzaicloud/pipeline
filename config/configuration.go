@@ -183,6 +183,10 @@ const (
 
 	FederationChartVersion = "federation.chartVersion"
 	FederationChartName    = "federation.chartName"
+	FederationImageTag     = "federation.imageTag"
+	FederationImageRepo    = "federation.imageRepo"
+
+	DomainHookEnabled = "hooks.domainHookEnabled"
 )
 
 //Init initializes the configurations
@@ -357,8 +361,10 @@ func init() {
 	viper.SetDefault(PrometheusServiceContext, "prometheus")
 	viper.SetDefault(PrometheusLocalPort, 9090)
 
-	viper.SetDefault(FederationChartVersion, "0.1.0-rc3")
+	viper.SetDefault(FederationChartVersion, "0.1.0-rc5")
 	viper.SetDefault(FederationChartName, "kubefed-charts/kubefed")
+	viper.SetDefault(FederationImageTag, "banzaicloud")
+	viper.SetDefault(FederationImageRepo, "v0.1.0-rc5-bzc.1")
 
 	viper.SetDefault(DNSExternalDnsReleaseName, "dns")
 	viper.SetDefault(DNSExternalDnsChartName, "stable/external-dns")
