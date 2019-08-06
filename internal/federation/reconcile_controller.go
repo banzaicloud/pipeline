@@ -278,11 +278,15 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		federatedIngress = "Disabled"
 	}
 
+	fedImageTag := viper.GetString(pConfig.FederationImageTag)
+	fedImageRepo := viper.GetString(pConfig.FederationImageRepo)
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"scope": scope,
 		},
 		"controllermanager": map[string]interface{}{
+			"repository": fedImageTag,
+			"tag":        fedImageRepo,
 			"featureGates": map[string]interface{}{
 				"SchedulerPreferences":         schedulerPreferences,
 				"CrossClusterServiceDiscovery": crossClusterServiceDiscovery,

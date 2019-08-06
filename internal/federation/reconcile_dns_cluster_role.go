@@ -23,8 +23,6 @@ import (
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 )
 
-const kubefedDnsAPIGroup = "multiclusterdns.kubefed.k8s.io"
-
 func (m *FederationReconciler) ReconcileClusterRoleForExtDNS(desiredState DesiredState) error {
 	if desiredState == DesiredStatePresent {
 		err := m.createClusterRoleForExternalDNS()
@@ -72,7 +70,7 @@ func (m *FederationReconciler) createClusterRoleForExternalDNS() error {
 		},
 		Rules: []v1.PolicyRule{
 			{
-				APIGroups: []string{kubefedDnsAPIGroup},
+				APIGroups: []string{multiClusterGroup},
 				Resources: []string{v1.ResourceAll},
 				Verbs:     []string{"get", "watch", "list", "create", "update"},
 			},

@@ -529,6 +529,8 @@ github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kubernetes-sigs/kubefed v0.1.0-rc2 h1:F+Mc4VHKrrgyuf+LxUVj3b5g+v2rfcscFCqztlQ4tF8=
 github.com/kubernetes-sigs/kubefed v0.1.0-rc2/go.mod h1:nPkYUhlYxO0WBozg6wMjCLNzmhVFQ3tprNXczC5qc8E=
+github.com/kubernetes-sigs/kubefed v0.1.0-rc5 h1:h2RNPoajNkmZSDRNFmOO9z7i3vH9H9sC7mc1zQPRvZ4=
+github.com/kubernetes-sigs/kubefed v0.1.0-rc5/go.mod h1:nPkYUhlYxO0WBozg6wMjCLNzmhVFQ3tprNXczC5qc8E=
 github.com/kylelemons/godebug v0.0.0-20160406211939-eadb3ce320cb/go.mod h1:B69LEHPfb2qLo0BaaOLcbitczOKLWTsrBG9LczfCD4k=
 github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0 h1:42NOlmEjGA3qZ1qSWc/QVFo0DuVXG1zewVXFMZj+ZLs=
 github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0/go.mod h1:CNQaGVRTtvkLlWshyDozYy79pBflEOWskqCMSxLTfQ0=
@@ -1042,6 +1044,8 @@ sigs.k8s.io/controller-runtime v0.1.10 h1:amLOmcekVdnsD1uIpmgRqfTbQWJ2qxvQkcdeFh
 sigs.k8s.io/controller-runtime v0.1.10/go.mod h1:HFAYoOh6XMV+jKF1UjFwrknPbowfyHEHHRdJMf2jMX8=
 sigs.k8s.io/kubefed v0.1.0-rc2 h1:7rX/BH5OFZq6nP42SEHs2i8uQKPfN09FWMkOyr3nf0g=
 sigs.k8s.io/kubefed v0.1.0-rc2/go.mod h1:V1YuAhi6d/zPg61MydwJWsV2z04K749Mvm3g2tx1M7E=
+sigs.k8s.io/kubefed v0.1.0-rc5 h1:RKT/wiOC3hPUXb82jHJJwqeNF9pWKdW9uVEcwVqMvs4=
+sigs.k8s.io/kubefed v0.1.0-rc5/go.mod h1:V1YuAhi6d/zPg61MydwJWsV2z04K749Mvm3g2tx1M7E=
 sigs.k8s.io/testing_frameworks v0.1.1 h1:cP2l8fkA3O9vekpy5Ks8mmA0NW/F7yBdXf8brkWhVrs=
 sigs.k8s.io/testing_frameworks v0.1.1/go.mod h1:VVBKrHmJ6Ekkfz284YKhQePcdycOzNH9qL6ht1zEr/U=
 sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
