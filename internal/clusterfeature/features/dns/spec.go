@@ -20,7 +20,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/mitchellh/mapstructure"
@@ -68,7 +67,9 @@ func (m *dnsFeatureManager) bindInput(ctx context.Context, spec clusterfeature.F
 
 }
 
-func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clusterID uint, autoDns AutoDns) (*dns.ExternalDnsChartValues, error) {
+func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clusterID uint, autoDns AutoDns) (*ExternalDnsChartValues, error) {
+
+	// this is only supported for route53
 
 	values, err := m.getDefaultValues(ctx, clusterID)
 	if err != nil {
@@ -76,7 +77,6 @@ func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clu
 		return nil, errors.WrapIf(err, "failed to process default values")
 	}
 
-	// todo make this "provider agnostic"
 	route53Secret, err := m.secretStore.GetSecretValues(ctx, route53.IAMUserAccessKeySecretID)
 	if err != nil {
 
@@ -91,27 +91,25 @@ func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clu
 	}
 
 	// set secret values
-	values.Aws = &dns.ExternalDnsAwsSettings{}
-	values.Aws.Credentials = &dns.ExternalDnsAwsCredentials{
+	providerSettings := &ExternalDnsAwsSettings{
+		Region: creds.Region,
+	}
+
+	providerSettings.Credentials = &ExternalDnsAwsCredentials{
 		AccessKey: creds.AccessKeyID,
 		SecretKey: creds.SecretAccessKey,
 	}
 
+	values.Provider = providerSettings
+
 	return values, nil
 }
 
-func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, clusterID uint, customDns CustomDns) (*dns.ExternalDnsChartValues, error) {
+func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, clusterID uint, customDns CustomDns) (*ExternalDnsChartValues, error) {
 	secrets, err := m.secretStore.GetSecretValues(ctx, customDns.Provider.SecretID)
 	if err != nil {
 
 		return nil, errors.WrapIf(err, "failed to process feature spec secrets")
-	}
-
-	// parse secrets - aws only for the time being
-	creds := awsCredentials{}
-	if err := mapstructure.Decode(secrets, &creds); err != nil {
-
-		return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
 	}
 
 	values, err := m.getDefaultValues(ctx, clusterID)
@@ -120,13 +118,35 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 		return nil, errors.WrapIf(err, "failed to process default values")
 	}
 
-	// set secret values
-	values.Aws = &dns.ExternalDnsAwsSettings{
-		Region: creds.Region,
-	}
-	values.Aws.Credentials = &dns.ExternalDnsAwsCredentials{
-		AccessKey: creds.AccessKeyID,
-		SecretKey: creds.SecretAccessKey,
+	switch customDns.Provider.Name {
+	case "route53":
+		creds := awsCredentials{}
+		if err := mapstructure.Decode(secrets, &creds); err != nil {
+
+			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
+		}
+
+		// set secret values
+		providerSettings := &ExternalDnsAwsSettings{
+			Region: creds.Region,
+		}
+		providerSettings.Credentials = &ExternalDnsAwsCredentials{
+			AccessKey: creds.AccessKeyID,
+			SecretKey: creds.SecretAccessKey,
+		}
+
+		values.Provider = providerSettings
+
+	case "azure":
+		// todo install the secret to the cluster
+
+		return nil, errors.New("not yet implemented")
+	case "google":
+
+		return nil, errors.New("not yet implemented")
+	default:
+
+		return nil, errors.New("DNS provider must be set")
 	}
 
 	values.DomainFilters = customDns.DomainFilters
@@ -134,7 +154,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 	return values, nil
 }
 
-func (m *dnsFeatureManager) getDefaultValues(ctx context.Context, clusterID uint) (*dns.ExternalDnsChartValues, error) {
+func (m *dnsFeatureManager) getDefaultValues(ctx context.Context, clusterID uint) (*ExternalDnsChartValues, error) {
 
 	commonCluster, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -143,15 +163,14 @@ func (m *dnsFeatureManager) getDefaultValues(ctx context.Context, clusterID uint
 	}
 
 	headNodeAffinity := cluster.GetHeadNodeAffinity(commonCluster)
-	externalDnsValues := dns.ExternalDnsChartValues{
-		Rbac: &dns.ExternalDnsRbacSettings{
+	externalDnsValues := ExternalDnsChartValues{
+		Rbac: &ExternalDnsRbacSettings{
 			Create: commonCluster.RbacEnabled() == true,
 		},
 		Sources: []string{"service", "ingress"},
-		Image: &dns.ExternalDnsImageSettings{
+		Image: &ExternalDnsImageSettings{
 			Tag: viper.GetString(config.DNSExternalDnsImageVersion),
 		},
-
 		Policy:      "sync",
 		TxtOwnerId:  commonCluster.GetUID(),
 		Tolerations: cluster.GetHeadNodeTolerations(),
@@ -169,4 +188,14 @@ type awsCredentials struct {
 	AccessKeyID     string `mapstructure:"AWS_ACCESS_KEY_ID"`
 	SecretAccessKey string `mapstructure:"AWS_SECRET_ACCESS_KEY"`
 	Region          string `mapstructure:"AWS_REGION"`
+}
+
+type azureCredentials struct {
+	ClientID       string `mapstructure:"AZURE_CLIENT_ID"`
+	ClientSecret   string `mapstructure:"AZURE_CLIENT_SECRET"`
+	TenantID       string `mapstructure:"AZURE_TENANT_ID"`
+	SubscriptionID string `mapstructure:"AZURE_SUBSCRIPTION_ID"`
+}
+
+type googleCredentials struct {
 }
