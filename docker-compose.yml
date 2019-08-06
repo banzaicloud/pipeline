@@ -106,20 +106,18 @@ services:
             - ./config/dex.yml:/dex.yml
 
     cadence:
-        image: ubercadence/server:0.5.8
+        image: ubercadence/server:0.7.1-auto-setup
         environment:
             LOG_LEVEL: debug,info
             DB: mysql
             MYSQL_SEEDS: mysql
             MYSQL_USER: sparky
             MYSQL_PWD: sparky123
-        volumes:
-            - ./config/cadence.yml:/cadence/config/docker_template_mysql.yaml
         depends_on:
             - mysql
 
     cadence-web:
-        image: ubercadence/web:3.3.1
+        image: ubercadence/web:3.3.2
         environment:
             CADENCE_TCHANNEL_PEERS: cadence:7933
         depends_on:
