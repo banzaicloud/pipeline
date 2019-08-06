@@ -15,6 +15,7 @@
 package federation
 
 import (
+	"fmt"
 	"strings"
 
 	"emperror.dev/emperror"
@@ -105,7 +106,7 @@ func (m *FederationReconciler) ensureCRDSourceForExtDNS(
 			"crd",
 		},
 		ExtraArgs: map[string]string{
-			"crd-source-apiversion": "multiclusterdns.kubefed.k8s.io/v1alpha1",
+			"crd-source-apiversion": fmt.Sprintf("%s/%s", multiClusterGroup, multiClusterGroupVersion),
 			"crd-source-kind":       "DNSEndpoint",
 		},
 		TxtPrefix: "cname",
