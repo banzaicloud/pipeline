@@ -35,6 +35,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/model"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
@@ -241,7 +242,7 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{},
 		},
 		StackName:        aws.String(a.stackName),
 		Parameters:       stackParams,
-		Tags:             []*cloudformation.Tag{{Key: aws.String("pipeline-created"), Value: aws.String("true")}},
+		Tags:             internalAmazon.PipelineTags(),
 		TemplateBody:     aws.String(templateBody),
 		TimeoutInMinutes: aws.Int64(10),
 	}
@@ -729,11 +730,11 @@ func (a *CreateUpdateNodePoolStackAction) ExecuteAction(input interface{}) (outp
 
 			commaDelimitedSubnetIDs := *a.context.SubnetIDs[0]
 
-			tags := []*cloudformation.Tag{
+			tags := append([]*cloudformation.Tag{
 				{Key: aws.String("pipeline-created"), Value: aws.String("true")},
 				{Key: aws.String("pipeline-cluster-name"), Value: aws.String(a.context.ClusterName)},
 				{Key: aws.String("pipeline-stack-type"), Value: aws.String("nodepool")},
-			}
+			}, internalAmazon.PipelineTags()...)
 
 			spotPriceParam := ""
 			if p, err := strconv.ParseFloat(nodePool.NodeSpotPrice, 64); err == nil && p > 0.0 {

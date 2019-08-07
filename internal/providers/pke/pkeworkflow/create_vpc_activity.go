@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"go.uber.org/cadence/activity"
 )
 
@@ -79,6 +80,7 @@ func (a *CreateVPCActivity) Execute(ctx context.Context, input CreateVPCActivity
 				ParameterValue: aws.String(input.SubnetID),
 			},
 		},
+		Tags: amazon.PipelineTags(),
 	}
 
 	output, err := cfClient.CreateStack(stackInput)
