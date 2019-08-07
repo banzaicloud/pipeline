@@ -21,6 +21,7 @@ import (
 
 	apiclient "github.com/banzaicloud/pipeline/client"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -82,13 +83,14 @@ func GetDeploymentImages(c *gin.Context) {
 		return
 	}
 
-	selector := fmt.Sprintf("release=%s", release)
+	selector := fmt.Sprintf("%s=%s", pkgHelm.HelmReleaseNameLabel, release)
 	log.Infof("Label selector: %s", selector)
 
 	imageList, err := listAllImages(client, selector)
 	if err != nil {
-		err := errors.Wrap(err, "Error during request processing")
+		err := errors.Wrap(err, "error during request processing")
 		log.Error(err.Error())
+
 		httpStatusCode := http.StatusInternalServerError
 		c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
 			Code:    httpStatusCode,
@@ -96,6 +98,26 @@ func GetDeploymentImages(c *gin.Context) {
 			Error:   err.Error(),
 		})
 		return
+	}
+
+	if len(imageList) == 0 {
+		selector = fmt.Sprintf("%s=%s", pkgHelm.HelmReleaseNameLabelLegacy, release)
+		log.Infof("Label selector: %s", selector)
+
+		imageList, err = listAllImages(client, selector)
+
+		if err != nil {
+			err := errors.Wrap(err, "error during request processing")
+			log.Error(err.Error())
+
+			httpStatusCode := http.StatusInternalServerError
+			c.JSON(httpStatusCode, pkgCommmon.ErrorResponse{
+				Code:    httpStatusCode,
+				Message: "Error getting Pods",
+				Error:   err.Error(),
+			})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, imageList)
