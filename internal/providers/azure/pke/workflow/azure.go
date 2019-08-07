@@ -20,6 +20,7 @@ import (
 	"emperror.dev/emperror"
 	"github.com/Azure/go-autorest/autorest/azure"
 
+	internalAzure "github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
@@ -99,4 +100,11 @@ func RemoveSharedTag(tags map[string]string, clusterName string) map[string]stri
 func hasTag(tags map[string]string, tag Tag) bool {
 	v, ok := tags[tag.Key]
 	return ok && v == tag.Value
+}
+
+func getClusterTags(clusterName string) map[string]*string {
+	tags := internalAzure.PipelineTags()
+	tag := getOwnedTag(clusterName)
+	tags[tag.Key] = &tag.Value
+	return tags
 }

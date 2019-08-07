@@ -46,6 +46,7 @@ import (
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -885,9 +886,17 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 	}
 	request.Cluster.MasterAuth = &gke.MasterAuth{}
 	request.Cluster.NodePools = cc.NodePools
+	request.Cluster.ResourceLabels = pipelineTags()
 	request.ProjectId = cc.ProjectID
 
 	return &request
+}
+
+// pipelineTags returns resource tags based on the pipeline uuid if available
+func pipelineTags() map[string]string {
+	value := global.PipelineUUID()
+
+	return map[string]string{global.ManagedByPipelineTag: value}
 }
 
 func getBanzaiErrorFromError(err error) *pkgCommon.BanzaiResponse {

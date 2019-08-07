@@ -27,6 +27,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 
+	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 )
 
@@ -206,6 +207,7 @@ func (a *CreateWorkerPoolActivity) Execute(ctx context.Context, input CreateWork
 				ParameterValue: autoscaling,
 			},
 		},
+		Tags: amazon.PipelineTags(),
 	}
 
 	output, err := cfClient.CreateStack(stackInput)

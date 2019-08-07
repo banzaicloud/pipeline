@@ -23,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
 )
@@ -187,6 +188,7 @@ func (a *CreateMasterActivity) Execute(ctx context.Context, input CreateMasterAc
 		StackName:    &stackName,
 		TemplateBody: aws.String(string(buf)),
 		Parameters:   params,
+		Tags:         amazon.PipelineTags(),
 	}
 
 	output, err := cfClient.CreateStack(stackInput)

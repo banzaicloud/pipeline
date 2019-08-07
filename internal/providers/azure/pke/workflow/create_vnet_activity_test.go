@@ -49,6 +49,7 @@ func TestGetCreateOrUpdateVirtualNetworkParams(t *testing.T) {
 			Location: to.StringPtr("test-location"),
 			Tags: map[string]*string{
 				"kubernetesCluster-test-cluster": to.StringPtr("owned"),
+				"io.banzaicloud.pipeline.uuid":   to.StringPtr(""),
 			},
 			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 				AddressSpace: &network.AddressSpace{

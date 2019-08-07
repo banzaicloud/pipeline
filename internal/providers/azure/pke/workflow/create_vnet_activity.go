@@ -209,7 +209,7 @@ func (input CreateVnetActivityInput) getCreateOrUpdateVirtualNetworkParams() net
 			},
 			Subnets: &subnets,
 		},
-		Tags: *to.StringMapPtr(getOwnedTag(input.ClusterName).Map()),
+		Tags: getClusterTags(input.ClusterName),
 	}
 }
 
