@@ -108,6 +108,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**PostReadyPKENode**](docs/ClustersApi.md#postreadypkenode) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Report to Pipeline that a new node is ready (to be called by PKE installer)
 *ClustersApi* | [**UpdateCluster**](docs/ClustersApi.md#updatecluster) | **Put** /api/v1/orgs/{orgId}/clusters/{id} | Update cluster
 *ClustersApi* | [**UpdateMonitoring**](docs/ClustersApi.md#updatemonitoring) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/monitoring | Update monitoring
+*CommonApi* | [**ApiVersionGet**](docs/CommonApi.md#apiversionget) | **Get** /api/version | 
 *CommonApi* | [**ListEndpoints**](docs/CommonApi.md#listendpoints) | **Get** /api | List Pipeline API endpoints
 *DeploymentsApi* | [**CreateDeployment**](docs/DeploymentsApi.md#createdeployment) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/deployments | Create a Helm deployment
 *DeploymentsApi* | [**DeleteDeployment**](docs/DeploymentsApi.md#deletedeployment) | **Delete** /api/v1/orgs/{orgId}/clusters/{id}/deployments/{name} | Delete deployment
@@ -451,6 +452,7 @@ Class | Method | HTTP request | Description
  - [UpdateUserRequest](docs/UpdateUserRequest.md)
  - [UrlItem](docs/UrlItem.md)
  - [User](docs/User.md)
+ - [VersionResponse](docs/VersionResponse.md)
  - [VpcNetworkInfo](docs/VpcNetworkInfo.md)
  - [Vulnerability](docs/Vulnerability.md)
  - [VulnerabilityResponse](docs/VulnerabilityResponse.md)

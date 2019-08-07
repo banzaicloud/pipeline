@@ -72,6 +72,19 @@ tags:
         description: "ARK: restores related functions"
 
 paths:
+    '/api/version':
+        get:
+            description: Return Pipeline build and deployment info
+            tags:
+                - common
+            responses:
+                '200':
+                    description: Version info
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VersionResponse'
+
     '/api/v1/orgs/{orgId}/domain':
         get:
             description: Return the base domain
@@ -6993,6 +7006,27 @@ components:
             required: true
 
     schemas:
+        VersionResponse:
+            description: Pipeline build and deployment info
+            type: object
+            properties:
+                "version":
+                    type: string
+                "commit_hash":
+                    type: string
+                "build_date":
+                    type: string
+                "go_version":
+                    type: string
+                "os":
+                    type: string
+                "arch":
+                    type: string
+                "compiler":
+                    type: string
+                "instance_uuid":
+                    type: string
+
         UpdateUserRequest:
             type: object
             properties:
