@@ -442,7 +442,9 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 		errs := make([]error, len(futures))
 		for i, future := range futures {
-			errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't create nodepool %q", nodePools[i].Name)
+			if future != nil {
+				errs[i] = errors.Wrapf(future.Get(ctx, nil), "couldn't create nodepool %q", nodePools[i].Name)
+			}
 		}
 
 		return errors.Combine(errs...)
