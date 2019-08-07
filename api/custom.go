@@ -261,7 +261,7 @@ func getIngressReleaseName(backend v1beta1.IngressBackend, serviceList *v1.Servi
 	serviceName := backend.ServiceName
 	for _, service := range serviceList.Items {
 		if service.Name == serviceName {
-			return service.Labels["release"]
+			return pkgHelm.GetHelmReleaseName(service.Labels)
 		}
 	}
 	return "No release name for this ingress."
