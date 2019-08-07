@@ -31,7 +31,10 @@ type ExternalDnsChartValues struct {
 	Tolerations   []v1.Toleration           `json:"tolerations,omitempty"`
 	ExtraArgs     map[string]string         `json:"extraArgs,omitempty"`
 	TxtPrefix     string                    `json:"txtPrefix,omitempty"`
-	Provider      ProviderSettings          `json:"provider"`
+	Azure         ProviderSettings          `json:"azure,omitempty"`
+	Aws           ProviderSettings          `json:"aws,omitempty"`
+	Google        ProviderSettings          `json:"google,omitempty"`
+	Provider      string                    `json:"provider"`
 }
 
 type ExternalDnsRbacSettings struct {

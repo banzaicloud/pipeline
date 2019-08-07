@@ -100,17 +100,17 @@ func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clu
 		SecretKey: creds.SecretAccessKey,
 	}
 
-	values.Provider = providerSettings
+	values.Settings = providerSettings
 
 	return values, nil
 }
 
 func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, clusterID uint, customDns CustomDns) (*ExternalDnsChartValues, error) {
-	secrets, err := m.secretStore.GetSecretValues(ctx, customDns.Provider.SecretID)
-	if err != nil {
-
-		return nil, errors.WrapIf(err, "failed to process feature spec secrets")
-	}
+	//secrets, err := m.secretStore.GetSecretValues(ctx, customDns.Provider.SecretID)
+	//if err != nil {
+	//
+	//	return nil, errors.WrapIf(err, "failed to process feature spec secrets")
+	//}
 
 	values, err := m.getDefaultValues(ctx, clusterID)
 	if err != nil {
@@ -121,10 +121,10 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 	switch customDns.Provider.Name {
 	case "route53":
 		creds := awsCredentials{}
-		if err := mapstructure.Decode(secrets, &creds); err != nil {
-
-			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
-		}
+		//if err := mapstructure.Decode(secrets, &creds); err != nil {
+		//
+		//	return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
+		//}
 
 		// set secret values
 		providerSettings := &ExternalDnsAwsSettings{
@@ -135,21 +135,29 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 			SecretKey: creds.SecretAccessKey,
 		}
 
-		values.Provider = providerSettings
+		values.Aws = providerSettings
 
 	case "azure":
-		// todo install the secret to the cluster
+		// todo install azure secret - k8s secret name: azure-config-file
+		azureSettings := &ExternalDnsAzureSettings{
+			SecretName:    "azure-config-file",
+			ResourceGroup: "SebaWEU",
+		}
+		values.Azure = azureSettings
+		values.TxtPrefix = "txt-"
 
-		return nil, errors.New("not yet implemented")
 	case "google":
 
-		return nil, errors.New("not yet implemented")
+		googleSttings := &ExternalDnsGoogleSettings{}
+		values.Aws = googleSttings
+
 	default:
 
 		return nil, errors.New("DNS provider must be set")
 	}
 
 	values.DomainFilters = customDns.DomainFilters
+	values.Provider = customDns.Provider.Name
 
 	return values, nil
 }
