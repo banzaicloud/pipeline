@@ -188,12 +188,6 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 
 	case "google":
 
-		googleCreds := googleCredentials{}
-		if err := mapstructure.Decode(secrets, &googleCreds); err != nil {
-
-			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
-		}
-
 		// get common cluster
 		cCluster, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
@@ -201,9 +195,9 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 		}
 
 		// set google project
-		googleCreds.Project = customDns.Provider.Options.GoogleProject
-		if len(googleCreds.Project) == 0 {
-			googleCreds.Project = secrets[secret.ProjectId]
+		project := customDns.Provider.Options.GoogleProject
+		if len(project) == 0 {
+			project = secrets[secret.ProjectId]
 		}
 
 		// create kubernetes secret values
@@ -234,7 +228,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 		}
 
 		providerSettings := &ExternalDnsGoogleSettings{
-			Project:              googleCreds.Project,
+			Project:              project,
 			ServiceAccountSecret: installedK8Secret.Name,
 		}
 
