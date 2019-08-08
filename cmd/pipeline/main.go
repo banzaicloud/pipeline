@@ -544,7 +544,7 @@ func main() {
 				orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
 				dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterManager, helmService, orgDomainService, logger)
 				featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
-					"dns": clusterfeatureadapter.NewAsyncFeatureManagerStub(dnsFeatureManager, workflowClient),
+					dnsFeatureManager.Name(): clusterfeatureadapter.NewAsyncFeatureManagerStub(dnsFeatureManager, workflowClient),
 				})
 
 				service := clusterfeature.NewFeatureService(featureRegistry, featureRepository, logger)

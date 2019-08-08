@@ -285,7 +285,7 @@ func main() {
 			orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
 			dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterManager, helmService, orgDomainService, logger)
 			featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
-				"dns": dnsFeatureManager,
+				dnsFeatureManager.Name(): dnsFeatureManager,
 			})
 
 			registerClusterFeatureWorkflows(featureRegistry, featureRepository)
