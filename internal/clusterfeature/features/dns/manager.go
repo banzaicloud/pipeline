@@ -45,6 +45,11 @@ const (
 
 	externalDnsAzureSecretDataKey  = "azure.json"
 	externalDnsGoogleSecretDataKey = "credentials.json"
+
+	// supported DNS provider names
+	dnsRoute53 = "route53"
+	dnsAzure   = "azure"
+	dnsGoogle  = "google"
 )
 
 // dnsFeatureManager synchronous feature manager

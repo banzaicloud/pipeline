@@ -286,11 +286,11 @@ func (m *dnsFeatureManager) installSecret(ctx context.Context, clusterID uint, s
 // newInstallSecretRequest creates a new request instance with provider specific settings
 func (m *dnsFeatureManager) newInstallSecretRequest(provider string, secretValue string) (*cluster.InstallSecretRequest, error) {
 	switch provider {
-	case "route53":
+	case dnsRoute53:
 		m.logger.Debug("no secrets to be installed to the cluster for this provider", map[string]interface{}{"provider": provider})
 
 		return nil, nil
-	case "azure":
+	case dnsAzure:
 		req := cluster.InstallSecretRequest{
 			// Note: leave the Source field empty as the secret needs to be transformed
 			Namespace: externalDnsNamespace,
@@ -303,7 +303,7 @@ func (m *dnsFeatureManager) newInstallSecretRequest(provider string, secretValue
 		}
 
 		return &req, nil
-	case "google":
+	case dnsGoogle:
 		req := cluster.InstallSecretRequest{
 			Namespace: externalDnsNamespace,
 			Update:    true,
