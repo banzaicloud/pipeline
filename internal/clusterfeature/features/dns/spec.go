@@ -163,7 +163,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 			return nil, errors.WrapIf(err, "failed to marshal secret values")
 		}
 
-		req, err := m.getInstallSecretRequest(provider, string(kubeSecretVal))
+		req, err := m.newInstallSecretRequest(provider, string(kubeSecretVal))
 		if err != nil {
 			return nil, errors.WrapIf(err, "failed to create install secret request")
 		}
@@ -194,7 +194,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 			return nil, errors.WrapIf(err, "failed to marshal secret values")
 		}
 
-		req, err := m.getInstallSecretRequest(provider, string(kubeSecretVal))
+		req, err := m.newInstallSecretRequest(provider, string(kubeSecretVal))
 		if err != nil {
 			return nil, errors.WrapIf(err, "failed to create install secret request")
 		}
@@ -283,7 +283,8 @@ func (m *dnsFeatureManager) installSecret(ctx context.Context, clusterID uint, s
 
 }
 
-func (m *dnsFeatureManager) getInstallSecretRequest(provider string, secretValue string) (*cluster.InstallSecretRequest, error) {
+// newInstallSecretRequest creates a new request instance with provider specific settings
+func (m *dnsFeatureManager) newInstallSecretRequest(provider string, secretValue string) (*cluster.InstallSecretRequest, error) {
 	switch provider {
 	case "route53":
 		m.logger.Debug("no secrets to be installed to the cluster for this provider", map[string]interface{}{"provider": provider})
