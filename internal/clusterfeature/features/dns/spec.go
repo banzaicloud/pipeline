@@ -207,7 +207,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 		}
 
 		// create kubernetes secret values
-		kubeSecretVal, err := json.Marshal(googleCreds)
+		kubeSecretVal, err := json.Marshal(secrets)
 		if err != nil {
 			return nil, errors.WrapIf(err, "failed to marshal secret values")
 		}
@@ -239,6 +239,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 		}
 
 		values.Google = providerSettings
+		values.TxtPrefix = "txt-"
 
 	default:
 
