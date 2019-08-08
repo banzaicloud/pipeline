@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/secret"
 )
@@ -62,6 +61,21 @@ func NewSecretStore(store OrganizationalSecretStore, extractor OrgIDContextExtra
 
 // GetSecretValues implements the common.SecretStore interface.
 func (s *SecretStore) GetSecretValues(ctx context.Context, secretID string) (map[string]string, error) {
+
+	secretResponse, err := s.getSecret(ctx, secretID)
+	if err != nil {
+		return nil, err
+	}
+
+	return secretResponse.Values, nil
+}
+
+// GetSecret implements the common.SecretStore interface.
+func (s *SecretStore) GetSecret(ctx context.Context, secretID string) (*secret.SecretItemResponse, error) {
+	return s.getSecret(ctx, secretID)
+}
+
+func (s *SecretStore) getSecret(ctx context.Context, secretID string) (*secret.SecretItemResponse, error) {
 	organizationID, ok := s.extractor.GetOrganizationID(ctx)
 	if !ok {
 		return nil, errors.NewWithDetails(
@@ -86,5 +100,5 @@ func (s *SecretStore) GetSecretValues(ctx context.Context, secretID string) (map
 		)
 	}
 
-	return secretResponse.Values, nil
+	return secretResponse, nil
 }

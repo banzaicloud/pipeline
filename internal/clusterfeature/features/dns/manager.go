@@ -165,6 +165,8 @@ func (m *dnsFeatureManager) Activate(ctx context.Context, clusterID uint, spec c
 		return errors.WrapIf(err, "failed to decode values")
 	}
 
+	fmt.Println("values: ", string(valuesBytes))
+
 	if err = m.helmService.InstallDeployment(
 		ctx,
 		clusterID,

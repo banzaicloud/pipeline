@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
@@ -186,8 +187,34 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 
 	case "google":
 
-		googleSttings := &ExternalDnsGoogleSettings{}
-		values.Aws = googleSttings
+		// TODO (colin): install secret to cluster
+		cCluster, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get common cluster")
+		}
+
+		installSecretRequest := cluster.InstallSecretRequest{
+			Namespace: "somenamespace",
+			Update:    true,
+		}
+
+		installedK8Secret, err := cluster.InstallSecret(cCluster, "google-secret-for-dns", installSecretRequest)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to install tls secret to cluster")
+		}
+		// log.Debugf("installed secret on cluster: %s", secrets)
+
+		creds := googleCredentials{}
+		if err := mapstructure.Decode(secrets, &creds); err != nil {
+			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
+		}
+
+		providerSettings := &ExternalDnsGoogleSettings{
+			Project:              secrets[secret.ProjectId], // todo project from request
+			ServiceAccountSecret: installedK8Secret.Name,
+		}
+
+		values.Google = providerSettings
 
 	default:
 
@@ -245,4 +272,5 @@ type azureCredentials struct {
 }
 
 type googleCredentials struct {
+	Project string `mapstructure:"PROJECT_ID"`
 }
