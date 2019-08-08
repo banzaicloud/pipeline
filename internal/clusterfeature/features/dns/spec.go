@@ -266,10 +266,6 @@ type azureCredentials struct {
 	SubscriptionID string `json:"subscriptionId" mapstructure:"AZURE_SUBSCRIPTION_ID"`
 }
 
-type googleCredentials struct {
-	Project string `mapstructure:"PROJECT_ID"`
-}
-
 // installSecret installs a secret to the cluster identified by the provided clusterID
 // secrets to be installed are expected to be contained in the request's value field
 func (m *dnsFeatureManager) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest cluster.InstallSecretRequest) (*secret.K8SSourceMeta, error) {
@@ -322,5 +318,4 @@ func (m *dnsFeatureManager) getInstallSecretRequest(provider string, secretValue
 	default:
 		return nil, errors.NewWithDetails("unsupported provider", "provider", provider)
 	}
-	return nil, errors.New("implement me!")
 }
