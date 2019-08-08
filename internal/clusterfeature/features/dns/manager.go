@@ -40,10 +40,11 @@ const (
 
 	externalDnsRelease = "dns"
 
-	externalDnsAzureSecret = "azure-config-file"
+	externalDnsAzureSecret  = "azure-config-file"
 	externalDnsGoogleSecret = "google-config-file"
 
-	externalDnsGoogleKubeSecretName = "credentials.json"
+	externalDnsAzureSecretDataKey  = "azure.json"
+	externalDnsGoogleSecretDataKey = "credentials.json"
 )
 
 // dnsFeatureManager synchronous feature manager
