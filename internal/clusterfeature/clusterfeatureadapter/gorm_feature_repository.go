@@ -60,9 +60,9 @@ type clusterFeatureModel struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	Name      string
+	Name      string `gorm:"unique_index:idx_cluster_feature_cluster_id_name"`
 	Status    string
-	ClusterId uint
+	ClusterId uint        `gorm:"unique_index:idx_cluster_feature_cluster_id_name"`
 	Spec      featureSpec `gorm:"type:text"`
 	CreatedBy uint
 }
