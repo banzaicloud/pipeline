@@ -172,18 +172,18 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 	logger.Info("processing feature activation request")
 
 	// TODO: check cluster ID?
-	_, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
+	feature, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
 		return nil
 	}
 
-	//if feature != nil {
-	//	logger.Debug("feature cannot be activated: it's not inactive", map[string]interface{}{
-	//		"status": feature.Status,
-	//	})
-	//
-	//	return FeatureAlreadyActivatedError{FeatureName: featureName}
-	//}
+	if feature != nil {
+		logger.Debug("feature cannot be activated: it's not inactive", map[string]interface{}{
+			"status": feature.Status,
+		})
+
+		return FeatureAlreadyActivatedError{FeatureName: featureName}
+	}
 
 	logger.Debug("retieving feature manager")
 	featureManager, err := s.featureRegistry.GetFeatureManager(featureName)

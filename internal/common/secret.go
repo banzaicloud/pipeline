@@ -16,8 +16,6 @@ package common
 
 import (
 	"context"
-
-	"github.com/banzaicloud/pipeline/secret"
 )
 
 // SecretStore is a common interface for various parts of the application
@@ -30,8 +28,6 @@ type SecretStore interface {
 	// If the underlying store uses additional keys for determining the exact secret path
 	// (eg. organization ID), it should be retrieved from the context.
 	GetSecretValues(ctx context.Context, secretID string) (map[string]string, error)
-
-	GetSecret(ctx context.Context, secretID string) (*secret.SecretItemResponse, error)
 }
 
 // SecretNotFoundError is returned from a SecretStore if a secret cannot be found.

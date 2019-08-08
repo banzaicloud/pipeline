@@ -52,6 +52,7 @@ type DnsProvider struct {
 type ProviderOptions struct {
 	DnsMasked          bool   `json:"dnsMasked" mapstructure:"dnsMasked"`
 	AzureResourceGroup string `json:"resourceGroup,omitempty" mapstructure:"resourceGroup"`
+	GoogleProject      string `json:"project,omitempty" mapstructure:"project"`
 }
 
 type AutoDns struct {
@@ -187,22 +188,45 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 
 	case "google":
 
-		// TODO (colin): install secret to cluster
+		googleCreds := googleCredentials{}
+		if err := mapstructure.Decode(secrets, &googleCreds); err != nil {
+
+			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
+		}
+
+		// get common cluster
 		cCluster, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
 			return nil, errors.WrapIf(err, "failed to get common cluster")
 		}
 
-		installSecretRequest := cluster.InstallSecretRequest{
-			Namespace: "somenamespace",
-			Update:    true,
+		// set google project
+		googleCreds.Project = customDns.Provider.Options.GoogleProject
+		if len(googleCreds.Project) == 0 {
+			googleCreds.Project = secrets[secret.ProjectId]
 		}
 
-		installedK8Secret, err := cluster.InstallSecret(cCluster, "google-secret-for-dns", installSecretRequest)
+		// create kubernetes secret values
+		kubeSecretVal, err := json.Marshal(googleCreds)
 		if err != nil {
-			return nil, errors.WrapIf(err, "failed to install tls secret to cluster")
+			return nil, errors.WrapIf(err, "failed to marshal secret values")
 		}
-		// log.Debugf("installed secret on cluster: %s", secrets)
+
+		// install secret to cluster
+		installSecretRequest := cluster.InstallSecretRequest{
+			Namespace: externalDnsNamespace,
+			Update:    true,
+			Spec: map[string]cluster.InstallSecretRequestSpecItem{
+				externalDnsGoogleKubeSecretName: {
+					Value: string(kubeSecretVal),
+				},
+			},
+		}
+
+		installedK8Secret, err := cluster.InstallSecret(cCluster, externalDnsGoogleSecret, installSecretRequest)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to install google secret to cluster")
+		}
 
 		creds := googleCredentials{}
 		if err := mapstructure.Decode(secrets, &creds); err != nil {
@@ -210,7 +234,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 		}
 
 		providerSettings := &ExternalDnsGoogleSettings{
-			Project:              secrets[secret.ProjectId], // todo project from request
+			Project:              googleCreds.Project,
 			ServiceAccountSecret: installedK8Secret.Name,
 		}
 
