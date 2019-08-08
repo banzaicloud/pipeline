@@ -204,11 +204,6 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 			return nil, errors.WrapIf(err, "failed to install secret to the cluster")
 		}
 
-		creds := googleCredentials{}
-		if err := mapstructure.Decode(secretValues, &creds); err != nil {
-			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
-		}
-
 		providerSettings := &ExternalDnsGoogleSettings{
 			Project:              project,
 			ServiceAccountSecret: k8sSec.Name,
