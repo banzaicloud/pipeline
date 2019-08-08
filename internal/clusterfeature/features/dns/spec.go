@@ -16,6 +16,7 @@ package dns
 
 import (
 	"context"
+	"encoding/json"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -45,8 +46,11 @@ type DnsProvider struct {
 	Options  *ProviderOptions `json:"options,omitempty"`
 }
 
+// ProviderOptions placeholder struct for additional provider specific configuration
+// extrend it with the required fields here as appropriate
 type ProviderOptions struct {
-	DnsMasked bool `json:"dnsMasked"`
+	DnsMasked          bool   `json:"dnsMasked" mapstructure:"dnsMasked"`
+	AzureResourceGroup string `json:"resourceGroup,omitempty" mapstructure:"resourceGroup"`
 }
 
 type AutoDns struct {
@@ -100,17 +104,18 @@ func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clu
 		SecretKey: creds.SecretAccessKey,
 	}
 
-	values.Settings = providerSettings
+	values.Aws = providerSettings
 
 	return values, nil
 }
 
 func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, clusterID uint, customDns CustomDns) (*ExternalDnsChartValues, error) {
-	//secrets, err := m.secretStore.GetSecretValues(ctx, customDns.Provider.SecretID)
-	//if err != nil {
-	//
-	//	return nil, errors.WrapIf(err, "failed to process feature spec secrets")
-	//}
+
+	secrets, err := m.secretStore.GetSecretValues(ctx, customDns.Provider.SecretID)
+	if err != nil {
+
+		return nil, errors.WrapIf(err, "failed to process feature spec secrets")
+	}
 
 	values, err := m.getDefaultValues(ctx, clusterID)
 	if err != nil {
@@ -120,11 +125,12 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 
 	switch customDns.Provider.Name {
 	case "route53":
+
 		creds := awsCredentials{}
-		//if err := mapstructure.Decode(secrets, &creds); err != nil {
-		//
-		//	return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
-		//}
+		if err := mapstructure.Decode(secrets, &creds); err != nil {
+
+			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
+		}
 
 		// set secret values
 		providerSettings := &ExternalDnsAwsSettings{
@@ -138,10 +144,42 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 		values.Aws = providerSettings
 
 	case "azure":
-		// todo install azure secret - k8s secret name: azure-config-file
+
+		azCreds := azureCredentials{}
+		if err := mapstructure.Decode(secrets, &azCreds); err != nil {
+
+			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
+		}
+
+		cc, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get cluster")
+		}
+
+		azCreds.ResourceGroup = customDns.Provider.Options.AzureResourceGroup
+		kubeSecretVal, err := json.Marshal(azCreds)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to marshal secret values")
+		}
+
+		req := cluster.InstallSecretRequest{
+			// Note: leave the Source field empty as the secret needs to be transformed
+			Namespace: externalDnsNamespace,
+			Update:    true,
+			Spec: map[string]cluster.InstallSecretRequestSpecItem{
+				"azure.json": {
+					Value: string(kubeSecretVal),
+				},
+			},
+		}
+		_, err = cluster.InstallSecret(cc, externalDnsAzureSecret, req)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to install secret")
+		}
+
 		azureSettings := &ExternalDnsAzureSettings{
-			SecretName:    "azure-config-file",
-			ResourceGroup: "SebaWEU",
+			SecretName:    externalDnsAzureSecret,
+			ResourceGroup: azCreds.ResourceGroup,
 		}
 		values.Azure = azureSettings
 		values.TxtPrefix = "txt-"
@@ -199,10 +237,11 @@ type awsCredentials struct {
 }
 
 type azureCredentials struct {
-	ClientID       string `mapstructure:"AZURE_CLIENT_ID"`
-	ClientSecret   string `mapstructure:"AZURE_CLIENT_SECRET"`
-	TenantID       string `mapstructure:"AZURE_TENANT_ID"`
-	SubscriptionID string `mapstructure:"AZURE_SUBSCRIPTION_ID"`
+	ClientID       string `json:"aadClientId" mapstructure:"AZURE_CLIENT_ID"`
+	ClientSecret   string `json:"aadClientSecret" mapstructure:"AZURE_CLIENT_SECRET"`
+	TenantID       string `json:"tenantId" mapstructure:"AZURE_TENANT_ID"`
+	SubscriptionID string `json:"subscriptionId" mapstructure:"AZURE_SUBSCRIPTION_ID"`
+	ResourceGroup  string `json:"resourceGroup"`
 }
 
 type googleCredentials struct {

@@ -39,6 +39,8 @@ const (
 	externalDnsNamespace = "pipeline-system"
 
 	externalDnsRelease = "dns"
+
+	externalDnsAzureSecret = "azure-config-file"
 )
 
 // dnsFeatureManager synchronous feature manager
