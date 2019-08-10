@@ -207,7 +207,7 @@ func init() {
 	viper.SetDefault(helm.HELM_RETRY_SLEEP_SECONDS, 15)
 	viper.SetDefault("helm.tillerVersion", "v2.14.2")
 	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")
-	viper.SetDefault("helm.banzaiRepositoryURL", "http://kubernetes-charts.banzaicloud.com")
+	viper.SetDefault("helm.banzaiRepositoryURL", "https://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault(helmPath, "./orgs")
 	viper.SetDefault("cloud.defaultProfileName", "default")
 	viper.SetDefault("cloud.configRetryCount", 30)
