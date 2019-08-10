@@ -106,7 +106,7 @@ path = "./var/cache"
 
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
-banzaiRepositoryURL = "http://kubernetes-charts.banzaicloud.com/branch/master"
+banzaiRepositoryURL = "https://kubernetes-charts.banzaicloud.com"
 
 [monitor]
 enabled = false
