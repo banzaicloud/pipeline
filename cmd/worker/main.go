@@ -99,6 +99,7 @@ func main() {
 	logger = log.WithFields(logger, map[string]interface{}{"environment": config.Environment, "application": appName})
 
 	log.SetStandardLogger(logger)
+	log.SetK8sLogger(logger)
 
 	if configFileNotFound {
 		logger.Warn("configuration file not found")
