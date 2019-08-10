@@ -226,7 +226,7 @@ In case you have problems please open an [issue](https://github.com/banzaicloud/
 
 ### Contributing
 
-Thanks you for your contribution and being part of our community. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on the code of conduct, and the process for submitting pull requests. When you are opening a PR to Pipeline the first time we will require you to sign a standard CLA.
+Thanks you for your contribution and being part of our community. Please read [CONTRIBUTING.md](https://github.com/banzaicloud/.github/blob/master/CONTRIBUTING.md) for details on the code of conduct, and the process for submitting pull requests. When you are opening a PR to Pipeline the first time we will require you to sign a standard CLA.
 
 ### License
 
