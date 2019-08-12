@@ -15,7 +15,6 @@
 package dns
 
 import (
-	"emperror.dev/errors"
 	"k8s.io/api/core/v1"
 )
 
@@ -103,18 +102,4 @@ func (p *genericProviderSettings) Provider() string {
 type ChartValuesService interface {
 	// ChartValues factory for chart values
 	ChartValues(settings CustomDns) ([]byte, error)
-}
-
-// externalDnsChartValuesService service component for generating chart values
-type externalDnsChartValuesService struct {
-	clusterID int
-}
-
-//
-func (*externalDnsChartValuesService) ChartValues(settings CustomDns) ([]byte, error) {
-
-	switch {
-
-	}
-	return nil, errors.New("implement me")
 }
