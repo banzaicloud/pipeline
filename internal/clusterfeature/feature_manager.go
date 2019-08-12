@@ -18,6 +18,8 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 // FeatureManager operations in charge for applying features to the cluster.
@@ -57,85 +59,8 @@ func (e InvalidFeatureSpecError) Details() []interface{} {
 
 // ClusterService provides a thin access layer to clusters.
 type ClusterService interface {
-	// IsClusterReady checks whether the cluster is ready for features (eg.: exists and it's running).
-	IsClusterReady(ctx context.Context, clusterID uint) (bool, error)
-}
-
-type syncFeatureManager struct {
-	featureManager    FeatureManager
-	clusterService    ClusterService
-	featureRepository FeatureRepository
-}
-
-// NewSyncFeatureManager wraps a feature manager and adds synchronous behaviour.
-func NewSyncFeatureManager(
-	featureManager FeatureManager,
-	clusterService ClusterService,
-	featureRepository FeatureRepository,
-) FeatureManager {
-	return &syncFeatureManager{
-		featureManager:    featureManager,
-		clusterService:    clusterService,
-		featureRepository: featureRepository,
-	}
-}
-
-func (m *syncFeatureManager) Details(ctx context.Context, clusterID uint) (*Feature, error) {
-	return m.featureManager.Details(ctx, clusterID)
-}
-
-func (m *syncFeatureManager) Name() string {
-	return m.featureManager.Name()
-}
-
-func (m *syncFeatureManager) Activate(ctx context.Context, clusterID uint, spec FeatureSpec) error {
-	if err := m.isClusterReady(ctx, clusterID); err != nil {
-		return err
-	}
-
-	return m.featureManager.Activate(ctx, clusterID, spec)
-}
-
-func (m *syncFeatureManager) ValidateSpec(ctx context.Context, spec FeatureSpec) error {
-	return m.featureManager.ValidateSpec(ctx, spec)
-}
-
-func (m *syncFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {
-	if err := m.isClusterReady(ctx, clusterID); err != nil {
-		return err
-	}
-
-	if err := m.isFeaturePending(ctx, clusterID, m.featureManager.Name()); err != nil {
-		return err
-	}
-
-	err := m.featureManager.Deactivate(ctx, clusterID)
-	if err != nil {
-		return err
-	}
-
-	if err := m.featureRepository.DeleteFeature(ctx, clusterID, m.Name()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *syncFeatureManager) Update(ctx context.Context, clusterID uint, spec FeatureSpec) error {
-	if err := m.isClusterReady(ctx, clusterID); err != nil {
-		return err
-	}
-
-	if err := m.isFeaturePending(ctx, clusterID, m.featureManager.Name()); err != nil {
-		return err
-	}
-
-	if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.featureManager.Name(), FeatureStatusPending); err != nil {
-
-		return err
-	}
-
-	return m.featureManager.Update(ctx, clusterID, spec)
+	// CheckClusterReady checks whether the cluster is ready for features (eg.: exists and it's running). If the cluster is not ready, a ClusterIsNotReadyError should be returned.
+	CheckClusterReady(ctx context.Context, clusterID uint) error
 }
 
 // ClusterIsNotReadyError is returned when a cluster is not in a ready state.
@@ -155,27 +80,174 @@ func (e ClusterIsNotReadyError) ShouldRetry() bool {
 	return true
 }
 
-func (m *syncFeatureManager) isClusterReady(ctx context.Context, clusterID uint) error {
-	ready, err := m.clusterService.IsClusterReady(ctx, clusterID)
-	if err != nil {
-		return err
+type syncFeatureManager struct {
+	FeatureManager
+	featureRepository FeatureRepository
+	logger            common.Logger
+}
+
+// NewSyncFeatureManager wraps a feature manager and adds synchronous behaviour.
+func NewSyncFeatureManager(
+	featureManager FeatureManager,
+	featureRepository FeatureRepository,
+	logger common.Logger,
+) FeatureManager {
+	return &syncFeatureManager{
+		FeatureManager:    featureManager,
+		featureRepository: featureRepository,
+		logger:            logger,
+	}
+}
+
+// FeatureAlreadyActivatedError is returned when a feature is already activated.
+type FeatureAlreadyActivatedError struct {
+	FeatureName string
+}
+
+func (FeatureAlreadyActivatedError) Error() string {
+	return "feature already activated"
+}
+
+func (e FeatureAlreadyActivatedError) Details() []interface{} {
+	return []interface{}{"feature", e.FeatureName}
+}
+
+func (m *syncFeatureManager) Activate(ctx context.Context, clusterID uint, spec FeatureSpec) error {
+	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": m.Name()})
+
+	// This block should be executed atomically. CreateFeature will fail if the feature is created concurrently.
+	{
+		feature, err := m.featureRepository.GetFeature(ctx, clusterID, m.Name())
+		if err != nil {
+			const msg = "failed to retrieve feature from repository"
+			logger.Debug(msg)
+			return errors.WrapIf(err, msg)
+		}
+
+		if feature != nil {
+			logger.Debug("feature already pending or active")
+			return FeatureAlreadyActivatedError{FeatureName: m.Name()}
+		}
+
+		if err := m.featureRepository.CreateFeature(ctx, clusterID, m.Name(), spec, FeatureStatusPending); err != nil {
+			const msg = "failed to create feature in repository"
+			logger.Debug(msg)
+			return errors.WrapIf(err, msg)
+		}
 	}
 
-	if !ready {
-		return errors.WithStack(ClusterIsNotReadyError{ClusterID: clusterID})
+	if err := m.FeatureManager.Activate(ctx, clusterID, spec); err != nil {
+		const msg = "cluster feature activation failed"
+		logger.Debug(msg)
+
+		// Deletion is best effort here, activation failed anyway
+		if err := m.featureRepository.DeleteFeature(ctx, clusterID, m.Name()); err != nil {
+			logger.Error("failed to delete feature from repository", map[string]interface{}{"error": err.Error()})
+		}
+
+		return errors.WrapIf(err, msg)
+	}
+
+	if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), FeatureStatusActive); err != nil {
+		const msg = "failed to update feature status"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
 	}
 
 	return nil
 }
 
-func (m *syncFeatureManager) isFeaturePending(ctx context.Context, clusterID uint, featureName string) error {
-	feature, err := m.featureRepository.GetFeature(ctx, clusterID, featureName)
-	if err != nil {
-		return nil
+// FeatureNotActiveError is returned when a feature is already activated.
+type FeatureNotActiveError struct {
+	FeatureName string
+}
+
+func (FeatureNotActiveError) Error() string {
+	return "feature is not active"
+}
+
+func (e FeatureNotActiveError) Details() []interface{} {
+	return []interface{}{"feature", e.FeatureName}
+}
+
+func (m *syncFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {
+	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": m.Name()})
+
+	// This block should be executed atomically. UpdateFeatureStatus won't fail if the feature's status changes concurrently.
+	{
+		feature, err := m.featureRepository.GetFeature(ctx, clusterID, m.Name())
+		if err != nil {
+			const msg = "failed to retrieve feature from repository"
+			logger.Debug(msg)
+			return errors.WrapIf(err, msg)
+		}
+
+		if feature == nil || feature.Status != FeatureStatusActive {
+			logger.Debug("feature is not active")
+			return FeatureNotActiveError{FeatureName: m.Name()}
+		}
+
+		if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), FeatureStatusPending); err != nil {
+			const msg = "failed to update feature status"
+			logger.Debug(msg)
+			return errors.WrapIf(err, msg)
+		}
 	}
 
-	if feature == nil || feature.Status == FeatureStatusPending {
-		return errors.WithStack(FeatureNotActiveError{FeatureName: featureName})
+	if err := m.FeatureManager.Deactivate(ctx, clusterID); err != nil {
+		// The feature's status is uncertain, so we log the error and continue as if the deactivation succeeded.
+		logger.Error("cluster feature deactivation failed", map[string]interface{}{"error": err.Error()})
+	}
+
+	if err := m.featureRepository.DeleteFeature(ctx, clusterID, m.Name()); err != nil {
+		const msg = "failed to delete feature from repository"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
+	return nil
+}
+
+func (m *syncFeatureManager) Update(ctx context.Context, clusterID uint, spec FeatureSpec) error {
+	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": m.Name()})
+
+	// This block should be executed atomically. UpdateFeatureStatus won't fail if the feature's status changes concurrently.
+	{
+		feature, err := m.featureRepository.GetFeature(ctx, clusterID, m.Name())
+		if err != nil {
+			const msg = "failed to retrieve feature from repository"
+			logger.Debug(msg)
+			return errors.WrapIf(err, msg)
+		}
+
+		if feature == nil || feature.Status != FeatureStatusActive {
+			logger.Debug("feature is not active")
+			return FeatureNotActiveError{FeatureName: m.Name()}
+		}
+
+		if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), FeatureStatusPending); err != nil {
+			const msg = "failed to update feature status"
+			logger.Debug(msg)
+			return errors.WrapIf(err, msg)
+		}
+	}
+
+	if err := m.FeatureManager.Update(ctx, clusterID, spec); err != nil {
+		// The feature's status is uncertain, so we log the error and continue as if the update succeeded.
+		// If the feature is non-functioning, the user can deactivate it.
+		logger.Error("cluster feature update failed", map[string]interface{}{"error": err.Error()})
+	}
+
+	if _, err := m.featureRepository.UpdateFeatureSpec(ctx, clusterID, m.Name(), spec); err != nil {
+		const msg = "failed to update feature spec"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
+	if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), FeatureStatusActive); err != nil {
+		const msg = "failed to update feature status"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
 	}
 
 	return nil

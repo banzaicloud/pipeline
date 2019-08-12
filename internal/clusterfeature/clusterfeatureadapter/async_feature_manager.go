@@ -24,33 +24,67 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter/workflow"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 type asyncFeatureManagerStub struct {
 	clusterfeature.FeatureManager
-	cadenceClient client.Client
+	cadenceClient     client.Client
+	featureRepository clusterfeature.FeatureRepository
+	logger            common.Logger
 }
 
 // NewAsyncFeatureManagerStub returns a new, asynchronous feature manager stub
-func NewAsyncFeatureManagerStub(featureManager clusterfeature.FeatureManager, cadenceClient client.Client) clusterfeature.FeatureManager {
+func NewAsyncFeatureManagerStub(
+	featureManager clusterfeature.FeatureManager,
+	featureRepository clusterfeature.FeatureRepository,
+	cadenceClient client.Client,
+	logger common.Logger,
+) clusterfeature.FeatureManager {
 	return asyncFeatureManagerStub{
-		FeatureManager: featureManager,
-		cadenceClient:  cadenceClient,
+		FeatureManager:    featureManager,
+		cadenceClient:     cadenceClient,
+		featureRepository: featureRepository,
+		logger:            logger,
 	}
 }
 
 // Deploys and activates a feature on the given cluster
 func (m asyncFeatureManagerStub) Activate(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
+	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterID": clusterID, "feature": m.Name()})
+
+	if err := m.featureRepository.CreateOrUpdateFeature(ctx, clusterID, m.Name(), spec, clusterfeature.FeatureStatusPending); err != nil {
+		const msg = "failed to create or update feature"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	return m.dispatchAction(ctx, clusterID, workflow.ActionActivate, spec)
 }
 
 // Removes feature from the given cluster
 func (m asyncFeatureManagerStub) Deactivate(ctx context.Context, clusterID uint) error {
+	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterID": clusterID, "feature": m.Name()})
+
+	if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), clusterfeature.FeatureStatusPending); err != nil {
+		const msg = "failed to create or update feature"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	return m.dispatchAction(ctx, clusterID, workflow.ActionDeactivate, nil)
 }
 
 // Updates a feature on the given cluster
 func (m asyncFeatureManagerStub) Update(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
+	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterID": clusterID, "feature": m.Name()})
+
+	if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), clusterfeature.FeatureStatusPending); err != nil {
+		const msg = "failed to create or update feature"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	return m.dispatchAction(ctx, clusterID, workflow.ActionUpdate, spec)
 }
 

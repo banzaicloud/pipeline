@@ -41,6 +41,11 @@ func registerClusterFeatureWorkflows(featureRegistry clusterfeature.FeatureRegis
 	}
 
 	{
+		a := clusterfeatureworkflow.MakeClusterFeatureSetSpecActivity(featureRepository)
+		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureSetSpecActivityName})
+	}
+
+	{
 		a := clusterfeatureworkflow.MakeClusterFeatureSetStatusActivity(featureRepository)
 		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureSetStatusActivityName})
 	}

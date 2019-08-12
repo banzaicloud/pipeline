@@ -66,7 +66,7 @@ func TestInmemoryFeatureRepository_GetFeature(t *testing.T) {
 	assert.Equal(t, &feature, f)
 }
 
-func TestInmemoryFeatureRepository_SaveFeature(t *testing.T) {
+func TestInmemoryFeatureRepository_CreateFeature(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
 
 	clusterID := uint(1)
@@ -81,7 +81,7 @@ func TestInmemoryFeatureRepository_SaveFeature(t *testing.T) {
 		Status: FeatureStatusPending,
 	}
 
-	err := repository.SaveFeature(context.Background(), clusterID, featureName, spec)
+	err := repository.CreateFeature(context.Background(), clusterID, featureName, spec, FeatureStatusPending)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedFeature, repository.features[clusterID][featureName])
