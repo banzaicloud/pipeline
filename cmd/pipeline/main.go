@@ -26,6 +26,7 @@ import (
 	"emperror.dev/errors"
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/logur"
@@ -552,16 +553,7 @@ func main() {
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 
 				router := orgs.Group("/:orgid/clusters/:id/features")
-
-				// TODO: move this to a middleware
-				router.Use(func(c *gin.Context) {
-					clusterID, ok := ginutils.UintParam(c, "id")
-					if !ok {
-						return
-					}
-
-					c.Request = c.Request.WithContext(ctxutil.WithClusterID(c.Request.Context(), clusterID))
-				})
+				router.Use(features.NewMiddleware(clusterManager, errorHandler))
 
 				router.GET("", ginutils.HTTPHandlerToGinHandlerFunc(handlers.List))
 				router.GET("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Details))
