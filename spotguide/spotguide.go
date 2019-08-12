@@ -163,7 +163,6 @@ func NewSpotguideManager(
 	scmFactory scm.SCMFactory,
 	sharedLibraryOrganization *auth.Organization,
 	platformData PlatformData,
-	workflowClient cadenceClient.Client,
 ) *SpotguideManager {
 	pipelineVersion, _ := semver.NewVersion(pipelineVersionString)
 
@@ -173,7 +172,6 @@ func NewSpotguideManager(
 		scmFactory:                scmFactory,
 		sharedLibraryOrganization: sharedLibraryOrganization,
 		platformData:              platformData,
-		workflowClient:            workflowClient,
 	}
 }
 
@@ -202,7 +200,7 @@ func (s *SpotguideManager) isSpotguideReleaseAllowed(release scm.RepositoryRelea
 	return supported && (!prerelease || viper.GetBool(config.SpotguideAllowPrereleases))
 }
 
-func (s *SpotguideManager) ScheduleScrapingSharedSpotguides() error {
+func ScheduleScrapingSharedSpotguides(workflowClient cadenceClient.Client) error {
 	workflowOptions := cadenceClient.StartWorkflowOptions{
 		ID:                           ScrapeSharedSpotguidesWorkflowName,
 		WorkflowIDReusePolicy:        cadenceClient.WorkflowIDReusePolicyAllowDuplicate,
@@ -210,7 +208,7 @@ func (s *SpotguideManager) ScheduleScrapingSharedSpotguides() error {
 		ExecutionStartToCloseTimeout: 15 * time.Minute,
 		CronSchedule:                 "@every " + viper.GetDuration(config.SpotguideSyncInterval).String(),
 	}
-	_, err := s.workflowClient.StartWorkflow(context.Background(), workflowOptions, ScrapeSharedSpotguidesWorkflowName)
+	_, err := workflowClient.StartWorkflow(context.Background(), workflowOptions, ScrapeSharedSpotguidesWorkflowName)
 	return err
 }
 

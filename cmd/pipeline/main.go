@@ -433,7 +433,6 @@ func main() {
 		scmFactory,
 		sharedSpotguideOrg,
 		spotguidePlatformData,
-		workflowClient,
 	)
 
 	// subscribe to organization creations and sync spotguides into the newly created organizations
@@ -449,7 +448,7 @@ func main() {
 	})
 
 	// periodically sync shared spotguides
-	if err := spotguideManager.ScheduleScrapingSharedSpotguides(); err != nil {
+	if err := spotguide.ScheduleScrapingSharedSpotguides(workflowClient); err != nil {
 		errorHandler.Handle(errors.WrapIf(err, "failed to schedule syncing shared spotguides"))
 	}
 

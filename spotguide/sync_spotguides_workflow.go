@@ -25,10 +25,6 @@ type ScrapeSharedSpotguidesWorkflow struct {
 	manager *SpotguideManager
 }
 
-type ClusterDNSRecordsDeleter interface {
-	Delete(organizationID uint, clusterUID string) error
-}
-
 func NewScrapeSharedSpotguidesWorkflow(manager *SpotguideManager) ScrapeSharedSpotguidesWorkflow {
 	return ScrapeSharedSpotguidesWorkflow{
 		manager: manager,

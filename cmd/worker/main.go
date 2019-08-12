@@ -196,7 +196,6 @@ func main() {
 			scmFactory,
 			nil,
 			spotguide.PlatformData{},
-			nil,
 		)
 
 		// Register amazon specific workflows and activities
