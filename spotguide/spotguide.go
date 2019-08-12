@@ -137,7 +137,6 @@ type SpotguideManager struct {
 	scmFactory                scm.SCMFactory
 	sharedLibraryOrganization *auth.Organization
 	platformData              PlatformData
-	workflowClient            cadenceClient.Client
 }
 
 func EnsureSharedSpotguideOrganization(db *gorm.DB, scm string, sharedLibraryOrganization string) (*auth.Organization, error) {

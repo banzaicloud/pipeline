@@ -311,7 +311,7 @@ func init() {
 
 	viper.SetDefault(SpotguideAllowPrereleases, false)
 	viper.SetDefault(SpotguideAllowPrivateRepos, false)
-	viper.SetDefault(SpotguideSyncInterval, 5*time.Minute)
+	viper.SetDefault(SpotguideSyncInterval, 15*time.Minute)
 	viper.SetDefault(SpotguideSharedLibraryGitHubOrganization, "spotguides")
 
 	viper.SetDefault("issue.type", "github")
