@@ -397,6 +397,17 @@ func main() {
 	userAPI := api.NewUserAPI(accessManager, db, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
+	switch viper.GetString(config.DNSBaseDomain) {
+	case "", "example.com", "example.org":
+		global.AutoDNSEnabled = false
+	default:
+		global.AutoDNSEnabled = true
+	}
+
+	spotguidePlatformData := spotguide.PlatformData{
+		AutoDNSEnabled: global.AutoDNSEnabled,
+	}
+
 	scmProvider := viper.GetString("cicd.scm")
 	var scmToken string
 	switch scmProvider {
@@ -413,18 +424,7 @@ func main() {
 
 	sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 	if err != nil {
-		logger.Error(errors.WithMessage(err, "failed to create shared Spotguide organization").Error())
-	}
-
-	switch viper.GetString(config.DNSBaseDomain) {
-	case "", "example.com", "example.org":
-		global.AutoDNSEnabled = false
-	default:
-		global.AutoDNSEnabled = true
-	}
-
-	spotguidePlatformData := spotguide.PlatformData{
-		AutoDNSEnabled: global.AutoDNSEnabled,
+		errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
 	}
 
 	spotguideManager := spotguide.NewSpotguideManager(
@@ -450,7 +450,7 @@ func main() {
 
 	// periodically sync shared spotguides
 	if err := spotguideManager.ScheduleScrapingSharedSpotguides(); err != nil {
-		log.Errorf("failed to schedule syncing shared spotguides: %v", err)
+		errorHandler.Handle(errors.WrapIf(err, "failed to schedule syncing shared spotguides"))
 	}
 
 	spotguideAPI := api.NewSpotguideAPI(logrusLogger, errorHandler, spotguideManager)
