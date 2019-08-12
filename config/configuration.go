@@ -23,9 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/gin-contrib/cors"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 const (
@@ -54,23 +55,23 @@ const (
 	// This is the maintenance window before the next AWS Route53 pricing period starts
 	Route53MaintenanceWndMinute = "route53.maintenanceWindowMinute"
 
-	//PipelineSystemNamespace pipeline infra namespace key
+	// PipelineSystemNamespace pipeline infra namespace key
 	PipelineSystemNamespace = "infra.namespace"
 
-	//PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
+	// PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
 	PipelineHeadNodePoolName = "infra.headNodePoolName"
 
 	HeadNodeTaintRetryAttempt      = "infra.headNodeTaintRetryAttempt"
 	HeadNodeTaintRetrySleepSeconds = "infra.headNodeTaintRetrySleepSeconds"
 
-	//PipelineLabelDomain reserved node pool label domains
+	// PipelineLabelDomain reserved node pool label domains
 	PipelineLabelDomain = "infra.pipelineLabelDomain"
 
 	// PipelineExternalURLInsecure specifies whether the external URL of the Pipeline is insecure
 	// as uses self-signed CA cert
 	PipelineExternalURLInsecure = "pipeline.externalURLInsecure"
 
-	//ForbiddenLabelDomains reserved node pool label domains
+	// ForbiddenLabelDomains reserved node pool label domains
 	ForbiddenLabelDomains = "infra.forbiddenLabelDomains"
 
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
@@ -89,10 +90,6 @@ const (
 	// Config keys to OKE nodepool wait
 	OKEWaitAttemptsForNodepoolActive = "oke.waitAttemptsForNodepoolActive"
 	OKESleepSecondsForNodepoolActive = "oke.sleepSecondsForNodepoolActive"
-
-	// Logging
-	LoggingLogLevel  = "logging.loglevel"
-	LoggingLogFormat = "logging.logformat"
 
 	// ARK
 	ARKName                = "ark.name"
@@ -190,7 +187,7 @@ const (
 	DomainHookEnabled = "hooks.domainHookEnabled"
 )
 
-//Init initializes the configurations
+// Init initializes the configurations
 func init() {
 
 	viper.AddConfigPath("$HOME/config")
@@ -198,6 +195,12 @@ func init() {
 	viper.AddConfigPath("./config")
 	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
 	viper.SetConfigName("config")
+
+	// Deprecated
+	// Do not use these from the global Viper instance.
+	// Use the configure methods in the binary packages.
+	viper.SetDefault("logging.loglevel", "debug")
+	viper.SetDefault("logging.logformat", "text")
 
 	// Set defaults TODO expand defaults
 	viper.SetDefault("cicd.url", "http://localhost:8000")
@@ -213,8 +216,6 @@ func init() {
 	viper.SetDefault("cloud.configRetryCount", 30)
 	viper.SetDefault("cloud.configRetrySleep", 15)
 	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
-	viper.SetDefault(LoggingLogLevel, "debug")
-	viper.SetDefault(LoggingLogFormat, "text")
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -385,7 +386,7 @@ func init() {
 	viper.AllowEmptyEnv(true)
 }
 
-//GetCORS gets CORS related config
+// GetCORS gets CORS related config
 func GetCORS() cors.Config {
 	viper.SetDefault("cors.AllowAllOrigins", true)
 	viper.SetDefault("cors.AllowOrigins", []string{})

@@ -15,15 +15,21 @@
 package main
 
 import (
+	"os"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
 // is necessary for running the application.
 type configuration struct {
+	// Log configuration
+	Log log.Config
+
 	// ErrorHandler configuration
 	ErrorHandler errorhandler.Config
 }
@@ -42,6 +48,17 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// Application constants
 	v.Set("appName", appName)
 	v.Set("appVersion", version)
+
+	if _, ok := os.LookupEnv("NO_COLOR"); ok {
+		v.SetDefault("no_color", true)
+	}
+
+	// Log configuration
+	v.SetDefault("logging.logformat", "text")
+	v.SetDefault("logging.loglevel", "debug")
+	v.RegisterAlias("log.format", "logging.logformat") // TODO: deprecate the above
+	v.RegisterAlias("log.level", "logging.loglevel")
+	v.RegisterAlias("log.noColor", "no_color")
 
 	// ErrorHandler configuration
 	v.RegisterAlias("errorHandler.serviceName", "appName")

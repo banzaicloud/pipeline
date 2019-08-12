@@ -29,7 +29,7 @@ import (
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/logur/adapters/logrusadapter"
+	"github.com/goph/logur"
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -84,6 +84,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -96,19 +97,6 @@ import (
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
 )
-
-// Common logger for package
-// nolint: gochecknoglobals
-var log *logrus.Logger
-
-// nolint: gochecknoglobals
-var logger *logrus.Entry
-
-func initLog() *logrus.Entry {
-	log = config.Logger()
-	logger := log.WithFields(logrus.Fields{"state": "init"})
-	return logger
-}
 
 // Provisioned by ldflags
 // nolint: gochecknoglobals
@@ -137,12 +125,17 @@ func main() {
 	err := viper.Unmarshal(&conf)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
-	logger = initLog()
-	logger.WithFields(logrus.Fields{
-		"version":     version,
-		"commit_hash": commitHash,
-		"build_date":  buildDate,
-	}).Info("Pipeline initialization")
+	// Create logger (first thing after configuration loading)
+	logger := log.NewLogger(conf.Log)
+
+	// Legacy logger instance
+	logrusLogger := config.Logger()
+
+	// Provide some basic context to all log lines
+	logger = log.WithFields(logger, map[string]interface{}{"application": appName})
+
+	log.SetStandardLogger(logger)
+	log.SetK8sLogger(logger)
 
 	err = conf.Validate()
 	if err != nil {
@@ -151,7 +144,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	errorHandler, err := errorhandler.New(conf.ErrorHandler, logrusadapter.New(log))
+	errorHandler, err := errorhandler.New(conf.ErrorHandler, logger)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -160,6 +153,10 @@ func main() {
 	defer errorHandler.Close()
 	defer emperror.HandleRecover(errorHandler)
 	global.SetErrorHandler(errorHandler)
+
+	buildInfo := buildinfo.New(version, commitHash, buildDate)
+
+	logger.Info("starting application", buildInfo.Fields())
 
 	// Connect to database
 	db := config.DB()
@@ -179,9 +176,9 @@ func main() {
 	auth.Init(cicdDB, accessManager, orgImporter)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
-		log.Info("running automatic schema migrations")
+		logger.Info("running automatic schema migrations")
 
-		err = Migrate(db, logger)
+		err = Migrate(db, logrusLogger)
 		if err != nil {
 			panic(err)
 		}
@@ -195,12 +192,11 @@ func main() {
 	// External DNS service
 	dnsSvc, err := dns.GetExternalDnsServiceClient()
 	if err != nil {
-		log.Errorf("Getting external dns service client failed: %s", err.Error())
-		panic(err)
+		emperror.Panic(errors.WithMessage(err, "getting external dns service client failed"))
 	}
 
 	if dnsSvc == nil {
-		log.Infoln("External dns service functionality is not enabled")
+		logger.Info("external dns service functionality is not enabled")
 	}
 
 	prometheus.MustRegister(cluster.NewExporter())
@@ -226,7 +222,8 @@ func main() {
 	totalClusters := make([]totalClusterMetric, 0)
 	// SELECT count(id) as count, location, cloud FROM clusters GROUP BY location, cloud; (init values)
 	if err := db.Raw("SELECT count(id) as count, location, cloud FROM clusters GROUP BY location, cloud").Scan(&totalClusters).Error; err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
+		// TODO: emperror.Panic?
 	}
 	for _, row := range totalClusters {
 		clusterTotalMetric.With(
@@ -240,7 +237,9 @@ func main() {
 	externalBaseURL := viper.GetString("pipeline.externalURL")
 	if externalBaseURL == "" {
 		externalBaseURL = "http://" + viper.GetString("pipeline.bindaddr")
-		log.Errorf("no pipeline.external_url set. falling back to %q", externalBaseURL)
+		logger.Warn("no pipeline.external_url set, falling back to bind address", map[string]interface{}{
+			"fallback": externalBaseURL,
+		})
 	}
 
 	externalURLInsecure := viper.GetBool(config.PipelineExternalURLInsecure)
@@ -250,10 +249,10 @@ func main() {
 		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 	}
 
-	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, log, errorHandler)
-	clusterGetter := common.NewClusterGetter(clusterManager, logger, errorHandler)
+	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler)
+	clusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
-	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, log.WithField("subsystem", "ttl-controller"), errorHandler)
+	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, logrusLogger.WithField("subsystem", "ttl-controller"), errorHandler)
 	defer clusterTTLController.Stop()
 	err = clusterTTLController.Start()
 	emperror.Panic(err)
@@ -287,7 +286,7 @@ func main() {
 	}
 
 	if viper.GetBool(config.SpotMetricsEnabled) {
-		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, log.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
+		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, logrusLogger.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
 	}
 
 	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
@@ -295,12 +294,12 @@ func main() {
 		errorHandler.Handle(errors.New("missing CloudInfo endpoint"))
 		return
 	}
-	cloudInfoClient := cloudinfo.NewClient(cloudInfoEndPoint, log)
+	cloudInfoClient := cloudinfo.NewClient(cloudInfoEndPoint, logrusLogger)
 
 	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
-			log,
+			logrusLogger,
 			gormAzurePKEClusterStore,
 			workflowClient,
 			externalBaseURL,
@@ -311,7 +310,7 @@ func main() {
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterDeleter(
 			clusterEvents,
 			clusterManager.GetKubeProxyCache(),
-			log,
+			logrusLogger,
 			secret.Store,
 			statusChangeDurationMetric,
 			gormAzurePKEClusterStore,
@@ -320,17 +319,17 @@ func main() {
 	}
 
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
-	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, log), log, errorHandler)
+	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
 	infraNamespace := viper.GetString(config.PipelineSystemNamespace)
-	federationHandler := federation.NewFederationHandler(cgroupAdapter, infraNamespace, log, errorHandler)
-	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, log, errorHandler)
-	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, log, errorHandler)
+	federationHandler := federation.NewFederationHandler(cgroupAdapter, infraNamespace, logrusLogger, errorHandler)
+	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
+	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler)
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)
 	clusterGroupManager.RegisterFeatureHandler(deployment.FeatureName, deploymentManager)
 	clusterGroupManager.RegisterFeatureHandler(cgFeatureIstio.FeatureName, serviceMeshFeatureHandler)
 	clusterUpdaters := api.ClusterUpdaters{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterUpdater(
-			log,
+			logrusLogger,
 			externalBaseURL,
 			externalURLInsecure,
 			secret.Store,
@@ -339,9 +338,9 @@ func main() {
 		),
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, cloudInfoClient, clusterGroupManager, log, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
+	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, cloudInfoClient, clusterGroupManager, logrusLogger, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
 
-	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, log, errorHandler)
+	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, logrusLogger, errorHandler)
 
 	// Initialise Gin router
 	router := gin.New()
@@ -349,7 +348,7 @@ func main() {
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())
-	router.Use(ginlog.Middleware(log, skipPaths...))
+	router.Use(ginlog.Middleware(logrusLogger, skipPaths...))
 
 	// Add prometheus metric endpoint
 	if viper.GetBool(config.MetricsEnabled) {
@@ -368,14 +367,12 @@ func main() {
 	router.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
-		log.Infoln("Audit enabled, installing Gin audit middleware")
-		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
+		logger.Info("Audit enabled, installing Gin audit middleware")
+		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
 	}
 	router.Use(func(c *gin.Context) { // TODO: move to middleware
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
-
-	buildInfo := buildinfo.New(version, commitHash, buildDate)
 
 	router.GET("/", api.RedirectRoot)
 
@@ -388,7 +385,7 @@ func main() {
 
 	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath, errorHandler)
 
-	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logger, errorHandler)
+	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler)
 	dgroup := base.Group(path.Join("dashboard", "orgs"))
 	dgroup.Use(auth.Handler)
 	dgroup.Use(api.OrganizationMiddleware)
@@ -396,10 +393,10 @@ func main() {
 	dgroup.GET("/:orgid/clusters", dashboardAPI.GetDashboard)
 	dgroup.GET("/:orgid/clusters/:id", dashboardAPI.GetClusterDashboard)
 
-	domainAPI := api.NewDomainAPI(clusterManager, log, errorHandler)
+	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(orgImporter)
-	userAPI := api.NewUserAPI(accessManager, db, log, errorHandler)
-	networkAPI := api.NewNetworkAPI(log)
+	userAPI := api.NewUserAPI(accessManager, db, logrusLogger, errorHandler)
+	networkAPI := api.NewNetworkAPI(logrusLogger)
 
 	scmProvider := viper.GetString("cicd.scm")
 	var scmToken string
@@ -417,7 +414,7 @@ func main() {
 
 	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 	if err != nil {
-		log.Errorf("failed to create shared Spotguide organization: %s", err)
+		logger.Error(errors.WithMessage(err, "failed to create shared Spotguide organization").Error())
 	}
 
 	switch viper.GetString(config.DNSBaseDomain) {
@@ -442,7 +439,12 @@ func main() {
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
 		if err := spotguideManager.ScrapeSpotguides(orgID, userID); err != nil {
-			log.Warnf("failed to scrape Spotguide repositories for org [%d]: %s", orgID, err)
+			logger.Warn(
+				errors.WithMessage(err, "failed to scrape Spotguide repositories").Error(),
+				map[string]interface{}{
+					"organizationId": orgID,
+				},
+			)
 		}
 	})
 
@@ -450,17 +452,17 @@ func main() {
 	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
 	go func() {
 		if err := spotguideManager.ScrapeSharedSpotguides(); err != nil {
-			log.Errorf("failed to sync shared spotguides: %v", err)
+			logger.Error(errors.WithMessage(err, "failed to sync shared spotguides").Error())
 		}
 
 		for range syncTicker.C {
 			if err := spotguideManager.ScrapeSharedSpotguides(); err != nil {
-				log.Errorf("failed to sync shared spotguides: %v", err)
+				logger.Error(errors.WithMessage(err, "failed to sync shared spotguides").Error())
 			}
 		}
 	}()
 
-	spotguideAPI := api.NewSpotguideAPI(logger, errorHandler, spotguideManager)
+	spotguideAPI := api.NewSpotguideAPI(logrusLogger, errorHandler, spotguideManager)
 
 	v1 := base.Group("api/v1")
 	{
@@ -544,7 +546,7 @@ func main() {
 
 			// ClusterInfo Feature API
 			{
-				logger := commonadapter.NewLogger(logrusadapter.New(log)) // TODO: make this a context aware logger
+				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
@@ -580,7 +582,7 @@ func main() {
 			}
 
 			// ClusterGroupAPI
-			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, log, errorHandler)
+			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
 
 			clusters := orgs.Group("/:orgid/clusters/:id")
@@ -682,7 +684,7 @@ func main() {
 		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"), clusterManager)
 	}
 
-	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logger)
+	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logrusLogger)
 	if viper.GetBool(config.ARKSyncEnabled) {
 		go arkSync.RunSyncServices(
 			context.Background(),
@@ -690,7 +692,7 @@ func main() {
 			arkClusterManager.New(clusterManager),
 			platformlog.NewLogrusLogger(platformlog.Config{
 				Level:  viper.GetString(config.ARKLogLevel),
-				Format: viper.GetString(config.LoggingLogFormat),
+				Format: viper.GetString(conf.Log.Format),
 			}).WithField("subsystem", "ark"),
 			errorHandler,
 			viper.GetDuration(config.ARKBucketSyncInterval),
@@ -708,34 +710,39 @@ func main() {
 	base.POST("issues", auth.Handler, issueHandler)
 
 	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
-	logger.Infof("Pipeline internal API listening on http://%s", internalBindAddr)
-	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI).Run(internalBindAddr) // nolint: errcheck
+	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
+
+	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
 
 	bindAddr := viper.GetString("pipeline.bindaddr")
-	if port := viper.GetInt("pipeline.listenport"); port != 0 {
+	if port := viper.GetInt("pipeline.listenport"); port != 0 { // TODO: remove deprecated option
 		host := strings.Split(bindAddr, ":")[0]
 		bindAddr = fmt.Sprintf("%s:%d", host, port)
-		logger.Errorf("pipeline.listenport=%d setting is deprecated! Falling back to pipeline.bindaddr=%s", port, bindAddr)
+		logger.Warn(fmt.Sprintf(
+			"pipeline.listenport=%d setting is deprecated! Falling back to pipeline.bindaddr=%s",
+			port,
+			bindAddr,
+		))
 	}
 	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
 	if certFile != "" && keyFile != "" {
-		logger.Infof("Pipeline API listening on https://%s", bindAddr)
+		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
 		_ = router.RunTLS(bindAddr, certFile, keyFile)
 	} else {
-		logger.Infof("Pipeline API listening on http://%s", bindAddr)
+		logger.Info("Pipeline API listening", map[string]interface{}{"address": "http://" + bindAddr})
 		_ = router.Run(bindAddr)
 	}
 }
 
-func createInternalAPIRouter(skipPaths []string, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI) *gin.Engine {
+func createInternalAPIRouter(skipPaths []string, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI, logger logur.Logger, logrusLogger logrus.FieldLogger) *gin.Engine {
 	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
-	internalRouter.Use(ginlog.Middleware(log, skipPaths...))
+	internalRouter.Use(ginlog.Middleware(logrusLogger, skipPaths...))
 	internalRouter.Use(gin.Recovery())
 	if viper.GetBool("audit.enabled") {
-		log.Infoln("Audit enabled, installing Gin audit middleware to internal router")
-		internalRouter.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, log))
+		logger.Info("Audit enabled, installing Gin audit middleware to internal router")
+		internalRouter.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
 	}
 	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
 	internalGroup.Use(auth.InternalUserHandler)
