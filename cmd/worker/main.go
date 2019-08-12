@@ -281,9 +281,9 @@ func main() {
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 			secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-
+			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
 			orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
-			dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterManager, helmService, orgDomainService, logger)
+			dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterService, clusterManager, helmService, orgDomainService, logger)
 			featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
 				dnsFeatureManager.Name(): dnsFeatureManager,
 			})

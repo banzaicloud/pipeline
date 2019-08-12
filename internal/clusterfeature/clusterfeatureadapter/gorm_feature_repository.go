@@ -125,18 +125,31 @@ func (r *gormFeatureRepository) GetFeatures(ctx context.Context, clusterID uint)
 	return featureList, nil
 }
 
-func (r *gormFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, spec clusterfeature.FeatureSpec) error {
+func (r *gormFeatureRepository) CreateFeature(ctx context.Context, clusterID uint, featureName string, spec clusterfeature.FeatureSpec, status string) error {
 	cfModel := clusterFeatureModel{
+		ClusterId: clusterID,
 		Name:      featureName,
 		Spec:      spec,
-		ClusterId: clusterID,
-		Status:    string(clusterfeature.FeatureStatusPending),
+		Status:    status,
 	}
 
-	err := r.db.Save(&cfModel).Error
-	if err != nil {
+	if err := r.db.Create(&cfModel).Error; err != nil {
+		return errors.WrapIfWithDetails(err, "failed to create feature", "feature", featureName)
+	}
 
-		return errors.WrapIfWithDetails(err, "failed to persist feature", "feature", featureName)
+	return nil
+}
+
+func (r *gormFeatureRepository) CreateOrUpdateFeature(ctx context.Context, clusterID uint, featureName string, spec clusterfeature.FeatureSpec, status string) error {
+	cfModel := clusterFeatureModel{
+		ClusterId: clusterID,
+		Name:      featureName,
+		Spec:      spec,
+		Status:    status,
+	}
+
+	if err := r.db.Save(&cfModel).Error; err != nil {
+		return errors.WrapIfWithDetails(err, "failed to save feature", "feature", featureName)
 	}
 
 	return nil

@@ -75,19 +75,39 @@ func (r *InMemoryFeatureRepository) GetFeature(ctx context.Context, clusterID ui
 	return nil, nil
 }
 
-func (r *InMemoryFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
+func (r *InMemoryFeatureRepository) CreateFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	_, ok := r.features[clusterID]
-	if !ok {
+	if _, ok := r.features[clusterID]; !ok {
+		r.features[clusterID] = make(map[string]Feature)
+	}
+
+	if _, ok := r.features[clusterID][featureName]; ok {
+		return errors.New("feature already exists")
+	}
+
+	r.features[clusterID][featureName] = Feature{
+		Name:   featureName,
+		Spec:   spec,
+		Status: status,
+	}
+
+	return nil
+}
+
+func (r *InMemoryFeatureRepository) CreateOrUpdateFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, ok := r.features[clusterID]; !ok {
 		r.features[clusterID] = make(map[string]Feature)
 	}
 
 	r.features[clusterID][featureName] = Feature{
 		Name:   featureName,
 		Spec:   spec,
-		Status: FeatureStatusPending,
+		Status: status,
 	}
 
 	return nil
@@ -116,7 +136,21 @@ func (r *InMemoryFeatureRepository) UpdateFeatureStatus(ctx context.Context, clu
 }
 
 func (r *InMemoryFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) (*Feature, error) {
-	panic("implement me")
+	features, ok := r.features[clusterID]
+	if !ok {
+		r.features[clusterID] = make(map[string]Feature)
+	}
+
+	f, ok := features[featureName]
+	if !ok {
+		return nil, errors.NewWithDetails("feature not found", "feature", featureName)
+	}
+
+	f.Spec = spec
+
+	r.features[clusterID][featureName] = f
+
+	return &f, nil
 }
 
 func (r *InMemoryFeatureRepository) DeleteFeature(ctx context.Context, clusterID uint, featureName string) error {
