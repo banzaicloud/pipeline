@@ -15,22 +15,40 @@
 package spotguide
 
 import (
+	"context"
+	"time"
+
 	"emperror.dev/emperror"
 	"go.uber.org/cadence/workflow"
 )
 
 const ScrapeSharedSpotguidesWorkflowName = "scrape-shared-spotguides"
+const ScrapeSharedSpotguidesActivityName = "scrape-shared-spotguides-activty"
 
-type ScrapeSharedSpotguidesWorkflow struct {
+type ScrapeSharedSpotguidesActivity struct {
 	manager *SpotguideManager
 }
 
-func NewScrapeSharedSpotguidesWorkflow(manager *SpotguideManager) ScrapeSharedSpotguidesWorkflow {
-	return ScrapeSharedSpotguidesWorkflow{
+func NewScrapeSharedSpotguidesActivity(manager *SpotguideManager) ScrapeSharedSpotguidesActivity {
+	return ScrapeSharedSpotguidesActivity{
 		manager: manager,
 	}
 }
 
-func (a ScrapeSharedSpotguidesWorkflow) Execute(ctx workflow.Context) error {
+func (a ScrapeSharedSpotguidesActivity) Execute(ctx context.Context) error {
 	return emperror.Wrap(a.manager.scrapeSharedSpotguides(), "failed to scrape shared spotguides")
+}
+
+func ScrapeSharedSpotguidesWorkflow(ctx workflow.Context) error {
+
+	ao := workflow.ActivityOptions{
+		ScheduleToStartTimeout: 5 * time.Minute,
+		StartToCloseTimeout:    10 * time.Minute,
+		ScheduleToCloseTimeout: 15 * time.Minute,
+		WaitForCancellation:    true,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	return workflow.ExecuteActivity(ctx, ScrapeSharedSpotguidesActivityName).Get(ctx, nil)
 }
