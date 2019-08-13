@@ -150,6 +150,10 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
 		}
 
+		if len(customDns.Provider.Options.AzureResourceGroup) == 0 {
+			return nil, errors.New("resource group field cannot be empty")
+		}
+
 		kubeSecretVal, err := json.Marshal(
 			// inline composite struct for adding  extra fields
 			struct {
@@ -186,6 +190,10 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 		project := customDns.Provider.Options.GoogleProject
 		if len(project) == 0 {
 			project = secretValues[secret.ProjectId]
+		}
+
+		if len(project) == 0 {
+			return nil, errors.New("project field cannot be empty")
 		}
 
 		// create kubernetes secret values
