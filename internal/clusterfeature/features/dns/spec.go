@@ -44,15 +44,30 @@ type CustomDns struct {
 type DnsProvider struct {
 	Name     string           `json:"name"`
 	SecretID string           `json:"secret"`
-	Options  *ProviderOptions `json:"options,omitempty"`
+	Options  *providerOptions `json:"options,omitempty"`
 }
 
-// ProviderOptions placeholder struct for additional provider specific configuration
+// providerOptions placeholder struct for additional provider specific configuration
 // extrend it with the required fields here as appropriate
-type ProviderOptions struct {
+type providerOptions struct {
 	DnsMasked          bool   `json:"dnsMasked" mapstructure:"dnsMasked"`
 	AzureResourceGroup string `json:"resourceGroup,omitempty" mapstructure:"resourceGroup"`
 	GoogleProject      string `json:"project,omitempty" mapstructure:"project"`
+}
+
+func (o *providerOptions) Validate(provider string) error {
+	switch provider {
+	case dnsAzure:
+		if o == nil || len(o.AzureResourceGroup) == 0 {
+			return errors.New("resource group field cannot be empty")
+		}
+	case dnsGoogle:
+		if o == nil || len(o.GoogleProject) == 0 {
+			return errors.New("resource group field cannot be empty")
+		}
+	}
+
+	return nil
 }
 
 type AutoDns struct {
@@ -124,101 +139,31 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 	}
 
 	switch provider := customDns.Provider.Name; provider {
-	case "route53":
-
-		creds := awsCredentials{}
-		if err := mapstructure.Decode(secretValues, &creds); err != nil {
-			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
+	case dnsRoute53:
+		if err := m.createCustomDnsChartValuesAmazon(secretValues, values); err != nil {
+			return nil, errors.Wrap(err, "failed to create Amazon custom DNS chart values")
 		}
 
-		// set secret values
-		providerSettings := &ExternalDnsAwsSettings{
-			Region: creds.Region,
-			Credentials: &ExternalDnsAwsCredentials{
-				AccessKey: creds.AccessKeyID,
-				SecretKey: creds.SecretAccessKey,
-			},
+	case dnsAzure:
+		if err := m.createCustomDnsChartValuesAzure(
+			clusterID,
+			customDns.Provider.Options,
+			secretValues,
+			values,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to create Azure custom DNS chart values")
 		}
 
-		values.Aws = providerSettings
-
-	case "azure":
-
-		// get parse secret values into a struct
-		azCreds := azureCredentials{}
-		if err := mapstructure.Decode(secretValues, &azCreds); err != nil {
-			return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
+	case dnsGoogle:
+		if err := m.createCustomDnsChartValuesGoogle(
+			clusterID,
+			customDns.Provider.Options,
+			secretValues,
+			values,
+		);
+			err != nil {
+			return nil, errors.Wrap(err, "failed to create Google custom DNS chart values")
 		}
-
-		if len(customDns.Provider.Options.AzureResourceGroup) == 0 {
-			return nil, errors.New("resource group field cannot be empty")
-		}
-
-		kubeSecretVal, err := json.Marshal(
-			// inline composite struct for adding  extra fields
-			struct {
-				*azureCredentials
-				ResourceGroup string `json:"resourceGroup"`
-			}{
-				&azCreds,
-				customDns.Provider.Options.AzureResourceGroup,
-			})
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to marshal secret values")
-		}
-
-		req, err := m.newInstallSecretRequest(provider, string(kubeSecretVal))
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to create install secret request")
-		}
-
-		k8sSec, err := m.installSecret(ctx, clusterID, externalDnsAzureSecret, *req)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to install secret to the cluster")
-		}
-
-		azureSettings := &ExternalDnsAzureSettings{
-			SecretName:    k8sSec.Name,
-			ResourceGroup: customDns.Provider.Options.AzureResourceGroup,
-		}
-		values.Azure = azureSettings
-		values.TxtPrefix = "txt-"
-
-	case "google":
-
-		// set google project
-		project := customDns.Provider.Options.GoogleProject
-		if len(project) == 0 {
-			project = secretValues[secret.ProjectId]
-		}
-
-		if len(project) == 0 {
-			return nil, errors.New("project field cannot be empty")
-		}
-
-		// create kubernetes secret values
-		kubeSecretVal, err := json.Marshal(secretValues)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to marshal secret values")
-		}
-
-		req, err := m.newInstallSecretRequest(provider, string(kubeSecretVal))
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to create install secret request")
-		}
-
-		k8sSec, err := m.installSecret(ctx, clusterID, externalDnsGoogleSecret, *req)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to install secret to the cluster")
-		}
-
-		providerSettings := &ExternalDnsGoogleSettings{
-			Project:              project,
-			ServiceAccountSecret: k8sSec.Name,
-		}
-
-		values.Google = providerSettings
-		values.TxtPrefix = "txt-"
 
 	default:
 
@@ -327,4 +272,117 @@ func (m *dnsFeatureManager) newInstallSecretRequest(provider string, secretValue
 	default:
 		return nil, errors.NewWithDetails("unsupported provider", "provider", provider)
 	}
+}
+
+func (m *dnsFeatureManager) createCustomDnsChartValuesAmazon(secretValues map[string]string, values *ExternalDnsChartValues) error {
+	creds := awsCredentials{}
+	if err := mapstructure.Decode(secretValues, &creds); err != nil {
+		return errors.WrapIf(err, "failed to bind feature spec credentials")
+	}
+
+	// set secret values
+	providerSettings := &ExternalDnsAwsSettings{
+		Region: creds.Region,
+		Credentials: &ExternalDnsAwsCredentials{
+			AccessKey: creds.AccessKeyID,
+			SecretKey: creds.SecretAccessKey,
+		},
+	}
+
+	values.Aws = providerSettings
+
+	return nil
+}
+
+func (m *dnsFeatureManager) createCustomDnsChartValuesAzure(
+	clusterID uint,
+	options *providerOptions,
+	secretValues map[string]string,
+	values *ExternalDnsChartValues,
+) error {
+	// get parse secret values into a struct
+	azCreds := azureCredentials{}
+	if err := mapstructure.Decode(secretValues, &azCreds); err != nil {
+		return errors.WrapIf(err, "failed to bind feature spec credentials")
+	}
+
+	if err := options.Validate(dnsAzure); err != nil {
+		return errors.Wrap(err, "error during options validation")
+	}
+
+	kubeSecretVal, err := json.Marshal(
+		// inline composite struct for adding  extra fields
+		struct {
+			*azureCredentials
+			ResourceGroup string `json:"resourceGroup"`
+		}{
+			&azCreds,
+			options.AzureResourceGroup,
+		})
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal secret values")
+	}
+
+	req, err := m.newInstallSecretRequest(dnsAzure, string(kubeSecretVal))
+	if err != nil {
+		return errors.WrapIf(err, "failed to create install secret request")
+	}
+
+	k8sSec, err := m.installSecret(context.Background(), clusterID, externalDnsAzureSecret, *req)
+	if err != nil {
+		return errors.WrapIf(err, "failed to install secret to the cluster")
+	}
+
+	azureSettings := &ExternalDnsAzureSettings{
+		SecretName:    k8sSec.Name,
+		ResourceGroup: options.AzureResourceGroup,
+	}
+	values.Azure = azureSettings
+	values.TxtPrefix = "txt-"
+
+	return nil
+}
+
+func (m *dnsFeatureManager) createCustomDnsChartValuesGoogle(
+	clusterID uint,
+	options *providerOptions,
+	secretValues map[string]string,
+	values *ExternalDnsChartValues,
+) error {
+	// set google project
+	if options == nil || len(options.GoogleProject) == 0 {
+		options = &providerOptions{
+			GoogleProject: secretValues[secret.ProjectId],
+		}
+	}
+
+	if err := options.Validate(dnsGoogle); err != nil {
+		return errors.Wrap(err, "error during options validation")
+	}
+
+	// create kubernetes secret values
+	kubeSecretVal, err := json.Marshal(secretValues)
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal secret values")
+	}
+
+	req, err := m.newInstallSecretRequest(dnsGoogle, string(kubeSecretVal))
+	if err != nil {
+		return errors.WrapIf(err, "failed to create install secret request")
+	}
+
+	k8sSec, err := m.installSecret(context.Background(), clusterID, externalDnsGoogleSecret, *req)
+	if err != nil {
+		return errors.WrapIf(err, "failed to install secret to the cluster")
+	}
+
+	providerSettings := &ExternalDnsGoogleSettings{
+		Project:              options.GoogleProject,
+		ServiceAccountSecret: k8sSec.Name,
+	}
+
+	values.Google = providerSettings
+	values.TxtPrefix = "txt-"
+
+	return nil
 }
