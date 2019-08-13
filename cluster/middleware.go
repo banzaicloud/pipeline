@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package features
+package cluster
 
 import (
 	"net/http"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/gin-gonic/gin"
 	"github.com/moogar0880/problems"
 )
 
-// NewMiddleware returns a new gin middleware that checks cluster is exists in the current org.
-func NewMiddleware(manager *cluster.Manager, errorHandler emperror.Handler) gin.HandlerFunc {
+// NewClusterCheckMiddleware returns a new gin middleware that checks cluster is exists in the current org.
+func NewClusterCheckMiddleware(manager *Manager, errorHandler emperror.Handler) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clusterID, ok := ginutils.UintParam(c, "id")
 		if !ok {
@@ -40,9 +40,15 @@ func NewMiddleware(manager *cluster.Manager, errorHandler emperror.Handler) gin.
 
 		_, err := manager.GetClusterByID(c, orgID, clusterID)
 		if err != nil {
-			errorHandler.Handle(err)
-			problem := problems.NewDetailedProblem(http.StatusNotFound, err.Error())
-			c.AbortWithStatusJSON(http.StatusNotFound, problem)
+
+			code := http.StatusNotFound
+			if ok := cluster.IsClusterNotFoundError(err); !ok {
+				errorHandler.Handle(err)
+				code = http.StatusInternalServerError
+			}
+
+			problem := problems.NewDetailedProblem(code, err.Error())
+			c.AbortWithStatusJSON(code, problem)
 			return
 		}
 
