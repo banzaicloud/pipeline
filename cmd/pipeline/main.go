@@ -21,7 +21,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
@@ -398,6 +397,17 @@ func main() {
 	userAPI := api.NewUserAPI(accessManager, db, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
+	switch viper.GetString(config.DNSBaseDomain) {
+	case "", "example.com", "example.org":
+		global.AutoDNSEnabled = false
+	default:
+		global.AutoDNSEnabled = true
+	}
+
+	spotguidePlatformData := spotguide.PlatformData{
+		AutoDNSEnabled: global.AutoDNSEnabled,
+	}
+
 	scmProvider := viper.GetString("cicd.scm")
 	var scmToken string
 	switch scmProvider {
@@ -412,20 +422,9 @@ func main() {
 	scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
 	emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
 
-	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+	sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 	if err != nil {
-		logger.Error(errors.WithMessage(err, "failed to create shared Spotguide organization").Error())
-	}
-
-	switch viper.GetString(config.DNSBaseDomain) {
-	case "", "example.com", "example.org":
-		global.AutoDNSEnabled = false
-	default:
-		global.AutoDNSEnabled = true
-	}
-
-	spotguidePlatformData := spotguide.PlatformData{
-		AutoDNSEnabled: global.AutoDNSEnabled,
+		errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
 	}
 
 	spotguideManager := spotguide.NewSpotguideManager(
@@ -449,18 +448,9 @@ func main() {
 	})
 
 	// periodically sync shared spotguides
-	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
-	go func() {
-		if err := spotguideManager.ScrapeSharedSpotguides(); err != nil {
-			logger.Error(errors.WithMessage(err, "failed to sync shared spotguides").Error())
-		}
-
-		for range syncTicker.C {
-			if err := spotguideManager.ScrapeSharedSpotguides(); err != nil {
-				logger.Error(errors.WithMessage(err, "failed to sync shared spotguides").Error())
-			}
-		}
-	}()
+	if err := spotguide.ScheduleScrapingSharedSpotguides(workflowClient); err != nil {
+		errorHandler.Handle(errors.WrapIf(err, "failed to schedule syncing shared spotguides"))
+	}
 
 	spotguideAPI := api.NewSpotguideAPI(logrusLogger, errorHandler, spotguideManager)
 

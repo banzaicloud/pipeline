@@ -156,4 +156,13 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cadence.domain", "pipeline")
 	v.SetDefault("cadence.createNonexistentDomain", false)
 	v.SetDefault("cadence.workflowExecutionRetentionPeriodInDays", 3)
+
+	// Spotguide configuration
+	_ = v.BindEnv("github.token")
+	_ = v.BindEnv("gitlab.token")
+	v.SetDefault("cicd.scm", "github")
+	v.SetDefault("spotguide.syncInterval", 15*time.Minute)
+	v.SetDefault("spotguide.allowPrereleases", false)
+	v.SetDefault("spotguide.allowPrivateRepos", false)
+	v.SetDefault("spotguide.sharedLibraryGitHubOrganization", "spotguides")
 }
