@@ -195,8 +195,15 @@ func (m *syncFeatureManager) Deactivate(ctx context.Context, clusterID uint) err
 	}
 
 	if err := m.FeatureManager.Deactivate(ctx, clusterID); err != nil {
-		// The feature's status is uncertain, so we log the error and continue as if the deactivation succeeded.
-		logger.Error("cluster feature deactivation failed", map[string]interface{}{"error": err.Error()})
+		// The feature's status is uncertain, so we make it inactive.
+		const msg = "cluster feature deactivation failed"
+		logger.Debug(msg, map[string]interface{}{"error": err.Error()})
+
+		if err := m.featureRepository.DeleteFeature(ctx, clusterID, m.Name()); err != nil {
+			logger.Error("failed to delete feature from repository", map[string]interface{}{"error": err.Error()})
+		}
+
+		return errors.WrapIf(err, msg)
 	}
 
 	if err := m.featureRepository.DeleteFeature(ctx, clusterID, m.Name()); err != nil {
@@ -233,9 +240,15 @@ func (m *syncFeatureManager) Update(ctx context.Context, clusterID uint, spec Fe
 	}
 
 	if err := m.FeatureManager.Update(ctx, clusterID, spec); err != nil {
-		// The feature's status is uncertain, so we log the error and continue as if the update succeeded.
-		// If the feature is non-functioning, the user can deactivate it.
-		logger.Error("cluster feature update failed", map[string]interface{}{"error": err.Error()})
+		const msg = "cluster feature update failed"
+		logger.Debug(msg)
+
+		// We set the feature's status back to active. If the feature is non-functioning, the user can deactivate it.
+		if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), FeatureStatusActive); err != nil {
+			logger.Error("failed to update feature status", map[string]interface{}{"error": err.Error()})
+		}
+
+		return errors.WrapIf(err, msg)
 	}
 
 	if _, err := m.featureRepository.UpdateFeatureSpec(ctx, clusterID, m.Name(), spec); err != nil {
