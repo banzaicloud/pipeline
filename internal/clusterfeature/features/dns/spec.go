@@ -17,6 +17,7 @@ package dns
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -59,15 +60,28 @@ func (o *providerOptions) Validate(provider string) error {
 	switch provider {
 	case dnsAzure:
 		if o == nil || len(o.AzureResourceGroup) == 0 {
-			return errors.New("resource group field cannot be empty")
+			return &EmptyOptionFieldError{
+				fieldName: "resourceGroup",
+			}
 		}
 	case dnsGoogle:
 		if o == nil || len(o.GoogleProject) == 0 {
-			return errors.New("resource group field cannot be empty")
+			return &EmptyOptionFieldError{
+				fieldName: "project",
+			}
 		}
 	}
 
 	return nil
+}
+
+// EmptyOptionFieldError is returned when resource group field is empty in case of Azure provider.
+type EmptyOptionFieldError struct {
+	fieldName string
+}
+
+func (e *EmptyOptionFieldError) Error() string {
+	return fmt.Sprintf("%s cannot be empty", e.fieldName)
 }
 
 type AutoDns struct {
