@@ -18,11 +18,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
-const managedByPipelineTag = "io.banzaicloud.pipeline.uuid"
-
 // PipelineTags returns resource tags for Azure based on the pipeline uuid if available
 func PipelineTags() map[string]*string {
 	value := global.PipelineUUID()
 
-	return map[string]*string{managedByPipelineTag: &value}
+	return map[string]*string{global.ManagedByPipelineTag: &value}
 }
