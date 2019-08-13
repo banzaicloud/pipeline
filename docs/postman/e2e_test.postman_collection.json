@@ -509,7 +509,7 @@
 							"response": []
 						},
 						{
-							"name": "Activate feature Copy",
+							"name": "Update feature",
 							"request": {
 								"method": "PUT",
 								"header": [
