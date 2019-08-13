@@ -18,11 +18,12 @@ import (
 	"net/http"
 
 	"emperror.dev/emperror"
+	"github.com/gin-gonic/gin"
+	"github.com/moogar0880/problems"
+
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
-	"github.com/gin-gonic/gin"
-	"github.com/moogar0880/problems"
 )
 
 // NewClusterCheckMiddleware returns a new gin middleware that checks cluster is exists in the current org.
@@ -39,16 +40,18 @@ func NewClusterCheckMiddleware(manager *Manager, errorHandler emperror.Handler) 
 		}
 
 		_, err := manager.GetClusterByID(c, orgID, clusterID)
+		if err != nil && cluster.IsClusterNotFoundError(err) {
+			problem := problems.NewDetailedProblem(http.StatusNotFound, err.Error())
+			c.AbortWithStatusJSON(http.StatusNotFound, problem)
+
+			return
+		}
 		if err != nil {
+			errorHandler.Handle(err)
 
-			code := http.StatusNotFound
-			if ok := cluster.IsClusterNotFoundError(err); !ok {
-				errorHandler.Handle(err)
-				code = http.StatusInternalServerError
-			}
+			problem := problems.NewDetailedProblem(http.StatusInternalServerError, "internal server error")
+			c.AbortWithStatusJSON(http.StatusInternalServerError, problem)
 
-			problem := problems.NewDetailedProblem(code, err.Error())
-			c.AbortWithStatusJSON(code, problem)
 			return
 		}
 
