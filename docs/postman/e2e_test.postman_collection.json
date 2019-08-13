@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "d6185fee-b4cf-42e2-bb6b-426e871713cd",
+		"_postman_id": "6df5d69e-8eda-4674-8188-e0fe1bb60781",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -360,6 +360,253 @@
 									]
 								},
 								"description": "Get cluster details"
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Features",
+					"item": [
+						{
+							"name": "Feature list",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/features",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"features"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization ID"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Feature details",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"description": "Organization ID",
+											"key": "orgId",
+											"value": "{{orgId}}"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										},
+										{
+											"key": "featureName",
+											"value": "",
+											"description": "Feature Name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Activate feature",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"spec\": {\n    \n  }\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization ID"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										},
+										{
+											"key": "featureName",
+											"value": "",
+											"description": "Feature Name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Activate feature Copy",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"spec\": {\n    \n  }\n}"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization ID"
+										},
+										{
+											"key": "clusterId",
+											"value": "{{clusterId}}",
+											"description": "Cluster ID"
+										},
+										{
+											"key": "featureName",
+											"value": "",
+											"description": "Feature Name"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Deactivate feature",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/clusters/:clusterId/features/:featureName",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"clusters",
+										":clusterId",
+										"features",
+										":featureName"
+									],
+									"variable": [
+										{
+											"description": "Organization ID",
+											"key": "orgId",
+											"value": "{{orgId}}"
+										},
+										{
+											"description": "Cluster ID",
+											"key": "clusterId",
+											"value": "{{clusterId}}"
+										},
+										{
+											"description": "Feature Name",
+											"key": "featureName",
+											"value": ""
+										}
+									]
+								}
 							},
 							"response": []
 						}
@@ -1583,14 +1830,14 @@
 							],
 							"variable": [
 								{
-									"description": "Organization identifier",
 									"key": "orgId",
-									"value": "{{orgId}}"
+									"value": "{{orgId}}",
+									"description": "Organization identifier"
 								},
 								{
-									"description": "Cluster identifier",
 									"key": "clusterId",
-									"value": "{{clusterId}}"
+									"value": "{{clusterId}}",
+									"description": "Cluster identifier"
 								}
 							]
 						}
