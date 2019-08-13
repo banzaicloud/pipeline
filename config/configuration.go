@@ -71,6 +71,9 @@ const (
 	// as uses self-signed CA cert
 	PipelineExternalURLInsecure = "pipeline.externalURLInsecure"
 
+	// PipelineUUID is an UUID that identifies the specific installation (deployment) of the platform
+	PipelineUUID = "pipeline.uuid"
+
 	// ForbiddenLabelDomains reserved node pool label domains
 	ForbiddenLabelDomains = "infra.forbiddenLabelDomains"
 
@@ -240,6 +243,7 @@ func init() {
 	viper.SetDefault("pipeline.uipath", "/ui")
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
+	viper.SetDefault(PipelineUUID, "")
 	viper.SetDefault(MetricsEnabled, false)
 	viper.SetDefault(MetricsPort, "9900")
 	viper.SetDefault(MetricsAddress, "127.0.0.1")
@@ -311,7 +315,7 @@ func init() {
 
 	viper.SetDefault(SpotguideAllowPrereleases, false)
 	viper.SetDefault(SpotguideAllowPrivateRepos, false)
-	viper.SetDefault(SpotguideSyncInterval, 5*time.Minute)
+	viper.SetDefault(SpotguideSyncInterval, 15*time.Minute)
 	viper.SetDefault(SpotguideSharedLibraryGitHubOrganization, "spotguides")
 
 	viper.SetDefault("issue.type", "github")

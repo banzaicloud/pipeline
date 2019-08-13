@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"go.uber.org/cadence/activity"
 )
 
@@ -62,6 +63,7 @@ func (a *CreateAWSRolesActivity) Execute(ctx context.Context, input CreateAWSRol
 		Capabilities: aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam, cloudformation.CapabilityCapabilityNamedIam}),
 		StackName:    aws.String(PkeGlobalStackName),
 		TemplateBody: aws.String(string(buf)),
+		Tags:         amazon.PipelineTags(),
 	}
 
 	output, err := cfClient.CreateStack(stackInput)

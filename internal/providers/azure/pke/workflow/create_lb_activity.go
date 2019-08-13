@@ -295,7 +295,7 @@ func (input CreateLoadBalancerActivityInput) getCreateOrUpdateLoadBalancerParams
 		Sku: &network.LoadBalancerSku{
 			Name: network.LoadBalancerSkuName(input.LoadBalancer.SKU),
 		},
-		Tags: *to.StringMapPtr(getOwnedTag(input.ClusterName).Map()),
+		Tags: getClusterTags(input.ClusterName),
 	}
 }
 

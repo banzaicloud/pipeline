@@ -21,7 +21,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
@@ -404,6 +403,17 @@ func main() {
 	userAPI := api.NewUserAPI(accessManager, db, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
+	switch viper.GetString(config.DNSBaseDomain) {
+	case "", "example.com", "example.org":
+		global.AutoDNSEnabled = false
+	default:
+		global.AutoDNSEnabled = true
+	}
+
+	spotguidePlatformData := spotguide.PlatformData{
+		AutoDNSEnabled: global.AutoDNSEnabled,
+	}
+
 	scmProvider := viper.GetString("cicd.scm")
 	var scmToken string
 	switch scmProvider {
@@ -418,20 +428,9 @@ func main() {
 	scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
 	emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
 
-	sharedSpotguideOrg, err := spotguide.CreateSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+	sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
 	if err != nil {
-		logger.Error(errors.WithMessage(err, "failed to create shared Spotguide organization").Error())
-	}
-
-	switch viper.GetString(config.DNSBaseDomain) {
-	case "", "example.com", "example.org":
-		global.AutoDNSEnabled = false
-	default:
-		global.AutoDNSEnabled = true
-	}
-
-	spotguidePlatformData := spotguide.PlatformData{
-		AutoDNSEnabled: global.AutoDNSEnabled,
+		errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
 	}
 
 	spotguideManager := spotguide.NewSpotguideManager(
@@ -455,18 +454,9 @@ func main() {
 	})
 
 	// periodically sync shared spotguides
-	syncTicker := time.NewTicker(viper.GetDuration(config.SpotguideSyncInterval))
-	go func() {
-		if err := spotguideManager.ScrapeSharedSpotguides(); err != nil {
-			logger.Error(errors.WithMessage(err, "failed to sync shared spotguides").Error())
-		}
-
-		for range syncTicker.C {
-			if err := spotguideManager.ScrapeSharedSpotguides(); err != nil {
-				logger.Error(errors.WithMessage(err, "failed to sync shared spotguides").Error())
-			}
-		}
-	}()
+	if err := spotguide.ScheduleScrapingSharedSpotguides(workflowClient); err != nil {
+		errorHandler.Handle(errors.WrapIf(err, "failed to schedule syncing shared spotguides"))
+	}
 
 	spotguideAPI := api.NewSpotguideAPI(logrusLogger, errorHandler, spotguideManager)
 
@@ -564,12 +554,11 @@ func main() {
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-
 				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
-				dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterManager, helmService, orgDomainService, logger)
+				dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterService, clusterManager, helmService, orgDomainService, logger)
 				featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
-					"dns": clusterfeature.NewSyncFeatureManager(dnsFeatureManager, clusterService, featureRepository),
+					dnsFeatureManager.Name(): clusterfeatureadapter.NewAsyncFeatureManagerStub(dnsFeatureManager, featureRepository, workflowClient, logger),
 				})
 
 				service := clusterfeature.NewFeatureService(featureRegistry, featureRepository, logger)

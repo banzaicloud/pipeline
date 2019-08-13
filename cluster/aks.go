@@ -29,6 +29,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-09-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure"
+	internalAzure "github.com/banzaicloud/pipeline/internal/providers/azure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -255,6 +256,7 @@ func (c *AKSCluster) CreateCluster() error {
 				Secret:   &creds.ClientSecret,
 			},
 		},
+		Tags: internalAzure.PipelineTags(),
 	}
 
 	c.log.Info("Sending cluster creation request to AKS and waiting for completion")

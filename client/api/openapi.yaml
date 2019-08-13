@@ -50,6 +50,18 @@ tags:
 - description: 'ARK: restores related functions'
   name: ark-restores
 paths:
+  /api/version:
+    get:
+      description: Return Pipeline build and deployment info
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionResponse'
+          description: Version info
+      tags:
+      - common
   /api/v1/orgs/{orgId}/domain:
     get:
       description: Return the base domain
@@ -8004,6 +8016,35 @@ components:
       description: Feature properties
       required: true
   schemas:
+    VersionResponse:
+      description: Pipeline build and deployment info
+      example:
+        build_date: build_date
+        os: os
+        arch: arch
+        go_version: go_version
+        compiler: compiler
+        instance_uuid: instance_uuid
+        version: version
+        commit_hash: commit_hash
+      properties:
+        version:
+          type: string
+        commit_hash:
+          type: string
+        build_date:
+          type: string
+        go_version:
+          type: string
+        os:
+          type: string
+        arch:
+          type: string
+        compiler:
+          type: string
+        instance_uuid:
+          type: string
+      type: object
     UpdateUserRequest:
       example:
         gitHubToken: b8d9cfb5df15fd513bf3351719876ffff4b310d2

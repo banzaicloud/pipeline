@@ -21,10 +21,10 @@ import (
 	"syscall"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/goph/logur"
 	"github.com/goph/logur/integrations/zaplog"
 	"github.com/oklog/run"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/activity"
@@ -33,6 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	conf "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/dns"
 	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
@@ -41,7 +42,13 @@ import (
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -52,6 +59,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/banzaicloud/pipeline/spotguide"
+	"github.com/banzaicloud/pipeline/spotguide/scm"
 )
 
 // Provisioned by ldflags
@@ -127,7 +136,7 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
-	switch viper.GetString(conf.DNSBaseDomain) {
+	switch v.GetString(conf.DNSBaseDomain) {
 	case "", "example.com", "example.org":
 		global.AutoDNSEnabled = false
 	default:
@@ -174,6 +183,28 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
+		scmProvider := v.GetString("cicd.scm")
+		var scmToken string
+		switch scmProvider {
+		case "github":
+			scmToken = v.GetString("github.token")
+		case "gitlab":
+			scmToken = v.GetString("gitlab.token")
+		default:
+			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
+		}
+
+		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
+		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
+
+		spotguideManager := spotguide.NewSpotguideManager(
+			db,
+			version,
+			scmFactory,
+			nil,
+			spotguide.PlatformData{},
+		)
+
 		// Register amazon specific workflows and activities
 		registerAwsWorkflows(clusters, tokenGenerator)
 
@@ -184,6 +215,10 @@ func main() {
 
 		generateCertificatesActivity := pkeworkflow.NewGenerateCertificatesActivity(clusterSecretStore)
 		activity.RegisterWithOptions(generateCertificatesActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.GenerateCertificatesActivityName})
+
+		scrapeSharedSpotguidesActivity := spotguide.NewScrapeSharedSpotguidesActivity(spotguideManager)
+		workflow.RegisterWithOptions(spotguide.ScrapeSharedSpotguidesWorkflow, workflow.RegisterOptions{Name: spotguide.ScrapeSharedSpotguidesWorkflowName})
+		activity.RegisterWithOptions(scrapeSharedSpotguidesActivity.Execute, activity.RegisterOptions{Name: spotguide.ScrapeSharedSpotguidesActivityName})
 
 		createDexClientActivity := pkeworkflow.NewCreateDexClientActivity(clusters, clusterAuthService)
 		activity.RegisterWithOptions(createDexClientActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.CreateDexClientActivityName})
@@ -229,6 +264,32 @@ func main() {
 
 		waitPersistentVolumesDeletionActivity := intClusterWorkflow.MakeWaitPersistentVolumesDeletionActivity(k8sConfigGetter, conf.Logger())
 		activity.RegisterWithOptions(waitPersistentVolumesDeletionActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.WaitPersistentVolumesDeletionActivityName})
+
+		{
+			// External DNS service
+			dnsSvc, err := dns.GetExternalDnsServiceClient()
+			if err != nil {
+				logger.Error("Getting external DNS service client failed", map[string]interface{}{"error": err.Error()})
+				panic(err)
+			}
+
+			if dnsSvc == nil {
+				logger.Info("External DNS service functionality is not enabled")
+			}
+
+			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
+			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
+			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+			secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
+			orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
+			dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterService, clusterManager, helmService, orgDomainService, logger)
+			featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
+				dnsFeatureManager.Name(): dnsFeatureManager,
+			})
+
+			registerClusterFeatureWorkflows(featureRegistry, featureRepository)
+		}
 
 		var closeCh = make(chan struct{})
 

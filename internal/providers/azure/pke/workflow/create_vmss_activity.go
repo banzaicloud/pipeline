@@ -192,7 +192,7 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 			Capacity: to.Int64Ptr(input.ScaleSet.InstanceCount),
 			Name:     to.StringPtr(input.ScaleSet.InstanceType),
 		},
-		Tags: *to.StringMapPtr(getOwnedTag(input.ClusterName).Map()),
+		Tags: getClusterTags(input.ClusterName),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 			Overprovision: to.BoolPtr(false),
 			UpgradePolicy: &compute.UpgradePolicy{

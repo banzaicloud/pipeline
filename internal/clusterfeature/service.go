@@ -62,8 +62,11 @@ type FeatureRepository interface {
 	// GetFeature retrieves a feature.
 	GetFeature(ctx context.Context, clusterID uint, featureName string) (*Feature, error)
 
-	// SaveFeature persists feature state.
-	SaveFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error
+	// CreateFeature creates a feature.
+	CreateFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status string) error
+
+	// CreateOrUpdateFeature creates or updates a feature.
+	CreateOrUpdateFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status string) error
 
 	// Updates the status of a feature.
 	UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) (*Feature, error)
@@ -138,80 +141,57 @@ func (e FeatureNotFoundError) Details() []interface{} {
 // Details returns the details of an activated feature.
 func (s *FeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	logger.Info("retrieving feature details")
+	logger.Info("processing feature details request")
 
+	// TODO: check cluster ID?
+
+	logger.Debug("retieving feature manager")
 	featureManager, err := s.featureRegistry.GetFeatureManager(featureName)
 	if err != nil {
-		return nil, err
+		const msg = "failed to retieve feature manager"
+		logger.Debug(msg)
+		return nil, errors.WrapIf(err, msg)
 	}
 
+	logger.Debug("retieving feature details")
 	feature, err := featureManager.Details(ctx, clusterID)
 	if err != nil {
-		return nil, err
+		const msg = "failed to retieve feature details"
+		logger.Debug(msg)
+		return nil, errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
 	}
 
-	logger.Info("successfully retrieved feature details")
+	logger.Info("feature details request processed successfully")
 
 	return feature, nil
-}
-
-// FeatureAlreadyActivatedError is returned when a feature is already activated.
-type FeatureAlreadyActivatedError struct {
-	FeatureName string
-}
-
-func (FeatureAlreadyActivatedError) Error() string {
-	return "feature already activated"
-}
-
-func (e FeatureAlreadyActivatedError) Details() []interface{} {
-	return []interface{}{"feature", e.FeatureName}
 }
 
 // Activate activates a feature.
 func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	logger.Info("activating feature")
+	logger.Info("processing feature activation request")
 
-	feature, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
-	if err != nil {
-		return nil
-	}
+	// TODO: check cluster ID?
 
-	if feature != nil {
-		logger.Debug("feature cannot be activated: it's not inactive", map[string]interface{}{
-			"status": feature.Status,
-		})
-
-		return FeatureAlreadyActivatedError{FeatureName: featureName}
-	}
-
+	logger.Debug("retieving feature manager")
 	featureManager, err := s.featureRegistry.GetFeatureManager(featureName)
 	if err != nil {
-		return err
+		const msg = "failed to retieve feature manager"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
 	}
 
 	logger.Debug("validating feature specification")
 	if err := featureManager.ValidateSpec(ctx, spec); err != nil {
+		logger.Debug("feature specification validation failed")
 		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
 	}
 
-	err = s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec)
-	if err != nil {
-		return err
-	}
-
-	err = featureManager.Activate(ctx, clusterID, spec)
-	if err != nil {
-		// Deletion is best effort here, activation failed anyway
-		_ = s.featureRepository.DeleteFeature(ctx, clusterID, featureName)
-
-		return err
-	}
-
-	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
-
-		return err
+	logger.Debug("activating feature")
+	if err := featureManager.Activate(ctx, clusterID, spec); err != nil {
+		const msg = "failed to activate feature"
+		logger.Debug(msg)
+		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
 	}
 
 	logger.Info("feature activation request processed successfully")
@@ -222,24 +202,19 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 // Deactivate deactivates a feature.
 func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": featureName})
-	logger.Info("deactivating feature")
+	logger.Info("processing feature deactivation request")
 
-	feature, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
-	if err != nil {
-		return nil
-	}
+	// TODO: check cluster ID?
 
-	if feature == nil {
-		logger.Info("feature is not activated")
-
-		return FeatureNotActiveError{FeatureName: featureName}
-	}
-
+	logger.Debug("retieving feature manager")
 	featureManager, err := s.featureRegistry.GetFeatureManager(featureName)
 	if err != nil {
-		return err
+		const msg = "failed to retieve feature manager"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
 	}
 
+	logger.Debug("deactivating feature")
 	if err := featureManager.Deactivate(ctx, clusterID); err != nil {
 		logger.Debug("failed to deactivate feature")
 
@@ -251,57 +226,32 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 	return nil
 }
 
-// FeatureNotActiveError is returned when a feature is already activated.
-type FeatureNotActiveError struct {
-	FeatureName string
-}
-
-func (FeatureNotActiveError) Error() string {
-	return "feature is not active"
-}
-
-func (e FeatureNotActiveError) Details() []interface{} {
-	return []interface{}{"feature", e.FeatureName}
-}
-
 // Update updates a feature.
 func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterID": clusterID, "feature": featureName})
-	logger.Info("updating feature")
+	logger.Info("processing feature update request")
 
-	feature, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
-	if err != nil {
-		return nil
-	}
+	// TODO: check cluster ID?
 
-	if feature == nil {
-		logger.Debug("feature cannot be updated: it is not active yet")
-
-		return errors.WithStack(FeatureNotActiveError{FeatureName: featureName})
-	}
-
+	logger.Debug("retieving feature manager")
 	featureManager, err := s.featureRegistry.GetFeatureManager(featureName)
 	if err != nil {
-		logger.Debug("failed to get feature manager")
-
-		return err
+		const msg = "failed to retieve feature manager"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
 	}
 
 	logger.Debug("validating feature specification")
 	if err := featureManager.ValidateSpec(ctx, spec); err != nil {
-
+		logger.Debug("feature specification validation failed")
 		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
 	}
 
+	logger.Debug("updating feature")
 	if err := featureManager.Update(ctx, clusterID, spec); err != nil {
-		logger.Debug("failed to update feature")
-
-		return errors.WrapIfWithDetails(err, "failed to update feature", "clusterID", clusterID, "feature", featureName)
-	}
-
-	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
-
-		return err
+		const msg = "failed to update feature"
+		logger.Debug(msg)
+		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
 	}
 
 	logger.Info("feature updated successfully")

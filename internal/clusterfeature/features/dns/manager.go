@@ -20,6 +20,8 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
@@ -45,6 +47,7 @@ type dnsFeatureManager struct {
 	featureRepository clusterfeature.FeatureRepository
 	secretStore       features.SecretStore
 	clusterGetter     clusterfeatureadapter.ClusterGetter
+	clusterService    clusterfeature.ClusterService
 	helmService       features.HelmService
 	orgDomainService  OrgDomainService
 
@@ -55,6 +58,7 @@ type dnsFeatureManager struct {
 func NewDnsFeatureManager(
 	featureRepository clusterfeature.FeatureRepository,
 	secretStore features.SecretStore,
+	clusterService clusterfeature.ClusterService,
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	helmService features.HelmService,
 	orgDomainService OrgDomainService,
@@ -64,6 +68,7 @@ func NewDnsFeatureManager(
 	return &dnsFeatureManager{
 		featureRepository: featureRepository,
 		secretStore:       secretStore,
+		clusterService:    clusterService,
 		clusterGetter:     clusterGetter,
 		helmService:       helmService,
 		orgDomainService:  orgDomainService,
@@ -72,6 +77,12 @@ func NewDnsFeatureManager(
 }
 
 func (m *dnsFeatureManager) Details(ctx context.Context, clusterID uint) (*clusterfeature.Feature, error) {
+	ctx, err := m.ensureOrgIDInContext(ctx, clusterID)
+	if err != nil {
+
+		return nil, err
+	}
+
 	feature, err := m.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
 
@@ -97,6 +108,16 @@ func (m *dnsFeatureManager) Name() string {
 }
 
 func (m *dnsFeatureManager) Activate(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
+	if err := m.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
+		return err
+	}
+
+	ctx, err := m.ensureOrgIDInContext(ctx, clusterID)
+	if err != nil {
+
+		return err
+	}
+
 	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
 
 	boundSpec, err := m.bindInput(ctx, spec)
@@ -197,6 +218,16 @@ func (m *dnsFeatureManager) ValidateSpec(ctx context.Context, spec clusterfeatur
 }
 
 func (m *dnsFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {
+	if err := m.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
+		return err
+	}
+
+	ctx, err := m.ensureOrgIDInContext(ctx, clusterID)
+	if err != nil {
+
+		return err
+	}
+
 	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
 
 	if err := m.helmService.DeleteDeployment(ctx, clusterID, externalDnsRelease); err != nil {
@@ -209,6 +240,16 @@ func (m *dnsFeatureManager) Deactivate(ctx context.Context, clusterID uint) erro
 }
 
 func (m *dnsFeatureManager) Update(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
+	if err := m.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
+		return err
+	}
+
+	ctx, err := m.ensureOrgIDInContext(ctx, clusterID)
+	if err != nil {
+
+		return err
+	}
+
 	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
 
 	boundSpec, err := m.bindInput(ctx, spec)
@@ -364,4 +405,19 @@ func (m *dnsFeatureManager) decorateWithOutput(ctx context.Context, clusterID ui
 	}
 
 	return feature, nil
+}
+
+func (m *dnsFeatureManager) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
+	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
+		cl, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return ctx, errors.WrapIf(err, "failed to get cluster by ID")
+		}
+		org, err := auth.GetOrganizationById(cl.GetOrganizationId())
+		if err != nil {
+			return ctx, errors.WrapIf(err, "failed to get organization by ID")
+		}
+		ctx = context.WithValue(ctx, auth.CurrentOrganization, org)
+	}
+	return ctx, nil
 }
