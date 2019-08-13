@@ -103,7 +103,7 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 
 	err = installOrUpgradeDeployment(
 		c,
-		meshNamespace,
+		canaryOperatorNamespace,
 		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.canary.chartName,
 		canaryOperatorReleaseName,
 		valuesOverride,
