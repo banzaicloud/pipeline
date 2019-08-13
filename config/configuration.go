@@ -337,11 +337,11 @@ func init() {
 	viper.SetDefault(IstioPilotImage, "banzaicloud/istio-pilot:1.1.8-bzc.1")
 	viper.SetDefault(IstioMixerImage, "banzaicloud/istio-mixer:1.1.8-bzc.1")
 
-	viper.SetDefault(BackyardsChartVersion, "0.1.3")
+	viper.SetDefault(BackyardsChartVersion, "0.1.4")
 	viper.SetDefault(BackyardsChartName, "backyards")
 	viper.SetDefault(BackyardsImageRepository, "banzaicloud/backyards")
-	viper.SetDefault(BackyardsImageTag, "0.1.1")
-	viper.SetDefault(BackyardsWebImageTag, "web-0.1.1")
+	viper.SetDefault(BackyardsImageTag, "0.1.3")
+	viper.SetDefault(BackyardsWebImageTag, "web-0.1.3")
 
 	viper.SetDefault(CanaryOperatorChartName, "canary-operator")
 	viper.SetDefault(CanaryOperatorChartVersion, "0.1.2")
