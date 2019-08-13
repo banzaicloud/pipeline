@@ -26,7 +26,6 @@ import (
 	"emperror.dev/errors"
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/goph/logur"
@@ -391,7 +390,13 @@ func main() {
 	dgroup.Use(api.OrganizationMiddleware)
 	dgroup.Use(authorizationMiddleware)
 	dgroup.GET("/:orgid/clusters", dashboardAPI.GetDashboard)
-	dgroup.GET("/:orgid/clusters/:id", dashboardAPI.GetClusterDashboard)
+
+	{
+		// Cluster details dashboard
+		dcGroup := dgroup.Group("/:orgid/clusters/:id")
+		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
+		dcGroup.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
+	}
 
 	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(orgImporter)
@@ -479,55 +484,63 @@ func main() {
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateCluster)
 			// v1.GET("/status", api.Status)
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
-			orgs.GET("/:orgid/clusters/:id", clusterAPI.GetCluster)
-			orgs.GET("/:orgid/clusters/:id/pods", api.GetPodDetails)
-			orgs.GET("/:orgid/clusters/:id/bootstrap", clusterAPI.GetBootstrapInfo)
-			orgs.PUT("/:orgid/clusters/:id", clusterAPI.UpdateCluster)
 
-			orgs.PUT("/:orgid/clusters/:id/posthooks", clusterAPI.ReRunPostHooks)
-			orgs.POST("/:orgid/clusters/:id/secrets", api.InstallSecretsToCluster)
-			orgs.POST("/:orgid/clusters/:id/secrets/:secretName", api.InstallSecretToCluster)
-			orgs.PATCH("/:orgid/clusters/:id/secrets/:secretName", api.MergeSecretInCluster)
-			orgs.Any("/:orgid/clusters/:id/proxy/*path", clusterAPI.ProxyToCluster)
-			orgs.DELETE("/:orgid/clusters/:id", clusterAPI.DeleteCluster)
-			orgs.HEAD("/:orgid/clusters/:id", clusterAPI.ClusterCheck)
-			orgs.GET("/:orgid/clusters/:id/config", api.GetClusterConfig)
-			orgs.GET("/:orgid/clusters/:id/apiendpoint", api.GetApiEndpoint)
-			orgs.GET("/:orgid/clusters/:id/nodes", api.GetClusterNodes)
-			orgs.GET("/:orgid/clusters/:id/endpoints", api.ListEndpoints)
-			orgs.GET("/:orgid/clusters/:id/secrets", api.ListClusterSecrets)
-			orgs.GET("/:orgid/clusters/:id/deployments", api.ListDeployments)
-			orgs.POST("/:orgid/clusters/:id/deployments", api.CreateDeployment)
-			orgs.GET("/:orgid/clusters/:id/deployments/:name", api.GetDeployment)
-			orgs.GET("/:orgid/clusters/:id/deployments/:name/resources", api.GetDeploymentResources)
-			orgs.GET("/:orgid/clusters/:id/hpa", api.GetHpaResource)
-			orgs.PUT("/:orgid/clusters/:id/hpa", api.PutHpaResource)
-			orgs.DELETE("/:orgid/clusters/:id/hpa", api.DeleteHpaResource)
-			orgs.HEAD("/:orgid/clusters/:id/deployments", api.GetTillerStatus)
-			orgs.DELETE("/:orgid/clusters/:id/deployments/:name", api.DeleteDeployment)
-			orgs.PUT("/:orgid/clusters/:id/deployments/:name", api.UpgradeDeployment)
-			orgs.HEAD("/:orgid/clusters/:id/deployments/:name", api.HelmDeploymentStatus)
-			orgs.POST("/:orgid/clusters/:id/helminit", api.InitHelmOnCluster)
+			// cluster API
+			{
+				cRouter := orgs.Group("/:orgid/clusters/:id")
+				cRouter.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
 
-			orgs.GET("/:orgid/clusters/:id/images", api.ListImages)
-			orgs.GET("/:orgid/clusters/:id/images/:imageDigest/deployments", api.GetImageDeployments)
-			orgs.GET("/:orgid/clusters/:id/deployments/:name/images", api.GetDeploymentImages)
+				cRouter.GET("", clusterAPI.GetCluster)
+				cRouter.GET("/pods", api.GetPodDetails)
+				cRouter.GET("/bootstrap", clusterAPI.GetBootstrapInfo)
+				cRouter.PUT("", clusterAPI.UpdateCluster)
 
-			if anchore.AnchoreEnabled {
-				orgs.GET("/:orgid/clusters/:id/scanlog", api.GetScanLog)
-				orgs.GET("/:orgid/clusters/:id/scanlog/:releaseName", api.GetScanLog)
-				orgs.GET("/:orgid/clusters/:id/whitelists", api.GetWhiteLists)
-				orgs.POST("/:orgid/clusters/:id/whitelists", api.CreateWhiteList)
-				orgs.DELETE("/:orgid/clusters/:id/whitelists/:name", api.DeleteWhiteList)
-				orgs.GET("/:orgid/clusters/:id/policies", api.GetPolicies)
-				orgs.GET("/:orgid/clusters/:id/policies/:policyId", api.GetPolicies)
-				orgs.POST("/:orgid/clusters/:id/policies", api.CreatePolicy)
-				orgs.PUT("/:orgid/clusters/:id/policies/:policyId", api.UpdatePolicies)
-				orgs.DELETE("/:orgid/clusters/:id/policies/:policyId", api.DeletePolicy)
+				cRouter.PUT("/posthooks", clusterAPI.ReRunPostHooks)
+				cRouter.POST("/secrets", api.InstallSecretsToCluster)
+				cRouter.POST("/secrets/:secretName", api.InstallSecretToCluster)
+				cRouter.PATCH("/secrets/:secretName", api.MergeSecretInCluster)
+				cRouter.Any("/proxy/*path", clusterAPI.ProxyToCluster)
+				cRouter.DELETE("", clusterAPI.DeleteCluster)
+				cRouter.HEAD("", clusterAPI.ClusterCheck)
+				cRouter.GET("/config", api.GetClusterConfig)
+				cRouter.GET("/apiendpoint", api.GetApiEndpoint)
+				cRouter.GET("/nodes", api.GetClusterNodes)
+				cRouter.GET("/endpoints", api.ListEndpoints)
+				cRouter.GET("/secrets", api.ListClusterSecrets)
+				cRouter.GET("/deployments", api.ListDeployments)
+				cRouter.POST("/deployments", api.CreateDeployment)
+				cRouter.GET("/deployments/:name", api.GetDeployment)
+				cRouter.GET("/deployments/:name/resources", api.GetDeploymentResources)
+				cRouter.GET("/hpa", api.GetHpaResource)
+				cRouter.PUT("/hpa", api.PutHpaResource)
+				cRouter.DELETE("/hpa", api.DeleteHpaResource)
+				cRouter.HEAD("/deployments", api.GetTillerStatus)
+				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
+				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
+				cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
+				cRouter.POST("/helminit", api.InitHelmOnCluster)
 
-				orgs.POST("/:orgid/clusters/:id/imagescan", api.ScanImages)
-				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest", api.GetScanResult)
-				orgs.GET("/:orgid/clusters/:id/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+				cRouter.GET("/images", api.ListImages)
+				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
+				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
+
+				if anchore.AnchoreEnabled {
+					cRouter.GET("/scanlog", api.GetScanLog)
+					cRouter.GET("/scanlog/:releaseName", api.GetScanLog)
+					cRouter.GET("/whitelists", api.GetWhiteLists)
+					cRouter.POST("/whitelists", api.CreateWhiteList)
+					cRouter.DELETE("/whitelists/:name", api.DeleteWhiteList)
+					cRouter.GET("/policies", api.GetPolicies)
+					cRouter.GET("/policies/:policyId", api.GetPolicies)
+					cRouter.POST("/policies", api.CreatePolicy)
+					cRouter.PUT("/policies/:policyId", api.UpdatePolicies)
+					cRouter.DELETE("/policies/:policyId", api.DeletePolicy)
+
+					cRouter.POST("/imagescan", api.ScanImages)
+					cRouter.GET("/imagescan/:imagedigest", api.GetScanResult)
+					cRouter.GET("/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+				}
+
 			}
 
 			clusterSecretStore := clustersecret.NewStore(
@@ -553,7 +566,7 @@ func main() {
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 
 				router := orgs.Group("/:orgid/clusters/:id/features")
-				router.Use(features.NewMiddleware(clusterManager, errorHandler))
+				router.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
 
 				router.GET("", ginutils.HTTPHandlerToGinHandlerFunc(handlers.List))
 				router.GET("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Details))
