@@ -160,6 +160,17 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		Istio       istio                `json:"istio,omitempty"`
 		Application application          `json:"application,omitempty"`
 		Prometheus  prometheusChartValue `json:"prometheus,omitempty"`
+		Ingress     struct {
+			Enabled bool `json:"enabled"`
+		} `json:"ingress,omitempty"`
+		Web struct {
+			Enabled bool              `json:"enabled"`
+			Image   imageChartValue   `json:"image,omitempty"`
+			Env     map[string]string `json:"env,omitempty"`
+		} `json:"web,omitempty"`
+		Autoscaling struct {
+			Enabled bool `json:"enabled"`
+		} `json:"autoscaling,omitempty"`
 	}
 
 	values := Values{
@@ -182,12 +193,23 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 		},
 	}
 
+	values.Autoscaling.Enabled = false
+	values.Prometheus.ExternalURL = prometheusExternalURL
+	values.Ingress.Enabled = false
+	values.Web.Enabled = true
+	values.Web.Env = map[string]string{
+		"API_URL": "api",
+	}
+
 	if m.Configuration.internalConfig.backyards.imageRepository != "" {
 		values.Application.Image.Repository = m.Configuration.internalConfig.backyards.imageRepository
 	}
 	if m.Configuration.internalConfig.backyards.imageTag != "" {
 		values.Application.Image.Tag = m.Configuration.internalConfig.backyards.imageTag
+	}
 
+	if m.Configuration.internalConfig.backyards.webImageTag != "" {
+		values.Web.Image.Tag = m.Configuration.internalConfig.backyards.webImageTag
 	}
 
 	valuesOverride, err := yaml.Marshal(values)
@@ -197,7 +219,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 
 	err = installOrUpgradeDeployment(
 		c,
-		meshNamespace,
+		backyardsNamespace,
 		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.backyards.chartName,
 		backyardsReleaseName,
 		valuesOverride,
