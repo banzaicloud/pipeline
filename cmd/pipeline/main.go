@@ -486,8 +486,8 @@ func main() {
 			orgs.GET("/:orgid/clusters", clusterAPI.GetClusters)
 
 			// cluster API
+			cRouter := orgs.Group("/:orgid/clusters/:id")
 			{
-				cRouter := orgs.Group("/:orgid/clusters/:id")
 				cRouter.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
 
 				cRouter.GET("", clusterAPI.GetCluster)
@@ -565,8 +565,7 @@ func main() {
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 
-				router := orgs.Group("/:orgid/clusters/:id/features")
-				router.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
+				router := cRouter.Group("/features")
 
 				router.GET("", ginutils.HTTPHandlerToGinHandlerFunc(handlers.List))
 				router.GET("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Details))
@@ -579,15 +578,13 @@ func main() {
 			cgroupsAPI := cgroupAPI.NewAPI(clusterGroupManager, deploymentManager, logrusLogger, errorHandler)
 			cgroupsAPI.AddRoutes(orgs.Group("/:orgid/clustergroups"))
 
-			clusters := orgs.Group("/:orgid/clusters/:id")
-
-			clusters.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
-			clusters.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
+			cRouter.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
+			cRouter.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
 
 			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
-			namespaceAPI.RegisterRoutes(clusters.Group("/namespaces/:namespace"))
+			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces/:namespace"))
 
-			pkeGroup := clusters.Group("/pke")
+			pkeGroup := cRouter.Group("/pke")
 
 			leaderRepository, err := pke.NewVaultLeaderRepository()
 			emperror.Panic(errors.WrapIf(err, "failed to create Vault leader repository"))
