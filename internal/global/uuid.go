@@ -21,7 +21,7 @@ import (
 
 type AwsTag string
 
-const ManagedByPipelineTag = "banzaicloud.io/pipeline/uuid"
+const ManagedByPipelineTag = "banzaicloud-pipeline-uuid"
 
 // PipelineUUID returns an UUID that identifies the specific installation (deployment) of the platform.
 // If UUID is not available, empty string is returned instead of generating a random one, because no UUID is better than one that always changes.
