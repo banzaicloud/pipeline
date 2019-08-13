@@ -395,8 +395,8 @@ func main() {
 	{
 		// Cluster details dashboard
 		dcGroup := dgroup.Group("/:orgid/clusters/:id")
-		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 		dcGroup.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
+		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
 	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
