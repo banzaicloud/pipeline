@@ -27,14 +27,15 @@ import (
 
 func TestFeatureService_List(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value"}
+	featureName := featureManager.Name()
+	spec := FeatureSpec{"key": "value"}
 
 	feature := Feature{
 		Name:   featureName,
@@ -57,14 +58,15 @@ func TestFeatureService_List(t *testing.T) {
 
 func TestFeatureService_Details(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value"}
+	featureName := featureManager.Name()
+	spec := FeatureSpec{"key": "value"}
 
 	feature := Feature{
 		Name:   featureName,
@@ -93,14 +95,15 @@ func TestFeatureService_Details(t *testing.T) {
 
 func TestFeatureService_Activate(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value"}
+	featureName := featureManager.Name()
+	spec := FeatureSpec{"key": "value"}
 
 	err := service.Activate(context.Background(), clusterID, featureName, spec)
 	require.NoError(t, err)
@@ -119,8 +122,8 @@ func TestFeatureService_Activate_UnknownFeature(t *testing.T) {
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value"}
+	featureName := "notMyFeature"
+	spec := FeatureSpec{"key": "value"}
 
 	err := service.Activate(context.Background(), clusterID, featureName, spec)
 	require.Error(t, err)
@@ -136,12 +139,15 @@ func TestFeatureService_Activate_UnknownFeature(t *testing.T) {
 
 func TestFeatureService_Activate_FeatureAlreadyActivated(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
-	registry := NewFeatureRegistry(map[string]FeatureManager{})
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
+	registry := NewFeatureRegistry(map[string]FeatureManager{
+		featureManager.Name(): featureManager,
+	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value"}
+	featureName := featureManager.Name()
+	spec := FeatureSpec{"key": "value"}
 
 	repository.features[clusterID] = map[string]Feature{
 		featureName: {
@@ -160,14 +166,15 @@ func TestFeatureService_Activate_FeatureAlreadyActivated(t *testing.T) {
 
 func TestFeatureService_Activate_InvalidSpec(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{}
+	featureName := featureManager.Name()
+	spec := FeatureSpec{}
 
 	err := service.Activate(context.Background(), clusterID, featureName, spec)
 	require.Error(t, err)
@@ -183,14 +190,15 @@ func TestFeatureService_Activate_InvalidSpec(t *testing.T) {
 
 func TestFeatureService_Activate_ActivationFails(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value", "fail": true}
+	featureName := featureManager.Name()
+	spec := FeatureSpec{"key": "value", "fail": true}
 
 	err := service.Activate(context.Background(), clusterID, featureName, spec)
 	require.Error(t, err)
@@ -202,20 +210,18 @@ func TestFeatureService_Activate_ActivationFails(t *testing.T) {
 }
 
 func TestFeatureService_Deactivate(t *testing.T) {
-
 	repository := NewInMemoryFeatureRepository()
-
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 
 	clusterID := uint(2)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value", "fail": true}
+	featureName := featureManager.Name()
+	spec := FeatureSpec{"key": "value", "fail": true}
 
 	// a persisted, active feature
-	repository.SaveFeature(context.Background(), clusterID, featureName, spec)                        // nolint: errcheck
-	repository.UpdateFeatureStatus(context.Background(), clusterID, featureName, FeatureStatusActive) // nolint: errcheck
+	repository.CreateFeature(context.Background(), clusterID, featureName, spec, FeatureStatusActive) // nolint: errcheck
 
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
@@ -223,14 +229,15 @@ func TestFeatureService_Deactivate(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestFeatureService_Deactivate_NotActive (not found in the persistent store
+// TestFeatureService_Deactivate_NotActive (not found in the persistent store)
 func TestFeatureService_Deactivate_NotActive(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
-	featureName := "notActive"
+	featureName := featureManager.Name()
 	err := service.Deactivate(context.Background(), 1, featureName)
 	require.Error(t, err)
 
@@ -241,14 +248,11 @@ func TestFeatureService_Deactivate_NotActive(t *testing.T) {
 // TestFeatureService_Deactivate_UnknownFeature no manager registered for this feature name
 func TestFeatureService_Deactivate_UnknownFeature(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
-
-	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
-	})
+	registry := NewFeatureRegistry(map[string]FeatureManager{})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 	clusterID := uint(1)
-	featureName := "unknownFeature"
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}) // nolint: errcheck
+	featureName := "notMyFeature"
+	repository.CreateFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}, FeatureStatusActive) // nolint: errcheck
 
 	err := service.Deactivate(context.Background(), clusterID, featureName)
 	require.Error(t, err)
@@ -259,14 +263,14 @@ func TestFeatureService_Deactivate_UnknownFeature(t *testing.T) {
 
 func TestFeatureService_Deactivate_DeactivationFails(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
-
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 	clusterID := uint(1)
-	featureName := "myFeature"
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"fails": true}) // nolint: errcheck
+	featureName := featureManager.Name()
+	repository.CreateFeature(context.Background(), clusterID, featureName, FeatureSpec{"key": "value"}, FeatureStatusActive) // nolint: errcheck
 	err := service.Deactivate(context.Background(), clusterID, featureName)
 
 	// do we need a specific error for this?
@@ -275,15 +279,16 @@ func TestFeatureService_Deactivate_DeactivationFails(t *testing.T) {
 
 func TestFeatureService_Update(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value"}
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"fails": true}) // nolint: errcheck
+	featureName := featureManager.Name()
+	spec := FeatureSpec{"key": "value"}
+	repository.CreateFeature(context.Background(), clusterID, featureName, spec, FeatureStatusActive) // nolint: errcheck
 
 	err := service.Update(context.Background(), clusterID, featureName, spec)
 	require.NoError(t, err)
@@ -291,14 +296,15 @@ func TestFeatureService_Update(t *testing.T) {
 
 func TestFeatureService_Update_NotActive(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 
-	spec := map[string]interface{}{"key": "value", "fail": true}
+	spec := FeatureSpec{"key": "value", "fail": true}
 
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
-	featureName := "notActive"
+	featureName := featureManager.Name()
 	err := service.Update(context.Background(), 1, featureName, spec)
 	require.Error(t, err)
 
@@ -314,10 +320,10 @@ func TestFeatureService_Update_UnknownFeature(t *testing.T) {
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{"key": "value"}
+	featureName := "notMyFeature"
+	spec := FeatureSpec{"key": "value"}
 
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}) // nolint: errcheck
+	repository.CreateFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}, FeatureStatusActive) // nolint: errcheck
 
 	err := service.Update(context.Background(), clusterID, featureName, spec)
 	require.Error(t, err)
@@ -329,16 +335,17 @@ func TestFeatureService_Update_UnknownFeature(t *testing.T) {
 
 func TestFeatureService_Update_InvalidSpec(t *testing.T) {
 	repository := NewInMemoryFeatureRepository()
+	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
-		"myFeature": &dummyFeatureManager{},
+		featureManager.Name(): featureManager,
 	})
 	service := NewFeatureService(registry, repository, commonadapter.NewNoopLogger())
 
 	clusterID := uint(1)
-	featureName := "myFeature"
-	spec := map[string]interface{}{}
+	featureName := featureManager.Name()
+	spec := FeatureSpec{}
 
-	repository.SaveFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}) // nolint: errcheck
+	repository.CreateFeature(context.Background(), clusterID, featureName, FeatureSpec{"persisted": "feature"}, FeatureStatusActive) // nolint: errcheck
 
 	err := service.Update(context.Background(), clusterID, featureName, spec)
 	require.Error(t, err)

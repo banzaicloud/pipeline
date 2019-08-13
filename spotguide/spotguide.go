@@ -17,9 +17,9 @@ package spotguide
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -36,6 +36,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
+	cadenceClient "go.uber.org/cadence/client"
 	"gopkg.in/yaml.v2"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -138,7 +139,7 @@ type SpotguideManager struct {
 	platformData              PlatformData
 }
 
-func CreateSharedSpotguideOrganization(db *gorm.DB, scm string, sharedLibraryOrganization string) (*auth.Organization, error) {
+func EnsureSharedSpotguideOrganization(db *gorm.DB, scm string, sharedLibraryOrganization string) (*auth.Organization, error) {
 	// insert shared organization to DB if not exists
 	var sharedOrg *auth.Organization
 
@@ -198,14 +199,29 @@ func (s *SpotguideManager) isSpotguideReleaseAllowed(release scm.RepositoryRelea
 	return supported && (!prerelease || viper.GetBool(config.SpotguideAllowPrereleases))
 }
 
-func (s *SpotguideManager) ScrapeSharedSpotguides() error {
-	if s.sharedLibraryOrganization == nil {
-		return fmt.Errorf("failed to scrape shared spotguides")
+func ScheduleScrapingSharedSpotguides(workflowClient cadenceClient.Client) error {
+	workflowOptions := cadenceClient.StartWorkflowOptions{
+		ID:                           ScrapeSharedSpotguidesWorkflowName,
+		WorkflowIDReusePolicy:        cadenceClient.WorkflowIDReusePolicyAllowDuplicate,
+		TaskList:                     "pipeline",
+		ExecutionStartToCloseTimeout: 15 * time.Minute,
+		CronSchedule:                 "@every " + viper.GetDuration(config.SpotguideSyncInterval).String(),
 	}
+	_, err := workflowClient.StartWorkflow(context.Background(), workflowOptions, ScrapeSharedSpotguidesWorkflowName)
+	return err
+}
 
+func (s *SpotguideManager) scrapeSharedSpotguides() error {
 	sharedSCM, err := s.scmFactory.CreateSharedSCM()
 	if err != nil {
 		return emperror.Wrap(err, "failed to create SCM client")
+	}
+
+	if s.sharedLibraryOrganization == nil {
+		s.sharedLibraryOrganization, err = EnsureSharedSpotguideOrganization(s.db, viper.GetString("cicd.scm"), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+		if err != nil {
+			return emperror.Wrap(err, "failed to query shared spotguide organization")
+		}
 	}
 
 	return s.scrapeSpotguides(s.sharedLibraryOrganization, sharedSCM)
@@ -324,20 +340,16 @@ func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM)
 }
 
 func (s *SpotguideManager) GetSpotguides(orgID uint) (spotguides []*SpotguideRepo, err error) {
-	query := s.db.Where(SpotguideRepo{OrganizationID: orgID})
-	if s.sharedLibraryOrganization != nil {
-		query = query.Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID})
-	}
+	query := s.db.Where(SpotguideRepo{OrganizationID: orgID}).
+		Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID})
 
 	err = query.Find(&spotguides).Error
 	return spotguides, err
 }
 
 func (s *SpotguideManager) GetSpotguide(orgID uint, name, version string) (*SpotguideRepo, error) {
-	query := s.db.Where(SpotguideRepo{OrganizationID: orgID, Name: name, Version: version})
-	if s.sharedLibraryOrganization != nil {
-		query = query.Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID, Name: name, Version: version})
-	}
+	query := s.db.Where(SpotguideRepo{OrganizationID: orgID, Name: name, Version: version}).
+		Or(SpotguideRepo{OrganizationID: s.sharedLibraryOrganization.ID, Name: name, Version: version})
 
 	spotguide := SpotguideRepo{}
 	err := query.First(&spotguide).Error

@@ -40,18 +40,24 @@ func NewClusterService(getter ClusterGetter) clusterfeature.ClusterService {
 	}
 }
 
-func (s *clusterService) IsClusterReady(ctx context.Context, clusterID uint) (bool, error) {
+func (s *clusterService) CheckClusterReady(ctx context.Context, clusterID uint) error {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 
-		return false, errors.WrapIf(err, "failed to retrieve cluster")
+		return errors.WrapIfWithDetails(err, "failed to retrieve cluster", "clusterId", clusterID)
 	}
 
 	isReady, err := c.IsReady()
 	if err != nil {
 
-		return false, errors.WrapIfWithDetails(err, "failed to check cluster", "clusterId", clusterID)
+		return errors.WrapIfWithDetails(err, "failed to check cluster", "clusterId", clusterID)
 	}
 
-	return isReady, err
+	if !isReady {
+		return clusterfeature.ClusterIsNotReadyError{
+			ClusterID: clusterID,
+		}
+	}
+
+	return nil
 }
