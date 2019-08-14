@@ -174,8 +174,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 			customDns.Provider.Options,
 			secretValues,
 			values,
-		);
-			err != nil {
+		); err != nil {
 			return nil, errors.Wrap(err, "failed to create Google custom DNS chart values")
 		}
 
