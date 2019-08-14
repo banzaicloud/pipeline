@@ -74,6 +74,11 @@ func (n ResourceName) String() string {
 	return strings.Join(components, ":")
 }
 
+// IsBRN checks if the supplied string looks like a BRN.
+func IsBRN(s string) bool {
+	return strings.HasPrefix(s, SchemePrefix)
+}
+
 // Parse accepts a BRN parses it into a ResourceName.
 func Parse(brn string) (ResourceName, error) {
 	const rnLen = 4
