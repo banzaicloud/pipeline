@@ -16,6 +16,7 @@ package commonadapter
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"emperror.dev/errors"
@@ -51,12 +52,25 @@ func TestSecretStore_GetSecretValues(t *testing.T) {
 		}),
 	)
 
-	ctx := context.WithValue(context.Background(), orgIdKey, organizationID) // nolint: golint
+	t.Parallel()
 
-	values, err := store.GetSecretValues(ctx, secretID)
-	require.NoError(t, err)
+	t.Run("ctx", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), orgIdKey, organizationID) // nolint: golint
 
-	assert.Equal(t, secretResponse.Values, values)
+		values, err := store.GetSecretValues(ctx, secretID)
+		require.NoError(t, err)
+
+		assert.Equal(t, secretResponse.Values, values)
+	})
+
+	t.Run("brn", func(t *testing.T) {
+		secretID := fmt.Sprintf("brn:%d:secret:%s", organizationID, secretID)
+
+		values, err := store.GetSecretValues(context.Background(), secretID)
+		require.NoError(t, err)
+
+		assert.Equal(t, secretResponse.Values, values)
+	})
 }
 
 func TestSecretStore_GetSecretValues_SecretNotFound(t *testing.T) {

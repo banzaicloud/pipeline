@@ -16,10 +16,12 @@ package commonadapter
 
 import (
 	"context"
+	"strings"
 
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -62,13 +64,26 @@ func NewSecretStore(store OrganizationalSecretStore, extractor OrgIDContextExtra
 
 // GetSecretValues implements the common.SecretStore interface.
 func (s *SecretStore) GetSecretValues(ctx context.Context, secretID string) (map[string]string, error) {
-	organizationID, ok := s.extractor.GetOrganizationID(ctx)
-	if !ok {
-		return nil, errors.NewWithDetails(
-			"organization ID cannot be found in the context",
-			"organizationId", organizationID,
-			"secretId", secretID,
-		)
+	var organizationID uint
+
+	if strings.HasPrefix(secretID, brn.SchemePrefix) {
+		rn, err := brn.ParseAs(secretID, brn.SecretResourceType)
+		if err != nil {
+			return nil, err
+		}
+
+		organizationID = rn.OrganizationID
+		secretID = rn.ResourceID
+	} else { // fall back to organization extracted from context
+		var ok bool
+		organizationID, ok = s.extractor.GetOrganizationID(ctx)
+		if !ok {
+			return nil, errors.NewWithDetails(
+				"organization ID cannot be found in the context",
+				"organizationId", organizationID,
+				"secretId", secretID,
+			)
+		}
 	}
 
 	secretResponse, err := s.store.Get(organizationID, secretID)
