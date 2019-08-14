@@ -132,13 +132,14 @@ istioPilotImage = "banzaicloud/istio-pilot:1.1.8-bzc.1"
 istioMixerImage = "banzaicloud/istio-mixer:1.1.8-bzc.1"
 
 [backyards]
-chartVersion = "0.1.0"
+chartVersion = "0.1.4"
 chartName = "backyards"
 imageRepository = "banzaicloud/backyards"
-imageTag = "0.1.0"
+imageTag = "0.1.3"
+webImageTag = "web-0.1.3"
 
 [canary]
-chartVersion = "0.1.1"
+chartVersion = "0.1.2"
 chartName = "canary-operator"
 imageRepository = "banzaicloud/canary-operator"
 imageTag = "0.1.0"

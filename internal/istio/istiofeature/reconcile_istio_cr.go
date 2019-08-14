@@ -131,6 +131,7 @@ func (m *MeshReconciler) configureIstioCR(istio *v1beta1.Istio, config Config) *
 		Image:       m.Configuration.internalConfig.istioOperator.mixerImage,
 		MaxReplicas: 1,
 	}
+	istio.Spec.SidecarInjector.RewriteAppHTTPProbe = true
 
 	if len(m.Remotes) > 0 {
 		enabled := true
