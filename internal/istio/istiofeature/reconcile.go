@@ -27,16 +27,17 @@ func (m *MeshReconciler) Reconcile() error {
 	switch desiredState {
 	case DesiredStatePresent:
 		reconcilers = []Reconciler{
-			m.ReconcileNamespace,
+			m.ReconcileIstioOperatorNamespace,
 			m.ReconcileMonitoring,
 			m.ReconcilePrometheusScrapeConfig,
 			m.ReconcileGrafanaDashboards,
 			m.ReconcileIstioOperator,
 			m.ReconcileIstio,
 			m.ReconcileRemoteIstios,
-			m.ReconcileMeshNamespace,
-			m.ReconcileCanaryOperator,
+			m.ReconcileBackyardsNamespace,
 			m.ReconcileBackyards,
+			m.ReconcileCanaryOperatorNamespace,
+			m.ReconcileCanaryOperator,
 		}
 	case DesiredStateAbsent:
 		reconcilers = []Reconciler{
@@ -47,8 +48,9 @@ func (m *MeshReconciler) Reconcile() error {
 			m.ReconcileIstioOperator,
 			m.ReconcileCanaryOperator,
 			m.ReconcileBackyards,
-			m.ReconcileMeshNamespace,
-			m.ReconcileNamespace,
+			m.ReconcileCanaryOperatorNamespace,
+			m.ReconcileBackyardsNamespace,
+			m.ReconcileIstioOperatorNamespace,
 		}
 	}
 

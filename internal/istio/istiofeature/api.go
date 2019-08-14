@@ -25,18 +25,20 @@ import (
 const (
 	FeatureName = "servicemesh"
 
-	istioOperatorNamespace    = "istio-system"
 	istioOperatorReleaseName  = "istio-operator"
 	istioVersion              = "1.1"
-	meshNamespace             = "pipeline-mesh"
 	backyardsReleaseName      = "backyards"
 	canaryOperatorReleaseName = "canary"
 	prometheusHostname        = "monitor-prometheus-server.pipeline-system.svc.cluster.local"
 	prometheusURL             = "http://monitor-prometheus-server.pipeline-system.svc.cluster.local/prometheus"
+	prometheusExternalURL     = "/prometheus"
 	labelPrefix               = "cluster.banzaicloud.io"
 	clusterIDLabel            = labelPrefix + "/id"
 	cloudLabel                = labelPrefix + "/cloud"
 	distributionLabel         = labelPrefix + "/distribution"
+	backyardsNamespace        = "backyards-system"
+	canaryOperatorNamespace   = "backyards-canary"
+	istioOperatorNamespace    = "istio-system"
 
 	backoffDelaySeconds = 10
 	backoffMaxretries   = 10
@@ -96,6 +98,7 @@ type backyardsConfiguration struct {
 	chartName       string
 	imageRepository string
 	imageTag        string
+	webImageTag     string
 }
 
 type istioOperatorConfiguration struct {
@@ -113,7 +116,8 @@ type imageChartValue struct {
 	PullPolicy string `json:"pullPolicy,omitempty"`
 }
 type prometheusChartValue struct {
-	Enabled  bool   `json:"enabled,omitempty"`
-	URL      string `json:"url,omitempty"`
-	Hostname string `json:"host,omitempty"`
+	Enabled     bool   `json:"enabled,omitempty"`
+	URL         string `json:"url,omitempty"`
+	Hostname    string `json:"host,omitempty"`
+	ExternalURL string `json:"externalUrl,omitempty"`
 }
