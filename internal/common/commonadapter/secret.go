@@ -16,7 +16,6 @@ package commonadapter
 
 import (
 	"context"
-	"strings"
 
 	"emperror.dev/errors"
 
@@ -66,7 +65,7 @@ func NewSecretStore(store OrganizationalSecretStore, extractor OrgIDContextExtra
 func (s *SecretStore) GetSecretValues(ctx context.Context, secretID string) (map[string]string, error) {
 	var organizationID uint
 
-	if strings.HasPrefix(secretID, brn.SchemePrefix) {
+	if brn.IsBRN(secretID) {
 		rn, err := brn.ParseAs(secretID, brn.SecretResourceType)
 		if err != nil {
 			return nil, err
