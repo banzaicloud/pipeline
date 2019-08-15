@@ -17,6 +17,8 @@ jobs:
         
       - name: Check dependency licenses
         run: make license-check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check generated OpenAPI files
         run: sha256sum -c client/SHA256SUMS > /dev/null || { echo "Please generate client code using make generate-client"; exit 1; }
