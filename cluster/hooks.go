@@ -24,6 +24,7 @@ import (
 	"emperror.dev/emperror"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
+	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -534,11 +535,24 @@ func installAllowAllWhitelist(cluster CommonCluster) error {
 		},
 	}
 
-	_, err = securityClientSet.Whitelists(metav1.NamespaceDefault).Create(&whitelist)
-	if err != nil {
-		return emperror.Wrap(err, "create whitelist")
+	// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
+	// a whitelist cr may fail. Retry the whitelist creation in case of failure
+	var backoffConfig = backoff.ConstantBackoffConfig{
+		Delay:      time.Duration(5) * time.Second,
+		MaxRetries: 3,
 	}
-	return nil
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+
+	err = backoff.Retry(func() error {
+		_, err = securityClientSet.Whitelists(metav1.NamespaceDefault).Create(&whitelist)
+		if err != nil {
+			return emperror.Wrap(err, "create whitelist")
+		}
+		return nil
+
+	}, backoffPolicy)
+
+	return err
 }
 
 func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
