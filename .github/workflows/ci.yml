@@ -12,6 +12,9 @@ jobs:
     name: Static checks
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+        
       - name: Check dependency licenses
         run: make license-check
 
@@ -29,6 +32,10 @@ jobs:
       postgres:
           image: postgres:9.6
     steps:
+
+      - name: Checkout code
+        uses: actions/checkout@master
+      
       - name: Install build dependencies
         run: |
           sudo apt-get update
