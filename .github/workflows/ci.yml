@@ -11,6 +11,14 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    services:
+      vault:
+        image: vault:1.1.0
+        ports:
+          - 127.0.0.1:8200:8200
+        environment:
+            SKIP_SETCAP: true
+            VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
     steps:
 
     - name: Set up Go
@@ -39,6 +47,8 @@ jobs:
         PIPELINE_CONFIG_DIR=$PWD/config make test
       env:
         VERBOSE: 1
+        VAULT_ADDR: http://localhost:8200
+        VAULT_TOKEN: 227e1cce-6bf7-30bb-2d2a-acc854318caf
         
     - name: Lint
       run: make lint
