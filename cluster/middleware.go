@@ -34,7 +34,7 @@ type notSupportedQueryError struct {
 }
 
 func (e *notSupportedQueryError) Error() string {
-	return fmt.Sprintf("field=%s not supported", e.field)
+	return fmt.Sprintf("field=%q not supported", e.field)
 }
 
 // NewClusterCheckMiddleware returns a new gin middleware that checks cluster is exists in the current org.
@@ -66,7 +66,7 @@ func NewClusterCheckMiddleware(manager *Manager, errorHandler emperror.Handler) 
 			clusterName := c.Param("id")
 			cl, err = manager.GetClusterByName(ctx, orgID, clusterName)
 		default:
-			err = errors.Wrap(&notSupportedQueryError{field: field}, "failed to get 'field' query")
+			err = errors.Wrap(&notSupportedQueryError{field: field}, "invalid 'field' value in query")
 		}
 
 		if err != nil && cluster.IsClusterNotFoundError(err) {
