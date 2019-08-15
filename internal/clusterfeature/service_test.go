@@ -138,6 +138,7 @@ func TestFeatureService_Activate_UnknownFeature(t *testing.T) {
 }
 
 func TestFeatureService_Activate_FeatureAlreadyActivated(t *testing.T) {
+	t.Skip("implement async feature manager")
 	repository := NewInMemoryFeatureRepository()
 	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
@@ -231,6 +232,7 @@ func TestFeatureService_Deactivate(t *testing.T) {
 
 // TestFeatureService_Deactivate_NotActive (not found in the persistent store)
 func TestFeatureService_Deactivate_NotActive(t *testing.T) {
+	t.Skip("implement async feature manager")
 	repository := NewInMemoryFeatureRepository()
 	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{
@@ -295,6 +297,7 @@ func TestFeatureService_Update(t *testing.T) {
 }
 
 func TestFeatureService_Update_NotActive(t *testing.T) {
+	t.Skip("implement async feature manager")
 	repository := NewInMemoryFeatureRepository()
 	featureManager := NewSyncFeatureManager(&dummyFeatureManager{}, repository, commonadapter.NewNoopLogger())
 	registry := NewFeatureRegistry(map[string]FeatureManager{

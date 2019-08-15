@@ -94,19 +94,12 @@ func ClusterFeatureJobWorkflow(ctx workflow.Context, input ClusterFeatureJobWork
 	}
 
 	switch action := signalInput.Action; action {
-	case ActionActivate:
+	case ActionActivate, ActionUpdate:
 		if err := setClusterFeatureStatus(ctx, input, clusterfeature.FeatureStatusActive); err != nil {
 			return err
 		}
 	case ActionDeactivate:
 		if err := deleteClusterFeature(ctx, input); err != nil {
-			return err
-		}
-	case ActionUpdate:
-		if err := setClusterFeatureSpec(ctx, input, signalInput.FeatureSpec); err != nil {
-			return err
-		}
-		if err := setClusterFeatureStatus(ctx, input, clusterfeature.FeatureStatusActive); err != nil {
 			return err
 		}
 	default:
@@ -192,15 +185,6 @@ func setClusterFeatureStatus(ctx workflow.Context, input ClusterFeatureJobWorkfl
 		Status:      status,
 	}
 	return workflow.ExecuteActivity(ctx, ClusterFeatureSetStatusActivityName, activityInput).Get(ctx, nil)
-}
-
-func setClusterFeatureSpec(ctx workflow.Context, input ClusterFeatureJobWorkflowInput, spec clusterfeature.FeatureSpec) error {
-	activityInput := ClusterFeatureSetSpecActivityInput{
-		ClusterID:   input.ClusterID,
-		FeatureName: input.FeatureName,
-		Spec:        spec,
-	}
-	return workflow.ExecuteActivity(ctx, ClusterFeatureSetSpecActivityName, activityInput).Get(ctx, nil)
 }
 
 func deleteClusterFeature(ctx workflow.Context, input ClusterFeatureJobWorkflowInput) error {
