@@ -26,6 +26,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -233,8 +234,8 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 	scalingConfigurationRequest.SystemDiskCategory = "cloud_efficiency"
 	scalingConfigurationRequest.ImageId = ack.AlibabaDefaultImageId
 	scalingConfigurationRequest.Tags =
-		fmt.Sprintf(`{"pipeline-created":"true","pipeline-cluster":"%s","pipeline-nodepool":"%s"`,
-			cluster.Name, nodePool.Name)
+		fmt.Sprintf(`{"pipeline-created":"true","pipeline-cluster":"%s","pipeline-nodepool":"%s","%s":"%s"`,
+			cluster.Name, nodePool.Name, global.ManagedByPipelineTag, global.PipelineUUID())
 
 	createConfigurationResponse, err := essClient.CreateScalingConfiguration(scalingConfigurationRequest)
 	if err != nil {
