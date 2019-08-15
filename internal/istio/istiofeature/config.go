@@ -32,6 +32,7 @@ func (config Config) init() Config {
 		chartName:       viper.GetString(pConfig.BackyardsChartName),
 		imageRepository: viper.GetString(pConfig.BackyardsImageRepository),
 		imageTag:        viper.GetString(pConfig.BackyardsImageTag),
+		webImageTag:     viper.GetString(pConfig.BackyardsWebImageTag),
 	}
 
 	config.internalConfig.istioOperator = istioOperatorConfiguration{
