@@ -25,6 +25,7 @@ jobs:
     - name: Download dependencies
       run: go mod download
       env:
+        GOFLAG: -mod=readonly
         GOPROXY: https://proxy.golang.org
 
     - name: Build
@@ -33,7 +34,9 @@ jobs:
         VERBOSE: 1
 
     - name: Unit tests
-      run: make test
+      run: |
+        make config/config.toml
+        PIPELINE_CONFIG_DIR=$PWD/config make test
       env:
         VERBOSE: 1
         
