@@ -30,7 +30,7 @@ jobs:
       mysql:
           image: mysql:5.7
           ports:
-            - 127.0.0.1:3306:3306
+            - 127.0.0.1:13306:3306
           env:
               MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       postgres:
@@ -49,8 +49,8 @@ jobs:
 
       - name: Create MySQL databases
         run: |
-            mysql -h 127.0.0.1 -u root -e "CREATE DATABASE pipeline_migrations;"
-            mysql -h 127.0.0.1 -u root -e 'CREATE DATABASE pipeline_automigrate; USE pipeline_automigrate; CREATE TABLE `schema_migrations` (`version` bigint(20) NOT NULL, `dirty` tinyint(1) NOT NULL, PRIMARY KEY (`version`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
+            mysql -h 127.0.0.1 -P 13306 -u root -e "CREATE DATABASE pipeline_migrations;"
+            mysql -h 127.0.0.1 -P 13306 -u root -e 'CREATE DATABASE pipeline_automigrate; USE pipeline_automigrate; CREATE TABLE `schema_migrations` (`version` bigint(20) NOT NULL, `dirty` tinyint(1) NOT NULL, PRIMARY KEY (`version`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;'
       - name: Test MySQL database migrations
         run: |
             make bin/migrate
@@ -58,8 +58,8 @@ jobs:
             
       - name: Test MySQL database migrations are reversible
         run: |
-            bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" down
-            bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
+            bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:13306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" down
+            bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:13306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
             
 
       - name: Create PostgreSQL databases
