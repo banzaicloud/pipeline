@@ -36,6 +36,26 @@ const (
 
 const releaseNameMaxLen = 53
 
+// the label Helm places on Kubernetes objects for differentiating between
+// different instances: https://helm.sh/docs/chart_best_practices/#standard-labels
+const HelmReleaseNameLabelLegacy = "release"
+const HelmReleaseNameLabel = "app.kubernetes.io/instance"
+
+// GetHelmReleaseName returns the helm release name placed by helm deployment Kubernetes objects
+// it checks for label with key `HelmReleaseNameLabel`, if no such label is present than falls back
+// the legacy label key
+func GetHelmReleaseName(labels map[string]string) string {
+	if labels == nil {
+		return ""
+	}
+
+	if labels[HelmReleaseNameLabel] != "" {
+		return labels[HelmReleaseNameLabel]
+	}
+
+	return labels[HelmReleaseNameLabelLegacy]
+}
+
 // Install describes an Helm install request
 type Install struct {
 	// Name of the kubeconfig context to use

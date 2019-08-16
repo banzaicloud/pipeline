@@ -15,9 +15,12 @@
 package cluster
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/moogar0880/problems"
 
@@ -26,20 +29,46 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 )
 
+type notSupportedQueryError struct {
+	field string
+}
+
+func (e *notSupportedQueryError) Error() string {
+	return fmt.Sprintf("field=%q not supported", e.field)
+}
+
 // NewClusterCheckMiddleware returns a new gin middleware that checks cluster is exists in the current org.
 func NewClusterCheckMiddleware(manager *Manager, errorHandler emperror.Handler) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		clusterID, ok := ginutils.UintParam(c, "id")
-		if !ok {
-			return
-		}
+
+		ctx := context.Background()
 
 		orgID, ok := ginutils.UintParam(c, "orgid")
 		if !ok {
+			c.Abort()
+
 			return
 		}
 
-		_, err := manager.GetClusterByID(c, orgID, clusterID)
+		var err error
+		var cl CommonCluster
+		switch field := c.DefaultQuery("field", "id"); field {
+		case "id":
+			clusterID, ok := ginutils.UintParam(c, "id")
+			if !ok {
+				c.Abort()
+
+				return
+			}
+
+			cl, err = manager.GetClusterByID(ctx, orgID, clusterID)
+		case "name":
+			clusterName := c.Param("id")
+			cl, err = manager.GetClusterByName(ctx, orgID, clusterName)
+		default:
+			err = errors.Wrap(&notSupportedQueryError{field: field}, "invalid 'field' value in query")
+		}
+
 		if err != nil && cluster.IsClusterNotFoundError(err) {
 			problem := problems.NewDetailedProblem(http.StatusNotFound, err.Error())
 			c.AbortWithStatusJSON(http.StatusNotFound, problem)
@@ -55,6 +84,6 @@ func NewClusterCheckMiddleware(manager *Manager, errorHandler emperror.Handler) 
 			return
 		}
 
-		c.Request = c.Request.WithContext(ctxutil.WithClusterID(c.Request.Context(), clusterID))
+		c.Request = c.Request.WithContext(ctxutil.WithClusterID(c.Request.Context(), cl.GetID()))
 	}
 }

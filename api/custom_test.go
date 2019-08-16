@@ -141,7 +141,7 @@ var (
 		Items: []v1.Service{{
 			ObjectMeta: v1meta.ObjectMeta{
 				Name:   "serviceForIngress",
-				Labels: map[string]string{"release": dummyReleaseName},
+				Labels: map[string]string{pkgHelm.HelmReleaseNameLabel: dummyReleaseName},
 			},
 		},
 		},
