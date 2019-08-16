@@ -199,10 +199,23 @@ func (s *FeatureService) Activate(ctx context.Context, clusterID uint, featureNa
 		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
 	}
 
+	logger.Debug("persisting feature")
+	if err := s.featureRepository.CreateOrUpdateFeature(ctx, clusterID, featureName, spec, FeatureStatusPending); err != nil {
+		const msg = "failed to persist feature"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	logger.Debug("activating feature")
 	if err := featureManager.Activate(ctx, clusterID, spec); err != nil {
 		const msg = "failed to activate feature"
 		logger.Debug(msg)
+
+		// Deletion is best effort here, activation failed anyway
+		if err := s.featureRepository.DeleteFeature(ctx, clusterID, featureName); err != nil {
+			logger.Error("failed to delete feature from repository", map[string]interface{}{"error": err.Error()})
+		}
+
 		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
 	}
 
@@ -226,11 +239,23 @@ func (s *FeatureService) Deactivate(ctx context.Context, clusterID uint, feature
 		return errors.WrapIf(err, msg)
 	}
 
+	logger.Debug("updating feature status")
+	if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusPending); err != nil {
+		const msg = "failed to update feature status"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	logger.Debug("deactivating feature")
 	if err := featureManager.Deactivate(ctx, clusterID); err != nil {
-		logger.Debug("failed to deactivate feature")
+		const msg = "failed to deactivate feature"
+		logger.Debug(msg)
 
-		return errors.WrapIfWithDetails(err, "failed to deactivate feature", "clusterID", clusterID, "feature", featureName)
+		if err := s.featureRepository.DeleteFeature(ctx, clusterID, featureName); err != nil {
+			logger.Error("failed to delete feature from repository", map[string]interface{}{"error": err.Error()})
+		}
+
+		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
 	}
 
 	logger.Info("feature deactivation request processed successfully")
@@ -259,10 +284,23 @@ func (s *FeatureService) Update(ctx context.Context, clusterID uint, featureName
 		return InvalidFeatureSpecError{FeatureName: featureName, Problem: err.Error()}
 	}
 
+	logger.Debug("persisting feature")
+	if err := s.featureRepository.CreateOrUpdateFeature(ctx, clusterID, featureName, spec, FeatureStatusPending); err != nil {
+		const msg = "failed to persist feature"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	logger.Debug("updating feature")
 	if err := featureManager.Update(ctx, clusterID, spec); err != nil {
 		const msg = "failed to update feature"
 		logger.Debug(msg)
+
+		// We set the feature's status back to active. If the feature is non-functioning, the user can deactivate it.
+		if _, err := s.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, FeatureStatusActive); err != nil {
+			logger.Error("failed to update feature status", map[string]interface{}{"error": err.Error()})
+		}
+
 		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
 	}
 

@@ -115,36 +115,9 @@ func (e FeatureAlreadyActivatedError) Details() []interface{} {
 func (m *syncFeatureManager) Activate(ctx context.Context, clusterID uint, spec FeatureSpec) error {
 	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": m.Name()})
 
-	// This block should be executed atomically. CreateFeature will fail if the feature is created concurrently.
-	{
-		feature, err := m.featureRepository.GetFeature(ctx, clusterID, m.Name())
-		if err != nil {
-			const msg = "failed to retrieve feature from repository"
-			logger.Debug(msg)
-			return errors.WrapIf(err, msg)
-		}
-
-		if feature != nil {
-			logger.Debug("feature already pending or active")
-			return FeatureAlreadyActivatedError{FeatureName: m.Name()}
-		}
-
-		if err := m.featureRepository.CreateFeature(ctx, clusterID, m.Name(), spec, FeatureStatusPending); err != nil {
-			const msg = "failed to create feature in repository"
-			logger.Debug(msg)
-			return errors.WrapIf(err, msg)
-		}
-	}
-
 	if err := m.FeatureManager.Activate(ctx, clusterID, spec); err != nil {
 		const msg = "cluster feature activation failed"
 		logger.Debug(msg)
-
-		// Deletion is best effort here, activation failed anyway
-		if err := m.featureRepository.DeleteFeature(ctx, clusterID, m.Name()); err != nil {
-			logger.Error("failed to delete feature from repository", map[string]interface{}{"error": err.Error()})
-		}
-
 		return errors.WrapIf(err, msg)
 	}
 
@@ -173,36 +146,10 @@ func (e FeatureNotActiveError) Details() []interface{} {
 func (m *syncFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {
 	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": m.Name()})
 
-	// This block should be executed atomically. UpdateFeatureStatus won't fail if the feature's status changes concurrently.
-	{
-		feature, err := m.featureRepository.GetFeature(ctx, clusterID, m.Name())
-		if err != nil {
-			const msg = "failed to retrieve feature from repository"
-			logger.Debug(msg)
-			return errors.WrapIf(err, msg)
-		}
-
-		if feature == nil || feature.Status != FeatureStatusActive {
-			logger.Debug("feature is not active")
-			return FeatureNotActiveError{FeatureName: m.Name()}
-		}
-
-		if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), FeatureStatusPending); err != nil {
-			const msg = "failed to update feature status"
-			logger.Debug(msg)
-			return errors.WrapIf(err, msg)
-		}
-	}
-
 	if err := m.FeatureManager.Deactivate(ctx, clusterID); err != nil {
 		// The feature's status is uncertain, so we make it inactive.
 		const msg = "cluster feature deactivation failed"
 		logger.Debug(msg, map[string]interface{}{"error": err.Error()})
-
-		if err := m.featureRepository.DeleteFeature(ctx, clusterID, m.Name()); err != nil {
-			logger.Error("failed to delete feature from repository", map[string]interface{}{"error": err.Error()})
-		}
-
 		return errors.WrapIf(err, msg)
 	}
 
@@ -218,41 +165,8 @@ func (m *syncFeatureManager) Deactivate(ctx context.Context, clusterID uint) err
 func (m *syncFeatureManager) Update(ctx context.Context, clusterID uint, spec FeatureSpec) error {
 	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID, "feature": m.Name()})
 
-	// This block should be executed atomically. UpdateFeatureStatus won't fail if the feature's status changes concurrently.
-	{
-		feature, err := m.featureRepository.GetFeature(ctx, clusterID, m.Name())
-		if err != nil {
-			const msg = "failed to retrieve feature from repository"
-			logger.Debug(msg)
-			return errors.WrapIf(err, msg)
-		}
-
-		if feature == nil || feature.Status != FeatureStatusActive {
-			logger.Debug("feature is not active")
-			return FeatureNotActiveError{FeatureName: m.Name()}
-		}
-
-		if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), FeatureStatusPending); err != nil {
-			const msg = "failed to update feature status"
-			logger.Debug(msg)
-			return errors.WrapIf(err, msg)
-		}
-	}
-
 	if err := m.FeatureManager.Update(ctx, clusterID, spec); err != nil {
 		const msg = "cluster feature update failed"
-		logger.Debug(msg)
-
-		// We set the feature's status back to active. If the feature is non-functioning, the user can deactivate it.
-		if _, err := m.featureRepository.UpdateFeatureStatus(ctx, clusterID, m.Name(), FeatureStatusActive); err != nil {
-			logger.Error("failed to update feature status", map[string]interface{}{"error": err.Error()})
-		}
-
-		return errors.WrapIf(err, msg)
-	}
-
-	if _, err := m.featureRepository.UpdateFeatureSpec(ctx, clusterID, m.Name(), spec); err != nil {
-		const msg = "failed to update feature spec"
 		logger.Debug(msg)
 		return errors.WrapIf(err, msg)
 	}
