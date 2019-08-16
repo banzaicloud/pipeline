@@ -22,7 +22,6 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
@@ -40,6 +39,17 @@ const (
 	externalDnsNamespace = "pipeline-system"
 
 	externalDnsRelease = "dns"
+
+	externalDnsAzureSecret  = "azure-config-file"
+	externalDnsGoogleSecret = "google-config-file"
+
+	externalDnsAzureSecretDataKey  = "azure.json"
+	externalDnsGoogleSecretDataKey = "credentials.json"
+
+	// supported DNS provider names
+	dnsRoute53 = "route53"
+	dnsAzure   = "azure"
+	dnsGoogle  = "google"
 )
 
 // dnsFeatureManager synchronous feature manager
@@ -126,7 +136,7 @@ func (m *dnsFeatureManager) Activate(ctx context.Context, clusterID uint, spec c
 		return err
 	}
 
-	dnsChartValues := &dns.ExternalDnsChartValues{}
+	dnsChartValues := &ExternalDnsChartValues{}
 
 	if boundSpec.AutoDns.Enabled {
 
@@ -258,7 +268,7 @@ func (m *dnsFeatureManager) Update(ctx context.Context, clusterID uint, spec clu
 		return err
 	}
 
-	dnsChartValues := &dns.ExternalDnsChartValues{}
+	dnsChartValues := &ExternalDnsChartValues{}
 
 	if boundSpec.AutoDns.Enabled {
 
