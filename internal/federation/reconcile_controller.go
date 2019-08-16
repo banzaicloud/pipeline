@@ -285,8 +285,8 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 			"scope": scope,
 		},
 		"controllermanager": map[string]interface{}{
-			"repository": fedImageTag,
-			"tag":        fedImageRepo,
+			"repository": fedImageRepo,
+			"tag":        fedImageTag,
 			"featureGates": map[string]interface{}{
 				"SchedulerPreferences":         schedulerPreferences,
 				"CrossClusterServiceDiscovery": crossClusterServiceDiscovery,

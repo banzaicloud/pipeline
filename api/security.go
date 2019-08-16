@@ -20,16 +20,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
-
-	"regexp"
 
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/banzaicloud/pipeline/helm"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/security"
 	"github.com/gin-gonic/gin"
@@ -538,12 +538,12 @@ func GetImageDeployments(c *gin.Context) {
 	for _, p := range pods {
 		for _, status := range p.Status.ContainerStatuses {
 			if getImageDigest(status.ImageID) == imageDigest {
-				releaseMap[p.Labels["release"]] = true
+				releaseMap[pkgHelm.GetHelmReleaseName(p.Labels)] = true
 			}
 		}
 		for _, status := range p.Status.InitContainerStatuses {
 			if getImageDigest(status.ImageID) == imageDigest {
-				releaseMap[p.Labels["release"]] = true
+				releaseMap[pkgHelm.GetHelmReleaseName(p.Labels)] = true
 			}
 		}
 	}

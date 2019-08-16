@@ -371,8 +371,8 @@ func init() {
 
 	viper.SetDefault(FederationChartVersion, "0.1.0-rc5")
 	viper.SetDefault(FederationChartName, "kubefed-charts/kubefed")
-	viper.SetDefault(FederationImageTag, "banzaicloud")
-	viper.SetDefault(FederationImageRepo, "v0.1.0-rc5-bzc.1")
+	viper.SetDefault(FederationImageTag, "v0.1.0-rc5-bzc.1")
+	viper.SetDefault(FederationImageRepo, "banzaicloud")
 
 	viper.SetDefault(DNSExternalDnsReleaseName, "dns")
 	viper.SetDefault(DNSExternalDnsChartName, "stable/external-dns")
