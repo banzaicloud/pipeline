@@ -68,7 +68,7 @@ $ make start
 ``` 
 
 This will create a `mysql`, `adminer` and `vault` container:
- - Adminer MySQL GUI: http://localhost:8080 login with username/password `sparky/sparky123`
+ - Adminer MySQL GUI: <http://localhost:8080>, login to Server/Database `mysql`/`pipeline` with Username/Password `sparky`/`sparky123`
  - Vault GUI: http://localhost:8200 login with token found in `cat ~/.vault-token`
 
 **Note:** If you want to customize mount points and port mappings, create a `docker-compose.override.yml` file via
