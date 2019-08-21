@@ -38,13 +38,13 @@ jobs:
       mysql:
           image: mysql:5.7
           ports:
-            - 127.0.0.1:13306:3306
+            - 13306:3306
           env:
               MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       postgres:
           image: postgres:9.6
           ports:
-            - 127.0.0.1:5432:5432
+            - 5432:5432
     steps:
 
       - name: Checkout code
