@@ -62,7 +62,7 @@ jobs:
       - name: Test MySQL database migrations
         run: |
             make bin/migrate
-            bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:3306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
+            bin/migrate -source "file://database/migrations/mysql" -database "mysql://root:@tcp(127.0.0.1:13306)/pipeline_migrations?multiStatements=true&charset=utf8mb4" up
             
       - name: Test MySQL database migrations are reversible
         run: |
