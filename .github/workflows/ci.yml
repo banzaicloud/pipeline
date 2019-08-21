@@ -10,7 +10,7 @@ jobs:
 
   static:
     name: Static checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
@@ -33,7 +33,7 @@ jobs:
         
   database:
     name: Database checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     services:
       mysql:
           image: mysql:5.7
@@ -52,7 +52,7 @@ jobs:
       
       - name: Install build dependencies
         run: |
-          # sudo apt-get update
+          sudo apt-get update
           sudo apt-get install -y mysql-client mysql-utilities postgresql-client
 
       - name: Create MySQL databases
