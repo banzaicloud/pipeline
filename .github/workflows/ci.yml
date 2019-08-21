@@ -12,6 +12,12 @@ jobs:
     name: Static checks
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.12
+        id: go
+      
       - name: Checkout code
         uses: actions/checkout@master
         
@@ -19,6 +25,8 @@ jobs:
         run: make license-check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOFLAG: -mod=readonly
+          GOPROXY: https://proxy.golang.org
 
       - name: Check generated OpenAPI files
         run: sha256sum -c client/SHA256SUMS > /dev/null || { echo "Please generate client code using make generate-client"; exit 1; }
