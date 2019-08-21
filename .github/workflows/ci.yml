@@ -44,7 +44,7 @@ jobs:
       postgres:
           image: postgres:9.6
           ports:
-            - 5432:5432
+            - 5432/tcp
     steps:
 
       - name: Checkout code
@@ -72,18 +72,18 @@ jobs:
 
       - name: Create PostgreSQL databases
         run: |
-            psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE pipeline_migrations;"
-            psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE pipeline_automigrate;"
-            psql -h 127.0.0.1 -U postgres -d pipeline_automigrate -c 'CREATE TABLE schema_migrations (version bigint NOT NULL, dirty BOOLEAN NOT NULL, PRIMARY KEY (version));'
+            psql -h 127.0.0.1 -p ${{ jobs.services.postgres.ports['5432'] }} -U postgres -c "CREATE DATABASE pipeline_migrations;"
+            psql -h 127.0.0.1 -p ${{ jobs.services.postgres.ports['5432'] }} -U postgres -c "CREATE DATABASE pipeline_automigrate;"
+            psql -h 127.0.0.1 -p ${{ jobs.services.postgres.ports['5432'] }} -U postgres -d pipeline_automigrate -c 'CREATE TABLE schema_migrations (version bigint NOT NULL, dirty BOOLEAN NOT NULL, PRIMARY KEY (version));'
       - name: Test PostgreSQL database migrations
         run: |
             make bin/migrate
-            bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" up
+            bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:${{ jobs.services.postgres.ports['5432'] }}/pipeline_migrations?sslmode=disable" up
             
       - name: Test PostgreSQL database migrations are reversible
         run: |
-            bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" down
-            bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:5432/pipeline_migrations?sslmode=disable" up
+            bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:${{ jobs.services.postgres.ports['5432'] }}/pipeline_migrations?sslmode=disable" down
+            bin/migrate -source "file://database/migrations/postgres" -database "postgres://postgres:@127.0.0.1:${{ jobs.services.postgres.ports['5432'] }}/pipeline_migrations?sslmode=disable" up
 
 
   build:
