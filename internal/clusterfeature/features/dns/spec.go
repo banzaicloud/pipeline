@@ -136,6 +136,7 @@ func (m *dnsFeatureManager) processAutoDNSFeatureValues(ctx context.Context, clu
 	}
 
 	values.Aws = providerSettings
+	values.Provider = "aws"
 
 	return values, nil
 }
