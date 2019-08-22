@@ -16,11 +16,12 @@ type CreateClusterRequest struct {
 	Location string `json:"location"`
 	Cloud    string `json:"cloud"`
 	// The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-	TtlMinutes  int32                  `json:"ttlMinutes,omitempty"`
-	SecretId    string                 `json:"secretId,omitempty"`
-	SecretIds   []string               `json:"secretIds,omitempty"`
-	SecretName  string                 `json:"secretName,omitempty"`
-	PostHooks   map[string]interface{} `json:"postHooks,omitempty"`
-	ProfileName string                 `json:"profileName,omitempty"`
-	Properties  map[string]interface{} `json:"properties"`
+	TtlMinutes   int32                  `json:"ttlMinutes,omitempty"`
+	SecretId     string                 `json:"secretId,omitempty"`
+	SecretIds    []string               `json:"secretIds,omitempty"`
+	SecretName   string                 `json:"secretName,omitempty"`
+	PostHooks    map[string]interface{} `json:"postHooks,omitempty"`
+	ProfileName  string                 `json:"profileName,omitempty"`
+	ScaleOptions ScaleOptions           `json:"scaleOptions,omitempty"`
+	Properties   map[string]interface{} `json:"properties"`
 }
