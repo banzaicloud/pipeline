@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **SecretName** | **string** |  | [optional] 
 **PostHooks** | [**map[string]interface{}**](.md) |  | [optional] 
 **ProfileName** | **string** |  | [optional] 
+**ScaleOptions** | [**ScaleOptions**](ScaleOptions.md) |  | [optional] 
 **Properties** | [**map[string]interface{}**](.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

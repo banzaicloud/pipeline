@@ -7236,6 +7236,8 @@ components:
 
                 profileName:
                     type: string
+                scaleOptions:
+                    $ref: '#/components/schemas/ScaleOptions'
                 properties:
                     type: object
                     additionalProperties:
