@@ -4,10 +4,8 @@ require (
 	cloud.google.com/go v0.43.0
 	emperror.dev/emperror v0.21.3
 	emperror.dev/errors v0.4.2
-	emperror.dev/handler/logrus v0.1.0
 	emperror.dev/handler/logur v0.1.0
 	emperror.dev/handler/stackdriver v0.1.0
-	git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999 // indirect
 	github.com/Azure/azure-pipeline-go v0.1.8
 	github.com/Azure/azure-sdk-for-go v23.2.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.0.0-20181022225951-5152f14ace1c
@@ -25,7 +23,7 @@ require (
 	github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08 // indirect
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.16.11
-	github.com/banzaicloud/anchore-image-validator v0.0.0-20181204185657-bf9806201a4e
+	github.com/banzaicloud/anchore-image-validator v0.0.0-20190822140614-be78f43fb708
 	github.com/banzaicloud/bank-vaults v0.0.0-20190408133613-dc8e83242b1b
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
@@ -76,7 +74,6 @@ require (
 	github.com/jinzhu/now v0.0.0-20180511015916-ed742868f2ae
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/kisielk/errcheck v1.2.0 // indirect
-	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/kubernetes-sigs/kubefed v0.1.0-rc5
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
 	github.com/microcosm-cc/bluemonday v0.0.0-20180327211928-995366fdf961
@@ -86,7 +83,6 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/oklog/run v1.0.0
-	github.com/openzipkin/zipkin-go v0.1.1 // indirect
 	github.com/oracle/oci-go-sdk v2.0.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.2.0
@@ -144,17 +140,15 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.0.0-20190404065945-709cf190c7b7
+	k8s.io/api v0.0.0-20190409092523-d687e77c8ae9
 	k8s.io/apiextensions-apiserver v0.0.0-20190308081736-3a66ae4d2f93
-	k8s.io/apimachinery v0.0.0-20190404065847-4a4abcd45006
-	k8s.io/apiserver v0.0.0-20180327065226-f4a9d3132586 // indirect
+	k8s.io/apimachinery v0.0.0-20190409092423-760d1845f48b
 	k8s.io/cli-runtime v0.0.0-20190404071300-cbd7455f4bce // indirect
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cluster-bootstrap v0.0.0-20190404071559-03c28a85c7b7
 	k8s.io/helm v2.12.2+incompatible
 	k8s.io/kubectl v0.0.0-20190523211420-5b63b0fd89bb // indirect
 	k8s.io/kubernetes v1.13.5
-	k8s.io/utils v0.0.0-20190221042446-c2654d5206da // indirect
 	sigs.k8s.io/kubefed v0.1.0-rc5
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )

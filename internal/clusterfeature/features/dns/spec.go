@@ -185,7 +185,7 @@ func (m *dnsFeatureManager) processCustomDNSFeatureValues(ctx context.Context, c
 	}
 
 	values.DomainFilters = customDns.DomainFilters
-	values.Provider = customDns.Provider.Name
+	values.Provider = getProviderNameForChart(customDns.Provider.Name)
 
 	return values, nil
 }
@@ -399,4 +399,13 @@ func (m *dnsFeatureManager) createCustomDnsChartValuesGoogle(
 	values.TxtPrefix = "txt-"
 
 	return nil
+}
+
+func getProviderNameForChart(p string) string {
+	switch p {
+	case dnsRoute53:
+		return "aws"
+	default:
+		return p
+	}
 }
