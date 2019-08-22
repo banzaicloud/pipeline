@@ -208,13 +208,17 @@ func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
 	}
 
 	if err := mapstructure.Decode(schema.RawInfo, &dexClaims); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	var organizations []string
+	unique := map[string]struct{}{}
 	for _, group := range dexClaims.Groups {
-		if !strings.Contains(group, ":") {
+		// get the part before :, that will be the organization name
+		group = strings.Split(group, ":")[0]
+		if _, ok := unique[group]; !ok {
 			organizations = append(organizations, group)
+			unique[group] = struct{}{}
 		}
 	}
 
@@ -268,7 +272,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		currentUser.Image = gitlabUserMeta.AvatarURL
 
 	default:
-		// Login will be derived from the email for new users coming from an other provider than GitHub
+		// Login will be derived from the email for new users coming from an other provider than GitHub and GitLab
 		currentUser.Login = emailToLoginName(schema.Email)
 	}
 
