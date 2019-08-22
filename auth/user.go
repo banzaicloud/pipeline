@@ -305,11 +305,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
 	// Import organizations in case of DEX
-	if schema.Provider == ProviderDexGithub {
-		err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGithub)
-	} else if schema.Provider == ProviderDexGitlab {
-		err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, ProviderGitlab)
-	}
+	err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, getBackendProvider(schema.Provider))
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
