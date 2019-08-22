@@ -139,7 +139,7 @@ connectors:
       nameAttr: cn
     groupSearch:
       baseDN: ou=Groups,dc=example,dc=org
-      filter: "(objectClass=groupOfNames)"
+      filter: "(&(objectClass=groupOfNames)(cn=scientists:admin)(cn=scientists:user))"
       # A user is a member of a group when their DN matches
       # the value of a "member" attribute on the group entity.
       userAttr: DN
