@@ -544,7 +544,7 @@ func installAllowAllWhitelist(cluster CommonCluster) error {
 	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
 
 	err = backoff.Retry(func() error {
-		_, err = securityClientSet.Whitelists(metav1.NamespaceDefault).Create(&whitelist)
+		_, err = securityClientSet.Whitelists().Create(&whitelist)
 		if err != nil {
 			return emperror.Wrap(err, "create whitelist")
 		}
