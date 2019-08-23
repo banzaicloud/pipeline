@@ -5,7 +5,7 @@ jobs:
         resource_class: large
         docker:
             -
-                image: circleci/golang:1.13rc1
+                image: banzaicloud/golang:1.13rc1
                 environment:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
@@ -42,7 +42,7 @@ jobs:
                     name: Install build dependencies
                     command: |
                       sudo apt-get update
-                      sudo apt-get install -y default-mysql-client postgresql-client
+                      sudo apt-get install -y mysql-client mysql-utilities postgresql-client
 
             -
                 restore_cache:
