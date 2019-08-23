@@ -28,10 +28,6 @@ const CreateClusterWorkflowName = "pke-create-cluster"
 const pkeVersion = "0.4.12"
 
 func getDefaultImageID(region, kubernetesVersion string) (string, error) {
-	constraint112, err := semver.NewConstraint("~1.12.0")
-	if err != nil {
-		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.12+")
-	}
 
 	constraint113, err := semver.NewConstraint("~1.13.0")
 	if err != nil {
@@ -49,25 +45,6 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 	}
 
 	switch {
-	case constraint112.Check(kubeVersion):
-		return map[string]string{
-			"ap-northeast-1": "ami-0ea4567d28716b35c",
-			"ap-northeast-2": "ami-02a051bd5fbadc2d9",
-			"ap-south-1":     "ami-00da2ccc1da7c5139",
-			"ap-southeast-1": "ami-0de6124b866d44d9a",
-			"ap-southeast-2": "ami-037779d5bc1df8e07",
-			"ca-central-1":   "ami-00223fdf00dd4fd79",
-			"eu-central-1":   "ami-0e78d61813cdb8a2d",
-			"eu-north-1":     "ami-095299ec23343190f",
-			"eu-west-1":      "ami-0f6ba6a1903651da8",
-			"eu-west-2":      "ami-0fe2d7edaff807a95",
-			"eu-west-3":      "ami-02d28af91ab8abbd6",
-			"sa-east-1":      "ami-07bb2e49b8d780628",
-			"us-east-1":      "ami-079f98b9a949211d9",
-			"us-east-2":      "ami-00cd048cb8c93c0d9",
-			"us-west-1":      "ami-05dcc6a829242cacc",
-			"us-west-2":      "ami-07854d1896aef63d8",
-		}[region], nil
 	case constraint113.Check(kubeVersion):
 		return map[string]string{
 			"ap-northeast-1": "ami-02c668cbe82c52654",
