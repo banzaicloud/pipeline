@@ -4,7 +4,7 @@ require (
 	cloud.google.com/go v0.43.0
 	emperror.dev/emperror v0.21.3
 	emperror.dev/errors v0.4.2
-	emperror.dev/handler/logur v0.1.0
+	emperror.dev/handler/logur v0.2.0
 	emperror.dev/handler/stackdriver v0.1.0
 	github.com/Azure/azure-pipeline-go v0.1.8
 	github.com/Azure/azure-sdk-for-go v23.2.0+incompatible
@@ -29,7 +29,7 @@ require (
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
 	github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
-	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190717171417-0c590b44cd08
+	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb
 	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/cactus/go-statsd-client v3.1.1+incompatible // indirect
@@ -54,6 +54,7 @@ require (
 	github.com/gin-contrib/cors v0.0.0-20170318125340-cf4846e6a636
 	github.com/gin-gonic/gin v1.3.1-0.20190402010134-2e915f4e5083
 	github.com/go-kit/kit v0.9.0
+	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
@@ -61,7 +62,6 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.0 // indirect
-	github.com/goph/logur v0.11.2
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
@@ -109,7 +109,7 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.1
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/uber-common/bark v1.2.1
@@ -149,6 +149,10 @@ require (
 	k8s.io/helm v2.12.2+incompatible
 	k8s.io/kubectl v0.0.0-20190523211420-5b63b0fd89bb // indirect
 	k8s.io/kubernetes v1.13.5
+	logur.dev/adapter/logrus v0.2.0
+	logur.dev/adapter/zap v0.2.0
+	logur.dev/integration/zap v0.2.0
+	logur.dev/logur v0.15.0
 	sigs.k8s.io/kubefed v0.1.0-rc5
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
