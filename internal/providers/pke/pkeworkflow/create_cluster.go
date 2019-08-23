@@ -36,7 +36,9 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 
 	constraint114, err := semver.NewConstraint("~1.14.0")
 	if err != nil {
-		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.13+")
+		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.14+")
+	}
+
 	constraint115, err := semver.NewConstraint("~1.15.0")
 	if err != nil {
 		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.15+")
