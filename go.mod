@@ -2,16 +2,19 @@ module github.com/banzaicloud/pipeline
 
 require (
 	cloud.google.com/go v0.43.0
-	contrib.go.opencensus.io/exporter/ocagent v0.2.0 // indirect
 	emperror.dev/emperror v0.21.3
 	emperror.dev/errors v0.4.2
 	emperror.dev/handler/logur v0.2.0
 	emperror.dev/handler/stackdriver v0.1.0
-	github.com/Azure/azure-pipeline-go v0.1.8
-	github.com/Azure/azure-sdk-for-go v23.2.0+incompatible
+	github.com/Azure/azure-pipeline-go v0.2.2
+	github.com/Azure/azure-sdk-for-go v32.5.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.0.0-20181022225951-5152f14ace1c
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
-	github.com/Azure/go-autorest v11.2.8+incompatible
+	github.com/Azure/go-autorest/autorest v0.9.0
+	github.com/Azure/go-autorest/autorest/adal v0.6.0
+	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0
+	github.com/Azure/go-autorest/autorest/to v0.3.0
+	github.com/Azure/go-autorest/autorest/validation v0.2.0
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.15.0+incompatible
@@ -35,7 +38,6 @@ require (
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/cactus/go-statsd-client v3.1.1+incompatible // indirect
 	github.com/cenkalti/backoff v2.1.1+incompatible // indirect
-	github.com/census-instrumentation/opencensus-proto v0.1.0 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/coreos/go-oidc v2.0.0+incompatible
@@ -44,7 +46,6 @@ require (
 	github.com/dexidp/dex v0.0.0-20190205125449-7bd4071b4c8c
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/didip/tollbooth v4.0.0+incompatible
-	github.com/dimchansky/utfbom v1.1.0 // indirect
 	github.com/docker/distribution v0.0.0-20180327202408-83389a148052 // indirect
 	github.com/docker/docker v0.0.0-20170731201938-4f3616fb1c11 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
@@ -69,7 +70,6 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.0 // indirect
-	github.com/gorilla/mux v1.6.2 // indirect
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/hashicorp/go-multierror v1.0.0
