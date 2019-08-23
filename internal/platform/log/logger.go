@@ -17,9 +17,9 @@ package log
 import (
 	"os"
 
-	"github.com/goph/logur"
-	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
+	logrusadapter "logur.dev/adapter/logrus"
+	"logur.dev/logur"
 )
 
 // NewLogger creates a new logger.

@@ -15,10 +15,11 @@
 package cluster
 
 import (
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/goph/logur"
-	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
+	logrusadapter "logur.dev/adapter/logrus"
+	"logur.dev/logur"
+
+	"github.com/banzaicloud/pipeline/config"
 )
 
 // nolint: gochecknoglobals

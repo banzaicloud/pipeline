@@ -20,7 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/goph/logur"
+	"logur.dev/logur"
 )
 
 // NetworkSvc describes the fields needed to interact with EC2 to perform network related operations

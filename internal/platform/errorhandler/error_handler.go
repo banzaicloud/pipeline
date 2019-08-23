@@ -20,8 +20,9 @@ import (
 	"cloud.google.com/go/errorreporting"
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	logurhandler "emperror.dev/handler/logur"
 	"emperror.dev/handler/stackdriver"
-	"github.com/goph/logur"
+	"logur.dev/logur"
 )
 
 // Config holds information for configuring an error handler.
@@ -47,7 +48,7 @@ func (c Config) Validate() error {
 
 // New returns a new error handler.
 func New(config Config, logger logur.Logger) (emperror.Handlers, error) {
-	logHandler := logur.NewErrorHandler(logger)
+	logHandler := logurhandler.New(logger)
 	handlers := emperror.Handlers{logHandler}
 
 	if config.Stackdriver.Enabled {

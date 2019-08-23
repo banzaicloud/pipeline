@@ -21,9 +21,9 @@ import (
 	"emperror.dev/emperror"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/goph/logur"
-	"github.com/goph/logur/adapters/zapadapter"
 	"go.uber.org/cadence/activity"
+	zapadapter "logur.dev/adapter/zap"
+	"logur.dev/logur"
 )
 
 // CreateVnetActivityName is the default registration name of the activity

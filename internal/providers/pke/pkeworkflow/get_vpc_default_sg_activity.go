@@ -19,10 +19,10 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/goph/logur"
-	"github.com/goph/logur/adapters/zapadapter"
 	"github.com/pkg/errors"
 	"go.uber.org/cadence/activity"
+	zapadapter "logur.dev/adapter/zap"
+	"logur.dev/logur"
 
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 )
