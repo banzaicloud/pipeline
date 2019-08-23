@@ -5,11 +5,10 @@ jobs:
         resource_class: large
         docker:
             -
-                image: circleci/golang:1.12-stretch
+                image: circleci/golang:1.13rc1-stretch
                 environment:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
-                    GOPROXY: https://proxy.golang.org
             -
                 image: mysql:5.7
                 command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
