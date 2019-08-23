@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+
+  docker:
+    name: Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+
+      - name: Build image
+        run: docker build --build-arg GOPROXY=https://proxy.golang.org -t docker.pkg.github.com/${GITHUB_REPOSITORY}/${{ github.event.repository.name }}:${GITHUB_SHA:0:7} .
+
+      - name: Tag image
+        run: docker tag docker.pkg.github.com/${GITHUB_REPOSITORY}/${{ github.event.repository.name }}:${GITHUB_SHA:0:7} docker.pkg.github.com/${GITHUB_REPOSITORY}/${{ github.event.repository.name }}:${GITHUB_REF#"refs/heads/"}
+        if: github.event_name == 'push'
