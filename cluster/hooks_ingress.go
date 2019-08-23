@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/bank-vaults/pkg/tls"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
