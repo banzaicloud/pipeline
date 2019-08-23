@@ -37,6 +37,9 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 	constraint114, err := semver.NewConstraint("~1.14.0")
 	if err != nil {
 		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.13+")
+	constraint115, err := semver.NewConstraint("~1.15.0")
+	if err != nil {
+		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.15+")
 	}
 
 	kubeVersion, err := semver.NewVersion(kubernetesVersion)
@@ -82,6 +85,25 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 			"us-east-2":      "ami-0758a65bfe14b4e62",
 			"us-west-1":      "ami-0bd1e43e4a7280c2c",
 			"us-west-2":      "ami-06797d1f3e822ba1f",
+		}[region], nil
+	case constraint115.Check(kubeVersion):
+		return map[string]string{
+			"ap-northeast-1": "ami-0ff8257dbc74c33f4",
+			"ap-northeast-2": "ami-05654b3b1fe2c442b",
+			"ap-southeast-1": "ami-072f0303ff596ec59",
+			"ap-southeast-2": "ami-0dca60ba1f804b73a",
+			"ap-south-1":     "ami-037de328d01274ce7",
+			"ca-central-1":   "ami-02358ac7f3c5dd608",
+			"eu-central-1":   "ami-03e96adc107f88c8b",
+			"eu-north-1":     "ami-0dc0929c435baf7e1",
+			"eu-west-1":      "ami-0bc8422ca744df23e",
+			"eu-west-2":      "ami-0885ccbf224e38d3b",
+			"eu-west-3":      "ami-015cd31c41067a91e",
+			"sa-east-1":      "ami-0af9ba56e4e7b51a1",
+			"us-east-1":      "ami-06ebb5813a6ec2be3",
+			"us-east-2":      "ami-09c84ffdb343309d6",
+			"us-west-1":      "ami-0fc837638f27f5ebf",
+			"us-west-2":      "ami-07e9bf3372342dc02",
 		}[region], nil
 	default:
 		return map[string]string{
