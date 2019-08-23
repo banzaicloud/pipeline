@@ -1,11 +1,11 @@
 module github.com/banzaicloud/pipeline
 
 require (
-	cloud.google.com/go v0.43.0
+	cloud.google.com/go v0.44.3
 	emperror.dev/emperror v0.21.3
 	emperror.dev/errors v0.4.2
 	emperror.dev/handler/logur v0.2.0
-	emperror.dev/handler/stackdriver v0.1.0
+	emperror.dev/handler/stackdriver v0.1.1
 	github.com/Azure/azure-pipeline-go v0.2.2
 	github.com/Azure/azure-sdk-for-go v32.5.0+incompatible
 	github.com/Azure/azure-storage-blob-go v0.0.0-20181022225951-5152f14ace1c
@@ -144,8 +144,8 @@ require (
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	google.golang.org/api v0.7.0
-	google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610
+	google.golang.org/api v0.9.0
+	google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64
 	google.golang.org/grpc v1.22.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
