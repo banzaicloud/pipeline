@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
+	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/cicd-go/cicd"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/copier"

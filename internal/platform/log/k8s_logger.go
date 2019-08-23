@@ -17,8 +17,8 @@ package log
 import (
 	"emperror.dev/errors"
 	logurhandler "emperror.dev/handler/logur"
-	"github.com/goph/logur"
 	"k8s.io/apimachinery/pkg/util/runtime"
+	"logur.dev/logur"
 )
 
 // SetK8sLogger overrides the default klog instance.

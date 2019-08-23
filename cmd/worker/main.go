@@ -22,13 +22,13 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	"github.com/goph/logur"
-	"github.com/goph/logur/integrations/zaplog"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
+	zaplog "logur.dev/integration/zap"
+	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"

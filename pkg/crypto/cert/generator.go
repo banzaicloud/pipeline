@@ -18,7 +18,7 @@ import (
 	"encoding/pem"
 	"time"
 
-	"github.com/banzaicloud/bank-vaults/pkg/tls"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
 	"github.com/pkg/errors"
 )
 

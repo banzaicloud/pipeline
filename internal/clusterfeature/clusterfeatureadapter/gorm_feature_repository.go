@@ -22,9 +22,9 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/goph/logur"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/cast"
+	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/common"

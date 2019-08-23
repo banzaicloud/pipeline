@@ -28,10 +28,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/bank-vaults/pkg/tls"
-	"github.com/banzaicloud/bank-vaults/pkg/vault"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/banzaicloud/pipeline/secret/verify"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -40,6 +38,9 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"k8s.io/apimachinery/pkg/util/validation"
+
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret/verify"
 )
 
 const (
