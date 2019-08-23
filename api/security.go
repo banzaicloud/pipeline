@@ -88,7 +88,7 @@ func GetScanLog(c *gin.Context) {
 	}
 	releaseName := c.Param("releaseName")
 
-	audits, err := securityClientSet.Audits(metav1.NamespaceAll).List(metav1.ListOptions{})
+	audits, err := securityClientSet.Audits().List(metav1.ListOptions{})
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
@@ -125,7 +125,7 @@ func GetWhiteLists(c *gin.Context) {
 		return
 	}
 
-	whitelists, err := securityClientSet.Whitelists(metav1.NamespaceAll).List(metav1.ListOptions{})
+	whitelists, err := securityClientSet.Whitelists().List(metav1.ListOptions{})
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
@@ -184,7 +184,7 @@ func CreateWhiteList(c *gin.Context) {
 			Reason:  whitelistCreateRequest.Reason,
 		},
 	}
-	_, err = securityClientSet.Whitelists(metav1.NamespaceDefault).Create(&whitelist)
+	_, err = securityClientSet.Whitelists().Create(&whitelist)
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
@@ -215,7 +215,7 @@ func DeleteWhiteList(c *gin.Context) {
 		return
 	}
 
-	err := securityClientSet.Whitelists(metav1.NamespaceDefault).Delete(name, &metav1.DeleteOptions{})
+	err := securityClientSet.Whitelists().Delete(name, &metav1.DeleteOptions{})
 	if err != nil {
 		err := errors.Wrap(err, "Error during request processing")
 		log.Error(err.Error())
@@ -568,7 +568,7 @@ func GetWhitelistSet(c *gin.Context) (map[string]bool, bool) {
 	if securityClientSet == nil {
 		return releaseWhitelist, false
 	}
-	whitelists, err := securityClientSet.Whitelists(metav1.NamespaceAll).List(metav1.ListOptions{})
+	whitelists, err := securityClientSet.Whitelists().List(metav1.ListOptions{})
 	if err != nil {
 		log.Warnf("can not fetch WhiteList: %s", err.Error())
 		return releaseWhitelist, false
@@ -587,7 +587,7 @@ func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
 	if securityClientSet == nil {
 		return releaseScanLogReject, false
 	}
-	audits, err := securityClientSet.Audits(metav1.NamespaceAll).List(metav1.ListOptions{LabelSelector: "fakerelease=false"})
+	audits, err := securityClientSet.Audits().List(metav1.ListOptions{LabelSelector: "fakerelease=false"})
 	if err != nil {
 		log.Warnf("can not fetch ScanLog: %s", err.Error())
 		return releaseScanLogReject, false

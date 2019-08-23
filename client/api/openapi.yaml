@@ -8128,6 +8128,16 @@ components:
           cloud: google
           profileName: profileName
           secretName: my-aws-secret
+          scaleOptions:
+            desiredMem: 1.602745618307040320615897144307382404804229736328125
+            onDemandPct: 59
+            excludes:
+            - excludes
+            - excludes
+            desiredCpu: 1.080082819046101150206595775671303272247314453125
+            keepDesiredCapacity: true
+            desiredGpu: 0
+            enabled: true
           secretIds:
           - 62bc3c75-91fb-4670-bad4-24b401a9deac
           - 4378ae32-2355-12ed-b984-1234567804ed
@@ -8327,6 +8337,16 @@ components:
         cloud: google
         profileName: profileName
         secretName: my-aws-secret
+        scaleOptions:
+          desiredMem: 1.602745618307040320615897144307382404804229736328125
+          onDemandPct: 59
+          excludes:
+          - excludes
+          - excludes
+          desiredCpu: 1.080082819046101150206595775671303272247314453125
+          keepDesiredCapacity: true
+          desiredGpu: 0
+          enabled: true
         secretIds:
         - 62bc3c75-91fb-4670-bad4-24b401a9deac
         - 4378ae32-2355-12ed-b984-1234567804ed
@@ -8386,6 +8406,8 @@ components:
           type: object
         profileName:
           type: string
+        scaleOptions:
+          $ref: '#/components/schemas/ScaleOptions'
         properties:
           example:
             gke:
@@ -8443,6 +8465,16 @@ components:
       - kind
       type: object
     ScaleOptions:
+      example:
+        desiredMem: 1.602745618307040320615897144307382404804229736328125
+        onDemandPct: 59
+        excludes:
+        - excludes
+        - excludes
+        desiredCpu: 1.080082819046101150206595775671303272247314453125
+        keepDesiredCapacity: true
+        desiredGpu: 0
+        enabled: true
       properties:
         enabled:
           type: boolean

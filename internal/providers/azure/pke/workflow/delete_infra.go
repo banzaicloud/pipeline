@@ -17,6 +17,7 @@ package workflow
 import (
 	"time"
 
+	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
 )
 
@@ -49,6 +50,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 	// Delete VMSSs
 	{
 		futures := make([]workflow.Future, 0, len(input.ScaleSetNames))
+
 		for _, n := range input.ScaleSetNames {
 			activityInput := DeleteVMSSActivityInput{
 				OrganizationID:    input.OrganizationID,
@@ -60,10 +62,15 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 
 			futures = append(futures, workflow.ExecuteActivity(ctx, DeleteVMSSActivityName, activityInput))
 		}
-		for _, future := range futures {
-			if err := future.Get(ctx, nil); err != nil {
-				return err
-			}
+
+		errs := make([]error, len(futures))
+
+		for i, future := range futures {
+			errs[i] = future.Get(ctx, nil)
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
 		}
 	}
 
@@ -83,16 +90,28 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 	}
 
 	// Delete public IP
-	for _, n := range input.PublicIPAddressNames {
-		activityInput := DeletePublicIPActivityInput{
-			OrganizationID:      input.OrganizationID,
-			SecretID:            input.SecretID,
-			ClusterName:         input.ClusterName,
-			ResourceGroupName:   input.ResourceGroupName,
-			PublicIPAddressName: n,
+	{
+		futures := make([]workflow.Future, len(input.PublicIPAddressNames))
+
+		for i, n := range input.PublicIPAddressNames {
+			activityInput := DeletePublicIPActivityInput{
+				OrganizationID:      input.OrganizationID,
+				SecretID:            input.SecretID,
+				ClusterName:         input.ClusterName,
+				ResourceGroupName:   input.ResourceGroupName,
+				PublicIPAddressName: n,
+			}
+
+			futures[i] = workflow.ExecuteActivity(ctx, DeletePublicIPActivityName, activityInput)
 		}
 
-		if err := workflow.ExecuteActivity(ctx, DeletePublicIPActivityName, activityInput).Get(ctx, nil); err != nil {
+		errs := make([]error, len(futures))
+
+		for i, future := range futures {
+			errs[i] = future.Get(ctx, nil)
+		}
+
+		if err := errors.Combine(errs...); err != nil {
 			return err
 		}
 	}
@@ -130,6 +149,7 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 	// Delete network security groups
 	{
 		futures := make([]workflow.Future, len(input.SecurityGroupNames))
+
 		for i, n := range input.SecurityGroupNames {
 			activityInput := DeleteNSGActivityInput{
 				OrganizationID:    input.OrganizationID,
@@ -140,10 +160,15 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 			}
 			futures[i] = workflow.ExecuteActivity(ctx, DeleteNSGActivityName, activityInput)
 		}
-		for _, future := range futures {
-			if err := future.Get(ctx, nil); err != nil {
-				return err
-			}
+
+		errs := make([]error, len(futures))
+
+		for i, future := range futures {
+			errs[i] = future.Get(ctx, nil)
+		}
+
+		if err := errors.Combine(errs...); err != nil {
+			return err
 		}
 	}
 
