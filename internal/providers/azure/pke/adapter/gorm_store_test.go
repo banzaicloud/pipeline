@@ -17,9 +17,10 @@ package adapter
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-	"gotest.tools/assert"
 )
 
 func TestFillClusterFromClusterModel(t *testing.T) {
@@ -38,7 +39,7 @@ func TestFillClusterFromClusterModel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var result pke.PKEOnAzureCluster
 			fillClusterFromClusterModel(&result, tc.input)
-			assert.DeepEqual(t, tc.expected, result)
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }

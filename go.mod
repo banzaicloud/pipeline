@@ -70,6 +70,7 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.0 // indirect
+	github.com/gorilla/mux v1.6.2 // indirect
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/hashicorp/go-multierror v1.0.0
@@ -150,7 +151,6 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2
-	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.0.0-20190409092523-d687e77c8ae9
 	k8s.io/apiextensions-apiserver v0.0.0-20190308081736-3a66ae4d2f93
 	k8s.io/apimachinery v0.0.0-20190823012420-8ca64af22337
