@@ -28,8 +28,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/bank-vaults/pkg/tls"
-	"github.com/banzaicloud/bank-vaults/pkg/vault"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	vaultapi "github.com/hashicorp/vault/api"

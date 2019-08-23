@@ -17,7 +17,7 @@ package database
 import (
 	"fmt"
 
-	database "github.com/banzaicloud/bank-vaults/pkg/db"
+	database "github.com/banzaicloud/bank-vaults/pkg/sdk/db"
 	"github.com/pkg/errors"
 )
 

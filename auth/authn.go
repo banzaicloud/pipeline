@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	bauth "github.com/banzaicloud/bank-vaults/pkg/auth"
+	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/pipeline/config"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
