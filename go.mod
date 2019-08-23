@@ -23,7 +23,7 @@ require (
 	github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08 // indirect
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
 	github.com/aws/aws-sdk-go v1.16.11
-	github.com/banzaicloud/anchore-image-validator v0.0.0-20190822140614-be78f43fb708
+	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults v0.0.0-20190408133613-dc8e83242b1b
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
@@ -64,6 +64,7 @@ require (
 	github.com/google/uuid v1.1.0 // indirect
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gorilla/websocket v1.4.0 // indirect
+	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/vault v1.0.1
