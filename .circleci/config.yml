@@ -45,7 +45,7 @@ jobs:
                     name: Install build dependencies
                     command: |
                       sudo apt-get update
-                      sudo apt-get install -y mysql-client mysql-utilities postgresql-client
+                      sudo apt-get install -y default-mysql-client postgresql-client
 
             -
                 restore_cache:
