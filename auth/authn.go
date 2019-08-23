@@ -24,10 +24,7 @@ import (
 	"time"
 
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
-	"github.com/banzaicloud/pipeline/config"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/utils"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/sessions"
@@ -40,6 +37,10 @@ import (
 	"github.com/qor/session/gorilla"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/config"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 // PipelineSessionCookie holds the name of the Cookie Pipeline sets in the browser
@@ -290,7 +291,7 @@ func NewTokenHandler(accessManager accessManager) *tokenHandler {
 	return handler
 }
 
-//GenerateToken generates token from context
+// GenerateToken generates token from context
 func (h *tokenHandler) GenerateToken(c *gin.Context) {
 	var currentUser *User
 
@@ -385,7 +386,7 @@ func getClusterUserID(orgID uint, clusterID uint) string {
 	return fmt.Sprintf("clusters/%d/%d", orgID, clusterID)
 }
 
-//GenerateClusterToken looks up, or generates and stores a token for a cluster
+// GenerateClusterToken looks up, or generates and stores a token for a cluster
 func (h *tokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (string, string, error) {
 	userID := getClusterUserID(orgID, clusterID)
 	if tokens, err := TokenStore.List(userID); err == nil {
@@ -505,12 +506,12 @@ func DeleteToken(c *gin.Context) {
 	}
 }
 
-//BanzaiSessionStorer stores the banzai session
+// BanzaiSessionStorer stores the banzai session
 type BanzaiSessionStorer struct {
 	auth.SessionStorer
 }
 
-//Update updates the BanzaiSessionStorer
+// Update updates the BanzaiSessionStorer
 func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *http.Request, claims *claims.Claims) error {
 
 	// Get the current user object, in this early stage this is how to get it
