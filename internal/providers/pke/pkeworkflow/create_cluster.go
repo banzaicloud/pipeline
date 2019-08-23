@@ -25,7 +25,7 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.4.9"
+const pkeVersion = "0.4.12"
 
 func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 	constraint112, err := semver.NewConstraint("~1.12.0")
