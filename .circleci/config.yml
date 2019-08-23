@@ -5,7 +5,7 @@ jobs:
         resource_class: large
         docker:
             -
-                image: circleci/golang:1.13rc1-stretch
+                image: circleci/golang:1.13rc1
                 environment:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
