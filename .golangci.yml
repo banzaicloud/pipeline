@@ -27,4 +27,7 @@ linters:
 
         # Disable govet for now because it fails on Circle
         - govet
+
+        # Doesn't work with Go 1.13
+        - typecheck
     fast: false
