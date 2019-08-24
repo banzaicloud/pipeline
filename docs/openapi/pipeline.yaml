@@ -6030,8 +6030,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/deployment.CreateUpdateDeploymentRespon\
-                  se"
+                                $ref: "#/components/schemas/deployment.CreateUpdateDeploymentResponse"
                 "207":
                     description: Partial failure, meaning that Multi-cluster deployment has been
                         created successfully, however there was as least one failure on one
@@ -6189,8 +6188,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/deployment.CreateUpdateDeploymentRespon\
-                  se"
+                                $ref: "#/components/schemas/deployment.CreateUpdateDeploymentResponse"
                 "207":
                     description: Partial failure, meaning that Multi-cluster deployment has been
                         update successfully, however there was as least one failure on one
@@ -9877,7 +9875,6 @@ components:
 
         ReRunPostHook:
             type: object
-            additionalProperties:
             example:
                 InstallLogging:
                     bucketName: "mybucketname"
