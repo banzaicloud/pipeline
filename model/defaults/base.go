@@ -131,49 +131,6 @@ func GetDefaultProfiles() []ClusterProfile {
 	}
 }
 
-// GetAllProfiles loads all saved cluster profile from database by given cloud type
-func GetAllProfiles(distribution string) ([]ClusterProfile, error) {
-
-	var defaults []ClusterProfile
-	db := config.DB()
-
-	switch distribution {
-
-	case pkgCluster.EKS:
-		var eksProfiles []EKSProfile
-		db.Preload("NodePools.Labels").Find(&eksProfiles)
-		for i := range eksProfiles {
-			defaults = append(defaults, &eksProfiles[i])
-		}
-
-	case pkgCluster.AKS:
-		var aksProfiles []AKSProfile
-		db.Preload("NodePools.Labels").Find(&aksProfiles)
-		for i := range aksProfiles {
-			defaults = append(defaults, &aksProfiles[i])
-		}
-
-	case pkgCluster.GKE:
-		var gkeProfiles []GKEProfile
-		db.Preload("NodePools.Labels").Find(&gkeProfiles)
-		for i := range gkeProfiles {
-			defaults = append(defaults, &gkeProfiles[i])
-		}
-
-	case pkgCluster.OKE:
-		okeProfiles := oracle.GetProfiles()
-		for i := range okeProfiles {
-			defaults = append(defaults, &okeProfiles[i])
-		}
-
-	default:
-		return nil, pkgErrors.ErrorNotSupportedCloudType
-	}
-
-	return defaults, nil
-
-}
-
 // GetProfile finds cluster profile from database by given name and cloud type
 func GetProfile(distribution string, name string) (ClusterProfile, error) {
 	db := config.DB()
