@@ -16,9 +16,6 @@ package defaults
 
 import (
 	"time"
-
-	"github.com/banzaicloud/pipeline/config"
-	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // cluster profile table names
@@ -36,26 +33,9 @@ const (
 	DefaultGKENodePoolProfileLabelsTableName = "google_gke_profile_node_pool_labels"
 )
 
-// ClusterProfile describes a cluster profile
-type ClusterProfile interface {
-	IsDefinedBefore() bool
-	SaveInstance() error
-	GetCloud() string
-	GetDistribution() string
-	GetProfile() *pkgCluster.ClusterProfileResponse
-	UpdateProfile(*pkgCluster.ClusterProfileRequest, bool) error
-	DeleteProfile() error
-}
-
 // DefaultModel describes the common variables all types of clouds
 type DefaultModel struct {
 	Name      string `gorm:"primary_key"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-}
-
-// save saves the given data into database
-func save(i interface{}) error {
-	database := config.DB()
-	return database.Save(i).Error
 }
