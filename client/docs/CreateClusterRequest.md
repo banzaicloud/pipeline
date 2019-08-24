@@ -11,7 +11,6 @@ Name | Type | Description | Notes
 **SecretIds** | **[]string** |  | [optional] 
 **SecretName** | **string** |  | [optional] 
 **PostHooks** | [**map[string]interface{}**](.md) |  | [optional] 
-**ProfileName** | **string** |  | [optional] 
 **ScaleOptions** | [**ScaleOptions**](ScaleOptions.md) |  | [optional] 
 **Properties** | [**map[string]interface{}**](.md) |  | 
 

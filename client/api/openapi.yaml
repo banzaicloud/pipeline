@@ -17,8 +17,6 @@ tags:
   name: spotguides
 - description: Deployment related functions for a cluster
   name: deployments
-- description: Cluster profiles related functions
-  name: profiles
 - description: Auth related functions
   name: auth
 - description: Secrets related functions
@@ -2757,205 +2755,6 @@ paths:
       summary: Create / Update Deployment Scaling
       tags:
       - hpa
-  /api/v1/orgs/{orgId}/profiles/cluster/{distribution}:
-    get:
-      description: Listing cluster profiles by cloud type
-      operationId: ListProfiles
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      - description: Distribution type
-        explode: false
-        in: path
-        name: distribution
-        required: true
-        schema:
-          type: string
-        style: simple
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProfileListResponse'
-          description: Profiles listed
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-          description: Error during delete deployment
-        401:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
-      security:
-      - bearerAuth: []
-      summary: List cluster profiles
-      tags:
-      - profiles
-  /api/v1/orgs/{orgId}/profiles/cluster:
-    post:
-      description: Add cluster profile
-      operationId: AddProfiles
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddClusterProfileRequest'
-        required: true
-      responses:
-        201:
-          description: Cluster profile created successfully
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-          description: Error during delete deployment
-        401:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
-      security:
-      - bearerAuth: []
-      summary: Add cluster profiles
-      tags:
-      - profiles
-    put:
-      description: Update an existing cluster profile
-      operationId: UpdateProfiles
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddClusterProfileRequest'
-        required: true
-      responses:
-        201:
-          description: Cluster profile updated successfully
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-          description: Error during updating cluster profile
-        401:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
-        404:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterProfileNotFound'
-          description: Cluster profile not found
-        500:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_500'
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      summary: Update cluster profiles
-      tags:
-      - profiles
-  /api/v1/orgs/{orgId}/profiles/cluster/{distribution}/{name}:
-    delete:
-      description: Delete cluster profiles by cloud type and name
-      operationId: DeleteProfiles
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          format: int32
-          type: integer
-        style: simple
-      - description: Distribution type
-        explode: false
-        in: path
-        name: distribution
-        required: true
-        schema:
-          type: string
-        style: simple
-      - description: Cluster profile name
-        explode: false
-        in: path
-        name: name
-        required: true
-        schema:
-          type: string
-        style: simple
-      responses:
-        201:
-          description: Cluster profile deleted successfully
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_400'
-          description: Error during deleting cluster profile
-        401:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
-        404:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterProfileNotFound'
-          description: Cluster profile not found
-        500:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BaseError_500'
-          description: Internal server error
-      security:
-      - bearerAuth: []
-      summary: Delete cluster profiles
-      tags:
-      - profiles
   /api/v1/tokens:
     get:
       description: List all API tokens
@@ -8126,7 +7925,6 @@ components:
         pipeline: '{}'
         cluster:
           cloud: google
-          profileName: profileName
           secretName: my-aws-secret
           scaleOptions:
             desiredMem: 1.602745618307040320615897144307382404804229736328125
@@ -8335,7 +8133,6 @@ components:
     CreateClusterRequest:
       example:
         cloud: google
-        profileName: profileName
         secretName: my-aws-secret
         scaleOptions:
           desiredMem: 1.602745618307040320615897144307382404804229736328125
@@ -8404,8 +8201,6 @@ components:
               region: region
               secretId: 62bc3c75-91fb-4670-bad4-24b401a9deac
           type: object
-        profileName:
-          type: string
         scaleOptions:
           $ref: '#/components/schemas/ScaleOptions'
         properties:
@@ -9054,19 +8849,6 @@ components:
           example: |-
             apiVersion: v1
             clusters....
-          type: string
-      type: object
-    ClusterProfileNotFound:
-      properties:
-        code:
-          example: 404
-          format: int32
-          type: integer
-        message:
-          example: Profile not found
-          type: string
-        error:
-          example: record not found
           type: string
       type: object
     ChartNotFound:
@@ -10168,122 +9950,6 @@ components:
       required:
       - name
       - sourcing
-      type: object
-    ProfileListResponse:
-      example:
-        cloud: google
-        name: default
-        ttlMinutes: 120
-        location: us-central1-a
-        properties:
-          gke:
-            master:
-              version: "1.10"
-            nodeVersion: "1.10"
-            nodePools:
-              pool1:
-                count: 1
-                instanceType: n1-standard-1
-      properties:
-        name:
-          example: default
-          type: string
-        location:
-          example: us-central1-a
-          type: string
-        cloud:
-          example: google
-          type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 120
-          format: int32
-          minimum: 0
-          type: integer
-        properties:
-          example:
-            gke:
-              master:
-                version: "1.10"
-              nodeVersion: "1.10"
-              nodePools:
-                pool1:
-                  count: 1
-                  instanceType: n1-standard-1
-          type: object
-      type: object
-    ClusterProfileEKS:
-      properties:
-        eks:
-          $ref: '#/components/schemas/ClusterProfileEKS_eks'
-      type: object
-    ClusterProfileAKS:
-      properties:
-        aks:
-          $ref: '#/components/schemas/ClusterProfileAKS_aks'
-      type: object
-    ClusterProfileGKE:
-      properties:
-        gke:
-          $ref: '#/components/schemas/ClusterProfileGKE_gke'
-      type: object
-    AddClusterProfileRequest:
-      example:
-        cloud: google
-        name: myCluster-profile
-        ttlMinutes: 120
-        location: us-central1-a
-        properties:
-          gke:
-            master:
-              version: 1.8.7-gke.1
-            nodeVersion: 1.8.7-gke.1
-            nodePools:
-              pool1:
-                count: 1
-                instanceType: n1-standard-1
-      properties:
-        name:
-          example: myCluster-profile
-          type: string
-        location:
-          example: us-central1-a
-          type: string
-        cloud:
-          example: google
-          type: string
-        ttlMinutes:
-          description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-          example: 120
-          format: int32
-          minimum: 0
-          type: integer
-        properties:
-          example:
-            gke:
-              master:
-                version: 1.8.7-gke.1
-              nodeVersion: 1.8.7-gke.1
-              nodePools:
-                pool1:
-                  count: 1
-                  instanceType: n1-standard-1
-          type: object
-      type: object
-    AddClusterProfileEKS:
-      properties:
-        eks:
-          $ref: '#/components/schemas/ClusterProfileEKS_eks'
-      type: object
-    AddClusterProfileAKS:
-      properties:
-        aks:
-          $ref: '#/components/schemas/AddClusterProfileAKS_aks'
-      type: object
-    AddClusterProfileGKE:
-      properties:
-        gke:
-          $ref: '#/components/schemas/ClusterProfileGKE_gke'
       type: object
     TokenCreateRequest:
       example:
@@ -14438,49 +14104,6 @@ components:
           items:
             type: string
           type: array
-    ClusterProfileEKS_eks:
-      properties:
-        version:
-          example: "1.11"
-          type: string
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolsAmazon'
-          type: object
-    ClusterProfileAKS_aks:
-      properties:
-        kubernetesVersion:
-          example: 1.9.2
-          type: string
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolsAzure'
-          type: object
-    ClusterProfileGKE_gke_master:
-      properties:
-        version:
-          example: 1.8.7-gke.1
-          type: string
-    ClusterProfileGKE_gke:
-      properties:
-        master:
-          $ref: '#/components/schemas/ClusterProfileGKE_gke_master'
-        nodeVersion:
-          example: 1.8.7-gke.1
-          type: string
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolsGoogle'
-          type: object
-    AddClusterProfileAKS_aks:
-      properties:
-        nodePools:
-          additionalProperties:
-            $ref: '#/components/schemas/NodePoolsAzure'
-          type: object
-        kubernetesVersion:
-          example: 1.8.2
-          type: string
     AllowedSecretTypeResponse_fields:
       example:
         name: name

@@ -21,7 +21,6 @@ type CreateClusterRequest struct {
 	SecretIds    []string               `json:"secretIds,omitempty"`
 	SecretName   string                 `json:"secretName,omitempty"`
 	PostHooks    map[string]interface{} `json:"postHooks,omitempty"`
-	ProfileName  string                 `json:"profileName,omitempty"`
 	ScaleOptions ScaleOptions           `json:"scaleOptions,omitempty"`
 	Properties   map[string]interface{} `json:"properties"`
 }
