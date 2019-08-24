@@ -15,15 +15,10 @@
 package defaults
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/spf13/viper"
 )
 
 // cluster profile table names
@@ -40,32 +35,6 @@ const (
 	DefaultGKENodePoolProfileTableName       = "google_gke_profile_node_pools"
 	DefaultGKENodePoolProfileLabelsTableName = "google_gke_profile_node_pool_labels"
 )
-
-// default node name for all provider
-const (
-	DefaultNodeName = "pool1"
-)
-
-// SetDefaultValues saves the default cluster profile into the database if not exists yet
-func SetDefaultValues() error {
-	log.Info("setting up default cluster profiles")
-
-	defaults := GetDefaultProfiles()
-
-	for _, d := range defaults {
-		if !d.IsDefinedBefore() { // the table not contains the default profile
-			log.WithField("cloud", d.GetCloud()).Info("default profile is missing. Setting up...")
-
-			if err := d.SaveInstance(); err != nil {
-				return fmt.Errorf("could not save default values[%s]: %s", d.GetCloud(), err.Error())
-			}
-		} else { // default profile already exists
-			log.WithField("cloud", d.GetCloud()).Info("default profile is already set up")
-		}
-	}
-
-	return nil
-}
 
 // ClusterProfile describes a cluster profile
 type ClusterProfile interface {
@@ -89,88 +58,4 @@ type DefaultModel struct {
 func save(i interface{}) error {
 	database := config.DB()
 	return database.Save(i).Error
-}
-
-// GetDefaultProfiles returns all types of clouds with default profile name.
-func GetDefaultProfiles() []ClusterProfile {
-	image, _ := eks.GetDefaultImageID(eks.DefaultRegion, eks.DefaultK8sVersion)
-
-	return []ClusterProfile{
-		&EKSProfile{
-			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
-			NodePools: []*EKSNodePoolProfile{{
-				AmazonNodePoolProfileBaseFields: AmazonNodePoolProfileBaseFields{
-					Name:      GetDefaultProfileName(),
-					NodeName:  DefaultNodeName,
-					SpotPrice: eks.DefaultSpotPrice,
-				},
-				Image: image,
-			}},
-			Version: eks.DefaultK8sVersion,
-		},
-		&AKSProfile{
-			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
-			NodePools: []*AKSNodePoolProfile{{
-				Name:     GetDefaultProfileName(),
-				NodeName: DefaultNodeName,
-			}},
-		},
-		&GKEProfile{
-			DefaultModel: DefaultModel{Name: GetDefaultProfileName()},
-			NodePools: []*GKENodePoolProfile{{
-				Name:     GetDefaultProfileName(),
-				NodeName: DefaultNodeName,
-			}},
-		},
-		&oracle.Profile{
-			Name: GetDefaultProfileName(),
-			NodePools: []*oracle.ProfileNodePool{{
-				Name: DefaultNodeName,
-			}},
-		},
-	}
-}
-
-// GetProfile finds cluster profile from database by given name and cloud type
-func GetProfile(distribution string, name string) (ClusterProfile, error) {
-	db := config.DB()
-
-	switch distribution {
-	case pkgCluster.EKS:
-		var eksProfile EKSProfile
-		if err := db.Where(EKSProfile{DefaultModel: DefaultModel{Name: name}}).Preload("NodePools.Labels").First(&eksProfile).Error; err != nil {
-			return nil, err
-		}
-		return &eksProfile, nil
-
-	case pkgCluster.AKS:
-		var aksProfile AKSProfile
-		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).
-			Preload("NodePools.Labels").First(&aksProfile).Error; err != nil {
-			return nil, err
-		}
-		return &aksProfile, nil
-
-	case pkgCluster.GKE:
-		var gkeProfile GKEProfile
-		if err := db.Where(GKEProfile{DefaultModel: DefaultModel{Name: name}}).
-			Preload("NodePools.Labels").First(&gkeProfile).Error; err != nil {
-			return nil, err
-		}
-		return &gkeProfile, nil
-
-	case pkgCluster.OKE:
-		var okeProfile oracle.Profile
-		okeProfile, err := oracle.GetProfileByName(name)
-		return &okeProfile, err
-
-	default:
-		return nil, pkgErrors.ErrorNotSupportedCloudType
-	}
-
-}
-
-// GetDefaultProfileName reads the default profile name env var
-func GetDefaultProfileName() string {
-	return viper.GetString("cloud.defaultProfileName")
 }

@@ -88,7 +88,6 @@ import (
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
-	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -181,11 +180,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-	}
-
-	err = defaults.SetDefaultValues()
-	if err != nil {
-		panic(err)
 	}
 
 	// External DNS service
