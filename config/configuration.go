@@ -216,7 +216,6 @@ func init() {
 	viper.SetDefault("helm.stableRepositoryURL", "https://kubernetes-charts.storage.googleapis.com")
 	viper.SetDefault("helm.banzaiRepositoryURL", "https://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault(helmPath, "./orgs")
-	viper.SetDefault("cloud.defaultProfileName", "default")
 	viper.SetDefault("cloud.configRetryCount", 30)
 	viper.SetDefault("cloud.configRetrySleep", 15)
 	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
