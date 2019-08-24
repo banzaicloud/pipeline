@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"time"
 
+	v1 "k8s.io/api/core/v1"
+
 	"github.com/banzaicloud/pipeline/pkg/cluster/ack"
 	"github.com/banzaicloud/pipeline/pkg/cluster/aks"
 	"github.com/banzaicloud/pipeline/pkg/cluster/dummy"
@@ -29,7 +31,6 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	oke "github.com/banzaicloud/pipeline/pkg/providers/oracle/cluster"
-	v1 "k8s.io/api/core/v1"
 )
 
 // ### [ Cluster statuses ] ### //
@@ -119,7 +120,6 @@ type CreateClusterRequest struct {
 	SecretId     string                   `json:"secretId" yaml:"secretId"`
 	SecretIds    []string                 `json:"secretIds,omitempty" yaml:"secretIds,omitempty"`
 	SecretName   string                   `json:"secretName" yaml:"secretName"`
-	ProfileName  string                   `json:"profileName" yaml:"profileName"`
 	PostHooks    PostHooks                `json:"postHooks" yaml:"postHooks"`
 	Properties   *CreateClusterProperties `json:"properties" yaml:"properties" binding:"required"`
 	ScaleOptions *ScaleOptions            `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
@@ -374,7 +374,7 @@ func (r *CreateClusterRequest) Validate() error {
 	case Amazon:
 		// eks validate
 		if r.Properties.CreateClusterPKE != nil {
-			//r.Properties.CreateClusterPKE.Validate()
+			// r.Properties.CreateClusterPKE.Validate()
 			return nil
 		}
 		return r.Properties.CreateClusterEKS.Validate()
@@ -614,54 +614,4 @@ type NodePoolLabel struct {
 	Name     string `json:"name"`
 	Value    string `json:"value"`
 	Reserved bool   `json:"reserved"`
-}
-
-// CreateClusterRequest creates a CreateClusterRequest model from profile
-func (p *ClusterProfileResponse) CreateClusterRequest(createRequest *CreateClusterRequest) (*CreateClusterRequest, error) {
-	response := &CreateClusterRequest{
-		Name:        createRequest.Name,
-		Location:    p.Location,
-		Cloud:       p.Cloud,
-		SecretId:    createRequest.SecretId,
-		ProfileName: p.Name,
-		Properties:  &CreateClusterProperties{},
-		TtlMinutes:  p.TtlMinutes,
-	}
-
-	switch p.Cloud { // TODO(Ecsy): distribution???
-	case Alibaba:
-		response.Properties.CreateClusterACK = &ack.CreateClusterACK{
-			RegionID:  p.Properties.ACK.RegionID,
-			ZoneID:    p.Properties.ACK.ZoneID,
-			NodePools: p.Properties.ACK.NodePools,
-		}
-	case Amazon:
-		response.Properties.CreateClusterEKS = &eks.CreateClusterEKS{
-			NodePools: p.Properties.EKS.NodePools,
-			Version:   p.Properties.EKS.Version,
-		}
-	case Azure:
-		a := createRequest.Properties.CreateClusterAKS
-		if a == nil || len(a.ResourceGroup) == 0 {
-			return nil, pkgErrors.ErrorResourceGroupRequired
-		}
-		response.Properties.CreateClusterAKS = &aks.CreateClusterAKS{
-			ResourceGroup:     a.ResourceGroup,
-			KubernetesVersion: p.Properties.AKS.KubernetesVersion,
-			NodePools:         p.Properties.AKS.NodePools,
-		}
-	case Google:
-		response.Properties.CreateClusterGKE = &gke.CreateClusterGKE{
-			NodeVersion: p.Properties.GKE.NodeVersion,
-			NodePools:   p.Properties.GKE.NodePools,
-			Master:      p.Properties.GKE.Master,
-		}
-	case Oracle:
-		response.Properties.CreateClusterOKE = &oke.Cluster{
-			Version:   p.Properties.OKE.Version,
-			NodePools: p.Properties.OKE.NodePools,
-		}
-	}
-
-	return response, nil
 }
