@@ -40,7 +40,7 @@ up: config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up
 
 .PHONY: down
 down: clean ## Destroy the development environment
-	docker-compose down
+	docker-compose down -v
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf .docker/; else rm -rf .docker/; fi
 
 .PHONY: reset
