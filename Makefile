@@ -129,6 +129,7 @@ bin/golangci-lint-${GOLANGCI_VERSION}:
 	@mv bin/golangci-lint $@
 
 .PHONY: lint
+lint: export CGO_ENABLED = 1
 lint: bin/golangci-lint ## Run linter
 	bin/golangci-lint run
 
