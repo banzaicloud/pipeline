@@ -15,52 +15,28 @@
 package main
 
 import (
-	"os"
-
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
-	"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/internal/cmd/common"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
 // is necessary for running the application.
 type configuration struct {
-	// Log configuration
-	Log log.Config
-
-	// ErrorHandler configuration
-	ErrorHandler errorhandler.Config
+	common.Configuration `mapstructure:",squash"`
 }
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
-	if err := c.ErrorHandler.Validate(); err != nil {
-		return err
-	}
-
-	return nil
+	return c.Configuration.Validate()
 }
 
 // configure configures some defaults in the Viper instance.
-func configure(v *viper.Viper, _ *pflag.FlagSet) {
+func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Application constants
-	v.Set("appName", appName)
-	v.Set("appVersion", version)
+	v.Set(common.ConfigAppName, appName)
+	v.Set(common.ConfigAppVersion, version)
 
-	if _, ok := os.LookupEnv("NO_COLOR"); ok {
-		v.SetDefault("no_color", true)
-	}
-
-	// Log configuration
-	v.SetDefault("logging.logformat", "text")
-	v.SetDefault("logging.loglevel", "debug")
-	v.RegisterAlias("log.format", "logging.logformat") // TODO: deprecate the above
-	v.RegisterAlias("log.level", "logging.loglevel")
-	v.RegisterAlias("log.noColor", "no_color")
-
-	// ErrorHandler configuration
-	v.RegisterAlias("errorHandler.serviceName", "appName")
-	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
+	common.Configure(v, p)
 }

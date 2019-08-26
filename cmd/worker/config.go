@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/internal/cmd/common"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
@@ -111,27 +112,15 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AutomaticEnv()
 
 	// Application constants
-	v.Set("appName", appName)
-	v.Set("appVersion", version)
+	v.Set(common.ConfigAppName, appName)
+	v.Set(common.ConfigAppVersion, version)
 
 	// Global configuration
 	v.SetDefault("environment", "production")
 	v.SetDefault("debug", false)
 	v.SetDefault("shutdownTimeout", 15*time.Second)
-	if _, ok := os.LookupEnv("NO_COLOR"); ok {
-		v.SetDefault("no_color", true)
-	}
 
-	// Log configuration
-	v.SetDefault("logging.logformat", "text")
-	v.SetDefault("logging.loglevel", "debug")
-	v.RegisterAlias("log.format", "logging.logformat") // TODO: deprecate the above
-	v.RegisterAlias("log.level", "logging.loglevel")
-	v.RegisterAlias("log.noColor", "no_color")
-
-	// ErrorHandler configuration
-	v.RegisterAlias("errorHandler.serviceName", "appName")
-	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
+	common.Configure(v, p)
 
 	// Pipeline configuration
 	v.SetDefault("pipeline.basePath", "")
