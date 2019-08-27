@@ -17,6 +17,7 @@ package k8sclient
 import (
 	"context"
 	"net"
+	"time"
 
 	"emperror.dev/emperror"
 	"github.com/pkg/errors"
@@ -44,7 +45,16 @@ func NewClientFromKubeConfig(kubeConfig []byte) (*kubernetes.Clientset, error) {
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to create client config")
 	}
+	return NewClientFromConfig(config)
+}
 
+// NewClientFromKubeConfig creates a new Kubernetes client from raw kube config.
+func NewClientFromKubeConfigWithTimeout(kubeConfig []byte, timeout time.Duration) (*kubernetes.Clientset, error) {
+	config, err := NewClientConfig(kubeConfig)
+	if err != nil {
+		return nil, errors.WithMessage(err, "failed to create client config")
+	}
+	config.Timeout = timeout
 	return NewClientFromConfig(config)
 }
 

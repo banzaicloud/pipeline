@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"time"
 
 	"emperror.dev/emperror"
 	"github.com/gin-gonic/gin"
@@ -260,7 +261,7 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 		return
 	}
 
-	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	client, err := k8sclient.NewClientFromKubeConfigWithTimeout(kubeConfig, 5*time.Second)
 	if err != nil {
 		partialResponse = true
 		return
