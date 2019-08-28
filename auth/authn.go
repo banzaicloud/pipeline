@@ -683,16 +683,17 @@ func GetOrgNameFromVirtualUser(virtualUser string) string {
 	return strings.Split(virtualUser, "/")[0]
 }
 
-const internalUserLoginName = "internal"
+const internalUserLogin = "internal"
+const internalUserEmail = "internal@pipeline.banzaicloud.com"
+const internalUserID = 99999
+const internalUserName = "Internal user"
 
 func InternalUserHandler(ctx *gin.Context) {
-	user, err := GetUserByLoginName(internalUserLoginName)
-	if err != nil {
-		err = errors.Wrap(err, "failed to retrieve internal user")
-		errorHandler.Handle(err)
-		http.Error(ctx.Writer, err.Error(), http.StatusInternalServerError)
-		ctx.Abort()
-		return
+	user := &User{
+		ID:    internalUserID,
+		Name:  internalUserName,
+		Email: internalUserEmail,
+		Login: internalUserLogin,
 	}
 	newContext := context.WithValue(ctx.Request.Context(), bauth.CurrentUser, user)
 	ctx.Request = ctx.Request.WithContext(newContext)
