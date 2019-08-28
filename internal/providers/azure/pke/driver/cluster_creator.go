@@ -190,6 +190,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		SecretID:           params.SecretID,
 		SSHSecretID:        params.SSHSecretID,
 		RBAC:               params.Kubernetes.RBAC,
+		OIDC:               params.Kubernetes.OIDC.Enabled,
 		ScaleOptions:       params.ScaleOptions,
 		ResourceGroupName:  params.ResourceGroup,
 		NodePools:          nodePools,

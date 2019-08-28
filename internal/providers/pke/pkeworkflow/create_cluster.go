@@ -142,7 +142,7 @@ type CreateClusterWorkflowInput struct {
 	Region                      string
 	PipelineExternalURL         string
 	PipelineExternalURLInsecure bool
-	DexEnabled                  bool
+	OIDCEnabled                 bool
 	VPCID                       string
 	SubnetID                    string
 }
@@ -289,7 +289,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 
 	// Create dex client for the cluster
-	if input.DexEnabled {
+	if input.OIDCEnabled {
 		activityInput := CreateDexClientActivityInput{
 			ClusterID: input.ClusterID,
 		}

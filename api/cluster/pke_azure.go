@@ -65,6 +65,9 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 				Runtime:       req.Kubernetes.Cri.Runtime,
 				RuntimeConfig: req.Kubernetes.Cri.RuntimeConfig,
 			},
+			OIDC: intPKE.OIDC{
+				Enabled: req.Kubernetes.Oidc.Enabled,
+			},
 		},
 		Network: driver.VirtualNetwork{
 			Name:     req.Network.Name,
