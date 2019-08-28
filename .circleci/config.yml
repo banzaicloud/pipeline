@@ -274,12 +274,24 @@ jobs:
                     name: Tag release
                     command: |
                         docker tag <<parameters.image>>:$CIRCLE_SHA1 <<parameters.registry>>/<<parameters.image>>:<< parameters.tag >>
-                        docker tag <<parameters.image>>:$CIRCLE_SHA1 <<parameters.registry>>/<<parameters.image>>:latest
             -
                 docker/push:
                     registry: <<parameters.registry>>
                     image: <<parameters.image>>
                     tag: $CIRCLE_TAG
+            -
+                run:
+                    name: Check version
+                    command: |
+                      if ! echo "${CIRCLE_TAG}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+                        echo 'Unstable version. Skipping further steps.'
+                        circleci step halt
+                      fi
+            -
+                run:
+                    name: Tag latest
+                    command: |
+                      docker tag <<parameters.image>>:$CIRCLE_SHA1 <<parameters.registry>>/<<parameters.image>>:latest
             -
                 docker/push:
                     registry: <<parameters.registry>>
