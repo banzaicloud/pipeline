@@ -237,6 +237,8 @@ func main() {
 
 	externalURLInsecure := viper.GetBool(config.PipelineExternalURLInsecure)
 
+	dexIssuerURL := viper.GetString("auth.dexURL")
+
 	workflowClient, err := config.CadenceClient()
 	if err != nil {
 		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
@@ -297,6 +299,7 @@ func main() {
 			workflowClient,
 			externalBaseURL,
 			externalURLInsecure,
+			dexIssuerURL,
 		),
 	}
 	clusterDeleters := api.ClusterDeleters{
@@ -598,7 +601,7 @@ func main() {
 				clusterGetter,
 				clusterAuthService,
 				viper.GetString("auth.tokensigningkey"),
-				viper.GetString("auth.dexURL"),
+				dexIssuerURL,
 				viper.GetBool("auth.dexInsecure"),
 				pipelineExternalURL.String(),
 			)
