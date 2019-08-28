@@ -82,8 +82,8 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 
 		if f.OIDCIssuerURL != "" {
 			userDataScriptTemplate += fmt.Sprintf(` \
-				"--kubernetes-oidc-issuer-url=%q \
-				"--kubernetes-oidc-client-id=%q`,
+--kubernetes-oidc-issuer-url=%q \
+--kubernetes-oidc-client-id=%q`,
 				f.OIDCIssuerURL,
 				f.OIDCClientID,
 			)
