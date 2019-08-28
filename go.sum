@@ -60,7 +60,6 @@ github.com/Azure/go-autorest/tracing v0.5.0/go.mod h1:r/s2XiOKccPW3HrqB+W0TQzfbt
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/InVisionApp/go-logger v1.0.1/go.mod h1:+cGTDSn+P8105aZkeOfIhdd7vFO5X1afUHcjvanY0L8=
 github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e h1:eb0Pzkt15Bm7f2FFYv7sjY7NPFi3cPkS3tv1CcrFBWA=
 github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e/go.mod h1:64YHyfSL2R96J44Nlwm39UHepQbyR5q10x7iYa1ks2E=
 github.com/Masterminds/semver v1.4.2 h1:WBLTQ37jOCzSLtXNdoo8bNM8876KhNqOKvrlGITgsTc=
@@ -74,7 +73,6 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/ThreeDotsLabs/watermill v0.1.2/go.mod h1:c0DOrvvuqbB8uhZlgY/fukFFfv1WZ6HinSktALd9b38=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc h1:cAKDfWh5VpdgMhJosfJnn5/FoN2SRZ4p7fJNX58YPaU=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf h1:qet1QNfXsQxTZqLG4oE62mJzwPIB8+Tee4RNCL9ulrY=
@@ -105,8 +103,6 @@ github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af6
 github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62/go.mod h1:LpX/aNV3ZYLT0UphkpG88OPi5/vHMrScB7TQtQLrjTs=
 github.com/banzaicloud/auth v0.1.3 h1:EUl1EMnJ2AfRGq6xn/SKdRY39ZULGyFj0XJDImv1aF4=
 github.com/banzaicloud/auth v0.1.3/go.mod h1:oKSmpvPMCqencgRxTNadXspkyZYqpZcQV8yeo0VUxso=
-github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.2 h1:VesoYZda83xyEMBVD5K3Th8spnNeH5WWxUD1JRBA6eo=
-github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.2/go.mod h1:t8CI6t3iGDKQuTFLFjhY/HBw/p3B6dCsLAgikct0amc=
 github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.3-0.20190826065836-26d654c87254 h1:EDSd7zAvlWFymtHnGZtnto+bPoLZmHAYs9LZoj8juW4=
 github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.3-0.20190826065836-26d654c87254/go.mod h1:t8CI6t3iGDKQuTFLFjhY/HBw/p3B6dCsLAgikct0amc=
 github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677 h1:5q4Sv/DFbmiXNyelLCKwYGCUwulXmT1thgKzgWPMvLU=
@@ -115,8 +111,6 @@ github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419 h1:s
 github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419/go.mod h1:1eXhK1Ld1vRFbNpqi8Eu1ktCCk5LARA1Tbdl8EsAfgE=
 github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182 h1:U3i2pc5I/dwlXqcTgPSHBP1k9ISjnyMlXh6Opi94pf8=
 github.com/banzaicloud/go-yaml v0.0.0-20190116151056-02e17e901182/go.mod h1:OeOXKxwBf3IGkKdrjisjo3pb+RlQNRMXpaGgiDdyRfA=
-github.com/banzaicloud/hollowtrees v0.0.0-20190826111842-5d867d363b79 h1:F7vsROQp6qoInQgiElTdhnMgeI01/RIGRzooh3c9DbM=
-github.com/banzaicloud/hollowtrees v0.0.0-20190826111842-5d867d363b79/go.mod h1:MyQrwxUPr2tyi/eDRTjx1+RHo5o/mWHfT6qtZU6JrJo=
 github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f h1:51U6NGVl3M6Da4BhC+dzK1diR4FkqMoGhtb/E4xS3oA=
 github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f/go.mod h1:ZsHnkYOQmq/OhsTX/apqgSoT2Jt5qkr15zuoVcj48Xk=
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f h1:WeGZeO6I+lI1IG2vm1iXTeMrHLcMUjfoYm+rubBM5c4=
@@ -143,11 +137,9 @@ github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghf
 github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 h1:HD4PLRzjuCVW79mQ0/pdsalOLHJ+FaEoqJLxfltpb2U=
 github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1/go.mod h1:/iP1qXHoty45bqomnu2LM+VVyAEdWN+vtSHGlQgyxbw=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
-github.com/cloudevents/sdk-go v0.0.0-20181211100118-3a3d34a7231e/go.mod h1:xV7GfuhjnJoK6+2MgCk3kfkoO4YRIuARdY3UpSwGz+U=
 github.com/cockroachdb/cmux v0.0.0-20170110192607-30d10be49292/go.mod h1:qRiX68mZX1lGBkTWyp3CLcenw9I94W2dLeRvMzcn9N4=
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd h1:qMd81Ts1T2OTKmB4acZcyKaMtRnY5Y44NuXGX2GFJ1w=
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE/e/2PUdi/liOCUjSTXgM1o87ZssimdTWN964YiIeI=
-github.com/confluentinc/confluent-kafka-go v0.11.6/go.mod h1:u2zNLny2xq+5rWeTQjFHbDzzNuba4P1vo31r9r4uAdg=
 github.com/coreos/bbolt v1.3.2 h1:wZwiHHUieZCquLkDL0B8UhzreNWsPHooDAG3q34zk0s=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
 github.com/coreos/etcd v3.2.9+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
@@ -230,7 +222,6 @@ github.com/gin-gonic/gin v1.3.1-0.20190204012700-5acf6601170b h1:xjF2L+9evUIX5jC
 github.com/gin-gonic/gin v1.3.1-0.20190204012700-5acf6601170b/go.mod h1:1LxhNsJuqDSRHN+tYaDKqQ8vYKN30DhOqscovOEg5i8=
 github.com/gin-gonic/gin v1.4.0 h1:3tMoCCfM7ppqsR0ptz/wi1impNpT7/9wQtMZ8lr1mCQ=
 github.com/gin-gonic/gin v1.4.0/go.mod h1:OW2EZn3DO8Ln9oIKOvM++LBO+5UPHJJDH72/q/3rZdM=
-github.com/go-chi/chi v3.3.3+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-kit/kit v0.9.0 h1:wDJmvq38kDhkVxi50ni9ykkdUr1PKgqKOoi01fa0Mdk=
 github.com/go-kit/kit v0.9.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
@@ -251,8 +242,6 @@ github.com/go-openapi/spec v0.19.0 h1:A4SZ6IWh3lnjH0rG0Z5lkxazMGBECtrZcbyYQi+64k
 github.com/go-openapi/spec v0.19.0/go.mod h1:XkF/MOi14NmjsfZ8VtAKf8pIlbZzyoTvZsdfssdxcBI=
 github.com/go-openapi/swag v0.17.0 h1:iqrgMg7Q7SvtbWLlltPrkMs0UBJI6oTSs79JFRUi880=
 github.com/go-openapi/swag v0.17.0/go.mod h1:AByQ+nYG6gQg71GINrmuDXCPWdL640yX49/kXLo40Tg=
-github.com/go-playground/locales v0.12.1/go.mod h1:IUMDtCfWo/w/mtMfIE/IG2K+Ey3ygWanZIBtBW0W2TM=
-github.com/go-playground/universal-translator v0.16.0/go.mod h1:1AnU7NaIRDWWzGEKwgtJRd2xk99HeFyHw3yid4rvQIY=
 github.com/go-sql-driver/mysql v1.4.1 h1:g24URVg0OFbNUTx9qqY1IRZ9D9z3iPyi5zKhQZpNwpA=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-stack/stack v1.8.0 h1:5SgMzNM5HxrEjV0ww2lTmX6E2Izsfxas4+YHWRs3Lsk=
@@ -315,8 +304,6 @@ github.com/googleapis/gax-go/v2 v2.0.5 h1:sjZBwGj9Jlw33ImPtvFviGYvseOtDM7hkSKB7+
 github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
 github.com/googleapis/gnostic v0.2.0 h1:l6N3VoaVzTncYYW+9yOz2LJJammFZGBO13sqgEhpy9g=
 github.com/googleapis/gnostic v0.2.0/go.mod h1:sJBsCZ4ayReDTBIg8b9dl28c5xFWyhBTVRp3pOg5EKY=
-github.com/goph/emperror v0.14.0/go.mod h1:vakOpsf2BTE0/C0snxzXm5/l8pv6qjBhIqm/qlgDYC8=
-github.com/goph/logur v0.5.0/go.mod h1:12WYraXUaqPchdbrHQj9y9wneP4L9PDiesLJGFF3Ox4=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGaHF6qqu48+N2wcFQ5qg5FXgOdqsJ5d8=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gorilla/context v0.0.0-20160525203319-aed02d124ae4/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51q0aT7Yg=
@@ -353,7 +340,6 @@ github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtng
 github.com/hashicorp/go-cleanhttp v0.5.1 h1:dH3aiDG9Jvb5r5+bYHsikaOUIpcM0xvgMXVoDkXMzJM=
 github.com/hashicorp/go-cleanhttp v0.5.1/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
 github.com/hashicorp/go-hclog v0.0.0-20180709165350-ff2cf002a8dd/go.mod h1:9bjs9uLqI8l75knNv3lV1kA55veR+WUPSiKIWcQHudI=
-github.com/hashicorp/go-hclog v0.0.0-20181001195459-61d530d6c27f/go.mod h1:5CU+agLiy3J7N7QjHK5d05KxGsuXiQLrjA0H7acj2lQ=
 github.com/hashicorp/go-hclog v0.8.0 h1:z3ollgGRg8RjfJH6UVBaG54R70GFd++QOkvnJH3VSBY=
 github.com/hashicorp/go-hclog v0.8.0/go.mod h1:5CU+agLiy3J7N7QjHK5d05KxGsuXiQLrjA0H7acj2lQ=
 github.com/hashicorp/go-immutable-radix v1.0.0 h1:AKDB1HM5PWEA7i4nhcpwOrO2byshxBjXVn/J/3+z5/0=
@@ -435,7 +421,6 @@ github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/kubernetes-sigs/kubefed v0.1.0-rc5 h1:h2RNPoajNkmZSDRNFmOO9z7i3vH9H9sC7mc1zQPRvZ4=
 github.com/kubernetes-sigs/kubefed v0.1.0-rc5/go.mod h1:nPkYUhlYxO0WBozg6wMjCLNzmhVFQ3tprNXczC5qc8E=
 github.com/kylelemons/godebug v0.0.0-20160406211939-eadb3ce320cb/go.mod h1:B69LEHPfb2qLo0BaaOLcbitczOKLWTsrBG9LczfCD4k=
-github.com/leodido/go-urn v1.1.0/go.mod h1:+cyI34gQWZcE1eQU7NVgKkkzdXDQHr1dBMtdAPozLkw=
 github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0 h1:42NOlmEjGA3qZ1qSWc/QVFo0DuVXG1zewVXFMZj+ZLs=
 github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0/go.mod h1:CNQaGVRTtvkLlWshyDozYy79pBflEOWskqCMSxLTfQ0=
 github.com/lib/pq v0.0.0-20181016162627-9eb73efc1fcc h1:0pifi8wVV/YuUKBDmlH3koJgRVnUJ2RiJQ8ly/1/aJ8=
@@ -571,7 +556,6 @@ github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqn
 github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 h1:x7xEyJDP7Hv3LVgvWhzioQqbC/KtuUhTigKlH/8ehhE=
 github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967/go.mod h1:JGuDeoQd7Z6yL4zQhZ3OPEVHB7fL6Ka6skscFHfmt2k=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
-github.com/rs/zerolog v1.11.0/go.mod h1:YbFCdg8HfsridGWAh22vktObvhZbQsZXe4/zB0OKkWU=
 github.com/russellhaering/goxmldsig v0.0.0-20170324122954-eaac44c63fe0/go.mod h1:Oz4y6ImuOQZxynhbSXk7btjEfNBtGlj2dcaOvXl2FSM=
 github.com/russross/blackfriday v1.5.1 h1:B8ZN6pD4PVofmlDCDUdELeYrbsVIDM/bpjW3v3zgcRc=
 github.com/russross/blackfriday v1.5.1/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
@@ -660,7 +644,6 @@ go.opencensus.io v0.20.1/go.mod h1:6WKK9ahsWS3RSO+PY9ZHZUfv2irvY6gN279GOPZjmmk=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0 h1:C9hSCOW830chIVkdja34wa6Ky+IzWllkUinR+BtRZd4=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
-go.uber.org/atomic v1.3.2/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/atomic v1.4.0 h1:cxzIVoETapQEqDhQu3QfnvXAV4AlzcvUCxkVUFw3+EU=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/cadence v0.9.0 h1:NtAV+JTBFyOrUVTqI+acbfqn68Yrzj4+sX4NPACTt60=
@@ -769,7 +752,6 @@ golang.org/x/sys v0.0.0-20190422165155-953cdadca894/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20190502145724-3ef323f4f1fd/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190606165138-5da285871e9c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
-golang.org/x/sys v0.0.0-20190616124812-15dcb6c0061f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0 h1:HyfiK1WMnHj5FXFXatD+Qs1A/xC2Run6RzeW1SyHxpc=
 golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.0.0-20170401064109-f4b4367115ec/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
@@ -851,7 +833,6 @@ gopkg.in/go-playground/assert.v1 v1.2.1 h1:xoYuJVE7KT85PYWrN730RguIQO0ePzVRfFMXa
 gopkg.in/go-playground/assert.v1 v1.2.1/go.mod h1:9RXL0bg/zibRAgZUYszZSwO/z8Y/a8bDuhia5mkpMnE=
 gopkg.in/go-playground/validator.v8 v8.18.2 h1:lFB4DoMU6B626w8ny76MV7VX6W2VHct2GVOI3xgiMrQ=
 gopkg.in/go-playground/validator.v8 v8.18.2/go.mod h1:RX2a/7Ha8BgOhfk7j780h4/u/RRjR0eouCJSH80/M2Y=
-gopkg.in/go-playground/validator.v9 v9.29.1/go.mod h1:+c9/zcJMFNgbLvly1L1V+PpxWdVbfP1avr/N00E2vyQ=
 gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 h1:NvePS/smRcFQ4bMtTddFtknbGCtoBkJxGmpSpVRafCc=
 gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737/go.mod h1:LRQQ+SO6ZHR7tOkpBDuZnXENFzX8qRjMDMyPD6BRkCw=
 gopkg.in/inf.v0 v0.9.1 h1:73M5CoZyi3ZLMOyDlQh031Cx6N9NDJ2Vvfl76EDAgDc=

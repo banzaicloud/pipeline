@@ -31,7 +31,6 @@ require (
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.3-0.20190826065836-26d654c87254
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
-	github.com/banzaicloud/hollowtrees v0.0.0-20190826111842-5d867d363b79
 	github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb

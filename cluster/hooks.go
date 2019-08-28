@@ -38,7 +38,7 @@ import (
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
-	htauth "github.com/banzaicloud/hollowtrees/pkg/auth"
+	hollowtrees "github.com/banzaicloud/pipeline/internal/hollowtrees"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -1069,7 +1069,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 			return err
 		}
 
-		generator := htauth.NewTokenGenerator(viper.GetString("auth.jwtissuer"), viper.GetString("auth.jwtaudience"), viper.GetString(pipConfig.HollowtreesTokenSigningKey))
+		generator := hollowtrees.NewTokenGenerator(viper.GetString("auth.jwtissuer"), viper.GetString("auth.jwtaudience"), viper.GetString(pipConfig.HollowtreesTokenSigningKey))
 		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
 		if err != nil {
 			err = emperror.Wrap(err, "could not generate JWT token for instance termination handler")
