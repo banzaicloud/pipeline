@@ -38,7 +38,6 @@ import (
 	k8sHelm "k8s.io/helm/pkg/helm"
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
-	hollowtrees "github.com/banzaicloud/pipeline/internal/hollowtrees"
 	"github.com/banzaicloud/pipeline/auth"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -46,6 +45,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
+	hollowtrees "github.com/banzaicloud/pipeline/internal/hollowtrees"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
