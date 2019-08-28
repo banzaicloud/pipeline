@@ -114,6 +114,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 					Cri:     cri,
 					Network: network,
 					Rbac:    RBAC,
+					Oidc:    client.CreatePkeClusterKubernetesOidc{Enabled: true},
 					Version: Version,
 				},
 				Network: Azurenetwork,
@@ -124,6 +125,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				Kubernetes: pke.Kubernetes{
 					Version: Version,
 					RBAC:    RBAC,
+					OIDC:    pke.OIDC{Enabled: true},
 					Network: pke.Network{
 						ServiceCIDR:    network.ServiceCIDR,
 						PodCIDR:        network.PodCIDR,
