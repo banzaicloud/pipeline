@@ -1225,6 +1225,7 @@ func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId uint) inte
 	k := internalPke.Kubernetes{
 		Version: kubernetes.Version,
 		RBAC:    internalPke.RBAC{Enabled: kubernetes.RBAC.Enabled},
+		OIDC:    internalPke.OIDC{Enabled: kubernetes.OIDC.Enabled},
 	}
 	k.CreatedBy = userId
 	return k
