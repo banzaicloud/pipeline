@@ -189,6 +189,10 @@ const (
 	FederationImageRepo    = "federation.imageRepo"
 
 	DomainHookEnabled = "hooks.domainHookEnabled"
+
+	HollowtreesTokenSigningKey = "hollowtrees.tokenSigningKey"
+	HollowtreesExternalURL     = "hollowtrees.externalURL"
+	HollowtreesAlertsEndpoint  = "hollowtrees.alertsEndpoint"
 )
 
 // Init initializes the configurations
@@ -375,6 +379,9 @@ func init() {
 
 	viper.SetDefault(DNSExternalDnsReleaseName, "dns")
 	viper.SetDefault(DNSExternalDnsChartName, "stable/external-dns")
+
+	viper.SetDefault(HollowtreesExternalURL, "/hollowtrees-alerts")
+	viper.SetDefault(HollowtreesAlertsEndpoint, "/api/v1/alerts")
 
 	// enable the domainHook by default
 	viper.SetDefault(DomainHookEnabled, true)

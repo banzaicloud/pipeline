@@ -28,9 +28,10 @@ require (
 	github.com/aws/aws-sdk-go v1.16.11
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
-	github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.2
+	github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.3-0.20190826065836-26d654c87254
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
+	github.com/banzaicloud/hollowtrees v0.0.0-20190826111842-5d867d363b79
 	github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
 	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb
@@ -145,7 +146,7 @@ require (
 	go.uber.org/yarpc v1.36.1
 	go.uber.org/zap v1.10.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.9.0
 	google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64
