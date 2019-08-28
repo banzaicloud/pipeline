@@ -248,6 +248,7 @@ Class | Method | HTTP request | Description
  - [CreatePkeClusterKubernetes](docs/CreatePkeClusterKubernetes.md)
  - [CreatePkeClusterKubernetesCri](docs/CreatePkeClusterKubernetesCri.md)
  - [CreatePkeClusterKubernetesNetwork](docs/CreatePkeClusterKubernetesNetwork.md)
+ - [CreatePkeClusterKubernetesOidc](docs/CreatePkeClusterKubernetesOidc.md)
  - [CreatePkeClusterRequestBase](docs/CreatePkeClusterRequestBase.md)
  - [CreatePkeOnAzureClusterRequest](docs/CreatePkeOnAzureClusterRequest.md)
  - [CreatePkeProperties](docs/CreatePkeProperties.md)

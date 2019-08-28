@@ -7198,6 +7198,12 @@ components:
                 rbac:
                     type: boolean
                     example: true
+                oidc:
+                    type: object
+                    properties:
+                        enabled:
+                            type: boolean
+                            example: true
                 cri:
                     type: object
                     properties:

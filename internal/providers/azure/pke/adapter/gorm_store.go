@@ -219,6 +219,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 			Status:         pkgCluster.Creating,
 			StatusMessage:  pkgCluster.CreatingMessage,
 			RbacEnabled:    params.RBAC,
+			OidcEnabled:    params.OIDC,
 			ScaleOptions: model.ScaleOptions{
 				Enabled:             params.ScaleOptions.Enabled,
 				DesiredCpu:          params.ScaleOptions.DesiredCpu,

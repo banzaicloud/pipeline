@@ -8365,6 +8365,8 @@ components:
           type: string
         rbac:
           type: boolean
+        oidc:
+          $ref: '#/components/schemas/CreatePKEClusterKubernetes_oidc'
         cri:
           $ref: '#/components/schemas/CreatePKEClusterKubernetes_cri'
         network:
@@ -13509,6 +13511,10 @@ components:
         reserved:
           type: boolean
       type: object
+    CreatePKEClusterKubernetes_oidc:
+      properties:
+        enabled:
+          type: boolean
     CreatePKEClusterKubernetes_cri:
       properties:
         runtime:

@@ -25,7 +25,6 @@ type CreateClusterPKE struct {
 	Kubernetes Kubernetes `json:"kubernetes,omitempty" yaml:"kubernetes,omitempty" binding:"required"`
 	KubeADM    KubeADM    `json:"kubeadm,omitempty" yaml:"kubeadm,omitempty"`
 	CRI        CRI        `json:"cri,omitempty" yaml:"cri,omitempty" binding:"required"`
-	DexEnabled bool       `json:"dexEnabled,omitempty"`
 }
 
 // UpdateClusterPKE describes Pipeline's EC2/BanzaiCloud fields of a UpdateCluster request
@@ -159,9 +158,14 @@ type Tags map[string]string
 type Kubernetes struct {
 	Version string `json:"version" yaml:"version" binding:"required"`
 	RBAC    RBAC   `json:"rbac" yaml:"rbac" binding:"required"`
+	OIDC    OIDC   `json:"oidc" yaml:"oidc"`
 }
 
 type RBAC struct {
+	Enabled bool `json:"enabled" yaml:"enabled" binding:"required"`
+}
+
+type OIDC struct {
 	Enabled bool `json:"enabled" yaml:"enabled" binding:"required"`
 }
 
