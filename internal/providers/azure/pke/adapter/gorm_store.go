@@ -115,6 +115,7 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.ScaleOptions.OnDemandPct = model.ScaleOptions.OnDemandPct
 
 	cl.Kubernetes.RBAC = model.RbacEnabled
+	cl.Kubernetes.OIDC.Enabled = model.OidcEnabled
 	cl.Monitoring = model.Monitoring
 	cl.Logging = model.Logging
 	cl.ServiceMesh = model.ServiceMesh
