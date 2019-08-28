@@ -45,6 +45,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
+	hollowtrees "github.com/banzaicloud/pipeline/internal/hollowtrees"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
@@ -1054,6 +1055,36 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 				Operator: v1.TolerationOpExists,
 			},
 		},
+		"hollowtreesNotifier": map[string]interface{}{
+			"enabled": false,
+		},
+	}
+
+	scaleOptions := cluster.GetScaleOptions()
+	if scaleOptions != nil && scaleOptions.Enabled == true {
+		tokenSigningKey := viper.GetString(pipConfig.HollowtreesTokenSigningKey)
+		if tokenSigningKey == "" {
+			err := errors.New("no Hollowtrees token signkey specified")
+			errorHandler.Handle(err)
+			return err
+		}
+
+		generator := hollowtrees.NewTokenGenerator(viper.GetString("auth.jwtissuer"), viper.GetString("auth.jwtaudience"), viper.GetString(pipConfig.HollowtreesTokenSigningKey))
+		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
+		if err != nil {
+			err = emperror.Wrap(err, "could not generate JWT token for instance termination handler")
+			errorHandler.Handle(err)
+			return err
+		}
+
+		values["hollowtreesNotifier"] = map[string]interface{}{
+			"enabled":        true,
+			"URL":            viper.GetString(pipConfig.HollowtreesExternalURL) + viper.GetString(pipConfig.HollowtreesAlertsEndpoint),
+			"organizationID": cluster.GetOrganizationId(),
+			"clusterID":      cluster.GetID(),
+			"clusterName":    cluster.GetName(),
+			"jwtToken":       token,
+		}
 	}
 
 	marshalledValues, err := yaml.Marshal(values)
