@@ -105,8 +105,6 @@ github.com/banzaicloud/auth v0.1.3 h1:EUl1EMnJ2AfRGq6xn/SKdRY39ZULGyFj0XJDImv1aF
 github.com/banzaicloud/auth v0.1.3/go.mod h1:oKSmpvPMCqencgRxTNadXspkyZYqpZcQV8yeo0VUxso=
 github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.2 h1:VesoYZda83xyEMBVD5K3Th8spnNeH5WWxUD1JRBA6eo=
 github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.2/go.mod h1:t8CI6t3iGDKQuTFLFjhY/HBw/p3B6dCsLAgikct0amc=
-github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.3-0.20190826065836-26d654c87254 h1:EDSd7zAvlWFymtHnGZtnto+bPoLZmHAYs9LZoj8juW4=
-github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.3-0.20190826065836-26d654c87254/go.mod h1:t8CI6t3iGDKQuTFLFjhY/HBw/p3B6dCsLAgikct0amc=
 github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677 h1:5q4Sv/DFbmiXNyelLCKwYGCUwulXmT1thgKzgWPMvLU=
 github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677/go.mod h1:ND5gChfnQKdrvWBqMdN0sUkYLpR5P9AccDam/hDdbmA=
 github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419 h1:sn/niKkNX/nfniL8OG7Jf4TmMFrz5r4C87W5xQbEGHs=
