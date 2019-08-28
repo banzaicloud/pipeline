@@ -25,13 +25,9 @@ import (
 )
 
 const CreateClusterWorkflowName = "pke-create-cluster"
-const pkeVersion = "0.4.9"
+const pkeVersion = "0.4.12"
 
 func getDefaultImageID(region, kubernetesVersion string) (string, error) {
-	constraint112, err := semver.NewConstraint("~1.12.0")
-	if err != nil {
-		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.12+")
-	}
 
 	constraint113, err := semver.NewConstraint("~1.13.0")
 	if err != nil {
@@ -40,7 +36,12 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 
 	constraint114, err := semver.NewConstraint("~1.14.0")
 	if err != nil {
-		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.13+")
+		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.14+")
+	}
+
+	constraint115, err := semver.NewConstraint("~1.15.0")
+	if err != nil {
+		return "", errors.Wrap(err, "could not create semver constraint for Kubernetes version 1.15+")
 	}
 
 	kubeVersion, err := semver.NewVersion(kubernetesVersion)
@@ -49,62 +50,62 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 	}
 
 	switch {
-	case constraint112.Check(kubeVersion):
-		return map[string]string{
-			"ap-northeast-1": "ami-0ea4567d28716b35c",
-			"ap-northeast-2": "ami-02a051bd5fbadc2d9",
-			"ap-south-1":     "ami-00da2ccc1da7c5139",
-			"ap-southeast-1": "ami-0de6124b866d44d9a",
-			"ap-southeast-2": "ami-037779d5bc1df8e07",
-			"ca-central-1":   "ami-00223fdf00dd4fd79",
-			"eu-central-1":   "ami-0e78d61813cdb8a2d",
-			"eu-north-1":     "ami-095299ec23343190f",
-			"eu-west-1":      "ami-0f6ba6a1903651da8",
-			"eu-west-2":      "ami-0fe2d7edaff807a95",
-			"eu-west-3":      "ami-02d28af91ab8abbd6",
-			"sa-east-1":      "ami-07bb2e49b8d780628",
-			"us-east-1":      "ami-079f98b9a949211d9",
-			"us-east-2":      "ami-00cd048cb8c93c0d9",
-			"us-west-1":      "ami-05dcc6a829242cacc",
-			"us-west-2":      "ami-07854d1896aef63d8",
-		}[region], nil
 	case constraint113.Check(kubeVersion):
 		return map[string]string{
-			"ap-northeast-1": "ami-02c668cbe82c52654",
-			"ap-northeast-2": "ami-09a528e2d122f85dd",
-			"ap-south-1":     "ami-0166fe96b7d5dd415",
-			"ap-southeast-1": "ami-0a0dc38e1843a6652",
-			"ap-southeast-2": "ami-08b4248beea1afd65",
-			"ca-central-1":   "ami-0509103cc485dab39",
-			"eu-central-1":   "ami-0ae595ec7057e4b0a",
-			"eu-north-1":     "ami-09c5ee8e94a1dee05",
-			"eu-west-1":      "ami-07eca1d40a370537e",
-			"eu-west-2":      "ami-069b8d46ebd9cc918",
-			"eu-west-3":      "ami-0cb47cb1e061df828",
-			"sa-east-1":      "ami-0402072eb28dd87f1",
-			"us-east-1":      "ami-05431b38d9884a58f",
-			"us-east-2":      "ami-09a6009e74e5d5616",
-			"us-west-1":      "ami-05732d634490519e4",
-			"us-west-2":      "ami-0b971d5cf3d965807",
+			"ap-northeast-1": "ami-03c85d7b693274ab2",
+			"ap-northeast-2": "ami-0c862483d46858388",
+			"ap-southeast-1": "ami-0313d518301238064",
+			"ap-southeast-2": "ami-07051cdb34f3ccd13",
+			"ap-south-1":     "ami-0a13e0ed5cf6d56d1",
+			"ca-central-1":   "ami-0046d50c09c3fa196",
+			"eu-central-1":   "ami-04e248d5671469fab",
+			"eu-north-1":     "ami-0fb5f2dccf1f9e280",
+			"eu-west-1":      "ami-0cde1c7fb5445c1eb",
+			"eu-west-2":      "ami-02c35d4bb7da231d9",
+			"eu-west-3":      "ami-06fa9d5c99b3636fe",
+			"sa-east-1":      "ami-0a070ff1e7d34b50b",
+			"us-east-1":      "ami-0995a0271a0703eee",
+			"us-east-2":      "ami-0976011aebf06a743",
+			"us-west-1":      "ami-0b25be32a4e31c64f",
+			"us-west-2":      "ami-05d8f2797251e0434",
 		}[region], nil
 	case constraint114.Check(kubeVersion):
 		return map[string]string{
-			"ap-northeast-1": "ami-008a8db9911c3ab9d",
-			"ap-northeast-2": "ami-0e560ec23c16ecc50",
-			"ap-south-1":     "ami-08b549add41f232cc",
-			"ap-southeast-1": "ami-078974aeb0b8b8ae0",
-			"ap-southeast-2": "ami-0073123d17aef15b4",
-			"ca-central-1":   "ami-0f69911233e05029a",
-			"eu-central-1":   "ami-0d4b6d1c3e2fc46d8",
-			"eu-north-1":     "ami-0ef8145828cbc2f39",
-			"eu-west-1":      "ami-0a95b955c65b32fff",
-			"eu-west-2":      "ami-0bf3be45c19287c71",
-			"eu-west-3":      "ami-0b11a2bd7cf2da96d",
-			"sa-east-1":      "ami-0a9fc6325c2f5181a",
-			"us-east-1":      "ami-0055d58addfe009d0",
-			"us-east-2":      "ami-0758a65bfe14b4e62",
-			"us-west-1":      "ami-0bd1e43e4a7280c2c",
-			"us-west-2":      "ami-06797d1f3e822ba1f",
+			"ap-northeast-1": "ami-02a69e3257cc89d5e",
+			"ap-northeast-2": "ami-054caf9bfbd30b209",
+			"ap-southeast-1": "ami-087faa6ef575cfbee",
+			"ap-southeast-2": "ami-02970f1e1230ac498",
+			"ap-south-1":     "ami-0a91bc117ce743304",
+			"ca-central-1":   "ami-0886d8b66b20a286e",
+			"eu-central-1":   "ami-09bf0e50559b54472",
+			"eu-north-1":     "ami-06e648a4174d7089f",
+			"eu-west-1":      "ami-0db9a69297f143fa5",
+			"eu-west-2":      "ami-03fc86f273d9e9220",
+			"eu-west-3":      "ami-04b2392b0e3c304f3",
+			"sa-east-1":      "ami-029bfd553809f5afc",
+			"us-east-1":      "ami-0f67d3c9300e86e84",
+			"us-east-2":      "ami-05dc7aa00467ff508",
+			"us-west-1":      "ami-07ec96a1f82619388",
+			"us-west-2":      "ami-0faa0b56e538023d1",
+		}[region], nil
+	case constraint115.Check(kubeVersion):
+		return map[string]string{
+			"ap-northeast-1": "ami-0ff8257dbc74c33f4",
+			"ap-northeast-2": "ami-05654b3b1fe2c442b",
+			"ap-southeast-1": "ami-072f0303ff596ec59",
+			"ap-southeast-2": "ami-0dca60ba1f804b73a",
+			"ap-south-1":     "ami-037de328d01274ce7",
+			"ca-central-1":   "ami-02358ac7f3c5dd608",
+			"eu-central-1":   "ami-03e96adc107f88c8b",
+			"eu-north-1":     "ami-0dc0929c435baf7e1",
+			"eu-west-1":      "ami-0bc8422ca744df23e",
+			"eu-west-2":      "ami-0885ccbf224e38d3b",
+			"eu-west-3":      "ami-015cd31c41067a91e",
+			"sa-east-1":      "ami-0af9ba56e4e7b51a1",
+			"us-east-1":      "ami-06ebb5813a6ec2be3",
+			"us-east-2":      "ami-09c84ffdb343309d6",
+			"us-west-1":      "ami-0fc837638f27f5ebf",
+			"us-west-2":      "ami-07e9bf3372342dc02",
 		}[region], nil
 	default:
 		return map[string]string{

@@ -22,9 +22,6 @@ tags:
         name: deployments
         description: Deployment related functions for a cluster
     -
-        name: profiles
-        description: Cluster profiles related functions
-    -
         name: auth
         description: Auth related functions
     -
@@ -2667,202 +2664,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/BaseError_500'
-
-    '/api/v1/orgs/{orgId}/profiles/cluster/{distribution}':
-        get:
-            security:
-                -
-                    bearerAuth: []
-            tags:
-                - profiles
-            summary: List cluster profiles
-            operationId: ListProfiles
-            description: Listing cluster profiles by cloud type
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization identification
-                    schema:
-                        type: integer
-                -
-                    name: distribution
-                    in: path
-                    required: true
-                    description: Distribution type
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: "Profiles listed"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ProfileListResponse'
-                '400':
-                    description: "Error during delete deployment"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/BaseError_400'
-                '401':
-                    description: "Unauthorized"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
-
-    '/api/v1/orgs/{orgId}/profiles/cluster':
-        post:
-            security:
-                -
-                    bearerAuth: []
-            tags:
-                - profiles
-            summary: Add cluster profiles
-            operationId: AddProfiles
-            description: Add cluster profile
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization identification
-                    schema:
-                        type: integer
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/AddClusterProfileRequest'
-            responses:
-                '201':
-                    description: "Cluster profile created successfully"
-                '400':
-                    description: "Error during delete deployment"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/BaseError_400'
-                '401':
-                    description: "Unauthorized"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
-
-        put:
-            security:
-                -
-                    bearerAuth: []
-            tags:
-                - profiles
-            summary: Update cluster profiles
-            operationId: UpdateProfiles
-            description: Update an existing cluster profile
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization identification
-                    schema:
-                        type: integer
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/AddClusterProfileRequest'
-            responses:
-                '201':
-                    description: "Cluster profile updated successfully"
-                '400':
-                    description: Error during updating cluster profile
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/BaseError_400'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
-                '404':
-                    description: Cluster profile not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterProfileNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/BaseError_500'
-
-    '/api/v1/orgs/{orgId}/profiles/cluster/{distribution}/{name}':
-        delete:
-            security:
-                -
-                    bearerAuth: []
-            tags:
-                - profiles
-            summary: Delete cluster profiles
-            operationId: DeleteProfiles
-            description: Delete cluster profiles by cloud type and name
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization identification
-                    schema:
-                        type: integer
-                -
-                    name: distribution
-                    in: path
-                    required: true
-                    description: Distribution type
-                    schema:
-                        type: string
-                -
-                    name: name
-                    in: path
-                    required: true
-                    description: Cluster profile name
-                    schema:
-                        type: string
-            responses:
-                '201':
-                    description: "Cluster profile deleted successfully"
-                '400':
-                    description: Error during deleting cluster profile
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/BaseError_400'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
-                '404':
-                    description: Cluster profile not found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterProfileNotFound'
                 '500':
                     description: Internal server error
                     content:
@@ -6229,8 +6030,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/deployment.CreateUpdateDeploymentRespon\
-                  se"
+                                $ref: "#/components/schemas/deployment.CreateUpdateDeploymentResponse"
                 "207":
                     description: Partial failure, meaning that Multi-cluster deployment has been
                         created successfully, however there was as least one failure on one
@@ -6388,8 +6188,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/deployment.CreateUpdateDeploymentRespon\
-                  se"
+                                $ref: "#/components/schemas/deployment.CreateUpdateDeploymentResponse"
                 "207":
                     description: Partial failure, meaning that Multi-cluster deployment has been
                         update successfully, however there was as least one failure on one
@@ -7234,8 +7033,6 @@ components:
                             region: "region"
                             secretId: "62bc3c75-91fb-4670-bad4-24b401a9deac"
 
-                profileName:
-                    type: string
                 scaleOptions:
                     $ref: '#/components/schemas/ScaleOptions'
                 properties:
@@ -8063,19 +7860,6 @@ components:
                 data:
                     type: string
                     example: "apiVersion: v1\nclusters...."
-
-        ClusterProfileNotFound:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 404
-                message:
-                    type: string
-                    example: "Profile not found"
-                error:
-                    type: string
-                    example: "record not found"
 
         ChartNotFound:
             type: object
@@ -9116,178 +8900,6 @@ components:
                     type: string
                     enum: [env, volume]
 
-        ProfileListResponse:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: "default"
-                location:
-                    type: string
-                    example: "us-central1-a"
-                cloud:
-                    type: string
-                    example: "google"
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-                properties:
-                    type: object
-                    additionalProperties:
-                    # oneOf:
-                    #     -
-                    #         $ref: '#/components/schemas/ClusterProfileEKS'
-                    #     -
-                    #         $ref: '#/components/schemas/ClusterProfileAKS'
-                    #     -
-                    #         $ref: '#/components/schemas/ClusterProfileGKE'
-                    example:
-                        gke:
-                            master:
-                                version: "1.10"
-                            nodeVersion: "1.10"
-                            nodePools:
-                                pool1:
-                                    count: 1
-                                    instanceType: "n1-standard-1"
-
-        ClusterProfileEKS:
-            type: object
-            properties:
-                eks:
-                    type: object
-                    properties:
-                        version:
-                            type: string
-                            example: "1.11"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAmazon'
-
-        ClusterProfileAKS:
-            type: object
-            properties:
-                aks:
-                    type: object
-                    properties:
-                        kubernetesVersion:
-                            type: string
-                            example: "1.9.2"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAzure'
-
-        ClusterProfileGKE:
-            type: object
-            properties:
-                gke:
-                    type: object
-                    properties:
-                        master:
-                            type: object
-                            properties:
-                                version:
-                                    type: string
-                                    example: "1.8.7-gke.1"
-                        nodeVersion:
-                            type: string
-                            example: "1.8.7-gke.1"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsGoogle'
-
-        AddClusterProfileRequest:
-            type: object
-            properties:
-                name:
-                    type: string
-                    example: "myCluster-profile"
-                location:
-                    type: string
-                    example: "us-central1-a"
-                cloud:
-                    type: string
-                    example: "google"
-                ttlMinutes:
-                    type: integer
-                    minimum: 0
-                    example: 120
-                    description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
-                properties:
-                    type: object
-                    additionalProperties:
-                        # oneOf:
-                        #     -
-                        #         $ref: '#/components/schemas/AddClusterProfileEKS'
-                        #     -
-                        #         $ref: '#/components/schemas/AddClusterProfileAKS'
-                        #     -
-                        #         $ref: '#/components/schemas/AddClusterProfileGKE'
-                        #     -
-                        #         $ref: '#/components/schemas/CreateUpdateOKEProperties'
-                    example:
-                        gke:
-                            master:
-                                version: "1.8.7-gke.1"
-                            nodeVersion: "1.8.7-gke.1"
-                            nodePools:
-                                pool1:
-                                    count: 1
-                                    instanceType: "n1-standard-1"
-
-        AddClusterProfileEKS:
-            type: object
-            properties:
-                eks:
-                    type: object
-                    properties:
-                        version:
-                            type: string
-                            example: "1.11"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAmazon'
-
-        AddClusterProfileAKS:
-            type: object
-            properties:
-                aks:
-                    type: object
-                    properties:
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAzure'
-                        kubernetesVersion:
-                            type: string
-                            example: "1.8.2"
-
-        AddClusterProfileGKE:
-            type: object
-            properties:
-                gke:
-                    type: object
-                    properties:
-                        master:
-                            type: object
-                            properties:
-                                version:
-                                    type: string
-                                    example: "1.8.7-gke.1"
-                        nodeVersion:
-                            type: string
-                            example: "1.8.7-gke.1"
-                        nodePools:
-                            type: object
-                            additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsGoogle'
-
         TokenCreateRequest:
             type: object
             properties:
@@ -10263,7 +9875,6 @@ components:
 
         ReRunPostHook:
             type: object
-            additionalProperties:
             example:
                 InstallLogging:
                     bucketName: "mybucketname"

@@ -149,10 +149,6 @@ Class | Method | HTTP request | Description
 *PoliciesApi* | [**GetPolicy**](docs/PoliciesApi.md#getpolicy) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId} | Get specific policy
 *PoliciesApi* | [**ListPolicies**](docs/PoliciesApi.md#listpolicies) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/policies | List policies
 *PoliciesApi* | [**UpdatePolicy**](docs/PoliciesApi.md#updatepolicy) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId} | Update policy
-*ProfilesApi* | [**AddProfiles**](docs/ProfilesApi.md#addprofiles) | **Post** /api/v1/orgs/{orgId}/profiles/cluster | Add cluster profiles
-*ProfilesApi* | [**DeleteProfiles**](docs/ProfilesApi.md#deleteprofiles) | **Delete** /api/v1/orgs/{orgId}/profiles/cluster/{distribution}/{name} | Delete cluster profiles
-*ProfilesApi* | [**ListProfiles**](docs/ProfilesApi.md#listprofiles) | **Get** /api/v1/orgs/{orgId}/profiles/cluster/{distribution} | List cluster profiles
-*ProfilesApi* | [**UpdateProfiles**](docs/ProfilesApi.md#updateprofiles) | **Put** /api/v1/orgs/{orgId}/profiles/cluster | Update cluster profiles
 *ProjectsApi* | [**GetProjects**](docs/ProjectsApi.md#getprojects) | **Get** /api/v1/orgs/{orgId}/google/projects | Retrieves projects visible for the user identified by the secret id
 *ScanlogApi* | [**ListScans**](docs/ScanlogApi.md#listscans) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog | List scans
 *ScanlogApi* | [**ListScansByRelease**](docs/ScanlogApi.md#listscansbyrelease) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/scanlog/{releaseName} | List scans by release
@@ -188,11 +184,6 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [ActivateClusterFeatureRequest](docs/ActivateClusterFeatureRequest.md)
- - [AddClusterProfileAks](docs/AddClusterProfileAks.md)
- - [AddClusterProfileAksAks](docs/AddClusterProfileAksAks.md)
- - [AddClusterProfileEks](docs/AddClusterProfileEks.md)
- - [AddClusterProfileGke](docs/AddClusterProfileGke.md)
- - [AddClusterProfileRequest](docs/AddClusterProfileRequest.md)
  - [AllowedSecretTypeResponse](docs/AllowedSecretTypeResponse.md)
  - [AllowedSecretTypeResponseFields](docs/AllowedSecretTypeResponseFields.md)
  - [AmazonAutoScalingGroup](docs/AmazonAutoScalingGroup.md)
@@ -225,14 +216,6 @@ Class | Method | HTTP request | Description
  - [ClusterFeatureNotFound](docs/ClusterFeatureNotFound.md)
  - [ClusterImage](docs/ClusterImage.md)
  - [ClusterNotFound](docs/ClusterNotFound.md)
- - [ClusterProfileAks](docs/ClusterProfileAks.md)
- - [ClusterProfileAksAks](docs/ClusterProfileAksAks.md)
- - [ClusterProfileEks](docs/ClusterProfileEks.md)
- - [ClusterProfileEksEks](docs/ClusterProfileEksEks.md)
- - [ClusterProfileGke](docs/ClusterProfileGke.md)
- - [ClusterProfileGkeGke](docs/ClusterProfileGkeGke.md)
- - [ClusterProfileGkeGkeMaster](docs/ClusterProfileGkeGkeMaster.md)
- - [ClusterProfileNotFound](docs/ClusterProfileNotFound.md)
  - [CommonErrorResponse](docs/CommonErrorResponse.md)
  - [Conflict](docs/Conflict.md)
  - [CreateAckProperties](docs/CreateAckProperties.md)
@@ -392,7 +375,6 @@ Class | Method | HTTP request | Description
  - [PostLeaderElectionRequest](docs/PostLeaderElectionRequest.md)
  - [PostLeaderElectionResponse](docs/PostLeaderElectionResponse.md)
  - [PostReadyPkeNodeRequest](docs/PostReadyPkeNodeRequest.md)
- - [ProfileListResponse](docs/ProfileListResponse.md)
  - [ProjectDetails](docs/ProjectDetails.md)
  - [RecordNotFound](docs/RecordNotFound.md)
  - [ReleaseWhiteListItem](docs/ReleaseWhiteListItem.md)

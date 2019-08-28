@@ -140,6 +140,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("database.dialect", "mysql")
 	_ = v.BindEnv("database.host")
 	v.SetDefault("database.port", 3306)
+	v.SetDefault("database.tls", "")
 	_ = v.BindEnv("database.user")
 	_ = v.BindEnv("database.password")
 	v.RegisterAlias("database.pass", "database.password") // TODO: deprecate password

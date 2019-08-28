@@ -43,4 +43,8 @@ ignored = [
   "emperror.dev/handler/logrus",
   "emperror.dev/handler/logur",
   "emperror.dev/handler/stackdriver",
+  "logur.dev/logur",
+  "logur.dev/adapter/logrus",
+  "logur.dev/adapter/zap",
+  "logur.dev/integration/zap",
 ]

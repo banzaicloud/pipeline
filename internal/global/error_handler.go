@@ -19,8 +19,8 @@ import (
 
 	"emperror.dev/emperror"
 	logurhandler "emperror.dev/handler/logur"
-	"github.com/goph/logur/adapters/logrusadapter"
 	"github.com/sirupsen/logrus"
+	logrusadapter "logur.dev/adapter/logrus"
 )
 
 var errorHandler emperror.Handler

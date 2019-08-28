@@ -95,7 +95,7 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 			}
 			return err
 		}
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err = emperror.WrapWith(err, "waiting for the completion of virtual network tags update operation failed", keyvals...); err != nil {
 			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 				logger.Warn("virtual network not found")

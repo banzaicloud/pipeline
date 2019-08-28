@@ -17,12 +17,13 @@ package api
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/banzaicloud/pipeline/client"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	"gotest.tools/assert"
 )
 
 const (
@@ -177,7 +178,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 	for _, tt := range conversionTest {
 		t.Run(tt.Name, func(t *testing.T) {
 			out := tt.in.ToAzurePKEClusterCreationParams(orgID, userID)
-			assert.DeepEqual(t, tt.out, out)
+			assert.Equal(t, tt.out, out)
 		})
 	}
 }

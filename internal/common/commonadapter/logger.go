@@ -17,7 +17,7 @@ package commonadapter
 import (
 	"context"
 
-	"github.com/goph/logur"
+	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 )

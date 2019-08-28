@@ -28,12 +28,12 @@ import (
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/goph/logur"
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
@@ -88,7 +88,6 @@ import (
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
-	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -181,11 +180,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-	}
-
-	err = defaults.SetDefaultValues()
-	if err != nil {
-		panic(err)
 	}
 
 	// External DNS service
@@ -619,10 +613,6 @@ func main() {
 			orgs.DELETE("/:orgid/helm/repos/:name", api.HelmReposDelete)
 			orgs.GET("/:orgid/helm/charts", api.HelmCharts)
 			orgs.GET("/:orgid/helm/chart/:reponame/:name", api.HelmChart)
-			orgs.GET("/:orgid/profiles/cluster/:distribution", api.GetClusterProfiles)
-			orgs.POST("/:orgid/profiles/cluster", api.AddClusterProfile)
-			orgs.PUT("/:orgid/profiles/cluster", api.UpdateClusterProfile)
-			orgs.DELETE("/:orgid/profiles/cluster/:distribution/:name", api.DeleteClusterProfile)
 			orgs.GET("/:orgid/secrets", api.ListSecrets)
 			orgs.GET("/:orgid/secrets/:id", api.GetSecret)
 			orgs.POST("/:orgid/secrets", api.AddSecrets)

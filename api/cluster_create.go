@@ -32,7 +32,6 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	"github.com/banzaicloud/pipeline/model/defaults"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
@@ -218,59 +217,6 @@ func (a *ClusterAPI) createCluster(
 		"user":         userID,
 		"cluster":      createClusterRequest.Name,
 	})
-
-	// TODO: refactor profile handling as well?
-	if len(createClusterRequest.ProfileName) != 0 {
-		logger = logger.WithField("profile", createClusterRequest.ProfileName)
-
-		logger.Info("fill data from profile")
-
-		var distribution string
-		switch createClusterRequest.Cloud {
-		case pkgCluster.Amazon:
-			distribution = pkgCluster.EKS
-		case pkgCluster.Azure:
-			distribution = pkgCluster.AKS
-		case pkgCluster.Google:
-			distribution = pkgCluster.GKE
-		case pkgCluster.Oracle:
-			distribution = pkgCluster.OKE
-		default:
-			return nil, &pkgCommon.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "unsupported cloud type",
-				Error:   "unsupported cloud type",
-			}
-		}
-
-		profile, err := defaults.GetProfile(distribution, createClusterRequest.ProfileName)
-		if err != nil {
-			return nil, &pkgCommon.ErrorResponse{
-				Code:    http.StatusNotFound,
-				Message: "error during getting profile",
-				Error:   err.Error(),
-			}
-		}
-
-		logger.Info("create profile response")
-		profileResponse := profile.GetProfile()
-
-		logger.Info("create cluster request from profile")
-		newRequest, err := profileResponse.CreateClusterRequest(createClusterRequest)
-		if err != nil {
-			logger.Errorf("error during getting cluster request from profile: %s", err.Error())
-
-			return nil, &pkgCommon.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error creating request from profile",
-				Error:   err.Error(),
-			}
-		}
-
-		createClusterRequest = newRequest
-
-		logger.Infof("modified clusterRequest: %v", createClusterRequest)
-	}
 
 	logger.Infof("Creating new entry with cloud type: %s", createClusterRequest.Cloud)
 

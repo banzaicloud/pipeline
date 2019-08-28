@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/bank-vaults/pkg/vault"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/mitchellh/mapstructure"
 )
