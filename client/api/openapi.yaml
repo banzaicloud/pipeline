@@ -702,6 +702,59 @@ paths:
       summary: Get a cluster config
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/oidcconfig:
+    get:
+      description: Getting a K8S cluster config file with OIDC credentials
+      operationId: GetOIDCClusterConfig
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterConfig'
+          description: Getting config file succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting config file
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get a cluster config with OIDC login
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint:
     get:
       description: Get API endpoint

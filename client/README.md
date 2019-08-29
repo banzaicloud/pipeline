@@ -93,6 +93,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**GetLeaderElection**](docs/ClustersApi.md#getleaderelection) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Query cluster leader
+*ClustersApi* | [**GetOIDCClusterConfig**](docs/ClustersApi.md#getoidcclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/oidcconfig | Get a cluster config with OIDC login
 *ClustersApi* | [**GetPKECommands**](docs/ClustersApi.md#getpkecommands) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/commands | List bootstrap commands for namespaces
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 *ClustersApi* | [**GetReadyPKENode**](docs/ClustersApi.md#getreadypkenode) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Query reported node readiness information
