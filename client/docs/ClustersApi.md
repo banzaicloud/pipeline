@@ -15,6 +15,7 @@ Method | HTTP request | Description
 [**GetClusterConfig**](ClustersApi.md#GetClusterConfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 [**GetClusterStatus**](ClustersApi.md#GetClusterStatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 [**GetLeaderElection**](ClustersApi.md#GetLeaderElection) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Query cluster leader
+[**GetOIDCClusterConfig**](ClustersApi.md#GetOIDCClusterConfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/oidcconfig | Get a cluster config with OIDC login
 [**GetPKECommands**](ClustersApi.md#GetPKECommands) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/commands | List bootstrap commands for namespaces
 [**GetPodDetails**](ClustersApi.md#GetPodDetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 [**GetReadyPKENode**](ClustersApi.md#GetReadyPKENode) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Query reported node readiness information
@@ -348,6 +349,35 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**GetLeaderElectionResponse**](GetLeaderElectionResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetOIDCClusterConfig**
+> ClusterConfig GetOIDCClusterConfig(ctx, orgId, id)
+Get a cluster config with OIDC login
+
+Getting a K8S cluster config file with OIDC credentials
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+  **orgId** | **int32**| Organization identification | 
+  **id** | **int32**| Selected cluster identification (number) | 
+
+### Return type
+
+[**ClusterConfig**](ClusterConfig.md)
 
 ### Authorization
 

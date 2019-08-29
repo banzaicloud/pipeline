@@ -709,6 +709,57 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
 
+    '/api/v1/orgs/{orgId}/clusters/{id}/oidcconfig':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: Get a cluster config with OIDC login
+            operationId: GetOIDCClusterConfig
+            description: Getting a K8S cluster config file with OIDC credentials
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+            responses:
+                '200':
+                    description: "Getting config file succeeded"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterConfig'
+                '400':
+                    description: "Error during getting config file"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: "Unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: "Cluster not found"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+
     '/api/v1/orgs/{orgId}/clusters/{id}/apiendpoint':
         get:
             security:

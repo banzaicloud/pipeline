@@ -607,7 +607,7 @@ func main() {
 			)
 			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))
 
-			clusterAuthAPI.RegisterRoutes(pkeGroup, router)
+			clusterAuthAPI.RegisterRoutes(cRouter, router)
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
