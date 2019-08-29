@@ -11474,7 +11474,7 @@ components:
                     $ref: "#/components/schemas/ClusterFeatureSpec"
                 status:
                     type: string
-                    enum: [inactive, pending, active]
+                    enum: [inactive, pending, active, error]
 
         UpdateClusterFeatureRequest:
             type: object
