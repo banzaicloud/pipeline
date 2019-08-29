@@ -13521,6 +13521,7 @@ components:
           - inactive
           - pending
           - active
+          - error
           type: string
       required:
       - status
