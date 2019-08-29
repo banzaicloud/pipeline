@@ -144,6 +144,7 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 			ClusterID: input.ClusterID,
 		}
 		if err := workflow.ExecuteActivity(ctx, pkeworkflow.DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
 	}
