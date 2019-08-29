@@ -25,22 +25,54 @@ import (
 
 // ClusterGetter restricts the external dependencies for the repository
 type ClusterGetter interface {
+	GetClusterByIDOnly(ctx context.Context, clusterID uint) (Cluster, error)
+}
+
+// Cluster defines operations that can be performed on a k8s cluster
+type Cluster interface {
+	GetK8sConfig() ([]byte, error)
+	GetName() string
+	GetOrganizationId() uint
+	GetUID() string
+	IsReady() (bool, error)
+	NodePoolExists(nodePoolName string) bool
+	RbacEnabled() bool
+}
+
+// MakeClusterGetter creates a ClusterGetter using a common cluster getter
+func MakeClusterGetter(clusterGetter CommonClusterGetter) ClusterGetter {
+	return clusterGetterAdapter{
+		ccGetter: clusterGetter,
+	}
+}
+
+// CommonClusterGetter defines cluster getter methods that return a CommonCluster
+type CommonClusterGetter interface {
 	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
 }
 
+type clusterGetterAdapter struct {
+	ccGetter CommonClusterGetter
+}
+
+func (a clusterGetterAdapter) GetClusterByIDOnly(ctx context.Context, clusterID uint) (Cluster, error) {
+	return a.ccGetter.GetClusterByIDOnly(ctx, clusterID)
+}
+
 // ClusterService is an adapter providing access to the core cluster layer.
-type clusterService struct {
+type ClusterService struct {
 	clusterGetter ClusterGetter
 }
 
 // NewClusterService returns a new ClusterService instance.
-func NewClusterService(getter ClusterGetter) clusterfeature.ClusterService {
-	return &clusterService{
+func NewClusterService(getter ClusterGetter) ClusterService {
+	return ClusterService{
 		clusterGetter: getter,
 	}
 }
 
-func (s *clusterService) CheckClusterReady(ctx context.Context, clusterID uint) error {
+// CheckClusterReady returns true is the cluster is ready to be accessed
+func (s ClusterService) CheckClusterReady(ctx context.Context, clusterID uint) error {
 	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 

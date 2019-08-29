@@ -22,8 +22,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestMakeFeatureNotFoundError(t *testing.T) {
+	assert.True(t, IsFeatureNotFoundError(featureNotFoundError{
+		clusterID:   42,
+		featureName: "feature",
+	}))
+}
+
 func TestInmemoryFeatureRepository_GetFeatures(t *testing.T) {
-	repository := NewInMemoryFeatureRepository()
+	repository := NewInMemoryFeatureRepository(nil)
 
 	clusterID := uint(1)
 	feature := Feature{
@@ -45,7 +52,7 @@ func TestInmemoryFeatureRepository_GetFeatures(t *testing.T) {
 }
 
 func TestInmemoryFeatureRepository_GetFeature(t *testing.T) {
-	repository := NewInMemoryFeatureRepository()
+	repository := NewInMemoryFeatureRepository(nil)
 
 	clusterID := uint(1)
 	feature := Feature{
@@ -63,11 +70,11 @@ func TestInmemoryFeatureRepository_GetFeature(t *testing.T) {
 	f, err := repository.GetFeature(context.Background(), clusterID, feature.Name)
 	require.NoError(t, err)
 
-	assert.Equal(t, &feature, f)
+	assert.Equal(t, feature, f)
 }
 
-func TestInmemoryFeatureRepository_CreateFeature(t *testing.T) {
-	repository := NewInMemoryFeatureRepository()
+func TestInmemoryFeatureRepository_SaveFeature(t *testing.T) {
+	repository := NewInMemoryFeatureRepository(nil)
 
 	clusterID := uint(1)
 	featureName := "myFeature"
@@ -81,14 +88,14 @@ func TestInmemoryFeatureRepository_CreateFeature(t *testing.T) {
 		Status: FeatureStatusPending,
 	}
 
-	err := repository.CreateFeature(context.Background(), clusterID, featureName, spec, FeatureStatusPending)
+	err := repository.SaveFeature(context.Background(), clusterID, featureName, spec, FeatureStatusPending)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedFeature, repository.features[clusterID][featureName])
 }
 
 func TestInmemoryFeatureRepository_DeleteFeature(t *testing.T) {
-	repository := NewInMemoryFeatureRepository()
+	repository := NewInMemoryFeatureRepository(nil)
 
 	clusterID := uint(1)
 	feature := Feature{

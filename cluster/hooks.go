@@ -102,7 +102,9 @@ func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (er
 	return
 }
 
-func GetHeadNodeAffinity(cluster CommonCluster) v1.Affinity {
+func GetHeadNodeAffinity(cluster interface {
+	NodePoolExists(nodePoolName string) bool
+}) v1.Affinity {
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
 	if len(headNodePoolName) == 0 {
 		return v1.Affinity{}

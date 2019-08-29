@@ -12,24 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package features
+package dns
 
-import (
-	"context"
-)
-
-// HelmService provides an interface for using Helm on a specific cluster.
-type HelmService interface {
-	ApplyDeployment(
-		ctx context.Context,
-		clusterID uint,
-		namespace string,
-		deploymentName string,
-		releaseName string,
-		values []byte,
-		chartVersion string,
-	) error
-
-	// DeleteDeployment deletes a deployment from a specific cluster.
-	DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error
-}
+const FeatureName = "dns"

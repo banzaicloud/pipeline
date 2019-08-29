@@ -20,14 +20,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-// DummyFeatureService is used for testing purposes.
-type DummyFeatureService struct {
+// dummyFeatureService is used for testing purposes.
+type dummyFeatureService struct {
 	FeatureList    []clusterfeature.Feature
 	FeatureDetails clusterfeature.Feature
 	Err            error
 }
 
-func (s *DummyFeatureService) List(ctx context.Context, clusterID uint) ([]clusterfeature.Feature, error) {
+func (s *dummyFeatureService) List(ctx context.Context, clusterID uint) ([]clusterfeature.Feature, error) {
 	if s.Err != nil {
 		return nil, s.Err
 	}
@@ -35,22 +35,22 @@ func (s *DummyFeatureService) List(ctx context.Context, clusterID uint) ([]clust
 	return s.FeatureList, nil
 }
 
-func (s *DummyFeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*clusterfeature.Feature, error) {
+func (s *dummyFeatureService) Details(ctx context.Context, clusterID uint, featureName string) (clusterfeature.Feature, error) {
 	if s.Err != nil {
-		return nil, s.Err
+		return clusterfeature.Feature{}, s.Err
 	}
 
-	return &s.FeatureDetails, nil
+	return s.FeatureDetails, nil
 }
 
-func (s *DummyFeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
+func (s *dummyFeatureService) Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	return s.Err
 }
 
-func (s *DummyFeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
+func (s *dummyFeatureService) Deactivate(ctx context.Context, clusterID uint, featureName string) error {
 	return s.Err
 }
 
-func (s *DummyFeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
+func (s *dummyFeatureService) Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error {
 	return s.Err
 }

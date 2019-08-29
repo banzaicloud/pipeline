@@ -72,8 +72,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/banzaicloud/pipeline/internal/helm"
-	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/notification"
@@ -543,20 +541,17 @@ func main() {
 				clustersecretadapter.NewSecretStore(secret.Store),
 			)
 
-			// ClusterInfo Feature API
+			// Cluster Feature API
 			{
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
-				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-				clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-				orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
-				dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterService, clusterManager, helmService, orgDomainService, logger)
-				featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
-					dnsFeatureManager.Name(): clusterfeatureadapter.NewAsyncFeatureManagerStub(dnsFeatureManager, featureRepository, workflowClient, logger),
+				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
+				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
+				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry([]clusterfeature.FeatureManager{
+					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
 				})
-
-				service := clusterfeature.NewFeatureService(featureRegistry, featureRepository, logger)
+				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
+				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
 				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
 

@@ -39,6 +39,5 @@ func MakeClusterFeatureSetStatusActivity(features clusterfeature.FeatureReposito
 }
 
 func (a ClusterFeatureSetStatusActivity) Execute(ctx context.Context, input ClusterFeatureSetStatusActivityInput) error {
-	_, err := a.features.UpdateFeatureStatus(ctx, input.ClusterID, input.FeatureName, input.Status)
-	return err
+	return a.features.UpdateFeatureStatus(ctx, input.ClusterID, input.FeatureName, input.Status)
 }

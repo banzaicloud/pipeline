@@ -30,7 +30,7 @@ type FeatureService interface {
 	List(ctx context.Context, clusterID uint) ([]clusterfeature.Feature, error)
 
 	// Details returns the details of an activated feature.
-	Details(ctx context.Context, clusterID uint, featureName string) (*clusterfeature.Feature, error)
+	Details(ctx context.Context, clusterID uint, featureName string) (clusterfeature.Feature, error)
 
 	// Activate activates a feature.
 	Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error
@@ -98,7 +98,7 @@ func MakeDetailsEndpoint(s FeatureService) endpoint.Endpoint {
 			return nil, err
 		}
 
-		return transformDetails(*result), nil
+		return transformDetails(result), nil
 	}
 }
 

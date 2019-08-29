@@ -151,7 +151,10 @@ var ErrKubernetesSecretAlreadyExists = stderrors.New("kubernetes secret already 
 
 // InstallSecret installs a new secret under the name into namespace of a Kubernetes cluster.
 // It returns the installed secret name and meta about how to mount it.
-func InstallSecret(cc CommonCluster, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
+func InstallSecret(cc interface {
+	GetK8sConfig() ([]byte, error)
+	GetOrganizationId() uint
+}, secretName string, req InstallSecretRequest) (*secretTypes.K8SSourceMeta, error) {
 	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get k8s config")

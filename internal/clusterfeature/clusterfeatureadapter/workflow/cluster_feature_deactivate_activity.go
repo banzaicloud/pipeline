@@ -28,17 +28,17 @@ type ClusterFeatureDeactivateActivityInput struct {
 }
 
 type ClusterFeatureDeactivateActivity struct {
-	features clusterfeature.FeatureRegistry
+	features clusterfeature.FeatureOperatorRegistry
 }
 
-func MakeClusterFeatureDeactivateActivity(features clusterfeature.FeatureRegistry) ClusterFeatureDeactivateActivity {
+func MakeClusterFeatureDeactivateActivity(features clusterfeature.FeatureOperatorRegistry) ClusterFeatureDeactivateActivity {
 	return ClusterFeatureDeactivateActivity{
 		features: features,
 	}
 }
 
 func (a ClusterFeatureDeactivateActivity) Execute(ctx context.Context, input ClusterFeatureDeactivateActivityInput) error {
-	f, err := a.features.GetFeatureManager(input.FeatureName)
+	f, err := a.features.GetFeatureOperator(input.FeatureName)
 	if err != nil {
 		return err
 	}
