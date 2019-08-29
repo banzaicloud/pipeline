@@ -288,6 +288,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		OrganizationID:    params.OrganizationID,
 		ResourceGroupName: params.ResourceGroup,
 		SecretID:          params.SecretID,
+		OIDCEnabled:       cl.Kubernetes.OIDC.Enabled,
 		VirtualNetworkTemplate: workflow.VirtualNetworkTemplate{
 			Name: params.Network.Name,
 			CIDRs: []string{
