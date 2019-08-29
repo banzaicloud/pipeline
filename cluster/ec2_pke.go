@@ -967,7 +967,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			masterMode,
 		)
 
-		if c.model.Kubernetes.OIDCEnabled {
+		if c.model.Kubernetes.OIDC.Enabled {
 			// TODO this should be configurable as well
 			oidcIssuerURL := viper.GetString("auth.dexURL")
 			oidcClientID := c.GetUID()
