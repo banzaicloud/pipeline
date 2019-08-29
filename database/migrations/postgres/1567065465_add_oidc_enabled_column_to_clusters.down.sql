@@ -1,1 +1,1 @@
-ALTER TABLE `clusters` DROP COLUMN `oidc_enabled`;
+ALTER TABLE "clusters" DROP COLUMN "oidc_enabled";
