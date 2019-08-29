@@ -967,7 +967,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			masterMode,
 		)
 
-		if c.model.Kubernetes.OIDC.Enabled {
+		if c.model.Cluster.OidcEnabled {
 			// TODO this should be configurable as well
 			oidcIssuerURL := viper.GetString("auth.dexURL")
 			oidcClientID := c.GetUID()
@@ -1099,7 +1099,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 			Distribution:   pkgCluster.PKE,
 			OrganizationID: orgId,
 			RbacEnabled:    kubernetes.RBAC.Enabled,
-			OidcEnabled:    kubernetes.OIDC.Enabled,
+			OidcEnabled:    request.Properties.CreateClusterPKE.Kubernetes.OIDC.Enabled,
 			CreatedBy:      userId,
 			TtlMinutes:     request.TtlMinutes,
 		},
@@ -1225,7 +1225,6 @@ func createEC2ClusterPKEFromRequest(kubernetes pke.Kubernetes, userId uint) inte
 	k := internalPke.Kubernetes{
 		Version: kubernetes.Version,
 		RBAC:    internalPke.RBAC{Enabled: kubernetes.RBAC.Enabled},
-		OIDC:    internalPke.OIDC{Enabled: kubernetes.OIDC.Enabled},
 	}
 	k.CreatedBy = userId
 	return k

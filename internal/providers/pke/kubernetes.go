@@ -26,7 +26,6 @@ type Kubernetes struct {
 
 	Version     string `yaml:"version"`
 	RBAC        RBAC   `yaml:"rbac" gorm:"-"`
-	OIDC        OIDC   `yaml:"oidc" gorm:"-"`
 	RBACEnabled bool   `gorm:"column:rbac_enabled"`
 }
 
@@ -37,23 +36,18 @@ func (Kubernetes) TableName() string {
 
 func (k Kubernetes) String() string {
 	return fmt.Sprintf(
-		"ID: %d, CreatedAt: %v, CreatedBy: %d, ClusterID: %d, Version: %s, RBAC.Enabled: %t, OIDC.Enabled: %t",
+		"ID: %d, CreatedAt: %v, CreatedBy: %d, ClusterID: %d, Version: %s, RBAC.Enabled: %t",
 		k.ID,
 		k.CreatedAt,
 		k.CreatedBy,
 		k.ClusterID,
 		k.Version,
 		k.RBAC.Enabled,
-		k.OIDC.Enabled,
 	)
 }
 
 // BeforeCreate marshals fields.
 func (k *Kubernetes) BeforeCreate(scope *gorm.Scope) error {
-	err := scope.SetColumn("OIDCEnabled", k.OIDC.Enabled)
-	if err != nil {
-		return err
-	}
 	return scope.SetColumn("RBACEnabled", k.RBAC.Enabled)
 }
 
@@ -69,10 +63,5 @@ func (k *Kubernetes) AfterFind() error {
 
 // RBAC is the schema for the DB.
 type RBAC struct {
-	Enabled bool `yaml:"enabled"`
-}
-
-// OIDC is the schema for the DB.
-type OIDC struct {
 	Enabled bool `yaml:"enabled"`
 }
