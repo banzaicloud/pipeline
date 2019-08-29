@@ -27,7 +27,6 @@ type Kubernetes struct {
 	Version     string `yaml:"version"`
 	RBAC        RBAC   `yaml:"rbac" gorm:"-"`
 	OIDC        OIDC   `yaml:"oidc" gorm:"-"`
-	OIDCEnabled bool   `gorm:"column:oidc_enabled"`
 	RBACEnabled bool   `gorm:"column:rbac_enabled"`
 }
 
@@ -65,7 +64,6 @@ func (k *Kubernetes) BeforeUpdate(scope *gorm.Scope) error {
 // AfterFind unmarshals fields.
 func (k *Kubernetes) AfterFind() error {
 	k.RBAC.Enabled = k.RBACEnabled
-	k.OIDC.Enabled = k.OIDCEnabled
 	return nil
 }
 
