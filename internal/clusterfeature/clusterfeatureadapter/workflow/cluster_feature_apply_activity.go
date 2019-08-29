@@ -20,28 +20,28 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-const ClusterFeatureActivateActivityName = "cluster-feature-activate"
+const ClusterFeatureApplyActivityName = "cluster-feature-apply"
 
-type ClusterFeatureActivateActivityInput struct {
+type ClusterFeatureApplyActivityInput struct {
 	ClusterID   uint
 	FeatureName string
 	FeatureSpec clusterfeature.FeatureSpec
 }
 
-type ClusterFeatureActivateActivity struct {
-	features clusterfeature.FeatureRegistry
+type ClusterFeatureApplyActivity struct {
+	features clusterfeature.FeatureOperatorRegistry
 }
 
-func MakeClusterFeatureActivateActivity(features clusterfeature.FeatureRegistry) ClusterFeatureActivateActivity {
-	return ClusterFeatureActivateActivity{
+func MakeClusterFeatureApplyActivity(features clusterfeature.FeatureOperatorRegistry) ClusterFeatureApplyActivity {
+	return ClusterFeatureApplyActivity{
 		features: features,
 	}
 }
 
-func (a ClusterFeatureActivateActivity) Execute(ctx context.Context, input ClusterFeatureActivateActivityInput) error {
-	f, err := a.features.GetFeatureManager(input.FeatureName)
+func (a ClusterFeatureApplyActivity) Execute(ctx context.Context, input ClusterFeatureApplyActivityInput) error {
+	f, err := a.features.GetFeatureOperator(input.FeatureName)
 	if err != nil {
 		return err
 	}
-	return f.Activate(ctx, input.ClusterID, input.FeatureSpec)
+	return f.Apply(ctx, input.ClusterID, input.FeatureSpec)
 }

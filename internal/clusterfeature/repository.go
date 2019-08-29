@@ -16,10 +16,24 @@ package clusterfeature
 
 import (
 	"context"
+	"fmt"
 	"sync"
-
-	"emperror.dev/errors"
 )
+
+// NewInMemoryFeatureRepository returns a new in-memory feature repository.
+func NewInMemoryFeatureRepository(features map[uint][]Feature) *InMemoryFeatureRepository {
+	lookup := make(map[uint]map[string]Feature, len(features))
+	for clID, fs := range features {
+		m := make(map[string]Feature, len(fs))
+		lookup[clID] = m
+		for _, f := range fs {
+			m[f.Name] = f
+		}
+	}
+	return &InMemoryFeatureRepository{
+		features: lookup,
+	}
+}
 
 // InMemoryFeatureRepository keeps features in the memory.
 // Use it in tests or for development/demo purposes.
@@ -29,13 +43,7 @@ type InMemoryFeatureRepository struct {
 	mu sync.RWMutex
 }
 
-// NewInMemoryFeatureRepository returns a new inmemory feature repository.
-func NewInMemoryFeatureRepository() *InMemoryFeatureRepository {
-	return &InMemoryFeatureRepository{
-		features: make(map[uint]map[string]Feature),
-	}
-}
-
+// GetFeatures returns a list of all the features stored in the repository for the specified cluster
 func (r *InMemoryFeatureRepository) GetFeatures(ctx context.Context, clusterID uint) ([]Feature, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -45,49 +53,44 @@ func (r *InMemoryFeatureRepository) GetFeatures(ctx context.Context, clusterID u
 		return nil, nil
 	}
 
-	f := make([]Feature, len(features))
-	i := 0
+	fs := make([]Feature, 0, len(features))
 
 	for _, feature := range features {
-		f[i] = feature
-		i++
+		fs = append(fs, feature)
 	}
 
-	return f, nil
+	return fs, nil
 }
 
-func (r *InMemoryFeatureRepository) GetFeature(ctx context.Context, clusterID uint, featureName string) (*Feature, error) {
+// GetFeature returns the feature identified by the parameters if it is in the repository, otherwise an error is returned
+func (r *InMemoryFeatureRepository) GetFeature(ctx context.Context, clusterID uint, featureName string) (Feature, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	features, ok := r.features[clusterID]
-	if !ok {
-		return nil, nil
+	if clusterFeatures, ok := r.features[clusterID]; ok {
+		if feature, ok := clusterFeatures[featureName]; ok {
+			return feature, nil
+		}
 	}
 
-	feature, ok := features[featureName]
-	if ok {
-		feature := feature
-
-		return &feature, nil
+	return Feature{}, featureNotFoundError{
+		clusterID:   clusterID,
+		featureName: featureName,
 	}
-
-	return nil, nil
 }
 
-func (r *InMemoryFeatureRepository) CreateFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status string) error {
+// SaveFeature persists the feature to the repository
+func (r *InMemoryFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status FeatureStatus) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, ok := r.features[clusterID]; !ok {
-		r.features[clusterID] = make(map[string]Feature)
+	clusterFeatures, ok := r.features[clusterID]
+	if !ok {
+		clusterFeatures = make(map[string]Feature)
+		r.features[clusterID] = clusterFeatures
 	}
 
-	if _, ok := r.features[clusterID][featureName]; ok {
-		return errors.New("feature already exists")
-	}
-
-	r.features[clusterID][featureName] = Feature{
+	clusterFeatures[featureName] = Feature{
 		Name:   featureName,
 		Spec:   spec,
 		Status: status,
@@ -96,73 +99,119 @@ func (r *InMemoryFeatureRepository) CreateFeature(ctx context.Context, clusterID
 	return nil
 }
 
-func (r *InMemoryFeatureRepository) CreateOrUpdateFeature(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec, status string) error {
+// UpdateFeatureStatus sets the feature's status
+func (r *InMemoryFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, ok := r.features[clusterID]; !ok {
-		r.features[clusterID] = make(map[string]Feature)
+	if clusterFeatures, ok := r.features[clusterID]; ok {
+		if feature, ok := clusterFeatures[featureName]; ok {
+			feature.Status = status
+			clusterFeatures[featureName] = feature
+			return nil
+		}
 	}
 
-	r.features[clusterID][featureName] = Feature{
-		Name:   featureName,
-		Spec:   spec,
-		Status: status,
+	return featureNotFoundError{
+		clusterID:   clusterID,
+		featureName: featureName,
 	}
-
-	return nil
 }
 
-func (r *InMemoryFeatureRepository) UpdateFeatureStatus(ctx context.Context, clusterID uint, featureName string, status string) (*Feature, error) {
+// UpdateFeatureSpec sets the feature's specification
+func (r *InMemoryFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	features, ok := r.features[clusterID]
-	if !ok {
-		r.features[clusterID] = make(map[string]Feature)
+	if clusterFeatures, ok := r.features[clusterID]; ok {
+		if feature, ok := clusterFeatures[featureName]; ok {
+			feature.Spec = spec
+			clusterFeatures[featureName] = feature
+			return nil
+		}
 	}
 
-	f, ok := features[featureName]
-	if !ok {
-		return nil, errors.NewWithDetails("feature not found", "feature", featureName)
+	return featureNotFoundError{
+		clusterID:   clusterID,
+		featureName: featureName,
 	}
-
-	f.Status = status
-
-	r.features[clusterID][featureName] = f
-
-	return &f, nil
-
 }
 
-func (r *InMemoryFeatureRepository) UpdateFeatureSpec(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) (*Feature, error) {
-	features, ok := r.features[clusterID]
-	if !ok {
-		r.features[clusterID] = make(map[string]Feature)
-	}
-
-	f, ok := features[featureName]
-	if !ok {
-		return nil, errors.NewWithDetails("feature not found", "feature", featureName)
-	}
-
-	f.Spec = spec
-
-	r.features[clusterID][featureName] = f
-
-	return &f, nil
-}
-
+// DeleteFeature removes the feature from the repository.
+// It is an idempotent operation.
 func (r *InMemoryFeatureRepository) DeleteFeature(ctx context.Context, clusterID uint, featureName string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	_, ok := r.features[clusterID]
-	if !ok {
-		return nil
+	if clusterFeatures, ok := r.features[clusterID]; ok {
+		delete(clusterFeatures, featureName)
 	}
 
-	delete(r.features[clusterID], featureName)
-
 	return nil
+}
+
+// Clear removes every entry from the repository
+func (r *InMemoryFeatureRepository) Clear() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.features = make(map[uint]map[string]Feature)
+}
+
+// Snapshot returns a snapshot of the repository's state that can be restored later
+func (r *InMemoryFeatureRepository) Snapshot() map[uint]map[string]Feature {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return copyClusterLookup(r.features)
+}
+
+// Restore sets the repository's state from a snapshot
+func (r *InMemoryFeatureRepository) Restore(snapshot map[uint]map[string]Feature) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.features = copyClusterLookup(snapshot)
+}
+
+func copyFeatureLookup(lookup map[string]Feature) map[string]Feature {
+	if lookup == nil {
+		return nil
+	}
+	result := make(map[string]Feature, len(lookup))
+	for n, f := range lookup {
+		result[n] = f
+	}
+	return result
+}
+
+func copyClusterLookup(lookup map[uint]map[string]Feature) map[uint]map[string]Feature {
+	if lookup == nil {
+		return nil
+	}
+	result := make(map[uint]map[string]Feature, len(lookup))
+	for c, fs := range lookup {
+		result[c] = copyFeatureLookup(fs)
+	}
+	return result
+}
+
+type featureNotFoundError struct {
+	clusterID   uint
+	featureName string
+}
+
+func (e featureNotFoundError) Error() string {
+	return fmt.Sprintf("Feature %q not found for cluster %d.", e.featureName, e.clusterID)
+}
+
+func (e featureNotFoundError) Details() []interface{} {
+	return []interface{}{
+		"clusterId", e.clusterID,
+		"feature", e.featureName,
+	}
+}
+
+func (featureNotFoundError) FeatureNotFound() bool {
+	return true
 }

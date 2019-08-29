@@ -40,15 +40,15 @@ func (_m *MockFeatureService) Deactivate(ctx context.Context, clusterID uint, fe
 }
 
 // Details provides a mock function with given fields: ctx, clusterID, featureName
-func (_m *MockFeatureService) Details(ctx context.Context, clusterID uint, featureName string) (*clusterfeature.Feature, error) {
+func (_m *MockFeatureService) Details(ctx context.Context, clusterID uint, featureName string) (clusterfeature.Feature, error) {
 	ret := _m.Called(ctx, clusterID, featureName)
 
-	var r0 *clusterfeature.Feature
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string) *clusterfeature.Feature); ok {
+	var r0 clusterfeature.Feature
+	if rf, ok := ret.Get(0).(func(context.Context, uint, string) clusterfeature.Feature); ok {
 		r0 = rf(ctx, clusterID, featureName)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*clusterfeature.Feature)
+			r0 = ret.Get(0).(clusterfeature.Feature)
 		}
 	}
 

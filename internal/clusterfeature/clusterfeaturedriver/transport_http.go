@@ -89,18 +89,10 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	var notFound interface{ NotFound() bool }
 
 	switch {
-	case errors.As(err, &clusterfeature.UnknownFeatureError{}), errors.As(err, &clusterfeature.FeatureNotFoundError{}):
+	case errors.As(err, &clusterfeature.UnknownFeatureError{}), clusterfeature.IsFeatureNotFoundError(err), errors.As(err, &notFound):
 		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
-	case errors.As(err, &clusterfeature.FeatureAlreadyActivatedError{}), errors.As(err, &clusterfeature.FeatureNotActiveError{}):
-		problem = problems.NewDetailedProblem(http.StatusConflict, err.Error())
-	case errors.As(err, &clusterfeature.InvalidFeatureSpecError{}):
+	case clusterfeature.IsInputValidationError(err), errors.As(err, &clusterfeature.ClusterIsNotReadyError{}), errors.As(err, &badRequest):
 		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
-	case errors.As(err, &clusterfeature.ClusterIsNotReadyError{}):
-		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
-	case errors.As(err, &badRequest):
-		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
-	case errors.As(err, &notFound):
-		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
 
 	default:
 		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")

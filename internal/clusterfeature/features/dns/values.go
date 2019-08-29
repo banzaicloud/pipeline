@@ -97,9 +97,3 @@ type genericProviderSettings struct {
 func (p *genericProviderSettings) Provider() string {
 	return p.Name
 }
-
-// ChartValuesService service in charge for providing values for the ExternalDNS Helm Chart
-type ChartValuesService interface {
-	// ChartValues factory for chart values
-	ChartValues(settings CustomDns) ([]byte, error)
-}

@@ -44,6 +44,8 @@ const (
 	// CurrentOrganization current organization key
 	CurrentOrganization utils.ContextKey = "org"
 
+	currentOrganizationID utils.ContextKey = "orgID"
+
 	// SignUp is present if the current request is a signing up
 	SignUp utils.ContextKey = "signUp"
 
@@ -161,11 +163,19 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 
 // GetCurrentOrganizationID return the user's organization ID.
 func GetCurrentOrganizationID(ctx context.Context) (uint, bool) {
+	if orgID, ok := ctx.Value(currentOrganizationID).(uint); ok {
+		return orgID, true
+	}
 	if organization := ctx.Value(CurrentOrganization); organization != nil {
 		return organization.(*Organization).ID, true
 	}
 
 	return 0, false
+}
+
+// SetCurrentOrganizationID returns a context with the organization ID set
+func SetCurrentOrganizationID(ctx context.Context, orgID uint) context.Context {
+	return context.WithValue(ctx, currentOrganizationID, orgID)
 }
 
 // NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request

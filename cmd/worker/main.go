@@ -278,14 +278,14 @@ func main() {
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 			secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-			orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
-			dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterService, clusterManager, helmService, orgDomainService, logger)
-			featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
-				dnsFeatureManager.Name(): dnsFeatureManager,
+			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
+			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
+			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
+			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
+				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
 			})
 
-			registerClusterFeatureWorkflows(featureRegistry, featureRepository)
+			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
 		}
 
 		var closeCh = make(chan struct{})
