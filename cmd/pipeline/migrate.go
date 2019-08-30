@@ -30,7 +30,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/notification"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/model/defaults"
 	"github.com/banzaicloud/pipeline/spotguide"
 )
 
@@ -41,10 +40,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}
 
 	if err := auth.Migrate(db, logger); err != nil {
-		return err
-	}
-
-	if err := defaults.Migrate(db, logger); err != nil {
 		return err
 	}
 

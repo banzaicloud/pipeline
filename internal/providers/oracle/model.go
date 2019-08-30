@@ -31,9 +31,6 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&model.Cluster{},
 		&model.NodePool{},
 		&model.NodePoolSubnet{},
-		&model.Profile{},
-		&model.ProfileNodePool{},
-		&model.ProfileNodePoolLabel{},
 		&model.NodePoolLabel{},
 	}
 
