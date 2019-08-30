@@ -38,7 +38,7 @@ func TestGetCreateOrUpdateRouteTableParams(t *testing.T) {
 			Location: to.StringPtr("test-location"),
 			Tags: map[string]*string{
 				"kubernetesCluster-test-cluster": to.StringPtr("owned"),
-				"banzaicloud-pipeline-uuid":      to.StringPtr(""),
+				"banzaicloud-pipeline-managed":   to.StringPtr("true"),
 			},
 		}
 		result := input.getCreateOrUpdateRouteTableParams()

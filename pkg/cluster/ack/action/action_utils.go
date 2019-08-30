@@ -233,10 +233,7 @@ func createNodePool(logger logrus.FieldLogger, nodePool *model.ACKNodePoolModel,
 	scalingConfigurationRequest.InstanceType = nodePool.InstanceType
 	scalingConfigurationRequest.SystemDiskCategory = "cloud_efficiency"
 	scalingConfigurationRequest.ImageId = ack.AlibabaDefaultImageId
-	scalingConfigurationRequest.Tags =
-		fmt.Sprintf(`{"pipeline-created":"true","pipeline-cluster":"%s","pipeline-nodepool":"%s","%s":"%s"`,
-			cluster.Name, nodePool.Name, global.ManagedByPipelineTag, global.PipelineUUID())
-
+	scalingConfigurationRequest.Tags = pipelineTags(cluster.Name, nodePool.Name)
 	createConfigurationResponse, err := essClient.CreateScalingConfiguration(scalingConfigurationRequest)
 	if err != nil {
 		errChan <- emperror.WrapWith(err, "could not create Scaling Configuration", "nodePoolName", nodePool.Name, "scalingGroupId", nodePool.AsgID, "cluster", cluster.Name)
@@ -582,4 +579,21 @@ func collectClusterDeleteFailureLogs(clusterID string, csClient *cs.Client) ([]s
 		csClient,
 		ack.AlibabaStartDeleteClusterLog,
 		ack.AlibabaDeleteClusterFailedLog)
+}
+
+// pipelineTags returns resource tags based on the pipeline uuid if available
+func pipelineTags(cluster, np string) string {
+	value := global.PipelineUUID()
+
+	tags := map[string]string{
+		global.ManagedByPipelineTag: global.ManagedByPipelineValue,
+		"pipeline-cluster":          cluster,
+		"pipeline-nodepool":         np,
+	}
+	if value != "" {
+		tags[global.ManagedByPipelineUUIDTag] = value
+	}
+
+	dumped, _ := json.Marshal(tags)
+	return string(dumped)
 }

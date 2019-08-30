@@ -22,12 +22,20 @@ import (
 
 // PipelineTags returns resource tags for azure based on the pipeline uuid if available
 func PipelineTags() []*cloudformation.Tag {
-	value := global.PipelineUUID()
-
-	return []*cloudformation.Tag{
+	tags := []*cloudformation.Tag{
 		{
 			Key:   aws.String(global.ManagedByPipelineTag),
-			Value: aws.String(value),
+			Value: aws.String(global.ManagedByPipelineValue),
 		},
 	}
+
+	value := global.PipelineUUID()
+	if value != "" {
+		tags = append(tags, &cloudformation.Tag{
+			Key:   aws.String(global.ManagedByPipelineUUIDTag),
+			Value: aws.String(value),
+		})
+	}
+
+	return tags
 }
