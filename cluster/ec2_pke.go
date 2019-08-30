@@ -969,7 +969,7 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 
 		if c.model.Cluster.OidcEnabled {
 			// TODO this should be configurable as well
-			oidcIssuerURL := viper.GetString("auth.dexURL")
+			oidcIssuerURL := viper.GetString(pipConfig.OIDCIssuerURL)
 			oidcClientID := c.GetUID()
 
 			command = fmt.Sprintf("%s "+

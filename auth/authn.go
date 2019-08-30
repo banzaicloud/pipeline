@@ -229,8 +229,8 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 		PublicClientID:     viper.GetString("auth.publicclientid"),
 		ClientID:           viper.GetString("auth.clientid"),
 		ClientSecret:       viper.GetString("auth.clientsecret"),
-		IssuerURL:          viper.GetString("auth.dexURL"),
-		InsecureSkipVerify: viper.GetBool("auth.dexInsecure"),
+		IssuerURL:          viper.GetString(config.OIDCIssuerURL),
+		InsecureSkipVerify: viper.GetBool(config.OIDCIssuerInsecure),
 	})
 	Auth.RegisterProvider(oidcProvider)
 
