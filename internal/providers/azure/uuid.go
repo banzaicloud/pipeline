@@ -20,7 +20,14 @@ import (
 
 // PipelineTags returns resource tags for Azure based on the pipeline uuid if available
 func PipelineTags() map[string]*string {
-	value := global.PipelineUUID()
+	managedValue := global.ManagedByPipelineValue
+	tags := map[string]*string{
+		global.ManagedByPipelineTag: &managedValue,
+	}
 
-	return map[string]*string{global.ManagedByPipelineTag: &value}
+	value := global.PipelineUUID()
+	if value != "" {
+		tags[global.ManagedByPipelineUUIDTag] = &value
+	}
+	return tags
 }

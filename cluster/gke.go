@@ -896,7 +896,14 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 func pipelineTags() map[string]string {
 	value := global.PipelineUUID()
 
-	return map[string]string{global.ManagedByPipelineTag: value}
+	tags := map[string]string{
+		global.ManagedByPipelineTag: global.ManagedByPipelineValue,
+	}
+	if value != "" {
+		tags[global.ManagedByPipelineUUIDTag] = value
+	}
+
+	return tags
 }
 
 func getBanzaiErrorFromError(err error) *pkgCommon.BanzaiResponse {
