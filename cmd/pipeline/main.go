@@ -237,7 +237,7 @@ func main() {
 
 	externalURLInsecure := viper.GetBool(config.PipelineExternalURLInsecure)
 
-	dexIssuerURL := viper.GetString("auth.dexURL")
+	oidcIssuerURL := viper.GetString(config.OIDCIssuerURL)
 
 	workflowClient, err := config.CadenceClient()
 	if err != nil {
@@ -299,7 +299,7 @@ func main() {
 			workflowClient,
 			externalBaseURL,
 			externalURLInsecure,
-			dexIssuerURL,
+			oidcIssuerURL,
 		),
 	}
 	clusterDeleters := api.ClusterDeleters{
@@ -601,8 +601,8 @@ func main() {
 				clusterGetter,
 				clusterAuthService,
 				viper.GetString("auth.tokensigningkey"),
-				dexIssuerURL,
-				viper.GetBool("auth.dexInsecure"),
+				oidcIssuerURL,
+				viper.GetBool(config.OIDCIssuerInsecure),
 				pipelineExternalURL.String(),
 			)
 			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))
