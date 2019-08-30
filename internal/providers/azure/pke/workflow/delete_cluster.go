@@ -126,6 +126,17 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 	}
 
+	// remove dex client (if we created it)
+	{
+		deleteDexClientActivityInput := &pkeworkflow.DeleteDexClientActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		if err := workflow.ExecuteActivity(ctx, pkeworkflow.DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
+	}
+
 	// delete cluster from data store
 	{
 		activityInput := DeleteClusterFromStoreActivityInput{
@@ -133,17 +144,6 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		err := workflow.ExecuteActivity(ctx, DeleteClusterFromStoreActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
-			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
-			return err
-		}
-	}
-
-	// remove dex client (if we created it)
-	{
-		deleteDexClientActivityInput := &pkeworkflow.DeleteDexClientActivityInput{
-			ClusterID: input.ClusterID,
-		}
-		if err := workflow.ExecuteActivity(ctx, pkeworkflow.DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
 			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}
