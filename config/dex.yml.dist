@@ -8,9 +8,24 @@ issuer: http://127.0.0.1:5556/dex
 #
 # See the storage document at Documentation/storage.md for further information.
 storage:
-  type: sqlite3
+  type: mysql
   config:
-    file: /dex/dex.db
+    host: mysql
+    port: 3306
+    database: dex
+    user: sparky
+    password: sparky123
+    ssl:
+      mode: "false"
+#  type: postgres
+#  config:
+#    host: postgres
+#    port: 5432
+#    database: dex
+#    user: sparky
+#    password: sparky123
+#    ssl:
+#      mode: disable
 
 # Configuration for the HTTP endpoints.
 web:
