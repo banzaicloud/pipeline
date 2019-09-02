@@ -590,8 +590,17 @@ func IsCASError(err error) bool {
 	return strings.Contains(err.Error(), "check-and-set parameter did not match the current version")
 }
 
+func isTLSSecretGenerationNeeded(cr *CreateSecretRequest) bool {
+	for k, v := range cr.Values {
+		if k != secretTypes.TLSHosts && k != secretTypes.TLSValidity && v != "" {
+			return false
+		}
+	}
+	return true
+}
+
 func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *CreateSecretRequest) error {
-	if value.Type == secretTypes.TLSSecretType && len(value.Values) <= 2 {
+	if value.Type == secretTypes.TLSSecretType && isTLSSecretGenerationNeeded(value) {
 		// If we are not storing a full TLS secret instead of it's a request to generate one
 
 		validity := value.Values[secretTypes.TLSValidity]
