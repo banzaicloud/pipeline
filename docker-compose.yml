@@ -102,6 +102,7 @@ services:
     dex:
         image: banzaicloud/dex-shim:0.3.10
         command: serve /dex.yml
+        restart: on-failure
         volumes:
             - ./config/dex.yml:/dex.yml
 
