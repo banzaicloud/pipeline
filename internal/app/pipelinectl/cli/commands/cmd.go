@@ -15,8 +15,9 @@
 package commands
 
 import (
-	"github.com/banzaicloud/pipeline/internal/pipelinectl/cli/commands/drain"
 	"github.com/spf13/cobra"
+
+	"github.com/banzaicloud/pipeline/internal/app/pipelinectl/cli/commands/drain"
 )
 
 // AddCommands adds all the commands from cli/command to the root command

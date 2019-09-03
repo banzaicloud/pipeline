@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/internal/pipelinectl/cli/commands"
+	"github.com/banzaicloud/pipeline/internal/app/pipelinectl/cli/commands"
 )
 
 // Provisioned by ldflags
