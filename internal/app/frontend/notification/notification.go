@@ -18,8 +18,8 @@ import (
 	"context"
 )
 
-// ActiveNotifications is the list of notifications that are currently active.
-type ActiveNotifications struct {
+// Notifications is the list of notifications active.
+type Notifications struct {
 	Messages []Notification `json:"messages"`
 }
 
@@ -33,8 +33,8 @@ type Notification struct {
 // Service provides an interface to notifications.
 //go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name Service -inpkg"
 type Service interface {
-	// GetActiveNotifications returns the list of active notifications.
-	GetActiveNotifications(ctx context.Context) (ActiveNotifications, error)
+	// GetNotifications returns the list of notifications.
+	GetNotifications(ctx context.Context) (Notifications, error)
 }
 
 type service struct {
@@ -55,11 +55,11 @@ func NewService(store Store) Service {
 }
 
 // GetActiveNotifications returns the list of active notifications.
-func (s *service) GetActiveNotifications(ctx context.Context) (ActiveNotifications, error) {
+func (s *service) GetNotifications(ctx context.Context) (Notifications, error) {
 	notifications, err := s.store.GetActiveNotifications(ctx)
 	if err != nil {
-		return ActiveNotifications{}, err
+		return Notifications{}, err
 	}
 
-	return ActiveNotifications{Messages: notifications}, nil
+	return Notifications{Messages: notifications}, nil
 }

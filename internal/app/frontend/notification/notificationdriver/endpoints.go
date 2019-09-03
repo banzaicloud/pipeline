@@ -27,22 +27,20 @@ import (
 // meant to be used as a helper struct, to collect all of the endpoints into a
 // single parameter.
 type Endpoints struct {
-	GetActiveNotifications endpoint.Endpoint
+	GetNotifications endpoint.Endpoint
 }
 
 // MakeEndpoints returns an Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
 func MakeEndpoints(s notification.Service) Endpoints {
 	return Endpoints{
-		GetActiveNotifications: kitoc.TraceEndpoint("notification.GetActiveNotification")(MakeGetActiveNotificationsEndpoint(s)),
+		GetNotifications: kitoc.TraceEndpoint("notification.GetActiveNotification")(MakeGetNotificationsEndpoint(s)),
 	}
 }
 
-// MakeGetActiveNotificationsEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeGetActiveNotificationsEndpoint(s notification.Service) endpoint.Endpoint {
+// MakeGetNotificationsEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeGetNotificationsEndpoint(s notification.Service) endpoint.Endpoint {
 	return func(ctx context.Context, _ interface{}) (interface{}, error) {
-		an, err := s.GetActiveNotifications(ctx)
-
-		return an, err
+		return s.GetNotifications(ctx)
 	}
 }

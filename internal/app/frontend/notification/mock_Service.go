@@ -10,15 +10,15 @@ type MockService struct {
 	mock.Mock
 }
 
-// GetActiveNotifications provides a mock function with given fields: ctx
-func (_m *MockService) GetActiveNotifications(ctx context.Context) (ActiveNotifications, error) {
+// GetNotifications provides a mock function with given fields: ctx
+func (_m *MockService) GetNotifications(ctx context.Context) (Notifications, error) {
 	ret := _m.Called(ctx)
 
-	var r0 ActiveNotifications
-	if rf, ok := ret.Get(0).(func(context.Context) ActiveNotifications); ok {
+	var r0 Notifications
+	if rf, ok := ret.Get(0).(func(context.Context) Notifications); ok {
 		r0 = rf(ctx)
 	} else {
-		r0 = ret.Get(0).(ActiveNotifications)
+		r0 = ret.Get(0).(Notifications)
 	}
 
 	var r1 error

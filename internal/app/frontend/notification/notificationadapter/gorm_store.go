@@ -42,19 +42,20 @@ func (notificationModel) TableName() string {
 	return notificationTableName
 }
 
-// GormNotificationStore is a notification store using Gorm for data persistence.
-type GormNotificationStore struct {
+// GormStore is a notification store using Gorm for data persistence.
+type GormStore struct {
 	db *gorm.DB
 }
 
-// NewGormNotificationStore returns a new GormNotificationStore.
-func NewGormNotificationStore(db *gorm.DB) *GormNotificationStore {
-	return &GormNotificationStore{
+// NewGormStore returns a new GormStore.
+func NewGormStore(db *gorm.DB) *GormStore {
+	return &GormStore{
 		db: db,
 	}
 }
 
-func (s *GormNotificationStore) GetActiveNotifications(ctx context.Context) ([]notification.Notification, error) {
+// GetActiveNotifications returns the list of active notifications.
+func (s *GormStore) GetActiveNotifications(ctx context.Context) ([]notification.Notification, error) {
 	var notifications []notificationModel
 
 	err := s.db.Find(&notifications, "NOW() BETWEEN initial_time AND end_time").Error

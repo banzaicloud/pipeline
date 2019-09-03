@@ -31,7 +31,7 @@ import (
 func TestMakeHTTPHandler_GetActiveNotifications(t *testing.T) {
 	service := &notification.MockService{}
 
-	activeNotifications := notification.ActiveNotifications{
+	notifications := notification.Notifications{
 		Messages: []notification.Notification{
 			{
 				ID:       1,
@@ -41,7 +41,7 @@ func TestMakeHTTPHandler_GetActiveNotifications(t *testing.T) {
 		},
 	}
 
-	service.On("GetActiveNotifications", mock.Anything).Return(activeNotifications, nil)
+	service.On("GetNotifications", mock.Anything).Return(notifications, nil)
 
 	handler := MakeHTTPHandler(MakeEndpoints(service), emperror.NewNoopHandler())
 
@@ -58,10 +58,10 @@ func TestMakeHTTPHandler_GetActiveNotifications(t *testing.T) {
 
 	decoder := json.NewDecoder(resp.Body)
 
-	var notifications notification.ActiveNotifications
+	var notificationResp notification.Notifications
 
-	err = decoder.Decode(&notifications)
+	err = decoder.Decode(&notificationResp)
 	require.NoError(t, err)
 
-	assert.Equal(t, activeNotifications, notifications)
+	assert.Equal(t, notifications, notificationResp)
 }
