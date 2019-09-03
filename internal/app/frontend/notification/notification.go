@@ -31,7 +31,13 @@ type Notification struct {
 }
 
 // Service provides an interface to notifications.
-type Service struct {
+//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name Service -inpkg"
+type Service interface {
+	// GetActiveNotifications returns the list of active notifications.
+	GetActiveNotifications(ctx context.Context) (ActiveNotifications, error)
+}
+
+type service struct {
 	store Store
 }
 
@@ -42,14 +48,14 @@ type Store interface {
 }
 
 // NewService returns a new Service.
-func NewService(store Store) *Service {
-	return &Service{
+func NewService(store Store) Service {
+	return &service{
 		store: store,
 	}
 }
 
 // GetActiveNotifications returns the list of active notifications.
-func (s *Service) GetActiveNotifications(ctx context.Context) (ActiveNotifications, error) {
+func (s *service) GetActiveNotifications(ctx context.Context) (ActiveNotifications, error) {
 	notifications, err := s.store.GetActiveNotifications(ctx)
 	if err != nil {
 		return ActiveNotifications{}, err
