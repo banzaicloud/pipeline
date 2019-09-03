@@ -73,6 +73,7 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
+	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/hashicorp/go-multierror v1.0.0
