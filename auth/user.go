@@ -96,7 +96,7 @@ type CICDUser struct {
 type UserOrganization struct {
 	UserID         uint
 	OrganizationID uint
-	Role           string `gorm:"default:'admin'"`
+	Role           string `gorm:"default:'member'"`
 }
 
 // Organization struct
