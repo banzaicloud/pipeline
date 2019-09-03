@@ -8279,40 +8279,16 @@ components:
                             example: "2018-04-16T19:47:07Z"
                         labels:
                             type: object
-                            properties:
-                                beta.kubernetes.io/arch:
-                                    type: string
-                                    example: "amd64"
-                                beta.kubernetes.io/fluentd-ds-ready:
-                                    type: string
-                                    example: "true"
-                                beta.kubernetes.io/instance-type:
-                                    type: string
-                                    example: "n1-standard-2"
-                                beta.kubernetes.io/os:
-                                    type: string
-                                    example: "linux"
-                                cloud.google.com/gke-nodepool:
-                                    type: string
-                                    example: "pool1"
-                                failure-domain.beta.kubernetes.io/region:
-                                    type: string
-                                    example: "us-central1"
-                                failure-domain.beta.kubernetes.io/zone:
-                                    type: string
-                                    example: "us-central1-a"
-                                kubernetes.io/hostname:
-                                    type: string
-                                    example: "gke-gkecluster-feri-706-pool1-496eccb3-l25k"
+                            additionalProperties:
+                                type: string
+                                example:
+                                    beta.kubernetes.io/arch: "amd64"
                         annotations:
                             type: object
-                            properties:
-                                node.alpha.kubernetes.io/ttl:
-                                    type: string
-                                    example: "0"
-                                volumes.kubernetes.io/controller-managed-attach-detach:
-                                    type: string
-                                    example: "true"
+                            additionalProperties:
+                                type: string
+                                example:
+                                    node.alpha.kubernetes.io/ttl: "0"
                 spec:
                     type: object
                     properties:
