@@ -100,7 +100,7 @@ services:
             RECOMMENDER_URL: https://beta.banzaicloud.io/recommender
 
     dex:
-        image: banzaicloud/dex-shim:0.3.10
+        image: banzaicloud/dex-shim:0.3.11
         command: serve /dex.yml
         restart: on-failure
         volumes:
