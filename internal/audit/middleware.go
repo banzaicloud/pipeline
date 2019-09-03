@@ -26,6 +26,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
+	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/gin-gonic/gin"
@@ -91,7 +92,11 @@ func LogWriter(
 
 				err := json.Unmarshal(rawBody, &request)
 				if err != nil {
-					_ = c.AbortWithError(http.StatusInternalServerError, err)
+					c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+						Code:    http.StatusBadRequest,
+						Message: "Error during binding",
+						Error:   err.Error(),
+					})
 					logger.Errorln(err)
 
 					return
@@ -106,7 +111,11 @@ func LogWriter(
 				}
 
 				if err != nil {
-					_ = c.AbortWithError(http.StatusInternalServerError, err)
+					c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+						Code:    http.StatusBadRequest,
+						Message: "Error during binding",
+						Error:   err.Error(),
+					})
 					logger.Errorln(err)
 
 					return
