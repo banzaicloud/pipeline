@@ -37,7 +37,7 @@ func MakeHTTPHandler(endpoints Endpoints, errorHandler notification.ErrorHandler
 		kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 	}
 
-	r.Methods(http.MethodGet).Path("/").Handler(kithttp.NewServer(
+	r.Methods(http.MethodGet).Path("/frontend/notifications").Handler(kithttp.NewServer(
 		endpoints.GetNotifications,
 		decodeGetNotificationsHTTPRequest,
 		encodeGetNotificationsHTTPResponse,
