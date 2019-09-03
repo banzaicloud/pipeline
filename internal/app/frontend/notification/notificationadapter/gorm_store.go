@@ -58,10 +58,11 @@ func NewGormStore(db *gorm.DB) *GormStore {
 func (s *GormStore) GetActiveNotifications(ctx context.Context) ([]notification.Notification, error) {
 	var notifications []notificationModel
 
-	err := s.db.Find(&notifications, "NOW() BETWEEN initial_time AND end_time").Error
+	err := s.db.Where("? BETWEEN initial_time AND end_time", time.Now()).Find(&notifications).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find notifications")
 	}
+
 	var result []notification.Notification
 
 	for _, n := range notifications {
