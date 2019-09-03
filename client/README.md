@@ -102,6 +102,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**ListClusterEndpoints**](docs/ClustersApi.md#listclusterendpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 *ClustersApi* | [**ListClusterSecrets**](docs/ClustersApi.md#listclustersecrets) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/secrets | List secrets which belongs to cluster
 *ClustersApi* | [**ListClusters**](docs/ClustersApi.md#listclusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
+*ClustersApi* | [**ListNodepoolLabels**](docs/ClustersApi.md#listnodepoollabels) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels | List cluser nodepool labels
 *ClustersApi* | [**ListNodes**](docs/ClustersApi.md#listnodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 *ClustersApi* | [**MergeSecret**](docs/ClustersApi.md#mergesecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
 *ClustersApi* | [**PostLeaderElection**](docs/ClustersApi.md#postleaderelection) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Apply as new cluster leader
@@ -352,6 +353,7 @@ Class | Method | HTTP request | Description
  - [NodePoolsGoogle](docs/NodePoolsGoogle.md)
  - [NodePoolsOracle](docs/NodePoolsOracle.md)
  - [NodePoolsPke](docs/NodePoolsPke.md)
+ - [NodepoolLabels](docs/NodepoolLabels.md)
  - [OracleStorageProps](docs/OracleStorageProps.md)
  - [OrganizationListItemResponse](docs/OrganizationListItemResponse.md)
  - [OrganizationNotFound](docs/OrganizationNotFound.md)

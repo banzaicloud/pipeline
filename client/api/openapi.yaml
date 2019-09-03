@@ -7805,6 +7805,65 @@ paths:
       summary: Update a cluster feature
       tags:
       - cluster features
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels:
+    get:
+      description: List cluster nodepool labels
+      operationId: ListNodepoolLabels
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListNodepoolLabelsResponse'
+          description: Nodepool labels listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting nodepool labels
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List cluser nodepool labels
+      tags:
+      - clusters
 components:
   requestBodies:
     api.FeatureRequest:
@@ -10420,6 +10479,18 @@ components:
         name: myClusterName
         servicemesh: true
         logging: true
+        totalSummary:
+          memory:
+            allocatable: "4"
+            request: 380m
+            limit: 100m
+            capacity: "4"
+          cpu:
+            allocatable: "4"
+            request: 380m
+            limit: 100m
+            capacity: "4"
+          status: status
         location: us-central1-a
         id: 1
         nodePools:
@@ -10490,6 +10561,8 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolStatus'
           type: object
+        totalSummary:
+          $ref: '#/components/schemas/ResourceSummary'
       type: object
     NodePoolStatus:
       example:
@@ -10530,6 +10603,10 @@ components:
             example: '{"example.io/label1":"value1"}'
             type: string
           type: object
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
       type: object
     NodePoolStatusAzure:
       properties:
@@ -10550,6 +10627,10 @@ components:
         instanceType:
           example: Standard_D4_v2
           type: string
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
       type: object
     NodePoolStatusGoogle:
       properties:
@@ -10570,6 +10651,10 @@ components:
         instanceType:
           example: n1-standard-1
           type: string
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
       type: object
     NodePoolStatusOracle:
       properties:
@@ -10593,6 +10678,10 @@ components:
           type: string
         autoscaling:
           type: boolean
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
       type: object
     CreateObjectStoreBucketRequest:
       example:
@@ -10930,6 +11019,7 @@ components:
             request: 380m
             limit: 100m
             capacity: "4"
+          status: status
         name: pipeline-traefik-7c47dc7bd7-twzpl
         namespace: default
         conditions:
@@ -10999,11 +11089,14 @@ components:
           request: 380m
           limit: 100m
           capacity: "4"
+        status: status
       properties:
         cpu:
           $ref: '#/components/schemas/Resource'
         memory:
           $ref: '#/components/schemas/Resource'
+        status:
+          type: string
       type: object
     Resource:
       example:
@@ -13424,6 +13517,21 @@ components:
         error:
           example: No cluster feature exists with this name
           type: string
+      type: object
+    ListNodepoolLabelsResponse:
+      additionalProperties:
+        items:
+          $ref: '#/components/schemas/NodepoolLabels'
+        type: array
+      type: object
+    NodepoolLabels:
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        reserved:
+          type: boolean
       type: object
     CreatePKEClusterKubernetes_cri:
       properties:
