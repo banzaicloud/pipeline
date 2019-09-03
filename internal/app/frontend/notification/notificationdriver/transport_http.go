@@ -38,9 +38,9 @@ func MakeHTTPHandler(endpoints Endpoints, errorHandler notification.ErrorHandler
 	}
 
 	r.Methods(http.MethodGet).Path("/").Handler(kithttp.NewServer(
-		endpoints.GetActiveNotifications,
-		decodeGetActiveNotificationsHTTPRequest,
-		encodeGetActiveNotificationsHTTPResponse,
+		endpoints.GetNotifications,
+		decodeGetNotificationsHTTPRequest,
+		encodeGetNotificationsHTTPResponse,
 		options...,
 	))
 
@@ -54,11 +54,11 @@ func encodeHTTPError(_ context.Context, _ error, w http.ResponseWriter) {
 	_ = json.NewEncoder(w).Encode(problem)
 }
 
-func decodeGetActiveNotificationsHTTPRequest(_ context.Context, _ *http.Request) (interface{}, error) {
+func decodeGetNotificationsHTTPRequest(_ context.Context, _ *http.Request) (interface{}, error) {
 	return nil, nil
 }
 
-func encodeGetActiveNotificationsHTTPResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+func encodeGetNotificationsHTTPResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(response)

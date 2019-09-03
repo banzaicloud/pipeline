@@ -24,7 +24,7 @@ import (
 
 //go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name Store -inpkg -testonly"
 
-func TestService_GetActiveNotifications(t *testing.T) {
+func TestService_GetNotifications(t *testing.T) {
 	store := &MockStore{}
 
 	ctx := context.Background()
@@ -41,12 +41,12 @@ func TestService_GetActiveNotifications(t *testing.T) {
 
 	service := NewService(store)
 
-	activeNotifications, err := service.GetActiveNotifications(ctx)
+	activeNotifications, err := service.GetNotifications(ctx)
 
 	require.NoError(t, err)
 	assert.Equal(
 		t,
-		ActiveNotifications{
+		Notifications{
 			Messages: notifications,
 		},
 		activeNotifications,

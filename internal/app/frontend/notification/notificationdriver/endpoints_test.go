@@ -19,17 +19,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 )
 
-func TestMakeMakeGetActiveNotificationsEndpoint(t *testing.T) {
+func TestMakeEndpoints_GetNotifications(t *testing.T) {
 	notificationService := &notification.MockService{}
 
-	ctx := context.Background()
-
-	activeNotifications := notification.ActiveNotifications{
+	notifications := notification.Notifications{
 		Messages: []notification.Notification{
 			{
 				ID:       1,
@@ -39,14 +38,14 @@ func TestMakeMakeGetActiveNotificationsEndpoint(t *testing.T) {
 		},
 	}
 
-	notificationService.On("GetActiveNotifications", ctx).Return(activeNotifications, nil)
+	notificationService.On("GetNotifications", mock.Anything).Return(notifications, nil)
 
-	e := MakeGetActiveNotificationsEndpoint(notificationService)
+	e := MakeEndpoints(notificationService).GetNotifications
 
-	result, err := e(ctx, nil)
+	result, err := e(context.Background(), nil)
 
 	require.NoError(t, err)
-	assert.Equal(t, activeNotifications, result)
+	assert.Equal(t, notifications, result)
 
 	notificationService.AssertExpectations(t)
 }
