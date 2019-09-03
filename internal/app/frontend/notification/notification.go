@@ -61,5 +61,10 @@ func (s *service) GetNotifications(ctx context.Context) (Notifications, error) {
 		return Notifications{}, err
 	}
 
+	// The response is not nillable
+	if notifications == nil {
+		notifications = make([]Notification, 0)
+	}
+
 	return Notifications{Messages: notifications}, nil
 }
