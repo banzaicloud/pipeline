@@ -24,18 +24,32 @@ func (_m *MockOrganizationMembershipStore) AddUserTo(ctx context.Context, organi
 	return r0
 }
 
-// EnsureOrganizationExists provides a mock function with given fields: ctx, organization
-func (_m *MockOrganizationMembershipStore) EnsureOrganizationExists(ctx context.Context, organization UpstreamOrganization) error {
-	ret := _m.Called(ctx, organization)
+// EnsureOrganizationExists provides a mock function with given fields: ctx, name, provider
+func (_m *MockOrganizationMembershipStore) EnsureOrganizationExists(ctx context.Context, name string, provider string) (bool, uint, error) {
+	ret := _m.Called(ctx, name, provider)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, UpstreamOrganization) error); ok {
-		r0 = rf(ctx, organization)
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = rf(ctx, name, provider)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	var r1 uint
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) uint); ok {
+		r1 = rf(ctx, name, provider)
+	} else {
+		r1 = ret.Get(1).(uint)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(context.Context, string, string) error); ok {
+		r2 = rf(ctx, name, provider)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // GetOrganizationMembershipsOf provides a mock function with given fields: ctx, userID
