@@ -1,7 +1,7 @@
 # A Self-Documenting Makefile: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 
 SHELL = /bin/bash
-OS = $(shell uname -s)
+OS = $(shell uname | tr A-Z a-z)
 
 # Project variables
 PACKAGE = github.com/banzaicloud/pipeline
@@ -31,7 +31,7 @@ MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
 GOBIN_VERSION = 0.0.10
 
-GOLANG_VERSION = 1.11.5
+GOLANG_VERSION = 1.13
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
@@ -96,16 +96,21 @@ endif
 build-%: goversion ## Build a binary
 	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
 
-builds := $(patsubst ./cmd/%,build-%,$(wildcard ./cmd/*))
 .PHONY: build
-build: $(builds) ## Build project binaries
+build: goversion ## Build all binaries
+ifeq (${VERBOSE}, 1)
+	go env
+endif
+
+	@mkdir -p ${BUILD_DIR}
+	go build ${GOARGS} -tags "${GOTAGS}" -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/ ./cmd/...
 
 .PHONY: build-release
-build-release: ## Build project binaries without debug information
-	@${MAKE} LDFLAGS="-w ${LDFLAGS}" BUILD_DIR="${BUILD_DIR}/release" build
+build-release: ## Build all binaries without debug information
+	@${MAKE} LDFLAGS="-w ${LDFLAGS}" GOARGS="${GOARGS} -trimpath" BUILD_DIR="${BUILD_DIR}/release" build
 
 .PHONY: build-debug
-build-debug: ## Build project binaries with remote debugging capabilities
+build-debug: ## Build all binaries with remote debugging capabilities
 	@${MAKE} GOARGS="${GOARGS} -gcflags \"all=-N -l\"" BUILD_DIR="${BUILD_DIR}/debug" build
 
 .PHONY: docker
@@ -168,12 +173,7 @@ bin/gotestsum: bin/gotestsum-${GOTESTSUM_VERSION}
 	@ln -sf gotestsum-${GOTESTSUM_VERSION} bin/gotestsum
 bin/gotestsum-${GOTESTSUM_VERSION}:
 	@mkdir -p bin
-ifeq (${OS}, Darwin)
-	curl -L https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_darwin_amd64.tar.gz | tar -zOxf - gotestsum > ./bin/gotestsum-${GOTESTSUM_VERSION} && chmod +x ./bin/gotestsum-${GOTESTSUM_VERSION}
-endif
-ifeq (${OS}, Linux)
-	curl -L https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_linux_amd64.tar.gz | tar -zOxf - gotestsum > ./bin/gotestsum-${GOTESTSUM_VERSION} && chmod +x ./bin/gotestsum-${GOTESTSUM_VERSION}
-endif
+	curl -L https://github.com/gotestyourself/gotestsum/releases/download/v${GOTESTSUM_VERSION}/gotestsum_${GOTESTSUM_VERSION}_${OS}_amd64.tar.gz | tar -zOxf - gotestsum > ./bin/gotestsum-${GOTESTSUM_VERSION} && chmod +x ./bin/gotestsum-${GOTESTSUM_VERSION}
 
 .PHONY: test
 TEST_PKGS ?= ./...
@@ -198,12 +198,7 @@ bin/gobin: bin/gobin-${GOBIN_VERSION}
 	@ln -sf gobin-${GOBIN_VERSION} bin/gobin
 bin/gobin-${GOBIN_VERSION}:
 	@mkdir -p bin
-ifeq (${OS}, Darwin)
-	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/darwin-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
-endif
-ifeq (${OS}, Linux)
-	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/linux-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
-endif
+	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/${OS}-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
 
 bin/mockery: bin/gobin
 	@mkdir -p bin
@@ -229,20 +224,19 @@ generate-client: validate-openapi ## Generate go client based on openapi descrip
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) client/; fi
 	gofmt -s -w client/
 
-ifeq (${OS}, Darwin)
+ifeq (${OS}, darwin)
 	shasum -a 256 ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
 endif
-ifeq (${OS}, Linux)
+ifeq (${OS}, linux)
 	sha256sum ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
 endif
 
 bin/migrate: bin/migrate-${MIGRATE_VERSION}
 	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
-bin/migrate-${MIGRATE_VERSION}: PLATFORM := $(shell echo ${OS} | tr '[:upper:]' '[:lower:]')
 bin/migrate-${MIGRATE_VERSION}:
 	@mkdir -p bin
-	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${PLATFORM}-amd64.tar.gz | tar xvz -C bin
-	@mv bin/migrate.${PLATFORM}-amd64 $@
+	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
+	@mv bin/migrate.${OS}-amd64 $@
 
 .PHONY: generate-cloudinfo-client
 generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec
