@@ -37,11 +37,6 @@ jobs:
 
             -
                 run:
-                    name: Download Go modules
-                    command: go mod download
-
-            -
-                run:
                     name: Install build dependencies
                     command: |
                       apt-get update
