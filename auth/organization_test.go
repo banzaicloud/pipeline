@@ -65,7 +65,12 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite t
 	}
 
 	for _, upstreamMembership := range upstreamMemberships {
-		store.On("EnsureOrganizationExists", ctx, upstreamMembership.Organization).Return(nil)
+		store.On(
+			"EnsureOrganizationExists",
+			ctx,
+			upstreamMembership.Organization.Name,
+			upstreamMembership.Organization.Provider,
+		).Return(true, uint(1), nil)
 	}
 
 	currentMemberships := []UserOrganization{

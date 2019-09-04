@@ -56,8 +56,11 @@ func NewOrganizationSyncer(store OrganizationMembershipStore) OrganizationSyncer
 // OrganizationMembershipStore is a persistence layer for organization membership.
 type OrganizationMembershipStore interface {
 	// EnsureOrganizationExists ensures that an organization exists.
-	// It also returns the fact that an organization was created or not.
-	EnsureOrganizationExists(ctx context.Context, organization UpstreamOrganization) error
+	// If one already exists with the same parameters it succeeds.
+	// If one already exists with different parameters (eg. different provider),
+	// it returns with an ErrOrganizationConflict error.
+	// The function returns whether an organization was created or not, as well as it's ID.
+	EnsureOrganizationExists(ctx context.Context, name string, provider string) (bool, uint, error)
 
 	// GetOrganizationMembershipsOf returns the list of organization memberships for a user.
 	GetOrganizationMembershipsOf(ctx context.Context, userID uint) ([]UserOrganization, error)
@@ -90,7 +93,11 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 	membershipsToAdd := make(map[string]string, len(upstreamMemberships))
 
 	for _, membership := range upstreamMemberships {
-		err := s.store.EnsureOrganizationExists(ctx, membership.Organization)
+		_, _, err := s.store.EnsureOrganizationExists(
+			ctx,
+			membership.Organization.Name,
+			membership.Organization.Provider,
+		)
 		if err != nil {
 			return errors.WithDetails(err, "userId", user.ID)
 		}
