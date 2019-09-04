@@ -22,10 +22,12 @@ import (
 )
 
 //go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name OrganizationStore -inpkg -testonly"
+//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name OrganizationEvents -inpkg -testonly"
 
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite this test with an in-memory store
 	store := &MockOrganizationStore{}
-	syncer := NewOrganizationSyncer(store)
+	events := &MockOrganizationEvents{}
+	syncer := NewOrganizationSyncer(store, events)
 
 	ctx := context.Background()
 
@@ -71,6 +73,8 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite t
 			upstreamMembership.Organization.Name,
 			upstreamMembership.Organization.Provider,
 		).Return(true, uint(5), nil)
+
+		events.On("OrganizationCreated", ctx, OrganizationCreated{5, user.ID}).Return(nil)
 	}
 
 	currentMemberships := []UserOrganization{
@@ -130,4 +134,5 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite t
 	require.NoError(t, err)
 
 	store.AssertExpectations(t)
+	events.AssertExpectations(t)
 }

@@ -43,13 +43,15 @@ func (org *Organization) IDString() string {
 // updates organization role.
 // Note: it never deletes organizations, only creates them if they are missing.
 type OrganizationSyncer struct {
-	store OrganizationStore
+	store  OrganizationStore
+	events OrganizationEvents
 }
 
 // NewOrganizationSyncer returns a new OrganizationSyncer.
-func NewOrganizationSyncer(store OrganizationStore) OrganizationSyncer {
+func NewOrganizationSyncer(store OrganizationStore, events OrganizationEvents) OrganizationSyncer {
 	return OrganizationSyncer{
-		store: store,
+		store:  store,
+		events: events,
 	}
 }
 
@@ -70,6 +72,21 @@ type OrganizationStore interface {
 
 	// ApplyUserMembership ensures that a user is a member of an organization with the necessary role.
 	ApplyUserMembership(ctx context.Context, organizationID uint, userID uint, role string) error
+}
+
+// OrganizationEvents dispatches organization events.
+type OrganizationEvents interface {
+	// OrganizationCreated dispatches an OrganizationCreated event.
+	OrganizationCreated(ctx context.Context, event OrganizationCreated) error
+}
+
+// OrganizationCreated event is triggered when an organization is created in the system.
+type OrganizationCreated struct {
+	// ID is the created organization ID.
+	ID uint
+
+	// UserID is the ID of the user whose login triggered the organization being created.
+	UserID uint
 }
 
 // UpstreamOrganizationMembership represents an organization membership of a user
@@ -104,6 +121,16 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 
 		if created {
 			organizationsCreated[membership.Organization.Name] = id
+
+			event := OrganizationCreated{
+				ID:     id,
+				UserID: user.ID,
+			}
+
+			err := s.events.OrganizationCreated(ctx, event)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
