@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"emperror.dev/emperror"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -43,18 +44,19 @@ func TestMakeHTTPHandler_GetActiveNotifications(t *testing.T) {
 
 	service.On("GetNotifications", mock.Anything).Return(notifications, nil)
 
-	handler := MakeHTTPHandler(MakeEndpoints(service), emperror.NewNoopHandler())
+	handler := mux.NewRouter()
+	RegisterHTTPHandlers(MakeEndpoints(service), handler.PathPrefix("/notifications").Subrouter(), emperror.NewNoopHandler())
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
 	tsClient := ts.Client()
 
-	resp, err := tsClient.Get(ts.URL)
+	resp, err := tsClient.Get(ts.URL + "/notifications")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	assert.Equal(t, resp.StatusCode, http.StatusOK)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	decoder := json.NewDecoder(resp.Body)
 
