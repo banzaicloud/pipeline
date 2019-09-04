@@ -233,7 +233,9 @@ jobs:
                     path: build/
 
     docker-release:
-        executor: docker/machine
+        executor:
+            name: docker/machine
+            dlc: true
         parameters:
             tag:
                default: $CIRCLE_SHA1
@@ -300,6 +302,9 @@ workflows:
             -
                 docker/publish:
                     name: Build docker image
+                    executor:
+                        name: docker/machine
+                        dlc: true
                     deploy: false
                     image: banzaicloud/pipeline
                     tag: $CIRCLE_BRANCH
@@ -309,6 +314,9 @@ workflows:
             -
                 docker/publish:
                     name: Publish master docker image
+                    executor:
+                        name: docker/machine
+                        dlc: true
                     context: dockerhub
                     deploy: true
                     image: banzaicloud/pipeline
