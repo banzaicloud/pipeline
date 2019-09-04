@@ -301,7 +301,6 @@ workflows:
                 docker/publish:
                     name: Build docker image
                     deploy: false
-                    extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                     image: banzaicloud/pipeline
                     tag: $CIRCLE_BRANCH
                     filters:
@@ -312,7 +311,6 @@ workflows:
                     name: Publish master docker image
                     context: dockerhub
                     deploy: true
-                    extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                     image: banzaicloud/pipeline
                     tag: master
                     requires:
@@ -324,7 +322,6 @@ workflows:
                 docker-release:
                     name: Publish tagged & latest docker image
                     context: dockerhub
-                    extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                     image: banzaicloud/pipeline
                     tag: $CIRCLE_TAG
                     filters:
