@@ -28,23 +28,19 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 )
 
-// MakeHTTPHandler mounts all of the service endpoints into an http.Handler.
-func MakeHTTPHandler(endpoints Endpoints, errorHandler notification.ErrorHandler) http.Handler {
-	r := mux.NewRouter()
-
+// RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
+func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, errorHandler notification.ErrorHandler) {
 	options := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(encodeHTTPError),
 		kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 	}
 
-	r.Methods(http.MethodGet).Path("/frontend/notifications").Handler(kithttp.NewServer(
+	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.GetNotifications,
 		decodeGetNotificationsHTTPRequest,
 		encodeGetNotificationsHTTPResponse,
 		options...,
 	))
-
-	return r
 }
 
 func encodeHTTPError(_ context.Context, _ error, w http.ResponseWriter) {
