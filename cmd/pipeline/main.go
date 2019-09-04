@@ -625,8 +625,6 @@ func main() {
 			orgs.DELETE("/:orgid/secrets/:id/tags/*tag", api.DeleteSecretTag)
 			orgs.GET("/:orgid/users", userAPI.GetUsers)
 			orgs.GET("/:orgid/users/:id", userAPI.GetUsers)
-			orgs.POST("/:orgid/users/:id", userAPI.AddUser)
-			orgs.DELETE("/:orgid/users/:id", userAPI.RemoveUser)
 
 			orgs.GET("/:orgid/buckets", api.ListAllBuckets)
 			orgs.POST("/:orgid/buckets", api.CreateBucket)

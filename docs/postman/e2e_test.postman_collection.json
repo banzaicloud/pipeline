@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "9b4b6ced-126f-4966-bd2b-3ee66170be9d",
+		"_postman_id": "30bebb01-8887-4fa9-9350-8b4e32099f5d",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -7704,49 +7704,6 @@
 					"response": []
 				},
 				{
-					"name": "Add users to organization",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"role\": \"member\"\n}"
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/users/:userId",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"users",
-								":userId"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								},
-								{
-									"key": "userId",
-									"value": "{{userId}}",
-									"description": "User identifier"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get user",
 					"request": {
 						"method": "GET",
@@ -7771,42 +7728,6 @@
 								},
 								{
 									"key": "id",
-									"value": "{{userId}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete user",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/users/:userId",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"orgs",
-								":orgId",
-								"users",
-								":userId"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}"
-								},
-								{
-									"key": "userId",
 									"value": "{{userId}}"
 								}
 							]
