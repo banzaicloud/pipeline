@@ -77,42 +77,6 @@ func NewGithubClientForUser(userID uint) (*github.Client, error) {
 	return NewGithubClient(accessToken), nil
 }
 
-func getGithubOrganizations(token string) ([]organization, error) {
-	githubClient := NewGithubClient(token)
-
-	memberships, _, err := githubClient.Organizations.ListOrgMemberships(oauth2.NoContext, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to list organization memberships from github")
-	}
-
-	var orgs []organization
-	for _, membership := range memberships {
-		org := organization{
-			name:     membership.GetOrganization().GetLogin(),
-			id:       membership.GetOrganization().GetID(),
-			role:     RoleAdmin,
-			provider: ProviderGithub,
-		}
-
-		orgs = append(orgs, org)
-	}
-
-	user, _, err := githubClient.Users.Get(context.Background(), "")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to fetch user from github")
-	}
-
-	userOrg := organization{
-		name:     *user.Login,
-		role:     RoleAdmin,
-		provider: ProviderGithub,
-	}
-
-	orgs = append(orgs, userOrg)
-
-	return orgs, nil
-}
-
 func getGithubUserMeta(schema *auth.Schema) (*githubUserMeta, error) {
 	githubClient := NewGithubClient(viper.GetString("github.token"))
 
