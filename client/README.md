@@ -331,8 +331,6 @@ Class | Method | HTTP request | Description
  - [MappingRule](docs/MappingRule.md)
  - [NodeItem](docs/NodeItem.md)
  - [NodeItemMetadata](docs/NodeItemMetadata.md)
- - [NodeItemMetadataAnnotations](docs/NodeItemMetadataAnnotations.md)
- - [NodeItemMetadataLabels](docs/NodeItemMetadataLabels.md)
  - [NodeItemSpec](docs/NodeItemSpec.md)
  - [NodeItemStatus](docs/NodeItemStatus.md)
  - [NodeItemStatusAddresses](docs/NodeItemStatusAddresses.md)

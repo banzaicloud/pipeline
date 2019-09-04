@@ -9224,18 +9224,10 @@ components:
             name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
             creationTimestamp: 2018-04-16T19:47:07Z
             annotations:
-              node.alpha.kubernetes.io/ttl: "0"
-              volumes.kubernetes.io/controller-managed-attach-detach: "true"
+              key: '{"node.alpha.kubernetes.io/ttl":"0"}'
             selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
             labels:
-              failure-domain.beta.kubernetes.io/zone: us-central1-a
-              kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-              beta.kubernetes.io/fluentd-ds-ready: "true"
-              cloud.google.com/gke-nodepool: pool1
-              failure-domain.beta.kubernetes.io/region: us-central1
-              beta.kubernetes.io/arch: amd64
-              beta.kubernetes.io/instance-type: n1-standard-2
-              beta.kubernetes.io/os: linux
+              key: '{"beta.kubernetes.io/arch":"amd64"}'
           spec:
             providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
             externalID: "5935724476937880453"
@@ -9295,18 +9287,10 @@ components:
             name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
             creationTimestamp: 2018-04-16T19:47:07Z
             annotations:
-              node.alpha.kubernetes.io/ttl: "0"
-              volumes.kubernetes.io/controller-managed-attach-detach: "true"
+              key: '{"node.alpha.kubernetes.io/ttl":"0"}'
             selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
             labels:
-              failure-domain.beta.kubernetes.io/zone: us-central1-a
-              kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-              beta.kubernetes.io/fluentd-ds-ready: "true"
-              cloud.google.com/gke-nodepool: pool1
-              failure-domain.beta.kubernetes.io/region: us-central1
-              beta.kubernetes.io/arch: amd64
-              beta.kubernetes.io/instance-type: n1-standard-2
-              beta.kubernetes.io/os: linux
+              key: '{"beta.kubernetes.io/arch":"amd64"}'
           spec:
             providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
             externalID: "5935724476937880453"
@@ -9376,18 +9360,10 @@ components:
           name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
           creationTimestamp: 2018-04-16T19:47:07Z
           annotations:
-            node.alpha.kubernetes.io/ttl: "0"
-            volumes.kubernetes.io/controller-managed-attach-detach: "true"
+            key: '{"node.alpha.kubernetes.io/ttl":"0"}'
           selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
           labels:
-            failure-domain.beta.kubernetes.io/zone: us-central1-a
-            kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-            beta.kubernetes.io/fluentd-ds-ready: "true"
-            cloud.google.com/gke-nodepool: pool1
-            failure-domain.beta.kubernetes.io/region: us-central1
-            beta.kubernetes.io/arch: amd64
-            beta.kubernetes.io/instance-type: n1-standard-2
-            beta.kubernetes.io/os: linux
+            key: '{"beta.kubernetes.io/arch":"amd64"}'
         spec:
           providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
           externalID: "5935724476937880453"
@@ -13752,52 +13728,6 @@ components:
         resourceVersion:
           example: "30123"
           type: string
-    NodeItem_metadata_labels:
-      example:
-        failure-domain.beta.kubernetes.io/zone: us-central1-a
-        kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-        beta.kubernetes.io/fluentd-ds-ready: "true"
-        cloud.google.com/gke-nodepool: pool1
-        failure-domain.beta.kubernetes.io/region: us-central1
-        beta.kubernetes.io/arch: amd64
-        beta.kubernetes.io/instance-type: n1-standard-2
-        beta.kubernetes.io/os: linux
-      properties:
-        beta.kubernetes.io/arch:
-          example: amd64
-          type: string
-        beta.kubernetes.io/fluentd-ds-ready:
-          example: "true"
-          type: string
-        beta.kubernetes.io/instance-type:
-          example: n1-standard-2
-          type: string
-        beta.kubernetes.io/os:
-          example: linux
-          type: string
-        cloud.google.com/gke-nodepool:
-          example: pool1
-          type: string
-        failure-domain.beta.kubernetes.io/region:
-          example: us-central1
-          type: string
-        failure-domain.beta.kubernetes.io/zone:
-          example: us-central1-a
-          type: string
-        kubernetes.io/hostname:
-          example: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-          type: string
-    NodeItem_metadata_annotations:
-      example:
-        node.alpha.kubernetes.io/ttl: "0"
-        volumes.kubernetes.io/controller-managed-attach-detach: "true"
-      properties:
-        node.alpha.kubernetes.io/ttl:
-          example: "0"
-          type: string
-        volumes.kubernetes.io/controller-managed-attach-detach:
-          example: "true"
-          type: string
     NodeItem_metadata:
       example:
         uid: f214d7fb-41ae-11e8-a4ea-42010a8001da
@@ -13805,18 +13735,10 @@ components:
         name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
         creationTimestamp: 2018-04-16T19:47:07Z
         annotations:
-          node.alpha.kubernetes.io/ttl: "0"
-          volumes.kubernetes.io/controller-managed-attach-detach: "true"
+          key: '{"node.alpha.kubernetes.io/ttl":"0"}'
         selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
         labels:
-          failure-domain.beta.kubernetes.io/zone: us-central1-a
-          kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-          beta.kubernetes.io/fluentd-ds-ready: "true"
-          cloud.google.com/gke-nodepool: pool1
-          failure-domain.beta.kubernetes.io/region: us-central1
-          beta.kubernetes.io/arch: amd64
-          beta.kubernetes.io/instance-type: n1-standard-2
-          beta.kubernetes.io/os: linux
+          key: '{"beta.kubernetes.io/arch":"amd64"}'
       properties:
         name:
           example: gke-gkecluster-feri-706-pool1-496eccb3-l25k
@@ -13834,9 +13756,15 @@ components:
           example: 2018-04-16T19:47:07Z
           type: string
         labels:
-          $ref: '#/components/schemas/NodeItem_metadata_labels'
+          additionalProperties:
+            example: '{"beta.kubernetes.io/arch":"amd64"}'
+            type: string
+          type: object
         annotations:
-          $ref: '#/components/schemas/NodeItem_metadata_annotations'
+          additionalProperties:
+            example: '{"node.alpha.kubernetes.io/ttl":"0"}'
+            type: string
+          type: object
     NodeItem_spec:
       example:
         providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
