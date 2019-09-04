@@ -6786,6 +6786,62 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/BaseError_500"
+    '/api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels':
+        get:
+            security:
+                -
+                    bearerAuth: []
+            tags:
+                - clusters
+            summary: List cluser nodepool labels
+            operationId: ListNodepoolLabels
+            description: List cluster nodepool labels
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: id
+                    in: path
+                    required: true
+                    description: Selected cluster identification (number)
+                    schema:
+                        type: integer
+            responses:
+                '200':
+                    description: "Nodepool labels listed"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListNodepoolLabelsResponse'
+                '400':
+                    description: "Error during getting nodepool labels"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_400'
+                '401':
+                    description: "Unauthorized"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Unauthorized'
+                '404':
+                    description: "Cluster not found"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ClusterNotFound'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BaseError_500'
 
 
 components:
@@ -8223,40 +8279,16 @@ components:
                             example: "2018-04-16T19:47:07Z"
                         labels:
                             type: object
-                            properties:
-                                beta.kubernetes.io/arch:
-                                    type: string
-                                    example: "amd64"
-                                beta.kubernetes.io/fluentd-ds-ready:
-                                    type: string
-                                    example: "true"
-                                beta.kubernetes.io/instance-type:
-                                    type: string
-                                    example: "n1-standard-2"
-                                beta.kubernetes.io/os:
-                                    type: string
-                                    example: "linux"
-                                cloud.google.com/gke-nodepool:
-                                    type: string
-                                    example: "pool1"
-                                failure-domain.beta.kubernetes.io/region:
-                                    type: string
-                                    example: "us-central1"
-                                failure-domain.beta.kubernetes.io/zone:
-                                    type: string
-                                    example: "us-central1-a"
-                                kubernetes.io/hostname:
-                                    type: string
-                                    example: "gke-gkecluster-feri-706-pool1-496eccb3-l25k"
+                            additionalProperties:
+                                type: string
+                                example:
+                                    beta.kubernetes.io/arch: "amd64"
                         annotations:
                             type: object
-                            properties:
-                                node.alpha.kubernetes.io/ttl:
-                                    type: string
-                                    example: "0"
-                                volumes.kubernetes.io/controller-managed-attach-detach:
-                                    type: string
-                                    example: "true"
+                            additionalProperties:
+                                type: string
+                                example:
+                                    node.alpha.kubernetes.io/ttl: "0"
                 spec:
                     type: object
                     properties:
@@ -9363,6 +9395,8 @@ components:
                     type: object
                     additionalProperties:
                         $ref: '#/components/schemas/NodePoolStatus'
+                totalSummary:
+                    $ref: '#/components/schemas/ResourceSummary'
 
         NodePoolStatus:
             oneOf:
@@ -9408,6 +9442,10 @@ components:
                         type: string
                         example:
                             example.io/label1: value1
+                resourceSummary:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/ResourceSummary'
 
         NodePoolStatusAzure:
             type: object
@@ -9427,6 +9465,10 @@ components:
                 instanceType:
                     type: string
                     example: "Standard_D4_v2"
+                resourceSummary:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/ResourceSummary'
 
         NodePoolStatusGoogle:
             type: object
@@ -9446,6 +9488,10 @@ components:
                 instanceType:
                     type: string
                     example: "n1-standard-1"
+                resourceSummary:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/ResourceSummary'
 
         NodePoolStatusOracle:
             type: object
@@ -9468,6 +9514,10 @@ components:
                 autoscaling:
                     type: boolean
                     example: false
+                resourceSummary:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/ResourceSummary'
 
 
         CreateObjectStoreBucketRequest:
@@ -9792,6 +9842,8 @@ components:
                     $ref: '#/components/schemas/Resource'
                 memory:
                     $ref: '#/components/schemas/Resource'
+                status:
+                    type: string
 
         Resource:
             type: object
@@ -11390,3 +11442,20 @@ components:
                 error:
                     type: string
                     example: "No cluster feature exists with this name"
+
+        ListNodepoolLabelsResponse:
+            type: object
+            additionalProperties:
+                type: array
+                items:
+                    $ref: '#/components/schemas/NodepoolLabels'
+
+        NodepoolLabels:
+            type: object
+            properties:
+                name:
+                    type: string
+                value:
+                    type: string
+                reserved:
+                    type: boolean
