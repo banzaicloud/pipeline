@@ -21,10 +21,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name OrganizationMembershipStore -inpkg -testonly"
+//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name OrganizationStore -inpkg -testonly"
 
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite this test with an in-memory store
-	store := &MockOrganizationMembershipStore{}
+	store := &MockOrganizationStore{}
 	syncer := NewOrganizationSyncer(store)
 
 	ctx := context.Background()
