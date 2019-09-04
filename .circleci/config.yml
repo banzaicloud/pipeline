@@ -8,7 +8,7 @@ jobs:
         resource_class: large
         docker:
             -
-                image: banzaicloud/golang:1.13rc1
+                image: banzaicloud/golang:1.13
                 environment:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
