@@ -54,6 +54,17 @@ const (
 	GitlabTokenID = "gitlab"
 )
 
+const (
+	RoleAdmin  = "admin"
+	RoleMember = "member"
+)
+
+// nolint: gochecknoglobals
+var roleLevelMap = map[string]int{
+	RoleAdmin:  100,
+	RoleMember: 50,
+}
+
 // AuthIdentity auth identity session model
 type AuthIdentity struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
@@ -96,7 +107,7 @@ type CICDUser struct {
 type UserOrganization struct {
 	UserID         uint
 	OrganizationID uint
-	Role           string `gorm:"default:'admin'"`
+	Role           string `gorm:"default:'member'"`
 }
 
 // Organization struct
@@ -202,7 +213,7 @@ type BanzaiUserStorer struct {
 	orgImporter      *OrgImporter
 }
 
-func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
+func getOrganizationsFromDex(schema *auth.Schema) (map[string][]string, error) {
 	var dexClaims struct {
 		Groups []string
 	}
@@ -211,14 +222,21 @@ func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
 		return nil, err
 	}
 
-	var organizations []string
-	unique := map[string]struct{}{}
+	organizations := make(map[string][]string)
+
 	for _, group := range dexClaims.Groups {
 		// get the part before :, that will be the organization name
-		group = strings.Split(group, ":")[0]
-		if _, ok := unique[group]; !ok {
-			organizations = append(organizations, group)
-			unique[group] = struct{}{}
+		s := strings.SplitN(group, ":", 2)
+		if len(s) < 1 {
+			return nil, errors.New("invalid group")
+		}
+
+		if _, ok := organizations[s[0]]; !ok {
+			organizations[s[0]] = make([]string, 0)
+		}
+
+		if len(s) > 1 && s[1] != "" {
+			organizations[s[0]] = append(organizations[s[0]], s[1])
 		}
 	}
 
@@ -238,7 +256,6 @@ func emailToLoginName(email string) string {
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to CICD DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (user interface{}, userID string, err error) {
-
 	currentUser := &User{}
 	err = copier.Copy(currentUser, schema)
 	if err != nil {
@@ -432,10 +449,23 @@ func (i *OrgImporter) ImportOrganizationsFromGitlab(currentUser *User, gitlabTok
 	return i.ImportOrganizations(currentUser, orgs)
 }
 
-func (i *OrgImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string, provider string) error {
+func (i *OrgImporter) ImportOrganizationsFromDex(currentUser *User, organizations map[string][]string, provider string) error {
 	var orgs []organization
-	for _, org := range organizations {
-		orgs = append(orgs, organization{name: org, provider: provider})
+	for org, groups := range organizations {
+		role := RoleMember
+
+		if provider == ProviderGithub || provider == ProviderGitlab {
+			role = RoleAdmin
+		} else {
+			// TODO: add role group binding
+			for _, group := range groups {
+				if roleLevelMap[role] < roleLevelMap[group] {
+					role = group
+				}
+			}
+		}
+
+		orgs = append(orgs, organization{name: org, provider: provider, role: role})
 	}
 
 	return i.ImportOrganizations(currentUser, orgs)
@@ -461,7 +491,6 @@ func (i *OrgImporter) ImportOrganizations(currentUser *User, orgs []organization
 }
 
 func importOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
-
 	orgIDs := make(map[uint]bool, len(orgs))
 
 	tx := db.Begin()

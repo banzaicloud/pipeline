@@ -90,7 +90,7 @@ func getGithubOrganizations(token string) ([]organization, error) {
 		org := organization{
 			name:     membership.GetOrganization().GetLogin(),
 			id:       membership.GetOrganization().GetID(),
-			role:     membership.GetRole(),
+			role:     RoleAdmin,
 			provider: ProviderGithub,
 		}
 
@@ -104,7 +104,7 @@ func getGithubOrganizations(token string) ([]organization, error) {
 
 	userOrg := organization{
 		name:     *user.Login,
-		role:     "admin",
+		role:     RoleAdmin,
 		provider: ProviderGithub,
 	}
 

@@ -102,6 +102,8 @@ const (
 	ServerCert  = "serverCert"
 	ClientKey   = "clientKey"
 	ClientCert  = "clientCert"
+	PeerKey     = "peerKey"
+	PeerCert    = "peerCert"
 )
 
 // Distribution keys
@@ -269,6 +271,8 @@ var DefaultRules = map[string]Meta{
 			{Name: ServerCert, Required: false},
 			{Name: ClientKey, Required: false},
 			{Name: ClientCert, Required: false},
+			{Name: PeerKey, Required: false},
+			{Name: PeerCert, Required: false},
 		},
 		Sourcing: Volume,
 	},
