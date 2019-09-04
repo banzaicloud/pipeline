@@ -35,6 +35,7 @@ import (
 type DexProvider struct {
 	*DexConfig
 	provider *oidc.Provider
+	verifier *oidc.IDTokenVerifier
 }
 
 type AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
@@ -49,6 +50,15 @@ type DexConfig struct {
 	RedirectURL        string
 	Scopes             []string
 	AuthorizeHandler   AuthorizeHandler
+}
+
+type IDTokenClaims struct {
+	Subject         string            `json:"sub"`
+	Name            string            `json:"name"`
+	Email           string            `json:"email"`
+	Verified        bool              `json:"email_verified"`
+	Groups          []string          `json:"groups"`
+	FederatedClaims map[string]string `json:"federated_claims"`
 }
 
 func newDexProvider(config *DexConfig) *DexProvider {
@@ -71,7 +81,7 @@ func newDexProvider(config *DexConfig) *DexProvider {
 	}
 
 	if config.Scopes == nil {
-		config.Scopes = []string{oidc.ScopeOpenID, "profile", "email", "groups", "federated:id"}
+		config.Scopes = []string{oidc.ScopeOpenID, "profile", "email", "groups", "federated:id", oidc.ScopeOfflineAccess}
 	}
 
 	httpClient := http.Client{
@@ -83,12 +93,13 @@ func newDexProvider(config *DexConfig) *DexProvider {
 		},
 	}
 	ctx := oidc.ClientContext(gocontext.Background(), &httpClient)
-	dexProvider, err := oidc.NewProvider(ctx, provider.IssuerURL)
+	oidcProvider, err := oidc.NewProvider(ctx, provider.IssuerURL)
 	if err != nil {
 		panic(fmt.Errorf("Failed to query provider %q: %s", provider.IssuerURL, err.Error()))
 	}
 
-	provider.provider = dexProvider
+	provider.provider = oidcProvider
+	provider.verifier = oidcProvider.Verifier(&oidc.Config{ClientID: config.ClientID})
 
 	if config.AuthorizeHandler == nil {
 
@@ -105,8 +116,7 @@ func newDexProvider(config *DexConfig) *DexProvider {
 				ok           bool
 			)
 
-			verifier := dexProvider.Verifier(&oidc.Config{ClientID: config.ClientID})
-
+			verifier := provider.verifier
 			ctx := oidc.ClientContext(req.Context(), &httpClient)
 			oauth2Config := provider.OAuthConfig(context)
 
@@ -161,7 +171,7 @@ func newDexProvider(config *DexConfig) *DexProvider {
 				rawIDToken = req.FormValue("id_token")
 				if rawIDToken != "" {
 					// The public CLI client's verifier is needed in this case
-					verifier = dexProvider.Verifier(&oidc.Config{ClientID: config.PublicClientID})
+					verifier = oidcProvider.Verifier(&oidc.Config{ClientID: config.PublicClientID})
 
 				} else {
 					// Form request from frontend to refresh a token.
@@ -199,15 +209,7 @@ func newDexProvider(config *DexConfig) *DexProvider {
 				return nil, err
 			}
 
-			var claims struct {
-				Subject         string            `json:"sub"`
-				Name            string            `json:"name"`
-				Email           string            `json:"email"`
-				Verified        bool              `json:"email_verified"`
-				Groups          []string          `json:"groups"`
-				FederatedClaims map[string]string `json:"federated_claims"`
-			}
-
+			var claims IDTokenClaims
 			err = idToken.Claims(&claims)
 			if err != nil {
 				err = fmt.Errorf("failed to parse claims: %s", err.Error())
@@ -227,7 +229,8 @@ func newDexProvider(config *DexConfig) *DexProvider {
 			authInfo.UID = claims.Subject
 
 			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
-				return authInfo.ToClaims(), nil
+				claims := authInfo.ToClaims()
+				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
 			}
 
 			// Create a new account otherwise
@@ -238,7 +241,7 @@ func newDexProvider(config *DexConfig) *DexProvider {
 				schema.UID = claims.Subject
 				schema.Name = claims.Name
 				schema.Email = claims.Email
-				schema.RawInfo = claims
+				schema.RawInfo = &claims
 			}
 			if _, userID, err := context.Auth.UserStorer.Save(&schema, context); err == nil {
 				if userID != "" {
@@ -249,7 +252,8 @@ func newDexProvider(config *DexConfig) *DexProvider {
 			}
 
 			if err = tx.Where(authInfo).FirstOrCreate(authIdentity).Error; err == nil {
-				return authInfo.ToClaims(), nil
+				claims := authInfo.ToClaims()
+				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
 			}
 
 			return nil, err
@@ -301,6 +305,33 @@ func (provider DexProvider) Login(context *auth.Context) {
 
 	url := provider.OAuthConfig(context).AuthCodeURL(signedToken)
 	http.Redirect(context.Writer, context.Request, url, http.StatusFound)
+}
+
+// RedeemRefreshToken plays an OAuth redeeem refresh token flow
+// https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
+func (provider DexProvider) RedeemRefreshToken(context *auth.Context, refreshToken string) (*IDTokenClaims, *oauth2.Token, error) {
+	token, err := provider.OAuthConfig(context).TokenSource(gocontext.Background(), &oauth2.Token{RefreshToken: refreshToken}).Token()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return nil, nil, fmt.Errorf("no id_token in token response")
+	}
+
+	var claims IDTokenClaims
+	idToken, err := provider.verifier.Verify(gocontext.Background(), rawIDToken)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to verify ID token: %s", err.Error())
+	}
+
+	err = idToken.Claims(&claims)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse claims: %s", err.Error())
+	}
+
+	return &claims, token, nil
 }
 
 // Logout implemented logout with dex provider
