@@ -17,6 +17,7 @@ package auth
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -28,7 +29,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&AuthIdentity{},
 		&User{},
 		&UserOrganization{},
-		&Organization{},
+		&OrganizationMigrationModel{}, // TODO change back to Organization once a new version is released
 	}
 
 	var tableNames string
@@ -41,4 +42,21 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}).Info("migrating auth tables")
 
 	return db.AutoMigrate(tables...).Error
+}
+
+// OrganizationMigrationModel represents a unit of users and resources.
+type OrganizationMigrationModel struct {
+	ID        uint      `gorm:"primary_key" json:"id"`
+	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Name      string    `gorm:"unique;not null" json:"name"`
+	Provider  string    `gorm:"not null" json:"provider"`
+	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
+	Role      string    `json:"-" gorm:"-"` // Used only internally
+}
+
+// TableName changes the default table name.
+func (OrganizationMigrationModel) TableName() string {
+	return "organizations"
 }
