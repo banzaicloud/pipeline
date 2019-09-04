@@ -29,15 +29,21 @@ import (
 
 // NewApp returns a new HTTP application.
 func NewApp(db *gorm.DB, logger Logger, errorHandler ErrorHandler) http.Handler {
-	router := mux.NewRouter().PathPrefix("/frontend").Subrouter()
+	router := mux.NewRouter()
 	router.Use(ocmux.Middleware())
+	frontend := router.PathPrefix("/frontend").Subrouter()
 
 	{
 		store := notificationadapter.NewGormStore(db)
 		service := notification.NewService(store)
 		endpoints := notificationdriver.MakeEndpoints(service)
+		subrouter := frontend.PathPrefix("/notifications").Subrouter()
 		errorHandler := emperror.WithDetails(errorHandler, "module", "notification")
-		router.Handle("/notifications", notificationdriver.MakeHTTPHandler(endpoints, errorHandler))
+
+		notificationdriver.RegisterHTTPHandlers(endpoints, subrouter, errorHandler)
+
+		// Compatibility routes
+		notificationdriver.RegisterHTTPHandlers(endpoints, router.PathPrefix("/notifications").Subrouter(), errorHandler)
 	}
 
 	return router

@@ -79,7 +79,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
-	"github.com/banzaicloud/pipeline/internal/notification"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
@@ -413,11 +412,14 @@ func main() {
 	// Frontend service
 	{
 		app := frontend.NewApp(db, commonLogger, errorHandler)
+		handler := gin.WrapH(http.StripPrefix(basePath, app))
 
-		base.Any("frontend/*path", gin.WrapH(http.StripPrefix(basePath, app)))
+		base.Any("frontend/*path", handler)
+
+		// Compatibility routes
+		base.GET("notifications", handler)
 	}
 
-	base.GET("notifications", notification.GetNotifications)
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
 	auth.Install(router, tokenHandler.GenerateToken)
