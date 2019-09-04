@@ -462,24 +462,6 @@ func NewOrgImporter(
 	}
 }
 
-func (i *OrgImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
-	orgs, err := getGithubOrganizations(githubToken)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get organizations")
-	}
-
-	return i.ImportOrganizations(currentUser, orgs)
-}
-
-func (i *OrgImporter) ImportOrganizationsFromGitlab(currentUser *User, gitlabToken string) error {
-	orgs, err := getGitlabOrganizations(gitlabToken)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get organizations")
-	}
-
-	return i.ImportOrganizations(currentUser, orgs)
-}
-
 func (i *OrgImporter) ImportOrganizationsFromDex(currentUser *User, organizations map[string][]string, provider string) error {
 	var orgs []organization
 	for org, groups := range organizations {
