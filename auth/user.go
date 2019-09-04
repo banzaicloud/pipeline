@@ -211,7 +211,6 @@ type BanzaiUserStorer struct {
 	signingKeyBase32 string // CICD uses base32 Hash
 	cicdDB           *gorm.DB
 	events           authEvents
-	accessManager    accessManager
 	orgImporter      *OrgImporter
 }
 
@@ -319,9 +318,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		log.Errorf("Error during local helm install: %s", err.Error())
 	}
 
-	bus.accessManager.GrantDefaultAccessToUser(currentUser.IDString())
-	bus.accessManager.AddOrganizationPolicies(currentUser.Organizations[0].ID)
-	bus.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
 
 	// Import organizations in case of DEX
@@ -441,21 +437,18 @@ func synchronizeCICDRepos(login string) {
 
 // OrgImporter imports organizations.
 type OrgImporter struct {
-	db            *gorm.DB
-	accessManager accessManager
-	events        authEvents
+	db     *gorm.DB
+	events authEvents
 }
 
 // NewOrgImporter returns a new OrgImporter instance.
 func NewOrgImporter(
 	db *gorm.DB,
-	accessManager accessManager,
 	events eventBus,
 ) *OrgImporter {
 	return &OrgImporter{
-		db:            db,
-		accessManager: accessManager,
-		events:        ebAuthEvents{eb: events},
+		db:     db,
+		events: ebAuthEvents{eb: events},
 	}
 }
 
@@ -507,9 +500,6 @@ func (i *OrgImporter) ImportOrganizations(currentUser *User, orgs []organization
 	}
 
 	for id, created := range orgIDs {
-		i.accessManager.AddOrganizationPolicies(id)
-		i.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), id)
-
 		if created {
 			i.events.OrganizationRegistered(id, currentUser.ID)
 		}

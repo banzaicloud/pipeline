@@ -164,14 +164,12 @@ func main() {
 	basePath := viper.GetString("pipeline.basepath")
 
 	enforcer := intAuth.NewEnforcer(db)
-	accessManager := intAuth.NewAccessManager(enforcer, basePath)
-	accessManager.AddDefaultPolicies()
 
-	orgImporter := auth.NewOrgImporter(db, accessManager, config.EventBus)
-	tokenHandler := auth.NewTokenHandler(accessManager)
+	orgImporter := auth.NewOrgImporter(db, config.EventBus)
+	tokenHandler := auth.NewTokenHandler()
 
 	// Initialize auth
-	auth.Init(cicdDB, accessManager, orgImporter)
+	auth.Init(cicdDB, orgImporter)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		logger.Info("running automatic schema migrations")
@@ -394,7 +392,7 @@ func main() {
 
 	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(orgImporter)
-	userAPI := api.NewUserAPI(accessManager, db, logrusLogger, errorHandler)
+	userAPI := api.NewUserAPI(db, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
 	switch viper.GetString(config.DNSBaseDomain) {
