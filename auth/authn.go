@@ -77,8 +77,8 @@ const (
 	ProviderGitlab    = "gitlab"
 )
 
-func getBackendProvider(dexProvider string) string {
-	return strings.TrimPrefix(dexProvider, "dex:")
+func getBackendProvider(oidcProvider string) string {
+	return strings.TrimPrefix(oidcProvider, "dex:")
 }
 
 // Init authorization
@@ -109,7 +109,7 @@ var (
 	// SessionManager is responsible for handling browser session Cookies
 	SessionManager session.ManagerInterface
 
-	dexProvider *DexProvider
+	oidcProvider *OIDCProvider
 )
 
 // Simple init for logging
@@ -225,14 +225,14 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
 	})
 
-	dexProvider = newDexProvider(&DexConfig{
+	oidcProvider = newOIDCProvider(&OIDCConfig{
 		PublicClientID:     viper.GetString("auth.publicclientid"),
 		ClientID:           viper.GetString("auth.clientid"),
 		ClientSecret:       viper.GetString("auth.clientsecret"),
 		IssuerURL:          viper.GetString("auth.dexURL"),
 		InsecureSkipVerify: viper.GetBool("auth.dexInsecure"),
 	})
-	Auth.RegisterProvider(dexProvider)
+	Auth.RegisterProvider(oidcProvider)
 
 	InitTokenStore()
 
@@ -250,9 +250,9 @@ func SyncOrgsForUser(orgImporter *OrgImporter, user *User, request *http.Request
 	}
 
 	authContext := auth.Context{Auth: Auth, Request: request}
-	idTokenClaims, token, err := dexProvider.RedeemRefreshToken(&authContext, refreshToken)
+	idTokenClaims, token, err := oidcProvider.RedeemRefreshToken(&authContext, refreshToken)
 	if err != nil {
-		return emperror.Wrap(err, "failed to redeeem user refresh token")
+		return emperror.Wrap(err, "failed to redeem user refresh token")
 	}
 
 	err = SaveOAuthRefreshToken(user.IDString(), token.RefreshToken)
