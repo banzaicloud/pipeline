@@ -34,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	conf "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
-	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
@@ -166,10 +165,8 @@ func main() {
 			conf.Logger(),
 			errorHandler,
 		)
-		enforcer := intAuth.NewEnforcer(db)
-		accessManager := intAuth.NewAccessManager(enforcer, config.Pipeline.BasePath)
-		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewTokenHandler(accessManager))
-		auth.Init(nil, accessManager, nil)
+		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewTokenHandler())
+		auth.Init(nil, nil)
 		auth.InitTokenStore()
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)

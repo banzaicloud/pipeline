@@ -28,26 +28,19 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
-type userAccessManager interface {
-	GrantOrganizationAccessToUser(userID string, orgID uint)
-	RevokeOrganizationAccessFromUser(userID string, orgID uint)
-}
-
 // UserAPI implements user functions.
 type UserAPI struct {
-	accessManager userAccessManager
-	db            *gorm.DB
-	log           logrus.FieldLogger
-	errorHandler  emperror.Handler
+	db           *gorm.DB
+	log          logrus.FieldLogger
+	errorHandler emperror.Handler
 }
 
 // NewUserAPI returns a new UserAPI instance.
-func NewUserAPI(accessManager userAccessManager, db *gorm.DB, log logrus.FieldLogger, errorHandler emperror.Handler) *UserAPI {
+func NewUserAPI(db *gorm.DB, log logrus.FieldLogger, errorHandler emperror.Handler) *UserAPI {
 	return &UserAPI{
-		accessManager: accessManager,
-		db:            db,
-		log:           log,
-		errorHandler:  errorHandler,
+		db:           db,
+		log:          log,
+		errorHandler: errorHandler,
 	}
 }
 
@@ -211,8 +204,6 @@ func (a *UserAPI) AddUser(c *gin.Context) {
 		return
 	}
 
-	a.accessManager.GrantOrganizationAccessToUser(user.IDString(), organization.ID)
-
 	c.Status(http.StatusNoContent)
 }
 
@@ -269,10 +260,6 @@ func (a *UserAPI) RemoveUser(c *gin.Context) {
 		})
 		return
 	}
-
-	user := auth.GetCurrentUser(c.Request)
-
-	a.accessManager.RevokeOrganizationAccessFromUser(user.IDString(), organization.ID)
 
 	c.Status(http.StatusNoContent)
 }

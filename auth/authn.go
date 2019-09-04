@@ -164,7 +164,7 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
+func Init(db *gorm.DB, orgImporter *OrgImporter) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -216,13 +216,12 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 			signingKeyBase32: signingKeyBase32,
 			cicdDB:           cicdDB,
 			events:           ebAuthEvents{eb: config.EventBus},
-			accessManager:    accessManager,
 			orgImporter:      orgImporter,
 		},
 		LoginHandler:      banzaiLoginHandler,
 		LogoutHandler:     banzaiLogoutHandler,
 		RegisterHandler:   banzaiRegisterHandler,
-		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
+		DeregisterHandler: NewBanzaiDeregisterHandler(),
 	})
 
 	oidcProvider = newOIDCProvider(&OIDCConfig{
@@ -312,14 +311,10 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 	}
 }
 
-type tokenHandler struct {
-	accessManager accessManager
-}
+type tokenHandler struct{}
 
-func NewTokenHandler(accessManager accessManager) *tokenHandler {
-	handler := &tokenHandler{
-		accessManager: accessManager,
-	}
+func NewTokenHandler() *tokenHandler {
+	handler := &tokenHandler{}
 
 	return handler
 }
@@ -406,9 +401,6 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
 			return
 		}
-
-		h.accessManager.GrantDefaultAccessToVirtualUser(userID)
-		h.accessManager.GrantOrganizationAccessToUser(userID, organization.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
@@ -430,9 +422,7 @@ func (h *tokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (string,
 		}
 	}
 	tokenID, signedToken, err := createAndStoreAPIToken(userID, userID, ClusterTokenType, userID, nil, true)
-	// TODO: handle access by cluster
-	h.accessManager.GrantDefaultAccessToVirtualUser(userID)
-	h.accessManager.GrantOrganizationAccessToUser(userID, orgID)
+
 	return tokenID, signedToken, err
 }
 
@@ -616,15 +606,11 @@ func banzaiRegisterHandler(context *auth.Context, register func(*auth.Context) (
 	httpJSONError(context.Writer, err, http.StatusUnauthorized)
 }
 
-type banzaiDeregisterHandler struct {
-	accessManager accessManager
-}
+type banzaiDeregisterHandler struct{}
 
 // NewBanzaiDeregisterHandler returns a handler that deletes the user and all his/her tokens from the database
-func NewBanzaiDeregisterHandler(accessManager accessManager) func(*auth.Context) {
-	handler := &banzaiDeregisterHandler{
-		accessManager: accessManager,
-	}
+func NewBanzaiDeregisterHandler() func(*auth.Context) {
+	handler := &banzaiDeregisterHandler{}
 
 	return handler.handler
 }
@@ -704,9 +690,6 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 			return
 		}
 	}
-
-	// Delete authorization roles for user
-	h.accessManager.RevokeAllAccessFromUser(user.IDString())
 
 	banzaiLogoutHandler(context)
 }
