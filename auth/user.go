@@ -37,7 +37,6 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/helm"
 )
 
 const (
@@ -321,11 +320,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	err = db.Create(currentUser).Error
 	if err != nil {
 		return nil, "", emperror.Wrap(err, "failed to create user organization")
-	}
-
-	err = helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(currentUser.Organizations[0].Name))
-	if err != nil {
-		log.Errorf("Error during local helm install: %s", err.Error())
 	}
 
 	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
