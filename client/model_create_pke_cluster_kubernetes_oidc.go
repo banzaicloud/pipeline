@@ -11,8 +11,6 @@
 
 package client
 
-type ResourceSummary struct {
-	Cpu    Resource `json:"cpu,omitempty"`
-	Memory Resource `json:"memory,omitempty"`
-	Status string   `json:"status,omitempty"`
+type CreatePkeClusterKubernetesOidc struct {
+	Enabled bool `json:"enabled,omitempty"`
 }

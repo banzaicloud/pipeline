@@ -37,6 +37,11 @@ type Kubernetes struct {
 	RBAC    bool
 	Network Network
 	CRI     CRI
+	OIDC    OIDC
+}
+
+type OIDC struct {
+	Enabled bool
 }
 
 // Network represents a K8s network

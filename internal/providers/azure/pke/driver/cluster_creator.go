@@ -44,13 +44,14 @@ import (
 const pkeVersion = "0.4.12"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
-func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string, pipelineExternalURLInsecure bool) AzurePKEClusterCreator {
+func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string, pipelineExternalURLInsecure bool, oidcIssuerURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
 		logger:                      logger,
 		store:                       store,
 		workflowClient:              workflowClient,
 		pipelineExternalURL:         pipelineExternalURL,
 		pipelineExternalURLInsecure: pipelineExternalURLInsecure,
+		oidcIssuerURL:               oidcIssuerURL,
 	}
 }
 
@@ -61,6 +62,7 @@ type AzurePKEClusterCreator struct {
 	workflowClient              client.Client
 	pipelineExternalURL         string
 	pipelineExternalURLInsecure bool
+	oidcIssuerURL               string
 	secrets                     interface {
 		Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 		Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
@@ -190,6 +192,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		SecretID:           params.SecretID,
 		SSHSecretID:        params.SSHSecretID,
 		RBAC:               params.Kubernetes.RBAC,
+		OIDC:               params.Kubernetes.OIDC.Enabled,
 		ScaleOptions:       params.ScaleOptions,
 		ResourceGroupName:  params.ResourceGroup,
 		NodePools:          nodePools,
@@ -259,6 +262,11 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		VirtualNetworkName:          cl.VirtualNetwork.Name,
 	}
 
+	if cl.Kubernetes.OIDC.Enabled {
+		tf.OIDCIssuerURL = cc.oidcIssuerURL
+		tf.OIDCClientID = cl.UID
+	}
+
 	subnets := make(map[string]workflow.SubnetTemplate)
 	vmssTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(params.NodePools))
 	roleAssignmentTemplates := make([]workflow.RoleAssignmentTemplate, 0, len(params.NodePools))
@@ -280,6 +288,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		OrganizationID:    params.OrganizationID,
 		ResourceGroupName: params.ResourceGroup,
 		SecretID:          params.SecretID,
+		OIDCEnabled:       cl.Kubernetes.OIDC.Enabled,
 		VirtualNetworkTemplate: workflow.VirtualNetworkTemplate{
 			Name: params.Network.Name,
 			CIDRs: []string{

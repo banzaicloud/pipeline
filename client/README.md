@@ -93,6 +93,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**GetClusterConfig**](docs/ClustersApi.md#getclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/config | Get a cluster config
 *ClustersApi* | [**GetClusterStatus**](docs/ClustersApi.md#getclusterstatus) | **Head** /api/v1/orgs/{orgId}/clusters/{id} | Get cluster status
 *ClustersApi* | [**GetLeaderElection**](docs/ClustersApi.md#getleaderelection) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Query cluster leader
+*ClustersApi* | [**GetOIDCClusterConfig**](docs/ClustersApi.md#getoidcclusterconfig) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/oidcconfig | Get a cluster config with OIDC login
 *ClustersApi* | [**GetPKECommands**](docs/ClustersApi.md#getpkecommands) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/commands | List bootstrap commands for namespaces
 *ClustersApi* | [**GetPodDetails**](docs/ClustersApi.md#getpoddetails) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pods | Get pod details
 *ClustersApi* | [**GetReadyPKENode**](docs/ClustersApi.md#getreadypkenode) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/pke/ready | Query reported node readiness information
@@ -102,6 +103,7 @@ Class | Method | HTTP request | Description
 *ClustersApi* | [**ListClusterEndpoints**](docs/ClustersApi.md#listclusterendpoints) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/endpoints | List service public endpoints
 *ClustersApi* | [**ListClusterSecrets**](docs/ClustersApi.md#listclustersecrets) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/secrets | List secrets which belongs to cluster
 *ClustersApi* | [**ListClusters**](docs/ClustersApi.md#listclusters) | **Get** /api/v1/orgs/{orgId}/clusters | List clusters
+*ClustersApi* | [**ListNodepoolLabels**](docs/ClustersApi.md#listnodepoollabels) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels | List cluser nodepool labels
 *ClustersApi* | [**ListNodes**](docs/ClustersApi.md#listnodes) | **Get** /api/v1/orgs/{orgId}/clusters/{id}/nodes | List cluser nodes
 *ClustersApi* | [**MergeSecret**](docs/ClustersApi.md#mergesecret) | **Patch** /api/v1/orgs/{orgId}/clusters/{id}/secrets/{secretName} | Merge a particular secret with an existing one with optional remapping
 *ClustersApi* | [**PostLeaderElection**](docs/ClustersApi.md#postleaderelection) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/pke/leader | Apply as new cluster leader
@@ -247,6 +249,7 @@ Class | Method | HTTP request | Description
  - [CreatePkeClusterKubernetes](docs/CreatePkeClusterKubernetes.md)
  - [CreatePkeClusterKubernetesCri](docs/CreatePkeClusterKubernetesCri.md)
  - [CreatePkeClusterKubernetesNetwork](docs/CreatePkeClusterKubernetesNetwork.md)
+ - [CreatePkeClusterKubernetesOidc](docs/CreatePkeClusterKubernetesOidc.md)
  - [CreatePkeClusterRequestBase](docs/CreatePkeClusterRequestBase.md)
  - [CreatePkeOnAzureClusterRequest](docs/CreatePkeOnAzureClusterRequest.md)
  - [CreatePkeProperties](docs/CreatePkeProperties.md)
@@ -330,8 +333,6 @@ Class | Method | HTTP request | Description
  - [MappingRule](docs/MappingRule.md)
  - [NodeItem](docs/NodeItem.md)
  - [NodeItemMetadata](docs/NodeItemMetadata.md)
- - [NodeItemMetadataAnnotations](docs/NodeItemMetadataAnnotations.md)
- - [NodeItemMetadataLabels](docs/NodeItemMetadataLabels.md)
  - [NodeItemSpec](docs/NodeItemSpec.md)
  - [NodeItemStatus](docs/NodeItemStatus.md)
  - [NodeItemStatusAddresses](docs/NodeItemStatusAddresses.md)
@@ -352,6 +353,7 @@ Class | Method | HTTP request | Description
  - [NodePoolsGoogle](docs/NodePoolsGoogle.md)
  - [NodePoolsOracle](docs/NodePoolsOracle.md)
  - [NodePoolsPke](docs/NodePoolsPke.md)
+ - [NodepoolLabels](docs/NodepoolLabels.md)
  - [OracleStorageProps](docs/OracleStorageProps.md)
  - [OrganizationListItemResponse](docs/OrganizationListItemResponse.md)
  - [OrganizationNotFound](docs/OrganizationNotFound.md)

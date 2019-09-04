@@ -79,7 +79,7 @@ func NewClusterCreator(request *pkgCluster.CreateClusterRequest, cluster CommonC
 
 		commonCreator: *common,
 
-		dexEnabled: request.Properties.CreateClusterPKE.DexEnabled,
+		oidcEnabled: request.Properties.CreateClusterPKE.Kubernetes.OIDC.Enabled,
 	}
 }
 
@@ -92,7 +92,7 @@ type pkeCreator struct {
 
 	commonCreator
 
-	dexEnabled bool
+	oidcEnabled bool
 }
 
 // Create implements the clusterCreator interface.
@@ -116,7 +116,7 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 		Region:                      c.cluster.GetLocation(),
 		PipelineExternalURL:         externalBaseURL,
 		PipelineExternalURLInsecure: externalBaseURLInsecure,
-		DexEnabled:                  c.dexEnabled,
+		OIDCEnabled:                 c.oidcEnabled,
 	}
 
 	providerConfig := c.request.Properties.CreateClusterPKE.Network.ProviderConfig

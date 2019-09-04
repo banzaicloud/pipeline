@@ -19,6 +19,7 @@ import (
 	"time"
 
 	intClusterWorkflow "github.com/banzaicloud/pipeline/internal/cluster/workflow"
+	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 
 	"go.uber.org/cadence/workflow"
@@ -122,6 +123,17 @@ func DeleteClusterWorkflow(ctx workflow.Context, input DeleteClusterWorkflowInpu
 		}
 		if err := workflow.ExecuteActivity(ctx, intClusterWorkflow.DeleteUnusedClusterSecretsActivityName, activityInput).Get(ctx, nil); err != nil {
 			setClusterStatus(ctx, input.ClusterID, pkgCluster.Warning, fmt.Sprintf("failed to delete unused cluster secrets: %v", err)) // nolint: errcheck
+		}
+	}
+
+	// remove dex client (if we created it)
+	{
+		deleteDexClientActivityInput := &pkeworkflow.DeleteDexClientActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		if err := workflow.ExecuteActivity(ctx, pkeworkflow.DeleteDexClientActivityName, deleteDexClientActivityInput).Get(ctx, nil); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
 		}
 	}
 

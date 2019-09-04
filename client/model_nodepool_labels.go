@@ -11,8 +11,8 @@
 
 package client
 
-type ResourceSummary struct {
-	Cpu    Resource `json:"cpu,omitempty"`
-	Memory Resource `json:"memory,omitempty"`
-	Status string   `json:"status,omitempty"`
+type NodepoolLabels struct {
+	Name     string `json:"name,omitempty"`
+	Value    string `json:"value,omitempty"`
+	Reserved bool   `json:"reserved,omitempty"`
 }

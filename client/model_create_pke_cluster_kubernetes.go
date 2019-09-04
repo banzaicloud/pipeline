@@ -14,6 +14,7 @@ package client
 type CreatePkeClusterKubernetes struct {
 	Version string                            `json:"version"`
 	Rbac    bool                              `json:"rbac,omitempty"`
+	Oidc    CreatePkeClusterKubernetesOidc    `json:"oidc,omitempty"`
 	Cri     CreatePkeClusterKubernetesCri     `json:"cri,omitempty"`
 	Network CreatePkeClusterKubernetesNetwork `json:"network,omitempty"`
 }
