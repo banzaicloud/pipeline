@@ -31,17 +31,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// DexProvider provide login with dex method
-type DexProvider struct {
-	*DexConfig
+// OIDCProvider provide login with OIDC auth method
+type OIDCProvider struct {
+	*OIDCConfig
 	provider *oidc.Provider
 	verifier *oidc.IDTokenVerifier
 }
 
 type AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
 
-// DexConfig is the dex Config
-type DexConfig struct {
+// OIDCConfig holds the oidc configuration parameters
+type OIDCConfig struct {
 	PublicClientID     string
 	ClientID           string
 	ClientSecret       string
@@ -61,23 +61,23 @@ type IDTokenClaims struct {
 	FederatedClaims map[string]string `json:"federated_claims"`
 }
 
-func newDexProvider(config *DexConfig) *DexProvider {
+func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 	if config == nil {
-		config = &DexConfig{}
+		config = &OIDCConfig{}
 	}
 
-	provider := &DexProvider{DexConfig: config}
+	provider := &OIDCProvider{OIDCConfig: config}
 
 	if config.ClientID == "" {
-		panic(errors.New("Dex's ClientID can't be blank"))
+		panic(errors.New("OIDC's ClientID can't be blank"))
 	}
 
 	if config.ClientSecret == "" {
-		panic(errors.New("Dex's ClientSecret can't be blank"))
+		panic(errors.New("OIDC's ClientSecret can't be blank"))
 	}
 
 	if config.IssuerURL == "" {
-		panic(errors.New("Dex's IssuerURL can't be blank"))
+		panic(errors.New("OIDC's IssuerURL can't be blank"))
 	}
 
 	if config.Scopes == nil {
@@ -264,18 +264,18 @@ func newDexProvider(config *DexConfig) *DexProvider {
 }
 
 // GetName return provider name
-func (DexProvider) GetName() string {
+func (OIDCProvider) GetName() string {
 	return "dex"
 }
 
 // ConfigAuth config auth
-func (provider DexProvider) ConfigAuth(*auth.Auth) {
+func (provider OIDCProvider) ConfigAuth(*auth.Auth) {
 }
 
 // OAuthConfig return oauth config based on configuration
-func (provider DexProvider) OAuthConfig(context *auth.Context) *oauth2.Config {
+func (provider OIDCProvider) OAuthConfig(context *auth.Context) *oauth2.Config {
 	var (
-		config = provider.DexConfig
+		config = provider.OIDCConfig
 		req    = context.Request
 		scheme = req.URL.Scheme
 	)
@@ -298,7 +298,7 @@ func (provider DexProvider) OAuthConfig(context *auth.Context) *oauth2.Config {
 }
 
 // Login implemented login with dex provider
-func (provider DexProvider) Login(context *auth.Context) {
+func (provider OIDCProvider) Login(context *auth.Context) {
 	claims := claims.Claims{}
 	claims.Subject = "state"
 	signedToken := context.Auth.SessionStorer.SignedToken(&claims)
@@ -307,9 +307,9 @@ func (provider DexProvider) Login(context *auth.Context) {
 	http.Redirect(context.Writer, context.Request, url, http.StatusFound)
 }
 
-// RedeemRefreshToken plays an OAuth redeeem refresh token flow
+// RedeemRefreshToken plays an OAuth redeem refresh token flow
 // https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
-func (provider DexProvider) RedeemRefreshToken(context *auth.Context, refreshToken string) (*IDTokenClaims, *oauth2.Token, error) {
+func (provider OIDCProvider) RedeemRefreshToken(context *auth.Context, refreshToken string) (*IDTokenClaims, *oauth2.Token, error) {
 	token, err := provider.OAuthConfig(context).TokenSource(gocontext.Background(), &oauth2.Token{RefreshToken: refreshToken}).Token()
 	if err != nil {
 		return nil, nil, err
@@ -335,24 +335,24 @@ func (provider DexProvider) RedeemRefreshToken(context *auth.Context, refreshTok
 }
 
 // Logout implemented logout with dex provider
-func (DexProvider) Logout(context *auth.Context) {
+func (OIDCProvider) Logout(context *auth.Context) {
 }
 
 // Register implemented register with dex provider
-func (provider DexProvider) Register(context *auth.Context) {
+func (provider OIDCProvider) Register(context *auth.Context) {
 	provider.Login(context)
 }
 
 // Deregister implemented deregister with dex provider
-func (provider DexProvider) Deregister(context *auth.Context) {
+func (provider OIDCProvider) Deregister(context *auth.Context) {
 	context.Auth.DeregisterHandler(context)
 }
 
 // Callback implement Callback with dex provider
-func (provider DexProvider) Callback(context *auth.Context) {
+func (provider OIDCProvider) Callback(context *auth.Context) {
 	context.Auth.LoginHandler(context, provider.AuthorizeHandler)
 }
 
 // ServeHTTP implement ServeHTTP with dex provider
-func (DexProvider) ServeHTTP(*auth.Context) {
+func (OIDCProvider) ServeHTTP(*auth.Context) {
 }
