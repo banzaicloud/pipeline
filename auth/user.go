@@ -106,11 +106,15 @@ type CICDUser struct {
 	Synced int64  `gorm:"column:user_synced"`
 }
 
-// UserOrganization describes the user organization
+// UserOrganization describes a user organization membership.
 type UserOrganization struct {
-	UserID         uint
+	User   User
+	UserID uint
+
+	Organization   Organization
 	OrganizationID uint
-	Role           string `gorm:"default:'member'"`
+
+	Role string `gorm:"default:'member'"`
 }
 
 // IDString returns the ID as string
