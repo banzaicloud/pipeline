@@ -70,7 +70,7 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite t
 			ctx,
 			upstreamMembership.Organization.Name,
 			upstreamMembership.Organization.Provider,
-		).Return(true, uint(1), nil)
+		).Return(true, uint(5), nil)
 	}
 
 	currentMemberships := []UserOrganization{
@@ -122,9 +122,9 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite t
 
 	store.On("GetOrganizationMembershipsOf", ctx, user.ID).Return(currentMemberships, nil)
 	store.On("RemoveFromOrganization", ctx, currentMemberships[3].OrganizationID, user.ID).Return(nil)
-	store.On("UpdateUserMembership", ctx, currentMemberships[1].OrganizationID, user.ID, RoleMember).Return(nil)
-	store.On("UpdateUserMembership", ctx, currentMemberships[2].OrganizationID, user.ID, RoleAdmin).Return(nil)
-	store.On("AddUserTo", ctx, upstreamMemberships[3].Organization.Name, user.ID, RoleAdmin).Return(nil)
+	store.On("ApplyUserMembership", ctx, currentMemberships[1].OrganizationID, user.ID, RoleMember).Return(nil)
+	store.On("ApplyUserMembership", ctx, currentMemberships[2].OrganizationID, user.ID, RoleAdmin).Return(nil)
+	store.On("ApplyUserMembership", ctx, uint(5), user.ID, RoleAdmin).Return(nil)
 
 	err := syncer.SyncOrganizations(ctx, user, upstreamMemberships)
 	require.NoError(t, err)

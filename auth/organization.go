@@ -68,11 +68,8 @@ type OrganizationStore interface {
 	// RemoveFromOrganization removes a user from an organization.
 	RemoveFromOrganization(ctx context.Context, organizationID uint, userID uint) error
 
-	// UpdateUserMembership ensure that a user is a member of an organization with the necessary role.
-	UpdateUserMembership(ctx context.Context, organizationID uint, userID uint, role string) error
-
-	// AddUserTo ensure that a user is a member of an organization with the necessary role.
-	AddUserTo(ctx context.Context, organizationName string, userID uint, role string) error
+	// ApplyUserMembership ensures that a user is a member of an organization with the necessary role.
+	ApplyUserMembership(ctx context.Context, organizationID uint, userID uint, role string) error
 }
 
 // UpstreamOrganizationMembership represents an organization membership of a user
@@ -91,9 +88,10 @@ type UpstreamOrganization struct {
 // SyncOrganizations synchronizes organization membership for a user.
 func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error {
 	membershipsToAdd := make(map[string]string, len(upstreamMemberships))
+	organizationsCreated := make(map[string]uint)
 
 	for _, membership := range upstreamMemberships {
-		_, _, err := s.store.EnsureOrganizationExists(
+		created, id, err := s.store.EnsureOrganizationExists(
 			ctx,
 			membership.Organization.Name,
 			membership.Organization.Provider,
@@ -103,6 +101,10 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 		}
 
 		membershipsToAdd[membership.Organization.Name] = membership.Role
+
+		if created {
+			organizationsCreated[membership.Organization.Name] = id
+		}
 	}
 
 	currentMemberships, err := s.store.GetOrganizationMembershipsOf(ctx, user.ID)
@@ -131,7 +133,7 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 			continue
 		}
 
-		err := s.store.UpdateUserMembership(ctx, currentMembership.OrganizationID, user.ID, role)
+		err := s.store.ApplyUserMembership(ctx, currentMembership.OrganizationID, user.ID, role)
 		if err != nil {
 			return err
 		}
@@ -141,7 +143,7 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 	}
 
 	for organizationName, role := range membershipsToAdd {
-		err := s.store.AddUserTo(ctx, organizationName, user.ID, role)
+		err := s.store.ApplyUserMembership(ctx, organizationsCreated[organizationName], user.ID, role)
 		if err != nil {
 			return err
 		}

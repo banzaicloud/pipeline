@@ -10,13 +10,13 @@ type MockOrganizationStore struct {
 	mock.Mock
 }
 
-// AddUserTo provides a mock function with given fields: ctx, organizationName, userID, role
-func (_m *MockOrganizationStore) AddUserTo(ctx context.Context, organizationName string, userID uint, role string) error {
-	ret := _m.Called(ctx, organizationName, userID, role)
+// ApplyUserMembership provides a mock function with given fields: ctx, organizationID, userID, role
+func (_m *MockOrganizationStore) ApplyUserMembership(ctx context.Context, organizationID uint, userID uint, role string) error {
+	ret := _m.Called(ctx, organizationID, userID, role)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, uint, string) error); ok {
-		r0 = rf(ctx, organizationName, userID, role)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string) error); ok {
+		r0 = rf(ctx, organizationID, userID, role)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -82,20 +82,6 @@ func (_m *MockOrganizationStore) RemoveFromOrganization(ctx context.Context, org
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint, uint) error); ok {
 		r0 = rf(ctx, organizationID, userID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpdateUserMembership provides a mock function with given fields: ctx, organizationID, userID, role
-func (_m *MockOrganizationStore) UpdateUserMembership(ctx context.Context, organizationID uint, userID uint, role string) error {
-	ret := _m.Called(ctx, organizationID, userID, role)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, uint, string) error); ok {
-		r0 = rf(ctx, organizationID, userID, role)
 	} else {
 		r0 = ret.Error(0)
 	}
