@@ -25,7 +25,6 @@ import (
 // Organization represents a unit of users and resources.
 type Organization struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
-	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Name      string    `gorm:"unique;not null" json:"name"`
