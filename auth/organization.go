@@ -43,18 +43,18 @@ func (org *Organization) IDString() string {
 // updates organization role.
 // Note: it never deletes organizations, only creates them if they are missing.
 type OrganizationSyncer struct {
-	store OrganizationMembershipStore
+	store OrganizationStore
 }
 
 // NewOrganizationSyncer returns a new OrganizationSyncer.
-func NewOrganizationSyncer(store OrganizationMembershipStore) OrganizationSyncer {
+func NewOrganizationSyncer(store OrganizationStore) OrganizationSyncer {
 	return OrganizationSyncer{
 		store: store,
 	}
 }
 
-// OrganizationMembershipStore is a persistence layer for organization membership.
-type OrganizationMembershipStore interface {
+// OrganizationStore is a persistence layer for organizations.
+type OrganizationStore interface {
 	// EnsureOrganizationExists ensures that an organization exists.
 	// If one already exists with the same parameters it succeeds.
 	// If one already exists with different parameters (eg. different provider),
