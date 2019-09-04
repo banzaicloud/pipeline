@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
+
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -106,6 +108,8 @@ var (
 
 	// SessionManager is responsible for handling browser session Cookies
 	SessionManager session.ManagerInterface
+
+	dexProvider *DexProvider
 )
 
 // Simple init for logging
@@ -221,7 +225,7 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
 	})
 
-	dexProvider := newDexProvider(&DexConfig{
+	dexProvider = newDexProvider(&DexConfig{
 		PublicClientID:     viper.GetString("auth.publicclientid"),
 		ClientID:           viper.GetString("auth.clientid"),
 		ClientSecret:       viper.GetString("auth.clientsecret"),
@@ -233,6 +237,35 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 	InitTokenStore()
 
 	Handler = bauth.JWTAuth(TokenStore, signingKey, claimConverter, cookieExtractor{sessionStorer})
+}
+
+func SyncOrgsForUser(orgImporter *OrgImporter, user *User, request *http.Request) error {
+	refreshToken, err := GetOAuthRefreshToken(user.IDString())
+	if err != nil {
+		return emperror.Wrap(err, "failed to fetch refresh token from Vault")
+	}
+
+	if refreshToken == "" {
+		return emperror.Wrap(err, "no refresh token, please login again")
+	}
+
+	authContext := auth.Context{Auth: Auth, Request: request}
+	idTokenClaims, token, err := dexProvider.RedeemRefreshToken(&authContext, refreshToken)
+	if err != nil {
+		return emperror.Wrap(err, "failed to redeeem user refresh token")
+	}
+
+	err = SaveOAuthRefreshToken(user.IDString(), token.RefreshToken)
+	if err != nil {
+		return emperror.Wrap(err, "failed to save user refresh token")
+	}
+
+	organizations, err := getOrganizationsFromIDToken(idTokenClaims)
+	if err != nil {
+		return emperror.Wrap(err, "failed to get organizations from id token")
+	}
+
+	return orgImporter.ImportOrganizationsFromDex(user, organizations, idTokenClaims.FederatedClaims["connector_id"])
 }
 
 func InitTokenStore() {

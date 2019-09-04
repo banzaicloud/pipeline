@@ -147,38 +147,8 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 	logger.Info("synchronizing organizations")
 
 	user := auth.GetCurrentUser(c.Request)
-	token, provider, err := auth.GetSCMToken(user.ID)
 
-	if err != nil {
-		errorHandler.Handle(err)
-
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "failed to retrieve scm token",
-			Error:   err.Error(),
-		})
-
-		return
-	}
-
-	if token == "" {
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "user's scm token is not set",
-		})
-
-		return
-	}
-	switch provider {
-	case auth.GithubTokenID:
-		err = a.orgImporter.ImportOrganizationsFromGithub(user, token)
-
-	case auth.GitlabTokenID:
-		err = a.orgImporter.ImportOrganizationsFromGitlab(user, token)
-
-	default:
-		return
-	}
+	err := auth.SyncOrgsForUser(a.orgImporter, user, c.Request)
 	if err != nil {
 		errorHandler.Handle(err)
 

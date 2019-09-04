@@ -29,7 +29,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
-	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
@@ -52,6 +51,9 @@ const (
 	GithubTokenID = "github"
 	// GitlabTokenID denotes the tokenID for the user's Github token, there can be only one
 	GitlabTokenID = "gitlab"
+
+	// OAuthRefreshTokenID denotes the tokenID for the user's OAuth refresh token, there can be only one
+	OAuthRefreshTokenID = "oauth_refresh"
 )
 
 const (
@@ -213,18 +215,10 @@ type BanzaiUserStorer struct {
 	orgImporter      *OrgImporter
 }
 
-func getOrganizationsFromDex(schema *auth.Schema) (map[string][]string, error) {
-	var dexClaims struct {
-		Groups []string
-	}
-
-	if err := mapstructure.Decode(schema.RawInfo, &dexClaims); err != nil {
-		return nil, err
-	}
-
+func getOrganizationsFromIDToken(idTokenClaims *IDTokenClaims) (map[string][]string, error) {
 	organizations := make(map[string][]string)
 
-	for _, group := range dexClaims.Groups {
+	for _, group := range idTokenClaims.Groups {
 		// get the part before :, that will be the organization name
 		s := strings.SplitN(group, ":", 2)
 		if len(s) < 1 {
@@ -241,6 +235,11 @@ func getOrganizationsFromDex(schema *auth.Schema) (map[string][]string, error) {
 	}
 
 	return organizations, nil
+}
+
+func getOrganizationsFromSchema(schema *auth.Schema) (map[string][]string, error) {
+	idTokenClaims := schema.RawInfo.(*IDTokenClaims)
+	return getOrganizationsFromIDToken(idTokenClaims)
 }
 
 func emailToLoginName(email string) string {
@@ -262,7 +261,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		return nil, "", err
 	}
 
-	organizations, err := getOrganizationsFromDex(schema)
+	organizations, err := getOrganizationsFromSchema(schema)
 	if err != nil {
 		return nil, "", emperror.Wrap(err, "failed to parse groups/organizations")
 	}
@@ -372,6 +371,35 @@ func RemoveUserSCMToken(user *User, tokenType string) error {
 			return emperror.WrapWith(err, "failed to revoke access token for user in CICD", "user", user.Login)
 		}
 	}
+	return nil
+}
+
+func GetOAuthRefreshToken(userID string) (string, error) {
+	token, err := TokenStore.Lookup(userID, OAuthRefreshTokenID)
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to lookup user refresh token")
+	}
+
+	if token == nil {
+		return "", nil
+	}
+
+	return token.Value, nil
+}
+
+func SaveOAuthRefreshToken(userID string, refreshToken string) error {
+	// Revoke the old refresh token from Vault if any
+	err := TokenStore.Revoke(userID, OAuthRefreshTokenID)
+	if err != nil {
+		return errors.Wrap(err, "failed to revoke old refresh token")
+	}
+	token := bauth.NewToken(OAuthRefreshTokenID, "OAuth refresh token")
+	token.Value = refreshToken
+	err = TokenStore.Store(userID, token)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to store refresg token for user", "user", userID)
+	}
+
 	return nil
 }
 
