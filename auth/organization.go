@@ -65,8 +65,8 @@ type OrganizationStore interface {
 	// GetOrganizationMembershipsOf returns the list of organization memberships for a user.
 	GetOrganizationMembershipsOf(ctx context.Context, userID uint) ([]UserOrganization, error)
 
-	// RemoveFromOrganization removes a user from an organization.
-	RemoveFromOrganization(ctx context.Context, organizationID uint, userID uint) error
+	// RemoveUserFromOrganization removes a user from an organization.
+	RemoveUserFromOrganization(ctx context.Context, organizationID uint, userID uint) error
 
 	// ApplyUserMembership ensures that a user is a member of an organization with the necessary role.
 	ApplyUserMembership(ctx context.Context, organizationID uint, userID uint, role string) error
@@ -117,7 +117,7 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 
 		// User is not in the list of upstream memberships, remove from organization
 		if !ok {
-			err := s.store.RemoveFromOrganization(ctx, currentMembership.OrganizationID, user.ID)
+			err := s.store.RemoveUserFromOrganization(ctx, currentMembership.OrganizationID, user.ID)
 			if err != nil {
 				return err
 			}

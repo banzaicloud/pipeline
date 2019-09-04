@@ -75,8 +75,8 @@ func (_m *MockOrganizationStore) GetOrganizationMembershipsOf(ctx context.Contex
 	return r0, r1
 }
 
-// RemoveFromOrganization provides a mock function with given fields: ctx, organizationID, userID
-func (_m *MockOrganizationStore) RemoveFromOrganization(ctx context.Context, organizationID uint, userID uint) error {
+// RemoveUserFromOrganization provides a mock function with given fields: ctx, organizationID, userID
+func (_m *MockOrganizationStore) RemoveUserFromOrganization(ctx context.Context, organizationID uint, userID uint) error {
 	ret := _m.Called(ctx, organizationID, userID)
 
 	var r0 error

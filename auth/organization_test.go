@@ -121,7 +121,7 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite t
 	}
 
 	store.On("GetOrganizationMembershipsOf", ctx, user.ID).Return(currentMemberships, nil)
-	store.On("RemoveFromOrganization", ctx, currentMemberships[3].OrganizationID, user.ID).Return(nil)
+	store.On("RemoveUserFromOrganization", ctx, currentMemberships[3].OrganizationID, user.ID).Return(nil)
 	store.On("ApplyUserMembership", ctx, currentMemberships[1].OrganizationID, user.ID, RoleMember).Return(nil)
 	store.On("ApplyUserMembership", ctx, currentMemberships[2].OrganizationID, user.ID, RoleAdmin).Return(nil)
 	store.On("ApplyUserMembership", ctx, uint(5), user.ID, RoleAdmin).Return(nil)
