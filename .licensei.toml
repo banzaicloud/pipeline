@@ -47,4 +47,5 @@ ignored = [
   "logur.dev/adapter/logrus",
   "logur.dev/adapter/zap",
   "logur.dev/integration/zap",
+  "logur.dev/integration/watermill",
 ]
