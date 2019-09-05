@@ -194,7 +194,6 @@ func main() {
 	// Used internally to make sure every event/command bus uses the same one
 	eventMarshaler := cqrs.JSONMarshaler{GenerateName: cqrs.StructName}
 
-	orgImporter := auth.NewOrgImporter(db, config.EventBus)
 	tokenHandler := auth.NewTokenHandler()
 
 	const organizationTopic = "organization"
@@ -211,7 +210,7 @@ func main() {
 	}
 
 	// Initialize auth
-	auth.Init(cicdDB, orgImporter, organizationSyncer)
+	auth.Init(cicdDB, organizationSyncer)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		logger.Info("running automatic schema migrations")
@@ -493,18 +492,6 @@ func main() {
 		err := eventProcessor.AddHandlersToRouter(eventRouter)
 		emperror.Panic(err)
 	}
-
-	// subscribe to organization creations and sync spotguides into the newly created organizations
-	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
-		if err := spotguideManager.ScrapeSpotguides(orgID, userID); err != nil {
-			logger.Warn(
-				errors.WithMessage(err, "failed to scrape Spotguide repositories").Error(),
-				map[string]interface{}{
-					"organizationId": orgID,
-				},
-			)
-		}
-	})
 
 	// periodically sync shared spotguides
 	if err := spotguide.ScheduleScrapingSharedSpotguides(workflowClient); err != nil {
