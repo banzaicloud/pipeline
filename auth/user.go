@@ -208,6 +208,7 @@ type BanzaiUserStorer struct {
 	cicdDB           *gorm.DB
 	events           authEvents
 	orgImporter      *OrgImporter
+	orgSyncer        OrganizationSyncer
 }
 
 func getOrganizationsFromIDToken(idTokenClaims *IDTokenClaims) (map[string][]string, error) {
@@ -297,22 +298,41 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		}
 	}
 
-	// When a user registers a default organization is created in which he/she is admin
-	userOrg := Organization{
-		Name:     currentUser.Login,
-		Provider: getBackendProvider(schema.Provider),
-	}
-	currentUser.Organizations = []Organization{userOrg}
-
 	err = db.Create(currentUser).Error
 	if err != nil {
 		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
-	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
+	// When a user registers a default organization is created in which he/she is admin
+	organizations[currentUser.Login] = []string{RoleAdmin}
 
-	// Import organizations in case of DEX
-	err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, getBackendProvider(schema.Provider))
+	backendProvider := getBackendProvider(schema.Provider)
+
+	var upstreamMemberships []UpstreamOrganizationMembership
+	for org, groups := range organizations {
+		membership := UpstreamOrganizationMembership{
+			Organization: UpstreamOrganization{
+				Name:     org,
+				Provider: backendProvider,
+			},
+			Role: RoleMember,
+		}
+
+		if backendProvider == ProviderGithub || backendProvider == ProviderGitlab {
+			membership.Role = RoleAdmin
+		} else {
+			// TODO: add role group binding
+			for _, group := range groups {
+				if roleLevelMap[membership.Role] < roleLevelMap[group] {
+					membership.Role = group
+				}
+			}
+		}
+
+		upstreamMemberships = append(upstreamMemberships, membership)
+	}
+
+	err = bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), *currentUser, upstreamMemberships)
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }

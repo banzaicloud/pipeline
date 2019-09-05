@@ -134,6 +134,7 @@ require (
 	github.com/uber/tchannel-go v1.12.0 // indirect
 	github.com/xanzy/go-gitlab v0.16.2-0.20190325100843-bbb1af7187c8
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
+	go.opencensus.io v0.22.0
 	go.uber.org/cadence v0.9.0
 	go.uber.org/dig v1.7.0 // indirect
 	go.uber.org/fx v1.9.0 // indirect
@@ -165,6 +166,7 @@ require (
 	k8s.io/kubernetes v1.13.5
 	logur.dev/adapter/logrus v0.2.0
 	logur.dev/adapter/zap v0.2.0
+	logur.dev/integration/watermill v0.2.0
 	logur.dev/integration/zap v0.2.0
 	logur.dev/logur v0.15.0
 	sigs.k8s.io/controller-runtime v0.1.10 // indirect

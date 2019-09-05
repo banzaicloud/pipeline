@@ -164,7 +164,7 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, orgImporter *OrgImporter) {
+func Init(db *gorm.DB, orgImporter *OrgImporter, orgSyncer OrganizationSyncer) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -217,6 +217,7 @@ func Init(db *gorm.DB, orgImporter *OrgImporter) {
 			cicdDB:           cicdDB,
 			events:           ebAuthEvents{eb: config.EventBus},
 			orgImporter:      orgImporter,
+			orgSyncer:        orgSyncer,
 		},
 		LoginHandler:      banzaiLoginHandler,
 		LogoutHandler:     banzaiLogoutHandler,
