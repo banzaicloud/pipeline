@@ -55,6 +55,9 @@ func NewOrganizationSyncer(store OrganizationStore, events OrganizationEvents) O
 	}
 }
 
+// ErrOrganizationConflict is returned when an organization exists, but with mismatching parameters.
+const ErrOrganizationConflict = errors.Sentinel("organization already exists, but with mismatching parameters")
+
 // OrganizationStore is a persistence layer for organizations.
 type OrganizationStore interface {
 	// EnsureOrganizationExists ensures that an organization exists.
