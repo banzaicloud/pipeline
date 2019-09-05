@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -32,7 +33,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/gofrs/uuid"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
@@ -1551,34 +1551,56 @@ func (a *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 
 	for {
 
+		var loadBalancerNames []*string
 		describeLoadBalancers := &elb.DescribeLoadBalancersInput{}
-		loadBalancers, err := elbService.DescribeLoadBalancers(describeLoadBalancers)
-		if err != nil {
-			return err
+
+		for {
+			loadBalancers, err := elbService.DescribeLoadBalancers(describeLoadBalancers)
+			if err != nil {
+				return errors.WrapIf(err, "couldn't describe ELBs")
+			}
+
+			for _, description := range loadBalancers.LoadBalancerDescriptions {
+				loadBalancerNames = append(loadBalancerNames, description.LoadBalancerName)
+			}
+
+			describeLoadBalancers.Marker = loadBalancers.NextMarker
+			if loadBalancers.NextMarker == nil {
+				break
+			}
 		}
 
-		var loadBalancerNames []*string
-		for _, description := range loadBalancers.LoadBalancerDescriptions {
-			loadBalancerNames = append(loadBalancerNames, description.LoadBalancerName)
-		}
 
 		if len(loadBalancerNames) == 0 {
 			return nil
 		}
 
-		describeTagsInput := &elb.DescribeTagsInput{
-			LoadBalancerNames: loadBalancerNames,
-		}
-		describeTagsOutput, err := elbService.DescribeTags(describeTagsInput)
-		if err != nil {
-			return err
-		}
+		// according to https://docs.aws.amazon.com/elasticloadbalancing/2012-06-01/APIReference/API_DescribeTags.html
+		// tags can be queried for up to 20 ELBs in one call
 
 		var result []*string
-		for _, tagDescription := range describeTagsOutput.TagDescriptions {
-			for _, tag := range tagDescription.Tags {
-				if aws.StringValue(tag.Key) == clusterTag {
-					result = append(result, tagDescription.LoadBalancerName)
+		maxELBNames := 20
+		for low := 0; low < len(loadBalancerNames); low += maxELBNames {
+			high := low + maxELBNames
+
+			if high > len(loadBalancerNames) {
+				high = len(loadBalancerNames)
+			}
+
+			describeTagsInput := &elb.DescribeTagsInput{
+				LoadBalancerNames: loadBalancerNames[low: high],
+			}
+
+			describeTagsOutput, err := elbService.DescribeTags(describeTagsInput)
+			if err != nil {
+				return errors.WrapIf(err, "couldn't describe ELB tags")
+			}
+
+			for _, tagDescription := range describeTagsOutput.TagDescriptions {
+				for _, tag := range tagDescription.Tags {
+					if aws.StringValue(tag.Key) == clusterTag {
+						result = append(result, tagDescription.LoadBalancerName)
+					}
 				}
 			}
 		}
@@ -1587,7 +1609,7 @@ func (a *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 			return nil
 		}
 
-		a.log.Infoln("There are", len(result), "ELBs left from cluster")
+		a.log.Infoln("there are", len(result), "ELBs left from cluster")
 		time.Sleep(10 * time.Second)
 	}
 }
