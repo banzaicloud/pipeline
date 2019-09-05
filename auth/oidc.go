@@ -21,9 +21,10 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 	"time"
 
-	oidc "github.com/coreos/go-oidc"
+	"github.com/coreos/go-oidc"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
@@ -355,4 +356,66 @@ func (provider OIDCProvider) Callback(context *auth.Context) {
 
 // ServeHTTP implement ServeHTTP with dex provider
 func (OIDCProvider) ServeHTTP(*auth.Context) {
+}
+
+// OIDCOrganizationSyncer synchronizes organizations of a user from an OIDC ID token.
+type OIDCOrganizationSyncer struct {
+	organizationSyncer OrganizationSyncer
+}
+
+// NewOIDCOrganizationSyncer returns a new OIDCOrganizationSyncer.
+func NewOIDCOrganizationSyncer(organizationSyncer OrganizationSyncer) OIDCOrganizationSyncer {
+	return OIDCOrganizationSyncer{
+		organizationSyncer: organizationSyncer,
+	}
+}
+
+// SyncOrganizations synchronizes organization membership for a user based on the OIDC ID token.
+func (s OIDCOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user User, idTokenClaims *IDTokenClaims) error {
+	organizations := make(map[string][]string)
+
+	for _, group := range idTokenClaims.Groups {
+		// get the part before :, that will be the organization name
+		s := strings.SplitN(group, ":", 2)
+		if len(s) < 1 {
+			return errors.New("invalid group")
+		}
+
+		if _, ok := organizations[s[0]]; !ok {
+			organizations[s[0]] = make([]string, 0)
+		}
+
+		if len(s) > 1 && s[1] != "" {
+			organizations[s[0]] = append(organizations[s[0]], s[1])
+		}
+	}
+
+	// When a user registers a default organization is created in which he/she is admin
+	organizations[user.Login] = []string{RoleAdmin}
+
+	var upstreamMemberships []UpstreamOrganizationMembership
+	for org, groups := range organizations {
+		membership := UpstreamOrganizationMembership{
+			Organization: UpstreamOrganization{
+				Name:     org,
+				Provider: idTokenClaims.FederatedClaims["connector_id"],
+			},
+			Role: RoleMember,
+		}
+
+		if idTokenClaims.FederatedClaims["connector_id"] == ProviderGithub || idTokenClaims.FederatedClaims["connector_id"] == ProviderGitlab {
+			membership.Role = RoleAdmin
+		} else {
+			// TODO: add role group binding
+			for _, group := range groups {
+				if roleLevelMap[membership.Role] < roleLevelMap[group] {
+					membership.Role = group
+				}
+			}
+		}
+
+		upstreamMemberships = append(upstreamMemberships, membership)
+	}
+
+	return s.organizationSyncer.SyncOrganizations(ctx, user, upstreamMemberships)
 }

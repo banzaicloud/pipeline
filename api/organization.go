@@ -20,12 +20,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/gin-gonic/gin"
 )
 
 // OrganizationMiddleware parses the organization id from the request,
@@ -66,13 +67,13 @@ func OrganizationMiddleware(c *gin.Context) {
 
 // OrganizationAPI implements organization functions.
 type OrganizationAPI struct {
-	orgImporter *auth.OrgImporter
+	organizationSyncer auth.OIDCOrganizationSyncer
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(orgImporter *auth.OrgImporter) *OrganizationAPI {
+func NewOrganizationAPI(organizationSyncer auth.OIDCOrganizationSyncer) *OrganizationAPI {
 	return &OrganizationAPI{
-		orgImporter: orgImporter,
+		organizationSyncer: organizationSyncer,
 	}
 }
 
@@ -148,7 +149,7 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 
 	user := auth.GetCurrentUser(c.Request)
 
-	err := auth.SyncOrgsForUser(a.orgImporter, user, c.Request)
+	err := auth.SyncOrgsForUser(a.organizationSyncer, user, c.Request)
 	if err != nil {
 		errorHandler.Handle(err)
 
