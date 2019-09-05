@@ -22,11 +22,14 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"github.com/banzaicloud/pipeline/api"
+	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/scheduler/cache"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -280,6 +283,10 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 		return
 	}
 
+	if partial := addResourceSummary(client, clusterInfo); partial {
+		partialResponse = true
+	}
+
 	nodeInfoMap := createNodeInfoMap(podList.Items, nodes.Items)
 
 	clusterResourceRequestMap := make(map[v1.ResourceName]resource.Quantity)
@@ -419,4 +426,43 @@ func calculateClusterResourceUsage(
 	}
 
 	return usagePercent
+}
+
+func addResourceSummary(client *kubernetes.Clientset, response ClusterInfo) bool {
+
+	var partialResponse bool
+	for name, nodePool := range response.NodePools {
+		selector := fmt.Sprintf("%s=%s", pkgCommon.LabelKey, name)
+
+		nodes, err := client.CoreV1().Nodes().List(metav1.ListOptions{
+			LabelSelector: selector,
+		})
+		if err != nil {
+			partialResponse = true
+			continue
+		}
+
+		nodePool.ResourceSummary = make(map[string]api.NodeResourceSummary, len(nodes.Items))
+
+		for _, node := range nodes.Items {
+			nodeSummary, err := resourcesummary.GetNodeSummary(client, node)
+			if err != nil {
+				partialResponse = true
+				continue
+			}
+
+			cpuResource := api.Resource(nodeSummary.CPU)
+			memoryResource := api.Resource(nodeSummary.Memory)
+			nodePool.ResourceSummary[node.Name] = api.NodeResourceSummary{
+				ResourceSummary: api.ResourceSummary{
+					CPU:    &cpuResource,
+					Memory: &memoryResource,
+				},
+				Status: nodeSummary.Status,
+			}
+		}
+
+		response.NodePools[name] = nodePool
+	}
+	return partialResponse
 }
