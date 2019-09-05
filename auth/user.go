@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"emperror.dev/emperror"
@@ -206,36 +205,7 @@ type BanzaiUserStorer struct {
 	auth.UserStorer
 	signingKeyBase32 string // CICD uses base32 Hash
 	cicdDB           *gorm.DB
-	events           authEvents
-	orgImporter      *OrgImporter
 	orgSyncer        OIDCOrganizationSyncer
-}
-
-func getOrganizationsFromIDToken(idTokenClaims *IDTokenClaims) (map[string][]string, error) {
-	organizations := make(map[string][]string)
-
-	for _, group := range idTokenClaims.Groups {
-		// get the part before :, that will be the organization name
-		s := strings.SplitN(group, ":", 2)
-		if len(s) < 1 {
-			return nil, errors.New("invalid group")
-		}
-
-		if _, ok := organizations[s[0]]; !ok {
-			organizations[s[0]] = make([]string, 0)
-		}
-
-		if len(s) > 1 && s[1] != "" {
-			organizations[s[0]] = append(organizations[s[0]], s[1])
-		}
-	}
-
-	return organizations, nil
-}
-
-func getOrganizationsFromSchema(schema *auth.Schema) (map[string][]string, error) {
-	idTokenClaims := schema.RawInfo.(*IDTokenClaims)
-	return getOrganizationsFromIDToken(idTokenClaims)
 }
 
 func emailToLoginName(email string) string {
@@ -410,122 +380,6 @@ func synchronizeCICDRepos(login string) {
 	if err != nil {
 		log.Warnln("failed to sync CICD repositories", err.Error())
 	}
-}
-
-// OrgImporter imports organizations.
-type OrgImporter struct {
-	db     *gorm.DB
-	events authEvents
-}
-
-// NewOrgImporter returns a new OrgImporter instance.
-func NewOrgImporter(
-	db *gorm.DB,
-	events eventBus,
-) *OrgImporter {
-	return &OrgImporter{
-		db:     db,
-		events: ebAuthEvents{eb: events},
-	}
-}
-
-func (i *OrgImporter) ImportOrganizationsFromDex(currentUser *User, organizations map[string][]string, provider string) error {
-	var orgs []organization
-	for org, groups := range organizations {
-		role := RoleMember
-
-		if provider == ProviderGithub || provider == ProviderGitlab {
-			role = RoleAdmin
-		} else {
-			// TODO: add role group binding
-			for _, group := range groups {
-				if roleLevelMap[role] < roleLevelMap[group] {
-					role = group
-				}
-			}
-		}
-
-		orgs = append(orgs, organization{name: org, provider: provider, role: role})
-	}
-
-	return i.ImportOrganizations(currentUser, orgs)
-}
-
-func (i *OrgImporter) ImportOrganizations(currentUser *User, orgs []organization) error {
-	orgIDs, err := importOrganizations(i.db, currentUser, orgs)
-
-	if err != nil {
-		return emperror.Wrap(err, "failed to import organizations")
-	}
-
-	for id, created := range orgIDs {
-		if created {
-			i.events.OrganizationRegistered(id, currentUser.ID)
-		}
-	}
-
-	return nil
-}
-
-func importOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
-	orgIDs := make(map[uint]bool, len(orgs))
-
-	tx := db.Begin()
-	for _, org := range orgs {
-		o := Organization{
-			Name:     org.name,
-			Role:     org.role,
-			Provider: org.provider,
-		}
-
-		needsCreation := true
-		err := tx.Where(o).First(&o).Error
-		if err == nil {
-			orgIDs[o.ID] = false
-			needsCreation = false
-
-			// We don't need to create the organization again imported from the provider
-			// however we need to associate the user with this organization already in db
-
-		} else if !gorm.IsRecordNotFoundError(err) {
-			tx.Rollback()
-
-			return nil, errors.Wrap(err, "failed to check if organization exists")
-		}
-
-		if needsCreation {
-			err = tx.Where(o).Create(&o).Error
-			if err != nil {
-				tx.Rollback()
-
-				return nil, errors.Wrap(err, "failed to create organization")
-			}
-
-			orgIDs[o.ID] = true
-		}
-
-		err = tx.Model(currentUser).Association("Organizations").Append(o).Error
-		if err != nil {
-			tx.Rollback()
-
-			return nil, errors.Wrap(err, "failed to associate user with organization")
-		}
-
-		userRoleInOrg := UserOrganization{UserID: currentUser.ID, OrganizationID: o.ID}
-		err = tx.Model(&UserOrganization{}).Where(userRoleInOrg).Update("role", o.Role).Error
-		if err != nil {
-			tx.Rollback()
-
-			return nil, errors.Wrap(err, "failed to save user role in organization")
-		}
-	}
-
-	err := tx.Commit().Error
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to save organizations")
-	}
-
-	return orgIDs, nil
 }
 
 // GetOrganizationById returns an organization from database by ID
