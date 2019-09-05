@@ -16,6 +16,8 @@ package dashboard
 
 import (
 	"time"
+
+	"github.com/banzaicloud/pipeline/api"
 )
 
 type Allocatable struct {
@@ -58,19 +60,20 @@ type Status struct {
 
 // NodePool describes a cluster's node pool.
 type NodePool struct {
-	Autoscaling  bool              `json:"autoscaling"`
-	Count        int               `json:"count,omitempty"`
-	InstanceType string            `json:"instanceType,omitempty"`
-	SpotPrice    string            `json:"spotPrice,omitempty"`
-	Preemptible  bool              `json:"preemptible,omitempty"`
-	MinCount     int               `json:"minCount,omitempty"`
-	MaxCount     int               `json:"maxCount,omitempty"`
-	Image        string            `json:"image,omitempty"`
-	Version      string            `json:"version,omitempty"`
-	Labels       map[string]string `json:"labels,omitempty"`
-	CreatedAt    time.Time         `json:"createdAt,omitempty"`
-	CreatorName  string            `json:"creatorName,omitempty"`
-	CreatorID    uint              `json:"creatorId,omitempty"`
+	Autoscaling     bool                               `json:"autoscaling"`
+	Count           int                                `json:"count,omitempty"`
+	InstanceType    string                             `json:"instanceType,omitempty"`
+	SpotPrice       string                             `json:"spotPrice,omitempty"`
+	Preemptible     bool                               `json:"preemptible,omitempty"`
+	MinCount        int                                `json:"minCount,omitempty"`
+	MaxCount        int                                `json:"maxCount,omitempty"`
+	Image           string                             `json:"image,omitempty"`
+	Version         string                             `json:"version,omitempty"`
+	Labels          map[string]string                  `json:"labels,omitempty"`
+	ResourceSummary map[string]api.NodeResourceSummary `json:"resourceSummary,omitempty"`
+	CreatedAt       time.Time                          `json:"createdAt,omitempty"`
+	CreatorName     string                             `json:"creatorName,omitempty"`
+	CreatorID       uint                               `json:"creatorId,omitempty"`
 }
 
 type ClusterInfo struct {
