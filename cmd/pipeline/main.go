@@ -24,6 +24,9 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/ThreeDotsLabs/watermill/components/cqrs"
+	"github.com/ThreeDotsLabs/watermill/message"
+	watermillMiddleware "github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	evbus "github.com/asaskevich/EventBus"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
@@ -33,6 +36,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	watermilllog "logur.dev/integration/watermill"
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/api"
@@ -47,6 +51,7 @@ import (
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/api/middleware"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/auth/authadapter"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -83,15 +88,18 @@ import (
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/internal/platform/watermill"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
+	"github.com/banzaicloud/pipeline/pkg/correlation"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
+	"github.com/banzaicloud/pipeline/spotguide/spotguidedriver"
 )
 
 // Provisioned by ldflags
@@ -163,11 +171,47 @@ func main() {
 
 	enforcer := intAuth.NewEnforcer(db)
 
+	publisher, subscriber := watermill.NewPubSub(logger)
+	defer publisher.Close()
+	defer subscriber.Close()
+
+	publisher, _ = message.MessageTransformPublisherDecorator(func(msg *message.Message) {
+		if cid, ok := correlation.ID(msg.Context()); ok {
+			watermillMiddleware.SetCorrelationID(cid, msg)
+		}
+	})(publisher)
+
+	subscriber, _ = message.MessageTransformSubscriberDecorator(func(msg *message.Message) {
+		if cid := watermillMiddleware.MessageCorrelationID(msg); cid != "" {
+			msg.SetContext(correlation.WithID(msg.Context(), cid))
+		}
+	})(subscriber)
+
+	eventRouter, err := watermill.NewRouter(watermill.RouterConfig{}, logger)
+	emperror.Panic(err)
+	defer eventRouter.Close()
+
+	// Used internally to make sure every event/command bus uses the same one
+	eventMarshaler := cqrs.JSONMarshaler{GenerateName: cqrs.StructName}
+
 	orgImporter := auth.NewOrgImporter(db, config.EventBus)
 	tokenHandler := auth.NewTokenHandler()
 
+	const organizationTopic = "organization"
+	var organizationSyncer auth.OrganizationSyncer
+	{
+		eventBus, _ := cqrs.NewEventBus(
+			publisher,
+			func(eventName string) string { return organizationTopic },
+			eventMarshaler,
+		)
+		store := authadapter.NewGormOrganizationStore(db)
+		eventDispatcher := authadapter.NewOrganizationEventDispatcher(eventBus)
+		organizationSyncer = auth.NewOrganizationSyncer(store, eventDispatcher)
+	}
+
 	// Initialize auth
-	auth.Init(cicdDB, orgImporter)
+	auth.Init(cicdDB, orgImporter, organizationSyncer)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		logger.Info("running automatic schema migrations")
@@ -434,6 +478,22 @@ func main() {
 		spotguidePlatformData,
 	)
 
+	{
+		commonLogger := commonadapter.NewContextAwareLogger(logger, &correlation.ContextExtractor{})
+		eventProcessor, _ := cqrs.NewEventProcessor(
+			[]cqrs.EventHandler{
+				spotguidedriver.NewOrganizationCreatedEventHandler(spotguide.NewInitialSpotguideScrapeHandler(spotguideManager, commonLogger)),
+			},
+			func(eventName string) string { return organizationTopic },
+			func(handlerName string) (message.Subscriber, error) { return subscriber, nil },
+			eventMarshaler,
+			watermilllog.New(logur.WithFields(logger, map[string]interface{}{"component": "watermill"})),
+		)
+
+		err := eventProcessor.AddHandlersToRouter(eventRouter)
+		emperror.Panic(err)
+	}
+
 	// subscribe to organization creations and sync spotguides into the newly created organizations
 	spotguide.AuthEventEmitter.NotifyOrganizationRegistered(func(orgID uint, userID uint) {
 		if err := spotguideManager.ScrapeSpotguides(orgID, userID); err != nil {
@@ -688,6 +748,8 @@ func main() {
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
 
 	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
+
+	go eventRouter.Run(context.Background())
 
 	bindAddr := viper.GetString("pipeline.bindaddr")
 	if port := viper.GetInt("pipeline.listenport"); port != 0 { // TODO: remove deprecated option
