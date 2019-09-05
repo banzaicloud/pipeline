@@ -184,7 +184,7 @@ func runPrometheusQuery(config *rest.Config, client *kubernetes.Clientset, query
 		return nil, err
 	}
 	promAPI := promv1.NewAPI(promClient)
-	value, err := promAPI.Query(context.Background(), query, time.Now().UTC())
+	value, _, err := promAPI.Query(context.Background(), query, time.Now().UTC())
 	if err != nil {
 		return nil, err
 	}
