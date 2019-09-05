@@ -164,7 +164,7 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, orgImporter *OrgImporter, orgSyncer OrganizationSyncer) {
+func Init(db *gorm.DB, orgImporter *OrgImporter, orgSyncer OIDCOrganizationSyncer) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -239,7 +239,7 @@ func Init(db *gorm.DB, orgImporter *OrgImporter, orgSyncer OrganizationSyncer) {
 	Handler = bauth.JWTAuth(TokenStore, signingKey, claimConverter, cookieExtractor{sessionStorer})
 }
 
-func SyncOrgsForUser(orgImporter *OrgImporter, user *User, request *http.Request) error {
+func SyncOrgsForUser(organizationSyncer OIDCOrganizationSyncer, user *User, request *http.Request) error {
 	refreshToken, err := GetOAuthRefreshToken(user.IDString())
 	if err != nil {
 		return emperror.Wrap(err, "failed to fetch refresh token from Vault")
@@ -260,12 +260,7 @@ func SyncOrgsForUser(orgImporter *OrgImporter, user *User, request *http.Request
 		return emperror.Wrap(err, "failed to save user refresh token")
 	}
 
-	organizations, err := getOrganizationsFromIDToken(idTokenClaims)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get organizations from id token")
-	}
-
-	return orgImporter.ImportOrganizationsFromDex(user, organizations, idTokenClaims.FederatedClaims["connector_id"])
+	return organizationSyncer.SyncOrganizations(request.Context(), *user, idTokenClaims)
 }
 
 func InitTokenStore() {

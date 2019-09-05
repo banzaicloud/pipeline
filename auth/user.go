@@ -208,7 +208,7 @@ type BanzaiUserStorer struct {
 	cicdDB           *gorm.DB
 	events           authEvents
 	orgImporter      *OrgImporter
-	orgSyncer        OrganizationSyncer
+	orgSyncer        OIDCOrganizationSyncer
 }
 
 func getOrganizationsFromIDToken(idTokenClaims *IDTokenClaims) (map[string][]string, error) {
@@ -257,11 +257,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		return nil, "", err
 	}
 
-	organizations, err := getOrganizationsFromSchema(schema)
-	if err != nil {
-		return nil, "", emperror.Wrap(err, "failed to parse groups/organizations")
-	}
-
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
 	// GitHub API query to get the user login and image to retain compatibility for now
 
@@ -303,36 +298,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
-	// When a user registers a default organization is created in which he/she is admin
-	organizations[currentUser.Login] = []string{RoleAdmin}
-
-	backendProvider := getBackendProvider(schema.Provider)
-
-	var upstreamMemberships []UpstreamOrganizationMembership
-	for org, groups := range organizations {
-		membership := UpstreamOrganizationMembership{
-			Organization: UpstreamOrganization{
-				Name:     org,
-				Provider: backendProvider,
-			},
-			Role: RoleMember,
-		}
-
-		if backendProvider == ProviderGithub || backendProvider == ProviderGitlab {
-			membership.Role = RoleAdmin
-		} else {
-			// TODO: add role group binding
-			for _, group := range groups {
-				if roleLevelMap[membership.Role] < roleLevelMap[group] {
-					membership.Role = group
-				}
-			}
-		}
-
-		upstreamMemberships = append(upstreamMemberships, membership)
-	}
-
-	err = bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), *currentUser, upstreamMemberships)
+	err = bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), *currentUser, schema.RawInfo.(*IDTokenClaims))
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }

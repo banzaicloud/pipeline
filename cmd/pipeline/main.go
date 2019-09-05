@@ -198,7 +198,7 @@ func main() {
 	tokenHandler := auth.NewTokenHandler()
 
 	const organizationTopic = "organization"
-	var organizationSyncer auth.OrganizationSyncer
+	var organizationSyncer auth.OIDCOrganizationSyncer
 	{
 		eventBus, _ := cqrs.NewEventBus(
 			publisher,
@@ -207,7 +207,7 @@ func main() {
 		)
 		store := authadapter.NewGormOrganizationStore(db)
 		eventDispatcher := authadapter.NewOrganizationEventDispatcher(eventBus)
-		organizationSyncer = auth.NewOrganizationSyncer(store, eventDispatcher)
+		organizationSyncer = auth.NewOIDCOrganizationSyncer(auth.NewOrganizationSyncer(store, eventDispatcher))
 	}
 
 	// Initialize auth
@@ -436,7 +436,7 @@ func main() {
 	}
 
 	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
-	organizationAPI := api.NewOrganizationAPI(orgImporter)
+	organizationAPI := api.NewOrganizationAPI(organizationSyncer)
 	userAPI := api.NewUserAPI(db, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
