@@ -390,9 +390,6 @@ func (s OIDCOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 		}
 	}
 
-	// When a user registers a default organization is created in which he/she is admin
-	organizations[user.Login] = []string{RoleAdmin}
-
 	var upstreamMemberships []UpstreamOrganizationMembership
 	for org, groups := range organizations {
 		membership := UpstreamOrganizationMembership{
@@ -416,6 +413,20 @@ func (s OIDCOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 
 		upstreamMemberships = append(upstreamMemberships, membership)
 	}
+
+	// When a user registers a default organization is created in which he/she is admin
+	upstreamMemberships = append(
+		[]UpstreamOrganizationMembership{
+			{
+				Organization: UpstreamOrganization{
+					Name:     user.Login,
+					Provider: idTokenClaims.FederatedClaims["connector_id"],
+				},
+				Role: RoleAdmin,
+			},
+		},
+		upstreamMemberships...
+	)
 
 	return s.organizationSyncer.SyncOrganizations(ctx, user, upstreamMemberships)
 }
