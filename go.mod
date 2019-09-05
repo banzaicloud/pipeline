@@ -166,7 +166,7 @@ require (
 	k8s.io/kubernetes v1.13.5
 	logur.dev/adapter/logrus v0.2.0
 	logur.dev/adapter/zap v0.2.0
-	logur.dev/integration/watermill v0.2.0
+	logur.dev/integration/watermill v0.2.1
 	logur.dev/integration/zap v0.2.0
 	logur.dev/logur v0.15.0
 	sigs.k8s.io/controller-runtime v0.1.10 // indirect

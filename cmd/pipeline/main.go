@@ -36,7 +36,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	watermilllog "logur.dev/integration/watermill"
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/api"
@@ -99,7 +98,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
-	"github.com/banzaicloud/pipeline/spotguide/spotguidedriver"
 )
 
 // Provisioned by ldflags
@@ -186,10 +184,6 @@ func main() {
 			msg.SetContext(correlation.WithID(msg.Context(), cid))
 		}
 	})(subscriber)
-
-	eventRouter, err := watermill.NewRouter(watermill.RouterConfig{}, logger)
-	emperror.Panic(err)
-	defer eventRouter.Close()
 
 	// Used internally to make sure every event/command bus uses the same one
 	eventMarshaler := cqrs.JSONMarshaler{GenerateName: cqrs.StructName}
@@ -477,22 +471,6 @@ func main() {
 		spotguidePlatformData,
 	)
 
-	{
-		commonLogger := commonadapter.NewContextAwareLogger(logger, &correlation.ContextExtractor{})
-		eventProcessor, _ := cqrs.NewEventProcessor(
-			[]cqrs.EventHandler{
-				spotguidedriver.NewOrganizationCreatedEventHandler(spotguide.NewInitialSpotguideScrapeHandler(spotguideManager, commonLogger)),
-			},
-			func(eventName string) string { return organizationTopic },
-			func(handlerName string) (message.Subscriber, error) { return subscriber, nil },
-			eventMarshaler,
-			watermilllog.New(logur.WithFields(logger, map[string]interface{}{"component": "watermill"})),
-		)
-
-		err := eventProcessor.AddHandlersToRouter(eventRouter)
-		emperror.Panic(err)
-	}
-
 	// periodically sync shared spotguides
 	if err := spotguide.ScheduleScrapingSharedSpotguides(workflowClient); err != nil {
 		errorHandler.Handle(errors.WrapIf(err, "failed to schedule syncing shared spotguides"))
@@ -735,8 +713,6 @@ func main() {
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
 
 	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
-
-	go eventRouter.Run(context.Background())
 
 	bindAddr := viper.GetString("pipeline.bindaddr")
 	if port := viper.GetInt("pipeline.listenport"); port != 0 { // TODO: remove deprecated option
