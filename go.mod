@@ -5,7 +5,7 @@ go 1.13
 require (
 	cloud.google.com/go v0.44.3
 	emperror.dev/emperror v0.21.3
-	emperror.dev/errors v0.4.2
+	emperror.dev/errors v0.4.3
 	emperror.dev/handler/logur v0.2.0
 	emperror.dev/handler/stackdriver v0.1.1
 	github.com/Azure/azure-pipeline-go v0.2.2
