@@ -44,6 +44,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	featureVault "github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
@@ -263,6 +264,10 @@ func main() {
 		activity.RegisterWithOptions(waitPersistentVolumesDeletionActivity.Execute, activity.RegisterOptions{Name: intClusterWorkflow.WaitPersistentVolumesDeletionActivityName})
 
 		{
+			// Vault client for Vault feature
+			vaultClient, err := commonadapter.NewVaultClient()
+			emperror.Panic(errors.WrapIf(err, "failed to create Vault client"))
+
 			// External DNS service
 			dnsSvc, err := dns.GetExternalDnsServiceClient()
 			if err != nil {
@@ -283,6 +288,7 @@ func main() {
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
 				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
+				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, vaultClient),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
