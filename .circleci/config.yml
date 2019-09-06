@@ -8,11 +8,10 @@ jobs:
         resource_class: large
         docker:
             -
-                image: circleci/golang:1.12-stretch
+                image: banzaicloud/golang:1.13
                 environment:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
-                    GOPROXY: https://proxy.golang.org
             -
                 image: mysql:5.7
                 command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -38,15 +37,10 @@ jobs:
 
             -
                 run:
-                    name: Download Go modules
-                    command: go mod download
-
-            -
-                run:
                     name: Install build dependencies
                     command: |
-                      sudo apt-get update
-                      sudo apt-get install -y mysql-client mysql-utilities postgresql-client
+                      apt-get update
+                      apt-get install -y mysql-client mysql-utilities postgresql-client
 
             -
                 restore_cache:
@@ -239,7 +233,9 @@ jobs:
                     path: build/
 
     docker-release:
-        executor: docker/machine
+        executor:
+            name: docker/machine
+            dlc: true
         parameters:
             tag:
                default: $CIRCLE_SHA1
@@ -306,8 +302,10 @@ workflows:
             -
                 docker/publish:
                     name: Build docker image
+                    executor:
+                        name: docker/machine
+                        dlc: true
                     deploy: false
-                    extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                     image: banzaicloud/pipeline
                     tag: $CIRCLE_BRANCH
                     filters:
@@ -316,9 +314,11 @@ workflows:
             -
                 docker/publish:
                     name: Publish master docker image
+                    executor:
+                        name: docker/machine
+                        dlc: true
                     context: dockerhub
                     deploy: true
-                    extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                     image: banzaicloud/pipeline
                     tag: master
                     requires:
@@ -330,7 +330,6 @@ workflows:
                 docker-release:
                     name: Publish tagged & latest docker image
                     context: dockerhub
-                    extra_build_args: '--build-arg GOPROXY=https://proxy.golang.org'
                     image: banzaicloud/pipeline
                     tag: $CIRCLE_TAG
                     filters:

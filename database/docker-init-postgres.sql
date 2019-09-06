@@ -6,3 +6,6 @@ GRANT ALL PRIVILEGES ON DATABASE cadence TO sparky;
 
 CREATE DATABASE cadence_visibility;
 GRANT ALL PRIVILEGES ON DATABASE cadence_visibility TO sparky;
+
+CREATE DATABASE dex;
+GRANT ALL PRIVILEGES ON DATABASE dex TO sparky;

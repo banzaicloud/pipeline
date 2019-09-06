@@ -28,26 +28,19 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
-type userAccessManager interface {
-	GrantOrganizationAccessToUser(userID string, orgID uint)
-	RevokeOrganizationAccessFromUser(userID string, orgID uint)
-}
-
 // UserAPI implements user functions.
 type UserAPI struct {
-	accessManager userAccessManager
-	db            *gorm.DB
-	log           logrus.FieldLogger
-	errorHandler  emperror.Handler
+	db           *gorm.DB
+	log          logrus.FieldLogger
+	errorHandler emperror.Handler
 }
 
 // NewUserAPI returns a new UserAPI instance.
-func NewUserAPI(accessManager userAccessManager, db *gorm.DB, log logrus.FieldLogger, errorHandler emperror.Handler) *UserAPI {
+func NewUserAPI(db *gorm.DB, log logrus.FieldLogger, errorHandler emperror.Handler) *UserAPI {
 	return &UserAPI{
-		accessManager: accessManager,
-		db:            db,
-		log:           log,
-		errorHandler:  errorHandler,
+		db:           db,
+		log:          log,
+		errorHandler: errorHandler,
 	}
 }
 
@@ -156,125 +149,6 @@ func (a *UserAPI) GetUsers(c *gin.Context) {
 			Error:   message,
 		})
 	}
-}
-
-// AddUser adds a user to an organization, role=admin|member has to be in the body, otherwise member is the default role.
-func (a *UserAPI) AddUser(c *gin.Context) {
-
-	log.Info("Adding user to organization")
-
-	idParam := c.Param("id")
-	id, err := strconv.ParseUint(idParam, 10, 32)
-	if err != nil {
-		message := fmt.Sprintf("error parsing user id: %s", err)
-		log.Info(message)
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
-	role := struct {
-		Role string `json:"role" binding:"required,eq=member|eq=admin"`
-	}{Role: "member"}
-
-	if c.Request.ContentLength != 0 {
-		err = c.ShouldBindJSON(&role)
-		if err != nil {
-			message := fmt.Sprintf("error parsing role from request: %s", err)
-			log.Info(message)
-			c.JSON(http.StatusBadRequest, common.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: message,
-				Error:   message,
-			})
-			return
-		}
-	}
-
-	organization := auth.GetCurrentOrganization(c.Request)
-	user := &auth.User{ID: uint(id)}
-
-	err = a.addUserToOrgInDb(organization, user, role.Role)
-
-	if err != nil {
-		message := "failed to add user"
-		a.errorHandler.Handle(emperror.Wrap(err, message))
-		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
-			Code:    statusCode,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
-	a.accessManager.GrantOrganizationAccessToUser(user.IDString(), organization.ID)
-
-	c.Status(http.StatusNoContent)
-}
-
-func (a *UserAPI) addUserToOrgInDb(organization *auth.Organization, user *auth.User, role string) error {
-	tx := a.db.Begin()
-	err := tx.Error
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	err = tx.Model(organization).Association("Users").Append(user).Error
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	userRoleInOrg := auth.UserOrganization{UserID: user.ID, OrganizationID: organization.ID}
-	err = tx.Model(&auth.UserOrganization{}).Where(userRoleInOrg).Update("role", role).Error
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
-}
-
-// RemoveUser removes a user from an organization
-func (a *UserAPI) RemoveUser(c *gin.Context) {
-
-	log.Info("Deleting user from organization")
-
-	organization := auth.GetCurrentOrganization(c.Request)
-
-	idParam := c.Param("id")
-	id, err := strconv.ParseUint(idParam, 10, 32)
-	if err != nil {
-		message := fmt.Sprintf("error parsing user id: %s", err)
-		log.Info(message)
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
-	err = a.db.Model(organization).Association("Users").Delete(auth.User{ID: uint(id)}).Error
-	if err != nil {
-		message := "failed to delete user"
-		a.errorHandler.Handle(emperror.Wrap(err, message))
-		statusCode := auth.GormErrorToStatusCode(err)
-		c.AbortWithStatusJSON(statusCode, common.ErrorResponse{
-			Code:    statusCode,
-			Message: message,
-			Error:   message,
-		})
-		return
-	}
-
-	user := auth.GetCurrentUser(c.Request)
-
-	a.accessManager.RevokeOrganizationAccessFromUser(user.IDString(), organization.ID)
-
-	c.Status(http.StatusNoContent)
 }
 
 type updateUserRequest struct {

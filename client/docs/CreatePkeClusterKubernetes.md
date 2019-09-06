@@ -5,6 +5,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Version** | **string** |  | 
 **Rbac** | **bool** |  | [optional] 
+**Oidc** | [**CreatePkeClusterKubernetesOidc**](CreatePKEClusterKubernetes_oidc.md) |  | [optional] 
 **Cri** | [**CreatePkeClusterKubernetesCri**](CreatePKEClusterKubernetes_cri.md) |  | [optional] 
 **Network** | [**CreatePkeClusterKubernetesNetwork**](CreatePKEClusterKubernetesNetwork.md) |  | [optional] 
 

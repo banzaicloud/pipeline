@@ -136,6 +136,7 @@ var BasePostHookFunctions = []string{
 	pkgCluster.InstallPVCOperator,
 	pkgCluster.InitSpotConfig,
 	pkgCluster.DeployInstanceTerminationHandler,
+	pkgCluster.CreateClusterRoles,
 }
 
 // PostFunctioner manages posthook functions

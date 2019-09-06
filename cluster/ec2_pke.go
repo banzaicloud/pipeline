@@ -967,16 +967,17 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 			masterMode,
 		)
 
-		if c.model.DexEnabled {
-			dexIssuerURL := viper.GetString("auth.dexURL")
-			dexClientID := c.GetUID()
+		if c.model.Cluster.OidcEnabled {
+			// TODO this should be configurable as well
+			oidcIssuerURL := viper.GetString(pipConfig.OIDCIssuerURL)
+			oidcClientID := c.GetUID()
 
 			command = fmt.Sprintf("%s "+
 				"--kubernetes-oidc-issuer-url=%q "+
 				"--kubernetes-oidc-client-id=%q",
 				command,
-				dexIssuerURL,
-				dexClientID,
+				oidcIssuerURL,
+				oidcClientID,
 			)
 		}
 
@@ -1083,7 +1084,6 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		kubernetes = createEC2ClusterPKEFromRequest(request.Properties.CreateClusterPKE.Kubernetes, userId)
 		kubeADM    = createEC2ClusterPKEKubeADMFromRequest(request.Properties.CreateClusterPKE.KubeADM, userId)
 		cri        = createEC2ClusterPKECRIFromRequest(request.Properties.CreateClusterPKE.CRI, userId)
-		dexEnabled = request.Properties.CreateClusterPKE.DexEnabled
 	)
 
 	instanceType, image, err := getMasterInstanceTypeAndImageFromNodePools(nodepools)
@@ -1099,6 +1099,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 			Distribution:   pkgCluster.PKE,
 			OrganizationID: orgId,
 			RbacEnabled:    kubernetes.RBAC.Enabled,
+			OidcEnabled:    request.Properties.CreateClusterPKE.Kubernetes.OIDC.Enabled,
 			CreatedBy:      userId,
 			TtlMinutes:     request.TtlMinutes,
 		},
@@ -1109,7 +1110,6 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		Kubernetes:         kubernetes,
 		KubeADM:            kubeADM,
 		CRI:                cri,
-		DexEnabled:         dexEnabled,
 	}
 
 	return c, nil

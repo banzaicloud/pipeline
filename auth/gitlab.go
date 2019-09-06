@@ -78,65 +78,6 @@ func GetUserGitlabToken(userID uint) (string, error) {
 	return token.Value, nil
 }
 
-func getGitlabOrganizations(token string) ([]organization, error) {
-	gitlabClient, err := NewGitlabClient(token)
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create gitlab client")
-	}
-
-	minAccessLevel := gitlab.DeveloperPermissions
-	groups, _, err := gitlabClient.Groups.ListGroups(&gitlab.ListGroupsOptions{MinAccessLevel: &minAccessLevel})
-
-	if err != nil {
-		return nil, emperror.Wrap(err, "failed to list groups from gitlab")
-	}
-
-	currentUser, _, err := gitlabClient.Users.CurrentUser()
-	if err != nil {
-		return nil, emperror.With(err, "unable to get current gitlab user")
-	}
-	var orgs []organization
-	for _, group := range groups {
-		role, err := getGroupAccesLevel(gitlabClient, group.ID, currentUser.ID)
-		if err != nil {
-			return nil, emperror.With(err, "groupID", group.ID, "userID", currentUser.ID)
-		}
-		org := organization{
-			name:     group.Name,
-			id:       int64(group.ID),
-			role:     role,
-			provider: ProviderGitlab,
-		}
-
-		orgs = append(orgs, org)
-	}
-
-	userOrg := organization{
-		name:     currentUser.Username,
-		role:     "admin",
-		provider: ProviderGitlab,
-	}
-
-	orgs = append(orgs, userOrg)
-
-	return orgs, nil
-}
-
-func getGroupAccesLevel(gitlabClient *gitlab.Client, groupID int, userID int) (string, error) {
-
-	groupMember, _, err := gitlabClient.GroupMembers.GetGroupMember(groupID, userID)
-	if err != nil {
-		return "", emperror.With(err, "userID", userID, "groupID", groupID)
-	}
-	role := map[int]string{
-		30: "DeveloperPermissions",
-		40: "MaintainerPermissions",
-		50: "OwnerPermissions",
-	}
-
-	return role[int(groupMember.AccessLevel)], nil
-}
-
 func getGitlabUserMeta(schema *auth.Schema) (*gitlabUserMeta, error) {
 	gitlabClient, err := NewGitlabClient("")
 	if err != nil {

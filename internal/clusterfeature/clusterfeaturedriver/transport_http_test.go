@@ -22,16 +22,16 @@ import (
 	"testing"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/pipeline/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 )
 
 func TestMakeHTTPHandlers_List(t *testing.T) {
-	featureService := &DummyFeatureService{
+	featureService := &dummyFeatureService{
 		FeatureList: []clusterfeature.Feature{
 			{
 				Name: "example",
@@ -84,7 +84,7 @@ func TestMakeHTTPHandlers_List(t *testing.T) {
 }
 
 func TestMakeHTTPHandlers_Details(t *testing.T) {
-	featureService := &DummyFeatureService{
+	featureService := &dummyFeatureService{
 		FeatureDetails: clusterfeature.Feature{
 			Name: "example",
 			Spec: map[string]interface{}{
@@ -138,7 +138,7 @@ func TestMakeHTTPHandlers_Details(t *testing.T) {
 }
 
 func TestMakeHTTPHandlers_Activate(t *testing.T) {
-	featureService := &DummyFeatureService{}
+	featureService := &dummyFeatureService{}
 
 	handler := MakeHTTPHandlers(MakeEndpoints(featureService), emperror.NewNoopHandler()).Activate
 
@@ -180,7 +180,7 @@ func TestMakeHTTPHandlers_Activate(t *testing.T) {
 }
 
 func TestMakeHTTPHandlers_Deactivate(t *testing.T) {
-	featureService := &DummyFeatureService{}
+	featureService := &dummyFeatureService{}
 
 	handler := MakeHTTPHandlers(MakeEndpoints(featureService), emperror.NewNoopHandler()).Deactivate
 
@@ -209,7 +209,7 @@ func TestMakeHTTPHandlers_Deactivate(t *testing.T) {
 }
 
 func TestMakeHTTPHandlers_Update(t *testing.T) {
-	featureService := &DummyFeatureService{}
+	featureService := &dummyFeatureService{}
 
 	handler := MakeHTTPHandlers(MakeEndpoints(featureService), emperror.NewNoopHandler()).Update
 

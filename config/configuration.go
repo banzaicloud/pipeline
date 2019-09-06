@@ -136,7 +136,9 @@ const (
 
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 
-	SetCookieDomain = "auth.setCookieDomain"
+	SetCookieDomain    = "auth.setCookieDomain"
+	OIDCIssuerURL      = "auth.oidcIssuerURL"
+	OIDCIssuerInsecure = "auth.oidcIssuerInsecure"
 
 	// Logging operator constants
 	LoggingReleaseName          = "logging-operator"
@@ -235,7 +237,9 @@ func init() {
 	viper.SetDefault("auth.secureCookie", true)
 	viper.SetDefault("auth.publicclientid", "banzai-cli")
 	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
+	viper.RegisterAlias(OIDCIssuerURL, "auth.dexURL")
 	viper.SetDefault("auth.dexInsecure", false)
+	viper.RegisterAlias(OIDCIssuerInsecure, "auth.dexInsecure")
 	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
 	viper.SetDefault("auth.dexGrpcCaCert", "")
 	viper.SetDefault(SetCookieDomain, false)

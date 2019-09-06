@@ -39,6 +39,5 @@ func MakeClusterFeatureSetSpecActivity(features clusterfeature.FeatureRepository
 }
 
 func (a ClusterFeatureSetSpecActivity) Execute(ctx context.Context, input ClusterFeatureSetSpecActivityInput) error {
-	_, err := a.features.UpdateFeatureSpec(ctx, input.ClusterID, input.FeatureName, input.Spec)
-	return err
+	return a.features.UpdateFeatureSpec(ctx, input.ClusterID, input.FeatureName, input.Spec)
 }

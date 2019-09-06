@@ -31,12 +31,10 @@ const ClusterFeatureJobWorkflowName = "cluster-feature-job"
 const ClusterFeatureJobSignalName = "job"
 
 const (
-	// ActionActivate identifies the cluster feature activation action
-	ActionActivate = "activate"
-	// ActionDeactivate identifies the cluster feature deactivation action
-	ActionDeactivate = "deactivate"
-	// ActionUpdate identifies the cluster feature update action
-	ActionUpdate = "update"
+	// OperationApply identifies the cluster feature apply operation
+	OperationApply = "apply"
+	// OperationDeactivate identifies the cluster feature deactivation operation
+	OperationDeactivate = "deactivate"
 )
 
 // ClusterFeatureJobWorkflowInput defines the fixed inputs of the ClusterFeatureJobWorkflow
@@ -47,7 +45,7 @@ type ClusterFeatureJobWorkflowInput struct {
 
 // ClusterFeatureJobSignalInput defines the dynamic inputs of the ClusterFeatureJobWorkflow
 type ClusterFeatureJobSignalInput struct {
-	Action        string
+	Operation     string
 	FeatureSpec   clusterfeature.FeatureSpec
 	RetryInterval time.Duration
 }
@@ -71,20 +69,9 @@ func ClusterFeatureJobWorkflow(ctx workflow.Context, input ClusterFeatureJobWork
 
 	for {
 		if err := executeJob(ctx, input, signalInput, jobsChannel); err != nil {
-			// cleanup
-			switch action := signalInput.Action; action {
-			case ActionActivate, ActionDeactivate:
-				if err := deleteClusterFeature(ctx, input); err != nil {
-					workflow.GetLogger(ctx).Error("failed to delete cluster feature", zap.Error(err))
-				}
-			case ActionUpdate:
-				if err := setClusterFeatureStatus(ctx, input, clusterfeature.FeatureStatusActive); err != nil {
-					workflow.GetLogger(ctx).Error("failed to set cluster feature status", zap.Error(err))
-				}
-			default:
-				workflow.GetLogger(ctx).Error("unsupported action", zap.String("action", action))
+			if err := setClusterFeatureStatus(ctx, input, clusterfeature.FeatureStatusError); err != nil {
+				workflow.GetLogger(ctx).Error("failed to set cluster feature status", zap.Error(err))
 			}
-
 			return err
 		}
 
@@ -93,43 +80,37 @@ func ClusterFeatureJobWorkflow(ctx workflow.Context, input ClusterFeatureJobWork
 		}
 	}
 
-	switch action := signalInput.Action; action {
-	case ActionActivate, ActionUpdate:
+	switch op := signalInput.Operation; op {
+	case OperationApply:
 		if err := setClusterFeatureStatus(ctx, input, clusterfeature.FeatureStatusActive); err != nil {
 			return err
 		}
-	case ActionDeactivate:
+	case OperationDeactivate:
 		if err := deleteClusterFeature(ctx, input); err != nil {
 			return err
 		}
 	default:
-		workflow.GetLogger(ctx).Error("unsupported action", zap.String("action", action))
+		workflow.GetLogger(ctx).Error("unsupported operation", zap.String("operation", op))
 	}
 
 	return nil
 }
 
 func getActivity(workflowInput ClusterFeatureJobWorkflowInput, signalInput ClusterFeatureJobSignalInput) (string, interface{}, error) {
-	switch action := signalInput.Action; action {
-	case ActionActivate:
-		return ClusterFeatureActivateActivityName, ClusterFeatureActivateActivityInput{
+	switch op := signalInput.Operation; op {
+	case OperationApply:
+		return ClusterFeatureApplyActivityName, ClusterFeatureApplyActivityInput{
 			ClusterID:   workflowInput.ClusterID,
 			FeatureName: workflowInput.FeatureName,
 			FeatureSpec: signalInput.FeatureSpec,
 		}, nil
-	case ActionDeactivate:
+	case OperationDeactivate:
 		return ClusterFeatureDeactivateActivityName, ClusterFeatureDeactivateActivityInput{
 			ClusterID:   workflowInput.ClusterID,
 			FeatureName: workflowInput.FeatureName,
 		}, nil
-	case ActionUpdate:
-		return ClusterFeatureUpdateActivityName, ClusterFeatureUpdateActivityInput{
-			ClusterID:   workflowInput.ClusterID,
-			FeatureName: workflowInput.FeatureName,
-			FeatureSpec: signalInput.FeatureSpec,
-		}, nil
 	default:
-		return "", nil, errors.NewWithDetails("unsupported action", "action", action)
+		return "", nil, errors.NewWithDetails("unsupported operation", "operation", op)
 	}
 }
 

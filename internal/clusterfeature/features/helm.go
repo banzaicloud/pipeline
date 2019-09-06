@@ -20,20 +20,8 @@ import (
 
 // HelmService provides an interface for using Helm on a specific cluster.
 type HelmService interface {
-	// InstallDeployment installs a deployment on a specific cluster.
-	InstallDeployment(
+	ApplyDeployment(
 		ctx context.Context,
-		clusterID uint,
-		namespace string,
-		deploymentName string,
-		releaseName string,
-		values []byte,
-		chartVersion string,
-		wait bool,
-	) error
-
-	// UpdateDeployment updates an existing deployment on a specific cluster.
-	UpdateDeployment(ctx context.Context,
 		clusterID uint,
 		namespace string,
 		deploymentName string,

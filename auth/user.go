@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"emperror.dev/emperror"
@@ -29,7 +28,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
-	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
@@ -38,12 +36,13 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/helm"
 )
 
 const (
 	// CurrentOrganization current organization key
 	CurrentOrganization utils.ContextKey = "org"
+
+	currentOrganizationID utils.ContextKey = "orgID"
 
 	// SignUp is present if the current request is a signing up
 	SignUp utils.ContextKey = "signUp"
@@ -52,7 +51,21 @@ const (
 	GithubTokenID = "github"
 	// GitlabTokenID denotes the tokenID for the user's Github token, there can be only one
 	GitlabTokenID = "gitlab"
+
+	// OAuthRefreshTokenID denotes the tokenID for the user's OAuth refresh token, there can be only one
+	OAuthRefreshTokenID = "oauth_refresh"
 )
+
+const (
+	RoleAdmin  = "admin"
+	RoleMember = "member"
+)
+
+// nolint: gochecknoglobals
+var roleLevelMap = map[string]int{
+	RoleAdmin:  100,
+	RoleMember: 50,
+}
 
 // AuthIdentity auth identity session model
 type AuthIdentity struct {
@@ -92,33 +105,20 @@ type CICDUser struct {
 	Synced int64  `gorm:"column:user_synced"`
 }
 
-// UserOrganization describes the user organization
+// UserOrganization describes a user organization membership.
 type UserOrganization struct {
-	UserID         uint
-	OrganizationID uint
-	Role           string `gorm:"default:'admin'"`
-}
+	User   User
+	UserID uint
 
-// Organization struct
-type Organization struct {
-	ID        uint      `gorm:"primary_key" json:"id"`
-	GithubID  *int64    `gorm:"unique" json:"githubId,omitempty"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Name      string    `gorm:"unique;not null" json:"name"`
-	Provider  string    `gorm:"not null" json:"provider"`
-	Users     []User    `gorm:"many2many:user_organizations" json:"users,omitempty"`
-	Role      string    `json:"-" gorm:"-"` // Used only internally
+	Organization   Organization
+	OrganizationID uint
+
+	Role string `gorm:"default:'member'"`
 }
 
 // IDString returns the ID as string
 func (user *User) IDString() string {
 	return fmt.Sprint(user.ID)
-}
-
-// IDString returns the ID as string
-func (org *Organization) IDString() string {
-	return fmt.Sprint(org.ID)
 }
 
 // TableName sets CICDUser's table name
@@ -148,11 +148,19 @@ func GetCurrentOrganization(req *http.Request) *Organization {
 
 // GetCurrentOrganizationID return the user's organization ID.
 func GetCurrentOrganizationID(ctx context.Context) (uint, bool) {
+	if orgID, ok := ctx.Value(currentOrganizationID).(uint); ok {
+		return orgID, true
+	}
 	if organization := ctx.Value(CurrentOrganization); organization != nil {
 		return organization.(*Organization).ID, true
 	}
 
 	return 0, false
+}
+
+// SetCurrentOrganizationID returns a context with the organization ID set
+func SetCurrentOrganizationID(ctx context.Context, orgID uint) context.Context {
+	return context.WithValue(ctx, currentOrganizationID, orgID)
 }
 
 // NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
@@ -197,32 +205,7 @@ type BanzaiUserStorer struct {
 	auth.UserStorer
 	signingKeyBase32 string // CICD uses base32 Hash
 	cicdDB           *gorm.DB
-	events           authEvents
-	accessManager    accessManager
-	orgImporter      *OrgImporter
-}
-
-func getOrganizationsFromDex(schema *auth.Schema) ([]string, error) {
-	var dexClaims struct {
-		Groups []string
-	}
-
-	if err := mapstructure.Decode(schema.RawInfo, &dexClaims); err != nil {
-		return nil, err
-	}
-
-	var organizations []string
-	unique := map[string]struct{}{}
-	for _, group := range dexClaims.Groups {
-		// get the part before :, that will be the organization name
-		group = strings.Split(group, ":")[0]
-		if _, ok := unique[group]; !ok {
-			organizations = append(organizations, group)
-			unique[group] = struct{}{}
-		}
-	}
-
-	return organizations, nil
+	orgSyncer        OIDCOrganizationSyncer
 }
 
 func emailToLoginName(email string) string {
@@ -238,16 +221,10 @@ func emailToLoginName(email string) string {
 // Save differs from the default UserStorer.Save() in that it
 // extracts Token and Login and saves to CICD DB as well
 func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (user interface{}, userID string, err error) {
-
 	currentUser := &User{}
 	err = copier.Copy(currentUser, schema)
 	if err != nil {
 		return nil, "", err
-	}
-
-	organizations, err := getOrganizationsFromDex(schema)
-	if err != nil {
-		return nil, "", emperror.Wrap(err, "failed to parse groups/organizations")
 	}
 
 	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
@@ -286,30 +263,12 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		}
 	}
 
-	// When a user registers a default organization is created in which he/she is admin
-	userOrg := Organization{
-		Name:     currentUser.Login,
-		Provider: getBackendProvider(schema.Provider),
-	}
-	currentUser.Organizations = []Organization{userOrg}
-
 	err = db.Create(currentUser).Error
 	if err != nil {
 		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
-	err = helm.InstallLocalHelm(helm.GenerateHelmRepoEnv(currentUser.Organizations[0].Name))
-	if err != nil {
-		log.Errorf("Error during local helm install: %s", err.Error())
-	}
-
-	bus.accessManager.GrantDefaultAccessToUser(currentUser.IDString())
-	bus.accessManager.AddOrganizationPolicies(currentUser.Organizations[0].ID)
-	bus.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), currentUser.Organizations[0].ID)
-	bus.events.OrganizationRegistered(currentUser.Organizations[0].ID, currentUser.ID)
-
-	// Import organizations in case of DEX
-	err = bus.orgImporter.ImportOrganizationsFromDex(currentUser, organizations, getBackendProvider(schema.Provider))
+	err = bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), *currentUser, schema.RawInfo.(*IDTokenClaims))
 
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
@@ -358,6 +317,35 @@ func RemoveUserSCMToken(user *User, tokenType string) error {
 	return nil
 }
 
+func GetOAuthRefreshToken(userID string) (string, error) {
+	token, err := TokenStore.Lookup(userID, OAuthRefreshTokenID)
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to lookup user refresh token")
+	}
+
+	if token == nil {
+		return "", nil
+	}
+
+	return token.Value, nil
+}
+
+func SaveOAuthRefreshToken(userID string, refreshToken string) error {
+	// Revoke the old refresh token from Vault if any
+	err := TokenStore.Revoke(userID, OAuthRefreshTokenID)
+	if err != nil {
+		return errors.Wrap(err, "failed to revoke old refresh token")
+	}
+	token := bauth.NewToken(OAuthRefreshTokenID, "OAuth refresh token")
+	token.Value = refreshToken
+	err = TokenStore.Store(userID, token)
+	if err != nil {
+		return emperror.WrapWith(err, "failed to store refresg token for user", "user", userID)
+	}
+
+	return nil
+}
+
 func (bus BanzaiUserStorer) createUserInCICDDB(user *User) error {
 	cicdUser := &CICDUser{
 		Login:  user.Login,
@@ -392,134 +380,6 @@ func synchronizeCICDRepos(login string) {
 	if err != nil {
 		log.Warnln("failed to sync CICD repositories", err.Error())
 	}
-}
-
-// OrgImporter imports organizations.
-type OrgImporter struct {
-	db            *gorm.DB
-	accessManager accessManager
-	events        authEvents
-}
-
-// NewOrgImporter returns a new OrgImporter instance.
-func NewOrgImporter(
-	db *gorm.DB,
-	accessManager accessManager,
-	events eventBus,
-) *OrgImporter {
-	return &OrgImporter{
-		db:            db,
-		accessManager: accessManager,
-		events:        ebAuthEvents{eb: events},
-	}
-}
-
-func (i *OrgImporter) ImportOrganizationsFromGithub(currentUser *User, githubToken string) error {
-	orgs, err := getGithubOrganizations(githubToken)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get organizations")
-	}
-
-	return i.ImportOrganizations(currentUser, orgs)
-}
-
-func (i *OrgImporter) ImportOrganizationsFromGitlab(currentUser *User, gitlabToken string) error {
-	orgs, err := getGitlabOrganizations(gitlabToken)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get organizations")
-	}
-
-	return i.ImportOrganizations(currentUser, orgs)
-}
-
-func (i *OrgImporter) ImportOrganizationsFromDex(currentUser *User, organizations []string, provider string) error {
-	var orgs []organization
-	for _, org := range organizations {
-		orgs = append(orgs, organization{name: org, provider: provider})
-	}
-
-	return i.ImportOrganizations(currentUser, orgs)
-}
-
-func (i *OrgImporter) ImportOrganizations(currentUser *User, orgs []organization) error {
-	orgIDs, err := importOrganizations(i.db, currentUser, orgs)
-
-	if err != nil {
-		return emperror.Wrap(err, "failed to import organizations")
-	}
-
-	for id, created := range orgIDs {
-		i.accessManager.AddOrganizationPolicies(id)
-		i.accessManager.GrantOrganizationAccessToUser(currentUser.IDString(), id)
-
-		if created {
-			i.events.OrganizationRegistered(id, currentUser.ID)
-		}
-	}
-
-	return nil
-}
-
-func importOrganizations(db *gorm.DB, currentUser *User, orgs []organization) (map[uint]bool, error) {
-
-	orgIDs := make(map[uint]bool, len(orgs))
-
-	tx := db.Begin()
-	for _, org := range orgs {
-		o := Organization{
-			Name:     org.name,
-			Role:     org.role,
-			Provider: org.provider,
-		}
-
-		needsCreation := true
-		err := tx.Where(o).First(&o).Error
-		if err == nil {
-			orgIDs[o.ID] = false
-			needsCreation = false
-
-			// We don't need to create the organization again imported from the provider
-			// however we need to associate the user with this organization already in db
-
-		} else if !gorm.IsRecordNotFoundError(err) {
-			tx.Rollback()
-
-			return nil, errors.Wrap(err, "failed to check if organization exists")
-		}
-
-		if needsCreation {
-			err = tx.Where(o).Create(&o).Error
-			if err != nil {
-				tx.Rollback()
-
-				return nil, errors.Wrap(err, "failed to create organization")
-			}
-
-			orgIDs[o.ID] = true
-		}
-
-		err = tx.Model(currentUser).Association("Organizations").Append(o).Error
-		if err != nil {
-			tx.Rollback()
-
-			return nil, errors.Wrap(err, "failed to associate user with organization")
-		}
-
-		userRoleInOrg := UserOrganization{UserID: currentUser.ID, OrganizationID: o.ID}
-		err = tx.Model(&UserOrganization{}).Where(userRoleInOrg).Update("role", o.Role).Error
-		if err != nil {
-			tx.Rollback()
-
-			return nil, errors.Wrap(err, "failed to save user role in organization")
-		}
-	}
-
-	err := tx.Commit().Error
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to save organizations")
-	}
-
-	return orgIDs, nil
 }
 
 // GetOrganizationById returns an organization from database by ID

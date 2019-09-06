@@ -35,6 +35,7 @@ type CreateClusterWorkflowInput struct {
 	OrganizationID                  uint
 	ResourceGroupName               string
 	SecretID                        string
+	OIDCEnabled                     bool
 	VirtualNetworkTemplate          VirtualNetworkTemplate
 	LoadBalancerTemplate            LoadBalancerTemplate
 	PublicIPAddress                 PublicIPAddress
@@ -65,6 +66,17 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		err := workflow.ExecuteActivity(ctx, pkeworkflow.GenerateCertificatesActivityName, activityInput).Get(ctx, nil)
 		if err != nil {
 			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
+	}
+
+	// Create dex client for the cluster
+	if input.OIDCEnabled {
+		activityInput := pkeworkflow.CreateDexClientActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		err := workflow.ExecuteActivity(ctx, pkeworkflow.CreateDexClientActivityName, activityInput).Get(ctx, nil)
+		if err != nil {
 			return err
 		}
 	}

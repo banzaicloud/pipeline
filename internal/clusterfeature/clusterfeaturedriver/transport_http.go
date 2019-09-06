@@ -45,7 +45,7 @@ type HTTPHandlers struct {
 func MakeHTTPHandlers(endpoints Endpoints, errorHandler emperror.Handler) HTTPHandlers {
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorEncoder(encodeHTTPError),
-		httptransport.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+		httptransport.ServerErrorHandler(emperror.MakeContextAware(errorFilter(errorHandler))),
 	}
 
 	return HTTPHandlers{
@@ -85,22 +85,11 @@ func MakeHTTPHandlers(endpoints Endpoints, errorHandler emperror.Handler) HTTPHa
 func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	var problem *problems.DefaultProblem
 
-	var badRequest interface{ BadRequest() bool }
-	var notFound interface{ NotFound() bool }
-
 	switch {
-	case errors.As(err, &clusterfeature.UnknownFeatureError{}), errors.As(err, &clusterfeature.FeatureNotFoundError{}):
+	case isNotFoundError(err):
 		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
-	case errors.As(err, &clusterfeature.FeatureAlreadyActivatedError{}), errors.As(err, &clusterfeature.FeatureNotActiveError{}):
-		problem = problems.NewDetailedProblem(http.StatusConflict, err.Error())
-	case errors.As(err, &clusterfeature.InvalidFeatureSpecError{}):
+	case isBadRequestError(err):
 		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
-	case errors.As(err, &clusterfeature.ClusterIsNotReadyError{}):
-		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
-	case errors.As(err, &badRequest):
-		problem = problems.NewDetailedProblem(http.StatusBadRequest, err.Error())
-	case errors.As(err, &notFound):
-		problem = problems.NewDetailedProblem(http.StatusNotFound, err.Error())
 
 	default:
 		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
@@ -110,6 +99,27 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	w.WriteHeader(problem.Status)
 
 	_ = json.NewEncoder(w).Encode(problem)
+}
+
+func isNotFoundError(err error) bool {
+	var notFound interface{ NotFound() bool }
+	return errors.As(err, &clusterfeature.UnknownFeatureError{}) || clusterfeature.IsFeatureNotFoundError(err) || errors.As(err, &notFound)
+}
+
+func isBadRequestError(err error) bool {
+	var badRequest interface{ BadRequest() bool }
+	return clusterfeature.IsInputValidationError(err) || errors.As(err, &clusterfeature.ClusterIsNotReadyError{}) || errors.As(err, &badRequest)
+}
+
+func errorFilter(errorHandler emperror.Handler) emperror.Handler {
+	return emperror.HandlerFunc(func(err error) {
+		switch {
+		case isNotFoundError(err), isBadRequestError(err):
+			// ignore
+		default:
+			errorHandler.Handle(err)
+		}
+	})
 }
 
 func decodeListClusterFeaturesRequest(ctx context.Context, _ *http.Request) (interface{}, error) {

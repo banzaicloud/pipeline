@@ -14,4 +14,5 @@ package client
 type ResourceSummary struct {
 	Cpu    Resource `json:"cpu,omitempty"`
 	Memory Resource `json:"memory,omitempty"`
+	Status string   `json:"status,omitempty"`
 }

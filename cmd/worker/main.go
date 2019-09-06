@@ -34,7 +34,6 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	conf "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
-	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
@@ -166,10 +165,8 @@ func main() {
 			conf.Logger(),
 			errorHandler,
 		)
-		enforcer := intAuth.NewEnforcer(db)
-		accessManager := intAuth.NewAccessManager(enforcer, config.Pipeline.BasePath)
-		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewTokenHandler(accessManager))
-		auth.Init(nil, accessManager, nil)
+		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewTokenHandler())
+		auth.Init(nil, auth.OIDCOrganizationSyncer{})
 		auth.InitTokenStore()
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
@@ -281,14 +278,14 @@ func main() {
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 			secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-			orgDomainService := featureDns.NewOrgDomainService(clusterManager, dnsSvc, logger)
-			dnsFeatureManager := featureDns.NewDnsFeatureManager(featureRepository, secretStore, clusterService, clusterManager, helmService, orgDomainService, logger)
-			featureRegistry := clusterfeature.NewFeatureRegistry(map[string]clusterfeature.FeatureManager{
-				dnsFeatureManager.Name(): dnsFeatureManager,
+			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
+			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
+			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
+			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
+				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
 			})
 
-			registerClusterFeatureWorkflows(featureRegistry, featureRepository)
+			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
 		}
 
 		var closeCh = make(chan struct{})

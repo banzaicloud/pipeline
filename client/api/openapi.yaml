@@ -702,6 +702,59 @@ paths:
       summary: Get a cluster config
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/clusters/{id}/oidcconfig:
+    get:
+      description: Getting a K8S cluster config file with OIDC credentials
+      operationId: GetOIDCClusterConfig
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterConfig'
+          description: Getting config file succeeded
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting config file
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+      security:
+      - bearerAuth: []
+      summary: Get a cluster config with OIDC login
+      tags:
+      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/apiendpoint:
     get:
       description: Get API endpoint
@@ -7805,6 +7858,65 @@ paths:
       summary: Update a cluster feature
       tags:
       - cluster features
+  /api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels:
+    get:
+      description: List cluster nodepool labels
+      operationId: ListNodepoolLabels
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      - description: Selected cluster identification (number)
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListNodepoolLabelsResponse'
+          description: Nodepool labels listed
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_400'
+          description: Error during getting nodepool labels
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterNotFound'
+          description: Cluster not found
+        500:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseError_500'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: List cluser nodepool labels
+      tags:
+      - clusters
 components:
   requestBodies:
     api.FeatureRequest:
@@ -8306,6 +8418,8 @@ components:
           type: string
         rbac:
           type: boolean
+        oidc:
+          $ref: '#/components/schemas/CreatePKEClusterKubernetes_oidc'
         cri:
           $ref: '#/components/schemas/CreatePKEClusterKubernetes_cri'
         network:
@@ -9165,18 +9279,10 @@ components:
             name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
             creationTimestamp: 2018-04-16T19:47:07Z
             annotations:
-              node.alpha.kubernetes.io/ttl: "0"
-              volumes.kubernetes.io/controller-managed-attach-detach: "true"
+              key: '{"node.alpha.kubernetes.io/ttl":"0"}'
             selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
             labels:
-              failure-domain.beta.kubernetes.io/zone: us-central1-a
-              kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-              beta.kubernetes.io/fluentd-ds-ready: "true"
-              cloud.google.com/gke-nodepool: pool1
-              failure-domain.beta.kubernetes.io/region: us-central1
-              beta.kubernetes.io/arch: amd64
-              beta.kubernetes.io/instance-type: n1-standard-2
-              beta.kubernetes.io/os: linux
+              key: '{"beta.kubernetes.io/arch":"amd64"}'
           spec:
             providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
             externalID: "5935724476937880453"
@@ -9236,18 +9342,10 @@ components:
             name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
             creationTimestamp: 2018-04-16T19:47:07Z
             annotations:
-              node.alpha.kubernetes.io/ttl: "0"
-              volumes.kubernetes.io/controller-managed-attach-detach: "true"
+              key: '{"node.alpha.kubernetes.io/ttl":"0"}'
             selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
             labels:
-              failure-domain.beta.kubernetes.io/zone: us-central1-a
-              kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-              beta.kubernetes.io/fluentd-ds-ready: "true"
-              cloud.google.com/gke-nodepool: pool1
-              failure-domain.beta.kubernetes.io/region: us-central1
-              beta.kubernetes.io/arch: amd64
-              beta.kubernetes.io/instance-type: n1-standard-2
-              beta.kubernetes.io/os: linux
+              key: '{"beta.kubernetes.io/arch":"amd64"}'
           spec:
             providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
             externalID: "5935724476937880453"
@@ -9317,18 +9415,10 @@ components:
           name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
           creationTimestamp: 2018-04-16T19:47:07Z
           annotations:
-            node.alpha.kubernetes.io/ttl: "0"
-            volumes.kubernetes.io/controller-managed-attach-detach: "true"
+            key: '{"node.alpha.kubernetes.io/ttl":"0"}'
           selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
           labels:
-            failure-domain.beta.kubernetes.io/zone: us-central1-a
-            kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-            beta.kubernetes.io/fluentd-ds-ready: "true"
-            cloud.google.com/gke-nodepool: pool1
-            failure-domain.beta.kubernetes.io/region: us-central1
-            beta.kubernetes.io/arch: amd64
-            beta.kubernetes.io/instance-type: n1-standard-2
-            beta.kubernetes.io/os: linux
+            key: '{"beta.kubernetes.io/arch":"amd64"}'
         spec:
           providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k
           externalID: "5935724476937880453"
@@ -10420,6 +10510,18 @@ components:
         name: myClusterName
         servicemesh: true
         logging: true
+        totalSummary:
+          memory:
+            allocatable: "4"
+            request: 380m
+            limit: 100m
+            capacity: "4"
+          cpu:
+            allocatable: "4"
+            request: 380m
+            limit: 100m
+            capacity: "4"
+          status: status
         location: us-central1-a
         id: 1
         nodePools:
@@ -10490,6 +10592,8 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/NodePoolStatus'
           type: object
+        totalSummary:
+          $ref: '#/components/schemas/ResourceSummary'
       type: object
     NodePoolStatus:
       example:
@@ -10530,6 +10634,10 @@ components:
             example: '{"example.io/label1":"value1"}'
             type: string
           type: object
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
       type: object
     NodePoolStatusAzure:
       properties:
@@ -10550,6 +10658,10 @@ components:
         instanceType:
           example: Standard_D4_v2
           type: string
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
       type: object
     NodePoolStatusGoogle:
       properties:
@@ -10570,6 +10682,10 @@ components:
         instanceType:
           example: n1-standard-1
           type: string
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
       type: object
     NodePoolStatusOracle:
       properties:
@@ -10593,6 +10709,10 @@ components:
           type: string
         autoscaling:
           type: boolean
+        resourceSummary:
+          additionalProperties:
+            $ref: '#/components/schemas/ResourceSummary'
+          type: object
       type: object
     CreateObjectStoreBucketRequest:
       example:
@@ -10930,6 +11050,7 @@ components:
             request: 380m
             limit: 100m
             capacity: "4"
+          status: status
         name: pipeline-traefik-7c47dc7bd7-twzpl
         namespace: default
         conditions:
@@ -10999,11 +11120,14 @@ components:
           request: 380m
           limit: 100m
           capacity: "4"
+        status: status
       properties:
         cpu:
           $ref: '#/components/schemas/Resource'
         memory:
           $ref: '#/components/schemas/Resource'
+        status:
+          type: string
       type: object
     Resource:
       example:
@@ -13397,6 +13521,7 @@ components:
           - inactive
           - pending
           - active
+          - error
           type: string
       required:
       - status
@@ -13425,6 +13550,25 @@ components:
           example: No cluster feature exists with this name
           type: string
       type: object
+    ListNodepoolLabelsResponse:
+      additionalProperties:
+        items:
+          $ref: '#/components/schemas/NodepoolLabels'
+        type: array
+      type: object
+    NodepoolLabels:
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        reserved:
+          type: boolean
+      type: object
+    CreatePKEClusterKubernetes_oidc:
+      properties:
+        enabled:
+          type: boolean
     CreatePKEClusterKubernetes_cri:
       properties:
         runtime:
@@ -13644,52 +13788,6 @@ components:
         resourceVersion:
           example: "30123"
           type: string
-    NodeItem_metadata_labels:
-      example:
-        failure-domain.beta.kubernetes.io/zone: us-central1-a
-        kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-        beta.kubernetes.io/fluentd-ds-ready: "true"
-        cloud.google.com/gke-nodepool: pool1
-        failure-domain.beta.kubernetes.io/region: us-central1
-        beta.kubernetes.io/arch: amd64
-        beta.kubernetes.io/instance-type: n1-standard-2
-        beta.kubernetes.io/os: linux
-      properties:
-        beta.kubernetes.io/arch:
-          example: amd64
-          type: string
-        beta.kubernetes.io/fluentd-ds-ready:
-          example: "true"
-          type: string
-        beta.kubernetes.io/instance-type:
-          example: n1-standard-2
-          type: string
-        beta.kubernetes.io/os:
-          example: linux
-          type: string
-        cloud.google.com/gke-nodepool:
-          example: pool1
-          type: string
-        failure-domain.beta.kubernetes.io/region:
-          example: us-central1
-          type: string
-        failure-domain.beta.kubernetes.io/zone:
-          example: us-central1-a
-          type: string
-        kubernetes.io/hostname:
-          example: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-          type: string
-    NodeItem_metadata_annotations:
-      example:
-        node.alpha.kubernetes.io/ttl: "0"
-        volumes.kubernetes.io/controller-managed-attach-detach: "true"
-      properties:
-        node.alpha.kubernetes.io/ttl:
-          example: "0"
-          type: string
-        volumes.kubernetes.io/controller-managed-attach-detach:
-          example: "true"
-          type: string
     NodeItem_metadata:
       example:
         uid: f214d7fb-41ae-11e8-a4ea-42010a8001da
@@ -13697,18 +13795,10 @@ components:
         name: gke-gkecluster-feri-706-pool1-496eccb3-l25k
         creationTimestamp: 2018-04-16T19:47:07Z
         annotations:
-          node.alpha.kubernetes.io/ttl: "0"
-          volumes.kubernetes.io/controller-managed-attach-detach: "true"
+          key: '{"node.alpha.kubernetes.io/ttl":"0"}'
         selfLink: /api/v1/nodes/gke-gkecluster-feri-706-pool1-496eccb3-l25k
         labels:
-          failure-domain.beta.kubernetes.io/zone: us-central1-a
-          kubernetes.io/hostname: gke-gkecluster-feri-706-pool1-496eccb3-l25k
-          beta.kubernetes.io/fluentd-ds-ready: "true"
-          cloud.google.com/gke-nodepool: pool1
-          failure-domain.beta.kubernetes.io/region: us-central1
-          beta.kubernetes.io/arch: amd64
-          beta.kubernetes.io/instance-type: n1-standard-2
-          beta.kubernetes.io/os: linux
+          key: '{"beta.kubernetes.io/arch":"amd64"}'
       properties:
         name:
           example: gke-gkecluster-feri-706-pool1-496eccb3-l25k
@@ -13726,9 +13816,15 @@ components:
           example: 2018-04-16T19:47:07Z
           type: string
         labels:
-          $ref: '#/components/schemas/NodeItem_metadata_labels'
+          additionalProperties:
+            example: '{"beta.kubernetes.io/arch":"amd64"}'
+            type: string
+          type: object
         annotations:
-          $ref: '#/components/schemas/NodeItem_metadata_annotations'
+          additionalProperties:
+            example: '{"node.alpha.kubernetes.io/ttl":"0"}'
+            type: string
+          type: object
     NodeItem_spec:
       example:
         providerID: gce://banzaitest/us-central1-a/gke-gkecluster-706-pool1-496eccb3-l25k

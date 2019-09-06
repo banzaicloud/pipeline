@@ -16,7 +16,6 @@ package dns
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"emperror.dev/errors"
@@ -24,410 +23,133 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/pkg/brn"
+	"github.com/banzaicloud/pipeline/pkg/opaque"
 )
 
-const (
-	featureName = "dns"
-
-	// hardcoded values for externalDns feature
-	externalDnsChartVersion = "2.3.3"
-
-	externalDnsChartName = "stable/external-dns"
-
-	externalDnsNamespace = "pipeline-system"
-
-	externalDnsRelease = "dns"
-
-	externalDnsAzureSecret  = "azure-config-file"
-	externalDnsGoogleSecret = "google-config-file"
-
-	externalDnsAzureSecretDataKey  = "azure.json"
-	externalDnsGoogleSecretDataKey = "credentials.json"
-
-	// supported DNS provider names
-	dnsRoute53 = "route53"
-	dnsAzure   = "azure"
-	dnsGoogle  = "google"
-)
-
-// dnsFeatureManager synchronous feature manager
-type dnsFeatureManager struct {
-	featureRepository clusterfeature.FeatureRepository
-	secretStore       features.SecretStore
-	clusterGetter     clusterfeatureadapter.ClusterGetter
-	clusterService    clusterfeature.ClusterService
-	helmService       features.HelmService
-	orgDomainService  OrgDomainService
-
-	logger common.Logger
+// FeatureManager implements the DNS feature manager
+type FeatureManager struct {
+	clusterGetter    clusterfeatureadapter.ClusterGetter
+	logger           common.Logger
+	orgDomainService OrgDomainService
 }
 
-// NewDnsFeatureManager builds a new feature manager component
-func NewDnsFeatureManager(
-	featureRepository clusterfeature.FeatureRepository,
-	secretStore features.SecretStore,
-	clusterService clusterfeature.ClusterService,
+// MakeFeatureManager returns a DNS feature manager
+func MakeFeatureManager(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
-	helmService features.HelmService,
-	orgDomainService OrgDomainService,
-
 	logger common.Logger,
-) clusterfeature.FeatureManager {
-	return &dnsFeatureManager{
-		featureRepository: featureRepository,
-		secretStore:       secretStore,
-		clusterService:    clusterService,
-		clusterGetter:     clusterGetter,
-		helmService:       helmService,
-		orgDomainService:  orgDomainService,
-		logger:            logger,
+	orgDomainService OrgDomainService,
+) FeatureManager {
+	return FeatureManager{
+		clusterGetter:    clusterGetter,
+		logger:           logger,
+		orgDomainService: orgDomainService,
 	}
 }
 
-func (m *dnsFeatureManager) Details(ctx context.Context, clusterID uint) (*clusterfeature.Feature, error) {
-	ctx, err := m.ensureOrgIDInContext(ctx, clusterID)
-	if err != nil {
-
-		return nil, err
-	}
-
-	feature, err := m.featureRepository.GetFeature(ctx, clusterID, featureName)
-	if err != nil {
-
-		return nil, err
-	}
-
-	if feature == nil {
-
-		return nil, clusterfeature.FeatureNotFoundError{FeatureName: featureName}
-	}
-
-	feature, err = m.decorateWithOutput(ctx, clusterID, feature)
-	if err != nil {
-
-		return nil, errors.WrapIf(err, "failed to decorate with output")
-	}
-
-	return feature, nil
+// Name returns the feature's name
+func (m FeatureManager) Name() string {
+	return FeatureName
 }
 
-func (m *dnsFeatureManager) Name() string {
-	return featureName
+// GetOutput returns the DNS feature's output
+func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
+	domain, _, _ := m.orgDomainService.GetDomain(ctx, clusterID)
+
+	c, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get cluster for output generation")
+	}
+
+	clusterDomain := fmt.Sprintf("%s.%s", c.GetName(), domain)
+
+	out := map[string]interface{}{
+		"autoDns": map[string]interface{}{
+			"zone":          domain,
+			"clusterDomain": clusterDomain,
+		},
+	}
+
+	return out, nil
 }
 
-func (m *dnsFeatureManager) Activate(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
-	if err := m.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
-		return err
-	}
-
-	ctx, err := m.ensureOrgIDInContext(ctx, clusterID)
+// ValidateSpec validates a DNS feature specification
+func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.FeatureSpec) error {
+	dnsSpec, err := bindFeatureSpec(spec)
 	if err != nil {
-
-		return err
-	}
-
-	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
-
-	boundSpec, err := m.bindInput(ctx, spec)
-	if err != nil {
-
-		return err
-	}
-
-	dnsChartValues := &ExternalDnsChartValues{}
-
-	if boundSpec.AutoDns.Enabled {
-
-		if err := m.orgDomainService.EnsureOrgDomain(ctx, clusterID); err != nil {
-			logger.Debug("failed to enable autoDNS")
-
-			return errors.WrapIf(err, "failed to register org hosted zone")
-		}
-
-		dnsChartValues, err = m.processAutoDNSFeatureValues(ctx, clusterID, boundSpec.AutoDns)
-		if err != nil {
-			logger.Debug("failed to process autoDNS values")
-
-			return errors.WrapIf(err, "failed to process autoDNS values")
-		}
-		d, _, _ := m.orgDomainService.GetDomain(ctx, clusterID)
-
-		dnsChartValues.DomainFilters = []string{d}
-	}
-
-	if boundSpec.CustomDns.Enabled {
-
-		dnsChartValues, err = m.processCustomDNSFeatureValues(ctx, clusterID, boundSpec.CustomDns)
-		if err != nil {
-			logger.Debug("failed to process customDNS values")
-
-			return errors.WrapIf(err, "failed to process customDNS values")
+		return clusterfeature.InvalidFeatureSpecError{
+			FeatureName: FeatureName,
+			Problem:     err.Error(),
 		}
 	}
 
-	valuesBytes, err := json.Marshal(dnsChartValues)
-	if err != nil {
-		logger.Debug("failed to marshal values")
-
-		return errors.WrapIf(err, "failed to decode values")
-	}
-
-	if err = m.helmService.InstallDeployment(
-		ctx,
-		clusterID,
-		externalDnsNamespace,
-		externalDnsChartName,
-		externalDnsRelease,
-		valuesBytes,
-		externalDnsChartVersion,
-		false,
-	); err != nil {
-		return errors.WrapIf(err, "failed to deploy feature")
-	}
-
-	return nil
-}
-
-func (m *dnsFeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.FeatureSpec) error {
-	dnsSpec, err := m.bindInput(ctx, spec)
-	if err != nil {
-		return err
-	}
-
-	if !dnsSpec.AutoDns.Enabled && !dnsSpec.CustomDns.Enabled {
-
-		return errors.New("none of the autoDNS and customDNS components are enabled")
-	}
-
-	if dnsSpec.AutoDns.Enabled && dnsSpec.CustomDns.Enabled {
-
-		return errors.New("only one of the autoDNS and customDNS components can be enabled")
-	}
-
-	if dnsSpec.AutoDns.Enabled {
-
-		err := m.validateAutoDNS(dnsSpec.AutoDns)
-		if err != nil {
-
-			return err
-		}
-	}
-
-	if dnsSpec.CustomDns.Enabled {
-
-		err := m.validateCustomDNS(dnsSpec.CustomDns)
-		if err != nil {
-
-			return err
+	if err := dnsSpec.Validate(); err != nil {
+		return clusterfeature.InvalidFeatureSpecError{
+			FeatureName: FeatureName,
+			Problem:     err.Error(),
 		}
 	}
 
 	return nil
 }
 
-func (m *dnsFeatureManager) Deactivate(ctx context.Context, clusterID uint) error {
-	if err := m.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
-		return err
+// PrepareSpec makes certain preparations to the spec before it's sent to be applied
+func (m FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
+	orgID, ok := auth.GetCurrentOrganizationID(ctx)
+	if !ok {
+		return nil, errors.New("organization ID missing from context")
 	}
 
-	ctx, err := m.ensureOrgIDInContext(ctx, clusterID)
+	xform := mapStringXform(map[string]opaque.Transformation{
+		"customDns": mapStringXform(map[string]opaque.Transformation{
+			"provider": mapStringXform(map[string]opaque.Transformation{
+				"secretId": secretBRNXform(orgID),
+			}),
+		}),
+	})
+
+	res, err := xform.Transform(spec)
 	if err != nil {
-
-		return err
+		return nil, errors.WrapIf(err, "failed to transform spec")
 	}
-
-	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
-
-	if err := m.helmService.DeleteDeployment(ctx, clusterID, externalDnsRelease); err != nil {
-		logger.Info("failed to delete feature deployment")
-
-		return errors.WrapIf(err, "failed to uninstall feature")
+	if r, ok := res.(clusterfeature.FeatureSpec); ok {
+		return r, nil
 	}
-
-	return nil
+	return nil, errors.Errorf("cannot cast type %T as type %T", res, spec)
 }
 
-func (m *dnsFeatureManager) Update(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
-	if err := m.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
-		return err
-	}
-
-	ctx, err := m.ensureOrgIDInContext(ctx, clusterID)
-	if err != nil {
-
-		return err
-	}
-
-	logger := m.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
-
-	boundSpec, err := m.bindInput(ctx, spec)
-	if err != nil {
-
-		return err
-	}
-
-	dnsChartValues := &ExternalDnsChartValues{}
-
-	if boundSpec.AutoDns.Enabled {
-
-		if err := m.orgDomainService.EnsureOrgDomain(ctx, clusterID); err != nil {
-			logger.Debug("failed to enable autoDNS")
-
-			return errors.WrapIf(err, "failed to register org hosted zone")
+func mapStringXform(transformations map[string]opaque.Transformation) opaque.Transformation {
+	return opaque.TransformationFunc(func(o interface{}) (interface{}, error) {
+		if m, ok := o.(map[string]interface{}); ok {
+			n := make(map[string]interface{}, len(m))
+			var errs error
+			for k, v := range m {
+				if t, ok := transformations[k]; ok {
+					w, err := t.Transform(v)
+					errs = errors.Append(errs, err)
+					n[k] = w
+				} else {
+					n[k] = v
+				}
+			}
+			return n, errs
 		}
-
-		dnsChartValues, err = m.processAutoDNSFeatureValues(ctx, clusterID, boundSpec.AutoDns)
-		if err != nil {
-			logger.Debug("failed to process autoDNS values")
-
-			return errors.WrapIf(err, "failed to process autoDNS values")
-		}
-		d, _, _ := m.orgDomainService.GetDomain(ctx, clusterID)
-
-		dnsChartValues.DomainFilters = []string{d}
-	}
-
-	if boundSpec.CustomDns.Enabled {
-
-		dnsChartValues, err = m.processCustomDNSFeatureValues(ctx, clusterID, boundSpec.CustomDns)
-		if err != nil {
-			logger.Debug("failed to process customDNS values")
-
-			return errors.WrapIf(err, "failed to process customDNS values")
-		}
-	}
-
-	valuesBytes, err := json.Marshal(dnsChartValues)
-	if err != nil {
-		logger.Debug("failed to marshal values")
-
-		return errors.WrapIf(err, "failed to decode values")
-	}
-
-	if _, err = m.featureRepository.UpdateFeatureSpec(ctx, clusterID, featureName, spec); err != nil {
-		logger.Debug("failed to update feature spec")
-
-		return err
-	}
-
-	if err = m.helmService.UpdateDeployment(ctx,
-		clusterID,
-		externalDnsNamespace,
-		externalDnsChartName,
-		externalDnsRelease,
-		valuesBytes,
-		externalDnsChartVersion); err != nil {
-		logger.Debug("failed to update")
-
-		return errors.WrapIf(err, "failed to update feature")
-	}
-
-	// feature status set back to active
-	if _, err = m.featureRepository.UpdateFeatureStatus(ctx, clusterID, featureName, clusterfeature.FeatureStatusActive); err != nil {
-		logger.Debug("failed to update feature status")
-
-		return err
-	}
-
-	logger.Info("successfully updated feature")
-
-	return nil
+		return o, nil
+	})
 }
 
-func (m *dnsFeatureManager) validateAutoDNS(autoDns AutoDns) error {
-	if !autoDns.Enabled {
-		return errors.New("autoDNS config must be set")
-	}
-
-	return nil
-}
-
-func (m *dnsFeatureManager) validateCustomDNS(customDns CustomDns) error {
-	if !customDns.Enabled {
-		return errors.New("customDNS config must be set")
-	}
-
-	if len(customDns.DomainFilters) < 1 {
-		return errors.New("domain filters must be provided")
-	}
-
-	if customDns.Provider.Name == "" {
-		return errors.New("DNS provider name must be provided")
-	}
-
-	if customDns.Provider.SecretID == "" {
-		return errors.New("secret ID with DNS provider credentials must be provided")
-	}
-
-	return nil
-}
-
-func (m *dnsFeatureManager) decorateWithOutput(ctx context.Context, clusterID uint, feature *clusterfeature.Feature) (*clusterfeature.Feature, error) {
-	if feature == nil {
-
-		return nil, errors.NewWithDetails("no spec provided")
-	}
-
-	fSpec, err := m.bindInput(ctx, feature.Spec)
-	if err != nil {
-
-		return nil, errors.WrapIf(err, "failed to decode feature spec")
-	}
-
-	if fSpec.AutoDns.Enabled {
-		domain, _, _ := m.orgDomainService.GetDomain(ctx, clusterID)
-
-		c, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to get cluster for output generation")
+func secretBRNXform(orgID uint) opaque.Transformation {
+	return opaque.TransformationFunc(func(secretObj interface{}) (interface{}, error) {
+		if secretStr, ok := secretObj.(string); ok {
+			secretBRN := brn.ResourceName{
+				Scheme:         brn.Scheme,
+				OrganizationID: orgID,
+				ResourceType:   brn.SecretResourceType,
+				ResourceID:     secretStr,
+			}
+			return secretBRN.String(), nil
 		}
-
-		clusterDomain := fmt.Sprintf("%s.%s", c.GetName(), domain)
-
-		type zoneInfo struct {
-			Zone          string `json:"zone"`
-			ClusterDomain string `json:"clusterDomain"`
-		}
-
-		// decorate the feature with the output
-		type output struct {
-			AutoDns zoneInfo `json:"autoDns"`
-		}
-
-		o := output{
-			AutoDns: zoneInfo{
-				Zone:          domain,
-				ClusterDomain: clusterDomain,
-			},
-		}
-
-		var out map[string]interface{}
-		j, _ := json.Marshal(&o)
-
-		err = json.Unmarshal(j, &out)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed generate output")
-		}
-
-		feature.Output = out
-	}
-
-	return feature, nil
-}
-
-func (m *dnsFeatureManager) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
-	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
-		cl, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-		if err != nil {
-			return ctx, errors.WrapIf(err, "failed to get cluster by ID")
-		}
-		org, err := auth.GetOrganizationById(cl.GetOrganizationId())
-		if err != nil {
-			return ctx, errors.WrapIf(err, "failed to get organization by ID")
-		}
-		ctx = context.WithValue(ctx, auth.CurrentOrganization, org)
-	}
-	return ctx, nil
+		return secretObj, nil
+	})
 }

@@ -47,6 +47,8 @@ type nodePoolTemplateFactory struct {
 	SSHPublicKey                string
 	TenantID                    string
 	VirtualNetworkName          string
+	OIDCClientID                string
+	OIDCIssuerURL               string
 }
 
 func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMachineScaleSetTemplate, workflow.SubnetTemplate, []workflow.RoleAssignmentTemplate) {
@@ -77,6 +79,15 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 		}
 
 		userDataScriptTemplate = masterUserDataScriptTemplate
+
+		if f.OIDCIssuerURL != "" {
+			userDataScriptTemplate += fmt.Sprintf(` \
+--kubernetes-oidc-issuer-url=%q \
+--kubernetes-oidc-client-id=%q`,
+				f.OIDCIssuerURL,
+				f.OIDCClientID,
+			)
+		}
 
 		if np.Count > 1 {
 			k8sMasterMode = "ha"

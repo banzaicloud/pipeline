@@ -22,12 +22,12 @@ import (
 	clusterfeatureworkflow "github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter/workflow"
 )
 
-func registerClusterFeatureWorkflows(featureRegistry clusterfeature.FeatureRegistry, featureRepository clusterfeature.FeatureRepository) {
+func registerClusterFeatureWorkflows(featureOperatorRegistry clusterfeature.FeatureOperatorRegistry, featureRepository clusterfeature.FeatureRepository) {
 	workflow.RegisterWithOptions(clusterfeatureworkflow.ClusterFeatureJobWorkflow, workflow.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureJobWorkflowName})
 
 	{
-		a := clusterfeatureworkflow.MakeClusterFeatureActivateActivity(featureRegistry)
-		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureActivateActivityName})
+		a := clusterfeatureworkflow.MakeClusterFeatureApplyActivity(featureOperatorRegistry)
+		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureApplyActivityName})
 	}
 
 	{
@@ -36,7 +36,7 @@ func registerClusterFeatureWorkflows(featureRegistry clusterfeature.FeatureRegis
 	}
 
 	{
-		a := clusterfeatureworkflow.MakeClusterFeatureDeactivateActivity(featureRegistry)
+		a := clusterfeatureworkflow.MakeClusterFeatureDeactivateActivity(featureOperatorRegistry)
 		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureDeactivateActivityName})
 	}
 
@@ -48,10 +48,5 @@ func registerClusterFeatureWorkflows(featureRegistry clusterfeature.FeatureRegis
 	{
 		a := clusterfeatureworkflow.MakeClusterFeatureSetStatusActivity(featureRepository)
 		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureSetStatusActivityName})
-	}
-
-	{
-		a := clusterfeatureworkflow.MakeClusterFeatureUpdateActivity(featureRegistry)
-		activity.RegisterWithOptions(a.Execute, activity.RegisterOptions{Name: clusterfeatureworkflow.ClusterFeatureUpdateActivityName})
 	}
 }

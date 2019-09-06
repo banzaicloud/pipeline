@@ -363,6 +363,6 @@ func (api *ClusterAuthAPI) generateKubeConfig(ctx context.Context, IDToken strin
 }
 
 func (api *ClusterAuthAPI) RegisterRoutes(clusterRouter gin.IRouter, authRouter gin.IRouter) {
-	clusterRouter.GET("/login", api.loginHandler)
+	clusterRouter.GET("/oidcconfig", api.loginHandler)
 	authRouter.GET("/auth/dex/cluster/callback", api.dexCallback)
 }

@@ -79,7 +79,7 @@ func TestMakeDetailsEndpoint(t *testing.T) {
 	clusterID := uint(1)
 	featureName := "example"
 
-	clusterFeatureDetails := &clusterfeature.Feature{
+	clusterFeatureDetails := clusterfeature.Feature{
 		Name: "example",
 		Spec: map[string]interface{}{
 			"hello": "world",

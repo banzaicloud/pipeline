@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 
+	"emperror.dev/emperror"
+
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -75,8 +77,8 @@ const (
 	ProviderGitlab    = "gitlab"
 )
 
-func getBackendProvider(dexProvider string) string {
-	return strings.TrimPrefix(dexProvider, "dex:")
+func getBackendProvider(oidcProvider string) string {
+	return strings.TrimPrefix(oidcProvider, "dex:")
 }
 
 // Init authorization
@@ -106,6 +108,8 @@ var (
 
 	// SessionManager is responsible for handling browser session Cookies
 	SessionManager session.ManagerInterface
+
+	oidcProvider *OIDCProvider
 )
 
 // Simple init for logging
@@ -160,7 +164,7 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
+func Init(db *gorm.DB, orgSyncer OIDCOrganizationSyncer) {
 	JwtIssuer = viper.GetString("auth.jwtissuer")
 	JwtAudience = viper.GetString("auth.jwtaudience")
 	CookieDomain = viper.GetString("auth.cookieDomain")
@@ -211,28 +215,50 @@ func Init(db *gorm.DB, accessManager accessManager, orgImporter *OrgImporter) {
 		UserStorer: BanzaiUserStorer{
 			signingKeyBase32: signingKeyBase32,
 			cicdDB:           cicdDB,
-			events:           ebAuthEvents{eb: config.EventBus},
-			accessManager:    accessManager,
-			orgImporter:      orgImporter,
+			orgSyncer:        orgSyncer,
 		},
 		LoginHandler:      banzaiLoginHandler,
 		LogoutHandler:     banzaiLogoutHandler,
 		RegisterHandler:   banzaiRegisterHandler,
-		DeregisterHandler: NewBanzaiDeregisterHandler(accessManager),
+		DeregisterHandler: NewBanzaiDeregisterHandler(),
 	})
 
-	dexProvider := newDexProvider(&DexConfig{
+	oidcProvider = newOIDCProvider(&OIDCConfig{
 		PublicClientID:     viper.GetString("auth.publicclientid"),
 		ClientID:           viper.GetString("auth.clientid"),
 		ClientSecret:       viper.GetString("auth.clientsecret"),
-		IssuerURL:          viper.GetString("auth.dexURL"),
-		InsecureSkipVerify: viper.GetBool("auth.dexInsecure"),
+		IssuerURL:          viper.GetString(config.OIDCIssuerURL),
+		InsecureSkipVerify: viper.GetBool(config.OIDCIssuerInsecure),
 	})
-	Auth.RegisterProvider(dexProvider)
+	Auth.RegisterProvider(oidcProvider)
 
 	InitTokenStore()
 
 	Handler = bauth.JWTAuth(TokenStore, signingKey, claimConverter, cookieExtractor{sessionStorer})
+}
+
+func SyncOrgsForUser(organizationSyncer OIDCOrganizationSyncer, user *User, request *http.Request) error {
+	refreshToken, err := GetOAuthRefreshToken(user.IDString())
+	if err != nil {
+		return emperror.Wrap(err, "failed to fetch refresh token from Vault")
+	}
+
+	if refreshToken == "" {
+		return emperror.Wrap(err, "no refresh token, please login again")
+	}
+
+	authContext := auth.Context{Auth: Auth, Request: request}
+	idTokenClaims, token, err := oidcProvider.RedeemRefreshToken(&authContext, refreshToken)
+	if err != nil {
+		return emperror.Wrap(err, "failed to redeem user refresh token")
+	}
+
+	err = SaveOAuthRefreshToken(user.IDString(), token.RefreshToken)
+	if err != nil {
+		return emperror.Wrap(err, "failed to save user refresh token")
+	}
+
+	return organizationSyncer.SyncOrganizations(request.Context(), *user, idTokenClaims)
 }
 
 func InitTokenStore() {
@@ -279,14 +305,10 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 	}
 }
 
-type tokenHandler struct {
-	accessManager accessManager
-}
+type tokenHandler struct{}
 
-func NewTokenHandler(accessManager accessManager) *tokenHandler {
-	handler := &tokenHandler{
-		accessManager: accessManager,
-	}
+func NewTokenHandler() *tokenHandler {
+	handler := &tokenHandler{}
 
 	return handler
 }
@@ -373,9 +395,6 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
 			return
 		}
-
-		h.accessManager.GrantDefaultAccessToVirtualUser(userID)
-		h.accessManager.GrantOrganizationAccessToUser(userID, organization.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
@@ -397,9 +416,7 @@ func (h *tokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (string,
 		}
 	}
 	tokenID, signedToken, err := createAndStoreAPIToken(userID, userID, ClusterTokenType, userID, nil, true)
-	// TODO: handle access by cluster
-	h.accessManager.GrantDefaultAccessToVirtualUser(userID)
-	h.accessManager.GrantOrganizationAccessToUser(userID, orgID)
+
 	return tokenID, signedToken, err
 }
 
@@ -583,15 +600,11 @@ func banzaiRegisterHandler(context *auth.Context, register func(*auth.Context) (
 	httpJSONError(context.Writer, err, http.StatusUnauthorized)
 }
 
-type banzaiDeregisterHandler struct {
-	accessManager accessManager
-}
+type banzaiDeregisterHandler struct{}
 
 // NewBanzaiDeregisterHandler returns a handler that deletes the user and all his/her tokens from the database
-func NewBanzaiDeregisterHandler(accessManager accessManager) func(*auth.Context) {
-	handler := &banzaiDeregisterHandler{
-		accessManager: accessManager,
-	}
+func NewBanzaiDeregisterHandler() func(*auth.Context) {
+	handler := &banzaiDeregisterHandler{}
 
 	return handler.handler
 }
@@ -602,31 +615,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 
 	db := context.GetDB(context.Request)
 
-	userAdminOrganizations := []UserOrganization{}
-
-	// Query the organizations where the only admin is the current user.
-	sql :=
-		`SELECT * FROM user_organizations WHERE role = ? AND organization_id IN
-		(SELECT DISTINCT organization_id FROM user_organizations WHERE user_id = ? AND role = ?)
-		GROUP BY user_id, organization_id
-		HAVING COUNT(*) = 1`
-
-	if err := db.Raw(sql, "admin", user.ID, "admin").Scan(&userAdminOrganizations).Error; err != nil {
-		errorHandler.Handle(errors.Wrap(err, "failed select user only owned organizations"))
-		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// If there are any organizations with only this user as admin, throw an error
-	if len(userAdminOrganizations) != 0 {
-		orgs := []string{}
-		for _, org := range userAdminOrganizations {
-			orgs = append(orgs, fmt.Sprint(org.OrganizationID))
-		}
-		http.Error(context.Writer, "You must remove yourself or transfer ownership or delete these organizations before you can delete your user: "+strings.Join(orgs, ", "), http.StatusBadRequest)
-		return
-	}
-
+	// Remove organization memberships
 	if err := db.Model(user).Association("Organizations").Clear().Error; err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed delete user's organization associations"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
@@ -671,9 +660,6 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 			return
 		}
 	}
-
-	// Delete authorization roles for user
-	h.accessManager.RevokeAllAccessFromUser(user.IDString())
 
 	banzaiLogoutHandler(context)
 }

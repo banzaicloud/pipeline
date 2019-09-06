@@ -127,7 +127,7 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 
 	clientID := clusterUID
 	clientSecret, _ := secret.RandomString("randAlphaNum", 32)
-	cliRedirectURI := "http://127.0.0.1:5555/auth/dex/cluster/callback"
+	cliRedirectURI := "http://localhost:5555/callback"
 	pipelineRedirectURI := a.pipelineRedirectURI
 
 	req := &api.CreateClientReq{

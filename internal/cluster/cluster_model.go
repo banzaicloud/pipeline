@@ -53,6 +53,7 @@ type ClusterModel struct {
 	SSHSecretID    string
 	Status         string
 	RbacEnabled    bool
+	OidcEnabled    bool `gorm:"default:false;not null"`
 	Monitoring     bool
 	Logging        bool
 	ServiceMesh    bool

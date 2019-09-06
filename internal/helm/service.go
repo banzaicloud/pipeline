@@ -178,6 +178,113 @@ func (s *HelmService) UpdateDeployment(
 	return nil
 }
 
+func (s *HelmService) ApplyDeployment(
+	ctx context.Context,
+	clusterID uint,
+	namespace string,
+	chartName string,
+	releaseName string,
+	values []byte,
+	chartVersion string,
+) error {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"chart": chartName, "release": releaseName})
+	logger.Info("applying deployment")
+
+	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return err
+	}
+
+	foundRelease, err := s.findRelease(releaseName, cluster)
+	if err != nil {
+		return errors.WithDetails(err, "chart", chartName)
+	}
+
+	if foundRelease != nil {
+		switch foundRelease.GetInfo().GetStatus().GetCode() {
+		case release.Status_DEPLOYED:
+			_, err := helm.UpgradeDeployment(
+				releaseName,
+				chartName,
+				chartVersion,
+				nil,
+				values,
+				false,
+				cluster.KubeConfig,
+				helm.GenerateHelmRepoEnv(cluster.OrganizationName), // TODO: refactor!!!!!!
+			)
+			if err != nil {
+				return errors.WrapIfWithDetails(
+					err, "failed to upgrade deployment",
+					"chart", chartName,
+					"release", releaseName,
+				)
+			}
+
+		case release.Status_FAILED:
+			if err := helm.DeleteDeployment(releaseName, cluster.KubeConfig); err != nil {
+				return errors.WrapIfWithDetails(
+					err, "failed to delete deployment",
+					"chart", chartName,
+					"release", releaseName,
+				)
+			}
+
+			options := []k8sHelm.InstallOption{
+				//k8sHelm.InstallWait(wait),
+				k8sHelm.ValueOverrides(values),
+			}
+			_, err = helm.CreateDeployment(
+				chartName,
+				chartVersion,
+				nil,
+				namespace,
+				releaseName,
+				false,
+				nil,
+				cluster.KubeConfig,
+				helm.GenerateHelmRepoEnv(cluster.OrganizationName), // TODO: refactor!!!!!!
+				options...,
+			)
+			if err != nil {
+				return errors.WrapIfWithDetails(
+					err, "failed to install deployment",
+					"chart", chartName,
+					"release", releaseName,
+				)
+			}
+		}
+	} else {
+		options := []k8sHelm.InstallOption{
+			//k8sHelm.InstallWait(wait),
+			k8sHelm.ValueOverrides(values),
+		}
+		_, err = helm.CreateDeployment(
+			chartName,
+			chartVersion,
+			nil,
+			namespace,
+			releaseName,
+			false,
+			nil,
+			cluster.KubeConfig,
+			helm.GenerateHelmRepoEnv(cluster.OrganizationName), // TODO: refactor!!!!!!
+			options...,
+		)
+		if err != nil {
+			return errors.WrapIfWithDetails(
+				err, "failed to install deployment",
+				"chart", chartName,
+				"release", releaseName,
+			)
+		}
+	}
+
+	logger.Info("deployment applied successfully")
+
+	return nil
+}
+
 // DeleteDeployment deletes a deployment from a specific cluster.
 func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
