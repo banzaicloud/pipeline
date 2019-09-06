@@ -2,12 +2,15 @@ openapi: 3.0.0
 info:
   contact:
     email: info@banzaicloud.com
-  description: Pipeline v0.3.0 swagger
+  description: |
+    Pipeline is a feature rich application platform,
+    built for containers on top of Kubernetes to automate the DevOps experience,
+    continuous application development and the lifecycle of deployments.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: Pipeline API
-  version: 0.3.0
+  version: latest
 servers:
 - url: http://localhost:9090
 tags:
