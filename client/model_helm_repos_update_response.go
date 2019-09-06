@@ -3,7 +3,7 @@
  *
  * Pipeline v0.3.0 swagger
  *
- * API version: 0.3.0
+ * API version: latest
  * Contact: info@banzaicloud.com
  */
 

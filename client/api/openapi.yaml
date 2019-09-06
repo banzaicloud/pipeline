@@ -7,7 +7,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: Pipeline API
-  version: 0.3.0
+  version: latest
 servers:
 - url: http://localhost:9090
 tags:
