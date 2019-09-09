@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package notification
+package frontend
 
 import (
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/sirupsen/logrus"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-// nolint: gochecknoglobals
-var log logrus.FieldLogger
+// These interfaces are aliased so that the module code is separated from the rest of the application.
+// If the module is moved out of the app, copy the aliased interfaces here.
 
-func init() {
-	log = config.Logger()
-}
+// Logger is the fundamental interface for all log operations.
+type Logger = common.Logger
+
+// ErrorHandler handles an error.
+type ErrorHandler = common.ErrorHandler

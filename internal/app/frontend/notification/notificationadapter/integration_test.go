@@ -1,4 +1,3 @@
-// +build automigrate
 // Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package notificationadapter
 
 import (
-	"io/ioutil"
-
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-
-	"github.com/sirupsen/logrus"
+	"flag"
+	"regexp"
+	"testing"
 )
 
-func main() {
-	db := config.DB()
-
-	logger := logrus.New()
-	logger.SetOutput(ioutil.Discard)
-
-	err := Migrate(db, logger, commonadapter.NewNoopLogger())
-	if err != nil {
-		panic(err)
+func TestIntegration(t *testing.T) {
+	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
+		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
+
+	t.Parallel()
+
+	t.Run("GormStore_GetActiveNotifications", testGormStoreGetActiveNotifications)
 }

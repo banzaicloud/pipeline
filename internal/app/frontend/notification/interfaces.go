@@ -1,4 +1,3 @@
-// +build automigrate
 // Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package notification
 
 import (
-	"io/ioutil"
-
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-
-	"github.com/sirupsen/logrus"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-func main() {
-	db := config.DB()
+// These interfaces are aliased so that the module code is separated from the rest of the application.
+// If the module is moved out of the app, copy the aliased interfaces here.
 
-	logger := logrus.New()
-	logger.SetOutput(ioutil.Discard)
+// Logger is the fundamental interface for all log operations.
+type Logger = common.Logger
 
-	err := Migrate(db, logger, commonadapter.NewNoopLogger())
-	if err != nil {
-		panic(err)
-	}
-}
+// ErrorHandler handles an error.
+type ErrorHandler = common.ErrorHandler

@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -53,6 +54,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
+	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
@@ -78,7 +80,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
-	"github.com/banzaicloud/pipeline/internal/notification"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
@@ -165,6 +166,8 @@ func main() {
 	cicdDB, err := config.CICDDB()
 	emperror.Panic(err)
 
+	commonLogger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
+
 	basePath := viper.GetString("pipeline.basepath")
 
 	enforcer := intAuth.NewEnforcer(db)
@@ -209,7 +212,7 @@ func main() {
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		logger.Info("running automatic schema migrations")
 
-		err = Migrate(db, logrusLogger)
+		err = Migrate(db, logrusLogger, commonLogger)
 		if err != nil {
 			panic(err)
 		}
@@ -406,7 +409,18 @@ func main() {
 	router.GET("/", api.RedirectRoot)
 
 	base := router.Group(basePath)
-	base.GET("notifications", notification.GetNotifications)
+
+	// Frontend service
+	{
+		app := frontend.NewApp(db, commonLogger, errorHandler)
+		handler := gin.WrapH(http.StripPrefix(basePath, app))
+
+		base.Any("frontend/*path", handler)
+
+		// Compatibility routes
+		base.GET("notifications", handler)
+	}
+
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
 	auth.Install(router, tokenHandler.GenerateToken)

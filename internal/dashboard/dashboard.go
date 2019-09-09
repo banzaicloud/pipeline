@@ -58,19 +58,20 @@ type Status struct {
 
 // NodePool describes a cluster's node pool.
 type NodePool struct {
-	Autoscaling  bool              `json:"autoscaling"`
-	Count        int               `json:"count,omitempty"`
-	InstanceType string            `json:"instanceType,omitempty"`
-	SpotPrice    string            `json:"spotPrice,omitempty"`
-	Preemptible  bool              `json:"preemptible,omitempty"`
-	MinCount     int               `json:"minCount,omitempty"`
-	MaxCount     int               `json:"maxCount,omitempty"`
-	Image        string            `json:"image,omitempty"`
-	Version      string            `json:"version,omitempty"`
-	Labels       map[string]string `json:"labels,omitempty"`
-	CreatedAt    time.Time         `json:"createdAt,omitempty"`
-	CreatorName  string            `json:"creatorName,omitempty"`
-	CreatorID    uint              `json:"creatorId,omitempty"`
+	Autoscaling     bool                           `json:"autoscaling"`
+	Count           int                            `json:"count,omitempty"`
+	InstanceType    string                         `json:"instanceType,omitempty"`
+	SpotPrice       string                         `json:"spotPrice,omitempty"`
+	Preemptible     bool                           `json:"preemptible,omitempty"`
+	MinCount        int                            `json:"minCount,omitempty"`
+	MaxCount        int                            `json:"maxCount,omitempty"`
+	Image           string                         `json:"image,omitempty"`
+	Version         string                         `json:"version,omitempty"`
+	Labels          map[string]string              `json:"labels,omitempty"`
+	ResourceSummary map[string]NodeResourceSummary `json:"resourceSummary,omitempty"`
+	CreatedAt       time.Time                      `json:"createdAt,omitempty"`
+	CreatorName     string                         `json:"creatorName,omitempty"`
+	CreatorID       uint                           `json:"creatorId,omitempty"`
 }
 
 type ClusterInfo struct {
@@ -113,4 +114,24 @@ type GetDashboardResponse struct {
 type GetDashboardPathParams struct {
 	// in:path
 	OrgId string `json:"orgid"`
+}
+
+// ResourceSummary describes a node's resource summary with CPU and Memory capacity/request/limit/allocatable
+type ResourceSummary struct {
+	CPU    *Resource `json:"cpu,omitempty"`
+	Memory *Resource `json:"memory,omitempty"`
+}
+
+type NodeResourceSummary struct {
+	ResourceSummary
+
+	Status string `json:"status,omitempty"`
+}
+
+// Resource describes a resource summary with capacity/request/limit/allocatable
+type Resource struct {
+	Capacity    string `json:"capacity,omitempty"`
+	Allocatable string `json:"allocatable,omitempty"`
+	Limit       string `json:"limit,omitempty"`
+	Request     string `json:"request,omitempty"`
 }
