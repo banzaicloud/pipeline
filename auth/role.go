@@ -32,7 +32,7 @@ var roles = []string{
 	RoleAdmin,
 }
 
-// nolint: gochecknoinit
+// nolint: gochecknoinits
 func init() {
 	roleIndex = make(map[string]int, len(roles))
 	for i, role := range roles {
