@@ -18,7 +18,6 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -27,7 +26,6 @@ import (
 // FeatureManager implements the Vault feature manager
 type FeatureManager struct {
 	clusterGetter clusterfeatureadapter.ClusterGetter
-	vaultClient   *vault.Client
 
 	logger common.Logger
 }
@@ -36,11 +34,9 @@ type FeatureManager struct {
 func MakeFeatureManager(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	logger common.Logger,
-	vaultClient *vault.Client,
 ) FeatureManager {
 	return FeatureManager{
 		clusterGetter: clusterGetter,
-		vaultClient:   vaultClient,
 		logger:        logger,
 	}
 }
@@ -51,9 +47,23 @@ func (m FeatureManager) Name() string {
 }
 
 // GetOutput returns the Vault feature's output
-func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
+func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureOutput, error) {
+	boundSpec, err := bindFeatureSpec(spec)
+	if err != nil {
+		return nil, clusterfeature.InvalidFeatureSpecError{
+			FeatureName: featureName,
+			Problem:     err.Error(),
+		}
+	}
+
+	// create Vault client
+	vaultManager, err := newVaultManager(boundSpec)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create Vault client")
+	}
+
 	// get vault version
-	vaultVersion, err := m.getVaultVersion()
+	vaultVersion, err := vaultManager.getVaultVersion()
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get Vault version")
 	}
@@ -98,13 +108,4 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 // PrepareSpec makes certain preparations to the spec before it's sent to be applied
 func (m FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
 	return spec, nil
-}
-
-func (m FeatureManager) getVaultVersion() (string, error) {
-	status, err := m.vaultClient.RawClient().Sys().SealStatus()
-	if err != nil {
-		return "", errors.WrapIf(err, "failed to get Vault status")
-	}
-
-	return status.Version, nil
 }

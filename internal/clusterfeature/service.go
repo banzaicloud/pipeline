@@ -63,7 +63,7 @@ func (s FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, er
 			return nil, err
 		}
 
-		output, err := featureManager.GetOutput(ctx, clusterID)
+		output, err := featureManager.GetOutput(ctx, clusterID, f.Spec)
 		if err != nil {
 
 			return nil, err
@@ -101,7 +101,7 @@ func (s FeatureService) Details(ctx context.Context, clusterID uint, featureName
 	}
 
 	logger.Debug("retieving feature output")
-	output, err := featureManager.GetOutput(ctx, clusterID)
+	output, err := featureManager.GetOutput(ctx, clusterID, feature.Spec)
 	if err != nil {
 		const msg = "failed to retieve feature output"
 		logger.Debug(msg)

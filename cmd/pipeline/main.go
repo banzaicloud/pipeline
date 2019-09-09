@@ -570,16 +570,13 @@ func main() {
 
 			// Cluster Feature API
 			{
-				vaultClient, err := commonadapter.NewVaultClient()
-				emperror.Panic(errors.WrapIf(err, "failed to create Vault client"))
-
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry([]clusterfeature.FeatureManager{
 					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
-					featureVault.MakeFeatureManager(clusterGetter, logger, vaultClient),
+					featureVault.MakeFeatureManager(clusterGetter, logger),
 				})
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
 				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)

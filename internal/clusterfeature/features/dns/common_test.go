@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -113,4 +114,10 @@ func (d dummyHelmService) ApplyDeployment(
 
 func (d dummyHelmService) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
 	return nil
+}
+
+func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*helm.GetDeploymentResponse, error) {
+	return &helm.GetDeploymentResponse{
+		ReleaseName: releaseName,
+	}, nil
 }

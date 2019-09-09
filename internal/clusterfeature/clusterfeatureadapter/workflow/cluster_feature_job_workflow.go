@@ -108,6 +108,7 @@ func getActivity(workflowInput ClusterFeatureJobWorkflowInput, signalInput Clust
 		return ClusterFeatureDeactivateActivityName, ClusterFeatureDeactivateActivityInput{
 			ClusterID:   workflowInput.ClusterID,
 			FeatureName: workflowInput.FeatureName,
+			Spec:        signalInput.FeatureSpec,
 		}, nil
 	default:
 		return "", nil, errors.NewWithDetails("unsupported operation", "operation", op)

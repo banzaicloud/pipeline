@@ -20,6 +20,7 @@ const (
 	kubeSysNamesapce        = "kube-system"
 	vaultAddressEnvKey      = "VAULT_ADDR"
 	rolePath                = "auth/kubernetes/role/pipeline-webhook"
+	roleName                = "pipeline-webhook"
 	authMethodType          = "kubernetes"
 	authMethodPath          = "kubernetes"
 	policyNamePrefix        = "allow_secrets"

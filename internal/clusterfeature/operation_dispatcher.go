@@ -177,7 +177,7 @@ func (p localJobProcessor) ProcessJob(j job) error {
 
 	case operationDeactivate:
 		logger.Debug("executing Deactivate operation")
-		if err := featureOperator.Deactivate(ctx, j.ClusterID); err != nil {
+		if err := featureOperator.Deactivate(ctx, j.ClusterID, j.Spec); err != nil {
 			const msg = "failed to execute Deactivate operation"
 			logger.Debug(msg)
 			return errors.WrapIf(err, msg)
