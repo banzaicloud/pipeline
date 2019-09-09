@@ -103,6 +103,10 @@ secureCookie = false
 cookieDomain = ""
 setCookieDomain = false
 
+[auth.roleBinding]
+admin = ".*"
+member = ""
+
 [helm]
 retryAttempt = 30
 retrySleepSeconds = 15

@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
@@ -32,6 +33,14 @@ type configuration struct {
 
 	// ErrorHandler configuration
 	ErrorHandler errorhandler.Config
+
+	// Auth configuration
+	Auth authConfig
+}
+
+// authConfig contains auth configuration.
+type authConfig struct {
+	RoleBinding map[string]string
 }
 
 // Validate validates the configuration.
@@ -63,4 +72,10 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// ErrorHandler configuration
 	v.RegisterAlias("errorHandler.serviceName", "appName")
 	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
+
+	// Auth configuration
+	v.SetDefault("auth.roleBinding", map[string]string{
+		auth.RoleAdmin:  ".*",
+		auth.RoleMember: "",
+	})
 }
