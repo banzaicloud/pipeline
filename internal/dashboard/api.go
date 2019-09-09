@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -442,7 +441,7 @@ func addResourceSummary(client *kubernetes.Clientset, response ClusterInfo) bool
 			continue
 		}
 
-		nodePool.ResourceSummary = make(map[string]api.NodeResourceSummary, len(nodes.Items))
+		nodePool.ResourceSummary = make(map[string]NodeResourceSummary, len(nodes.Items))
 
 		for _, node := range nodes.Items {
 			nodeSummary, err := resourcesummary.GetNodeSummary(client, node)
@@ -451,10 +450,10 @@ func addResourceSummary(client *kubernetes.Clientset, response ClusterInfo) bool
 				continue
 			}
 
-			cpuResource := api.Resource(nodeSummary.CPU)
-			memoryResource := api.Resource(nodeSummary.Memory)
-			nodePool.ResourceSummary[node.Name] = api.NodeResourceSummary{
-				ResourceSummary: api.ResourceSummary{
+			cpuResource := Resource(nodeSummary.CPU)
+			memoryResource := Resource(nodeSummary.Memory)
+			nodePool.ResourceSummary[node.Name] = NodeResourceSummary{
+				ResourceSummary: ResourceSummary{
 					CPU:    &cpuResource,
 					Memory: &memoryResource,
 				},
