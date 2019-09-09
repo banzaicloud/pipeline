@@ -256,7 +256,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	db := authCtx.Auth.GetDB(authCtx.Request)
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
-	if schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab {
+	if viper.GetBool("cicd.enabled") && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
 		err = bus.createUserInCICDDB(currentUser)
 		if err != nil {
 			return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
@@ -286,7 +286,7 @@ func SaveUserSCMToken(user *User, scmToken string, tokenType string) error {
 	if err != nil {
 		return emperror.WrapWith(err, "failed to store access token for user", "user", user.Login)
 	}
-	if tokenType == GithubTokenID || tokenType == GitlabTokenID {
+	if viper.GetBool("cicd.enabled") && (tokenType == GithubTokenID || tokenType == GitlabTokenID) {
 		// TODO CICD should use Vault as well, and this should be removed by then
 		err = updateUserInCICDDB(user, scmToken)
 		if err != nil {
@@ -307,7 +307,7 @@ func RemoveUserSCMToken(user *User, tokenType string) error {
 		return errors.Wrap(err, "failed to revoke access token")
 	}
 
-	if tokenType == GithubTokenID || tokenType == GitlabTokenID {
+	if viper.GetBool("cicd.enabled") && (tokenType == GithubTokenID || tokenType == GitlabTokenID) {
 		// TODO CICD should use Vault as well, and this should be removed by then
 		err = updateUserInCICDDB(user, "")
 		if err != nil {

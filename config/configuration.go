@@ -213,6 +213,7 @@ func init() {
 	viper.SetDefault("logging.logformat", "text")
 
 	// Set defaults TODO expand defaults
+	viper.SetDefault("cicd.enabled", false)
 	viper.SetDefault("cicd.url", "http://localhost:8000")
 	viper.SetDefault("cicd.insecure", false)
 	viper.SetDefault("cicd.scm", "github")
