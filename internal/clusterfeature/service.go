@@ -122,7 +122,7 @@ func (s FeatureService) Activate(ctx context.Context, clusterID uint, featureNam
 
 	// TODO: check cluster ID?
 
-	logger.Debug("retieving feature manager")
+	logger.Debug("retrieving feature manager")
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(featureName)
 	if err != nil {
 		const msg = "failed to retieve feature manager"
