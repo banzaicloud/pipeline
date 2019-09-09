@@ -167,6 +167,18 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 				}
 
 			case "POST":
+				// Form request from frontend to refresh a token.
+				refreshToken := req.FormValue("refresh_token")
+				if refreshToken == "" {
+					err = fmt.Errorf("no refresh_token in request: %q", req.Form)
+					return nil, err
+				}
+
+				token = &oauth2.Token{
+					RefreshToken: refreshToken,
+					Expiry:       time.Now().Add(-time.Hour),
+				}
+
 				// The Banzai CLI can send an id_token that it has requested from Dex
 				// we may consume that as well in a POST request.
 				rawIDToken = req.FormValue("id_token")
@@ -175,19 +187,7 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 					verifier = oidcProvider.Verifier(&oidc.Config{ClientID: config.PublicClientID})
 
 				} else {
-					// Form request from frontend to refresh a token.
-					refresh := req.FormValue("refresh_token")
-					if refresh == "" {
-						err = fmt.Errorf("no refresh_token in request: %q", req.Form)
-						return nil, err
-					}
-
-					t := &oauth2.Token{
-						RefreshToken: refresh,
-						Expiry:       time.Now().Add(-time.Hour),
-					}
-
-					token, err = oauth2Config.TokenSource(ctx, t).Token()
+					token, err = oauth2Config.TokenSource(ctx, token).Token()
 					if err != nil {
 						err = fmt.Errorf("failed to get token: %s", err.Error())
 						return nil, err
@@ -425,7 +425,7 @@ func (s OIDCOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 				Role: RoleAdmin,
 			},
 		},
-		upstreamMemberships...
+		upstreamMemberships...,
 	)
 
 	return s.organizationSyncer.SyncOrganizations(ctx, user, upstreamMemberships)
