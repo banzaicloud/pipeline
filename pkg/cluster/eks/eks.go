@@ -15,9 +15,10 @@
 package eks
 
 import (
+	"fmt"
+
 	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
-
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
@@ -28,7 +29,10 @@ type CreateClusterEKS struct {
 	NodePools    map[string]*NodePool `json:"nodePools,omitempty" yaml:"nodePools,omitempty"`
 	Vpc          *ClusterVPC          `json:"vpc,omitempty" yaml:"vpc,omitempty"`
 	RouteTableId string               `json:"routeTableId,omitempty" yaml:"routeTableId,omitempty"`
-	Subnets      []*ClusterSubnet     `json:"subnets,omitempty" yaml:"subnets,omitempty"`
+	// Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet
+	// (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as
+	// the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
+	Subnets []*Subnet `json:"subnets,omitempty" yaml:"subnets,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
@@ -46,6 +50,9 @@ type NodePool struct {
 	Count        int               `json:"count" yaml:"count"`
 	Image        string            `json:"image" yaml:"image"`
 	Labels       map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	// Subnet for worker nodes of this node pool. If not specified than worker nodes
+	// are launched in the same subnet in one of the subnets from the list of subnets of the EKS cluster
+	Subnet *Subnet `json:"subnet,omitempty" yaml:"subnet,omitempty"`
 }
 
 // ClusterVPC describes the VPC for creating an EKS cluster
@@ -54,10 +61,14 @@ type ClusterVPC struct {
 	Cidr  string `json:"cidr,omitempty" yaml:"cidr,omitempty"`
 }
 
-// ClusterSubnet describes a subnet for EKS cluster
-type ClusterSubnet struct {
+// Subnet describes a subnet for EKS cluster
+type Subnet struct {
+	// Id of existing subnet to use for creating the EKS cluster. If not provided new subnet will be created.
 	SubnetId string `json:"subnetId,omitempty" yaml:"subnetId,omitempty"`
-	Cidr     string `json:"cidr,omitemnpty" yaml:"cidr,omitempty"`
+	// The CIDR range for the subnet in case new Subnet is created.
+	Cidr string `json:"cidr,omitempty" yaml:"cidr,omitempty"`
+	// The AZ to create the subnet into.
+	AvailabilityZone string `json:"availabilityZone,omitempty" yaml:"availabilityZone,omitempty"`
 }
 
 // Validate checks Amazon's node fields
@@ -197,12 +208,6 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 		return pkgErrors.ErrorAmazonEksNodePoolFieldIsEmpty
 	}
 
-	for i, np := range eks.NodePools {
-		if len(np.Image) == 0 {
-			eks.NodePools[i].Image = defaultImage
-		}
-	}
-
 	if eks.Vpc == nil {
 		eks.Vpc = &ClusterVPC{
 			Cidr: "192.168.0.0/16",
@@ -211,13 +216,25 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 
 	if len(eks.Subnets) == 0 {
 		eks.Subnets = append(eks.Subnets,
-			&ClusterSubnet{
-				Cidr: "192.168.64.0/20",
+			&Subnet{
+				Cidr:             "192.168.64.0/20",
+				AvailabilityZone: fmt.Sprintf("%sa", location),
 			},
-			&ClusterSubnet{
-				Cidr: "192.168.80.0/20",
+			&Subnet{
+				Cidr:             "192.168.80.0/20",
+				AvailabilityZone: fmt.Sprintf("%sb", location),
 			},
 		)
+	}
+
+	for i, np := range eks.NodePools {
+		if len(np.Image) == 0 {
+			eks.NodePools[i].Image = defaultImage
+		}
+
+		if np != nil && np.Subnet == nil {
+			np.Subnet = eks.Subnets[0]
+		}
 	}
 
 	return nil

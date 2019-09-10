@@ -11,7 +11,7 @@
 
 package client
 
-type NodePoolsAmazon struct {
+type EksNodePool struct {
 	InstanceType string            `json:"instanceType"`
 	SpotPrice    string            `json:"spotPrice"`
 	Autoscaling  bool              `json:"autoscaling,omitempty"`
@@ -20,4 +20,5 @@ type NodePoolsAmazon struct {
 	MaxCount     int32             `json:"maxCount"`
 	Labels       map[string]string `json:"labels,omitempty"`
 	Image        string            `json:"image,omitempty"`
+	Subnet       EksSubnet         `json:"subnet,omitempty"`
 }
