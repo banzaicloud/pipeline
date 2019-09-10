@@ -22,10 +22,10 @@ import (
 
 //featureSpec security scan cluster feature specific specification
 type featureSpec struct {
-	CustomAnchore    anchoreSpec       `json:"customAnchore"`
-	Policy           policySpec        `json:"policy"`
-	ReleaseWhiteList []releaseSpec     `json:"releaseWhiteList,omitempty"`
-	WebhookConfig    webHookConfigSpec `json:"webhookConfig"`
+	CustomAnchore    anchoreSpec       `json:"customAnchore" mapstructure:"customAnchore"`
+	Policy           policySpec        `json:"policy" mapstructure:"policy"`
+	ReleaseWhiteList []releaseSpec     `json:"releaseWhiteList,omitempty" mapstructure:"releaseWhiteList"`
+	WebhookConfig    webHookConfigSpec `json:"webhookConfig" mapstructure:"webhookConfig"`
 }
 
 // Validate validates the input security scan specification.
@@ -51,15 +51,15 @@ func (s featureSpec) Validate() error {
 }
 
 type anchoreSpec struct {
-	Enabled  bool   `json:"enabled"`
-	Url      string `json:"url"`
-	SecretID string `json:"secretId"`
+	Enabled  bool   `json:"enabled" mapstructure:"enabled"`
+	Url      string `json:"url" mapstructure:"url"`
+	SecretID string `json:"secretId" mapstructure:"secretId"`
 }
 
 func (a anchoreSpec) Validate() error {
 
 	if a.Enabled {
-		if a.Url != "" && a.SecretID != "" {
+		if a.Url == "" && a.SecretID == "" {
 			return errors.New("both anchore url and secretId are required")
 		}
 	}
@@ -72,9 +72,9 @@ type policySpec struct {
 }
 
 type releaseSpec struct {
-	Name   string `json:"name"`
-	Reason string `json:"reason"`
-	Regexp string `json:"regexp,omitempty"`
+	Name   string `json:"name" mapstructure:"name"`
+	Reason string `json:"reason" mapstructure:"reason"`
+	Regexp string `json:"regexp,omitempty" mapstructure:"regexp"`
 }
 
 func (r releaseSpec) Validate() error {
@@ -86,9 +86,9 @@ func (r releaseSpec) Validate() error {
 }
 
 type webHookConfigSpec struct {
-	Enabled    bool     `json:"enabled"`
-	Selector   string   `json:"selector"`
-	Namespaces []string `json:"namespaces"`
+	Enabled    bool     `json:"enabled" mapstructure:"enabled"`
+	Selector   string   `json:"selector" mapstructure:"selector"`
+	Namespaces []string `json:"namespaces" mapstructure:"namespaces"`
 }
 
 func (w webHookConfigSpec) Validate() error {
