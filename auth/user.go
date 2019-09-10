@@ -262,6 +262,23 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
+// Update updates the user's group mmeberships from the OIDC ID token at every login
+func (bus BanzaiUserStorer) Update(schema *auth.Schema, authCtx *auth.Context) (err error) {
+	currentUser := User{}
+	err = copier.Copy(&currentUser, schema)
+	if err != nil {
+		return err
+	}
+
+	db := authCtx.Auth.GetDB(authCtx.Request)
+	err = db.Find(&currentUser).Error
+	if err != nil {
+		return err
+	}
+
+	return bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), currentUser, schema.RawInfo.(*IDTokenClaims))
+}
+
 // SaveUserSCMToken saves a personal access token specified for a user
 func SaveUserSCMToken(user *User, scmToken string, tokenType string) error {
 	// Revoke the old Github token from Vault if any
