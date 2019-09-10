@@ -27,7 +27,7 @@ type vaultManager struct {
 	vaultClient *vault.Client
 }
 
-func newVaultManager(spec vaultFeatureSpec) (*vaultManager, error) {
+func newVaultManager(spec vaultFeatureSpec, orgID, clusterID uint) (*vaultManager, error) {
 	var vaultAddress string
 	if spec.CustomVault.Enabled {
 		vaultAddress = spec.CustomVault.Address
@@ -41,7 +41,7 @@ func newVaultManager(spec vaultFeatureSpec) (*vaultManager, error) {
 	client, err := vault.NewClientFromConfig(
 		clientConfig,
 		vault.ClientRole(roleName),
-		vault.ClientAuthPath(authMethodPath),
+		vault.ClientAuthPath(getAuthMethodPath(orgID, clusterID)),
 	)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create Vault client")
@@ -71,11 +71,11 @@ func (m *vaultManager) createRole(orgID, clusterID uint, serviceAccounts, namesp
 		"bound_service_account_namespaces": namespaces,
 		"policies":                         []string{getPolicyName(orgID, clusterID)},
 	}
-	return m.vaultClient.RawClient().Logical().Write(rolePath, roleData)
+	return m.vaultClient.RawClient().Logical().Write(getRolePath(orgID, clusterID), roleData)
 }
 
-func (m *vaultManager) deleteRole() (*vaultapi.Secret, error) {
-	return m.vaultClient.RawClient().Logical().Delete(rolePath)
+func (m *vaultManager) deleteRole(orgID, clusterID uint) (*vaultapi.Secret, error) {
+	return m.vaultClient.RawClient().Logical().Delete(getRolePath(orgID, clusterID))
 }
 
 func (m *vaultManager) createPolicy(orgID, clusterID uint) error {
@@ -90,4 +90,12 @@ func (m *vaultManager) createPolicy(orgID, clusterID uint) error {
 
 func (m *vaultManager) deletePolicy(orgID, clusterID uint) error {
 	return m.vaultClient.RawClient().Sys().DeletePolicy(getPolicyName(orgID, clusterID))
+}
+
+func getAuthMethodPath(orgID, clusterID uint) string {
+	return fmt.Sprintf("%s/%d/%d", authMethodPathPrefix, orgID, clusterID)
+}
+
+func getRolePath(orgID, clusterID uint) string {
+	return fmt.Sprintf("auth/%s/role/%s", getAuthMethodPath(orgID, clusterID), roleName)
 }

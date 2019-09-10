@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
@@ -98,13 +97,13 @@ func (op FeatureOperator) configureVault(
 		logger.Debug("start to setup Vault")
 
 		// get orgID to create policy rule
-		orgID, err := op.getOrgID(ctx, clusterID)
+		orgID, err := getOrgID(ctx, op.clusterGetter, clusterID)
 		if err != nil {
 			return errors.New("failed to get organization ID from context")
 		}
 
 		// create vault client
-		vaultManager, err := newVaultManager(boundSpec)
+		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
 		if err != nil {
 			return errors.WrapIf(err, "failed to create Vault client")
 		}
@@ -116,7 +115,7 @@ func (op FeatureOperator) configureVault(
 		logger.Info("policy created successfully")
 
 		// enable auth method
-		if err := vaultManager.enableAuth(authMethodPath, authMethodType); err != nil {
+		if err := vaultManager.enableAuth(getAuthMethodPath(orgID, clusterID), authMethodType); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to enabling %s auth method for vault", authMethodType))
 		}
 		logger.Info(fmt.Sprintf("auth method %q enabled for vault", authMethodType))
@@ -139,8 +138,8 @@ func (m *vaultManager) enableAuth(path, authType string) error {
 		return errors.WrapIf(err, "failed to list auth")
 	}
 
-	if _, ok := mounts[fmt.Sprintf("%s/", authMethodPath)]; ok {
-		log.Debugf("%s auth path is already in use", authMethodPath)
+	if _, ok := mounts[fmt.Sprintf("%s/", path)]; ok {
+		log.Debugf("%s auth path is already in use", path)
 		return nil
 	}
 
@@ -170,7 +169,7 @@ func (op FeatureOperator) installOrUpdateWebhook(
 					Key:      "name",
 					Operator: "NotIn",
 					Values: []string{
-						kubeSysNamesapce,
+						kubeSysNamespace,
 						pipelineSystemNamespace,
 					},
 				},
@@ -227,29 +226,28 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
+	orgID, err := getOrgID(ctx, op.clusterGetter, clusterID)
+	if err != nil {
+		return errors.New("failed to get organization ID from context")
+	}
+
 	// create Vault client
-	vaultManager, err := newVaultManager(boundSpec)
+	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Vault client")
 	}
 
 	// delete role
-	if _, err := vaultManager.deleteRole(); err != nil {
+	if _, err := vaultManager.deleteRole(orgID, clusterID); err != nil {
 		return errors.WrapIf(err, "failed to delete role")
 	}
 	logger.Info("role deleted successfully")
 
 	// disable auth method
-	if err := vaultManager.disableAuth(authMethodPath); err != nil {
+	if err := vaultManager.disableAuth(getAuthMethodPath(orgID, clusterID)); err != nil {
 		return errors.WrapIf(err, fmt.Sprintf("failed to disabling %s auth method for vault", authMethodType))
 	}
 	logger.Info(fmt.Sprintf("auth method %q for vault deactivated successfully", authMethodType))
-
-	// get orgID to delete policy rule
-	orgID, err := op.getOrgID(ctx, clusterID)
-	if err != nil {
-		return errors.New("failed to get organization ID from context")
-	}
 
 	// delete policy
 	if err := vaultManager.deletePolicy(orgID, clusterID); err != nil {
@@ -258,16 +256,4 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	logger.Info("policy deleted successfully")
 
 	return nil
-}
-
-func (op *FeatureOperator) getOrgID(ctx context.Context, clusterID uint) (uint, error) {
-	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return 0, errors.WrapIf(err, "failed to get cluster by ID")
-	}
-	org, err := auth.GetOrganizationById(cl.GetOrganizationId())
-	if err != nil {
-		return 0, errors.WrapIf(err, "failed to get organization by ID")
-	}
-	return org.ID, nil
 }

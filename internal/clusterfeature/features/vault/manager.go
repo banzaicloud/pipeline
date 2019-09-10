@@ -56,8 +56,13 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		}
 	}
 
+	orgID, err := getOrgID(ctx, m.clusterGetter, clusterID)
+	if err != nil {
+		return nil, errors.New("failed to get organization ID from context")
+	}
+
 	// create Vault client
-	vaultManager, err := newVaultManager(boundSpec)
+	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create Vault client")
 	}

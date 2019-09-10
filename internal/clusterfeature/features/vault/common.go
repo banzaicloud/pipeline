@@ -14,14 +14,33 @@
 
 package vault
 
+import (
+	"context"
+
+	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+)
+
 const (
 	featureName             = "vault"
 	vaultWebhookReleaseName = "vault-secrets-webhook"
-	kubeSysNamesapce        = "kube-system"
+	kubeSysNamespace        = "kube-system"
 	vaultAddressEnvKey      = "VAULT_ADDR"
-	rolePath                = "auth/kubernetes/role/pipeline-webhook"
 	roleName                = "pipeline-webhook"
 	authMethodType          = "kubernetes"
-	authMethodPath          = "kubernetes"
-	policyNamePrefix        = "allow_secrets"
+	authMethodPathPrefix    = "kubernetes"
+	policyNamePrefix        = "allow_cluster_secrets"
 )
+
+func getOrgID(ctx context.Context, clusterGetter clusterfeatureadapter.ClusterGetter, clusterID uint) (uint, error) {
+	cl, err := clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return 0, errors.WrapIf(err, "failed to get cluster by ID")
+	}
+	org, err := auth.GetOrganizationById(cl.GetOrganizationId())
+	if err != nil {
+		return 0, errors.WrapIf(err, "failed to get organization by ID")
+	}
+	return org.ID, nil
+}
