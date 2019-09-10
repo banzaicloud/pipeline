@@ -77,7 +77,7 @@ func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.False(t, created)
-		assert.Equal(t, uint(0), id)
+		assert.Equal(t, organization.ID, id)
 	})
 
 	t.Run("conflict", func(t *testing.T) {
