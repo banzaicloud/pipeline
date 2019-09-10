@@ -103,6 +103,7 @@ secureCookie = false
 cookieDomain = ""
 setCookieDomain = false
 
+defaultRole = "admin"
 [auth.roleBinding]
 admin = ".*"
 member = ""
