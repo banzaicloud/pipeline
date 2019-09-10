@@ -51,13 +51,20 @@ var roleLevelMap = map[string]int{
 
 // RoleBinder binds groups from an OIDC ID token to Pipeline roles.
 type RoleBinder struct {
-	bindings map[string]*regexp.Regexp
+	defaultRole string
+	bindings    map[string]*regexp.Regexp
 }
 
 // NewRoleBinder returns a new RoleBinder.
-func NewRoleBinder(rawBindings map[string]string) (RoleBinder, error) {
+func NewRoleBinder(defaultRole string, rawBindings map[string]string) (RoleBinder, error) {
+	// Fall back to RoleMember if none is provided
+	if defaultRole == "" {
+		defaultRole = RoleMember
+	}
+
 	rb := RoleBinder{
-		bindings: make(map[string]*regexp.Regexp, len(rawBindings)),
+		defaultRole: defaultRole,
+		bindings:    make(map[string]*regexp.Regexp, len(rawBindings)),
 	}
 
 	for role, rule := range rawBindings {
@@ -79,7 +86,7 @@ func NewRoleBinder(rawBindings map[string]string) (RoleBinder, error) {
 // BindRole binds the highest possible role to the list of provided groups.
 func (rb RoleBinder) BindRole(groups []string) string {
 	// Assign the lowest role to the user by default.
-	currentRole := RoleMember
+	currentRole := rb.defaultRole
 
 	for _, group := range groups {
 		for role, rule := range rb.bindings {

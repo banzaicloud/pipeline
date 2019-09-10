@@ -20,11 +20,13 @@ import (
 
 func TestRoleBinder_BindRole(t *testing.T) {
 	tests := []struct {
+		defaultRole string
 		rawBindings map[string]string
 		groups      []string
 		role        string
 	}{
 		{
+			defaultRole: RoleAdmin,
 			rawBindings: map[string]string{
 				RoleAdmin:  "admin",
 				RoleMember: "member",
@@ -33,14 +35,16 @@ func TestRoleBinder_BindRole(t *testing.T) {
 			role:   RoleAdmin,
 		},
 		{
+			defaultRole: RoleAdmin,
 			rawBindings: map[string]string{
 				RoleAdmin:  "admin",
 				RoleMember: "member",
 			},
 			groups: []string{"none"},
-			role:   RoleMember,
+			role:   RoleAdmin,
 		},
 		{
+			defaultRole: RoleAdmin,
 			rawBindings: map[string]string{
 				RoleAdmin:  "admin",
 				RoleMember: "member",
@@ -49,6 +53,7 @@ func TestRoleBinder_BindRole(t *testing.T) {
 			role:   RoleAdmin,
 		},
 		{
+			defaultRole: RoleAdmin,
 			rawBindings: map[string]string{
 				RoleAdmin:  ".*",
 				RoleMember: "",
@@ -57,6 +62,16 @@ func TestRoleBinder_BindRole(t *testing.T) {
 			role:   RoleAdmin,
 		},
 		{
+			defaultRole: RoleAdmin,
+			rawBindings: map[string]string{
+				RoleAdmin:  ".*",
+				RoleMember: "",
+			},
+			groups: []string{},
+			role:   RoleAdmin,
+		},
+		{
+			defaultRole: "",
 			rawBindings: map[string]string{
 				RoleAdmin:  ".*",
 				RoleMember: "",
@@ -72,7 +87,7 @@ func TestRoleBinder_BindRole(t *testing.T) {
 		test := test
 
 		t.Run("", func(t *testing.T) {
-			roleBinder, err := NewRoleBinder(test.rawBindings)
+			roleBinder, err := NewRoleBinder(test.defaultRole, test.rawBindings)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -91,7 +106,7 @@ func TestRoleBinder_NewRoleBinder_InvalidRole(t *testing.T) {
 		"totally_invalid": "",
 	}
 
-	_, err := NewRoleBinder(rawBindings)
+	_, err := NewRoleBinder(RoleAdmin, rawBindings)
 	if err == nil {
 		t.Error("invalid role should result in an error")
 	}
@@ -102,7 +117,7 @@ func TestRoleBinder_NewRoleBinder_InvalidRegex(t *testing.T) {
 		RoleAdmin: "[",
 	}
 
-	_, err := NewRoleBinder(rawBindings)
+	_, err := NewRoleBinder(RoleAdmin, rawBindings)
 	if err == nil {
 		t.Error("invalid regex should result in an error")
 	}

@@ -203,7 +203,7 @@ func main() {
 		store := authadapter.NewGormOrganizationStore(db)
 		eventDispatcher := authadapter.NewOrganizationEventDispatcher(eventBus)
 
-		roleBinder, err := auth.NewRoleBinder(conf.Auth.RoleBinding)
+		roleBinder, err := auth.NewRoleBinder(conf.Auth.DefaultRole, conf.Auth.RoleBinding)
 		emperror.Panic(err)
 
 		organizationSyncer = auth.NewOIDCOrganizationSyncer(auth.NewOrganizationSyncer(store, eventDispatcher), roleBinder)

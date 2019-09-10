@@ -40,6 +40,7 @@ type configuration struct {
 
 // authConfig contains auth configuration.
 type authConfig struct {
+	DefaultRole string
 	RoleBinding map[string]string
 }
 
@@ -74,6 +75,7 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
 
 	// Auth configuration
+	v.SetDefault("auth.defaultRole", auth.RoleAdmin)
 	v.SetDefault("auth.roleBinding", map[string]string{
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
