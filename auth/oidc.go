@@ -218,24 +218,9 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 			}
 
 			// Check if authInfo exists with the backend connector already
+			// Only used for backward compatbility reasons
 			authInfo.Provider = claims.FederatedClaims["connector_id"]
 			authInfo.UID = claims.FederatedClaims["user_id"]
-
-			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
-				return authInfo.ToClaims(), nil
-			}
-
-			// Check if authInfo exists with Dex
-			authInfo.Provider = "dex:" + claims.FederatedClaims["connector_id"]
-			authInfo.UID = claims.Subject
-
-			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
-				claims := authInfo.ToClaims()
-				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
-			}
-
-			// Create a new account otherwise
-			context.Request = req.WithContext(gocontext.WithValue(req.Context(), SignUp, true))
 
 			{
 				schema.Provider = authInfo.Provider
@@ -244,6 +229,38 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 				schema.Email = claims.Email
 				schema.RawInfo = &claims
 			}
+
+			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+				claims := authInfo.ToClaims()
+
+				if err = context.Auth.UserStorer.Update(&schema, context); err != nil {
+					return claims, err
+				}
+
+				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
+			}
+
+			// Check if authInfo exists with Dex
+			authInfo.Provider = "dex:" + claims.FederatedClaims["connector_id"]
+			authInfo.UID = claims.Subject
+
+			{
+				schema.Provider = authInfo.Provider
+			}
+
+			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+				claims := authInfo.ToClaims()
+
+				if err = context.Auth.UserStorer.Update(&schema, context); err != nil {
+					return claims, err
+				}
+
+				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
+			}
+
+			// Create a new account otherwise
+			context.Request = req.WithContext(gocontext.WithValue(req.Context(), SignUp, true))
+
 			if _, userID, err := context.Auth.UserStorer.Save(&schema, context); err == nil {
 				if userID != "" {
 					authInfo.UserID = userID
