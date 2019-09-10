@@ -54,6 +54,14 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 	err = db.Save(&user).Error
 	require.NoError(t, err)
 
+	organization := auth.Organization{
+		Name:     "add-to-existing-org",
+		Provider: "github",
+	}
+
+	err = db.Save(&organization).Error
+	require.NoError(t, err)
+
 	currentMemberships := []auth.UserOrganization{
 		{
 			User: user,
@@ -121,6 +129,13 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 		{
 			Organization: auth.UpstreamOrganization{
 				Name:     "new-org",
+				Provider: "github",
+			},
+			Role: auth.RoleAdmin,
+		},
+		{
+			Organization: auth.UpstreamOrganization{
+				Name:     "add-to-existing-org",
 				Provider: "github",
 			},
 			Role: auth.RoleAdmin,

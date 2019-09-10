@@ -115,7 +115,7 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 	})
 
 	membershipsToAdd := make(map[string]string, len(upstreamMemberships))
-	organizationsCreated := make(map[string]uint)
+	organizations := make(map[string]uint)
 
 	logger.Info("syncing organizations for user")
 
@@ -136,9 +136,10 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 
 		membershipsToAdd[membership.Organization.Name] = membership.Role
 
-		if created {
-			organizationsCreated[membership.Organization.Name] = id
+		// This index is used both in case of new organizations and when adding users to existing organizations.
+		organizations[membership.Organization.Name] = id
 
+		if created {
 			event := OrganizationCreated{
 				ID:     id,
 				UserID: user.ID,
@@ -201,11 +202,11 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 
 	for organizationName, role := range membershipsToAdd {
 		logger.Info("adding user to organization", map[string]interface{}{
-			"organizationId": organizationsCreated[organizationName],
+			"organizationId": organizations[organizationName],
 			"role":           role,
 		})
 
-		err := s.store.ApplyUserMembership(ctx, organizationsCreated[organizationName], user.ID, role)
+		err := s.store.ApplyUserMembership(ctx, organizations[organizationName], user.ID, role)
 		if err != nil {
 			return err
 		}
