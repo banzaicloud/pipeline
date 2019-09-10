@@ -67,7 +67,7 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		return nil, errors.WrapIf(err, "failed to create Vault client")
 	}
 
-	// get vault version
+	// get Vault version
 	vaultVersion, err := vaultManager.getVaultVersion()
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get Vault version")
@@ -77,9 +77,11 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 
 	out := map[string]interface{}{
 		"vault": map[string]interface{}{
-			"version": vaultVersion,
+			"authMethodPath": getAuthMethodPath(orgID, clusterID),
+			"rolePath":       getRolePath(orgID, clusterID),
+			"version":        vaultVersion,
 		},
-		"wehhook": map[string]interface{}{
+		"webhook": map[string]interface{}{
 			"version": chartVersion,
 		},
 	}
