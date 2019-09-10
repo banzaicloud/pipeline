@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
@@ -42,7 +43,7 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 
 	eventDispatcher := NewOrganizationEventDispatcher(eventBus)
 
-	syncer := auth.NewOrganizationSyncer(store, eventDispatcher)
+	syncer := auth.NewOrganizationSyncer(store, eventDispatcher, commonadapter.NewNoopLogger())
 
 	user := auth.User{
 		Name:  "John Doe",
