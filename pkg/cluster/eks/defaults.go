@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Masterminds/semver"
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 )
@@ -27,7 +28,7 @@ const (
 	DefaultInstanceType = "m4.xlarge"
 	DefaultSpotPrice    = "0.0" // 0 spot price stands for on-demand instances
 	DefaultRegion       = endpoints.UsWest2RegionID
-	DefaultK8sVersion   = "1.13.7"
+	DefaultK8sVersion   = "1.14.6"
 )
 
 func constraintForVersion(v string) *semver.Constraints {
@@ -45,75 +46,83 @@ var mappings = []struct {
 	images     map[string]string
 }{
 	{
-		constraintForVersion("1.10"),
-		map[string]string{
-			endpoints.UsEast2RegionID:      "ami-0295a10750423107d",
-			endpoints.UsEast1RegionID:      "ami-05c9fba3332ccbc43",
-			endpoints.UsWest2RegionID:      "ami-0fc349241eb7b1222",
-			endpoints.ApSouth1RegionID:     "ami-0a183946b284a9841",
-			endpoints.ApNortheast1RegionID: "ami-0f93f5579e6e79e96",
-			endpoints.ApNortheast2RegionID: "ami-0412ddfd70b9c54bd",
-			endpoints.ApSoutheast1RegionID: "ami-0538e8e564078659c",
-			endpoints.ApSoutheast2RegionID: "ami-009caed75bdc3a2f0",
-			endpoints.EuCentral1RegionID:   "ami-032fc49751b7a5f83",
-			endpoints.EuWest1RegionID:      "ami-03f9c85cd73fb9f4a",
-			endpoints.EuWest2RegionID:      "ami-05c9cec73d17bf97f",
-			endpoints.EuWest3RegionID:      "ami-0df95e4cd302d42f7",
-			endpoints.EuNorth1RegionID:     "ami-0ef218c64404e4bdf",
-		},
-	},
-	{
 		constraintForVersion("1.11"),
 		map[string]string{
-			endpoints.UsEast2RegionID:      "ami-088dad958fbfa643e",
-			endpoints.UsEast1RegionID:      "ami-053e2ac42d872cc20",
-			endpoints.UsWest2RegionID:      "ami-0743039b7c66a18f5",
-			endpoints.ApSouth1RegionID:     "ami-01d152acba5840ba2",
-			endpoints.ApNortheast1RegionID: "ami-07765e1384d2e372c",
-			endpoints.ApNortheast2RegionID: "ami-0656df091f27461cd",
-			endpoints.ApSoutheast1RegionID: "ami-084e9f3625a1a4a09",
-			endpoints.ApSoutheast2RegionID: "ami-03050c93b7e745696",
-			endpoints.EuCentral1RegionID:   "ami-020f08a17c3c4251c",
-			endpoints.EuWest1RegionID:      "ami-07d0c92a42077ec9b",
-			endpoints.EuWest2RegionID:      "ami-0ff8a4dc1632ee425",
-			endpoints.EuWest3RegionID:      "ami-0569332dde21e3f1a",
-			endpoints.EuNorth1RegionID:     "ami-0fc8c638bc80fcecf",
+			endpoints.UsEast2RegionID:      "ami-0f01aa60d08b56b51",
+			endpoints.UsEast1RegionID:      "ami-0277d42c17d2fd9f6",
+			endpoints.UsWest2RegionID:      "ami-0e024bc930f00f7a2",
+			endpoints.ApEast1RegionID:      "ami-01efe02a8386b4448",
+			endpoints.ApSouth1RegionID:     "ami-0fee6e6300019359b",
+			endpoints.ApNortheast1RegionID: "ami-0acea8b886f0e3f8f",
+			endpoints.ApNortheast2RegionID: "ami-01e754bb06dedfd13",
+			endpoints.ApSoutheast1RegionID: "ami-04aff8301e51a47e4",
+			endpoints.ApSoutheast2RegionID: "ami-0cb611c369549e9c9",
+			endpoints.EuCentral1RegionID:   "ami-0157324517811932f",
+			endpoints.EuWest1RegionID:      "ami-0ed6bcde59efbec8a",
+			endpoints.EuWest2RegionID:      "ami-0b2d004b35f3153c4",
+			endpoints.EuWest3RegionID:      "ami-0c592c8c15d5a2824",
+			endpoints.EuNorth1RegionID:     "ami-019c885c71264830f",
+			endpoints.MeSouth1RegionID:     "ami-0f19239ec6bfc1fd4",
 		},
 	},
 	{
 		constraintForVersion("1.12"),
 		map[string]string{
-			endpoints.UsEast2RegionID:      "ami-0e8d353285e26a68c",
-			endpoints.UsEast1RegionID:      "ami-0200e65a38edfb7e1",
-			endpoints.UsWest2RegionID:      "ami-0f11fd98b02f12a4c",
-			endpoints.ApSouth1RegionID:     "ami-0644de45344ce867e",
-			endpoints.ApNortheast1RegionID: "ami-0dfbca8d183884f02",
-			endpoints.ApNortheast2RegionID: "ami-0a9d12fe9c2a31876",
-			endpoints.ApSoutheast1RegionID: "ami-040bdde117f3828ab",
-			endpoints.ApSoutheast2RegionID: "ami-01bfe815f644becc0",
-			endpoints.EuCentral1RegionID:   "ami-09ed3f40a2b3c11f1",
-			endpoints.EuWest1RegionID:      "ami-091fc251b67b776c3",
-			endpoints.EuWest2RegionID:      "ami-0bc8d0262346bd65e",
-			endpoints.EuWest3RegionID:      "ami-0084dea61e480763e",
-			endpoints.EuNorth1RegionID:     "ami-022cd6a50742d611a",
+			endpoints.UsEast2RegionID:      "ami-0d60b7264ed85e022",
+			endpoints.UsEast1RegionID:      "ami-0259ce67309f76e0b",
+			endpoints.UsWest2RegionID:      "ami-0315dd35bf204311d",
+			endpoints.ApEast1RegionID:      "ami-0fafd65fe31195cb5",
+			endpoints.ApSouth1RegionID:     "ami-0d9c7adc50f0c3f04",
+			endpoints.ApNortheast1RegionID: "ami-08b2cecec9f2d5964",
+			endpoints.ApNortheast2RegionID: "ami-0bbe543cd7fc2acd1",
+			endpoints.ApSoutheast1RegionID: "ami-07696966feacc8e7b",
+			endpoints.ApSoutheast2RegionID: "ami-07621fc1a7675f06c",
+			endpoints.EuCentral1RegionID:   "ami-0fe22fc725c19301f",
+			endpoints.EuWest1RegionID:      "ami-0a6be9528ebb8999d",
+			endpoints.EuWest2RegionID:      "ami-0a8dc5b3290842d3e",
+			endpoints.EuWest3RegionID:      "ami-01dbd2d713c939649",
+			endpoints.EuNorth1RegionID:     "ami-0586fb63f5c466e3c",
+			endpoints.MeSouth1RegionID:     "ami-08eab8b7cd9f43bd0",
 		},
 	},
 	{
 		constraintForVersion("1.13"),
 		map[string]string{
-			endpoints.UsEast2RegionID:      "ami-07ebcae043cf995aa",
-			endpoints.UsEast1RegionID:      "ami-08c4955bcc43b124e",
-			endpoints.UsWest2RegionID:      "ami-089d3b6350c1769a6",
-			endpoints.ApSouth1RegionID:     "ami-0410a80d323371237",
-			endpoints.ApNortheast1RegionID: "ami-04c0f02f5e148c80a",
-			endpoints.ApNortheast2RegionID: "ami-0b7997a20f8424fb1",
-			endpoints.ApSoutheast1RegionID: "ami-087e0fca60fb5737a",
-			endpoints.ApSoutheast2RegionID: "ami-082dfea752d9163f6",
-			endpoints.EuCentral1RegionID:   "ami-02d5e7ca7bc498ef9",
-			endpoints.EuWest1RegionID:      "ami-09bbefc07310f7914",
-			endpoints.EuWest2RegionID:      "ami-0f03516f22468f14e",
-			endpoints.EuWest3RegionID:      "ami-051015c2c2b73aaea",
-			endpoints.EuNorth1RegionID:     "ami-0c31ee32297e7397d",
+			endpoints.UsEast2RegionID:      "ami-0355b5edf93d47112",
+			endpoints.UsEast1RegionID:      "ami-08198f90fe8bc57f0",
+			endpoints.UsWest2RegionID:      "ami-0dc5bf48daa40eb35",
+			endpoints.ApEast1RegionID:      "ami-056314bd2d2acbdc1",
+			endpoints.ApSouth1RegionID:     "ami-00f4cff050d28ee2d",
+			endpoints.ApNortheast1RegionID: "ami-0262013b4d50142a2",
+			endpoints.ApNortheast2RegionID: "ami-0d9a543e7c4279c11",
+			endpoints.ApSoutheast1RegionID: "ami-0013f4890e2ce167b",
+			endpoints.ApSoutheast2RegionID: "ami-01cd15b342b7edf5e",
+			endpoints.EuCentral1RegionID:   "ami-01ffee931e45bb6bf",
+			endpoints.EuWest1RegionID:      "ami-00ea6211202297fe8",
+			endpoints.EuWest2RegionID:      "ami-0ef7099142dae7023",
+			endpoints.EuWest3RegionID:      "ami-00cc28b5bcb9dc724",
+			endpoints.EuNorth1RegionID:     "ami-01d7a7c38f882ef68",
+			endpoints.MeSouth1RegionID:     "ami-0ae4a6a2950a3546e",
+		},
+	},
+	{
+		constraintForVersion("1.14"),
+		map[string]string{
+			endpoints.UsEast2RegionID:      "ami-0f841722be384ed96",
+			endpoints.UsEast1RegionID:      "ami-08739803f18dcc019",
+			endpoints.UsWest2RegionID:      "ami-038a987c6425a84ad",
+			endpoints.ApEast1RegionID:      "ami-0fc4b0a16426993b5",
+			endpoints.ApSouth1RegionID:     "ami-0e9f7f3edab94472d",
+			endpoints.ApNortheast1RegionID: "ami-055d09694b6e5591a",
+			endpoints.ApNortheast2RegionID: "ami-023bb403131889300",
+			endpoints.ApSoutheast1RegionID: "ami-0d26e45a1e5422b8e",
+			endpoints.ApSoutheast2RegionID: "ami-0d8e3da32bd74f39b",
+			endpoints.EuCentral1RegionID:   "ami-0f64557dd6506a4aa",
+			endpoints.EuWest1RegionID:      "ami-0497f6feb9d494baf",
+			endpoints.EuWest2RegionID:      "ami-010d34c5744286662",
+			endpoints.EuWest3RegionID:      "ami-04fada31d8c50b7a8",
+			endpoints.EuNorth1RegionID:     "ami-0a4a5386eb62c775e",
+			endpoints.MeSouth1RegionID:     "ami-0b7e753bbd3a0ae24",
 		},
 	},
 }
@@ -122,7 +131,7 @@ var mappings = []struct {
 func GetDefaultImageID(region, kubernetesVersion string) (string, error) {
 	kubeVersion, err := semver.NewVersion(kubernetesVersion)
 	if err != nil {
-		return "", emperror.WrapWith(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
+		return "", errors.WrapIfWithDetails(err, "could not create semver from Kubernetes version", "kubernetesVersion", kubernetesVersion)
 	}
 
 	for _, m := range mappings {
