@@ -64,6 +64,11 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return err
 	}
 
+	cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return errors.New("failed to get cluster")
+	}
+
 	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
 
 	boundSpec, err := bindFeatureSpec(spec)
@@ -74,7 +79,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		}
 	}
 
-	if err := op.configureVault(ctx, logger, clusterID, boundSpec); err != nil {
+	if err := op.configureVault(ctx, logger, cluster.GetOrganizationId(), clusterID, boundSpec); err != nil {
 		return errors.WrapIf(err, "failed to configure Vault")
 	}
 
@@ -84,6 +89,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 func (op FeatureOperator) configureVault(
 	ctx context.Context,
 	logger common.Logger,
+	orgID,
 	clusterID uint,
 	boundSpec vaultFeatureSpec,
 ) error {
@@ -95,12 +101,6 @@ func (op FeatureOperator) configureVault(
 	if !boundSpec.CustomVault.Enabled || (boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.Token) != 0) {
 		// custom Vault with token or CP's vault
 		logger.Debug("start to setup Vault")
-
-		// get orgID to create policy rule
-		orgID, err := getOrgID(ctx, op.clusterGetter, clusterID)
-		if err != nil {
-			return errors.New("failed to get organization ID from context")
-		}
 
 		// create vault client
 		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
@@ -226,10 +226,12 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
-	orgID, err := getOrgID(ctx, op.clusterGetter, clusterID)
+	cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-		return errors.New("failed to get organization ID from context")
+		return errors.New("failed to get cluster")
 	}
+
+	orgID := cluster.GetOrganizationId()
 
 	// create Vault client
 	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)

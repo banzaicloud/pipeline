@@ -56,10 +56,11 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		}
 	}
 
-	orgID, err := getOrgID(ctx, m.clusterGetter, clusterID)
+	cluster, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-		return nil, errors.New("failed to get organization ID from context")
+		return nil, errors.New("failed to get cluster")
 	}
+	orgID := cluster.GetOrganizationId()
 
 	// create Vault client
 	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
@@ -96,17 +97,11 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 		return err
 	}
 
-	if vaultSpec.CustomVault.Enabled {
-
-		// address is required in case of custom vault
-		if len(vaultSpec.CustomVault.Address) == 0 {
-			return errors.New("address field is required in case of custom vault")
+	if err := vaultSpec.Validate(); err != nil {
+		return clusterfeature.InvalidFeatureSpecError{
+			FeatureName: featureName,
+			Problem:     err.Error(),
 		}
-	}
-
-	if len(vaultSpec.Settings.Namespaces) == 1 && vaultSpec.Settings.Namespaces[0] == "*" &&
-		len(vaultSpec.Settings.ServiceAccounts) == 1 && vaultSpec.Settings.ServiceAccounts[0] == "*" {
-		return errors.New("both namespaces and service accounts can not be \"*\"")
 	}
 
 	return nil

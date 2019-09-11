@@ -15,6 +15,8 @@
 package vault
 
 import (
+	"errors"
+
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/mitchellh/mapstructure"
 )
@@ -45,4 +47,21 @@ func bindFeatureSpec(spec clusterfeature.FeatureSpec) (vaultFeatureSpec, error) 
 	}
 
 	return featureSpec, nil
+}
+
+func (s *vaultFeatureSpec) Validate() error {
+	if s.CustomVault.Enabled {
+
+		// address is required in case of custom vault
+		if len(s.CustomVault.Address) == 0 {
+			return errors.New("address field is required in case of custom vault")
+		}
+	}
+
+	if len(s.Settings.Namespaces) == 1 && s.Settings.Namespaces[0] == "*" &&
+		len(s.Settings.ServiceAccounts) == 1 && s.Settings.ServiceAccounts[0] == "*" {
+		return errors.New("both namespaces and service accounts can not be \"*\"")
+	}
+
+	return nil
 }
