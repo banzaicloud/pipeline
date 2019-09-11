@@ -14,9 +14,5 @@
 
 package securityscan
 
-import "testing"
-
-func Test_bindSpec(t *testing.T) {
-
-}
+const FeatureName = "securityscan"
 

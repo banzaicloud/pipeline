@@ -15,6 +15,7 @@
 package securityscan
 
 import (
+	"context"
 	"testing"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
@@ -33,6 +34,57 @@ func TestMakeFeatureManager(t *testing.T) {
 	assert.Equal(t, FeatureName, fm.Name(), "the feature manager instance name is invalid")
 }
 
-func Test(t *testing.T) {
+// todo add test more cases for validating the spec
+func TestFeatureManager_ValidateSpec(t *testing.T) {
+	tests := []struct {
+		name    string
+		spec    clusterfeature.FeatureSpec
+		checker func(err error) bool
+	}{
+		{
+			name: "initial test case",
+			spec: clusterfeature.FeatureSpec{
+				"customAnchore": obj{
+					"enabled":  true,
+					"url":      "anchore.example.com", //mandatory
+					"secretId": "mysecretid",          // mandatory
+				},
+				"policy": obj{
+					"policyId": "myPolicyID, select, from backend",
+				},
+				"releaseWhiteList": []obj{ //optional
+					obj{
+						"name":   "name of release 1",                        //mandatory
+						"reason": "reason of whitelisting",                   //mandatory
+						"regexp": "whitelisted-[0-1]{2}.[a-z]{2,3}-releases", // optional
+					},
+					obj{
+						"name":   "name of release 2",
+						"reason": "reason of whitelisting",
+						"regexp": "whitelisted-[0-1]{2}.[a-z]{2,3}-releases",
+					},
+				},
+				"webhookConfig": obj{
+					"enabled":    true,                 //
+					"selector":   "include or exclude", //mandatory
+					"namespaces": []string{"default", "test"},
+				},
+			},
+			checker: func(err error) bool {
+				return false
+			},
+		},
+		// todo add more test fixtures here
+	}
 
+	ctx := context.Background()
+	securityScanFeatureManager := MakeFeatureManager()
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := securityScanFeatureManager.ValidateSpec(ctx, test.spec)
+			if err != nil {
+				t.Errorf("test failed with errors: %v", err)
+			}
+		})
+	}
 }
