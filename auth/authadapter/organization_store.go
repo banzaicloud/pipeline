@@ -75,7 +75,7 @@ func (g GormOrganizationStore) EnsureOrganizationExists(ctx context.Context, nam
 		)
 	}
 
-	return false, 0, nil
+	return false, organization.ID, nil
 }
 
 // GetOrganizationMembershipsOf returns the list of organization memberships for a user.

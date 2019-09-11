@@ -45,13 +45,16 @@ func (org *Organization) IDString() string {
 type OrganizationSyncer struct {
 	store  OrganizationStore
 	events OrganizationEvents
+	logger Logger
 }
 
 // NewOrganizationSyncer returns a new OrganizationSyncer.
-func NewOrganizationSyncer(store OrganizationStore, events OrganizationEvents) OrganizationSyncer {
+func NewOrganizationSyncer(store OrganizationStore, events OrganizationEvents, logger Logger) OrganizationSyncer {
 	return OrganizationSyncer{
 		store:  store,
 		events: events,
+
+		logger: logger,
 	}
 }
 
@@ -107,10 +110,21 @@ type UpstreamOrganization struct {
 
 // SyncOrganizations synchronizes organization membership for a user.
 func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{
+		"userId": user.ID,
+	})
+
 	membershipsToAdd := make(map[string]string, len(upstreamMemberships))
-	organizationsCreated := make(map[string]uint)
+	organizations := make(map[string]uint)
+
+	logger.Info("syncing organizations for user")
 
 	for _, membership := range upstreamMemberships {
+		logger.Info("ensuring organization exists", map[string]interface{}{
+			"organizationName": membership.Organization.Name,
+			"provider":         membership.Organization.Provider,
+		})
+
 		created, id, err := s.store.EnsureOrganizationExists(
 			ctx,
 			membership.Organization.Name,
@@ -122,9 +136,10 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 
 		membershipsToAdd[membership.Organization.Name] = membership.Role
 
-		if created {
-			organizationsCreated[membership.Organization.Name] = id
+		// This index is used both in case of new organizations and when adding users to existing organizations.
+		organizations[membership.Organization.Name] = id
 
+		if created {
 			event := OrganizationCreated{
 				ID:     id,
 				UserID: user.ID,
@@ -147,6 +162,10 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 
 		// User is not in the list of upstream memberships, remove from organization
 		if !ok {
+			logger.Info("removing user from organization", map[string]interface{}{
+				"organizationId": currentMembership.OrganizationID,
+			})
+
 			err := s.store.RemoveUserFromOrganization(ctx, currentMembership.OrganizationID, user.ID)
 			if err != nil {
 				return err
@@ -157,11 +176,20 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 
 		// Membership is already up to date, there is nothing to do
 		if currentMembership.Role == role {
+			logger.Debug("user is already in the organization", map[string]interface{}{
+				"organizationId": currentMembership.OrganizationID,
+			})
+
 			// Membership already exists, no need to add
 			delete(membershipsToAdd, currentMembership.Organization.Name)
 
 			continue
 		}
+
+		logger.Info("updating user membership", map[string]interface{}{
+			"organizationId": currentMembership.OrganizationID,
+			"role":           role,
+		})
 
 		err := s.store.ApplyUserMembership(ctx, currentMembership.OrganizationID, user.ID, role)
 		if err != nil {
@@ -173,11 +201,18 @@ func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, up
 	}
 
 	for organizationName, role := range membershipsToAdd {
-		err := s.store.ApplyUserMembership(ctx, organizationsCreated[organizationName], user.ID, role)
+		logger.Info("adding user to organization", map[string]interface{}{
+			"organizationId": organizations[organizationName],
+			"role":           role,
+		})
+
+		err := s.store.ApplyUserMembership(ctx, organizations[organizationName], user.ID, role)
 		if err != nil {
 			return err
 		}
 	}
+
+	logger.Info("organizations synchronized successfully for user")
 
 	return nil
 }

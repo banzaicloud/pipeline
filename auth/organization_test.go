@@ -19,6 +19,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 //go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name OrganizationStore -inpkg -testonly"
@@ -27,7 +29,7 @@ import (
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite this test with an in-memory store
 	store := &MockOrganizationStore{}
 	events := &MockOrganizationEvents{}
-	syncer := NewOrganizationSyncer(store, events)
+	syncer := NewOrganizationSyncer(store, events, commonadapter.NewNoopLogger())
 
 	ctx := context.Background()
 

@@ -361,12 +361,14 @@ func (OIDCProvider) ServeHTTP(*auth.Context) {
 // OIDCOrganizationSyncer synchronizes organizations of a user from an OIDC ID token.
 type OIDCOrganizationSyncer struct {
 	organizationSyncer OrganizationSyncer
+	roleBinder         RoleBinder
 }
 
 // NewOIDCOrganizationSyncer returns a new OIDCOrganizationSyncer.
-func NewOIDCOrganizationSyncer(organizationSyncer OrganizationSyncer) OIDCOrganizationSyncer {
+func NewOIDCOrganizationSyncer(organizationSyncer OrganizationSyncer, roleBinder RoleBinder) OIDCOrganizationSyncer {
 	return OIDCOrganizationSyncer{
 		organizationSyncer: organizationSyncer,
+		roleBinder:         roleBinder,
 	}
 }
 
@@ -397,18 +399,7 @@ func (s OIDCOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 				Name:     org,
 				Provider: idTokenClaims.FederatedClaims["connector_id"],
 			},
-			Role: RoleMember,
-		}
-
-		if idTokenClaims.FederatedClaims["connector_id"] == ProviderGithub || idTokenClaims.FederatedClaims["connector_id"] == ProviderGitlab {
-			membership.Role = RoleAdmin
-		} else {
-			// TODO: add role group binding
-			for _, group := range groups {
-				if roleLevelMap[membership.Role] < roleLevelMap[group] {
-					membership.Role = group
-				}
-			}
+			Role: s.roleBinder.BindRole(groups),
 		}
 
 		upstreamMemberships = append(upstreamMemberships, membership)

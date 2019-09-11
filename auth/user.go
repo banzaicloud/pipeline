@@ -56,17 +56,6 @@ const (
 	OAuthRefreshTokenID = "oauth_refresh"
 )
 
-const (
-	RoleAdmin  = "admin"
-	RoleMember = "member"
-)
-
-// nolint: gochecknoglobals
-var roleLevelMap = map[string]int{
-	RoleAdmin:  100,
-	RoleMember: 50,
-}
-
 // AuthIdentity auth identity session model
 type AuthIdentity struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
