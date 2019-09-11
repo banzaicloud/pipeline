@@ -38,10 +38,17 @@ func newVaultManager(spec vaultFeatureSpec, orgID, clusterID uint) (*vaultManage
 	clientConfig := vaultapi.DefaultConfig()
 	clientConfig.Address = vaultAddress
 
-	client, err := vault.NewClientFromConfig(
-		clientConfig,
+	var clientOptions = []vault.ClientOption{
 		vault.ClientRole(roleName),
 		vault.ClientAuthPath(getAuthMethodPath(orgID, clusterID)),
+	}
+	if len(spec.CustomVault.Token) != 0 {
+		clientOptions = append(clientOptions, vault.ClientToken(spec.CustomVault.Token))
+	}
+
+	client, err := vault.NewClientFromConfig(
+		clientConfig,
+		clientOptions...,
 	)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create Vault client")
