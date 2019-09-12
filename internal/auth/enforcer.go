@@ -24,11 +24,13 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 )
 
-type basicEnforcer struct {
+// BasicEnforcer is the default enforcer implementation for authorization.
+type BasicEnforcer struct {
 	db *gorm.DB
 }
 
-func (e *basicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, method string) (bool, error) {
+// Enforce makes authorization decisions.
+func (e *BasicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, method string) (bool, error) {
 	if user == nil {
 		return false, nil
 	}
@@ -69,6 +71,6 @@ func (e *basicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, m
 }
 
 // NewEnforcer returns a new enforcer.
-func NewEnforcer(db *gorm.DB) Enforcer {
-	return &basicEnforcer{db: db}
+func NewEnforcer(db *gorm.DB) *BasicEnforcer {
+	return &BasicEnforcer{db: db}
 }

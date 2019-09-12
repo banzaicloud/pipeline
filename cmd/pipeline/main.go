@@ -83,6 +83,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/ginauth"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
@@ -436,7 +437,7 @@ func main() {
 	auth.Install(router, tokenHandler.GenerateToken)
 	auth.StartTokenStoreGC()
 
-	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath, errorHandler)
+	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)
 
 	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler)
 	dgroup := base.Group(path.Join("dashboard", "orgs"))
