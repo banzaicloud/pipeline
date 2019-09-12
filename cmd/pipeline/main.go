@@ -59,7 +59,6 @@ import (
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
-	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
@@ -169,8 +168,6 @@ func main() {
 	commonLogger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 
 	basePath := viper.GetString("pipeline.basepath")
-
-	enforcer := intAuth.NewEnforcer(db)
 
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
@@ -437,6 +434,7 @@ func main() {
 	auth.Install(router, tokenHandler.GenerateToken)
 	auth.StartTokenStoreGC()
 
+	enforcer := auth.NewBasicEnforcer(db)
 	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)
 
 	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler)
