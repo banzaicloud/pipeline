@@ -1570,7 +1570,6 @@ func (a *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 			}
 		}
 
-
 		if len(loadBalancerNames) == 0 {
 			return nil
 		}
@@ -1588,7 +1587,7 @@ func (a *WaitResourceDeletionAction) waitUntilELBsDeleted() error {
 			}
 
 			describeTagsInput := &elb.DescribeTagsInput{
-				LoadBalancerNames: loadBalancerNames[low: high],
+				LoadBalancerNames: loadBalancerNames[low:high],
 			}
 
 			describeTagsOutput, err := elbService.DescribeTags(describeTagsInput)
