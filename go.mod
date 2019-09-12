@@ -27,7 +27,7 @@ require (
 	github.com/antihax/optional v0.0.0-20180407024304-ca021399b1a6
 	github.com/aokoli/goutils v1.0.1
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05
-	github.com/aws/aws-sdk-go v1.16.11
+	github.com/aws/aws-sdk-go v1.23.18
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.2
@@ -73,6 +73,7 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-github v17.0.0+incompatible
+	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/hashicorp/go-multierror v1.0.0
@@ -115,6 +116,7 @@ require (
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 // indirect
 	github.com/russross/blackfriday v1.5.1 // indirect
+	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20160419172024-e9042807f4f5 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190306220146-200a235640ff // indirect

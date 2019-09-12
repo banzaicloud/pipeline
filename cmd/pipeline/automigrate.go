@@ -19,6 +19,8 @@ import (
 	"io/ioutil"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,7 +30,7 @@ func main() {
 	logger := logrus.New()
 	logger.SetOutput(ioutil.Discard)
 
-	err := Migrate(db, logger)
+	err := Migrate(db, logger, commonadapter.NewNoopLogger())
 	if err != nil {
 		panic(err)
 	}

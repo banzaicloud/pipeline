@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
@@ -42,7 +43,7 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 
 	eventDispatcher := NewOrganizationEventDispatcher(eventBus)
 
-	syncer := auth.NewOrganizationSyncer(store, eventDispatcher)
+	syncer := auth.NewOrganizationSyncer(store, eventDispatcher, commonadapter.NewNoopLogger())
 
 	user := auth.User{
 		Name:  "John Doe",
@@ -51,6 +52,14 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 	}
 
 	err = db.Save(&user).Error
+	require.NoError(t, err)
+
+	organization := auth.Organization{
+		Name:     "add-to-existing-org",
+		Provider: "github",
+	}
+
+	err = db.Save(&organization).Error
 	require.NoError(t, err)
 
 	currentMemberships := []auth.UserOrganization{
@@ -120,6 +129,13 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 		{
 			Organization: auth.UpstreamOrganization{
 				Name:     "new-org",
+				Provider: "github",
+			},
+			Role: auth.RoleAdmin,
+		},
+		{
+			Organization: auth.UpstreamOrganization{
+				Name:     "add-to-existing-org",
 				Provider: "github",
 			},
 			Role: auth.RoleAdmin,

@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package notification
+package notificationadapter
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 )
 
 // Migrate executes the table migrations for the notification module.
-func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
+func Migrate(db *gorm.DB, logger notification.Logger) error {
 	tables := []interface{}{
-		&NotificationModel{},
+		&notificationModel{},
 	}
 
 	var tableNames string
@@ -33,9 +34,9 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
 	}
 
-	logger.WithFields(logrus.Fields{
+	logger.Info("migrating notification tables", map[string]interface{}{
 		"table_names": strings.TrimSpace(tableNames),
-	}).Info("migrating notification tables")
+	})
 
 	return db.AutoMigrate(tables...).Error
 }

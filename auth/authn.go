@@ -635,13 +635,15 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 		return
 	}
 
-	cicdUser := CICDUser{Login: user.Login}
-	// We need to pass cicdUser as well as the where clause, because Delete() filters by primary
-	// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login
-	if err := cicdDB.Delete(cicdUser, cicdUser).Error; err != nil {
-		errorHandler.Handle(errors.Wrap(err, "failed delete user from CICD"))
-		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
-		return
+	if viper.GetBool("cicd.enabled") {
+		cicdUser := CICDUser{Login: user.Login}
+		// We need to pass cicdUser as well as the where clause, because Delete() filters by primary
+		// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login
+		if err := cicdDB.Delete(cicdUser, cicdUser).Error; err != nil {
+			errorHandler.Handle(errors.Wrap(err, "failed delete user from CICD"))
+			http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Delete Tokens

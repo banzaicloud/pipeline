@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -48,12 +49,12 @@ import (
 	"github.com/banzaicloud/pipeline/api/cluster/pke"
 	cgroupAPI "github.com/banzaicloud/pipeline/api/clustergroup"
 	"github.com/banzaicloud/pipeline/api/common"
-	"github.com/banzaicloud/pipeline/api/middleware"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/auth/authadapter"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
+	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
@@ -78,7 +79,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
-	"github.com/banzaicloud/pipeline/internal/notification"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
@@ -165,6 +165,8 @@ func main() {
 	cicdDB, err := config.CICDDB()
 	emperror.Panic(err)
 
+	commonLogger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
+
 	basePath := viper.GetString("pipeline.basepath")
 
 	enforcer := intAuth.NewEnforcer(db)
@@ -200,7 +202,18 @@ func main() {
 		)
 		store := authadapter.NewGormOrganizationStore(db)
 		eventDispatcher := authadapter.NewOrganizationEventDispatcher(eventBus)
-		organizationSyncer = auth.NewOIDCOrganizationSyncer(auth.NewOrganizationSyncer(store, eventDispatcher))
+
+		roleBinder, err := auth.NewRoleBinder(conf.Auth.DefaultRole, conf.Auth.RoleBinding)
+		emperror.Panic(err)
+
+		organizationSyncer = auth.NewOIDCOrganizationSyncer(
+			auth.NewOrganizationSyncer(
+				store,
+				eventDispatcher,
+				commonLogger.WithFields(map[string]interface{}{"component": "auth"}),
+			),
+			roleBinder,
+		)
 	}
 
 	// Initialize auth
@@ -209,7 +222,7 @@ func main() {
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		logger.Info("running automatic schema migrations")
 
-		err = Migrate(db, logrusLogger)
+		err = Migrate(db, logrusLogger, commonLogger)
 		if err != nil {
 			panic(err)
 		}
@@ -406,7 +419,18 @@ func main() {
 	router.GET("/", api.RedirectRoot)
 
 	base := router.Group(basePath)
-	base.GET("notifications", notification.GetNotifications)
+
+	// Frontend service
+	{
+		app := frontend.NewApp(db, commonLogger, errorHandler)
+		handler := gin.WrapH(http.StripPrefix(basePath, app))
+
+		base.Any("frontend/*path", handler)
+
+		// Compatibility routes
+		base.GET("notifications", handler)
+	}
+
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
 	auth.Install(router, tokenHandler.GenerateToken)
@@ -440,43 +464,48 @@ func main() {
 		global.AutoDNSEnabled = true
 	}
 
-	spotguidePlatformData := spotguide.PlatformData{
-		AutoDNSEnabled: global.AutoDNSEnabled,
+	var spotguideAPI *api.SpotguideAPI
+
+	if viper.GetBool("cicd.enabled") {
+
+		spotguidePlatformData := spotguide.PlatformData{
+			AutoDNSEnabled: global.AutoDNSEnabled,
+		}
+
+		scmProvider := viper.GetString("cicd.scm")
+		var scmToken string
+		switch scmProvider {
+		case "github":
+			scmToken = viper.GetString("github.token")
+		case "gitlab":
+			scmToken = viper.GetString("gitlab.token")
+		default:
+			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
+		}
+
+		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
+		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
+
+		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+		if err != nil {
+			errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
+		}
+
+		spotguideManager := spotguide.NewSpotguideManager(
+			config.DB(),
+			version,
+			scmFactory,
+			sharedSpotguideOrg,
+			spotguidePlatformData,
+		)
+
+		// periodically sync shared spotguides
+		if err := spotguide.ScheduleScrapingSharedSpotguides(workflowClient); err != nil {
+			errorHandler.Handle(errors.WrapIf(err, "failed to schedule syncing shared spotguides"))
+		}
+
+		spotguideAPI = api.NewSpotguideAPI(logrusLogger, errorHandler, spotguideManager)
 	}
-
-	scmProvider := viper.GetString("cicd.scm")
-	var scmToken string
-	switch scmProvider {
-	case "github":
-		scmToken = viper.GetString("github.token")
-	case "gitlab":
-		scmToken = viper.GetString("gitlab.token")
-	default:
-		emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
-	}
-
-	scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
-	emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
-
-	sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
-	if err != nil {
-		errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
-	}
-
-	spotguideManager := spotguide.NewSpotguideManager(
-		config.DB(),
-		version,
-		scmFactory,
-		sharedSpotguideOrg,
-		spotguidePlatformData,
-	)
-
-	// periodically sync shared spotguides
-	if err := spotguide.ScheduleScrapingSharedSpotguides(workflowClient); err != nil {
-		errorHandler.Handle(errors.WrapIf(err, "failed to schedule syncing shared spotguides"))
-	}
-
-	spotguideAPI := api.NewSpotguideAPI(logrusLogger, errorHandler, spotguideManager)
 
 	v1 := base.Group("api/v1")
 	{
@@ -490,13 +519,10 @@ func main() {
 			orgs.Use(api.OrganizationMiddleware)
 			orgs.Use(authorizationMiddleware)
 
-			orgs.GET("/:orgid/spotguides", spotguideAPI.GetSpotguides)
-			orgs.PUT("/:orgid/spotguides", middleware.NewRateLimiterByOrgID(api.SyncSpotguidesRateLimit), spotguideAPI.SyncSpotguides)
-			orgs.POST("/:orgid/spotguides", spotguideAPI.LaunchSpotguide)
-			// Spotguide name may contain '/'s so we have to use :owner/:name
-			orgs.GET("/:orgid/spotguides/:owner/:name", spotguideAPI.GetSpotguide)
-			orgs.HEAD("/:orgid/spotguides/:owner/:name", spotguideAPI.GetSpotguide)
-			orgs.GET("/:orgid/spotguides/:owner/:name/icon", spotguideAPI.GetSpotguideIcon)
+			if viper.GetBool("cicd.enabled") {
+				spotguides := v1.Group("/spotguides")
+				spotguideAPI.Install(spotguides)
+			}
 
 			orgs.GET("/:orgid/domain", domainAPI.GetDomain)
 			orgs.POST("/:orgid/clusters", clusterAPI.CreateCluster)

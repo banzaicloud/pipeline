@@ -74,6 +74,7 @@ AllowOrigins = ["http://localhost:4200"]
 path = ""
 
 [cicd]
+enabled = false
 url = "http://localhost:8000"
 scm = "github"
 
@@ -101,6 +102,11 @@ secureCookie = false
 # Domain field for cookies
 cookieDomain = ""
 setCookieDomain = false
+
+defaultRole = "admin"
+[auth.roleBinding]
+admin = ".*"
+member = ""
 
 [helm]
 retryAttempt = 30

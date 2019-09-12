@@ -1,9 +1,9 @@
 /*
  * Pipeline API
  *
- * Pipeline v0.3.0 swagger
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
  *
- * API version: 0.3.0
+ * API version: latest
  * Contact: info@banzaicloud.com
  */
 
@@ -39,7 +39,7 @@ var (
 	xmlCheck  = regexp.MustCompile("(?i:[application|text]/xml)")
 )
 
-// APIClient manages communication with the Pipeline API API v0.3.0
+// APIClient manages communication with the Pipeline API API vlatest
 // In most cases there should be only one, shared, APIClient.
 type APIClient struct {
 	cfg    *Configuration

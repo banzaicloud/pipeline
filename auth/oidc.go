@@ -167,6 +167,18 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 				}
 
 			case "POST":
+				// Form request from frontend to refresh a token.
+				refreshToken := req.FormValue("refresh_token")
+				if refreshToken == "" {
+					err = fmt.Errorf("no refresh_token in request: %q", req.Form)
+					return nil, err
+				}
+
+				token = &oauth2.Token{
+					RefreshToken: refreshToken,
+					Expiry:       time.Now().Add(-time.Hour),
+				}
+
 				// The Banzai CLI can send an id_token that it has requested from Dex
 				// we may consume that as well in a POST request.
 				rawIDToken = req.FormValue("id_token")
@@ -175,19 +187,7 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 					verifier = oidcProvider.Verifier(&oidc.Config{ClientID: config.PublicClientID})
 
 				} else {
-					// Form request from frontend to refresh a token.
-					refresh := req.FormValue("refresh_token")
-					if refresh == "" {
-						err = fmt.Errorf("no refresh_token in request: %q", req.Form)
-						return nil, err
-					}
-
-					t := &oauth2.Token{
-						RefreshToken: refresh,
-						Expiry:       time.Now().Add(-time.Hour),
-					}
-
-					token, err = oauth2Config.TokenSource(ctx, t).Token()
+					token, err = oauth2Config.TokenSource(ctx, token).Token()
 					if err != nil {
 						err = fmt.Errorf("failed to get token: %s", err.Error())
 						return nil, err
@@ -218,24 +218,9 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 			}
 
 			// Check if authInfo exists with the backend connector already
+			// Only used for backward compatbility reasons
 			authInfo.Provider = claims.FederatedClaims["connector_id"]
 			authInfo.UID = claims.FederatedClaims["user_id"]
-
-			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
-				return authInfo.ToClaims(), nil
-			}
-
-			// Check if authInfo exists with Dex
-			authInfo.Provider = "dex:" + claims.FederatedClaims["connector_id"]
-			authInfo.UID = claims.Subject
-
-			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
-				claims := authInfo.ToClaims()
-				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
-			}
-
-			// Create a new account otherwise
-			context.Request = req.WithContext(gocontext.WithValue(req.Context(), SignUp, true))
 
 			{
 				schema.Provider = authInfo.Provider
@@ -244,6 +229,38 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 				schema.Email = claims.Email
 				schema.RawInfo = &claims
 			}
+
+			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+				claims := authInfo.ToClaims()
+
+				if err = context.Auth.UserStorer.Update(&schema, context); err != nil {
+					return claims, err
+				}
+
+				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
+			}
+
+			// Check if authInfo exists with Dex
+			authInfo.Provider = "dex:" + claims.FederatedClaims["connector_id"]
+			authInfo.UID = claims.Subject
+
+			{
+				schema.Provider = authInfo.Provider
+			}
+
+			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+				claims := authInfo.ToClaims()
+
+				if err = context.Auth.UserStorer.Update(&schema, context); err != nil {
+					return claims, err
+				}
+
+				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
+			}
+
+			// Create a new account otherwise
+			context.Request = req.WithContext(gocontext.WithValue(req.Context(), SignUp, true))
+
 			if _, userID, err := context.Auth.UserStorer.Save(&schema, context); err == nil {
 				if userID != "" {
 					authInfo.UserID = userID
@@ -361,12 +378,14 @@ func (OIDCProvider) ServeHTTP(*auth.Context) {
 // OIDCOrganizationSyncer synchronizes organizations of a user from an OIDC ID token.
 type OIDCOrganizationSyncer struct {
 	organizationSyncer OrganizationSyncer
+	roleBinder         RoleBinder
 }
 
 // NewOIDCOrganizationSyncer returns a new OIDCOrganizationSyncer.
-func NewOIDCOrganizationSyncer(organizationSyncer OrganizationSyncer) OIDCOrganizationSyncer {
+func NewOIDCOrganizationSyncer(organizationSyncer OrganizationSyncer, roleBinder RoleBinder) OIDCOrganizationSyncer {
 	return OIDCOrganizationSyncer{
 		organizationSyncer: organizationSyncer,
+		roleBinder:         roleBinder,
 	}
 }
 
@@ -397,18 +416,7 @@ func (s OIDCOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 				Name:     org,
 				Provider: idTokenClaims.FederatedClaims["connector_id"],
 			},
-			Role: RoleMember,
-		}
-
-		if idTokenClaims.FederatedClaims["connector_id"] == ProviderGithub || idTokenClaims.FederatedClaims["connector_id"] == ProviderGitlab {
-			membership.Role = RoleAdmin
-		} else {
-			// TODO: add role group binding
-			for _, group := range groups {
-				if roleLevelMap[membership.Role] < roleLevelMap[group] {
-					membership.Role = group
-				}
-			}
+			Role: s.roleBinder.BindRole(groups),
 		}
 
 		upstreamMemberships = append(upstreamMemberships, membership)
@@ -425,7 +433,7 @@ func (s OIDCOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user Us
 				Role: RoleAdmin,
 			},
 		},
-		upstreamMemberships...
+		upstreamMemberships...,
 	)
 
 	return s.organizationSyncer.SyncOrganizations(ctx, user, upstreamMemberships)
