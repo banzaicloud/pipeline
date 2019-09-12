@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/jinzhu/gorm"
-
-	"github.com/banzaicloud/pipeline/auth"
 )
 
 // BasicEnforcer is the default enforcer implementation for authorization.
@@ -29,8 +27,13 @@ type BasicEnforcer struct {
 	db *gorm.DB
 }
 
+// NewBasicEnforcer returns a new enforcer.
+func NewBasicEnforcer(db *gorm.DB) *BasicEnforcer {
+	return &BasicEnforcer{db: db}
+}
+
 // Enforce makes authorization decisions.
-func (e *BasicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, method string) (bool, error) {
+func (e *BasicEnforcer) Enforce(org *Organization, user *User, path, method string) (bool, error) {
 	if user == nil {
 		return false, nil
 	}
@@ -54,7 +57,7 @@ func (e *BasicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, m
 			return org.ID == uint(orgID), nil
 		}
 
-		orgName := auth.GetOrgNameFromVirtualUser(user.Login)
+		orgName := GetOrgNameFromVirtualUser(user.Login)
 		return org.Name == orgName, nil
 	}
 
@@ -68,9 +71,4 @@ func (e *BasicEnforcer) Enforce(org *auth.Organization, user *auth.User, path, m
 	}
 
 	return true, nil
-}
-
-// NewEnforcer returns a new enforcer.
-func NewEnforcer(db *gorm.DB) *BasicEnforcer {
-	return &BasicEnforcer{db: db}
 }
