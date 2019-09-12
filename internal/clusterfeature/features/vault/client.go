@@ -85,14 +85,8 @@ func (m *vaultManager) deleteRole(orgID, clusterID uint) (*vaultapi.Secret, erro
 	return m.vaultClient.RawClient().Logical().Delete(getRolePath(orgID, clusterID))
 }
 
-func (m *vaultManager) createPolicy(orgID, clusterID uint) error {
-	return m.vaultClient.RawClient().Sys().PutPolicy(
-		getPolicyName(orgID, clusterID),
-		fmt.Sprintf(`
-			path "secret/org/%d/*" {
-				capabilities = [ "read", "list" ]
-			}`, orgID),
-	)
+func (m *vaultManager) createPolicy(orgID, clusterID uint, policy string) error {
+	return m.vaultClient.RawClient().Sys().PutPolicy(getPolicyName(orgID, clusterID), policy)
 }
 
 func (m *vaultManager) deletePolicy(orgID, clusterID uint) error {
@@ -105,4 +99,11 @@ func getAuthMethodPath(orgID, clusterID uint) string {
 
 func getRolePath(orgID, clusterID uint) string {
 	return fmt.Sprintf("auth/%s/role/%s", getAuthMethodPath(orgID, clusterID), roleName)
+}
+
+func getDefaultPolicy(orgID uint) string {
+	return fmt.Sprintf(`
+			path "secret/org/%d/*" {
+				capabilities = [ "read", "list" ]
+			}`, orgID)
 }

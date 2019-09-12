@@ -29,6 +29,7 @@ type vaultFeatureSpec struct {
 type CustomVault struct {
 	Enabled bool   `json:"enabled"`
 	Address string `json:"address"`
+	Policy  string `json:"policy"`
 	Token   string `json:"token"`
 }
 
@@ -56,6 +57,12 @@ func (s *vaultFeatureSpec) Validate() error {
 		if len(s.CustomVault.Address) == 0 {
 			return errors.New("address field is required in case of custom vault")
 		}
+
+		// policy is required in case of custom vault
+		if len(s.CustomVault.Policy) == 0 {
+			return errors.New("policy field is required in case of custom vault")
+		}
+
 	}
 
 	if len(s.Settings.Namespaces) == 1 && s.Settings.Namespaces[0] == "*" &&

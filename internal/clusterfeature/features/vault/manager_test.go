@@ -16,6 +16,7 @@ package vault
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/banzaicloud/pipeline/config"
@@ -73,6 +74,10 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 			"authMethodPath": "kubernetes/13/42",
 			"rolePath":       "auth/kubernetes/13/42/role/pipeline-webhook",
 			"version":        vVersion,
+			"policy": fmt.Sprintf(`
+			path "secret/org/%d/*" {
+				capabilities = [ "read", "list" ]
+			}`, 13),
 		},
 		"webhook": map[string]interface{}{
 			"version": viper.GetString(config.VaultWebhookChartVersionKey),

@@ -68,23 +68,37 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		return nil, errors.WrapIf(err, "failed to create Vault client")
 	}
 
+	_, chartVersion := getChartParams()
+
+	vaultOutput, err := getVaultOutput(vaultManager, orgID, clusterID, boundSpec.CustomVault.Enabled)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get Vault output")
+	}
+
+	out := map[string]interface{}{
+		"vault": vaultOutput,
+		"webhook": map[string]interface{}{
+			"version": chartVersion,
+		},
+	}
+
+	return out, nil
+}
+
+func getVaultOutput(m *vaultManager, orgID, clusterID uint, isCustomVault bool) (map[string]interface{}, error) {
 	// get Vault version
-	vaultVersion, err := vaultManager.getVaultVersion()
+	vaultVersion, err := m.getVaultVersion()
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get Vault version")
 	}
 
-	_, chartVersion := getChartParams()
-
 	out := map[string]interface{}{
-		"vault": map[string]interface{}{
-			"authMethodPath": getAuthMethodPath(orgID, clusterID),
-			"rolePath":       getRolePath(orgID, clusterID),
-			"version":        vaultVersion,
-		},
-		"webhook": map[string]interface{}{
-			"version": chartVersion,
-		},
+		"authMethodPath": getAuthMethodPath(orgID, clusterID),
+		"rolePath":       getRolePath(orgID, clusterID),
+		"version":        vaultVersion,
+	}
+	if !isCustomVault {
+		out["policy"] = getDefaultPolicy(orgID)
 	}
 
 	return out, nil

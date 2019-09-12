@@ -109,7 +109,13 @@ func (op FeatureOperator) configureVault(
 		}
 
 		// create policy
-		if err := vaultManager.createPolicy(orgID, clusterID); err != nil {
+		var policy string
+		if boundSpec.CustomVault.Enabled {
+			policy = boundSpec.CustomVault.Policy
+		} else {
+			policy = getDefaultPolicy(orgID)
+		}
+		if err := vaultManager.createPolicy(orgID, clusterID, policy); err != nil {
 			return errors.WrapIf(err, "failed to create policy")
 		}
 		logger.Info("policy created successfully")
