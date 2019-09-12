@@ -19,12 +19,18 @@ import (
 	"encoding/json"
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/hashicorp/vault/api"
 	"github.com/prometheus/common/log"
 	"github.com/spf13/viper"
@@ -102,6 +108,73 @@ func (op FeatureOperator) configureVault(
 		// custom Vault with token or CP's vault
 		logger.Debug("start to setup Vault")
 
+		// Prepare cluster first with the proper token reviwer SA
+		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return errors.WrapIf(err, "failed to get cluster")
+		}
+
+		kubeConfigRaw, err := cluster.GetK8sConfig()
+		if err != nil {
+			return errors.WrapIf(err, "failed to get cluster Kubernetes config")
+		}
+
+		kubeConfig, err := k8sclient.NewClientConfig(kubeConfigRaw)
+		if err != nil {
+			return errors.WrapIf(err, "failed to create cluster Kubernetes config")
+		}
+
+		k8sClient, err := k8sclient.NewClientFromConfig(kubeConfig)
+		if err != nil {
+			return errors.WrapIf(err, "failed to create Kubernetes client")
+		}
+
+		serviceAccount := &corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "vault-token-reviewer",
+			},
+		}
+		_, err = k8sClient.CoreV1().ServiceAccounts("pipeline-system").Create(serviceAccount)
+		if err != nil && !k8sapierrors.IsAlreadyExists(err) {
+			return errors.WrapIf(err, "failed to create token reviewer ServiceAccount")
+		}
+
+		serviceAccount, err = k8sClient.CoreV1().ServiceAccounts("pipeline-system").Get(serviceAccount.Name, metav1.GetOptions{})
+		if err != nil {
+			return errors.WrapIf(err, "failed to get token reviewer ServiceAccount")
+		}
+
+		saTokenSecretRef := serviceAccount.Secrets[0]
+
+		saTokenSecret, err := k8sClient.CoreV1().Secrets("pipeline-system").Get(saTokenSecretRef.Name, metav1.GetOptions{})
+		if err != nil {
+			return errors.WrapIf(err, "failed to find token reviewer ServiceAccount's Secret")
+		}
+
+		tokenReviewerRoleBinding := rbacv1.ClusterRoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "vault-token-reviewer",
+			},
+			RoleRef: rbacv1.RoleRef{
+				APIGroup: rbacv1.GroupName,
+				Kind:     "ClusterRole",
+				Name:     "system:auth-delegator",
+			},
+			Subjects: []rbacv1.Subject{
+				{
+					Kind:      "ServiceAccount",
+					Name:      serviceAccount.Name,
+					Namespace: serviceAccount.Namespace,
+				},
+			},
+		}
+		_, err = k8sClient.RbacV1().ClusterRoleBindings().Create(&tokenReviewerRoleBinding)
+		if err != nil && !k8sapierrors.IsAlreadyExists(err) {
+			return errors.WrapIf(err, "failed to create token reviewer cluster role binding")
+		}
+
+		tokenReviewerJWT := string(saTokenSecret.Data["token"])
+
 		// create vault client
 		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
 		if err != nil {
@@ -123,6 +196,12 @@ func (op FeatureOperator) configureVault(
 		// enable auth method
 		if err := vaultManager.enableAuth(getAuthMethodPath(orgID, clusterID), authMethodType); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to enabling %s auth method for vault", authMethodType))
+		}
+		logger.Info(fmt.Sprintf("auth method %q enabled for vault", authMethodType))
+
+		// config auth method
+		if _, err := vaultManager.configureAuth(orgID, clusterID, tokenReviewerJWT, kubeConfig.Host, kubeConfig.CAData); err != nil {
+			return errors.WrapIf(err, fmt.Sprintf("failed to configure %s auth method for vault", authMethodType))
 		}
 		logger.Info(fmt.Sprintf("auth method %q enabled for vault", authMethodType))
 

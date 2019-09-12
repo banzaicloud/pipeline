@@ -72,6 +72,18 @@ func (m *vaultManager) disableAuth(path string) error {
 	return m.vaultClient.RawClient().Sys().DisableAuth(path)
 }
 
+func (m *vaultManager) configureAuth(orgID, clusterID uint, tokenReviewerJWT, kubernetesHost string, caCert []byte) (*vaultapi.Secret, error) {
+	configData := map[string]interface{}{
+		"token_reviewer_jwt": tokenReviewerJWT,
+		"kubernetes_host":    kubernetesHost,
+		"kubernetes_ca_cert": []string{getPolicyName(orgID, clusterID)},
+	}
+	if len(caCert) != 0 {
+		configData["kubernetes_ca_cert"] = string(caCert)
+	}
+	return m.vaultClient.RawClient().Logical().Write(getAuthMethodConfigPath(orgID, clusterID), configData)
+}
+
 func (m *vaultManager) createRole(orgID, clusterID uint, serviceAccounts, namespaces []string) (*vaultapi.Secret, error) {
 	roleData := map[string]interface{}{
 		"bound_service_account_names":      serviceAccounts,
@@ -99,6 +111,10 @@ func getAuthMethodPath(orgID, clusterID uint) string {
 
 func getRolePath(orgID, clusterID uint) string {
 	return fmt.Sprintf("auth/%s/role/%s", getAuthMethodPath(orgID, clusterID), roleName)
+}
+
+func getAuthMethodConfigPath(orgID, clusterID uint) string {
+	return fmt.Sprintf("auth/%s/config", getAuthMethodPath(orgID, clusterID))
 }
 
 func getDefaultPolicy(orgID uint) string {
