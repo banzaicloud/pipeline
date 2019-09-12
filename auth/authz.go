@@ -15,10 +15,13 @@
 package auth
 
 import (
+	"context"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 )
 
@@ -71,4 +74,111 @@ func (e *BasicEnforcer) Enforce(org *Organization, user *User, path, method stri
 	}
 
 	return true, nil
+}
+
+// RbacEnforcer makes authorization decisions based on user roles.
+type RbacEnforcer struct {
+	roleSource RoleSource
+	logger     Logger
+}
+
+// RoleSource returns the user's role in a given organization.
+type RoleSource interface {
+	// FindUserRole returns the user's role in a given organization.
+	// Returns false as the second parameter if the user is not a member of the organization.
+	FindUserRole(ctx context.Context, organizationID uint, userID uint) (string, bool, error)
+}
+
+// NewRbacEnforcer returns a new RbacEnforcer.
+func NewRbacEnforcer(roleSource RoleSource, logger Logger) RbacEnforcer {
+	return RbacEnforcer{
+		roleSource: roleSource,
+
+		logger: logger,
+	}
+}
+
+// Enforce makes authorization decisions.
+func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string) (bool, error) {
+	// Non-organizational resources are always allowed.
+	// TODO: this shouldn't be decided here, remove it!
+	if org == nil {
+		return true, nil
+	}
+
+	// Unauthenticated users are never allowed.
+	// TODO: this shouldn't be decided here, remove it!
+	if user == nil {
+		return false, nil
+	}
+
+	// This is a virtual user
+	if user.ID == 0 {
+		e.logger.Debug("authorizing virtual user", map[string]interface{}{
+			"organizationId": org.ID,
+			"virtualUser":    user.Login,
+		})
+
+		if strings.HasPrefix(user.Login, "clusters/") {
+			segments := strings.Split(user.Login, "/")
+			if len(segments) < 2 {
+				return false, nil
+			}
+
+			orgID, err := strconv.Atoi(segments[1])
+			if err != nil {
+				return false, errors.WrapIf(err, "failed to parse user token")
+			}
+
+			return org.ID == uint(orgID), nil
+		}
+
+		orgName := GetOrgNameFromVirtualUser(user.Login)
+
+		return org.Name == orgName, nil
+	}
+
+	role, member, err := e.roleSource.FindUserRole(context.Background(), org.ID, user.ID)
+	if err != nil {
+		return false, errors.WrapIfWithDetails(
+			err, "failed to check user organization membership",
+			"method", method,
+			"path", path,
+		)
+	}
+
+	if !member {
+		e.logger.Debug("user is not a member of the organization", map[string]interface{}{
+			"organizationId": org.ID,
+			"userId":         user.ID,
+		})
+
+		return false, nil
+	}
+
+	switch role {
+	case RoleAdmin:
+		return true, nil
+	case RoleMember:
+		// Members can only read organization resources
+		if ok, err := regexp.MatchString(`^/api/v1/orgs(?:/.*)?$`, path); err != nil || (ok && method != "GET") {
+			return false, nil
+		}
+
+		// Members cannot access secrets at all
+		if ok, err := regexp.MatchString(`^/api/v1/orgs/.+/secrets(?:/.*)?$`, path); err != nil || ok {
+			return false, errors.WithStackIf(err)
+		}
+
+		return true, nil
+	default:
+		return false, errors.NewWithDetails(
+			"unknown membership role",
+			"userId", user.ID,
+			"organizationId", org.ID,
+			"role", role,
+			"method", method,
+			"path", path,
+		)
+	}
 }
