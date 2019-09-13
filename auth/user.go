@@ -267,7 +267,7 @@ func (bus BanzaiUserStorer) Update(schema *auth.Schema, authCtx *auth.Context) (
 	currentUser := User{}
 
 	db := authCtx.Auth.GetDB(authCtx.Request)
-	err = db.Where("id = ?", schema.UID).Find(&currentUser).Error
+	err = db.Where("id = ?", schema.UID).First(&currentUser).Error
 	if err != nil {
 		return err
 	}
