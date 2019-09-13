@@ -47,9 +47,7 @@ func (_m *MockFeatureService) Details(ctx context.Context, clusterID uint, featu
 	if rf, ok := ret.Get(0).(func(context.Context, uint, string) clusterfeature.Feature); ok {
 		r0 = rf(ctx, clusterID, featureName)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(clusterfeature.Feature)
-		}
+		r0 = ret.Get(0).(clusterfeature.Feature)
 	}
 
 	var r1 error

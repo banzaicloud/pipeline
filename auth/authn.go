@@ -214,6 +214,7 @@ func Init(db *gorm.DB, orgSyncer OIDCOrganizationSyncer) {
 		SessionStorer:     sessionStorer,
 		UserStorer: BanzaiUserStorer{
 			signingKeyBase32: signingKeyBase32,
+			db:               config.DB(),
 			cicdDB:           cicdDB,
 			orgSyncer:        orgSyncer,
 		},
