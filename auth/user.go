@@ -265,13 +265,9 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 // Update updates the user's group mmeberships from the OIDC ID token at every login
 func (bus BanzaiUserStorer) Update(schema *auth.Schema, authCtx *auth.Context) (err error) {
 	currentUser := User{}
-	err = copier.Copy(&currentUser, schema)
-	if err != nil {
-		return err
-	}
 
 	db := authCtx.Auth.GetDB(authCtx.Request)
-	err = db.Find(&currentUser).Error
+	err = db.Where("id = ?", schema.UID).Find(&currentUser).Error
 	if err != nil {
 		return err
 	}

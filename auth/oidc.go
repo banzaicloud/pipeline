@@ -232,6 +232,7 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 
 			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
 				claims := authInfo.ToClaims()
+				schema.UID = claims.UserID
 
 				if err = context.Auth.UserStorer.Update(&schema, context); err != nil {
 					return claims, err
@@ -250,6 +251,7 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 
 			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
 				claims := authInfo.ToClaims()
+				schema.UID = claims.UserID
 
 				if err = context.Auth.UserStorer.Update(&schema, context); err != nil {
 					return claims, err
