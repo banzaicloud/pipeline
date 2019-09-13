@@ -75,8 +75,8 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 			"rolePath":       "auth/kubernetes/13/42/role/pipeline-webhook",
 			"version":        vVersion,
 			"policy": fmt.Sprintf(`
-			path "secret/org/%d/*" {
-				capabilities = [ "read", "list" ]
+			path "secret/data/orgs/%d/*" {
+				capabilities = [ "read" ]
 			}`, 13),
 		},
 		"webhook": map[string]interface{}{
