@@ -89,6 +89,7 @@ func (m *vaultManager) createRole(orgID, clusterID uint, serviceAccounts, namesp
 		"bound_service_account_names":      serviceAccounts,
 		"bound_service_account_namespaces": namespaces,
 		"policies":                         []string{getPolicyName(orgID, clusterID)},
+		"ttl":                              "1h",
 	}
 	return m.vaultClient.RawClient().Logical().Write(getRolePath(orgID, clusterID), roleData)
 }
