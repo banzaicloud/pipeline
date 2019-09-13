@@ -19,18 +19,17 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8srest "k8s.io/client-go/rest"
 
-	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/hashicorp/vault/api"
 	"github.com/prometheus/common/log"
 	"github.com/spf13/viper"
@@ -38,10 +37,11 @@ import (
 
 // FeatureOperator implements the Vault feature operator
 type FeatureOperator struct {
-	clusterGetter  clusterfeatureadapter.ClusterGetter
-	clusterService clusterfeature.ClusterService
-	helmService    features.HelmService
-	logger         common.Logger
+	clusterGetter     clusterfeatureadapter.ClusterGetter
+	clusterService    clusterfeature.ClusterService
+	helmService       features.HelmService
+	kubernetesService features.KubernetesService
+	logger            common.Logger
 }
 
 // MakeFeatureOperator returns a Vault feature operator
@@ -49,13 +49,15 @@ func MakeFeatureOperator(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
+	kubernetesService features.KubernetesService,
 	logger common.Logger,
 ) FeatureOperator {
 	return FeatureOperator{
-		clusterGetter:  clusterGetter,
-		clusterService: clusterService,
-		helmService:    helmService,
-		logger:         logger,
+		clusterGetter:     clusterGetter,
+		clusterService:    clusterService,
+		helmService:       helmService,
+		kubernetesService: kubernetesService,
+		logger:            logger,
 	}
 }
 
@@ -85,11 +87,85 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		}
 	}
 
-	if err := op.configureVault(ctx, logger, cluster.GetOrganizationId(), clusterID, boundSpec); err != nil {
+	// install vault-secrets-webhook
+	if err := op.installOrUpdateWebhook(ctx, logger, clusterID, boundSpec); err != nil {
+		return errors.WrapIf(err, "failed to deploy helm chart for feature")
+	}
+
+	// get kubeconfig for cluster
+	kubeConfig, err := op.kubernetesService.GetKubeConfig(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster kube config")
+	}
+
+	// create the token reviwer service account
+	tokenReviewerJWT, err := op.configureClusterTokenReviewer(ctx, logger, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to configure Cluster with token reviewer service account")
+	}
+
+	// configure the target Vault instance if needed
+	if err := op.configureVault(ctx, logger, cluster.GetOrganizationId(), clusterID, boundSpec, tokenReviewerJWT, kubeConfig); err != nil {
 		return errors.WrapIf(err, "failed to configure Vault")
 	}
 
 	return nil
+}
+
+func (op FeatureOperator) configureClusterTokenReviewer(
+	ctx context.Context,
+	logger common.Logger,
+	clusterID uint) (string, error) {
+
+	// Prepare cluster first with the proper token reviwer SA
+	serviceAccount := corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "vault-token-reviewer",
+			Namespace: "pipeline-system",
+		},
+	}
+
+	err := op.kubernetesService.EnsureObject(ctx, clusterID, &serviceAccount)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to create token reviewer ServiceAccount")
+	}
+
+	saTokenSecretRef := serviceAccount.Secrets[0]
+	saTokenSecretRef.Namespace = serviceAccount.Namespace
+
+	var saTokenSecret corev1.Secret
+
+	err = op.kubernetesService.GetObject(ctx, clusterID, saTokenSecretRef, &saTokenSecret)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to find token reviewer ServiceAccount's Secret")
+	}
+
+	tokenReviewerRoleBinding := rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "vault-token-reviewer",
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: rbacv1.GroupName,
+			Kind:     "ClusterRole",
+			Name:     "system:auth-delegator",
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      serviceAccount.Name,
+				Namespace: serviceAccount.Namespace,
+			},
+		},
+	}
+
+	err = op.kubernetesService.EnsureObject(ctx, clusterID, &tokenReviewerRoleBinding)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to create token reviewer cluster role binding")
+	}
+
+	tokenReviewerJWT := string(saTokenSecret.Data["token"])
+
+	return tokenReviewerJWT, nil
 }
 
 func (op FeatureOperator) configureVault(
@@ -98,82 +174,13 @@ func (op FeatureOperator) configureVault(
 	orgID,
 	clusterID uint,
 	boundSpec vaultFeatureSpec,
+	tokenReviewerJWT string,
+	kubeConfig *k8srest.Config,
 ) error {
-	// install vault-secrets-webhook
-	if err := op.installOrUpdateWebhook(ctx, logger, clusterID, boundSpec); err != nil {
-		return errors.WrapIf(err, "failed to deploy feature")
-	}
 
 	if !boundSpec.CustomVault.Enabled || (boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.Token) != 0) {
 		// custom Vault with token or CP's vault
 		logger.Debug("start to setup Vault")
-
-		// Prepare cluster first with the proper token reviwer SA
-		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-		if err != nil {
-			return errors.WrapIf(err, "failed to get cluster")
-		}
-
-		kubeConfigRaw, err := cluster.GetK8sConfig()
-		if err != nil {
-			return errors.WrapIf(err, "failed to get cluster Kubernetes config")
-		}
-
-		kubeConfig, err := k8sclient.NewClientConfig(kubeConfigRaw)
-		if err != nil {
-			return errors.WrapIf(err, "failed to create cluster Kubernetes config")
-		}
-
-		k8sClient, err := k8sclient.NewClientFromConfig(kubeConfig)
-		if err != nil {
-			return errors.WrapIf(err, "failed to create Kubernetes client")
-		}
-
-		serviceAccount := &corev1.ServiceAccount{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "vault-token-reviewer",
-			},
-		}
-		_, err = k8sClient.CoreV1().ServiceAccounts("pipeline-system").Create(serviceAccount)
-		if err != nil && !k8sapierrors.IsAlreadyExists(err) {
-			return errors.WrapIf(err, "failed to create token reviewer ServiceAccount")
-		}
-
-		serviceAccount, err = k8sClient.CoreV1().ServiceAccounts("pipeline-system").Get(serviceAccount.Name, metav1.GetOptions{})
-		if err != nil {
-			return errors.WrapIf(err, "failed to get token reviewer ServiceAccount")
-		}
-
-		saTokenSecretRef := serviceAccount.Secrets[0]
-
-		saTokenSecret, err := k8sClient.CoreV1().Secrets("pipeline-system").Get(saTokenSecretRef.Name, metav1.GetOptions{})
-		if err != nil {
-			return errors.WrapIf(err, "failed to find token reviewer ServiceAccount's Secret")
-		}
-
-		tokenReviewerRoleBinding := rbacv1.ClusterRoleBinding{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "vault-token-reviewer",
-			},
-			RoleRef: rbacv1.RoleRef{
-				APIGroup: rbacv1.GroupName,
-				Kind:     "ClusterRole",
-				Name:     "system:auth-delegator",
-			},
-			Subjects: []rbacv1.Subject{
-				{
-					Kind:      "ServiceAccount",
-					Name:      serviceAccount.Name,
-					Namespace: serviceAccount.Namespace,
-				},
-			},
-		}
-		_, err = k8sClient.RbacV1().ClusterRoleBindings().Create(&tokenReviewerRoleBinding)
-		if err != nil && !k8sapierrors.IsAlreadyExists(err) {
-			return errors.WrapIf(err, "failed to create token reviewer cluster role binding")
-		}
-
-		tokenReviewerJWT := string(saTokenSecret.Data["token"])
 
 		// create vault client
 		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
