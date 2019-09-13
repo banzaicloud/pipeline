@@ -120,7 +120,7 @@ func getAuthMethodConfigPath(orgID, clusterID uint) string {
 
 func getDefaultPolicy(orgID uint) string {
 	return fmt.Sprintf(`
-			path "secret/org/%d/*" {
-				capabilities = [ "read", "list" ]
+			path "secret/data/orgs/%d/*" {
+				capabilities = [ "read" ]
 			}`, orgID)
 }
