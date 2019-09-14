@@ -59,10 +59,9 @@ func (s *vaultFeatureSpec) Validate() error {
 		}
 
 		// policy is required in case of custom vault
-		if len(s.CustomVault.Policy) == 0 {
+		if len(s.CustomVault.Policy) == 0 && len(s.CustomVault.Token) != 0 {
 			return errors.New("policy field is required in case of custom vault")
 		}
-
 	}
 
 	if len(s.Settings.Namespaces) == 1 && s.Settings.Namespaces[0] == "*" &&
