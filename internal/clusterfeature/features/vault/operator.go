@@ -255,6 +255,10 @@ func (op FeatureOperator) installOrUpdateWebhook(
 	// create chart values
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
 	var chartValues = &webhookValues{
+		// TODO
+		// Env:
+		// - VAULT_ADDR
+		// - VAULT_PATH
 		NamespaceSelector: namespaceSelector{
 			MatchExpressions: []matchExpressions{
 				{
@@ -317,6 +321,8 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 			Problem:     err.Error(),
 		}
 	}
+
+	// TODO Don't delete if we haven't configured anything
 
 	cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
