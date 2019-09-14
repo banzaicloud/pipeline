@@ -349,5 +349,17 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	}
 	logger.Info("policy deleted successfully")
 
+	// delete kubernetes service account
+	if err := op.kubernetesService.DeleteObject(ctx, clusterID, &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "vault-token-reviewer", Namespace: "pipeline-system"}}); err != nil {
+		return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes service account"))
+	}
+	logger.Info("kubernetes service account deleted successfully")
+
+	// delete kubernetes cluster role binding
+	if err := op.kubernetesService.DeleteObject(ctx, clusterID, &rbacv1.ClusterRoleBinding{ObjectMeta: metav1.ObjectMeta{Name: "vault-token-reviewer"}}); err != nil {
+		return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes cluster role binding"))
+	}
+	logger.Info("kubernetes cluster role binding deleted successfully")
+
 	return nil
 }
