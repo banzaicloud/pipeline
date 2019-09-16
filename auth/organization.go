@@ -46,7 +46,7 @@ type OrganizationSyncer interface {
 	SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error
 }
 
-type defaultOrganizationSyncer struct {
+type organizationSyncer struct {
 	store  OrganizationStore
 	events OrganizationEvents
 	logger Logger
@@ -54,7 +54,7 @@ type defaultOrganizationSyncer struct {
 
 // NewOrganizationSyncer returns a new OrganizationSyncer.
 func NewOrganizationSyncer(store OrganizationStore, events OrganizationEvents, logger Logger) OrganizationSyncer {
-	return &defaultOrganizationSyncer{
+	return organizationSyncer{
 		store:  store,
 		events: events,
 
@@ -113,7 +113,7 @@ type UpstreamOrganization struct {
 }
 
 // SyncOrganizations synchronizes organization membership for a user.
-func (s *defaultOrganizationSyncer) SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error {
+func (s organizationSyncer) SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{
 		"userId": user.ID,
 	})
