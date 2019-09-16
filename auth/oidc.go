@@ -389,14 +389,14 @@ type oidcOrganizationSyncer struct {
 
 // NewOIDCOrganizationSyncer returns a new OIDCOrganizationSyncer.
 func NewOIDCOrganizationSyncer(organizationSyncer OrganizationSyncer, roleBinder RoleBinder) OIDCOrganizationSyncer {
-	return &oidcOrganizationSyncer{
+	return oidcOrganizationSyncer{
 		organizationSyncer: organizationSyncer,
 		roleBinder:         roleBinder,
 	}
 }
 
 // SyncOrganizations synchronizes organization membership for a user based on the OIDC ID token.
-func (s *oidcOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user User, idTokenClaims *IDTokenClaims) error {
+func (s oidcOrganizationSyncer) SyncOrganizations(ctx gocontext.Context, user User, idTokenClaims *IDTokenClaims) error {
 	organizations := make(map[string][]string)
 
 	for _, group := range idTokenClaims.Groups {
