@@ -146,7 +146,7 @@ func WaitForASGToBeFulfilled(
 					return nil
 				}
 			} else {
-				return errors.Errorf("waiting for ASG to be fulfilled timed out after %s x %s", waitAttempts, waitInterval)
+				return errors.Errorf("waiting for ASG to be fulfilled timed out after %d x %s", waitAttempts, waitInterval)
 			}
 		case <-ctx.Done(): // wait for ASG fulfillment cancelled
 			return nil
