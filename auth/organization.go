@@ -42,7 +42,11 @@ func (org *Organization) IDString() string {
 // It creates missing organizations, adds user to and removes from existing organizations,
 // updates organization role.
 // Note: it never deletes organizations, only creates them if they are missing.
-type OrganizationSyncer struct {
+type OrganizationSyncer interface {
+	SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error
+}
+
+type organizationSyncer struct {
 	store  OrganizationStore
 	events OrganizationEvents
 	logger Logger
@@ -50,7 +54,7 @@ type OrganizationSyncer struct {
 
 // NewOrganizationSyncer returns a new OrganizationSyncer.
 func NewOrganizationSyncer(store OrganizationStore, events OrganizationEvents, logger Logger) OrganizationSyncer {
-	return OrganizationSyncer{
+	return organizationSyncer{
 		store:  store,
 		events: events,
 
@@ -109,7 +113,7 @@ type UpstreamOrganization struct {
 }
 
 // SyncOrganizations synchronizes organization membership for a user.
-func (s OrganizationSyncer) SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error {
+func (s organizationSyncer) SyncOrganizations(ctx context.Context, user User, upstreamMemberships []UpstreamOrganizationMembership) error {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{
 		"userId": user.ID,
 	})

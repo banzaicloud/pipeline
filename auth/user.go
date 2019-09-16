@@ -193,6 +193,7 @@ func NewTemporaryCICDClient(login string) (cicd.Client, error) {
 type BanzaiUserStorer struct {
 	auth.UserStorer
 	signingKeyBase32 string // CICD uses base32 Hash
+	db               *gorm.DB
 	cicdDB           *gorm.DB
 	orgSyncer        OIDCOrganizationSyncer
 }
@@ -242,8 +243,6 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		currentUser.Login = emailToLoginName(schema.Email)
 	}
 
-	db := authCtx.Auth.GetDB(authCtx.Request)
-
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	if viper.GetBool("cicd.enabled") && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
 		err = bus.createUserInCICDDB(currentUser)
@@ -252,26 +251,21 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		}
 	}
 
-	err = db.Create(currentUser).Error
+	err = bus.db.Create(currentUser).Error
 	if err != nil {
 		return nil, "", emperror.Wrap(err, "failed to create user organization")
 	}
 
 	err = bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), *currentUser, schema.RawInfo.(*IDTokenClaims))
 
-	return currentUser, fmt.Sprint(db.NewScope(currentUser).PrimaryKeyValue()), err
+	return currentUser, fmt.Sprint(bus.db.NewScope(currentUser).PrimaryKeyValue()), err
 }
 
 // Update updates the user's group mmeberships from the OIDC ID token at every login
 func (bus BanzaiUserStorer) Update(schema *auth.Schema, authCtx *auth.Context) (err error) {
 	currentUser := User{}
-	err = copier.Copy(&currentUser, schema)
-	if err != nil {
-		return err
-	}
 
-	db := authCtx.Auth.GetDB(authCtx.Request)
-	err = db.Find(&currentUser).Error
+	err = bus.db.Where("id = ?", schema.UID).First(&currentUser).Error
 	if err != nil {
 		return err
 	}

@@ -161,7 +161,7 @@ func TestGetCreateOrUpdateLoadBalancerParams(t *testing.T) {
 			},
 			Tags: map[string]*string{
 				"kubernetesCluster-test-cluster": to.StringPtr("owned"),
-				"banzaicloud-pipeline-uuid":      to.StringPtr(""),
+				"banzaicloud-pipeline-managed":   to.StringPtr("true"),
 			},
 		}
 

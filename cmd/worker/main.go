@@ -168,7 +168,7 @@ func main() {
 			errorHandler,
 		)
 		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewTokenHandler())
-		auth.Init(nil, auth.OIDCOrganizationSyncer{})
+		auth.Init(nil, nil)
 		auth.InitTokenStore()
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)

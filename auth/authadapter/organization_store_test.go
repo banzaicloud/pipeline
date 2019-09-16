@@ -43,8 +43,8 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 }
 
 func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
-	t.Parallel()
-
+	// This causes `concurrent map write` issues during tests
+	// t.Parallel()
 	t.Run("create", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewGormOrganizationStore(db)
@@ -160,8 +160,8 @@ func TestGormOrganizationStore_RemoveUserFromOrganization(t *testing.T) {
 }
 
 func TestGormOrganizationStore_ApplyUserMembership(t *testing.T) {
-	t.Parallel()
-
+	// This causes `concurrent map write` issues during tests
+	// t.Parallel()
 	t.Run("existing", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewGormOrganizationStore(db)
