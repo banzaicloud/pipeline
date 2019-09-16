@@ -67,7 +67,7 @@ func (s *KubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (
 	return kubeConfig, nil
 }
 
-// GetObject gets a secret from a specific cluster.
+// GetObject gets an Object from a specific cluster.
 func (s *KubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, obj runtime.Object) error {
 
 	kubeClient, err := s.newClientForCluster(ctx, clusterID)

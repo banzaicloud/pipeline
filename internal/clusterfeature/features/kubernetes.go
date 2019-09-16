@@ -27,7 +27,7 @@ type KubernetesService interface {
 	// GetKubeConfig gets a kube config for a specific cluster.
 	GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error)
 
-	// GetObject gets a secret from a specific cluster.
+	// GetObject gets an Object from a specific cluster.
 	GetObject(ctx context.Context, clusterID uint, objectRef corev1.ObjectReference, o runtime.Object) error
 
 	// EnsureObject makes sure that a given Object is on the cluster and returns it.
