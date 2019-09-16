@@ -15,6 +15,7 @@
 package action
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -88,12 +89,13 @@ func (a *CreateUpdateNodePoolStackAction) GetName() string {
 }
 
 // WaitForASGToBeFulfilled waits until an ASG has the desired amount of healthy nodes
-func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(nodePool *model.AmazonNodePoolsModel) error {
-	return WaitForASGToBeFulfilled(a.context.Session, a.log, a.context.ClusterName, nodePool.Name, a.waitAttempts, a.waitInterval)
+func (a *CreateUpdateNodePoolStackAction) WaitForASGToBeFulfilled(ctx context.Context, nodePool *model.AmazonNodePoolsModel) error {
+	return WaitForASGToBeFulfilled(ctx, a.context.Session, a.log, a.context.ClusterName, nodePool.Name, a.waitAttempts, a.waitInterval)
 }
 
 // WaitForASGToBeFulfilled waits until an ASG has the desired amount of healthy nodes
 func WaitForASGToBeFulfilled(
+	ctx context.Context,
 	awsSession *session.Session,
 	logger logrus.FieldLogger,
 	clusterName string,
@@ -111,32 +113,46 @@ func WaitForASGToBeFulfilled(
 		"interval": waitInterval,
 	}).Info("EXECUTE WaitForASGToBeFulfilled")
 
-	for i := 0; i <= waitAttempts; i++ {
-		asGroup, err := m.GetAutoscalingGroupByStackName(asgName)
-		if err != nil {
-			if aerr, ok := err.(awserr.Error); ok {
-				if aerr.Code() == "ValidationError" || aerr.Code() == "ASGNotFoundInResponse" {
-					time.Sleep(waitInterval)
+	ticker := time.NewTicker(waitInterval)
+	defer ticker.Stop()
+
+	i := 0
+	for {
+		select {
+		case <-ticker.C:
+			if i <= waitAttempts {
+				waitAttempts++
+
+				asGroup, err := m.GetAutoscalingGroupByStackName(asgName)
+				if err != nil {
+					if aerr, ok := err.(awserr.Error); ok {
+						if aerr.Code() == "ValidationError" || aerr.Code() == "ASGNotFoundInResponse" {
+							continue
+						}
+					}
+					return errors.WrapIfWithDetails(err, "could not get ASG", "asg-name", asgName)
+				}
+
+				ok, err := asGroup.IsHealthy()
+				if err != nil {
+					if autoscaling.IsErrorFinal(err) {
+						return errors.WrapIfWithDetails(err, nodePoolName, "nodePoolName", nodePoolName, "asgName", *asGroup.AutoScalingGroupName)
+					}
+					log.Debug(err)
 					continue
 				}
+				if ok {
+					log.Debug("ASG is healthy")
+					return nil
+				}
+			} else {
+				return errors.Errorf("waiting for ASG to be fulfilled timed out after %s x %s", waitAttempts, waitInterval)
 			}
-			return errors.WrapIfWithDetails(err, "could not get ASG", "asg-name", asgName)
+		case <-ctx.Done(): // wait for ASG fulfillment cancelled
+			return nil
 		}
-
-		ok, err := asGroup.IsHealthy()
-		if err != nil {
-			if autoscaling.IsErrorFinal(err) {
-				return errors.WrapIfWithDetails(err, nodePoolName, "nodePoolName", nodePoolName, "asgName", *asGroup.AutoScalingGroupName)
-			}
-			log.Debug(err)
-		}
-		if ok {
-			log.Debug("ASG is healthy")
-			break
-		}
-		time.Sleep(waitInterval)
 	}
-	return nil
+
 }
 
 // ExecuteAction executes the CreateUpdateNodePoolStackAction in parallel for each node pool
@@ -399,21 +415,21 @@ func (a *CreateUpdateNodePoolStackAction) createUpdateNodePool(nodePool *model.A
 		}
 	}
 
-	var asgFulfillmentErr error
+	ctx, cancelASGWait := context.WithCancel(context.Background())
+	defer cancelASGWait()
+
+	waitChan := make(chan error)
+	defer close(waitChan)
+
 	if waitOnCreateUpdate {
-		waitChan := make(chan error)
-		defer close(waitChan)
-
-		go func(nodePool *model.AmazonNodePoolsModel) {
-			waitChan <- a.WaitForASGToBeFulfilled(nodePool)
-		}(nodePool)
-
-		asgFulfillmentErr = errors.WrapIf(<-waitChan, "node pool %q ASG not fulfilled")
+		go func(ctx context.Context, nodePool *model.AmazonNodePoolsModel) {
+			waitChan <- a.WaitForASGToBeFulfilled(ctx, nodePool)
+		}(ctx, nodePool)
 	}
 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)}
 
-	var err error
+	var err, asgFulfillmentErr error
 	if a.isCreate {
 		err = errors.WrapIff(cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput), "waiting for %q CF stack create operation to complete failed", stackName)
 	} else if waitOnCreateUpdate {
@@ -421,6 +437,12 @@ func (a *CreateUpdateNodePoolStackAction) createUpdateNodePool(nodePool *model.A
 	}
 
 	err = pkgCloudformation.NewAwsStackFailure(err, stackName, cloudformationSrv)
+	if err != nil {
+		// cancelling the wait for ASG fulfillment go routine as an error occurred during waiting for the completion of the cloud formation stack operation
+		cancelASGWait()
+	} else if waitOnCreateUpdate {
+		asgFulfillmentErr = errors.WrapIf(<-waitChan, "node pool %q ASG not fulfilled")
+	}
 	errorChan <- errors.Append(err, asgFulfillmentErr)
 }
 

@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"strings"
@@ -919,7 +920,7 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 
 		waitRoutines++
 		go func(poolName string) {
-			waitChan <- action.WaitForASGToBeFulfilled(awsSession, c.log, c.modelCluster.Name,
+			waitChan <- action.WaitForASGToBeFulfilled(context.Background(), awsSession, c.log, c.modelCluster.Name,
 				poolName, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second)
 		}(poolName)
 
