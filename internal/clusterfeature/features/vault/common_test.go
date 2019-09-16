@@ -17,6 +17,10 @@ package vault
 import (
 	"context"
 
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	k8srest "k8s.io/client-go/rest"
+
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/secret"
@@ -120,4 +124,37 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	return &helm.GetDeploymentResponse{
 		ReleaseName: releaseName,
 	}, nil
+}
+
+type dummyKubernetesService struct {
+}
+
+// GetKubeConfig gets a kube config for a specific cluster.
+func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
+
+	return &k8srest.Config{
+		Host:            "https://127.0.0.1:6443",
+		TLSClientConfig: k8srest.TLSClientConfig{CAData: []byte("BLABLA")},
+	}, nil
+}
+
+// GetObject gets an Object from a specific cluster.
+func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, o runtime.Object) error {
+	return nil
+}
+
+// DeleteObject deletes an Object from a specific cluster.
+func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+
+	return nil
+}
+
+// EnsureObject makes sure that a given Object is on the cluster and returns it.
+func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+	switch v := o.(type) {
+	case *corev1.ServiceAccount:
+		v.Secrets = []corev1.ObjectReference{{Name: "some-token-1234", Namespace: "default"}}
+	}
+
+	return nil
 }
