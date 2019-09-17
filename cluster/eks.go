@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"strings"
 	"time"
 
@@ -1342,6 +1343,7 @@ func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 		return errors.New("VPC ID must be provided")
 	}
 
+	// verify that the provided existing subnets exist
 	for _, subnet := range allExistingSubnets {
 		if subnet.Cidr != "" && subnet.SubnetId != "" {
 			return errors.New("specifying both CIDR and ID for a Subnet is not allowed")
@@ -1358,6 +1360,46 @@ func (c *EKSCluster) ValidateCreationFields(r *pkgCluster.CreateClusterRequest) 
 			}
 			if !exists {
 				return errors.Errorf("subnet '%s' not found in VPC or it's not in 'available' state", subnet.SubnetId)
+			}
+		}
+	}
+	// verify that new subnets (to be created) do not overlap and are within the VPC's CIDR range
+	if len(allNewSubnets) > 0 {
+		_, vpcCidr, err := net.ParseCIDR(r.Properties.CreateClusterEKS.Vpc.Cidr)
+		vpcMaskOnes, _ := vpcCidr.Mask.Size()
+		if err != nil {
+			return errors.WrapIf(err, "failed to parse vpc cidr")
+		}
+
+		subnetCidrs := make([]string, 0, len(allNewSubnets))
+		for cidr := range allNewSubnets {
+			subnetCidrs = append(subnetCidrs, cidr)
+		}
+
+		for i := range subnetCidrs {
+			ip1, cidr1, err := net.ParseCIDR(subnetCidrs[i])
+			if err != nil {
+				return errors.WrapIf(err, "failed to parse subnet cidr")
+			}
+
+			if !vpcCidr.Contains(ip1) {
+				return errors.Errorf("subnet cidr '%s' is outside of vpc cidr range '%s'", cidr1, vpcCidr)
+			}
+
+			ones, _ := cidr1.Mask.Size()
+			if ones < vpcMaskOnes {
+				return errors.Errorf("subnet cidr '%s' is is bigger than vpc cidr range '%s'", cidr1, vpcCidr)
+			}
+
+			for j := i + 1; j < len(subnetCidrs); j++ {
+				ip2, cidr2, err := net.ParseCIDR(subnetCidrs[j])
+				if err != nil {
+					return errors.WrapIf(err, "failed to parse subnet cidr")
+				}
+
+				if cidr1.Contains(ip2) || cidr2.Contains(ip1) {
+					return errors.Errorf("overlapping subnets found: '%s', '%s'", cidr1, cidr2)
+				}
 			}
 		}
 	}
