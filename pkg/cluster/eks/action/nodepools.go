@@ -441,7 +441,7 @@ func (a *CreateUpdateNodePoolStackAction) createUpdateNodePool(nodePool *model.A
 		// cancelling the wait for ASG fulfillment go routine as an error occurred during waiting for the completion of the cloud formation stack operation
 		cancelASGWait()
 	} else if waitOnCreateUpdate {
-		asgFulfillmentErr = errors.WrapIf(<-waitChan, "node pool %q ASG not fulfilled")
+		asgFulfillmentErr = errors.WrapIff(<-waitChan, "node pool %q ASG not fulfilled", nodePool.Name)
 	}
 	errorChan <- errors.Append(err, asgFulfillmentErr)
 }
