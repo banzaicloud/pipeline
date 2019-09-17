@@ -340,64 +340,64 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
-	// TODO Don't delete if we haven't configured anything
+	if boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.TokenSecretID) != 0 {
+		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return errors.New("failed to get cluster")
+		}
 
-	cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return errors.New("failed to get cluster")
+		orgID := cluster.GetOrganizationId()
+
+		// get token from Vault
+		tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
+		if err != nil {
+			return errors.WrapIf(err, "failed get token from Vault")
+		}
+
+		token := tokenValues[vaultTokenKey]
+
+		// create Vault client
+		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
+		if err != nil {
+			return errors.WrapIf(err, "failed to create Vault client")
+		}
+
+		// delete role
+		if _, err := vaultManager.deleteRole(orgID, clusterID); err != nil {
+			return errors.WrapIf(err, "failed to delete role")
+		}
+		logger.Info("role deleted successfully")
+
+		// disable auth method
+		if err := vaultManager.disableAuth(getAuthMethodPath(orgID, clusterID)); err != nil {
+			return errors.WrapIf(err, fmt.Sprintf("failed to disabling %s auth method for vault", authMethodType))
+		}
+		logger.Info(fmt.Sprintf("auth method %q for vault deactivated successfully", authMethodType))
+
+		// delete policy
+		if err := vaultManager.deletePolicy(orgID, clusterID); err != nil {
+			return errors.WrapIf(err, fmt.Sprintf("failed to delete policy"))
+		}
+		logger.Info("policy deleted successfully")
+
+		// delete kubernetes service account
+		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "vault-token-reviewer", Namespace: "pipeline-system"}}); err != nil {
+			return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes service account"))
+		}
+		logger.Info("kubernetes service account deleted successfully")
+
+		// delete kubernetes cluster role binding
+		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &rbacv1.ClusterRoleBinding{ObjectMeta: metav1.ObjectMeta{Name: "vault-token-reviewer"}}); err != nil {
+			return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes cluster role binding"))
+		}
+		logger.Info("kubernetes cluster role binding deleted successfully")
+
+		// delete token from Vault
+		if err := op.secretStore.Delete(ctx, boundSpec.CustomVault.TokenSecretID); err != nil {
+			return errors.WrapIf(err, fmt.Sprintf("failed to delete custom Vault token from Vault"))
+		}
+		logger.Info("custom Vault token deleted from Vault")
 	}
-
-	orgID := cluster.GetOrganizationId()
-
-	// get token from Vault
-	tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
-	if err != nil {
-		return errors.WrapIf(err, "failed get token from Vault")
-	}
-
-	token := tokenValues[vaultTokenKey]
-
-	// create Vault client
-	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create Vault client")
-	}
-
-	// delete role
-	if _, err := vaultManager.deleteRole(orgID, clusterID); err != nil {
-		return errors.WrapIf(err, "failed to delete role")
-	}
-	logger.Info("role deleted successfully")
-
-	// disable auth method
-	if err := vaultManager.disableAuth(getAuthMethodPath(orgID, clusterID)); err != nil {
-		return errors.WrapIf(err, fmt.Sprintf("failed to disabling %s auth method for vault", authMethodType))
-	}
-	logger.Info(fmt.Sprintf("auth method %q for vault deactivated successfully", authMethodType))
-
-	// delete policy
-	if err := vaultManager.deletePolicy(orgID, clusterID); err != nil {
-		return errors.WrapIf(err, fmt.Sprintf("failed to delete policy"))
-	}
-	logger.Info("policy deleted successfully")
-
-	// delete kubernetes service account
-	if err := op.kubernetesService.DeleteObject(ctx, clusterID, &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "vault-token-reviewer", Namespace: "pipeline-system"}}); err != nil {
-		return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes service account"))
-	}
-	logger.Info("kubernetes service account deleted successfully")
-
-	// delete kubernetes cluster role binding
-	if err := op.kubernetesService.DeleteObject(ctx, clusterID, &rbacv1.ClusterRoleBinding{ObjectMeta: metav1.ObjectMeta{Name: "vault-token-reviewer"}}); err != nil {
-		return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes cluster role binding"))
-	}
-	logger.Info("kubernetes cluster role binding deleted successfully")
-
-	// delete token from Vault
-	if err := op.secretStore.Delete(ctx, boundSpec.CustomVault.TokenSecretID); err != nil {
-		return errors.WrapIf(err, fmt.Sprintf("failed to delete custom Vault token from Vault"))
-	}
-	logger.Info("custom Vault token deleted from Vault")
 
 	return nil
 }
