@@ -190,6 +190,8 @@ func main() {
 
 	tokenHandler := auth.NewTokenHandler()
 
+	organizationStore := authadapter.NewGormOrganizationStore(db)
+
 	const organizationTopic = "organization"
 	var organizationSyncer auth.OIDCOrganizationSyncer
 	{
@@ -198,7 +200,6 @@ func main() {
 			func(eventName string) string { return organizationTopic },
 			eventMarshaler,
 		)
-		store := authadapter.NewGormOrganizationStore(db)
 		eventDispatcher := authadapter.NewOrganizationEventDispatcher(eventBus)
 
 		roleBinder, err := auth.NewRoleBinder(conf.Auth.DefaultRole, conf.Auth.RoleBinding)
@@ -206,7 +207,7 @@ func main() {
 
 		organizationSyncer = auth.NewOIDCOrganizationSyncer(
 			auth.NewOrganizationSyncer(
-				store,
+				organizationStore,
 				eventDispatcher,
 				commonLogger.WithFields(map[string]interface{}{"component": "auth"}),
 			),
@@ -434,7 +435,7 @@ func main() {
 	auth.Install(router, tokenHandler.GenerateToken)
 	auth.StartTokenStoreGC()
 
-	enforcer := auth.NewBasicEnforcer(db)
+	enforcer := auth.NewRbacEnforcer(organizationStore, commonLogger)
 	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)
 
 	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler)
