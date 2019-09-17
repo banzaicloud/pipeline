@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/auth"
@@ -41,7 +42,7 @@ func NewMiddleware(e Enforcer, basePath string, errorHandler emperror.Handler) g
 	return func(c *gin.Context) {
 		granted, err := m.CheckPermission(c.Request)
 		if err != nil {
-			err = emperror.Wrap(err, "failed to check permissions for request")
+			err = errors.WithMessage(err, "failed to check permissions for request")
 			errorHandler.Handle(err)
 			_ = c.AbortWithError(http.StatusInternalServerError, err)
 		} else if !granted {
@@ -69,15 +70,11 @@ func (m *middleware) CheckPermission(r *http.Request) (bool, error) {
 		return false, nil
 	}
 
-	granted, err := m.enforcer.Enforce(org, user, path, method)
-	if err != nil {
-		return granted, err
+	if m.basePath != "/" {
+		path = strings.TrimPrefix(path, m.basePath)
 	}
 
-	// Try checking the permission without a base path
-	if !granted && m.basePath != "" && strings.HasPrefix(path, fmt.Sprintf("%s/", m.basePath)) {
-		granted, err = m.enforcer.Enforce(org, user, strings.TrimPrefix(path, m.basePath), method)
-	}
+	granted, err := m.enforcer.Enforce(org, user, path, method)
 
 	return granted, err
 }

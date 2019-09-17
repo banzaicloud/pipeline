@@ -51,7 +51,7 @@ func (e *enforcerStub) Enforce(org *auth.Organization, user *auth.User, path, me
 	return false, nil
 }
 
-func TestAuthorizationMiddleware_WithBasePath(t *testing.T) {
+func TestAuthorizationMiddleware(t *testing.T) {
 	e := &enforcerStub{
 		rules: []struct {
 			userID string
