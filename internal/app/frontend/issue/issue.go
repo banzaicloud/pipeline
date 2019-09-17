@@ -32,6 +32,7 @@ type Service interface {
 }
 
 type service struct {
+	labels        []string
 	userExtractor UserExtractor
 	formatter     Formatter
 	reporter      Reporter
@@ -41,6 +42,7 @@ type service struct {
 
 // NewService returns a new Service.
 func NewService(
+	labels []string,
 	userExtractor UserExtractor,
 	formatter Formatter,
 	reporter Reporter,
@@ -48,6 +50,7 @@ func NewService(
 	logger Logger,
 ) Service {
 	return service{
+		labels:        labels,
 		userExtractor: userExtractor,
 		formatter:     formatter,
 		reporter:      reporter,
@@ -117,7 +120,7 @@ func (s service) ReportIssue(ctx context.Context, newIssue NewIssue) error {
 	issue := Issue{
 		Title:  newIssue.Title,
 		Body:   issueBody,
-		Labels: newIssue.Labels,
+		Labels: append(s.labels, newIssue.Labels...),
 	}
 
 	err = s.reporter.ReportIssue(ctx, issue)
