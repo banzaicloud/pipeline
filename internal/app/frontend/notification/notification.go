@@ -41,17 +41,17 @@ type service struct {
 	store Store
 }
 
-// Store is a data persistence layer for notifications.
-type Store interface {
-	// GetActiveNotifications returns the list of active notifications.
-	GetActiveNotifications(ctx context.Context) ([]Notification, error)
-}
-
 // NewService returns a new Service.
 func NewService(store Store) Service {
 	return &service{
 		store: store,
 	}
+}
+
+// Store is a data persistence layer for notifications.
+type Store interface {
+	// GetActiveNotifications returns the list of active notifications.
+	GetActiveNotifications(ctx context.Context) ([]Notification, error)
 }
 
 // GetActiveNotifications returns the list of active notifications.
