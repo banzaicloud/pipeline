@@ -188,9 +188,9 @@ func main() {
 	// Used internally to make sure every event/command bus uses the same one
 	eventMarshaler := cqrs.JSONMarshaler{GenerateName: cqrs.StructName}
 
-	tokenHandler := auth.NewTokenHandler()
-
 	organizationStore := authadapter.NewGormOrganizationStore(db)
+
+	tokenHandler := auth.NewTokenHandler(organizationStore)
 
 	const organizationTopic = "organization"
 	var organizationSyncer auth.OIDCOrganizationSyncer
