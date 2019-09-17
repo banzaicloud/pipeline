@@ -26,6 +26,7 @@ type Issue struct {
 }
 
 // Service handles reported issues.
+//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name Service -inpkg"
 type Service interface {
 	// ReportIssue accepts a new issue and sends it to an external issue tracker service.
 	ReportIssue(ctx context.Context, newIssue NewIssue) error
