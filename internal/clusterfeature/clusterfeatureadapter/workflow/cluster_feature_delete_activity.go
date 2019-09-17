@@ -25,6 +25,7 @@ const ClusterFeatureDeleteActivityName = "cluster-feature-delete"
 type ClusterFeatureDeleteActivityInput struct {
 	ClusterID   uint
 	FeatureName string
+	FeatureSpec clusterfeature.FeatureSpec
 }
 
 type ClusterFeatureDeleteActivity struct {

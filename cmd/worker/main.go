@@ -286,7 +286,7 @@ func main() {
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
 				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
-				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, logger),
+				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, secretStore, logger),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

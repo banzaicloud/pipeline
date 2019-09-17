@@ -16,27 +16,34 @@ package vault
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
+	"github.com/mitchellh/mapstructure"
 )
 
 // FeatureManager implements the Vault feature manager
 type FeatureManager struct {
 	clusterGetter clusterfeatureadapter.ClusterGetter
-
-	logger common.Logger
+	secretStore   features.SecretStore
+	logger        common.Logger
 }
 
 // NewVaultFeatureManager builds a new feature manager component
 func MakeFeatureManager(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
+	secretStore features.SecretStore,
 	logger common.Logger,
 ) FeatureManager {
 	return FeatureManager{
 		clusterGetter: clusterGetter,
+		secretStore:   secretStore,
 		logger:        logger,
 	}
 }
@@ -62,8 +69,16 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 	}
 	orgID := cluster.GetOrganizationId()
 
+	// get token from vault
+	tokenValues, err := m.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed get token from Vault")
+	}
+
+	token := tokenValues[vaultTokenKey]
+
 	// create Vault client
-	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
+	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to create Vault client")
 	}
@@ -119,6 +134,41 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 	}
 
 	return nil
+}
+
+func (m FeatureManager) BeforeSave(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
+	vaultSpec, err := bindFeatureSpec(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	if vaultSpec.CustomVault.Enabled && len(vaultSpec.CustomVault.Token) != 0 {
+		createSecretRequest := &secret.CreateSecretRequest{
+			Name: fmt.Sprintf("vault-token-%d-cluster", clusterID),
+			Type: pkgSecret.GenericSecret,
+			Values: map[string]string{
+				vaultTokenKey: vaultSpec.CustomVault.Token,
+			},
+			Tags: []string{
+				pkgSecret.TagBanzaiReadonly,
+				featureSecretTag,
+			},
+		}
+		secretID, err := m.secretStore.Store(ctx, createSecretRequest)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to store token in Vault")
+		}
+
+		vaultSpec.CustomVault.Token = ""
+		vaultSpec.CustomVault.TokenSecretID = secretID
+
+		var res clusterfeature.FeatureSpec
+		if err := mapstructure.Decode(vaultSpec, &res); err != nil {
+			return nil, errors.WrapIf(err, "failed to decode feature spec")
+		}
+		return res, nil
+	}
+	return spec, nil
 }
 
 // PrepareSpec makes certain preparations to the spec before it's sent to be applied

@@ -25,7 +25,7 @@ const ClusterFeatureDeactivateActivityName = "cluster-feature-deactivate"
 type ClusterFeatureDeactivateActivityInput struct {
 	ClusterID   uint
 	FeatureName string
-	Spec        clusterfeature.FeatureSpec
+	FeatureSpec clusterfeature.FeatureSpec
 }
 
 type ClusterFeatureDeactivateActivity struct {
@@ -43,5 +43,5 @@ func (a ClusterFeatureDeactivateActivity) Execute(ctx context.Context, input Clu
 	if err != nil {
 		return err
 	}
-	return f.Deactivate(ctx, input.ClusterID, input.Spec)
+	return f.Deactivate(ctx, input.ClusterID, input.FeatureSpec)
 }

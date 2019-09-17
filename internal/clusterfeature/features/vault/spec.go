@@ -22,20 +22,21 @@ import (
 )
 
 type vaultFeatureSpec struct {
-	CustomVault CustomVault `json:"customVault"`
-	Settings    Settings    `json:"settings"`
+	CustomVault CustomVault `json:"customVault" mapstructure:"customVault"`
+	Settings    Settings    `json:"settings" mapstructure:"settings"`
 }
 
 type CustomVault struct {
-	Enabled bool   `json:"enabled"`
-	Address string `json:"address"`
-	Policy  string `json:"policy"`
-	Token   string `json:"token"`
+	Enabled       bool   `json:"enabled" mapstructure:"enabled"`
+	Address       string `json:"address" mapstructure:"address"`
+	Policy        string `json:"policy" mapstructure:"policy"`
+	Token         string `json:"token,omitempty" mapstructure:"token"`
+	TokenSecretID string `json:"-" mapstructure:"tokenSecretId"`
 }
 
 type Settings struct {
-	Namespaces      []string `json:"namespaces"`
-	ServiceAccounts []string `json:"serviceAccounts"`
+	Namespaces      []string `json:"namespaces" mapstructure:"namespaces"`
+	ServiceAccounts []string `json:"serviceAccounts" mapstructure:"serviceAccounts"`
 }
 
 func bindFeatureSpec(spec clusterfeature.FeatureSpec) (vaultFeatureSpec, error) {

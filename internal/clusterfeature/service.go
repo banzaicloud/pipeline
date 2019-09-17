@@ -151,6 +151,14 @@ func (s FeatureService) Activate(ctx context.Context, clusterID uint, featureNam
 		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)
 	}
 
+	logger.Debug("modify feature specification before save")
+	spec, err = featureManager.BeforeSave(ctx, clusterID, spec)
+	if err != nil {
+		const msg = "failed to modify feature specification"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	logger.Debug("persisting feature")
 	if err := s.featureRepository.SaveFeature(ctx, clusterID, featureName, spec, FeatureStatusPending); err != nil {
 		const msg = "failed to persist feature"
@@ -177,8 +185,16 @@ func (s FeatureService) Deactivate(ctx context.Context, clusterID uint, featureN
 		return errors.WrapIf(err, msg)
 	}
 
+	logger.Debug("get feature details")
+	f, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
+	if err != nil {
+		const msg = "failed to retrieve feature details"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	logger.Debug("starting feature deactivation")
-	if err := s.featureOperationDispatcher.DispatchDeactivate(ctx, clusterID, featureName); err != nil {
+	if err := s.featureOperationDispatcher.DispatchDeactivate(ctx, clusterID, featureName, f.Spec); err != nil {
 		const msg = "failed to start feature deactivation"
 		logger.Debug(msg)
 		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)

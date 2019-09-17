@@ -41,6 +41,7 @@ const (
 type ClusterFeatureJobWorkflowInput struct {
 	ClusterID   uint
 	FeatureName string
+	FeatureSpec clusterfeature.FeatureSpec
 }
 
 // ClusterFeatureJobSignalInput defines the dynamic inputs of the ClusterFeatureJobWorkflow
@@ -108,7 +109,7 @@ func getActivity(workflowInput ClusterFeatureJobWorkflowInput, signalInput Clust
 		return ClusterFeatureDeactivateActivityName, ClusterFeatureDeactivateActivityInput{
 			ClusterID:   workflowInput.ClusterID,
 			FeatureName: workflowInput.FeatureName,
-			Spec:        signalInput.FeatureSpec,
+			FeatureSpec: signalInput.FeatureSpec,
 		}, nil
 	default:
 		return "", nil, errors.NewWithDetails("unsupported operation", "operation", op)
@@ -173,6 +174,7 @@ func deleteClusterFeature(ctx workflow.Context, input ClusterFeatureJobWorkflowI
 	activityInput := ClusterFeatureDeleteActivityInput{
 		ClusterID:   input.ClusterID,
 		FeatureName: input.FeatureName,
+		FeatureSpec: input.FeatureSpec,
 	}
 	return workflow.ExecuteActivity(ctx, ClusterFeatureDeleteActivityName, activityInput).Get(ctx, nil)
 }

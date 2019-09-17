@@ -599,9 +599,10 @@ func main() {
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
+				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry([]clusterfeature.FeatureManager{
 					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
-					featureVault.MakeFeatureManager(clusterGetter, logger),
+					featureVault.MakeFeatureManager(clusterGetter, secretStore, logger),
 				})
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
 				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)

@@ -27,7 +27,11 @@ type vaultManager struct {
 	vaultClient *vault.Client
 }
 
-func newVaultManager(spec vaultFeatureSpec, orgID, clusterID uint) (*vaultManager, error) {
+func newVaultManager(
+	spec vaultFeatureSpec,
+	orgID, clusterID uint,
+	token string,
+) (*vaultManager, error) {
 	var vaultAddress string
 	if spec.CustomVault.Enabled {
 		vaultAddress = spec.CustomVault.Address
@@ -42,8 +46,8 @@ func newVaultManager(spec vaultFeatureSpec, orgID, clusterID uint) (*vaultManage
 		vault.ClientRole(roleName),
 		vault.ClientAuthPath(getAuthMethodPath(orgID, clusterID)),
 	}
-	if len(spec.CustomVault.Token) != 0 {
-		clientOptions = append(clientOptions, vault.ClientToken(spec.CustomVault.Token))
+	if len(token) != 0 {
+		clientOptions = append(clientOptions, vault.ClientToken(token))
 	}
 
 	client, err := vault.NewClientFromConfig(

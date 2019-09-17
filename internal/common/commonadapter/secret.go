@@ -36,6 +36,10 @@ type SecretStore struct {
 type OrganizationalSecretStore interface {
 	// Get returns a secret in the internal format of the secret store.
 	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
+
+	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
+
+	Delete(organizationID uint, secretID string) error
 }
 
 // OrgIDContextExtractor extracts an organization ID from a context (if there is any).
@@ -101,4 +105,34 @@ func (s *SecretStore) GetSecretValues(ctx context.Context, secretID string) (map
 	}
 
 	return secretResponse.Values, nil
+}
+
+func (s *SecretStore) Store(ctx context.Context, request *secret.CreateSecretRequest) (string, error) {
+	organizationID, ok := s.extractor.GetOrganizationID(ctx)
+	if !ok {
+		return "", errors.NewWithDetails(
+			"organization ID cannot be found in the context",
+			"organizationId", organizationID,
+		)
+	}
+
+	secretID, err := s.store.Store(organizationID, request)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to store secret in Vault")
+	}
+
+	return secretID, nil
+}
+
+func (s *SecretStore) Delete(ctx context.Context, secretID string) error {
+	organizationID, ok := s.extractor.GetOrganizationID(ctx)
+	if !ok {
+		return errors.NewWithDetails(
+			"organization ID cannot be found in the context",
+			"organizationId", organizationID,
+			"secretID", secretID,
+		)
+	}
+
+	return s.store.Delete(organizationID, secretID)
 }

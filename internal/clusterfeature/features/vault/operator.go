@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/auth"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,6 +42,7 @@ type FeatureOperator struct {
 	clusterService    clusterfeature.ClusterService
 	helmService       features.HelmService
 	kubernetesService features.KubernetesService
+	secretStore       features.SecretStore
 	logger            common.Logger
 }
 
@@ -50,6 +52,7 @@ func MakeFeatureOperator(
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
 	kubernetesService features.KubernetesService,
+	secretStore features.SecretStore,
 	logger common.Logger,
 ) FeatureOperator {
 	return FeatureOperator{
@@ -57,6 +60,7 @@ func MakeFeatureOperator(
 		clusterService:    clusterService,
 		helmService:       helmService,
 		kubernetesService: kubernetesService,
+		secretStore:       secretStore,
 		logger:            logger,
 	}
 }
@@ -178,12 +182,20 @@ func (op FeatureOperator) configureVault(
 	kubeConfig *k8srest.Config,
 ) error {
 
-	if !boundSpec.CustomVault.Enabled || (boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.Token) != 0) {
+	if !boundSpec.CustomVault.Enabled || (boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.TokenSecretID) != 0) {
 		// custom Vault with token or CP's vault
 		logger.Debug("start to setup Vault")
 
+		// get token from vault
+		tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
+		if err != nil {
+			return errors.WrapIf(err, "failed get token from Vault")
+		}
+
+		token := tokenValues[vaultTokenKey]
+
 		// create vault client
-		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
+		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
 		if err != nil {
 			return errors.WrapIf(err, "failed to create Vault client")
 		}
@@ -299,6 +311,12 @@ func getChartParams() (name string, version string) {
 
 // Deactivate deactivates the cluster feature
 func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
+	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
+	if err != nil {
+
+		return err
+	}
+
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
 		return err
 	}
@@ -331,8 +349,16 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 	orgID := cluster.GetOrganizationId()
 
+	// get token from Vault
+	tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
+	if err != nil {
+		return errors.WrapIf(err, "failed get token from Vault")
+	}
+
+	token := tokenValues[vaultTokenKey]
+
 	// create Vault client
-	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID)
+	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
 	if err != nil {
 		return errors.WrapIf(err, "failed to create Vault client")
 	}
@@ -367,5 +393,22 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	}
 	logger.Info("kubernetes cluster role binding deleted successfully")
 
+	// delete token from Vault
+	if err := op.secretStore.Delete(ctx, boundSpec.CustomVault.TokenSecretID); err != nil {
+		return errors.WrapIf(err, fmt.Sprintf("failed to delete custom Vault token from Vault"))
+	}
+	logger.Info("custom Vault token deleted from Vault")
+
 	return nil
+}
+
+func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
+	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
+		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		if err != nil {
+			return ctx, errors.WrapIf(err, "failed to get cluster by ID")
+		}
+		ctx = auth.SetCurrentOrganizationID(ctx, cluster.GetOrganizationId())
+	}
+	return ctx, nil
 }
