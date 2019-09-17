@@ -122,6 +122,10 @@ func TestFeatureOperator_Apply(t *testing.T) {
 					"provider": obj{
 						"name":     "route53",
 						"secretId": providerSecretID,
+						"options": obj{
+							"region":    "test-reg",
+							"batchSize": 10,
+						},
 					},
 				},
 			},
@@ -145,6 +149,10 @@ func TestFeatureOperator_Apply(t *testing.T) {
 							ResourceType:   brn.SecretResourceType,
 							ResourceID:     providerSecretID,
 						}.String(),
+						"options": obj{
+							"region":    "test-reg",
+							"batchSize": 10,
+						},
 					},
 				},
 			},
