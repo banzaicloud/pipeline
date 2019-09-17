@@ -115,6 +115,16 @@ func (CICDUser) TableName() string {
 	return "users"
 }
 
+type UserExtractor struct{}
+
+func (e UserExtractor) GetUserID(ctx context.Context) (uint, bool) {
+	if user, ok := ctx.Value(auth.CurrentUser).(*User); ok {
+		return user.ID, true
+	}
+
+	return 0, false
+}
+
 // GetCurrentUser returns the current user
 func GetCurrentUser(req *http.Request) *User {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {

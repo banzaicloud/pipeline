@@ -327,11 +327,6 @@ func init() {
 	viper.SetDefault(SpotguideSyncInterval, 15*time.Minute)
 	viper.SetDefault(SpotguideSharedLibraryGitHubOrganization, "spotguides")
 
-	viper.SetDefault("issue.type", "github")
-	viper.SetDefault("issue.githubLabels", []string{"community"})
-	viper.SetDefault("issue.githubOwner", "banzaicloud")
-	viper.SetDefault("issue.githubRepository", "pipeline")
-
 	viper.SetDefault("cert.source", "file")
 	viper.SetDefault("cert.path", "config/certs")
 

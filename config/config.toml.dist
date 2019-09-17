@@ -228,10 +228,12 @@ port = "9900"
 # if true, some metrics have unique labels
 debug = true
 
-[issue]
-type = "github"
-githubOwner = "kelly-slater"
-githubRepository = "the-pipeline-issues"
+[frontend.issue]
+driver = "github"
+
+[frontend.issue.github]
+owner = "banzaicloud"
+repository = "pipeline-issues"
 
 [spotmetrics]
 enabled = false
