@@ -21,7 +21,7 @@ import (
 // Issue is reported by a user on the UI.
 type Issue struct {
 	Title  string   `json:"title"`
-	Text   string   `json:"text"`
+	Body   string   `json:"text"`
 	Labels []string `json:"labels"`
 }
 
@@ -65,8 +65,8 @@ type UserExtractor interface {
 
 // Formatter takes every input parameter and formats them into an issue that can be sent to an external issue tracker.
 type Formatter interface {
-	// FormatIssuer returns a formatted issue.
-	FormatIssue(data NewIssueData) (Issue, error)
+	// FormatIssuer returns a formatted issue body.
+	FormatIssue(data NewIssueData) (string, error)
 }
 
 // NewIssueData contains every information available from a reported issue.
@@ -109,9 +109,15 @@ func (s service) ReportIssue(ctx context.Context, newIssue NewIssue) error {
 		Labels:           newIssue.Labels,
 	}
 
-	issue, err := s.formatter.FormatIssue(data)
+	issueBody, err := s.formatter.FormatIssue(data)
 	if err != nil {
 		return err
+	}
+
+	issue := Issue{
+		Title:  newIssue.Title,
+		Body:   issueBody,
+		Labels: newIssue.Labels,
 	}
 
 	err = s.reporter.ReportIssue(ctx, issue)

@@ -10,14 +10,14 @@ type MockFormatter struct {
 }
 
 // FormatIssue provides a mock function with given fields: data
-func (_m *MockFormatter) FormatIssue(data NewIssueData) (Issue, error) {
+func (_m *MockFormatter) FormatIssue(data NewIssueData) (string, error) {
 	ret := _m.Called(data)
 
-	var r0 Issue
-	if rf, ok := ret.Get(0).(func(NewIssueData) Issue); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(NewIssueData) string); ok {
 		r0 = rf(data)
 	} else {
-		r0 = ret.Get(0).(Issue)
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error

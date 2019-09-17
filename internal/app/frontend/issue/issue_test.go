@@ -40,7 +40,7 @@ func TestService_ReportIssue(t *testing.T) {
 		Labels:           []string{"bug"},
 	}
 
-	issueCtx := NewIssueData{
+	data := NewIssueData{
 		Title:            newIssue.Title,
 		Text:             newIssue.Text,
 		OrganizationName: newIssue.OrganizationName,
@@ -48,14 +48,14 @@ func TestService_ReportIssue(t *testing.T) {
 		Labels:           newIssue.Labels,
 	}
 
+	formatter := new(MockFormatter)
+	formatter.On("FormatIssue", data).Return("Here is my detailed issue", nil)
+
 	issue := Issue{
 		Title:  "Something went wrong",
-		Text:   "Here is my detailed issue",
+		Body:   "Here is my detailed issue",
 		Labels: []string{"bug"},
 	}
-
-	formatter := new(MockFormatter)
-	formatter.On("FormatIssue", issueCtx).Return(issue, nil)
 
 	reporter := new(MockReporter)
 	reporter.On("ReportIssue", ctx, issue).Return(nil)
