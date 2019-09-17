@@ -207,7 +207,7 @@ func (op FeatureOperator) configureVault(
 		} else {
 			policy = getDefaultPolicy(orgID)
 		}
-		if err := vaultManager.createPolicy(orgID, clusterID, policy); err != nil {
+		if err := vaultManager.createPolicy(policy); err != nil {
 			return errors.WrapIf(err, "failed to create policy")
 		}
 		logger.Info("policy created successfully")
@@ -219,13 +219,13 @@ func (op FeatureOperator) configureVault(
 		logger.Info(fmt.Sprintf("auth method %q enabled for vault", authMethodType))
 
 		// config auth method
-		if _, err := vaultManager.configureAuth(orgID, clusterID, tokenReviewerJWT, kubeConfig.Host, kubeConfig.CAData); err != nil {
+		if _, err := vaultManager.configureAuth(tokenReviewerJWT, kubeConfig.Host, kubeConfig.CAData); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to configure %s auth method for vault", authMethodType))
 		}
 		logger.Info(fmt.Sprintf("auth method %q enabled for vault", authMethodType))
 
 		// create role
-		if _, err := vaultManager.createRole(orgID, clusterID, boundSpec.Settings.ServiceAccounts, boundSpec.Settings.Namespaces); err != nil {
+		if _, err := vaultManager.createRole(boundSpec.Settings.ServiceAccounts, boundSpec.Settings.Namespaces); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to create role in the auth method %q", authMethodType))
 		}
 		logger.Info(fmt.Sprintf("role created in auth method %q for vault", authMethodType))
@@ -363,7 +363,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 
 		// delete role
-		if _, err := vaultManager.deleteRole(orgID, clusterID); err != nil {
+		if _, err := vaultManager.deleteRole(); err != nil {
 			return errors.WrapIf(err, "failed to delete role")
 		}
 		logger.Info("role deleted successfully")
@@ -375,7 +375,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		logger.Info(fmt.Sprintf("auth method %q for vault deactivated successfully", authMethodType))
 
 		// delete policy
-		if err := vaultManager.deletePolicy(orgID, clusterID); err != nil {
+		if err := vaultManager.deletePolicy(); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to delete policy"))
 		}
 		logger.Info("policy deleted successfully")
