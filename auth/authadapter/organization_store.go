@@ -169,3 +169,22 @@ func (g GormOrganizationStore) ApplyUserMembership(ctx context.Context, organiza
 
 	return nil
 }
+
+// FindUserRole returns the user's role in a given organization.
+// Returns false as the second parameter if the user is not a member of the organization.
+func (g GormOrganizationStore) FindUserRole(ctx context.Context, orgID uint, userID uint) (string, bool, error) {
+	var membership auth.UserOrganization
+
+	err := g.db.Where(auth.UserOrganization{UserID: userID, OrganizationID: orgID}).First(&membership).Error
+	if gorm.IsRecordNotFoundError(err) {
+		return "", false, nil
+	} else if err != nil {
+		return "", false, errors.WrapIfWithDetails(
+			err, "cannot fetch organization membership details from the database",
+			"organizationId", orgID,
+			"userId", userID,
+		)
+	}
+
+	return membership.Role, true, nil
+}

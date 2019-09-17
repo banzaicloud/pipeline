@@ -45,6 +45,7 @@ func setUpDatabase(t *testing.T) *gorm.DB {
 func TestGormOrganizationStore_EnsureOrganizationExists(t *testing.T) {
 	// This causes `concurrent map write` issues during tests
 	// t.Parallel()
+
 	t.Run("create", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewGormOrganizationStore(db)
@@ -162,6 +163,7 @@ func TestGormOrganizationStore_RemoveUserFromOrganization(t *testing.T) {
 func TestGormOrganizationStore_ApplyUserMembership(t *testing.T) {
 	// This causes `concurrent map write` issues during tests
 	// t.Parallel()
+
 	t.Run("existing", func(t *testing.T) {
 		db := setUpDatabase(t)
 		store := NewGormOrganizationStore(db)
@@ -261,5 +263,66 @@ func TestGormOrganizationStore_ApplyUserMembership(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, userOrganization.Role, auth.RoleAdmin, "user is expected to be an admin")
+	})
+}
+
+func TestGormOrganizationStore_FindUserRole(t *testing.T) {
+	// This causes `concurrent map write` issues during tests
+	// t.Parallel()
+
+	t.Run("admin", func(t *testing.T) {
+		db := setUpDatabase(t)
+		store := NewGormOrganizationStore(db)
+
+		user := auth.User{
+			Name:  "John Doe",
+			Email: "john.doe@example.com",
+			Login: "john.doe",
+			Organizations: []auth.Organization{
+				{
+					Name:     "example",
+					Provider: "github",
+				},
+			},
+		}
+
+		err := db.Save(&user).Error
+		require.NoError(t, err)
+
+		err = store.ApplyUserMembership(context.Background(), user.Organizations[0].ID, user.ID, auth.RoleAdmin)
+		require.NoError(t, err)
+
+		role, member, err := store.FindUserRole(context.Background(), user.Organizations[0].ID, user.ID)
+		require.NoError(t, err)
+
+		assert.True(t, member, "user is expected to be a member of the organization")
+		assert.Equal(t, role, auth.RoleAdmin, "user is expected to be an admin")
+	})
+
+	t.Run("not_a_member", func(t *testing.T) {
+		db := setUpDatabase(t)
+		store := NewGormOrganizationStore(db)
+
+		user := auth.User{
+			Name:  "John Doe",
+			Email: "john.doe@example.com",
+			Login: "john.doe",
+		}
+
+		organization := auth.Organization{
+			Name:     "example",
+			Provider: "github",
+		}
+
+		err := db.Save(&user).Error
+		require.NoError(t, err)
+
+		err = db.Save(&organization).Error
+		require.NoError(t, err)
+
+		_, member, err := store.FindUserRole(context.Background(), organization.ID, user.ID)
+		require.NoError(t, err)
+
+		assert.False(t, member, "user is not expected to be a member of the organization")
 	})
 }
