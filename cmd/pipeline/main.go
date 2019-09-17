@@ -422,13 +422,23 @@ func main() {
 
 	// Frontend service
 	{
-		app := frontend.NewApp(db, commonLogger, errorHandler)
+		app, err := frontend.NewApp(
+			conf.Frontend,
+			db,
+			buildInfo,
+			auth.UserExtractor{},
+			commonLogger,
+			errorHandler,
+		)
+		emperror.Panic(err)
+
 		handler := gin.WrapH(http.StripPrefix(basePath, app))
 
-		base.Any("frontend/*path", handler)
+		base.Any("frontend/*path", auth.Handler, handler)
 
 		// Compatibility routes
 		base.GET("notifications", handler)
+		base.POST("issues", auth.Handler, handler)
 	}
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
@@ -727,12 +737,6 @@ func main() {
 	}
 
 	base.GET("api", api.MetaHandler(router, basePath+"/api"))
-
-	issueHandler, err := api.NewIssueHandler(version, commitHash, buildDate)
-	if err != nil {
-		emperror.Panic(errors.WrapIf(err, "failed to create IssueHandler"))
-	}
-	base.POST("issues", auth.Handler, issueHandler)
 
 	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
