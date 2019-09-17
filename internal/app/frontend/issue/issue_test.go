@@ -54,13 +54,13 @@ func TestService_ReportIssue(t *testing.T) {
 	issue := Issue{
 		Title:  "Something went wrong",
 		Body:   "Here is my detailed issue",
-		Labels: []string{"bug"},
+		Labels: []string{"community", "bug"},
 	}
 
 	reporter := new(MockReporter)
 	reporter.On("ReportIssue", ctx, issue).Return(nil)
 
-	service := NewService(userExtractor, formatter, reporter, commonadapter.NewNoopLogger())
+	service := NewService([]string{"community"}, userExtractor, formatter, reporter, commonadapter.NewNoopLogger())
 
 	err := service.ReportIssue(ctx, newIssue)
 	require.NoError(t, err)
