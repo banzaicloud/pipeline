@@ -306,10 +306,14 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 	}
 }
 
-type tokenHandler struct{}
+type tokenHandler struct {
+	roleSource RoleSource
+}
 
-func NewTokenHandler() *tokenHandler {
-	handler := &tokenHandler{}
+func NewTokenHandler(roleSource RoleSource) *tokenHandler {
+	handler := &tokenHandler{
+		roleSource: roleSource,
+	}
 
 	return handler
 }
@@ -370,6 +374,41 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		userID = tokenRequest.VirtualUser
 		userLogin = tokenRequest.VirtualUser
 		tokenType = CICDHookTokenType
+
+		orgName := GetOrgNameFromVirtualUser(tokenRequest.VirtualUser)
+
+		organization := Organization{Name: orgName}
+		err := Auth.GetDB(c.Request).
+			Where(organization).
+			First(&organization).Error
+		if err != nil {
+			statusCode := http.StatusInternalServerError
+			if gorm.IsRecordNotFoundError(err) {
+				statusCode = http.StatusBadRequest
+			}
+
+			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
+
+			err = c.AbortWithError(statusCode, err)
+
+			return
+		}
+
+		role, member, err := h.roleSource.FindUserRole(c.Request.Context(), organization.ID, currentUser.ID)
+		if err != nil {
+			errorHandler.Handle(errors.WithMessage(err, "failed to query organization membership for virtual user"))
+
+			err = c.AbortWithError(http.StatusInternalServerError, err)
+
+			return
+		}
+
+		// TODO: implement better authorization here
+		if !member || role != RoleAdmin {
+			c.AbortWithStatus(http.StatusForbidden)
+
+			return
+		}
 	}
 
 	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name, tokenRequest.ExpiresAt, false)
@@ -378,24 +417,6 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
 		errorHandler.Handle(errors.Wrap(err, "failed to create and store API token"))
 		return
-	}
-
-	if isForVirtualUser {
-		orgName := GetOrgNameFromVirtualUser(tokenRequest.VirtualUser)
-		organization := Organization{Name: orgName}
-		err = Auth.GetDB(c.Request).
-			Model(currentUser).
-			Where(&organization).
-			Related(&organization, "Organizations").Error
-		if err != nil {
-			statusCode := http.StatusInternalServerError
-			if gorm.IsRecordNotFoundError(err) {
-				statusCode = http.StatusBadRequest
-			}
-			err = c.AbortWithError(statusCode, err)
-			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
-			return
-		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
