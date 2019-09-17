@@ -20,9 +20,9 @@ import (
 
 // Issue is reported by a user on the UI.
 type Issue struct {
-	Title  string   `json:"title"`
-	Body   string   `json:"text"`
-	Labels []string `json:"labels"`
+	Title  string
+	Body   string
+	Labels []string
 }
 
 // Service handles reported issues.
