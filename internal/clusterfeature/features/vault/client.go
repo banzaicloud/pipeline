@@ -16,7 +16,6 @@ package vault
 
 import (
 	"fmt"
-	"os"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/vault"
@@ -32,12 +31,7 @@ func newVaultManager(
 	orgID, clusterID uint,
 	token string,
 ) (*vaultManager, error) {
-	var vaultAddress string
-	if spec.CustomVault.Enabled {
-		vaultAddress = spec.CustomVault.Address
-	} else {
-		vaultAddress = os.Getenv(vaultAddressEnvKey)
-	}
+	vaultAddress := spec.getVaultAddress()
 
 	clientConfig := vaultapi.DefaultConfig()
 	clientConfig.Address = vaultAddress

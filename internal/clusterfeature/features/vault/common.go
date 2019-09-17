@@ -19,6 +19,7 @@ const (
 	vaultWebhookReleaseName = "vault-secrets-webhook"
 	kubeSysNamespace        = "kube-system"
 	vaultAddressEnvKey      = "VAULT_ADDR"
+	vaultPathEnvKey         = "VAULT_PATH"
 	roleName                = "pipeline-webhook"
 	authMethodType          = "kubernetes"
 	authMethodPathPrefix    = "kubernetes"

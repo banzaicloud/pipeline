@@ -92,7 +92,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	}
 
 	// install vault-secrets-webhook
-	if err := op.installOrUpdateWebhook(ctx, logger, clusterID, boundSpec); err != nil {
+	if err := op.installOrUpdateWebhook(ctx, logger, cluster.GetOrganizationId(), clusterID, boundSpec); err != nil {
 		return errors.WrapIf(err, "failed to deploy helm chart for feature")
 	}
 
@@ -261,16 +261,16 @@ func getPolicyName(orgID, clusterID uint) string {
 func (op FeatureOperator) installOrUpdateWebhook(
 	ctx context.Context,
 	logger common.Logger,
-	clusterID uint,
+	orgID, clusterID uint,
 	spec vaultFeatureSpec,
 ) error {
 	// create chart values
 	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
 	var chartValues = &webhookValues{
-		// TODO
-		// Env:
-		// - VAULT_ADDR
-		// - VAULT_PATH
+		Env: map[string]string{
+			vaultAddressEnvKey: spec.getVaultAddress(),
+			vaultPathEnvKey:    getAuthMethodPath(orgID, clusterID),
+		},
 		NamespaceSelector: namespaceSelector{
 			MatchExpressions: []matchExpressions{
 				{

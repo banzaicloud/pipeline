@@ -16,6 +16,7 @@ package vault
 
 import (
 	"errors"
+	"os"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/mitchellh/mapstructure"
@@ -71,4 +72,13 @@ func (s *vaultFeatureSpec) Validate() error {
 	}
 
 	return nil
+}
+
+func (s *vaultFeatureSpec) getVaultAddress() (vaultAddress string) {
+	if s.CustomVault.Enabled {
+		vaultAddress = s.CustomVault.Address
+	} else {
+		vaultAddress = os.Getenv(vaultAddressEnvKey)
+	}
+	return
 }
