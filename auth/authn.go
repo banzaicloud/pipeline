@@ -406,8 +406,16 @@ func getClusterUserID(orgID uint, clusterID uint) string {
 	return fmt.Sprintf("clusters/%d/%d", orgID, clusterID)
 }
 
+type clusterTokenHandler struct{}
+
+func NewClusterTokenHandler() *clusterTokenHandler {
+	handler := &clusterTokenHandler{}
+
+	return handler
+}
+
 // GenerateClusterToken looks up, or generates and stores a token for a cluster
-func (h *tokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (string, string, error) {
+func (h *clusterTokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (string, string, error) {
 	userID := getClusterUserID(orgID, clusterID)
 	if tokens, err := TokenStore.List(userID); err == nil {
 		for _, token := range tokens {
