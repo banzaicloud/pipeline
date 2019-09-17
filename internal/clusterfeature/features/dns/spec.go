@@ -91,6 +91,8 @@ type providerOptions struct {
 	DNSMasked          bool   `json:"dnsMasked" mapstructure:"dnsMasked"`
 	AzureResourceGroup string `json:"resourceGroup,omitempty" mapstructure:"resourceGroup"`
 	GoogleProject      string `json:"project,omitempty" mapstructure:"project"`
+	Region             string `json:"region,omitempty" mapstructure:"region"`
+	BatchChangeSize    uint   `json:"batchSize,omitempty" mapstructure:"batchSize"`
 }
 
 func (o *providerOptions) Validate(provider string) error {
