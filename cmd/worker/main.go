@@ -165,7 +165,7 @@ func main() {
 			conf.Logger(),
 			errorHandler,
 		)
-		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewTokenHandler())
+		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewClusterTokenHandler())
 		auth.Init(nil, nil)
 		auth.InitTokenStore()
 

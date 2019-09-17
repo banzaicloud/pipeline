@@ -630,7 +630,7 @@ func main() {
 			leaderRepository, err := pke.NewVaultLeaderRepository()
 			emperror.Panic(errors.WrapIf(err, "failed to create Vault leader repository"))
 
-			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient, leaderRepository)
+			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, auth.NewClusterTokenHandler(), externalBaseURL, workflowClient, leaderRepository)
 			pkeAPI.RegisterRoutes(pkeGroup)
 
 			clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
