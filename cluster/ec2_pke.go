@@ -170,16 +170,6 @@ func (c *EC2ClusterPKE) GetSshSecretId() string {
 	return c.model.Cluster.SSHSecretID
 }
 
-// GetTTL retrieves the TTL of the cluster
-func (c *EC2ClusterPKE) GetTTL() time.Duration {
-	return time.Duration(c.model.Cluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *EC2ClusterPKE) SetTTL(ttl time.Duration) {
-	c.model.Cluster.TtlMinutes = uint(ttl.Minutes())
-}
-
 // RequiresSshPublicKey returns true as a public ssh key is needed for bootstrapping
 // the cluster
 func (c *EC2ClusterPKE) RequiresSshPublicKey() bool {
@@ -733,7 +723,6 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		Version:           c.model.Kubernetes.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
 		Region:            c.model.Cluster.Location,
-		TtlMinutes:        c.model.Cluster.TtlMinutes,
 		StartedAt:         c.model.Cluster.StartedAt,
 	}, nil
 }
@@ -1101,7 +1090,6 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 			RbacEnabled:    kubernetes.RBAC.Enabled,
 			OidcEnabled:    request.Properties.CreateClusterPKE.Kubernetes.OIDC.Enabled,
 			CreatedBy:      userId,
-			TtlMinutes:     request.TtlMinutes,
 		},
 		MasterInstanceType: instanceType,
 		MasterImage:        image,

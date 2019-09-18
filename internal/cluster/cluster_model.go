@@ -18,11 +18,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 const unknownLocation = "unknown"
@@ -31,6 +32,8 @@ const unknownLocation = "unknown"
 const (
 	clustersTableName = "clusters"
 )
+
+const InstanceTypeSeparator = " "
 
 // ClusterModel describes the common cluster model.
 type ClusterModel struct {
@@ -60,10 +63,7 @@ type ClusterModel struct {
 	SecurityScan   bool
 	StatusMessage  string             `sql:"type:text;"`
 	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
-	TtlMinutes     uint               `gorm:"default:0"`
 }
-
-const InstanceTypeSeparator = " "
 
 // TableName changes the default table name.
 func (ClusterModel) TableName() string {

@@ -293,11 +293,6 @@ func main() {
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler)
 	clusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
-	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, logrusLogger.WithField("subsystem", "ttl-controller"), errorHandler)
-	defer clusterTTLController.Stop()
-	err = clusterTTLController.Start()
-	emperror.Panic(err)
-
 	if viper.GetBool(config.MonitorEnabled) {
 		client, err := k8sclient.NewInClusterClient()
 		if err != nil {

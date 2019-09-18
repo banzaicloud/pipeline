@@ -80,7 +80,6 @@ type ClusterModel struct {
 	Kubernetes     KubernetesClusterModel `gorm:"foreignkey:ID"`
 	OKE            modelOracle.Cluster
 	CreatedBy      uint
-	TtlMinutes     uint `gorm:"not null;default:0"`
 }
 
 // ScaleOptions describes scale options

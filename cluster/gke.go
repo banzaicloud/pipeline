@@ -105,7 +105,6 @@ func CreateGKEClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgID
 			Cloud:          google.Provider,
 			Distribution:   google.ClusterDistributionGKE,
 			CreatedBy:      userID,
-			TtlMinutes:     request.TtlMinutes,
 		},
 
 		MasterVersion: request.Properties.CreateClusterGKE.Master.Version,
@@ -421,7 +420,6 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		NodePools:         nodePools,
 		CreatorBaseFields: *NewCreatorBaseFields(c.model.Cluster.CreatedAt, c.model.Cluster.CreatedBy),
 		Region:            c.model.Region,
-		TtlMinutes:        c.model.Cluster.TtlMinutes,
 		StartedAt:         c.model.Cluster.StartedAt,
 	}, nil
 }
@@ -2083,14 +2081,4 @@ func (c *GKECluster) GetKubernetesUserName() (string, error) {
 // GetCreatedBy returns cluster create userID.
 func (c *GKECluster) GetCreatedBy() uint {
 	return c.model.Cluster.CreatedBy
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *GKECluster) GetTTL() time.Duration {
-	return time.Duration(c.model.Cluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *GKECluster) SetTTL(ttl time.Duration) {
-	c.model.Cluster.TtlMinutes = uint(ttl.Minutes())
 }

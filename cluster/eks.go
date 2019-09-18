@@ -31,7 +31,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -40,6 +39,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
@@ -95,8 +96,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			RouteTableId: &request.Properties.CreateClusterEKS.RouteTableId,
 			Subnets:      createSubnetsFromRequest(request.Properties.CreateClusterEKS),
 		},
-		CreatedBy:  userId,
-		TtlMinutes: request.TtlMinutes,
+		CreatedBy: userId,
 	}
 
 	updateScaleOptions(&cluster.modelCluster.ScaleOptions, request.ScaleOptions)
@@ -1105,7 +1105,6 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		Version:           c.modelCluster.EKS.Version,
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		Region:            c.modelCluster.Location,
-		TtlMinutes:        c.modelCluster.TtlMinutes,
 		StartedAt:         c.modelCluster.StartedAt,
 	}, nil
 }
@@ -1540,16 +1539,6 @@ func (c *EKSCluster) GetServiceMesh() bool {
 // SetServiceMesh sets service mesh flag on the cluster
 func (c *EKSCluster) SetServiceMesh(m bool) {
 	c.modelCluster.ServiceMesh = m
-}
-
-// GetTTL retrieves the TTL of the cluster
-func (c *EKSCluster) GetTTL() time.Duration {
-	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
-}
-
-// SetTTL sets the lifespan of a cluster
-func (c *EKSCluster) SetTTL(ttl time.Duration) {
-	c.modelCluster.TtlMinutes = uint(ttl.Minutes())
 }
 
 // GetEKSNodePools returns EKS node pools from a common cluster.

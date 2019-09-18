@@ -17,15 +17,18 @@ package cluster
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/model"
 )
 
 // Migrate executes the table migrations for the cluster module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&ClusterModel{},
+		&MigrationClusterModel{},
 		&StatusHistoryModel{},
 	}
 
@@ -39,4 +42,39 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}).Info("migrating model tables")
 
 	return db.AutoMigrate(tables...).Error
+}
+
+type MigrationClusterModel struct {
+	ID  uint   `gorm:"primary_key"`
+	UID string `gorm:"unique_index:idx_clusters_uid"`
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `gorm:"unique_index:idx_clusters_unique_id" sql:"index"`
+	CreatedBy uint
+
+	Name           string `gorm:"unique_index:idx_clusters_unique_id"`
+	Location       string
+	Cloud          string
+	Distribution   string
+	OrganizationID uint `gorm:"unique_index:idx_clusters_unique_id"`
+	SecretID       string
+	ConfigSecretID string
+	SSHSecretID    string
+	Status         string
+	RbacEnabled    bool
+	Monitoring     bool
+	Logging        bool
+	StatusMessage  string `sql:"type:text;"`
+	ServiceMesh    bool
+	SecurityScan   bool
+	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
+	TtlMinutes     uint               `gorm:"default:0"`
+	StartedAt      *time.Time
+	OidcEnabled    bool `gorm:"default:false;not null"`
+}
+
+// TableName changes the default table name.
+func (MigrationClusterModel) TableName() string {
+	return clustersTableName
 }

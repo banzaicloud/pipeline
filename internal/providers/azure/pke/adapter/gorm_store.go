@@ -120,7 +120,6 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.Logging = model.Logging
 	cl.ServiceMesh = model.ServiceMesh
 	cl.SecurityScan = model.SecurityScan
-	cl.TtlMinutes = model.TtlMinutes
 }
 
 func marshalStringSlice(s []string) string {

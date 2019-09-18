@@ -62,7 +62,6 @@ type PKEOnAzureCluster struct {
 	Logging      bool
 	ServiceMesh  bool
 	SecurityScan bool
-	TtlMinutes   uint
 }
 
 func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
