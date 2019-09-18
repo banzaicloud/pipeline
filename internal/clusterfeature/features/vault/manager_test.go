@@ -19,7 +19,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -29,12 +33,13 @@ import (
 )
 
 func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil)
+	mng := MakeFeatureManager(nil, nil, nil)
 
 	assert.Equal(t, "vault", mng.Name())
 }
 
 func TestFeatureManager_GetOutput(t *testing.T) {
+	orgID := uint(13)
 	clusterID := uint(42)
 	clusterName := "the-cluster"
 
@@ -42,14 +47,30 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 		Clusters: map[uint]clusterfeatureadapter.Cluster{
 			clusterID: dummyCluster{
 				Name:  clusterName,
-				OrgID: 13,
+				OrgID: orgID,
 			},
 		},
 	}
 
-	mng := MakeFeatureManager(clusterGetter, nil)
+	orgSecretStore := dummyOrganizationalSecretStore{
+		Secrets: map[uint]map[string]*secret.SecretItemResponse{
+			orgID: {
+				tokenSecretID: {
+					ID:      tokenSecretID,
+					Name:    fmt.Sprintf("vault-token-%d-cluster", clusterID),
+					Type:    pkgSecret.GenericSecret,
+					Values:  map[string]string{"token": "token"},
+					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Version: 1,
+				},
+			},
+		},
+	}
 
-	ctx := context.Background()
+	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+
+	mng := MakeFeatureManager(clusterGetter, secretStore, nil)
+	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
 	spec := obj{
 		"customVault": obj{
@@ -63,7 +84,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	output, err := mng.GetOutput(ctx, clusterID, spec)
 	assert.NoError(t, err)
 
-	vm, err := newVaultManager(vaultFeatureSpec{}, 13, 42)
+	vm, err := newVaultManager(vaultFeatureSpec{}, orgID, clusterID, "TODOTOKEN")
 	assert.NoError(t, err)
 
 	vVersion, err := vm.getVaultVersion()
@@ -86,7 +107,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 }
 
 func TestFeatureManager_ValidateSpec(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil)
+	mng := MakeFeatureManager(nil, nil, nil)
 
 	cases := map[string]struct {
 		Spec  clusterfeature.FeatureSpec

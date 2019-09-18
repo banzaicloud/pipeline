@@ -70,12 +70,14 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 	orgID := cluster.GetOrganizationId()
 
 	// get token from vault
-	tokenValues, err := m.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed get token from Vault")
+	var token string
+	if boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.TokenSecretID) != 0 {
+		tokenValues, err := m.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed get token from Vault")
+		}
+		token = tokenValues[vaultTokenKey]
 	}
-
-	token := tokenValues[vaultTokenKey]
 
 	// create Vault client
 	vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)

@@ -99,6 +99,10 @@ func (d dummyFeatureManager) PrepareSpec(ctx context.Context, spec FeatureSpec) 
 	return spec, nil
 }
 
+func (d dummyFeatureManager) BeforeSave(ctx context.Context, clusterID uint, spec FeatureSpec) (FeatureSpec, error) {
+	return spec, nil
+}
+
 type dummyFeatureOperator struct {
 	TheName string
 }

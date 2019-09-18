@@ -10,6 +10,20 @@ type MockOrganizationalSecretStore struct {
 	mock.Mock
 }
 
+// Delete provides a mock function with given fields: organizationID, secretID
+func (_m *MockOrganizationalSecretStore) Delete(organizationID uint, secretID string) error {
+	ret := _m.Called(organizationID, secretID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(uint, string) error); ok {
+		r0 = rf(organizationID, secretID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: organizationID, secretID
 func (_m *MockOrganizationalSecretStore) Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error) {
 	ret := _m.Called(organizationID, secretID)
@@ -26,6 +40,27 @@ func (_m *MockOrganizationalSecretStore) Get(organizationID uint, secretID strin
 	var r1 error
 	if rf, ok := ret.Get(1).(func(uint, string) error); ok {
 		r1 = rf(organizationID, secretID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Store provides a mock function with given fields: organizationID, request
+func (_m *MockOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (string, error) {
+	ret := _m.Called(organizationID, request)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(uint, *secret.CreateSecretRequest) string); ok {
+		r0 = rf(organizationID, request)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(uint, *secret.CreateSecretRequest) error); ok {
+		r1 = rf(organizationID, request)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"emperror.dev/errors"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -37,9 +38,17 @@ func TestSecretStore_GetSecretValues(t *testing.T) {
 			"key": "value",
 		},
 	}
+	secretStoreResponse := "secretid"
+	createSecretRequest := secret.CreateSecretRequest{
+		Name:   "somesecertname",
+		Type:   pkgSecret.GenericSecret,
+		Values: map[string]string{"key": "value"},
+	}
 
 	orgStore := &MockOrganizationalSecretStore{}
 	orgStore.On("Get", organizationID, secretID).Return(secretResponse, nil)
+	orgStore.On("Store", organizationID, createSecretRequest).Return(secretStoreResponse, nil)
+	orgStore.On("Delete", organizationID, secretID).Return(nil)
 
 	const orgIdKey = "orgIdKey"
 

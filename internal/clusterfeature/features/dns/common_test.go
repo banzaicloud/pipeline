@@ -97,6 +97,14 @@ func (d dummyOrganizationalSecretStore) Get(orgID uint, secretID string) (*secre
 	return nil, secret.ErrSecretNotExists
 }
 
+func (d dummyOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (string, error) {
+	return "randomsecretid", nil
+}
+
+func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID string) error {
+	return nil
+}
+
 type dummyHelmService struct {
 }
 

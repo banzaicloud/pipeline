@@ -29,6 +29,8 @@ import (
 type arr = []interface{}
 type obj = map[string]interface{}
 
+const tokenSecretID = "vaulttokensecretid"
+
 type dummyClusterGetter struct {
 	Clusters map[uint]clusterfeatureadapter.Cluster
 }
@@ -99,6 +101,14 @@ func (d dummyOrganizationalSecretStore) Get(orgID uint, secretID string) (*secre
 		}
 	}
 	return nil, secret.ErrSecretNotExists
+}
+
+func (d dummyOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (string, error) {
+	return tokenSecretID, nil
+}
+
+func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID string) error {
+	return nil
 }
 
 type dummyHelmService struct {

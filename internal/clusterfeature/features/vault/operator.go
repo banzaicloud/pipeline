@@ -186,13 +186,16 @@ func (op FeatureOperator) configureVault(
 		// custom Vault with token or CP's vault
 		logger.Debug("start to setup Vault")
 
-		// get token from vault
-		tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
-		if err != nil {
-			return errors.WrapIf(err, "failed get token from Vault")
-		}
+		var token string
+		if len(boundSpec.CustomVault.TokenSecretID) != 0 {
+			// get token from vault
+			tokenValues, err := op.secretStore.GetSecretValues(ctx, token)
+			if err != nil {
+				return errors.WrapIf(err, "failed get token from Vault")
+			}
 
-		token := tokenValues[vaultTokenKey]
+			token = tokenValues[vaultTokenKey]
+		}
 
 		// create vault client
 		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)

@@ -18,6 +18,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/secret"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
@@ -26,7 +28,7 @@ import (
 )
 
 func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, nil, nil)
+	op := MakeFeatureOperator(nil, nil, nil, nil, nil, nil)
 
 	assert.Equal(t, "vault", op.Name())
 }
@@ -42,8 +44,15 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	helmService := dummyHelmService{}
 	kubernetesService := dummyKubernetesService{}
 
+	orgSecretStore := dummyOrganizationalSecretStore{
+		Secrets: map[uint]map[string]*secret.SecretItemResponse{
+			orgID: nil,
+		},
+	}
+
 	logger := commonadapter.NewNoopLogger()
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, logger)
+	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, secretStore, logger)
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
@@ -81,7 +90,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			clusterGetter.Clusters[clusterID] = tc.Cluster
 
-			ctx := context.Background()
+			ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
 			err := op.Apply(ctx, clusterID, tc.Spec)
 			switch tc.Error {
@@ -110,7 +119,7 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	helmService := dummyHelmService{}
 	kubernetesService := dummyKubernetesService{}
 	logger := commonadapter.NewNoopLogger()
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, logger)
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, nil, logger)
 
 	ctx := context.Background()
 
