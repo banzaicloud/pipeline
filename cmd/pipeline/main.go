@@ -434,7 +434,9 @@ func main() {
 
 		handler := gin.WrapH(http.StripPrefix(basePath, app))
 
-		base.Any("frontend/*path", auth.Handler, handler)
+		// TODO: refactor authentication middleware
+		base.Any("frontend/notifications", handler)
+		base.Any("frontend/issues", auth.Handler, handler)
 
 		// Compatibility routes
 		base.GET("notifications", handler)
