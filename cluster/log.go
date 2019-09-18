@@ -39,7 +39,8 @@ func NewLogurLogger(fl logrus.FieldLogger) logur.Logger {
 		entry = fl.WithFields(logrus.Fields{})
 	}
 
-	logger := logrusadapter.New(entry.Logger)
+	logger := logrusadapter.NewFromEntry(entry)
 
-	return logur.WithFields(logger, entry.Data)
+	return logger
+
 }

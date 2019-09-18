@@ -18,11 +18,9 @@ import (
 	"fmt"
 	"strings"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )
 
 // GetExistingTaggedStackNames gives back existing CF stacks which have the given tags
@@ -88,11 +86,7 @@ func NewAwsStackFailure(awsStackError error, stackName string, cloudformationSrv
 
 	failedStackEvents, err := collectFailedStackEvents(stackName, cloudformationSrv)
 	if err != nil {
-		caughtErrors := emperror.NewMultiErrorBuilder()
-		caughtErrors.Add(awsStackError)
-		caughtErrors.Add(emperror.Wrap(err, "could not retrieve stack events with 'FAILED' state"))
-
-		return pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
+		return errors.Append(awsStackError, errors.WrapIf(err, "could not retrieve stack events with 'FAILED' state"))
 	}
 
 	if len(failedStackEvents) > 0 {
@@ -129,7 +123,7 @@ func collectFailedStackEvents(stackName string, cloudformationSrv *cloudformatio
 			return true
 		})
 	if err != nil {
-		return nil, emperror.WrapWith(err, "failed to describe CloudFormation stack events", "stackName", aws.String(stackName))
+		return nil, errors.WrapIfWithDetails(err, "failed to describe CloudFormation stack events", "stackName", aws.String(stackName))
 	}
 
 	return failedStackEvents, nil

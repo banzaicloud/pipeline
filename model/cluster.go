@@ -169,12 +169,13 @@ func (m *AmazonNodePoolsModel) BeforeDelete(tx *gorm.DB) error {
 
 // EKSSubnetModel describes the model of subnets used for creating an EKS cluster
 type EKSSubnetModel struct {
-	ID         uint `gorm:"primary_key"`
-	CreatedAt  time.Time
-	EKSCluster EKSClusterModel
-	ClusterID  uint    `gorm:"index:idx_eks_subnets_cluster_id"`
-	SubnetId   *string `gorm:"size:32"`
-	Cidr       *string `gorm:"size:18"`
+	ID               uint `gorm:"primary_key"`
+	CreatedAt        time.Time
+	EKSCluster       EKSClusterModel
+	ClusterID        uint    `gorm:"index:idx_eks_subnets_cluster_id"`
+	SubnetId         *string `gorm:"size:32"`
+	Cidr             *string `gorm:"size:18"`
+	AvailabilityZone *string `gorm:"size:25"`
 }
 
 // EKSClusterModel describes the EKS cluster model
