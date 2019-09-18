@@ -303,8 +303,7 @@ workflows:
                 docker/publish:
                     name: Build docker image
                     executor:
-                        name: docker/machine
-                        dlc: true
+                        name: docker/docker
                     deploy: false
                     image: banzaicloud/pipeline
                     tag: $CIRCLE_BRANCH
