@@ -77,10 +77,6 @@ const (
 	ProviderGitlab    = "gitlab"
 )
 
-func getBackendProvider(oidcProvider string) string {
-	return strings.TrimPrefix(oidcProvider, "dex:")
-}
-
 // Init authorization
 // nolint: gochecknoglobals
 var (
@@ -139,15 +135,6 @@ type cookieExtractor struct {
 
 func (c cookieExtractor) ExtractToken(r *http.Request) (string, error) {
 	return c.sessionStorer.SessionManager.Get(r, c.sessionStorer.SessionName), nil
-}
-
-type accessManager interface {
-	GrantDefaultAccessToUser(userID string)
-	GrantDefaultAccessToVirtualUser(userID string)
-	AddOrganizationPolicies(orgID uint)
-	GrantOrganizationAccessToUser(userID string, orgID uint)
-	RevokeOrganizationAccessFromUser(userID string, orgID uint)
-	RevokeAllAccessFromUser(userID string)
 }
 
 type redirector struct {
@@ -389,7 +376,7 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 
 			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
 
-			err = c.AbortWithError(statusCode, err)
+			_ = c.AbortWithError(statusCode, err)
 
 			return
 		}
@@ -398,7 +385,7 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		if err != nil {
 			errorHandler.Handle(errors.WithMessage(err, "failed to query organization membership for virtual user"))
 
-			err = c.AbortWithError(http.StatusInternalServerError, err)
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
 
 			return
 		}

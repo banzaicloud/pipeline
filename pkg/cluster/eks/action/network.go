@@ -146,7 +146,8 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{},
 		return nil, pkgCloudformation.NewAwsStackFailure(err, a.stackName, cloudformationSrv)
 	}
 
-	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
+	// TODO: fix ineffassign
+	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput) // nolint: ineffassign
 	for _, output := range describeStacksOutput.Stacks[0].Outputs {
 		switch aws.StringValue(output.OutputKey) {
 		case "VpcId":
