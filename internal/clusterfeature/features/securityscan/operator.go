@@ -102,12 +102,9 @@ func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
 
-	if err = op.helmService.ApplyDeployment(ctx, clusterID,
-		securityScanNamespace,
-		securityScanChartName,
-		securityScanRelease,
-		values,
-		securityScanChartVersion); err != nil {
+	if err = op.helmService.ApplyDeployment(ctx, clusterID, securityScanNamespace, securityScanChartName,
+		securityScanRelease, values, securityScanChartVersion); err != nil {
+
 		return errors.WrapIf(err, "failed to deploy feature")
 	}
 
@@ -117,7 +114,25 @@ func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 }
 
 func (op featureOperator) Deactivate(ctx context.Context, clusterID uint) error {
-	panic("implement me")
+	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
+	if err != nil {
+
+		return err
+	}
+
+	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
+		return err
+	}
+
+	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": FeatureName})
+
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
+		logger.Info("failed to delete feature deployment")
+
+		return errors.WrapIf(err, "failed to uninstall feature")
+	}
+
+	return nil
 }
 
 func (op featureOperator) Name() string {

@@ -24,6 +24,7 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -298,6 +299,7 @@ func main() {
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
 				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
+				securityscan.MakeFeatureOperator(clusterGetter, clusterService, helmService, secretStore, logger),
 				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, secretStore, logger),
 			})
 
