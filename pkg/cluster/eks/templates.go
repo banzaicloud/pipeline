@@ -26,6 +26,7 @@ import (
 
 const (
 	eksVPCTemplateName      = "amazon-eks-vpc-cf.yaml"
+	eksSubnetTemplateName   = "amazon-eks-subnet-cf.yaml"
 	eksNodePoolTemplateName = "amazon-eks-nodepool-cf.yaml"
 )
 
@@ -35,11 +36,11 @@ func getEksCloudFormationTemplate(name string) (string, error) {
 	// location to retrieve the Cloud Formation template from
 	templatePath := viper.GetString(config.EksTemplateLocation) + "/" + name
 
-	log.Infof("Getting CloudFormation template from %q", templatePath)
+	log.Infof("getting CloudFormation template from %q", templatePath)
 
 	u, err := url.Parse(templatePath)
 	if err != nil {
-		log.Errorf("Getting CloudFormation template from %q failed: %s", templatePath, err.Error())
+		log.Errorf("getting CloudFormation template from %q failed: %s", templatePath, err.Error())
 		return "", err
 	}
 
@@ -54,11 +55,11 @@ func getEksCloudFormationTemplate(name string) (string, error) {
 			defer resp.Body.Close()
 		}
 	} else {
-		err = fmt.Errorf("Not supported scheme: %s", u.Scheme)
+		err = fmt.Errorf("not supported scheme: %s", u.Scheme)
 	}
 
 	if err != nil {
-		log.Errorf("Reading CloudFormation template content from %q failed: %s", templatePath, err.Error())
+		log.Errorf("reading CloudFormation template content from %q failed: %s", templatePath, err.Error())
 		return "", err
 	}
 
@@ -73,4 +74,9 @@ func GetVPCTemplate() (string, error) {
 // GetNodePoolTemplate returns the CloudFormation template for creating node pools for EKS cluster
 func GetNodePoolTemplate() (string, error) {
 	return getEksCloudFormationTemplate(eksNodePoolTemplateName)
+}
+
+// GetSubnetTemplate returns the CloudFormation template for creating a Subnet
+func GetSubnetTemplate() (string, error) {
+	return getEksCloudFormationTemplate(eksSubnetTemplateName)
 }

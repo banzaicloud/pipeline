@@ -192,3 +192,24 @@ func (svc *NetworkSvc) GetSubnetCidr(subnetId string) (string, error) {
 
 	return "", nil
 }
+
+// GetSubnetsById returns the subnets identified by the provided in subnet ids
+func (svc *NetworkSvc) GetSubnetsById(subnetIds []string) ([]*ec2.Subnet, error) {
+	var filter []*string
+
+	for _, subnetId := range subnetIds {
+		filter = append(filter, aws.String(subnetId))
+	}
+
+	var subnets []*ec2.Subnet
+	err := svc.ec2Api.DescribeSubnetsPages(
+		&ec2.DescribeSubnetsInput{
+			SubnetIds: filter,
+		},
+		func(describeSubnetsOutput *ec2.DescribeSubnetsOutput, lastPage bool) bool {
+			subnets = append(subnets, describeSubnetsOutput.Subnets...)
+			return lastPage
+		})
+
+	return subnets, err
+}

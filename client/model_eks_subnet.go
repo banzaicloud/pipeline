@@ -16,4 +16,6 @@ type EksSubnet struct {
 	SubnetId string `json:"subnetId,omitempty"`
 	// The CIDR range for the subnet in case new Subnet is created.
 	Cidr string `json:"cidr,omitempty"`
+	// The AZ to create the subnet into.
+	AvailabilityZone string `json:"availabilityZone,omitempty"`
 }
