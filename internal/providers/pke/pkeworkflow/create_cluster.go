@@ -52,6 +52,7 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 	switch {
 	case constraint113.Check(kubeVersion):
 		return map[string]string{
+			"ap-east-1":      "ami-0a1bcfee93de1bf09",
 			"ap-northeast-1": "ami-03c85d7b693274ab2",
 			"ap-northeast-2": "ami-0c862483d46858388",
 			"ap-southeast-1": "ami-0313d518301238064",
@@ -63,6 +64,7 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 			"eu-west-1":      "ami-0cde1c7fb5445c1eb",
 			"eu-west-2":      "ami-02c35d4bb7da231d9",
 			"eu-west-3":      "ami-06fa9d5c99b3636fe",
+			"me-south-1":     "ami-048d9725ecff847be",
 			"sa-east-1":      "ami-0a070ff1e7d34b50b",
 			"us-east-1":      "ami-0995a0271a0703eee",
 			"us-east-2":      "ami-0976011aebf06a743",
@@ -71,6 +73,7 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 		}[region], nil
 	case constraint114.Check(kubeVersion):
 		return map[string]string{
+			"ap-east-1":      "ami-02cb24635c2a4649e",
 			"ap-northeast-1": "ami-02a69e3257cc89d5e",
 			"ap-northeast-2": "ami-054caf9bfbd30b209",
 			"ap-southeast-1": "ami-087faa6ef575cfbee",
@@ -82,6 +85,7 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 			"eu-west-1":      "ami-0db9a69297f143fa5",
 			"eu-west-2":      "ami-03fc86f273d9e9220",
 			"eu-west-3":      "ami-04b2392b0e3c304f3",
+			"me-south-1":     "ami-0c55d88ec4f33d015",
 			"sa-east-1":      "ami-029bfd553809f5afc",
 			"us-east-1":      "ami-0f67d3c9300e86e84",
 			"us-east-2":      "ami-05dc7aa00467ff508",
@@ -90,6 +94,7 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 		}[region], nil
 	case constraint115.Check(kubeVersion):
 		return map[string]string{
+			"ap-east-1":      "ami-07659652ffdce4e26",
 			"ap-northeast-1": "ami-0ff8257dbc74c33f4",
 			"ap-northeast-2": "ami-05654b3b1fe2c442b",
 			"ap-southeast-1": "ami-072f0303ff596ec59",
@@ -101,6 +106,7 @@ func getDefaultImageID(region, kubernetesVersion string) (string, error) {
 			"eu-west-1":      "ami-0bc8422ca744df23e",
 			"eu-west-2":      "ami-0885ccbf224e38d3b",
 			"eu-west-3":      "ami-015cd31c41067a91e",
+			"me-south-1":     "ami-0ee0fdcd07aa83e80",
 			"sa-east-1":      "ami-0af9ba56e4e7b51a1",
 			"us-east-1":      "ami-06ebb5813a6ec2be3",
 			"us-east-2":      "ami-09c84ffdb343309d6",
