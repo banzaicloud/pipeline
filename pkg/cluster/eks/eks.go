@@ -71,6 +71,12 @@ type Subnet struct {
 	AvailabilityZone string `json:"availabilityZone,omitempty" yaml:"availabilityZone,omitempty"`
 }
 
+const (
+	DEFAULT_VPC_CIDR     = "192.168.0.0/16"
+	DEFAULT_SUBNET0_CIDR = "192.168.64.0/20"
+	DEFAULT_SUBNET1_CIDR = "192.168.80.0/20"
+)
+
 // Validate checks Amazon's node fields
 func (a *NodePool) Validate() error {
 	// ---- [ Node instanceType check ] ---- //
@@ -210,18 +216,18 @@ func (eks *CreateClusterEKS) AddDefaults(location string) error {
 
 	if eks.Vpc == nil {
 		eks.Vpc = &ClusterVPC{
-			Cidr: "192.168.0.0/16",
+			Cidr: DEFAULT_VPC_CIDR,
 		}
 	}
 
 	if len(eks.Subnets) == 0 {
 		eks.Subnets = append(eks.Subnets,
 			&Subnet{
-				Cidr:             "192.168.64.0/20",
+				Cidr:             DEFAULT_SUBNET0_CIDR,
 				AvailabilityZone: fmt.Sprintf("%sa", location),
 			},
 			&Subnet{
-				Cidr:             "192.168.80.0/20",
+				Cidr:             DEFAULT_SUBNET1_CIDR,
 				AvailabilityZone: fmt.Sprintf("%sb", location),
 			},
 		)
