@@ -15,6 +15,7 @@
 package securityscan
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -49,12 +50,12 @@ func TestFeatureOperator_ProcessChartValues(t *testing.T) {
 		commonadapter.NewLogger(logur.NewTestLogger()),
 	)
 
-	anchoreSecretValues := map[string]string{
-		"username": "test_username",
-		"password": "test_password",
-	}
+	//anchoreSecretValues := map[string]string{
+	//	"username": "test_username",
+	//	"password": "test_password",
+	//}
 
-	values, err := ssFeatureOperator.processChartValues(anchoreSecretValues)
+	values, err := ssFeatureOperator.processChartValues(context.Background(), 10, "test_username")
 	assert.Nil(t, err, "failed to process chart values ")
 	assert.NotNil(t, values, "values should be filled")
 

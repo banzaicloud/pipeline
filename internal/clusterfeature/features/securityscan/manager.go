@@ -18,14 +18,18 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
 type featureManager struct {
+	logger common.Logger
 }
 
 //MakeFeatureManager creates asecurity scan feature manager instance
-func MakeFeatureManager() featureManager {
-	return featureManager{}
+func MakeFeatureManager(logger common.Logger) featureManager {
+	return featureManager{
+		logger: logger,
+	}
 }
 
 func (f featureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
@@ -53,8 +57,8 @@ func (f featureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 }
 
 func (f featureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
-	// todo implement this
-	panic("implement me")
+	// todo implement this - do nothing for the time being
+	return spec, nil
 }
 
 func (f featureManager) Name() string {

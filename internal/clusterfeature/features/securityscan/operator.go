@@ -21,6 +21,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
@@ -28,6 +29,7 @@ import (
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/mitchellh/mapstructure"
+	"k8s.io/api/core/v1"
 )
 
 const (
@@ -94,15 +96,8 @@ func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "failed to create anchore user")
 	}
 
-	anchoreSecretID := secret.GenerateSecretIDFromName(secretName)
-	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, anchoreSecretID)
-	if err != nil {
-		return errors.WrapWithDetails(err, "failed to get anchore secret", "user", secretName)
-	}
-
 	// todo cluster.SetSecurityScan(true) - set this
-
-	values, err := op.processChartValues(anchoreUserSecret)
+	values, err := op.processChartValues(ctx, clusterID, secretName)
 	if err != nil {
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
@@ -132,51 +127,77 @@ func (op featureOperator) Name() string {
 // todo move this out to a common place as it's duplicated now (in the dns feature)
 func (op featureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
-		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+		cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
 			return ctx, errors.WrapIf(err, "failed to get cluster by ID")
 		}
-		ctx = auth.SetCurrentOrganizationID(ctx, cluster.GetOrganizationId())
+		ctx = auth.SetCurrentOrganizationID(ctx, cl.GetOrganizationId())
 	}
 	return ctx, nil
 }
 
 func (op featureOperator) createAnchoreUserForCluster(ctx context.Context, clusterID uint) (string, error) {
-	cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return "", errors.WrapIf(err, "error retrieving cluster")
+	}
 
-	anchoreUserName := fmt.Sprintf("%v-anchore-user", cluster.GetUID())
+	anchoreUserName := fmt.Sprintf("%v-anchore-user", cl.GetUID())
 
 	// todo decouple anchore integration here
-	_, err = anchore.SetupAnchoreUser(cluster.GetOrganizationId(), cluster.GetUID())
-	if err != nil {
-		return "", errors.WrapWithDetails(err, "error creating anchore user",
-			"organization", cluster.GetOrganizationId(),
-			"anchore-user", anchoreUserName)
+	if _, err = anchore.SetupAnchoreUser(cl.GetOrganizationId(), cl.GetUID()); err != nil {
+		return "", errors.WrapWithDetails(err, "error creating anchore user", "organization",
+			cl.GetOrganizationId(), "anchore-user", anchoreUserName)
 	}
 
 	return anchoreUserName, nil
 }
 
-func (op featureOperator) processChartValues(secretValues map[string]string) ([]byte, error) {
+func (op featureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*SecurityScanChartValues, error) {
+
+	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get cluster")
+	}
+
+	return getDefaultValues(cl), nil
+}
+
+func getDefaultValues(cl clusterfeatureadapter.Cluster) *SecurityScanChartValues {
+	chartValues := new(SecurityScanChartValues)
+
+	if headNodeAffinity := cluster.GetHeadNodeAffinity(cl); headNodeAffinity != (v1.Affinity{}) {
+		chartValues.Affinity = &headNodeAffinity
+	}
+
+	chartValues.Tolerations = cluster.GetHeadNodeTolerations()
+
+	return chartValues
+}
+
+func (op featureOperator) processChartValues(ctx context.Context, clusterID uint, secretName string) ([]byte, error) {
+	securityScanValues, err := op.getDefaultValues(ctx, clusterID)
+
+	anchoreSecretID := secret.GenerateSecretIDFromName(secretName)
+	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, anchoreSecretID)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "failed to get anchore secret", "user", secretName)
+	}
 
 	var anchoreValues AnchoreValues
-	if err := mapstructure.Decode(secretValues, &anchoreValues); err != nil {
+	if err := mapstructure.Decode(anchoreUserSecret, &anchoreValues); err != nil {
 		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
 	// todo pass configuration instead using these values
 	anchoreValues.Host = anchore.AnchoreEndpoint
+	securityScanValues.Anchore = anchoreValues
 
-	securityScanCharValues := SecurityScanChartValues{
-		Anchore:     anchoreValues,
-		Affinity:    nil, // todo fill this
-		Tolerations: nil, // todo fill this
-	}
-
-	values, err := json.Marshal(&securityScanCharValues)
+	values, err := json.Marshal(securityScanValues)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to marshal chart values")
 	}
 
 	return values, nil
+
 }

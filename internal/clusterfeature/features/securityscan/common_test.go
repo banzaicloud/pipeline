@@ -27,7 +27,8 @@ type clusterGetterMock struct {
 }
 
 func (c clusterGetterMock) GetClusterByIDOnly(ctx context.Context, clusterID uint) (clusterfeatureadapter.Cluster, error) {
-	panic("implement me")
+
+	return nil, nil
 }
 
 type clusterServiceMock struct {
@@ -60,5 +61,5 @@ type secretStoreMock struct {
 }
 
 func (s secretStoreMock) GetSecretValues(ctx context.Context, secretID string) (map[string]string, error) {
-	panic("implement me")
+	return map[string]string{"username": "test_username", "password": "test_password"}, nil
 }

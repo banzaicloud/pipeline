@@ -37,7 +37,7 @@ func (s featureSpec) Validate() error {
 		validationErrors = s.CustomAnchore.Validate()
 	}
 
-	if s.Policy.PolicyID == "" {
+	if !s.Policy.CustomPolicy.Enabled && s.Policy.PolicyID == "" {
 		validationErrors = errors.Combine(validationErrors, errors.New("policyId is required"))
 	}
 
@@ -68,7 +68,13 @@ func (a anchoreSpec) Validate() error {
 }
 
 type policySpec struct {
-	PolicyID string `json:"policyId"`
+	PolicyID     string           `json:"policyId,omitempty" mapstructure:"policyId"`
+	CustomPolicy customPolicySpec `json:"customPolicy,omitempty" mapstructure:"customPolicy"`
+}
+
+type customPolicySpec struct {
+	Enabled bool                   `json:"enabled" mapstructure:"enabled"`
+	Policy  map[string]interface{} `json:"policy" mapstructure:"policy"`
 }
 
 type releaseSpec struct {

@@ -26,7 +26,7 @@ import (
 // and has the right name
 func TestMakeFeatureManager(t *testing.T) {
 	var securityScanFeatureManager interface{}
-	securityScanFeatureManager = MakeFeatureManager()
+	securityScanFeatureManager = MakeFeatureManager(nil)
 
 	fm, ok := securityScanFeatureManager.(clusterfeature.FeatureManager)
 
@@ -78,7 +78,7 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	securityScanFeatureManager := MakeFeatureManager()
+	securityScanFeatureManager := MakeFeatureManager(nil)
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			err := securityScanFeatureManager.ValidateSpec(ctx, test.spec)

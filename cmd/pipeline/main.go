@@ -32,6 +32,7 @@ import (
 	evbus "github.com/asaskevich/EventBus"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -628,6 +629,7 @@ func main() {
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry([]clusterfeature.FeatureManager{
 					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
+					securityscan.MakeFeatureManager(logger),
 					featureVault.MakeFeatureManager(clusterGetter, secretStore, logger),
 				})
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
