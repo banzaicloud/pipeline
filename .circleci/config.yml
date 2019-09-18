@@ -297,8 +297,8 @@ jobs:
 workflows:
     ci:
         jobs:
-            -
-                build
+            #-
+            #    build
             -
                 docker/publish:
                     name: Build docker image
@@ -308,32 +308,29 @@ workflows:
                     deploy: false
                     image: banzaicloud/pipeline
                     tag: $CIRCLE_BRANCH
-                    filters:
-                        branches:
-                            ignore: master
-            -
-                docker/publish:
-                    name: Publish master docker image
-                    executor:
-                        name: docker/machine
-                        dlc: true
-                    context: dockerhub
-                    deploy: true
-                    image: banzaicloud/pipeline
-                    tag: master
-                    requires:
-                      - build
-                    filters:
-                        branches:
-                            only: master
-            -
-                docker-release:
-                    name: Publish tagged & latest docker image
-                    context: dockerhub
-                    image: banzaicloud/pipeline
-                    tag: $CIRCLE_TAG
-                    filters:
-                        tags:
-                            only: /^[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc)\.[0-9]+)?$/
-                        branches:
-                            ignore: /.*/
+            #-
+            #    docker/publish:
+            #        name: Publish master docker image
+            #        executor:
+            #            name: docker/machine
+            #            dlc: true
+            #        context: dockerhub
+            #        deploy: true
+            #        image: banzaicloud/pipeline
+            #        tag: master
+            #        requires:
+            #          - build
+            #        filters:
+            #            branches:
+            #                only: master
+            #-
+            #    docker-release:
+            #        name: Publish tagged & latest docker image
+            #        context: dockerhub
+            #        image: banzaicloud/pipeline
+            #        tag: $CIRCLE_TAG
+            #        filters:
+            #            tags:
+            #                only: /^[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc)\.[0-9]+)?$/
+            #            branches:
+            #                ignore: /.*/
