@@ -125,6 +125,7 @@ const (
 	MonitorConfigMapPrometheusKey = "monitor.configMapPrometheusKey" // Prometheus config key in the prometheus config map
 	MonitorCertSecret             = "monitor.certSecret"             // Kubernetes secret for kubernetes cluster certs
 	MonitorCertMountPath          = "monitor.mountPath"              // Mount path for the kubernetes cert secret
+	MonitorGrafanaAdminUserName   = "monitor.grafanaAdminUsername"   // Mount path for the kubernetes cert secret
 	// Monitor constants
 	MonitorReleaseName = "monitor"
 
@@ -198,6 +199,11 @@ const (
 
 	VaultWebhookChartKey        = "vaultWebhook.chart"
 	VaultWebhookChartVersionKey = "vaultWebhook.chartVersion"
+
+	PrometheusOperatorChartKey      = "prometheusOperator.chart"
+	PrometheusOperatorVersionKey    = "prometheusOperator.chartVersion"
+	PrometheusPushgatewayChartKey   = "prometheusPushgateway.chart"
+	PrometheusPushgatewayVersionKey = "prometheusPushgateway.chartVersion"
 )
 
 // Init initializes the configurations
@@ -312,7 +318,7 @@ func init() {
 	viper.SetDefault(MonitorConfigMapPrometheusKey, "prometheus.yml")
 	viper.SetDefault(MonitorCertSecret, "")
 	viper.SetDefault(MonitorCertMountPath, "")
-	viper.SetDefault("monitor.grafanaAdminUsername", "admin")
+	viper.SetDefault(MonitorGrafanaAdminUserName, "admin")
 
 	// empty string means the latest version of the chart will be installed
 	viper.SetDefault(LoggingOperatorChartVersion, "")
@@ -385,6 +391,12 @@ func init() {
 
 	viper.SetDefault(HollowtreesExternalURL, "/hollowtrees-alerts")
 	viper.SetDefault(HollowtreesAlertsEndpoint, "/api/v1/alerts")
+
+	viper.SetDefault(PrometheusOperatorChartKey, "stable/prometheus-operator")
+	viper.SetDefault(PrometheusOperatorVersionKey, "6.8.3")
+
+	viper.SetDefault(PrometheusPushgatewayChartKey, "stable/prometheus-pushgateway")
+	viper.SetDefault(PrometheusPushgatewayVersionKey, "1.0.1")
 
 	// enable the domainHook by default
 	viper.SetDefault(DomainHookEnabled, true)

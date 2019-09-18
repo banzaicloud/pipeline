@@ -37,6 +37,10 @@ type ReadWriteOrganizationalSecretStore interface {
 	ReadOnlyOrganizationalSecretStore
 
 	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
+
+	// GetByName returns a secret in the internal format of the secret store based on secret nameø.
+	GetByName(organizationID uint, name string) (*secret.SecretItemResponse, error)
+
 	Delete(organizationID uint, secretID string) error
 }
 
@@ -138,4 +142,46 @@ func (s *SecretStore) Delete(ctx context.Context, secretID string) error {
 	}
 
 	return s.store.Delete(organizationID, secretID)
+}
+
+func (s *SecretStore) GetNameByID(ctx context.Context, secretID string) (string, error) {
+	organizationID, ok := s.extractor.GetOrganizationID(ctx)
+	if !ok {
+		return "", errors.NewWithDetails(
+			"organization ID cannot be found in the context",
+			"organizationId", organizationID,
+			"secretID", secretID,
+		)
+	}
+
+	secretResponse, err := s.store.Get(organizationID, secretID)
+	if err == secret.ErrSecretNotExists {
+		return "", errors.WrapIfWithDetails(err, "failed to get secret by ID", "secretID", secretID)
+	}
+	if err != nil {
+		return "", errors.WithDetails(errors.WithStackIf(err), "organizationID", organizationID, "secretID", secretID)
+	}
+
+	return secretResponse.Name, nil
+}
+
+func (s *SecretStore) GetSecretIDByName(ctx context.Context, secretName string) (string, error) {
+	organizationID, ok := s.extractor.GetOrganizationID(ctx)
+	if !ok {
+		return "", errors.NewWithDetails(
+			"organization ID cannot be found in the context",
+			"organizationId", organizationID,
+			"secretName", secretName,
+		)
+	}
+
+	secretResponse, err := s.store.GetByName(organizationID, secretName)
+	if err == secret.ErrSecretNotExists {
+		return "", errors.WrapIfWithDetails(err, "failed to get secret by name", "secretName", secretName)
+	}
+	if err != nil {
+		return "", errors.WithDetails(errors.WithStackIf(err), "organizationID", organizationID, "secretName", secretName)
+	}
+
+	return secretResponse.ID, nil
 }
