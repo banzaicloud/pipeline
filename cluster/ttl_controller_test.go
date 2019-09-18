@@ -18,8 +18,9 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
-import pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 
 const ttl = 30 * time.Minute
 

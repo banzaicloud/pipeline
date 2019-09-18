@@ -407,7 +407,7 @@ func (a *CreateUpdateNodePoolStackAction) createUpdateNodePool(nodePool *model.A
 				// Get error details
 				log.Warnf("nothing changed during update!")
 				waitOnCreateUpdate = false
-				err = nil
+				err = nil // nolint: ineffassign
 			} else {
 				errorChan <- errors.WrapIff(err, "could not update '%s' CF stack", stackName)
 				return

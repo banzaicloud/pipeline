@@ -155,6 +155,7 @@ func TestGormOrganizationStore_RemoveUserFromOrganization(t *testing.T) {
 	var organizations []auth.Organization
 
 	err = db.Model(user).Association("Organizations").Find(&organizations).Error
+	require.NoError(t, err)
 
 	require.Len(t, organizations, 1, "user is expected to be the member of one organization")
 	assert.Equal(t, user.Organizations[0].Name, organizations[0].Name)
