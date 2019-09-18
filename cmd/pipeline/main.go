@@ -693,7 +693,6 @@ func main() {
 		}
 		v1.GET("/orgs", organizationAPI.GetOrganizations)
 		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
-		v1.GET("/token", tokenHandler.GenerateToken) // TODO Deprecated, should be removed once the UI has support.
 		v1.POST("/tokens", tokenHandler.GenerateToken)
 		v1.GET("/tokens", auth.GetTokens)
 		v1.GET("/tokens/:id", auth.GetTokens)

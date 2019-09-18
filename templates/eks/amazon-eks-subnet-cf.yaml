@@ -1,0 +1,62 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EKS Subnet'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: The VPC to create the subnet within
+
+  RouteTableId:
+    Type: String
+    Description: The Id of the route table to associate the subnet with
+
+  SubnetBlock:
+    Type: String
+    Default: 192.168.64.0/20
+    Description: CidrBlock for subnet within the VPC
+
+  AvailabilityZoneName:
+    Type: String
+    Description: The AZ of the subnet
+    Default: ""
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "Subnet Configuration"
+        Parameters:
+          - VpcId
+          - RouteTableId
+          - SubnetBlock
+          - AvailabilityZoneName
+Conditions:
+  AZProvided: !Not [!Equals [ !Ref AvailabilityZoneName, "" ]]
+
+Resources:
+  Subnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !If
+        - AZProvided
+        - !Ref AvailabilityZoneName
+        - !Select
+          - 0
+          - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !Ref SubnetBlock
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}"
+  SubnetRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref Subnet
+      RouteTableId: !Ref RouteTableId
+
+Outputs:
+  SubnetId:
+    Description: The Id of the created subnet
+    Value: !Ref Subnet

@@ -12,10 +12,11 @@
 package client
 
 type CreateEksPropertiesEks struct {
-	Version   string                     `json:"version,omitempty"`
-	NodePools map[string]NodePoolsAmazon `json:"nodePools"`
-	Vpc       EksVpc                     `json:"vpc,omitempty"`
+	Version   string                 `json:"version,omitempty"`
+	NodePools map[string]EksNodePool `json:"nodePools"`
+	Vpc       EksVpc                 `json:"vpc,omitempty"`
 	// Id of the RouteTable of the VPC to be used by subnets. This is used only when subnets are created into existing VPC.
-	RouteTableId string      `json:"routeTableId,omitempty"`
-	Subnets      []EksSubnet `json:"subnets,omitempty"`
+	RouteTableId string `json:"routeTableId,omitempty"`
+	// Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
+	Subnets []EksSubnet `json:"subnets,omitempty"`
 }
