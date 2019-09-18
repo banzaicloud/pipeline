@@ -521,7 +521,7 @@ func main() {
 			orgs.Use(authorizationMiddleware)
 
 			if viper.GetBool("cicd.enabled") {
-				spotguides := v1.Group("/spotguides")
+				spotguides := orgs.Group("/:orgid/spotguides")
 				spotguideAPI.Install(spotguides)
 			}
 

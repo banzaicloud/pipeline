@@ -7393,7 +7393,7 @@ components:
                     'pke-on-azure': '#/components/schemas/CreatePKEOnAzureClusterRequest'
 
 
-        NodePoolsAmazon:
+        EKSNodePool:
             type: object
             required:
                 - instanceType
@@ -7428,6 +7428,10 @@ components:
                 image:
                     type: string
                     example: "ami-06d1667f"
+                subnet:
+                    type: object
+                    $ref: '#/components/schemas/EKSSubnet'
+                    description: Subnet for worker nodes of this node pool. If not specified than worker nodes are launched in the same subnet in one of the subnets from the list of subnets of the EKS cluster
 
         CreateEKSProperties:
             type: object
@@ -7445,7 +7449,7 @@ components:
                         nodePools:
                             type: object
                             additionalProperties:
-                                $ref: '#/components/schemas/NodePoolsAmazon'
+                                $ref: '#/components/schemas/EKSNodePool'
                         vpc:
                             type: object
                             $ref: '#/components/schemas/EKSVpc'
@@ -7457,6 +7461,8 @@ components:
                             items:
                                 $ref: '#/components/schemas/EKSSubnet'
                                 minItems: 2
+                            description: Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as
+                                the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
 
 
 
@@ -8053,32 +8059,8 @@ components:
                         nodePools:
                             type: object
                             additionalProperties:
-                                $ref: '#/components/schemas/UpdateNodePoolsEks'
+                                $ref: '#/components/schemas/EKSNodePool'
 
-        UpdateNodePoolsEks:
-            type: object
-            properties:
-                instanceType:
-                    type: string
-                    example: "m4.xlarge"
-                spotPrice:
-                    type: string
-                    example: "0.2"
-                autoscaling:
-                    type: boolean
-                    example: true
-                count:
-                    type: integer
-                    example: 2
-                minCount:
-                    type: integer
-                    example: 1
-                maxCount:
-                    type: integer
-                    example: 2
-                image:
-                    type: string
-                    example: "ami-4d485ca7"
 
         UpdateACKProperties:
             type: object
@@ -10701,6 +10683,9 @@ components:
                 cidr:
                     type: string
                     description: The CIDR range for the subnet in case new Subnet is created.
+                availabilityZone:
+                    type: string
+                    description: The AZ to create the subnet into.
         GetClusterBootstrapResponse:
             type: object
             properties:

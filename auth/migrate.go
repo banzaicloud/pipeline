@@ -29,7 +29,7 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 		&AuthIdentity{},
 		&User{},
 		&UserOrganization{},
-		&OrganizationMigrationModel{}, // TODO change back to Organization once a new version is released
+		&Organization{},
 	}
 
 	var tableNames string
