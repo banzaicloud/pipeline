@@ -37,7 +37,7 @@ import (
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/internal/backoff"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"

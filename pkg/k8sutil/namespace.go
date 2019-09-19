@@ -25,7 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/internal/backoff"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 )
 
 // EnsureNamespace creates a namespace on a cluster if it does not exist.
