@@ -17,7 +17,7 @@ package backoff
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/lestrrat-go/backoff"
 )
 
@@ -34,14 +34,14 @@ func Retry(function func() error, backoffPolicy backoff.Policy) (err error) {
 	for {
 		select {
 		case <-b.Done():
-			return emperror.Wrap(err, "all attempts failed")
+			return errors.WrapIf(err, "all attempts failed")
 		case <-b.Next():
 			err = function()
 			if err == nil {
 				return nil
 			}
 			if backoff.IsPermanentError(err) {
-				return emperror.Wrap(err, "permanent error happened during retrying")
+				return errors.WrapIf(err, "permanent error happened during retrying")
 			}
 		}
 	}
