@@ -77,10 +77,6 @@ const (
 	ProviderGitlab    = "gitlab"
 )
 
-func getBackendProvider(oidcProvider string) string {
-	return strings.TrimPrefix(oidcProvider, "dex:")
-}
-
 // Init authorization
 // nolint: gochecknoglobals
 var (
@@ -139,15 +135,6 @@ type cookieExtractor struct {
 
 func (c cookieExtractor) ExtractToken(r *http.Request) (string, error) {
 	return c.sessionStorer.SessionManager.Get(r, c.sessionStorer.SessionName), nil
-}
-
-type accessManager interface {
-	GrantDefaultAccessToUser(userID string)
-	GrantDefaultAccessToVirtualUser(userID string)
-	AddOrganizationPolicies(orgID uint)
-	GrantOrganizationAccessToUser(userID string, orgID uint)
-	RevokeOrganizationAccessFromUser(userID string, orgID uint)
-	RevokeAllAccessFromUser(userID string)
 }
 
 type redirector struct {
@@ -306,10 +293,14 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 	}
 }
 
-type tokenHandler struct{}
+type tokenHandler struct {
+	roleSource RoleSource
+}
 
-func NewTokenHandler() *tokenHandler {
-	handler := &tokenHandler{}
+func NewTokenHandler(roleSource RoleSource) *tokenHandler {
+	handler := &tokenHandler{
+		roleSource: roleSource,
+	}
 
 	return handler
 }
@@ -370,6 +361,41 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		userID = tokenRequest.VirtualUser
 		userLogin = tokenRequest.VirtualUser
 		tokenType = CICDHookTokenType
+
+		orgName := GetOrgNameFromVirtualUser(tokenRequest.VirtualUser)
+
+		organization := Organization{Name: orgName}
+		err := Auth.GetDB(c.Request).
+			Where(organization).
+			First(&organization).Error
+		if err != nil {
+			statusCode := http.StatusInternalServerError
+			if gorm.IsRecordNotFoundError(err) {
+				statusCode = http.StatusBadRequest
+			}
+
+			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
+
+			_ = c.AbortWithError(statusCode, err)
+
+			return
+		}
+
+		role, member, err := h.roleSource.FindUserRole(c.Request.Context(), organization.ID, currentUser.ID)
+		if err != nil {
+			errorHandler.Handle(errors.WithMessage(err, "failed to query organization membership for virtual user"))
+
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
+
+			return
+		}
+
+		// TODO: implement better authorization here
+		if !member || role != RoleAdmin {
+			c.AbortWithStatus(http.StatusForbidden)
+
+			return
+		}
 	}
 
 	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name, tokenRequest.ExpiresAt, false)
@@ -380,24 +406,6 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		return
 	}
 
-	if isForVirtualUser {
-		orgName := GetOrgNameFromVirtualUser(tokenRequest.VirtualUser)
-		organization := Organization{Name: orgName}
-		err = Auth.GetDB(c.Request).
-			Model(currentUser).
-			Where(&organization).
-			Related(&organization, "Organizations").Error
-		if err != nil {
-			statusCode := http.StatusInternalServerError
-			if gorm.IsRecordNotFoundError(err) {
-				statusCode = http.StatusBadRequest
-			}
-			err = c.AbortWithError(statusCode, err)
-			errorHandler.Handle(errors.Wrap(err, "failed to query organization name for virtual user"))
-			return
-		}
-	}
-
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
 }
 
@@ -406,8 +414,16 @@ func getClusterUserID(orgID uint, clusterID uint) string {
 	return fmt.Sprintf("clusters/%d/%d", orgID, clusterID)
 }
 
+type clusterTokenHandler struct{}
+
+func NewClusterTokenHandler() *clusterTokenHandler {
+	handler := &clusterTokenHandler{}
+
+	return handler
+}
+
 // GenerateClusterToken looks up, or generates and stores a token for a cluster
-func (h *tokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (string, string, error) {
+func (h *clusterTokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (string, string, error) {
 	userID := getClusterUserID(orgID, clusterID)
 	if tokens, err := TokenStore.List(userID); err == nil {
 		for _, token := range tokens {

@@ -23,7 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/internal/backoff"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
@@ -41,7 +41,7 @@ func WaitingForTillerComeUp(log logrus.FieldLogger, kubeConfig []byte) error {
 		Delay:      time.Duration(retrySleepSeconds) * time.Second,
 		MaxRetries: retryAttempts,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	i := 0
 
