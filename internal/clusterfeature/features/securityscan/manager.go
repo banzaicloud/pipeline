@@ -25,6 +25,11 @@ type featureManager struct {
 	logger common.Logger
 }
 
+// Name returns the name of the feature
+func (f featureManager) Name() string {
+	return FeatureName
+}
+
 //MakeFeatureManager creates asecurity scan feature manager instance
 func MakeFeatureManager(logger common.Logger) featureManager {
 	return featureManager{
@@ -33,8 +38,18 @@ func MakeFeatureManager(logger common.Logger) featureManager {
 }
 
 func (f featureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
-	// todo implement this
-	panic("implement me")
+
+	// todo get the proper versions here
+	out := map[string]interface{}{
+		"anchore": map[string]interface{}{
+			"version": "v0.1.0",
+		},
+		"imageValidator": map[string]interface{}{
+			"version": "v0.1.0",
+		},
+	}
+
+	return out, nil
 }
 
 func (f featureManager) ValidateSpec(ctx context.Context, spec clusterfeature.FeatureSpec) error {
@@ -59,8 +74,4 @@ func (f featureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 func (f featureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
 	// todo implement this - do nothing for the time being
 	return spec, nil
-}
-
-func (f featureManager) Name() string {
-	return FeatureName
 }

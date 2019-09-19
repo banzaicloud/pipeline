@@ -18,18 +18,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"emperror.dev/errors"
+	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
+	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/mitchellh/mapstructure"
 	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -64,51 +70,58 @@ func MakeFeatureOperator(
 	}
 }
 
+// Name returns the name of the feature
+func (op featureOperator) Name() string {
+	return FeatureName
+}
+
 func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
+	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": FeatureName})
+	logger.Info("start to apply feature")
+
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-		return err
+		return errors.WrapIf(err, "failed to apply feature")
 	}
 
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
-		return err
+		return errors.WrapIf(err, "failed to apply feature")
 	}
-
-	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": FeatureName})
 
 	boundSpec, err := bindFeatureSpec(spec)
 	if err != nil {
-		return err
+		return errors.WrapIf(err, "failed to apply feature")
 	}
 
+	var anchoreValues *AnchoreValues
 	if boundSpec.CustomAnchore.Enabled {
-		// todo manage custom anchore (and possibly quit)
-	}
-
-	// default (pipeline hosted) anchore
-	if !anchore.AnchoreEnabled {
-		logger.Info("Anchore integration is not enabled.")
-		return errors.NewWithDetails("default anchore is not enabled")
-	}
-
-	secretName, err := op.createAnchoreUserForCluster(ctx, clusterID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create anchore user")
+		anchoreValues, err = op.getCustomAnchoreValues(ctx, boundSpec.CustomAnchore)
+		if err != nil {
+			return errors.WrapIf(err, "failed to get default anchore values")
+		}
+	} else {
+		anchoreValues, err = op.getDefaultAnchoreValues(ctx, clusterID)
+		if err != nil {
+			return errors.WrapIf(err, "failed to get default anchore values")
+		}
 	}
 
 	// todo cluster.SetSecurityScan(true) - set this
-	values, err := op.processChartValues(ctx, clusterID, secretName)
+	values, err := op.processChartValues(ctx, clusterID, *anchoreValues)
 	if err != nil {
 		return errors.WrapIf(err, "failed to assemble chart values")
 	}
 
-	if err = op.helmService.ApplyDeployment(ctx, clusterID, securityScanNamespace, securityScanChartName,
-		securityScanRelease, values, securityScanChartVersion); err != nil {
-
+	if err = op.helmService.ApplyDeployment(ctx, clusterID, securityScanNamespace, securityScanChartName, securityScanRelease,
+		values, securityScanChartVersion); err != nil {
 		return errors.WrapIf(err, "failed to deploy feature")
 	}
 
-	// todo install all whitelist
+	if len(boundSpec.ReleaseWhiteList) > 0 {
+		if err = op.installWhiteList(ctx, clusterID, boundSpec.ReleaseWhiteList); err != nil {
+			return errors.WrapIf(err, "failed to install release white list")
+		}
+	}
 
 	return nil
 }
@@ -116,30 +129,21 @@ func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 func (op featureOperator) Deactivate(ctx context.Context, clusterID uint) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-
-		return err
+		return errors.WrapIf(err, "failed to deactivate feature")
 	}
 
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
-		return err
+		return errors.WrapIf(err, "failed to deactivate feature")
 	}
 
-	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": FeatureName})
-
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
-		logger.Info("failed to delete feature deployment")
-
-		return errors.WrapIf(err, "failed to uninstall feature")
+		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
+			"clusterID", clusterID)
 	}
 
 	return nil
 }
 
-func (op featureOperator) Name() string {
-	return FeatureName
-}
-
-// todo move this out to a common place as it's duplicated now (in the dns feature)
 func (op featureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
 		cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
@@ -190,22 +194,12 @@ func getDefaultValues(cl clusterfeatureadapter.Cluster) *SecurityScanChartValues
 	return chartValues
 }
 
-func (op featureOperator) processChartValues(ctx context.Context, clusterID uint, secretName string) ([]byte, error) {
+func (op featureOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
 	securityScanValues, err := op.getDefaultValues(ctx, clusterID)
-
-	anchoreSecretID := secret.GenerateSecretIDFromName(secretName)
-	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, anchoreSecretID)
 	if err != nil {
-		return nil, errors.WrapWithDetails(err, "failed to get anchore secret", "user", secretName)
+		return nil, errors.WrapIf(err, "failed to get defaults for chart values")
 	}
 
-	var anchoreValues AnchoreValues
-	if err := mapstructure.Decode(anchoreUserSecret, &anchoreValues); err != nil {
-		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
-	}
-
-	// todo pass configuration instead using these values
-	anchoreValues.Host = anchore.AnchoreEndpoint
 	securityScanValues.Anchore = anchoreValues
 
 	values, err := json.Marshal(securityScanValues)
@@ -214,5 +208,114 @@ func (op featureOperator) processChartValues(ctx context.Context, clusterID uint
 	}
 
 	return values, nil
+}
 
+func (op featureOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (*AnchoreValues, error) {
+	if !customAnchore.Enabled { // this is already checked
+		return nil, errors.NewWithDetails("custom anchore disabled")
+	}
+
+	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, customAnchore.SecretID)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", customAnchore.SecretID)
+	}
+
+	var anchoreValues AnchoreValues
+	if err := mapstructure.Decode(anchoreUserSecret, &anchoreValues); err != nil {
+		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
+	}
+
+	anchoreValues.Host = customAnchore.Url
+
+	return &anchoreValues, nil
+
+}
+
+func (op featureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
+	// default (pipeline hosted) anchore
+	if !anchore.AnchoreEnabled {
+		op.logger.Info("Anchore integration is not enabled.")
+		return nil, errors.NewWithDetails("default anchore is not enabled")
+	}
+
+	secretName, err := op.createAnchoreUserForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create anchore user")
+	}
+
+	anchoreSecretID := secret.GenerateSecretIDFromName(secretName)
+	anchoreUserSecret, err := op.secretStore.GetSecretValues(ctx, anchoreSecretID)
+	if err != nil {
+		return nil, errors.WrapWithDetails(err, "failed to get anchore secret", "secretId", anchoreSecretID)
+	}
+
+	var anchoreValues AnchoreValues
+	if err := mapstructure.Decode(anchoreUserSecret, &anchoreValues); err != nil {
+		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
+	}
+
+	anchoreValues.Host = anchore.AnchoreEndpoint
+
+	return &anchoreValues, nil
+}
+
+func (op featureOperator) installWhiteList(ctx context.Context, clusterID uint, releases []releaseSpec) error {
+
+	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster")
+	}
+
+	kubeConfig, err := cl.GetK8sConfig()
+	if err != nil {
+		return errors.WrapIf(err, "failed to get k8s config for the cluster")
+	}
+
+	config, err := k8sclient.NewClientConfig(kubeConfig)
+	if err != nil {
+		return errors.WrapIf(err, "failed to create k8s client config")
+	}
+
+	securityClientSet, err := securityClientV1Alpha.SecurityConfig(config)
+	if err != nil {
+		return errors.WrapIf(err, "failed to create security config")
+	}
+
+	for _, relSpec := range releases {
+
+		whitelist := securityV1Alpha.WhiteListItem{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "WhiteListItem",
+				APIVersion: fmt.Sprintf("%v/%v", securityV1Alpha.GroupName, securityV1Alpha.GroupVersion),
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: relSpec.Name,
+			},
+			Spec: securityV1Alpha.WhiteListSpec{
+				Creator: "pipeline",
+				Reason:  relSpec.Reason,
+				Regexp:  relSpec.Regexp,
+			},
+		}
+
+		// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
+		// a whitelist cr may fail. Retry the whitelist creation in case of failure
+		var backoffConfig = backoff.ConstantBackoffConfig{
+			Delay:      time.Duration(5) * time.Second,
+			MaxRetries: 3,
+		}
+		var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+
+		err = backoff.Retry(func() error {
+			if _, err = securityClientSet.Whitelists().Create(&whitelist); err != nil {
+				return errors.WrapIf(err, "failed to create whitelist item")
+			}
+
+			return nil
+
+		}, backoffPolicy)
+
+		return err
+	}
+	return nil
 }

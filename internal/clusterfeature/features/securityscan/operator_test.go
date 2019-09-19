@@ -50,12 +50,12 @@ func TestFeatureOperator_ProcessChartValues(t *testing.T) {
 		commonadapter.NewLogger(logur.NewTestLogger()),
 	)
 
-	//anchoreSecretValues := map[string]string{
-	//	"username": "test_username",
-	//	"password": "test_password",
-	//}
-
-	values, err := ssFeatureOperator.processChartValues(context.Background(), 10, "test_username")
+	anchoreValues := AnchoreValues{
+		Host:     "testhost",
+		User:     "test_username",
+		Password: "test_password",
+	}
+	values, err := ssFeatureOperator.processChartValues(context.Background(), 10, anchoreValues)
 	assert.Nil(t, err, "failed to process chart values ")
 	assert.NotNil(t, values, "values should be filled")
 
