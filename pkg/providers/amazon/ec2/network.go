@@ -244,16 +244,22 @@ func (svc *NetworkSvc) GetUnusedNetworkInterfaces(vpcId string, securityGroupIds
 	}
 
 	for k, v := range tagsFilter {
-		values := make([]*string, len(v))
+		if v == nil {
+			filters = append(filters, &ec2.Filter{
+				Name:   aws.String("tag-key"),
+				Values: []*string{aws.String(k)},
+			})
+		} else {
+			values := make([]*string, len(v))
+			for i := range v {
+				values[i] = aws.String(v[i])
+			}
 
-		for i := range v {
-			values[i] = aws.String(v[i])
+			filters = append(filters, &ec2.Filter{
+				Name:   aws.String(fmt.Sprintf("tag:%s", k)),
+				Values: values,
+			})
 		}
-
-		filters = append(filters, &ec2.Filter{
-			Name:   aws.String(fmt.Sprintf("tag:%s", k)),
-			Values: values,
-		})
 	}
 
 	var nicIds []string

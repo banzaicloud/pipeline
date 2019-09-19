@@ -394,7 +394,7 @@ func (a *DeleteOrphanNICsAction) ExecuteAction(input interface{}) (interface{}, 
 	// collect orphan ENIs
 	// CNI plugin applies the following tags to ENIs https://aws.amazon.com/blogs/opensource/vpc-cni-plugin-v1-1-available/
 	tagsFilter := map[string][]string{
-		"node.k8s.amazonaws.com/instance_id": {""},
+		"node.k8s.amazonaws.com/instance_id": nil,
 	}
 	nics, err := netSvc.GetUnusedNetworkInterfaces(a.context.VpcID, a.context.SecurityGroupIDs, tagsFilter)
 	if err != nil {
