@@ -15,7 +15,10 @@
 package ec2
 
 import (
+	"fmt"
+
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -212,4 +215,85 @@ func (svc *NetworkSvc) GetSubnetsById(subnetIds []string) ([]*ec2.Subnet, error)
 		})
 
 	return subnets, err
+}
+
+// GetUnusedNetworkInterfaces returns network interfaces that are not in "in-use" state of the specified VPC
+// which are associated with the specified security groups and matches the tagsFilter if provided
+func (svc *NetworkSvc) GetUnusedNetworkInterfaces(vpcId string, securityGroupIds []string, tagsFilter map[string][]string) ([]string, error) {
+	filters := []*ec2.Filter{
+		{
+			Name:   aws.String("vpc-id"),
+			Values: []*string{aws.String(vpcId)},
+		},
+		/*{
+			Name:   aws.String("attachment.status"),
+			Values: []*string{aws.String("detaching"), aws.String("detached")},
+		},*/
+		{
+			Name:   aws.String("status"),
+			Values: []*string{aws.String("available")},
+		},
+	}
+
+	if len(securityGroupIds) > 0 {
+		values := make([]*string, 0, len(securityGroupIds))
+
+		for _, sg := range securityGroupIds {
+			values = append(values, aws.String(sg))
+		}
+		filters = append(filters, &ec2.Filter{
+			Name:   aws.String("group-id"),
+			Values: values,
+		})
+	}
+
+	for k, v := range tagsFilter {
+		values := make([]*string, len(v))
+
+		for i := range v {
+			values[i] = aws.String(v[i])
+		}
+
+		filters = append(filters, &ec2.Filter{
+			Name:   aws.String(fmt.Sprintf("tag:%s", k)),
+			Values: values,
+		})
+	}
+
+	var nicIds []string
+	err := svc.ec2Api.DescribeNetworkInterfacesPages(
+		&ec2.DescribeNetworkInterfacesInput{
+			Filters: filters,
+		},
+		func(networkInterfacesOutput *ec2.DescribeNetworkInterfacesOutput, lastPage bool) bool {
+			for _, nic := range networkInterfacesOutput.NetworkInterfaces {
+				nicIds = append(nicIds, aws.StringValue(nic.NetworkInterfaceId))
+			}
+			return lastPage
+		})
+
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "couldn't query network interfaces", "vpcId", vpcId, "securityGroups", securityGroupIds)
+	}
+
+	return nicIds, nil
+}
+
+// DeleteNetworkInterface deletes the network interface with the given id
+func (svc *NetworkSvc) DeleteNetworkInterface(nicId string) error {
+	logger := logur.WithFields(svc.log, map[string]interface{}{"nic": nicId})
+
+	_, err := svc.ec2Api.DeleteNetworkInterface(&ec2.DeleteNetworkInterfaceInput{
+		NetworkInterfaceId: aws.String(nicId),
+	})
+
+	if aerr, ok := err.(awserr.Error); ok {
+		switch aerr.Code() {
+		case "InvalidNetworkInterfaceID.NotFound":
+			logger.Info("network interface not found")
+			return nil
+		}
+	}
+
+	return errors.WrapIff(err, "couldn't delete network interface %s", nicId)
 }

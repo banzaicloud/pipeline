@@ -180,7 +180,7 @@ func (a *CreateVPCAndRolesAction) UndoAction() (err error) {
 	return err
 }
 
-var _ utils.RevocableAction = (*CreateSubnetsAction)(nil)
+var _ utils.Action = (*CreateSubnetsAction)(nil)
 
 // CreateSubnetsAction describes the properties of the action for creating subnets
 type CreateSubnetsAction struct {
@@ -359,7 +359,67 @@ func (a *CreateSubnetsAction) createSubnet(cidr, az string, output chan struct {
 	}{&EksSubnet{SubnetID: subnetId, Cidr: cidr, AvailabilityZone: az}, nil}
 }
 
-//UndoAction rolls back this CreateSubnetsAction
-func (a *CreateSubnetsAction) UndoAction() error {
-	return nil
+var _ utils.Action = (*DeleteOrphanNICsAction)(nil)
+
+// DeleteOrphanNICsAction describes the properties for deleting orphaned
+// ENIs left behind by the CNI driver
+type DeleteOrphanNICsAction struct {
+	context *EksClusterDeletionContext
+	log     logur.Logger
+}
+
+// NewDeleteOrphanNICsAction creates action for deleting orphaned ENIs
+func NewDeleteOrphanNICsAction(logger logur.Logger, context *EksClusterDeletionContext) *DeleteOrphanNICsAction {
+	return &DeleteOrphanNICsAction{
+		context: context,
+		log:     logger,
+	}
+}
+
+// GetName returns the name of this DeleteOrphanNICsAction
+func (a *DeleteOrphanNICsAction) GetName() string {
+	return "DeleteOrphanNICsAction"
+}
+
+// ExecuteAction deletes all orphaned network interfaces
+func (a *DeleteOrphanNICsAction) ExecuteAction(input interface{}) (interface{}, error) {
+	a.log.Info("EXECUTE DeleteOrphanNICsAction")
+
+	if a.context.VpcID == "" || len(a.context.SecurityGroupIDs) == 0 {
+		return nil, nil
+	}
+
+	netSvc := pkgEC2.NewNetworkSvc(ec2.New(a.context.Session), a.log)
+
+	// collect orphan ENIs
+	// CNI plugin applies the following tags to ENIs https://aws.amazon.com/blogs/opensource/vpc-cni-plugin-v1-1-available/
+	tagsFilter := map[string][]string{
+		"node.k8s.amazonaws.com/instance_id": {""},
+	}
+	nics, err := netSvc.GetUnusedNetworkInterfaces(a.context.VpcID, a.context.SecurityGroupIDs, tagsFilter)
+	if err != nil {
+		return nil, errors.WrapIf(err, "searching for unused network interfaces failed")
+	}
+
+	errChan := make(chan error, len(nics))
+	defer close(errChan)
+
+	for _, nic := range nics {
+		go a.deleteNetworkInterface(errChan, nic)
+	}
+
+	errs := make([]error, len(nics))
+	for i := 0; i < len(nics); i++ {
+		errs[i] = <-errChan
+	}
+
+	return nil, errors.Combine(errs...)
+}
+
+func (a *DeleteOrphanNICsAction) deleteNetworkInterface(errChan chan<- error, nicId string) {
+	netSvc := pkgEC2.NewNetworkSvc(ec2.New(a.context.Session), a.log)
+
+	a.log.Info("deleting network interface", map[string]interface{}{"nic": nicId})
+
+	errChan <- netSvc.DeleteNetworkInterface(nicId)
 }
