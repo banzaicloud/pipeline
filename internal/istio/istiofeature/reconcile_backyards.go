@@ -26,7 +26,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/internal/backoff"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 

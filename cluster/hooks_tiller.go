@@ -23,7 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/internal/backoff"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
