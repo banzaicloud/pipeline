@@ -225,10 +225,6 @@ func (svc *NetworkSvc) GetUnusedNetworkInterfaces(vpcId string, securityGroupIds
 			Name:   aws.String("vpc-id"),
 			Values: []*string{aws.String(vpcId)},
 		},
-		/*{
-			Name:   aws.String("attachment.status"),
-			Values: []*string{aws.String("detaching"), aws.String("detached")},
-		},*/
 		{
 			Name:   aws.String("status"),
 			Values: []*string{aws.String("available")},
