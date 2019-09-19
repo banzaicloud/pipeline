@@ -51,7 +51,7 @@ func PreInstall(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig [
 		Delay:      10 * time.Second,
 		MaxRetries: 5,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {

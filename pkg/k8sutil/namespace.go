@@ -72,7 +72,7 @@ func EnsureNamespaceWithLabelWithRetry(client kubernetes.Interface, namespace st
 		Delay:      10 * time.Second,
 		MaxRetries: 5,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 	err = backoff.Retry(func() error {
 		if err := EnsureNamespaceWithLabel(client, namespace, labels); err != nil {
 			if IsK8sErrorPermanent(err) {

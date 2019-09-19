@@ -78,7 +78,7 @@ func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client *is
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		_, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Get(name, metav1.GetOptions{})

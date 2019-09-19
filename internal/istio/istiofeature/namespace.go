@@ -31,7 +31,7 @@ func (m *MeshReconciler) waitForNamespaceBeDeleted(client *kubernetes.Clientset,
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		_, err := client.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
