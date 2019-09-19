@@ -544,7 +544,7 @@ func installAllowAllWhitelist(cluster CommonCluster) error {
 		Delay:      time.Duration(5) * time.Second,
 		MaxRetries: 3,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err = backoff.Retry(func() error {
 		_, err = securityClientSet.Whitelists().Create(&whitelist)

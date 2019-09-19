@@ -41,7 +41,7 @@ func WaitingForTillerComeUp(log logrus.FieldLogger, kubeConfig []byte) error {
 		Delay:      time.Duration(retrySleepSeconds) * time.Second,
 		MaxRetries: retryAttempts,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	i := 0
 

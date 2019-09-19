@@ -22,7 +22,7 @@ import (
 )
 
 // NewConstantBackoffPolicy creates a new constant backoff policy
-func NewConstantBackoffPolicy(config *ConstantBackoffConfig) *backoff.Constant {
+func NewConstantBackoffPolicy(config ConstantBackoffConfig) *backoff.Constant {
 	return backoff.NewConstant(config.Delay, backoff.WithMaxRetries(config.MaxRetries), backoff.WithMaxElapsedTime(config.MaxElapsedTime))
 }
 

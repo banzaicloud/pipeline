@@ -84,7 +84,7 @@ func (m *MeshReconciler) waitForSidecarInjectorPod(client *kubernetes.Clientset)
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		pods, err := client.CoreV1().Pods(istioOperatorNamespace).List(metav1.ListOptions{
@@ -114,7 +114,7 @@ func (m *MeshReconciler) waitForMetricCRD(name string, client *apiextensionsclie
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		_, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Get(name, metav1.GetOptions{})
