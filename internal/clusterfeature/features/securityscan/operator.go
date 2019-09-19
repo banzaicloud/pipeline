@@ -29,7 +29,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
@@ -50,6 +49,7 @@ type featureOperator struct {
 	clusterService clusterfeature.ClusterService
 	helmService    features.HelmService
 	secretStore    features.SecretStore
+	anchoreService features.AnchoreService
 	logger         common.Logger
 }
 
@@ -66,6 +66,7 @@ func MakeFeatureOperator(
 		clusterService: clusterService,
 		helmService:    helmService,
 		secretStore:    secretStore,
+		anchoreService: features.NewAnchoreService(), //wired service
 		logger:         logger,
 	}
 }
@@ -136,7 +137,15 @@ func (op featureOperator) Deactivate(ctx context.Context, clusterID uint) error 
 		return errors.WrapIf(err, "failed to deactivate feature")
 	}
 
-	// todo delete the cluster if appropriate! the spec is to be added to the interface
+	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster by ID")
+	}
+
+	if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), cl.GetUID()); err != nil {
+		return errors.WrapIf(err, "failed to deactivate")
+	}
+
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
 			"clusterID", clusterID)
@@ -162,14 +171,12 @@ func (op featureOperator) createAnchoreUserForCluster(ctx context.Context, clust
 		return "", errors.WrapIf(err, "error retrieving cluster")
 	}
 
-	// todo decouple anchore integration here
-	usr, err := anchore.SetupAnchoreUser(cl.GetOrganizationId(), cl.GetUID())
+	usr, err := op.anchoreService.GenerateUser(ctx, cl.GetOrganizationId(), cl.GetUID())
 	if err != nil {
-		return "", errors.WrapWithDetails(err, "error creating anchore user", "organization",
-			cl.GetOrganizationId())
+		return "", errors.WrapIf(err, "error creating anchore user")
 	}
 
-	return usr.UserId, nil
+	return usr, nil
 }
 
 func (op featureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*SecurityScanChartValues, error) {
@@ -233,8 +240,7 @@ func (op featureOperator) getCustomAnchoreValues(ctx context.Context, customAnch
 
 func (op featureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
 	// default (pipeline hosted) anchore
-	if !anchore.AnchoreEnabled {
-		op.logger.Info("Anchore integration is not enabled.")
+	if !op.anchoreService.AnchoreConfig().AnchoreEnabled {
 		return nil, errors.NewWithDetails("default anchore is not enabled")
 	}
 
@@ -254,7 +260,7 @@ func (op featureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
-	anchoreValues.Host = anchore.AnchoreEndpoint
+	anchoreValues.Host = op.anchoreService.AnchoreConfig().AnchoreEndpoint
 
 	return &anchoreValues, nil
 }
