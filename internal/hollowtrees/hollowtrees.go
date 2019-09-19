@@ -19,11 +19,10 @@ import (
 	"fmt"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/banzaicloud/gin-utilz/auth"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
-
-	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 )
 
 type TokenGenerator interface {
@@ -53,7 +52,7 @@ func (g *tokenGenerator) Generate(userID, orgID uint, expiresAt *time.Time) (str
 	}
 
 	// Create the Claims
-	claims := &bauth.ScopedClaims{
+	claims := &auth.ScopedClaims{
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    g.Issuer,
 			Audience:  g.Audience,

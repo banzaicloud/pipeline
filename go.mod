@@ -30,8 +30,9 @@ require (
 	github.com/aws/aws-sdk-go v1.23.18
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/banzaicloud/anchore-image-validator v0.0.0-20190823121528-918b9fa6af62
-	github.com/banzaicloud/bank-vaults/pkg/sdk v0.1.2
+	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.0
 	github.com/banzaicloud/cicd-go v0.0.0-20190214150755-832df3e92677
+	github.com/banzaicloud/gin-utilz v0.1.0
 	github.com/banzaicloud/go-gin-prometheus v0.0.0-20181204122313-8145dbf52419
 	github.com/banzaicloud/istio-operator v0.0.0-20190430142744-7f4bf475ff8f
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20180617171254-12df4a18567f
@@ -75,6 +76,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/sessions v0.0.0-20181208214519-12bd4761fc66
+	github.com/gosimple/slug v1.7.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/vault/api v1.0.4
@@ -114,6 +116,7 @@ require (
 	github.com/qor/render v0.0.0-20171201033449-63566e46f01b // indirect
 	github.com/qor/responder v0.0.0-20160314063933-ecae0be66c1a // indirect
 	github.com/qor/session v0.0.0-20170907035918-8206b0adab70
+	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 // indirect
 	github.com/russross/blackfriday v1.5.1 // indirect
 	github.com/sagikazarmark/ocmux v0.2.0

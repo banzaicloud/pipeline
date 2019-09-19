@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
+	ginauth "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -52,13 +52,13 @@ const PipelineSessionCookie = "_banzai_session"
 const CICDSessionCookie = "user_sess"
 
 // CICDUserTokenType is the CICD token type used for API sessions
-const CICDUserTokenType bauth.TokenType = "user"
+const CICDUserTokenType ginauth.TokenType = "user"
 
 // CICDHookTokenType is the CICD token type used for API sessions
-const CICDHookTokenType bauth.TokenType = "hook"
+const CICDHookTokenType ginauth.TokenType = "hook"
 
 // ClusterTokenType is the token given to clusters to manage themselves
-const ClusterTokenType bauth.TokenType = "cluster"
+const ClusterTokenType ginauth.TokenType = "cluster"
 
 // SessionCookieMaxAge holds long an authenticated session should be valid in seconds
 const SessionCookieMaxAge = 30 * 24 * 60 * 60
@@ -116,17 +116,8 @@ func init() {
 // CICDClaims struct to store the cicd claim related things
 type CICDClaims struct {
 	*claims.Claims
-	Type bauth.TokenType `json:"type,omitempty"`
-	Text string          `json:"text,omitempty"`
-}
-
-func claimConverter(claims *bauth.ScopedClaims) interface{} {
-	userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
-	return &User{
-		ID:      uint(userID),
-		Login:   claims.Text, // This is needed for CICD virtual user tokens
-		Virtual: claims.Type == CICDHookTokenType,
-	}
+	Type ginauth.TokenType `json:"type,omitempty"`
+	Text string            `json:"text,omitempty"`
 }
 
 type cookieExtractor struct {
@@ -222,7 +213,24 @@ func Init(db *gorm.DB, orgSyncer OIDCOrganizationSyncer) {
 
 	InitTokenStore()
 
-	Handler = bauth.JWTAuth(TokenStore, signingKey, claimConverter, cookieExtractor{sessionStorer})
+	Handler = ginauth.JWTAuthHandler(
+		signingKey,
+		func(claims *ginauth.ScopedClaims) interface{} {
+			userID, _ := strconv.ParseUint(claims.Subject, 10, 32)
+
+			return &User{
+				ID:      uint(userID),
+				Login:   claims.Text, // This is needed for CICD virtual user tokens
+				Virtual: claims.Type == CICDHookTokenType,
+			}
+		},
+		func(ctx context.Context, value interface{}) context.Context {
+			return context.WithValue(ctx, auth.CurrentUser, value)
+		},
+		ginauth.TokenStoreOption(TokenStore),
+		ginauth.ExtractorOption(cookieExtractor{sessionStorer}),
+		ginauth.ErrorHandlerOption(emperror.MakeContextAware(errorHandler)),
+	)
 }
 
 func SyncOrgsForUser(organizationSyncer OIDCOrganizationSyncer, user *User, request *http.Request) error {
@@ -437,7 +445,7 @@ func (h *clusterTokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (
 	return tokenID, signedToken, err
 }
 
-func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, expiresAt *time.Time) (string, string, error) {
+func createAPIToken(userID string, userLogin string, tokenType ginauth.TokenType, expiresAt *time.Time) (string, string, error) {
 	tokenID := uuid.Must(uuid.NewV4()).String()
 
 	var expiresAtUnix int64
@@ -446,7 +454,7 @@ func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, 
 	}
 
 	// Create the Claims
-	claims := &bauth.ScopedClaims{
+	claims := &ginauth.ScopedClaims{
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    JwtIssuer,
 			Audience:  JwtAudience,
@@ -472,7 +480,7 @@ func createAPIToken(userID string, userLogin string, tokenType bauth.TokenType, 
 	return tokenID, signedToken, nil
 }
 
-func createAndStoreAPIToken(userID string, userLogin string, tokenType bauth.TokenType, tokenName string, expiresAt *time.Time, storeSecret bool) (string, string, error) {
+func createAndStoreAPIToken(userID string, userLogin string, tokenType ginauth.TokenType, tokenName string, expiresAt *time.Time, storeSecret bool) (string, string, error) {
 	tokenID, signedToken, err := createAPIToken(userID, userLogin, tokenType, expiresAt)
 	if err != nil {
 		return "", "", err
@@ -700,6 +708,6 @@ func InternalUserHandler(ctx *gin.Context) {
 		Email: internalUserEmail,
 		Login: internalUserLogin,
 	}
-	newContext := context.WithValue(ctx.Request.Context(), bauth.CurrentUser, user)
+	newContext := context.WithValue(ctx.Request.Context(), auth.CurrentUser, user)
 	ctx.Request = ctx.Request.WithContext(newContext)
 }
