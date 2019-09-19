@@ -234,7 +234,7 @@ func (op FeatureOperator) processCustomDNSFeatureValues(ctx context.Context, clu
 
 	switch provider := customDNS.Provider.Name; provider {
 	case dnsRoute53:
-		if err := op.createCustomDNSChartValuesAmazon(secretValues, values); err != nil {
+		if err := op.createCustomDNSChartValuesAmazon(secretValues, customDNS.Provider.Options, values); err != nil {
 			return nil, errors.Wrap(err, "failed to create Amazon custom DNS chart values")
 		}
 
@@ -318,7 +318,7 @@ type awsCredentials struct {
 	Region          string `mapstructure:"AWS_REGION"`
 }
 
-func (op FeatureOperator) createCustomDNSChartValuesAmazon(secretValues map[string]string, values *ExternalDnsChartValues) error {
+func (op FeatureOperator) createCustomDNSChartValuesAmazon(secretValues map[string]string, options *providerOptions, values *ExternalDnsChartValues) error {
 	var creds awsCredentials
 	if err := mapstructure.Decode(secretValues, &creds); err != nil {
 		return errors.WrapIf(err, "failed to bind feature spec credentials")
@@ -326,7 +326,8 @@ func (op FeatureOperator) createCustomDNSChartValuesAmazon(secretValues map[stri
 
 	// set secret values
 	providerSettings := &ExternalDnsAwsSettings{
-		Region: creds.Region,
+		Region:          options.Region,
+		BatchChangeSize: options.BatchChangeSize,
 		Credentials: &ExternalDnsAwsCredentials{
 			AccessKey: creds.AccessKeyID,
 			SecretKey: creds.SecretAccessKey,
