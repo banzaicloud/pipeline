@@ -25,12 +25,12 @@ import (
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/mitchellh/mapstructure"
@@ -136,6 +136,7 @@ func (op featureOperator) Deactivate(ctx context.Context, clusterID uint) error 
 		return errors.WrapIf(err, "failed to deactivate feature")
 	}
 
+	// todo delete the cluster if appropriate! the spec is to be added to the interface
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
 			"clusterID", clusterID)
@@ -161,15 +162,14 @@ func (op featureOperator) createAnchoreUserForCluster(ctx context.Context, clust
 		return "", errors.WrapIf(err, "error retrieving cluster")
 	}
 
-	anchoreUserName := fmt.Sprintf("%v-anchore-user", cl.GetUID())
-
 	// todo decouple anchore integration here
-	if _, err = anchore.SetupAnchoreUser(cl.GetOrganizationId(), cl.GetUID()); err != nil {
+	usr, err := anchore.SetupAnchoreUser(cl.GetOrganizationId(), cl.GetUID())
+	if err != nil {
 		return "", errors.WrapWithDetails(err, "error creating anchore user", "organization",
-			cl.GetOrganizationId(), "anchore-user", anchoreUserName)
+			cl.GetOrganizationId())
 	}
 
-	return anchoreUserName, nil
+	return usr.UserId, nil
 }
 
 func (op featureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*SecurityScanChartValues, error) {
@@ -304,7 +304,7 @@ func (op featureOperator) installWhiteList(ctx context.Context, clusterID uint, 
 			Delay:      time.Duration(5) * time.Second,
 			MaxRetries: 3,
 		}
-		var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+		var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 		err = backoff.Retry(func() error {
 			if _, err = securityClientSet.Whitelists().Create(&whitelist); err != nil {
