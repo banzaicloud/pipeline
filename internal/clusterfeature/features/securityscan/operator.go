@@ -33,7 +33,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/mitchellh/mapstructure"
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -200,7 +200,7 @@ func (op featureOperator) getDefaultValues(ctx context.Context, clusterID uint) 
 func getDefaultValues(cl clusterfeatureadapter.Cluster) *SecurityScanChartValues {
 	chartValues := new(SecurityScanChartValues)
 
-	if headNodeAffinity := cluster.GetHeadNodeAffinity(cl); headNodeAffinity != (v1.Affinity{}) {
+	if headNodeAffinity := cluster.GetHeadNodeAffinity(cl); headNodeAffinity != (corev1.Affinity{}) {
 		chartValues.Affinity = &headNodeAffinity
 	}
 

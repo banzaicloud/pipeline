@@ -20,7 +20,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 )
 
-type arr = []interface{}
 type obj = map[string]interface{}
 
 type clusterGetterMock struct {

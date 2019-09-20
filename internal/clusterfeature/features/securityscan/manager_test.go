@@ -53,12 +53,12 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					"policyId": "myPolicyID, select, from backend",
 				},
 				"releaseWhiteList": []obj{ //optional
-					obj{
+					{
 						"name":   "name of release 1",                        //mandatory
 						"reason": "reason of whitelisting",                   //mandatory
 						"regexp": "whitelisted-[0-1]{2}.[a-z]{2,3}-releases", // optional
 					},
-					obj{
+					{
 						"name":   "name of release 2",
 						"reason": "reason of whitelisting",
 						"regexp": "whitelisted-[0-1]{2}.[a-z]{2,3}-releases",
