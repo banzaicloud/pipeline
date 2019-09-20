@@ -39,8 +39,8 @@ type ScopedClaims struct {
 	Text string    `json:"text,omitempty"`
 }
 
-// TokenGenerator generates an API token.
-type TokenGenerator struct {
+// JWTTokenGenerator generates an API token.
+type JWTTokenGenerator struct {
 	issuer     string
 	audience   string
 	signingKey string
@@ -70,44 +70,44 @@ type systemClock struct{}
 
 func (systemClock) Now() time.Time { return time.Now() }
 
-// TokenGenerator option configures optional parameters of a TokenGenerator.
-type TokenGeneratorOption interface {
-	apply(g *TokenGenerator)
+// JWTTokenGeneratorOption option configures optional parameters of a JWTTokenGenerator.
+type JWTTokenGeneratorOption interface {
+	apply(g *JWTTokenGenerator)
 }
 
-type tokenGeneratorOptionFunc func(g *TokenGenerator)
+type jwtTokenGeneratorOptionFunc func(g *JWTTokenGenerator)
 
-func (fn tokenGeneratorOptionFunc) apply(g *TokenGenerator) {
+func (fn jwtTokenGeneratorOptionFunc) apply(g *JWTTokenGenerator) {
 	fn(g)
 }
 
-// TokenSigningMethod sets the signing method in a TokenGenerator.
+// TokenSigningMethod sets the signing method in a JWTTokenGenerator.
 // It falls back to jwt.SigningMethodHS256.
-func TokenSigningMethod(signingMethod jwt.SigningMethod) TokenGeneratorOption {
-	return tokenGeneratorOptionFunc(func(g *TokenGenerator) {
+func TokenSigningMethod(signingMethod jwt.SigningMethod) JWTTokenGeneratorOption {
+	return jwtTokenGeneratorOptionFunc(func(g *JWTTokenGenerator) {
 		g.signingMethod = signingMethod
 	})
 }
 
-// TokenIDGenerator sets the ID Generator in a TokenGenerator.
+// TokenIDGenerator sets the ID Generator in a JWTTokenGenerator.
 // It falls back to UUID.
-func TokenIDGenerator(idgen IDGenerator) TokenGeneratorOption {
-	return tokenGeneratorOptionFunc(func(g *TokenGenerator) {
+func TokenIDGenerator(idgen IDGenerator) JWTTokenGeneratorOption {
+	return jwtTokenGeneratorOptionFunc(func(g *JWTTokenGenerator) {
 		g.idgen = idgen
 	})
 }
 
-// TokenGeneratorClock sets the clock in a TokenGenerator.
+// TokenGeneratorClock sets the clock in a JWTTokenGenerator.
 // It falls back to the system clock.
-func TokenGeneratorClock(clock Clock) TokenGeneratorOption {
-	return tokenGeneratorOptionFunc(func(g *TokenGenerator) {
+func TokenGeneratorClock(clock Clock) JWTTokenGeneratorOption {
+	return jwtTokenGeneratorOptionFunc(func(g *JWTTokenGenerator) {
 		g.clock = clock
 	})
 }
 
-// NewTokenGenerator returns a new TokenGenerator.
-func NewTokenGenerator(issuer string, audience string, signingKey string, opts ...TokenGeneratorOption) TokenGenerator {
-	generator := TokenGenerator{
+// NewJWTTokenGenerator returns a new JWTTokenGenerator.
+func NewJWTTokenGenerator(issuer string, audience string, signingKey string, opts ...JWTTokenGeneratorOption) JWTTokenGenerator {
+	generator := JWTTokenGenerator{
 		issuer:     issuer,
 		audience:   audience,
 		signingKey: signingKey,
@@ -125,8 +125,8 @@ func NewTokenGenerator(issuer string, audience string, signingKey string, opts .
 	return generator
 }
 
-// GenerateToken looks up, or generates and stores a token for a cluster
-func (g TokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType TokenType, tokenText string) (string, string, error) {
+// GenerateToken generates a JWT token.
+func (g JWTTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType TokenType, tokenText string) (string, string, error) {
 	tokenID := g.idgen.Generate()
 
 	claims := ScopedClaims{

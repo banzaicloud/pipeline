@@ -38,10 +38,10 @@ func (s clockStub) Now() time.Time {
 	return s.now
 }
 
-func TestTokenGenerator_GenerateToken(t *testing.T) {
+func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
 	now := time.Date(2019, time.September, 20, 14, 44, 00, 00, time.UTC)
 
-	generator := NewTokenGenerator(
+	generator := NewJWTTokenGenerator(
 		"issuer",
 		"audience",
 		"signingKey",
