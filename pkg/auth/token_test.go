@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -56,4 +57,64 @@ func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
 
 	assert.Equal(t, "id", tokenID)
 	assert.Equal(t, expectedSignedToken, signedToken)
+}
+
+//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name TokenGenerator -inpkg -testonly"
+
+func TestTokenManager_GenerateToken(t *testing.T) {
+	const sub = "subject"
+	const tokenType = TokenType("apitoken")
+	const tokenText = "token"
+
+	generator := new(MockTokenGenerator)
+	generator.On("GenerateToken", sub, NoExpiration, tokenType, tokenText).Return("id", "token", nil)
+	generator.On("GenerateToken", sub, NoExpiration, tokenType, tokenText).Return("id2", "token2", nil)
+
+	store := auth.NewInMemoryTokenStore()
+
+	manager := NewTokenManager(generator, store)
+
+	tokenID, signedToken, err := manager.GenerateToken(sub, nil, tokenType, tokenText, "tokenName", true)
+	require.NoError(t, err)
+
+	assert.Equal(t, "id", tokenID)
+	assert.Equal(t, "token", signedToken)
+
+	generator.AssertExpectations(t)
+
+	tokens, err := store.List(sub)
+	require.NoError(t, err)
+
+	assert.Equal(t, tokens[0].ID, "id")
+	assert.Equal(t, tokens[0].Name, "tokenName")
+	assert.Equal(t, tokens[0].Value, "token")
+}
+
+func TestTokenManager_GenerateToken_NoStoreSecret(t *testing.T) {
+	const sub = "subject"
+	const tokenType = TokenType("apitoken")
+	const tokenText = "token"
+
+	generator := new(MockTokenGenerator)
+	generator.On("GenerateToken", sub, NoExpiration, tokenType, tokenText).Return("id", "token", nil)
+	generator.On("GenerateToken", sub, NoExpiration, tokenType, tokenText).Return("id2", "token2", nil)
+
+	store := auth.NewInMemoryTokenStore()
+
+	manager := NewTokenManager(generator, store)
+
+	tokenID, signedToken, err := manager.GenerateToken(sub, nil, tokenType, tokenText, "tokenName", false)
+	require.NoError(t, err)
+
+	assert.Equal(t, "id", tokenID)
+	assert.Equal(t, "token", signedToken)
+
+	generator.AssertExpectations(t)
+
+	tokens, err := store.List(sub)
+	require.NoError(t, err)
+
+	assert.Equal(t, tokens[0].ID, "id")
+	assert.Equal(t, tokens[0].Name, "tokenName")
+	assert.Equal(t, tokens[0].Value, "")
 }

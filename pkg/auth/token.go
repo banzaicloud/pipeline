@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
 )
@@ -145,6 +146,60 @@ func (g JWTTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType 
 	signedToken, err := jwtToken.SignedString([]byte(g.signingKey))
 	if err != nil {
 		return "", "", errors.WrapIf(err, "failed to sign token")
+	}
+
+	return tokenID, signedToken, nil
+}
+
+// TokenGenerator generates a token.
+type TokenGenerator interface {
+	// GenerateToken generates a token.
+	GenerateToken(sub string, expiresAt int64, tokenType TokenType, tokenText string) (string, string, error)
+}
+
+// TokenManager manages tokens.
+type TokenManager struct {
+	generator TokenGenerator
+	store     auth.TokenStore
+}
+
+// NewTokenManager returns a new TokenManager.
+func NewTokenManager(generator TokenGenerator, store auth.TokenStore) TokenManager {
+	return TokenManager{
+		generator: generator,
+		store:     store,
+	}
+}
+
+// GenerateToken generates a token and stores it in the token store.
+func (m TokenManager) GenerateToken(
+	sub string,
+	expiresAt *time.Time,
+	tokenType TokenType,
+	tokenText string,
+	tokenName string,
+	storeSecret bool,
+) (string, string, error) {
+	tokenExpiresAt := NoExpiration
+	if expiresAt != nil {
+		tokenExpiresAt = expiresAt.Unix()
+	}
+
+	tokenID, signedToken, err := m.generator.GenerateToken(sub, tokenExpiresAt, tokenType, tokenText)
+	if err != nil {
+		return "", "", err
+	}
+
+	token := auth.NewToken(tokenID, tokenName)
+	token.ExpiresAt = expiresAt
+
+	if storeSecret {
+		token.Value = signedToken
+	}
+
+	err = m.store.Store(sub, token)
+	if err != nil {
+		return "", "", errors.Wrap(err, "failed to store token")
 	}
 
 	return tokenID, signedToken, nil
