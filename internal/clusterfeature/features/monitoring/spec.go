@@ -56,21 +56,21 @@ type providerSpec struct {
 }
 
 type slackPropertiesSpec struct {
-	Enabled      bool `json:"enabled" mapstructure:"enabled"`
+	Enabled      bool   `json:"enabled" mapstructure:"enabled"`
 	ApiUrl       string `json:"apiUrl" mapstructure:"apiUrl"`
 	Channel      string `json:"channel" mapstructure:"channel"`
 	SendResolved bool   `json:"sendResolved" mapstructure:"sendResolved"`
 }
 
 type emailPropertiesSpec struct {
-	Enabled      bool `json:"enabled" mapstructure:"enabled"`
+	Enabled      bool   `json:"enabled" mapstructure:"enabled"`
 	To           string `json:"to" mapstructure:"to"`
 	From         string `json:"from" mapstructure:"from"`
 	SendResolved bool   `json:"sendResolved" mapstructure:"sendResolved"`
 }
 
 type pagerdutyPropertiesSpec struct {
-	Enabled      bool `json:"enabled" mapstructure:"enabled"`
+	Enabled      bool   `json:"enabled" mapstructure:"enabled"`
 	RoutingKey   string `json:"routingKey" mapstructure:"routingKey"`
 	ServiceKey   string `json:"serviceKey" mapstructure:"serviceKey"`
 	Url          string `json:"url" mapstructure:"url"`
@@ -100,14 +100,16 @@ func (e requiredFieldError) Error() string {
 }
 
 func (s ingressSpec) Validate(ingressType string) error {
-	if len(s.Path) == 0 {
-		return requiredFieldError{fieldName: fmt.Sprintf("%s path", ingressType)}
-	}
+	if s.Enabled {
+		if len(s.Path) == 0 {
+			return requiredFieldError{fieldName: fmt.Sprintf("%s path", ingressType)}
+		}
 
-	if len(s.Domain) != 0 {
-		err := dns.ValidateSubdomain(s.Domain)
-		if err != nil {
-			return errors.Append(err, invalidIngressHost{hostType: ingressType})
+		if len(s.Domain) != 0 {
+			err := dns.ValidateSubdomain(s.Domain)
+			if err != nil {
+				return errors.Append(err, invalidIngressHost{hostType: ingressType})
+			}
 		}
 	}
 
@@ -116,23 +118,89 @@ func (s ingressSpec) Validate(ingressType string) error {
 
 func (s featureSpec) Validate() error {
 	// Grafana spec validation
-	if s.Grafana.Enabled && s.Grafana.Public.Enabled {
+	if s.Grafana.Enabled {
 		if err := s.Grafana.Public.Validate(ingressTypeGrafana); err != nil {
 			return err
 		}
 	}
 
 	// Prometheus spec validation
-	if s.Prometheus.Enabled && s.Prometheus.Public.Enabled {
+	if s.Prometheus.Enabled {
 		if err := s.Prometheus.Public.Validate(ingressTypePrometheus); err != nil {
 			return err
 		}
 	}
 
 	// Alertmanager spec validation
-	if s.Alertmanager.Enabled && s.Alertmanager.Public.Enabled {
+	if s.Alertmanager.Enabled {
 		if err := s.Alertmanager.Public.Validate(ingressTypeAlertmanager); err != nil {
 			return err
+		}
+
+		if err := s.Alertmanager.Provider.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s providerSpec) Validate() error {
+	if err := s.Slack.Validate(); err != nil {
+		return err
+	}
+
+	if err := s.Pagerduty.Validate(); err != nil {
+		return err
+	}
+
+	if err := s.Email.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s slackPropertiesSpec) Validate() error {
+	if s.Enabled {
+		if s.ApiUrl == "" {
+			return requiredFieldError{fieldName: "apiUrl"}
+		}
+
+		if s.Channel == "" {
+			return requiredFieldError{fieldName: "channel"}
+		}
+	}
+
+	return nil
+}
+
+func (s pagerdutyPropertiesSpec) Validate() error {
+	if s.Enabled {
+		if s.Url == "" {
+			return requiredFieldError{fieldName: "url"}
+		}
+
+		if s.ServiceKey == "" {
+			return requiredFieldError{fieldName: "serviceKey"}
+		}
+
+		if s.RoutingKey == "" {
+			return requiredFieldError{fieldName: "routingKey"}
+		}
+	}
+
+	return nil
+}
+
+func (s emailPropertiesSpec) Validate() error {
+	if s.Enabled {
+		if s.From == "" {
+			return requiredFieldError{fieldName: "from"}
+		}
+
+		if s.To == "" {
+			return requiredFieldError{fieldName: "to"}
 		}
 	}
 
