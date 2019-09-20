@@ -28,17 +28,6 @@ type TokenType string
 // NoExpiration can be passed to the generator to indicate no expiration time.
 const NoExpiration int64 = 0
 
-// ScopedClaims struct to store the scoped claim related things.
-type ScopedClaims struct {
-	jwt.StandardClaims
-
-	Scope string `json:"scope,omitempty"`
-
-	// Virtual user fields
-	Type TokenType `json:"type,omitempty"`
-	Text string    `json:"text,omitempty"`
-}
-
 // JWTTokenGenerator generates an API token.
 type JWTTokenGenerator struct {
 	issuer     string
@@ -129,7 +118,15 @@ func NewJWTTokenGenerator(issuer string, audience string, signingKey string, opt
 func (g JWTTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType TokenType, tokenText string) (string, string, error) {
 	tokenID := g.idgen.Generate()
 
-	claims := ScopedClaims{
+	claims := struct {
+		jwt.StandardClaims
+
+		Scope string `json:"scope,omitempty"`
+
+		// Virtual user fields
+		Type TokenType `json:"type,omitempty"`
+		Text string    `json:"text,omitempty"`
+	}{
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    g.issuer,
 			Audience:  g.audience,
