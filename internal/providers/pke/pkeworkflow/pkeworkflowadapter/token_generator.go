@@ -14,22 +14,6 @@
 
 package pkeworkflowadapter
 
-type tokenHandler interface {
+type TokenGenerator interface {
 	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
-}
-
-// ClusterManagerAdapter provides an adapter for pkeworkflow.Clusters.
-type TokenGenerator struct {
-	tokenHandler tokenHandler
-}
-
-// NewClusterManagerAdapter creates a new ClusterManagerAdapter.
-func NewTokenGenerator(tokenHandler tokenHandler) *TokenGenerator {
-	return &TokenGenerator{
-		tokenHandler: tokenHandler,
-	}
-}
-
-func (g *TokenGenerator) GenerateClusterToken(orgID, clusterID uint) (string, string, error) {
-	return g.tokenHandler.GenerateClusterToken(orgID, clusterID)
 }
