@@ -343,7 +343,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
-	if boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.TokenSecretID) != 0 {
+	if !boundSpec.CustomVault.Enabled || boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.TokenSecretID) != 0 {
 		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
 			return errors.New("failed to get cluster")
@@ -351,13 +351,16 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 		orgID := cluster.GetOrganizationId()
 
-		// get token from Vault
-		tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
-		if err != nil {
-			return errors.WrapIf(err, "failed get token from Vault")
-		}
+		var token string
+		if boundSpec.CustomVault.Enabled {
+			// get token from Vault
+			tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
+			if err != nil {
+				return errors.WrapIf(err, "failed get token from Vault")
+			}
 
-		token := tokenValues[vaultTokenKey]
+			token = tokenValues[vaultTokenKey]
+		}
 
 		// create Vault client
 		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
