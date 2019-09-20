@@ -15,4 +15,3 @@
 package securityscan
 
 const FeatureName = "securityscan"
-

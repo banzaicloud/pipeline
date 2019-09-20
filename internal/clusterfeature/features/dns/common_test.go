@@ -44,7 +44,7 @@ type dummyCluster struct {
 }
 
 func (d dummyCluster) SetSecurityScan(scan bool) {
-	
+
 }
 
 func (d dummyCluster) GetK8sConfig() ([]byte, error) {
