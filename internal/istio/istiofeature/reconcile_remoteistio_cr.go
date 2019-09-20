@@ -27,7 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/internal/backoff"
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 )
 
 func (m *MeshReconciler) ReconcileRemoteIstio(desiredState DesiredState, c cluster.CommonCluster) error {
@@ -78,7 +78,7 @@ func (m *MeshReconciler) waitForRemoteIstioCRToBeDeleted(name string, client *is
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		_, err := client.IstioV1beta1().RemoteIstios(istioOperatorNamespace).Get(name, metav1.GetOptions{})

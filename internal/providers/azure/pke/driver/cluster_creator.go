@@ -41,7 +41,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-const pkeVersion = "0.4.12"
+const pkeVersion = "0.4.14"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
 func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string, pipelineExternalURLInsecure bool, oidcIssuerURL string) AzurePKEClusterCreator {
