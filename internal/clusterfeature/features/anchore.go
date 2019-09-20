@@ -65,6 +65,8 @@ func (a *anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterGU
 
 func (a *anchoreService) DeleteUser(ctx context.Context, orgID uint, clusterGUID string) error {
 	// todo refactor the original implementation to handle errors?
+	// todo the secret only needs to be removed upon successful account deletion! (original implementation is wrong)
+
 	anchore.RemoveAnchoreUser(orgID, clusterGUID)
 
 	return nil

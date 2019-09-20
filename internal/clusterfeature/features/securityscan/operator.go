@@ -108,6 +108,10 @@ func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	}
 
 	// todo cluster.SetSecurityScan(true) - set this
+	if err := op.setSecurityScan(ctx, clusterID, true); err != nil {
+		return errors.WrapIf(err, "failed to set security scan flag on cluster")
+	}
+
 	values, err := op.processChartValues(ctx, clusterID, *anchoreValues)
 	if err != nil {
 		return errors.WrapIf(err, "failed to assemble chart values")
@@ -149,6 +153,10 @@ func (op featureOperator) Deactivate(ctx context.Context, clusterID uint) error 
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
 			"clusterID", clusterID)
+	}
+
+	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
+		return errors.WrapIf(err, "failed to set security scan flag to false")
 	}
 
 	return nil
@@ -323,5 +331,17 @@ func (op featureOperator) installWhiteList(ctx context.Context, clusterID uint, 
 
 		return err
 	}
+	return nil
+}
+
+// setSecurityScan temporary workaround for signaling the security scan enablement
+func (op *featureOperator) setSecurityScan(ctx context.Context, clusterID uint, enabled bool) error {
+	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster")
+	}
+
+	cl.SetSecurityScan(enabled)
+
 	return nil
 }

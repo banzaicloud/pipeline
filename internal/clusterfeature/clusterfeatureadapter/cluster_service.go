@@ -37,6 +37,9 @@ type Cluster interface {
 	IsReady() (bool, error)
 	NodePoolExists(nodePoolName string) bool
 	RbacEnabled() bool
+
+	// todo temporarily added operation - remove it when the alternative solution gets in place
+	SetSecurityScan(scan bool)
 }
 
 // MakeClusterGetter creates a ClusterGetter using a common cluster getter

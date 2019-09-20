@@ -45,7 +45,7 @@ func (f featureManager) GetOutput(ctx context.Context, clusterID uint) (clusterf
 			"version": "v0.1.0",
 		},
 		"imageValidator": map[string]interface{}{
-			"version": "v0.1.0",
+			"version": securityScanChartVersion,
 		},
 	}
 
