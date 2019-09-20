@@ -22,7 +22,7 @@ import (
 	"go.uber.org/cadence/workflow"
 )
 
-func registerAwsWorkflows(clusters *pkeworkflowadapter.ClusterManagerAdapter, tokenGenerator *pkeworkflowadapter.TokenGenerator) {
+func registerAwsWorkflows(clusters *pkeworkflowadapter.ClusterManagerAdapter, tokenGenerator pkeworkflowadapter.TokenGenerator) {
 	workflow.RegisterWithOptions(pkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.CreateClusterWorkflowName})
 	workflow.RegisterWithOptions(pkeworkflow.DeleteClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.DeleteClusterWorkflowName})
 	workflow.RegisterWithOptions(pkeworkflow.UpdateClusterWorkflow, workflow.RegisterOptions{Name: pkeworkflow.UpdateClusterWorkflowName})

@@ -35,11 +35,11 @@ const CreateVMSSActivityName = "pke-azure-create-vmss"
 // CreateVMSSActivity represents an activity for creating an Azure virtual machine scale set
 type CreateVMSSActivity struct {
 	azureClientFactory *AzureClientFactory
-	tokenGenerator     *pkeworkflowadapter.TokenGenerator
+	tokenGenerator     pkeworkflowadapter.TokenGenerator
 }
 
 // MakeCreateVMSSActivity returns a new CreateVMSSActivity
-func MakeCreateVMSSActivity(azureClientFactory *AzureClientFactory, tokenGenerator *pkeworkflowadapter.TokenGenerator) CreateVMSSActivity {
+func MakeCreateVMSSActivity(azureClientFactory *AzureClientFactory, tokenGenerator pkeworkflowadapter.TokenGenerator) CreateVMSSActivity {
 	return CreateVMSSActivity{
 		azureClientFactory: azureClientFactory,
 		tokenGenerator:     tokenGenerator,
