@@ -42,10 +42,10 @@ func (f featureManager) GetOutput(ctx context.Context, clusterID uint) (clusterf
 	// todo get the proper versions here
 	out := map[string]interface{}{
 		"anchore": map[string]interface{}{
-			"version": "v0.1.0",
+			"version": securityScanChartVersion,
 		},
 		"imageValidator": map[string]interface{}{
-			"version": securityScanChartVersion,
+			"version": imageValidatorVersion,
 		},
 	}
 

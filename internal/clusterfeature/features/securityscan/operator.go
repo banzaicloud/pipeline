@@ -38,10 +38,12 @@ import (
 )
 
 const (
-	securityScanChartVersion = ""
-	securityScanChartName    = "banzaicloud-stable/anchore-policy-validator"
-	securityScanNamespace    = "pipeline-system"
-	securityScanRelease      = "anchore"
+	securityScanChartVersion = "0.4.0"
+	// todo read this from the chart possibly
+	imageValidatorVersion = "0.3.3"
+	securityScanChartName = "banzaicloud-stable/anchore-policy-validator"
+	securityScanNamespace = "pipeline-system"
+	securityScanRelease   = "anchore"
 )
 
 type featureOperator struct {
