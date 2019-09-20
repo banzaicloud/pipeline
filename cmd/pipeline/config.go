@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
@@ -36,6 +37,9 @@ type configuration struct {
 
 	// Auth configuration
 	Auth authConfig
+
+	// Frontend configuration
+	Frontend frontend.Config
 }
 
 // authConfig contains auth configuration.
@@ -47,6 +51,10 @@ type authConfig struct {
 // Validate validates the configuration.
 func (c configuration) Validate() error {
 	if err := c.ErrorHandler.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Frontend.Validate(); err != nil {
 		return err
 	}
 
@@ -80,4 +88,15 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
 	})
+
+	v.SetDefault("issue.type", "github")
+	v.RegisterAlias("frontend.issue.driver", "issue.type") // TODO: deprecate the above
+	v.SetDefault("issue.githubLabels", []string{"community"})
+	v.RegisterAlias("frontend.issue.labels", "issue.githubLabels") // TODO: deprecate the above
+
+	v.RegisterAlias("frontend.issue.github.token", "github.token")
+	v.SetDefault("issue.githubOwner", "banzaicloud")
+	v.RegisterAlias("frontend.issue.github.owner", "issue.githubOwner") // TODO: deprecate the above
+	v.SetDefault("issue.githubRepository", "pipeline-issues")
+	v.RegisterAlias("frontend.issue.github.repository", "issue.githubRepository") // TODO: deprecate the above
 }

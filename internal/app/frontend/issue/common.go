@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,29 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package issue
 
 import (
-	"github.com/pkg/errors"
-
-	"github.com/spf13/viper"
+	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-type VersionInformation struct {
-	Version    string
-	CommitHash string
-	BuildDate  string
-}
+// These interfaces are aliased so that the module code is separated from the rest of the application.
+// If the module is moved out of the app, copy the aliased interfaces here.
 
-type Issuer interface {
-	CreateIssue(userID uint, organization, title, body string, userLabels []string) error
-}
-
-func NewIssuer(version VersionInformation) (Issuer, error) {
-	switch issueType := viper.GetString("issue.type"); issueType {
-	case "github":
-		return GitHubIssuer{version: version}, nil
-	default:
-		return nil, errors.Errorf("issuer type not supported: %s", issueType)
-	}
-}
+// Logger is the fundamental interface for all log operations.
+type Logger = common.Logger
