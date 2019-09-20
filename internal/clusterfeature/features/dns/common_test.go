@@ -43,6 +43,10 @@ type dummyCluster struct {
 	Rbac      bool
 }
 
+func (d dummyCluster) SetSecurityScan(scan bool) {
+	
+}
+
 func (d dummyCluster) GetK8sConfig() ([]byte, error) {
 	return d.K8sConfig, nil
 }
