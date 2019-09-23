@@ -101,11 +101,11 @@ func (e requiredFieldError) Error() string {
 
 func (s ingressSpec) Validate(ingressType string) error {
 	if s.Enabled {
-		if len(s.Path) == 0 {
+		if s.Path == "" {
 			return requiredFieldError{fieldName: fmt.Sprintf("%s path", ingressType)}
 		}
 
-		if len(s.Domain) != 0 {
+		if s.Domain != "" {
 			err := dns.ValidateSubdomain(s.Domain)
 			if err != nil {
 				return errors.Append(err, invalidIngressHost{hostType: ingressType})

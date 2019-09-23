@@ -66,7 +66,7 @@ type outputManager struct {
 func writeVersion(m outputManager, deploymentValues map[string]interface{}, output map[string]interface{}) {
 	if m.isEnabled() && deploymentValues != nil {
 		var ok = true
-		if len(m.getTopLevelDeploymentKey()) != 0 {
+		if m.getTopLevelDeploymentKey() != "" {
 			deploymentValues, ok = deploymentValues[m.getTopLevelDeploymentKey()].(map[string]interface{})
 		}
 		if ok {
@@ -87,7 +87,7 @@ func writeUrl(m outputManager, endpoints []*pkgHelm.EndpointItem, output map[str
 func writeSecretID(ctx context.Context, m outputManager, clusterID uint, output map[string]interface{}) {
 	if m.isEnabled() {
 		var generatedSecretName = m.getGeneratedSecretName(clusterID)
-		if len(m.getSecretID()) == 0 && len(generatedSecretName) != 0 {
+		if m.getSecretID() == "" && generatedSecretName != "" {
 			secretID, err := m.secretStore.GetSecretIDByName(ctx, generatedSecretName)
 			if err != nil {
 				m.logger.Warn(fmt.Sprintf("failed to get generated %s secret", m.getOutputType()))

@@ -145,14 +145,14 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
-	if len(boundSpec.Grafana.SecretId) == 0 {
+	if boundSpec.Grafana.SecretId == "" {
 		// Grafana secret generated in activation flow, delete it
 		if err := op.deleteGrafanaSecret(ctx, clusterID); err != nil && !isSecretNotFoundError(err) {
 			return errors.WrapIf(err, "failed to delete Grafana secret")
 		}
 	}
 
-	if len(boundSpec.Prometheus.SecretId) == 0 {
+	if boundSpec.Prometheus.SecretId == "" {
 		// Prometheus secret generated in activation flow, delete it
 		if err := op.deletePrometheusSecret(ctx, clusterID); err != nil && !isSecretNotFoundError(err) {
 			return errors.WrapIf(err, "failed to delete Prometheus secret")
@@ -444,10 +444,10 @@ func (op FeatureOperator) getGrafanaSecret(
 	logger common.Logger,
 ) (string, error) {
 	var secretID string
-	if len(spec.Grafana.SecretId) == 0 {
+	if spec.Grafana.SecretId == "" {
 		// check Grafana secret exists
 		existingSecretID, err := op.secretStore.GetSecretIDByName(ctx, getGrafanaSecretName(cluster.GetID()))
-		if len(existingSecretID) != 0 {
+		if existingSecretID != "" {
 			logger.Debug("Grafana secret already exists")
 			return existingSecretID, nil
 		} else if isSecretNotFoundError(err) {
@@ -473,11 +473,11 @@ func (op FeatureOperator) getPrometheusSecret(
 	logger common.Logger,
 ) (string, error) {
 	var secretName string
-	if len(spec.Prometheus.SecretId) == 0 {
+	if spec.Prometheus.SecretId == "" {
 		// generate Prometheus secret
 		var prometheusSecretName = getPrometheusSecretName(cluster.GetID())
 		existingSecretID, err := op.secretStore.GetSecretIDByName(ctx, prometheusSecretName)
-		if len(existingSecretID) != 0 {
+		if existingSecretID != "" {
 			logger.Debug("Prometheus secret already exists")
 			return prometheusSecretName, nil
 		} else if isSecretNotFoundError(err) {
@@ -592,7 +592,7 @@ func GetHeadNodeAffinity(cluster interface {
 	NodePoolExists(nodePoolName string) bool
 }) v1.Affinity {
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
-	if len(headNodePoolName) == 0 {
+	if headNodePoolName == "" {
 		return v1.Affinity{}
 	}
 	if !cluster.NodePoolExists(headNodePoolName) {
@@ -622,7 +622,7 @@ func GetHeadNodeAffinity(cluster interface {
 
 func GetHeadNodeTolerations() []v1.Toleration {
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
-	if len(headNodePoolName) == 0 {
+	if headNodePoolName == "" {
 		return []v1.Toleration{}
 	}
 	return []v1.Toleration{
