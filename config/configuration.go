@@ -196,7 +196,7 @@ const (
 	HollowtreesExternalURL     = "hollowtrees.externalURL"
 	HollowtreesAlertsEndpoint  = "hollowtrees.alertsEndpoint"
 
-	VaultWebhookChartKey    = "vaultWebhook.chart"
+	VaultWebhookChartKey        = "vaultWebhook.chart"
 	VaultWebhookChartVersionKey = "vaultWebhook.chartVersion"
 )
 
@@ -329,11 +329,6 @@ func init() {
 	viper.SetDefault(SpotguideAllowPrivateRepos, false)
 	viper.SetDefault(SpotguideSyncInterval, 15*time.Minute)
 	viper.SetDefault(SpotguideSharedLibraryGitHubOrganization, "spotguides")
-
-	viper.SetDefault("issue.type", "github")
-	viper.SetDefault("issue.githubLabels", []string{"community"})
-	viper.SetDefault("issue.githubOwner", "banzaicloud")
-	viper.SetDefault("issue.githubRepository", "pipeline")
 
 	viper.SetDefault("cert.source", "file")
 	viper.SetDefault("cert.path", "config/certs")

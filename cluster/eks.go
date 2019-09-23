@@ -31,11 +31,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -43,6 +42,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgEks "github.com/banzaicloud/pipeline/pkg/cluster/eks"
@@ -504,9 +504,33 @@ func (c *EKSCluster) DeleteCluster() error {
 		return err
 	}
 
+	clusterStackName := c.generateStackNameForCluster()
+	cloudformationSrv := cloudformation.New(awsSession)
+	describeStacksOutput, err := cloudformationSrv.DescribeStacks(&cloudformation.DescribeStacksInput{
+		StackName: aws.String(clusterStackName),
+	})
+	if err != nil {
+		return err
+	}
+
+	var vpcId string
+	var securityGroupIds []string
+	for _, output := range describeStacksOutput.Stacks[0].Outputs {
+		switch aws.StringValue(output.OutputKey) {
+		case "SecurityGroups":
+			securityGroupIds = append(securityGroupIds, aws.StringValue(output.OutputValue))
+		case "NodeSecurityGroup":
+			securityGroupIds = append(securityGroupIds, aws.StringValue(output.OutputValue))
+		case "VpcId":
+			vpcId = aws.StringValue(output.OutputValue)
+		}
+	}
+
 	deleteContext := action.NewEksClusterDeleteContext(
 		awsSession,
 		c.modelCluster.Name,
+		vpcId,
+		securityGroupIds,
 	)
 	var actions []utils.Action
 	actions = append(actions, action.NewWaitResourceDeletionAction(c.log, deleteContext)) // wait for ELBs to be deleted
@@ -520,12 +544,12 @@ func (c *EKSCluster) DeleteCluster() error {
 		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.generateSSHKeyNameForCluster()),
 		action.NewDeleteClusterUserAccessKeyAction(c.log, deleteContext),
 		action.NewDeleteClusterUserAccessKeySecretAction(c.log, deleteContext, c.GetOrganizationId()),
+		action.NewDeleteOrphanNICsAction(NewLogurLogger(c.log), deleteContext),
 		action.NewDeleteStacksAction(c.log, deleteContext, c.getSubnetStackNamesToDelete(awsSession)...),
 		action.NewDeleteStacksAction(c.log, deleteContext, c.generateStackNameForCluster()),
 	)
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
-		c.log.Errorln("EKS cluster delete error:", err.Error())
 		return err
 	}
 
@@ -699,7 +723,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	autoscalingSrv := autoscaling.New(awsSession)
 	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	var vpcId, securityGroupId, nodeSecurityGroupId, nodeInstanceRoleId, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string
@@ -723,11 +747,14 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	if len(securityGroupId) == 0 {
-		return errors.New("securityGroupId output not found on stack: " + clusterStackName)
+	if securityGroupId == "" {
+		return errors.Errorf("SecurityGroups output not found on stack: %s", clusterStackName)
 	}
-	if len(vpcId) == 0 {
-		return errors.New("vpcId output not found on stack: " + clusterStackName)
+	if nodeSecurityGroupId == "" {
+		return errors.Errorf("NodeSecurityGroup output not found on stack: %s", clusterStackName)
+	}
+	if vpcId == "" {
+		return errors.Errorf("VpcId output not found on stack: %s", clusterStackName)
 	}
 
 	nodePoolTemplate, err := pkgEks.GetNodePoolTemplate()
@@ -768,6 +795,8 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	deleteContext := action.NewEksClusterDeleteContext(
 		awsSession,
 		c.modelCluster.Name,
+		vpcId,
+		[]string{securityGroupId, nodeSecurityGroupId},
 	)
 
 	subnetMapping := make(map[string][]*action.EksSubnet)

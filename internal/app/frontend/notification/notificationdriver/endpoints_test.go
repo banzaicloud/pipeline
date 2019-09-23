@@ -26,7 +26,7 @@ import (
 )
 
 func TestMakeEndpoints_GetNotifications(t *testing.T) {
-	notificationService := &notification.MockService{}
+	service := new(notification.MockService)
 
 	notifications := notification.Notifications{
 		Messages: []notification.Notification{
@@ -38,14 +38,14 @@ func TestMakeEndpoints_GetNotifications(t *testing.T) {
 		},
 	}
 
-	notificationService.On("GetNotifications", mock.Anything).Return(notifications, nil)
+	service.On("GetNotifications", mock.Anything).Return(notifications, nil)
 
-	e := MakeEndpoints(notificationService).GetNotifications
+	e := MakeEndpoints(service).GetNotifications
 
 	result, err := e(context.Background(), nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, notifications, result)
 
-	notificationService.AssertExpectations(t)
+	service.AssertExpectations(t)
 }

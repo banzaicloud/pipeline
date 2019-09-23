@@ -59,7 +59,6 @@ import (
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
 	"github.com/banzaicloud/pipeline/internal/audit"
-	intAuth "github.com/banzaicloud/pipeline/internal/auth"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
@@ -84,6 +83,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/ginauth"
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
@@ -170,8 +170,6 @@ func main() {
 
 	basePath := viper.GetString("pipeline.basepath")
 
-	enforcer := intAuth.NewEnforcer(db)
-
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
 	defer subscriber.Close()
@@ -191,7 +189,9 @@ func main() {
 	// Used internally to make sure every event/command bus uses the same one
 	eventMarshaler := cqrs.JSONMarshaler{GenerateName: cqrs.StructName}
 
-	tokenHandler := auth.NewTokenHandler()
+	organizationStore := authadapter.NewGormOrganizationStore(db)
+
+	tokenHandler := auth.NewTokenHandler(organizationStore)
 
 	const organizationTopic = "organization"
 	var organizationSyncer auth.OIDCOrganizationSyncer
@@ -201,7 +201,6 @@ func main() {
 			func(eventName string) string { return organizationTopic },
 			eventMarshaler,
 		)
-		store := authadapter.NewGormOrganizationStore(db)
 		eventDispatcher := authadapter.NewOrganizationEventDispatcher(eventBus)
 
 		roleBinder, err := auth.NewRoleBinder(conf.Auth.DefaultRole, conf.Auth.RoleBinding)
@@ -209,7 +208,7 @@ func main() {
 
 		organizationSyncer = auth.NewOIDCOrganizationSyncer(
 			auth.NewOrganizationSyncer(
-				store,
+				organizationStore,
 				eventDispatcher,
 				commonLogger.WithFields(map[string]interface{}{"component": "auth"}),
 			),
@@ -423,13 +422,25 @@ func main() {
 
 	// Frontend service
 	{
-		app := frontend.NewApp(db, commonLogger, errorHandler)
+		app, err := frontend.NewApp(
+			conf.Frontend,
+			db,
+			buildInfo,
+			auth.UserExtractor{},
+			commonLogger,
+			errorHandler,
+		)
+		emperror.Panic(err)
+
 		handler := gin.WrapH(http.StripPrefix(basePath, app))
 
-		base.Any("frontend/*path", handler)
+		// TODO: refactor authentication middleware
+		base.Any("frontend/notifications", handler)
+		base.Any("frontend/issues", auth.Handler, handler)
 
 		// Compatibility routes
 		base.GET("notifications", handler)
+		base.POST("issues", auth.Handler, handler)
 	}
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
@@ -437,7 +448,8 @@ func main() {
 	auth.Install(router, tokenHandler.GenerateToken)
 	auth.StartTokenStoreGC()
 
-	authorizationMiddleware := intAuth.NewMiddleware(enforcer, basePath, errorHandler)
+	enforcer := auth.NewRbacEnforcer(organizationStore, commonLogger)
+	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)
 
 	dashboardAPI := dashboard.NewDashboardAPI(clusterManager, clusterGroupManager, logrusLogger, errorHandler)
 	dgroup := base.Group(path.Join("dashboard", "orgs"))
@@ -633,7 +645,7 @@ func main() {
 			leaderRepository, err := pke.NewVaultLeaderRepository()
 			emperror.Panic(errors.WrapIf(err, "failed to create Vault leader repository"))
 
-			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, tokenHandler, externalBaseURL, workflowClient, leaderRepository)
+			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, auth.NewClusterTokenHandler(), externalBaseURL, workflowClient, leaderRepository)
 			pkeAPI.RegisterRoutes(pkeGroup)
 
 			clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
@@ -696,7 +708,6 @@ func main() {
 		}
 		v1.GET("/orgs", organizationAPI.GetOrganizations)
 		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
-		v1.GET("/token", tokenHandler.GenerateToken) // TODO Deprecated, should be removed once the UI has support.
 		v1.POST("/tokens", tokenHandler.GenerateToken)
 		v1.GET("/tokens", auth.GetTokens)
 		v1.GET("/tokens/:id", auth.GetTokens)
@@ -731,12 +742,6 @@ func main() {
 	}
 
 	base.GET("api", api.MetaHandler(router, basePath+"/api"))
-
-	issueHandler, err := api.NewIssueHandler(version, commitHash, buildDate)
-	if err != nil {
-		emperror.Panic(errors.WrapIf(err, "failed to create IssueHandler"))
-	}
-	base.POST("issues", auth.Handler, issueHandler)
 
 	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})

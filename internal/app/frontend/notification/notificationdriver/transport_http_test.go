@@ -30,7 +30,7 @@ import (
 )
 
 func TestMakeHTTPHandler_GetActiveNotifications(t *testing.T) {
-	service := &notification.MockService{}
+	service := new(notification.MockService)
 
 	notifications := notification.Notifications{
 		Messages: []notification.Notification{
@@ -66,4 +66,6 @@ func TestMakeHTTPHandler_GetActiveNotifications(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, notifications, notificationResp)
+
+	service.AssertExpectations(t)
 }

@@ -93,8 +93,6 @@ type FeatureManager interface {
 
 	// Name returns the feature's name.
 	Name() string
-
-	BeforeSave(ctx context.Context, clusterID uint, spec FeatureSpec) (FeatureSpec, error)
 }
 
 // FeatureOutputProducer defines how to produce a cluster feature's output.

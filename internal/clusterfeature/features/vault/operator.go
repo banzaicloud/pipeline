@@ -31,8 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/hashicorp/vault/api"
-	"github.com/prometheus/common/log"
+
 	"github.com/spf13/viper"
 )
 
@@ -72,6 +71,12 @@ func (op FeatureOperator) Name() string {
 
 // Apply applies the provided specification to the cluster feature
 func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
+	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
+	if err != nil {
+
+		return err
+	}
+
 	if err := op.clusterService.CheckClusterReady(ctx, clusterID); err != nil {
 		return err
 	}
@@ -120,12 +125,12 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 	ctx context.Context,
 	logger common.Logger,
 	clusterID uint) (string, error) {
-
-	// Prepare cluster first with the proper token reviwer SA
+	// Prepare cluster first with the proper token reviewer SA
+	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
 	serviceAccount := corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "vault-token-reviewer",
-			Namespace: "pipeline-system",
+			Name:      vaultTokenReviewer,
+			Namespace: pipelineSystemNamespace,
 		},
 	}
 
@@ -146,7 +151,7 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 
 	tokenReviewerRoleBinding := rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "vault-token-reviewer",
+			Name: vaultTokenReviewer,
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: rbacv1.GroupName,
@@ -182,14 +187,14 @@ func (op FeatureOperator) configureVault(
 	kubeConfig *k8srest.Config,
 ) error {
 
-	if !boundSpec.CustomVault.Enabled || (boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.TokenSecretID) != 0) {
+	if !boundSpec.CustomVault.Enabled || boundSpec.CustomVault.SecretID != "" {
 		// custom Vault with token or CP's vault
 		logger.Debug("start to setup Vault")
 
 		var token string
-		if len(boundSpec.CustomVault.TokenSecretID) != 0 {
+		if boundSpec.CustomVault.SecretID != "" {
 			// get token from vault
-			tokenValues, err := op.secretStore.GetSecretValues(ctx, token)
+			tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.SecretID)
 			if err != nil {
 				return errors.WrapIf(err, "failed get token from Vault")
 			}
@@ -197,10 +202,10 @@ func (op FeatureOperator) configureVault(
 			token = tokenValues[vaultTokenKey]
 		}
 
-		// create vault client
+		// create Vault manager
 		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
 		if err != nil {
-			return errors.WrapIf(err, "failed to create Vault client")
+			return errors.WrapIf(err, "failed to create Vault manager")
 		}
 
 		// create policy
@@ -236,25 +241,6 @@ func (op FeatureOperator) configureVault(
 	}
 
 	return nil
-}
-
-func (m *vaultManager) enableAuth(path, authType string) error {
-
-	mounts, err := m.vaultClient.RawClient().Sys().ListAuth()
-	if err != nil {
-		return errors.WrapIf(err, "failed to list auth")
-	}
-
-	if _, ok := mounts[fmt.Sprintf("%s/", path)]; ok {
-		log.Debugf("%s auth path is already in use", path)
-		return nil
-	}
-
-	return m.vaultClient.RawClient().Sys().EnableAuthWithOptions(
-		path,
-		&api.EnableAuthOptions{
-			Type: authType,
-		})
 }
 
 func getPolicyName(orgID, clusterID uint) string {
@@ -293,7 +279,8 @@ func (op FeatureOperator) installOrUpdateWebhook(
 		return errors.WrapIf(err, "failed to decode chartValues")
 	}
 
-	chartName, chartVersion := getChartParams()
+	chartName := getChartName()
+	chartVersion := getChartVersion()
 
 	return op.helmService.ApplyDeployment(
 		ctx,
@@ -306,10 +293,12 @@ func (op FeatureOperator) installOrUpdateWebhook(
 	)
 }
 
-func getChartParams() (name string, version string) {
-	name = viper.GetString(config.VaultWebhookChartKey)
-	version = viper.GetString(config.VaultWebhookChartVersionKey)
-	return
+func getChartName() string {
+	return viper.GetString(config.VaultWebhookChartKey)
+}
+
+func getChartVersion() string {
+	return viper.GetString(config.VaultWebhookChartVersionKey)
 }
 
 // Deactivate deactivates the cluster feature
@@ -343,18 +332,16 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
-	if !boundSpec.CustomVault.Enabled || boundSpec.CustomVault.Enabled && len(boundSpec.CustomVault.TokenSecretID) != 0 {
-		cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-		if err != nil {
-			return errors.New("failed to get cluster")
+	if !boundSpec.CustomVault.Enabled || boundSpec.CustomVault.Enabled && boundSpec.CustomVault.SecretID != "" {
+		orgID, ok := auth.GetCurrentOrganizationID(ctx)
+		if !ok {
+			return errors.New("organization ID missing from context")
 		}
-
-		orgID := cluster.GetOrganizationId()
 
 		var token string
 		if boundSpec.CustomVault.Enabled {
 			// get token from Vault
-			tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.TokenSecretID)
+			tokenValues, err := op.secretStore.GetSecretValues(ctx, boundSpec.CustomVault.SecretID)
 			if err != nil {
 				return errors.WrapIf(err, "failed get token from Vault")
 			}
@@ -362,10 +349,10 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 			token = tokenValues[vaultTokenKey]
 		}
 
-		// create Vault client
+		// create Vault manager
 		vaultManager, err := newVaultManager(boundSpec, orgID, clusterID, token)
 		if err != nil {
-			return errors.WrapIf(err, "failed to create Vault client")
+			return errors.WrapIf(err, "failed to create Vault manager")
 		}
 
 		// delete role
@@ -387,22 +374,18 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		logger.Info("policy deleted successfully")
 
 		// delete kubernetes service account
-		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "vault-token-reviewer", Namespace: "pipeline-system"}}); err != nil {
+		pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: vaultTokenReviewer, Namespace: pipelineSystemNamespace}}); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes service account"))
 		}
 		logger.Info("kubernetes service account deleted successfully")
 
 		// delete kubernetes cluster role binding
-		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &rbacv1.ClusterRoleBinding{ObjectMeta: metav1.ObjectMeta{Name: "vault-token-reviewer"}}); err != nil {
+		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &rbacv1.ClusterRoleBinding{ObjectMeta: metav1.ObjectMeta{Name: vaultTokenReviewer}}); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes cluster role binding"))
 		}
 		logger.Info("kubernetes cluster role binding deleted successfully")
 
-		// delete token from Vault
-		if err := op.secretStore.Delete(ctx, boundSpec.CustomVault.TokenSecretID); err != nil {
-			return errors.WrapIf(err, fmt.Sprintf("failed to delete custom Vault token from Vault"))
-		}
-		logger.Info("custom Vault token deleted from Vault")
 	}
 
 	return nil

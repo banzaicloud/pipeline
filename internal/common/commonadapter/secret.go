@@ -27,19 +27,22 @@ import (
 // SecretStore implements the common.SecretStore interface and acts as a lightweight wrapper around
 // the global secret store.
 type SecretStore struct {
-	store     OrganizationalSecretStore
+	store     ReadWriteOrganizationalSecretStore
 	extractor OrgIDContextExtractor
 }
 
-// OrganizationalSecretStore is the global secret store that stores values under a compound key:
+// ReadWriteOrganizationalSecretStore is the global secret store that stores values under a compound key:
 // the organization ID and a secret ID.
-type OrganizationalSecretStore interface {
-	// Get returns a secret in the internal format of the secret store.
-	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
+type ReadWriteOrganizationalSecretStore interface {
+	ReadOnlyOrganizationalSecretStore
 
 	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
-
 	Delete(organizationID uint, secretID string) error
+}
+
+type ReadOnlyOrganizationalSecretStore interface {
+	// Get returns a secret in the internal format of the secret store.
+	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 }
 
 // OrgIDContextExtractor extracts an organization ID from a context (if there is any).
@@ -58,7 +61,7 @@ func (f OrgIDContextExtractorFunc) GetOrganizationID(ctx context.Context) (uint,
 }
 
 // NewSecretStore returns a new SecretStore instance.
-func NewSecretStore(store OrganizationalSecretStore, extractor OrgIDContextExtractor) *SecretStore {
+func NewSecretStore(store ReadWriteOrganizationalSecretStore, extractor OrgIDContextExtractor) *SecretStore {
 	return &SecretStore{
 		store:     store,
 		extractor: extractor,

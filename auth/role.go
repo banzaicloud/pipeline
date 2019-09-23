@@ -43,12 +43,6 @@ func init() {
 // nolint: gochecknoglobals
 var roleIndex map[string]int
 
-// nolint: gochecknoglobals
-var roleLevelMap = map[string]int{
-	RoleAdmin:  100,
-	RoleMember: 50,
-}
-
 // RoleBinder binds groups from an OIDC ID token to Pipeline roles.
 type RoleBinder struct {
 	defaultRole string

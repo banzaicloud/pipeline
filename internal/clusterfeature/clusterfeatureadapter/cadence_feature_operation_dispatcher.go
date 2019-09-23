@@ -71,7 +71,6 @@ func (d CadenceFeatureOperationDispatcher) dispatchOperation(ctx context.Context
 	workflowInput := workflow.ClusterFeatureJobWorkflowInput{
 		ClusterID:   clusterID,
 		FeatureName: featureName,
-		FeatureSpec: spec,
 	}
 	_, err := d.cadenceClient.SignalWithStartWorkflow(ctx, workflowID, signalName, signalArg, options, workflowName, workflowInput)
 	if err != nil {

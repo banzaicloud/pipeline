@@ -47,6 +47,8 @@ func encodeHTTPError(_ context.Context, _ error, w http.ResponseWriter) {
 	problem := problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
 
 	w.Header().Set("Content-Type", problems.ProblemMediaType)
+	w.WriteHeader(problem.Status)
+
 	_ = json.NewEncoder(w).Encode(problem)
 }
 
@@ -57,6 +59,7 @@ func decodeGetNotificationsHTTPRequest(_ context.Context, _ *http.Request) (inte
 func encodeGetNotificationsHTTPResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
 	err := json.NewEncoder(w).Encode(response)
 
 	return errors.Wrap(err, "failed to send response")

@@ -17,11 +17,12 @@ package istiofeature
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/backoff"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/banzaicloud/pipeline/pkg/backoff"
 )
 
 // waitForNamespaceBeDeleted wait for a k8s namespace to be deleted
@@ -30,7 +31,7 @@ func (m *MeshReconciler) waitForNamespaceBeDeleted(client *kubernetes.Clientset,
 		Delay:      time.Duration(backoffDelaySeconds) * time.Second,
 		MaxRetries: backoffMaxretries,
 	}
-	var backoffPolicy = backoff.NewConstantBackoffPolicy(&backoffConfig)
+	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	err := backoff.Retry(func() error {
 		_, err := client.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})

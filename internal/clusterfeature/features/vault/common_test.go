@@ -26,7 +26,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-type arr = []interface{}
 type obj = map[string]interface{}
 
 const tokenSecretID = "vaulttokensecretid"
@@ -75,19 +74,6 @@ func (d dummyCluster) NodePoolExists(nodePoolName string) bool {
 
 func (d dummyCluster) RbacEnabled() bool {
 	return d.Rbac
-}
-
-type dummyOrgDomainService struct {
-	Domain string
-	OrgID  uint
-}
-
-func (dummyOrgDomainService) EnsureOrgDomain(ctx context.Context, clusterID uint) error {
-	return nil
-}
-
-func (d dummyOrgDomainService) GetDomain(ctx context.Context, clusterID uint) (string, uint, error) {
-	return d.Domain, d.OrgID, nil
 }
 
 type dummyOrganizationalSecretStore struct {

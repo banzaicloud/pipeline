@@ -163,6 +163,23 @@ Creating and using EKS clusters requires to you to have the [AWS IAM Authenticat
 go get github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator
 ```
 
+#### EKS ami image query script
+
+```
+K8S_VERSIONS=(
+  "1.11"
+  "1.12"
+  "1.13"
+  "1.14"
+)
+
+for version in ${K8S_VERSIONS[@]}; do
+	echo "K8S Version:" $version
+	for region in `aws ec2 describe-regions --output text | cut -f4 | sort -V`; do
+	    aws ssm get-parameter --name /aws/service/eks/optimized-ami/${version}/amazon-linux-2/recommended/image_id --region ${region} --query Parameter.Value --output text | xargs -I "{}" echo \"$region\": \"{}\",
+	done
+done
+```
 
 #### Anchore Engine
 

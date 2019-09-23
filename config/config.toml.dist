@@ -228,10 +228,12 @@ port = "9900"
 # if true, some metrics have unique labels
 debug = true
 
-[issue]
-type = "github"
-githubOwner = "kelly-slater"
-githubRepository = "the-pipeline-issues"
+[frontend.issue]
+driver = "github"
+
+[frontend.issue.github]
+owner = "banzaicloud"
+repository = "pipeline-issues"
 
 [spotmetrics]
 enabled = false
@@ -263,6 +265,6 @@ defaultApiRegion = "eu-central-1"
 clusterAutoscalerChartVersion="0.12.3"
 hpaOperatorChartVersion="0.0.10"
 
-[vaultWebHook]
+[vaultWebhook]
 chart="banzaicloud-stable/vault-secrets-webhook"
 chartVersion="0.5.2"

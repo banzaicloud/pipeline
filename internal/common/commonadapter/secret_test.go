@@ -28,7 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name OrganizationalSecretStore -inpkg -testonly"
+//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name ReadWriteOrganizationalSecretStore -inpkg -testonly"
 
 func TestSecretStore_GetSecretValues(t *testing.T) {
 	organizationID := uint(1)
@@ -45,7 +45,7 @@ func TestSecretStore_GetSecretValues(t *testing.T) {
 		Values: map[string]string{"key": "value"},
 	}
 
-	orgStore := &MockOrganizationalSecretStore{}
+	orgStore := &MockReadWriteOrganizationalSecretStore{}
 	orgStore.On("Get", organizationID, secretID).Return(secretResponse, nil)
 	orgStore.On("Store", organizationID, createSecretRequest).Return(secretStoreResponse, nil)
 	orgStore.On("Delete", organizationID, secretID).Return(nil)
@@ -86,7 +86,7 @@ func TestSecretStore_GetSecretValues_SecretNotFound(t *testing.T) {
 	organizationID := uint(1)
 	secretID := "id"
 
-	orgStore := &MockOrganizationalSecretStore{}
+	orgStore := &MockReadWriteOrganizationalSecretStore{}
 	orgStore.On("Get", organizationID, secretID).Return(nil, secret.ErrSecretNotExists)
 
 	const orgIdKey = "orgIdKey"
@@ -120,7 +120,7 @@ func TestSecretStore_GetSecretValues_SomethingWentWrong(t *testing.T) {
 
 	origErr := errors.NewPlain("something went wrong")
 
-	orgStore := &MockOrganizationalSecretStore{}
+	orgStore := &MockReadWriteOrganizationalSecretStore{}
 	orgStore.On("Get", organizationID, secretID).Return(nil, origErr)
 
 	const orgIdKey = "orgIdKey"

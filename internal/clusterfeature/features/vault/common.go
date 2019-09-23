@@ -24,7 +24,6 @@ const (
 	authMethodType          = "kubernetes"
 	authMethodPathPrefix    = "kubernetes"
 	policyNamePrefix        = "allow_cluster_secrets"
-	featureSecretTag        = "feature:vault"
-
-	vaultTokenKey = "token"
+	vaultTokenReviewer      = "vault-token-reviewer"
+	vaultTokenKey           = "token"
 )

@@ -28,11 +28,10 @@ type vaultFeatureSpec struct {
 }
 
 type CustomVault struct {
-	Enabled       bool   `json:"enabled" mapstructure:"enabled"`
-	Address       string `json:"address" mapstructure:"address"`
-	Policy        string `json:"policy" mapstructure:"policy"`
-	Token         string `json:"token,omitempty" mapstructure:"token"`
-	TokenSecretID string `json:"-" mapstructure:"tokenSecretId"`
+	Enabled  bool   `json:"enabled" mapstructure:"enabled"`
+	Address  string `json:"address" mapstructure:"address"`
+	Policy   string `json:"policy" mapstructure:"policy"`
+	SecretID string `json:"secretId" mapstructure:"secretId"`
 }
 
 type Settings struct {
@@ -56,19 +55,19 @@ func (s *vaultFeatureSpec) Validate() error {
 	if s.CustomVault.Enabled {
 
 		// address is required in case of custom vault
-		if len(s.CustomVault.Address) == 0 {
+		if s.CustomVault.Address == "" {
 			return errors.New("address field is required in case of custom vault")
 		}
 
 		// policy is required in case of custom vault
-		if len(s.CustomVault.Policy) == 0 && len(s.CustomVault.Token) != 0 {
+		if s.CustomVault.Policy == "" && s.CustomVault.SecretID != "" {
 			return errors.New("policy field is required in case of custom vault")
 		}
 	}
 
 	if len(s.Settings.Namespaces) == 1 && s.Settings.Namespaces[0] == "*" &&
 		len(s.Settings.ServiceAccounts) == 1 && s.Settings.ServiceAccounts[0] == "*" {
-		return errors.New("both namespaces and service accounts can not be \"*\"")
+		return errors.New(`both namespaces and service accounts cannot be "*"`)
 	}
 
 	return nil
