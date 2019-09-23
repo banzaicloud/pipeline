@@ -57,20 +57,17 @@ func (a *UpdatePoolActivity) Execute(ctx context.Context, input UpdatePoolActivi
 		return emperror.Wrapf(err, "setting min/max capacity of pool %q", input.Pool.Name)
 	}
 
-	desired := input.Pool.Count
-	if desired < input.Pool.MinCount {
-		desired = input.Pool.MinCount
-	}
-	if desired > input.Pool.MaxCount {
-		desired = input.Pool.MaxCount
-	}
-	_, err = autoscalingSrv.SetDesiredCapacity(&autoscaling.SetDesiredCapacityInput{
-		AutoScalingGroupName: aws.String(input.AutoScalingGroup),
-		DesiredCapacity:      aws.Int64(int64(desired)),
-		HonorCooldown:        aws.Bool(false),
-	})
-	if err != nil {
-		return emperror.Wrapf(err, "setting desired capacity of pool %q", input.Pool.Name)
+	if !input.Pool.Autoscaling {
+		// if autoscaling is enabled for the node pool than don't set desired count
+		// as that is controlled by cluster autoscaler
+		_, err = autoscalingSrv.SetDesiredCapacity(&autoscaling.SetDesiredCapacityInput{
+			AutoScalingGroupName: aws.String(input.AutoScalingGroup),
+			DesiredCapacity:      aws.Int64(int64(input.Pool.Count)),
+			HonorCooldown:        aws.Bool(false),
+		})
+		if err != nil {
+			return emperror.Wrapf(err, "setting desired capacity of pool %q", input.Pool.Name)
+		}
 	}
 
 	addTag := "enabled"
