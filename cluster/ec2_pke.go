@@ -400,12 +400,27 @@ func createNodePoolsFromPKERequest(nodePools pke.UpdateNodePools) []pkeworkflow.
 	var out = make([]pkeworkflow.NodePool, len(nodePools))
 	i := 0
 	for nodePoolName, nodePool := range nodePools {
+		count := nodePool.Count
+
+		if !nodePool.Autoscaling {
+			// if no cluster autoscaler enabled than min, max and desired count
+			// should be same
+			nodePool.MinCount = count
+			nodePool.MaxCount = count
+		} else {
+			if count < nodePool.MinCount {
+				count = nodePool.MinCount
+			} else if count > nodePool.MaxCount {
+				count = nodePool.MaxCount
+			}
+		}
+
 		out[i] = pkeworkflow.NodePool{
 			Name:         nodePoolName,
 			Worker:       true,
 			MinCount:     nodePool.MinCount,
 			MaxCount:     nodePool.MaxCount,
-			Count:        nodePool.Count,
+			Count:        count,
 			Autoscaling:  nodePool.Autoscaling,
 			InstanceType: nodePool.InstanceType,
 			SpotPrice:    nodePool.SpotPrice,
@@ -512,6 +527,7 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 	deletedModelNodePools := internalPke.NodePools{}
 	for _, np := range c.model.NodePools {
 		if reqNodePool, ok := reqNodePoolsMap[np.Name]; ok { // update
+			np.Autoscaling = reqNodePool.Autoscaling
 
 			providerConfig := internalPke.NodePoolProviderConfigAmazon{}
 			if err := mapstructure.Decode(np.ProviderConfig, &providerConfig); err != nil {
@@ -519,6 +535,7 @@ func (c *EC2ClusterPKE) UpdatePKECluster(ctx context.Context, request *pkgCluste
 			}
 			providerConfig.AutoScalingGroup.Size.Min = reqNodePool.MinCount
 			providerConfig.AutoScalingGroup.Size.Max = reqNodePool.MaxCount
+			providerConfig.AutoScalingGroup.Size.Desired = reqNodePool.Count
 			np.ProviderConfig["autoScalingGroup"] = providerConfig.AutoScalingGroup
 
 			newModelNodePools = append(newModelNodePools, np)
