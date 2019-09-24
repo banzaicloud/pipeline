@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/internal/common"
+
 	"emperror.dev/errors"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -27,10 +29,14 @@ import (
 	"k8s.io/kubernetes/pkg/apis/core"
 )
 
-type EndpointManager struct{}
+type EndpointManager struct {
+	logger common.Logger
+}
 
-func NewEndpointManager() *EndpointManager {
-	return &EndpointManager{}
+func NewEndpointManager(logger common.Logger) *EndpointManager {
+	return &EndpointManager{
+		logger: logger,
+	}
 }
 
 func (m *EndpointManager) List(kubeConfig []byte, releaseName string) ([]*pkgHelm.EndpointItem, error) {
@@ -127,7 +133,7 @@ func (m EndpointManager) getLoadBalancersWithIngressPaths(serviceList *v1.Servic
 
 	for _, service := range serviceList.Items {
 		var endpointURLs []*pkgHelm.EndPointURLs
-		logger := log.WithFields(map[string]interface{}{"serviceName": service.Name, "serviceNamespace": service.Namespace})
+		logger := m.logger.WithFields(map[string]interface{}{"serviceName": service.Name, "serviceNamespace": service.Namespace})
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
 			//TODO we should avoid differences on kubernetes level
 			var publicEndpoint string

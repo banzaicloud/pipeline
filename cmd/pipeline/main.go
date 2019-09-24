@@ -549,6 +549,8 @@ func main() {
 			// cluster API
 			cRouter := orgs.Group("/:orgid/clusters/:id")
 			{
+				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
+
 				cRouter.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
 
 				cRouter.GET("", clusterAPI.GetCluster)
@@ -566,7 +568,7 @@ func main() {
 				cRouter.GET("/config", api.GetClusterConfig)
 				cRouter.GET("/apiendpoint", api.GetApiEndpoint)
 				cRouter.GET("/nodes", api.GetClusterNodes)
-				cRouter.GET("/endpoints", api.ListEndpoints)
+				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
 				cRouter.GET("/deployments", api.ListDeployments)
 				cRouter.POST("/deployments", api.CreateDeployment)
@@ -616,7 +618,7 @@ func main() {
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-				endpointManager := pkgEndpoints.NewEndpointManager()
+				endpointManager := pkgEndpoints.NewEndpointManager(logger)
 				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry([]clusterfeature.FeatureManager{
 					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),

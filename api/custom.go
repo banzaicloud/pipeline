@@ -17,6 +17,8 @@ package api
 import (
 	"net/http"
 
+	"github.com/banzaicloud/pipeline/internal/common"
+
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -27,8 +29,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type EndpointLister struct {
+	logger common.Logger
+}
+
+func MakeEndpointLister(logger common.Logger) EndpointLister {
+	return EndpointLister{
+		logger: logger,
+	}
+}
+
 // ListEndpoints lists service public endpoints
-func ListEndpoints(c *gin.Context) {
+func (el EndpointLister) ListEndpoints(c *gin.Context) {
 
 	releaseName := c.Query("releaseName")
 	log.Infof("Filtering for helm release name: %s", releaseName)
@@ -50,7 +62,8 @@ func ListEndpoints(c *gin.Context) {
 		}
 	}
 
-	endpointManager := endpoints.NewEndpointManager()
+	logger := el.logger.WithContext(c)
+	endpointManager := endpoints.NewEndpointManager(logger)
 	endpointList, err := endpointManager.List(kubeConfig, releaseName)
 	if err != nil {
 		var code int
