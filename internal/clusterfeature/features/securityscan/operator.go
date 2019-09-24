@@ -373,6 +373,9 @@ func (op *featureOperator) configureWebHook(ctx context.Context, clusterID uint,
 	}
 
 	cli, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return errors.WrapIf(err, "failed to create k8s client")
+	}
 
 	for _, namespace := range whConfig.Namespaces {
 		// get the namespace
