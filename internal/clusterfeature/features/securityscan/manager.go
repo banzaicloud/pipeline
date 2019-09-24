@@ -39,7 +39,6 @@ func MakeFeatureManager(logger common.Logger) featureManager {
 
 func (f featureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
 
-	// todo get the proper versions here
 	out := map[string]interface{}{
 		"anchore": map[string]interface{}{
 			"version": securityScanChartVersion,

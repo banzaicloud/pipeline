@@ -357,10 +357,7 @@ func (op *featureOperator) configureWebHook(ctx context.Context, clusterID uint,
 	const labelKey = "scan"
 	var combinedError error
 
-	labelValue := "noscan"
-	if whConfig.Selector == "include" {
-		labelValue = "scan"
-	}
+	labelMap := map[string]string{"include": "scan", "exclude": "noscan"}
 
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -391,11 +388,12 @@ func (op *featureOperator) configureWebHook(ctx context.Context, clusterID uint,
 			labels = make(map[string]string)
 		}
 
-		labels[labelKey] = labelValue
+		labels[labelKey] = labelMap[whConfig.Selector]
 		ns.SetLabels(labels)
 
 		if _, err = cli.CoreV1().Namespaces().Update(ns); err != nil {
 			combinedError = errors.Append(combinedError, errors.WrapIff(err, "failed to label namespace: %s", namespace))
+			continue
 		}
 	}
 
