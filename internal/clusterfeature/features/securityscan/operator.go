@@ -109,7 +109,6 @@ func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		}
 	}
 
-	// todo cluster.SetSecurityScan(true) - set this
 	if err := op.setSecurityScan(ctx, clusterID, true); err != nil {
 		return errors.WrapIf(err, "failed to set security scan flag on cluster")
 	}
@@ -130,6 +129,11 @@ func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		}
 	}
 
+	if boundSpec.WebhookConfig.Enabled {
+		if err = op.configureWebHook(ctx, clusterID, boundSpec.WebhookConfig); err != nil {
+			return errors.WrapIf(err, "failed to configure webhook")
+		}
+	}
 	return nil
 }
 
@@ -346,4 +350,51 @@ func (op *featureOperator) setSecurityScan(ctx context.Context, clusterID uint, 
 	cl.SetSecurityScan(enabled)
 
 	return nil
+}
+
+func (op *featureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
+
+	const labelKey = "scan"
+	var combinedError error
+
+	labelValue := "noscan"
+	if whConfig.Selector == "include" {
+		labelValue = "scan"
+	}
+
+	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get cluster")
+	}
+
+	kubeConfig, err := cl.GetK8sConfig()
+	if err != nil {
+		return errors.WrapIf(err, "failed to get k8s config for the cluster")
+	}
+
+	cli, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+
+	for _, namespace := range whConfig.Namespaces {
+		// get the namespace
+		ns, err := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
+		if err != nil {
+			combinedError = errors.Append(combinedError, errors.WrapIff(err, "failed to retrieve namespace: %s", namespace))
+			continue
+		}
+
+		// merge ns labels
+		labels := ns.GetLabels()
+		if labels == nil {
+			labels = make(map[string]string)
+		}
+
+		labels[labelKey] = labelValue
+		ns.SetLabels(labels)
+
+		if _, err = cli.CoreV1().Namespaces().Update(ns); err != nil {
+			combinedError = errors.Append(combinedError, errors.WrapIff(err, "failed to label namespace: %s", namespace))
+		}
+	}
+
+	return combinedError
 }
