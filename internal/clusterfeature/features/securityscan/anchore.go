@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package features
+package securityscan
 
 import (
 	"context"
@@ -65,7 +65,6 @@ func (a *anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterGU
 
 func (a *anchoreService) DeleteUser(ctx context.Context, orgID uint, clusterGUID string) error {
 	// todo refactor the original implementation to handle errors?
-	// todo the secret only needs to be removed upon successful account deletion! (original implementation is wrong)
 
 	anchore.RemoveAnchoreUser(orgID, clusterGUID)
 

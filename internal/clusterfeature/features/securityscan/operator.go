@@ -46,12 +46,12 @@ const (
 	securityScanRelease   = "anchore"
 )
 
-type featureOperator struct {
+type FeatureOperator struct {
 	clusterGetter  clusterfeatureadapter.ClusterGetter
 	clusterService clusterfeature.ClusterService
 	helmService    features.HelmService
 	secretStore    features.SecretStore
-	anchoreService features.AnchoreService
+	anchoreService AnchoreService
 	logger         common.Logger
 }
 
@@ -62,23 +62,23 @@ func MakeFeatureOperator(
 	secretStore features.SecretStore,
 	logger common.Logger,
 
-) featureOperator {
-	return featureOperator{
+) FeatureOperator {
+	return FeatureOperator{
 		clusterGetter:  clusterGetter,
 		clusterService: clusterService,
 		helmService:    helmService,
 		secretStore:    secretStore,
-		anchoreService: features.NewAnchoreService(), //wired service
+		anchoreService: NewAnchoreService(), //wired service
 		logger:         logger,
 	}
 }
 
 // Name returns the name of the feature
-func (op featureOperator) Name() string {
+func (op FeatureOperator) Name() string {
 	return FeatureName
 }
 
-func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
+func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
 	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": FeatureName})
 	logger.Info("start to apply feature")
 
@@ -137,7 +137,7 @@ func (op featureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	return nil
 }
 
-func (op featureOperator) Deactivate(ctx context.Context, clusterID uint) error {
+func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to deactivate feature")
@@ -168,7 +168,7 @@ func (op featureOperator) Deactivate(ctx context.Context, clusterID uint) error 
 	return nil
 }
 
-func (op featureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
+func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
 	if _, ok := auth.GetCurrentOrganizationID(ctx); !ok {
 		cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 		if err != nil {
@@ -179,7 +179,7 @@ func (op featureOperator) ensureOrgIDInContext(ctx context.Context, clusterID ui
 	return ctx, nil
 }
 
-func (op featureOperator) createAnchoreUserForCluster(ctx context.Context, clusterID uint) (string, error) {
+func (op FeatureOperator) createAnchoreUserForCluster(ctx context.Context, clusterID uint) (string, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return "", errors.WrapIf(err, "error retrieving cluster")
@@ -193,7 +193,7 @@ func (op featureOperator) createAnchoreUserForCluster(ctx context.Context, clust
 	return usr, nil
 }
 
-func (op featureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*SecurityScanChartValues, error) {
+func (op FeatureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*SecurityScanChartValues, error) {
 
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -215,7 +215,7 @@ func getDefaultValues(cl clusterfeatureadapter.Cluster) *SecurityScanChartValues
 	return chartValues
 }
 
-func (op featureOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
+func (op FeatureOperator) processChartValues(ctx context.Context, clusterID uint, anchoreValues AnchoreValues) ([]byte, error) {
 	securityScanValues, err := op.getDefaultValues(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get defaults for chart values")
@@ -231,7 +231,7 @@ func (op featureOperator) processChartValues(ctx context.Context, clusterID uint
 	return values, nil
 }
 
-func (op featureOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (*AnchoreValues, error) {
+func (op FeatureOperator) getCustomAnchoreValues(ctx context.Context, customAnchore anchoreSpec) (*AnchoreValues, error) {
 	if !customAnchore.Enabled { // this is already checked
 		return nil, errors.NewWithDetails("custom anchore disabled")
 	}
@@ -252,7 +252,7 @@ func (op featureOperator) getCustomAnchoreValues(ctx context.Context, customAnch
 
 }
 
-func (op featureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
+func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
 	// default (pipeline hosted) anchore
 	if !op.anchoreService.AnchoreConfig().AnchoreEnabled {
 		return nil, errors.NewWithDetails("default anchore is not enabled")
@@ -279,7 +279,7 @@ func (op featureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 	return &anchoreValues, nil
 }
 
-func (op featureOperator) installWhiteList(ctx context.Context, clusterID uint, releases []releaseSpec) error {
+func (op FeatureOperator) installWhiteList(ctx context.Context, clusterID uint, releases []releaseSpec) error {
 
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -341,18 +341,23 @@ func (op featureOperator) installWhiteList(ctx context.Context, clusterID uint, 
 }
 
 // setSecurityScan temporary workaround for signaling the security scan enablement
-func (op *featureOperator) setSecurityScan(ctx context.Context, clusterID uint, enabled bool) error {
+func (op *FeatureOperator) setSecurityScan(ctx context.Context, clusterID uint, enabled bool) error {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to get cluster")
 	}
 
-	cl.SetSecurityScan(enabled)
+	type securityScanFlagAwareCluster interface {
+		SetSecurityScan(scan bool)
+	}
+
+	securityCluster := cl.(securityScanFlagAwareCluster)
+	securityCluster.SetSecurityScan(enabled)
 
 	return nil
 }
 
-func (op *featureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
+func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
 	const labelKey = "scan"
 	var combinedError error

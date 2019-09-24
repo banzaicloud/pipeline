@@ -21,23 +21,23 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-type featureManager struct {
+type FeatureManager struct {
 	logger common.Logger
 }
 
 // Name returns the name of the feature
-func (f featureManager) Name() string {
+func (f FeatureManager) Name() string {
 	return FeatureName
 }
 
 //MakeFeatureManager creates asecurity scan feature manager instance
-func MakeFeatureManager(logger common.Logger) featureManager {
-	return featureManager{
+func MakeFeatureManager(logger common.Logger) FeatureManager {
+	return FeatureManager{
 		logger: logger,
 	}
 }
 
-func (f featureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
+func (f FeatureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
 
 	out := map[string]interface{}{
 		"anchore": map[string]interface{}{
@@ -51,7 +51,7 @@ func (f featureManager) GetOutput(ctx context.Context, clusterID uint) (clusterf
 	return out, nil
 }
 
-func (f featureManager) ValidateSpec(ctx context.Context, spec clusterfeature.FeatureSpec) error {
+func (f FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.FeatureSpec) error {
 	securityScanSpec, err := bindFeatureSpec(spec)
 	if err != nil {
 		return clusterfeature.InvalidFeatureSpecError{
@@ -70,7 +70,7 @@ func (f featureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 	return nil
 }
 
-func (f featureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
+func (f FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
 	// todo implement this - do nothing for the time being
 	return spec, nil
 }
