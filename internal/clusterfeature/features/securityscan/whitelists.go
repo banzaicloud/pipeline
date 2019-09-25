@@ -117,7 +117,7 @@ func (wls *whiteListService) EnsureReleaseWhiteList(ctx context.Context, cluster
 	}
 
 	if err := wls.runWithBackoff(func() error { return wls.installItems(ctx, wlClient, toBeAdded) }); err != nil {
-		return errors.WrapIf(err, "failed to remove whitelist items")
+		return errors.WrapIf(err, "failed to install whitelist items")
 	}
 
 	return nil
@@ -137,7 +137,7 @@ func (wls *whiteListService) removeItems(ctx context.Context, whitelistCli secur
 func (wls *whiteListService) installItems(ctx context.Context, whitelistCli securityClientV1Alpha.WhiteListInterface, items []releaseSpec) error {
 	var collectedErrors error
 	for _, item := range items {
-		if _, err := whitelistCli.Create(wls.assembleWhitelisItem(item)); err != nil {
+		if _, err := whitelistCli.Create(wls.assembleWhiteLisItem(item)); err != nil {
 			collectedErrors = errors.Append(collectedErrors, errors.WrapIff(err, "failed to azdd whitelist item %s", item.Name))
 			continue
 		}
@@ -145,7 +145,7 @@ func (wls *whiteListService) installItems(ctx context.Context, whitelistCli secu
 	return collectedErrors
 }
 
-func (wls *whiteListService) assembleWhitelisItem(releaseItem releaseSpec) *securityV1Alpha.WhiteListItem {
+func (wls *whiteListService) assembleWhiteLisItem(releaseItem releaseSpec) *securityV1Alpha.WhiteListItem {
 	return &securityV1Alpha.WhiteListItem{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "WhiteListItem",
