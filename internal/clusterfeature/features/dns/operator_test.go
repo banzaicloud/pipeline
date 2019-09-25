@@ -198,5 +198,5 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 
 	ctx := context.Background()
 
-	_ = op.Deactivate(ctx, clusterID)
+	_ = op.Deactivate(ctx, clusterID, nil)
 }

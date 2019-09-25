@@ -28,7 +28,6 @@ import (
 	ginauth "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/gofrs/uuid"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -41,6 +40,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/config"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/utils"
 )
@@ -52,13 +52,10 @@ const PipelineSessionCookie = "_banzai_session"
 const CICDSessionCookie = "user_sess"
 
 // CICDUserTokenType is the CICD token type used for API sessions
-const CICDUserTokenType ginauth.TokenType = "user"
+const CICDUserTokenType pkgAuth.TokenType = "user"
 
 // CICDHookTokenType is the CICD token type used for API sessions
-const CICDHookTokenType ginauth.TokenType = "hook"
-
-// ClusterTokenType is the token given to clusters to manage themselves
-const ClusterTokenType ginauth.TokenType = "cluster"
+const CICDHookTokenType pkgAuth.TokenType = "hook"
 
 // SessionCookieMaxAge holds long an authenticated session should be valid in seconds
 const SessionCookieMaxAge = 30 * 24 * 60 * 60
@@ -86,15 +83,8 @@ var (
 
 	Auth *auth.Auth
 
-	signingKey       string
 	signingKeyBase32 string
 	TokenStore       bauth.TokenStore
-
-	// JwtIssuer ("iss") claim identifies principal that issued the JWT
-	JwtIssuer string
-
-	// JwtAudience ("aud") claim identifies the recipients that the JWT is intended for
-	JwtAudience string
 
 	// CookieDomain is the domain field for cookies
 	CookieDomain string
@@ -142,18 +132,9 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, orgSyncer OIDCOrganizationSyncer) {
-	JwtIssuer = viper.GetString("auth.jwtissuer")
-	JwtAudience = viper.GetString("auth.jwtaudience")
+func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
+	TokenStore = tokenStore
 	CookieDomain = viper.GetString("auth.cookieDomain")
-
-	signingKey = viper.GetString("auth.tokensigningkey")
-	if signingKey == "" {
-		panic("Token signing key is missing from configuration")
-	}
-	if len(signingKey) < 32 {
-		panic("Token signing key must be at least 32 characters")
-	}
 
 	signingKeyBytes := []byte(signingKey)
 	signingKeyBase32 = base32.StdEncoding.EncodeToString(signingKeyBytes)
@@ -180,6 +161,7 @@ func Init(db *gorm.DB, orgSyncer OIDCOrganizationSyncer) {
 			SigningMethod:  jwt.SigningMethodHS256,
 			SignedString:   signingKeyBase32,
 		},
+		tokenManager: tokenManager,
 	}
 
 	// Initialize Auth with configuration
@@ -211,8 +193,6 @@ func Init(db *gorm.DB, orgSyncer OIDCOrganizationSyncer) {
 	})
 	Auth.RegisterProvider(oidcProvider)
 
-	InitTokenStore()
-
 	Handler = ginauth.JWTAuthHandler(
 		signingKey,
 		func(claims *ginauth.ScopedClaims) interface{} {
@@ -221,13 +201,13 @@ func Init(db *gorm.DB, orgSyncer OIDCOrganizationSyncer) {
 			return &User{
 				ID:      uint(userID),
 				Login:   claims.Text, // This is needed for CICD virtual user tokens
-				Virtual: claims.Type == CICDHookTokenType,
+				Virtual: claims.Type == ginauth.TokenType(CICDHookTokenType),
 			}
 		},
 		func(ctx context.Context, value interface{}) context.Context {
 			return context.WithValue(ctx, auth.CurrentUser, value)
 		},
-		ginauth.TokenStoreOption(TokenStore),
+		ginauth.TokenStoreOption(tokenStore),
 		ginauth.ExtractorOption(cookieExtractor{sessionStorer}),
 		ginauth.ErrorHandlerOption(emperror.MakeContextAware(errorHandler)),
 	)
@@ -257,16 +237,12 @@ func SyncOrgsForUser(organizationSyncer OIDCOrganizationSyncer, user *User, requ
 	return organizationSyncer.SyncOrganizations(request.Context(), *user, idTokenClaims)
 }
 
-func InitTokenStore() {
-	TokenStore = bauth.NewVaultTokenStore("pipeline")
-}
-
-func StartTokenStoreGC() {
+func StartTokenStoreGC(tokenStore bauth.TokenStore) {
 	ticker := time.NewTicker(time.Hour * 12)
 	go func() {
 		for tick := range ticker.C {
 			_ = tick
-			err := TokenStore.GC()
+			err := tokenStore.GC()
 			if err != nil {
 				errorHandler.Handle(errors.Wrap(err, "failed to garbage collect TokenStore"))
 			} else {
@@ -302,12 +278,14 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 }
 
 type tokenHandler struct {
-	roleSource RoleSource
+	roleSource   RoleSource
+	tokenManager TokenManager
 }
 
-func NewTokenHandler(roleSource RoleSource) *tokenHandler {
+func NewTokenHandler(roleSource RoleSource, tokenManager TokenManager) *tokenHandler {
 	handler := &tokenHandler{
-		roleSource: roleSource,
+		roleSource:   roleSource,
+		tokenManager: tokenManager,
 	}
 
 	return handler
@@ -406,7 +384,7 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 		}
 	}
 
-	tokenID, signedToken, err := createAndStoreAPIToken(userID, userLogin, tokenType, tokenRequest.Name, tokenRequest.ExpiresAt, false)
+	tokenID, signedToken, err := h.tokenManager.GenerateToken(userID, tokenRequest.ExpiresAt, tokenType, userLogin, tokenRequest.Name, false)
 
 	if err != nil {
 		err = c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("%s", err))
@@ -415,88 +393,6 @@ func (h *tokenHandler) GenerateToken(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": tokenID, "token": signedToken})
-}
-
-// getClusterUserID maps cluster to a unique identifier for the cluster's technical user
-func getClusterUserID(orgID uint, clusterID uint) string {
-	return fmt.Sprintf("clusters/%d/%d", orgID, clusterID)
-}
-
-type clusterTokenHandler struct{}
-
-func NewClusterTokenHandler() *clusterTokenHandler {
-	handler := &clusterTokenHandler{}
-
-	return handler
-}
-
-// GenerateClusterToken looks up, or generates and stores a token for a cluster
-func (h *clusterTokenHandler) GenerateClusterToken(orgID uint, clusterID uint) (string, string, error) {
-	userID := getClusterUserID(orgID, clusterID)
-	if tokens, err := TokenStore.List(userID); err == nil {
-		for _, token := range tokens {
-			if token.Value != "" && token.ExpiresAt == nil {
-				return token.ID, token.Value, nil
-			}
-		}
-	}
-	tokenID, signedToken, err := createAndStoreAPIToken(userID, userID, ClusterTokenType, userID, nil, true)
-
-	return tokenID, signedToken, err
-}
-
-func createAPIToken(userID string, userLogin string, tokenType ginauth.TokenType, expiresAt *time.Time) (string, string, error) {
-	tokenID := uuid.Must(uuid.NewV4()).String()
-
-	var expiresAtUnix int64
-	if expiresAt != nil {
-		expiresAtUnix = expiresAt.Unix()
-	}
-
-	// Create the Claims
-	claims := &ginauth.ScopedClaims{
-		StandardClaims: jwt.StandardClaims{
-			Issuer:    JwtIssuer,
-			Audience:  JwtAudience,
-			IssuedAt:  jwt.TimeFunc().Unix(),
-			ExpiresAt: expiresAtUnix,
-			Subject:   userID,
-			Id:        tokenID,
-		},
-		Scope: "api:invoke", // "scope" for Pipeline
-		Type:  tokenType,    // "type" for CICD
-		Text:  userLogin,    // "text" for CICD
-	}
-
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	if signingKeyBase32 == "" {
-		return "", "", errors.New("missing signingKeyBase32")
-	}
-	signedToken, err := jwtToken.SignedString([]byte(signingKeyBase32))
-	if err != nil {
-		return "", "", errors.Wrap(err, "failed to sign user token")
-	}
-
-	return tokenID, signedToken, nil
-}
-
-func createAndStoreAPIToken(userID string, userLogin string, tokenType ginauth.TokenType, tokenName string, expiresAt *time.Time, storeSecret bool) (string, string, error) {
-	tokenID, signedToken, err := createAPIToken(userID, userLogin, tokenType, expiresAt)
-	if err != nil {
-		return "", "", err
-	}
-
-	token := bauth.NewToken(tokenID, tokenName)
-	token.ExpiresAt = expiresAt
-	if storeSecret {
-		token.Value = signedToken
-	}
-	err = TokenStore.Store(userID, token)
-	if err != nil {
-		return "", "", errors.Wrap(err, "failed to store user token")
-	}
-
-	return tokenID, signedToken, nil
 }
 
 // GetTokens returns the calling user's access tokens
@@ -551,6 +447,8 @@ func DeleteToken(c *gin.Context) {
 // BanzaiSessionStorer stores the banzai session
 type BanzaiSessionStorer struct {
 	auth.SessionStorer
+
+	tokenManager TokenManager
 }
 
 // Update updates the BanzaiSessionStorer
@@ -570,7 +468,14 @@ func (sessionStorer *BanzaiSessionStorer) Update(w http.ResponseWriter, req *htt
 	// These tokens are GCd after they expire
 	expiresAt := time.Now().Add(SessionCookieMaxAge * time.Second)
 
-	_, cookieToken, err := createAndStoreAPIToken(claims.UserID, currentUser.Login, CICDUserTokenType, SessionCookieName, &expiresAt, false)
+	_, cookieToken, err := sessionStorer.tokenManager.GenerateToken(
+		claims.UserID,
+		&expiresAt,
+		CICDUserTokenType,
+		currentUser.Login,
+		SessionCookieName,
+		false,
+	)
 	if err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed to create user session cookie"))
 		return err

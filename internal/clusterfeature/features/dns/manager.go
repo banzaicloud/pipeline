@@ -54,7 +54,7 @@ func (m FeatureManager) Name() string {
 }
 
 // GetOutput returns the DNS feature's output
-func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
+func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, _ clusterfeature.FeatureSpec) (clusterfeature.FeatureOutput, error) {
 	domain, _, _ := m.orgDomainService.GetDomain(ctx, clusterID)
 
 	c, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)

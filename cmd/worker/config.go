@@ -51,6 +51,9 @@ type configuration struct {
 	// Pipeline configuration
 	Pipeline PipelineConfig
 
+	// Auth configuration
+	Auth authConfig
+
 	// Database connection information
 	Database database.Config
 
@@ -72,6 +75,10 @@ func (c configuration) Validate() error {
 		return err
 	}
 
+	if err := c.Auth.Validate(); err != nil {
+		return err
+	}
+
 	if err := c.Database.Validate(); err != nil {
 		return err
 	}
@@ -90,6 +97,40 @@ type PipelineConfig struct {
 
 // Validate validates the configuration.
 func (c PipelineConfig) Validate() error {
+	return nil
+}
+
+// authConfig contains auth configuration.
+type authConfig struct {
+	Token authTokenConfig
+}
+
+// Validate validates the configuration.
+func (c authConfig) Validate() error {
+	if err := c.Token.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// authTokenConfig contains auth configuration.
+type authTokenConfig struct {
+	SigningKey string
+	Issuer     string
+	Audience   string
+}
+
+// Validate validates the configuration.
+func (c authTokenConfig) Validate() error {
+	if c.SigningKey == "" {
+		return errors.New("auth token signing key is required")
+	}
+
+	if len(c.SigningKey) < 32 {
+		return errors.New("auth token signing key must be at least 32 characters")
+	}
+
 	return nil
 }
 
@@ -136,6 +177,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Pipeline configuration
 	v.SetDefault("pipeline.basePath", "")
 
+	// Auth configuration
+	v.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
+	v.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
+
 	// Database configuration
 	v.SetDefault("database.dialect", "mysql")
 	_ = v.BindEnv("database.host")
@@ -174,4 +219,11 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	viper.RegisterAlias("auth.oidcIssuerInsecure", "auth.dexInsecure")
 	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
 	viper.SetDefault("auth.dexGrpcCaCert", "")
+}
+
+func registerAliases(v *viper.Viper) {
+	// Auth configuration
+	v.RegisterAlias("auth.tokensigningkey", "auth.token.signingKey")
+	v.RegisterAlias("auth.jwtissuer", "auth.token.issuer")
+	v.RegisterAlias("auth.jwtaudience", "auth.token.audience")
 }

@@ -23,7 +23,7 @@ import (
 	"go.uber.org/cadence/workflow"
 )
 
-func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator *pkeworkflowadapter.TokenGenerator, store pke.AzurePKEClusterStore) {
+func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.AzurePKEClusterStore) {
 
 	// Azure PKE
 	workflow.RegisterWithOptions(azurepkeworkflow.CreateClusterWorkflow, workflow.RegisterOptions{Name: azurepkeworkflow.CreateClusterWorkflowName})

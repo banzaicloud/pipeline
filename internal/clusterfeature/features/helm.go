@@ -16,6 +16,8 @@ package features
 
 import (
 	"context"
+
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 // HelmService provides an interface for using Helm on a specific cluster.
@@ -32,4 +34,7 @@ type HelmService interface {
 
 	// DeleteDeployment deletes a deployment from a specific cluster.
 	DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error
+
+	// GetDeployment gets a deployment by release name from a specific cluster.
+	GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*pkgHelm.GetDeploymentResponse, error)
 }

@@ -51,7 +51,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 	ctx := context.Background()
 
-	output, err := mng.GetOutput(ctx, clusterID)
+	output, err := mng.GetOutput(ctx, clusterID, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, clusterfeature.FeatureOutput{

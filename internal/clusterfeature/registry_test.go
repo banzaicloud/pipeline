@@ -87,7 +87,7 @@ func (d dummyFeatureManager) Name() string {
 	return d.TheName
 }
 
-func (d dummyFeatureManager) GetOutput(ctx context.Context, clusterID uint) (FeatureOutput, error) {
+func (d dummyFeatureManager) GetOutput(ctx context.Context, clusterID uint, spec FeatureSpec) (FeatureOutput, error) {
 	return d.Output, nil
 }
 
@@ -111,6 +111,6 @@ func (d dummyFeatureOperator) Apply(ctx context.Context, clusterID uint, spec Fe
 	return nil
 }
 
-func (d dummyFeatureOperator) Deactivate(ctx context.Context, clusterID uint) error {
+func (d dummyFeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec FeatureSpec) error {
 	return nil
 }

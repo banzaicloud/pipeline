@@ -159,7 +159,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 }
 
 // Deactivate deactivates the cluster feature
-func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint) error {
+func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, _ clusterfeature.FeatureSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 

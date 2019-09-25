@@ -17,6 +17,7 @@ package main
 import (
 	"os"
 
+	"emperror.dev/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
@@ -44,6 +45,7 @@ type configuration struct {
 
 // authConfig contains auth configuration.
 type authConfig struct {
+	Token       authTokenConfig
 	DefaultRole string
 	RoleBinding map[string]string
 }
@@ -54,8 +56,41 @@ func (c configuration) Validate() error {
 		return err
 	}
 
+	if err := c.Auth.Validate(); err != nil {
+		return err
+	}
+
 	if err := c.Frontend.Validate(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// Validate validates the configuration.
+func (c authConfig) Validate() error {
+	if err := c.Token.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// authTokenConfig contains auth configuration.
+type authTokenConfig struct {
+	SigningKey string
+	Issuer     string
+	Audience   string
+}
+
+// Validate validates the configuration.
+func (c authTokenConfig) Validate() error {
+	if c.SigningKey == "" {
+		return errors.New("auth token signing key is required")
+	}
+
+	if len(c.SigningKey) < 32 {
+		return errors.New("auth token signing key must be at least 32 characters")
 	}
 
 	return nil
@@ -83,20 +118,33 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
 
 	// Auth configuration
+	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
+	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
+
 	v.SetDefault("auth.defaultRole", auth.RoleAdmin)
 	v.SetDefault("auth.roleBinding", map[string]string{
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
 	})
 
-	v.SetDefault("issue.type", "github")
-	v.RegisterAlias("frontend.issue.driver", "issue.type") // TODO: deprecate the above
-	v.SetDefault("issue.githubLabels", []string{"community"})
-	v.RegisterAlias("frontend.issue.labels", "issue.githubLabels") // TODO: deprecate the above
+	v.SetDefault("frontend.issue.driver", "github")
+	v.SetDefault("frontend.issue.labels", []string{"community"})
 
 	v.RegisterAlias("frontend.issue.github.token", "github.token")
-	v.SetDefault("issue.githubOwner", "banzaicloud")
-	v.RegisterAlias("frontend.issue.github.owner", "issue.githubOwner") // TODO: deprecate the above
-	v.SetDefault("issue.githubRepository", "pipeline-issues")
-	v.RegisterAlias("frontend.issue.github.repository", "issue.githubRepository") // TODO: deprecate the above
+	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
+	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
+}
+
+func registerAliases(v *viper.Viper) {
+	// Auth configuration
+	v.RegisterAlias("auth.tokensigningkey", "auth.token.signingKey")
+	v.RegisterAlias("auth.jwtissuer", "auth.token.issuer")
+	v.RegisterAlias("auth.jwtaudience", "auth.token.audience")
+
+	// Frontend configuration
+	v.RegisterAlias("issue.type", "frontend.issue.driver")
+	v.RegisterAlias("issue.githubLabels", "frontend.issue.labels")
+
+	v.RegisterAlias("issue.githubOwner", "frontend.issue.github.owner")
+	v.RegisterAlias("issue.githubRepository", "frontend.issue.github.repository")
 }

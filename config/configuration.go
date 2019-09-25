@@ -195,6 +195,9 @@ const (
 	HollowtreesTokenSigningKey = "hollowtrees.tokenSigningKey"
 	HollowtreesExternalURL     = "hollowtrees.externalURL"
 	HollowtreesAlertsEndpoint  = "hollowtrees.alertsEndpoint"
+
+	VaultWebhookChartKey        = "vaultWebhook.chart"
+	VaultWebhookChartVersionKey = "vaultWebhook.chartVersion"
 )
 
 // Init initializes the configurations
@@ -233,8 +236,6 @@ func init() {
 	}
 	viper.SetDefault("statestore.path", fmt.Sprintf("%s/statestore/", pwd))
 
-	viper.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
-	viper.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
 	viper.SetDefault("auth.secureCookie", true)
 	viper.SetDefault("auth.publicclientid", "banzai-cli")
 	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
@@ -385,6 +386,9 @@ func init() {
 
 	// enable the domainHook by default
 	viper.SetDefault(DomainHookEnabled, true)
+
+	viper.SetDefault(VaultWebhookChartKey, "banzaicloud-stable/vault-secrets-webhook")
+	viper.SetDefault(VaultWebhookChartVersionKey, "0.5.2")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

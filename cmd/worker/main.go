@@ -15,6 +15,7 @@
 package main
 
 import (
+	"encoding/base32"
 	"fmt"
 	"os"
 	"os/signal"
@@ -22,6 +23,7 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -44,10 +46,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	featureVault "github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
+	"github.com/banzaicloud/pipeline/internal/kubernetes"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -57,6 +61,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
@@ -95,6 +100,8 @@ func main() {
 	if !configFileNotFound {
 		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
 	}
+
+	registerAliases(v)
 
 	var config configuration
 	err = v.Unmarshal(&config)
@@ -165,9 +172,16 @@ func main() {
 			conf.Logger(),
 			errorHandler,
 		)
-		tokenGenerator := pkeworkflowadapter.NewTokenGenerator(auth.NewClusterTokenHandler())
-		auth.Init(nil, nil)
-		auth.InitTokenStore()
+		tokenStore := bauth.NewVaultTokenStore("pipeline")
+		tokenManager := pkgAuth.NewTokenManager(
+			pkgAuth.NewJWTTokenGenerator(
+				config.Auth.Token.Issuer,
+				config.Auth.Token.Audience,
+				base32.StdEncoding.EncodeToString([]byte(config.Auth.Token.SigningKey)),
+			),
+			tokenStore,
+		)
+		tokenGenerator := auth.NewClusterTokenGenerator(tokenManager, tokenStore)
 
 		clusters := pkeworkflowadapter.NewClusterManagerAdapter(clusterManager)
 		secretStore := pkeworkflowadapter.NewSecretStore(secret.Store)
@@ -277,12 +291,14 @@ func main() {
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+			kubernetesService := kubernetes.NewKubernetesService(helmadapter.NewClusterService(clusterManager), logger)
 			secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
 				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
+				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, secretStore, logger),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

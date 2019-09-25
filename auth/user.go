@@ -25,6 +25,7 @@ import (
 	"emperror.dev/emperror"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/cicd-go/cicd"
+	ginauth "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
@@ -188,7 +189,7 @@ func NewCICDClient(apiToken string) cicd.Client {
 // NewTemporaryCICDClient creates an authenticated CICD client for the user specified by login
 func NewTemporaryCICDClient(login string) (cicd.Client, error) {
 	// Create a temporary CICD API token
-	claims := &CICDClaims{Type: CICDUserTokenType, Text: login}
+	claims := &CICDClaims{Type: ginauth.TokenType(CICDUserTokenType), Text: login}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	cicdAPIToken, err := token.SignedString([]byte(signingKeyBase32))
 	if err != nil {

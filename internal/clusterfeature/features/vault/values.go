@@ -12,8 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkeworkflowadapter
+package vault
 
-type TokenGenerator interface {
-	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
+type webhookValues struct {
+	Env               map[string]string `json:"env"`
+	NamespaceSelector namespaceSelector `json:"namespaceSelector"`
+}
+
+type namespaceSelector struct {
+	MatchExpressions []matchExpressions `json:"matchExpressions"`
+}
+
+type matchExpressions struct {
+	Key      string   `json:"key"`
+	Operator string   `json:"operator"`
+	Values   []string `json:"values"`
 }

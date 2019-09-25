@@ -63,7 +63,7 @@ func (s FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, er
 			return nil, err
 		}
 
-		output, err := featureManager.GetOutput(ctx, clusterID)
+		output, err := featureManager.GetOutput(ctx, clusterID, f.Spec)
 		if err != nil {
 
 			return nil, err
@@ -101,7 +101,7 @@ func (s FeatureService) Details(ctx context.Context, clusterID uint, featureName
 	}
 
 	logger.Debug("retieving feature output")
-	output, err := featureManager.GetOutput(ctx, clusterID)
+	output, err := featureManager.GetOutput(ctx, clusterID, feature.Spec)
 	if err != nil {
 		const msg = "failed to retieve feature output"
 		logger.Debug(msg)
@@ -177,8 +177,16 @@ func (s FeatureService) Deactivate(ctx context.Context, clusterID uint, featureN
 		return errors.WrapIf(err, msg)
 	}
 
+	logger.Debug("get feature details")
+	f, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
+	if err != nil {
+		const msg = "failed to retrieve feature details"
+		logger.Debug(msg)
+		return errors.WrapIf(err, msg)
+	}
+
 	logger.Debug("starting feature deactivation")
-	if err := s.featureOperationDispatcher.DispatchDeactivate(ctx, clusterID, featureName); err != nil {
+	if err := s.featureOperationDispatcher.DispatchDeactivate(ctx, clusterID, featureName, f.Spec); err != nil {
 		const msg = "failed to start feature deactivation"
 		logger.Debug(msg)
 		return errors.WrapIfWithDetails(err, msg, "clusterID", clusterID, "feature", featureName)

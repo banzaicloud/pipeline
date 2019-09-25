@@ -98,7 +98,7 @@ type FeatureManager interface {
 // FeatureOutputProducer defines how to produce a cluster feature's output.
 type FeatureOutputProducer interface {
 	// GetOutput returns a cluster feature's output.
-	GetOutput(ctx context.Context, clusterID uint) (FeatureOutput, error)
+	GetOutput(ctx context.Context, clusterID uint, spec FeatureSpec) (FeatureOutput, error)
 }
 
 // FeatureSpecValidator defines how to validate a feature specification
@@ -148,7 +148,7 @@ type FeatureOperationDispatcher interface {
 	DispatchApply(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error
 
 	// DispatchDeactivate starts deactivating a cluster feature asynchronously.
-	DispatchDeactivate(ctx context.Context, clusterID uint, featureName string) error
+	DispatchDeactivate(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error
 }
 
 // FeatureOperator defines the operations that can be applied to a cluster feature.
@@ -157,7 +157,7 @@ type FeatureOperator interface {
 	Apply(ctx context.Context, clusterID uint, spec FeatureSpec) error
 
 	// Deactivate deactivates a feature on the given cluster.
-	Deactivate(ctx context.Context, clusterID uint) error
+	Deactivate(ctx context.Context, clusterID uint, spec FeatureSpec) error
 
 	// Name returns the feature's name.
 	Name() string

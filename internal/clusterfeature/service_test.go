@@ -342,6 +342,6 @@ func (d dummyFeatureOperationDispatcher) DispatchApply(ctx context.Context, clus
 	return d.ApplyError
 }
 
-func (d dummyFeatureOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, featureName string) error {
+func (d dummyFeatureOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, featureName string, spec FeatureSpec) error {
 	return d.DeactivateError
 }
