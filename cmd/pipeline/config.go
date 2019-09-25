@@ -44,13 +44,6 @@ type configuration struct {
 	Frontend frontend.Config
 }
 
-// authConfig contains auth configuration.
-type authConfig struct {
-	Token       authTokenConfig
-	DefaultRole string
-	RoleBinding map[string]string
-}
-
 // Validate validates the configuration.
 func (c configuration) Validate() error {
 	if err := c.ErrorHandler.Validate(); err != nil {
@@ -68,10 +61,35 @@ func (c configuration) Validate() error {
 	return nil
 }
 
+// authConfig contains auth configuration.
+type authConfig struct {
+	Token authTokenConfig
+	Role  authRoleConfig
+}
+
 // Validate validates the configuration.
 func (c authConfig) Validate() error {
 	if err := c.Token.Validate(); err != nil {
 		return err
+	}
+
+	if err := c.Role.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// authRoleConfig contains role based authorization configuration.
+type authRoleConfig struct {
+	Default string
+	Binding map[string]string
+}
+
+// Validate validates the configuration.
+func (c authRoleConfig) Validate() error {
+	if c.Default == "" {
+		return errors.New("auth role default is required")
 	}
 
 	return nil
@@ -122,8 +140,8 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
 	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
 
-	v.SetDefault("auth.defaultRole", auth.RoleAdmin)
-	v.SetDefault("auth.roleBinding", map[string]string{
+	v.SetDefault("auth.role.default", auth.RoleAdmin)
+	v.SetDefault("auth.role.binding", map[string]string{
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
 	})
