@@ -50,24 +50,48 @@ services:
         volumes:
             - ./.docker/volumes/vault/keys:/vault/keys
 
-    cicd-server:
-        ports:
-            - 127.0.0.1:8000:8000
-            - 127.0.0.1:9000:9000
-        environment:
-            # CICD_DATABASE_DRIVER:        postgres
-            # CICD_DATABASE_DATASOURCE:    postgres://sparky:sparky123@postgres:5432/cicd?sslmode=disable
-            # CICD_GITLAB:               "true"
-            CICD_CORS_ALLOW_ALL_ORIGINS: "false"
-            CICD_CORS_ALLOW_ORIGINS:     "http://localhost:4200"
-            CICD_EXTERNAL_URL:           https://my-cicd.serveo.net
-            PIPELINE_BASEPATH:           https://my-pipeline.serveo.net/pipeline
-            PIPELINE_EXTERNAL_BASEPATH:  https://my-pipeline.serveo.net/pipeline
+    # cicd-server:
+    #     image: banzaicloud/cicd:0.8.7
+    #     entrypoint:
+    #         - /bin/cicd-server
+    #     restart: on-failure
+    #     ports:
+    #         - 127.0.0.1:8000:8000
+    #         - 127.0.0.1:9000:9000
+    #     environment:
+    #         CICD_HOST:                http://localhost:8000
+    #         CICD_DEBUG:               "true"
+    #         CICD_GITHUB:              "true"
+    #         # CICD_GITLAB:               "true"
+    #         CICD_OPEN:                "true"
+    #         CICD_ORGS:
+    #         CICD_DATABASE_DRIVER:     mysql
+    #         CICD_DATABASE_DATASOURCE: sparky:sparky123@tcp(mysql:3306)/cicd?parseTime=true
+    #         # CICD_DATABASE_DRIVER:        postgres
+    #         # CICD_DATABASE_DATASOURCE:    postgres://sparky:sparky123@postgres:5432/cicd?sslmode=disable
+    #         CICD_SECRET:              "s3cr3t"
+    #         CICD_REPO_CONFIG:         ".banzaicloud/pipeline.yaml"
+    #         CICD_CORS_ALLOW_ALL_ORIGINS: "false"
+    #         CICD_CORS_ALLOW_ORIGINS:     "http://localhost:4200"
+    #         CICD_EXTERNAL_URL:           https://my-cicd.serveo.net
+    #         PIPELINE_BASEPATH:           https://my-pipeline.serveo.net/pipeline
+    #         PIPELINE_EXTERNAL_BASEPATH:  https://my-pipeline.serveo.net/pipeline
 
-    cicd-agent:
-        environment:
-            PIPELINE_BASEPATH:          https://my-pipeline.serveo.net/pipeline
-            PIPELINE_EXTERNAL_BASEPATH: https://my-pipeline.serveo.net/pipeline
+    # cicd-agent:
+    #     image: banzaicloud/cicd:0.8.7
+    #     depends_on:
+    #         - cicd-server
+    #     volumes:
+    #         - $HOME/.kube:/root/.kube
+    #         - $HOME/.minikube:/root/.minikube
+    #     entrypoint:
+    #         - /bin/cicd-agent
+    #     restart: on-failure
+    #     environment:
+    #         CICD_SERVER: cicd-server:9000
+    #         CICD_SECRET: "s3cr3t"
+    #         PIPELINE_BASEPATH:          https://my-pipeline.serveo.net/pipeline
+    #         PIPELINE_EXTERNAL_BASEPATH: https://my-pipeline.serveo.net/pipeline
 
     ui:
         image: banzaicloud/pipeline-web:latest

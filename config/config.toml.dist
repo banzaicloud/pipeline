@@ -93,10 +93,6 @@ dexURL = "http://127.0.0.1:5556/dex"
 dexInsecure = false
 dexGrpcAddress = "127.0.0.1:5557"
 
-tokensigningkey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
-jwtissueer = "https://banzaicloud.com/"
-jwtaudience = "https://pipeline.banzaicloud.com"
-
 secureCookie = false
 
 # Domain field for cookies
@@ -107,6 +103,11 @@ defaultRole = "admin"
 [auth.roleBinding]
 admin = ".*"
 member = ""
+
+[auth.token]
+signingKey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
+issuer = "https://banzaicloud.com/"
+audience = "https://pipeline.banzaicloud.com"
 
 [helm]
 retryAttempt = 30

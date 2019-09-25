@@ -24,7 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 )
 
-type tokenGenerator interface {
+type TokenGenerator interface {
 	GenerateClusterToken(orgID uint, clusterID uint) (string, string, error)
 }
 
@@ -42,7 +42,7 @@ type LeaderRepository interface {
 type API struct {
 	clusterGetter   common.ClusterGetter
 	errorHandler    emperror.Handler
-	tokenGenerator  tokenGenerator
+	tokenGenerator  TokenGenerator
 	externalBaseURL string
 
 	workflowClient   client.Client
@@ -52,7 +52,7 @@ type API struct {
 func NewAPI(
 	clusterGetter common.ClusterGetter,
 	errorHandler emperror.Handler,
-	tokenGenerator tokenGenerator,
+	tokenGenerator TokenGenerator,
 	externalBaseURL string,
 	workflowClient client.Client,
 	leaderRepository LeaderRepository,

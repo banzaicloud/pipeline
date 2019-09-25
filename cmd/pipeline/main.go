@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"encoding/base32"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -29,6 +30,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	watermillMiddleware "github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	evbus "github.com/asaskevich/EventBus"
+	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -92,6 +94,7 @@ import (
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
+	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/correlation"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -123,6 +126,8 @@ func main() {
 
 		os.Exit(0)
 	}
+
+	registerAliases(v)
 
 	var conf configuration
 	err := viper.Unmarshal(&conf)
@@ -191,8 +196,6 @@ func main() {
 
 	organizationStore := authadapter.NewGormOrganizationStore(db)
 
-	tokenHandler := auth.NewTokenHandler(organizationStore)
-
 	const organizationTopic = "organization"
 	var organizationSyncer auth.OIDCOrganizationSyncer
 	{
@@ -217,7 +220,17 @@ func main() {
 	}
 
 	// Initialize auth
-	auth.Init(cicdDB, organizationSyncer)
+	tokenStore := bauth.NewVaultTokenStore("pipeline")
+	tokenManager := pkgAuth.NewTokenManager(
+		pkgAuth.NewJWTTokenGenerator(
+			conf.Auth.Token.Issuer,
+			conf.Auth.Token.Audience,
+			base32.StdEncoding.EncodeToString([]byte(conf.Auth.Token.SigningKey)),
+		),
+		tokenStore,
+	)
+	auth.Init(cicdDB, conf.Auth.Token.SigningKey, tokenStore, tokenManager, organizationSyncer)
+	tokenHandler := auth.NewTokenHandler(organizationStore, tokenManager)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		logger.Info("running automatic schema migrations")
@@ -446,7 +459,7 @@ func main() {
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
 	auth.Install(router, tokenHandler.GenerateToken)
-	auth.StartTokenStoreGC()
+	auth.StartTokenStoreGC(tokenStore)
 
 	enforcer := auth.NewRbacEnforcer(organizationStore, commonLogger)
 	authorizationMiddleware := ginauth.NewMiddleware(enforcer, basePath, errorHandler)
@@ -645,7 +658,14 @@ func main() {
 			leaderRepository, err := pke.NewVaultLeaderRepository()
 			emperror.Panic(errors.WrapIf(err, "failed to create Vault leader repository"))
 
-			pkeAPI := pke.NewAPI(clusterGetter, errorHandler, auth.NewClusterTokenHandler(), externalBaseURL, workflowClient, leaderRepository)
+			pkeAPI := pke.NewAPI(
+				clusterGetter,
+				errorHandler,
+				auth.NewClusterTokenGenerator(tokenManager, tokenStore),
+				externalBaseURL,
+				workflowClient,
+				leaderRepository,
+			)
 			pkeAPI.RegisterRoutes(pkeGroup)
 
 			clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
@@ -659,7 +679,7 @@ func main() {
 			clusterAuthAPI, err := api.NewClusterAuthAPI(
 				clusterGetter,
 				clusterAuthService,
-				viper.GetString("auth.tokensigningkey"),
+				conf.Auth.Token.SigningKey,
 				oidcIssuerURL,
 				viper.GetBool(config.OIDCIssuerInsecure),
 				pipelineExternalURL.String(),

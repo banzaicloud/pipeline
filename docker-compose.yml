@@ -56,36 +56,6 @@ services:
         volumes:
             - $HOME:/root
 
-    cicd-server:
-        image: banzaicloud/cicd:0.8.7
-        entrypoint:
-            - /bin/cicd-server
-        restart: on-failure
-        environment:
-            CICD_HOST:                http://localhost:8000
-            CICD_DEBUG:               "true"
-            CICD_GITHUB:              "true"
-            CICD_OPEN:                "true"
-            CICD_ORGS:
-            CICD_DATABASE_DRIVER:     mysql
-            CICD_DATABASE_DATASOURCE: sparky:sparky123@tcp(mysql:3306)/cicd?parseTime=true
-            CICD_SECRET:              "s3cr3t"
-            CICD_REPO_CONFIG:         ".banzaicloud/pipeline.yaml"
-
-    cicd-agent:
-        image: banzaicloud/cicd:0.8.7
-        depends_on:
-            - cicd-server
-        volumes:
-            - $HOME/.kube:/root/.kube
-            - $HOME/.minikube:/root/.minikube
-        entrypoint:
-            - /bin/cicd-agent
-        restart: on-failure
-        environment:
-            CICD_SERVER: cicd-server:9000
-            CICD_SECRET: "s3cr3t"
-
     ui:
         image: banzaicloud/pipeline-web:0.7.0
         environment:
