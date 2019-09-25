@@ -49,8 +49,8 @@ func NewWhiteListService(clusterGetter clusterfeatureadapter.ClusterGetter, logg
 	return svc
 }
 
-func (ivs *whiteListService) whitelistsClient(ctx context.Context, clusterID uint) (securityClientV1Alpha.WhiteListInterface, error) {
-	cl, err := ivs.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+func (wls *whiteListService) getWhiteListsClient(ctx context.Context, clusterID uint) (securityClientV1Alpha.WhiteListInterface, error) {
+	cl, err := wls.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get cluster")
 	}
@@ -71,12 +71,13 @@ func (ivs *whiteListService) whitelistsClient(ctx context.Context, clusterID uin
 	}
 
 	return securityClientSet.Whitelists(), nil
-
 }
 
-func (ivs *whiteListService) EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error {
+func (wls *whiteListService) EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error {
+	// todo should this be here?
 	_ = v1alpha1.AddToScheme(scheme.Scheme)
-	wlClient, err := ivs.whitelistsClient(ctx, clusterID)
+
+	wlClient, err := wls.getWhiteListsClient(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to get security client")
 	}
@@ -111,18 +112,18 @@ func (ivs *whiteListService) EnsureReleaseWhiteList(ctx context.Context, cluster
 		toBeRemoved = append(toBeRemoved, itemName)
 	}
 
-	if err := ivs.RunWithBackoff(func() error { return ivs.removeItems(ctx, wlClient, toBeRemoved) }); err != nil {
+	if err := wls.runWithBackoff(func() error { return wls.removeItems(ctx, wlClient, toBeRemoved) }); err != nil {
 		return errors.WrapIf(err, "failed to remove whitelist items")
 	}
 
-	if err := ivs.RunWithBackoff(func() error { return ivs.installItems(ctx, wlClient, toBeAdded) }); err != nil {
+	if err := wls.runWithBackoff(func() error { return wls.installItems(ctx, wlClient, toBeAdded) }); err != nil {
 		return errors.WrapIf(err, "failed to remove whitelist items")
 	}
 
 	return nil
 }
 
-func (ivs *whiteListService) removeItems(ctx context.Context, whitelistCli securityClientV1Alpha.WhiteListInterface, itemNames []string) error {
+func (wls *whiteListService) removeItems(ctx context.Context, whitelistCli securityClientV1Alpha.WhiteListInterface, itemNames []string) error {
 	var collectedErrors error
 	for _, itemName := range itemNames {
 		if err := whitelistCli.Delete(itemName, &metav1.DeleteOptions{}); err != nil {
@@ -133,10 +134,10 @@ func (ivs *whiteListService) removeItems(ctx context.Context, whitelistCli secur
 	return collectedErrors
 }
 
-func (ivs *whiteListService) installItems(ctx context.Context, whitelistCli securityClientV1Alpha.WhiteListInterface, items []releaseSpec) error {
+func (wls *whiteListService) installItems(ctx context.Context, whitelistCli securityClientV1Alpha.WhiteListInterface, items []releaseSpec) error {
 	var collectedErrors error
 	for _, item := range items {
-		if _, err := whitelistCli.Create(ivs.assembleWhitelisItem(item)); err != nil {
+		if _, err := whitelistCli.Create(wls.assembleWhitelisItem(item)); err != nil {
 			collectedErrors = errors.Append(collectedErrors, errors.WrapIff(err, "failed to azdd whitelist item %s", item.Name))
 			continue
 		}
@@ -144,7 +145,7 @@ func (ivs *whiteListService) installItems(ctx context.Context, whitelistCli secu
 	return collectedErrors
 }
 
-func (ivs *whiteListService) assembleWhitelisItem(releaseItem releaseSpec) *securityV1Alpha.WhiteListItem {
+func (wls *whiteListService) assembleWhitelisItem(releaseItem releaseSpec) *securityV1Alpha.WhiteListItem {
 	return &securityV1Alpha.WhiteListItem{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "WhiteListItem",
@@ -161,7 +162,7 @@ func (ivs *whiteListService) assembleWhitelisItem(releaseItem releaseSpec) *secu
 	}
 }
 
-func (ivs *whiteListService) RunWithBackoff(f func() error) error {
+func (wls *whiteListService) runWithBackoff(f func() error) error {
 	// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
 	// a whitelist cr may fail. Retry the whitelist creation in case of failure
 	var backoffConfig = backoff.ConstantBackoffConfig{
