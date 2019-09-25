@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 // WhiteListService handles whitelist creation and removal
@@ -173,4 +174,127 @@ func (wls *whiteListService) runWithBackoff(f func() error) error {
 
 	return backoff.Retry(f, backoffPolicy)
 
+}
+
+type NamespaceService interface {
+	// LabelNamespaces add the passed map of labels to the slice of namespaces
+	LabelNamespaces(ctx context.Context, clusterID uint, namespaces []string, labels map[string]string) error
+
+	// RemoveLabels removes the labels from the slice of namespaces
+	RemoveLabels(ctx context.Context, clusterID uint, namespaces []string, labels []string) error
+}
+
+type namespaceService struct {
+	clusterGetter clusterfeatureadapter.ClusterGetter
+	logger        common.Logger
+}
+
+func NewNamespacesService(getter clusterfeatureadapter.ClusterGetter, log common.Logger) NamespaceService {
+	nss := new(namespaceService)
+	nss.clusterGetter = getter
+	nss.logger = log
+
+	return nss
+}
+
+func (nss *namespaceService) LabelNamespaces(ctx context.Context, clusterID uint, namespaces []string, newLabels map[string]string) error {
+
+	var combinedErr error
+	namespacesCli, err := nss.getNamespacesCli(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get namespaces client")
+	}
+
+	for _, namespace := range namespaces {
+		nss.logger.Debug("label namespace", map[string]interface{}{"namespace": namespace})
+		ns, err := namespacesCli.Get(namespace, metav1.GetOptions{})
+		if err != nil {
+			// record error, step forward
+			nss.logger.Debug("failed to get namespace", map[string]interface{}{"namespace": namespace})
+			combinedErr = errors.Append(combinedErr, errors.WrapIff(err, "failed to get namespace %s", ns))
+			continue
+		}
+
+		// merge ns labels
+		freshLabels := nss.mergeLabels(ns.GetLabels(), newLabels)
+
+		// update
+		ns.SetLabels(freshLabels)
+		ns, err = namespacesCli.Update(ns)
+		if err != nil {
+			nss.logger.Debug("failed to label namespace", map[string]interface{}{"namespace": namespace, "labels": freshLabels})
+			combinedErr = errors.Append(combinedErr, errors.WrapIff(err, "failed to get namespace %s", ns))
+		}
+		nss.logger.Debug("namespace labeled", map[string]interface{}{"namespace": namespace, "labels": freshLabels})
+	}
+
+	return combinedErr
+}
+
+func (nss *namespaceService) mergeLabels(currentLabels map[string]string, newLabels map[string]string) map[string]string {
+	mergedLabels := currentLabels
+	if mergedLabels == nil {
+		mergedLabels = make(map[string]string)
+	}
+
+	for lName, lValue := range newLabels {
+		mergedLabels[lName] = lValue
+	}
+
+	return mergedLabels
+}
+
+func (nss *namespaceService) RemoveLabels(ctx context.Context, clusterID uint, namespaces []string, labels []string) error {
+	nss.logger.Info("remove labels from namespaces", map[string]interface{}{"namespaces": namespaces, "labels": labels})
+	var combinedErr error
+	namespacesCli, err := nss.getNamespacesCli(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get namespaces client")
+	}
+
+	for _, namespace := range namespaces {
+		nss.logger.Debug("remove labels from namespace", map[string]interface{}{"namespace": namespace})
+		ns, err := namespacesCli.Get(namespace, metav1.GetOptions{})
+		if err != nil {
+			// record error, step forward
+			nss.logger.Debug("failed to get namespace", map[string]interface{}{"namespace": namespace})
+			combinedErr = errors.Append(combinedErr, errors.WrapIff(err, "failed to get namespace %s", ns))
+			continue
+		}
+
+		freshLabels := ns.GetLabels()
+		for _, labelName := range labels {
+			delete(freshLabels, labelName)
+		}
+
+		ns.SetLabels(freshLabels)
+		ns, err = namespacesCli.Update(ns)
+		if err != nil {
+			nss.logger.Debug("failed to remove labels form namespace", map[string]interface{}{"namespace": namespace, "labels": freshLabels})
+			combinedErr = errors.Append(combinedErr, errors.WrapIff(err, "failed to get namespace %s", ns))
+		}
+		nss.logger.Debug("namespace labeled", map[string]interface{}{"namespace": namespace, "labels": freshLabels})
+	}
+	nss.logger.Info("removed labels from namespaces", map[string]interface{}{"namespaces": namespaces, "labels": labels})
+	return combinedErr
+
+}
+
+func (nss *namespaceService) getNamespacesCli(ctx context.Context, clusterID uint) (v1.NamespaceInterface, error) {
+	cl, err := nss.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get cluster")
+	}
+
+	kubeConfig, err := cl.GetK8sConfig()
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to get k8s config for the cluster")
+	}
+
+	cli, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create k8s client")
+	}
+
+	return cli.CoreV1().Namespaces(), nil
 }

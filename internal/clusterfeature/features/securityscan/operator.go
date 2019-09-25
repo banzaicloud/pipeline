@@ -25,11 +25,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/mitchellh/mapstructure"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -48,6 +46,7 @@ type FeatureOperator struct {
 	secretStore      features.SecretStore
 	anchoreService   AnchoreService
 	whiteListService WhiteListService
+	namespaceService NamespaceService
 	logger           common.Logger
 }
 
@@ -64,8 +63,9 @@ func MakeFeatureOperator(
 		clusterService:   clusterService,
 		helmService:      helmService,
 		secretStore:      secretStore,
-		anchoreService:   NewAnchoreService(),                        //wired service
-		whiteListService: NewWhiteListService(clusterGetter, logger), // wired service
+		anchoreService:   NewAnchoreService(),                         //wired service
+		whiteListService: NewWhiteListService(clusterGetter, logger),  // wired service
+		namespaceService: NewNamespacesService(clusterGetter, logger), // wired service
 		logger:           logger,
 	}
 }
@@ -157,6 +157,13 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
 			"clusterID", clusterID)
 	}
+
+	boundSpec, err := bindFeatureSpec(spec)
+	if err != nil {
+		return errors.WrapIf(err, "failed to apply feature")
+	}
+
+	op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"})
 
 	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
 		return errors.WrapIf(err, "failed to set security scan flag to false")
@@ -296,46 +303,13 @@ func (op *FeatureOperator) setSecurityScan(ctx context.Context, clusterID uint, 
 func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
 	const labelKey = "scan"
-	var combinedError error
+	var (
+		combinedError error
+		labelMap      = map[string]string{"include": "scan", "exclude": "noscan"}
+	)
 
-	labelMap := map[string]string{"include": "scan", "exclude": "noscan"}
-
-	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get cluster")
-	}
-
-	kubeConfig, err := cl.GetK8sConfig()
-	if err != nil {
-		return errors.WrapIf(err, "failed to get k8s config for the cluster")
-	}
-
-	cli, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create k8s client")
-	}
-
-	for _, namespace := range whConfig.Namespaces {
-		// get the namespace
-		ns, err := cli.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
-		if err != nil {
-			combinedError = errors.Append(combinedError, errors.WrapIff(err, "failed to retrieve namespace: %s", namespace))
-			continue
-		}
-
-		// merge ns labels
-		labels := ns.GetLabels()
-		if labels == nil {
-			labels = make(map[string]string)
-		}
-
-		labels[labelKey] = labelMap[whConfig.Selector]
-		ns.SetLabels(labels)
-
-		if _, err = cli.CoreV1().Namespaces().Update(ns); err != nil {
-			combinedError = errors.Append(combinedError, errors.WrapIff(err, "failed to label namespace: %s", namespace))
-			continue
-		}
+	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, whConfig.Namespaces, labelMap); err != nil {
+		return err
 	}
 
 	return combinedError
