@@ -17,7 +17,6 @@ package action
 import (
 	"time"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -30,7 +29,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	internalAmazon "github.com/banzaicloud/pipeline/internal/providers/amazon"
-	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
@@ -110,15 +108,19 @@ func NewEksClusterUpdateContext(session *session.Session, clusterName string,
 // EksClusterDeletionContext describes the properties of an EKS cluster deletion
 type EksClusterDeletionContext struct {
 	EksClusterContext
+	VpcID            string
+	SecurityGroupIDs []string
 }
 
 // NewEksClusterDeleteContext creates a new NewEksClusterDeleteContext
-func NewEksClusterDeleteContext(session *session.Session, clusterName string) *EksClusterDeletionContext {
+func NewEksClusterDeleteContext(session *session.Session, clusterName, vpcID string, securityGroupIDs []string) *EksClusterDeletionContext {
 	return &EksClusterDeletionContext{
 		EksClusterContext: EksClusterContext{
 			Session:     session,
 			ClusterName: clusterName,
 		},
+		VpcID:            vpcID,
+		SecurityGroupIDs: securityGroupIDs,
 	}
 }
 
@@ -270,17 +272,14 @@ func (a *DeleteStackAction) ExecuteAction(input interface{}) (output interface{}
 		}(stackName)
 	}
 
-	caughtErrors := emperror.NewMultiErrorBuilder()
+	var errs []error
 
 	// wait for goroutines to finish
 	for i := 0; i < len(a.StackNames); i++ {
-		deleteErr := <-errorChan
-		if deleteErr != nil {
-			caughtErrors.Add(deleteErr)
-		}
+		errs = append(errs, <-errorChan)
 	}
 
-	return nil, pkgErrors.NewMultiErrorWithFormatter(caughtErrors.ErrOrNil())
+	return nil, errors.Combine(errs...)
 }
 
 // --
