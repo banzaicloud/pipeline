@@ -332,7 +332,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
-	if !boundSpec.CustomVault.Enabled || boundSpec.CustomVault.Enabled && boundSpec.CustomVault.SecretID != "" {
+	if !boundSpec.CustomVault.Enabled || boundSpec.CustomVault.SecretID != "" {
 		orgID, ok := auth.GetCurrentOrganizationID(ctx)
 		if !ok {
 			return errors.New("organization ID missing from context")
