@@ -8543,7 +8543,7 @@ components:
         propertyName: type
       oneOf:
       - $ref: '#/components/schemas/CreatePKEOnAzureClusterRequest'
-    NodePoolsAmazon:
+    EKSNodePool:
       properties:
         instanceType:
           example: m4.xlarge
@@ -8573,6 +8573,8 @@ components:
         image:
           example: ami-06d1667f
           type: string
+        subnet:
+          $ref: '#/components/schemas/EKSSubnet'
       required:
       - instanceType
       - maxCount
@@ -9022,32 +9024,6 @@ components:
           $ref: '#/components/schemas/UpdateEksProperties_eks'
       required:
       - eks
-      type: object
-    UpdateNodePoolsEks:
-      properties:
-        instanceType:
-          example: m4.xlarge
-          type: string
-        spotPrice:
-          example: "0.2"
-          type: string
-        autoscaling:
-          type: boolean
-        count:
-          example: 2
-          format: int32
-          type: integer
-        minCount:
-          example: 1
-          format: int32
-          type: integer
-        maxCount:
-          example: 2
-          format: int32
-          type: integer
-        image:
-          example: ami-4d485ca7
-          type: string
       type: object
     UpdateACKProperties:
       properties:
@@ -12346,6 +12322,9 @@ components:
         cidr:
           description: The CIDR range for the subnet in case new Subnet is created.
           type: string
+        availabilityZone:
+          description: The AZ to create the subnet into.
+          type: string
       type: object
     GetClusterBootstrapResponse:
       example:
@@ -13594,7 +13573,7 @@ components:
           type: string
         nodePools:
           additionalProperties:
-            $ref: '#/components/schemas/NodePoolsAmazon'
+            $ref: '#/components/schemas/EKSNodePool'
           type: object
         vpc:
           $ref: '#/components/schemas/EKSVpc'
@@ -13602,6 +13581,7 @@ components:
           description: Id of the RouteTable of the VPC to be used by subnets. This is used only when subnets are created into existing VPC.
           type: string
         subnets:
+          description: Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
           items:
             $ref: '#/components/schemas/EKSSubnet'
           type: array
@@ -13750,7 +13730,7 @@ components:
       properties:
         nodePools:
           additionalProperties:
-            $ref: '#/components/schemas/UpdateNodePoolsEks'
+            $ref: '#/components/schemas/EKSNodePool'
           type: object
       required:
       - nodePools
