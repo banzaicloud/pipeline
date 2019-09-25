@@ -206,7 +206,7 @@ func main() {
 		)
 		eventDispatcher := authadapter.NewOrganizationEventDispatcher(eventBus)
 
-		roleBinder, err := auth.NewRoleBinder(conf.Auth.DefaultRole, conf.Auth.RoleBinding)
+		roleBinder, err := auth.NewRoleBinder(conf.Auth.Role.Default, conf.Auth.Role.Binding)
 		emperror.Panic(err)
 
 		organizationSyncer = auth.NewOIDCOrganizationSyncer(
