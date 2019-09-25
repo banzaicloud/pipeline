@@ -99,15 +99,15 @@ secureCookie = false
 cookieDomain = ""
 setCookieDomain = false
 
-defaultRole = "admin"
-[auth.roleBinding]
-admin = ".*"
-member = ""
+# defaultRole = "admin"
+# [auth.roleBinding]
+# admin = ".*"
+# member = ""
 
 [auth.token]
 signingKey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
-issuer = "https://banzaicloud.com/"
-audience = "https://pipeline.banzaicloud.com"
+# issuer = "https://banzaicloud.com/"
+# audience = "https://pipeline.banzaicloud.com"
 
 [helm]
 retryAttempt = 30
@@ -229,12 +229,12 @@ port = "9900"
 # if true, some metrics have unique labels
 debug = true
 
-[frontend.issue]
-driver = "github"
+# [frontend.issue]
+# driver = "github"
 
-[frontend.issue.github]
-owner = "banzaicloud"
-repository = "pipeline-issues"
+# [frontend.issue.github]
+# owner = "banzaicloud"
+# repository = "pipeline-issues"
 
 [spotmetrics]
 enabled = false
