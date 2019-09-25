@@ -50,8 +50,8 @@ func (d CadenceFeatureOperationDispatcher) DispatchApply(ctx context.Context, cl
 }
 
 // DispatchDeactivate dispatches a Deactivate request to a feature manager asynchronously
-func (d CadenceFeatureOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, featureName string) error {
-	return d.dispatchOperation(ctx, workflow.OperationDeactivate, clusterID, featureName, nil)
+func (d CadenceFeatureOperationDispatcher) DispatchDeactivate(ctx context.Context, clusterID uint, featureName string, spec clusterfeature.FeatureSpec) error {
+	return d.dispatchOperation(ctx, workflow.OperationDeactivate, clusterID, featureName, spec)
 }
 
 func (d CadenceFeatureOperationDispatcher) dispatchOperation(ctx context.Context, op string, clusterID uint, featureName string, spec clusterfeature.FeatureSpec) error {

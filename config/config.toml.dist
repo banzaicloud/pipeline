@@ -265,3 +265,7 @@ defaultApiRegion = "eu-central-1"
 [autoscale]
 clusterAutoscalerChartVersion="0.12.3"
 hpaOperatorChartVersion="0.0.10"
+
+[vaultWebhook]
+chart="banzaicloud-stable/vault-secrets-webhook"
+chartVersion="0.5.2"

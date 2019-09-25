@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
@@ -314,6 +315,18 @@ func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, rele
 
 	return nil
 
+}
+
+func (s *HelmService) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*pkgHelm.GetDeploymentResponse, error) {
+	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"release": releaseName})
+	logger.Info("getting deployment")
+
+	cluster, err := s.clusters.GetCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	return helm.GetDeployment(releaseName, cluster.KubeConfig)
 }
 
 func (s *HelmService) findRelease(releaseName string, cluster *Cluster) (*release.Release, error) {

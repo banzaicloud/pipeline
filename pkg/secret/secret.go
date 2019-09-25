@@ -156,6 +156,11 @@ const (
 	DoToken = "DO_TOKEN"
 )
 
+// Vault keys
+const (
+	VaultToken = "token"
+)
+
 // Internal usage
 const (
 	TagKubeConfig     = "KubeConfig"
@@ -188,8 +193,10 @@ const (
 	HtpasswdSecretType = "htpasswd"
 	// CloudFlareSecretType marks secrets as of type "cloudflare"
 	CloudFlareSecretType = "cloudflare"
-	//
+	// DigitalOceanSecretType marks secrets as of type "digitalocean"
 	DigitalOceanSecretType = "digitalocean"
+	// VaultSecretType as marks secrets as of type "vault"
+	VaultSecretType = "vault"
 )
 
 // DefaultRules key matching for types
@@ -329,6 +336,11 @@ var DefaultRules = map[string]Meta{
 	DigitalOceanSecretType: {
 		Fields: []FieldMeta{
 			{Name: DoToken, Required: true, Opaque: true, Description: "Your API Token"},
+		},
+	},
+	VaultSecretType: {
+		Fields: []FieldMeta{
+			{Name: VaultToken, Required: true, Opaque: true, Description: "Token for Vault"},
 		},
 	},
 }

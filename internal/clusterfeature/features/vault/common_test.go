@@ -12,18 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dns
+package vault
 
 import (
 	"context"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	k8srest "k8s.io/client-go/rest"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-type arr = []interface{}
 type obj = map[string]interface{}
+
+const tokenSecretID = "vaulttokensecretid"
 
 type dummyClusterGetter struct {
 	Clusters map[uint]clusterfeatureadapter.Cluster
@@ -71,19 +76,6 @@ func (d dummyCluster) RbacEnabled() bool {
 	return d.Rbac
 }
 
-type dummyOrgDomainService struct {
-	Domain string
-	OrgID  uint
-}
-
-func (dummyOrgDomainService) EnsureOrgDomain(ctx context.Context, clusterID uint) error {
-	return nil
-}
-
-func (d dummyOrgDomainService) GetDomain(ctx context.Context, clusterID uint) (string, uint, error) {
-	return d.Domain, d.OrgID, nil
-}
-
 type dummyOrganizationalSecretStore struct {
 	Secrets map[uint]map[string]*secret.SecretItemResponse
 }
@@ -98,7 +90,7 @@ func (d dummyOrganizationalSecretStore) Get(orgID uint, secretID string) (*secre
 }
 
 func (d dummyOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (string, error) {
-	return "randomsecretid", nil
+	return tokenSecretID, nil
 }
 
 func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID string) error {
@@ -128,4 +120,37 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	return &helm.GetDeploymentResponse{
 		ReleaseName: releaseName,
 	}, nil
+}
+
+type dummyKubernetesService struct {
+}
+
+// GetKubeConfig gets a kube config for a specific cluster.
+func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
+
+	return &k8srest.Config{
+		Host:            "https://127.0.0.1:6443",
+		TLSClientConfig: k8srest.TLSClientConfig{CAData: []byte("BLABLA")},
+	}, nil
+}
+
+// GetObject gets an Object from a specific cluster.
+func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, o runtime.Object) error {
+	return nil
+}
+
+// DeleteObject deletes an Object from a specific cluster.
+func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+
+	return nil
+}
+
+// EnsureObject makes sure that a given Object is on the cluster and returns it.
+func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
+	switch v := o.(type) {
+	case *corev1.ServiceAccount:
+		v.Secrets = []corev1.ObjectReference{{Name: "some-token-1234", Namespace: "default"}}
+	}
+
+	return nil
 }

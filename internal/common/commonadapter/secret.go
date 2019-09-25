@@ -27,13 +27,20 @@ import (
 // SecretStore implements the common.SecretStore interface and acts as a lightweight wrapper around
 // the global secret store.
 type SecretStore struct {
-	store     OrganizationalSecretStore
+	store     ReadWriteOrganizationalSecretStore
 	extractor OrgIDContextExtractor
 }
 
-// OrganizationalSecretStore is the global secret store that stores values under a compound key:
+// ReadWriteOrganizationalSecretStore is the global secret store that stores values under a compound key:
 // the organization ID and a secret ID.
-type OrganizationalSecretStore interface {
+type ReadWriteOrganizationalSecretStore interface {
+	ReadOnlyOrganizationalSecretStore
+
+	Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
+	Delete(organizationID uint, secretID string) error
+}
+
+type ReadOnlyOrganizationalSecretStore interface {
 	// Get returns a secret in the internal format of the secret store.
 	Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 }
@@ -54,7 +61,7 @@ func (f OrgIDContextExtractorFunc) GetOrganizationID(ctx context.Context) (uint,
 }
 
 // NewSecretStore returns a new SecretStore instance.
-func NewSecretStore(store OrganizationalSecretStore, extractor OrgIDContextExtractor) *SecretStore {
+func NewSecretStore(store ReadWriteOrganizationalSecretStore, extractor OrgIDContextExtractor) *SecretStore {
 	return &SecretStore{
 		store:     store,
 		extractor: extractor,
@@ -101,4 +108,34 @@ func (s *SecretStore) GetSecretValues(ctx context.Context, secretID string) (map
 	}
 
 	return secretResponse.Values, nil
+}
+
+func (s *SecretStore) Store(ctx context.Context, request *secret.CreateSecretRequest) (string, error) {
+	organizationID, ok := s.extractor.GetOrganizationID(ctx)
+	if !ok {
+		return "", errors.NewWithDetails(
+			"organization ID cannot be found in the context",
+			"organizationId", organizationID,
+		)
+	}
+
+	secretID, err := s.store.Store(organizationID, request)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to store secret in Vault")
+	}
+
+	return secretID, nil
+}
+
+func (s *SecretStore) Delete(ctx context.Context, secretID string) error {
+	organizationID, ok := s.extractor.GetOrganizationID(ctx)
+	if !ok {
+		return errors.NewWithDetails(
+			"organization ID cannot be found in the context",
+			"organizationId", organizationID,
+			"secretID", secretID,
+		)
+	}
+
+	return s.store.Delete(organizationID, secretID)
 }
