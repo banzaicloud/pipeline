@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
@@ -178,8 +179,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("pipeline.basePath", "")
 
 	// Auth configuration
-	v.SetDefault("auth.jwtissuer", "https://banzaicloud.com/")
-	v.SetDefault("auth.jwtaudience", "https://pipeline.banzaicloud.com")
+	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
+	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
 
 	// Database configuration
 	v.SetDefault("database.dialect", "mysql")
@@ -223,7 +224,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 
 func registerAliases(v *viper.Viper) {
 	// Auth configuration
-	v.RegisterAlias("auth.tokensigningkey", "auth.token.signingKey")
-	v.RegisterAlias("auth.jwtissuer", "auth.token.issuer")
-	v.RegisterAlias("auth.jwtaudience", "auth.token.audience")
+	viperx.RegisterAlias(v, "auth.tokensigningkey", "auth.token.signingKey")
+	viperx.RegisterAlias(v, "auth.jwtissuer", "auth.token.issuer")
+	viperx.RegisterAlias(v, "auth.jwtaudience", "auth.token.audience")
 }

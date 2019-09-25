@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
@@ -137,14 +138,14 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 func registerAliases(v *viper.Viper) {
 	// Auth configuration
-	v.RegisterAlias("auth.tokensigningkey", "auth.token.signingKey")
-	v.RegisterAlias("auth.jwtissuer", "auth.token.issuer")
-	v.RegisterAlias("auth.jwtaudience", "auth.token.audience")
+	viperx.RegisterAlias(v, "auth.tokensigningkey", "auth.token.signingKey")
+	viperx.RegisterAlias(v, "auth.jwtissuer", "auth.token.issuer")
+	viperx.RegisterAlias(v, "auth.jwtaudience", "auth.token.audience")
 
 	// Frontend configuration
-	v.RegisterAlias("issue.type", "frontend.issue.driver")
-	v.RegisterAlias("issue.githubLabels", "frontend.issue.labels")
+	viperx.RegisterAlias(v, "issue.type", "frontend.issue.driver")
+	viperx.RegisterAlias(v, "issue.githubLabels", "frontend.issue.labels")
 
-	v.RegisterAlias("issue.githubOwner", "frontend.issue.github.owner")
-	v.RegisterAlias("issue.githubRepository", "frontend.issue.github.repository")
+	viperx.RegisterAlias(v, "issue.githubOwner", "frontend.issue.github.owner")
+	viperx.RegisterAlias(v, "issue.githubRepository", "frontend.issue.github.repository")
 }
