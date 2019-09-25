@@ -17,19 +17,14 @@ package securityscan
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"time"
 
 	"emperror.dev/errors"
-	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
-	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/mitchellh/mapstructure"
@@ -47,12 +42,13 @@ const (
 )
 
 type FeatureOperator struct {
-	clusterGetter  clusterfeatureadapter.ClusterGetter
-	clusterService clusterfeature.ClusterService
-	helmService    features.HelmService
-	secretStore    features.SecretStore
-	anchoreService AnchoreService
-	logger         common.Logger
+	clusterGetter    clusterfeatureadapter.ClusterGetter
+	clusterService   clusterfeature.ClusterService
+	helmService      features.HelmService
+	secretStore      features.SecretStore
+	anchoreService   AnchoreService
+	whiteListService WhiteListService
+	logger           common.Logger
 }
 
 func MakeFeatureOperator(
@@ -64,12 +60,13 @@ func MakeFeatureOperator(
 
 ) FeatureOperator {
 	return FeatureOperator{
-		clusterGetter:  clusterGetter,
-		clusterService: clusterService,
-		helmService:    helmService,
-		secretStore:    secretStore,
-		anchoreService: NewAnchoreService(), //wired service
-		logger:         logger,
+		clusterGetter:    clusterGetter,
+		clusterService:   clusterService,
+		helmService:      helmService,
+		secretStore:      secretStore,
+		anchoreService:   NewAnchoreService(),                        //wired service
+		whiteListService: NewWhiteListService(clusterGetter, logger), // wired service
+		logger:           logger,
 	}
 }
 
@@ -124,7 +121,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	}
 
 	if len(boundSpec.ReleaseWhiteList) > 0 {
-		if err = op.installWhiteList(ctx, clusterID, boundSpec.ReleaseWhiteList); err != nil {
+		if err = op.whiteListService.EnsureReleaseWhiteList(ctx, clusterID, boundSpec.ReleaseWhiteList); err != nil {
 			return errors.WrapIf(err, "failed to install release white list")
 		}
 	}
@@ -137,7 +134,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	return nil
 }
 
-func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint) error {
+func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to deactivate feature")
@@ -277,67 +274,6 @@ func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 	anchoreValues.Host = op.anchoreService.AnchoreConfig().AnchoreEndpoint
 
 	return &anchoreValues, nil
-}
-
-func (op FeatureOperator) installWhiteList(ctx context.Context, clusterID uint, releases []releaseSpec) error {
-
-	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get cluster")
-	}
-
-	kubeConfig, err := cl.GetK8sConfig()
-	if err != nil {
-		return errors.WrapIf(err, "failed to get k8s config for the cluster")
-	}
-
-	config, err := k8sclient.NewClientConfig(kubeConfig)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create k8s client config")
-	}
-
-	securityClientSet, err := securityClientV1Alpha.SecurityConfig(config)
-	if err != nil {
-		return errors.WrapIf(err, "failed to create security config")
-	}
-
-	for _, relSpec := range releases {
-
-		whitelist := securityV1Alpha.WhiteListItem{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "WhiteListItem",
-				APIVersion: fmt.Sprintf("%v/%v", securityV1Alpha.GroupName, securityV1Alpha.GroupVersion),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: relSpec.Name,
-			},
-			Spec: securityV1Alpha.WhiteListSpec{
-				Creator: "pipeline",
-				Reason:  relSpec.Reason,
-				Regexp:  relSpec.Regexp,
-			},
-		}
-
-		// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
-		// a whitelist cr may fail. Retry the whitelist creation in case of failure
-		var backoffConfig = backoff.ConstantBackoffConfig{
-			Delay:      time.Duration(5) * time.Second,
-			MaxRetries: 3,
-		}
-		var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
-
-		err = backoff.Retry(func() error {
-			if _, err = securityClientSet.Whitelists().Create(&whitelist); err != nil {
-				return errors.WrapIf(err, "failed to create whitelist item")
-			}
-
-			return nil
-
-		}, backoffPolicy)
-
-		return err
-	}
-	return nil
 }
 
 // setSecurityScan temporary workaround for signaling the security scan enablement

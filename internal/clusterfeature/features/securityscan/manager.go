@@ -37,20 +37,6 @@ func MakeFeatureManager(logger common.Logger) FeatureManager {
 	}
 }
 
-func (f FeatureManager) GetOutput(ctx context.Context, clusterID uint) (clusterfeature.FeatureOutput, error) {
-
-	out := map[string]interface{}{
-		"anchore": map[string]interface{}{
-			"version": securityScanChartVersion,
-		},
-		"imageValidator": map[string]interface{}{
-			"version": imageValidatorVersion,
-		},
-	}
-
-	return out, nil
-}
-
 func (f FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.FeatureSpec) error {
 	securityScanSpec, err := bindFeatureSpec(spec)
 	if err != nil {
@@ -68,6 +54,19 @@ func (f FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 	}
 
 	return nil
+}
+
+func (f FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureOutput, error) {
+	out := map[string]interface{}{
+		"anchore": map[string]interface{}{
+			"version": securityScanChartVersion,
+		},
+		"imageValidator": map[string]interface{}{
+			"version": imageValidatorVersion,
+		},
+	}
+
+	return out, nil
 }
 
 func (f FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
