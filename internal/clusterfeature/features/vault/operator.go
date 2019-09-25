@@ -81,11 +81,6 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return err
 	}
 
-	cluster, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return errors.New("failed to get cluster")
-	}
-
 	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": featureName})
 
 	boundSpec, err := bindFeatureSpec(spec)
@@ -96,8 +91,13 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		}
 	}
 
+	orgID, ok := auth.GetCurrentOrganizationID(ctx)
+	if !ok {
+		return errors.New("organization ID missing from context")
+	}
+
 	// install vault-secrets-webhook
-	if err := op.installOrUpdateWebhook(ctx, logger, cluster.GetOrganizationId(), clusterID, boundSpec); err != nil {
+	if err := op.installOrUpdateWebhook(ctx, logger, orgID, clusterID, boundSpec); err != nil {
 		return errors.WrapIf(err, "failed to deploy helm chart for feature")
 	}
 
@@ -114,7 +114,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 	}
 
 	// configure the target Vault instance if needed
-	if err := op.configureVault(ctx, logger, cluster.GetOrganizationId(), clusterID, boundSpec, tokenReviewerJWT, kubeConfig); err != nil {
+	if err := op.configureVault(ctx, logger, orgID, clusterID, boundSpec, tokenReviewerJWT, kubeConfig); err != nil {
 		return errors.WrapIf(err, "failed to configure Vault")
 	}
 
