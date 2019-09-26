@@ -26,5 +26,5 @@ type SecurityScanChartValues struct {
 type AnchoreValues struct {
 	Host     string `json:"anchoreHost" mapstructure:"host"`
 	User     string `json:"anchoreUser" mapstructure:"username"`
-	Password string `json:"anchorePassword" mapstructure:"password"`
+	Password string `json:"anchorePass" mapstructure:"password"`
 }
