@@ -33,6 +33,10 @@ type SecretStore interface {
 
 	Store(ctx context.Context, request *secret.CreateSecretRequest) (string, error)
 
+	GetNameByID(ctx context.Context, secretID string) (string, error)
+
+	GetIDByName(ctx context.Context, secretName string) (string, error)
+
 	Delete(ctx context.Context, secretID string) error
 }
 

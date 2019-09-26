@@ -271,3 +271,11 @@ hpaOperatorChartVersion="0.0.10"
 [vaultWebhook]
 chart="banzaicloud-stable/vault-secrets-webhook"
 chartVersion="0.5.2"
+
+[prometheusOperator]
+chart="stable/prometheus-operator"
+chartVersion="6.8.3"
+
+[prometheusPushgateway]
+chart="stable/prometheus-pushgateway"
+chartVersion="1.0.1"

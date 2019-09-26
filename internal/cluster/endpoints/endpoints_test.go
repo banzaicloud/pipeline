@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package endpoints
 
 import (
 	"fmt"
@@ -24,6 +24,7 @@ import (
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
@@ -120,7 +121,8 @@ func TestIngressEndpointUrls(t *testing.T) {
 	}
 
 	// when
-	actualEndpoints := getIngressEndpoints(loadBalancerPublicHost, ingress, serviceForIngress)
+	logger := commonadapter.NewNoopLogger()
+	actualEndpoints := getIngressEndpoints(loadBalancerPublicHost, ingress, serviceForIngress, logger)
 
 	// then
 	if !reflect.DeepEqual(expectedEndpoints, actualEndpoints) {
@@ -357,9 +359,11 @@ func TestLoadBalancersWithIngressPaths(t *testing.T) {
 			inputIngressList: ingressListWithMultipleLoadBalancer, expectedEndPointList: expectedEndpointWithMultipleLoadBalancer},
 		{testName: "serviceWithPorts", inputServiceList: serviceListWithPort, inputIngressList: nil, expectedEndPointList: expectedEndpointListWithPort},
 	}
+	logger := commonadapter.NewNoopLogger()
+	m := NewEndpointManager(logger)
 	for _, tc := range cases {
 		t.Run(tc.testName, func(t *testing.T) {
-			endpointList := getLoadBalancersWithIngressPaths(tc.inputServiceList, tc.inputIngressList)
+			endpointList := m.getLoadBalancersWithIngressPaths(tc.inputServiceList, tc.inputIngressList)
 
 			if !reflect.DeepEqual(tc.expectedEndPointList, endpointList) {
 				t.Errorf("Expected: %#v, got: %#v", tc.expectedEndPointList, endpointList)

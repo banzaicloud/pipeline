@@ -35,6 +35,7 @@ type Cluster interface {
 	GetName() string
 	GetOrganizationId() uint
 	GetUID() string
+	GetID() uint
 	IsReady() (bool, error)
 	NodePoolExists(nodePoolName string) bool
 	RbacEnabled() bool

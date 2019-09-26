@@ -33,6 +33,7 @@ import (
 func TestSecretStore_GetSecretValues(t *testing.T) {
 	organizationID := uint(1)
 	secretID := "id"
+	secretName := "name"
 	secretResponse := &secret.SecretItemResponse{
 		Values: map[string]string{
 			"key": "value",
@@ -47,6 +48,7 @@ func TestSecretStore_GetSecretValues(t *testing.T) {
 
 	orgStore := &MockReadWriteOrganizationalSecretStore{}
 	orgStore.On("Get", organizationID, secretID).Return(secretResponse, nil)
+	orgStore.On("GetByName", organizationID, secretName).Return(secretResponse, nil)
 	orgStore.On("Store", organizationID, createSecretRequest).Return(secretStoreResponse, nil)
 	orgStore.On("Delete", organizationID, secretID).Return(nil)
 
