@@ -7294,13 +7294,50 @@ components:
                   properties:
                         kubernetes:
                             $ref: '#/components/schemas/CreatePKEClusterKubernetes'
+                        proxy:
+                            $ref: '#/components/schemas/PKEClusterHTTPProxy'
+
+        PKEClusterHTTPProxy:
+            type: object
+            properties:
+                http:
+                    description: "HTTP proxy options"
+                    $ref: '#/components/schemas/PKEClusterHTTPProxyOptions'
+                https:
+                    description: "HTTPS proxy options"
+                    $ref: '#/components/schemas/PKEClusterHTTPProxyOptions'
+                exceptions:
+                    description: "list of URLs excluded from proxying"
+                    type: array
+                    items:
+                        type: string
+                        example: ".example.org"
+
+        PKEClusterHTTPProxyOptions:
+            type: object
+            required:
+                - host
+            properties:
+                host:
+                    description: "host of the proxy"
+                    type: string
+                    example: "proxy.example.org"
+                port:
+                    description: "port the proxy is available on"
+                    type: integer
+                    minimum: 0
+                    maximum: 65535
+                    example: 12345
+                secretId:
+                    description: "ID of the secret containing the username and password for the proxy"
+                    type: string
 
         CreatePKEOnAzureClusterRequest:
             allOf:
                 - $ref: '#/components/schemas/CreatePKEClusterRequestBase'
                 - type: object
                   required:
-                    - resourceGroup
+                        - resourceGroup
                   properties:
                         location:
                             type: string
@@ -7315,8 +7352,7 @@ components:
                         nodepools:
                             type: array
                             items:
-                              $ref: '#/components/schemas/PKEOnAzureNodePool'
-
+                                $ref: '#/components/schemas/PKEOnAzureNodePool'
 
         PKEOnAzureClusterNetwork:
             type: object
