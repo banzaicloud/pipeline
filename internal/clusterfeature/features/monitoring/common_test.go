@@ -12,14 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package monitoring
 
 import (
 	"context"
-
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	k8srest "k8s.io/client-go/rest"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/pkg/helm"
@@ -28,7 +24,14 @@ import (
 
 type obj = map[string]interface{}
 
-const tokenSecretID = "vaulttokensecretid"
+const (
+	grafanaSecretID    = "grafanaSecretID"
+	prometheusSecretID = "prometheusSecretID"
+	grafanaPath        = "/grafana"
+	prometheusPath     = "/prometheus"
+	grafanaURL         = "http://monitoring.io/grafana"
+	prometheusURL      = "http://monitoring.io/prometheus"
+)
 
 type dummyClusterGetter struct {
 	Clusters map[uint]clusterfeatureadapter.Cluster
@@ -95,21 +98,47 @@ func (d dummyOrganizationalSecretStore) Get(orgID uint, secretID string) (*secre
 }
 
 func (d dummyOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (string, error) {
-	return tokenSecretID, nil
+	return prometheusSecretID, nil
 }
 
 func (d dummyOrganizationalSecretStore) GetByName(organizationID uint, name string) (*secret.SecretItemResponse, error) {
-	return &secret.SecretItemResponse{
-		Name: name,
-	}, nil
+	if orgSecrets, ok := d.Secrets[organizationID]; ok {
+		for n, sir := range orgSecrets {
+			if n == name {
+				return sir, nil
+			}
+		}
+	}
+	return nil, secret.ErrSecretNotExists
 }
 
 func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID string) error {
 	return nil
 }
 
-type dummyHelmService struct {
+type dummyEndpointService struct{}
+
+func (dummyEndpointService) List(kubeConfig []byte, releaseName string) ([]*helm.EndpointItem, error) {
+	return []*helm.EndpointItem{
+		{
+			Name: "ingress-traefik",
+			EndPointURLs: []*helm.EndPointURLs{
+				{
+					Path:        grafanaPath,
+					URL:         grafanaURL,
+					ReleaseName: releaseName,
+				},
+				{
+					Path:        prometheusPath,
+					URL:         prometheusURL,
+					ReleaseName: releaseName,
+				},
+			},
+		},
+	}, nil
 }
+
+type dummyHelmService struct{}
 
 func (d dummyHelmService) ApplyDeployment(
 	ctx context.Context,
@@ -131,37 +160,4 @@ func (d dummyHelmService) GetDeployment(ctx context.Context, clusterID uint, rel
 	return &helm.GetDeploymentResponse{
 		ReleaseName: releaseName,
 	}, nil
-}
-
-type dummyKubernetesService struct {
-}
-
-// GetKubeConfig gets a kube config for a specific cluster.
-func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
-
-	return &k8srest.Config{
-		Host:            "https://127.0.0.1:6443",
-		TLSClientConfig: k8srest.TLSClientConfig{CAData: []byte("BLABLA")},
-	}, nil
-}
-
-// GetObject gets an Object from a specific cluster.
-func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, objRef corev1.ObjectReference, o runtime.Object) error {
-	return nil
-}
-
-// DeleteObject deletes an Object from a specific cluster.
-func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
-
-	return nil
-}
-
-// EnsureObject makes sure that a given Object is on the cluster and returns it.
-func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uint, o runtime.Object) error {
-	switch v := o.(type) {
-	case *corev1.ServiceAccount:
-		v.Secrets = []corev1.ObjectReference{{Name: "some-token-1234", Namespace: "default"}}
-	}
-
-	return nil
 }

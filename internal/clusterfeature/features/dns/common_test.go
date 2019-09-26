@@ -37,6 +37,7 @@ type dummyCluster struct {
 	K8sConfig []byte
 	Name      string
 	OrgID     uint
+	ID        uint
 	UID       string
 	Ready     bool
 	NodePools map[string]bool
@@ -61,6 +62,10 @@ func (d dummyCluster) GetOrganizationId() uint {
 
 func (d dummyCluster) GetUID() string {
 	return d.UID
+}
+
+func (d dummyCluster) GetID() uint {
+	return d.ID
 }
 
 func (d dummyCluster) IsReady() (bool, error) {
@@ -99,6 +104,12 @@ func (d dummyOrganizationalSecretStore) Get(orgID uint, secretID string) (*secre
 		}
 	}
 	return nil, secret.ErrSecretNotExists
+}
+
+func (d dummyOrganizationalSecretStore) GetByName(organizationID uint, name string) (*secret.SecretItemResponse, error) {
+	return &secret.SecretItemResponse{
+		Name: name,
+	}, nil
 }
 
 func (d dummyOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (string, error) {

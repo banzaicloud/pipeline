@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package monitoring
 
 import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, nil, nil, nil)
+	op := MakeFeatureOperator(nil, nil, nil, NewFeatureConfiguration(), nil, nil)
 
-	assert.Equal(t, "vault", op.Name())
+	assert.Equal(t, "monitoring", op.Name())
 }
 
 func TestFeatureOperator_Apply(t *testing.T) {
@@ -42,17 +42,33 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	}
 	clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
-	kubernetesService := dummyKubernetesService{}
 
 	orgSecretStore := dummyOrganizationalSecretStore{
 		Secrets: map[uint]map[string]*secret.SecretItemResponse{
-			orgID: nil,
+			orgID: {
+				grafanaSecretID: {
+					ID:      grafanaSecretID,
+					Name:    getGrafanaSecretName(clusterID),
+					Type:    pkgSecret.Password,
+					Values:  map[string]string{pkgSecret.Username: "admin", pkgSecret.Password: "pass"},
+					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Version: 1,
+				},
+				prometheusSecretID: {
+					ID:      prometheusSecretID,
+					Name:    getPrometheusSecretName(clusterID),
+					Type:    pkgSecret.Password,
+					Values:  map[string]string{pkgSecret.Username: "admin", pkgSecret.Password: "pass"},
+					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Version: 1,
+				},
+			},
 		},
 	}
 
 	logger := commonadapter.NewNoopLogger()
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, secretStore, logger)
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, Configuration{}, logger, secretStore)
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
@@ -70,14 +86,22 @@ func TestFeatureOperator_Apply(t *testing.T) {
 				ClusterID: clusterID,
 			},
 		},
-		"Pipeline's Vault": {
+		"Enabled Grafana and Alertmanager": {
 			Spec: clusterfeature.FeatureSpec{
-				"customVault": obj{
-					"enabled": false,
+				"grafana": obj{
+					"enabled": true,
+					"public": obj{
+						"enabled": true,
+						"path":    "/grafana",
+					},
+					"secretId": grafanaSecretID,
 				},
-				"settings": obj{
-					"namespaces":      []string{"default"},
-					"serviceAccounts": []string{"*"},
+				"alertmanager": obj{
+					"enabled": true,
+					"public": obj{
+						"enabled": true,
+						"path":    "/alertmanager",
+					},
 				},
 			},
 			Cluster: dummyCluster{
@@ -109,6 +133,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 
 func TestFeatureOperator_Deactivate(t *testing.T) {
 	clusterID := uint(42)
+	orgID := uint(13)
 
 	clusterGetter := dummyClusterGetter{
 		Clusters: map[uint]clusterfeatureadapter.Cluster{
@@ -120,9 +145,14 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	}
 	clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
-	kubernetesService := dummyKubernetesService{}
+	orgSecretStore := dummyOrganizationalSecretStore{
+		Secrets: map[uint]map[string]*secret.SecretItemResponse{
+			orgID: nil,
+		},
+	}
+	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := commonadapter.NewNoopLogger()
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, nil, logger)
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, Configuration{}, logger, secretStore)
 
 	ctx := context.Background()
 

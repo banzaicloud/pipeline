@@ -48,6 +48,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 			clusterID: dummyCluster{
 				Name:  clusterName,
 				OrgID: orgID,
+				ID:    clusterID,
 			},
 		},
 	}
