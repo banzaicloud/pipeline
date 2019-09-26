@@ -163,7 +163,9 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		return errors.WrapIf(err, "failed to apply feature")
 	}
 
-	op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"})
+	if err := op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"}); err != nil {
+		return errors.WrapIf(err, "failed to delete namespace labels")
+	}
 
 	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
 		return errors.WrapIf(err, "failed to set security scan flag to false")
@@ -304,13 +306,17 @@ func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint,
 
 	const labelKey = "scan"
 	var (
-		combinedError error
-		labelMap      = map[string]string{"include": "scan", "exclude": "noscan"}
+		securityScanLabels = map[string]string{
+			"include": "scan",
+			"exclude": "noscan",
+		}
 	)
 
-	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, whConfig.Namespaces, labelMap); err != nil {
-		return err
+	labeMap := map[string]string{labelKey: securityScanLabels[whConfig.Selector]}
+
+	if err := op.namespaceService.LabelNamespaces(ctx, clusterID, whConfig.Namespaces, labeMap); err != nil {
+		return errors.WrapIf(err, "failed to label namespaces")
 	}
 
-	return combinedError
+	return nil
 }
