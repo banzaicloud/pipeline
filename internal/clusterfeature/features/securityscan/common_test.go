@@ -18,6 +18,8 @@ import (
 	"context"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+	"github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 type obj = map[string]interface{}
@@ -40,6 +42,10 @@ func (c clusterServiceMock) CheckClusterReady(ctx context.Context, clusterID uin
 type helmServiceMock struct {
 }
 
+func (h helmServiceMock) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*helm.GetDeploymentResponse, error) {
+	panic("implement me")
+}
+
 func (h helmServiceMock) ApplyDeployment(
 	ctx context.Context,
 	clusterID uint,
@@ -57,6 +63,14 @@ func (h helmServiceMock) DeleteDeployment(ctx context.Context, clusterID uint, r
 }
 
 type secretStoreMock struct {
+}
+
+func (s secretStoreMock) Store(ctx context.Context, request *secret.CreateSecretRequest) (string, error) {
+	panic("implement me")
+}
+
+func (s secretStoreMock) Delete(ctx context.Context, secretID string) error {
+	panic("implement me")
 }
 
 func (s secretStoreMock) GetSecretValues(ctx context.Context, secretID string) (map[string]string, error) {
