@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
+	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/issue"
 )
@@ -32,15 +32,15 @@ type Endpoints struct {
 
 // MakeEndpoints returns an Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
-func MakeEndpoints(s issue.Service) Endpoints {
+func MakeEndpoints(service issue.Service, factory kitxendpoint.Factory) Endpoints {
 	return Endpoints{
-		ReportIssue: kitoc.TraceEndpoint("issue.ReportIssue")(MakeReportIssueEndpoint(s)),
+		ReportIssue: factory.NewEndpoint("issue.ReportIssue", MakeReportIssueEndpoint(service)),
 	}
 }
 
 // MakeReportIssueEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeReportIssueEndpoint(s issue.Service) endpoint.Endpoint {
+func MakeReportIssueEndpoint(service issue.Service) endpoint.Endpoint {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
-		return nil, s.ReportIssue(ctx, req.(issue.NewIssue))
+		return nil, service.ReportIssue(ctx, req.(issue.NewIssue))
 	}
 }
