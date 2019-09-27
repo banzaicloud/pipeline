@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
+	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
@@ -27,11 +28,12 @@ import (
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
-func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, factory kitxhttp.ServerFactory) {
-	router.Methods(http.MethodPost).Path("").Handler(factory.NewServer(
+func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.ReportIssue,
 		decodeReportIssueHTTPRequest,
 		kitxhttp.StatusCodeResponseEncoder(http.StatusCreated),
+		options...,
 	))
 }
 

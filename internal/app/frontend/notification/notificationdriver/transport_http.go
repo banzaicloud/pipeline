@@ -23,10 +23,11 @@ import (
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
-func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, factory kitxhttp.ServerFactory) {
-	router.Methods(http.MethodGet).Path("").Handler(factory.NewServer(
+func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
+	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
 		endpoints.GetNotifications,
 		kithttp.NopRequestDecoder,
 		kitxhttp.JSONResponseEncoder,
+		options...,
 	))
 }
