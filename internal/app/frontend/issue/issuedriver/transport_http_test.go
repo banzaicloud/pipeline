@@ -22,8 +22,6 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
-	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -45,9 +43,8 @@ func TestMakeHTTPHandler_ReportIssue(t *testing.T) {
 
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
-		MakeEndpoints(service, kitxendpoint.NewFactory()),
+		MakeEndpoints(service),
 		handler.PathPrefix("/issues").Subrouter(),
-		kitxhttp.NewServerFactory(),
 	)
 
 	ts := httptest.NewServer(handler)

@@ -18,7 +18,6 @@ import (
 	"context"
 	"testing"
 
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -41,7 +40,7 @@ func TestMakeEndpoints_GetNotifications(t *testing.T) {
 
 	service.On("GetNotifications", mock.Anything).Return(notifications, nil)
 
-	e := MakeEndpoints(service, kitxendpoint.NewFactory()).GetNotifications
+	e := MakeEndpoints(service).GetNotifications
 
 	result, err := e(context.Background(), nil)
 

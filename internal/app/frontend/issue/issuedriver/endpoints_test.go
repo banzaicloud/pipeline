@@ -18,7 +18,6 @@ import (
 	"context"
 	"testing"
 
-	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -37,7 +36,7 @@ func TestMakeEndpoints_ReportIssue(t *testing.T) {
 
 	service.On("ReportIssue", mock.Anything, newIssue).Return(nil)
 
-	e := MakeEndpoints(service, kitxendpoint.NewFactory()).ReportIssue
+	e := MakeEndpoints(service).ReportIssue
 
 	_, err := e(context.Background(), newIssue)
 	require.NoError(t, err)

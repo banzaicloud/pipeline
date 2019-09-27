@@ -22,7 +22,6 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
@@ -56,20 +55,14 @@ func NewApp(
 	router.Use(ocmux.Middleware())
 	frontend := router.PathPrefix("/frontend").Subrouter()
 
-	endpointFactory := func(logger Logger) kitxendpoint.Factory {
-		return kitxendpoint.NewFactory(
-			kitxendpoint.Middleware(correlation.Middleware()),
-			func(name string) endpoint.Middleware { return kitoc.TraceEndpoint(name) },
-			appkit.EndpointLoggerFactory(logger),
-		)
+	endpointMiddleware := []endpoint.Middleware{
+		correlation.Middleware(),
 	}
 
-	httpServerFactory := func(errorHandler ErrorHandler) kitxhttp.ServerFactory {
-		return kitxhttp.NewServerFactory(
-			kithttp.ServerErrorHandler(errorHandler),
-			kithttp.ServerErrorEncoder(kitxhttp.ProblemErrorEncoder),
-			kithttp.ServerBefore(correlation.HTTPToContext()),
-		)
+	httpServerOptions := []kithttp.ServerOption{
+		kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+		kithttp.ServerErrorEncoder(kitxhttp.ProblemErrorEncoder),
+		kithttp.ServerBefore(correlation.HTTPToContext()),
 	}
 
 	{
@@ -78,19 +71,25 @@ func NewApp(
 
 		store := notificationadapter.NewGormStore(db)
 		service := notification.NewService(store)
-		endpoints := notificationdriver.MakeEndpoints(service, endpointFactory(logger))
+		endpoints := notificationdriver.TraceEndpoints(notificationdriver.MakeEndpoints(
+			service,
+			kitxendpoint.Chain(endpointMiddleware...),
+			appkit.EndpointLogger(logger),
+		))
 
 		notificationdriver.RegisterHTTPHandlers(
 			endpoints,
 			frontend.PathPrefix("/notifications").Subrouter(),
-			httpServerFactory(errorHandler),
+			kitxhttp.ServerOptions(httpServerOptions),
+			kithttp.ServerErrorHandler(errorHandler),
 		)
 
 		// Compatibility routes
 		notificationdriver.RegisterHTTPHandlers(
 			endpoints,
 			router.PathPrefix("/notifications").Subrouter(),
-			httpServerFactory(errorHandler),
+			kitxhttp.ServerOptions(httpServerOptions),
+			kithttp.ServerErrorHandler(errorHandler),
 		)
 	}
 
@@ -129,19 +128,25 @@ func NewApp(
 			reporter,
 			logger,
 		)
-		endpoints := issuedriver.MakeEndpoints(service, endpointFactory(logger))
+		endpoints := issuedriver.TraceEndpoints(issuedriver.MakeEndpoints(
+			service,
+			kitxendpoint.Chain(endpointMiddleware...),
+			appkit.EndpointLogger(logger),
+		))
 
 		issuedriver.RegisterHTTPHandlers(
 			endpoints,
 			frontend.PathPrefix("/issues").Subrouter(),
-			httpServerFactory(errorHandler),
+			kitxhttp.ServerOptions(httpServerOptions),
+			kithttp.ServerErrorHandler(errorHandler),
 		)
 
 		// Compatibility routes
 		issuedriver.RegisterHTTPHandlers(
 			endpoints,
 			router.PathPrefix("/issues").Subrouter(),
-			httpServerFactory(errorHandler),
+			kitxhttp.ServerOptions(httpServerOptions),
+			kithttp.ServerErrorHandler(errorHandler),
 		)
 	}
 
