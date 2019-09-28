@@ -34,13 +34,6 @@ type githubUserMeta struct {
 	AvatarURL string
 }
 
-// GetGithubUser returns github user by token
-func getGithubUser(accessToken string) (*github.User, error) {
-	client := NewGithubClient(accessToken)
-	user, _, err := client.Users.Get(oauth2.NoContext, "")
-	return user, err
-}
-
 func NewGithubClient(accessToken string) *github.Client {
 	httpClient := oauth2.NewClient(
 		oauth2.NoContext,
