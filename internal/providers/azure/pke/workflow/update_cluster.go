@@ -15,6 +15,7 @@
 package workflow
 
 import (
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -33,7 +34,6 @@ type UpdateClusterWorkflowInput struct {
 	ClusterID           uint
 	ClusterName         string
 	ResourceGroupName   string
-	LoadBalancerName    string
 	PublicIPAddressName string
 	RouteTableName      string
 	VirtualNetworkName  string
@@ -68,7 +68,7 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 			OrganizationID:      input.OrganizationID,
 			SecretID:            input.SecretID,
 			ResourceGroupName:   input.ResourceGroupName,
-			LoadBalancerName:    input.LoadBalancerName,
+			ClusterName:         input.ClusterName,
 			PublicIPAddressName: input.PublicIPAddressName,
 			RouteTableName:      input.RouteTableName,
 			VirtualNetworkName:  input.VirtualNetworkName,
@@ -222,16 +222,53 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 
 	createdVMSSOutputs := make(map[string]CreateVMSSActivityOutput)
 	{
+		var apiServerPublicAddressProvider, apiServerPrivateAddressProvider IPAddressProvider
+
+		apiServerCertSansMap := make(map[string]bool)
+
+		if providers.PublicIPAddressProvider.Get() != "" {
+			apiServerCertSansMap[providers.PublicIPAddressProvider.Get()] = true
+			apiServerPublicAddressProvider = providers.PublicIPAddressProvider
+		}
+		if providers.ApiServerPrivateAddressProvider.Get() != "" {
+			apiServerCertSansMap[providers.ApiServerPrivateAddressProvider.Get()] = true
+			apiServerPrivateAddressProvider = providers.ApiServerPrivateAddressProvider
+		}
+
+		var apiServerCertSans []string
+		for certSan := range apiServerCertSansMap {
+			apiServerCertSans = append(apiServerCertSans, certSan)
+		}
+		apiServerCertSansProvider := ConstantResourceIDProvider(strings.Join(apiServerCertSans, ","))
+
 		futures := make([]workflow.Future, len(input.VMSSToCreate))
 
 		for i, vmss := range input.VMSSToCreate {
+			var apiServerAddressProvider IPAddressProvider
+			if apiServerPrivateAddressProvider != nil {
+				apiServerAddressProvider = apiServerPrivateAddressProvider
+			} else if apiServerPublicAddressProvider != nil {
+				apiServerAddressProvider = apiServerPublicAddressProvider
+			} else {
+				return errors.New("no API server address available")
+			}
+
+			var backendAddressPoolIDProviders = make([]ResourceIDByNameProvider, len(providers.BackendAddressPoolIDProviders))
+			for i := range providers.BackendAddressPoolIDProviders {
+				backendAddressPoolIDProviders[i] = providers.BackendAddressPoolIDProviders[i]
+			}
+			var inboundNATPoolIDProviders = make([]ResourceIDByNameProvider, len(providers.InboundNATPoolIDProviders))
+			for i := range providers.InboundNATPoolIDProviders {
+				inboundNATPoolIDProviders[i] = providers.InboundNATPoolIDProviders[i]
+			}
+
 			activityInput := CreateVMSSActivityInput{
 				OrganizationID:    input.OrganizationID,
 				SecretID:          input.SecretID,
 				ClusterID:         input.ClusterID,
 				ClusterName:       input.ClusterName,
 				ResourceGroupName: input.ResourceGroupName,
-				ScaleSet:          vmss.Render(providers.BackendAddressPoolIDProvider, providers.InboundNATPoolIDProvider, providers.PublicIPAddressProvider, providers.SecurityGroupIDProvider, providers.SubnetIDProvider),
+				ScaleSet:          vmss.Render(backendAddressPoolIDProviders, inboundNATPoolIDProviders, apiServerAddressProvider, apiServerCertSansProvider, providers.SecurityGroupIDProvider, providers.SubnetIDProvider),
 			}
 
 			futures[i] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)

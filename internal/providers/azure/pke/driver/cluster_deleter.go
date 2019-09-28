@@ -78,11 +78,59 @@ type KubeProxyCache interface {
 
 func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAzureCluster, forced bool) error {
 	logger := cd.logger.WithField("clusterName", cluster.Name).WithField("clusterID", cluster.ID).WithField("forced", forced)
-	logger.Info("Deleting cluster")
+	logger.Info("deleting cluster")
 
-	pipNames, err := collectPublicIPAddressNames(ctx, logger, cd.secrets, cluster, forced)
-	if err != nil {
-		return errors.WrapIf(err, "failed to collect public IP address resource names")
+	sir, err := cd.secrets.Get(cluster.OrganizationID, cluster.SecretID)
+	if err = errors.WrapIf(err, "failed to get cluster secret from secret store"); err != nil {
+		if forced {
+			cd.logger.Error(err)
+		} else {
+			return err
+		}
+	}
+
+	var loadBalancers []network.LoadBalancer
+	var lbClient *pkgAzure.LoadBalancersClient
+	var pipClient *pkgAzure.PublicIPAddressesClient
+
+	if sir != nil {
+		conn, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
+		if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
+			if forced {
+				cd.logger.Error(err)
+			} else {
+				return err
+			}
+		} else {
+			lbClient = conn.GetLoadBalancersClient()
+			pipClient = conn.GetPublicIPAddressesClient()
+		}
+
+		loadBalancers, err = collectClusterLoadBalancers(ctx, lbClient, cluster)
+		if err = errors.Wrap(err, "couldn't list the load balancers used by the cluster"); err != nil {
+			if forced {
+				cd.logger.Error(err)
+			} else {
+				return err
+			}
+		}
+	}
+
+	pipNames, err := collectPublicIPAddressNames(ctx, logger, pipClient, cd.secrets, loadBalancers, cluster, forced)
+	if err = errors.WrapIf(err, "failed to collect public IP address resource names"); err != nil {
+		if forced {
+			cd.logger.Error(err)
+		} else {
+			return err
+		}
+	}
+
+	// delete only owned Load Balancers
+	var loadBalancerNames []string
+	for _, lb := range loadBalancers {
+		if workflow.HasOwnedTag(cluster.Name, to.StringMap(lb.Tags)) {
+			loadBalancerNames = append(loadBalancerNames, to.String(lb.Name))
+		}
 	}
 
 	input := workflow.DeleteClusterWorkflowInput{
@@ -93,7 +141,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 		ClusterUID:           cluster.UID,
 		K8sSecretID:          cluster.K8sSecretID,
 		ResourceGroupName:    cluster.ResourceGroup.Name,
-		LoadBalancerName:     cluster.Name, // must be the same as the value passed to pke install master --kubernetes-cluster-name
+		LoadBalancerNames:    loadBalancerNames,
 		PublicIPAddressNames: pipNames,
 		RouteTableName:       pke.GetRouteTableName(cluster.Name),
 		ScaleSetNames:        getVMSSNames(cluster),
@@ -180,28 +228,35 @@ func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint,
 	return cd.Delete(ctx, cl, forced)
 }
 
-func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger, secrets SecretStore, cluster pke.PKEOnAzureCluster, forced bool) ([]string, error) {
-	sir, err := secrets.Get(cluster.OrganizationID, cluster.SecretID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get cluster secret from secret store")
-	}
-	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create cloud connection")
-	}
-
+func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger, pipClient *pkgAzure.PublicIPAddressesClient, secrets SecretStore, loadBalancers []network.LoadBalancer, cluster pke.PKEOnAzureCluster, forced bool) ([]string, error) {
 	names := make(map[string]bool)
-
-	lb, err := cc.GetLoadBalancersClient().Get(ctx, cluster.ResourceGroup.Name, pke.GetLoadBalancerName(cluster.Name), "frontendIPConfigurations/publicIPAddress")
-	if err != nil {
-		if lb.StatusCode == http.StatusNotFound {
-			return nil, nil
-		}
-		return nil, errors.WrapIf(err, "failed to retrieve load balancer")
+	for _, lb := range loadBalancers {
+		names = gatherOwnedPublicIPAddressNames(lb, cluster.Name, names)
 	}
-	names = gatherOwnedPublicIPAddressNames(lb, cluster.Name, names)
 
-	names, err = gatherK8sServicePublicIPs(ctx, cc.GetPublicIPAddressesClient(), cluster, secrets, names)
+	pipList, err := pipClient.List(ctx, cluster.ResourceGroup.Name)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "failed to list Azure public IP address resources in resource group", "resourceGroup", cluster.ResourceGroup.Name)
+	}
+
+	var pips []network.PublicIPAddress
+	for pipList.NotDone() {
+		for _, pip := range pipList.Values() {
+			pips = append(pips, pip)
+		}
+
+		if err := errors.Wrap(pipList.NextWithContext(ctx), "failed to get Azure public IP address resources"); err != nil {
+			if forced {
+				logger.Warning(err)
+			} else {
+				return nil, err
+			}
+		}
+	}
+
+	names = gatherClusterPublicIPAddressNames(pips, cluster.Name, names)
+
+	names, err = gatherK8sServicePublicIPs(pips, cluster, secrets, names)
 	if err = errors.WrapIf(err, "failed to gather k8s services' public IP addresses"); err != nil {
 		if forced {
 			logger.Warning(err)
@@ -239,7 +294,23 @@ func gatherOwnedPublicIPAddressNames(lb network.LoadBalancer, clusterName string
 	return names
 }
 
-func gatherK8sServicePublicIPs(ctx context.Context, client *pkgAzure.PublicIPAddressesClient, cluster pke.PKEOnAzureCluster, secrets SecretStore, names map[string]bool) (map[string]bool, error) {
+// gatherClusterPublicIPAddressNames collect public ips that are tagged with kubernetes-cluster-name : <cluster name> which
+// was introduced in Kubernetes version 1.15
+func gatherClusterPublicIPAddressNames(publicAddresses []network.PublicIPAddress, clusterName string, names map[string]bool) map[string]bool {
+	if names == nil {
+		names = make(map[string]bool)
+	}
+
+	for _, pip := range publicAddresses {
+		if v, ok := pip.Tags["kubernetes-cluster-name"]; ok && to.String(v) == clusterName {
+			names[to.String(pip.Name)] = true
+		}
+	}
+
+	return names
+}
+
+func gatherK8sServicePublicIPs(publicAddresses []network.PublicIPAddress, cluster pke.PKEOnAzureCluster, secrets SecretStore, names map[string]bool) (map[string]bool, error) {
 	if cluster.K8sSecretID == "" {
 		return names, nil
 	}
@@ -249,24 +320,10 @@ func gatherK8sServicePublicIPs(ctx context.Context, client *pkgAzure.PublicIPAdd
 		return names, errors.WrapIf(err, "failed to get k8s config")
 	}
 
-	resPage, err := client.List(ctx, cluster.ResourceGroup.Name)
-	if err != nil {
-		return names, errors.WrapIfWithDetails(err, "failed to list Azure public IP address resources in resource group", "resourceGroup", cluster.ResourceGroup.Name)
-	}
-
 	ipToName := make(map[string]string)
-	for {
-		for _, pip := range resPage.Values() {
-			if to.String(pip.Name) != "" && to.String(pip.IPAddress) != "" {
-				ipToName[to.String(pip.IPAddress)] = to.String(pip.Name)
-			}
-		}
-		if resPage.NotDone() {
-			if err := resPage.NextWithContext(ctx); err != nil {
-				return nil, err
-			}
-		} else {
-			break
+	for _, pip := range publicAddresses {
+		if to.String(pip.Name) != "" && to.String(pip.IPAddress) != "" {
+			ipToName[to.String(pip.IPAddress)] = to.String(pip.Name)
 		}
 	}
 
@@ -303,4 +360,36 @@ func getVMSSNames(cluster pke.PKEOnAzureCluster) []string {
 		names[i] = pke.GetVMSSName(cluster.Name, np.Name)
 	}
 	return names
+}
+
+func collectClusterLoadBalancers(ctx context.Context, client *pkgAzure.LoadBalancersClient, cluster pke.PKEOnAzureCluster) ([]network.LoadBalancer, error) {
+	if client == nil {
+		return nil, nil
+	}
+	lbs, err := client.List(ctx, cluster.ResourceGroup.Name)
+	if err = errors.WrapIf(err, "failed to list load balancers"); err != nil {
+		return nil, err
+	}
+
+	var clusterLoadBalancers []network.LoadBalancer
+	for lbs.NotDone() {
+		for _, lb := range lbs.Values() {
+			if workflow.HasOwnedTag(cluster.Name, to.StringMap(lb.Tags)) || workflow.HasSharedTag(cluster.Name, to.StringMap(lb.Tags)) {
+				lbDetails, err := client.Get(ctx, cluster.ResourceGroup.Name, to.String(lb.Name), "frontendIPConfigurations/publicIPAddress")
+				if err != nil {
+					if lb.StatusCode == http.StatusNotFound {
+						continue
+					}
+					return nil, errors.WrapIf(err, "failed to retrieve load balancer")
+				}
+
+				clusterLoadBalancers = append(clusterLoadBalancers, lbDetails)
+			}
+		}
+		err = lbs.NextWithContext(ctx)
+		if err != nil {
+			return nil, errors.WrapIf(err, "retrieving load balancers failed")
+		}
+	}
+	return clusterLoadBalancers, nil
 }

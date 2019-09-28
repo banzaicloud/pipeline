@@ -41,7 +41,7 @@ type CreateClusterWorkflowInput struct {
 	SecretID                        string
 	OIDCEnabled                     bool
 	VirtualNetworkTemplate          VirtualNetworkTemplate
-	LoadBalancerTemplate            LoadBalancerTemplate
+	LoadBalancerTemplates           []LoadBalancerTemplate
 	PublicIPAddress                 PublicIPAddress
 	RoleAssignmentTemplates         []RoleAssignmentTemplate
 	RouteTable                      RouteTable
@@ -92,7 +92,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		ClusterName:       input.ClusterName,
 		SecretID:          input.SecretID,
 		ResourceGroupName: input.ResourceGroupName,
-		LoadBalancer:      input.LoadBalancerTemplate,
+		LoadBalancers:     input.LoadBalancerTemplates,
 		PublicIPAddress:   input.PublicIPAddress,
 		RoleAssignments:   input.RoleAssignmentTemplates,
 		RouteTable:        input.RouteTable,

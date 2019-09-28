@@ -17,9 +17,15 @@ package workflow
 import (
 	"net"
 	"strconv"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
+
+	pkgPke "github.com/banzaicloud/pipeline/pkg/cluster/pke"
+
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+
 	"go.uber.org/cadence/workflow"
 
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
@@ -35,7 +41,7 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	SecretID          string
 	ResourceGroupName string
 
-	LoadBalancer    LoadBalancerTemplate
+	LoadBalancers   []LoadBalancerTemplate
 	PublicIPAddress PublicIPAddress
 	RoleAssignments []RoleAssignmentTemplate
 	RouteTable      RouteTable
@@ -52,67 +58,92 @@ type LoadBalancerTemplate struct {
 	BackendAddressPoolName         string
 	OutboundBackendAddressPoolName string
 	InboundNATPoolName             string
+	SubnetName                     string
+	PublicIPAddressName            string
 }
 
-func (t LoadBalancerTemplate) Render(publicIPAddressIDProvider ResourceIDProvider) LoadBalancer {
-	bap := BackendAddressPool{
-		Name: t.BackendAddressPoolName,
+func (t LoadBalancerTemplate) Render(publicIPAddressIDProvider ResourceIDByNameProvider, subnetIDProvider ResourceIDByNameProvider) LoadBalancer {
+	var backendAddressPools []BackendAddressPool
+	var bap, obap *BackendAddressPool
+
+	if t.BackendAddressPoolName != "" {
+		bap = &BackendAddressPool{
+			Name: t.BackendAddressPoolName,
+		}
+		backendAddressPools = append(backendAddressPools, *bap)
 	}
-	obap := BackendAddressPool{
-		Name: t.OutboundBackendAddressPoolName,
+
+	if t.OutboundBackendAddressPoolName != "" {
+		obap = &BackendAddressPool{
+			Name: t.OutboundBackendAddressPoolName,
+		}
+		backendAddressPools = append(backendAddressPools, *obap)
 	}
+
 	fic := FrontendIPConfiguration{
-		Name:              "frontend-ip-config",
-		PublicIPAddressID: publicIPAddressIDProvider.Get(),
+		Name:              pke.GetFrontEndIPConfigName(),
+		PublicIPAddressID: publicIPAddressIDProvider.Get(t.PublicIPAddressName),
+		SubnetID:          subnetIDProvider.Get(t.SubnetName),
 	}
-	probe := Probe{
-		Name:     "api-server-probe",
-		Port:     6443,
-		Protocol: "Tcp",
+
+	var inboundNATPools []InboundNATPool
+	if t.InboundNATPoolName != "" {
+		inboundNATPools = append(inboundNATPools, InboundNATPool{
+			Name:                   t.InboundNATPoolName,
+			BackendPort:            22,
+			FrontendIPConfig:       &fic,
+			FrontendPortRangeEnd:   50100,
+			FrontendPortRangeStart: 50000,
+			Protocol:               "Tcp",
+		})
 	}
+
+	var probes []Probe
+	var lbRules []LoadBalancingRule
+
+	if bap != nil {
+		apiServerProbe := Probe{
+			Name:     "api-server-probe",
+			Port:     6443,
+			Protocol: "Tcp",
+		}
+
+		apiServerLBRule := LoadBalancingRule{
+			Name:                pke.GetApiServerLBRuleName(),
+			BackendAddressPool:  bap,
+			BackendPort:         6443,
+			DisableOutboundSNAT: true,
+			FrontendIPConfig:    &fic,
+			FrontendPort:        6443,
+			Probe:               &apiServerProbe,
+			Protocol:            "Tcp",
+		}
+
+		probes = append(probes, apiServerProbe)
+		lbRules = append(lbRules, apiServerLBRule)
+	}
+
+	var lbOutboundRules []OutboundRule
+	if obap != nil {
+		lbOutboundRules = append(lbOutboundRules, OutboundRule{
+			Name:               "outbound-nat-rule",
+			BackendAddressPool: obap,
+			FrontendIPConfigs:  []*FrontendIPConfiguration{&fic},
+		})
+	}
+
 	return LoadBalancer{
-		Name:     t.Name,
-		Location: t.Location,
-		SKU:      t.SKU,
-		BackendAddressPools: []BackendAddressPool{
-			bap,
-			obap,
-		},
+		Name:                t.Name,
+		Location:            t.Location,
+		SKU:                 t.SKU,
+		BackendAddressPools: backendAddressPools,
 		FrontendIPConfigurations: []FrontendIPConfiguration{
 			fic,
 		},
-		InboundNATPools: []InboundNATPool{
-			{
-				Name:                   t.InboundNATPoolName,
-				BackendPort:            22,
-				FrontendIPConfig:       &fic,
-				FrontendPortRangeEnd:   50100,
-				FrontendPortRangeStart: 50000,
-				Protocol:               "Tcp",
-			},
-		},
-		LoadBalancingRules: []LoadBalancingRule{
-			{
-				Name:                "api-server-rule",
-				BackendAddressPool:  &bap,
-				BackendPort:         6443,
-				DisableOutboundSNAT: true,
-				FrontendIPConfig:    &fic,
-				FrontendPort:        6443,
-				Probe:               &probe,
-				Protocol:            "Tcp",
-			},
-		},
-		OutboundRules: []OutboundRule{
-			{
-				Name:               "outbound-nat-rule",
-				BackendAddressPool: &obap,
-				FrontendIPConfigs:  []*FrontendIPConfiguration{&fic},
-			},
-		},
-		Probes: []Probe{
-			probe,
-		},
+		InboundNATPools:    inboundNATPools,
+		LoadBalancingRules: lbRules,
+		OutboundRules:      lbOutboundRules,
+		Probes:             probes,
 	}
 }
 
@@ -147,28 +178,38 @@ type VirtualMachineScaleSetTemplate struct {
 	UserDataScriptParams         map[string]string
 	UserDataScriptTemplate       string
 	Zones                        []string
+	Role                         pkgPke.Role
 }
 
 func (t VirtualMachineScaleSetTemplate) Render(
-	backendAddressPoolIDProvider ResourceIDByNameProvider,
-	inboundNATPoolIDProvider ResourceIDByNameProvider,
-	publicIPAddressProvider IPAddressProvider,
+	backendAddressPoolIDProviders []ResourceIDByNameProvider,
+	inboundNATPoolIDProviders []ResourceIDByNameProvider,
+	apiServerAddressProvider IPAddressProvider,
+	apiServerCertSansProvider ConstantResourceIDProvider,
 	securityGroupIDProvider ResourceIDByNameProvider,
 	subnetIDProvider ResourceIDByNameProvider,
 ) VirtualMachineScaleSet {
-	t.UserDataScriptParams["PublicAddress"] = publicIPAddressProvider.Get()
+	var backendAddressPoolIDs []string
+	for _, resourceIDProvider := range backendAddressPoolIDProviders {
+		backendAddressPoolIDs = append(backendAddressPoolIDs, resourceIDProvider.Get(t.BackendAddressPoolName), resourceIDProvider.Get(t.OutputBackendAddressPoolName))
+	}
+
+	var inboundNATPoolIDs []string
+	for _, resourceIDProvider := range inboundNATPoolIDProviders {
+		inboundNATPoolIDs = append(inboundNATPoolIDs, resourceIDProvider.Get(t.InboundNATPoolName))
+	}
+
+	t.UserDataScriptParams["ApiServerAddress"] = apiServerAddressProvider.Get()
+	t.UserDataScriptParams["ApiServerCertSans"] = apiServerCertSansProvider.Get()
 	return VirtualMachineScaleSet{
-		AdminUsername: t.AdminUsername,
-		Image:         t.Image,
-		InstanceCount: int64(t.InstanceCount),
-		InstanceType:  t.InstanceType,
-		LBBackendAddressPoolIDs: []string{
-			backendAddressPoolIDProvider.Get(t.BackendAddressPoolName),
-			backendAddressPoolIDProvider.Get(t.OutputBackendAddressPoolName),
-		},
-		LBInboundNATPoolID:     inboundNATPoolIDProvider.Get(t.InboundNATPoolName),
-		Location:               t.Location,
-		Name:                   t.Name,
+		AdminUsername:           t.AdminUsername,
+		Image:                   t.Image,
+		InstanceCount:           int64(t.InstanceCount),
+		InstanceType:            t.InstanceType,
+		LBBackendAddressPoolIDs: backendAddressPoolIDs,
+		LBInboundNATPoolIDs:     inboundNATPoolIDs,
+		Location:                t.Location,
+		Name:                    t.Name,
 		NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
 		SSHPublicKey:           t.SSHPublicKey,
 		SubnetID:               subnetIDProvider.Get(t.SubnetName),
@@ -187,8 +228,8 @@ type SubnetTemplate struct {
 
 func (t SubnetTemplate) Render(routeTableIDProvider ResourceIDByNameProvider, securityGroupIDProvider ResourceIDByNameProvider) Subnet {
 	return Subnet{
-		Name:                   t.Name,
-		CIDR:                   t.CIDR,
+		Name: t.Name,
+		CIDR: t.CIDR,
 		NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
 		RouteTableID:           routeTableIDProvider.Get(t.RouteTableName),
 	}
@@ -240,8 +281,11 @@ func (p publicIPAddressIPAddressProvider) Get() string {
 
 type publicIPAddressIDProvider CreatePublicIPActivityOutput
 
-func (p publicIPAddressIDProvider) Get() string {
-	return p.PublicIPAddressID
+func (p publicIPAddressIDProvider) Get(name string) string {
+	if p.Name == name {
+		return p.PublicIPAddressID
+	}
+	return ""
 }
 
 type routeTableIDProvider CreateRouteTableActivityOutput
@@ -339,10 +383,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 			return err
 		}
 	}
+	subnetIDProvider := subnetIDProvider(createVnetOutput)
 
 	// Create PublicIP
 	var createPublicIPActivityOutput CreatePublicIPActivityOutput
-	{
+	if input.PublicIPAddress.Name != "" {
 		activityInput := CreatePublicIPActivityInput{
 			OrganizationID:    input.OrganizationID,
 			SecretID:          input.SecretID,
@@ -355,19 +400,34 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
-	// Create load balancer
-	var createLBActivityOutput CreateLoadBalancerActivityOutput
-	{
+	// Create load balancers
+	var createLBActivityOutputs []CreateLoadBalancerActivityOutput
+	futures := make([]workflow.Future, len(input.LoadBalancers))
+
+	for i, lb := range input.LoadBalancers {
 		activityInput := CreateLoadBalancerActivityInput{
 			OrganizationID:    input.OrganizationID,
 			SecretID:          input.SecretID,
 			ClusterName:       input.ClusterName,
 			ResourceGroupName: input.ResourceGroupName,
-			LoadBalancer:      input.LoadBalancer.Render(publicIPAddressIDProvider(createPublicIPActivityOutput)),
+			LoadBalancer:      lb.Render(publicIPAddressIDProvider(createPublicIPActivityOutput), subnetIDProvider),
 		}
-		if err := workflow.ExecuteActivity(ctx, CreateLoadBalancerActivityName, activityInput).Get(ctx, &createLBActivityOutput); err != nil {
-			return err
+
+		futures[i] = workflow.ExecuteActivity(ctx, CreateLoadBalancerActivityName, activityInput)
+	}
+
+	errs := make([]error, len(futures))
+	for i, future := range futures {
+		var output CreateLoadBalancerActivityOutput
+		errs[i] = future.Get(ctx, &output)
+
+		if errs[i] == nil {
+			createLBActivityOutputs = append(createLBActivityOutputs, output)
 		}
+	}
+
+	if err := errors.Combine(errs...); err != nil {
+		return err
 	}
 
 	var httpProxy intPKEWorkflow.HTTPProxy
@@ -389,22 +449,59 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	// Create scale sets
 	createVMSSActivityOutputs := make(map[string]CreateVMSSActivityOutput)
 	{
-		bapIDProvider := backendAddressPoolIDProvider(createLBActivityOutput)
-		inpIDProvider := inboundNATPoolIDProvider(createLBActivityOutput)
-		pipIDProvider := publicIPAddressIPAddressProvider(createPublicIPActivityOutput)
+		var apiServerPublicAddressProvider, apiServerPrivateAddressProvider IPAddressProvider
+		apiServerCertSansMap := make(map[string]bool)
+
+		if createPublicIPActivityOutput.PublicIPAddress != "" {
+			apiServerCertSansMap[createPublicIPActivityOutput.PublicIPAddress] = true
+			apiServerPublicAddressProvider = ConstantIPAddressProvider(createPublicIPActivityOutput.PublicIPAddress)
+		}
+
+		bapIDProviders := make([]ResourceIDByNameProvider, len(createLBActivityOutputs))
+		inpIDProviders := make([]ResourceIDByNameProvider, len(createLBActivityOutputs))
+
+		for i, createLBActivityOutput := range createLBActivityOutputs {
+			bapIDProviders[i] = backendAddressPoolIDProvider(createLBActivityOutput)
+			inpIDProviders[i] = inboundNATPoolIDProvider(createLBActivityOutput)
+
+			if createLBActivityOutput.ApiServerPrivateAddress != "" {
+				apiServerCertSansMap[createLBActivityOutput.ApiServerPrivateAddress] = true
+				apiServerPrivateAddressProvider = ConstantIPAddressProvider(createLBActivityOutput.ApiServerPrivateAddress)
+			}
+		}
+
+		var apiServerCertSans []string
+		for certSan := range apiServerCertSansMap {
+			apiServerCertSans = append(apiServerCertSans, certSan)
+		}
+		apiServerCertSansProvider := ConstantResourceIDProvider(strings.Join(apiServerCertSans, ","))
+
 		nsgIDProvider := mapSecurityGroupIDProvider(createNSGActivityOutputs)
-		subnetIDProvider := subnetIDProvider(createVnetOutput)
 
 		futures := make([]workflow.Future, len(input.ScaleSets))
-
 		for i, vmssTemplate := range input.ScaleSets {
+			var apiServerAddressProvider IPAddressProvider
+
+			if vmssTemplate.Role == pkgPke.RoleMaster {
+				apiServerAddressProvider = ConstantIPAddressProvider("$PRIVATE_IP")
+			} else {
+				// worker nodes connect to API server through internal or public LB, internal has priority over public LB
+				if apiServerPrivateAddressProvider != nil {
+					apiServerAddressProvider = apiServerPrivateAddressProvider
+				} else if apiServerPublicAddressProvider != nil {
+					apiServerAddressProvider = apiServerPublicAddressProvider
+				} else {
+					return errors.New("no API server address available")
+				}
+			}
+
 			activityInput := CreateVMSSActivityInput{
 				OrganizationID:    input.OrganizationID,
 				SecretID:          input.SecretID,
 				ClusterID:         input.ClusterID,
 				ClusterName:       input.ClusterName,
 				ResourceGroupName: input.ResourceGroupName,
-				ScaleSet:          vmssTemplate.Render(bapIDProvider, inpIDProvider, pipIDProvider, nsgIDProvider, subnetIDProvider),
+				ScaleSet:          vmssTemplate.Render(bapIDProviders, inpIDProviders, apiServerAddressProvider, apiServerCertSansProvider, nsgIDProvider, subnetIDProvider),
 				HTTPProxy:         httpProxy,
 			}
 			futures[i] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)

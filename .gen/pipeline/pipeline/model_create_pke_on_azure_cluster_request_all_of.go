@@ -20,5 +20,11 @@ type CreatePkeOnAzureClusterRequestAllOf struct {
 
 	Network PkeOnAzureClusterNetwork `json:"network,omitempty"`
 
+	// List of access points (i.e. load balancers, floating IPs) to be created for the cluster. Access points are implemented using cloud provider specific resources.
+	AccessPoints []string `json:"accessPoints,omitempty"`
+
+	// List of access point references for the API server; currently, public and private are the only valid values
+	ApiServerAccessPoints []string `json:"apiServerAccessPoints,omitempty"`
+
 	Nodepools []PkeOnAzureNodePool `json:"nodepools,omitempty"`
 }

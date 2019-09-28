@@ -96,3 +96,11 @@ func GetLoadBalancerName(clusterName string) string {
 func GetPublicIPAddressName(clusterName string) string {
 	return clusterName + "-pip-in"
 }
+
+func GetFrontEndIPConfigName() string {
+	return "frontend-ip-config"
+}
+
+func GetApiServerLBRuleName() string {
+	return "api-server-rule"
+}

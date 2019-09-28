@@ -29,7 +29,7 @@ type DeleteAzureInfrastructureWorkflowInput struct {
 	SecretID          string
 	ResourceGroupName string
 
-	LoadBalancerName     string
+	LoadBalancerNames    []string
 	PublicIPAddressNames []string
 	RouteTableName       string
 	ScaleSetNames        []string
@@ -75,15 +75,25 @@ func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrast
 
 	// Delete load balancer
 	{
-		activityInput := DeleteLoadBalancerActivityInput{
-			OrganizationID:    input.OrganizationID,
-			SecretID:          input.SecretID,
-			ClusterName:       input.ClusterName,
-			ResourceGroupName: input.ResourceGroupName,
-			LoadBalancerName:  input.LoadBalancerName,
+		futures := make([]workflow.Future, 0, len(input.LoadBalancerNames))
+		for _, lb := range input.LoadBalancerNames {
+			activityInput := DeleteLoadBalancerActivityInput{
+				OrganizationID:    input.OrganizationID,
+				SecretID:          input.SecretID,
+				ClusterName:       input.ClusterName,
+				ResourceGroupName: input.ResourceGroupName,
+				LoadBalancerName:  lb,
+			}
+
+			futures = append(futures, workflow.ExecuteActivity(ctx, DeleteLoadBalancerActivityName, activityInput))
 		}
 
-		if err := workflow.ExecuteActivity(ctx, DeleteLoadBalancerActivityName, activityInput).Get(ctx, nil); err != nil {
+		errs := make([]error, len(futures))
+		for i, future := range futures {
+			errs[i] = future.Get(ctx, nil)
+		}
+
+		if err := errors.Combine(errs...); err != nil {
 			return err
 		}
 	}

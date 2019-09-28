@@ -138,20 +138,56 @@ type Subnet struct {
 	CIDR string
 }
 
+type AzureAccessPoint string
+
+func (a AzureAccessPoint) GetName() string {
+	return string(a)
+}
+
+type AzureAccessPoints []AzureAccessPoint
+
+func (a AzureAccessPoints) Exists(name string) bool {
+	for _, ap := range a {
+		if ap.GetName() == name {
+			return true
+		}
+	}
+	return false
+}
+
+type AzureApiServerAccessPoint string
+
+func (a AzureApiServerAccessPoint) GetName() string {
+	return string(a)
+}
+
+type AzureApiServerAccessPoints []AzureApiServerAccessPoint
+
+func (a AzureApiServerAccessPoints) Exists(name string) bool {
+	for _, ap := range a {
+		if ap.GetName() == name {
+			return true
+		}
+	}
+	return false
+}
+
 // AzurePKEClusterCreationParams defines parameters for PKE-on-Azure cluster creation
 type AzurePKEClusterCreationParams struct {
-	CreatedBy      uint
-	Features       []intCluster.Feature
-	Kubernetes     intPKE.Kubernetes
-	Name           string
-	Network        VirtualNetwork
-	NodePools      []NodePool
-	OrganizationID uint
-	ResourceGroup  string
-	ScaleOptions   pkgCluster.ScaleOptions
-	SecretID       string
-	SSHSecretID    string
-	HTTPProxy      intPKE.HTTPProxy
+	CreatedBy             uint
+	Features              []intCluster.Feature
+	Kubernetes            intPKE.Kubernetes
+	Name                  string
+	Network               VirtualNetwork
+	NodePools             []NodePool
+	OrganizationID        uint
+	ResourceGroup         string
+	ScaleOptions          pkgCluster.ScaleOptions
+	SecretID              string
+	SSHSecretID           string
+	HTTPProxy             intPKE.HTTPProxy
+	AccessPoints          AzureAccessPoints
+	ApiServerAccessPoints AzureApiServerAccessPoints
 }
 
 // Create
@@ -294,16 +330,72 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	subnets := make(map[string]workflow.SubnetTemplate)
 	vmssTemplates := make([]workflow.VirtualMachineScaleSetTemplate, len(params.NodePools))
 	roleAssignmentTemplates := make([]workflow.RoleAssignmentTemplate, 0, len(params.NodePools))
+	var masterNodesSubnetName string
 	for i, np := range params.NodePools {
 		vmsst, snt, rats := tf.getTemplates(np)
 		vmssTemplates[i] = vmsst
 		subnets[snt.Name] = snt
 		roleAssignmentTemplates = append(roleAssignmentTemplates, rats...)
+
+		if np.hasRole(pkgPKE.RoleMaster) {
+			masterNodesSubnetName = snt.Name
+		}
 	}
 
 	subnetTemplates := make([]workflow.SubnetTemplate, 0, len(subnets))
 	for _, s := range subnets {
 		subnetTemplates = append(subnetTemplates, s)
+	}
+
+	var pip workflow.PublicIPAddress
+	loadBalancerTemplates := make([]workflow.LoadBalancerTemplate, len(params.AccessPoints))
+	for i, accessPoint := range params.AccessPoints {
+		var subnetName, publicIPAddressName, outboundBackendAddressPoolName, backendAddressPoolName, inboundNATPoolName, lbName string
+
+		if accessPoint.GetName() == "private" {
+			lbName = pke.GetLoadBalancerName(params.Name) + "-internal"
+
+			// private access point implemented through internal LB which requires a subnet
+			// use master node's subnet for the internal LB
+			subnetName = masterNodesSubnetName
+
+			if params.ApiServerAccessPoints.Exists("private") {
+				// add master nodes LB backend address pool
+				backendAddressPoolName = pke.GetBackendAddressPoolName()
+			}
+		} else {
+			lbName = pke.GetLoadBalancerName(params.Name)
+			// backend pool for ensuring outbound connectivity to the Internet through public Standard LB
+			outboundBackendAddressPoolName = pke.GetOutboundBackendAddressPoolName()
+
+			if params.ApiServerAccessPoints.Exists("public") {
+				// if API server is exposed through public end point, set up INAT
+				// through public LB to be able to ssh to master nodes
+				inboundNATPoolName = pke.GetInboundNATPoolName()
+
+				// add master nodes LB backend address pool
+				backendAddressPoolName = pke.GetBackendAddressPoolName()
+			}
+
+			// Public IP address for public LB
+			publicIPAddressName = pke.GetPublicIPAddressName(params.Name)
+			pip = workflow.PublicIPAddress{
+				Location: params.Network.Location,
+				Name:     publicIPAddressName,
+				SKU:      "Standard",
+			}
+		}
+
+		loadBalancerTemplates[i] = workflow.LoadBalancerTemplate{
+			Name:     lbName,
+			Location: params.Network.Location,
+			SKU:      "Standard",
+			BackendAddressPoolName:         backendAddressPoolName,
+			OutboundBackendAddressPoolName: outboundBackendAddressPoolName,
+			InboundNATPoolName:             inboundNATPoolName,
+			SubnetName:                     subnetName,
+			PublicIPAddressName:            publicIPAddressName,
+		}
 	}
 
 	org, err := cc.organizations.Get(ctx, params.OrganizationID)
@@ -328,19 +420,8 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			Location: params.Network.Location,
 			Subnets:  subnetTemplates,
 		},
-		LoadBalancerTemplate: workflow.LoadBalancerTemplate{
-			Name:                           pke.GetLoadBalancerName(params.Name),
-			Location:                       params.Network.Location,
-			SKU:                            "Standard",
-			BackendAddressPoolName:         pke.GetBackendAddressPoolName(),
-			OutboundBackendAddressPoolName: pke.GetOutboundBackendAddressPoolName(),
-			InboundNATPoolName:             pke.GetInboundNATPoolName(),
-		},
-		PublicIPAddress: workflow.PublicIPAddress{
-			Location: params.Network.Location,
-			Name:     pke.GetPublicIPAddressName(params.Name),
-			SKU:      "Standard",
-		},
+		LoadBalancerTemplates:   loadBalancerTemplates,
+		PublicIPAddress:         pip,
 		RoleAssignmentTemplates: roleAssignmentTemplates,
 		RouteTable:              routeTable,
 		SecurityGroups: []workflow.SecurityGroup{
@@ -444,6 +525,34 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 		p.logger.Debugf("ResourceGroup not specified, defaulting to [%s]", params.ResourceGroup)
 	}
 
+	if params.AccessPoints == nil {
+		params.AccessPoints = append(params.AccessPoints, "public")
+		p.logger.Debug("access points not specified, defaulting to public")
+	}
+	if len(params.AccessPoints) > 2 {
+		return validationError{"only private, public or both access points are allowed"}
+	}
+
+	for _, ap := range params.AccessPoints {
+		if ap != "private" && ap != "public" {
+			return validationError{"only private or public access points are allowed"}
+		}
+	}
+
+	if params.ApiServerAccessPoints == nil {
+		params.ApiServerAccessPoints = append(params.ApiServerAccessPoints, "public")
+		p.logger.Debug("API server access points not specified, defaulting to public")
+	}
+
+	if len(params.ApiServerAccessPoints) > 2 {
+		return validationErrorf("only private, public or both are allowed as API server access points")
+	}
+	for _, apiServerAp := range params.ApiServerAccessPoints {
+		if !params.AccessPoints.Exists(apiServerAp.GetName()) {
+			return validationError{fmt.Sprintf("no access point is defined for API server access point %s", apiServerAp)}
+		}
+	}
+
 	if err := p.k8sPreparer.Prepare(&params.Kubernetes); err != nil {
 		return errors.WrapIf(err, "failed to prepare k8s network")
 	}
@@ -537,11 +646,11 @@ pke install master --pipeline-url="{{ .PipelineURL }}" \
 --azure-route-table-name={{ .RouteTableName }} \
 --azure-storage-kind managed \
 --kubernetes-advertise-address=$PRIVATE_IP:6443 \
---kubernetes-api-server={{ .PublicAddress }}:6443 \
+--kubernetes-api-server={{ .ApiServerAddress }}:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-master-mode={{ .KubernetesMasterMode }} \
---kubernetes-api-server-cert-sans={{ .PublicAddress }}`
+--kubernetes-api-server-cert-sans={{ .ApiServerCertSans }}`
 
 const workerUserDataScriptTemplate = `#!/bin/sh
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
@@ -567,7 +676,7 @@ pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --azure-vm-type=vmss \
 --azure-loadbalancer-sku=standard \
 --azure-route-table-name={{ .RouteTableName }} \
---kubernetes-api-server={{ .PublicAddress }}:6443 \
+--kubernetes-api-server={{ .ApiServerAddress }}:6443 \
 --kubernetes-infrastructure-cidr={{ .InfraCIDR }} \
 --kubernetes-version={{ .KubernetesVersion }} \
 --kubernetes-pod-network-cidr=""`

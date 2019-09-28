@@ -65,7 +65,7 @@ type VirtualMachineScaleSet struct {
 	InstanceCount           int64
 	InstanceType            string
 	LBBackendAddressPoolIDs []string
-	LBInboundNATPoolID      string
+	LBInboundNATPoolIDs     []string
 	Location                string
 	Name                    string
 	NetworkSecurityGroupID  string
@@ -172,12 +172,15 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 			}
 		}
 	}
-	var inpRefs *[]compute.SubResource
-	if input.ScaleSet.LBInboundNATPoolID != "" {
-		inpRefs = &[]compute.SubResource{
-			{
-				ID: to.StringPtr(input.ScaleSet.LBInboundNATPoolID),
-			},
+	var inpRefs []compute.SubResource
+	if input.ScaleSet.LBInboundNATPoolIDs != nil {
+		for _, id := range input.ScaleSet.LBInboundNATPoolIDs {
+			if id != "" {
+				inpRef := compute.SubResource{
+					ID: to.StringPtr(id),
+				}
+				inpRefs = append(inpRefs, inpRef)
+			}
 		}
 	}
 	var nsgRef *compute.SubResource
@@ -218,7 +221,7 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 										VirtualMachineScaleSetIPConfigurationProperties: &compute.VirtualMachineScaleSetIPConfigurationProperties{
 											Primary:                         to.BoolPtr(true),
 											LoadBalancerBackendAddressPools: &bapRefs,
-											LoadBalancerInboundNatPools:     inpRefs,
+											LoadBalancerInboundNatPools:     &inpRefs,
 											Subnet: &compute.APIEntityReference{
 												ID: to.StringPtr(input.ScaleSet.SubnetID),
 											},

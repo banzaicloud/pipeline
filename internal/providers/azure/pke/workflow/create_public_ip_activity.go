@@ -47,6 +47,7 @@ type PublicIPAddress struct {
 type CreatePublicIPActivityOutput struct {
 	PublicIPAddressID string
 	PublicIPAddress   string
+	Name              string
 }
 
 type CreatePublicIPActivityInput struct {
@@ -97,6 +98,7 @@ func (a CreatePublicIPActivity) Execute(ctx context.Context, input CreatePublicI
 
 	output.PublicIPAddressID = to.String(publicIP.ID)
 	output.PublicIPAddress = to.String(publicIP.IPAddress)
+	output.Name = to.String(publicIP.Name)
 
 	return
 }

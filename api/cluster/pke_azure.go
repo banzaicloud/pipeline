@@ -36,6 +36,16 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 		}
 	}
 
+	var accessPoints driver.AzureAccessPoints
+	for _, ap := range req.AccessPoints {
+		accessPoints = append(accessPoints, driver.AzureAccessPoint(ap))
+	}
+
+	var apiServerAccessPoints driver.AzureApiServerAccessPoints
+	for _, ap := range req.ApiServerAccessPoints {
+		apiServerAccessPoints = append(apiServerAccessPoints, driver.AzureApiServerAccessPoint(ap))
+	}
+
 	return driver.AzurePKEClusterCreationParams{
 		Name:           req.Name,
 		OrganizationID: organizationID,
@@ -74,8 +84,10 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 			CIDR:     req.Network.Cidr,
 			Location: req.Location,
 		},
-		NodePools: requestToClusterNodepools(req.Nodepools, userID),
-		Features:  features,
+		NodePools:             requestToClusterNodepools(req.Nodepools, userID),
+		AccessPoints:          accessPoints,
+		ApiServerAccessPoints: apiServerAccessPoints,
+		Features:              features,
 		HTTPProxy: intPKE.HTTPProxy{
 			HTTP:       clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Http),
 			HTTPS:      clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Https),

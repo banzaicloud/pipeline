@@ -117,7 +117,9 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 					Oidc:    pipeline.CreatePkeClusterKubernetesOidc{Enabled: true},
 					Version: Version,
 				},
-				Network: Azurenetwork,
+				Network:               Azurenetwork,
+				AccessPoints:          []string{"private", "public"},
+				ApiServerAccessPoints: []string{"private", "public"},
 			},
 			out: driver.AzurePKEClusterCreationParams{
 				CreatedBy: userID,
@@ -172,8 +174,10 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 					Excludes:            scaleOptions.Excludes,
 					KeepDesiredCapacity: scaleOptions.KeepDesiredCapacity,
 				},
-				SecretID:    SecretID,
-				SSHSecretID: SSHSecretID,
+				SecretID:              SecretID,
+				SSHSecretID:           SSHSecretID,
+				AccessPoints:          driver.AzureAccessPoints{"private", "public"},
+				ApiServerAccessPoints: driver.AzureApiServerAccessPoints{"private", "public"},
 			},
 		},
 	}
