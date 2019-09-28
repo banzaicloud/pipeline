@@ -293,37 +293,7 @@ func NewTokenHandler(roleSource RoleSource, tokenManager TokenManager) *tokenHan
 
 // GenerateToken generates token from context
 func (h *tokenHandler) GenerateToken(c *gin.Context) {
-	var currentUser *User
-
-	if accessToken, ok := c.GetQuery("access_token"); ok {
-		githubUser, err := getGithubUser(accessToken)
-		if err != nil {
-			errorHandler.Handle(errors.Wrap(err, "failed to query GitHub user"))
-			_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			return
-		}
-		user := User{}
-		err = Auth.GetDB(c.Request).
-			Joins("left join auth_identities on users.id = auth_identities.user_id").
-			Where("auth_identities.uid = ?", githubUser.GetID()).
-			Find(&user).Error
-		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				c.Status(http.StatusUnauthorized)
-			} else {
-				errorHandler.Handle(errors.Wrap(err, "failed to query registered user"))
-				c.Status(http.StatusInternalServerError)
-			}
-			return
-		}
-		currentUser = &user
-	} else {
-		Handler(c)
-		if c.IsAborted() {
-			return
-		}
-		currentUser = GetCurrentUser(c.Request)
-	}
+	currentUser := GetCurrentUser(c.Request)
 
 	tokenRequest := struct {
 		Name        string     `json:"name,omitempty"`
