@@ -19,10 +19,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/core"
 	"github.com/oracle/oci-go-sdk/identity"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 )
 
 // VCNManager for creating and deleting preconfigured VCN

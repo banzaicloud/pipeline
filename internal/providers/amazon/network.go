@@ -16,10 +16,11 @@ package amazon
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/network"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/sirupsen/logrus"
 )
 
 type amazonNetwork struct {

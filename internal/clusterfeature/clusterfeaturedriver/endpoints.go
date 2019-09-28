@@ -17,10 +17,10 @@ package clusterfeaturedriver
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/client"
 	"github.com/go-kit/kit/endpoint"
 	kitoc "github.com/go-kit/kit/tracing/opencensus"
 
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 

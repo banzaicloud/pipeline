@@ -19,6 +19,7 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/Masterminds/semver"
+
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 )

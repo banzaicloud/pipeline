@@ -18,8 +18,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
+
+	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // GetRequiredHeader returns a header value or responds with an error.

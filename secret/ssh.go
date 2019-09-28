@@ -23,8 +23,9 @@ import (
 	"fmt"
 	"strings"
 
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"golang.org/x/crypto/ssh"
+
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // SSHKeyPair struct to store SSH key data

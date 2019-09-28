@@ -18,9 +18,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/gin-gonic/gin"
 )
 
 func (n *API) returnOperationErrorsIfAny(c *gin.Context, targetStatuses []deployment.TargetClusterStatus, releaseName string) bool {

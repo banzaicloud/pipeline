@@ -18,8 +18,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/banzaicloud/pipeline/helm"
 	"github.com/ghodss/yaml"
+
+	"github.com/banzaicloud/pipeline/helm"
 )
 
 // ClusterGroupDeployment describes a Helm deployment to a Cluster Group

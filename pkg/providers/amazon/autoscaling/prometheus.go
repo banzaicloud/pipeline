@@ -15,10 +15,10 @@
 package autoscaling
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // nolint: gochecknoglobals

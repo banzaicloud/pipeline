@@ -19,9 +19,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/sirupsen/logrus"
 )
 
 var _ utils.RevocableAction = (*UploadSSHKeyAction)(nil)

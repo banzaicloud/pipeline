@@ -17,11 +17,12 @@ package api
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 const secretIdKey = "secretId"
