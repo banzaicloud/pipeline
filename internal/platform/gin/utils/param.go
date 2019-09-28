@@ -19,8 +19,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
+
+	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // UintParam returns a parameter parsed as uint or responds with an error.

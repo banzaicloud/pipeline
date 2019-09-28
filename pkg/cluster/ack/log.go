@@ -15,8 +15,9 @@
 package ack
 
 import (
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/config"
 )
 
 // nolint: gochecknoglobals

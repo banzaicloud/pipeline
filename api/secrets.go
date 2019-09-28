@@ -21,6 +21,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -32,8 +35,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 )
 
 // ErrNotSupportedSecretType describe an error if the secret type is not supported

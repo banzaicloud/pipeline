@@ -15,11 +15,12 @@
 package cluster
 
 import (
+	gke "google.golang.org/api/container/v1"
+
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
-	gke "google.golang.org/api/container/v1"
 )
 
 // createNodePoolsModelFromRequest creates an array of GoogleNodePoolModel from the nodePoolsData received through create/update requests

@@ -17,9 +17,10 @@ package api
 import (
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/auth"
 )
 
 // RedirectRoot sets redirect

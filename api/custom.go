@@ -19,16 +19,17 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/helm"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/apis/core"
+
+	"github.com/banzaicloud/pipeline/helm"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 // ListEndpoints lists service public endpoints

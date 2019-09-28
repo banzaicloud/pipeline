@@ -18,8 +18,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 type vaultFeatureSpec struct {

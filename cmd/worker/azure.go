@@ -15,12 +15,13 @@
 package main
 
 import (
+	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	azurepkeworkflow "github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
-	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/workflow"
 )
 
 func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator pkeworkflowadapter.TokenGenerator, store pke.AzurePKEClusterStore) {

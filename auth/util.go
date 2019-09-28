@@ -17,11 +17,12 @@ package auth
 import (
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/config"
-	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin/render"
 	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // SetCookie writes the cookie value.

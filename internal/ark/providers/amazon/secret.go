@@ -15,9 +15,10 @@
 package amazon
 
 import (
+	"github.com/pelletier/go-toml"
+
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/pelletier/go-toml"
 )
 
 type secretContents struct {

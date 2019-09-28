@@ -18,11 +18,12 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+
 	apiclient "github.com/banzaicloud/pipeline/client"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 )
 
 type anchoreImagePostBody struct {

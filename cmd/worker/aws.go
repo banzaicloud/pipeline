@@ -15,11 +15,12 @@
 package main
 
 import (
+	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/workflow"
+
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	"github.com/banzaicloud/pipeline/secret"
-	"go.uber.org/cadence/activity"
-	"go.uber.org/cadence/workflow"
 )
 
 func registerAwsWorkflows(clusters *pkeworkflowadapter.ClusterManagerAdapter, tokenGenerator pkeworkflowadapter.TokenGenerator) {

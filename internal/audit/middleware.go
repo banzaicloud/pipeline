@@ -24,14 +24,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 )
 
 // LogWriter instance is a Gin Middleware which logs all request data into MySQL audit_events table.

@@ -18,10 +18,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 

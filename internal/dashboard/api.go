@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
@@ -33,6 +32,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/resourcesummary"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"

@@ -18,9 +18,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/pkg/errors"
+
 	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/internal/global"
-	"github.com/pkg/errors"
 )
 
 // Handler returns an HTTP handler for version information.
