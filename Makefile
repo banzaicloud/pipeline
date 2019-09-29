@@ -35,13 +35,18 @@ GOLANG_VERSION = 1.13
 
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
+ifeq ($(OS),linux)
+    DOCKERUSER = $(shell id -u):$(shell id -g)
+    DOCKERFLAGS +=  --user=${DOCKERUSER}
+endif
+
 .PHONY: up
 up: config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
 	docker-compose down -v
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf .docker/; else rm -rf .docker/; fi
+	rm -rf .docker/
 
 .PHONY: reset
 reset: down up ## Reset the development environment
@@ -52,7 +57,7 @@ clean: ## Clean the working area and the project
 	rm -rf pipeline
 
 docker-compose.override.yml: ## Create docker compose override file
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then cat docker-compose.override.yml.dist | sed -e 's/# user: "$${uid}:$${gid}"/user: "$(shell id -u):$(shell id -g)"/' > docker-compose.override.yml; else cp docker-compose.override.yml.dist docker-compose.override.yml; fi
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then cat docker-compose.override.yml.dist | sed -e 's/# user: "$${uid}:$${gid}"/user: "${DOCKERUSER}"/' > docker-compose.override.yml; else cp docker-compose.override.yml.dist docker-compose.override.yml; fi
 
 .PHONY: start
 start: docker-compose.override.yml ## Start docker development environment
@@ -210,18 +215,16 @@ generate-mocks: bin/mockery ## Generate mocks
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
+	docker run ${DOCKERFLAGS} --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
 
 .PHONY: generate-openapi
 generate-openapi: validate-openapi ## Generate go server based on openapi description
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./.gen/pipeline; else rm -rf ./.gen/pipeline/; fi
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	docker run ${DOCKERFLAGS} --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=pipeline \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/${OPENAPI_DESCRIPTOR} \
 	-g go-server \
 	-o /local/.gen/pipeline
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
 	rm .gen/pipeline/Dockerfile .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go .gen/pipeline/go/README.md
 	mv .gen/pipeline/go .gen/pipeline/pipeline
 
@@ -234,14 +237,12 @@ endif
 
 .PHONY: generate-client
 generate-client: validate-openapi ## Generate go client based on openapi description
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./client; else rm -rf ./client/; fi
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	docker run ${DOCKERFLAGS} --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=client \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/${OPENAPI_DESCRIPTOR} \
 	-g go \
 	-o /local/client
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) client/; fi
 	gofmt -s -w client/
 
 ifeq (${OS}, darwin)
@@ -262,7 +263,7 @@ bin/migrate-${MIGRATE_VERSION}:
 generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec
 	curl https://raw.githubusercontent.com/banzaicloud/cloudinfo/${CLOUDINFO_VERSION}/api/openapi-spec/cloudinfo.yaml | sed "s/version: .*/version: ${CLOUDINFO_VERSION}/" > cloudinfo-openapi.yaml
 	rm -rf .gen/cloudinfo
-	docker run --rm -v ${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	docker run ${DOCKERFLAGS} --rm -v ${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=cloudinfo \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/cloudinfo-openapi.yaml \
