@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
 

@@ -15,8 +15,9 @@
 package ginutils
 
 import (
-	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
+
+	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // ReplyWithErrorResponse replies with an error response.

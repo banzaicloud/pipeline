@@ -15,8 +15,9 @@
 package providers
 
 import (
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 type secretStore interface {

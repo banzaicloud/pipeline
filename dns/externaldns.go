@@ -18,13 +18,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gofrs/uuid"
+	"github.com/spf13/cast"
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/gofrs/uuid"
-	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 )
 
 // nolint: gochecknoglobals

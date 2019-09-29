@@ -15,8 +15,9 @@
 package prometheus
 
 import (
-	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
 )
 
 type PrometheusClusterStatusChangeDurationMetric struct {

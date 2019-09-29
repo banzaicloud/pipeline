@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/api/compute/v1"
 
 	"github.com/banzaicloud/pipeline/internal/network"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/sirupsen/logrus"
 )
 
 type googleNetwork struct {

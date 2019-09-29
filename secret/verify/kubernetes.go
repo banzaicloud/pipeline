@@ -18,6 +18,7 @@ import (
 	"encoding/base64"
 
 	"emperror.dev/errors"
+
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/secret"
 )

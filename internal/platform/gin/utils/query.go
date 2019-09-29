@@ -18,8 +18,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
+
+	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // RequiredQueryOrAbort returns a query value or responds with an error.

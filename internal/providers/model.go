@@ -15,6 +15,9 @@
 package providers
 
 import (
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/providers/azure"
@@ -22,8 +25,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/oracle"
 	"github.com/banzaicloud/pipeline/internal/providers/pke"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 )
 
 // Migrate runs migrations for cloud provider services.

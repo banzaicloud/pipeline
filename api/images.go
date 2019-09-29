@@ -19,14 +19,15 @@ import (
 	"net/http"
 	"strings"
 
-	apiclient "github.com/banzaicloud/pipeline/client"
-	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
+
+	apiclient "github.com/banzaicloud/pipeline/client"
+	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 // ListImages list all used images in cluster

@@ -16,6 +16,7 @@ package objectstore
 
 import (
 	"github.com/Azure/go-autorest/autorest/azure/auth"
+
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 )
 

@@ -16,9 +16,10 @@ package istiofeature
 
 import (
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
 func (m *MeshReconciler) ReconcileCanaryOperatorNamespace(desiredState DesiredState) error {

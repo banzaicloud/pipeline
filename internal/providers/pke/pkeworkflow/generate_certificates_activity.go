@@ -17,9 +17,10 @@ package pkeworkflow
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
-	"github.com/pkg/errors"
 )
 
 const GenerateCertificatesActivityName = "pke-generate-certificates-activity"

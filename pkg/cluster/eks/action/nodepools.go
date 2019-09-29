@@ -26,14 +26,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon/autoscaling"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 var _ utils.RevocableAction = (*CreateUpdateNodePoolStackAction)(nil)

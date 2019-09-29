@@ -18,8 +18,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/jinzhu/gorm"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
 // TableName constants

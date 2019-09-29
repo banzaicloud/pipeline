@@ -20,11 +20,11 @@ import (
 	"testing"
 
 	"emperror.dev/errors"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/common"
+	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 

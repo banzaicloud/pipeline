@@ -18,9 +18,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
 // Migrate executes the table migrations for the provider.
