@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
@@ -57,7 +57,7 @@ func TestMakeListEndpoint(t *testing.T) {
 	result, err := e(ctx, req)
 
 	require.NoError(t, err)
-	assert.Equal(t, map[string]client.ClusterFeatureDetails{
+	assert.Equal(t, map[string]pipeline.ClusterFeatureDetails{
 		"example": {
 			Spec: map[string]interface{}{
 				"hello": "world",
@@ -102,7 +102,7 @@ func TestMakeDetailsEndpoint(t *testing.T) {
 	result, err := e(ctx, req)
 
 	require.NoError(t, err)
-	assert.Equal(t, client.ClusterFeatureDetails{
+	assert.Equal(t, pipeline.ClusterFeatureDetails{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},

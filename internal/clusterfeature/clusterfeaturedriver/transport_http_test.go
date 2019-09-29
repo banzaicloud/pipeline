@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 )
@@ -65,12 +65,12 @@ func TestMakeHTTPHandlers_List(t *testing.T) {
 
 	decoder := json.NewDecoder(resp.Body)
 
-	var featureMap map[string]client.ClusterFeatureDetails
+	var featureMap map[string]pipeline.ClusterFeatureDetails
 
 	err = decoder.Decode(&featureMap)
 	require.NoError(t, err)
 
-	assert.Equal(t, map[string]client.ClusterFeatureDetails{
+	assert.Equal(t, map[string]pipeline.ClusterFeatureDetails{
 		"example": {
 			Status: "ACTIVE",
 			Spec: map[string]interface{}{
@@ -121,12 +121,12 @@ func TestMakeHTTPHandlers_Details(t *testing.T) {
 
 	decoder := json.NewDecoder(resp.Body)
 
-	var featureDetails client.ClusterFeatureDetails
+	var featureDetails pipeline.ClusterFeatureDetails
 
 	err = decoder.Decode(&featureDetails)
 	require.NoError(t, err)
 
-	assert.Equal(t, client.ClusterFeatureDetails{
+	assert.Equal(t, pipeline.ClusterFeatureDetails{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},
@@ -160,7 +160,7 @@ func TestMakeHTTPHandlers_Activate(t *testing.T) {
 
 	encoder := json.NewEncoder(&buf)
 
-	apiReq := client.ActivateClusterFeatureRequest{
+	apiReq := pipeline.ActivateClusterFeatureRequest{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},
@@ -231,7 +231,7 @@ func TestMakeHTTPHandlers_Update(t *testing.T) {
 
 	encoder := json.NewEncoder(&buf)
 
-	apiReq := client.UpdateClusterFeatureRequest{
+	apiReq := pipeline.UpdateClusterFeatureRequest{
 		Spec: map[string]interface{}{
 			"hello": "world",
 		},

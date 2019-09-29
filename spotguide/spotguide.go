@@ -39,8 +39,8 @@ import (
 	cadenceClient "go.uber.org/cadence/client"
 	"gopkg.in/yaml.v2"
 
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
@@ -57,11 +57,11 @@ const SpotguideRepoTableName = "spotguide_repos"
 var IgnoredPaths = []string{".circleci", ".github"} // nolint: gochecknoglobals
 
 type SpotguideYAML struct {
-	Name        string                    `json:"name"`
-	Description string                    `json:"description,omitempty"`
-	Tags        []string                  `json:"tags,omitempty"`
-	Resources   client.RequestedResources `json:"resources"`
-	Questions   []Question                `json:"questions"`
+	Name        string                      `json:"name"`
+	Description string                      `json:"description,omitempty"`
+	Tags        []string                    `json:"tags,omitempty"`
+	Resources   pipeline.RequestedResources `json:"resources"`
+	Questions   []Question                  `json:"questions"`
 }
 
 // Question is an opaque struct from Pipeline's point of view

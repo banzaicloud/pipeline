@@ -15,7 +15,7 @@
 package api
 
 import (
-	"github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -25,7 +25,7 @@ import (
 
 const PKEOnAzure = pke.PKEOnAzure
 
-type CreatePKEOnAzureClusterRequest client.CreatePkeOnAzureClusterRequest
+type CreatePKEOnAzureClusterRequest pipeline.CreatePkeOnAzureClusterRequest
 
 func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.AzurePKEClusterCreationParams {
 	features := make([]intCluster.Feature, len(req.Features))
@@ -79,7 +79,7 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 	}
 }
 
-type UpdatePKEOnAzureClusterRequest client.UpdatePkeOnAzureClusterRequest
+type UpdatePKEOnAzureClusterRequest pipeline.UpdatePkeOnAzureClusterRequest
 
 func (req UpdatePKEOnAzureClusterRequest) ToAzurePKEClusterUpdateParams(clusterID, userID uint) driver.AzurePKEClusterUpdateParams {
 	return driver.AzurePKEClusterUpdateParams{
@@ -88,7 +88,7 @@ func (req UpdatePKEOnAzureClusterRequest) ToAzurePKEClusterUpdateParams(clusterI
 	}
 }
 
-func requestToClusterNodepools(request []client.PkeOnAzureNodePool, userID uint) []driver.NodePool {
+func requestToClusterNodepools(request []pipeline.PkeOnAzureNodePool, userID uint) []driver.NodePool {
 	nodepools := make([]driver.NodePool, len(request))
 	for i, node := range request {
 		nodepools[i] = driver.NodePool{
