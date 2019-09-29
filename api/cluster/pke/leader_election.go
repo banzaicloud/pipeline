@@ -17,10 +17,11 @@ package pke
 import (
 	"net/http"
 
-	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+
+	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 type leaderElectionRequest struct {

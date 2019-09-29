@@ -18,13 +18,14 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/api/cloudresourcemanager/v1"
+
 	"github.com/banzaicloud/pipeline/auth"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret/verify"
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"google.golang.org/api/cloudresourcemanager/v1"
 )
 
 type ListProjectsResponse struct {

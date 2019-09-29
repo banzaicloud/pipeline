@@ -25,11 +25,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
+	"github.com/pkg/errors"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/pkg/errors"
 )
 
 const (

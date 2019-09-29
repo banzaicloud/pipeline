@@ -15,8 +15,9 @@
 package api
 
 import (
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 // isInvalid checks whether an error is about a resource not being found.

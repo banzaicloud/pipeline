@@ -15,10 +15,11 @@
 package cluster
 
 import (
+	gke "google.golang.org/api/container/v1"
+
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	gke "google.golang.org/api/container/v1"
 )
 
 // GetGkeServerConfig returns all supported K8S versions

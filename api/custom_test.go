@@ -19,11 +19,12 @@ import (
 	"reflect"
 	"testing"
 
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	v1meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 func TestIngressEndpointUrls(t *testing.T) {

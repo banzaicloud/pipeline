@@ -20,19 +20,18 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8srest "k8s.io/client-go/rest"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
-
-	"github.com/spf13/viper"
 )
 
 // FeatureOperator implements the Vault feature operator

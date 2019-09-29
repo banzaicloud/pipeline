@@ -15,8 +15,9 @@
 package istiofeature
 
 import (
-	pConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/spf13/viper"
+
+	pConfig "github.com/banzaicloud/pipeline/config"
 )
 
 func (config Config) init() Config {

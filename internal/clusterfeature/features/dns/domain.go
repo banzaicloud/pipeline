@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"

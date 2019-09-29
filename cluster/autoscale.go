@@ -17,7 +17,6 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -28,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
@@ -279,7 +279,7 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 	return autoscalingInfo
 }
 
-//DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
+// DeployClusterAutoscaler post hook only for AWS & EKS & Azure for now
 func DeployClusterAutoscaler(cluster CommonCluster) error {
 
 	var nodeGroups []nodeGroup

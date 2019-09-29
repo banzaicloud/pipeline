@@ -18,11 +18,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/secret"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 const unknownLocation = "unknown"

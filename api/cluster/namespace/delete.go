@@ -17,12 +17,13 @@ package namespace
 import (
 	"net/http"
 
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 // Delete deletes a kuberenetes namespace.

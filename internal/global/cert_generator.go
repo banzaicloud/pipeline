@@ -18,9 +18,10 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/spf13/viper"
+
 	"github.com/banzaicloud/pipeline/pkg/crypto/cert"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/spf13/viper"
 )
 
 // nolint: gochecknoglobals

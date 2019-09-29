@@ -17,9 +17,10 @@ package ginutils
 import (
 	"context"
 
+	"github.com/gin-gonic/gin"
+
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
-	"github.com/gin-gonic/gin"
 )
 
 // Context returns a new Go context from a Gin context.

@@ -19,8 +19,9 @@ import (
 	"fmt"
 	"strings"
 
-	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/pkg/errors"
+
+	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 )
 
 const UpdateClusterNetworkActivityName = "pke-update-cluster-network-activity"

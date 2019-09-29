@@ -17,7 +17,6 @@ package config
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/uber-common/bark"
@@ -25,6 +24,8 @@ import (
 	"go.uber.org/cadence/.gen/go/shared"
 	"go.uber.org/cadence/client"
 	"go.uber.org/cadence/worker"
+
+	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 )
 
 func newCadenceConfig() cadence.Config {

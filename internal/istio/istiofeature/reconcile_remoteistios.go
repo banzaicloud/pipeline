@@ -20,7 +20,6 @@ import (
 	"strconv"
 
 	"emperror.dev/emperror"
-	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -29,6 +28,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 )
 
 func (m *MeshReconciler) ReconcileRemoteIstios(desiredState DesiredState) error {

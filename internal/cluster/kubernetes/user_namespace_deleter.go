@@ -19,10 +19,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
+	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type UserNamespaceDeleter struct {

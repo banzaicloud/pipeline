@@ -15,6 +15,8 @@
 package providers
 
 import (
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/internal/network"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
@@ -24,7 +26,6 @@ import (
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/sirupsen/logrus"
 )
 
 // ServiceParams describes all parameters necessary to create cloud provider agnostic VPC network queries

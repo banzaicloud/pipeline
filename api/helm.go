@@ -21,12 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
-	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -36,6 +30,13 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/release"
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
+
+	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
+	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 // ChartQuery describes a query to get available helm chart's list

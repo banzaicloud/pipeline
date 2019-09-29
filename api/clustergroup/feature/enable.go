@@ -18,10 +18,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupIAPI "github.com/banzaicloud/pipeline/internal/clustergroup/api"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
