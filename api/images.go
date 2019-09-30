@@ -24,7 +24,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 
-	apiclient "github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -124,7 +124,7 @@ func GetDeploymentImages(c *gin.Context) {
 	c.JSON(http.StatusOK, imageList)
 }
 
-func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]*apiclient.ClusterImage, error) {
+func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]*pipeline.ClusterImage, error) {
 	var err error
 	var podList []v1.Pod
 	podList, err = listPods(client, "", labelSelector)
@@ -132,7 +132,7 @@ func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]*apicl
 		return nil, err
 	}
 
-	imageList := make([]*apiclient.ClusterImage, 0)
+	imageList := make([]*pipeline.ClusterImage, 0)
 	for _, pod := range podList {
 		images := getPodImages(pod)
 		imageList = append(imageList, images...)
@@ -141,9 +141,9 @@ func listAllImages(client *kubernetes.Clientset, labelSelector string) ([]*apicl
 	return deDupList, nil
 }
 
-func getPodImages(pod v1.Pod) []*apiclient.ClusterImage {
+func getPodImages(pod v1.Pod) []*pipeline.ClusterImage {
 
-	images := make([]*apiclient.ClusterImage, 0)
+	images := make([]*pipeline.ClusterImage, 0)
 	for _, container := range pod.Status.ContainerStatuses {
 		fullName := strings.Split(container.Image, ":")
 		var name string
@@ -160,7 +160,7 @@ func getPodImages(pod v1.Pod) []*apiclient.ClusterImage {
 			continue
 		}
 
-		image := apiclient.ClusterImage{
+		image := pipeline.ClusterImage{
 			ImageName:   name,
 			ImageTag:    tag,
 			ImageDigest: digest,
@@ -170,7 +170,7 @@ func getPodImages(pod v1.Pod) []*apiclient.ClusterImage {
 	return images
 }
 
-func removeDuplicatedImages(images []*apiclient.ClusterImage) []*apiclient.ClusterImage {
+func removeDuplicatedImages(images []*pipeline.ClusterImage) []*pipeline.ClusterImage {
 	found := make(map[string]bool)
 	j := 0
 	for i, image := range images {

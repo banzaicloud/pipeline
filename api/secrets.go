@@ -24,8 +24,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
@@ -135,7 +135,7 @@ func AddSecrets(c *gin.Context) {
 
 	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).Login
 
-	//Check if the received value is base64 encoded if not encode it.
+	// Check if the received value is base64 encoded if not encode it.
 	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {
 		createSecretRequest.Values[secretTypes.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secretTypes.K8SConfig])
 	}
@@ -184,7 +184,7 @@ func AddSecrets(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, client.CreateSecretResponse{
+	c.JSON(http.StatusCreated, pipeline.CreateSecretResponse{
 		Name:      s.Name,
 		Type:      s.Type,
 		Id:        secretID,
@@ -236,7 +236,7 @@ func UpdateSecrets(c *gin.Context) {
 
 	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).Login
 
-	//Check if the received value is base64 encoded if not encode it.
+	// Check if the received value is base64 encoded if not encode it.
 	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {
 		createSecretRequest.Values[secretTypes.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secretTypes.K8SConfig])
 	}
@@ -281,7 +281,7 @@ func UpdateSecrets(c *gin.Context) {
 		errorMsg = validationError.Error()
 	}
 
-	c.JSON(http.StatusOK, client.CreateSecretResponse{
+	c.JSON(http.StatusOK, pipeline.CreateSecretResponse{
 		Name:      s.Name,
 		Type:      s.Type,
 		Id:        secretID,
