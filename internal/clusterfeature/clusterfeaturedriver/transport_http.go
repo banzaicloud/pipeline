@@ -24,7 +24,7 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/moogar0880/problems"
 
-	"github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 )
@@ -172,7 +172,7 @@ func decodeActivateClusterFeatureRequest(ctx context.Context, req *http.Request)
 	params, _ := ctxutil.Params(ctx)
 	featureName := params["featureName"]
 
-	var requestBody client.ActivateClusterFeatureRequest
+	var requestBody pipeline.ActivateClusterFeatureRequest
 	if err := decodeRequestBody(req, &requestBody); err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func decodeUpdateClusterFeatureRequest(ctx context.Context, req *http.Request) (
 	params, _ := ctxutil.Params(ctx)
 	featureName := params["featureName"]
 
-	var requestBody client.UpdateClusterFeatureRequest
+	var requestBody pipeline.UpdateClusterFeatureRequest
 	if err := decodeRequestBody(req, &requestBody); err != nil {
 
 		return nil, errors.WrapIf(err, "failed to decode request body")

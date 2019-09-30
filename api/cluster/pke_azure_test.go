@@ -19,7 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/banzaicloud/pipeline/client"
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -42,11 +42,11 @@ const (
 
 func TestToAzurePKEClusterCreationParams(t *testing.T) {
 	var (
-		Azuresubnet = client.PkeOnAzureNodePoolSubnet{
+		Azuresubnet = pipeline.PkeOnAzureNodePoolSubnet{
 			Name: "test-subnet",
 			Cidr: "1.1.1.1/16",
 		}
-		Nodepool = client.PkeOnAzureNodePool{
+		Nodepool = pipeline.PkeOnAzureNodePool{
 			Labels:       nil,
 			Name:         "nodepool1",
 			Roles:        []string{"role"},
@@ -58,21 +58,21 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 			MinCount:     1,
 			MaxCount:     3,
 		}
-		Azurenetwork = client.PkeOnAzureClusterNetwork{
+		Azurenetwork = pipeline.PkeOnAzureClusterNetwork{
 			Name: "test-net",
 			Cidr: "1.1.1.1/10",
 		}
-		cri = client.CreatePkeClusterKubernetesCri{
+		cri = pipeline.CreatePkeClusterKubernetesCri{
 			Runtime:       "containerd",
 			RuntimeConfig: nil,
 		}
-		network = client.CreatePkeClusterKubernetesNetwork{
+		network = pipeline.CreatePkeClusterKubernetesNetwork{
 			PodCIDR:        "192.168.1.1/16",
 			Provider:       "weave",
 			ProviderConfig: nil,
 			ServiceCIDR:    "11.11.1.1/16",
 		}
-		scaleOptions = client.ScaleOptions{
+		scaleOptions = pipeline.ScaleOptions{
 			Enabled:             false,
 			DesiredCpu:          2,
 			DesiredMem:          2048,
@@ -109,12 +109,12 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				Type:          PKEOnAzure,
 				Location:      Location,
 				ResourceGroup: ResourceGroup,
-				Nodepools:     []client.PkeOnAzureNodePool{Nodepool},
-				Kubernetes: client.CreatePkeClusterKubernetes{
+				Nodepools:     []pipeline.PkeOnAzureNodePool{Nodepool},
+				Kubernetes: pipeline.CreatePkeClusterKubernetes{
 					Cri:     cri,
 					Network: network,
 					Rbac:    RBAC,
-					Oidc:    client.CreatePkeClusterKubernetesOidc{Enabled: true},
+					Oidc:    pipeline.CreatePkeClusterKubernetesOidc{Enabled: true},
 					Version: Version,
 				},
 				Network: Azurenetwork,
