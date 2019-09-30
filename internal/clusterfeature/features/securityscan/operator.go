@@ -255,7 +255,6 @@ func (op FeatureOperator) getCustomAnchoreValues(ctx context.Context, customAnch
 	anchoreValues.Host = customAnchore.Url
 
 	return &anchoreValues, nil
-
 }
 
 func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
