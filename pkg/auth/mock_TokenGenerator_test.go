@@ -10,25 +10,25 @@ type MockTokenGenerator struct {
 }
 
 // GenerateToken provides a mock function with given fields: sub, expiresAt, tokenType, tokenText
-func (_m *MockTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType TokenType, tokenText string) (string, string, error) {
+func (_m *MockTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType string, tokenText string) (string, string, error) {
 	ret := _m.Called(sub, expiresAt, tokenType, tokenText)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, int64, TokenType, string) string); ok {
+	if rf, ok := ret.Get(0).(func(string, int64, string, string) string); ok {
 		r0 = rf(sub, expiresAt, tokenType, tokenText)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 string
-	if rf, ok := ret.Get(1).(func(string, int64, TokenType, string) string); ok {
+	if rf, ok := ret.Get(1).(func(string, int64, string, string) string); ok {
 		r1 = rf(sub, expiresAt, tokenType, tokenText)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(string, int64, TokenType, string) error); ok {
+	if rf, ok := ret.Get(2).(func(string, int64, string, string) error); ok {
 		r2 = rf(sub, expiresAt, tokenType, tokenText)
 	} else {
 		r2 = ret.Error(2)
