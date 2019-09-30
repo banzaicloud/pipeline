@@ -19,9 +19,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
 type Model struct {

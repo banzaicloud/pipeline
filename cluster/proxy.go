@@ -21,12 +21,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/gin-gonic/gin"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/proxy"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/transport"
+
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 const defaultProxyExpirationMinutes = 10

@@ -15,9 +15,10 @@
 package pke
 
 import (
+	"github.com/pkg/errors"
+
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/pkg/errors"
 )
 
 type CreateParams struct {

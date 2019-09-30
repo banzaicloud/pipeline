@@ -18,12 +18,11 @@ import (
 	"context"
 	"net/http"
 
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/gin-gonic/gin"
 
+	"github.com/banzaicloud/pipeline/auth"
 	gutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
+	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
 // @Summary Synchronize Cluster Group Deployment

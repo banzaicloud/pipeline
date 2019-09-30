@@ -17,9 +17,10 @@ package log
 import (
 	"time"
 
-	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
 const correlationIdField = "correlation-id"

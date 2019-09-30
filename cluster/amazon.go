@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2"
+
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )

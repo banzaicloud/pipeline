@@ -81,6 +81,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/global"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
+	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
@@ -171,7 +172,7 @@ func main() {
 	cicdDB, err := config.CICDDB()
 	emperror.Panic(err)
 
-	commonLogger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
+	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{})
 
 	basePath := viper.GetString("pipeline.basepath")
 
@@ -458,7 +459,7 @@ func main() {
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
-	auth.Install(router, tokenHandler.GenerateToken)
+	auth.Install(router)
 	auth.StartTokenStoreGC(tokenStore)
 
 	enforcer := auth.NewRbacEnforcer(organizationStore, commonLogger)

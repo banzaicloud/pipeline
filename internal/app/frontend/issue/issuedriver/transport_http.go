@@ -19,38 +19,22 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/moogar0880/problems"
+	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/issue"
-	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
-func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, errorHandler notification.ErrorHandler) {
-	options := []kithttp.ServerOption{
-		kithttp.ServerErrorEncoder(encodeHTTPError),
-		kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-	}
-
+func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, options ...kithttp.ServerOption) {
 	router.Methods(http.MethodPost).Path("").Handler(kithttp.NewServer(
 		endpoints.ReportIssue,
 		decodeReportIssueHTTPRequest,
-		encodeReportIssueHTTPResponse,
+		kitxhttp.StatusCodeResponseEncoder(http.StatusCreated),
 		options...,
 	))
-}
-
-func encodeHTTPError(_ context.Context, _ error, w http.ResponseWriter) {
-	problem := problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
-
-	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.Status)
-
-	_ = json.NewEncoder(w).Encode(problem)
 }
 
 func decodeReportIssueHTTPRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -62,10 +46,4 @@ func decodeReportIssueHTTPRequest(_ context.Context, r *http.Request) (interface
 	}
 
 	return newIssue, nil
-}
-
-func encodeReportIssueHTTPResponse(_ context.Context, w http.ResponseWriter, _ interface{}) error {
-	w.WriteHeader(http.StatusCreated)
-
-	return nil
 }

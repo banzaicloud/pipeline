@@ -17,9 +17,10 @@ package workflow
 import (
 	"context"
 
+	"go.uber.org/cadence/workflow"
+
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"go.uber.org/cadence/workflow"
 )
 
 const SetClusterStatusActivityName = "pke-azure-set-cluster-status"

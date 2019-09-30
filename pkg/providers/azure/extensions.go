@@ -22,8 +22,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
-	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/gofrs/uuid"
+
+	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 // ListKubernetesVersions returns available k8s versions at the specified location

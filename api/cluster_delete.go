@@ -18,11 +18,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
+
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	"github.com/gin-gonic/gin"
 )
 
 // DeleteClusterResponse describes Pipeline's DeleteCluster API response

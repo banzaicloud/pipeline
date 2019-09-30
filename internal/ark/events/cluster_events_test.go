@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	evbus "github.com/asaskevich/EventBus"
+
 	"github.com/banzaicloud/pipeline/cluster"
 )
 

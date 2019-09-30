@@ -253,7 +253,7 @@ func StartTokenStoreGC(tokenStore bauth.TokenStore) {
 }
 
 // Install the whole OAuth and JWT Token based authn/authz mechanism to the specified Gin Engine.
-func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
+func Install(engine *gin.Engine) {
 
 	// We have to make the raw net/http handlers a bit Gin-ish
 	authHandler := gin.WrapH(Auth.NewServeMux())
@@ -270,10 +270,6 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 		authGroup.GET("/dex/register", authHandler)
 		authGroup.GET("/dex/callback", authHandler)
 		authGroup.POST("/dex/callback", authHandler)
-		authGroup.POST("/tokens", generateTokenHandler)
-		authGroup.GET("/tokens", GetTokens)
-		authGroup.GET("/tokens/:id", GetTokens)
-		authGroup.DELETE("/tokens/:id", DeleteToken)
 	}
 }
 
@@ -293,37 +289,7 @@ func NewTokenHandler(roleSource RoleSource, tokenManager TokenManager) *tokenHan
 
 // GenerateToken generates token from context
 func (h *tokenHandler) GenerateToken(c *gin.Context) {
-	var currentUser *User
-
-	if accessToken, ok := c.GetQuery("access_token"); ok {
-		githubUser, err := getGithubUser(accessToken)
-		if err != nil {
-			errorHandler.Handle(errors.Wrap(err, "failed to query GitHub user"))
-			_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("Invalid session"))
-			return
-		}
-		user := User{}
-		err = Auth.GetDB(c.Request).
-			Joins("left join auth_identities on users.id = auth_identities.user_id").
-			Where("auth_identities.uid = ?", githubUser.GetID()).
-			Find(&user).Error
-		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				c.Status(http.StatusUnauthorized)
-			} else {
-				errorHandler.Handle(errors.Wrap(err, "failed to query registered user"))
-				c.Status(http.StatusInternalServerError)
-			}
-			return
-		}
-		currentUser = &user
-	} else {
-		Handler(c)
-		if c.IsAborted() {
-			return
-		}
-		currentUser = GetCurrentUser(c.Request)
-	}
+	currentUser := GetCurrentUser(c.Request)
 
 	tokenRequest := struct {
 		Name        string     `json:"name,omitempty"`

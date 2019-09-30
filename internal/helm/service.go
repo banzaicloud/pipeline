@@ -18,12 +18,12 @@ import (
 	"context"
 
 	"emperror.dev/errors"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 // ClusterService provides a thin access layer to clusters.
@@ -232,7 +232,7 @@ func (s *HelmService) ApplyDeployment(
 			}
 
 			options := []k8sHelm.InstallOption{
-				//k8sHelm.InstallWait(wait),
+				// k8sHelm.InstallWait(wait),
 				k8sHelm.ValueOverrides(values),
 			}
 			_, err = helm.CreateDeployment(
@@ -257,7 +257,7 @@ func (s *HelmService) ApplyDeployment(
 		}
 	} else {
 		options := []k8sHelm.InstallOption{
-			//k8sHelm.InstallWait(wait),
+			// k8sHelm.InstallWait(wait),
 			k8sHelm.ValueOverrides(values),
 		}
 		_, err = helm.CreateDeployment(

@@ -17,14 +17,15 @@ package api
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgProviders "github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 // NetworkAPI implements network functions

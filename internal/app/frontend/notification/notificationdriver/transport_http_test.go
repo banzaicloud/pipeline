@@ -20,7 +20,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"emperror.dev/emperror"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -29,7 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 )
 
-func TestMakeHTTPHandler_GetActiveNotifications(t *testing.T) {
+func TestMakeHTTPHandler_GetNotifications(t *testing.T) {
 	service := new(notification.MockService)
 
 	notifications := notification.Notifications{
@@ -45,7 +44,10 @@ func TestMakeHTTPHandler_GetActiveNotifications(t *testing.T) {
 	service.On("GetNotifications", mock.Anything).Return(notifications, nil)
 
 	handler := mux.NewRouter()
-	RegisterHTTPHandlers(MakeEndpoints(service), handler.PathPrefix("/notifications").Subrouter(), emperror.NewNoopHandler())
+	RegisterHTTPHandlers(
+		MakeEndpoints(service),
+		handler.PathPrefix("/notifications").Subrouter(),
+	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()

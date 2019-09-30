@@ -15,10 +15,11 @@
 package config
 
 import (
-	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/internal/platform/database"
 )
 
 // CICDDB returns an initialized DB instance for CICDDB.

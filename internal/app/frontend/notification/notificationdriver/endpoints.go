@@ -19,6 +19,7 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 	kitoc "github.com/go-kit/kit/tracing/opencensus"
+	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 )
@@ -32,15 +33,24 @@ type Endpoints struct {
 
 // MakeEndpoints returns an Endpoints struct where each endpoint invokes
 // the corresponding method on the provided service.
-func MakeEndpoints(s notification.Service) Endpoints {
+func MakeEndpoints(service notification.Service, middleware ...endpoint.Middleware) Endpoints {
+	mw := kitxendpoint.Chain(middleware...)
+
 	return Endpoints{
-		GetNotifications: kitoc.TraceEndpoint("notification.GetActiveNotification")(MakeGetNotificationsEndpoint(s)),
+		GetNotifications: mw(MakeGetNotificationsEndpoint(service)),
+	}
+}
+
+// TraceEndpoints returns an Endpoints struct where each endpoint is wrapped with a tracing middleware.
+func TraceEndpoints(endpoints Endpoints) Endpoints {
+	return Endpoints{
+		GetNotifications: kitoc.TraceEndpoint("notification.GetNotifications")(endpoints.GetNotifications),
 	}
 }
 
 // MakeGetNotificationsEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeGetNotificationsEndpoint(s notification.Service) endpoint.Endpoint {
+func MakeGetNotificationsEndpoint(service notification.Service) endpoint.Endpoint {
 	return func(ctx context.Context, _ interface{}) (interface{}, error) {
-		return s.GetNotifications(ctx)
+		return service.GetNotifications(ctx)
 	}
 }

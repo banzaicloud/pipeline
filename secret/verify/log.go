@@ -15,8 +15,9 @@
 package verify
 
 import (
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/config"
 )
 
 // Note: this should be FieldLogger instead.

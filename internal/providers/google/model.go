@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/banzaicloud/pipeline/model"
-	"github.com/banzaicloud/pipeline/pkg/providers/google"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/model"
+	"github.com/banzaicloud/pipeline/pkg/providers/google"
 )
 
 // Migrate executes the table migrations for the provider.

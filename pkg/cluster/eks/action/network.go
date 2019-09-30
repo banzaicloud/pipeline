@@ -23,14 +23,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
-	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	"github.com/banzaicloud/pipeline/utils"
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/pkg/cluster/eks"
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
+	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
+	"github.com/banzaicloud/pipeline/utils"
 )
 
 // EksSubnet describe the properties of subnet

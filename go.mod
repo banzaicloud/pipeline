@@ -93,7 +93,7 @@ require (
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/mitchellh/mapstructure v1.1.2
-	github.com/moogar0880/problems v0.0.0-20180130003543-91791093a28a
+	github.com/moogar0880/problems v0.1.1
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/oklog/run v1.0.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
@@ -119,6 +119,7 @@ require (
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 // indirect
 	github.com/russross/blackfriday v1.5.1 // indirect
+	github.com/sagikazarmark/kitx v0.2.0
 	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20160419172024-e9042807f4f5 // indirect
 	github.com/sirupsen/logrus v1.4.2
@@ -154,7 +155,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.9.0
 	google.golang.org/genproto v0.0.0-20190801165951-fa694d86fc64
-	google.golang.org/grpc v1.22.0
+	google.golang.org/grpc v1.23.1
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect

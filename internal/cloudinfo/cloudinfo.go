@@ -15,8 +15,9 @@
 package cloudinfo
 
 import (
-	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/.gen/cloudinfo"
 )
 
 type Client struct {

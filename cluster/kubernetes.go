@@ -21,6 +21,12 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/sirupsen/logrus"
+	storagev1 "k8s.io/api/storage/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
+
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -29,12 +35,6 @@ import (
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
-
-	"github.com/sirupsen/logrus"
-	storagev1 "k8s.io/api/storage/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 )
 
 const RBAC_API_VERSION = "rbac.authorization.k8s.io"

@@ -21,9 +21,14 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+	"github.com/go-kit/kit/endpoint"
+	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	"github.com/sagikazarmark/kitx/correlation"
+	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
+	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 	"github.com/sagikazarmark/ocmux"
 	"golang.org/x/oauth2"
 
@@ -33,6 +38,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification/notificationadapter"
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification/notificationdriver"
+	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 )
 
@@ -43,26 +49,54 @@ func NewApp(
 	buildInfo buildinfo.BuildInfo,
 	userExtractor issue.UserExtractor,
 	logger Logger,
-	errorHandler ErrorHandler,
+	errorHandler emperror.Handler,
 ) (http.Handler, error) {
 	router := mux.NewRouter()
 	router.Use(ocmux.Middleware())
 	frontend := router.PathPrefix("/frontend").Subrouter()
 
-	{
-		store := notificationadapter.NewGormStore(db)
-		service := notification.NewService(store)
-		endpoints := notificationdriver.MakeEndpoints(service)
-		subrouter := frontend.PathPrefix("/notifications").Subrouter()
-		errorHandler := emperror.WithDetails(errorHandler, "module", "notification")
+	endpointMiddleware := []endpoint.Middleware{
+		correlation.Middleware(),
+	}
 
-		notificationdriver.RegisterHTTPHandlers(endpoints, subrouter, errorHandler)
-
-		// Compatibility routes
-		notificationdriver.RegisterHTTPHandlers(endpoints, router.PathPrefix("/notifications").Subrouter(), errorHandler)
+	httpServerOptions := []kithttp.ServerOption{
+		kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+		kithttp.ServerErrorEncoder(kitxhttp.ProblemErrorEncoder),
+		kithttp.ServerBefore(correlation.HTTPToContext()),
 	}
 
 	{
+		logger := logger.WithFields(map[string]interface{}{"module": "notification"})
+		errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "notification"))
+
+		store := notificationadapter.NewGormStore(db)
+		service := notification.NewService(store)
+		endpoints := notificationdriver.TraceEndpoints(notificationdriver.MakeEndpoints(
+			service,
+			kitxendpoint.Chain(endpointMiddleware...),
+			appkit.EndpointLogger(logger),
+		))
+
+		notificationdriver.RegisterHTTPHandlers(
+			endpoints,
+			frontend.PathPrefix("/notifications").Subrouter(),
+			kitxhttp.ServerOptions(httpServerOptions),
+			kithttp.ServerErrorHandler(errorHandler),
+		)
+
+		// Compatibility routes
+		notificationdriver.RegisterHTTPHandlers(
+			endpoints,
+			router.PathPrefix("/notifications").Subrouter(),
+			kitxhttp.ServerOptions(httpServerOptions),
+			kithttp.ServerErrorHandler(errorHandler),
+		)
+	}
+
+	{
+		logger := logger.WithFields(map[string]interface{}{"module": "issue"})
+		errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "issue"))
+
 		formatter := issue.NewMarkdownFormatter(issue.VersionInformation{
 			Version:    buildInfo.Version,
 			CommitHash: buildInfo.CommitHash,
@@ -92,16 +126,28 @@ func NewApp(
 			userExtractor,
 			formatter,
 			reporter,
-			logger.WithFields(map[string]interface{}{"module": "issue"}),
+			logger,
 		)
-		endpoints := issuedriver.MakeEndpoints(service)
-		subrouter := frontend.PathPrefix("/issues").Subrouter()
-		errorHandler := emperror.WithDetails(errorHandler, "module", "issue")
+		endpoints := issuedriver.TraceEndpoints(issuedriver.MakeEndpoints(
+			service,
+			kitxendpoint.Chain(endpointMiddleware...),
+			appkit.EndpointLogger(logger),
+		))
 
-		issuedriver.RegisterHTTPHandlers(endpoints, subrouter, errorHandler)
+		issuedriver.RegisterHTTPHandlers(
+			endpoints,
+			frontend.PathPrefix("/issues").Subrouter(),
+			kitxhttp.ServerOptions(httpServerOptions),
+			kithttp.ServerErrorHandler(errorHandler),
+		)
 
 		// Compatibility routes
-		issuedriver.RegisterHTTPHandlers(endpoints, router.PathPrefix("/issues").Subrouter(), errorHandler)
+		issuedriver.RegisterHTTPHandlers(
+			endpoints,
+			router.PathPrefix("/issues").Subrouter(),
+			kitxhttp.ServerOptions(httpServerOptions),
+			kithttp.ServerErrorHandler(errorHandler),
+		)
 	}
 
 	return router, nil

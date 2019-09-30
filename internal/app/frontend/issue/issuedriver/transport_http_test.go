@@ -21,7 +21,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"emperror.dev/emperror"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -43,7 +42,10 @@ func TestMakeHTTPHandler_ReportIssue(t *testing.T) {
 	service.On("ReportIssue", mock.Anything, newIssue).Return(nil)
 
 	handler := mux.NewRouter()
-	RegisterHTTPHandlers(MakeEndpoints(service), handler.PathPrefix("/issues").Subrouter(), emperror.NewNoopHandler())
+	RegisterHTTPHandlers(
+		MakeEndpoints(service),
+		handler.PathPrefix("/issues").Subrouter(),
+	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()

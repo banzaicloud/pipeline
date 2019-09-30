@@ -18,9 +18,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/client"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/pkg/errors"
+
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // Handler returns an HTTP handler for version information.
@@ -31,7 +32,7 @@ func Handler(buildInfo BuildInfo) http.Handler {
 		if body == nil {
 			var err error
 
-			data := client.VersionResponse{
+			data := pipeline.VersionResponse{
 				Version:      buildInfo.Version,
 				CommitHash:   buildInfo.CommitHash,
 				BuildDate:    buildInfo.BuildDate,

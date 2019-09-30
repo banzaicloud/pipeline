@@ -17,8 +17,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/gin-gonic/gin"
+
+	"github.com/banzaicloud/pipeline/cluster"
 )
 
 // ListFunctions List available functions to apply on clusters

@@ -15,10 +15,11 @@
 package spotguide
 
 import (
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	libcompose "github.com/docker/libcompose/yaml"
 	yaml2 "github.com/ghodss/yaml"
 	yaml "gopkg.in/yaml.v2"
+
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 // nolint

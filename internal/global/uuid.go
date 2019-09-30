@@ -15,8 +15,9 @@
 package global
 
 import (
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/spf13/viper"
+
+	"github.com/banzaicloud/pipeline/config"
 )
 
 const (
