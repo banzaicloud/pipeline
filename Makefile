@@ -21,6 +21,7 @@ ifeq (${VERBOSE}, 1)
 endif
 
 CLOUDINFO_VERSION = 0.7.0
+DEX_VERSION = 2.19.0
 
 GOLANGCI_VERSION = 1.18.0
 MISSPELL_VERSION = 0.3.4
@@ -29,7 +30,9 @@ LICENSEI_VERSION = 0.1.0
 OPENAPI_GENERATOR_VERSION = PR1869
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
-GOBIN_VERSION = 0.0.10
+GOBIN_VERSION = 0.0.13
+PROTOTOOL_VERSION = 1.8.0
+PROTOC_GEN_GO_VERSION = 1.3.2
 
 GOLANG_VERSION = 1.13
 
@@ -269,6 +272,36 @@ generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec
 	-g go \
 	-o /local/.gen/cloudinfo
 	rm cloudinfo-openapi.yaml .gen/cloudinfo/.travis.yml .gen/cloudinfo/git_push.sh
+
+bin/protoc-gen-go: bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
+	@ln -sf protoc-gen-go-${PROTOC_GEN_GO_VERSION} bin/protoc-gen-go
+bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}: bin/gobin
+	@mkdir -p bin
+	GOBIN=bin/ bin/gobin github.com/golang/protobuf/protoc-gen-go@v${PROTOC_GEN_GO_VERSION}
+	@mv bin/protoc-gen-go bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
+
+bin/prototool: bin/prototool-${PROTOTOOL_VERSION}
+	@ln -sf prototool-${PROTOTOOL_VERSION} bin/prototool
+bin/prototool-${PROTOTOOL_VERSION}:
+	@mkdir -p bin
+	curl -L https://github.com/uber/prototool/releases/download/v${PROTOTOOL_VERSION}/prototool-${OS}-x86_64 > ./bin/prototool-${PROTOTOOL_VERSION} && chmod +x ./bin/prototool-${PROTOTOOL_VERSION}
+
+apis/dex/api.proto:
+	@mkdir -p apis/dex
+	curl https://raw.githubusercontent.com/dexidp/dex/v${DEX_VERSION}/api/api.proto > apis/dex/api.proto
+
+.PHONY: _download-protos
+_download-protos: apis/dex/api.proto
+
+.PHONY: validate-proto
+validate-proto: bin/prototool bin/protoc-gen-go _download-protos ## Validate protobuf definition
+	bin/prototool $(if ${VERBOSE},--debug ,)compile
+	bin/prototool $(if ${VERBOSE},--debug ,)lint
+	bin/prototool $(if ${VERBOSE},--debug ,)break check
+
+.PHONY: proto
+proto: bin/prototool bin/protoc-gen-go _download-protos ## Generate client and server stubs from the protobuf definition
+	bin/prototool $(if ${VERBOSE},--debug ,)all
 
 .PHONY: list
 list: ## List all make targets
