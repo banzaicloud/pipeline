@@ -22,8 +22,8 @@ import (
 )
 
 type AnchoreConfig struct {
-	AnchoreEndpoint string
-	AnchoreEnabled  bool
+	Endpoint string
+	Enabled  bool
 }
 
 // AnchoreService decouples anchor related operations
@@ -41,10 +41,10 @@ type AnchoreService interface {
 type anchoreService struct {
 }
 
-func (a *anchoreService) AnchoreConfig() AnchoreConfig {
+func (a anchoreService) AnchoreConfig() AnchoreConfig {
 	return AnchoreConfig{
-		AnchoreEndpoint: anchore.AnchoreEndpoint,
-		AnchoreEnabled:  anchore.AnchoreEnabled,
+		Endpoint: anchore.AnchoreEndpoint,
+		Enabled:  anchore.AnchoreEnabled,
 	}
 }
 

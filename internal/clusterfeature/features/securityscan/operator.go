@@ -260,7 +260,7 @@ func (op FeatureOperator) getCustomAnchoreValues(ctx context.Context, customAnch
 
 func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
 	// default (pipeline hosted) anchore
-	if !op.anchoreService.AnchoreConfig().AnchoreEnabled {
+	if !op.anchoreService.AnchoreConfig().Enabled {
 		return nil, errors.NewWithDetails("default anchore is not enabled")
 	}
 
@@ -280,7 +280,7 @@ func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
-	anchoreValues.Host = op.anchoreService.AnchoreConfig().AnchoreEndpoint
+	anchoreValues.Host = op.anchoreService.AnchoreConfig().Endpoint
 
 	return &anchoreValues, nil
 }

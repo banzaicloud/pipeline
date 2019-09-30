@@ -199,12 +199,12 @@ func NewNamespacesService(getter clusterfeatureadapter.ClusterGetter, log common
 
 func (nss *namespaceService) LabelNamespaces(ctx context.Context, clusterID uint, namespaces []string, newLabels map[string]string) error {
 
-	var combinedErr error
 	namespacesCli, err := nss.getNamespacesCli(ctx, clusterID)
 	if err != nil {
 		return errors.WrapIf(err, "failed to get namespaces client")
 	}
 
+	var combinedErr error
 	for _, namespace := range namespaces {
 
 		nss.logger.Debug("label namespace", map[string]interface{}{"namespace": namespace})
@@ -278,7 +278,6 @@ func (nss *namespaceService) RemoveLabels(ctx context.Context, clusterID uint, n
 	}
 	nss.logger.Info("removed labels from namespaces", map[string]interface{}{"namespaces": namespaces, "labels": labels})
 	return combinedErr
-
 }
 
 func (nss *namespaceService) getNamespacesCli(ctx context.Context, clusterID uint) (v1.NamespaceInterface, error) {

@@ -59,7 +59,7 @@ type anchoreSpec struct {
 func (a anchoreSpec) Validate() error {
 
 	if a.Enabled {
-		if a.Url == "" && a.SecretID == "" {
+		if a.Url == "" || a.SecretID == "" {
 			return errors.New("both anchore url and secretId are required")
 		}
 	}
@@ -99,7 +99,7 @@ type webHookConfigSpec struct {
 
 func (w webHookConfigSpec) Validate() error {
 	if w.Enabled {
-		if w.Selector == "" || len(w.Namespaces) < 1 {
+		if w.Selector == "" || len(w.Namespaces) == 0 {
 			return errors.NewPlain("selector and namespaces must be filled")
 		}
 	}
