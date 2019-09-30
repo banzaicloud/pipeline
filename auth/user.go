@@ -126,6 +126,14 @@ func (e UserExtractor) GetUserID(ctx context.Context) (uint, bool) {
 	return 0, false
 }
 
+func (e UserExtractor) GetUserLogin(ctx context.Context) (string, bool) {
+	if user, ok := ctx.Value(auth.CurrentUser).(*User); ok {
+		return user.Login, true
+	}
+
+	return "", false
+}
+
 // GetCurrentUser returns the current user
 func GetCurrentUser(req *http.Request) *User {
 	if currentUser, ok := Auth.GetCurrentUser(req).(*User); ok {

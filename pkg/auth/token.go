@@ -116,7 +116,7 @@ func NewJWTTokenGenerator(issuer string, audience string, signingKey string, opt
 }
 
 // GenerateToken generates a JWT token.
-func (g JWTTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType TokenType, tokenText string) (string, string, error) {
+func (g JWTTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType string, tokenText string) (string, string, error) {
 	tokenID := g.idgen.Generate()
 
 	claims := struct {
@@ -125,8 +125,8 @@ func (g JWTTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType 
 		Scope string `json:"scope,omitempty"`
 
 		// Virtual user fields
-		Type TokenType `json:"type,omitempty"`
-		Text string    `json:"text,omitempty"`
+		Type string `json:"type,omitempty"`
+		Text string `json:"text,omitempty"`
 	}{
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    g.issuer,
@@ -154,7 +154,7 @@ func (g JWTTokenGenerator) GenerateToken(sub string, expiresAt int64, tokenType 
 // TokenGenerator generates a token.
 type TokenGenerator interface {
 	// GenerateToken generates a token.
-	GenerateToken(sub string, expiresAt int64, tokenType TokenType, tokenText string) (string, string, error)
+	GenerateToken(sub string, expiresAt int64, tokenType string, tokenText string) (string, string, error)
 }
 
 // TokenManager manages tokens.
@@ -185,7 +185,7 @@ func (m TokenManager) GenerateToken(
 		tokenExpiresAt = expiresAt.Unix()
 	}
 
-	tokenID, signedToken, err := m.generator.GenerateToken(sub, tokenExpiresAt, tokenType, tokenText)
+	tokenID, signedToken, err := m.generator.GenerateToken(sub, tokenExpiresAt, string(tokenType), tokenText)
 	if err != nil {
 		return "", "", err
 	}

@@ -34,8 +34,15 @@ import (
 	ginprometheus "github.com/banzaicloud/go-gin-prometheus"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-kit/kit/endpoint"
+	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sagikazarmark/kitx/correlation"
+	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
+	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
+	"github.com/sagikazarmark/ocmux"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -57,6 +64,9 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokenadapter"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokendriver"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
@@ -96,7 +106,6 @@ import (
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
-	"github.com/banzaicloud/pipeline/pkg/correlation"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/providers"
@@ -181,14 +190,14 @@ func main() {
 	defer subscriber.Close()
 
 	publisher, _ = message.MessageTransformPublisherDecorator(func(msg *message.Message) {
-		if cid, ok := correlation.ID(msg.Context()); ok {
+		if cid, ok := correlation.FromContext(msg.Context()); ok {
 			watermillMiddleware.SetCorrelationID(cid, msg)
 		}
 	})(publisher)
 
 	subscriber, _ = message.MessageTransformSubscriberDecorator(func(msg *message.Message) {
 		if cid := watermillMiddleware.MessageCorrelationID(msg); cid != "" {
-			msg.SetContext(correlation.WithID(msg.Context(), cid))
+			msg.SetContext(correlation.ToContext(msg.Context(), cid))
 		}
 	})(subscriber)
 
@@ -222,16 +231,13 @@ func main() {
 
 	// Initialize auth
 	tokenStore := bauth.NewVaultTokenStore("pipeline")
-	tokenManager := pkgAuth.NewTokenManager(
-		pkgAuth.NewJWTTokenGenerator(
-			conf.Auth.Token.Issuer,
-			conf.Auth.Token.Audience,
-			base32.StdEncoding.EncodeToString([]byte(conf.Auth.Token.SigningKey)),
-		),
-		tokenStore,
+	tokenGenerator := pkgAuth.NewJWTTokenGenerator(
+		conf.Auth.Token.Issuer,
+		conf.Auth.Token.Audience,
+		base32.StdEncoding.EncodeToString([]byte(conf.Auth.Token.SigningKey)),
 	)
+	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
 	auth.Init(cicdDB, conf.Auth.Token.SigningKey, tokenStore, tokenManager, organizationSyncer)
-	tokenHandler := auth.NewTokenHandler(organizationStore, tokenManager)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		logger.Info("running automatic schema migrations")
@@ -729,10 +735,49 @@ func main() {
 		}
 		v1.GET("/orgs", organizationAPI.GetOrganizations)
 		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
-		v1.POST("/tokens", tokenHandler.GenerateToken)
-		v1.GET("/tokens", auth.GetTokens)
-		v1.GET("/tokens/:id", auth.GetTokens)
-		v1.DELETE("/tokens/:id", auth.DeleteToken)
+
+		endpointMiddleware := []endpoint.Middleware{
+			correlation.Middleware(),
+		}
+
+		httpServerOptions := []kithttp.ServerOption{
+			kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+			kithttp.ServerErrorEncoder(kitxhttp.ProblemErrorEncoder),
+			kithttp.ServerBefore(correlation.HTTPToContext()),
+		}
+
+		{
+			logger := commonLogger.WithFields(map[string]interface{}{"module": "auth"})
+			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "auth"))
+
+			router := mux.NewRouter()
+			router.Use(ocmux.Middleware())
+
+			service := token.NewService(
+				auth.UserExtractor{},
+				tokenadapter.NewBankVaultsStore(tokenStore),
+				tokenGenerator,
+			)
+			service = tokendriver.AuthorizationMiddleware(auth.NewAuthorizer(db, organizationStore))(service)
+
+			endpoints := tokendriver.TraceEndpoints(tokendriver.MakeEndpoints(
+				service,
+				kitxendpoint.Chain(endpointMiddleware...),
+				appkit.EndpointLogger(logger),
+			))
+
+			tokendriver.RegisterHTTPHandlers(
+				endpoints,
+				router.PathPrefix("/api/v1/tokens").Subrouter(),
+				kitxhttp.ServerOptions(httpServerOptions),
+				kithttp.ServerErrorHandler(errorHandler),
+			)
+
+			handler := gin.WrapH(http.StripPrefix(basePath, router))
+
+			v1.Any("/tokens", handler)
+			v1.Any("/tokens/*path", handler)
+		}
 
 		v1.GET("/allowed/secrets", api.ListAllowedSecretTypes)
 		v1.GET("/allowed/secrets/:type", api.ListAllowedSecretTypes)

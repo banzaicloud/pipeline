@@ -182,3 +182,52 @@ func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string
 		)
 	}
 }
+
+// Authorizer checks if a context has permission to execute an action.
+type Authorizer struct {
+	db         *gorm.DB
+	roleSource RoleSource
+}
+
+// NewAuthorizer returns a new Authorizer.
+func NewAuthorizer(db *gorm.DB, roleSource RoleSource) Authorizer {
+	return Authorizer{
+		db:         db,
+		roleSource: roleSource,
+	}
+}
+
+// Authorize authorizes a context to execute an action on an object.
+func (a Authorizer) Authorize(ctx context.Context, action string, object interface{}) (bool, error) {
+	if action == "virtualUser.create" {
+		orgName, ok := object.(string)
+		if !ok {
+			return false, errors.NewWithDetails("invalid object for action", "action", action, "object", object)
+		}
+
+		organization := Organization{Name: orgName}
+		err := a.db.
+			Where(organization).
+			First(&organization).Error
+		if err != nil {
+			return false, errors.Wrap(err, "failed to query organization name for virtual user")
+		}
+
+		userID, ok := UserExtractor{}.GetUserID(ctx)
+		if !ok {
+			return false, errors.New("user not found in the context")
+		}
+
+		role, member, err := a.roleSource.FindUserRole(ctx, organization.ID, userID)
+		if err != nil {
+			return false, errors.WithMessage(err, "failed to query organization membership for virtual user")
+		}
+
+		// TODO: implement better authorization here
+		if !member || role != RoleAdmin {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}

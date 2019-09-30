@@ -63,7 +63,7 @@ func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
 
 func TestTokenManager_GenerateToken(t *testing.T) {
 	const sub = "subject"
-	const tokenType = TokenType("apitoken")
+	const tokenType = "apitoken"
 	const tokenText = "token"
 
 	generator := new(MockTokenGenerator)
@@ -92,7 +92,7 @@ func TestTokenManager_GenerateToken(t *testing.T) {
 
 func TestTokenManager_GenerateToken_NoStoreSecret(t *testing.T) {
 	const sub = "subject"
-	const tokenType = TokenType("apitoken")
+	const tokenType = "apitoken"
 	const tokenText = "token"
 
 	generator := new(MockTokenGenerator)
