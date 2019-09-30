@@ -26,6 +26,7 @@ import (
 
 type vaultManager struct {
 	vaultClient *vault.Client
+	customVault bool
 	clusterID   uint
 	orgID       uint
 }
@@ -40,10 +41,11 @@ func newVaultManager(
 	clientConfig := vaultapi.DefaultConfig()
 	clientConfig.Address = vaultAddress
 
+	var roleName = getRoleName(spec.CustomVault.Enabled)
 	var clientOptions = []vault.ClientOption{
 		vault.ClientRole(roleName),
-		vault.ClientAuthPath(getAuthMethodPath(orgID, clusterID)),
 	}
+
 	if token != "" {
 		clientOptions = append(clientOptions, vault.ClientToken(token))
 	}
@@ -58,6 +60,7 @@ func newVaultManager(
 
 	return &vaultManager{
 		vaultClient: client,
+		customVault: spec.CustomVault.Enabled,
 		clusterID:   clusterID,
 		orgID:       orgID,
 	}, nil
@@ -114,11 +117,11 @@ func (m vaultManager) createRole(serviceAccounts, namespaces []string) (*vaultap
 		"policies":                         []string{getPolicyName(m.orgID, m.clusterID)},
 		"ttl":                              "1h",
 	}
-	return m.vaultClient.RawClient().Logical().Write(getRolePath(m.orgID, m.clusterID), roleData)
+	return m.vaultClient.RawClient().Logical().Write(getRolePath(m.orgID, m.clusterID, getRoleName(m.customVault)), roleData)
 }
 
 func (m vaultManager) deleteRole() (*vaultapi.Secret, error) {
-	return m.vaultClient.RawClient().Logical().Delete(getRolePath(m.orgID, m.clusterID))
+	return m.vaultClient.RawClient().Logical().Delete(getRolePath(m.orgID, m.clusterID, getRoleName(m.customVault)))
 }
 
 func (m vaultManager) createPolicy(policy string) error {
@@ -129,11 +132,18 @@ func (m vaultManager) deletePolicy() error {
 	return m.vaultClient.RawClient().Sys().DeletePolicy(getPolicyName(m.orgID, m.clusterID))
 }
 
+func getRoleName(isCustomVault bool) string {
+	if isCustomVault {
+		return customRoleName
+	}
+	return pipelineRoleName
+}
+
 func getAuthMethodPath(orgID, clusterID uint) string {
 	return fmt.Sprintf("%s/%d/%d", authMethodPathPrefix, orgID, clusterID)
 }
 
-func getRolePath(orgID, clusterID uint) string {
+func getRolePath(orgID, clusterID uint, roleName string) string {
 	return fmt.Sprintf("auth/%s/role/%s", getAuthMethodPath(orgID, clusterID), roleName)
 }
 
