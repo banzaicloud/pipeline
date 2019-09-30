@@ -459,7 +459,7 @@ func main() {
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
-	auth.Install(router, tokenHandler.GenerateToken)
+	auth.Install(router)
 	auth.StartTokenStoreGC(tokenStore)
 
 	enforcer := auth.NewRbacEnforcer(organizationStore, commonLogger)

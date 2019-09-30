@@ -253,7 +253,7 @@ func StartTokenStoreGC(tokenStore bauth.TokenStore) {
 }
 
 // Install the whole OAuth and JWT Token based authn/authz mechanism to the specified Gin Engine.
-func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
+func Install(engine *gin.Engine) {
 
 	// We have to make the raw net/http handlers a bit Gin-ish
 	authHandler := gin.WrapH(Auth.NewServeMux())
@@ -270,10 +270,6 @@ func Install(engine *gin.Engine, generateTokenHandler gin.HandlerFunc) {
 		authGroup.GET("/dex/register", authHandler)
 		authGroup.GET("/dex/callback", authHandler)
 		authGroup.POST("/dex/callback", authHandler)
-		authGroup.POST("/tokens", generateTokenHandler)
-		authGroup.GET("/tokens", GetTokens)
-		authGroup.GET("/tokens/:id", GetTokens)
-		authGroup.DELETE("/tokens/:id", DeleteToken)
 	}
 }
 
