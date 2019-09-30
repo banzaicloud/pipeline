@@ -47,7 +47,6 @@ require (
 	github.com/crossdock/crossdock-go v0.0.0-20160816171116-049aabb0122b // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190820223206-44cdfe8d8ba9 // indirect
-	github.com/dexidp/dex v0.0.0-20190205125449-7bd4071b4c8c
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/didip/tollbooth v4.0.0+incompatible
 	github.com/docker/distribution v0.0.0-20180327202408-83389a148052 // indirect
@@ -91,6 +90,8 @@ require (
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/kubernetes-sigs/kubefed v0.1.0-rc5
 	github.com/lestrrat-go/backoff v0.0.0-20190107202757-0bc2a4274cd0
+	github.com/lib/pq v0.0.0-20181016162627-9eb73efc1fcc // indirect
+	github.com/mattn/go-sqlite3 v0.0.0-20160907162043-3fb7a0e792ed // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.1.1
@@ -122,6 +123,7 @@ require (
 	github.com/sagikazarmark/kitx v0.2.0
 	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20160419172024-e9042807f4f5 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v0.0.0-20190306220146-200a235640ff // indirect
 	github.com/spf13/cast v1.3.0
