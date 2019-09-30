@@ -20,13 +20,13 @@ import (
 	"net/url"
 
 	"emperror.dev/emperror"
-	"github.com/dexidp/dex/api"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	k8sClient "k8s.io/client-go/tools/clientcmd"
 	k8sClientApi "k8s.io/client-go/tools/clientcmd/api"
 
+	"github.com/banzaicloud/pipeline/.gen/dex"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -43,7 +43,7 @@ type ClusterClientSecret struct {
 }
 
 type dexClient struct {
-	api.DexClient
+	dex.DexClient
 	grpcConn *grpc.ClientConn
 }
 
@@ -64,7 +64,7 @@ func newDexClient(hostAndPort, caPath string) (*dexClient, error) {
 	if err != nil {
 		return nil, emperror.Wrapf(err, "grpc dial failed")
 	}
-	return &dexClient{DexClient: api.NewDexClient(conn), grpcConn: conn}, nil
+	return &dexClient{DexClient: dex.NewDexClient(conn), grpcConn: conn}, nil
 }
 
 type ClusterAuthService interface {
@@ -130,8 +130,8 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 	cliRedirectURI := "http://localhost:5555/callback"
 	pipelineRedirectURI := a.pipelineRedirectURI
 
-	req := &api.CreateClientReq{
-		Client: &api.Client{
+	req := &dex.CreateClientReq{
+		Client: &dex.Client{
 			Id:     clientID,
 			Name:   clusterName,
 			Secret: clientSecret,
@@ -169,7 +169,7 @@ func (a *dexClusterAuthService) UnRegisterCluster(ctx context.Context, clusterUI
 
 	clientID := clusterUID
 
-	req := &api.DeleteClientReq{
+	req := &dex.DeleteClientReq{
 		Id: clientID,
 	}
 
