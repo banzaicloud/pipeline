@@ -26,9 +26,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	clusterAPI "github.com/banzaicloud/pipeline/api/cluster"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/client"
 	"github.com/banzaicloud/pipeline/cluster"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -132,7 +132,7 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 		return
 	}
 
-	var createClusterRequestBase client.CreateClusterRequestBase
+	var createClusterRequestBase pipeline.CreateClusterRequestBase
 	if !a.parseRequest(c, requestBody, &createClusterRequestBase) {
 		return
 	}
@@ -166,10 +166,10 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 				if postHooks, ok := requestBody["postHooks"]; ok {
 					log.Warn("Got post hooks in request. Post hooks are deprecated, please use features instead.")
 					if phs, ok := postHooks.(map[string]interface{}); ok {
-						req.Features = make([]client.Feature, 0, len(phs))
+						req.Features = make([]pipeline.Feature, 0, len(phs))
 						for kind, params := range phs {
 							if p, ok := params.(map[string]interface{}); ok {
-								req.Features = append(req.Features, client.Feature{
+								req.Features = append(req.Features, pipeline.Feature{
 									Kind:   kind,
 									Params: p,
 								})
