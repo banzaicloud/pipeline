@@ -44,10 +44,12 @@ type whiteListService struct {
 }
 
 func NewWhiteListService(clusterGetter clusterfeatureadapter.ClusterGetter, logger common.Logger) WhiteListService {
-	svc := new(whiteListService)
-	svc.clusterGetter = clusterGetter
-	svc.logger = logger
-	return svc
+	_ = v1alpha1.AddToScheme(scheme.Scheme)
+
+	return &whiteListService{
+		clusterGetter: clusterGetter,
+		logger:        logger,
+	}
 }
 
 func (wls *whiteListService) getWhiteListsClient(ctx context.Context, clusterID uint) (securityClientV1Alpha.WhiteListInterface, error) {
@@ -75,8 +77,6 @@ func (wls *whiteListService) getWhiteListsClient(ctx context.Context, clusterID 
 }
 
 func (wls *whiteListService) EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error {
-	// todo should this be here?
-	_ = v1alpha1.AddToScheme(scheme.Scheme)
 
 	wlClient, err := wls.getWhiteListsClient(ctx, clusterID)
 	if err != nil {
@@ -93,7 +93,7 @@ func (wls *whiteListService) EnsureReleaseWhiteList(ctx context.Context, cluster
 		installedItemsMap[installedItem.Name] = installedItem
 	}
 
-	toBeAdded := make([]releaseSpec, 0)
+	var toBeAdded []releaseSpec
 
 	// find items to be installed
 	for _, releaseItem := range items {
@@ -108,7 +108,7 @@ func (wls *whiteListService) EnsureReleaseWhiteList(ctx context.Context, cluster
 	}
 
 	// items to be removed are left in the map at this point
-	toBeRemoved := make([]string, 0)
+	toBeRemoved := make([]string, len(installedItemsMap))
 	for itemName := range installedItemsMap {
 		toBeRemoved = append(toBeRemoved, itemName)
 	}
@@ -129,7 +129,6 @@ func (wls *whiteListService) removeItems(ctx context.Context, whitelistCli secur
 	for _, itemName := range itemNames {
 		if err := whitelistCli.Delete(itemName, &metav1.DeleteOptions{}); err != nil {
 			collectedErrors = errors.Append(collectedErrors, errors.WrapIff(err, "failed to remove whitelist item %s", itemName))
-			continue
 		}
 	}
 	return collectedErrors
@@ -138,15 +137,14 @@ func (wls *whiteListService) removeItems(ctx context.Context, whitelistCli secur
 func (wls *whiteListService) installItems(ctx context.Context, whitelistCli securityClientV1Alpha.WhiteListInterface, items []releaseSpec) error {
 	var collectedErrors error
 	for _, item := range items {
-		if _, err := whitelistCli.Create(wls.assembleWhiteLisItem(item)); err != nil {
-			collectedErrors = errors.Append(collectedErrors, errors.WrapIff(err, "failed to azdd whitelist item %s", item.Name))
-			continue
+		if _, err := whitelistCli.Create(wls.assembleWhiteListItem(item)); err != nil {
+			collectedErrors = errors.Append(collectedErrors, errors.WrapIff(err, "failed to add whitelist item %s", item.Name))
 		}
 	}
 	return collectedErrors
 }
 
-func (wls *whiteListService) assembleWhiteLisItem(releaseItem releaseSpec) *securityV1Alpha.WhiteListItem {
+func (wls *whiteListService) assembleWhiteListItem(releaseItem releaseSpec) *securityV1Alpha.WhiteListItem {
 	return &securityV1Alpha.WhiteListItem{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "WhiteListItem",
@@ -167,13 +165,12 @@ func (wls *whiteListService) runWithBackoff(f func() error) error {
 	// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
 	// a whitelist cr may fail. Retry the whitelist creation in case of failure
 	var backoffConfig = backoff.ConstantBackoffConfig{
-		Delay:      time.Duration(5) * time.Second,
+		Delay:      5 * time.Second,
 		MaxRetries: 3,
 	}
 	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	return backoff.Retry(f, backoffPolicy)
-
 }
 
 type NamespaceService interface {
@@ -190,11 +187,10 @@ type namespaceService struct {
 }
 
 func NewNamespacesService(getter clusterfeatureadapter.ClusterGetter, log common.Logger) NamespaceService {
-	nss := new(namespaceService)
-	nss.clusterGetter = getter
-	nss.logger = log
-
-	return nss
+	return &namespaceService{
+		clusterGetter: getter,
+		logger:        log,
+	}
 }
 
 func (nss *namespaceService) LabelNamespaces(ctx context.Context, clusterID uint, namespaces []string, newLabels map[string]string) error {

@@ -26,7 +26,7 @@ type AnchoreConfig struct {
 	Enabled  bool
 }
 
-// AnchoreService decouples anchor related operations
+// AnchoreService decouples anchore related operations
 type AnchoreService interface {
 	// GenerateUser generates an anchore user and stores it in the secret store
 	GenerateUser(ctx context.Context, orgID uint, clusterGUID string) (string, error)
@@ -52,7 +52,7 @@ func NewAnchoreService() AnchoreService {
 	return new(anchoreService)
 }
 
-func (a *anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterGUID string) (string, error) {
+func (a anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterGUID string) (string, error) {
 
 	usr, err := anchore.SetupAnchoreUser(orgID, clusterGUID)
 	if err != nil {
@@ -63,7 +63,7 @@ func (a *anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterGU
 	return usr.UserId, nil
 }
 
-func (a *anchoreService) DeleteUser(ctx context.Context, orgID uint, clusterGUID string) error {
+func (a anchoreService) DeleteUser(ctx context.Context, orgID uint, clusterGUID string) error {
 	// todo refactor the original implementation to handle errors?
 
 	anchore.RemoveAnchoreUser(orgID, clusterGUID)

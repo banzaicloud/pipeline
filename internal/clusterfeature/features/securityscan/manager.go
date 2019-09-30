@@ -70,6 +70,5 @@ func (f FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 }
 
 func (f FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
-	// todo implement this - do nothing for the time being
 	return spec, nil
 }

@@ -305,12 +305,10 @@ func (op *FeatureOperator) setSecurityScan(ctx context.Context, clusterID uint, 
 func (op *FeatureOperator) configureWebHook(ctx context.Context, clusterID uint, whConfig webHookConfigSpec) error {
 
 	const labelKey = "scan"
-	var (
-		securityScanLabels = map[string]string{
-			"include": "scan",
-			"exclude": "noscan",
-		}
-	)
+	securityScanLabels := map[string]string{
+		"include": "scan",
+		"exclude": "noscan",
+	}
 
 	labeMap := map[string]string{labelKey: securityScanLabels[whConfig.Selector]}
 
