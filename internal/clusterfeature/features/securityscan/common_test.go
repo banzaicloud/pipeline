@@ -17,50 +17,10 @@ package securityscan
 import (
 	"context"
 
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
-	"github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 type obj = map[string]interface{}
-
-type clusterGetterMock struct {
-}
-
-func (c clusterGetterMock) GetClusterByIDOnly(ctx context.Context, clusterID uint) (clusterfeatureadapter.Cluster, error) {
-
-	return nil, nil
-}
-
-type clusterServiceMock struct {
-}
-
-func (c clusterServiceMock) CheckClusterReady(ctx context.Context, clusterID uint) error {
-	panic("implement me")
-}
-
-type helmServiceMock struct {
-}
-
-func (h helmServiceMock) GetDeployment(ctx context.Context, clusterID uint, releaseName string) (*helm.GetDeploymentResponse, error) {
-	panic("implement me")
-}
-
-func (h helmServiceMock) ApplyDeployment(
-	ctx context.Context,
-	clusterID uint,
-	namespace string,
-	deploymentName string,
-	releaseName string,
-	values []byte,
-	chartVersion string,
-) error {
-	panic("implement me")
-}
-
-func (h helmServiceMock) DeleteDeployment(ctx context.Context, clusterID uint, releaseName string) error {
-	panic("implement me")
-}
 
 type secretStoreMock struct {
 }

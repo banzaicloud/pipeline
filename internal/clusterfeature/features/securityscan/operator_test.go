@@ -20,17 +20,23 @@ import (
 	"testing"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"logur.dev/logur"
 )
 
 func TestMakeFeatureOperator(t *testing.T) {
 	var ssFeatureOperator interface{}
+	clusterGetterMock := clusterfeatureadapter.MockClusterGetter{}
+	clusterGetterMock.On("GetClusterByIDOnly", mock.Anything, mock.Anything).Return(nil, nil)
+
 	ssFeatureOperator = MakeFeatureOperator(
-		clusterGetterMock{},
-		clusterServiceMock{},
-		helmServiceMock{},
+		&clusterGetterMock,
+		&clusterfeature.MockClusterService{},
+		&features.MockHelmService{},
 		secretStoreMock{},
 		commonadapter.NewLogger(logur.NewTestLogger()),
 	)
@@ -42,10 +48,17 @@ func TestMakeFeatureOperator(t *testing.T) {
 }
 
 func TestFeatureOperator_ProcessChartValues(t *testing.T) {
+	clusterGetterMock := clusterfeatureadapter.MockClusterGetter{}
+	clusterGetterMock.On("GetClusterByIDOnly", mock.Anything, mock.Anything).Return(nil, nil)
+
+	clusterServiceMock := clusterfeature.MockClusterService{}
+
+	helmServiceMock := features.MockHelmService{}
+
 	ssFeatureOperator := MakeFeatureOperator(
-		clusterGetterMock{},
-		clusterServiceMock{},
-		helmServiceMock{},
+		&clusterGetterMock,
+		&clusterServiceMock,
+		&helmServiceMock,
 		secretStoreMock{},
 		commonadapter.NewLogger(logur.NewTestLogger()),
 	)
