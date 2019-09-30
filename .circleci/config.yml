@@ -269,12 +269,12 @@ jobs:
                 run:
                     name: Tag release
                     command: |
-                        docker tag <<parameters.image>>:$CIRCLE_SHA1 <<parameters.registry>>/<<parameters.image>>:<< parameters.tag >>
+                        docker tag <<parameters.image>>:$CIRCLE_SHA1 <<parameters.registry>>/<<parameters.image>>:<<parameters.tag>>
             -
                 docker/push:
                     registry: <<parameters.registry>>
                     image: <<parameters.image>>
-                    tag: $CIRCLE_TAG
+                    tag: <<parameters.tag>>
             -
                 run:
                     name: Check version
