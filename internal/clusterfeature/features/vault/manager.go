@@ -84,7 +84,7 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 
 	chartVersion := getChartVersion()
 
-	vaultOutput, err := getVaultOutput(*vaultManager, orgID, clusterID, boundSpec.CustomVault.Enabled)
+	vaultOutput, err := getVaultOutput(*vaultManager, orgID, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get Vault output")
 	}
@@ -99,7 +99,7 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 	return out, nil
 }
 
-func getVaultOutput(m vaultManager, orgID, clusterID uint, isCustomVault bool) (map[string]interface{}, error) {
+func getVaultOutput(m vaultManager, orgID, clusterID uint) (map[string]interface{}, error) {
 	// get Vault version
 	vaultVersion, err := m.getVaultVersion()
 	if err != nil {
@@ -108,10 +108,10 @@ func getVaultOutput(m vaultManager, orgID, clusterID uint, isCustomVault bool) (
 
 	out := map[string]interface{}{
 		"authMethodPath": getAuthMethodPath(orgID, clusterID),
-		"rolePath":       getRolePath(orgID, clusterID),
+		"rolePath":       getRolePath(orgID, clusterID, getRoleName(m.customVault)),
 		"version":        vaultVersion,
 	}
-	if !isCustomVault {
+	if !m.customVault {
 		out["policy"] = getDefaultPolicy(orgID)
 	}
 
