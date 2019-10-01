@@ -18,6 +18,7 @@ import (
 	"emperror.dev/errors"
 
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -36,6 +37,7 @@ type CreateParams struct {
 	VirtualNetworkName string
 	NodePools          []NodePool
 	Features           []intCluster.Feature
+	HTTPProxy          intPKE.HTTPProxy
 }
 
 // AzurePKEClusterStore defines behaviors of PKEOnAzureCluster persistent storage

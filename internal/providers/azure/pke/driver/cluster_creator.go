@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -130,6 +131,7 @@ type AzurePKEClusterCreationParams struct {
 	ScaleOptions   pkgCluster.ScaleOptions
 	SecretID       string
 	SSHSecretID    string
+	HTTPProxy      intPKE.HTTPProxy
 }
 
 // Create
@@ -198,6 +200,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		NodePools:          nodePools,
 		VirtualNetworkName: params.Network.Name,
 		KubernetesVersion:  params.Kubernetes.Version,
+		HTTPProxy:          params.HTTPProxy,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
@@ -251,6 +254,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		ClusterName:                 cl.Name,
 		KubernetesVersion:           cl.Kubernetes.Version,
 		Location:                    cl.Location,
+		NoProxy:                     strings.Join(cl.HTTPProxy.Exceptions, ","),
 		OrganizationID:              cl.OrganizationID,
 		PipelineExternalURL:         cc.pipelineExternalURL,
 		PipelineExternalURLInsecure: cc.pipelineExternalURLInsecure,

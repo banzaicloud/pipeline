@@ -25,6 +25,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -74,6 +75,8 @@ type gormAzurePKEClusterModel struct {
 
 	ActiveWorkflowID  string
 	KubernetesVersion string
+
+	HTTPProxy string `gorm:"type:json"`
 
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
@@ -142,7 +145,57 @@ func unmarshalStringSlice(s string) (result []string) {
 	return
 }
 
-func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) {
+type httpProxy struct {
+	HTTP       httpProxyOptions `json:"http,omitempty"`
+	HTTPS      httpProxyOptions `json:"https,omitempty"`
+	Exceptions []string         `json:"exceptions,omitempty"`
+}
+
+type httpProxyOptions struct {
+	Host     string `json:"host"`
+	Port     uint16 `json:"port,omitempty"`
+	SecretID string `json:"secretId,omitempty"`
+}
+
+func marshalHTTPProxy(proxy intPKE.HTTPProxy) (string, error) {
+	p := httpProxy{
+		HTTP: httpProxyOptions{
+			Host:     proxy.HTTP.Host,
+			Port:     proxy.HTTP.Port,
+			SecretID: proxy.HTTP.SecretID,
+		},
+		HTTPS: httpProxyOptions{
+			Host:     proxy.HTTPS.Host,
+			Port:     proxy.HTTPS.Port,
+			SecretID: proxy.HTTPS.SecretID,
+		},
+		Exceptions: proxy.Exceptions,
+	}
+	raw, err := json.Marshal(p)
+	return string(raw), errors.WrapIf(err, "failed to marshal proxy as JSON")
+}
+
+func unmarshalHTTPProxy(s string) (intPKE.HTTPProxy, error) {
+	var p httpProxy
+	if err := json.Unmarshal([]byte(s), &p); err != nil {
+		return intPKE.HTTPProxy{}, err
+	}
+	return intPKE.HTTPProxy{
+		HTTP: intPKE.HTTPProxyOptions{
+			Host:     p.HTTP.Host,
+			Port:     p.HTTP.Port,
+			SecretID: p.HTTP.SecretID,
+		},
+		HTTPS: intPKE.HTTPProxyOptions{
+			Host:     p.HTTPS.Host,
+			Port:     p.HTTPS.Port,
+			SecretID: p.HTTPS.SecretID,
+		},
+		Exceptions: p.Exceptions,
+	}, nil
+}
+
+func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) error {
 	fillClusterFromClusterModel(cluster, model.Cluster)
 
 	cluster.ResourceGroup.Name = model.ResourceGroupName
@@ -158,6 +211,14 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 
 	cluster.Kubernetes.Version = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
+
+	var err error
+	cluster.HTTPProxy, err = unmarshalHTTPProxy(model.HTTPProxy)
+	if err != nil {
+		return errors.WrapIf(err, "failed to unmarshal HTTP proxy")
+	}
+
+	return nil
 }
 
 func fillNodePoolFromModel(nodePool *pke.NodePool, model gormAzurePKENodePoolModel) {
@@ -207,6 +268,11 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		fillModelFromNodePool(&nodePools[i], np)
 	}
 
+	httpProxy, err := marshalHTTPProxy(params.HTTPProxy)
+	if err != nil {
+		return c, errors.WrapIf(err, "failed to marshal HTTP proxy")
+	}
+
 	model := gormAzurePKEClusterModel{
 		Cluster: cluster.ClusterModel{
 			CreatedBy:      params.CreatedBy,
@@ -236,6 +302,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		VirtualNetworkLocation: params.Location,
 		VirtualNetworkName:     params.VirtualNetworkName,
 		NodePools:              nodePools,
+		HTTPProxy:              httpProxy,
 	}
 	{
 		// Adapting to legacy format. TODO: Please remove this as soon as possible.
@@ -255,7 +322,9 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
 		return
 	}
-	fillClusterFromAzurePKEClusterModel(&c, model)
+	if err := fillClusterFromAzurePKEClusterModel(&c, model); err != nil {
+		return c, errors.WrapIf(err, "failed to fill cluster from model")
+	}
 	return
 }
 
@@ -293,7 +362,7 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 	return getError(s.db.Delete(model), "failed to soft-delete model from database")
 }
 
-func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, err error) {
+func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, _ error) {
 	if err := validateClusterID(clusterID); err != nil {
 		return cluster, errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -301,10 +370,12 @@ func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzur
 	model := gormAzurePKEClusterModel{
 		ClusterID: clusterID,
 	}
-	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model), "failed to load model from database"); err != nil {
-		return
+	if err := getError(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model), "failed to load model from database"); err != nil {
+		return cluster, err
 	}
-	fillClusterFromAzurePKEClusterModel(&cluster, model)
+	if err := fillClusterFromAzurePKEClusterModel(&cluster, model); err != nil {
+		return cluster, errors.WrapIf(err, "failed to fill cluster from model")
+	}
 	return
 }
 

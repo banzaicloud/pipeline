@@ -76,6 +76,19 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 		},
 		NodePools: requestToClusterNodepools(req.Nodepools, userID),
 		Features:  features,
+		HTTPProxy: intPKE.HTTPProxy{
+			HTTP:       clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Http),
+			HTTPS:      clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(req.Proxy.Https),
+			Exceptions: req.Proxy.Exceptions,
+		},
+	}
+}
+
+func clientPKEClusterHTTPProxyOptionsToPKEHTTPProxyOptions(o pipeline.PkeClusterHttpProxyOptions) intPKE.HTTPProxyOptions {
+	return intPKE.HTTPProxyOptions{
+		Host:     o.Host,
+		Port:     uint16(o.Port),
+		SecretID: o.SecretId,
 	}
 }
 
