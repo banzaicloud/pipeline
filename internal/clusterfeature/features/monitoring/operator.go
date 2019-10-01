@@ -20,6 +20,8 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	v1 "k8s.io/api/core/v1"
+
 	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
@@ -29,7 +31,6 @@ import (
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	v1 "k8s.io/api/core/v1"
 )
 
 // FeatureOperator implements the Monitoring feature operator

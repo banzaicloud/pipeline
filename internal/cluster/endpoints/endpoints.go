@@ -19,13 +19,14 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/common"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/pkg/apis/core"
+
+	"github.com/banzaicloud/pipeline/internal/common"
+	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
+	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 )
 
 type EndpointManager struct {

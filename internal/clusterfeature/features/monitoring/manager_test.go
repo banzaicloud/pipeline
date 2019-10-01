@@ -19,14 +19,14 @@ import (
 	"testing"
 
 	"emperror.dev/errors"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/stretchr/testify/assert"
-
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 )
 
 func TestFeatureManager_Name(t *testing.T) {
