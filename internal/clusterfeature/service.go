@@ -92,10 +92,10 @@ func (s FeatureService) Details(ctx context.Context, clusterID uint, featureName
 		return feature, errors.WrapIf(err, msg)
 	}
 
-	logger.Debug("retieving feature manager")
+	logger.Debug("retrieving feature manager")
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(featureName)
 	if err != nil {
-		const msg = "failed to retieve feature manager"
+		const msg = "failed to retrieve feature manager"
 		logger.Debug(msg)
 		return feature, errors.WrapIf(err, msg)
 	}
