@@ -72,38 +72,75 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	mng := MakeFeatureManager(clusterGetter, secretStore, nil)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
-	spec := obj{
-		"customVault": obj{
-			"enabled": false,
-		},
-		"settings": obj{
-			"namespaces":      []string{"default"},
-			"serviceAccounts": []string{"*"},
-		},
-	}
-	output, err := mng.GetOutput(ctx, clusterID, spec)
-	assert.NoError(t, err)
-
 	vm, err := newVaultManager(vaultFeatureSpec{}, orgID, clusterID, "TODOTOKEN")
 	assert.NoError(t, err)
 
 	vVersion, err := vm.getVaultVersion()
 	assert.NoError(t, err)
 
-	assert.Equal(t, clusterfeature.FeatureOutput{
-		"vault": map[string]interface{}{
-			"authMethodPath": "kubernetes/13/42",
-			"rolePath":       "auth/kubernetes/13/42/role/pipeline-webhook",
-			"version":        vVersion,
-			"policy": fmt.Sprintf(`
+	cases := map[string]struct {
+		spec   obj
+		output clusterfeature.FeatureOutput
+	}{
+		"Pipeline Vault": {
+			spec: obj{
+				"customVault": obj{
+					"enabled": false,
+				},
+				"settings": obj{
+					"namespaces":      []string{"default"},
+					"serviceAccounts": []string{"*"},
+				},
+			},
+			output: clusterfeature.FeatureOutput{
+				"vault": map[string]interface{}{
+					"authMethodPath": "kubernetes/13/42",
+					"rolePath":       "auth/kubernetes/13/42/role/pipeline",
+					"version":        vVersion,
+					"policy": fmt.Sprintf(`
 			path "secret/data/orgs/%d/*" {
 				capabilities = [ "read" ]
 			}`, 13),
+				},
+				"webhook": map[string]interface{}{
+					"version": viper.GetString(config.VaultWebhookChartVersionKey),
+				},
+			},
 		},
-		"webhook": map[string]interface{}{
-			"version": viper.GetString(config.VaultWebhookChartVersionKey),
+		"custom Vault": {
+			spec: obj{
+				"customVault": obj{
+					"enabled": true,
+					"address": "http://localhost:8200/",
+					"policy":  getDefaultPolicy(orgID),
+				},
+				"settings": obj{
+					"namespaces":      []string{"default"},
+					"serviceAccounts": []string{"*"},
+				},
+			},
+			output: clusterfeature.FeatureOutput{
+				"vault": map[string]interface{}{
+					"authMethodPath": "kubernetes/13/42",
+					"rolePath":       "auth/kubernetes/13/42/role/pipeline-webhook",
+					"version":        vVersion,
+				},
+				"webhook": map[string]interface{}{
+					"version": viper.GetString(config.VaultWebhookChartVersionKey),
+				},
+			},
 		},
-	}, output)
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			output, err := mng.GetOutput(ctx, clusterID, tc.spec)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tc.output, output)
+		})
+	}
+
 }
 
 func TestFeatureManager_ValidateSpec(t *testing.T) {
