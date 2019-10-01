@@ -24,7 +24,6 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/oklog/run"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -32,6 +31,8 @@ import (
 	"go.uber.org/cadence/workflow"
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
+
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"

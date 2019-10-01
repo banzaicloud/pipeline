@@ -18,8 +18,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 // TestMakeFeatureManager makes sure the constructor always creates an instance that implements the right interface

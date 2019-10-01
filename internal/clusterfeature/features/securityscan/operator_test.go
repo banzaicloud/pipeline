@@ -19,13 +19,14 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"logur.dev/logur"
+
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"logur.dev/logur"
 )
 
 func TestMakeFeatureOperator(t *testing.T) {

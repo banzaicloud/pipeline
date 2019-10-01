@@ -16,8 +16,9 @@ package securityscan
 
 import (
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/mitchellh/mapstructure"
+
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 //featureSpec security scan cluster feature specific specification

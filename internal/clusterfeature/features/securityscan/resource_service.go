@@ -23,13 +23,14 @@ import (
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/scheme"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 // WhiteListService handles whitelist creation and removal
@@ -108,7 +109,7 @@ func (wls *whiteListService) EnsureReleaseWhiteList(ctx context.Context, cluster
 	}
 
 	// items to be removed are left in the map at this point
-	toBeRemoved := make([]string, len(installedItemsMap))
+	toBeRemoved := make([]string, 0, len(installedItemsMap))
 	for itemName := range installedItemsMap {
 		toBeRemoved = append(toBeRemoved, itemName)
 	}

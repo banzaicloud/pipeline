@@ -19,6 +19,9 @@ import (
 	"encoding/json"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
@@ -26,8 +29,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/secret"
-	"github.com/mitchellh/mapstructure"
-	corev1 "k8s.io/api/core/v1"
 )
 
 const (

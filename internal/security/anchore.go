@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,6 +25,7 @@ import (
 	"path"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 

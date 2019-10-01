@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"emperror.dev/errors"
+
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 )
 
