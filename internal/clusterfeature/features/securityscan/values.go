@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package securityscan
 
-const (
-	featureName             = "vault"
-	vaultWebhookReleaseName = "vault-secrets-webhook"
-	kubeSysNamespace        = "kube-system"
-	vaultAddressEnvKey      = "VAULT_ADDR"
-	vaultPathEnvKey         = "VAULT_PATH"
-	customRoleName          = "pipeline-webhook"
-	pipelineRoleName        = "pipeline"
-	authMethodType          = "kubernetes"
-	authMethodPathPrefix    = "kubernetes"
-	policyNamePrefix        = "allow_cluster_secrets"
-	vaultTokenReviewer      = "vault-token-reviewer"
-	vaultTokenKey           = "token"
-)
+import v1 "k8s.io/api/core/v1"
+
+type SecurityScanChartValues struct {
+	Anchore     AnchoreValues   `json:"externalAnchore"`
+	Affinity    *v1.Affinity    `json:"affinity,omitempty"`
+	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+}
+
+// AnchoreValues struct used to build chart values and to extract anchore data from secret values
+type AnchoreValues struct {
+	Host     string `json:"anchoreHost" mapstructure:"host"`
+	User     string `json:"anchoreUser" mapstructure:"username"`
+	Password string `json:"anchorePass" mapstructure:"password"`
+}

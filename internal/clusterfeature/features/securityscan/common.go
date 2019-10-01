@@ -12,19 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package securityscan
 
-const (
-	featureName             = "vault"
-	vaultWebhookReleaseName = "vault-secrets-webhook"
-	kubeSysNamespace        = "kube-system"
-	vaultAddressEnvKey      = "VAULT_ADDR"
-	vaultPathEnvKey         = "VAULT_PATH"
-	customRoleName          = "pipeline-webhook"
-	pipelineRoleName        = "pipeline"
-	authMethodType          = "kubernetes"
-	authMethodPathPrefix    = "kubernetes"
-	policyNamePrefix        = "allow_cluster_secrets"
-	vaultTokenReviewer      = "vault-token-reviewer"
-	vaultTokenKey           = "token"
-)
+const FeatureName = "securityscan"

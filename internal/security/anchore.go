@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,6 +25,7 @@ import (
 	"path"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -257,6 +257,9 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 		if _, err := secret.Store.CreateOrUpdate(orgId, &secretRequest); err != nil {
 			return nil, emperror.Wrap(err, "failed to create/update Anchore user secret")
 		}
+
+		user.UserId = anchoreUserName
+		user.Password = userPassword
 	}
 
 	return &user, nil
@@ -284,7 +287,7 @@ func RemoveAnchoreUser(orgId uint, clusterId string) {
 		}).Debug("Anchore user secret deleted")
 	}
 	if checkAnchoreUser(anchorUserName, http.MethodDelete) != http.StatusNoContent {
-		logger.Error(emperror.WrapWith(err, "error deleting Anchore user", "organization", orgId, "user", anchorUserName))
+		logger.WithError(err).Errorf("error deleting Anchore user; organization %d, user %s", orgId, anchorUserName)
 	}
 	logger.WithFields(logrus.Fields{
 		"organization": orgId,

@@ -12,19 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package securityscan
 
-const (
-	featureName             = "vault"
-	vaultWebhookReleaseName = "vault-secrets-webhook"
-	kubeSysNamespace        = "kube-system"
-	vaultAddressEnvKey      = "VAULT_ADDR"
-	vaultPathEnvKey         = "VAULT_PATH"
-	customRoleName          = "pipeline-webhook"
-	pipelineRoleName        = "pipeline"
-	authMethodType          = "kubernetes"
-	authMethodPathPrefix    = "kubernetes"
-	policyNamePrefix        = "allow_cluster_secrets"
-	vaultTokenReviewer      = "vault-token-reviewer"
-	vaultTokenKey           = "token"
+import (
+	"context"
+
+	"github.com/banzaicloud/pipeline/secret"
 )
+
+type obj = map[string]interface{}
+
+type secretStoreMock struct {
+}
+
+func (s secretStoreMock) Store(ctx context.Context, request *secret.CreateSecretRequest) (string, error) {
+	panic("implement me")
+}
+
+func (s secretStoreMock) Delete(ctx context.Context, secretID string) error {
+	panic("implement me")
+}
+
+func (s secretStoreMock) GetSecretValues(ctx context.Context, secretID string) (map[string]string, error) {
+	return map[string]string{"username": "test_username", "password": "test_password"}, nil
+}
