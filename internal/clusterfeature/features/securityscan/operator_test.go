@@ -19,11 +19,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"

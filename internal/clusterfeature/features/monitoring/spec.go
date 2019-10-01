@@ -18,9 +18,10 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
+
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
-	"github.com/mitchellh/mapstructure"
 )
 
 type featureSpec struct {
