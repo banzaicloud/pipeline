@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
@@ -42,6 +43,9 @@ type configuration struct {
 
 	// Frontend configuration
 	Frontend frontend.Config
+
+	// Anchore default configuration
+	Anchore anchore.Config
 }
 
 // Validate validates the configuration.
@@ -55,6 +59,10 @@ func (c configuration) Validate() error {
 	}
 
 	if err := c.Frontend.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Anchore.Validate(); err != nil {
 		return err
 	}
 
@@ -153,6 +161,11 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.RegisterAlias("frontend.issue.github.token", "github.token")
 	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
 	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
+
+	v.SetDefault("anchore.enabled", false)
+	v.SetDefault("anchore.endpoint", "")
+	v.SetDefault("anchore.adminuser", "")
+	v.SetDefault("anchore.adminpass", "")
 }
 
 func registerAliases(v *viper.Viper) {
