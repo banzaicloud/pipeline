@@ -267,7 +267,7 @@ func (p NodePoolPreparer) prepareExistingNodePool(ctx context.Context, nodePool 
 		}
 		nodePool.InstanceType = existing.InstanceType
 	}
-	if stringSliceSetEqual(nodePool.Roles, existing.Roles) {
+	if !stringSliceSetEqual(nodePool.Roles, existing.Roles) {
 		if nodePool.Roles != nil {
 			logMismatchOn(p, "Roles", existing.Roles, nodePool.Roles)
 		}
@@ -289,7 +289,7 @@ func (p NodePoolPreparer) prepareExistingNodePool(ctx context.Context, nodePool 
 		}
 		nodePool.Subnet.CIDR = existingSubnetCIDR
 	}
-	if stringSliceSetEqual(nodePool.Zones, existing.Zones) {
+	if !stringSliceSetEqual(nodePool.Zones, existing.Zones) {
 		if nodePool.Zones != nil {
 			logMismatchOn(p, "Zones", existing.Zones, nodePool.Zones)
 		}
