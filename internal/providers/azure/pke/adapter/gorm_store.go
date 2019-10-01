@@ -15,6 +15,7 @@
 package adapter
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -25,6 +26,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -75,12 +77,65 @@ type gormAzurePKEClusterModel struct {
 	ActiveWorkflowID  string
 	KubernetesVersion string
 
+	HTTPProxy httpProxyModel `gorm:"type:json"`
+
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 }
 
 func (gormAzurePKEClusterModel) TableName() string {
 	return GORMAzurePKEClustersTableName
+}
+
+type httpProxyModel struct {
+	HTTP       httpProxyOptionsModel `json:"http,omitempty"`
+	HTTPS      httpProxyOptionsModel `json:"https,omitempty"`
+	Exceptions []string              `json:"exceptions,omitempty"`
+}
+
+func (m *httpProxyModel) Scan(v interface{}) error {
+	if s, ok := v.(string); ok {
+		v = []byte(s)
+	}
+	return json.Unmarshal(v.([]byte), m)
+}
+
+func (m httpProxyModel) Value() (driver.Value, error) {
+	return json.Marshal(m)
+}
+
+func (m *httpProxyModel) fromEntity(e intPKE.HTTPProxy) {
+	m.HTTP.fromEntity(e.HTTP)
+	m.HTTPS.fromEntity(e.HTTPS)
+	m.Exceptions = e.Exceptions
+}
+
+func (m httpProxyModel) toEntity() intPKE.HTTPProxy {
+	return intPKE.HTTPProxy{
+		HTTP:       m.HTTP.toEntity(),
+		HTTPS:      m.HTTPS.toEntity(),
+		Exceptions: m.Exceptions,
+	}
+}
+
+type httpProxyOptionsModel struct {
+	Host     string `json:"host"`
+	Port     uint16 `json:"port,omitempty"`
+	SecretID string `json:"secretId,omitempty"`
+}
+
+func (m *httpProxyOptionsModel) fromEntity(e intPKE.HTTPProxyOptions) {
+	m.Host = e.Host
+	m.Port = e.Port
+	m.SecretID = e.SecretID
+}
+
+func (m httpProxyOptionsModel) toEntity() intPKE.HTTPProxyOptions {
+	return intPKE.HTTPProxyOptions{
+		Host:     m.Host,
+		Port:     m.Port,
+		SecretID: m.SecretID,
+	}
 }
 
 type recordNotFoundError struct{}
@@ -142,7 +197,7 @@ func unmarshalStringSlice(s string) (result []string) {
 	return
 }
 
-func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) {
+func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model gormAzurePKEClusterModel) error {
 	fillClusterFromClusterModel(cluster, model.Cluster)
 
 	cluster.ResourceGroup.Name = model.ResourceGroupName
@@ -158,6 +213,10 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 
 	cluster.Kubernetes.Version = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
+
+	cluster.HTTPProxy = model.HTTPProxy.toEntity()
+
+	return nil
 }
 
 func fillNodePoolFromModel(nodePool *pke.NodePool, model gormAzurePKENodePoolModel) {
@@ -237,6 +296,9 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 		VirtualNetworkName:     params.VirtualNetworkName,
 		NodePools:              nodePools,
 	}
+
+	model.HTTPProxy.fromEntity(params.HTTPProxy)
+
 	{
 		// Adapting to legacy format. TODO: Please remove this as soon as possible.
 		for _, f := range params.Features {
@@ -255,7 +317,9 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
 		return
 	}
-	fillClusterFromAzurePKEClusterModel(&c, model)
+	if err := fillClusterFromAzurePKEClusterModel(&c, model); err != nil {
+		return c, errors.WrapIf(err, "failed to fill cluster from model")
+	}
 	return
 }
 
@@ -293,7 +357,7 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 	return getError(s.db.Delete(model), "failed to soft-delete model from database")
 }
 
-func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, err error) {
+func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, _ error) {
 	if err := validateClusterID(clusterID); err != nil {
 		return cluster, errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -301,10 +365,12 @@ func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzur
 	model := gormAzurePKEClusterModel{
 		ClusterID: clusterID,
 	}
-	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model), "failed to load model from database"); err != nil {
-		return
+	if err := getError(s.db.Preload("Cluster").Preload("NodePools").Where(&model).First(&model), "failed to load model from database"); err != nil {
+		return cluster, err
 	}
-	fillClusterFromAzurePKEClusterModel(&cluster, model)
+	if err := fillClusterFromAzurePKEClusterModel(&cluster, model); err != nil {
+		return cluster, errors.WrapIf(err, "failed to fill cluster from model")
+	}
 	return
 }
 
