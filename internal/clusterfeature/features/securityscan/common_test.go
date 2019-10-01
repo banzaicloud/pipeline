@@ -14,25 +14,38 @@
 
 package securityscan
 
-import (
-	"context"
-
-	"github.com/banzaicloud/pipeline/secret"
-)
+import "github.com/banzaicloud/pipeline/secret"
 
 type obj = map[string]interface{}
 
-type secretStoreMock struct {
+type dummyOrganizationalSecretStore struct {
+	Secrets map[uint]map[string]*secret.SecretItemResponse
 }
 
-func (s secretStoreMock) Store(ctx context.Context, request *secret.CreateSecretRequest) (string, error) {
-	panic("implement me")
+func (d dummyOrganizationalSecretStore) Get(orgID uint, secretID string) (*secret.SecretItemResponse, error) {
+	if orgSecrets, ok := d.Secrets[orgID]; ok {
+		if sir, ok := orgSecrets[secretID]; ok {
+			return sir, nil
+		}
+	}
+	return nil, secret.ErrSecretNotExists
 }
 
-func (s secretStoreMock) Delete(ctx context.Context, secretID string) error {
-	panic("implement me")
+func (d dummyOrganizationalSecretStore) Store(organizationID uint, request *secret.CreateSecretRequest) (string, error) {
+	return "somesecretid", nil
 }
 
-func (s secretStoreMock) GetSecretValues(ctx context.Context, secretID string) (map[string]string, error) {
-	return map[string]string{"username": "test_username", "password": "test_password"}, nil
+func (d dummyOrganizationalSecretStore) GetByName(organizationID uint, name string) (*secret.SecretItemResponse, error) {
+	if orgSecrets, ok := d.Secrets[organizationID]; ok {
+		for n, sir := range orgSecrets {
+			if n == name {
+				return sir, nil
+			}
+		}
+	}
+	return nil, secret.ErrSecretNotExists
+}
+
+func (d dummyOrganizationalSecretStore) Delete(organizationID uint, secretID string) error {
+	return nil
 }
