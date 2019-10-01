@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"logur.dev/logur"
@@ -33,12 +34,15 @@ func TestMakeFeatureOperator(t *testing.T) {
 	var ssFeatureOperator interface{}
 	clusterGetterMock := clusterfeatureadapter.MockClusterGetter{}
 	clusterGetterMock.On("GetClusterByIDOnly", mock.Anything, mock.Anything).Return(nil, nil)
-
+	orgSecretStore := dummyOrganizationalSecretStore{
+		Secrets: nil,
+	}
+	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	ssFeatureOperator = MakeFeatureOperator(
 		&clusterGetterMock,
 		&clusterfeature.MockClusterService{},
 		&features.MockHelmService{},
-		secretStoreMock{},
+		secretStore,
 		commonadapter.NewLogger(logur.NewTestLogger()),
 	)
 
@@ -55,12 +59,15 @@ func TestFeatureOperator_ProcessChartValues(t *testing.T) {
 	clusterServiceMock := clusterfeature.MockClusterService{}
 
 	helmServiceMock := features.MockHelmService{}
-
+	orgSecretStore := dummyOrganizationalSecretStore{
+		Secrets: nil,
+	}
+	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	ssFeatureOperator := MakeFeatureOperator(
 		&clusterGetterMock,
 		&clusterServiceMock,
 		&helmServiceMock,
-		secretStoreMock{},
+		secretStore,
 		commonadapter.NewLogger(logur.NewTestLogger()),
 	)
 
