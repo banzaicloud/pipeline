@@ -15,7 +15,7 @@
 package pke
 
 import (
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -55,14 +55,9 @@ type AzurePKEClusterStore interface {
 
 // IsNotFound returns true if the error is about a resource not being found
 func IsNotFound(err error) bool {
-	// Check the root cause error.
-	err = errors.Cause(err)
-
-	if e, ok := err.(interface {
+	var notFoundErr interface {
 		NotFound() bool
-	}); ok {
-		return e.NotFound()
 	}
 
-	return false
+	return errors.As(err, &notFoundErr) && notFoundErr.NotFound()
 }
