@@ -32,6 +32,8 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
+
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	conf "github.com/banzaicloud/pipeline/config"
@@ -298,6 +300,7 @@ func main() {
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
 				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
+				securityscan.MakeFeatureOperator(clusterGetter, clusterService, helmService, secretStore, logger),
 				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, secretStore, logger),
 			})
 
