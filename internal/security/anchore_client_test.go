@@ -18,18 +18,25 @@ import (
 	"context"
 	"testing"
 
-	swagger "github.com/banzaicloud/pipeline/.gen/anchore"
+	"github.com/banzaicloud/pipeline/.gen/anchore"
 )
 
 func TestMakeAnchoreClient(t *testing.T) {
 
-	anchoreCli := swagger.NewAPIClient(&swagger.Configuration{
+	anchoreCli := anchore.NewAPIClient(&anchore.Configuration{
 		BasePath:      "https://alpha.dev.banzaicloud.com/imagecheck",
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Pipeline/go",
 	})
 
-	s, r, e := anchoreCli.DefaultApi.Ping(context.Background())
+	//s, r, e := anchoreCli.DefaultApi.Ping(context.Background())
+
+	auth := context.WithValue(context.Background(), anchore.ContextBasicAuth, anchore.BasicAuth{
+		UserName: "admin",
+		Password: "3jpSQH8N6FSM",
+	})
+
+	s, r, e := anchoreCli.UserManagementApi.ListAccounts(auth, &anchore.ListAccountsOpts{})
 	print(s, r, e)
 
 }

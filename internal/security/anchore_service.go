@@ -38,15 +38,15 @@ type AnchoreUserService interface {
 
 // anchoreService component struct implementing anchore account related operations
 type anchoreService struct {
-	anchoreCli  AnchoreClient
-	secretStore common.SecretStore
-	logger      common.Logger
+	configService ConfigurationService
+	secretStore   common.SecretStore
+	logger        common.Logger
 }
 
-func MakeAnchoreUserService(client AnchoreClient, secretStore common.SecretStore, logger common.Logger) AnchoreUserService {
+func MakeAnchoreUserService(cfgService ConfigurationService, secretStore common.SecretStore, logger common.Logger) AnchoreUserService {
 	return anchoreService{
-		anchoreCli: client,
-		logger:     logger,
+		configService: cfgService,
+		logger:        logger,
 	}
 }
 
@@ -55,9 +55,16 @@ func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID ui
 	fnLog := a.logger.WithFields(map[string]interface{}{"orgID": orgID, "clusterID": clusterID})
 	fnLog.Info("ensuring anchore user")
 
-	exists, err := a.userExists(ctx, clusterID)
+	restClient, err := a.getClient(ctx, clusterID)
 	if err != nil {
-		fnLog.Info("failed to check user")
+		fnLog.Debug("failed to check user")
+
+		return errors.WrapIf(err, "failed to ensure anchore user")
+	}
+
+	exists, err := a.userExists(ctx, restClient, a.getUserName(clusterID))
+	if err != nil {
+		fnLog.Debug("failed to check user")
 
 		return errors.WrapIf(err, "failed to ensure anchore user")
 	}
@@ -107,25 +114,22 @@ func (a anchoreService) getUserName(clusterID uint) string {
 	return fmt.Sprintf(anchoreUserNameTpl, clusterID)
 }
 
-func (a anchoreService) userExists(ctx context.Context, clusterID uint) (bool, error) {
+func (a anchoreService) userExists(ctx context.Context, client AnchoreClient, userName string) (bool, error) {
 
-	resp, err := a.anchoreCli.GetUser(ctx, a.getUserName(clusterID))
+	anchoreUsr, err := client.GetUser(ctx, userName)
 	if err != nil {
+		a.logger.Debug("failed to retrieve anchore user")
+
 		return false, errors.WrapIf(err, "failed to check if the user exists")
 	}
 
-	//todo check the response
-	if resp == nil {
-		// todo
-	}
-
-	return true, nil
+	return anchoreUsr != nil, nil
 }
 
 //  ensureUserCredentials makes sure the user credentials secret is up to date
-func (a anchoreService) ensureUserCredentials(ctx context.Context, clusterID uint) error {
+func (a anchoreService) ensureUserCredentials(ctx context.Context, client AnchoreClient, userName string) error {
 
-	password, err := a.anchoreCli.GetUserCreadentials(ctx, a.getUserName(clusterID))
+	password, err := client.GetUserCreadentials(ctx, userName)
 	if err != nil {
 		a.logger.Debug("failed to get user credentials")
 
@@ -213,4 +217,16 @@ func (a anchoreService) storeCredentialsSecret(ctx context.Context, userName str
 	}
 
 	return secretID, nil
+}
+
+func (a anchoreService) getClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
+	cfg, err := a.configService.GetConfiguration(ctx, clusterID)
+	if err != nil {
+		a.logger.Debug("failed to get anchore configuration")
+
+		return nil, errors.Wrap(err, "failed to get anchore configuration")
+	}
+
+	return MakeAnchoreClient(cfg, a.logger), nil
+
 }
