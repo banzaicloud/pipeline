@@ -82,6 +82,8 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		return nil, errors.WrapIf(err, "failed to create Vault manager")
 	}
 
+	defer vaultManager.close()
+
 	chartVersion := getChartVersion()
 
 	vaultOutput, err := getVaultOutput(*vaultManager, orgID, clusterID)

@@ -72,7 +72,6 @@ func (op FeatureOperator) Name() string {
 func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-
 		return err
 	}
 
@@ -206,6 +205,8 @@ func (op FeatureOperator) configureVault(
 		if err != nil {
 			return errors.WrapIf(err, "failed to create Vault manager")
 		}
+
+		defer vaultManager.close()
 
 		// create policy
 		var policy string
@@ -353,6 +354,8 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		if err != nil {
 			return errors.WrapIf(err, "failed to create Vault manager")
 		}
+
+		defer vaultManager.close()
 
 		// delete role
 		if _, err := vaultManager.deleteRole(); err != nil {
