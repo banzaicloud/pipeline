@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
@@ -80,7 +80,7 @@ func (a CreateRouteTableActivity) Execute(ctx context.Context, input CreateRoute
 	output.RouteTableName = input.RouteTable.Name
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -91,19 +91,19 @@ func (a CreateRouteTableActivity) Execute(ctx context.Context, input CreateRoute
 	logger.Debug("sending request to create or update route table")
 
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.RouteTable.Name, params)
-	if err = emperror.WrapWith(err, "sending request to create or update route table failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to create or update route table failed", keyvals...); err != nil {
 		return
 	}
 
 	logger.Debug("waiting for the completion of create or update route table operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of create or update route table operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of create or update route table operation failed", keyvals...); err != nil {
 		return
 	}
 
 	rt, err := future.Result(client.RouteTablesClient)
-	if err = emperror.WrapWith(err, "getting route table create or update result failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "getting route table create or update result failed", keyvals...); err != nil {
 		return
 	}
 

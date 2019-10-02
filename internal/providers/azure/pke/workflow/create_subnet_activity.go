@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
@@ -72,7 +72,7 @@ func (a CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAct
 	logger.Info("create subnet")
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -97,19 +97,19 @@ func (a CreateSubnetActivity) Execute(ctx context.Context, input CreateSubnetAct
 	}
 
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.VirtualNetworkName, input.Subnet.Name, params)
-	if err = emperror.WrapWith(err, "sending request to create or update subnet failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to create or update subnet failed", keyvals...); err != nil {
 		return
 	}
 
 	logger.Debug("waiting for the completion of create or update subnet operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of create or update subnet operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of create or update subnet operation failed", keyvals...); err != nil {
 		return
 	}
 
 	subnet, err := future.Result(client.SubnetsClient)
-	if err = emperror.WrapWith(err, "getting virtual network create or update result failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "getting virtual network create or update result failed", keyvals...); err != nil {
 		return
 	}
 

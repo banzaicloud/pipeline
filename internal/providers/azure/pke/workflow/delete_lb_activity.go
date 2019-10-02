@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
 )
@@ -63,7 +63,7 @@ func (a DeleteLoadBalancerActivity) Execute(ctx context.Context, input DeleteLoa
 	logger.Info("delete load balancer")
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -79,7 +79,7 @@ func (a DeleteLoadBalancerActivity) Execute(ctx context.Context, input DeleteLoa
 			return nil
 		}
 
-		return emperror.WrapWith(err, "failed to get load balancer details", keyvals...)
+		return errors.WrapIfWithDetails(err, "failed to get load balancer details", keyvals...)
 	}
 
 	if !HasOwnedTag(input.ClusterName, to.StringMap(lb.Tags)) {
@@ -88,7 +88,7 @@ func (a DeleteLoadBalancerActivity) Execute(ctx context.Context, input DeleteLoa
 	}
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.LoadBalancerName)
-	if err = emperror.WrapWith(err, "sending request to delete load balancer failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to delete load balancer failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("load balancer not found")
 			return nil
@@ -99,7 +99,7 @@ func (a DeleteLoadBalancerActivity) Execute(ctx context.Context, input DeleteLoa
 	logger.Debug("waiting for the completion of delete load balancer operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of delete load balancer operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of delete load balancer operation failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("load balancer not found")
 			return nil

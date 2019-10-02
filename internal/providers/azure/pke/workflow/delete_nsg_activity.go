@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
 )
@@ -62,7 +62,7 @@ func (a DeleteNSGActivity) Execute(ctx context.Context, input DeleteNSGActivityI
 
 	logger.Info("delete network security group")
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -78,7 +78,7 @@ func (a DeleteNSGActivity) Execute(ctx context.Context, input DeleteNSGActivityI
 			return nil
 		}
 
-		return emperror.WrapWith(err, "failed to get network security group details", keyvals...)
+		return errors.WrapIfWithDetails(err, "failed to get network security group details", keyvals...)
 	}
 
 	if !HasOwnedTag(input.ClusterName, to.StringMap(rt.Tags)) {
@@ -87,7 +87,7 @@ func (a DeleteNSGActivity) Execute(ctx context.Context, input DeleteNSGActivityI
 	}
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.NSGName)
-	if err = emperror.WrapWith(err, "sending request to network security group failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to network security group failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("network security group not found")
 			return nil
@@ -98,7 +98,7 @@ func (a DeleteNSGActivity) Execute(ctx context.Context, input DeleteNSGActivityI
 	logger.Debug("waiting for the completion of delete network security group operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of delete network security group operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of delete network security group operation failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("network security group not found")
 			return nil

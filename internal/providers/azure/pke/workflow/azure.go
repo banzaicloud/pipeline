@@ -17,7 +17,7 @@ package workflow
 import (
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/azure"
 
 	internalAzure "github.com/banzaicloud/pipeline/internal/providers/azure"
@@ -36,7 +36,7 @@ func NewAzureClientFactory(secretStore pkeworkflow.SecretStore) *AzureClientFact
 func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzure.CloudConnection, error) {
 	s, err := f.secretStore.GetSecret(organizationID, secretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get secret")
+		return nil, errors.WrapIf(err, "failed to get secret")
 	}
 
 	err = s.ValidateSecretType(pkgAzure.Provider)
@@ -46,7 +46,7 @@ func (f *AzureClientFactory) New(organizationID uint, secretID string) (*pkgAzur
 
 	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(s.GetValues()))
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create cloud connection")
+		return nil, errors.WrapIf(err, "failed to create cloud connection")
 	}
 
 	return cc, nil

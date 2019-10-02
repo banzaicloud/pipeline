@@ -16,12 +16,11 @@ package driver
 
 import (
 	"context"
-	"errors"
 	"net"
 	"net/http"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/sirupsen/logrus"
@@ -80,12 +79,12 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	logger.Info("updating cluster")
 
 	if err := cu.paramsPreparer.Prepare(ctx, &params); err != nil {
-		return emperror.Wrap(err, "params preparation failed")
+		return errors.WrapIf(err, "params preparation failed")
 	}
 
 	cluster, err := cu.store.GetByID(params.ClusterID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cluster by ID")
+		return errors.WrapIf(err, "failed to get cluster by ID")
 	}
 
 	nodePoolsToCreate, nodePoolsToUpdate, nodePoolsToDelete := sortNodePools(params.NodePools, cluster.NodePools)
@@ -98,22 +97,22 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 
 	sshKeyPair, err := GetOrCreateSSHKeyPair(cluster, cu.secrets, cu.store)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get or create SSH key pair")
+		return errors.WrapIf(err, "failed to get or create SSH key pair")
 	}
 
 	sir, err := cu.secrets.Get(cluster.OrganizationID, cluster.SecretID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cluster secret")
+		return errors.WrapIf(err, "failed to get cluster secret")
 	}
 	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
 
 	conn, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
-	if err = emperror.Wrap(err, "failed to create new Azure cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create new Azure cloud connection"); err != nil {
 		return err
 	}
 
 	sn, err := conn.GetSubnetsClient().Get(ctx, cluster.ResourceGroup.Name, cluster.VirtualNetwork.Name, cluster.NodePools[0].Subnet.Name, "routeTable")
-	if err = emperror.Wrap(err, "failed to get subnet"); err != nil && sn.StatusCode != http.StatusNotFound {
+	if err = errors.WrapIf(err, "failed to get subnet"); err != nil && sn.StatusCode != http.StatusNotFound {
 		return err
 	}
 
@@ -156,7 +155,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 
 			err := cu.store.CreateNodePool(params.ClusterID, np.toPke())
 			if err != nil {
-				return emperror.WrapWith(err, "failed to store new node pool", "clusterID", cluster.ID, "nodepool", np.Name)
+				return errors.WrapIfWithDetails(err, "failed to store new node pool", "clusterID", cluster.ID, "nodepool", np.Name)
 			}
 		}
 
@@ -175,7 +174,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 
 		err := cu.store.SetNodePoolSizes(params.ClusterID, np.Name, uint(np.Min), uint(np.Max), uint(np.Count), np.Autoscaling)
 		if err != nil {
-			return emperror.WrapWith(err, "failed to store updated node pool", "clusterID", cluster.ID, "nodepool", np.Name)
+			return errors.WrapIfWithDetails(err, "failed to store updated node pool", "clusterID", cluster.ID, "nodepool", np.Name)
 		}
 	}
 
@@ -192,7 +191,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	{
 		commonCluster, err := commoncluster.MakeCommonClusterGetter(cu.secrets, cu.store).GetByID(cluster.ID)
 		if err != nil {
-			return emperror.Wrap(err, "failed to get Azure PKE common cluster by ID")
+			return errors.WrapIf(err, "failed to get Azure PKE common cluster by ID")
 		}
 		nodePoolStatuses := make(map[string]*pkgCluster.NodePoolStatus, len(params.NodePools))
 		for _, np := range params.NodePools {
@@ -207,7 +206,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		}
 		labels, err = pipCluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, true)
 		if err != nil {
-			return emperror.Wrap(err, "failed to get desired labels for cluster")
+			return errors.WrapIf(err, "failed to get desired labels for cluster")
 		}
 	}
 
@@ -233,17 +232,17 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {
-		return emperror.Wrap(err, "failed to set cluster status")
+		return errors.WrapIf(err, "failed to set cluster status")
 	}
 
 	wfexec, err := cu.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.UpdateClusterWorkflowName, input)
-	if err := emperror.WrapWith(err, "failed to start workflow", "workflow", workflow.UpdateClusterWorkflowName); err != nil {
+	if err := errors.WrapIfWithDetails(err, "failed to start workflow", "workflow", workflow.UpdateClusterWorkflowName); err != nil {
 		_ = cu.handleError(cluster.ID, err)
 		return err
 	}
 
 	if err := cu.store.SetActiveWorkflowID(cluster.ID, wfexec.ID); err != nil {
-		err = emperror.WrapWith(err, "failed to set active workflow ID", "clusterID", cluster.ID, "workflowID", wfexec.ID)
+		err = errors.WrapIfWithDetails(err, "failed to set active workflow ID", "clusterID", cluster.ID, "workflowID", wfexec.ID)
 		_ = cu.handleError(cluster.ID, err)
 		return err
 	}
@@ -327,22 +326,22 @@ func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params
 	if pke.IsNotFound(err) {
 		return validationErrorf("ClusterID must refer to an existing cluster")
 	} else if err != nil {
-		return emperror.Wrap(err, "failed to get cluster by ID")
+		return errors.WrapIf(err, "failed to get cluster by ID")
 	}
 	sir, err := p.secrets.Get(cluster.OrganizationID, cluster.SecretID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get cluster secret")
+		return errors.WrapIf(err, "failed to get cluster secret")
 	}
 	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
 	if err != nil {
-		return emperror.Wrap(err, "failed to create cloud connection")
+		return errors.WrapIf(err, "failed to create cloud connection")
 	}
 	// HACK
 	var subnetName string
 	{
 		vn, err := cc.GetVirtualNetworksClient().Get(ctx, cluster.ResourceGroup.Name, cluster.VirtualNetwork.Name, "")
 		if err != nil && vn.StatusCode != http.StatusNotFound {
-			return emperror.Wrap(err, "failed to get virtual network")
+			return errors.WrapIf(err, "failed to get virtual network")
 		}
 		if vn.StatusCode == http.StatusOK && workflow.HasSharedTag(cluster.Name, to.StringMap(vn.Tags)) {
 			subnetName = cluster.NodePools[0].Subnet.Name
@@ -361,7 +360,7 @@ func (p AzurePKEClusterUpdateParamsPreparer) Prepare(ctx context.Context, params
 		},
 	}
 	if err := nodePoolsPreparer.Prepare(ctx, params.NodePools); err != nil {
-		return emperror.Wrap(err, "failed to prepare node pools")
+		return errors.WrapIf(err, "failed to prepare node pools")
 	}
 	return nil
 }
@@ -394,7 +393,7 @@ func (p clusterUpdaterNodePoolPreparerDataProvider) getSubnetCIDR(ctx context.Co
 func (p clusterUpdaterNodePoolPreparerDataProvider) getVirtualNetworkAddressRange(ctx context.Context) (net.IPNet, error) {
 	vnet, err := p.virtualNetworksClient.Get(ctx, p.resourceGroupName, p.virtualNetworkName, "")
 	if err != nil {
-		return net.IPNet{}, emperror.Wrap(err, "failed to get virtual network")
+		return net.IPNet{}, errors.WrapIf(err, "failed to get virtual network")
 	}
 	if f := vnet.VirtualNetworkPropertiesFormat; f != nil {
 		if as := f.AddressSpace; as != nil {
@@ -403,12 +402,12 @@ func (p clusterUpdaterNodePoolPreparerDataProvider) getVirtualNetworkAddressRang
 				if len(aps) > 0 {
 					_, n, err := net.ParseCIDR(aps[0])
 					if err != nil {
-						return net.IPNet{}, emperror.Wrap(err, "failed to parse CIDR")
+						return net.IPNet{}, errors.WrapIf(err, "failed to parse CIDR")
 					}
 					return *n, nil
 				}
 			}
 		}
 	}
-	return net.IPNet{}, emperror.With(errors.New("virtual network has no address prefixes"), "resourceGroup", p.resourceGroupName, "vnet", p.virtualNetworkName)
+	return net.IPNet{}, errors.NewWithDetails("virtual network has no address prefixes", "resourceGroup", p.resourceGroupName, "vnet", p.virtualNetworkName)
 }

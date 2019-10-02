@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 )
@@ -43,7 +43,7 @@ func (a DeleteNodePoolFromStoreActivity) Execute(ctx context.Context, input Dele
 	for _, name := range input.NodePoolNames {
 		err := a.store.DeleteNodePool(input.ClusterID, name)
 		if err != nil {
-			return emperror.WrapWith(err, "failed to delete nodepool from store", "nodepool", name, "cluster", input.ClusterID)
+			return errors.WrapIfWithDetails(err, "failed to delete nodepool from store", "nodepool", name, "cluster", input.ClusterID)
 		}
 	}
 	return nil

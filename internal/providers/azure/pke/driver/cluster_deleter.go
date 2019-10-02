@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -83,7 +83,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 
 	pipNames, err := collectPublicIPAddressNames(ctx, logger, cd.secrets, cluster, forced)
 	if err != nil {
-		return emperror.Wrap(err, "failed to collect public IP address resource names")
+		return errors.WrapIf(err, "failed to collect public IP address resource names")
 	}
 
 	input := workflow.DeleteClusterWorkflowInput{
@@ -117,11 +117,11 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	}
 
 	if err := cd.store.SetStatus(cluster.ID, pkgCluster.Deleting, pkgCluster.DeletingMessage); err != nil {
-		return emperror.Wrap(err, "failed to set cluster status")
+		return errors.WrapIf(err, "failed to set cluster status")
 	}
 
 	timer, err := cd.getClusterStatusChangeDurationTimer(cluster)
-	if err = emperror.Wrap(err, "failed to start status change duration metric timer"); err != nil {
+	if err = errors.WrapIf(err, "failed to start status change duration metric timer"); err != nil {
 		if forced {
 			cd.logger.Error(err)
 			timer = metrics.NoopDurationMetricTimer{}
@@ -131,7 +131,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	}
 
 	wfrun, err := cd.workflowClient.ExecuteWorkflow(ctx, workflowOptions, workflow.DeleteClusterWorkflowName, input)
-	if err = emperror.WrapWith(err, "failed to start cluster deletion workflow", "cluster", cluster.Name); err != nil {
+	if err = errors.WrapIfWithDetails(err, "failed to start cluster deletion workflow", "cluster", cluster.Name); err != nil {
 		_ = cd.store.SetStatus(cluster.ID, pkgCluster.Error, err.Error())
 		return err
 	}
@@ -151,7 +151,7 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 	}()
 
 	if err = cd.store.SetActiveWorkflowID(cluster.ID, wfrun.GetID()); err != nil {
-		return emperror.WrapWith(err, "failed to set active workflow ID for cluster", "cluster", cluster.Name, "workflowID", wfrun.GetID())
+		return errors.WrapIfWithDetails(err, "failed to set active workflow ID for cluster", "cluster", cluster.Name, "workflowID", wfrun.GetID())
 	}
 
 	return nil
@@ -166,7 +166,7 @@ func (cd AzurePKEClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke
 	if viper.GetBool(config.MetricsDebug) {
 		org, err := auth.GetOrganizationById(cluster.OrganizationID)
 		if err != nil {
-			return nil, emperror.Wrap(err, "Error during getting organization.")
+			return nil, errors.WrapIf(err, "Error during getting organization.")
 		}
 		values.OrganizationName = org.Name
 		values.ClusterName = cluster.Name
@@ -177,7 +177,7 @@ func (cd AzurePKEClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke
 func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint, forced bool) error {
 	cl, err := cd.store.GetByID(clusterID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to load cluster from data store")
+		return errors.WrapIf(err, "failed to load cluster from data store")
 	}
 	return cd.Delete(ctx, cl, forced)
 }
@@ -185,11 +185,11 @@ func (cd AzurePKEClusterDeleter) DeleteByID(ctx context.Context, clusterID uint,
 func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger, secrets SecretStore, cluster pke.PKEOnAzureCluster, forced bool) ([]string, error) {
 	sir, err := secrets.Get(cluster.OrganizationID, cluster.SecretID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to get cluster secret from secret store")
+		return nil, errors.WrapIf(err, "failed to get cluster secret from secret store")
 	}
 	cc, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create cloud connection")
+		return nil, errors.WrapIf(err, "failed to create cloud connection")
 	}
 
 	names := make(map[string]bool)
@@ -199,12 +199,12 @@ func collectPublicIPAddressNames(ctx context.Context, logger logrus.FieldLogger,
 		if lb.StatusCode == http.StatusNotFound {
 			return nil, nil
 		}
-		return nil, emperror.Wrap(err, "failed to retrieve load balancer")
+		return nil, errors.WrapIf(err, "failed to retrieve load balancer")
 	}
 	names = gatherOwnedPublicIPAddressNames(lb, cluster.Name, names)
 
 	names, err = gatherK8sServicePublicIPs(ctx, cc.GetPublicIPAddressesClient(), cluster, secrets, names)
-	if err = emperror.Wrap(err, "failed to gather k8s services' public IP addresses"); err != nil {
+	if err = errors.WrapIf(err, "failed to gather k8s services' public IP addresses"); err != nil {
 		if forced {
 			logger.Warning(err)
 		} else {
@@ -248,12 +248,12 @@ func gatherK8sServicePublicIPs(ctx context.Context, client *pkgAzure.PublicIPAdd
 
 	k8sConfig, err := intSecret.MakeKubeSecretStore(secrets).Get(cluster.OrganizationID, cluster.K8sSecretID)
 	if err != nil {
-		return names, emperror.Wrap(err, "failed to get k8s config")
+		return names, errors.WrapIf(err, "failed to get k8s config")
 	}
 
 	resPage, err := client.List(ctx, cluster.ResourceGroup.Name)
 	if err != nil {
-		return names, emperror.WrapWith(err, "failed to list Azure public IP address resources in resource group", "resourceGroup", cluster.ResourceGroup.Name)
+		return names, errors.WrapIfWithDetails(err, "failed to list Azure public IP address resources in resource group", "resourceGroup", cluster.ResourceGroup.Name)
 	}
 
 	ipToName := make(map[string]string)
@@ -274,12 +274,12 @@ func gatherK8sServicePublicIPs(ctx context.Context, client *pkgAzure.PublicIPAdd
 
 	k8sClient, err := k8sclient.NewClientFromKubeConfig(k8sConfig)
 	if err != nil {
-		return names, emperror.Wrap(err, "failed to create a new Kubernetes client")
+		return names, errors.WrapIf(err, "failed to create a new Kubernetes client")
 	}
 
 	serviceList, err := k8sClient.CoreV1().Services(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if serviceList == nil || err != nil {
-		return names, emperror.Wrap(err, "failed to retrieve service list")
+		return names, errors.WrapIf(err, "failed to retrieve service list")
 	}
 
 	if names == nil {

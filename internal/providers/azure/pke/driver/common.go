@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
@@ -188,7 +188,7 @@ func getSubnetCIDR(ctx context.Context, client pkgAzure.SubnetsClient, resourceG
 	if subnet.StatusCode == http.StatusNotFound {
 		return "", notExistsYetError{}
 	} else if err != nil {
-		return "", emperror.Wrap(err, "failed to get subnet")
+		return "", errors.WrapIf(err, "failed to get subnet")
 	}
 	return to.String(subnet.AddressPrefix), nil
 }

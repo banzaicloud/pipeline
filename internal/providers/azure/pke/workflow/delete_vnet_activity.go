@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
@@ -63,7 +63,7 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 
 	logger.Info("delete virtual network")
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -79,7 +79,7 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 			return nil
 		}
 
-		return emperror.WrapWith(err, "failed to get virtual network details", keyvals...)
+		return errors.WrapIfWithDetails(err, "failed to get virtual network details", keyvals...)
 	}
 
 	tags := to.StringMap(vnet.Tags)
@@ -88,7 +88,7 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 
 		tags = RemoveSharedTag(tags, input.ClusterName)
 		future, err := client.UpdateTags(ctx, input.ResourceGroupName, input.VNetName, network.TagsObject{Tags: *to.StringMapPtr(tags)})
-		if err = emperror.WrapWith(err, "sending request to update virtual network tags failed", keyvals...); err != nil {
+		if err = errors.WrapIfWithDetails(err, "sending request to update virtual network tags failed", keyvals...); err != nil {
 			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 				logger.Warn("virtual network not found")
 				return nil
@@ -96,7 +96,7 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 			return err
 		}
 		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err = emperror.WrapWith(err, "waiting for the completion of virtual network tags update operation failed", keyvals...); err != nil {
+		if err = errors.WrapIfWithDetails(err, "waiting for the completion of virtual network tags update operation failed", keyvals...); err != nil {
 			if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 				logger.Warn("virtual network not found")
 				return nil
@@ -107,7 +107,7 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 	}
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.VNetName)
-	if err = emperror.WrapWith(err, "sending request to delete virtual network failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to delete virtual network failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("virtual network not found")
 			return nil
@@ -118,7 +118,7 @@ func (a DeleteVNetActivity) Execute(ctx context.Context, input DeleteVNetActivit
 	logger.Debug("waiting for the completion of delete virtual network operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of delete virtual network operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of delete virtual network operation failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("virtual network not found")
 			return nil

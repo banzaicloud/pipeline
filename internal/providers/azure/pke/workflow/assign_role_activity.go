@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/authorization/mgmt/authorization"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
@@ -62,20 +62,20 @@ func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivit
 	)
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return err
 	}
 
 	resourceGroup, err := cc.GetGroupsClient().Get(ctx, input.ResourceGroupName)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to retrieve resource group", "resourceGroup", input.ResourceGroupName)
+		return errors.WrapIfWithDetails(err, "failed to retrieve resource group", "resourceGroup", input.ResourceGroupName)
 	}
 
 	scope := *resourceGroup.ID
 
 	role, err := cc.GetRoleDefinitionsClient().FindByRoleName(ctx, scope, input.RoleAssignment.RoleName)
 	if err != nil {
-		return emperror.WrapWith(err, "failed to find role by name", "scope", scope, "roleName", input.RoleAssignment.RoleName)
+		return errors.WrapIfWithDetails(err, "failed to find role by name", "scope", scope, "roleName", input.RoleAssignment.RoleName)
 	}
 
 	params := input.getRoleAssignmentCreateParams(*role)
@@ -85,7 +85,7 @@ func (a AssignRoleActivity) Execute(ctx context.Context, input AssignRoleActivit
 		logger.Infof("Role [%s] is already assigned to principal [%s] as [%s]", input.RoleAssignment.RoleName, input.RoleAssignment.PrincipalID, result.ID)
 		return nil
 	}
-	return emperror.WrapWith(err, "failed to create role assignment", "scope", scope, "roleName", input.RoleAssignment.RoleName, "principalID", input.RoleAssignment.PrincipalID)
+	return errors.WrapIfWithDetails(err, "failed to create role assignment", "scope", scope, "roleName", input.RoleAssignment.RoleName, "principalID", input.RoleAssignment.PrincipalID)
 }
 
 func (input AssignRoleActivityInput) getRoleAssignmentCreateParams(role authorization.RoleDefinition) authorization.RoleAssignmentCreateParameters {

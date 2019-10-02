@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/activity"
 )
 
@@ -63,7 +63,7 @@ func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicI
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
 	if err != nil {
-		return emperror.Wrap(err, "failed to create cloud connection")
+		return errors.WrapIf(err, "failed to create cloud connection")
 	}
 
 	client := cc.GetPublicIPAddressesClient()
@@ -77,11 +77,11 @@ func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicI
 			return nil
 		}
 
-		return emperror.WrapWith(err, "failed to get public IP details", keyvals...)
+		return errors.WrapIfWithDetails(err, "failed to get public IP details", keyvals...)
 	}
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.PublicIPAddressName)
-	if err = emperror.WrapWith(err, "sending request to delete public IP failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to delete public IP failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("public IP not found")
 			return nil
@@ -92,7 +92,7 @@ func (a DeletePublicIPActivity) Execute(ctx context.Context, input DeletePublicI
 	logger.Debug("waiting for the completion of delete public IP operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of delete public IP operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of delete public IP operation failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("public IP not found")
 			return nil
