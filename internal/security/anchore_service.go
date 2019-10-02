@@ -16,112 +16,201 @@ package anchore
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/mitchellh/mapstructure"
 
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/common"
+	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
-const securityScanFeatureName = "securityscan"
+const (
+	anchoreUserNameTpl = "%v-anchore-user"
+	accountEmail       = "banzai@banzaicloud.com"
+)
 
-// ConfigurationService service in charge to gather anchore related configuration
-type ConfigurationService interface {
-	// GetConfiguration checks if the related cluster feature is activated,
-	// gets the configuration from there, otherwise falls back for checking the env for the relevant entries
-	GetConfiguration(ctx context.Context, clusterID uint) (Config, error)
+// AnchoreUserService service interface for Anchore related operations
+type AnchoreUserService interface {
+	EnsureUser(ctx context.Context, orgID uint, clusterID uint) error
+	RemoveUser(ctx context.Context, orgID uint, clusterID uint) error
 }
 
-// configurationService component struct
-type configurationService struct {
-	defaultConfig  Config
-	featureAdapter FeatureAdapter
-	logger         common.Logger
+// anchoreService component struct implementing anchore account related operations
+type anchoreService struct {
+	anchoreCli  AnchoreClient
+	secretStore common.SecretStore
+	logger      common.Logger
 }
 
-// MakeConfigurationService create a new configuration service instance
-func MakeConfigurationService(defaultCfg Config, featureAdapter FeatureAdapter, log common.Logger) ConfigurationService {
-	return configurationService{
-		defaultConfig:  defaultCfg,
-		featureAdapter: featureAdapter,
-		logger:         log,
+func MakeAnchoreUserService(client AnchoreClient, secretStore common.SecretStore, logger common.Logger) AnchoreUserService {
+	return anchoreService{
+		anchoreCli: client,
+		logger:     logger,
 	}
 }
 
-func (c configurationService) GetConfiguration(ctx context.Context, clusterID uint) (Config, error) {
-	fnLog := c.logger.WithFields(map[string]interface{}{"clusterID": clusterID, "feature": securityScanFeatureName})
-
-	featureEnabled, err := c.featureAdapter.Enabled(ctx, clusterID, securityScanFeatureName)
-	if err != nil {
-		fnLog.Debug("failed to check feature")
-
-		return Config{}, errors.WrapIf(err, "failed to check whether feature is enable")
-	}
-
-	if !featureEnabled {
-		fnLog.Info("feature not enabled, falling back to the default config")
-
-		return c.defaultConfig, nil
-	}
-
-	featureConfig, err := c.featureAdapter.GetFeatureConfig(ctx, clusterID, securityScanFeatureName)
-	if err != nil {
-		fnLog.Debug("failed to retrieve feature config")
-
-		return Config{}, errors.WrapIf(err, "failed to retrieve feature config")
-	}
-
-	fnLog.Info("feature enabled, return config from feature")
-	return featureConfig, nil
-}
-
-// FeatureAdapter decouples feature specifics from the configuration service
-type FeatureAdapter interface {
-	Enabled(ctx context.Context, clusterID uint, featureName string) (bool, error)
-	GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (Config, error)
-}
-
-type featureAdapter struct {
-	logger         common.Logger
-	featureService clusterfeature.FeatureService
-}
-
-func (f featureAdapter) Enabled(ctx context.Context, clusterID uint, featureName string) (bool, error) {
-	feature, err := f.featureService.Details(ctx, clusterID, featureName)
-	if err != nil {
-		return false, errors.WrapIf(err, "failed to retrieve feature")
-	}
-
-	return feature.Status == "ACTIVE", nil
-}
-
-func (f featureAdapter) GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (Config, error) {
+func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID uint) error {
 	// add method context to the logger
-	fnLog := f.logger.WithFields(map[string]interface{}{"clusterID": clusterID, "feature": featureName})
-	fnLog.Info("looking up feature config")
+	fnLog := a.logger.WithFields(map[string]interface{}{"orgID": orgID, "clusterID": clusterID})
+	fnLog.Info("ensuring anchore user")
 
-	feature, err := f.featureService.Details(ctx, clusterID, featureName)
+	exists, err := a.userExists(ctx, clusterID)
 	if err != nil {
-		fnLog.Debug("failed to retrieve feature config")
+		fnLog.Info("failed to check user")
 
-		return Config{}, errors.WrapIf(err, "failed to retrieve feature")
+		return errors.WrapIf(err, "failed to ensure anchore user")
 	}
 
-	customAnchore, ok := feature.Spec["customAnchore"]
+	if exists {
+		fnLog.Info("processing existing anchore user")
+
+		err = a.ensureUserCredentials(ctx, clusterID)
+		if err != nil {
+			fnLog.Debug("failed to ensure user credentials")
+
+			return errors.WrapIf(err, "failed to ensure user credentials")
+		}
+
+		fnLog.Info("existing anchore user processed")
+		return nil
+	}
+
+	fnLog.Info("processing new anchore user")
+	password, err := a.createUserSecret(ctx, orgID, clusterID)
+	if err != nil {
+		fnLog.Debug("failed to create secret for anchore user")
+
+		return errors.WrapIf(err, "failed to ensure user credentials")
+	}
+
+	if err := a.createAccount(ctx, clusterID); err != nil {
+		fnLog.Debug("failed to create anchore account")
+
+		return errors.WrapIf(err, "failed to create anchore account")
+	}
+
+	if err := a.createUser(ctx, clusterID, password); err != nil {
+		fnLog.Debug("failed to create anchore user")
+
+		return errors.WrapIf(err, "failed to create anchore user")
+	}
+
+	return nil
+}
+
+func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID uint) error {
+	panic("implement me")
+}
+
+func (a anchoreService) getUserName(clusterID uint) string {
+	return fmt.Sprintf(anchoreUserNameTpl, clusterID)
+}
+
+func (a anchoreService) userExists(ctx context.Context, clusterID uint) (bool, error) {
+
+	resp, err := a.anchoreCli.GetUser(ctx, a.getUserName(clusterID))
+	if err != nil {
+		return false, errors.WrapIf(err, "failed to check if the user exists")
+	}
+
+	//todo check the response
+	if resp == nil {
+		// todo
+	}
+
+	return true, nil
+}
+
+//  ensureUserCredentials makes sure the user credentials secret is up to date
+func (a anchoreService) ensureUserCredentials(ctx context.Context, clusterID uint) error {
+
+	password, err := a.anchoreCli.GetUserCreadentials(ctx, a.getUserName(clusterID))
+	if err != nil {
+		a.logger.Debug("failed to get user credentials")
+
+		return errors.Wrap(err, "failed to get user credentials")
+	}
+
+	_, err = a.storeCredentialsSecret(ctx, a.getUserName(clusterID), password)
+	if err != nil {
+		a.logger.Debug("failed to store user credentials as a secret")
+
+		return errors.Wrap(err, "failed to store user credentials as a secret")
+	}
+
+	return nil
+}
+
+// createUserSecret creates a new password type secret, and returns the newly generated password string
+func (a anchoreService) createUserSecret(ctx context.Context, orgID uint, clusterID uint) (string, error) {
+
+	// a new password gets generated
+	secretID, err := a.storeCredentialsSecret(ctx, a.getUserName(clusterID), "")
+	if err != nil {
+		a.logger.Debug("failed to store credentials for a new user")
+
+		return "", errors.Wrap(err, "failed to store credentials for a new user")
+	}
+
+	values, err := a.secretStore.GetSecretValues(ctx, secretID)
+	if err != nil {
+		a.logger.Debug("failed to get the newly stored secret")
+
+		return "", errors.Wrap(err, "failed to get the newly stored secret")
+	}
+
+	password, ok := values["password"]
 	if !ok {
-		fnLog.Debug("the feature has no custom anchore config")
-
-		return Config{}, errors.WrapIf(err, "the feature has no custom anchore config")
+		return "", errors.NewPlain("there is no password in secret")
 	}
 
-	var retConfig Config
-	if err := mapstructure.Decode(&customAnchore, &retConfig); err != nil {
-		fnLog.Debug("failed to decode custom anchore config")
+	return password, nil
+}
 
-		return Config{}, errors.WrapIf(err, "failed to decode custom anchore config")
+func (a anchoreService) createAccount(ctx context.Context, clusterID uint) error {
+	if err := a.anchoreCli.CreateAccount(ctx, a.getUserName(clusterID), accountEmail); err != nil {
+		a.logger.Debug("failed to create anchore account")
+
+		return errors.Wrap(err, "failed to create anchore account")
 	}
 
-	fnLog.Info("feature config retrieved")
-	return retConfig, nil
+	a.logger.Info("created anchore account")
+	return nil
+}
+
+func (a anchoreService) createUser(ctx context.Context, clusterID uint, secret interface{}) error {
+	if err := a.anchoreCli.CreateUser(ctx, a.getUserName(clusterID), accountEmail); err != nil {
+		a.logger.Debug("failed to create anchore user")
+
+		return errors.Wrap(err, "failed to create anchore user")
+	}
+
+	a.logger.Info("created anchore user")
+	return nil
+}
+
+// storeCredentialsSecret stores the passed in userName and password asa secret and returns the related secretID
+func (a anchoreService) storeCredentialsSecret(ctx context.Context, userName string, password string) (string, error) {
+
+	secretRequest := secret.CreateSecretRequest{
+		Name: userName,
+		Type: "password",
+		Values: map[string]string{
+			"username": userName,
+			"password": password,
+		},
+		Tags: []string{
+			secretTypes.TagBanzaiHidden,
+		},
+	}
+
+	secretID, err := a.secretStore.Store(ctx, &secretRequest)
+	if err != nil {
+		a.logger.Debug("failed to store user credentials as a secret")
+
+		return "", errors.Wrap(err, "failed to store anchore user secret")
+	}
+
+	return secretID, nil
 }
