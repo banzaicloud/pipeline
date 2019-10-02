@@ -23,7 +23,7 @@ const (
 	customRoleName          = "pipeline-webhook"
 	pipelineRoleName        = "pipeline"
 	authMethodType          = "kubernetes"
-	authMethodPathPrefix    = "kubernetes"
+	authMethodPathPrefix    = "kubernetes-cluster"
 	policyNamePrefix        = "allow_cluster_secrets"
 	vaultTokenReviewer      = "vault-token-reviewer"
 	vaultTokenKey           = "token"
