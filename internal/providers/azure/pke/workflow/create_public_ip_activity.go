@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
@@ -70,7 +70,7 @@ func (a CreatePublicIPActivity) Execute(ctx context.Context, input CreatePublicI
 	}
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -79,19 +79,19 @@ func (a CreatePublicIPActivity) Execute(ctx context.Context, input CreatePublicI
 	client := cc.GetPublicIPAddressesClient()
 
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.PublicIPAddress.Name, params)
-	if err = emperror.WrapWith(err, "sending request to create or update public ip failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to create or update public ip failed", keyvals...); err != nil {
 		return
 	}
 
 	logger.Debug("waiting for the completion of create or update load public ip operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of create or update load public ip operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of create or update load public ip operation failed", keyvals...); err != nil {
 		return
 	}
 
 	publicIP, err := future.Result(client.PublicIPAddressesClient)
-	if err = emperror.WrapWith(err, "getting load balancer create or update result failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "getting load balancer create or update result failed", keyvals...); err != nil {
 		return
 	}
 

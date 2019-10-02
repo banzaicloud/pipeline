@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
@@ -125,7 +125,7 @@ func (a CreateLoadBalancerActivity) Execute(ctx context.Context, input CreateLoa
 	logger.Info("create load balancer")
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -134,19 +134,19 @@ func (a CreateLoadBalancerActivity) Execute(ctx context.Context, input CreateLoa
 	params := input.getCreateOrUpdateLoadBalancerParams(cc.GetSubscriptionID())
 
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.LoadBalancer.Name, params)
-	if err = emperror.WrapWith(err, "sending request to create or update load balancer failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to create or update load balancer failed", keyvals...); err != nil {
 		return
 	}
 
 	logger.Debug("waiting for the completion of create or update load balancer operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of create or update load balancer operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of create or update load balancer operation failed", keyvals...); err != nil {
 		return
 	}
 
 	lb, err := future.Result(client.LoadBalancersClient)
-	if err = emperror.WrapWith(err, "getting load balancer create or update result failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "getting load balancer create or update result failed", keyvals...); err != nil {
 		return
 	}
 

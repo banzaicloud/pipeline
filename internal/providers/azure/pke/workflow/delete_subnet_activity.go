@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/activity"
 )
 
@@ -64,7 +64,7 @@ func (a DeleteSubnetActivity) Execute(ctx context.Context, input DeleteSubnetAct
 
 	logger.Info("delete subnet")
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -73,7 +73,7 @@ func (a DeleteSubnetActivity) Execute(ctx context.Context, input DeleteSubnetAct
 	// TODO: only delete subnet if it's owned by the cluster
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.VNetName, input.SubnetName)
-	if err = emperror.WrapWith(err, "sending request to delete subnet failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to delete subnet failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("subnet not found")
 			return nil
@@ -84,7 +84,7 @@ func (a DeleteSubnetActivity) Execute(ctx context.Context, input DeleteSubnetAct
 	logger.Debug("waiting for the completion of delete subnet operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of delete subnet operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of delete subnet operation failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("subnet not found")
 			return nil

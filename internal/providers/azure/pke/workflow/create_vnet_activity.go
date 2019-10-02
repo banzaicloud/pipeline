@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
@@ -88,7 +88,7 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 	logger.Info("create or update virtual network")
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -97,7 +97,7 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 	vnet, err := client.Get(ctx, input.ResourceGroupName, input.VirtualNetwork.Name, "")
 	if vnet.StatusCode == http.StatusNotFound {
 		vnet = input.getCreateOrUpdateVirtualNetworkParams()
-	} else if err = emperror.Wrap(err, "failed to get virtual network"); err != nil {
+	} else if err = errors.WrapIf(err, "failed to get virtual network"); err != nil {
 		return
 	} else {
 		input.extendVirtualNetwork(&vnet, zapadapter.New(logger.Desugar()))
@@ -106,19 +106,19 @@ func (a CreateVnetActivity) Execute(ctx context.Context, input CreateVnetActivit
 	logger.Debug("sending request to create or update virtual network")
 
 	future, err := client.CreateOrUpdate(ctx, input.ResourceGroupName, input.VirtualNetwork.Name, vnet)
-	if err = emperror.WrapWith(err, "sending request to create or update virtual network failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to create or update virtual network failed", keyvals...); err != nil {
 		return
 	}
 
 	logger.Debug("waiting for the completion of create or update virtual network operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of create or update virtual network operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of create or update virtual network operation failed", keyvals...); err != nil {
 		return
 	}
 
 	vnet, err = future.Result(client.VirtualNetworksClient)
-	if err = emperror.WrapWith(err, "getting virtual network create or update result failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "getting virtual network create or update result failed", keyvals...); err != nil {
 		return
 	}
 

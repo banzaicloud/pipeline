@@ -16,11 +16,11 @@ package adapter
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
@@ -125,7 +125,7 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 
 func marshalStringSlice(s []string) string {
 	data, err := json.Marshal(s)
-	emperror.Panic(emperror.Wrap(err, "failed to marshal string slice"))
+	emperror.Panic(errors.WrapIf(err, "failed to marshal string slice"))
 	return string(data)
 }
 
@@ -134,7 +134,7 @@ func unmarshalStringSlice(s string) (result []string) {
 		// empty list in legacy format
 		return nil
 	}
-	err := emperror.Wrap(json.Unmarshal([]byte(s), &result), "failed to unmarshal string slice")
+	err := errors.WrapIf(json.Unmarshal([]byte(s), &result), "failed to unmarshal string slice")
 	if err != nil {
 		// try to parse legacy format
 		result = strings.Split(s, ",")
@@ -261,7 +261,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 
 func (s gormAzurePKEClusterStore) DeleteNodePool(clusterID uint, nodePoolName string) error {
 	if err := validateClusterID(clusterID); err != nil {
-		return emperror.Wrap(err, "invalid cluster ID")
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
 	if nodePoolName == "" {
 		return errors.New("empty node pool name")
@@ -280,7 +280,7 @@ func (s gormAzurePKEClusterStore) DeleteNodePool(clusterID uint, nodePoolName st
 
 func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 	if err := validateClusterID(clusterID); err != nil {
-		return emperror.Wrap(err, "invalid cluster ID")
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -295,7 +295,7 @@ func (s gormAzurePKEClusterStore) Delete(clusterID uint) error {
 
 func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzureCluster, err error) {
 	if err := validateClusterID(clusterID); err != nil {
-		return cluster, emperror.Wrap(err, "invalid cluster ID")
+		return cluster, errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := gormAzurePKEClusterModel{
@@ -310,7 +310,7 @@ func (s gormAzurePKEClusterStore) GetByID(clusterID uint) (cluster pke.PKEOnAzur
 
 func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message string) error {
 	if err := validateClusterID(clusterID); err != nil {
-		return emperror.Wrap(err, "invalid cluster ID")
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -347,7 +347,7 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 
 func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
 	if err := validateClusterID(clusterID); err != nil {
-		return emperror.Wrap(err, "invalid cluster ID")
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := gormAzurePKEClusterModel{
@@ -359,7 +359,7 @@ func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID
 
 func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID string) error {
 	if err := validateClusterID(clusterID); err != nil {
-		return emperror.Wrap(err, "invalid cluster ID")
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -375,7 +375,7 @@ func (s gormAzurePKEClusterStore) SetConfigSecretID(clusterID uint, secretID str
 
 func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string) error {
 	if err := validateClusterID(clusterID); err != nil {
-		return emperror.Wrap(err, "invalid cluster ID")
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -391,7 +391,7 @@ func (s gormAzurePKEClusterStore) SetSSHSecretID(clusterID uint, secretID string
 
 func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, error) {
 	if err := validateClusterID(clusterID); err != nil {
-		return "", emperror.Wrap(err, "invalid cluster ID")
+		return "", errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -405,7 +405,7 @@ func (s gormAzurePKEClusterStore) GetConfigSecretID(clusterID uint) (string, err
 
 func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, state bool) error {
 	if err := validateClusterID(clusterID); err != nil {
-		return emperror.Wrap(err, "invalid cluster ID")
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := cluster.ClusterModel{
@@ -432,7 +432,7 @@ func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, sta
 
 func (s gormAzurePKEClusterStore) SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error {
 	if err := validateClusterID(clusterID); err != nil {
-		return emperror.Wrap(err, "invalid cluster ID")
+		return errors.WrapIf(err, "invalid cluster ID")
 	}
 
 	model := gormAzurePKENodePoolModel{
@@ -483,9 +483,9 @@ func getError(db *gorm.DB, message string, args ...interface{}) error {
 		err = recordNotFoundError{}
 	}
 	if len(args) == 0 {
-		err = emperror.Wrap(err, message)
+		err = errors.WrapIf(err, message)
 	} else {
-		err = emperror.Wrapf(err, message, args...)
+		err = errors.WrapIff(err, message, args...)
 	}
 	return err
 }

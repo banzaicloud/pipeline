@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
 )
@@ -62,7 +62,7 @@ func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRoute
 
 	logger.Info("delete route table")
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
@@ -78,7 +78,7 @@ func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRoute
 			return nil
 		}
 
-		return emperror.WrapWith(err, "failed to get route table details", keyvals...)
+		return errors.WrapIfWithDetails(err, "failed to get route table details", keyvals...)
 	}
 
 	if !HasOwnedTag(input.ClusterName, to.StringMap(rt.Tags)) {
@@ -87,7 +87,7 @@ func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRoute
 	}
 
 	future, err := client.Delete(ctx, input.ResourceGroupName, input.RouteTableName)
-	if err = emperror.WrapWith(err, "sending request to delete route table failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "sending request to delete route table failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("route table not found")
 			return nil
@@ -98,7 +98,7 @@ func (a DeleteRouteTableActivity) Execute(ctx context.Context, input DeleteRoute
 	logger.Debug("waiting for the completion of delete route table operation")
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err = emperror.WrapWith(err, "waiting for the completion of delete route table operation failed", keyvals...); err != nil {
+	if err = errors.WrapIfWithDetails(err, "waiting for the completion of delete route table operation failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
 			logger.Warn("route table not found")
 			return nil

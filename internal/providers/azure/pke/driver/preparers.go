@@ -17,12 +17,11 @@ package driver
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/sirupsen/logrus"
 
@@ -71,12 +70,12 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 	{
 		nps, err := p.dataProvider.getExistingNodePools(ctx)
 		if err != nil {
-			return emperror.Wrap(err, "failed to get existing node pools")
+			return errors.WrapIf(err, "failed to get existing node pools")
 		}
 		for _, np := range nps {
 			cidr, err := p.dataProvider.getSubnetCIDR(ctx, np.Subnet.Name)
 			if err != nil {
-				return emperror.Wrap(err, "failed to get subnet CIDR of existing node pool")
+				return errors.WrapIf(err, "failed to get subnet CIDR of existing node pool")
 			}
 			subnets[np.Subnet.Name] = cidr
 		}
@@ -86,7 +85,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 		np := &nodePools[i]
 
 		if err := p.getNodePoolPreparer(i).Prepare(ctx, np); err != nil {
-			return emperror.Wrap(err, "failed to prepare node pool")
+			return errors.WrapIf(err, "failed to prepare node pool")
 		}
 
 		if cidr := subnets[np.Subnet.Name]; cidr == "" {
@@ -94,14 +93,14 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 		} else if np.Subnet.CIDR != "" {
 			_, n1, err := net.ParseCIDR(cidr)
 			if err != nil {
-				return emperror.Wrap(err, "failed to parse CIDR")
+				return errors.WrapIf(err, "failed to parse CIDR")
 			}
 			_, n2, err := net.ParseCIDR(np.Subnet.CIDR)
 			if err != nil {
-				return emperror.Wrap(err, "failed to parse CIDR")
+				return errors.WrapIf(err, "failed to parse CIDR")
 			}
 			if !sameNet(*n1, *n2) {
-				return emperror.With(errors.New("found identically named subnets with different network ranges"), "subnetName", np.Subnet.Name, "cidr1", cidr, "cidr2", np.Subnet.CIDR)
+				return errors.NewWithDetails("found identically named subnets with different network ranges", "subnetName", np.Subnet.Name, "cidr1", cidr, "cidr2", np.Subnet.CIDR)
 			}
 		}
 	}
@@ -111,10 +110,10 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 		if cidr != "" {
 			_, n, err := net.ParseCIDR(cidr)
 			if err != nil {
-				return emperror.Wrap(err, "failed to parse CIDR")
+				return errors.WrapIf(err, "failed to parse CIDR")
 			}
 			if r := reservedRanges[n.IP.String()]; r != nil {
-				return emperror.With(errors.New("overlapping network ranges assigned to subnets"), "cidr1", r.String(), "cidr2", cidr)
+				return errors.NewWithDetails("overlapping network ranges assigned to subnets", "cidr1", r.String(), "cidr2", cidr)
 			}
 			reservedRanges[n.IP.String()] = n
 		}
@@ -122,7 +121,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 
 	vnetAddrRange, err := p.dataProvider.getVirtualNetworkAddressRange(ctx)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get virtual network CIDR")
+		return errors.WrapIf(err, "failed to get virtual network CIDR")
 	}
 	if ones, bits := vnetAddrRange.Mask.Size(); ones > 16 || bits != 32 {
 		p.logger.WithField("vnetCIDR", vnetAddrRange).Warning("only /16 or larger virtual networks are supported")
@@ -136,7 +135,7 @@ func (p NodePoolsPreparer) Prepare(ctx context.Context, nodePools []NodePool) er
 			for reservedRanges[sn.IP.String()] != nil {
 				sn.IP[2]++
 				if sn.IP[2] == 0 {
-					return emperror.With(errors.New("no free address range for subnet"), "subnet", name)
+					return errors.NewWithDetails("no free address range for subnet", "subnet", name)
 				}
 			}
 			subnets[name] = sn.String()
@@ -188,7 +187,7 @@ func (p NodePoolPreparer) Prepare(ctx context.Context, nodePool *NodePool) error
 	if pke.IsNotFound(err) {
 		return p.prepareNewNodePool(ctx, nodePool)
 	} else if err != nil {
-		return emperror.Wrap(err, "failed to get node pool by name")
+		return errors.WrapIf(err, "failed to get node pool by name")
 	}
 
 	return p.prepareExistingNodePool(ctx, nodePool, np)
@@ -232,22 +231,22 @@ func (p NodePoolPreparer) prepareNewNodePool(ctx context.Context, nodePool *Node
 		}
 		vnetAddrRange, err := p.dataProvider.getVirtualNetworkAddressRange(ctx)
 		if err != nil {
-			return emperror.Wrap(err, "failed to get virtual network CIDR")
+			return errors.WrapIf(err, "failed to get virtual network CIDR")
 		}
 		if !vnetAddrRange.Contains(ip) {
-			return emperror.With(validationErrorf("%s.Subnet.CIDR is outside of virtual network address range"), "vnetCIDR", vnetAddrRange.String(), "subnetCIDR", cidr)
+			return errors.WithDetails(validationErrorf("%s.Subnet.CIDR is outside of virtual network address range", p.namespace), "vnetCIDR", vnetAddrRange.String(), "subnetCIDR", cidr)
 		}
 		vnetOnes, _ := vnetAddrRange.Mask.Size()
 		subnetOnes, _ := n.Mask.Size()
 		if vnetOnes > subnetOnes {
-			return emperror.With(validationErrorf("%s.Subnet.CIDR is bigger than virtual network address range"), "vnetCIDR", vnetAddrRange.String(), "subnetCIDR", cidr)
+			return errors.WithDetails(validationErrorf("%s.Subnet.CIDR is bigger than virtual network address range", p.namespace), "vnetCIDR", vnetAddrRange.String(), "subnetCIDR", cidr)
 		}
 	} else {
 		cidr, err := p.dataProvider.getSubnetCIDR(ctx, nodePool.Subnet.Name)
 		if err == nil {
 			nodePool.Subnet.CIDR = cidr
 		} else if !pke.IsNotFound(err) {
-			return emperror.Wrap(err, "failed to get subnet CIDR")
+			return errors.WrapIf(err, "failed to get subnet CIDR")
 		}
 	}
 
@@ -281,7 +280,7 @@ func (p NodePoolPreparer) prepareExistingNodePool(ctx context.Context, nodePool 
 	}
 	existingSubnetCIDR, err := p.dataProvider.getSubnetCIDR(ctx, existing.Subnet.Name)
 	if err != nil {
-		return emperror.Wrap(err, "failed to get subnet CIDR")
+		return errors.WrapIf(err, "failed to get subnet CIDR")
 	}
 	if nodePool.Subnet.CIDR != existingSubnetCIDR {
 		if nodePool.Subnet.CIDR != "" {
@@ -362,7 +361,7 @@ func (p VirtualNetworkPreparer) Prepare(ctx context.Context, vnet *VirtualNetwor
 		return validationErrorf("a virtual network already exists in the resource group with the generated name %q", vnet.Name)
 	}
 	if err != nil && vn.StatusCode != http.StatusNotFound {
-		return emperror.Wrap(err, "failed to fetch virtual network")
+		return errors.WrapIf(err, "failed to fetch virtual network")
 	}
 	if vnet.CIDR == "" {
 		if vn.StatusCode == http.StatusOK && vn.VirtualNetworkPropertiesFormat != nil && vn.AddressSpace != nil && len(to.StringSlice(vn.AddressSpace.AddressPrefixes)) > 0 {
@@ -380,7 +379,7 @@ func (p VirtualNetworkPreparer) Prepare(ctx context.Context, vnet *VirtualNetwor
 		} else {
 			rg, err := p.connection.GetGroupsClient().Get(ctx, p.resourceGroupName)
 			if err != nil && rg.Response.StatusCode != http.StatusNotFound {
-				return emperror.WrapWith(err, "failed to fetch Azure resource group", "resourceGroupName", p.resourceGroupName)
+				return errors.WrapIfWithDetails(err, "failed to fetch Azure resource group", "resourceGroupName", p.resourceGroupName)
 			}
 			if rg.Response.StatusCode == http.StatusNotFound || rg.Location == nil || *rg.Location == "" {
 				// resource group does not exist (or somehow has no Location), cannot provide default

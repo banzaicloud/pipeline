@@ -22,8 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -190,7 +189,7 @@ func (a *AzurePkeCluster) DownloadK8sConfig() ([]byte, error) {
 func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 	config, err := a.GetK8sConfig()
 	if err != nil {
-		return "", emperror.Wrap(err, "failed to get cluster's Kubeconfig")
+		return "", errors.WrapIf(err, "failed to get cluster's Kubeconfig")
 	}
 
 	return pkgCluster.GetAPIEndpointFromKubeconfig(config)
@@ -362,7 +361,7 @@ func (a *AzurePkeCluster) GetCAHash() (string, error) {
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return "", emperror.Wrapf(err, "failed to parse certificate")
+		return "", errors.WrapIff(err, "failed to parse certificate")
 	}
 	h := sha256.Sum256(cert.RawSubjectPublicKeyInfo)
 	return fmt.Sprintf("sha256:%s", hex.EncodeToString(h[:])), nil

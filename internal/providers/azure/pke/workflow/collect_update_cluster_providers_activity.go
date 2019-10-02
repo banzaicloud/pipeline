@@ -17,7 +17,7 @@ package workflow
 import (
 	"context"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 )
@@ -57,12 +57,12 @@ type CollectUpdateClusterProvidersActivityOutput struct {
 func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, input CollectUpdateClusterProvidersActivityInput) (output CollectUpdateClusterProvidersActivityOutput, err error) {
 
 	cc, err := a.azureClientFactory.New(input.OrganizationID, input.SecretID)
-	if err = emperror.Wrap(err, "failed to create cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create cloud connection"); err != nil {
 		return
 	}
 
 	lb, err := cc.GetLoadBalancersClient().Get(ctx, input.ResourceGroupName, input.LoadBalancerName, "")
-	if err = emperror.Wrap(err, "failed to get load balancer"); err != nil {
+	if err = errors.WrapIf(err, "failed to get load balancer"); err != nil {
 		return
 	}
 
@@ -81,13 +81,13 @@ func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, inpu
 	}
 
 	pip, err := cc.GetPublicIPAddressesClient().Get(ctx, input.ResourceGroupName, input.PublicIPAddressName, "")
-	if err = emperror.Wrap(err, "failed to get public IP address"); err != nil {
+	if err = errors.WrapIf(err, "failed to get public IP address"); err != nil {
 		return
 	}
 	output.PublicIPAddressProvider = ConstantIPAddressProvider(to.String(pip.ID))
 
 	rt, err := cc.GetRouteTablesClient().Get(ctx, input.ResourceGroupName, input.RouteTableName, "")
-	if err = emperror.Wrap(err, "failed to get route table"); err != nil {
+	if err = errors.WrapIf(err, "failed to get route table"); err != nil {
 		return
 	}
 	output.RouteTableIDProvider = MapResourceIDByNameProvider(map[string]string{to.String(rt.Name): to.String(rt.ID)})
@@ -95,14 +95,14 @@ func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, inpu
 	{
 		var page network.SecurityGroupListResultPage
 		page, err = cc.GetSecurityGroupsClient().List(ctx, input.ResourceGroupName)
-		if err = emperror.Wrap(err, "failed to list security groups"); err != nil {
+		if err = errors.WrapIf(err, "failed to list security groups"); err != nil {
 			return
 		}
 
 		output.SecurityGroupIDProvider = make(MapResourceIDByNameProvider)
 
 		for iter := network.NewSecurityGroupListResultIterator(page); iter.NotDone(); err = iter.NextWithContext(ctx) {
-			if err = emperror.Wrap(err, "failed to advance security group list result iterator"); err != nil {
+			if err = errors.WrapIf(err, "failed to advance security group list result iterator"); err != nil {
 				return
 			}
 			sg := iter.Value()
@@ -113,14 +113,14 @@ func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, inpu
 	{
 		var page network.SubnetListResultPage
 		page, err = cc.GetSubnetsClient().List(ctx, input.ResourceGroupName, input.VirtualNetworkName)
-		if err = emperror.Wrap(err, "failed to list subnets"); err != nil {
+		if err = errors.WrapIf(err, "failed to list subnets"); err != nil {
 			return
 		}
 
 		output.SubnetIDProvider = make(MapResourceIDByNameProvider)
 
 		for iter := network.NewSubnetListResultIterator(page); iter.NotDone(); err = iter.NextWithContext(ctx) {
-			if err = emperror.Wrap(err, "failed to advance subnet list result iterator"); err != nil {
+			if err = errors.WrapIf(err, "failed to advance subnet list result iterator"); err != nil {
 				return
 			}
 			subnet := iter.Value()

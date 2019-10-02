@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/sirupsen/logrus"
@@ -135,12 +135,12 @@ type AzurePKEClusterCreationParams struct {
 // Create
 func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
 	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
-	if err = emperror.Wrap(err, "failed to get secret"); err != nil {
+	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return
 	}
 
 	conn, err := pkgAzure.NewCloudConnection(&azure.PublicCloud, pkgAzure.NewCredentials(sir.Values))
-	if err = emperror.Wrap(err, "failed to create new Azure cloud connection"); err != nil {
+	if err = errors.WrapIf(err, "failed to create new Azure cloud connection"); err != nil {
 		return
 	}
 
@@ -154,7 +154,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 
 	sn, err := conn.GetSubnetsClient().Get(ctx, params.ResourceGroup, params.Network.Name, params.NodePools[0].Subnet.Name, "routeTable")
-	if err = emperror.Wrap(err, "failed to get subnet"); err != nil && sn.StatusCode != http.StatusNotFound {
+	if err = errors.WrapIf(err, "failed to get subnet"); err != nil && sn.StatusCode != http.StatusNotFound {
 		_ = cc.handleError(cl.ID, err)
 		return
 	}
@@ -241,7 +241,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 
 	sshKeyPair, err := GetOrCreateSSHKeyPair(cl, cc.secrets, cc.store)
-	if err = emperror.Wrap(err, "failed to get or create SSH key pair"); err != nil {
+	if err = errors.WrapIf(err, "failed to get or create SSH key pair"); err != nil {
 		_ = cc.handleError(cl.ID, err)
 		return
 	}
@@ -413,16 +413,16 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 	}
 
 	if err := p.k8sPreparer.Prepare(&params.Kubernetes); err != nil {
-		return emperror.Wrap(err, "failed to prepare k8s network")
+		return errors.WrapIf(err, "failed to prepare k8s network")
 	}
 
 	if err := p.getVNetPreparer(p.connection, params.Name, params.ResourceGroup).Prepare(ctx, &params.Network); err != nil {
-		return emperror.Wrap(err, "failed to prepare cluster network")
+		return errors.WrapIf(err, "failed to prepare cluster network")
 	}
 
 	_, network, err := net.ParseCIDR(params.Network.CIDR)
 	if err != nil {
-		return emperror.Wrap(err, "failed to parse network CIDR")
+		return errors.WrapIf(err, "failed to parse network CIDR")
 	}
 	if err := p.getNodePoolsPreparer(clusterCreatorNodePoolPreparerDataProvider{
 		resourceGroupName:  params.ResourceGroup,
@@ -430,7 +430,7 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 		virtualNetworkCIDR: *network,
 		virtualNetworkName: params.Network.Name,
 	}).Prepare(ctx, params.NodePools); err != nil {
-		return emperror.Wrap(err, "failed to prepare node pools")
+		return errors.WrapIf(err, "failed to prepare node pools")
 	}
 
 	return nil
