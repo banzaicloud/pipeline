@@ -22,6 +22,7 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
+
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
@@ -81,6 +82,9 @@ type gormAzurePKEClusterModel struct {
 
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
+
+	AccessPoints          string
+	ApiServerAccessPoints string
 }
 
 func (gormAzurePKEClusterModel) TableName() string {
@@ -213,6 +217,13 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 	cluster.Kubernetes.Version = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
 
+	for _, ap := range unmarshalStringSlice(model.AccessPoints) {
+		cluster.AccessPoints = append(cluster.AccessPoints, pke.AzureAccessPoint(ap))
+	}
+	for _, ap := range unmarshalStringSlice(model.ApiServerAccessPoints) {
+		cluster.ApiServerAccessPoints = append(cluster.ApiServerAccessPoints, pke.AzureApiServerAccessPoint(ap))
+	}
+
 	cluster.HTTPProxy = model.HTTPProxy.toEntity()
 
 	return nil
@@ -310,6 +321,18 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 				model.Cluster.SecurityScan = true
 			}
 		}
+	}
+	{
+		accessPointsJson, err := params.AccessPoints.Marshal()
+		if err != nil {
+			return c, errors.WrapIf(err, "couldn't marshall cluster access points")
+		}
+		model.AccessPoints = accessPointsJson
+		apiServerAccessPoints, err := params.ApiServerAccessPoints.Marshal()
+		if err != nil {
+			return c, errors.WrapIf(err, "couldn't marshall api server access points")
+		}
+		model.ApiServerAccessPoints = apiServerAccessPoints
 	}
 	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
 		return

@@ -36,14 +36,14 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 		}
 	}
 
-	var accessPoints driver.AzureAccessPoints
+	var accessPoints pke.AzureAccessPoints
 	for _, ap := range req.AccessPoints {
-		accessPoints = append(accessPoints, driver.AzureAccessPoint(ap))
+		accessPoints = append(accessPoints, pke.AzureAccessPoint(ap))
 	}
 
-	var apiServerAccessPoints driver.AzureApiServerAccessPoints
+	var apiServerAccessPoints pke.AzureApiServerAccessPoints
 	for _, ap := range req.ApiServerAccessPoints {
-		apiServerAccessPoints = append(apiServerAccessPoints, driver.AzureApiServerAccessPoint(ap))
+		apiServerAccessPoints = append(apiServerAccessPoints, pke.AzureApiServerAccessPoint(ap))
 	}
 
 	return driver.AzurePKEClusterCreationParams{

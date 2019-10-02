@@ -138,40 +138,6 @@ type Subnet struct {
 	CIDR string
 }
 
-type AzureAccessPoint string
-
-func (a AzureAccessPoint) GetName() string {
-	return string(a)
-}
-
-type AzureAccessPoints []AzureAccessPoint
-
-func (a AzureAccessPoints) Exists(name string) bool {
-	for _, ap := range a {
-		if ap.GetName() == name {
-			return true
-		}
-	}
-	return false
-}
-
-type AzureApiServerAccessPoint string
-
-func (a AzureApiServerAccessPoint) GetName() string {
-	return string(a)
-}
-
-type AzureApiServerAccessPoints []AzureApiServerAccessPoint
-
-func (a AzureApiServerAccessPoints) Exists(name string) bool {
-	for _, ap := range a {
-		if ap.GetName() == name {
-			return true
-		}
-	}
-	return false
-}
-
 // AzurePKEClusterCreationParams defines parameters for PKE-on-Azure cluster creation
 type AzurePKEClusterCreationParams struct {
 	CreatedBy             uint
@@ -186,8 +152,8 @@ type AzurePKEClusterCreationParams struct {
 	SecretID              string
 	SSHSecretID           string
 	HTTPProxy             intPKE.HTTPProxy
-	AccessPoints          AzureAccessPoints
-	ApiServerAccessPoints AzureApiServerAccessPoints
+	AccessPoints          pke.AzureAccessPoints
+	ApiServerAccessPoints pke.AzureApiServerAccessPoints
 }
 
 // Create

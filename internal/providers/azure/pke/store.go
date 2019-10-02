@@ -23,21 +23,23 @@ import (
 )
 
 type CreateParams struct {
-	Name               string
-	OrganizationID     uint
-	CreatedBy          uint
-	Location           string
-	SecretID           string
-	SSHSecretID        string
-	RBAC               bool
-	OIDC               bool
-	KubernetesVersion  string
-	ScaleOptions       pkgCluster.ScaleOptions
-	ResourceGroupName  string
-	VirtualNetworkName string
-	NodePools          []NodePool
-	Features           []intCluster.Feature
-	HTTPProxy          intPKE.HTTPProxy
+	Name                  string
+	OrganizationID        uint
+	CreatedBy             uint
+	Location              string
+	SecretID              string
+	SSHSecretID           string
+	RBAC                  bool
+	OIDC                  bool
+	KubernetesVersion     string
+	ScaleOptions          pkgCluster.ScaleOptions
+	ResourceGroupName     string
+	VirtualNetworkName    string
+	NodePools             []NodePool
+	Features              []intCluster.Feature
+	HTTPProxy             intPKE.HTTPProxy
+	AccessPoints          AzureAccessPoints
+	ApiServerAccessPoints AzureApiServerAccessPoints
 }
 
 // AzurePKEClusterStore defines behaviors of PKEOnAzureCluster persistent storage

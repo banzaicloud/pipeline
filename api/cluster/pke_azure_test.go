@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/pke"
+	azurePke "github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -176,8 +177,8 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				},
 				SecretID:              SecretID,
 				SSHSecretID:           SSHSecretID,
-				AccessPoints:          driver.AzureAccessPoints{"private", "public"},
-				ApiServerAccessPoints: driver.AzureApiServerAccessPoints{"private", "public"},
+				AccessPoints:          azurePke.AzureAccessPoints{"private", "public"},
+				ApiServerAccessPoints: azurePke.AzureApiServerAccessPoints{"private", "public"},
 			},
 		},
 	}

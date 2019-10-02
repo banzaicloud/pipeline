@@ -15,8 +15,12 @@
 package pke
 
 import (
+	"encoding/json"
+
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
+
+	"emperror.dev/errors"
 )
 
 const PKEOnAzure = "pke-on-azure"
@@ -47,6 +51,58 @@ type NodePool struct {
 	Zones        []string
 }
 
+type AzureAccessPoint string
+
+func (a AzureAccessPoint) GetName() string {
+	return string(a)
+}
+
+type AzureAccessPoints []AzureAccessPoint
+
+func (a AzureAccessPoints) Exists(name string) bool {
+	for _, ap := range a {
+		if ap.GetName() == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (a AzureAccessPoints) Marshal() (string, error) {
+	data, err := json.Marshal(a)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to marshall access point list")
+	}
+
+	return string(data), nil
+}
+
+type AzureApiServerAccessPoint string
+
+func (a AzureApiServerAccessPoint) GetName() string {
+	return string(a)
+}
+
+type AzureApiServerAccessPoints []AzureApiServerAccessPoint
+
+func (a AzureApiServerAccessPoints) Exists(name string) bool {
+	for _, ap := range a {
+		if ap.GetName() == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (a AzureApiServerAccessPoints) Marshal() (string, error) {
+	data, err := json.Marshal(a)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to marshall api server access point list")
+	}
+
+	return string(data), nil
+}
+
 // PKEOnAzureCluster defines fields for PKE-on-Azure clusters
 type PKEOnAzureCluster struct {
 	intCluster.ClusterBase
@@ -63,6 +119,9 @@ type PKEOnAzureCluster struct {
 	Logging      bool
 	SecurityScan bool
 	TtlMinutes   uint
+
+	AccessPoints          AzureAccessPoints
+	ApiServerAccessPoints AzureApiServerAccessPoints
 }
 
 func (c PKEOnAzureCluster) HasActiveWorkflow() bool {
