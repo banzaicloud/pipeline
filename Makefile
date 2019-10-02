@@ -22,6 +22,8 @@ endif
 
 CLOUDINFO_VERSION = 0.7.0
 DEX_VERSION = 2.19.0
+# TODO: use an exact version
+ANCHORE_VERSION = 156836d
 
 GOLANGCI_VERSION = 1.18.0
 MISSPELL_VERSION = 0.3.4
@@ -272,6 +274,20 @@ generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec
 	-g go \
 	-o /local/.gen/cloudinfo
 	rm cloudinfo-openapi.yaml .gen/cloudinfo/.travis.yml .gen/cloudinfo/git_push.sh
+
+apis/anchore/swagger.yaml:
+	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
+
+.PHONY: generate-anchore-client
+generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
+	rm -rf .gen/anchore
+	docker run --rm -v ${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	--additional-properties packageName=anchore \
+	--additional-properties withGoCodegenComment=true \
+	-i /local/apis/anchore/swagger.yaml \
+	-g go \
+	-o /local/.gen/anchore
+	rm .gen/anchore/.travis.yml .gen/anchore/git_push.sh
 
 bin/protoc-gen-go: bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
 	@ln -sf protoc-gen-go-${PROTOC_GEN_GO_VERSION} bin/protoc-gen-go
