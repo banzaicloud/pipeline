@@ -132,6 +132,10 @@ func (m vaultManager) deletePolicy() error {
 	return m.vaultClient.RawClient().Sys().DeletePolicy(getPolicyName(m.orgID, m.clusterID))
 }
 
+func (m vaultManager) close() {
+	m.vaultClient.Close()
+}
+
 func getRoleName(isCustomVault bool) string {
 	if isCustomVault {
 		return customRoleName
