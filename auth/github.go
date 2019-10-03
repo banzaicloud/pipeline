@@ -16,13 +16,10 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"emperror.dev/emperror"
 	"github.com/google/go-github/github"
 	"github.com/mitchellh/mapstructure"
-	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -42,32 +39,6 @@ func NewGithubClient(accessToken string) *github.Client {
 	httpClient.Timeout = time.Second * 10
 
 	return github.NewClient(httpClient)
-}
-
-func GetUserGithubToken(userID uint) (string, error) {
-	token, err := TokenStore.Lookup(fmt.Sprint(userID), GithubTokenID)
-	if err != nil {
-		return "", emperror.Wrap(err, "failed to lookup user token")
-	}
-
-	if token == nil {
-		return "", nil
-	}
-
-	return token.Value, nil
-}
-
-func NewGithubClientForUser(userID uint) (*github.Client, error) {
-	accessToken, err := GetUserGithubToken(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	if accessToken == "" {
-		return nil, errors.New("user's github token is not set")
-	}
-
-	return NewGithubClient(accessToken), nil
 }
 
 func getGithubUserMeta(schema *auth.Schema) (*githubUserMeta, error) {

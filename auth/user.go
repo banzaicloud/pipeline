@@ -292,50 +292,6 @@ func (bus BanzaiUserStorer) Update(schema *auth.Schema, authCtx *auth.Context) (
 	return bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), currentUser, schema.RawInfo.(*IDTokenClaims))
 }
 
-// SaveUserSCMToken saves a personal access token specified for a user
-func SaveUserSCMToken(user *User, scmToken string, tokenType string) error {
-	// Revoke the old Github token from Vault if any
-	err := TokenStore.Revoke(user.IDString(), tokenType)
-	if err != nil {
-		return errors.Wrap(err, "failed to revoke old access token")
-	}
-	token := bauth.NewToken(tokenType, "scm access token")
-	token.Value = scmToken
-	err = TokenStore.Store(user.IDString(), token)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to store access token for user", "user", user.Login)
-	}
-	if viper.GetBool("cicd.enabled") && (tokenType == GithubTokenID || tokenType == GitlabTokenID) {
-		// TODO CICD should use Vault as well, and this should be removed by then
-		err = updateUserInCICDDB(user, scmToken)
-		if err != nil {
-			return emperror.WrapWith(err, "failed to update access token for user in CICD", "user", user.Login)
-		}
-
-		synchronizeCICDRepos(user.Login)
-	}
-
-	return nil
-}
-
-// RemoveUserSCMToken removes a GitHub personal access token specified for a user
-func RemoveUserSCMToken(user *User, tokenType string) error {
-	// Revoke the old Github token from Vault if any
-	err := TokenStore.Revoke(user.IDString(), tokenType)
-	if err != nil {
-		return errors.Wrap(err, "failed to revoke access token")
-	}
-
-	if viper.GetBool("cicd.enabled") && (tokenType == GithubTokenID || tokenType == GitlabTokenID) {
-		// TODO CICD should use Vault as well, and this should be removed by then
-		err = updateUserInCICDDB(user, "")
-		if err != nil {
-			return emperror.WrapWith(err, "failed to revoke access token for user in CICD", "user", user.Login)
-		}
-	}
-	return nil
-}
-
 func GetOAuthRefreshToken(userID string) (string, error) {
 	token, err := TokenStore.Lookup(userID, OAuthRefreshTokenID)
 	if err != nil {

@@ -15,17 +15,35 @@
 package auth
 
 import (
+	"fmt"
+
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
+	"github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 )
 
-// GetSCMToken get scm token
-func GetSCMToken(userID uint) (string, string, error) {
-	scmToken, err := GetUserGithubToken(userID)
+// SCMTokenStore stores SCM tokens in the underlying store.
+type SCMTokenStore struct {
+	tokenStore  auth.TokenStore
+	cicdEnabled bool
+}
+
+// NewSCMTokenStore returns a new SCMTokenStore.
+func NewSCMTokenStore(tokenStore auth.TokenStore, cicdEnabled bool) SCMTokenStore {
+	return SCMTokenStore{
+		tokenStore:  tokenStore,
+		cicdEnabled: cicdEnabled,
+	}
+}
+
+// GetSCMToken returns the stored SCM token and the provider name for a user.
+func (s SCMTokenStore) GetSCMToken(userID uint) (string, string, error) {
+	scmToken, err := s.GetSCMTokenByProvider(userID, GithubTokenID)
 	if err == nil && scmToken != "" {
 		return scmToken, GithubTokenID, nil
 	}
 
-	scmToken, err = GetUserGitlabToken(userID)
+	scmToken, err = s.GetSCMTokenByProvider(userID, GitlabTokenID)
 	if err == nil && scmToken != "" {
 		return scmToken, GitlabTokenID, nil
 	}
@@ -33,20 +51,64 @@ func GetSCMToken(userID uint) (string, string, error) {
 	return "", "", emperror.Wrap(err, "failed to fetch user's scm token")
 }
 
-// UpdateSCMToken update user token
-func UpdateSCMToken(user *User, scmToken string, provider string) (string, error) {
-	if scmToken != "" {
-		err := SaveUserSCMToken(user, scmToken, provider)
+// GetSCMToken returns the stored SCM token and the provider name for a user.
+func (s SCMTokenStore) GetSCMTokenByProvider(userID uint, provider string) (string, error) {
+	token, err := s.tokenStore.Lookup(fmt.Sprint(userID), provider)
+	if err != nil {
+		return "", emperror.Wrap(err, "failed to lookup user token")
+	}
+
+	if token == nil {
+		return "", nil
+	}
+
+	return token.Value, nil
+}
+
+// SaveSCMToken saves an SCM token for a user.
+func (s SCMTokenStore) SaveSCMToken(user *User, scmToken string, provider string) error {
+	// Revoke the old Github token from Vault if any
+	err := s.tokenStore.Revoke(user.IDString(), provider)
+	if err != nil {
+		return errors.WrapIf(err, "failed to revoke old access token")
+	}
+
+	token := auth.NewToken(provider, "scm access token")
+	token.Value = scmToken
+
+	err = s.tokenStore.Store(user.IDString(), token)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to store access token for user", "user", user.Login)
+	}
+
+	if s.cicdEnabled && (provider == GithubTokenID || provider == GitlabTokenID) {
+		// TODO CICD should use Vault as well, and this should be removed by then
+		err = updateUserInCICDDB(user, scmToken)
 		if err != nil {
-			message := "failed to update user's access token"
-			return message, emperror.Wrap(err, message)
+			return errors.WrapIfWithDetails(err, "failed to update access token for user in CICD", "user", user.Login)
 		}
-	} else {
-		err := RemoveUserSCMToken(user, provider)
+
+		synchronizeCICDRepos(user.Login)
+	}
+
+	return nil
+}
+
+// RemoveSCMToken removes an SCM token for a user.
+func (s SCMTokenStore) RemoveSCMToken(user *User, provider string) error {
+	// Revoke the old Github token from Vault if any
+	err := s.tokenStore.Revoke(user.IDString(), provider)
+	if err != nil {
+		return errors.WrapIf(err, "failed to revoke old access token")
+	}
+
+	if s.cicdEnabled && (provider == GithubTokenID || provider == GitlabTokenID) {
+		// TODO CICD should use Vault as well, and this should be removed by then
+		err = updateUserInCICDDB(user, "")
 		if err != nil {
-			message := "failed to remove user's access token"
-			return message, emperror.Wrap(err, message)
+			return errors.WrapIfWithDetails(err, "failed to update access token for user in CICD", "user", user.Login)
 		}
 	}
-	return "", nil
+
+	return nil
 }
