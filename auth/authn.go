@@ -24,13 +24,13 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	ginauth "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
@@ -212,25 +212,30 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 	)
 }
 
-func SyncOrgsForUser(organizationSyncer OIDCOrganizationSyncer, user *User, request *http.Request) error {
-	refreshToken, err := GetOAuthRefreshToken(user.IDString())
+func SyncOrgsForUser(
+	organizationSyncer OIDCOrganizationSyncer,
+	refreshTokenStore RefreshTokenStore,
+	user *User,
+	request *http.Request,
+) error {
+	refreshToken, err := refreshTokenStore.GetRefreshToken(user.IDString())
 	if err != nil {
-		return emperror.Wrap(err, "failed to fetch refresh token from Vault")
+		return errors.WrapIf(err, "failed to fetch refresh token from Vault")
 	}
 
 	if refreshToken == "" {
-		return emperror.Wrap(err, "no refresh token, please login again")
+		return errors.WrapIf(err, "no refresh token, please login again")
 	}
 
 	authContext := auth.Context{Auth: Auth, Request: request}
 	idTokenClaims, token, err := oidcProvider.RedeemRefreshToken(&authContext, refreshToken)
 	if err != nil {
-		return emperror.Wrap(err, "failed to redeem user refresh token")
+		return errors.WrapIf(err, "failed to redeem user refresh token")
 	}
 
-	err = SaveOAuthRefreshToken(user.IDString(), token.RefreshToken)
+	err = refreshTokenStore.SaveRefreshToken(user.IDString(), token.RefreshToken)
 	if err != nil {
-		return emperror.Wrap(err, "failed to save user refresh token")
+		return errors.WrapIf(err, "failed to save user refresh token")
 	}
 
 	return organizationSyncer.SyncOrganizations(request.Context(), *user, idTokenClaims)

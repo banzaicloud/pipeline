@@ -489,7 +489,7 @@ func main() {
 	scmTokenStore := auth.NewSCMTokenStore(tokenStore, viper.GetBool("cicd.enabled"))
 
 	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
-	organizationAPI := api.NewOrganizationAPI(organizationSyncer)
+	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
