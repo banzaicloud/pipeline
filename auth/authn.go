@@ -189,7 +189,7 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 		ClientSecret:       viper.GetString("auth.clientsecret"),
 		IssuerURL:          viper.GetString(config.OIDCIssuerURL),
 		InsecureSkipVerify: viper.GetBool(config.OIDCIssuerInsecure),
-	})
+	}, NewRefreshTokenStore(tokenStore))
 	Auth.RegisterProvider(oidcProvider)
 
 	Handler = ginauth.JWTAuthHandler(

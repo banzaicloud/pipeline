@@ -23,13 +23,11 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	"github.com/banzaicloud/cicd-go/cicd"
 	ginauth "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/qor/utils"
@@ -290,22 +288,6 @@ func (bus BanzaiUserStorer) Update(schema *auth.Schema, authCtx *auth.Context) (
 	}
 
 	return bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), currentUser, schema.RawInfo.(*IDTokenClaims))
-}
-
-func SaveOAuthRefreshToken(userID string, refreshToken string) error {
-	// Revoke the old refresh token from Vault if any
-	err := TokenStore.Revoke(userID, OAuthRefreshTokenID)
-	if err != nil {
-		return errors.Wrap(err, "failed to revoke old refresh token")
-	}
-	token := bauth.NewToken(OAuthRefreshTokenID, "OAuth refresh token")
-	token.Value = refreshToken
-	err = TokenStore.Store(userID, token)
-	if err != nil {
-		return emperror.WrapWith(err, "failed to store refresg token for user", "user", userID)
-	}
-
-	return nil
 }
 
 func (bus BanzaiUserStorer) createUserInCICDDB(user *User) error {
