@@ -33,7 +33,7 @@ func NewRefreshTokenStore(tokenStore auth.TokenStore) RefreshTokenStore {
 
 // GetRefreshToken returns the refresh token from the token store.
 func (s RefreshTokenStore) GetRefreshToken(userID string) (string, error) {
-	token, err := TokenStore.Lookup(userID, OAuthRefreshTokenID)
+	token, err := s.tokenStore.Lookup(userID, OAuthRefreshTokenID)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to lookup user refresh token")
 	}

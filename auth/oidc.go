@@ -62,7 +62,7 @@ type IDTokenClaims struct {
 	FederatedClaims map[string]string `json:"federated_claims"`
 }
 
-func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
+func newOIDCProvider(config *OIDCConfig, refreshTokenStore RefreshTokenStore) *OIDCProvider {
 	if config == nil {
 		config = &OIDCConfig{}
 	}
@@ -238,7 +238,7 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 					return claims, err
 				}
 
-				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
+				return claims, refreshTokenStore.SaveRefreshToken(claims.UserID, token.RefreshToken)
 			}
 
 			// Check if authInfo exists with Dex
@@ -257,7 +257,7 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 					return claims, err
 				}
 
-				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
+				return claims, refreshTokenStore.SaveRefreshToken(claims.UserID, token.RefreshToken)
 			}
 
 			// Create a new account otherwise
@@ -273,7 +273,7 @@ func newOIDCProvider(config *OIDCConfig) *OIDCProvider {
 
 			if err = tx.Where(authInfo).FirstOrCreate(authIdentity).Error; err == nil {
 				claims := authInfo.ToClaims()
-				return claims, SaveOAuthRefreshToken(claims.UserID, token.RefreshToken)
+				return claims, refreshTokenStore.SaveRefreshToken(claims.UserID, token.RefreshToken)
 			}
 
 			return nil, err
