@@ -180,7 +180,7 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 		LoginHandler:      banzaiLoginHandler,
 		LogoutHandler:     banzaiLogoutHandler,
 		RegisterHandler:   banzaiRegisterHandler,
-		DeregisterHandler: NewBanzaiDeregisterHandler(),
+		DeregisterHandler: NewBanzaiDeregisterHandler(tokenStore),
 	})
 
 	oidcProvider = newOIDCProvider(&OIDCConfig{
@@ -358,11 +358,15 @@ func banzaiRegisterHandler(context *auth.Context, register func(*auth.Context) (
 	httpJSONError(context.Writer, err, http.StatusUnauthorized)
 }
 
-type banzaiDeregisterHandler struct{}
+type banzaiDeregisterHandler struct {
+	tokenStore bauth.TokenStore
+}
 
 // NewBanzaiDeregisterHandler returns a handler that deletes the user and all his/her tokens from the database
-func NewBanzaiDeregisterHandler() func(*auth.Context) {
-	handler := &banzaiDeregisterHandler{}
+func NewBanzaiDeregisterHandler(tokenStore bauth.TokenStore) func(*auth.Context) {
+	handler := &banzaiDeregisterHandler{
+		tokenStore: tokenStore,
+	}
 
 	return handler.handler
 }
@@ -405,7 +409,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 	}
 
 	// Delete Tokens
-	tokens, err := TokenStore.List(user.IDString())
+	tokens, err := h.tokenStore.List(user.IDString())
 	if err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed list user's tokens during user deletetion"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
@@ -413,7 +417,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 	}
 
 	for _, token := range tokens {
-		err = TokenStore.Revoke(user.IDString(), token.ID)
+		err = h.tokenStore.Revoke(user.IDString(), token.ID)
 		if err != nil {
 			errorHandler.Handle(errors.Wrap(err, "failed remove user's tokens during user deletetion"))
 			http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
