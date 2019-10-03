@@ -292,19 +292,6 @@ func (bus BanzaiUserStorer) Update(schema *auth.Schema, authCtx *auth.Context) (
 	return bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), currentUser, schema.RawInfo.(*IDTokenClaims))
 }
 
-func GetOAuthRefreshToken(userID string) (string, error) {
-	token, err := TokenStore.Lookup(userID, OAuthRefreshTokenID)
-	if err != nil {
-		return "", emperror.Wrap(err, "failed to lookup user refresh token")
-	}
-
-	if token == nil {
-		return "", nil
-	}
-
-	return token.Value, nil
-}
-
 func SaveOAuthRefreshToken(userID string, refreshToken string) error {
 	// Revoke the old refresh token from Vault if any
 	err := TokenStore.Revoke(userID, OAuthRefreshTokenID)
