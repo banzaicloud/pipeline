@@ -207,7 +207,7 @@ func main() {
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
 
-		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
+		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken, auth.SCMTokenStore{})
 		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
 
 		spotguideManager := spotguide.NewSpotguideManager(

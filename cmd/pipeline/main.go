@@ -486,9 +486,11 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
+	scmTokenStore := auth.NewSCMTokenStore(tokenStore, viper.GetBool("cicd.enabled"))
+
 	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer)
-	userAPI := api.NewUserAPI(db, logrusLogger, errorHandler)
+	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
 	switch viper.GetString(config.DNSBaseDomain) {
@@ -517,7 +519,7 @@ func main() {
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
 
-		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken)
+		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken, scmTokenStore)
 		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
 
 		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))

@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/auth"
 )
@@ -86,6 +87,7 @@ type SCMFactory interface {
 
 type GitHubSCMFactory struct {
 	sharedSCMToken string
+	scmTokenStore  auth.SCMTokenStore
 }
 
 func (f GitHubSCMFactory) CreateSharedSCM() (SCM, error) {
@@ -94,16 +96,21 @@ func (f GitHubSCMFactory) CreateSharedSCM() (SCM, error) {
 }
 
 func (f GitHubSCMFactory) CreateUserSCM(userID uint) (SCM, error) {
-	githubClient, err := auth.NewGithubClientForUser(userID)
+	scmToken, err := f.scmTokenStore.GetSCMTokenByProvider(userID, auth.GithubTokenID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create GitHub client")
+		return nil, errors.WrapIf(err, "failed to get GitHub token")
 	}
 
-	return NewGitHubSCM(githubClient), nil
+	if scmToken == "" {
+		return nil, errors.New("user's github token is not set")
+	}
+
+	return NewGitHubSCM(auth.NewGithubClient(scmToken)), nil
 }
 
 type GitLabSCMFactory struct {
 	sharedSCMToken string
+	scmTokenStore  auth.SCMTokenStore
 }
 
 func (f GitLabSCMFactory) CreateSharedSCM() (SCM, error) {
@@ -116,20 +123,35 @@ func (f GitLabSCMFactory) CreateSharedSCM() (SCM, error) {
 }
 
 func (f GitLabSCMFactory) CreateUserSCM(userID uint) (SCM, error) {
-	gitlabClient, err := auth.NewGitlabClientForUser(userID)
+	scmToken, err := f.scmTokenStore.GetSCMTokenByProvider(userID, auth.GitlabTokenID)
 	if err != nil {
-		return nil, emperror.Wrap(err, "failed to create GitLab client")
+		return nil, errors.WrapIf(err, "failed to get gitlab token")
+	}
+
+	if scmToken == "" {
+		return nil, errors.New("user's gitlab token is not set")
+	}
+
+	gitlabClient, err := auth.NewGitlabClient(scmToken)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create GitLab client")
 	}
 
 	return NewGitLabSCM(gitlabClient), nil
 }
 
-func NewSCMFactory(scmProvider string, sharedSCMToken string) (SCMFactory, error) {
+func NewSCMFactory(scmProvider string, sharedSCMToken string, scmTokenStore auth.SCMTokenStore) (SCMFactory, error) {
 	switch scmProvider {
 	case "github":
-		return &GitHubSCMFactory{sharedSCMToken: sharedSCMToken}, nil
+		return &GitHubSCMFactory{
+			sharedSCMToken: sharedSCMToken,
+			scmTokenStore:  scmTokenStore,
+		}, nil
 	case "gitlab":
-		return &GitLabSCMFactory{sharedSCMToken: sharedSCMToken}, nil
+		return &GitLabSCMFactory{
+			sharedSCMToken: sharedSCMToken,
+			scmTokenStore:  scmTokenStore,
+		}, nil
 	default:
 		return nil, fmt.Errorf("Unknown SCM provider configured: %s", scmProvider)
 	}
