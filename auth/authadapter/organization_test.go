@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/auth/authgen"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
@@ -41,7 +42,7 @@ func TestOrganizationSyncer_SyncOrganizations(t *testing.T) {
 	messages, err := publisher.Subscribe(context.Background(), topic)
 	require.NoError(t, err)
 
-	eventDispatcher := NewOrganizationEventDispatcher(eventBus)
+	eventDispatcher := authgen.NewOrganizationEventDispatcher(eventBus)
 
 	syncer := auth.NewOrganizationSyncer(store, eventDispatcher, commonadapter.NewNoopLogger())
 

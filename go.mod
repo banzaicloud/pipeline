@@ -120,7 +120,7 @@ require (
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967 // indirect
 	github.com/russross/blackfriday v1.5.1 // indirect
-	github.com/sagikazarmark/kitx v0.2.0
+	github.com/sagikazarmark/kitx v0.3.0
 	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20160419172024-e9042807f4f5 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect

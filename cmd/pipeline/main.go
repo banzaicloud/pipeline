@@ -60,6 +60,7 @@ import (
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/auth/authadapter"
+	"github.com/banzaicloud/pipeline/auth/authgen"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
@@ -215,7 +216,7 @@ func main() {
 			func(eventName string) string { return organizationTopic },
 			eventMarshaler,
 		)
-		eventDispatcher := authadapter.NewOrganizationEventDispatcher(eventBus)
+		eventDispatcher := authgen.NewOrganizationEventDispatcher(eventBus)
 
 		roleBinder, err := auth.NewRoleBinder(conf.Auth.Role.Default, conf.Auth.Role.Binding)
 		emperror.Panic(err)

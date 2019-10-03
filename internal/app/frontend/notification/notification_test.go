@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name Store -inpkg -testonly"
+//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name Store -inpkg -testonly || true"
 
 func TestService_GetNotifications(t *testing.T) {
 	store := &MockStore{}
