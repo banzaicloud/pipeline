@@ -47,6 +47,9 @@ func MakeAnchoreClient(cfg Config, logger common.Logger) AnchoreClient {
 }
 
 func (a anchoreClient) CreateAccount(ctx context.Context, accountName string, email string) error {
+	fnCtx := map[string]interface{}{"accountName": accountName, "email": email}
+	a.logger.Info("creating anchore account", fnCtx)
+
 	_, resp, err := a.getRestClient().UserManagementApi.CreateAccount(a.authorizedContext(ctx),
 		anchore.AccountCreationRequest{
 			Name:  accountName,
@@ -54,15 +57,19 @@ func (a anchoreClient) CreateAccount(ctx context.Context, accountName string, em
 		})
 
 	if err != nil || (resp.StatusCode != http.StatusOK) {
-		a.logger.Debug("failed to create anchore account")
+		a.logger.Debug("failed to create anchore account", fnCtx)
 
-		return errors.WrapIf(err, "failed to create anchore account")
+		return errors.WrapIfWithDetails(err, "failed to create anchore account", fnCtx)
 	}
 
+	a.logger.Info("anchore account created", fnCtx)
 	return nil
 }
 
 func (a anchoreClient) CreateUser(ctx context.Context, accountName string, userName string, password string) error {
+	fnCtx := map[string]interface{}{"accountName": accountName, "userName": userName}
+	a.logger.Info("creating anchore user", fnCtx)
+
 	_, resp, err := a.getRestClient().UserManagementApi.CreateUser(a.authorizedContext(ctx),
 		accountName, anchore.UserCreationRequest{
 			Username: userName,
@@ -70,32 +77,44 @@ func (a anchoreClient) CreateUser(ctx context.Context, accountName string, userN
 		})
 
 	if err != nil || (resp.StatusCode != http.StatusOK) {
-		a.logger.Debug("failed to create anchore account")
+		a.logger.Debug("failed to create anchore user", fnCtx)
 
-		return errors.WrapIf(err, "failed to create anchore account")
+		return errors.WrapIfWithDetails(err, "failed to create anchore account", fnCtx)
 	}
 
+	a.logger.Info("anchore user created", fnCtx)
 	return nil
 
 }
 
 func (a anchoreClient) GetUser(ctx context.Context, userName string) (interface{}, error) {
-	usr, resp, err := a.getRestClient().UserManagementApi.GetAccountUser(a.authorizedContext(ctx), userName, userName)
-	if err != nil || (resp.StatusCode != http.StatusOK) {
-		a.logger.Debug("failed to retrieve user from anchore")
+	fnCtx := map[string]interface{}{"userName": userName}
+	a.logger.Info("retrieving anchore user", fnCtx)
 
-		return nil, errors.WrapIf(err, "failed to retrieve user from anchore")
+	usr, resp, err := a.getRestClient().UserManagementApi.GetAccountUser(a.authorizedContext(ctx), userName, userName)
+	if resp.StatusCode == http.StatusNotFound {
+		// user not found
+		return nil, nil
+	}
+
+	if err != nil {
+		a.logger.Debug("failed to retrieve user from anchore", fnCtx)
+
+		return nil, errors.WrapIfWithDetails(err, "failed to retrieve user from anchore", fnCtx)
 	}
 
 	return usr, nil
 }
 
 func (a anchoreClient) GetUserCredentials(ctx context.Context, userName string) (string, error) {
+	fnCtx := map[string]interface{}{"userName": userName}
+	a.logger.Info("retrieving anchore credentials", fnCtx)
+
 	credentials, resp, err := a.getRestClient().UserManagementApi.ListUserCredentials(a.authorizedContext(ctx), userName, userName)
 	if err != nil || (resp.StatusCode != http.StatusOK) {
-		a.logger.Debug("failed to retrieve user from anchore")
+		a.logger.Debug("failed to retrieve user credentials from anchore", fnCtx)
 
-		return "", errors.WrapIf(err, "failed to retrieve user from anchore")
+		return "", errors.WrapIfWithDetails(err, "failed to retrieve user credentials from anchore", fnCtx)
 	}
 
 	for _, credential := range credentials {
@@ -125,6 +144,7 @@ func (a anchoreClient) DeleteAccount(ctx context.Context, accountName string) er
 func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userName string) error {
 	fnCtx := map[string]interface{}{"accountName": accountName, "userName": userName}
 	a.logger.Info("deleting anchore user", fnCtx)
+
 	r, err := a.getRestClient().UserManagementApi.DeleteUser(a.authorizedContext(ctx), accountName, userName)
 	if err != nil || r.StatusCode != http.StatusNoContent {
 		a.logger.Debug("failed to delete anchore user", fnCtx)

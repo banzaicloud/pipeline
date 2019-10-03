@@ -35,6 +35,8 @@ const (
 	securityScanChartVersion = "0.4.0"
 	// todo read this from the chart possibly
 	imageValidatorVersion = "0.3.3"
+
+	// anchore version
 	securityScanChartName = "banzaicloud-stable/anchore-policy-validator"
 	securityScanNamespace = "pipeline-system"
 	securityScanRelease   = "anchore"
@@ -45,7 +47,7 @@ type FeatureOperator struct {
 	clusterService   clusterfeature.ClusterService
 	helmService      features.HelmService
 	secretStore      features.SecretStore
-	anchoreService   AnchoreService
+	anchoreService   FeatureAnchoreService
 	whiteListService WhiteListService
 	namespaceService NamespaceService
 	logger           common.Logger
@@ -56,6 +58,7 @@ func MakeFeatureOperator(
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
 	secretStore features.SecretStore,
+	anchoreService FeatureAnchoreService,
 	logger common.Logger,
 
 ) FeatureOperator {
@@ -64,7 +67,7 @@ func MakeFeatureOperator(
 		clusterService:   clusterService,
 		helmService:      helmService,
 		secretStore:      secretStore,
-		anchoreService:   NewAnchoreService(),                         //wired service
+		anchoreService:   anchoreService,
 		whiteListService: NewWhiteListService(clusterGetter, logger),  // wired service
 		namespaceService: NewNamespacesService(clusterGetter, logger), // wired service
 		logger:           logger,
@@ -150,7 +153,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		return errors.WrapIf(err, "failed to get cluster by ID")
 	}
 
-	if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), cl.GetUID()); err != nil {
+	if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
 		return errors.WrapIf(err, "failed to deactivate")
 	}
 
@@ -192,12 +195,12 @@ func (op FeatureOperator) createAnchoreUserForCluster(ctx context.Context, clust
 		return "", errors.WrapIf(err, "error retrieving cluster")
 	}
 
-	usr, err := op.anchoreService.GenerateUser(ctx, cl.GetOrganizationId(), cl.GetUID())
+	userName, err := op.anchoreService.GenerateUser(ctx, cl.GetOrganizationId(), clusterID)
 	if err != nil {
 		return "", errors.WrapIf(err, "error creating anchore user")
 	}
 
-	return usr, nil
+	return userName, nil
 }
 
 func (op FeatureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*SecurityScanChartValues, error) {
@@ -259,8 +262,13 @@ func (op FeatureOperator) getCustomAnchoreValues(ctx context.Context, customAnch
 }
 
 func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
+
+	cfg, err := op.anchoreService.GetConfiguration(ctx, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to retrieve anchore configuration")
+	}
 	// default (pipeline hosted) anchore
-	if !op.anchoreService.AnchoreConfig().Enabled {
+	if !cfg.Enabled {
 		return nil, errors.NewWithDetails("default anchore is not enabled")
 	}
 
@@ -280,7 +288,7 @@ func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
-	anchoreValues.Host = op.anchoreService.AnchoreConfig().Endpoint
+	anchoreValues.Host = cfg.Endpoint
 
 	return &anchoreValues, nil
 }

@@ -36,6 +36,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -324,15 +325,22 @@ func main() {
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 			kubernetesService := kubernetes.NewKubernetesService(helmadapter.NewClusterService(clusterManager), logger)
+			secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
+
+			featureAdapter := anchore.MakeFeatureAdapter(featureRepository, logger)
+			anchoreConfigService := anchore.MakeConfigurationService(config.Anchore, featureAdapter, logger)
+			anchoreUserService := anchore.MakeAnchoreUserService(anchoreConfigService, secretStore, logger)
+			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, anchoreConfigService, logger)
+
 			monitorConfiguration := featureMonitoring.NewFeatureConfiguration()
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
-				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, commonSecretStore),
-				securityscan.MakeFeatureOperator(clusterGetter, clusterService, helmService, commonSecretStore, logger),
-				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, commonSecretStore, logger),
-				featureMonitoring.MakeFeatureOperator(clusterGetter, clusterService, helmService, monitorConfiguration, logger, commonSecretStore),
+				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
+				securityscan.MakeFeatureOperator(clusterGetter, clusterService, helmService, secretStore, featureAnchoreService, logger),
+				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, secretStore, logger),
+				featureMonitoring.MakeFeatureOperator(clusterGetter, clusterService, helmService, monitorConfiguration, logger, secretStore),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

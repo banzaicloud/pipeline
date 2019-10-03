@@ -82,46 +82,54 @@ type FeatureAdapter interface {
 	GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (Config, error)
 }
 
+func MakeFeatureAdapter(featureRepo clusterfeature.FeatureRepository, logger common.Logger) FeatureAdapter {
+	return featureAdapter{
+		featureRepository: featureRepo,
+		logger:            logger,
+	}
+}
+
 type featureAdapter struct {
-	logger         common.Logger
-	featureService clusterfeature.FeatureService
+	logger            common.Logger
+	featureRepository clusterfeature.FeatureRepository
 }
 
 func (f featureAdapter) Enabled(ctx context.Context, clusterID uint, featureName string) (bool, error) {
-	feature, err := f.featureService.Details(ctx, clusterID, featureName)
+	feature, err := f.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
 		return false, errors.WrapIf(err, "failed to retrieve feature")
 	}
 
-	return feature.Status == "ACTIVE", nil
+	return feature.Status == clusterfeature.FeatureStatusActive, nil
 }
 
 func (f featureAdapter) GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (Config, error) {
-	// add method context to the logger
-	fnLog := f.logger.WithFields(map[string]interface{}{"clusterID": clusterID, "feature": featureName})
-	fnLog.Info("looking up feature config")
 
-	feature, err := f.featureService.Details(ctx, clusterID, featureName)
+	fnCtx := map[string]interface{}{"clusterID": clusterID, "feature": featureName}
+	// add method context to the logger
+	f.logger.Info("looking up feature config", fnCtx)
+
+	feature, err := f.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
-		fnLog.Debug("failed to retrieve feature config")
+		f.logger.Debug("failed to retrieve feature config", fnCtx)
 
 		return Config{}, errors.WrapIf(err, "failed to retrieve feature")
 	}
 
 	customAnchore, ok := feature.Spec["customAnchore"]
 	if !ok {
-		fnLog.Debug("the feature has no custom anchore config")
+		f.logger.Debug("the feature has no custom anchore config", fnCtx)
 
 		return Config{}, errors.WrapIf(err, "the feature has no custom anchore config")
 	}
 
 	var retConfig Config
 	if err := mapstructure.Decode(&customAnchore, &retConfig); err != nil {
-		fnLog.Debug("failed to decode custom anchore config")
+		f.logger.Debug("failed to decode custom anchore config", fnCtx)
 
 		return Config{}, errors.WrapIf(err, "failed to decode custom anchore config")
 	}
 
-	fnLog.Info("feature config retrieved")
+	f.logger.Info("feature config retrieved", fnCtx)
 	return retConfig, nil
 }
