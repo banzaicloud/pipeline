@@ -55,7 +55,7 @@ func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID ui
 	fnLog := a.logger.WithFields(map[string]interface{}{"orgID": orgID, "clusterID": clusterID})
 	fnLog.Info("ensuring anchore user")
 
-	restClient, err := a.getClient(ctx, clusterID)
+	restClient, err := a.getAnchoreClient(ctx, clusterID)
 	if err != nil {
 		fnLog.Debug("failed to check user")
 
@@ -72,7 +72,7 @@ func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID ui
 	if exists {
 		fnLog.Info("processing existing anchore user")
 
-		err = a.ensureUserCredentials(ctx, clusterID)
+		err = a.ensureUserCredentials(ctx, restClient, a.getUserName(clusterID))
 		if err != nil {
 			fnLog.Debug("failed to ensure user credentials")
 
@@ -91,13 +91,13 @@ func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID ui
 		return errors.WrapIf(err, "failed to ensure user credentials")
 	}
 
-	if err := a.createAccount(ctx, clusterID); err != nil {
+	if err := a.createAccount(ctx, restClient, a.getUserName(clusterID)); err != nil {
 		fnLog.Debug("failed to create anchore account")
 
 		return errors.WrapIf(err, "failed to create anchore account")
 	}
 
-	if err := a.createUser(ctx, clusterID, password); err != nil {
+	if err := a.createUser(ctx, restClient, a.getUserName(clusterID), password); err != nil {
 		fnLog.Debug("failed to create anchore user")
 
 		return errors.WrapIf(err, "failed to create anchore user")
@@ -136,7 +136,7 @@ func (a anchoreService) ensureUserCredentials(ctx context.Context, client Anchor
 		return errors.Wrap(err, "failed to get user credentials")
 	}
 
-	_, err = a.storeCredentialsSecret(ctx, a.getUserName(clusterID), password)
+	_, err = a.storeCredentialsSecret(ctx, userName, password)
 	if err != nil {
 		a.logger.Debug("failed to store user credentials as a secret")
 
@@ -166,14 +166,16 @@ func (a anchoreService) createUserSecret(ctx context.Context, orgID uint, cluste
 
 	password, ok := values["password"]
 	if !ok {
-		return "", errors.NewPlain("there is no password in secret")
+		a.logger.Debug("there is no password in the secret")
+
+		return "", errors.NewPlain("there is no password in the secret")
 	}
 
 	return password, nil
 }
 
-func (a anchoreService) createAccount(ctx context.Context, clusterID uint) error {
-	if err := a.anchoreCli.CreateAccount(ctx, a.getUserName(clusterID), accountEmail); err != nil {
+func (a anchoreService) createAccount(ctx context.Context, client AnchoreClient, userName string) error {
+	if err := client.CreateAccount(ctx, userName, accountEmail); err != nil {
 		a.logger.Debug("failed to create anchore account")
 
 		return errors.Wrap(err, "failed to create anchore account")
@@ -183,8 +185,9 @@ func (a anchoreService) createAccount(ctx context.Context, clusterID uint) error
 	return nil
 }
 
-func (a anchoreService) createUser(ctx context.Context, clusterID uint, secret interface{}) error {
-	if err := a.anchoreCli.CreateUser(ctx, a.getUserName(clusterID), accountEmail); err != nil {
+func (a anchoreService) createUser(ctx context.Context, client AnchoreClient, userName string, password string) error {
+	// the account name is the same as the username
+	if err := client.CreateUser(ctx, userName, userName, password); err != nil {
 		a.logger.Debug("failed to create anchore user")
 
 		return errors.Wrap(err, "failed to create anchore user")
@@ -219,7 +222,8 @@ func (a anchoreService) storeCredentialsSecret(ctx context.Context, userName str
 	return secretID, nil
 }
 
-func (a anchoreService) getClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
+// getAnchoreClient returns a rest client wrapper instance with the proper configuration
+func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
 	cfg, err := a.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
 		a.logger.Debug("failed to get anchore configuration")
@@ -228,5 +232,4 @@ func (a anchoreService) getClient(ctx context.Context, clusterID uint) (AnchoreC
 	}
 
 	return MakeAnchoreClient(cfg, a.logger), nil
-
 }

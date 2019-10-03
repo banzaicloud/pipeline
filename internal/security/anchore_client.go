@@ -27,7 +27,7 @@ import (
 // AnchoreClient defines Anchore operations
 type AnchoreClient interface {
 	CreateAccount(ctx context.Context, accountName string, email string) error
-	CreateUser(ctx context.Context, userName string, password string) error
+	CreateUser(ctx context.Context, accountName string, userName string, password string) error
 	GetUser(ctx context.Context, userName string) (interface{}, error)
 	GetUserCreadentials(ctx context.Context, userName string) (string, error)
 }
@@ -45,11 +45,36 @@ func MakeAnchoreClient(cfg Config, logger common.Logger) AnchoreClient {
 }
 
 func (a anchoreClient) CreateAccount(ctx context.Context, accountName string, email string) error {
-	panic("implement me")
+	_, resp, err := a.getRestClient().UserManagementApi.CreateAccount(a.authorizedContext(ctx),
+		anchore.AccountCreationRequest{
+			Name:  accountName,
+			Email: email,
+		})
+
+	if err != nil || (resp.StatusCode != http.StatusOK) {
+		a.logger.Debug("failed to create anchore account")
+
+		return errors.WrapIf(err, "failed to create anchore account")
+	}
+
+	return nil
 }
 
-func (a anchoreClient) CreateUser(ctx context.Context, userName string, password string) error {
-	panic("implement me")
+func (a anchoreClient) CreateUser(ctx context.Context, accountName string, userName string, password string) error {
+	_, resp, err := a.getRestClient().UserManagementApi.CreateUser(a.authorizedContext(ctx),
+		accountName, anchore.UserCreationRequest{
+			Username: userName,
+			Password: password,
+		})
+
+	if err != nil || (resp.StatusCode != http.StatusOK) {
+		a.logger.Debug("failed to create anchore account")
+
+		return errors.WrapIf(err, "failed to create anchore account")
+	}
+
+	return nil
+
 }
 
 func (a anchoreClient) GetUser(ctx context.Context, userName string) (interface{}, error) {
@@ -97,5 +122,4 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Pipeline/go",
 	})
-
 }
