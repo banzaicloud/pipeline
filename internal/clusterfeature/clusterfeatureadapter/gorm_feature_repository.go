@@ -144,7 +144,7 @@ func (r GORMFeatureRepository) SaveFeature(ctx context.Context, clusterID uint, 
 func (r GORMFeatureRepository) GetFeature(ctx context.Context, clusterID uint, featureName string) (clusterfeature.Feature, error) {
 	fm := clusterFeatureModel{}
 
-	err := r.db.First(&fm, map[string]interface{}{"Name": featureName, "cluster_id": clusterID}).Error
+	err := r.db.First(&fm, clusterFeatureModel{Name: featureName, ClusterId: clusterID}).Error
 
 	if gorm.IsRecordNotFoundError(err) {
 		return clusterfeature.Feature{}, featureNotFoundError{
