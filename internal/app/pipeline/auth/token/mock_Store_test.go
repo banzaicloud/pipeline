@@ -12,11 +12,11 @@ type MockStore struct {
 }
 
 // List provides a mock function with given fields: ctx, userID
-func (_m *MockStore) List(ctx context.Context, userID uint) ([]Token, error) {
+func (_m *MockStore) List(ctx context.Context, userID string) ([]Token, error) {
 	ret := _m.Called(ctx, userID)
 
 	var r0 []Token
-	if rf, ok := ret.Get(0).(func(context.Context, uint) []Token); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) []Token); ok {
 		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
@@ -25,7 +25,7 @@ func (_m *MockStore) List(ctx context.Context, userID uint) ([]Token, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
@@ -35,18 +35,18 @@ func (_m *MockStore) List(ctx context.Context, userID uint) ([]Token, error) {
 }
 
 // Lookup provides a mock function with given fields: ctx, userID, tokenID
-func (_m *MockStore) Lookup(ctx context.Context, userID uint, tokenID string) (Token, error) {
+func (_m *MockStore) Lookup(ctx context.Context, userID string, tokenID string) (Token, error) {
 	ret := _m.Called(ctx, userID, tokenID)
 
 	var r0 Token
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string) Token); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) Token); ok {
 		r0 = rf(ctx, userID, tokenID)
 	} else {
 		r0 = ret.Get(0).(Token)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, uint, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, userID, tokenID)
 	} else {
 		r1 = ret.Error(1)
@@ -56,11 +56,11 @@ func (_m *MockStore) Lookup(ctx context.Context, userID uint, tokenID string) (T
 }
 
 // Revoke provides a mock function with given fields: ctx, userID, tokenID
-func (_m *MockStore) Revoke(ctx context.Context, userID uint, tokenID string) error {
+func (_m *MockStore) Revoke(ctx context.Context, userID string, tokenID string) error {
 	ret := _m.Called(ctx, userID, tokenID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, userID, tokenID)
 	} else {
 		r0 = ret.Error(0)
@@ -70,11 +70,11 @@ func (_m *MockStore) Revoke(ctx context.Context, userID uint, tokenID string) er
 }
 
 // Store provides a mock function with given fields: ctx, userID, tokenID, name, expiresAt
-func (_m *MockStore) Store(ctx context.Context, userID uint, tokenID string, name string, expiresAt *time.Time) error {
+func (_m *MockStore) Store(ctx context.Context, userID string, tokenID string, name string, expiresAt *time.Time) error {
 	ret := _m.Called(ctx, userID, tokenID, name, expiresAt)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, string, string, *time.Time) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, *time.Time) error); ok {
 		r0 = rf(ctx, userID, tokenID, name, expiresAt)
 	} else {
 		r0 = ret.Error(0)
