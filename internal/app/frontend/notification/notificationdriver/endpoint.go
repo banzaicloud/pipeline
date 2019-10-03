@@ -12,14 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authadapter
+package notificationdriver
 
 import (
 	"context"
+
+	"github.com/go-kit/kit/endpoint"
+
+	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 )
 
-// EventBus dispatches events to event handlers.
-type EventBus interface {
-	// Publish sends an event to the event bus.
-	Publish(ctx context.Context, event interface{}) error
+// MakeGetNotificationsEndpoint returns an endpoint for the matching method of the underlying service.
+func MakeGetNotificationsEndpoint(service notification.Service) endpoint.Endpoint {
+	return func(ctx context.Context, _ interface{}) (interface{}, error) {
+		return service.GetNotifications(ctx)
+	}
 }

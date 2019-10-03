@@ -85,6 +85,7 @@ type OrganizationStore interface {
 }
 
 // OrganizationEvents dispatches organization events.
+//go:generate sh -c "test -x \"${MGA}\" && ${MGA} gen ev dispatcher OrganizationEvents || true"
 type OrganizationEvents interface {
 	// OrganizationCreated dispatches an OrganizationCreated event.
 	OrganizationCreated(ctx context.Context, event OrganizationCreated) error
