@@ -355,9 +355,9 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		}
 
 		loadBalancerTemplates[i] = workflow.LoadBalancerTemplate{
-			Name:     lbName,
-			Location: params.Network.Location,
-			SKU:      "Standard",
+			Name:                           lbName,
+			Location:                       params.Network.Location,
+			SKU:                            "Standard",
 			BackendAddressPoolName:         backendAddressPoolName,
 			OutboundBackendAddressPoolName: outboundBackendAddressPoolName,
 			InboundNATPoolName:             inboundNATPoolName,

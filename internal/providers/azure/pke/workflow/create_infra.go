@@ -212,12 +212,12 @@ func (t VirtualMachineScaleSetTemplate) Render(
 		LBInboundNATPoolIDs:     inboundNATPoolIDs,
 		Location:                t.Location,
 		Name:                    t.Name,
-		NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
-		SSHPublicKey:           t.SSHPublicKey,
-		SubnetID:               subnetIDProvider.Get(t.SubnetName),
-		UserDataScriptTemplate: t.UserDataScriptTemplate,
-		UserDataScriptParams:   t.UserDataScriptParams,
-		Zones:                  t.Zones,
+		NetworkSecurityGroupID:  securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
+		SSHPublicKey:            t.SSHPublicKey,
+		SubnetID:                subnetIDProvider.Get(t.SubnetName),
+		UserDataScriptTemplate:  t.UserDataScriptTemplate,
+		UserDataScriptParams:    t.UserDataScriptParams,
+		Zones:                   t.Zones,
 	}
 }
 
@@ -230,8 +230,8 @@ type SubnetTemplate struct {
 
 func (t SubnetTemplate) Render(routeTableIDProvider ResourceIDByNameProvider, securityGroupIDProvider ResourceIDByNameProvider) Subnet {
 	return Subnet{
-		Name: t.Name,
-		CIDR: t.CIDR,
+		Name:                   t.Name,
+		CIDR:                   t.CIDR,
 		NetworkSecurityGroupID: securityGroupIDProvider.Get(t.NetworkSecurityGroupName),
 		RouteTableID:           routeTableIDProvider.Get(t.RouteTableName),
 	}

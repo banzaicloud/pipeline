@@ -1332,7 +1332,7 @@ paths:
                     in: path
                     schema:
                         type: string
-                    required: True
+                    required: true
                 -
                     name: detail
                     in: query
@@ -1375,7 +1375,7 @@ paths:
                     in: path
                     schema:
                         type: string
-                    required: True
+                    required: true
             requestBody:
                 required: true
                 content:
