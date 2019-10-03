@@ -237,7 +237,9 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		VMSSToDelete:    toDeleteVMSSNames,
 		VMSSToUpdate:    toUpdateVMSSChanges,
 
-		Labels: labels,
+		Labels:                labels,
+		AccessPoints:          cluster.AccessPoints,
+		ApiServerAccessPoints: cluster.ApiServerAccessPoints,
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {

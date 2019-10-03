@@ -51,21 +51,29 @@ type NodePool struct {
 	Zones        []string
 }
 
-type AzureAccessPoint string
-
-func (a AzureAccessPoint) GetName() string {
-	return string(a)
+type AzureAccessPoint struct {
+	Name    string
+	Address string
 }
 
 type AzureAccessPoints []AzureAccessPoint
 
 func (a AzureAccessPoints) Exists(name string) bool {
 	for _, ap := range a {
-		if ap.GetName() == name {
+		if ap.Name == name {
 			return true
 		}
 	}
 	return false
+}
+
+func (a AzureAccessPoints) Get(name string) *AzureAccessPoint {
+	for i := range a {
+		if a[i].Name == name {
+			return &a[i]
+		}
+	}
+	return nil
 }
 
 func (a AzureAccessPoints) Marshal() (string, error) {
@@ -75,6 +83,10 @@ func (a AzureAccessPoints) Marshal() (string, error) {
 	}
 
 	return string(data), nil
+}
+
+func (a *AzureAccessPoints) Unmarshal(data string) error {
+	return errors.WrapIf(json.Unmarshal([]byte(data), a), "failed to unmarshal access point list")
 }
 
 type AzureApiServerAccessPoint string

@@ -18,14 +18,15 @@ import (
 	"fmt"
 	"time"
 
-	"go.uber.org/cadence/workflow"
-	"go.uber.org/zap"
-
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
+
+	"go.uber.org/cadence/workflow"
+	"go.uber.org/zap"
 )
 
 const CreateClusterWorkflowName = "pke-azure-create-cluster"
@@ -49,6 +50,8 @@ type CreateClusterWorkflowInput struct {
 	VirtualMachineScaleSetTemplates []VirtualMachineScaleSetTemplate
 	PostHooks                       pkgCluster.PostHooks
 	HTTPProxy                       intPKE.HTTPProxy
+	AccessPoints                    pke.AzureAccessPoints
+	ApiServerAccessPoints           pke.AzureApiServerAccessPoints
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -87,19 +90,21 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	}
 
 	infraInput := CreateAzureInfrastructureWorkflowInput{
-		OrganizationID:    input.OrganizationID,
-		ClusterID:         input.ClusterID,
-		ClusterName:       input.ClusterName,
-		SecretID:          input.SecretID,
-		ResourceGroupName: input.ResourceGroupName,
-		LoadBalancers:     input.LoadBalancerTemplates,
-		PublicIPAddress:   input.PublicIPAddress,
-		RoleAssignments:   input.RoleAssignmentTemplates,
-		RouteTable:        input.RouteTable,
-		ScaleSets:         input.VirtualMachineScaleSetTemplates,
-		SecurityGroups:    input.SecurityGroups,
-		VirtualNetwork:    input.VirtualNetworkTemplate,
-		HTTPProxy:         input.HTTPProxy,
+		OrganizationID:        input.OrganizationID,
+		ClusterID:             input.ClusterID,
+		ClusterName:           input.ClusterName,
+		SecretID:              input.SecretID,
+		ResourceGroupName:     input.ResourceGroupName,
+		LoadBalancers:         input.LoadBalancerTemplates,
+		PublicIPAddress:       input.PublicIPAddress,
+		RoleAssignments:       input.RoleAssignmentTemplates,
+		RouteTable:            input.RouteTable,
+		ScaleSets:             input.VirtualMachineScaleSetTemplates,
+		SecurityGroups:        input.SecurityGroups,
+		VirtualNetwork:        input.VirtualNetworkTemplate,
+		HTTPProxy:             input.HTTPProxy,
+		AccessPoints:          input.AccessPoints,
+		ApiServerAccessPoints: input.ApiServerAccessPoints,
 	}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {

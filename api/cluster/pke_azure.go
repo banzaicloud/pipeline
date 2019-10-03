@@ -37,8 +37,8 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 	}
 
 	var accessPoints pke.AzureAccessPoints
-	for _, ap := range req.AccessPoints {
-		accessPoints = append(accessPoints, pke.AzureAccessPoint(ap))
+	for _, apName := range req.AccessPoints {
+		accessPoints = append(accessPoints, pke.AzureAccessPoint{Name: apName})
 	}
 
 	var apiServerAccessPoints pke.AzureApiServerAccessPoints

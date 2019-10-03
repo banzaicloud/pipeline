@@ -4,6 +4,7 @@
     <working_directory value="$PROJECT_DIR$/" />
     <envs>
       <env name="VAULT_ADDR" value="http://127.0.0.1:8200" />
+      <env name="PIPELINE_CONFIG_DIR" value="config" />
     </envs>
     <kind value="DIRECTORY" />
     <filePath value="$PROJECT_DIR$/" />

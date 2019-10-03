@@ -22,11 +22,11 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/common"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/model"
@@ -39,12 +39,14 @@ const (
 )
 
 type gormAzurePKEClusterStore struct {
-	db *gorm.DB
+	db  *gorm.DB
+	log common.Logger
 }
 
-func NewGORMAzurePKEClusterStore(db *gorm.DB) pke.AzurePKEClusterStore {
+func NewGORMAzurePKEClusterStore(db *gorm.DB, logger common.Logger) pke.AzurePKEClusterStore {
 	return gormAzurePKEClusterStore{
-		db: db,
+		db:  db,
+		log: logger,
 	}
 }
 
@@ -83,8 +85,8 @@ type gormAzurePKEClusterModel struct {
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 
-	AccessPoints          string
-	ApiServerAccessPoints string
+	AccessPoints          string `gorm:"type:text"`
+	ApiServerAccessPoints string `gorm:"type:text"`
 }
 
 func (gormAzurePKEClusterModel) TableName() string {
@@ -217,9 +219,10 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 	cluster.Kubernetes.Version = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
 
-	for _, ap := range unmarshalStringSlice(model.AccessPoints) {
-		cluster.AccessPoints = append(cluster.AccessPoints, pke.AzureAccessPoint(ap))
-	}
+	accessPoints := pke.AzureAccessPoints{}
+	accessPoints.Unmarshal(model.AccessPoints) // nolint: errcheck
+	cluster.AccessPoints = accessPoints
+
 	for _, ap := range unmarshalStringSlice(model.ApiServerAccessPoints) {
 		cluster.ApiServerAccessPoints = append(cluster.ApiServerAccessPoints, pke.AzureApiServerAccessPoint(ap))
 	}
@@ -429,6 +432,47 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 	}
 
 	return nil
+}
+
+func (s gormAzurePKEClusterStore) UpdateClusterAccessPoints(clusterID uint, accessPoints pke.AzureAccessPoints) error {
+	if err := validateClusterID(clusterID); err != nil {
+		return errors.WrapIf(err, "invalid cluster ID")
+	}
+
+	model := gormAzurePKEClusterModel{
+		ClusterID: clusterID,
+	}
+	if err := getError(s.db.Where(&model).First(&model), "failed to load cluster model"); err != nil {
+		return err
+	}
+
+	clusterAccessPoints := pke.AzureAccessPoints{}
+	if err := clusterAccessPoints.Unmarshal(model.AccessPoints); err != nil {
+		return errors.WrapIf(err, "could not unmarshal cluster access points")
+	}
+
+	s.log.Debug("access points from db", map[string]interface{}{"accesspoints": clusterAccessPoints})
+
+	for i := range clusterAccessPoints {
+		for _, update := range accessPoints {
+			if clusterAccessPoints[i].Name == update.Name {
+				clusterAccessPoints[i].Address = update.Address
+			}
+		}
+	}
+
+	updatedAccessPoints, err := clusterAccessPoints.Marshal()
+	if err != nil {
+		return errors.WrapIf(err, "could not marshal updated access points")
+	}
+
+	s.log.Debug("updated access points from db", map[string]interface{}{"accesspoints": updatedAccessPoints})
+
+	fields := map[string]interface{}{
+		"AccessPoints": updatedAccessPoints,
+	}
+
+	return getError(s.db.Model(&model).Updates(fields), "failed to update PKE-on-Azure cluster access points model")
 }
 
 func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {

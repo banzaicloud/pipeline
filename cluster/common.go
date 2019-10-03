@@ -23,11 +23,12 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	logrusadapter "logur.dev/adapter/logrus"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
@@ -267,8 +268,9 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	db := config.DB()
 
 	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
-		logrus.Debugf("azure adapter stuff")
-		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewGORMAzurePKEClusterStore(db)).GetByID(modelCluster.ID)
+		logger := commonadapter.NewLogger(logrusadapter.New(config.Logger()))
+		logger.Debug("azure adapter stuff")
+		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewGORMAzurePKEClusterStore(db, logger)).GetByID(modelCluster.ID)
 	} else if modelCluster.Distribution == pkgCluster.PKE {
 		return createCommonClusterWithDistributionFromModel(modelCluster)
 	}

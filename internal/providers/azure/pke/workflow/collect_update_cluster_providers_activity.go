@@ -20,8 +20,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
-
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 )
 
 const CollectUpdateClusterProvidersActivityName = "pke-azure-collect-update-cluster-providers"
@@ -48,13 +46,13 @@ type CollectUpdateClusterProvidersActivityInput struct {
 }
 
 type CollectUpdateClusterProvidersActivityOutput struct {
-	BackendAddressPoolIDProviders   []MapResourceIDByNameProvider
-	InboundNATPoolIDProviders       []MapResourceIDByNameProvider
-	PublicIPAddressProvider         ConstantIPAddressProvider
-	RouteTableIDProvider            MapResourceIDByNameProvider
-	SecurityGroupIDProvider         MapResourceIDByNameProvider
-	SubnetIDProvider                MapResourceIDByNameProvider
-	ApiServerPrivateAddressProvider ConstantIPAddressProvider
+	BackendAddressPoolIDProviders []MapResourceIDByNameProvider
+	InboundNATPoolIDProviders     []MapResourceIDByNameProvider
+	//PublicIPAddressProvider         ConstantIPAddressProvider
+	RouteTableIDProvider    MapResourceIDByNameProvider
+	SecurityGroupIDProvider MapResourceIDByNameProvider
+	SubnetIDProvider        MapResourceIDByNameProvider
+	//ApiServerPrivateAddressProvider ConstantIPAddressProvider
 }
 
 func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, input CollectUpdateClusterProvidersActivityInput) (output CollectUpdateClusterProvidersActivityOutput, err error) {
@@ -92,20 +90,6 @@ func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, inpu
 				}
 				inboundNATPoolProviders = append(inboundNATPoolProviders, resourceIDProvider)
 			}
-
-			if lb.FrontendIPConfigurations != nil && lb.LoadBalancingRules != nil {
-				for _, lbRule := range *lb.LoadBalancingRules {
-					if to.String(lbRule.Name) == pke.GetApiServerLBRuleName() {
-						for _, fic := range *lb.FrontendIPConfigurations {
-							if to.String(fic.ID) == to.String(lbRule.FrontendIPConfiguration.ID) && fic.PrivateIPAddress != nil {
-								output.ApiServerPrivateAddressProvider = ConstantIPAddressProvider(to.String(fic.PrivateIPAddress))
-								break
-							}
-						}
-						break
-					}
-				}
-			}
 		}
 
 		err = lbs.NextWithContext(ctx)
@@ -121,12 +105,6 @@ func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, inpu
 	if len(inboundNATPoolProviders) > 0 {
 		output.InboundNATPoolIDProviders = inboundNATPoolProviders
 	}
-
-	pip, err := cc.GetPublicIPAddressesClient().Get(ctx, input.ResourceGroupName, input.PublicIPAddressName, "")
-	if err = errors.WrapIf(err, "failed to get public IP address"); err != nil {
-		return
-	}
-	output.PublicIPAddressProvider = ConstantIPAddressProvider(to.String(pip.IPAddress))
 
 	rt, err := cc.GetRouteTablesClient().Get(ctx, input.ResourceGroupName, input.RouteTableName, "")
 	if err = errors.WrapIf(err, "failed to get route table"); err != nil {

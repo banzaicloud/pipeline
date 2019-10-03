@@ -22,6 +22,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -46,6 +47,9 @@ type UpdateClusterWorkflowInput struct {
 	VMSSToUpdate    []VirtualMachineScaleSetChanges
 
 	Labels map[string]map[string]string
+
+	AccessPoints          pke.AzureAccessPoints
+	ApiServerAccessPoints pke.AzureApiServerAccessPoints
 }
 
 type NodePoolAndVMSS struct {
@@ -223,16 +227,16 @@ func UpdateClusterWorkflow(ctx workflow.Context, input UpdateClusterWorkflowInpu
 	createdVMSSOutputs := make(map[string]CreateVMSSActivityOutput)
 	{
 		var apiServerPublicAddressProvider, apiServerPrivateAddressProvider IPAddressProvider
-
 		apiServerCertSansMap := make(map[string]bool)
 
-		if providers.PublicIPAddressProvider.Get() != "" {
-			apiServerCertSansMap[providers.PublicIPAddressProvider.Get()] = true
-			apiServerPublicAddressProvider = providers.PublicIPAddressProvider
+		if input.ApiServerAccessPoints.Exists("public") && input.AccessPoints.Get("public").Address != "" {
+			apiServerPublicAddressProvider = ConstantIPAddressProvider(input.AccessPoints.Get("public").Address)
+			apiServerCertSansMap[input.AccessPoints.Get("public").Address] = true
 		}
-		if providers.ApiServerPrivateAddressProvider.Get() != "" {
-			apiServerCertSansMap[providers.ApiServerPrivateAddressProvider.Get()] = true
-			apiServerPrivateAddressProvider = providers.ApiServerPrivateAddressProvider
+
+		if input.ApiServerAccessPoints.Exists("private") && input.AccessPoints.Get("private").Address != "" {
+			apiServerPrivateAddressProvider = ConstantIPAddressProvider(input.AccessPoints.Get("private").Address)
+			apiServerCertSansMap[input.AccessPoints.Get("private").Address] = true
 		}
 
 		var apiServerCertSans []string

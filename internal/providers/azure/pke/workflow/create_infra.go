@@ -41,14 +41,16 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	SecretID          string
 	ResourceGroupName string
 
-	LoadBalancers   []LoadBalancerTemplate
-	PublicIPAddress PublicIPAddress
-	RoleAssignments []RoleAssignmentTemplate
-	RouteTable      RouteTable
-	ScaleSets       []VirtualMachineScaleSetTemplate
-	SecurityGroups  []SecurityGroup
-	VirtualNetwork  VirtualNetworkTemplate
-	HTTPProxy       intPKE.HTTPProxy
+	LoadBalancers         []LoadBalancerTemplate
+	PublicIPAddress       PublicIPAddress
+	RoleAssignments       []RoleAssignmentTemplate
+	RouteTable            RouteTable
+	ScaleSets             []VirtualMachineScaleSetTemplate
+	SecurityGroups        []SecurityGroup
+	VirtualNetwork        VirtualNetworkTemplate
+	HTTPProxy             intPKE.HTTPProxy
+	AccessPoints          pke.AzureAccessPoints
+	ApiServerAccessPoints pke.AzureApiServerAccessPoints
 }
 
 type LoadBalancerTemplate struct {
@@ -385,6 +387,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 	subnetIDProvider := subnetIDProvider(createVnetOutput)
 
+	updateAccessPoints := false
 	// Create PublicIP
 	var createPublicIPActivityOutput CreatePublicIPActivityOutput
 	if input.PublicIPAddress.Name != "" {
@@ -397,6 +400,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 		if err := workflow.ExecuteActivity(ctx, CreatePublicIPActivityName, activityInput).Get(ctx, &createPublicIPActivityOutput); err != nil {
 			return err
+		}
+
+		if ap := input.AccessPoints.Get("public"); createPublicIPActivityOutput.PublicIPAddress != "" && ap != nil {
+			ap.Address = createPublicIPActivityOutput.PublicIPAddress
+			updateAccessPoints = true
 		}
 	}
 
@@ -423,6 +431,11 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 
 		if errs[i] == nil {
 			createLBActivityOutputs = append(createLBActivityOutputs, output)
+
+			if ap := input.AccessPoints.Get("private"); output.ApiServerPrivateAddress != "" && ap != nil {
+				ap.Address = output.ApiServerPrivateAddress
+				updateAccessPoints = true
+			}
 		}
 	}
 
@@ -446,15 +459,27 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		httpProxy = output.Settings
 	}
 
+	if updateAccessPoints {
+		err := errors.WrapIf(updateClusterAccessPoints(ctx, input.ClusterID, input.AccessPoints), "couldn't update cluster accesspoints")
+		if err != nil {
+			return err
+		}
+	}
+
 	// Create scale sets
 	createVMSSActivityOutputs := make(map[string]CreateVMSSActivityOutput)
 	{
 		var apiServerPublicAddressProvider, apiServerPrivateAddressProvider IPAddressProvider
 		apiServerCertSansMap := make(map[string]bool)
 
-		if createPublicIPActivityOutput.PublicIPAddress != "" {
-			apiServerCertSansMap[createPublicIPActivityOutput.PublicIPAddress] = true
-			apiServerPublicAddressProvider = ConstantIPAddressProvider(createPublicIPActivityOutput.PublicIPAddress)
+		if input.ApiServerAccessPoints.Exists("public") && input.AccessPoints.Get("public").Address != "" {
+			apiServerPublicAddressProvider = ConstantIPAddressProvider(input.AccessPoints.Get("public").Address)
+			apiServerCertSansMap[input.AccessPoints.Get("public").Address] = true
+		}
+
+		if input.ApiServerAccessPoints.Exists("private") && input.AccessPoints.Get("private").Address != "" {
+			apiServerPrivateAddressProvider = ConstantIPAddressProvider(input.AccessPoints.Get("private").Address)
+			apiServerCertSansMap[input.AccessPoints.Get("private").Address] = true
 		}
 
 		bapIDProviders := make([]ResourceIDByNameProvider, len(createLBActivityOutputs))
@@ -463,11 +488,6 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		for i, createLBActivityOutput := range createLBActivityOutputs {
 			bapIDProviders[i] = backendAddressPoolIDProvider(createLBActivityOutput)
 			inpIDProviders[i] = inboundNATPoolIDProvider(createLBActivityOutput)
-
-			if createLBActivityOutput.ApiServerPrivateAddress != "" {
-				apiServerCertSansMap[createLBActivityOutput.ApiServerPrivateAddress] = true
-				apiServerPrivateAddressProvider = ConstantIPAddressProvider(createLBActivityOutput.ApiServerPrivateAddress)
-			}
 		}
 
 		var apiServerCertSans []string

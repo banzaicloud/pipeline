@@ -209,20 +209,22 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		}
 	}
 	createParams := pke.CreateParams{
-		Name:               params.Name,
-		OrganizationID:     params.OrganizationID,
-		CreatedBy:          params.CreatedBy,
-		Location:           params.Network.Location,
-		SecretID:           params.SecretID,
-		SSHSecretID:        params.SSHSecretID,
-		RBAC:               params.Kubernetes.RBAC,
-		OIDC:               params.Kubernetes.OIDC.Enabled,
-		ScaleOptions:       params.ScaleOptions,
-		ResourceGroupName:  params.ResourceGroup,
-		NodePools:          nodePools,
-		VirtualNetworkName: params.Network.Name,
-		KubernetesVersion:  params.Kubernetes.Version,
-		HTTPProxy:          params.HTTPProxy,
+		Name:                  params.Name,
+		OrganizationID:        params.OrganizationID,
+		CreatedBy:             params.CreatedBy,
+		Location:              params.Network.Location,
+		SecretID:              params.SecretID,
+		SSHSecretID:           params.SSHSecretID,
+		RBAC:                  params.Kubernetes.RBAC,
+		OIDC:                  params.Kubernetes.OIDC.Enabled,
+		ScaleOptions:          params.ScaleOptions,
+		ResourceGroupName:     params.ResourceGroup,
+		NodePools:             nodePools,
+		VirtualNetworkName:    params.Network.Name,
+		KubernetesVersion:     params.Kubernetes.Version,
+		HTTPProxy:             params.HTTPProxy,
+		AccessPoints:          params.AccessPoints,
+		ApiServerAccessPoints: params.ApiServerAccessPoints,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
@@ -318,7 +320,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	for i, accessPoint := range params.AccessPoints {
 		var subnetName, publicIPAddressName, outboundBackendAddressPoolName, backendAddressPoolName, inboundNATPoolName, lbName string
 
-		if accessPoint.GetName() == "private" {
+		if accessPoint.Name == "private" {
 			lbName = pke.GetLoadBalancerName(params.Name) + "-internal"
 
 			// private access point implemented through internal LB which requires a subnet
@@ -430,6 +432,8 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		VirtualMachineScaleSetTemplates: vmssTemplates,
 		PostHooks:                       postHooks,
 		HTTPProxy:                       cl.HTTPProxy,
+		AccessPoints:                    params.AccessPoints,
+		ApiServerAccessPoints:           params.ApiServerAccessPoints,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
@@ -491,8 +495,8 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 		p.logger.Debugf("ResourceGroup not specified, defaulting to [%s]", params.ResourceGroup)
 	}
 
-	if params.AccessPoints == nil {
-		params.AccessPoints = append(params.AccessPoints, "public")
+	if len(params.AccessPoints) == 0 {
+		params.AccessPoints = append(params.AccessPoints, pke.AzureAccessPoint{Name: "public"})
 		p.logger.Debug("access points not specified, defaulting to public")
 	}
 	if len(params.AccessPoints) > 2 {
@@ -500,7 +504,7 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 	}
 
 	for _, ap := range params.AccessPoints {
-		if ap != "private" && ap != "public" {
+		if ap.Name != "private" && ap.Name != "public" {
 			return validationError{"only private or public access points are allowed"}
 		}
 	}
