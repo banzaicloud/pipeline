@@ -83,7 +83,6 @@ var (
 	Auth *auth.Auth
 
 	signingKeyBase32 string
-	TokenStore       bauth.TokenStore
 
 	// CookieDomain is the domain field for cookies
 	CookieDomain string
@@ -132,7 +131,6 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 
 // Init initializes the auth
 func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
-	TokenStore = tokenStore
 	CookieDomain = viper.GetString("auth.cookieDomain")
 
 	signingKeyBytes := []byte(signingKey)
