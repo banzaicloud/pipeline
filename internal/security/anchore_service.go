@@ -52,62 +52,107 @@ func MakeAnchoreUserService(cfgService ConfigurationService, secretStore common.
 
 func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID uint) error {
 	// add method context to the logger
-	fnLog := a.logger.WithFields(map[string]interface{}{"orgID": orgID, "clusterID": clusterID})
-	fnLog.Info("ensuring anchore user")
+	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID}
+	a.logger.Info("ensuring anchore user", fnCtx)
 
 	restClient, err := a.getAnchoreClient(ctx, clusterID)
 	if err != nil {
-		fnLog.Debug("failed to check user")
+		a.logger.Debug("failed to set up anchore client for cluster", fnCtx)
 
-		return errors.WrapIf(err, "failed to ensure anchore user")
+		return errors.WrapIfWithDetails(err, "failed to set up anchore client for cluster", fnCtx)
 	}
 
 	exists, err := a.userExists(ctx, restClient, a.getUserName(clusterID))
 	if err != nil {
-		fnLog.Debug("failed to check user")
+		a.logger.Debug("failed to check user", fnCtx)
 
-		return errors.WrapIf(err, "failed to ensure anchore user")
+		return errors.WrapIfWithDetails(err, "failed to ensure anchore user", fnCtx)
 	}
 
 	if exists {
-		fnLog.Info("processing existing anchore user")
+		a.logger.Info("processing existing anchore user", fnCtx)
 
 		err = a.ensureUserCredentials(ctx, restClient, a.getUserName(clusterID))
 		if err != nil {
-			fnLog.Debug("failed to ensure user credentials")
+			a.logger.Debug("failed to ensure user credentials", fnCtx)
 
-			return errors.WrapIf(err, "failed to ensure user credentials")
+			return errors.WrapIfWithDetails(err, "failed to ensure user credentials", fnCtx)
 		}
 
-		fnLog.Info("existing anchore user processed")
+		a.logger.Info("existing anchore user processed", fnCtx)
 		return nil
 	}
 
-	fnLog.Info("processing new anchore user")
+	a.logger.Info("processing new anchore user", fnCtx)
 	password, err := a.createUserSecret(ctx, orgID, clusterID)
 	if err != nil {
-		fnLog.Debug("failed to create secret for anchore user")
+		a.logger.Debug("failed to create secret for anchore user", fnCtx)
 
-		return errors.WrapIf(err, "failed to ensure user credentials")
+		return errors.WrapIfWithDetails(err, "failed to ensure user credentials", fnCtx)
 	}
 
 	if err := a.createAccount(ctx, restClient, a.getUserName(clusterID)); err != nil {
-		fnLog.Debug("failed to create anchore account")
+		a.logger.Debug("failed to create anchore account", fnCtx)
 
-		return errors.WrapIf(err, "failed to create anchore account")
+		return errors.WrapIfWithDetails(err, "failed to create anchore account", fnCtx)
 	}
 
 	if err := a.createUser(ctx, restClient, a.getUserName(clusterID), password); err != nil {
-		fnLog.Debug("failed to create anchore user")
+		a.logger.Debug("failed to create anchore user", fnCtx)
 
-		return errors.WrapIf(err, "failed to create anchore user")
+		return errors.WrapIfWithDetails(err, "failed to create anchore user", fnCtx)
 	}
 
 	return nil
 }
 
 func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID uint) error {
-	panic("implement me")
+	// add method context
+	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID}
+	a.logger.Info("ensuring anchore user", fnCtx)
+
+	restClient, err := a.getAnchoreClient(ctx, clusterID)
+	if err != nil {
+		a.logger.Debug("failed to set up anchore client for cluster")
+
+		return errors.WrapIfWithDetails(err, "failed to set up anchore client for cluster", fnCtx)
+	}
+
+	userName := a.getUserName(clusterID)
+
+	exists, err := a.userExists(ctx, restClient, userName)
+	if err != nil {
+		a.logger.Debug("failed to check if anchore user exists", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to check if anchore user exists", fnCtx)
+	}
+
+	secretID := secret.GenerateSecretIDFromName(userName)
+
+	if !exists {
+		// remove the secret if exists / ignore the error
+		if err := a.secretStore.Delete(ctx, secretID); err != nil {
+			a.logger.Debug("failed to delete credentials secret for nonexistent anchore user", fnCtx)
+		}
+
+		a.logger.Info("anchore user not found", fnCtx)
+		return nil
+	}
+
+	if err := a.deleteUser(ctx, restClient, userName, userName); err != nil {
+		a.logger.Debug("failed to delete anchore user", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to delete anchore user", fnCtx)
+	}
+
+	if err := a.deleteAccount(ctx, restClient, userName); err != nil {
+		a.logger.Debug("failed to delete anchore account", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to delete anchore account", fnCtx)
+	}
+
+	return nil
+
 }
 
 func (a anchoreService) getUserName(clusterID uint) string {
@@ -129,7 +174,7 @@ func (a anchoreService) userExists(ctx context.Context, client AnchoreClient, us
 //  ensureUserCredentials makes sure the user credentials secret is up to date
 func (a anchoreService) ensureUserCredentials(ctx context.Context, client AnchoreClient, userName string) error {
 
-	password, err := client.GetUserCreadentials(ctx, userName)
+	password, err := client.GetUserCredentials(ctx, userName)
 	if err != nil {
 		a.logger.Debug("failed to get user credentials")
 
@@ -232,4 +277,32 @@ func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint) (A
 	}
 
 	return MakeAnchoreClient(cfg, a.logger), nil
+}
+
+func (a anchoreService) deleteAccount(ctx context.Context, client AnchoreClient, accountName string) error {
+	// function context for logging and error context
+	fnCtx := map[string]interface{}{"accountName": accountName}
+
+	if err := client.DeleteAccount(ctx, accountName); err != nil {
+		a.logger.Debug("failed to delete anchore account", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to delete anchore account", fnCtx)
+	}
+
+	a.logger.Info("anchore account deleted", fnCtx)
+	return nil
+}
+
+func (a anchoreService) deleteUser(ctx context.Context, client AnchoreClient, accountName string, userName string) error {
+	// function context for logging and error context
+	fnCtx := map[string]interface{}{"accountName": accountName, "userName": userName}
+
+	if err := client.DeleteUser(ctx, accountName, userName); err != nil {
+		a.logger.Debug("failed to delete anchore user", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to delete anchore user", fnCtx)
+	}
+
+	a.logger.Info("anchore user deleted", fnCtx)
+	return nil
 }

@@ -27,9 +27,11 @@ import (
 // AnchoreClient defines Anchore operations
 type AnchoreClient interface {
 	CreateAccount(ctx context.Context, accountName string, email string) error
+	DeleteAccount(ctx context.Context, accountName string) error
 	CreateUser(ctx context.Context, accountName string, userName string, password string) error
+	DeleteUser(ctx context.Context, accountName string, userName string) error
 	GetUser(ctx context.Context, userName string) (interface{}, error)
-	GetUserCreadentials(ctx context.Context, userName string) (string, error)
+	GetUserCredentials(ctx context.Context, userName string) (string, error)
 }
 
 type anchoreClient struct {
@@ -88,7 +90,7 @@ func (a anchoreClient) GetUser(ctx context.Context, userName string) (interface{
 	return usr, nil
 }
 
-func (a anchoreClient) GetUserCreadentials(ctx context.Context, userName string) (string, error) {
+func (a anchoreClient) GetUserCredentials(ctx context.Context, userName string) (string, error) {
 	credentials, resp, err := a.getRestClient().UserManagementApi.ListUserCredentials(a.authorizedContext(ctx), userName, userName)
 	if err != nil || (resp.StatusCode != http.StatusOK) {
 		a.logger.Debug("failed to retrieve user from anchore")
@@ -103,6 +105,36 @@ func (a anchoreClient) GetUserCreadentials(ctx context.Context, userName string)
 	}
 
 	return "", errors.NewWithDetails("no credentials found", "userName", userName)
+}
+
+func (a anchoreClient) DeleteAccount(ctx context.Context, accountName string) error {
+	fnCtx := map[string]interface{}{"accountName": accountName}
+	a.logger.Info("deleting anchore account", fnCtx)
+
+	r, err := a.getRestClient().UserManagementApi.DeleteAccount(a.authorizedContext(ctx), accountName)
+	if err != nil || r.StatusCode != http.StatusNoContent {
+		a.logger.Debug("failed to delete anchore account", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to delete anchore account", fnCtx)
+	}
+
+	a.logger.Info("deleted anchore account", fnCtx)
+	return nil
+}
+
+func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userName string) error {
+	fnCtx := map[string]interface{}{"accountName": accountName, "userName": userName}
+	a.logger.Info("deleting anchore user", fnCtx)
+	r, err := a.getRestClient().UserManagementApi.DeleteUser(a.authorizedContext(ctx), accountName, userName)
+	if err != nil || r.StatusCode != http.StatusNoContent {
+		a.logger.Debug("failed to delete anchore user", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to delete anchore user", fnCtx)
+	}
+
+	a.logger.Info("deleted anchore account", fnCtx)
+	return nil
+
 }
 
 func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
