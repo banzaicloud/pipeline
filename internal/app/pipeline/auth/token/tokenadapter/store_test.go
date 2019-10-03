@@ -31,7 +31,7 @@ func TestBankVaultsStore_Store(t *testing.T) {
 	bstore := auth.NewInMemoryTokenStore()
 	store := NewBankVaultsStore(bstore)
 
-	userID := uint(1)
+	userID := "1"
 	tokenID := "token"
 	tokenName := "name"
 	expiresAt := time.Date(2019, time.September, 30, 15, 15, 00, 00, time.UTC)
@@ -57,7 +57,7 @@ func TestBankVaultsStore_List(t *testing.T) {
 	bstore := auth.NewInMemoryTokenStore()
 	store := NewBankVaultsStore(bstore)
 
-	userID := uint(1)
+	userID := "1"
 	tokenID := "token"
 	tokenName := "name"
 	expiresAt := time.Date(2019, time.September, 30, 15, 15, 00, 00, time.UTC)
@@ -89,7 +89,7 @@ func TestBankVaultsStore_Lookup(t *testing.T) {
 	bstore := auth.NewInMemoryTokenStore()
 	store := NewBankVaultsStore(bstore)
 
-	userID := uint(1)
+	userID := "1"
 	tokenID := "token"
 	tokenName := "name"
 	expiresAt := time.Date(2019, time.September, 30, 15, 15, 00, 00, time.UTC)
@@ -119,7 +119,7 @@ func TestBankVaultsStore_Revoke(t *testing.T) {
 	bstore := auth.NewInMemoryTokenStore()
 	store := NewBankVaultsStore(bstore)
 
-	userID := uint(1)
+	userID := "1"
 	tokenID := "token"
 	tokenName := "name"
 	expiresAt := time.Date(2019, time.September, 30, 15, 15, 00, 00, time.UTC)

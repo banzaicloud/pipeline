@@ -32,6 +32,7 @@ import (
 func TestService_CreateToken(t *testing.T) {
 	ctx := context.Background()
 	userID := uint(1)
+	userIDString := fmt.Sprint(userID)
 	userLogin := "john.doe"
 	tokenID := "id"
 	tokenValue := "token"
@@ -51,10 +52,10 @@ func TestService_CreateToken(t *testing.T) {
 	}
 
 	store := new(MockStore)
-	store.On("Store", ctx, userID, tokenID, tokenRequest.Name, tokenRequest.ExpiresAt).Return(nil)
+	store.On("Store", ctx, userIDString, tokenID, tokenRequest.Name, tokenRequest.ExpiresAt).Return(nil)
 
 	generator := new(MockGenerator)
-	generator.On("GenerateToken", fmt.Sprint(userID), int64(0), CICDUserTokenType, userLogin).Return(tokenID, tokenValue, nil)
+	generator.On("GenerateToken", userIDString, int64(0), CICDUserTokenType, userLogin).Return(tokenID, tokenValue, nil)
 
 	service := NewService(userExtractor, store, generator)
 
@@ -71,6 +72,7 @@ func TestService_CreateToken(t *testing.T) {
 func TestService_CreateToken_DefaultName(t *testing.T) {
 	ctx := context.Background()
 	userID := uint(1)
+	userIDString := fmt.Sprint(userID)
 	userLogin := "john.doe"
 	tokenID := "id"
 	tokenValue := "token"
@@ -90,10 +92,10 @@ func TestService_CreateToken_DefaultName(t *testing.T) {
 	}
 
 	store := new(MockStore)
-	store.On("Store", ctx, userID, tokenID, "generated", tokenRequest.ExpiresAt).Return(nil)
+	store.On("Store", ctx, userIDString, tokenID, "generated", tokenRequest.ExpiresAt).Return(nil)
 
 	generator := new(MockGenerator)
-	generator.On("GenerateToken", fmt.Sprint(userID), int64(0), CICDUserTokenType, userLogin).Return(tokenID, tokenValue, nil)
+	generator.On("GenerateToken", userIDString, int64(0), CICDUserTokenType, userLogin).Return(tokenID, tokenValue, nil)
 
 	service := NewService(userExtractor, store, generator)
 
@@ -109,7 +111,7 @@ func TestService_CreateToken_DefaultName(t *testing.T) {
 
 func TestService_VirtualUser(t *testing.T) {
 	ctx := context.Background()
-	userID := uint(1)
+	userID := "virtualUser"
 	userLogin := "john.doe"
 	tokenID := "id"
 	tokenValue := "token"
@@ -121,7 +123,7 @@ func TestService_VirtualUser(t *testing.T) {
 	}
 
 	userExtractor := new(MockUserExtractor)
-	userExtractor.On("GetUserID", ctx).Return(userID, true)
+	userExtractor.On("GetUserID", ctx).Return(uint(1), true)
 	userExtractor.On("GetUserLogin", ctx).Return(userLogin, true)
 
 	expectedToken := NewToken{
@@ -150,6 +152,7 @@ func TestService_VirtualUser(t *testing.T) {
 func TestService_ListTokens(t *testing.T) {
 	ctx := context.Background()
 	userID := uint(1)
+	userIDString := fmt.Sprint(userID)
 
 	userExtractor := new(MockUserExtractor)
 	userExtractor.On("GetUserID", ctx).Return(userID, true)
@@ -164,7 +167,7 @@ func TestService_ListTokens(t *testing.T) {
 	}
 
 	store := new(MockStore)
-	store.On("List", ctx, userID).Return(expectedTokens, nil)
+	store.On("List", ctx, userIDString).Return(expectedTokens, nil)
 
 	generator := new(MockGenerator)
 
@@ -183,6 +186,7 @@ func TestService_ListTokens(t *testing.T) {
 func TestService_GetToken(t *testing.T) {
 	ctx := context.Background()
 	userID := uint(1)
+	userIDString := fmt.Sprint(userID)
 	tokenID := "tokenid"
 
 	userExtractor := new(MockUserExtractor)
@@ -196,7 +200,7 @@ func TestService_GetToken(t *testing.T) {
 	}
 
 	store := new(MockStore)
-	store.On("Lookup", ctx, userID, tokenID).Return(expectedToken, nil)
+	store.On("Lookup", ctx, userIDString, tokenID).Return(expectedToken, nil)
 
 	generator := new(MockGenerator)
 
@@ -215,6 +219,7 @@ func TestService_GetToken(t *testing.T) {
 func TestService_GetToken_NotFound(t *testing.T) {
 	ctx := context.Background()
 	userID := uint(1)
+	userIDString := fmt.Sprint(userID)
 	tokenID := "notfound"
 
 	userExtractor := new(MockUserExtractor)
@@ -223,7 +228,7 @@ func TestService_GetToken_NotFound(t *testing.T) {
 	notFoundError := NotFoundError{ID: tokenID}
 
 	store := new(MockStore)
-	store.On("Lookup", ctx, userID, tokenID).Return(Token{}, notFoundError)
+	store.On("Lookup", ctx, userIDString, tokenID).Return(Token{}, notFoundError)
 
 	generator := new(MockGenerator)
 
@@ -242,13 +247,14 @@ func TestService_GetToken_NotFound(t *testing.T) {
 func TestService_DeleteToken(t *testing.T) {
 	ctx := context.Background()
 	userID := uint(1)
+	userIDString := fmt.Sprint(userID)
 	tokenID := "tokenid"
 
 	userExtractor := new(MockUserExtractor)
 	userExtractor.On("GetUserID", ctx).Return(userID, true)
 
 	store := new(MockStore)
-	store.On("Revoke", ctx, userID, tokenID).Return(nil)
+	store.On("Revoke", ctx, userIDString, tokenID).Return(nil)
 
 	generator := new(MockGenerator)
 

@@ -93,16 +93,16 @@ type UserExtractor interface {
 // Store persists access tokens in a secret store.
 type Store interface {
 	// Store stores a token in the persistent secret store.
-	Store(ctx context.Context, userID uint, tokenID string, name string, expiresAt *time.Time) error
+	Store(ctx context.Context, userID string, tokenID string, name string, expiresAt *time.Time) error
 
 	// List lists the tokens in the store.
-	List(ctx context.Context, userID uint) ([]Token, error)
+	List(ctx context.Context, userID string) ([]Token, error)
 
 	// Lookup finds a user token.
-	Lookup(ctx context.Context, userID uint, tokenID string) (Token, error)
+	Lookup(ctx context.Context, userID string, tokenID string) (Token, error)
 
 	// Revoke revokes an access token.
-	Revoke(ctx context.Context, userID uint, tokenID string) error
+	Revoke(ctx context.Context, userID string, tokenID string) error
 }
 
 // NotFoundError is returned if a token cannot be found.
@@ -173,7 +173,7 @@ func (s service) CreateToken(ctx context.Context, tokenRequest NewTokenRequest) 
 		return NewToken{}, err
 	}
 
-	err = s.store.Store(ctx, userID, tokenID, tokenRequest.Name, tokenRequest.ExpiresAt)
+	err = s.store.Store(ctx, sub, tokenID, tokenRequest.Name, tokenRequest.ExpiresAt)
 	if err != nil {
 		return NewToken{}, err
 	}
@@ -190,7 +190,7 @@ func (s service) ListTokens(ctx context.Context) ([]Token, error) {
 		return nil, errors.New("user not found in the context")
 	}
 
-	return s.store.List(ctx, userID)
+	return s.store.List(ctx, fmt.Sprint(userID))
 }
 
 func (s service) GetToken(ctx context.Context, id string) (Token, error) {
@@ -199,7 +199,7 @@ func (s service) GetToken(ctx context.Context, id string) (Token, error) {
 		return Token{}, errors.New("user not found in the context")
 	}
 
-	return s.store.Lookup(ctx, userID, id)
+	return s.store.Lookup(ctx, fmt.Sprint(userID), id)
 }
 
 func (s service) DeleteToken(ctx context.Context, id string) error {
@@ -208,5 +208,5 @@ func (s service) DeleteToken(ctx context.Context, id string) error {
 		return errors.New("user not found in the context")
 	}
 
-	return s.store.Revoke(ctx, userID, id)
+	return s.store.Revoke(ctx, fmt.Sprint(userID), id)
 }
