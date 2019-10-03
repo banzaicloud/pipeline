@@ -153,15 +153,19 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 			}
 			roleAssignmentTemplates = append(roleAssignmentTemplates, rats...)
 
-			err := cu.store.CreateNodePool(params.ClusterID, np.toPke())
-			if err != nil {
+			if err := cu.store.CreateNodePool(params.ClusterID, np.toPke()); err != nil {
 				return errors.WrapIfWithDetails(err, "failed to store new node pool", "clusterID", cluster.ID, "nodepool", np.Name)
 			}
 		}
 
 		toCreateSubnetTemplates = make([]workflow.SubnetTemplate, 0, len(subnetTemplates))
 		for _, t := range subnetTemplates {
-			toCreateSubnetTemplates = append(toCreateSubnetTemplates, t)
+			sn, err := conn.GetSubnetsClient().Get(ctx, cluster.ResourceGroup.Name, cluster.VirtualNetwork.Name, t.Name, "")
+			if sn.Response.StatusCode == http.StatusNotFound {
+				toCreateSubnetTemplates = append(toCreateSubnetTemplates, t)
+			} else if err != nil {
+				return errors.WrapIf(err, "failed to get subnet")
+			} // else skip already existing subnet
 		}
 	}
 
