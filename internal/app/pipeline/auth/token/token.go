@@ -31,7 +31,7 @@ type Token struct {
 }
 
 // Service provides access to personal access tokens.
-//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name Service -inpkg"
+//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name Service -inpkg || true"
 type Service interface {
 	// CreateToken creates a new access token. It returns the generated token value.
 	CreateToken(ctx context.Context, tokenRequest NewTokenRequest) (NewToken, error)

@@ -35,6 +35,7 @@ GOTESTSUM_VERSION = 0.3.2
 GOBIN_VERSION = 0.0.13
 PROTOTOOL_VERSION = 1.8.0
 PROTOC_GEN_GO_VERSION = 1.3.2
+MGA_VERSION = 0.0.5
 
 GOLANG_VERSION = 1.13
 
@@ -262,6 +263,17 @@ bin/migrate-${MIGRATE_VERSION}:
 	@mkdir -p bin
 	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
 	@mv bin/migrate.${OS}-amd64 $@
+
+bin/mga: bin/mga-${MGA_VERSION}
+	@ln -sf mga-${MGA_VERSION} bin/mga
+bin/mga-${MGA_VERSION}:
+	@mkdir -p bin
+	curl -sfL https://git.io/mgatool | bash -s v${MGA_VERSION}
+	@mv bin/mga $@
+
+.PHONY: generate
+generate: bin/mga ## Generate code
+	MGA=$(abspath bin/mga) go generate ./...
 
 .PHONY: generate-cloudinfo-client
 generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec

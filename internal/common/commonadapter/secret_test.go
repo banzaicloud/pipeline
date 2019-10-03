@@ -28,7 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-//go:generate sh -c "test -x ${MOCKERY} && ${MOCKERY} -name ReadWriteOrganizationalSecretStore -inpkg -testonly"
+//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name ReadWriteOrganizationalSecretStore -inpkg -testonly || true"
 
 func TestSecretStore_GetSecretValues(t *testing.T) {
 	organizationID := uint(1)
