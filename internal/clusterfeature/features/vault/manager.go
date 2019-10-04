@@ -110,7 +110,7 @@ func getVaultOutput(m vaultManager, orgID, clusterID uint) (map[string]interface
 
 	out := map[string]interface{}{
 		"authMethodPath": getAuthMethodPath(orgID, clusterID),
-		"rolePath":       getRolePath(orgID, clusterID, getRoleName(m.customVault)),
+		"role":           getRoleName(m.customVault),
 		"version":        vaultVersion,
 	}
 	if !m.customVault {
