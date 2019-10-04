@@ -95,7 +95,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 			output: clusterfeature.FeatureOutput{
 				"vault": map[string]interface{}{
 					"authMethodPath": "kubernetes-cluster/13/42",
-					"rolePath":       "auth/kubernetes-cluster/13/42/role/pipeline",
+					"role":           "pipeline",
 					"version":        vVersion,
 					"policy": fmt.Sprintf(`
 			path "secret/data/orgs/%d/*" {
@@ -122,7 +122,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 			output: clusterfeature.FeatureOutput{
 				"vault": map[string]interface{}{
 					"authMethodPath": "kubernetes-cluster/13/42",
-					"rolePath":       "auth/kubernetes-cluster/13/42/role/pipeline-webhook",
+					"role":           "pipeline-webhook",
 					"version":        vVersion,
 				},
 				"webhook": map[string]interface{}{
