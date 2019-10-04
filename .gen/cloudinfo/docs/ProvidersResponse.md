@@ -1,6 +1,7 @@
 # ProvidersResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Providers** | [**[]Provider**](Provider.md) |  | [optional] 
