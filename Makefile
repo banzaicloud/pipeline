@@ -200,6 +200,13 @@ test-all: ## Run all tests
 test-integration: ## Run integration tests
 	@${MAKE} GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
 
+bin/migrate: bin/migrate-${MIGRATE_VERSION}
+	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
+bin/migrate-${MIGRATE_VERSION}:
+	@mkdir -p bin
+	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
+	@mv bin/migrate.${OS}-amd64 $@
+
 bin/gobin: bin/gobin-${GOBIN_VERSION}
 	@ln -sf gobin-${GOBIN_VERSION} bin/gobin
 bin/gobin-${GOBIN_VERSION}:
@@ -249,18 +256,21 @@ ifeq (${OS}, linux)
 	sha256sum ${OPENAPI_DESCRIPTOR} > .gen/pipeline/SHA256SUMS
 endif
 
+define generate_openapi_client
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ${3}; else rm -rf ${3}; fi
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	--additional-properties packageName=${2} \
+	--additional-properties withGoCodegenComment=true \
+	-i /local/${1} \
+	-g go \
+	-o /local/${3}
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) ${3}; fi
+	rm ${3}/{.travis.yml,git_push.sh,go.*}
+endef
+
 .PHONY: generate-client
 generate-client: validate-openapi ## Generate go client based on openapi description
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./client; else rm -rf ./client/; fi
-	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
-	--additional-properties packageName=client \
-	--additional-properties withGoCodegenComment=true \
-	-i /local/${OPENAPI_DESCRIPTOR} \
-	-g go \
-	-o /local/client
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) client/; fi
-	rm client/{.travis.yml,git_push.sh,go.*}
-	gofmt -s -w client/
+	$(call generate_openapi_client,${OPENAPI_DESCRIPTOR},client,client)
 
 ifeq (${OS}, darwin)
 	shasum -a 256 ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
@@ -269,41 +279,20 @@ ifeq (${OS}, linux)
 	sha256sum ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
 endif
 
-bin/migrate: bin/migrate-${MIGRATE_VERSION}
-	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
-bin/migrate-${MIGRATE_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
-	@mv bin/migrate.${OS}-amd64 $@
-
 apis/cloudinfo/openapi.yaml:
 	@mkdir -p apis/cloudinfo
 	curl https://raw.githubusercontent.com/banzaicloud/cloudinfo/${CLOUDINFO_VERSION}/api/openapi-spec/cloudinfo.yaml | sed "s/version: .*/version: ${CLOUDINFO_VERSION}/" > apis/cloudinfo/openapi.yaml
 
 .PHONY: generate-cloudinfo-client
 generate-cloudinfo-client: apis/cloudinfo/openapi.yaml ## Generate client from Cloudinfo OpenAPI spec
-	rm -rf .gen/cloudinfo
-	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
-	--additional-properties packageName=cloudinfo \
-	--additional-properties withGoCodegenComment=true \
-	-i /local/apis/cloudinfo/openapi.yaml \
-	-g go \
-	-o /local/.gen/cloudinfo
-	rm .gen/cloudinfo/{.travis.yml,git_push.sh,go.*}
+	$(call generate_openapi_client,apis/cloudinfo/openapi.yaml,cloudinfo,.gen/cloudinfo)
 
 apis/anchore/swagger.yaml:
 	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
 
 .PHONY: generate-anchore-client
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
-	rm -rf .gen/anchore
-	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
-	--additional-properties packageName=anchore \
-	--additional-properties withGoCodegenComment=true \
-	-i /local/apis/anchore/swagger.yaml \
-	-g go \
-	-o /local/.gen/anchore
-	rm .gen/anchore/{.travis.yml,git_push.sh,go.*}
+	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
 
 bin/protoc-gen-go: bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
 	@ln -sf protoc-gen-go-${PROTOC_GEN_GO_VERSION} bin/protoc-gen-go

@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -13,12 +13,12 @@ package client
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -31,7 +31,7 @@ type ClustergroupDeploymentsApiService service
 
 // ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNameDeleteOpts Optional parameters for the method 'ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNameDelete'
 type ApiV1OrgsOrgidClustergroupsClusterGroupIdDeploymentsDeploymentNameDeleteOpts struct {
-	Force optional.Bool
+    Force optional.Bool
 }
 
 /*

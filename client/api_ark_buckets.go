@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -13,10 +13,10 @@ package client
 
 import (
 	_context "context"
-	"fmt"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
 )
 

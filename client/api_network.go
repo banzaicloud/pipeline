@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -13,12 +13,12 @@ package client
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -31,8 +31,8 @@ type NetworkApiService service
 
 // ListRouteTablesOpts Optional parameters for the method 'ListRouteTables'
 type ListRouteTablesOpts struct {
-	Region        optional.String
-	ResourceGroup optional.String
+    Region optional.String
+    ResourceGroup optional.String
 }
 
 /*
@@ -170,8 +170,8 @@ func (a *NetworkApiService) ListRouteTables(ctx _context.Context, orgId int32, n
 
 // ListVPCNetworksOpts Optional parameters for the method 'ListVPCNetworks'
 type ListVPCNetworksOpts struct {
-	Region        optional.String
-	ResourceGroup optional.String
+    Region optional.String
+    ResourceGroup optional.String
 }
 
 /*
@@ -307,8 +307,8 @@ func (a *NetworkApiService) ListVPCNetworks(ctx _context.Context, orgId int32, s
 
 // ListVPCSubnetsOpts Optional parameters for the method 'ListVPCSubnets'
 type ListVPCSubnetsOpts struct {
-	Region        optional.String
-	ResourceGroup optional.String
+    Region optional.String
+    ResourceGroup optional.String
 }
 
 /*

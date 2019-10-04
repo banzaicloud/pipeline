@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -13,12 +13,12 @@ package client
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -214,7 +214,7 @@ func (a *ClustersApiService) CreateCluster(ctx _context.Context, orgId int32, bo
 
 // DeleteClusterOpts Optional parameters for the method 'DeleteCluster'
 type DeleteClusterOpts struct {
-	Force optional.Bool
+    Force optional.Bool
 }
 
 /*
@@ -2071,7 +2071,7 @@ func (a *ClustersApiService) InstallSecrets(ctx _context.Context, orgId int32, i
 
 // ListClusterEndpointsOpts Optional parameters for the method 'ListClusterEndpoints'
 type ListClusterEndpointsOpts struct {
-	ReleaseName optional.String
+    ReleaseName optional.String
 }
 
 /*
@@ -2211,7 +2211,7 @@ func (a *ClustersApiService) ListClusterEndpoints(ctx _context.Context, orgId in
 
 // ListClusterSecretsOpts Optional parameters for the method 'ListClusterSecrets'
 type ListClusterSecretsOpts struct {
-	ReleaseName optional.String
+    ReleaseName optional.String
 }
 
 /*

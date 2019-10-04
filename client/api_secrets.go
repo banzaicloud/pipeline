@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -13,13 +13,13 @@ package client
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"reflect"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
+	"reflect"
 )
 
 // Linger please
@@ -164,7 +164,7 @@ func (a *SecretsApiService) AddSecretTag(ctx _context.Context, orgId int32, secr
 
 // AddSecretsOpts Optional parameters for the method 'AddSecrets'
 type AddSecretsOpts struct {
-	Validate optional.Bool
+    Validate optional.Bool
 }
 
 /*
@@ -959,9 +959,9 @@ func (a *SecretsApiService) GetSecretTags(ctx _context.Context, orgId int32, sec
 
 // GetSecretsOpts Optional parameters for the method 'GetSecrets'
 type GetSecretsOpts struct {
-	Type_  optional.String
-	Tags   optional.Interface
-	Values optional.Bool
+    Type_ optional.String
+    Tags optional.Interface
+    Values optional.Bool
 }
 
 /*
@@ -997,7 +997,7 @@ func (a *SecretsApiService) GetSecrets(ctx _context.Context, orgId int32, localV
 		localVarQueryParams.Add("type", parameterToString(localVarOptionals.Type_.Value(), ""))
 	}
 	if localVarOptionals != nil && localVarOptionals.Tags.IsSet() {
-		t := localVarOptionals.Tags.Value()
+		t:=localVarOptionals.Tags.Value()
 		if reflect.TypeOf(t).Kind() == reflect.Slice {
 			s := reflect.ValueOf(t)
 			for i := 0; i < s.Len(); i++ {
@@ -1095,7 +1095,7 @@ func (a *SecretsApiService) GetSecrets(ctx _context.Context, orgId int32, localV
 
 // UpdateSecretsOpts Optional parameters for the method 'UpdateSecrets'
 type UpdateSecretsOpts struct {
-	Validate optional.Bool
+    Validate optional.Bool
 }
 
 /*

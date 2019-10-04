@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -13,12 +13,12 @@ package client
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -276,7 +276,7 @@ func (a *DeploymentsApiService) DeleteDeployment(ctx _context.Context, orgId int
 
 // GetDeploymentOpts Optional parameters for the method 'GetDeployment'
 type GetDeploymentOpts struct {
-	Tag optional.String
+    Tag optional.String
 }
 
 /*
@@ -530,7 +530,7 @@ func (a *DeploymentsApiService) GetDeploymentImages(ctx _context.Context, orgId 
 
 // GetDeploymentResourceOpts Optional parameters for the method 'GetDeploymentResource'
 type GetDeploymentResourceOpts struct {
-	ResourceTypes optional.String
+    ResourceTypes optional.String
 }
 
 /*
@@ -802,7 +802,7 @@ func (a *DeploymentsApiService) HelmDeploymentStatus(ctx _context.Context, orgId
 
 // ListDeploymentsOpts Optional parameters for the method 'ListDeployments'
 type ListDeploymentsOpts struct {
-	Tag optional.String
+    Tag optional.String
 }
 
 /*

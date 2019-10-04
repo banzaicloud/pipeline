@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -13,12 +13,12 @@ package client
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -225,7 +225,7 @@ func (a *PoliciesApiService) DeletePolicy(ctx _context.Context, id int32, orgId 
 
 // GetPolicyOpts Optional parameters for the method 'GetPolicy'
 type GetPolicyOpts struct {
-	Detail optional.Bool
+    Detail optional.Bool
 }
 
 /*
@@ -337,7 +337,7 @@ func (a *PoliciesApiService) GetPolicy(ctx _context.Context, id int32, orgId int
 
 // ListPoliciesOpts Optional parameters for the method 'ListPolicies'
 type ListPoliciesOpts struct {
-	Detail optional.Bool
+    Detail optional.Bool
 }
 
 /*
