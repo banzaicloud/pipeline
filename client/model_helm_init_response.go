@@ -11,6 +11,7 @@
 
 package client
 
+// HelmInitResponse struct for HelmInitResponse
 type HelmInitResponse struct {
 	Status  int32  `json:"status,omitempty"`
 	Message string `json:"message,omitempty"`

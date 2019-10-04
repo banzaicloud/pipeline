@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateEksProperties struct for UpdateEksProperties
 type UpdateEksProperties struct {
 	Eks UpdateEksPropertiesEks `json:"eks"`
 }

@@ -11,6 +11,7 @@
 
 package client
 
+// CreateSecretRequest struct for CreateSecretRequest
 type CreateSecretRequest struct {
 	Name    string                 `json:"name"`
 	Type    string                 `json:"type"`

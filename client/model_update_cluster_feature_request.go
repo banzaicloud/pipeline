@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateClusterFeatureRequest struct for UpdateClusterFeatureRequest
 type UpdateClusterFeatureRequest struct {
 	Spec map[string]interface{} `json:"spec"`
 }

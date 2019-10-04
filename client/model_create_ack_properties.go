@@ -11,6 +11,7 @@
 
 package client
 
+// CreateAckProperties struct for CreateAckProperties
 type CreateAckProperties struct {
 	Ack CreateAckPropertiesAck `json:"ack"`
 }

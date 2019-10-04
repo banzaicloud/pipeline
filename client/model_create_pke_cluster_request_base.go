@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkeClusterRequestBase struct for CreatePkeClusterRequestBase
 type CreatePkeClusterRequestBase struct {
 	Name         string                     `json:"name"`
 	Features     []Feature                  `json:"features,omitempty"`

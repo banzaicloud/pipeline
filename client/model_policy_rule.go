@@ -11,7 +11,7 @@
 
 package client
 
-// A rule that defines and decision value if the match is found true for a given image.
+// PolicyRule A rule that defines and decision value if the match is found true for a given image.
 type PolicyRule struct {
 	Id      string             `json:"id,omitempty"`
 	Gate    string             `json:"gate"`

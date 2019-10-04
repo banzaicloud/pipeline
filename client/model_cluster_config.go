@@ -11,6 +11,7 @@
 
 package client
 
+// ClusterConfig struct for ClusterConfig
 type ClusterConfig struct {
 	Status int32  `json:"status,omitempty"`
 	Data   string `json:"data,omitempty"`

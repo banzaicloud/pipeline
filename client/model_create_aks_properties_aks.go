@@ -11,6 +11,7 @@
 
 package client
 
+// CreateAksPropertiesAks struct for CreateAksPropertiesAks
 type CreateAksPropertiesAks struct {
 	ResourceGroup     string                    `json:"resourceGroup"`
 	KubernetesVersion string                    `json:"kubernetesVersion"`

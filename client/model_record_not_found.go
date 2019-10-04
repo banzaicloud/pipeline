@@ -11,6 +11,7 @@
 
 package client
 
+// RecordNotFound struct for RecordNotFound
 type RecordNotFound struct {
 	Code    int32  `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`

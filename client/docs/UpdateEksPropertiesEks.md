@@ -1,6 +1,7 @@
 # UpdateEksPropertiesEks
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **NodePools** | [**map[string]EksNodePool**](EKSNodePool.md) |  | 

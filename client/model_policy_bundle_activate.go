@@ -11,7 +11,7 @@
 
 package client
 
-// Policy bundle activation
+// PolicyBundleActivate Policy bundle activation
 type PolicyBundleActivate struct {
 	Params PolicyBundleActivateParams `json:"params,omitempty"`
 }

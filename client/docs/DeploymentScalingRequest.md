@@ -1,6 +1,7 @@
 # DeploymentScalingRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **ScaleTarget** | **string** |  | 

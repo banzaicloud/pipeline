@@ -11,6 +11,7 @@
 
 package client
 
+// PkeClusterReadinessResponseMaster struct for PkeClusterReadinessResponseMaster
 type PkeClusterReadinessResponseMaster struct {
 	// true when the node has been reported to be ready
 	Ready bool `json:"ready,omitempty"`

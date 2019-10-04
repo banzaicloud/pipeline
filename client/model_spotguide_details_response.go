@@ -11,6 +11,7 @@
 
 package client
 
+// SpotguideDetailsResponse struct for SpotguideDetailsResponse
 type SpotguideDetailsResponse struct {
 	Name        string             `json:"name,omitempty"`
 	DisplayName string             `json:"displayName,omitempty"`

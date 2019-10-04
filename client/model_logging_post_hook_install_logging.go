@@ -11,6 +11,7 @@
 
 package client
 
+// LoggingPostHookInstallLogging struct for LoggingPostHookInstallLogging
 type LoggingPostHookInstallLogging struct {
 	BucketName     string           `json:"bucketName"`
 	Region         string           `json:"region,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// ImageSelectionRule struct for ImageSelectionRule
 type ImageSelectionRule struct {
 	Id         string   `json:"id,omitempty"`
 	Name       string   `json:"name"`

@@ -11,7 +11,7 @@
 
 package client
 
-// A bundle containing a set of policies, whitelists, and rules for mapping them to specific images
+// PolicyBundle A bundle containing a set of policies, whitelists, and rules for mapping them to specific images
 type PolicyBundle struct {
 	// Id of the bundle
 	Id string `json:"id"`

@@ -11,6 +11,7 @@
 
 package client
 
+// RestoreResultsResponse struct for RestoreResultsResponse
 type RestoreResultsResponse struct {
 	Errors   RestoreResultErrors   `json:"errors,omitempty"`
 	Warnings RestoreResultWarnings `json:"warnings,omitempty"`

@@ -1,6 +1,7 @@
 # CreateAksPropertiesAks
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **ResourceGroup** | **string** |  | 

@@ -11,6 +11,7 @@
 
 package client
 
+// AmazonAutoScalingGroup struct for AmazonAutoScalingGroup
 type AmazonAutoScalingGroup struct {
 	Name                    string                            `json:"name"`
 	Image                   string                            `json:"image"`

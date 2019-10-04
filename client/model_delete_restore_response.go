@@ -11,6 +11,7 @@
 
 package client
 
+// DeleteRestoreResponse struct for DeleteRestoreResponse
 type DeleteRestoreResponse struct {
 	Id     int32 `json:"id,omitempty"`
 	Status int32 `json:"status,omitempty"`

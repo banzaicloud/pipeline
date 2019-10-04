@@ -11,6 +11,7 @@
 
 package client
 
+// CreateRestoreResponse struct for CreateRestoreResponse
 type CreateRestoreResponse struct {
 	Restore RestoreResponse `json:"restore,omitempty"`
 	Status  int32           `json:"status,omitempty"`

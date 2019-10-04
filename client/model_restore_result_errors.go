@@ -11,6 +11,7 @@
 
 package client
 
+// RestoreResultErrors struct for RestoreResultErrors
 type RestoreResultErrors struct {
 	Ark        []string                 `json:"ark,omitempty"`
 	Cluster    []string                 `json:"cluster,omitempty"`

@@ -7129,7 +7129,7 @@ components:
                     example: "my-aws-secret"
                 postHooks:
                     type: object
-                    additionalProperties:
+                    # additionalProperties:
                         # oneOf:
                         #     -
                         #         $ref: '#/components/schemas/LoggingPostHook'
@@ -7147,7 +7147,7 @@ components:
                     $ref: '#/components/schemas/ScaleOptions'
                 properties:
                     type: object
-                    additionalProperties:
+                    # additionalProperties:
                     # oneOf:
                     #     -
                     #         $ref: '#/components/schemas/CreateAKSProperties'
@@ -8025,7 +8025,7 @@ components:
                     description: The lifespan of the cluster expressed in minutes after which it is automatically deleted. Zero value means the cluster is never automatically deleted.
                 properties:
                     type: object
-                    additionalProperties:
+                    # additionalProperties:
                         # oneOf:
                         #     -
                         #         $ref: '#/components/schemas/UpdateAzureProperties'
@@ -9127,7 +9127,7 @@ components:
                     type: integer
                     example: 1
                 values:
-                    additionalProperties:
+                    # additionalProperties:
                         # oneOf:
                         #     -
                         #         $ref: '#/components/schemas/SecretKeyValueAmazon'

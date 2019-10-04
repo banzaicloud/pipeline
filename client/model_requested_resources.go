@@ -11,6 +11,7 @@
 
 package client
 
+// RequestedResources struct for RequestedResources
 type RequestedResources struct {
 	// Total CPU requested for the cluster
 	SumCpu int32 `json:"sumCpu,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemSpec struct for NodeItemSpec
 type NodeItemSpec struct {
 	PodCIDR    string `json:"podCIDR,omitempty"`
 	ExternalID string `json:"externalID,omitempty"`

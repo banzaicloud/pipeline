@@ -11,6 +11,7 @@
 
 package client
 
+// ClusterImage struct for ClusterImage
 type ClusterImage struct {
 	ImageName   string `json:"imageName,omitempty"`
 	ImageTag    string `json:"imageTag,omitempty"`

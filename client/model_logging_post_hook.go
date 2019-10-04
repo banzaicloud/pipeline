@@ -11,6 +11,7 @@
 
 package client
 
+// LoggingPostHook struct for LoggingPostHook
 type LoggingPostHook struct {
 	InstallLogging LoggingPostHookInstallLogging `json:"InstallLogging,omitempty"`
 }

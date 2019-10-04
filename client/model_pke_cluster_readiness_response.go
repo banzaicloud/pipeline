@@ -11,6 +11,7 @@
 
 package client
 
+// PkeClusterReadinessResponse struct for PkeClusterReadinessResponse
 type PkeClusterReadinessResponse struct {
 	Master PkeClusterReadinessResponseMaster `json:"master,omitempty"`
 }

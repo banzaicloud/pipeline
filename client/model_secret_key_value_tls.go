@@ -11,6 +11,7 @@
 
 package client
 
+// SecretKeyValueTls struct for SecretKeyValueTls
 type SecretKeyValueTls struct {
 	Hosts      string `json:"hosts"`
 	Validity   string `json:"validity,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolsPke struct for NodePoolsPke
 type NodePoolsPke struct {
 	Name  string   `json:"name"`
 	Roles []string `json:"roles"`

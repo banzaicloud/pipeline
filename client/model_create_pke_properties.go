@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkeProperties struct for CreatePkeProperties
 type CreatePkeProperties struct {
 	Network    CreatePkePropertiesNetwork    `json:"network"`
 	NodePools  []NodePoolsPke                `json:"nodePools"`

@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// A metadata detail record for a specific image. Multiple detail records may map a single catalog image.
+// ImageDetail A metadata detail record for a specific image. Multiple detail records may map a single catalog image.
 type ImageDetail struct {
 	CreatedAt   time.Time `json:"createdAt,omitempty"`
 	LastUpdated time.Time `json:"lastUpdated,omitempty"`

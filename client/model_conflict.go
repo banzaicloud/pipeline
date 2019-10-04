@@ -11,6 +11,7 @@
 
 package client
 
+// Conflict struct for Conflict
 type Conflict struct {
 	Code    int32  `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`

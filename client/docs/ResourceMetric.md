@@ -1,6 +1,7 @@
 # ResourceMetric
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **TargetAverageValue** | **string** |  | 

@@ -11,6 +11,7 @@
 
 package client
 
+// CreateBackupRequest struct for CreateBackupRequest
 type CreateBackupRequest struct {
 	Name    string        `json:"name"`
 	Ttl     string        `json:"ttl"`

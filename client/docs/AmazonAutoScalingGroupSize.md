@@ -1,6 +1,7 @@
 # AmazonAutoScalingGroupSize
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Min** | **int32** |  | 

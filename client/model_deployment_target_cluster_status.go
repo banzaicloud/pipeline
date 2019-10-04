@@ -11,6 +11,7 @@
 
 package client
 
+// DeploymentTargetClusterStatus struct for DeploymentTargetClusterStatus
 type DeploymentTargetClusterStatus struct {
 	Cloud        string `json:"cloud,omitempty"`
 	ClusterId    int32  `json:"clusterId,omitempty"`

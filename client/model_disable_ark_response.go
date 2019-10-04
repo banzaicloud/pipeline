@@ -11,6 +11,7 @@
 
 package client
 
+// DisableArkResponse struct for DisableArkResponse
 type DisableArkResponse struct {
 	Status int32 `json:"status,omitempty"`
 }

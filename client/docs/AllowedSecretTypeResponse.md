@@ -1,6 +1,7 @@
 # AllowedSecretTypeResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Fields** | [**[]AllowedSecretTypeResponseFields**](AllowedSecretTypeResponse_fields.md) |  | [optional] 

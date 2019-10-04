@@ -11,6 +11,7 @@
 
 package client
 
+// TokenListResponseItem struct for TokenListResponseItem
 type TokenListResponseItem struct {
 	Id        string `json:"id"`
 	CreatedAt string `json:"createdAt"`

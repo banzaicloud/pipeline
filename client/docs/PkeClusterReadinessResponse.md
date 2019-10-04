@@ -1,6 +1,7 @@
 # PkeClusterReadinessResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Master** | [**PkeClusterReadinessResponseMaster**](PKEClusterReadinessResponse_master.md) |  | [optional] 

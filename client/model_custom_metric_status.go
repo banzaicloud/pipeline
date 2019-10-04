@@ -11,6 +11,7 @@
 
 package client
 
+// CustomMetricStatus struct for CustomMetricStatus
 type CustomMetricStatus struct {
 	AllOf               CustomMetric `json:"allOf,omitempty"`
 	CurrentAverageValue string       `json:"currentAverageValue,omitempty"`

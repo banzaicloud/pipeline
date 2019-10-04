@@ -11,6 +11,7 @@
 
 package client
 
+// CreateClusterRequest struct for CreateClusterRequest
 type CreateClusterRequest struct {
 	Name     string `json:"name"`
 	Location string `json:"location"`

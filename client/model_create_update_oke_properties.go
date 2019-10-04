@@ -11,6 +11,7 @@
 
 package client
 
+// CreateUpdateOkeProperties struct for CreateUpdateOkeProperties
 type CreateUpdateOkeProperties struct {
 	Oke CreateUpdateOkePropertiesOke `json:"oke"`
 }

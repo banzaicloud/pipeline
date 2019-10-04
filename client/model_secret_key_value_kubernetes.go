@@ -11,6 +11,7 @@
 
 package client
 
+// SecretKeyValueKubernetes struct for SecretKeyValueKubernetes
 type SecretKeyValueKubernetes struct {
 	K8Sconfig string `json:"K8Sconfig,omitempty"`
 }

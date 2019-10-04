@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemMetadata struct for NodeItemMetadata
 type NodeItemMetadata struct {
 	Name              string            `json:"name,omitempty"`
 	SelfLink          string            `json:"selfLink,omitempty"`

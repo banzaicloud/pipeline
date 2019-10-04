@@ -51,6 +51,7 @@ type APIKey struct {
 	Prefix string
 }
 
+// Configuration stores the configuration of the API client
 type Configuration struct {
 	BasePath      string            `json:"basePath,omitempty"`
 	Host          string            `json:"host,omitempty"`
@@ -60,6 +61,7 @@ type Configuration struct {
 	HTTPClient    *http.Client
 }
 
+// NewConfiguration returns a new Configuration object
 func NewConfiguration() *Configuration {
 	cfg := &Configuration{
 		BasePath:      "http://localhost:9090",
@@ -69,6 +71,7 @@ func NewConfiguration() *Configuration {
 	return cfg
 }
 
+// AddDefaultHeader adds a new HTTP header to the default header in the request
 func (c *Configuration) AddDefaultHeader(key string, value string) {
 	c.DefaultHeader[key] = value
 }

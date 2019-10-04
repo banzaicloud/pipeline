@@ -1,6 +1,7 @@
 # HelmChartDetailsResponseVersions
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Chart** | [**HelmChartDetailsResponseChart**](HelmChartDetailsResponse_chart.md) |  | [optional] 

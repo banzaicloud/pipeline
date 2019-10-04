@@ -1,6 +1,7 @@
 # UpdateUserRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **GitHubToken** | **string** |  | [optional] 

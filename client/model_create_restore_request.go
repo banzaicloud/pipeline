@@ -11,6 +11,7 @@
 
 package client
 
+// CreateRestoreRequest struct for CreateRestoreRequest
 type CreateRestoreRequest struct {
 	BackupName string        `json:"backupName"`
 	Options    BackupOptions `json:"options,omitempty"`

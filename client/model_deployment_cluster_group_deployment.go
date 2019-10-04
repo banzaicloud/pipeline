@@ -11,6 +11,7 @@
 
 package client
 
+// DeploymentClusterGroupDeployment struct for DeploymentClusterGroupDeployment
 type DeploymentClusterGroupDeployment struct {
 	Atomic         bool                   `json:"atomic,omitempty"`
 	Dryrun         bool                   `json:"dryrun,omitempty"`

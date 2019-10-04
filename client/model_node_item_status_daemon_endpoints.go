@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemStatusDaemonEndpoints struct for NodeItemStatusDaemonEndpoints
 type NodeItemStatusDaemonEndpoints struct {
 	KubeletEndpoint map[string]interface{} `json:"kubeletEndpoint,omitempty"`
 }

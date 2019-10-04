@@ -11,6 +11,7 @@
 
 package client
 
+// NodepoolLabels struct for NodepoolLabels
 type NodepoolLabels struct {
 	Name     string `json:"name,omitempty"`
 	Value    string `json:"value,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// CreateBackupBucketRequest struct for CreateBackupBucketRequest
 type CreateBackupBucketRequest struct {
 	Cloud      string `json:"cloud"`
 	BucketName string `json:"bucketName"`

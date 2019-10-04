@@ -11,6 +11,7 @@
 
 package client
 
+// SecretKeyValueGeneric struct for SecretKeyValueGeneric
 type SecretKeyValueGeneric struct {
 	Any string `json:"any,omitempty"`
 }

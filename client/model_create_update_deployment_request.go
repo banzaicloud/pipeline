@@ -11,6 +11,7 @@
 
 package client
 
+// CreateUpdateDeploymentRequest struct for CreateUpdateDeploymentRequest
 type CreateUpdateDeploymentRequest struct {
 	Name string `json:"name"`
 	// Version of the deployment. If not specified, the latest version is used.

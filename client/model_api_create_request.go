@@ -11,6 +11,7 @@
 
 package client
 
+// ApiCreateRequest struct for ApiCreateRequest
 type ApiCreateRequest struct {
 	Members []int32 `json:"members,omitempty"`
 	Name    string  `json:"name,omitempty"`

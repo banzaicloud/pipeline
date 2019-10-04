@@ -11,6 +11,7 @@
 
 package client
 
+// BackupOptions struct for BackupOptions
 type BackupOptions struct {
 	IncludedNamespaces      []string `json:"includedNamespaces,omitempty"`
 	IncludedResources       []string `json:"includedResources,omitempty"`

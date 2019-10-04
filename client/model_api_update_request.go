@@ -11,6 +11,7 @@
 
 package client
 
+// ApiUpdateRequest struct for ApiUpdateRequest
 type ApiUpdateRequest struct {
 	Members []int32 `json:"members,omitempty"`
 	Name    string  `json:"name,omitempty"`

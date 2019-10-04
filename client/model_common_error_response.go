@@ -11,6 +11,7 @@
 
 package client
 
+// CommonErrorResponse struct for CommonErrorResponse
 type CommonErrorResponse struct {
 	Code    int32  `json:"code,omitempty"`
 	Error   string `json:"error,omitempty"`

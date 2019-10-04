@@ -1,6 +1,7 @@
 # PostLeaderElectionResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Hostname** | **string** |  | 

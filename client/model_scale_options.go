@@ -11,6 +11,7 @@
 
 package client
 
+// ScaleOptions struct for ScaleOptions
 type ScaleOptions struct {
 	Enabled             bool     `json:"enabled"`
 	DesiredCpu          float64  `json:"desiredCpu,omitempty"`

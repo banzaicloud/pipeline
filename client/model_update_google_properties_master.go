@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateGooglePropertiesMaster struct for UpdateGooglePropertiesMaster
 type UpdateGooglePropertiesMaster struct {
 	Version string `json:"version,omitempty"`
 }

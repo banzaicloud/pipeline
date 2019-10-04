@@ -11,6 +11,7 @@
 
 package client
 
+// SecretKeyValueGoogle struct for SecretKeyValueGoogle
 type SecretKeyValueGoogle struct {
 	Type                    string `json:"type"`
 	ProjectId               string `json:"project_id"`

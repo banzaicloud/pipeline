@@ -1,6 +1,7 @@
 # GetDomainResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **DomainName** | **string** |  | [optional] 

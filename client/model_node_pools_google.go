@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolsGoogle struct for NodePoolsGoogle
 type NodePoolsGoogle struct {
 	Autoscaling  bool              `json:"autoscaling,omitempty"`
 	Preemptible  bool              `json:"preemptible,omitempty"`

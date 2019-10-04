@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateAckProperties struct for UpdateAckProperties
 type UpdateAckProperties struct {
 	Ack UpdateAckPropertiesAck `json:"ack"`
 }

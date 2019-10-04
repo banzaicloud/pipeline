@@ -11,6 +11,7 @@
 
 package client
 
+// BaseError500 struct for BaseError500
 type BaseError500 struct {
 	Code    int32  `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`

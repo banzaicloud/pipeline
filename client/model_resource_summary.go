@@ -11,6 +11,7 @@
 
 package client
 
+// ResourceSummary struct for ResourceSummary
 type ResourceSummary struct {
 	Cpu    Resource `json:"cpu,omitempty"`
 	Memory Resource `json:"memory,omitempty"`

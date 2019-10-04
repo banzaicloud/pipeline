@@ -11,7 +11,7 @@
 
 package client
 
-// Identifies a specific gate and trigger match from a policy against an image and indicates it should be ignored in final policy decisions
+// WhitelistItem Identifies a specific gate and trigger match from a policy against an image and indicates it should be ignored in final policy decisions
 type WhitelistItem struct {
 	Id        string `json:"id,omitempty"`
 	Gate      string `json:"gate"`

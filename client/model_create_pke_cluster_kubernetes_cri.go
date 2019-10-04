@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkeClusterKubernetesCri struct for CreatePkeClusterKubernetesCri
 type CreatePkeClusterKubernetesCri struct {
 	Runtime       string                 `json:"runtime,omitempty"`
 	RuntimeConfig map[string]interface{} `json:"runtimeConfig,omitempty"`

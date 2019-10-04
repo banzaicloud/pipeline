@@ -11,5 +11,6 @@
 
 package client
 
+// BackupServiceStatusResponse struct for BackupServiceStatusResponse
 type BackupServiceStatusResponse struct {
 }

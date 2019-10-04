@@ -11,6 +11,7 @@
 
 package client
 
+// ServiceMeshPostHook struct for ServiceMeshPostHook
 type ServiceMeshPostHook struct {
 	InstallServiceMesh ServiceMeshPostHookInstallServiceMesh `json:"InstallServiceMesh,omitempty"`
 }

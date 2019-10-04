@@ -11,6 +11,7 @@
 
 package client
 
+// CreateClusterResponse400 struct for CreateClusterResponse400
 type CreateClusterResponse400 struct {
 	Code    int32  `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`

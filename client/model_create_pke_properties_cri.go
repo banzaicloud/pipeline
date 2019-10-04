@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkePropertiesCri struct for CreatePkePropertiesCri
 type CreatePkePropertiesCri struct {
 	Runtime string `json:"runtime"`
 }

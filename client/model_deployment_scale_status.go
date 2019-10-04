@@ -11,6 +11,7 @@
 
 package client
 
+// DeploymentScaleStatus struct for DeploymentScaleStatus
 type DeploymentScaleStatus struct {
 	CurrentReplicas int32  `json:"currentReplicas,omitempty"`
 	DesiredReplicas int32  `json:"desiredReplicas,omitempty"`

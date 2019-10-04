@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolStatusGoogle struct for NodePoolStatusGoogle
 type NodePoolStatusGoogle struct {
 	Autoscaling     bool                       `json:"autoscaling,omitempty"`
 	Count           int32                      `json:"count,omitempty"`

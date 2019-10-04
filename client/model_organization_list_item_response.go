@@ -11,6 +11,7 @@
 
 package client
 
+// OrganizationListItemResponse struct for OrganizationListItemResponse
 type OrganizationListItemResponse struct {
 	Id        int32  `json:"id,omitempty"`
 	CreatedAt string `json:"createdAt,omitempty"`

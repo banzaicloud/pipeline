@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolStatus struct for NodePoolStatus
 type NodePoolStatus struct {
 	InstanceType    string                     `json:"instanceType,omitempty"`
 	SpotPrice       string                     `json:"spot_price,omitempty"`

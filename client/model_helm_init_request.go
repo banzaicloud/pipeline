@@ -11,6 +11,7 @@
 
 package client
 
+// HelmInitRequest struct for HelmInitRequest
 type HelmInitRequest struct {
 	KubeContext    string `json:"kube_context,omitempty"`
 	Namespace      string `json:"namespace"`

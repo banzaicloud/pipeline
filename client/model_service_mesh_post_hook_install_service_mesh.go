@@ -11,6 +11,7 @@
 
 package client
 
+// ServiceMeshPostHookInstallServiceMesh struct for ServiceMeshPostHookInstallServiceMesh
 type ServiceMeshPostHookInstallServiceMesh struct {
 	Mtls                        bool     `json:"mtls,omitempty"`
 	AutoSidecarInjectNamespaces []string `json:"autoSidecarInjectNamespaces,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// ScheduleResponse struct for ScheduleResponse
 type ScheduleResponse struct {
 	Uid        string        `json:"uid,omitempty"`
 	Name       string        `json:"name,omitempty"`

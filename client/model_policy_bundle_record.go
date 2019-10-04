@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// A policy bundle plus some metadata
+// PolicyBundleRecord A policy bundle plus some metadata
 type PolicyBundleRecord struct {
 	CreatedAt   time.Time `json:"createdAt,omitempty"`
 	LastUpdated time.Time `json:"lastUpdated,omitempty"`

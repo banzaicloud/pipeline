@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolStatusAmazon struct for NodePoolStatusAmazon
 type NodePoolStatusAmazon struct {
 	InstanceType    string                     `json:"instanceType,omitempty"`
 	SpotPrice       string                     `json:"spot_price,omitempty"`

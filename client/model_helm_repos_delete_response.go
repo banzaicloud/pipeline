@@ -11,6 +11,7 @@
 
 package client
 
+// HelmReposDeleteResponse struct for HelmReposDeleteResponse
 type HelmReposDeleteResponse struct {
 	Status  int32  `json:"status,omitempty"`
 	Message string `json:"message,omitempty"`

@@ -11,7 +11,7 @@
 
 package client
 
-// A collection of whitelist items to match a policy evaluation against.
+// Whitelist A collection of whitelist items to match a policy evaluation against.
 type Whitelist struct {
 	Id      string          `json:"id"`
 	Name    string          `json:"name,omitempty"`

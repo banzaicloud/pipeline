@@ -11,6 +11,7 @@
 
 package client
 
+// DeleteDeploymentResponse struct for DeleteDeploymentResponse
 type DeleteDeploymentResponse struct {
 	Status  int32  `json:"status,omitempty"`
 	Message string `json:"message,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// UpdatePkePropertiesPke struct for UpdatePkePropertiesPke
 type UpdatePkePropertiesPke struct {
 	NodePools map[string]UpdateNodePoolsPke `json:"nodePools"`
 }

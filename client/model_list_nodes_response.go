@@ -11,6 +11,7 @@
 
 package client
 
+// ListNodesResponse struct for ListNodesResponse
 type ListNodesResponse struct {
 	Metadata ListNodesResponseMetadata `json:"metadata,omitempty"`
 	Items    []NodeItem                `json:"items,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// UpdatePkeOnAzureClusterRequest struct for UpdatePkeOnAzureClusterRequest
 type UpdatePkeOnAzureClusterRequest struct {
 	Nodepools []PkeOnAzureNodePool `json:"nodepools,omitempty"`
 }

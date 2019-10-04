@@ -11,6 +11,7 @@
 
 package client
 
+// CreateUpdateOkePropertiesOke struct for CreateUpdateOkePropertiesOke
 type CreateUpdateOkePropertiesOke struct {
 	Version     string                     `json:"version"`
 	NodePools   map[string]NodePoolsOracle `json:"nodePools"`

@@ -11,6 +11,7 @@
 
 package client
 
+// PodItemLabels struct for PodItemLabels
 type PodItemLabels struct {
 	App     string `json:"app,omitempty"`
 	Chart   string `json:"chart,omitempty"`

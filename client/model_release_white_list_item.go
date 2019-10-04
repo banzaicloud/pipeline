@@ -11,6 +11,7 @@
 
 package client
 
+// ReleaseWhiteListItem struct for ReleaseWhiteListItem
 type ReleaseWhiteListItem struct {
 	Name   string `json:"name"`
 	Owner  string `json:"owner"`

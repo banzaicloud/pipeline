@@ -11,6 +11,7 @@
 
 package client
 
+// CreateAmazonObjectStoreBucketProperties struct for CreateAmazonObjectStoreBucketProperties
 type CreateAmazonObjectStoreBucketProperties struct {
 	Location string `json:"location"`
 }

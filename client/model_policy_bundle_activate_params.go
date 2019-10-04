@@ -11,6 +11,7 @@
 
 package client
 
+// PolicyBundleActivateParams struct for PolicyBundleActivateParams
 type PolicyBundleActivateParams struct {
 	Active string `json:"active,omitempty"`
 }

@@ -11,6 +11,7 @@
 
 package client
 
+// PkeOnAzureNodePoolSubnet struct for PkeOnAzureNodePoolSubnet
 type PkeOnAzureNodePoolSubnet struct {
 	Name string `json:"name,omitempty"`
 	// When referencing an already existing subnetwork this field does not need to be specified.

@@ -11,6 +11,7 @@
 
 package client
 
+// InstallSecretsRequestQuery struct for InstallSecretsRequestQuery
 type InstallSecretsRequestQuery struct {
 	Type string   `json:"type,omitempty"`
 	Ids  []string `json:"ids,omitempty"`

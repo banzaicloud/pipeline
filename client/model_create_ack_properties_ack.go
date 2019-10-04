@@ -11,6 +11,7 @@
 
 package client
 
+// CreateAckPropertiesAck struct for CreateAckPropertiesAck
 type CreateAckPropertiesAck struct {
 	RegionId  string                  `json:"regionId"`
 	ZoneId    string                  `json:"zoneId"`

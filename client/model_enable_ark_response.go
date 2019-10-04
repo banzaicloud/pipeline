@@ -11,6 +11,7 @@
 
 package client
 
+// EnableArkResponse struct for EnableArkResponse
 type EnableArkResponse struct {
 	Status int32 `json:"status,omitempty"`
 }

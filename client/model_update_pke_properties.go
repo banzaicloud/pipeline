@@ -11,6 +11,7 @@
 
 package client
 
+// UpdatePkeProperties struct for UpdatePkeProperties
 type UpdatePkeProperties struct {
 	Pke UpdatePkePropertiesPke `json:"pke"`
 }

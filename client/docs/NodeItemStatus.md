@@ -1,6 +1,7 @@
 # NodeItemStatus
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Capacity** | [**NodeItemStatusCapacity**](NodeItem_status_capacity.md) |  | [optional] 

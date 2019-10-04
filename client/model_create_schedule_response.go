@@ -11,6 +11,7 @@
 
 package client
 
+// CreateScheduleResponse struct for CreateScheduleResponse
 type CreateScheduleResponse struct {
 	Name   string `json:"name,omitempty"`
 	Status int32  `json:"status,omitempty"`

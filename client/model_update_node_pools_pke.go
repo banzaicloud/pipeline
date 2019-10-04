@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateNodePoolsPke struct for UpdateNodePoolsPke
 type UpdateNodePoolsPke struct {
 	// Instance type for the nodes in the node pool. This field is ignored when existing node pool is updated as instance type can not be changed.
 	InstanceType string `json:"instanceType,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// GetLeaderElectionResponse struct for GetLeaderElectionResponse
 type GetLeaderElectionResponse struct {
 	Hostname string `json:"hostname"`
 	Ip       string `json:"ip,omitempty"`

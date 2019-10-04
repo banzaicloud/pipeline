@@ -11,6 +11,7 @@
 
 package client
 
+// ScanLogItem struct for ScanLogItem
 type ScanLogItem struct {
 	ReleaseName string             `json:"releaseName,omitempty"`
 	Resource    string             `json:"resource,omitempty"`

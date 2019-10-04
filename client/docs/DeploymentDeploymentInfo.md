@@ -1,6 +1,7 @@
 # DeploymentDeploymentInfo
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Chart** | **string** |  | [optional] 

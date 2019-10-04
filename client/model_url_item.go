@@ -11,6 +11,7 @@
 
 package client
 
+// UrlItem struct for UrlItem
 type UrlItem struct {
 	Servicename string `json:"servicename,omitempty"`
 	Url         string `json:"url,omitempty"`

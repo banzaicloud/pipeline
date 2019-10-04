@@ -11,6 +11,7 @@
 
 package client
 
+// PkeHosts struct for PkeHosts
 type PkeHosts struct {
 	Name      string   `json:"name"`
 	PrivateIP string   `json:"privateIP"`

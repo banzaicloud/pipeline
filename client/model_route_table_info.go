@@ -11,6 +11,7 @@
 
 package client
 
+// RouteTableInfo struct for RouteTableInfo
 type RouteTableInfo struct {
 	// Identifier of the route table
 	Id string `json:"id"`

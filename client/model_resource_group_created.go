@@ -11,6 +11,7 @@
 
 package client
 
+// ResourceGroupCreated struct for ResourceGroupCreated
 type ResourceGroupCreated struct {
 	Name string `json:"name,omitempty"`
 }

@@ -11,6 +11,7 @@
 
 package client
 
+// CreateScheduleRequest struct for CreateScheduleRequest
 type CreateScheduleRequest struct {
 	Name     string        `json:"name"`
 	Schedule string        `json:"schedule"`
