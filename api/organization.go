@@ -68,12 +68,14 @@ func OrganizationMiddleware(c *gin.Context) {
 // OrganizationAPI implements organization functions.
 type OrganizationAPI struct {
 	organizationSyncer auth.OIDCOrganizationSyncer
+	refreshTokenStore  auth.RefreshTokenStore
 }
 
 // NewOrganizationAPI returns a new OrganizationAPI instance.
-func NewOrganizationAPI(organizationSyncer auth.OIDCOrganizationSyncer) *OrganizationAPI {
+func NewOrganizationAPI(organizationSyncer auth.OIDCOrganizationSyncer, refreshTokenStore auth.RefreshTokenStore) *OrganizationAPI {
 	return &OrganizationAPI{
 		organizationSyncer: organizationSyncer,
+		refreshTokenStore:  refreshTokenStore,
 	}
 }
 
@@ -149,7 +151,7 @@ func (a *OrganizationAPI) SyncOrganizations(c *gin.Context) {
 
 	user := auth.GetCurrentUser(c.Request)
 
-	err := auth.SyncOrgsForUser(a.organizationSyncer, user, c.Request)
+	err := auth.SyncOrgsForUser(a.organizationSyncer, a.refreshTokenStore, user, c.Request)
 	if err != nil {
 		errorHandler.Handle(err)
 

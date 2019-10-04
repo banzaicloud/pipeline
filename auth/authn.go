@@ -24,13 +24,13 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	bauth "github.com/banzaicloud/bank-vaults/pkg/sdk/auth"
 	ginauth "github.com/banzaicloud/gin-utilz/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/auth/claims"
@@ -83,7 +83,6 @@ var (
 	Auth *auth.Auth
 
 	signingKeyBase32 string
-	TokenStore       bauth.TokenStore
 
 	// CookieDomain is the domain field for cookies
 	CookieDomain string
@@ -132,7 +131,6 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 
 // Init initializes the auth
 func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
-	TokenStore = tokenStore
 	CookieDomain = viper.GetString("auth.cookieDomain")
 
 	signingKeyBytes := []byte(signingKey)
@@ -180,7 +178,7 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 		LoginHandler:      banzaiLoginHandler,
 		LogoutHandler:     banzaiLogoutHandler,
 		RegisterHandler:   banzaiRegisterHandler,
-		DeregisterHandler: NewBanzaiDeregisterHandler(),
+		DeregisterHandler: NewBanzaiDeregisterHandler(tokenStore),
 	})
 
 	oidcProvider = newOIDCProvider(&OIDCConfig{
@@ -189,7 +187,7 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 		ClientSecret:       viper.GetString("auth.clientsecret"),
 		IssuerURL:          viper.GetString(config.OIDCIssuerURL),
 		InsecureSkipVerify: viper.GetBool(config.OIDCIssuerInsecure),
-	})
+	}, NewRefreshTokenStore(tokenStore))
 	Auth.RegisterProvider(oidcProvider)
 
 	Handler = ginauth.JWTAuthHandler(
@@ -212,25 +210,30 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 	)
 }
 
-func SyncOrgsForUser(organizationSyncer OIDCOrganizationSyncer, user *User, request *http.Request) error {
-	refreshToken, err := GetOAuthRefreshToken(user.IDString())
+func SyncOrgsForUser(
+	organizationSyncer OIDCOrganizationSyncer,
+	refreshTokenStore RefreshTokenStore,
+	user *User,
+	request *http.Request,
+) error {
+	refreshToken, err := refreshTokenStore.GetRefreshToken(user.IDString())
 	if err != nil {
-		return emperror.Wrap(err, "failed to fetch refresh token from Vault")
+		return errors.WrapIf(err, "failed to fetch refresh token from Vault")
 	}
 
 	if refreshToken == "" {
-		return emperror.Wrap(err, "no refresh token, please login again")
+		return errors.WrapIf(err, "no refresh token, please login again")
 	}
 
 	authContext := auth.Context{Auth: Auth, Request: request}
 	idTokenClaims, token, err := oidcProvider.RedeemRefreshToken(&authContext, refreshToken)
 	if err != nil {
-		return emperror.Wrap(err, "failed to redeem user refresh token")
+		return errors.WrapIf(err, "failed to redeem user refresh token")
 	}
 
-	err = SaveOAuthRefreshToken(user.IDString(), token.RefreshToken)
+	err = refreshTokenStore.SaveRefreshToken(user.IDString(), token.RefreshToken)
 	if err != nil {
-		return emperror.Wrap(err, "failed to save user refresh token")
+		return errors.WrapIf(err, "failed to save user refresh token")
 	}
 
 	return organizationSyncer.SyncOrganizations(request.Context(), *user, idTokenClaims)
@@ -358,11 +361,15 @@ func banzaiRegisterHandler(context *auth.Context, register func(*auth.Context) (
 	httpJSONError(context.Writer, err, http.StatusUnauthorized)
 }
 
-type banzaiDeregisterHandler struct{}
+type banzaiDeregisterHandler struct {
+	tokenStore bauth.TokenStore
+}
 
 // NewBanzaiDeregisterHandler returns a handler that deletes the user and all his/her tokens from the database
-func NewBanzaiDeregisterHandler() func(*auth.Context) {
-	handler := &banzaiDeregisterHandler{}
+func NewBanzaiDeregisterHandler(tokenStore bauth.TokenStore) func(*auth.Context) {
+	handler := &banzaiDeregisterHandler{
+		tokenStore: tokenStore,
+	}
 
 	return handler.handler
 }
@@ -405,7 +412,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 	}
 
 	// Delete Tokens
-	tokens, err := TokenStore.List(user.IDString())
+	tokens, err := h.tokenStore.List(user.IDString())
 	if err != nil {
 		errorHandler.Handle(errors.Wrap(err, "failed list user's tokens during user deletetion"))
 		http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
@@ -413,7 +420,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 	}
 
 	for _, token := range tokens {
-		err = TokenStore.Revoke(user.IDString(), token.ID)
+		err = h.tokenStore.Revoke(user.IDString(), token.ID)
 		if err != nil {
 			errorHandler.Handle(errors.Wrap(err, "failed remove user's tokens during user deletetion"))
 			http.Error(context.Writer, err.Error(), http.StatusInternalServerError)
