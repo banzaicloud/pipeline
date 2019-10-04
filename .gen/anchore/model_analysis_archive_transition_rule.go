@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A rule for auto-archiving image analysis by time and/or tag-history
+// AnalysisArchiveTransitionRule A rule for auto-archiving image analysis by time and/or tag-history
 type AnalysisArchiveTransitionRule struct {
 	Selector ImageSelector `json:"selector,omitempty"`
 	// Number of images mapped to the tag that are newer

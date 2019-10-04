@@ -1,6 +1,7 @@
 # FeedMetadata
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | name of the feed | [optional] 

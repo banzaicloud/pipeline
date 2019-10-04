@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A summarization of the analysis archive, including size, counts, etc. This archive stores image analysis only, never the actual image content or layers.
+// AnalysisArchiveSummary A summarization of the analysis archive, including size, counts, etc. This archive stores image analysis only, never the actual image content or layers.
 type AnalysisArchiveSummary struct {
 	// The number of unique images (digests) in the archive
 	TotalImageCount int32 `json:"total_image_count,omitempty"`

@@ -1,6 +1,7 @@
 # AnalysisArchiveTransitionRule
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Selector** | [**ImageSelector**](ImageSelector.md) |  | [optional] 

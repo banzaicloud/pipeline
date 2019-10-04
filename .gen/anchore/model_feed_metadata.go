@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// Metadata on a single feed based on what the engine finds from querying the endpoints
+// FeedMetadata Metadata on a single feed based on what the engine finds from querying the endpoints
 type FeedMetadata struct {
 	// name of the feed
 	Name string `json:"name,omitempty"`

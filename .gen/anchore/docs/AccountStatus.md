@@ -1,6 +1,7 @@
 # AccountStatus
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **State** | **string** | The status of the account | [optional] 

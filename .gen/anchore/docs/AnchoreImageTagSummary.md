@@ -1,6 +1,7 @@
 # AnchoreImageTagSummary
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **ImageDigest** | **string** |  | [optional] 

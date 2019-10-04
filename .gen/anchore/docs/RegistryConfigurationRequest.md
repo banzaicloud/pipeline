@@ -1,6 +1,7 @@
 # RegistryConfigurationRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **RegistryUser** | **string** | Username portion of credential to use for this registry | [optional] 

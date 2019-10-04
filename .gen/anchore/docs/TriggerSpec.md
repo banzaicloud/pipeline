@@ -1,6 +1,7 @@
 # TriggerSpec
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | Name of the trigger as it would appear in a policy document | [optional] 

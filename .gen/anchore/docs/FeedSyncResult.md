@@ -1,6 +1,7 @@
 # FeedSyncResult
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Feed** | **string** | The name of the feed synced | [optional] 

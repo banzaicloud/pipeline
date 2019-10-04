@@ -1,6 +1,7 @@
 # Account
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | The account identifier, not updatable after creation | 

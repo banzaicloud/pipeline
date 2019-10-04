@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A request to add an image to be watched and analyzed by the engine. Optionally include the dockerfile content. Either source, digest or tag must be present.
+// ImageAnalysisRequest A request to add an image to be watched and analyzed by the engine. Optionally include the dockerfile content. Either source, digest or tag must be present.
 type ImageAnalysisRequest struct {
 	// Base64 encoded content of the dockerfile for the image, if available. Deprecated in favor of the 'source' field.
 	Dockerfile string `json:"dockerfile,omitempty"`
