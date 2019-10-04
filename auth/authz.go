@@ -20,61 +20,9 @@ import (
 	"strconv"
 	"strings"
 
-	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
 )
-
-// BasicEnforcer is the default enforcer implementation for authorization.
-type BasicEnforcer struct {
-	db *gorm.DB
-}
-
-// NewBasicEnforcer returns a new enforcer.
-func NewBasicEnforcer(db *gorm.DB) *BasicEnforcer {
-	return &BasicEnforcer{db: db}
-}
-
-// Enforce makes authorization decisions.
-func (e *BasicEnforcer) Enforce(org *Organization, user *User, path, method string) (bool, error) {
-	if user == nil {
-		return false, nil
-	}
-
-	if org == nil {
-		return true, nil
-	}
-
-	if user.ID == 0 {
-		if strings.HasPrefix(user.Login, "clusters/") {
-			segments := strings.Split(user.Login, "/")
-			if len(segments) < 2 {
-				return false, nil
-			}
-
-			orgID, err := strconv.Atoi(segments[1])
-			if err != nil {
-				return false, emperror.Wrap(err, "failed to parse user token")
-			}
-
-			return org.ID == uint(orgID), nil
-		}
-
-		orgName := GetOrgNameFromVirtualUser(user.Login)
-		return org.Name == orgName, nil
-	}
-
-	err := e.db.Model(user).Where(org).Related(org, "Organizations").Error
-
-	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return false, nil
-		}
-		return false, emperror.Wrap(err, "failed to query user's organizations from db")
-	}
-
-	return true, nil
-}
 
 // RbacEnforcer makes authorization decisions based on user roles.
 type RbacEnforcer struct {
