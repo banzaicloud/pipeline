@@ -11,6 +11,7 @@
 
 package client
 
+// HelmReposModifyRequest struct for HelmReposModifyRequest
 type HelmReposModifyRequest struct {
 	Name     string `json:"name,omitempty"`
 	Url      string `json:"url,omitempty"`

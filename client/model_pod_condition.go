@@ -11,6 +11,7 @@
 
 package client
 
+// PodCondition struct for PodCondition
 type PodCondition struct {
 	Type               string `json:"type,omitempty"`
 	Status             string `json:"status,omitempty"`

@@ -1,6 +1,7 @@
 # UpdateClusterFeatureRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Spec** | [**map[string]interface{}**](.md) |  | 

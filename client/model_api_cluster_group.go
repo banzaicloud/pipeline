@@ -11,6 +11,7 @@
 
 package client
 
+// ApiClusterGroup struct for ApiClusterGroup
 type ApiClusterGroup struct {
 	EnabledFeatures []string    `json:"enabledFeatures,omitempty"`
 	Id              int32       `json:"id,omitempty"`

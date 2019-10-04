@@ -1,6 +1,7 @@
 # RestoreResultsResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Errors** | [**RestoreResultErrors**](RestoreResultErrors.md) |  | [optional] 

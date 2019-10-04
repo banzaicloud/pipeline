@@ -11,6 +11,7 @@
 
 package client
 
+// Resource struct for Resource
 type Resource struct {
 	Capacity    string `json:"capacity,omitempty"`
 	Allocatable string `json:"allocatable,omitempty"`

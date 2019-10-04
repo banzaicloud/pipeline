@@ -11,6 +11,7 @@
 
 package client
 
+// Feature struct for Feature
 type Feature struct {
 	Kind   string                 `json:"kind"`
 	Params map[string]interface{} `json:"params,omitempty"`

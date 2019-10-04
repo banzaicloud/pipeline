@@ -11,6 +11,7 @@
 
 package client
 
+// DeleteScheduleResponse struct for DeleteScheduleResponse
 type DeleteScheduleResponse struct {
 	Name   string `json:"name,omitempty"`
 	Status int32  `json:"status,omitempty"`

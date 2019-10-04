@@ -11,6 +11,7 @@
 
 package client
 
+// PodItem struct for PodItem
 type PodItem struct {
 	Name            string          `json:"name,omitempty"`
 	Namespace       string          `json:"namespace,omitempty"`

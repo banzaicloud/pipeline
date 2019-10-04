@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemStatus struct for NodeItemStatus
 type NodeItemStatus struct {
 	Capacity        NodeItemStatusCapacity        `json:"capacity,omitempty"`
 	Allocatable     NodeItemStatusAllocatable     `json:"allocatable,omitempty"`

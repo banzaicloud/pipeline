@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkePropertiesNetwork struct for CreatePkePropertiesNetwork
 type CreatePkePropertiesNetwork struct {
 	ApiServerAddress string `json:"apiServerAddress"`
 	ServiceCIDR      string `json:"serviceCIDR"`

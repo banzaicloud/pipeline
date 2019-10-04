@@ -11,7 +11,7 @@
 
 package client
 
-// A reference to an image
+// ImageRef A reference to an image
 type ImageRef struct {
 	Type  string `json:"type"`
 	Value string `json:"value"`

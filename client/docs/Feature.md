@@ -1,6 +1,7 @@
 # Feature
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Kind** | **string** |  | 

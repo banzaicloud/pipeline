@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolStatusOracle struct for NodePoolStatusOracle
 type NodePoolStatusOracle struct {
 	Count           int32                      `json:"count,omitempty"`
 	MinCount        int32                      `json:"minCount,omitempty"`

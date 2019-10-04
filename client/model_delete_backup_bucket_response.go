@@ -11,6 +11,7 @@
 
 package client
 
+// DeleteBackupBucketResponse struct for DeleteBackupBucketResponse
 type DeleteBackupBucketResponse struct {
 	Id     int32 `json:"id,omitempty"`
 	Status int32 `json:"status,omitempty"`

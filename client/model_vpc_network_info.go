@@ -11,6 +11,7 @@
 
 package client
 
+// VpcNetworkInfo struct for VpcNetworkInfo
 type VpcNetworkInfo struct {
 	// The IPv4 CIDR blocks assigned to the VPC network
 	Cidrs []string `json:"cidrs"`

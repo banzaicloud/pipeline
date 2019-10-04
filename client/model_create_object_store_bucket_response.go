@@ -11,6 +11,7 @@
 
 package client
 
+// CreateObjectStoreBucketResponse struct for CreateObjectStoreBucketResponse
 type CreateObjectStoreBucketResponse struct {
 	Name  string `json:"name"`
 	Cloud string `json:"cloud"`

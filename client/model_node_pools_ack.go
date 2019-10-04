@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolsAck struct for NodePoolsAck
 type NodePoolsAck struct {
 	InstanceType string `json:"instanceType"`
 	MinCount     int32  `json:"minCount,omitempty"`

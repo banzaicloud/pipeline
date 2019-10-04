@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateAzurePropertiesAzure struct for UpdateAzurePropertiesAzure
 type UpdateAzurePropertiesAzure struct {
 	NodePools map[string]UpdateNodePoolsAzure `json:"nodePools,omitempty"`
 }

@@ -11,6 +11,7 @@
 
 package client
 
+// AmazonPoviderConfig struct for AmazonPoviderConfig
 type AmazonPoviderConfig struct {
 	AutoScalingGroup AmazonAutoScalingGroup `json:"autoScalingGroup"`
 }

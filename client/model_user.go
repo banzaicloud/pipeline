@@ -11,6 +11,7 @@
 
 package client
 
+// User struct for User
 type User struct {
 	Id             int32                  `json:"id,omitempty"`
 	CreatedAt      string                 `json:"createdAt,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// CreateEksProperties struct for CreateEksProperties
 type CreateEksProperties struct {
 	Eks CreateEksPropertiesEks `json:"eks"`
 }

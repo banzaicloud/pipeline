@@ -1,6 +1,7 @@
 # UpdateGooglePropertiesMaster
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Version** | **string** |  | [optional] 

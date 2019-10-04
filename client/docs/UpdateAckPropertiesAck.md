@@ -1,6 +1,7 @@
 # UpdateAckPropertiesAck
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **NodePools** | [**map[string]NodePoolsAck**](NodePoolsACK.md) |  | 

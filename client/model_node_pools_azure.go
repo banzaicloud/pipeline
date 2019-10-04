@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolsAzure struct for NodePoolsAzure
 type NodePoolsAzure struct {
 	Autoscaling  bool              `json:"autoscaling,omitempty"`
 	Count        int32             `json:"count"`

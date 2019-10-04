@@ -11,5 +11,6 @@
 
 package client
 
+// GetBackupResponse struct for GetBackupResponse
 type GetBackupResponse struct {
 }

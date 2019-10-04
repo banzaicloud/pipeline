@@ -11,6 +11,7 @@
 
 package client
 
+// LaunchSpotguidesRequest struct for LaunchSpotguidesRequest
 type LaunchSpotguidesRequest struct {
 	RepoOrganization string                 `json:"repoOrganization"`
 	RepoName         string                 `json:"repoName"`

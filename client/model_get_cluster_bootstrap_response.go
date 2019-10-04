@@ -11,6 +11,7 @@
 
 package client
 
+// GetClusterBootstrapResponse struct for GetClusterBootstrapResponse
 type GetClusterBootstrapResponse struct {
 	Token                    string `json:"token,omitempty"`
 	DiscoveryTokenCaCertHash string `json:"discoveryTokenCaCertHash,omitempty"`

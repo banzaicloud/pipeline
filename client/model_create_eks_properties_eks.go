@@ -11,6 +11,7 @@
 
 package client
 
+// CreateEksPropertiesEks struct for CreateEksPropertiesEks
 type CreateEksPropertiesEks struct {
 	Version   string                 `json:"version,omitempty"`
 	NodePools map[string]EksNodePool `json:"nodePools"`

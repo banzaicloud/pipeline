@@ -11,6 +11,7 @@
 
 package client
 
+// CreateGkePropertiesGke struct for CreateGkePropertiesGke
 type CreateGkePropertiesGke struct {
 	ProjectId   string                       `json:"projectId,omitempty"`
 	Master      CreateGkePropertiesGkeMaster `json:"master,omitempty"`

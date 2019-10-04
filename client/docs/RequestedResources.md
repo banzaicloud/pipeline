@@ -1,6 +1,7 @@
 # RequestedResources
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **SumCpu** | **int32** | Total CPU requested for the cluster | [optional] 

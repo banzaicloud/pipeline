@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// TokenCreateRequest struct for TokenCreateRequest
 type TokenCreateRequest struct {
 	Name        string     `json:"name,omitempty"`
 	VirtualUser string     `json:"virtualUser,omitempty"`

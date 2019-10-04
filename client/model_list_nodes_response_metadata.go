@@ -11,6 +11,7 @@
 
 package client
 
+// ListNodesResponseMetadata struct for ListNodesResponseMetadata
 type ListNodesResponseMetadata struct {
 	SelfLink        string `json:"selfLink,omitempty"`
 	ResourceVersion string `json:"resourceVersion,omitempty"`

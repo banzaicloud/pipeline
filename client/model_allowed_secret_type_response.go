@@ -11,6 +11,7 @@
 
 package client
 
+// AllowedSecretTypeResponse struct for AllowedSecretTypeResponse
 type AllowedSecretTypeResponse struct {
 	Fields   []AllowedSecretTypeResponseFields `json:"fields,omitempty"`
 	Sourcing string                            `json:"sourcing,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// GetClusterStatusResponse struct for GetClusterStatusResponse
 type GetClusterStatusResponse struct {
 	Status        string `json:"status,omitempty"`
 	StatusMessage string `json:"statusMessage,omitempty"`

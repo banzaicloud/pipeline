@@ -11,6 +11,7 @@
 
 package client
 
+// EnableArkRequest struct for EnableArkRequest
 type EnableArkRequest struct {
 	Cloud      string        `json:"cloud"`
 	BucketName string        `json:"bucketName"`

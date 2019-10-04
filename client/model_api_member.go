@@ -11,6 +11,7 @@
 
 package client
 
+// ApiMember struct for ApiMember
 type ApiMember struct {
 	Cloud        string `json:"cloud,omitempty"`
 	Distribution string `json:"distribution,omitempty"`

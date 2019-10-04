@@ -11,6 +11,7 @@
 
 package client
 
+// OracleStorageProps struct for OracleStorageProps
 type OracleStorageProps struct {
 	Namespace string `json:"namespace"`
 }

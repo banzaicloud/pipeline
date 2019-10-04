@@ -11,6 +11,7 @@
 
 package client
 
+// CreateGkeProperties struct for CreateGkeProperties
 type CreateGkeProperties struct {
 	Gke CreateGkePropertiesGke `json:"gke"`
 }

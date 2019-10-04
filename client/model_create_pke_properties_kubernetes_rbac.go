@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkePropertiesKubernetesRbac struct for CreatePkePropertiesKubernetesRbac
 type CreatePkePropertiesKubernetesRbac struct {
 	Enabled bool `json:"enabled"`
 }

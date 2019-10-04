@@ -11,6 +11,7 @@
 
 package client
 
+// CreateOracleObjectStoreBucketProperties struct for CreateOracleObjectStoreBucketProperties
 type CreateOracleObjectStoreBucketProperties struct {
 	Location string `json:"location"`
 }

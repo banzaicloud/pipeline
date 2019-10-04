@@ -11,6 +11,7 @@
 
 package client
 
+// ClusterFeatureDetails struct for ClusterFeatureDetails
 type ClusterFeatureDetails struct {
 	Output map[string]interface{} `json:"output,omitempty"`
 	Spec   map[string]interface{} `json:"spec,omitempty"`

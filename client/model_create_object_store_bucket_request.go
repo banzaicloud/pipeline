@@ -11,6 +11,7 @@
 
 package client
 
+// CreateObjectStoreBucketRequest struct for CreateObjectStoreBucketRequest
 type CreateObjectStoreBucketRequest struct {
 	SecretId   string                            `json:"secretId,omitempty"`
 	SecretName string                            `json:"secretName,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// EksVpc struct for EksVpc
 type EksVpc struct {
 	// The identifier of existing VPC to be used for creating the EKS cluster. If not provided a new VPC is created for the cluster.
 	VpcId string `json:"vpcId,omitempty"`

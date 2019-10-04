@@ -11,6 +11,7 @@
 
 package client
 
+// ScanLogItemImage struct for ScanLogItemImage
 type ScanLogItemImage struct {
 	ImageName   string `json:"imageName,omitempty"`
 	ImageTag    string `json:"imageTag,omitempty"`

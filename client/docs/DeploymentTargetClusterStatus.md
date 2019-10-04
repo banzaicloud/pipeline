@@ -1,6 +1,7 @@
 # DeploymentTargetClusterStatus
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Cloud** | **string** |  | [optional] 

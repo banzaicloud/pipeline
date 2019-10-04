@@ -11,6 +11,7 @@
 
 package client
 
+// Policy struct for Policy
 type Policy struct {
 	Id      string       `json:"id"`
 	Name    string       `json:"name,omitempty"`

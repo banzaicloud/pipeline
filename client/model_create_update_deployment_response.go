@@ -11,6 +11,7 @@
 
 package client
 
+// CreateUpdateDeploymentResponse struct for CreateUpdateDeploymentResponse
 type CreateUpdateDeploymentResponse struct {
 	ReleaseName string `json:"releaseName,omitempty"`
 	// deployment notes in base64 encoded format

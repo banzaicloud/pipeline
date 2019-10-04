@@ -11,6 +11,7 @@
 
 package client
 
+// DeploymentListDeploymentResponse struct for DeploymentListDeploymentResponse
 type DeploymentListDeploymentResponse struct {
 	Chart        string `json:"chart,omitempty"`
 	ChartName    string `json:"chartName,omitempty"`

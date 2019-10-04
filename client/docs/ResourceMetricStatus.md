@@ -1,6 +1,7 @@
 # ResourceMetricStatus
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **AllOf** | [**ResourceMetric**](ResourceMetric.md) |  | [optional] 

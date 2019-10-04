@@ -11,6 +11,7 @@
 
 package client
 
+// CreateClusterResponse202 struct for CreateClusterResponse202
 type CreateClusterResponse202 struct {
 	Name string `json:"name,omitempty"`
 	Id   int32  `json:"id,omitempty"`

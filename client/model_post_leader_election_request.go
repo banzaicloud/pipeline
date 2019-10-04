@@ -11,6 +11,7 @@
 
 package client
 
+// PostLeaderElectionRequest struct for PostLeaderElectionRequest
 type PostLeaderElectionRequest struct {
 	Hostname string `json:"hostname"`
 	Ip       string `json:"ip,omitempty"`

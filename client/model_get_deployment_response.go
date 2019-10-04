@@ -11,6 +11,7 @@
 
 package client
 
+// GetDeploymentResponse struct for GetDeploymentResponse
 type GetDeploymentResponse struct {
 	ReleaseName  string `json:"releaseName,omitempty"`
 	Chart        string `json:"chart,omitempty"`

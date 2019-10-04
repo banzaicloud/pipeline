@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkeClusterKubernetes struct for CreatePkeClusterKubernetes
 type CreatePkeClusterKubernetes struct {
 	Version string                            `json:"version"`
 	Rbac    bool                              `json:"rbac,omitempty"`

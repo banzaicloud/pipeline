@@ -11,6 +11,7 @@
 
 package client
 
+// HelmReposAddRequest struct for HelmReposAddRequest
 type HelmReposAddRequest struct {
 	Name     string `json:"name"`
 	Url      string `json:"url"`

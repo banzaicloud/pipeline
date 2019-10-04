@@ -11,6 +11,7 @@
 
 package client
 
+// InstallSecretRequestSpecItem struct for InstallSecretRequestSpecItem
 type InstallSecretRequestSpecItem struct {
 	Source    string            `json:"source,omitempty"`
 	SourceMap map[string]string `json:"sourceMap,omitempty"`

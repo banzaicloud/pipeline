@@ -11,6 +11,7 @@
 
 package client
 
+// Labels struct for Labels
 type Labels struct {
 	BackupType string `json:"backup-type,omitempty"`
 }

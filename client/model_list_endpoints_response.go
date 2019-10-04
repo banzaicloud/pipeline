@@ -11,6 +11,7 @@
 
 package client
 
+// ListEndpointsResponse struct for ListEndpointsResponse
 type ListEndpointsResponse struct {
 	Endpoints []EndpointItem `json:"endpoints,omitempty"`
 }

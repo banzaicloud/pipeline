@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateAzureProperties struct for UpdateAzureProperties
 type UpdateAzureProperties struct {
 	Azure UpdateAzurePropertiesAzure `json:"azure"`
 }

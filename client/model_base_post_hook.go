@@ -11,6 +11,7 @@
 
 package client
 
+// BasePostHook struct for BasePostHook
 type BasePostHook struct {
 	PostHookFunctionName map[string]interface{} `json:"PostHookFunctionName,omitempty"`
 }

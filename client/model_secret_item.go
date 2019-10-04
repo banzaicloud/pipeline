@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// SecretItem struct for SecretItem
 type SecretItem struct {
 	Id        string                 `json:"id,omitempty"`
 	Name      string                 `json:"name,omitempty"`

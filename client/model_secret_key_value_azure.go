@@ -11,6 +11,7 @@
 
 package client
 
+// SecretKeyValueAzure struct for SecretKeyValueAzure
 type SecretKeyValueAzure struct {
 	AZURE_CLIENT_ID       string `json:"AZURE_CLIENT_ID"`
 	AZURE_CLIENT_SECRET   string `json:"AZURE_CLIENT_SECRET"`

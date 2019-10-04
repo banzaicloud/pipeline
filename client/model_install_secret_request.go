@@ -11,6 +11,7 @@
 
 package client
 
+// InstallSecretRequest struct for InstallSecretRequest
 type InstallSecretRequest struct {
 	SourceSecretName string                                  `json:"sourceSecretName,omitempty"`
 	Namespace        string                                  `json:"namespace"`

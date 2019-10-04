@@ -11,6 +11,7 @@
 
 package client
 
+// HelmChartDetailsResponseVersions struct for HelmChartDetailsResponseVersions
 type HelmChartDetailsResponseVersions struct {
 	Chart  HelmChartDetailsResponseChart `json:"chart,omitempty"`
 	Values string                        `json:"values,omitempty"`

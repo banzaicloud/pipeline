@@ -11,19 +11,22 @@ Method | HTTP request | Description
 [**UpdateClusterFeature**](ClusterFeaturesApi.md#UpdateClusterFeature) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/features/{featureName} | Update a cluster feature
 
 
-# **ActivateClusterFeature**
+
+## ActivateClusterFeature
+
 > ActivateClusterFeature(ctx, orgId, id, featureName, activateClusterFeatureRequest)
 Activate a cluster feature
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization ID | 
-  **id** | **int32**| Cluster ID | 
-  **featureName** | **string**| Feature name | 
-  **activateClusterFeatureRequest** | [**ActivateClusterFeatureRequest**](ActivateClusterFeatureRequest.md)|  | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**orgId** | **int32**| Organization ID | 
+**id** | **int32**| Cluster ID | 
+**featureName** | **string**| Feature name | 
+**activateClusterFeatureRequest** | [**ActivateClusterFeatureRequest**](ActivateClusterFeatureRequest.md)|  | 
 
 ### Return type
 
@@ -35,23 +38,28 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
+- **Content-Type**: application/json
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **ClusterFeatureDetails**
+
+## ClusterFeatureDetails
+
 > ClusterFeatureDetails ClusterFeatureDetails(ctx, orgId, id, featureName)
 Get details of a cluster feature
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization ID | 
-  **id** | **int32**| Cluster ID | 
-  **featureName** | **string**| Feature name | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**orgId** | **int32**| Organization ID | 
+**id** | **int32**| Cluster ID | 
+**featureName** | **string**| Feature name | 
 
 ### Return type
 
@@ -63,23 +71,28 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **DeactivateClusterFeature**
+
+## DeactivateClusterFeature
+
 > DeactivateClusterFeature(ctx, orgId, id, featureName)
 Deactivate a cluster feature
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization ID | 
-  **id** | **int32**| Cluster ID | 
-  **featureName** | **string**| Feature name | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**orgId** | **int32**| Organization ID | 
+**id** | **int32**| Cluster ID | 
+**featureName** | **string**| Feature name | 
 
 ### Return type
 
@@ -91,22 +104,27 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **ListClusterFeatures**
+
+## ListClusterFeatures
+
 > map[string]ClusterFeatureDetails ListClusterFeatures(ctx, orgId, id)
 List enabled features of a cluster
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization ID | 
-  **id** | **int32**| Cluster ID | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**orgId** | **int32**| Organization ID | 
+**id** | **int32**| Cluster ID | 
 
 ### Return type
 
@@ -118,24 +136,29 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **UpdateClusterFeature**
+
+## UpdateClusterFeature
+
 > UpdateClusterFeature(ctx, orgId, id, featureName, updateClusterFeatureRequest)
 Update a cluster feature
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization ID | 
-  **id** | **int32**| Cluster ID | 
-  **featureName** | **string**| Feature name | 
-  **updateClusterFeatureRequest** | [**UpdateClusterFeatureRequest**](UpdateClusterFeatureRequest.md)|  | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**orgId** | **int32**| Organization ID | 
+**id** | **int32**| Cluster ID | 
+**featureName** | **string**| Feature name | 
+**updateClusterFeatureRequest** | [**UpdateClusterFeatureRequest**](UpdateClusterFeatureRequest.md)|  | 
 
 ### Return type
 
@@ -147,8 +170,10 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
+- **Content-Type**: application/json
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 

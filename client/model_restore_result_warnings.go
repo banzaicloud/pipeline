@@ -11,6 +11,7 @@
 
 package client
 
+// RestoreResultWarnings struct for RestoreResultWarnings
 type RestoreResultWarnings struct {
 	Ark        []string                            `json:"ark,omitempty"`
 	Cluster    []string                            `json:"cluster,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// CreateGkePropertiesGkeMaster struct for CreateGkePropertiesGkeMaster
 type CreateGkePropertiesGkeMaster struct {
 	Version string `json:"version,omitempty"`
 }

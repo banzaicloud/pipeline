@@ -11,6 +11,7 @@
 
 package client
 
+// PolicyRuleParams struct for PolicyRuleParams
 type PolicyRuleParams struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`

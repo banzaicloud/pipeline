@@ -11,6 +11,7 @@
 
 package client
 
+// DeploymentScalingRequest struct for DeploymentScalingRequest
 type DeploymentScalingRequest struct {
 	ScaleTarget   string                  `json:"scaleTarget"`
 	MinReplicas   int32                   `json:"minReplicas"`

@@ -11,6 +11,7 @@
 
 package client
 
+// MappingRule struct for MappingRule
 type MappingRule struct {
 	Id           string   `json:"id,omitempty"`
 	Name         string   `json:"name"`

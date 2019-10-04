@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateEksPropertiesEks struct for UpdateEksPropertiesEks
 type UpdateEksPropertiesEks struct {
 	NodePools map[string]EksNodePool `json:"nodePools"`
 }

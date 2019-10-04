@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemStatusNodeInfo struct for NodeItemStatusNodeInfo
 type NodeItemStatusNodeInfo struct {
 	MachineID               string `json:"machineID,omitempty"`
 	SystemUUID              string `json:"systemUUID,omitempty"`

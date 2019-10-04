@@ -11,6 +11,7 @@
 
 package client
 
+// ApiFeatureResponse struct for ApiFeatureResponse
 type ApiFeatureResponse struct {
 	ClusterGroup       ApiClusterGroup        `json:"clusterGroup,omitempty"`
 	Enabled            bool                   `json:"enabled,omitempty"`

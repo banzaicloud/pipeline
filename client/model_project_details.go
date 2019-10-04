@@ -11,7 +11,7 @@
 
 package client
 
-// Details of the google project
+// ProjectDetails Details of the google project
 type ProjectDetails struct {
 	Name           string `json:"name,omitempty"`
 	ProjectId      string `json:"projectId,omitempty"`

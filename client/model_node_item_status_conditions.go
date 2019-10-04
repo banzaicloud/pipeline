@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemStatusConditions struct for NodeItemStatusConditions
 type NodeItemStatusConditions struct {
 	Type               string `json:"type,omitempty"`
 	Status             string `json:"status,omitempty"`

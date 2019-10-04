@@ -11,6 +11,7 @@
 
 package client
 
+// RestoreResponse struct for RestoreResponse
 type RestoreResponse struct {
 	Id         int32         `json:"id,omitempty"`
 	Uid        string        `json:"uid,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// HelmReposUpdateResponse struct for HelmReposUpdateResponse
 type HelmReposUpdateResponse struct {
 	Status  int32  `json:"status,omitempty"`
 	Message string `json:"message,omitempty"`

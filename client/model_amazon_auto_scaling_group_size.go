@@ -11,6 +11,7 @@
 
 package client
 
+// AmazonAutoScalingGroupSize struct for AmazonAutoScalingGroupSize
 type AmazonAutoScalingGroupSize struct {
 	Min int32 `json:"min"`
 	Max int32 `json:"max"`

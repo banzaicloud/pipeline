@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateAckPropertiesAck struct for UpdateAckPropertiesAck
 type UpdateAckPropertiesAck struct {
 	NodePools map[string]NodePoolsAck `json:"nodePools"`
 }

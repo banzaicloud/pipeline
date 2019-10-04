@@ -11,6 +11,7 @@
 
 package client
 
+// HelmChartDetailsResponseChart struct for HelmChartDetailsResponseChart
 type HelmChartDetailsResponseChart struct {
 	Name        string                                     `json:"name,omitempty"`
 	Home        string                                     `json:"home,omitempty"`

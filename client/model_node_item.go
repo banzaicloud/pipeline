@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItem struct for NodeItem
 type NodeItem struct {
 	Metadata NodeItemMetadata `json:"metadata,omitempty"`
 	Spec     NodeItemSpec     `json:"spec,omitempty"`

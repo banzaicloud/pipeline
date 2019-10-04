@@ -11,6 +11,7 @@
 
 package client
 
+// UpdateNodePoolsGoogle struct for UpdateNodePoolsGoogle
 type UpdateNodePoolsGoogle struct {
 	Autoscaling  bool   `json:"autoscaling,omitempty"`
 	Count        int32  `json:"count"`

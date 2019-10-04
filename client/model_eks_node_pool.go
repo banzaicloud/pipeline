@@ -11,6 +11,7 @@
 
 package client
 
+// EksNodePool struct for EksNodePool
 type EksNodePool struct {
 	InstanceType string            `json:"instanceType"`
 	SpotPrice    string            `json:"spotPrice"`

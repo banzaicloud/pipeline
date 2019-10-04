@@ -11,6 +11,7 @@
 
 package client
 
+// EndpointItem struct for EndpointItem
 type EndpointItem struct {
 	Name string    `json:"name,omitempty"`
 	Host string    `json:"host,omitempty"`

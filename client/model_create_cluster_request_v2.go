@@ -11,6 +11,7 @@
 
 package client
 
+// CreateClusterRequestV2 struct for CreateClusterRequestV2
 type CreateClusterRequestV2 struct {
 	Name         string                     `json:"name"`
 	Features     []Feature                  `json:"features,omitempty"`

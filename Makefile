@@ -216,19 +216,19 @@ generate-mocks: bin/mockery ## Generate mocks
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
 
 .PHONY: generate-openapi
 generate-openapi: validate-openapi ## Generate go server based on openapi description
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./.gen/pipeline; else rm -rf ./.gen/pipeline/; fi
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=pipeline \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/${OPENAPI_DESCRIPTOR} \
 	-g go-server \
 	-o /local/.gen/pipeline
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
-	rm .gen/pipeline/Dockerfile .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go .gen/pipeline/go/README.md
+	rm .gen/pipeline/Dockerfile .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
 	mv .gen/pipeline/go .gen/pipeline/pipeline
 
 ifeq (${OS}, darwin)
@@ -241,13 +241,14 @@ endif
 .PHONY: generate-client
 generate-client: validate-openapi ## Generate go client based on openapi description
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./client; else rm -rf ./client/; fi
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=client \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/${OPENAPI_DESCRIPTOR} \
 	-g go \
 	-o /local/client
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) client/; fi
+	rm client/{.travis.yml,git_push.sh,go.*}
 	gofmt -s -w client/
 
 ifeq (${OS}, darwin)

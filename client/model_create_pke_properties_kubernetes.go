@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkePropertiesKubernetes struct for CreatePkePropertiesKubernetes
 type CreatePkePropertiesKubernetes struct {
 	Version string                            `json:"version"`
 	Rbac    CreatePkePropertiesKubernetesRbac `json:"rbac"`

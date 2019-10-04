@@ -11,6 +11,7 @@
 
 package client
 
+// BucketInfo struct for BucketInfo
 type BucketInfo struct {
 	// the name of the object storage / bucket
 	Name string `json:"name"`

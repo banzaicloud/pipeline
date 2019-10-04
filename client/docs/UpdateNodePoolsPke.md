@@ -1,6 +1,7 @@
 # UpdateNodePoolsPke
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **InstanceType** | **string** | Instance type for the nodes in the node pool. This field is ignored when existing node pool is updated as instance type can not be changed. | [optional] 

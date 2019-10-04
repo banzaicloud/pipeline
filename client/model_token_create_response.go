@@ -11,6 +11,7 @@
 
 package client
 
+// TokenCreateResponse struct for TokenCreateResponse
 type TokenCreateResponse struct {
 	Id    string `json:"id"`
 	Token string `json:"token"`

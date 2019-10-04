@@ -11,6 +11,7 @@
 
 package client
 
+// PkeOnAzureClusterNetwork struct for PkeOnAzureClusterNetwork
 type PkeOnAzureClusterNetwork struct {
 	Name string `json:"name,omitempty"`
 	// When referencing an already existing virtual network this field does not need to be specified.

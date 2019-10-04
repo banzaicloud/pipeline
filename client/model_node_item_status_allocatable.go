@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemStatusAllocatable struct for NodeItemStatusAllocatable
 type NodeItemStatusAllocatable struct {
 	Cpu    string `json:"cpu,omitempty"`
 	Memory string `json:"memory,omitempty"`

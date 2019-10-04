@@ -11,6 +11,7 @@
 
 package client
 
+// ResourceMetric struct for ResourceMetric
 type ResourceMetric struct {
 	TargetAverageValue     string `json:"targetAverageValue"`
 	TargetAverageValueType string `json:"targetAverageValueType"`

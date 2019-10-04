@@ -1,6 +1,7 @@
 # NodeItem
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Metadata** | [**NodeItemMetadata**](NodeItem_metadata.md) |  | [optional] 

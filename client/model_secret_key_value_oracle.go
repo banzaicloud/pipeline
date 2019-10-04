@@ -11,6 +11,7 @@
 
 package client
 
+// SecretKeyValueOracle struct for SecretKeyValueOracle
 type SecretKeyValueOracle struct {
 	UserOcid          string `json:"user_ocid"`
 	TenancyOcid       string `json:"tenancy_ocid"`

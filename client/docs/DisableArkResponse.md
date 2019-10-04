@@ -1,6 +1,7 @@
 # DisableArkResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Status** | **int32** |  | [optional] 

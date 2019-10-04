@@ -11,6 +11,7 @@
 
 package client
 
+// GetPkeCommandsResponse struct for GetPkeCommandsResponse
 type GetPkeCommandsResponse struct {
 	AdditionalProperties string `json:"additionalProperties,omitempty"`
 }

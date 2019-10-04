@@ -11,6 +11,7 @@
 
 package client
 
+// CreateAlibabaObjectStoreBucketProperties struct for CreateAlibabaObjectStoreBucketProperties
 type CreateAlibabaObjectStoreBucketProperties struct {
 	Location string `json:"location"`
 }

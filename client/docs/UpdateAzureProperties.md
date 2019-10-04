@@ -1,6 +1,7 @@
 # UpdateAzureProperties
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Azure** | [**UpdateAzurePropertiesAzure**](UpdateAzureProperties_azure.md) |  | 

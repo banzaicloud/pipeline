@@ -1,6 +1,7 @@
 # NodePoolStatusOracle
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Count** | **int32** |  | [optional] 

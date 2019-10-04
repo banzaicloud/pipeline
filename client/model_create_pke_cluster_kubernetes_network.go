@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkeClusterKubernetesNetwork struct for CreatePkeClusterKubernetesNetwork
 type CreatePkeClusterKubernetesNetwork struct {
 	ServiceCIDR    string                 `json:"serviceCIDR,omitempty"`
 	PodCIDR        string                 `json:"podCIDR,omitempty"`

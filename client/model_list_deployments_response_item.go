@@ -11,6 +11,7 @@
 
 package client
 
+// ListDeploymentsResponseItem struct for ListDeploymentsResponseItem
 type ListDeploymentsResponseItem struct {
 	ReleaseName  string `json:"releaseName,omitempty"`
 	Chart        string `json:"chart,omitempty"`

@@ -11,7 +11,7 @@
 
 package client
 
-// GetDomainResponse Api object to be mapped to Get domain request
+// GetDomainResponse GetDomainResponse Api object to be mapped to Get domain request
 type GetDomainResponse struct {
 	DomainName string `json:"domainName,omitempty"`
 }

@@ -11,6 +11,7 @@
 
 package client
 
+// DeploymentCreateUpdateDeploymentResponse struct for DeploymentCreateUpdateDeploymentResponse
 type DeploymentCreateUpdateDeploymentResponse struct {
 	ReleaseName    string                          `json:"releaseName,omitempty"`
 	TargetClusters []DeploymentTargetClusterStatus `json:"targetClusters,omitempty"`

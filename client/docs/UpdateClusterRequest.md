@@ -1,6 +1,7 @@
 # UpdateClusterRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Cloud** | **string** |  | 

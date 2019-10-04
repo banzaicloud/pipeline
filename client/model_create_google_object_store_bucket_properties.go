@@ -11,6 +11,7 @@
 
 package client
 
+// CreateGoogleObjectStoreBucketProperties struct for CreateGoogleObjectStoreBucketProperties
 type CreateGoogleObjectStoreBucketProperties struct {
 	Location string `json:"location"`
 }

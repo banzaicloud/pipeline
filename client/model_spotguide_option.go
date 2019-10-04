@@ -11,6 +11,7 @@
 
 package client
 
+// SpotguideOption struct for SpotguideOption
 type SpotguideOption struct {
 	Name     string `json:"name,omitempty"`
 	Type     string `json:"type,omitempty"`

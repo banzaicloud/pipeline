@@ -11,6 +11,7 @@
 
 package client
 
+// CreateAksProperties struct for CreateAksProperties
 type CreateAksProperties struct {
 	Aks CreateAksPropertiesAks `json:"aks"`
 }

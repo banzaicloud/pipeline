@@ -11,6 +11,7 @@
 
 package client
 
+// ResourceMetricStatus struct for ResourceMetricStatus
 type ResourceMetricStatus struct {
 	AllOf                   ResourceMetric `json:"allOf,omitempty"`
 	CurrentAverageValue     string         `json:"currentAverageValue,omitempty"`

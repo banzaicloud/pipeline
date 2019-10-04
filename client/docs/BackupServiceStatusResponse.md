@@ -1,6 +1,7 @@
 # BackupServiceStatusResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 

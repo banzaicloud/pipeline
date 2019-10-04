@@ -11,6 +11,7 @@
 
 package client
 
+// ClusterDelete200 struct for ClusterDelete200
 type ClusterDelete200 struct {
 	Status int32  `json:"status,omitempty"`
 	Name   string `json:"name,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// CustomMetric struct for CustomMetric
 type CustomMetric struct {
 	Type               string `json:"type"`
 	TargetAverageValue string `json:"targetAverageValue,omitempty"`

@@ -11,6 +11,7 @@
 
 package client
 
+// BucketInfoSecret struct for BucketInfoSecret
 type BucketInfoSecret struct {
 	Id   string `json:"id"`
 	Name string `json:"name,omitempty"`

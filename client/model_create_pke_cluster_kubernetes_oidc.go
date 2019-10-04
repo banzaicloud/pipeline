@@ -11,6 +11,7 @@
 
 package client
 
+// CreatePkeClusterKubernetesOidc struct for CreatePkeClusterKubernetesOidc
 type CreatePkeClusterKubernetesOidc struct {
 	Enabled bool `json:"enabled,omitempty"`
 }

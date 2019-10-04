@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemStatusAddresses struct for NodeItemStatusAddresses
 type NodeItemStatusAddresses struct {
 	Type    string `json:"type,omitempty"`
 	Address string `json:"address,omitempty"`

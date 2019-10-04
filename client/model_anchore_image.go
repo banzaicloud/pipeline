@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
+// AnchoreImage A unique image in the engine. May have multiple tags or references. Unique to an image content across registries or repositories.
 type AnchoreImage struct {
 	// A metadata content record for a specific image, containing different content type entries
 	ImageContent map[string]interface{} `json:"imageContent,omitempty"`

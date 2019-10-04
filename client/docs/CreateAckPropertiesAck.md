@@ -1,6 +1,7 @@
 # CreateAckPropertiesAck
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **RegionId** | **string** |  | 

@@ -11,6 +11,7 @@
 
 package client
 
+// NodePoolsOracle struct for NodePoolsOracle
 type NodePoolsOracle struct {
 	Version   string            `json:"version,omitempty"`
 	Count     int32             `json:"count,omitempty"`

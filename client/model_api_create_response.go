@@ -11,6 +11,7 @@
 
 package client
 
+// ApiCreateResponse struct for ApiCreateResponse
 type ApiCreateResponse struct {
 	Id   int32  `json:"id,omitempty"`
 	Name string `json:"name,omitempty"`

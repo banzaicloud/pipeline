@@ -11,6 +11,7 @@
 
 package client
 
+// HelmRepoListItem struct for HelmRepoListItem
 type HelmRepoListItem struct {
 	Name     string `json:"name,omitempty"`
 	Cache    string `json:"cache,omitempty"`

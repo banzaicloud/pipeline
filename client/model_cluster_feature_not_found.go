@@ -11,6 +11,7 @@
 
 package client
 
+// ClusterFeatureNotFound struct for ClusterFeatureNotFound
 type ClusterFeatureNotFound struct {
 	Code    int32  `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`

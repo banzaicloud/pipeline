@@ -11,6 +11,7 @@
 
 package client
 
+// BackupServiceResponse struct for BackupServiceResponse
 type BackupServiceResponse struct {
 	Enabled bool `json:"enabled,omitempty"`
 }

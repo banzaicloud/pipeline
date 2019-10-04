@@ -11,6 +11,7 @@
 
 package client
 
+// PostReadyPkeNodeRequest struct for PostReadyPkeNodeRequest
 type PostReadyPkeNodeRequest struct {
 	// kubeconfig in base64 or empty if not a master
 	Config string `json:"config,omitempty"`

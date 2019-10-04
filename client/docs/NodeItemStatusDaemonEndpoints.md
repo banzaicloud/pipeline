@@ -1,6 +1,7 @@
 # NodeItemStatusDaemonEndpoints
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **KubeletEndpoint** | [**map[string]interface{}**](map[string]interface{}.md) |  | [optional] 

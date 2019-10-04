@@ -11,7 +11,7 @@
 
 package client
 
-// Pipeline build and deployment info
+// VersionResponse Pipeline build and deployment info
 type VersionResponse struct {
 	Version      string `json:"version,omitempty"`
 	CommitHash   string `json:"commit_hash,omitempty"`

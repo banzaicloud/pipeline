@@ -11,6 +11,7 @@
 
 package client
 
+// GenTlsForLogging struct for GenTlsForLogging
 type GenTlsForLogging struct {
 	TlsEnabled       bool   `json:"tlsEnabled"`
 	GenTlsSecretName string `json:"genTlsSecretName,omitempty"`

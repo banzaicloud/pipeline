@@ -11,6 +11,7 @@
 
 package client
 
+// BackupResponse struct for BackupResponse
 type BackupResponse struct {
 	Id           int32         `json:"id,omitempty"`
 	Uid          string        `json:"uid,omitempty"`

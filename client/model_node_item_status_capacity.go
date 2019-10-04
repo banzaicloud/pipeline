@@ -11,6 +11,7 @@
 
 package client
 
+// NodeItemStatusCapacity struct for NodeItemStatusCapacity
 type NodeItemStatusCapacity struct {
 	Cpu    string `json:"cpu,omitempty"`
 	Memory string `json:"memory,omitempty"`
