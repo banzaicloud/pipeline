@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -13,12 +13,12 @@ package client
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -152,10 +152,10 @@ func (a *StorageApiService) CreateObjectStoreBucket(ctx _context.Context, orgId 
 
 // DeleteObjectStoreBucketOpts Optional parameters for the method 'DeleteObjectStoreBucket'
 type DeleteObjectStoreBucketOpts struct {
-	Force          optional.Bool
-	ResourceGroup  optional.String
-	StorageAccount optional.String
-	Location       optional.String
+    Force optional.Bool
+    ResourceGroup optional.String
+    StorageAccount optional.String
+    Location optional.String
 }
 
 /*
@@ -280,11 +280,11 @@ func (a *StorageApiService) DeleteObjectStoreBucket(ctx _context.Context, orgId 
 
 // GetBucketOpts Optional parameters for the method 'GetBucket'
 type GetBucketOpts struct {
-	SecretId       optional.String
-	SecretName     optional.String
-	ResourceGroup  optional.String
-	StorageAccount optional.String
-	Location       optional.String
+    SecretId optional.String
+    SecretName optional.String
+    ResourceGroup optional.String
+    StorageAccount optional.String
+    Location optional.String
 }
 
 /*
@@ -412,11 +412,11 @@ func (a *StorageApiService) GetBucket(ctx _context.Context, orgId int32, name st
 
 // GetObjectStoreBucketStatusOpts Optional parameters for the method 'GetObjectStoreBucketStatus'
 type GetObjectStoreBucketStatusOpts struct {
-	SecretId       optional.String
-	SecretName     optional.String
-	ResourceGroup  optional.String
-	StorageAccount optional.String
-	Location       optional.String
+    SecretId optional.String
+    SecretName optional.String
+    ResourceGroup optional.String
+    StorageAccount optional.String
+    Location optional.String
 }
 
 /*
@@ -513,9 +513,9 @@ func (a *StorageApiService) GetObjectStoreBucketStatus(ctx _context.Context, org
 
 // ListObjectStoreBucketsOpts Optional parameters for the method 'ListObjectStoreBuckets'
 type ListObjectStoreBucketsOpts struct {
-	SecretId  optional.String
-	CloudType optional.String
-	Include   optional.String
+    SecretId optional.String
+    CloudType optional.String
+    Include optional.String
 }
 
 /*
