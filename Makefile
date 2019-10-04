@@ -206,6 +206,17 @@ bin/gobin-${GOBIN_VERSION}:
 	@mkdir -p bin
 	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/${OS}-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
 
+bin/mga: bin/mga-${MGA_VERSION}
+	@ln -sf mga-${MGA_VERSION} bin/mga
+bin/mga-${MGA_VERSION}:
+	@mkdir -p bin
+	curl -sfL https://git.io/mgatool | bash -s v${MGA_VERSION}
+	@mv bin/mga $@
+
+.PHONY: generate
+generate: bin/mga ## Generate code
+	MGA=$(abspath bin/mga) go generate ./...
+
 bin/mockery: bin/gobin
 	@mkdir -p bin
 	GOBIN=bin/ bin/gobin github.com/vektra/mockery/cmd/mockery
@@ -264,17 +275,6 @@ bin/migrate-${MIGRATE_VERSION}:
 	@mkdir -p bin
 	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
 	@mv bin/migrate.${OS}-amd64 $@
-
-bin/mga: bin/mga-${MGA_VERSION}
-	@ln -sf mga-${MGA_VERSION} bin/mga
-bin/mga-${MGA_VERSION}:
-	@mkdir -p bin
-	curl -sfL https://git.io/mgatool | bash -s v${MGA_VERSION}
-	@mv bin/mga $@
-
-.PHONY: generate
-generate: bin/mga ## Generate code
-	MGA=$(abspath bin/mga) go generate ./...
 
 apis/cloudinfo/openapi.yaml:
 	@mkdir -p apis/cloudinfo
