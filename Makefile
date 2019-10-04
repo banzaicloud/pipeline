@@ -29,7 +29,7 @@ GOLANGCI_VERSION = 1.18.0
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.1.0
-OPENAPI_GENERATOR_VERSION = PR1869
+OPENAPI_GENERATOR_VERSION = v4.1.3
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
 GOBIN_VERSION = 0.0.13
@@ -275,17 +275,20 @@ bin/mga-${MGA_VERSION}:
 generate: bin/mga ## Generate code
 	MGA=$(abspath bin/mga) go generate ./...
 
+apis/cloudinfo/openapi.yaml:
+	@mkdir -p apis/cloudinfo
+	curl https://raw.githubusercontent.com/banzaicloud/cloudinfo/${CLOUDINFO_VERSION}/api/openapi-spec/cloudinfo.yaml | sed "s/version: .*/version: ${CLOUDINFO_VERSION}/" > apis/cloudinfo/openapi.yaml
+
 .PHONY: generate-cloudinfo-client
-generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec
-	curl https://raw.githubusercontent.com/banzaicloud/cloudinfo/${CLOUDINFO_VERSION}/api/openapi-spec/cloudinfo.yaml | sed "s/version: .*/version: ${CLOUDINFO_VERSION}/" > cloudinfo-openapi.yaml
+generate-cloudinfo-client: apis/cloudinfo/openapi.yaml ## Generate client from Cloudinfo OpenAPI spec
 	rm -rf .gen/cloudinfo
-	docker run --rm -v ${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=cloudinfo \
 	--additional-properties withGoCodegenComment=true \
-	-i /local/cloudinfo-openapi.yaml \
+	-i /local/apis/cloudinfo/openapi.yaml \
 	-g go \
 	-o /local/.gen/cloudinfo
-	rm cloudinfo-openapi.yaml .gen/cloudinfo/.travis.yml .gen/cloudinfo/git_push.sh
+	rm .gen/cloudinfo/{.travis.yml,git_push.sh,go.*}
 
 apis/anchore/swagger.yaml:
 	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml

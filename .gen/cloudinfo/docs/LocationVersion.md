@@ -1,6 +1,7 @@
 # LocationVersion
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Default** | **string** |  | [optional] 

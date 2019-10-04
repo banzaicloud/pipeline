@@ -1,6 +1,7 @@
 # Service
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **IsStatic** | **bool** |  | [optional] 

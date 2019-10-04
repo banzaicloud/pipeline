@@ -1,6 +1,7 @@
 # GetProviderPathParams
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Provider** | **string** | in:path | [optional] 
