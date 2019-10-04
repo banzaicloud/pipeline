@@ -13,12 +13,12 @@ package anchore
 
 import (
 	_context "context"
+	"fmt"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -859,8 +859,8 @@ func (a *SystemApiService) ListServices(ctx _context.Context) ([]Service, *_neth
 
 // PostSystemFeedsOpts Optional parameters for the method 'PostSystemFeeds'
 type PostSystemFeedsOpts struct {
-    Flush optional.Bool
-    Sync optional.Bool
+	Flush optional.Bool
+	Sync  optional.Bool
 }
 
 /*

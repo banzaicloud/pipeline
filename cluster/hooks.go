@@ -407,6 +407,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 				"enabled": true,
 			}
 			values["metrics-server"] = map[string]interface{}{
+				"rbac":        map[string]interface{}{"create": true},
 				"affinity":    GetHeadNodeAffinity(cluster),
 				"tolerations": GetHeadNodeTolerations(),
 			}

@@ -13,12 +13,12 @@ package anchore
 
 import (
 	_context "context"
+	"fmt"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -31,7 +31,7 @@ type EventsApiService service
 
 // DeleteEventOpts Optional parameters for the method 'DeleteEvent'
 type DeleteEventOpts struct {
-    XAnchoreAccount optional.String
+	XAnchoreAccount optional.String
 }
 
 /*
@@ -108,10 +108,10 @@ func (a *EventsApiService) DeleteEvent(ctx _context.Context, eventId string, loc
 
 // DeleteEventsOpts Optional parameters for the method 'DeleteEvents'
 type DeleteEventsOpts struct {
-    Before optional.String
-    Since optional.String
-    Level optional.String
-    XAnchoreAccount optional.String
+	Before          optional.String
+	Since           optional.String
+	Level           optional.String
+	XAnchoreAccount optional.String
 }
 
 /*
@@ -229,7 +229,7 @@ func (a *EventsApiService) DeleteEvents(ctx _context.Context, localVarOptionals 
 
 // GetEventOpts Optional parameters for the method 'GetEvent'
 type GetEventOpts struct {
-    XAnchoreAccount optional.String
+	XAnchoreAccount optional.String
 }
 
 /*
@@ -327,16 +327,16 @@ func (a *EventsApiService) GetEvent(ctx _context.Context, eventId string, localV
 
 // ListEventsOpts Optional parameters for the method 'ListEvents'
 type ListEventsOpts struct {
-    SourceServicename optional.String
-    SourceHostid optional.String
-    ResourceType optional.String
-    ResourceId optional.String
-    Level optional.String
-    Since optional.String
-    Before optional.String
-    Page optional.Int32
-    Limit optional.Int32
-    XAnchoreAccount optional.String
+	SourceServicename optional.String
+	SourceHostid      optional.String
+	ResourceType      optional.String
+	ResourceId        optional.String
+	Level             optional.String
+	Since             optional.String
+	Before            optional.String
+	Page              optional.Int32
+	Limit             optional.Int32
+	XAnchoreAccount   optional.String
 }
 
 /*

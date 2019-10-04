@@ -13,10 +13,10 @@ package anchore
 
 import (
 	_context "context"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -29,9 +29,9 @@ type RepositoryCredentialsApiService service
 
 // AddRepositoryOpts Optional parameters for the method 'AddRepository'
 type AddRepositoryOpts struct {
-    Autosubscribe optional.Bool
-    Lookuptag optional.String
-    XAnchoreAccount optional.String
+	Autosubscribe   optional.Bool
+	Lookuptag       optional.String
+	XAnchoreAccount optional.String
 }
 
 /*

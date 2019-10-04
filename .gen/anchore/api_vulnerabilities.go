@@ -13,10 +13,10 @@ package anchore
 
 import (
 	_context "context"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -29,13 +29,13 @@ type VulnerabilitiesApiService service
 
 // QueryImagesByVulnerabilityOpts Optional parameters for the method 'QueryImagesByVulnerability'
 type QueryImagesByVulnerabilityOpts struct {
-    Namespace optional.String
-    AffectedPackage optional.String
-    Severity optional.String
-    VendorOnly optional.Bool
-    Page optional.Int32
-    Limit optional.Int32
-    XAnchoreAccount optional.String
+	Namespace       optional.String
+	AffectedPackage optional.String
+	Severity        optional.String
+	VendorOnly      optional.Bool
+	Page            optional.Int32
+	Limit           optional.Int32
+	XAnchoreAccount optional.String
 }
 
 /*
@@ -167,10 +167,10 @@ func (a *VulnerabilitiesApiService) QueryImagesByVulnerability(ctx _context.Cont
 
 // QueryVulnerabilitiesOpts Optional parameters for the method 'QueryVulnerabilities'
 type QueryVulnerabilitiesOpts struct {
-    AffectedPackage optional.String
-    AffectedPackageVersion optional.String
-    Page optional.String
-    Limit optional.Int32
+	AffectedPackage        optional.String
+	AffectedPackageVersion optional.String
+	Page                   optional.String
+	Limit                  optional.Int32
 }
 
 /*

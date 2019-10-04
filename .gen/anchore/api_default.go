@@ -13,10 +13,10 @@ package anchore
 
 import (
 	_context "context"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -276,11 +276,11 @@ func (a *DefaultApiService) Ping(ctx _context.Context) (string, *_nethttp.Respon
 
 // QueryImagesByPackageOpts Optional parameters for the method 'QueryImagesByPackage'
 type QueryImagesByPackageOpts struct {
-    PackageType optional.String
-    Version optional.String
-    Page optional.String
-    Limit optional.Int32
-    XAnchoreAccount optional.String
+	PackageType     optional.String
+	Version         optional.String
+	Page            optional.String
+	Limit           optional.Int32
+	XAnchoreAccount optional.String
 }
 
 /*

@@ -13,10 +13,10 @@ package anchore
 
 import (
 	_context "context"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -29,7 +29,7 @@ type SummariesApiService service
 
 // ListImagetagsOpts Optional parameters for the method 'ListImagetags'
 type ListImagetagsOpts struct {
-    XAnchoreAccount optional.String
+	XAnchoreAccount optional.String
 }
 
 /*
