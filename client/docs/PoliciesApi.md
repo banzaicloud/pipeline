@@ -11,7 +11,9 @@ Method | HTTP request | Description
 [**UpdatePolicy**](PoliciesApi.md#UpdatePolicy) | **Put** /api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId} | Update policy
 
 
-# **AddPolicy**
+
+## AddPolicy
+
 > PolicyBundleRecord AddPolicy(ctx, id, orgId, policyBundle)
 Add a new policy
 
@@ -19,12 +21,13 @@ Adds a new policy bundle to the system
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **id** | **int32**| Selected cluster identification (number) | 
-  **orgId** | **int32**| Organization identification | 
-  **policyBundle** | [**PolicyBundle**](PolicyBundle.md)|  | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**id** | **int32**| Selected cluster identification (number) | 
+**orgId** | **int32**| Organization identification | 
+**policyBundle** | [**PolicyBundle**](PolicyBundle.md)|  | 
 
 ### Return type
 
@@ -36,12 +39,16 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
+- **Content-Type**: application/json
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **DeletePolicy**
+
+## DeletePolicy
+
 > DeletePolicy(ctx, id, orgId, policyId)
 Delete policy
 
@@ -49,12 +56,13 @@ Delete the specified policy
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **id** | **int32**| Selected cluster identification (number) | 
-  **orgId** | **int32**| Organization identification | 
-  **policyId** | **string**|  | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**id** | **int32**| Selected cluster identification (number) | 
+**orgId** | **int32**| Organization identification | 
+**policyId** | **string**|  | 
 
 ### Return type
 
@@ -66,12 +74,16 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **GetPolicy**
+
+## GetPolicy
+
 > []PolicyBundleRecord GetPolicy(ctx, id, orgId, policyId, optional)
 Get specific policy
 
@@ -79,16 +91,19 @@ Get the policy bundle content
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **id** | **int32**| Selected cluster identification (number) | 
-  **orgId** | **int32**| Organization identification | 
-  **policyId** | **string**|  | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**id** | **int32**| Selected cluster identification (number) | 
+**orgId** | **int32**| Organization identification | 
+**policyId** | **string**|  | 
  **optional** | ***GetPolicyOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
+
 Optional parameters are passed through a pointer to a GetPolicyOpts struct
+
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
@@ -107,12 +122,16 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **ListPolicies**
+
+## ListPolicies
+
 > []PolicyBundleRecord ListPolicies(ctx, id, orgId, optional)
 List policies
 
@@ -120,15 +139,18 @@ List all saved policy bundles
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **id** | **int32**| Selected cluster identification (number) | 
-  **orgId** | **int32**| Organization identification | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**id** | **int32**| Selected cluster identification (number) | 
+**orgId** | **int32**| Organization identification | 
  **optional** | ***ListPoliciesOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
+
 Optional parameters are passed through a pointer to a ListPoliciesOpts struct
+
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
@@ -146,12 +168,16 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **UpdatePolicy**
+
+## UpdatePolicy
+
 > []PolicyBundleRecord UpdatePolicy(ctx, id, orgId, policyId, policyBundleActivate)
 Update policy
 
@@ -159,13 +185,14 @@ Update/replace and existing policy
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **id** | **int32**| Selected cluster identification (number) | 
-  **orgId** | **int32**| Organization identification | 
-  **policyId** | **string**|  | 
-  **policyBundleActivate** | [**PolicyBundleActivate**](PolicyBundleActivate.md)|  | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**id** | **int32**| Selected cluster identification (number) | 
+**orgId** | **int32**| Organization identification | 
+**policyId** | **string**|  | 
+**policyBundleActivate** | [**PolicyBundleActivate**](PolicyBundleActivate.md)|  | 
 
 ### Return type
 
@@ -177,8 +204,10 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
+- **Content-Type**: application/json
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 

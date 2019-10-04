@@ -1,6 +1,7 @@
 # BucketInfo
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | the name of the object storage / bucket | 

@@ -1,6 +1,7 @@
 # VendorDataObject
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | **string** | Vendor Vulnerability ID | [optional] 

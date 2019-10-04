@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A rule for auto-archiving image analysis by time and/or tag-history
+// AnalysisArchiveTransitionHistory A rule for auto-archiving image analysis by time and/or tag-history
 type AnalysisArchiveTransitionHistory struct {
 	// The task that created & updated this entry
 	TransitionTaskId string `json:"transition_task_id,omitempty"`

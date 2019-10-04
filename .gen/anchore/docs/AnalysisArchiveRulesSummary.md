@@ -1,6 +1,7 @@
 # AnalysisArchiveRulesSummary
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Count** | **int32** | The number of rules for this account | [optional] 

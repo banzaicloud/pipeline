@@ -1,6 +1,7 @@
 # Cvssv3Scores
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **BaseScore** | Pointer to **float32** |  | [optional] 

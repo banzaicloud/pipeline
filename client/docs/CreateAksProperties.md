@@ -1,6 +1,7 @@
 # CreateAksProperties
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Aks** | [**CreateAksPropertiesAks**](CreateAKSProperties_aks.md) |  | 

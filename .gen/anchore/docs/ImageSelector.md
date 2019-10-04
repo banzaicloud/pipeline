@@ -1,6 +1,7 @@
 # ImageSelector
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Registry** | **string** | The registry section of a pull string. e.g. with \&quot;docker.io/anchore/anchore-engine:latest\&quot;, this is \&quot;docker.io\&quot; | [optional] 

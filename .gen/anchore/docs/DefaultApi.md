@@ -11,13 +11,16 @@ Method | HTTP request | Description
 [**VersionNoop**](DefaultApi.md#VersionNoop) | **Get** /version | 
 
 
-# **GetOauthToken**
+
+## GetOauthToken
+
 > TokenResponse GetOauthToken(ctx, )
 
 
 Request a jwt token for subsequent operations, this request is authenticated with normal HTTP auth
 
 ### Required Parameters
+
 This endpoint does not need any parameter.
 
 ### Return type
@@ -30,18 +33,23 @@ This endpoint does not need any parameter.
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **HealthNoop**
+
+## HealthNoop
+
 > HealthNoop(ctx, )
 
 
 Health check, returns 200 and no body if service is running
 
 ### Required Parameters
+
 This endpoint does not need any parameter.
 
 ### Return type
@@ -54,18 +62,23 @@ This endpoint does not need any parameter.
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: Not defined
+- **Content-Type**: Not defined
+- **Accept**: Not defined
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **Ping**
+
+## Ping
+
 > string Ping(ctx, )
 
 
 Simple status check
 
 ### Required Parameters
+
 This endpoint does not need any parameter.
 
 ### Return type
@@ -78,12 +91,16 @@ This endpoint does not need any parameter.
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **QueryImagesByPackage**
+
+## QueryImagesByPackage
+
 > PaginatedImageList QueryImagesByPackage(ctx, name, optional)
 List of images containing given package
 
@@ -91,14 +108,17 @@ Filterable query interface to search for images containing specified package
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **name** | **string**| Name of package to search for (e.g. sed) | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**name** | **string**| Name of package to search for (e.g. sed) | 
  **optional** | ***QueryImagesByPackageOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
+
 Optional parameters are passed through a pointer to a QueryImagesByPackageOpts struct
+
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
@@ -119,18 +139,23 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **VersionNoop**
+
+## VersionNoop
+
 > ServiceVersion VersionNoop(ctx, )
 
 
 Returns the version object for the service, including db schema version info
 
 ### Required Parameters
+
 This endpoint does not need any parameter.
 
 ### Return type
@@ -143,8 +168,10 @@ This endpoint does not need any parameter.
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 

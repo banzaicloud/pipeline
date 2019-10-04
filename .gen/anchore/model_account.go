@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// Account information
+// Account Account information
 type Account struct {
 	// The account identifier, not updatable after creation
 	Name string `json:"name"`

@@ -1,6 +1,7 @@
 # CreateUpdateOkeProperties
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Oke** | [**CreateUpdateOkePropertiesOke**](CreateUpdateOKEProperties_oke.md) |  | 

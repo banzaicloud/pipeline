@@ -8,13 +8,16 @@ Method | HTTP request | Description
 [**ListEndpoints**](CommonApi.md#ListEndpoints) | **Get** /api | List Pipeline API endpoints
 
 
-# **ApiVersionGet**
+
+## ApiVersionGet
+
 > VersionResponse ApiVersionGet(ctx, )
 
 
 Return Pipeline build and deployment info
 
 ### Required Parameters
+
 This endpoint does not need any parameter.
 
 ### Return type
@@ -27,18 +30,23 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **ListEndpoints**
+
+## ListEndpoints
+
 > []string ListEndpoints(ctx, )
 List Pipeline API endpoints
 
 Listing Pipeline API endpoint
 
 ### Required Parameters
+
 This endpoint does not need any parameter.
 
 ### Return type
@@ -51,8 +59,10 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 

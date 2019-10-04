@@ -9,7 +9,9 @@ Method | HTTP request | Description
 [**ScanImages**](ImagescanApi.md#ScanImages) | **Post** /api/v1/orgs/{orgId}/clusters/{id}/imagescan | Scan Images used in cluster
 
 
-# **GetImageVulnerabilities**
+
+## GetImageVulnerabilities
+
 > VulnerabilityResponse GetImageVulnerabilities(ctx, orgId, id, imageDigest)
 Get vulnerabilities
 
@@ -17,12 +19,13 @@ Get vulnerabilities
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization identification | 
-  **id** | **int32**| Selected cluster identification (number) | 
-  **imageDigest** | **string**| Image digest | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**orgId** | **int32**| Organization identification | 
+**id** | **int32**| Selected cluster identification (number) | 
+**imageDigest** | **string**| Image digest | 
 
 ### Return type
 
@@ -34,12 +37,16 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **GetScanResult**
+
+## GetScanResult
+
 > AnchoreImage GetScanResult(ctx, orgId, id, imageDigest)
 Get Image scan results
 
@@ -47,12 +54,13 @@ Get Image scan result
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization identification | 
-  **id** | **int32**| Selected cluster identification (number) | 
-  **imageDigest** | **string**| Image digest | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**orgId** | **int32**| Organization identification | 
+**id** | **int32**| Selected cluster identification (number) | 
+**imageDigest** | **string**| Image digest | 
 
 ### Return type
 
@@ -64,12 +72,16 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **ScanImages**
+
+## ScanImages
+
 > []AnchoreImage ScanImages(ctx, orgId, id, clusterImage)
 Scan Images used in cluster
 
@@ -77,12 +89,13 @@ Scan Images used in cluster
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **orgId** | **int32**| Organization identification | 
-  **id** | **int32**| Selected cluster identification (number) | 
-  **clusterImage** | [**[]ClusterImage**](array.md)|  | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**orgId** | **int32**| Organization identification | 
+**id** | **int32**| Selected cluster identification (number) | 
+**clusterImage** | [**[]ClusterImage**](ClusterImage.md)|  | 
 
 ### Return type
 
@@ -94,8 +107,10 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
+- **Content-Type**: application/json
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 

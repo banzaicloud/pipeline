@@ -1,6 +1,7 @@
 # RegistryDigestSource
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Pullstring** | **string** | A digest-based pullstring (e.g. docker.io/nginx@sha256:123abc) | 

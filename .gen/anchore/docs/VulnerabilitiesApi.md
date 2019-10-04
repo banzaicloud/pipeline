@@ -8,7 +8,9 @@ Method | HTTP request | Description
 [**QueryVulnerabilities**](VulnerabilitiesApi.md#QueryVulnerabilities) | **Get** /query/vulnerabilities | Listing information about given vulnerability
 
 
-# **QueryImagesByVulnerability**
+
+## QueryImagesByVulnerability
+
 > PaginatedVulnerableImageList QueryImagesByVulnerability(ctx, vulnerabilityId, optional)
 List images vulnerable to the specific vulnerability ID.
 
@@ -16,14 +18,17 @@ Returns a listing of images and their respective packages vulnerable to the give
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **vulnerabilityId** | **string**| The ID of the vulnerability to search for within all images stored in anchore-engine (e.g. CVE-1999-0001) | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**vulnerabilityId** | **string**| The ID of the vulnerability to search for within all images stored in anchore-engine (e.g. CVE-1999-0001) | 
  **optional** | ***QueryImagesByVulnerabilityOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
+
 Optional parameters are passed through a pointer to a QueryImagesByVulnerabilityOpts struct
+
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
@@ -46,12 +51,16 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **QueryVulnerabilities**
+
+## QueryVulnerabilities
+
 > PaginatedVulnerabilityList QueryVulnerabilities(ctx, id, optional)
 Listing information about given vulnerability
 
@@ -59,14 +68,17 @@ List (w/filters) vulnerability records known by the system, with affected packag
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **id** | **string**| The ID of the vulnerability (e.g. CVE-1999-0001) | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**id** | **string**| The ID of the vulnerability (e.g. CVE-1999-0001) | 
  **optional** | ***QueryVulnerabilitiesOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
+
 Optional parameters are passed through a pointer to a QueryVulnerabilitiesOpts struct
+
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
@@ -86,8 +98,10 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 

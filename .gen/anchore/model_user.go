@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A username for authenticating with one or more types of credentials. User type defines the expected credentials allowed for the user. Native users have passwords, External users have no credential internally. Internal users are service/system users for inter-service communication.
+// User A username for authenticating with one or more types of credentials. User type defines the expected credentials allowed for the user. Native users have passwords, External users have no credential internally. Internal users are service/system users for inter-service communication.
 type User struct {
 	// The username to authenticate with
 	Username string `json:"username"`

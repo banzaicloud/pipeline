@@ -1,6 +1,7 @@
 # DeploymentScaleStatus
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **CurrentReplicas** | **int32** |  | [optional] 

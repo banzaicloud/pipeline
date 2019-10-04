@@ -1,6 +1,7 @@
 # StatusResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Available** | **bool** |  | [optional] 

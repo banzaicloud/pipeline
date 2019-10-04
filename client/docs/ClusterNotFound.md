@@ -1,6 +1,7 @@
 # ClusterNotFound
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Code** | **int32** |  | [optional] 

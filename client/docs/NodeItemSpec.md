@@ -1,6 +1,7 @@
 # NodeItemSpec
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **PodCIDR** | **string** |  | [optional] 

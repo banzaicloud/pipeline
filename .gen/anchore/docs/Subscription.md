@@ -1,6 +1,7 @@
 # Subscription
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **SubscriptionKey** | **string** | The key value that the subscription references. E.g. a tag value or a repo name. | [optional] 

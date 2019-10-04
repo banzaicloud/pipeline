@@ -7,20 +7,25 @@ Method | HTTP request | Description
 [**AddRepository**](RepositoryCredentialsApi.md#AddRepository) | **Post** /repositories | Add repository to watch
 
 
-# **AddRepository**
+
+## AddRepository
+
 > []Subscription AddRepository(ctx, repository, optional)
 Add repository to watch
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **repository** | **string**| full repository to add e.g. docker.io/library/alpine | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**repository** | **string**| full repository to add e.g. docker.io/library/alpine | 
  **optional** | ***AddRepositoryOpts** | optional parameters | nil if no parameters
 
 ### Optional Parameters
+
 Optional parameters are passed through a pointer to a AddRepositoryOpts struct
+
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
@@ -39,8 +44,10 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 

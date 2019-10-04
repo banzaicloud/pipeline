@@ -1,6 +1,7 @@
 # NvdDataObject
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | **string** | NVD Vulnerability ID | [optional] 

@@ -1,6 +1,7 @@
 # NodeItemStatusCapacity
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Cpu** | **string** |  | [optional] 

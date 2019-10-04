@@ -1,6 +1,7 @@
 # GenTlsForLogging
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **TlsEnabled** | **bool** |  | 

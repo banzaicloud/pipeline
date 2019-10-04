@@ -86,7 +86,8 @@ paths:
       - services
   /providers/{provider}/services/{service}:
     get:
-      description: Provides service details for the given service on the provider in the given region
+      description: Provides service details for the given service on the provider
+        in the given region
       operationId: getService
       parameters:
       - explode: false
@@ -116,7 +117,8 @@ paths:
       - service
   /providers/{provider}/services/{service}/continents:
     get:
-      description: Provides the list of available continents and regions of a cloud provider
+      description: Provides the list of available continents and regions of a cloud
+        provider
       operationId: getContinentsData
       parameters:
       - explode: false
@@ -263,7 +265,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ImagesResponse'
           description: ImagesResponse
-      summary: Provides a list of available images on a given provider in a specific region for a service.
+      summary: Provides a list of available images on a given provider in a specific
+        region for a service.
       tags:
       - images
   /providers/{provider}/services/{service}/regions/{region}/products:
@@ -301,7 +304,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductDetailsResponse'
           description: ProductDetailsResponse
-      summary: Provides a list of available machine types on a given provider in a specific region.
+      summary: Provides a list of available machine types on a given provider in a
+        specific region.
       tags:
       - products
   /providers/{provider}/services/{service}/regions/{region}/versions:
@@ -339,7 +343,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/VersionsResponse'
           description: VersionsResponse
-      summary: Provides a list of available versions on a given provider in a specific region for a service.
+      summary: Provides a list of available versions on a given provider in a specific
+        region for a service.
       tags:
       - versions
 components:
@@ -379,7 +384,8 @@ components:
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     ContinentsDataResponse:
-      description: ContinentsDataResponse holds the list of available continents and regions of a cloud provider
+      description: ContinentsDataResponse holds the list of available continents and
+        regions of a cloud provider
       items:
         $ref: '#/components/schemas/Continent'
       type: array
@@ -391,7 +397,8 @@ components:
       type: array
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetAttributeValuesPathParams:
-      description: GetAttributeValuesPathParams is a placeholder for the get attribute values route's path parameters
+      description: GetAttributeValuesPathParams is a placeholder for the get attribute
+        values route's path parameters
       properties:
         attribute:
           description: in:path
@@ -412,7 +419,8 @@ components:
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetImagesQueryParams:
-      description: GetImagesQueryParams is a placeholder for the get images query parameters
+      description: GetImagesQueryParams is a placeholder for the get images query
+        parameters
       properties:
         gpu:
           description: in:query
@@ -425,7 +433,8 @@ components:
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetProviderPathParams:
-      description: GetProviderPathParams is a placeholder for the providers related route path parameters
+      description: GetProviderPathParams is a placeholder for the providers related
+        route path parameters
       properties:
         provider:
           description: in:path
@@ -434,7 +443,8 @@ components:
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetRegionPathParams:
-      description: GetRegionPathParams is a placeholder for the regions related route path parameters
+      description: GetRegionPathParams is a placeholder for the regions related route
+        path parameters
       properties:
         provider:
           description: in:path
@@ -451,7 +461,8 @@ components:
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetRegionResp:
-      description: GetRegionResp holds the detailed description of a specific region of a cloud provider
+      description: GetRegionResp holds the detailed description of a specific region
+        of a cloud provider
       example:
         name: name
         id: id
@@ -473,7 +484,8 @@ components:
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/internal/app/cloudinfo/api
     GetServicesPathParams:
-      description: GetServicesPathParams is a placeholder for the services related route path parameters
+      description: GetServicesPathParams is a placeholder for the services related
+        route path parameters
       properties:
         provider:
           description: in:path
@@ -549,23 +561,23 @@ components:
         currentGen: true
         spotPrice:
         - zone: zone
-          price: 5.63737665663332876420099637471139430999755859375
+          price: 5.637376656633329
         - zone: zone
-          price: 5.63737665663332876420099637471139430999755859375
+          price: 5.637376656633329
         ntwPerf: ntwPerf
         type: type
         zones:
         - zones
         - zones
-        cpusPerVm: 0.80082819046101150206595775671303272247314453125
-        memPerVm: 1.46581298050294517310021547018550336360931396484375
-        gpusPerVm: 6.02745618307040320615897144307382404804229736328125
+        cpusPerVm: 0.8008281904610115
+        memPerVm: 1.4658129805029452
+        gpusPerVm: 6.027456183070403
         attributes:
           key: attributes
         ntwPerfCategory: ntwPerfCategory
         burst: true
         category: category
-        onDemandPrice: 5.962133916683182377482808078639209270477294921875
+        onDemandPrice: 5.962133916683182
       properties:
         attributes:
           additionalProperties:
@@ -584,7 +596,8 @@ components:
           type: number
           x-go-name: Cpus
         currentGen:
-          description: CurrentGen signals whether the instance type generation is the current one. Only applies for amazon
+          description: CurrentGen signals whether the instance type generation is
+            the current one. Only applies for amazon
           type: boolean
           x-go-name: CurrentGen
         gpusPerVm:
@@ -621,59 +634,62 @@ components:
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
     ProductDetailsResponse:
-      description: ProductDetailsResponse Api object to be mapped to product info response
+      description: ProductDetailsResponse Api object to be mapped to product info
+        response
       example:
         scrapingTime: scrapingTime
         products:
         - currentGen: true
           spotPrice:
           - zone: zone
-            price: 5.63737665663332876420099637471139430999755859375
+            price: 5.637376656633329
           - zone: zone
-            price: 5.63737665663332876420099637471139430999755859375
+            price: 5.637376656633329
           ntwPerf: ntwPerf
           type: type
           zones:
           - zones
           - zones
-          cpusPerVm: 0.80082819046101150206595775671303272247314453125
-          memPerVm: 1.46581298050294517310021547018550336360931396484375
-          gpusPerVm: 6.02745618307040320615897144307382404804229736328125
+          cpusPerVm: 0.8008281904610115
+          memPerVm: 1.4658129805029452
+          gpusPerVm: 6.027456183070403
           attributes:
             key: attributes
           ntwPerfCategory: ntwPerfCategory
           burst: true
           category: category
-          onDemandPrice: 5.962133916683182377482808078639209270477294921875
+          onDemandPrice: 5.962133916683182
         - currentGen: true
           spotPrice:
           - zone: zone
-            price: 5.63737665663332876420099637471139430999755859375
+            price: 5.637376656633329
           - zone: zone
-            price: 5.63737665663332876420099637471139430999755859375
+            price: 5.637376656633329
           ntwPerf: ntwPerf
           type: type
           zones:
           - zones
           - zones
-          cpusPerVm: 0.80082819046101150206595775671303272247314453125
-          memPerVm: 1.46581298050294517310021547018550336360931396484375
-          gpusPerVm: 6.02745618307040320615897144307382404804229736328125
+          cpusPerVm: 0.8008281904610115
+          memPerVm: 1.4658129805029452
+          gpusPerVm: 6.027456183070403
           attributes:
             key: attributes
           ntwPerfCategory: ntwPerfCategory
           burst: true
           category: category
-          onDemandPrice: 5.962133916683182377482808078639209270477294921875
+          onDemandPrice: 5.962133916683182
       properties:
         products:
-          description: Products represents a slice of products for a given provider (VMs with attributes and process)
+          description: Products represents a slice of products for a given provider
+            (VMs with attributes and process)
           items:
             $ref: '#/components/schemas/ProductDetails'
           type: array
           x-go-name: Products
         scrapingTime:
-          description: ScrapingTime represents scraping time for a given provider in milliseconds
+          description: ScrapingTime represents scraping time for a given provider
+            in milliseconds
           type: string
           x-go-name: ScrapingTime
       type: object
@@ -752,7 +768,8 @@ components:
       type: object
       x-go-package: github.com/banzaicloud/cloudinfo/pkg/cloudinfo
     RegionsResponse:
-      description: RegionsResponse holds the list of available regions of a cloud provider
+      description: RegionsResponse holds the list of available regions of a cloud
+        provider
       items:
         $ref: '#/components/schemas/Region'
       type: array
@@ -825,7 +842,7 @@ components:
       description: ZonePrice struct for displaying price information per zone
       example:
         zone: zone
-        price: 5.63737665663332876420099637471139430999755859375
+        price: 5.637376656633329
       properties:
         price:
           format: double

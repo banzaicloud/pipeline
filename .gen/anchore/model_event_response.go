@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A record of occurance of an asynchronous event triggered either by system or by user activity
+// EventResponse A record of occurance of an asynchronous event triggered either by system or by user activity
 type EventResponse struct {
 	GeneratedUuid string `json:"generated_uuid,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty"`

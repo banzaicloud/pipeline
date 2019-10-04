@@ -1,6 +1,7 @@
 # SecretKeyValueKubernetes
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **K8Sconfig** | **string** |  | [optional] 

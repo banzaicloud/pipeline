@@ -1,6 +1,7 @@
 # BaseError400
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Code** | **int32** |  | [optional] 

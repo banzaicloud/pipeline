@@ -1,6 +1,7 @@
 # PolicyBundleRecord
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **CreatedAt** | [**time.Time**](time.Time.md) |  | [optional] 

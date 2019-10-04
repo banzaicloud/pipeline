@@ -1,6 +1,7 @@
 # GetAttributeValuesPathParams
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Attribute** | **string** | in:path | [optional] 

@@ -1,6 +1,7 @@
 # User
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Username** | **string** | The username to authenticate with | 

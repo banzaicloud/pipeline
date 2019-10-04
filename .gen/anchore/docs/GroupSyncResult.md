@@ -1,6 +1,7 @@
 # GroupSyncResult
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Group** | **string** | The name of the group | [optional] 

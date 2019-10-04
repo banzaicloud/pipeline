@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A policy bundle plus some metadata
+// PolicyBundleRecord A policy bundle plus some metadata
 type PolicyBundleRecord struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	LastUpdated time.Time `json:"last_updated,omitempty"`
