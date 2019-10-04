@@ -12,19 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package monitoring
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
+	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
@@ -33,9 +30,9 @@ import (
 )
 
 func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil)
+	mng := MakeFeatureManager(nil, nil, nil, nil, NewFeatureConfiguration(), nil)
 
-	assert.Equal(t, "vault", mng.Name())
+	assert.Equal(t, "monitoring", mng.Name())
 }
 
 func TestFeatureManager_GetOutput(t *testing.T) {
@@ -56,11 +53,19 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	orgSecretStore := dummyOrganizationalSecretStore{
 		Secrets: map[uint]map[string]*secret.SecretItemResponse{
 			orgID: {
-				tokenSecretID: {
-					ID:      tokenSecretID,
-					Name:    fmt.Sprintf("vault-token-%d-cluster", clusterID),
-					Type:    pkgSecret.GenericSecret,
-					Values:  map[string]string{"token": "token"},
+				grafanaSecretID: {
+					ID:      grafanaSecretID,
+					Name:    getGrafanaSecretName(clusterID),
+					Type:    pkgSecret.Password,
+					Values:  map[string]string{pkgSecret.Username: "admin", pkgSecret.Password: "pass"},
+					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Version: 1,
+				},
+				prometheusSecretID: {
+					ID:      prometheusSecretID,
+					Name:    getPrometheusSecretName(clusterID),
+					Type:    pkgSecret.Password,
+					Values:  map[string]string{pkgSecret.Username: "admin", pkgSecret.Password: "pass"},
 					Tags:    []string{pkgSecret.TagBanzaiReadonly},
 					Version: 1,
 				},
@@ -69,83 +74,59 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	}
 
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-
-	mng := MakeFeatureManager(clusterGetter, secretStore, nil)
+	helmService := dummyHelmService{}
+	endpointService := dummyEndpointService{}
+	logger := commonadapter.NewNoopLogger()
+	config := NewFeatureConfiguration()
+	mng := MakeFeatureManager(clusterGetter, secretStore, endpointService, helmService, config, logger)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
-	vm, err := newVaultManager(vaultFeatureSpec{}, orgID, clusterID, "TODOTOKEN")
-	assert.NoError(t, err)
-
-	vVersion, err := vm.getVaultVersion()
-	assert.NoError(t, err)
-
-	cases := map[string]struct {
-		spec   obj
-		output clusterfeature.FeatureOutput
-	}{
-		"Pipeline Vault": {
-			spec: obj{
-				"customVault": obj{
-					"enabled": false,
-				},
-				"settings": obj{
-					"namespaces":      []string{"default"},
-					"serviceAccounts": []string{"*"},
-				},
+	spec := obj{
+		"grafana": obj{
+			"enabled": true,
+			"public": obj{
+				"enabled": true,
+				"path":    "/grafana",
 			},
-			output: clusterfeature.FeatureOutput{
-				"vault": map[string]interface{}{
-					"authMethodPath": "kubernetes-cluster/13/42",
-					"role":           "pipeline",
-					"version":        vVersion,
-					"policy": fmt.Sprintf(`
-			path "secret/data/orgs/%d/*" {
-				capabilities = [ "read" ]
-			}`, 13),
-				},
-				"webhook": map[string]interface{}{
-					"version": viper.GetString(config.VaultWebhookChartVersionKey),
-				},
+			"secretId": grafanaSecretID,
+		},
+		"alertmanager": obj{
+			"enabled": true,
+			"public": obj{
+				"enabled": false,
 			},
 		},
-		"custom Vault": {
-			spec: obj{
-				"customVault": obj{
-					"enabled": true,
-					"address": "http://localhost:8200/",
-					"policy":  getDefaultPolicy(orgID),
-				},
-				"settings": obj{
-					"namespaces":      []string{"default"},
-					"serviceAccounts": []string{"*"},
-				},
+		"prometheus": obj{
+			"enabled": true,
+			"public": obj{
+				"enabled": true,
+				"path":    "/prometheus",
 			},
-			output: clusterfeature.FeatureOutput{
-				"vault": map[string]interface{}{
-					"authMethodPath": "kubernetes-cluster/13/42",
-					"role":           "pipeline-webhook",
-					"version":        vVersion,
-				},
-				"webhook": map[string]interface{}{
-					"version": viper.GetString(config.VaultWebhookChartVersionKey),
-				},
-			},
+			"secretId": prometheusSecretID,
 		},
 	}
 
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			output, err := mng.GetOutput(ctx, clusterID, tc.spec)
-			assert.NoError(t, err)
+	output, err := mng.GetOutput(ctx, clusterID, spec)
+	assert.NoError(t, err)
 
-			assert.Equal(t, tc.output, output)
-		})
-	}
-
+	assert.Equal(t, clusterfeature.FeatureOutput{
+		"grafana": obj{
+			"url": grafanaURL,
+		},
+		"prometheus": obj{
+			"url": prometheusURL,
+		},
+		"prometheusOperator": obj{
+			"version": config.operator.chartVersion,
+		},
+		"alertmanager": obj{},
+		"pushgateway":  obj{},
+	}, output)
 }
 
 func TestFeatureManager_ValidateSpec(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil)
+	config := NewFeatureConfiguration()
+	mng := MakeFeatureManager(nil, nil, nil, nil, config, nil)
 
 	cases := map[string]struct {
 		Spec  clusterfeature.FeatureSpec
@@ -157,21 +138,44 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 		},
 		"valid spec": {
 			Spec: obj{
-				"customVault": obj{
-					"address": "thisismyaddress",
+				"grafana": obj{
+					"enabled": true,
+					"public": obj{
+						"enabled": true,
+						"path":    grafanaPath,
+					},
 				},
-				"settings": obj{
-					"namespaces":      []string{"default"},
-					"serviceAccounts": []string{"default"},
+				"prometheus": obj{
+					"enabled": true,
+					"public": obj{
+						"enabled": true,
+						"path":    prometheusPath,
+					},
 				},
 			},
 			Error: false,
 		},
-		"both service account and namespaces are '*'": {
+		"Grafana path empty": {
 			Spec: obj{
-				"settings": obj{
-					"namespaces":      []string{"*"},
-					"serviceAccounts": []string{"*"},
+				"grafana": obj{
+					"enabled": true,
+					"public": obj{
+						"enabled": true,
+						"path":    "",
+					},
+				},
+			},
+			Error: true,
+		},
+		"invalid domain": {
+			Spec: obj{
+				"grafana": obj{
+					"enabled": true,
+					"public": obj{
+						"enabled": true,
+						"path":    grafanaPath,
+						"domain":  "23445@#",
+					},
 				},
 			},
 			Error: true,

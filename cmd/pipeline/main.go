@@ -77,11 +77,13 @@ import (
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret/clustersecretadapter"
+	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	prometheusMetrics "github.com/banzaicloud/pipeline/internal/cluster/metrics/adapters/prometheus"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	featureVault "github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
@@ -91,6 +93,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/helm"
+	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	cgFeatureIstio "github.com/banzaicloud/pipeline/internal/istio/istiofeature"
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
@@ -569,6 +573,8 @@ func main() {
 			// cluster API
 			cRouter := orgs.Group("/:orgid/clusters/:id")
 			{
+				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
+
 				cRouter.Use(cluster.NewClusterCheckMiddleware(clusterManager, errorHandler))
 
 				cRouter.GET("", clusterAPI.GetCluster)
@@ -586,7 +592,7 @@ func main() {
 				cRouter.GET("/config", api.GetClusterConfig)
 				cRouter.GET("/apiendpoint", api.GetApiEndpoint)
 				cRouter.GET("/nodes", api.GetClusterNodes)
-				cRouter.GET("/endpoints", api.ListEndpoints)
+				cRouter.GET("/endpoints", api.MakeEndpointLister(logger).ListEndpoints)
 				cRouter.GET("/secrets", api.ListClusterSecrets)
 				cRouter.GET("/deployments", api.ListDeployments)
 				cRouter.POST("/deployments", api.CreateDeployment)
@@ -636,10 +642,14 @@ func main() {
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+				endpointManager := endpoints.NewEndpointManager(logger)
+				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+				monitoringConfig := featureMonitoring.NewFeatureConfiguration()
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry([]clusterfeature.FeatureManager{
 					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
 					securityscan.MakeFeatureManager(logger),
 					featureVault.MakeFeatureManager(clusterGetter, secretStore, logger),
+					featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger),
 				})
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
 				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
