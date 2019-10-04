@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -12,7 +12,6 @@ package pipeline
 
 // VersionResponse - Pipeline build and deployment info
 type VersionResponse struct {
-
 	Version string `json:"version,omitempty"`
 
 	CommitHash string `json:"commit_hash,omitempty"`

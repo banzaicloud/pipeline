@@ -13,12 +13,12 @@ package anchore
 
 import (
 	_context "context"
+	"fmt"
+	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
-	"fmt"
 	"strings"
-	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -31,7 +31,7 @@ type PoliciesApiService service
 
 // AddPolicyOpts Optional parameters for the method 'AddPolicy'
 type AddPolicyOpts struct {
-    XAnchoreAccount optional.String
+	XAnchoreAccount optional.String
 }
 
 /*
@@ -140,7 +140,7 @@ func (a *PoliciesApiService) AddPolicy(ctx _context.Context, bundle PolicyBundle
 
 // DeletePolicyOpts Optional parameters for the method 'DeletePolicy'
 type DeletePolicyOpts struct {
-    XAnchoreAccount optional.String
+	XAnchoreAccount optional.String
 }
 
 /*
@@ -237,8 +237,8 @@ func (a *PoliciesApiService) DeletePolicy(ctx _context.Context, policyId string,
 
 // GetPolicyOpts Optional parameters for the method 'GetPolicy'
 type GetPolicyOpts struct {
-    Detail optional.Bool
-    XAnchoreAccount optional.String
+	Detail          optional.Bool
+	XAnchoreAccount optional.String
 }
 
 /*
@@ -350,8 +350,8 @@ func (a *PoliciesApiService) GetPolicy(ctx _context.Context, policyId string, lo
 
 // ListPoliciesOpts Optional parameters for the method 'ListPolicies'
 type ListPoliciesOpts struct {
-    Detail optional.Bool
-    XAnchoreAccount optional.String
+	Detail          optional.Bool
+	XAnchoreAccount optional.String
 }
 
 /*
@@ -451,8 +451,8 @@ func (a *PoliciesApiService) ListPolicies(ctx _context.Context, localVarOptional
 
 // UpdatePolicyOpts Optional parameters for the method 'UpdatePolicy'
 type UpdatePolicyOpts struct {
-    Active optional.Bool
-    XAnchoreAccount optional.String
+	Active          optional.Bool
+	XAnchoreAccount optional.String
 }
 
 /*
