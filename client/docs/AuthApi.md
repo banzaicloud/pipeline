@@ -9,7 +9,9 @@ Method | HTTP request | Description
 [**ListTokens**](AuthApi.md#ListTokens) | **Get** /api/v1/tokens | List all API tokens
 
 
-# **CreateToken**
+
+## CreateToken
+
 > TokenCreateResponse CreateToken(ctx, tokenCreateRequest)
 Create token
 
@@ -17,10 +19,11 @@ Create token
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **tokenCreateRequest** | [**TokenCreateRequest**](TokenCreateRequest.md)|  | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**tokenCreateRequest** | [**TokenCreateRequest**](TokenCreateRequest.md)|  | 
 
 ### Return type
 
@@ -32,12 +35,16 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
- - **Accept**: application/json
+- **Content-Type**: application/json
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **DeleteToken**
+
+## DeleteToken
+
 > DeleteToken(ctx, tokenId)
 Delete an API token
 
@@ -45,10 +52,11 @@ Delete an API token
 
 ### Required Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
-  **tokenId** | **string**| Token identification | 
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**tokenId** | **string**| Token identification | 
 
 ### Return type
 
@@ -60,18 +68,23 @@ Name | Type | Description  | Notes
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
-# **ListTokens**
+
+## ListTokens
+
 > []TokenListResponseItem ListTokens(ctx, )
 List all API tokens
 
 List all API tokens
 
 ### Required Parameters
+
 This endpoint does not need any parameter.
 
 ### Return type
@@ -84,8 +97,10 @@ This endpoint does not need any parameter.
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
- - **Accept**: application/json
+- **Content-Type**: Not defined
+- **Accept**: application/json
 
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 

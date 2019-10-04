@@ -1,6 +1,7 @@
 # PolicyBundleActivateParams
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Active** | **string** |  | [optional] 

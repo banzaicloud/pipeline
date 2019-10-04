@@ -1,6 +1,7 @@
 # UpdateAzurePropertiesAzure
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **NodePools** | [**map[string]UpdateNodePoolsAzure**](UpdateNodePoolsAzure.md) |  | [optional] 

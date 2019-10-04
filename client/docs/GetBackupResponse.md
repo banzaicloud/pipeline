@@ -1,6 +1,7 @@
 # GetBackupResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 

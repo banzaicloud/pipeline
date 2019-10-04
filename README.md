@@ -110,7 +110,7 @@ Vendoring all dependencies is essential to have a **go get**-able package. Pleas
 
 ### API specification
 
-Pipeline API is described using the OpenAPI 3.0 specification (formerly Swagger). The get the specification please follow this [link](https://github.com/banzaicloud/pipeline/blob/master/docs/openapi/pipeline.yaml).
+Pipeline API is described using the OpenAPI 3.0 specification (formerly Swagger). The get the specification please follow this [link](https://github.com/banzaicloud/pipeline/blob/master/apis/pipeline/pipeline.yaml).
 
 #### Generated API clients
 

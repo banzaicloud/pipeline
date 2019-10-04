@@ -1,6 +1,7 @@
 # UrlItem
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Servicename** | **string** |  | [optional] 

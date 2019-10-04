@@ -1,6 +1,7 @@
 # SecretKeyValueTls
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Hosts** | **string** |  | 

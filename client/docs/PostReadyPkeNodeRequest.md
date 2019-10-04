@@ -1,6 +1,7 @@
 # PostReadyPkeNodeRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Config** | **string** | kubeconfig in base64 or empty if not a master | [optional] 

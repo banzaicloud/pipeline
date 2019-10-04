@@ -1,6 +1,7 @@
 # LaunchSpotguidesRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **RepoOrganization** | **string** |  | 

@@ -16,7 +16,6 @@ package tokenadapter
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"emperror.dev/errors"
@@ -38,11 +37,11 @@ func NewBankVaultsStore(store auth.TokenStore) BankVaultsStore {
 }
 
 // Store stores a token in the persistent secret store.
-func (s BankVaultsStore) Store(ctx context.Context, userID uint, tokenID string, name string, expiresAt *time.Time) error {
+func (s BankVaultsStore) Store(ctx context.Context, userID string, tokenID string, name string, expiresAt *time.Time) error {
 	t := auth.NewToken(tokenID, name)
 	t.ExpiresAt = expiresAt
 
-	err := s.store.Store(fmt.Sprint(userID), t)
+	err := s.store.Store(userID, t)
 	if err != nil {
 		return errors.WrapIfWithDetails(
 			err, "failed to save user access token",
@@ -56,8 +55,8 @@ func (s BankVaultsStore) Store(ctx context.Context, userID uint, tokenID string,
 }
 
 // List lists the tokens in the store.
-func (s BankVaultsStore) List(ctx context.Context, userID uint) ([]token.Token, error) {
-	ts, err := s.store.List(fmt.Sprint(userID))
+func (s BankVaultsStore) List(ctx context.Context, userID string) ([]token.Token, error) {
+	ts, err := s.store.List(userID)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to list user tokens", "userId", userID)
 	}
@@ -71,8 +70,8 @@ func (s BankVaultsStore) List(ctx context.Context, userID uint) ([]token.Token, 
 }
 
 // Lookup finds a user token.
-func (s BankVaultsStore) Lookup(_ context.Context, userID uint, tokenID string) (token.Token, error) {
-	t, err := s.store.Lookup(fmt.Sprint(userID), tokenID)
+func (s BankVaultsStore) Lookup(_ context.Context, userID string, tokenID string) (token.Token, error) {
+	t, err := s.store.Lookup(userID, tokenID)
 	if err != nil {
 		return token.Token{}, errors.WrapIfWithDetails(
 			err, "failed to lookup user token",
@@ -103,8 +102,8 @@ func (s BankVaultsStore) mapToken(t *auth.Token) token.Token {
 }
 
 // Revoke revokes an access token.
-func (s BankVaultsStore) Revoke(_ context.Context, userID uint, tokenID string) error {
-	err := s.store.Revoke(fmt.Sprint(userID), tokenID)
+func (s BankVaultsStore) Revoke(_ context.Context, userID string, tokenID string) error {
+	err := s.store.Revoke(userID, tokenID)
 	if err != nil {
 		return errors.WrapIfWithDetails(
 			err, "failed to revoke user token",

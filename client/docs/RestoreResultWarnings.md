@@ -1,6 +1,7 @@
 # RestoreResultWarnings
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Ark** | **[]string** |  | [optional] 

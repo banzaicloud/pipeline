@@ -1,6 +1,7 @@
 # AmazonPoviderConfig
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **AutoScalingGroup** | [**AmazonAutoScalingGroup**](AmazonAutoScalingGroup.md) |  | 

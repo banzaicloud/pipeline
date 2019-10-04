@@ -1,6 +1,7 @@
 # DeploymentClusterGroupDeployment
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Atomic** | **bool** |  | [optional] 

@@ -1,6 +1,7 @@
 # NodePoolStatusAzure
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Autoscaling** | **bool** |  | [optional] 

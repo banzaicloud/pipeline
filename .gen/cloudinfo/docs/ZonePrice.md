@@ -1,6 +1,7 @@
 # ZonePrice
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Price** | **float64** |  | [optional] 

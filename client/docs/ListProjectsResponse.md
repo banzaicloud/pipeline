@@ -1,6 +1,7 @@
 # ListProjectsResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Projects** | [**[]ProjectDetails**](ProjectDetails.md) |  | [optional] 

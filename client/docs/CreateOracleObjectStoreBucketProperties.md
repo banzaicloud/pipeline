@@ -1,6 +1,7 @@
 # CreateOracleObjectStoreBucketProperties
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Location** | **string** |  | 

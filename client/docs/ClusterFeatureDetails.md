@@ -1,6 +1,7 @@
 # ClusterFeatureDetails
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Output** | [**map[string]interface{}**](.md) |  | [optional] 

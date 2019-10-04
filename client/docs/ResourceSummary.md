@@ -1,6 +1,7 @@
 # ResourceSummary
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Cpu** | [**Resource**](Resource.md) |  | [optional] 

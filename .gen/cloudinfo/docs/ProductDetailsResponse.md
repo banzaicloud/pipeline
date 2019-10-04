@@ -1,6 +1,7 @@
 # ProductDetailsResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Products** | [**[]ProductDetails**](ProductDetails.md) | Products represents a slice of products for a given provider (VMs with attributes and process) | [optional] 

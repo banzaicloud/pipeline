@@ -1,6 +1,7 @@
 # ProductDetails
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Attributes** | **map[string]string** |  | [optional] 

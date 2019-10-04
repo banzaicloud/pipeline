@@ -1,6 +1,7 @@
 # CustomMetricStatus
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **AllOf** | [**CustomMetric**](CustomMetric.md) |  | [optional] 

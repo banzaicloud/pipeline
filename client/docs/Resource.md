@@ -1,6 +1,7 @@
 # Resource
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Capacity** | **string** |  | [optional] 

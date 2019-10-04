@@ -6,7 +6,7 @@ OS = $(shell uname | tr A-Z a-z)
 # Project variables
 PACKAGE = github.com/banzaicloud/pipeline
 BINARY_NAME = pipeline
-OPENAPI_DESCRIPTOR = docs/openapi/pipeline.yaml
+OPENAPI_DESCRIPTOR = apis/pipeline/pipeline.yaml
 
 # Build variables
 BUILD_DIR ?= build
@@ -22,17 +22,20 @@ endif
 
 CLOUDINFO_VERSION = 0.7.0
 DEX_VERSION = 2.19.0
+# TODO: use an exact version
+ANCHORE_VERSION = 156836d
 
 GOLANGCI_VERSION = 1.18.0
 MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.1.0
-OPENAPI_GENERATOR_VERSION = PR1869
+OPENAPI_GENERATOR_VERSION = v4.1.3
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
 GOBIN_VERSION = 0.0.13
 PROTOTOOL_VERSION = 1.8.0
 PROTOC_GEN_GO_VERSION = 1.3.2
+MGA_VERSION = 0.0.5
 
 GOLANG_VERSION = 1.13
 
@@ -197,11 +200,29 @@ test-all: ## Run all tests
 test-integration: ## Run integration tests
 	@${MAKE} GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
 
+bin/migrate: bin/migrate-${MIGRATE_VERSION}
+	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
+bin/migrate-${MIGRATE_VERSION}:
+	@mkdir -p bin
+	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
+	@mv bin/migrate.${OS}-amd64 $@
+
 bin/gobin: bin/gobin-${GOBIN_VERSION}
 	@ln -sf gobin-${GOBIN_VERSION} bin/gobin
 bin/gobin-${GOBIN_VERSION}:
 	@mkdir -p bin
 	curl -L https://github.com/myitcv/gobin/releases/download/v${GOBIN_VERSION}/${OS}-amd64 > ./bin/gobin-${GOBIN_VERSION} && chmod +x ./bin/gobin-${GOBIN_VERSION}
+
+bin/mga: bin/mga-${MGA_VERSION}
+	@ln -sf mga-${MGA_VERSION} bin/mga
+bin/mga-${MGA_VERSION}:
+	@mkdir -p bin
+	curl -sfL https://git.io/mgatool | bash -s v${MGA_VERSION}
+	@mv bin/mga $@
+
+.PHONY: generate
+generate: bin/mga ## Generate code
+	MGA=$(abspath bin/mga) go generate ./...
 
 bin/mockery: bin/gobin
 	@mkdir -p bin
@@ -213,19 +234,19 @@ generate-mocks: bin/mockery ## Generate mocks
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} validate --recommend -i /local/${OPENAPI_DESCRIPTOR}
 
 .PHONY: generate-openapi
 generate-openapi: validate-openapi ## Generate go server based on openapi description
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./.gen/pipeline; else rm -rf ./.gen/pipeline/; fi
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=pipeline \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/${OPENAPI_DESCRIPTOR} \
 	-g go-server \
 	-o /local/.gen/pipeline
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
-	rm .gen/pipeline/Dockerfile .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go .gen/pipeline/go/README.md
+	rm .gen/pipeline/Dockerfile .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
 	mv .gen/pipeline/go .gen/pipeline/pipeline
 
 ifeq (${OS}, darwin)
@@ -235,17 +256,21 @@ ifeq (${OS}, linux)
 	sha256sum ${OPENAPI_DESCRIPTOR} > .gen/pipeline/SHA256SUMS
 endif
 
+define generate_openapi_client
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ${3}; else rm -rf ${3}; fi
+	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	--additional-properties packageName=${2} \
+	--additional-properties withGoCodegenComment=true \
+	-i /local/${1} \
+	-g go \
+	-o /local/${3}
+	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) ${3}; fi
+	rm ${3}/{.travis.yml,git_push.sh,go.*}
+endef
+
 .PHONY: generate-client
 generate-client: validate-openapi ## Generate go client based on openapi description
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ./client; else rm -rf ./client/; fi
-	docker run --rm -v $${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
-	--additional-properties packageName=client \
-	--additional-properties withGoCodegenComment=true \
-	-i /local/${OPENAPI_DESCRIPTOR} \
-	-g go \
-	-o /local/client
-	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) client/; fi
-	gofmt -s -w client/
+	$(call generate_openapi_client,${OPENAPI_DESCRIPTOR},client,client)
 
 ifeq (${OS}, darwin)
 	shasum -a 256 ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
@@ -254,24 +279,20 @@ ifeq (${OS}, linux)
 	sha256sum ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
 endif
 
-bin/migrate: bin/migrate-${MIGRATE_VERSION}
-	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
-bin/migrate-${MIGRATE_VERSION}:
-	@mkdir -p bin
-	curl -L https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.${OS}-amd64.tar.gz | tar xvz -C bin
-	@mv bin/migrate.${OS}-amd64 $@
+apis/cloudinfo/openapi.yaml:
+	@mkdir -p apis/cloudinfo
+	curl https://raw.githubusercontent.com/banzaicloud/cloudinfo/${CLOUDINFO_VERSION}/api/openapi-spec/cloudinfo.yaml | sed "s/version: .*/version: ${CLOUDINFO_VERSION}/" > apis/cloudinfo/openapi.yaml
 
 .PHONY: generate-cloudinfo-client
-generate-cloudinfo-client: ## Generate client from Cloudinfo OpenAPI spec
-	curl https://raw.githubusercontent.com/banzaicloud/cloudinfo/${CLOUDINFO_VERSION}/api/openapi-spec/cloudinfo.yaml | sed "s/version: .*/version: ${CLOUDINFO_VERSION}/" > cloudinfo-openapi.yaml
-	rm -rf .gen/cloudinfo
-	docker run --rm -v ${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
-	--additional-properties packageName=cloudinfo \
-	--additional-properties withGoCodegenComment=true \
-	-i /local/cloudinfo-openapi.yaml \
-	-g go \
-	-o /local/.gen/cloudinfo
-	rm cloudinfo-openapi.yaml .gen/cloudinfo/.travis.yml .gen/cloudinfo/git_push.sh
+generate-cloudinfo-client: apis/cloudinfo/openapi.yaml ## Generate client from Cloudinfo OpenAPI spec
+	$(call generate_openapi_client,apis/cloudinfo/openapi.yaml,cloudinfo,.gen/cloudinfo)
+
+apis/anchore/swagger.yaml:
+	curl https://raw.githubusercontent.com/anchore/anchore-engine/${ANCHORE_VERSION}/anchore_engine/services/apiext/swagger/swagger.yaml | tr '\n' '\r' | sed $$'s/- Images\r      - Vulnerabilities/- Images/g' | tr '\r' '\n' | sed '/- Image Content/d; /- Policy Evaluation/d; /- Queries/d' > apis/anchore/swagger.yaml
+
+.PHONY: generate-anchore-client
+generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
+	$(call generate_openapi_client,apis/anchore/swagger.yaml,anchore,.gen/anchore)
 
 bin/protoc-gen-go: bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
 	@ln -sf protoc-gen-go-${PROTOC_GEN_GO_VERSION} bin/protoc-gen-go

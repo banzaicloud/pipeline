@@ -1,6 +1,7 @@
 # CreateAckProperties
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Ack** | [**CreateAckPropertiesAck**](CreateACKProperties_ack.md) |  | 

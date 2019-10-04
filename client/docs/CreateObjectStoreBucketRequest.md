@@ -1,6 +1,7 @@
 # CreateObjectStoreBucketRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **SecretId** | **string** |  | [optional] 
