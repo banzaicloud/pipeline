@@ -13,7 +13,7 @@ package anchore
 import (
 	"time"
 )
-
+// ArchivedAnalysis struct for ArchivedAnalysis
 type ArchivedAnalysis struct {
 	// The image digest (digest of the manifest describing the image, per docker spec)
 	ImageDigest string `json:"imageDigest,omitempty"`

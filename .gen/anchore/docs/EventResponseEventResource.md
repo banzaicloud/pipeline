@@ -1,6 +1,7 @@
 # EventResponseEventResource
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **UserId** | **string** |  | [optional] 

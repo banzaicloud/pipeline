@@ -1,6 +1,7 @@
 # SubscriptionUpdate
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **SubscriptionValue** | Pointer to **string** | The new subscription value, e.g. the new tag to be subscribed to | [optional] 

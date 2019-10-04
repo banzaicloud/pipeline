@@ -1,6 +1,7 @@
 # GateSpec
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | Gate name, as it would appear in a policy document | [optional] 

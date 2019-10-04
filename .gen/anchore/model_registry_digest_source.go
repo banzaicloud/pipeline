@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// An image reference using a digest in a registry, includes some extra tag and timestamp info in addition to the pull string to allow proper tag history reconstruction.
+// RegistryDigestSource An image reference using a digest in a registry, includes some extra tag and timestamp info in addition to the pull string to allow proper tag history reconstruction.
 type RegistryDigestSource struct {
 	// A digest-based pullstring (e.g. docker.io/nginx@sha256:123abc)
 	Pullstring string `json:"pullstring"`

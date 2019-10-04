@@ -13,7 +13,7 @@ package anchore
 import (
 	"time"
 )
-
+// FeedGroupMetadata struct for FeedGroupMetadata
 type FeedGroupMetadata struct {
 	Name string `json:"name,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty"`

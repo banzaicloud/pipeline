@@ -13,13 +13,13 @@ package anchore
 import (
 	"time"
 )
-
+// EventResponseEvent struct for EventResponseEvent
 type EventResponseEvent struct {
-	Resource EventResponseEventResource `json:"resource,omitempty"`
-	Level string `json:"level,omitempty"`
-	Details map[string]interface{} `json:"details,omitempty"`
 	Source EventResponseEventSource `json:"source,omitempty"`
+	Resource EventResponseEventResource `json:"resource,omitempty"`
 	Type string `json:"type,omitempty"`
+	Level string `json:"level,omitempty"`
 	Message string `json:"message,omitempty"`
+	Details map[string]interface{} `json:"details,omitempty"`
 	Timestamp time.Time `json:"timestamp,omitempty"`
 }

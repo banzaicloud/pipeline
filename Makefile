@@ -296,13 +296,13 @@ apis/anchore/swagger.yaml:
 .PHONY: generate-anchore-client
 generate-anchore-client: apis/anchore/swagger.yaml ## Generate client from Anchore OpenAPI spec
 	rm -rf .gen/anchore
-	docker run --rm -v ${PWD}:/local banzaicloud/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
+	docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
 	--additional-properties packageName=anchore \
 	--additional-properties withGoCodegenComment=true \
 	-i /local/apis/anchore/swagger.yaml \
 	-g go \
 	-o /local/.gen/anchore
-	rm .gen/anchore/.travis.yml .gen/anchore/git_push.sh
+	rm .gen/anchore/{.travis.yml,git_push.sh,go.*}
 
 bin/protoc-gen-go: bin/protoc-gen-go-${PROTOC_GEN_GO_VERSION}
 	@ln -sf protoc-gen-go-${PROTOC_GEN_GO_VERSION} bin/protoc-gen-go

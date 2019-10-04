@@ -1,6 +1,7 @@
 # TokenResponse
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Token** | **string** | The token content | 

@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// Summary of the transition rule set
+// AnalysisArchiveRulesSummary Summary of the transition rule set
 type AnalysisArchiveRulesSummary struct {
 	// The number of rules for this account
 	Count int32 `json:"count,omitempty"`

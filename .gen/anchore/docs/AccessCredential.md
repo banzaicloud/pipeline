@@ -1,6 +1,7 @@
 # AccessCredential
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Type** | **string** | The type of credential | 

@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A docker-pullable tag value as well as deconstructed components
+// TagEntry A docker-pullable tag value as well as deconstructed components
 type TagEntry struct {
 	// The pullable string for the tag. E.g. \"docker.io/library/node:latest\"
 	Pullstring string `json:"pullstring,omitempty"`

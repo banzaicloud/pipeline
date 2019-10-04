@@ -1,6 +1,7 @@
 # SubscriptionRequest
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **SubscriptionKey** | **string** |  | [optional] 

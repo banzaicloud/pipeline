@@ -13,8 +13,7 @@ package anchore
 import (
 	"time"
 )
-
-// A registry entry describing the endpoint and credentials for a registry to pull images from
+// RegistryConfiguration A registry entry describing the endpoint and credentials for a registry to pull images from
 type RegistryConfiguration struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	LastUpated time.Time `json:"last_upated,omitempty"`

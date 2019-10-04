@@ -1,6 +1,7 @@
 # PackageReference
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | Package name | [optional] 
