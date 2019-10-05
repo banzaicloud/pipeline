@@ -93,7 +93,7 @@ func NewApp(
 		)
 	}
 
-	{
+	if config.Issue.Enabled {
 		logger := logger.WithFields(map[string]interface{}{"module": "issue"})
 		errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "issue"))
 
