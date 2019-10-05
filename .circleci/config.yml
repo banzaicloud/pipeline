@@ -69,11 +69,6 @@ jobs:
                     command: make license-check
 
             -
-                run:
-                    name: Check generated OpenAPI files
-                    command: sha256sum -c client/SHA256SUMS > /dev/null || { echo "Please generate client code using make generate-client"; exit 1; }
-
-            -
                 restore_cache:
                     name: Restore Go build cache
                     keys:
