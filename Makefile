@@ -268,17 +268,6 @@ define generate_openapi_client
 	rm ${3}/{.travis.yml,git_push.sh,go.*}
 endef
 
-.PHONY: generate-client
-generate-client: validate-openapi ## Generate go client based on openapi description
-	$(call generate_openapi_client,${OPENAPI_DESCRIPTOR},client,client)
-
-ifeq (${OS}, darwin)
-	shasum -a 256 ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
-endif
-ifeq (${OS}, linux)
-	sha256sum ${OPENAPI_DESCRIPTOR} > client/SHA256SUMS
-endif
-
 apis/cloudinfo/openapi.yaml:
 	@mkdir -p apis/cloudinfo
 	curl https://raw.githubusercontent.com/banzaicloud/cloudinfo/${CLOUDINFO_VERSION}/api/openapi-spec/cloudinfo.yaml | sed "s/version: .*/version: ${CLOUDINFO_VERSION}/" > apis/cloudinfo/openapi.yaml
