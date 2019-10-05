@@ -462,11 +462,12 @@ func main() {
 
 		// TODO: refactor authentication middleware
 		base.Any("frontend/notifications", handler)
-		base.Any("frontend/issues", auth.Handler, handler)
+		base.GET("notifications", handler) // Compatibility routes
 
-		// Compatibility routes
-		base.GET("notifications", handler)
-		base.POST("issues", auth.Handler, handler)
+		if conf.Frontend.Issue.Enabled {
+			base.Any("frontend/issues", auth.Handler, handler)
+			base.POST("issues", auth.Handler, handler) // Compatibility routes
+		}
 	}
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))

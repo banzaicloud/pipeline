@@ -146,6 +146,7 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 		auth.RoleMember: "",
 	})
 
+	v.SetDefault("frontend.issue.enabled", false)
 	v.SetDefault("frontend.issue.driver", "github")
 	v.SetDefault("frontend.issue.labels", []string{"community"})
 

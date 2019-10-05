@@ -25,8 +25,10 @@ type Config struct {
 
 // Validate validates the configuration.
 func (c Config) Validate() error {
-	if err := c.Issue.Validate(); err != nil {
-		return err
+	if c.Issue.Enabled {
+		if err := c.Issue.Validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -34,8 +36,9 @@ func (c Config) Validate() error {
 
 // IssueConfig contains Issue configuration.
 type IssueConfig struct {
-	Driver string
-	Labels []string
+	Enabled bool
+	Driver  string
+	Labels  []string
 
 	Github GithubIssueConfig
 }
