@@ -24,14 +24,24 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-// AnchoreClient defines Anchore operations
-type AnchoreClient interface {
+type UserManagementClient interface {
 	CreateAccount(ctx context.Context, accountName string, email string) error
 	DeleteAccount(ctx context.Context, accountName string) error
 	CreateUser(ctx context.Context, accountName string, userName string, password string) error
 	DeleteUser(ctx context.Context, accountName string, userName string) error
 	GetUser(ctx context.Context, userName string) (interface{}, error)
 	GetUserCredentials(ctx context.Context, userName string) (string, error)
+}
+
+type ImagesClient interface {
+	ScanImage(ctx context.Context, image ImageData) error
+	GetImageVulnerabilities(ctx context.Context)
+}
+
+// AnchoreClient "facade" for supported Anchore operations
+type AnchoreClient interface {
+	UserManagementClient
+	ImagesClient
 }
 
 type anchoreClient struct {
@@ -154,7 +164,26 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 
 	a.logger.Info("deleted anchore account", fnCtx)
 	return nil
+}
 
+// ScanImage registers an image for security scanning
+func (a anchoreClient) ScanImage(ctx context.Context, image ImageData) error {
+
+	aImg, resp, err := a.getRestClient().ImagesApi.
+		AddImage(a.authorizedContext(ctx), anchore.ImageAnalysisRequest{
+			Digest: image.Digest,
+			Tag:    image.Tag,
+		}, &anchore.AddImageOpts{})
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return errors.WrapIfWithDetails(err, "failed to add image", image.Digest)
+	}
+
+	a.logger.Debug("image added for security scan", map[string]interface{}{"image": aImg})
+	return nil
+}
+
+func (a anchoreClient) GetImageVulnerabilities(ctx context.Context) {
+	panic("implement me")
 }
 
 func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {

@@ -15,6 +15,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"path"
 
@@ -22,6 +23,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
+	apiCommon "github.com/banzaicloud/pipeline/api/common"
+	internalCommon "github.com/banzaicloud/pipeline/internal/common"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -53,7 +56,7 @@ func GetScanResult(c *gin.Context) {
 	doAnchoreGetRequest(c, endPoint)
 }
 
-// ScanImages scans images
+// ScanImage scans images
 func ScanImages(c *gin.Context) {
 
 	var images []pipeline.ClusterImage
@@ -159,4 +162,47 @@ func doAnchoreGetRequest(c *gin.Context, endPoint string) {
 	}
 	defer response.Body.Close()
 	createResponse(c, *response)
+}
+
+type ImageScanHandler interface {
+	ScanImages(ginCtx *gin.Context)
+	GetScanResult(ginCtx *gin.Context)
+	GetImageVulnerabilities(ginCtx *gin.Context)
+}
+
+type imageScanHandlers struct {
+	clusterGetter  apiCommon.ClusterGetter
+	scannerService anchore.ImageScanner
+	logger         internalCommon.Logger
+}
+
+func (i imageScanHandlers) ScanImages(ginCtx *gin.Context) {
+	cluster, ok := i.clusterGetter.GetClusterFromRequest(ginCtx)
+	if !ok {
+		// stop processing the request, respons eis already registered  in the gin ctx
+		return
+	}
+
+	var images []pipeline.ClusterImage
+	if err := ginCtx.BindJSON(&images); err != nil {
+		err := errors.Wrap(err, "Error parsing request:")
+		log.Error(err.Error())
+		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	i.scannerService.ScanImages(context.Background(), cluster.GetOrganizationId(), cluster.GetID())
+	panic("implement me")
+}
+
+func (i imageScanHandlers) GetScanResult(ginCtx *gin.Context) {
+	panic("implement me")
+}
+
+func (i imageScanHandlers) GetImageVulnerabilities(ginCtx *gin.Context) {
+	panic("implement me")
 }
