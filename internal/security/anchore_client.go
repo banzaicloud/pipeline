@@ -17,6 +17,8 @@ package anchore
 import (
 	"context"
 	"net/http"
+	"strings"
+	"time"
 
 	"emperror.dev/errors"
 
@@ -28,6 +30,7 @@ import (
 type UserManagementClient interface {
 	CreateAccount(ctx context.Context, accountName string, email string) error
 	DeleteAccount(ctx context.Context, accountName string) error
+	GetAccount(ctx context.Context, accountName string) (string, error)
 	CreateUser(ctx context.Context, accountName string, userName string, password string) error
 	DeleteUser(ctx context.Context, accountName string, userName string) error
 	GetUser(ctx context.Context, userName string) (interface{}, error)
@@ -50,14 +53,18 @@ type AnchoreClient interface {
 }
 
 type anchoreClient struct {
-	config Config
-	logger common.Logger
+	userName string
+	password string
+	endpoint string
+	logger   common.Logger
 }
 
-func NewAnchoreClient(cfg Config, logger common.Logger) AnchoreClient {
+func NewAnchoreClient(userName string, password string, endpoint string, logger common.Logger) AnchoreClient {
 	return anchoreClient{
-		config: cfg,
-		logger: logger,
+		userName: userName,
+		password: password,
+		endpoint: endpoint,
+		logger:   logger,
 	}
 }
 
@@ -156,6 +163,22 @@ func (a anchoreClient) DeleteAccount(ctx context.Context, accountName string) er
 	return nil
 }
 
+func (a anchoreClient) GetAccount(ctx context.Context, accountName string) (string, error) {
+	fnCtx := map[string]interface{}{"accountName": accountName}
+	a.logger.Info("retrieving anchore account", fnCtx)
+
+	acc, r, err := a.getRestClient().UserManagementApi.GetAccount(a.authorizedContext(ctx), accountName)
+	if err != nil || r.StatusCode != http.StatusOK {
+		a.logger.Debug("failed to get anchore account", fnCtx)
+
+		return "", errors.WrapIfWithDetails(err, "failed to get anchore account", fnCtx)
+	}
+
+	a.logger.Info("retrieved anchore account", fnCtx)
+	return acc.Name, nil
+
+}
+
 func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userName string) error {
 	fnCtx := map[string]interface{}{"accountName": accountName, "userName": userName}
 	a.logger.Info("deleting anchore user", fnCtx)
@@ -175,8 +198,9 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 func (a anchoreClient) ScanImage(ctx context.Context, image pipeline.ClusterImage) (interface{}, error) {
 
 	aImg, resp, err := a.getRestClient().ImagesApi.AddImage(a.authorizedContext(ctx), anchore.ImageAnalysisRequest{
-		Digest: image.ImageDigest,
-		Tag:    image.ImageTag,
+		Digest:    image.ImageDigest,
+		Tag:       strings.Join([]string{image.ImageName, image.ImageTag}, ":"),
+		CreatedAt: time.Now().UTC(),
 	}, &anchore.AddImageOpts{})
 
 	if err != nil || resp.StatusCode != http.StatusOK {
@@ -190,7 +214,7 @@ func (a anchoreClient) ScanImage(ctx context.Context, image pipeline.ClusterImag
 func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error) {
 	a.logger.Debug("retrieving image vulnerabilities")
 
-	vulnerabilities, resp, err := a.getRestClient().ImagesApi.GetImageVulnerabilitiesByType(ctx,
+	vulnerabilities, resp, err := a.getRestClient().ImagesApi.GetImageVulnerabilitiesByType(a.authorizedContext(ctx),
 		imageDigest, "all", &anchore.GetImageVulnerabilitiesByTypeOpts{})
 
 	if err != nil || resp.StatusCode != http.StatusOK {
@@ -206,7 +230,7 @@ func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest 
 func (a anchoreClient) CheckImage(ctx context.Context, imageDigest string) (interface{}, error) {
 	a.logger.Debug("retrieving image metadata", map[string]interface{}{"imageDigest": imageDigest})
 
-	imageMeta, resp, err := a.getRestClient().ImagesApi.GetImage(ctx, imageDigest, &anchore.GetImageOpts{})
+	imageMeta, resp, err := a.getRestClient().ImagesApi.GetImage(a.authorizedContext(ctx), imageDigest, &anchore.GetImageOpts{})
 
 	if err != nil || resp.StatusCode != http.StatusOK {
 		a.logger.Debug("failure while retrieving image metadata", map[string]interface{}{"imageDigest": imageDigest})
@@ -221,8 +245,8 @@ func (a anchoreClient) CheckImage(ctx context.Context, imageDigest string) (inte
 func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
 
 	basicAuth := anchore.BasicAuth{
-		UserName: a.config.AdminUser,
-		Password: a.config.AdminPass,
+		UserName: a.userName,
+		Password: a.password,
 	}
 
 	return context.WithValue(ctx, anchore.ContextBasicAuth, basicAuth)
@@ -231,7 +255,7 @@ func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
 func (a anchoreClient) getRestClient() *anchore.APIClient {
 
 	return anchore.NewAPIClient(&anchore.Configuration{
-		BasePath:      a.config.Endpoint,
+		BasePath:      a.endpoint,
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Pipeline/go",
 	})

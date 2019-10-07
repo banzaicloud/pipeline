@@ -623,7 +623,8 @@ func main() {
 					fr := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 					fa := anchore.NewFeatureAdapter(fr, logger)
 					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
-					imgScanSvc := anchore.NewImageScannerService(cfgSvc, logger)
+					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+					imgScanSvc := anchore.NewImageScannerService(cfgSvc, secretStore, logger)
 					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
 
 					cRouter.GET("/scanlog", api.GetScanLog)

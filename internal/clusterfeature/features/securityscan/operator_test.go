@@ -43,7 +43,6 @@ func TestMakeFeatureOperator(t *testing.T) {
 		&clusterfeature.MockClusterService{},
 		&features.MockHelmService{},
 		secretStore,
-		secretStoreMock{},
 		nil, // todo
 
 		commonadapter.NewLogger(logur.NewTestLogger()),
@@ -70,7 +69,7 @@ func TestFeatureOperator_ProcessChartValues(t *testing.T) {
 		&clusterGetterMock,
 		&clusterServiceMock,
 		&helmServiceMock,
-		secretStoreMock{},
+		secretStore,
 		nil, // todo
 		commonadapter.NewLogger(logur.NewTestLogger()),
 	)

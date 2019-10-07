@@ -15,7 +15,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 	"path"
 
@@ -207,7 +206,7 @@ func (i imageScanHandlers) ScanImages(ginCtx *gin.Context) {
 		return
 	}
 
-	imgs, err := i.imgScanService.Scan(context.Background(), cluster.GetOrganizationId(), cluster.GetID(), images)
+	imgs, err := i.imgScanService.Scan(ginCtx.Request.Context(), cluster.GetOrganizationId(), cluster.GetID(), images)
 	if err != nil {
 		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -230,7 +229,7 @@ func (i imageScanHandlers) GetScanResult(ginCtx *gin.Context) {
 		return
 	}
 
-	scanResults, err := i.imgScanService.GetImageInfo(context.Background(), cluster.GetOrganizationId(), cluster.GetID(), imageDigest)
+	scanResults, err := i.imgScanService.GetImageInfo(ginCtx.Request.Context(), cluster.GetOrganizationId(), cluster.GetID(), imageDigest)
 	if err != nil {
 		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -253,7 +252,7 @@ func (i imageScanHandlers) GetImageVulnerabilities(ginCtx *gin.Context) {
 
 	imageDigest := ginCtx.Param("imagedigest")
 
-	vulnerabilities, err := i.imgScanService.GetVulnerabilities(context.Background(), cluster.GetOrganizationId(),
+	vulnerabilities, err := i.imgScanService.GetVulnerabilities(ginCtx.Request.Context(), cluster.GetOrganizationId(),
 		cluster.GetID(), imageDigest)
 
 	if err != nil {

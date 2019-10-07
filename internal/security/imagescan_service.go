@@ -37,16 +37,18 @@ type ImageScanner interface {
 	GetVulnerabilities(ctx context.Context, orgID uint, clusterID uint, imageDigest string) (interface{}, error)
 }
 
-func NewImageScannerService(configService ConfigurationService, logger common.Logger) ImageScanner {
-	return imageScannerService{
-		configService: configService,
-		logger:        logger,
-	}
-}
-
 type imageScannerService struct {
 	configService ConfigurationService
+	secretStore   common.SecretStore
 	logger        common.Logger
+}
+
+func NewImageScannerService(configService ConfigurationService, secretStore common.SecretStore, logger common.Logger) ImageScanner {
+	return imageScannerService{
+		configService: configService,
+		secretStore:   secretStore,
+		logger:        logger,
+	}
 }
 
 func (i imageScannerService) Scan(ctx context.Context, orgID uint, clusterID uint, images []pipeline.ClusterImage) (interface{}, error) {
@@ -58,7 +60,7 @@ func (i imageScannerService) Scan(ctx context.Context, orgID uint, clusterID uin
 		retImgs     = make([]interface{}, 0)
 	)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID, false)
 	if err != nil {
 		return err, nil
 	}
@@ -82,7 +84,7 @@ func (i imageScannerService) GetImageInfo(ctx context.Context, orgID uint, clust
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "imageDigest": imageDigest}
 	i.logger.Info("getting scan results", fnCtx)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +104,7 @@ func (i imageScannerService) GetVulnerabilities(ctx context.Context, orgID uint,
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "imageDigest": imageDigest}
 	i.logger.Info("retrieving image vulnerabilities", fnCtx)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -118,11 +120,32 @@ func (i imageScannerService) GetVulnerabilities(ctx context.Context, orgID uint,
 	return vulnerabilities, nil
 }
 
-func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
-	config, err := i.configService.GetConfiguration(ctx, clusterID)
+// getAnchoreClient returns a rest client wrapper instance with the proper configuration
+func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uint, admin bool) (AnchoreClient, error) {
+	cfg, err := i.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get anchore config for clster", "clusterID", clusterID)
+		i.logger.Debug("failed to get anchore configuration")
+
+		return nil, errors.Wrap(err, "failed to get anchore configuration")
 	}
 
-	return NewAnchoreClient(config, i.logger), nil
+	if !cfg.Enabled {
+		i.logger.Debug("anchore service disabled")
+
+		return nil, errors.NewWithDetails("anchore service disabled", "clusterID", clusterID)
+	}
+
+	if admin {
+		return NewAnchoreClient(cfg.AdminUser, cfg.AdminPass, cfg.Endpoint, i.logger), nil
+	}
+
+	userName := getUserName(clusterID)
+	password, err := getUserSecret(ctx, i.secretStore, userName, i.logger)
+	if err != nil {
+		i.logger.Debug("failed to get user secret")
+
+		return nil, errors.Wrap(err, "failed to get anchore configuration")
+	}
+
+	return NewAnchoreClient(userName, password, cfg.Endpoint, i.logger), nil
 }
