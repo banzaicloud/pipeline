@@ -152,8 +152,18 @@ func (a anchoreClient) DeleteAccount(ctx context.Context, accountName string) er
 	fnCtx := map[string]interface{}{"accountName": accountName}
 	a.logger.Info("deleting anchore account", fnCtx)
 
-	r, err := a.getRestClient().UserManagementApi.DeleteAccount(a.authorizedContext(ctx), accountName)
-	if err != nil || r.StatusCode != http.StatusNoContent {
+	// update the status of the account before delete
+	s, ur, err := a.getRestClient().UserManagementApi.UpdateAccountState(a.authorizedContext(ctx), accountName, anchore.AccountStatus{State: "disabled"})
+
+	if err != nil || ur.StatusCode != http.StatusOK || s.State != "disabled" {
+		a.logger.Debug("failed to deactivate anchore account", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to deactivate anchore account", fnCtx)
+	}
+
+	// delete the account upon successful disable
+	dr, err := a.getRestClient().UserManagementApi.DeleteAccount(a.authorizedContext(ctx), accountName)
+	if err != nil || (dr.StatusCode != http.StatusOK && dr.StatusCode != http.StatusNoContent) {
 		a.logger.Debug("failed to delete anchore account", fnCtx)
 
 		return errors.WrapIfWithDetails(err, "failed to delete anchore account", fnCtx)
