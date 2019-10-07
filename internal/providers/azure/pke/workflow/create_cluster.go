@@ -23,6 +23,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -47,6 +48,7 @@ type CreateClusterWorkflowInput struct {
 	SecurityGroups                  []SecurityGroup
 	VirtualMachineScaleSetTemplates []VirtualMachineScaleSetTemplate
 	PostHooks                       pkgCluster.PostHooks
+	HTTPProxy                       intPKE.HTTPProxy
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -97,6 +99,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		ScaleSets:         input.VirtualMachineScaleSetTemplates,
 		SecurityGroups:    input.SecurityGroups,
 		VirtualNetwork:    input.VirtualNetworkTemplate,
+		HTTPProxy:         input.HTTPProxy,
 	}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {
