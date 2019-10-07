@@ -232,6 +232,7 @@ port = "9900"
 debug = true
 
 # [frontend.issue]
+# enabled = false
 # driver = "github"
 
 # [frontend.issue.github]

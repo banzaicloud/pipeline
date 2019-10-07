@@ -334,27 +334,11 @@ func GetOrganizationById(orgID uint) (*Organization, error) {
 	return &org, err
 }
 
-// GetOrganizationByName returns an organization from database by Name
-func GetOrganizationByName(name string) (*Organization, error) {
-	db := config.DB()
-	var org Organization
-	err := db.Find(&org, Organization{Name: name}).Error
-	return &org, err
-}
-
 // GetUserById returns user
 func GetUserById(userId uint) (*User, error) {
 	db := config.DB()
 	var user User
 	err := db.Find(&user, User{ID: userId}).Error
-	return &user, err
-}
-
-// GetUserByLoginName returns user
-func GetUserByLoginName(login string) (*User, error) {
-	db := config.DB()
-	var user User
-	err := db.Find(&user, User{Login: login}).Error
 	return &user, err
 }
 
