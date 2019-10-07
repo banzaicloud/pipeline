@@ -28,6 +28,8 @@ type CreateClusterRequestV2 struct {
 
 	Kubernetes CreatePkeClusterKubernetes `json:"kubernetes"`
 
+	Proxy PkeClusterHttpProxy `json:"proxy,omitempty"`
+
 	// Non-existent resources will be created in this location. Existing resources that must have the same location as the cluster will be validated against this.
 	Location string `json:"location,omitempty"`
 
