@@ -8253,6 +8253,38 @@ components:
       allOf:
       - $ref: '#/components/schemas/CreateClusterRequestBase'
       - $ref: '#/components/schemas/CreatePKEClusterRequestBase_allOf'
+    PKEClusterHTTPProxy:
+      properties:
+        http:
+          $ref: '#/components/schemas/PKEClusterHTTPProxyOptions'
+        https:
+          $ref: '#/components/schemas/PKEClusterHTTPProxyOptions'
+        exceptions:
+          description: list of URLs excluded from proxying
+          items:
+            example: .example.org
+            type: string
+          type: array
+      type: object
+    PKEClusterHTTPProxyOptions:
+      properties:
+        host:
+          description: host of the proxy
+          example: proxy.example.org
+          type: string
+        port:
+          description: port the proxy is available on
+          example: 12345
+          maximum: 65535
+          minimum: 0
+          type: integer
+        secretId:
+          description: ID of the secret containing the username and password for the
+            proxy
+          type: string
+      required:
+      - host
+      type: object
     CreatePKEOnAzureClusterRequest:
       allOf:
       - $ref: '#/components/schemas/CreatePKEClusterRequestBase'
@@ -13327,6 +13359,8 @@ components:
       properties:
         kubernetes:
           $ref: '#/components/schemas/CreatePKEClusterKubernetes'
+        proxy:
+          $ref: '#/components/schemas/PKEClusterHTTPProxy'
       required:
       - kubernetes
     CreatePKEOnAzureClusterRequest_allOf:

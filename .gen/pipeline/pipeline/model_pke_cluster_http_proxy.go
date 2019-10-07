@@ -10,9 +10,12 @@
 
 package pipeline
 
-type CreatePkeClusterRequestBaseAllOf struct {
+type PkeClusterHttpProxy struct {
 
-	Kubernetes CreatePkeClusterKubernetes `json:"kubernetes"`
+	Http PkeClusterHttpProxyOptions `json:"http,omitempty"`
 
-	Proxy PkeClusterHttpProxy `json:"proxy,omitempty"`
+	Https PkeClusterHttpProxyOptions `json:"https,omitempty"`
+
+	// list of URLs excluded from proxying
+	Exceptions []string `json:"exceptions,omitempty"`
 }
