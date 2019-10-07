@@ -10,23 +10,14 @@
 
 package pipeline
 
-type CreatePkeClusterRequestBase struct {
+type PkeClusterHttpProxyOptions struct {
 
-	Name string `json:"name"`
+	// host of the proxy
+	Host string `json:"host"`
 
-	Features []Feature `json:"features,omitempty"`
+	// port the proxy is available on
+	Port int32 `json:"port,omitempty"`
 
+	// ID of the secret containing the username and password for the proxy
 	SecretId string `json:"secretId,omitempty"`
-
-	SecretName string `json:"secretName,omitempty"`
-
-	SshSecretId string `json:"sshSecretId,omitempty"`
-
-	ScaleOptions ScaleOptions `json:"scaleOptions,omitempty"`
-
-	Type string `json:"type"`
-
-	Kubernetes CreatePkeClusterKubernetes `json:"kubernetes"`
-
-	Proxy PkeClusterHttpProxy `json:"proxy,omitempty"`
 }
