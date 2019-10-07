@@ -279,7 +279,7 @@ func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint) (A
 		return nil, errors.Wrap(err, "failed to get anchore configuration")
 	}
 
-	return MakeAnchoreClient(cfg, a.logger), nil
+	return NewAnchoreClient(cfg, a.logger), nil
 }
 
 func (a anchoreService) deleteAccount(ctx context.Context, client AnchoreClient, accountName string) error {

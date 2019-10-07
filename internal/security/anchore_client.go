@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/.gen/anchore"
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
@@ -34,8 +35,12 @@ type UserManagementClient interface {
 }
 
 type ImagesClient interface {
-	ScanImage(ctx context.Context, image ImageData) error
-	GetImageVulnerabilities(ctx context.Context)
+	// GetImageVulnerabilities gets the vulnerabilities for the given image digest
+	ScanImage(ctx context.Context, image pipeline.ClusterImage) (interface{}, error)
+	// GetImageVulnerabilities gets the vulnerabilities for the given image digest
+	GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error)
+	// CheckImage cheks rthe image for anchore metadata
+	CheckImage(ctx context.Context, imageDigest string) (interface{}, error)
 }
 
 // AnchoreClient "facade" for supported Anchore operations
@@ -49,7 +54,7 @@ type anchoreClient struct {
 	logger common.Logger
 }
 
-func MakeAnchoreClient(cfg Config, logger common.Logger) AnchoreClient {
+func NewAnchoreClient(cfg Config, logger common.Logger) AnchoreClient {
 	return anchoreClient{
 		config: cfg,
 		logger: logger,
@@ -167,23 +172,50 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 }
 
 // ScanImage registers an image for security scanning
-func (a anchoreClient) ScanImage(ctx context.Context, image ImageData) error {
+func (a anchoreClient) ScanImage(ctx context.Context, image pipeline.ClusterImage) (interface{}, error) {
 
-	aImg, resp, err := a.getRestClient().ImagesApi.
-		AddImage(a.authorizedContext(ctx), anchore.ImageAnalysisRequest{
-			Digest: image.Digest,
-			Tag:    image.Tag,
-		}, &anchore.AddImageOpts{})
+	aImg, resp, err := a.getRestClient().ImagesApi.AddImage(a.authorizedContext(ctx), anchore.ImageAnalysisRequest{
+		Digest: image.ImageDigest,
+		Tag:    image.ImageTag,
+	}, &anchore.AddImageOpts{})
+
 	if err != nil || resp.StatusCode != http.StatusOK {
-		return errors.WrapIfWithDetails(err, "failed to add image", image.Digest)
+		return nil, errors.WrapIfWithDetails(err, "failed to add image", image.ImageDigest)
 	}
 
 	a.logger.Debug("image added for security scan", map[string]interface{}{"image": aImg})
-	return nil
+	return aImg, nil
 }
 
-func (a anchoreClient) GetImageVulnerabilities(ctx context.Context) {
-	panic("implement me")
+func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error) {
+	a.logger.Debug("retrieving image vulnerabilities")
+
+	vulnerabilities, resp, err := a.getRestClient().ImagesApi.GetImageVulnerabilitiesByType(ctx,
+		imageDigest, "all", &anchore.GetImageVulnerabilitiesByTypeOpts{})
+
+	if err != nil || resp.StatusCode != http.StatusOK {
+		a.logger.Debug("failed to retrieve image vulnerabilities")
+
+		return nil, errors.WrapIf(err, "failed to retrieve vulnerabilities")
+	}
+
+	a.logger.Debug("successfully retrieved image vulnerabilities")
+	return vulnerabilities, nil
+}
+
+func (a anchoreClient) CheckImage(ctx context.Context, imageDigest string) (interface{}, error) {
+	a.logger.Debug("retrieving image metadata", map[string]interface{}{"imageDigest": imageDigest})
+
+	imageMeta, resp, err := a.getRestClient().ImagesApi.GetImage(ctx, imageDigest, &anchore.GetImageOpts{})
+
+	if err != nil || resp.StatusCode != http.StatusOK {
+		a.logger.Debug("failure while retrieving image metadata", map[string]interface{}{"imageDigest": imageDigest})
+
+		return nil, errors.WrapIf(err, "failure while retrieving image metadata")
+	}
+
+	a.logger.Debug("successfully retrieved image metadata", map[string]interface{}{"imageDigest": imageDigest})
+	return imageMeta, nil
 }
 
 func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {

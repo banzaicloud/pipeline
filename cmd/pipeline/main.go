@@ -620,6 +620,12 @@ func main() {
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 
 				if anchore.AnchoreEnabled {
+					fr := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
+					fa := anchore.NewFeatureAdapter(fr, logger)
+					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
+					imgScanSvc := anchore.NewImageScannerService(cfgSvc, logger)
+					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
+
 					cRouter.GET("/scanlog", api.GetScanLog)
 					cRouter.GET("/scanlog/:releaseName", api.GetScanLog)
 					cRouter.GET("/whitelists", api.GetWhiteLists)
@@ -631,9 +637,9 @@ func main() {
 					cRouter.PUT("/policies/:policyId", api.UpdatePolicies)
 					cRouter.DELETE("/policies/:policyId", api.DeletePolicy)
 
-					cRouter.POST("/imagescan", api.ScanImages)
-					cRouter.GET("/imagescan/:imagedigest", api.GetScanResult)
-					cRouter.GET("/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
+					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)
+					cRouter.GET("/imagescan/:imagedigest/vuln", imageScanHandler.GetImageVulnerabilities)
 				}
 
 			}

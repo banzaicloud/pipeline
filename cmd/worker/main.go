@@ -330,8 +330,8 @@ func main() {
 			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 
-			featureAdapter := anchore.MakeFeatureAdapter(featureRepository, logger)
-			anchoreConfigService := anchore.MakeConfigurationService(config.Anchore, featureAdapter, logger)
+			featureAdapter := anchore.NewFeatureAdapter(featureRepository, logger)
+			anchoreConfigService := anchore.NewConfigurationService(config.Anchore, featureAdapter, logger)
 			anchoreUserService := anchore.MakeAnchoreUserService(anchoreConfigService, secretStore, logger)
 			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, anchoreConfigService, logger)
 

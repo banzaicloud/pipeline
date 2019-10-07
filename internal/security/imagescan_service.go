@@ -19,22 +19,25 @@ import (
 
 	"emperror.dev/errors"
 
+	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
-type ImageData struct {
-	Tag    string `json:"tag,omitempty"`
-	Digest string `json:"digest,omitempty"`
-}
-
 // ImageScanner lists operations related to image scanning
 type ImageScanner interface {
-	ScanImages(ctx context.Context, orgID uint, clusterID uint, images []ImageData) error
-	GetScanResults(ctx context.Context)
-	GetImageVulnerabilities(ctx context.Context)
+	// todo remove direct dependency on the generated types here
+
+	// ScanImages adds the passed in images to be scanned by the underlying system (anchore)
+	Scan(ctx context.Context, orgID uint, clusterID uint, images []pipeline.ClusterImage) (interface{}, error)
+
+	// GetImageInfo retrieves the results of the scan for the given imageDigest
+	GetImageInfo(ctx context.Context, orgID uint, clusterID uint, imageDigest string) (interface{}, error)
+
+	// GetVulnerabilities retrieves the vulnerabilities for the given imageDigest
+	GetVulnerabilities(ctx context.Context, orgID uint, clusterID uint, imageDigest string) (interface{}, error)
 }
 
-func MakeImageScannerService(configService ConfigurationService, logger common.Logger) ImageScanner {
+func NewImageScannerService(configService ConfigurationService, logger common.Logger) ImageScanner {
 	return imageScannerService{
 		configService: configService,
 		logger:        logger,
@@ -46,33 +49,73 @@ type imageScannerService struct {
 	logger        common.Logger
 }
 
-func (i imageScannerService) ScanImages(ctx context.Context, orgID uint, clusterID uint, images []ImageData) error {
+func (i imageScannerService) Scan(ctx context.Context, orgID uint, clusterID uint, images []pipeline.ClusterImage) (interface{}, error) {
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID}
 	i.logger.Info("scanning images", fnCtx)
 
-	var combinedErr error
+	var (
+		combinedErr error
+		retImgs     = make([]interface{}, 0)
+	)
 
-	anchoreCli, err := i.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
 	if err != nil {
-		return err
+		return err, nil
 	}
 
 	for _, img := range images {
 		// transform the input image
-		err := anchoreCli.ScanImage(ctx, img)
-		combinedErr = errors.Append(combinedErr, err)
+		img, err := anchoreClient.ScanImage(ctx, img)
+		if err != nil {
+			combinedErr = errors.Append(combinedErr, err)
+			continue
+		}
+
+		retImgs = append(retImgs, img)
 	}
 
 	i.logger.Info("images sent for analysis", fnCtx)
-	return combinedErr
+	return retImgs, combinedErr
 }
 
-func (i imageScannerService) GetScanResults(ctx context.Context) {
-	panic("implement me")
+func (i imageScannerService) GetImageInfo(ctx context.Context, orgID uint, clusterID uint, imageDigest string) (interface{}, error) {
+	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "imageDigest": imageDigest}
+	i.logger.Info("getting scan results", fnCtx)
+
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	imageInfo, err := anchoreClient.CheckImage(ctx, imageDigest)
+	if err != nil {
+		i.logger.Debug("failure while retrieving image information", fnCtx)
+
+		return nil, errors.WrapIf(err, "failure while retrieving image information")
+	}
+
+	i.logger.Info("image info successfully retrieved", fnCtx)
+	return imageInfo, nil
 }
 
-func (i imageScannerService) GetImageVulnerabilities(ctx context.Context) {
-	panic("implement me")
+func (i imageScannerService) GetVulnerabilities(ctx context.Context, orgID uint, clusterID uint, imageDigest string) (interface{}, error) {
+	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "imageDigest": imageDigest}
+	i.logger.Info("retrieving image vulnerabilities", fnCtx)
+
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	vulnerabilities, err := anchoreClient.GetImageVulnerabilities(ctx, imageDigest)
+	if err != nil {
+		i.logger.Debug("failure while retrieving image vulnerabilities", fnCtx)
+
+		return nil, errors.WrapIf(err, "failure while retrieving image vulnerabilities")
+	}
+
+	i.logger.Info("vulnerabilities successfully retrieved", fnCtx)
+	return vulnerabilities, nil
 }
 
 func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
@@ -81,5 +124,5 @@ func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uin
 		return nil, errors.WrapIfWithDetails(err, "failed to get anchore config for clster", "clusterID", clusterID)
 	}
 
-	return MakeAnchoreClient(config, i.logger), nil
+	return NewAnchoreClient(config, i.logger), nil
 }

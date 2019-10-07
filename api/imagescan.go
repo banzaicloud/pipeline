@@ -164,22 +164,34 @@ func doAnchoreGetRequest(c *gin.Context, endPoint string) {
 	createResponse(c, *response)
 }
 
+// ImageScanHandler collect handler methods related to image security scan operations
 type ImageScanHandler interface {
+	// ScanImages triggers security scanning of the posted images
 	ScanImages(ginCtx *gin.Context)
+	// GetScanResult handler for retrieving image meta information
 	GetScanResult(ginCtx *gin.Context)
+	// GetImageVulnerabilities handler for retrieving image vulnerabilities
 	GetImageVulnerabilities(ginCtx *gin.Context)
 }
 
 type imageScanHandlers struct {
 	clusterGetter  apiCommon.ClusterGetter
-	scannerService anchore.ImageScanner
+	imgScanService anchore.ImageScanner
 	logger         internalCommon.Logger
+}
+
+func NewImageScanHandler(clusterGetter apiCommon.ClusterGetter, imgScanService anchore.ImageScanner, logger internalCommon.Logger) ImageScanHandler {
+	return imageScanHandlers{
+		clusterGetter:  clusterGetter,
+		imgScanService: imgScanService,
+		logger:         logger,
+	}
 }
 
 func (i imageScanHandlers) ScanImages(ginCtx *gin.Context) {
 	cluster, ok := i.clusterGetter.GetClusterFromRequest(ginCtx)
 	if !ok {
-		// stop processing the request, respons eis already registered  in the gin ctx
+		// stop processing the request, response is already registered  in the gin ctx
 		return
 	}
 
@@ -195,14 +207,69 @@ func (i imageScanHandlers) ScanImages(ginCtx *gin.Context) {
 		return
 	}
 
-	i.scannerService.ScanImages(context.Background(), cluster.GetOrganizationId(), cluster.GetID())
-	panic("implement me")
+	imgs, err := i.imgScanService.Scan(context.Background(), cluster.GetOrganizationId(), cluster.GetID(), images)
+	if err != nil {
+		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	i.successResponse(ginCtx, imgs)
+	return
 }
 
 func (i imageScanHandlers) GetScanResult(ginCtx *gin.Context) {
-	panic("implement me")
+
+	imageDigest := ginCtx.Param("imagedigest")
+	cluster, ok := i.clusterGetter.GetClusterFromRequest(ginCtx)
+	if !ok {
+		// stop processing the request, response is already registered  in the gin ctx
+		return
+	}
+
+	scanResults, err := i.imgScanService.GetImageInfo(context.Background(), cluster.GetOrganizationId(), cluster.GetID(), imageDigest)
+	if err != nil {
+		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	i.successResponse(ginCtx, scanResults)
 }
 
 func (i imageScanHandlers) GetImageVulnerabilities(ginCtx *gin.Context) {
-	panic("implement me")
+
+	cluster, ok := i.clusterGetter.GetClusterFromRequest(ginCtx)
+	if !ok {
+		// stop processing the request, response is already registered  in the gin ctx
+		return
+	}
+
+	imageDigest := ginCtx.Param("imagedigest")
+
+	vulnerabilities, err := i.imgScanService.GetVulnerabilities(context.Background(), cluster.GetOrganizationId(),
+		cluster.GetID(), imageDigest)
+
+	if err != nil {
+		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	i.successResponse(ginCtx, vulnerabilities)
+}
+
+func (i imageScanHandlers) successResponse(ginCtx *gin.Context, payload interface{}) {
+	ginCtx.JSON(http.StatusOK, payload)
+	return
+
 }

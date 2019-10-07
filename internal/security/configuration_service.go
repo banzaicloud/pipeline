@@ -40,8 +40,8 @@ type configurationService struct {
 	logger         common.Logger
 }
 
-// MakeConfigurationService create a new configuration service instance
-func MakeConfigurationService(defaultCfg Config, featureAdapter FeatureAdapter, log common.Logger) ConfigurationService {
+// NewConfigurationService create a new configuration service instance
+func NewConfigurationService(defaultCfg Config, featureAdapter FeatureAdapter, log common.Logger) ConfigurationService {
 	return configurationService{
 		defaultConfig:  defaultCfg,
 		featureAdapter: featureAdapter,
@@ -82,7 +82,7 @@ type FeatureAdapter interface {
 	GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (Config, error)
 }
 
-func MakeFeatureAdapter(featureRepo clusterfeature.FeatureRepository, logger common.Logger) FeatureAdapter {
+func NewFeatureAdapter(featureRepo clusterfeature.FeatureRepository, logger common.Logger) FeatureAdapter {
 	return featureAdapter{
 		featureRepository: featureRepo,
 		logger:            logger,
