@@ -32,8 +32,6 @@ import (
 	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
-
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	conf "github.com/banzaicloud/pipeline/config"
@@ -49,12 +47,14 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	featureVault "github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/helm"
 	"github.com/banzaicloud/pipeline/internal/helm/helmadapter"
 	"github.com/banzaicloud/pipeline/internal/kubernetes"
+	intpkeworkflowadapter "github.com/banzaicloud/pipeline/internal/pke/workflow/adapter"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
@@ -223,6 +223,11 @@ func main() {
 		registerAwsWorkflows(clusters, tokenGenerator)
 
 		azurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
+
+		{
+			passwordSecrets := intpkeworkflowadapter.MakePasswordSecretStore(secret.Store)
+			registerPKEWorkflows(passwordSecrets)
+		}
 
 		// Register azure specific workflows
 		registerAzureWorkflows(secretStore, tokenGenerator, azurePKEClusterStore)
