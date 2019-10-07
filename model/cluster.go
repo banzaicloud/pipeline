@@ -28,7 +28,6 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	"github.com/banzaicloud/pipeline/utils"
 )
 
 const unknown = "unknown"
@@ -267,12 +266,13 @@ func (cs *ClusterModel) AfterFind() error {
 	}
 
 	if cs.Cloud == pkgCluster.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
-		out, err := utils.ConvertJson2Map(cs.Kubernetes.MetadataRaw)
+		var result map[string]string
+		err := json.Unmarshal(cs.Kubernetes.MetadataRaw, &result)
 		if err != nil {
 			log.Errorf("Error during convert json to map: %s", err.Error())
 			return err
 		}
-		cs.Kubernetes.Metadata = out
+		cs.Kubernetes.Metadata = result
 	}
 
 	return nil

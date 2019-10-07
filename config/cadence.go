@@ -15,15 +15,10 @@
 package config
 
 import (
-	"context"
-
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/uber-common/bark"
 	"github.com/uber-common/bark/zbark"
-	"go.uber.org/cadence/.gen/go/shared"
 	"go.uber.org/cadence/client"
-	"go.uber.org/cadence/worker"
 
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 )
@@ -36,45 +31,7 @@ func newCadenceConfig() cadence.Config {
 	}
 }
 
-// CadenceTaskList returns the used task list name.
-// TODO: this should be separated later
-func CadenceTaskList() string {
-	return "pipeline"
-}
-
 // CadenceClient returns a new cadence client.
 func CadenceClient() (client.Client, error) {
 	return cadence.NewClient(newCadenceConfig(), zbark.Zapify(bark.NewLoggerFromLogrus(Logger()).WithField("component", "cadence-client")))
-}
-
-// CadenceWorker returns a cadence worker.
-func CadenceWorker() worker.Worker {
-	w, err := cadence.NewWorker(newCadenceConfig(), CadenceTaskList(), zbark.Zapify(bark.NewLoggerFromLogrus(Logger()).WithField("component", "cadence-worker")))
-	if err != nil {
-		panic(err)
-	}
-
-	return w
-}
-
-func RegisterCadenceDomain(logger logrus.FieldLogger) {
-	config := newCadenceConfig()
-	client, err := cadence.NewDomainClient(config, zbark.Zapify(bark.NewLoggerFromLogrus(Logger()).WithField("component", "cadence-domain")))
-	if err != nil {
-		panic(err)
-	}
-
-	logger = logger.WithField("domain", config.Domain)
-
-	domainRequest := &shared.RegisterDomainRequest{Name: &config.Domain}
-
-	err = client.Register(context.Background(), domainRequest)
-	if err != nil {
-		if _, ok := err.(*shared.DomainAlreadyExistsError); !ok {
-			panic(err)
-		}
-		logger.Info("domain already registered")
-	} else {
-		logger.Info("domain succeesfully registered")
-	}
 }
