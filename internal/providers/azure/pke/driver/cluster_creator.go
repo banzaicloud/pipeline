@@ -382,6 +382,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		},
 		VirtualMachineScaleSetTemplates: vmssTemplates,
 		PostHooks:                       postHooks,
+		HTTPProxy:                       cl.HTTPProxy,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
