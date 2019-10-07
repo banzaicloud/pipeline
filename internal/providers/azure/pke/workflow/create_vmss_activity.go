@@ -26,6 +26,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
 
+	intPKEWorkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 )
 
@@ -54,6 +55,7 @@ type CreateVMSSActivityInput struct {
 	ClusterName       string
 	ResourceGroupName string
 	ScaleSet          VirtualMachineScaleSet
+	HTTPProxy         intPKEWorkflow.HTTPProxy
 }
 
 // VirtualMachineScaleSet represents an Azure virtual machine scale set
@@ -113,6 +115,9 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 	}
 
 	input.ScaleSet.UserDataScriptParams["PipelineToken"] = token
+
+	input.ScaleSet.UserDataScriptParams["HttpProxy"] = input.HTTPProxy.HTTPProxyURL
+	input.ScaleSet.UserDataScriptParams["HttpsProxy"] = input.HTTPProxy.HTTPSProxyURL
 
 	var userDataScript strings.Builder
 	err = userDataScriptTemplate.Execute(&userDataScript, input.ScaleSet.UserDataScriptParams)

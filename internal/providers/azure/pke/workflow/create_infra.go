@@ -15,10 +15,14 @@
 package workflow
 
 import (
+	"fmt"
 	"time"
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
+
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
+	intPKEWorkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
 const CreateInfraWorkflowName = "pke-azure-create-infra"
@@ -37,6 +41,7 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	ScaleSets       []VirtualMachineScaleSetTemplate
 	SecurityGroups  []SecurityGroup
 	VirtualNetwork  VirtualNetworkTemplate
+	HTTPProxy       intPKE.HTTPProxy
 }
 
 type LoadBalancerTemplate struct {
@@ -364,6 +369,22 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
+	var httpProxy intPKEWorkflow.HTTPProxy
+	{
+		activityInput := intPKEWorkflow.AssembleHTTPProxySettingsActivityInput{
+			OrganizationID:     input.OrganizationID,
+			HTTPProxyHostPort:  fmt.Sprintf("%s:%d", input.HTTPProxy.HTTP.Host, input.HTTPProxy.HTTP.Port),
+			HTTPProxySecretID:  input.HTTPProxy.HTTP.SecretID,
+			HTTPSProxyHostPort: fmt.Sprintf("%s:%d", input.HTTPProxy.HTTPS.Host, input.HTTPProxy.HTTPS.Port),
+			HTTPSProxySecretID: input.HTTPProxy.HTTPS.SecretID,
+		}
+		var output intPKEWorkflow.AssembleHTTPProxySettingsActivityOutput
+		if err := workflow.ExecuteActivity(ctx, intPKEWorkflow.AssembleHTTPProxySettingsActivityName, activityInput).Get(ctx, &output); err != nil {
+			return err
+		}
+		httpProxy = output.Settings
+	}
+
 	// Create scale sets
 	createVMSSActivityOutputs := make(map[string]CreateVMSSActivityOutput)
 	{
@@ -383,6 +404,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				ClusterName:       input.ClusterName,
 				ResourceGroupName: input.ResourceGroupName,
 				ScaleSet:          vmssTemplate.Render(bapIDProvider, inpIDProvider, pipIDProvider, nsgIDProvider, subnetIDProvider),
+				HTTPProxy:         httpProxy,
 			}
 			futures[i] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
 		}
