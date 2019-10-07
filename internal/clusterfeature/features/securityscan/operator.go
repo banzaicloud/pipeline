@@ -153,18 +153,24 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		return errors.WrapIf(err, "failed to get cluster by ID")
 	}
 
-	if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
-		return errors.WrapIf(err, "failed to deactivate")
+	boundSpec, err := bindFeatureSpec(spec)
+	if err != nil {
+		op.logger.Debug("failed to bind the spec")
+
+		return errors.WrapIf(err, "failed to apply feature")
+	}
+
+	if boundSpec.CustomAnchore.Enabled {
+		if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
+			return errors.WrapIf(err, "failed to deactivate")
+		}
+
+		op.logger.Debug("custom anchore enabled, skip deleting anchore user")
 	}
 
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
 			"clusterID", clusterID)
-	}
-
-	boundSpec, err := bindFeatureSpec(spec)
-	if err != nil {
-		return errors.WrapIf(err, "failed to apply feature")
 	}
 
 	if err := op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"}); err != nil {
