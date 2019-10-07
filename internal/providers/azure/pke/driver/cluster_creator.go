@@ -487,6 +487,9 @@ export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
+export HTTP_PROXY="{{ .HttpProxy }}"
+export HTTPS_PROXY="{{ .HttpsProxy }}"
+export NO_PROXY="{{ .NoProxy }}"
 
 pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
@@ -517,6 +520,9 @@ const workerUserDataScriptTemplate = `#!/bin/sh
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
+export HTTP_PROXY="{{ .HttpProxy }}"
+export HTTPS_PROXY="{{ .HttpsProxy }}"
+export NO_PROXY="{{ .NoProxy }}"
 
 pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
