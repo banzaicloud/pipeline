@@ -13,12 +13,12 @@ package cloudinfo
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -31,8 +31,8 @@ type ImagesApiService service
 
 // GetImagesOpts Optional parameters for the method 'GetImages'
 type GetImagesOpts struct {
-	Gpu     optional.String
-	Version optional.String
+    Gpu optional.String
+    Version optional.String
 }
 
 /*
@@ -42,8 +42,8 @@ GetImages Provides a list of available images on a given provider in a specific 
  * @param service
  * @param region
  * @param optional nil or *GetImagesOpts - Optional Parameters:
- * @param "Gpu" (optional.String) -
- * @param "Version" (optional.String) -
+ * @param "Gpu" (optional.String) - 
+ * @param "Version" (optional.String) - 
 @return ImagesResponse
 */
 func (a *ImagesApiService) GetImages(ctx _context.Context, provider string, service string, region string, localVarOptionals *GetImagesOpts) (ImagesResponse, *_nethttp.Response, error) {

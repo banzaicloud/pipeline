@@ -13,12 +13,12 @@ package anchore
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -324,7 +324,7 @@ func (a *ArchivesApiService) DeleteAnalysisArchiveRule(ctx _context.Context, rul
 
 // DeleteArchivedAnalysisOpts Optional parameters for the method 'DeleteArchivedAnalysis'
 type DeleteArchivedAnalysisOpts struct {
-	Force optional.Bool
+    Force optional.Bool
 }
 
 /*
@@ -333,7 +333,7 @@ Performs a synchronous archive deletion
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param imageDigest
  * @param optional nil or *DeleteArchivedAnalysisOpts - Optional Parameters:
- * @param "Force" (optional.Bool) -
+ * @param "Force" (optional.Bool) - 
 @return ArchivedAnalysis
 */
 func (a *ArchivesApiService) DeleteArchivedAnalysis(ctx _context.Context, imageDigest string, localVarOptionals *DeleteArchivedAnalysisOpts) (ArchivedAnalysis, *_nethttp.Response, error) {
@@ -722,7 +722,7 @@ func (a *ArchivesApiService) ListAnalysisArchive(ctx _context.Context) ([]Archiv
 
 // ListAnalysisArchiveRulesOpts Optional parameters for the method 'ListAnalysisArchiveRules'
 type ListAnalysisArchiveRulesOpts struct {
-	SystemGlobal optional.Bool
+    SystemGlobal optional.Bool
 }
 
 /*

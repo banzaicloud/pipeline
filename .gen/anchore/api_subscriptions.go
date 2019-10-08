@@ -13,12 +13,12 @@ package anchore
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -31,7 +31,7 @@ type SubscriptionsApiService service
 
 // AddSubscriptionOpts Optional parameters for the method 'AddSubscription'
 type AddSubscriptionOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -130,7 +130,7 @@ func (a *SubscriptionsApiService) AddSubscription(ctx _context.Context, subscrip
 
 // DeleteSubscriptionOpts Optional parameters for the method 'DeleteSubscription'
 type DeleteSubscriptionOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -216,7 +216,7 @@ func (a *SubscriptionsApiService) DeleteSubscription(ctx _context.Context, subsc
 
 // GetSubscriptionOpts Optional parameters for the method 'GetSubscription'
 type GetSubscriptionOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -323,9 +323,9 @@ func (a *SubscriptionsApiService) GetSubscription(ctx _context.Context, subscrip
 
 // ListSubscriptionsOpts Optional parameters for the method 'ListSubscriptions'
 type ListSubscriptionsOpts struct {
-	SubscriptionKey  optional.String
-	SubscriptionType optional.String
-	XAnchoreAccount  optional.String
+    SubscriptionKey optional.String
+    SubscriptionType optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -438,7 +438,7 @@ func (a *SubscriptionsApiService) ListSubscriptions(ctx _context.Context, localV
 
 // UpdateSubscriptionOpts Optional parameters for the method 'UpdateSubscription'
 type UpdateSubscriptionOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*

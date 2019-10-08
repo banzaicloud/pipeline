@@ -13,12 +13,12 @@ package anchore
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -31,8 +31,8 @@ type RegistriesApiService service
 
 // CreateRegistryOpts Optional parameters for the method 'CreateRegistry'
 type CreateRegistryOpts struct {
-	Validate        optional.Bool
-	XAnchoreAccount optional.String
+    Validate optional.Bool
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -145,7 +145,7 @@ func (a *RegistriesApiService) CreateRegistry(ctx _context.Context, registrydata
 
 // DeleteRegistryOpts Optional parameters for the method 'DeleteRegistry'
 type DeleteRegistryOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -232,7 +232,7 @@ func (a *RegistriesApiService) DeleteRegistry(ctx _context.Context, registry str
 
 // GetRegistryOpts Optional parameters for the method 'GetRegistry'
 type GetRegistryOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -330,7 +330,7 @@ func (a *RegistriesApiService) GetRegistry(ctx _context.Context, registry string
 
 // ListRegistriesOpts Optional parameters for the method 'ListRegistries'
 type ListRegistriesOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -426,8 +426,8 @@ func (a *RegistriesApiService) ListRegistries(ctx _context.Context, localVarOpti
 
 // UpdateRegistryOpts Optional parameters for the method 'UpdateRegistry'
 type UpdateRegistryOpts struct {
-	Validate        optional.Bool
-	XAnchoreAccount optional.String
+    Validate optional.Bool
+    XAnchoreAccount optional.String
 }
 
 /*
