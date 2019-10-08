@@ -26,7 +26,6 @@ DEX_VERSION = 2.19.0
 ANCHORE_VERSION = 156836d
 
 GOLANGCI_VERSION = 1.18.0
-MISSPELL_VERSION = 0.3.4
 JQ_VERSION = 1.5
 LICENSEI_VERSION = 0.1.0
 OPENAPI_GENERATOR_VERSION = v4.1.3
@@ -38,8 +37,6 @@ PROTOC_GEN_GO_VERSION = 1.3.2
 MGA_VERSION = 0.0.5
 
 GOLANG_VERSION = 1.13
-
-GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "./vendor/*" -not -path "./client/*")
 
 .PHONY: up
 up: config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
@@ -144,20 +141,10 @@ lint: export CGO_ENABLED = 1
 lint: bin/golangci-lint ## Run linter
 	bin/golangci-lint run
 
-.PHONY: fmt
-fmt:
-	@gofmt -s -w ${GOFILES_NOVENDOR}
-
-bin/misspell: bin/misspell-${MISSPELL_VERSION}
-	@ln -sf misspell-${MISSPELL_VERSION} bin/misspell
-bin/misspell-${MISSPELL_VERSION}:
-	@mkdir -p bin
-	curl -sfL https://git.io/misspell | bash -s -- -b ./bin/ v${MISSPELL_VERSION}
-	@mv bin/misspell $@
-
-.PHONY: misspell
-misspell: bin/misspell ## Fix spelling mistakes
-	misspell -w ${GOFILES_NOVENDOR}
+.PHONY: fix
+fix: export CGO_ENABLED = 1
+fix: bin/golangci-lint ## Fix lint violations
+	bin/golangci-lint run --fix
 
 bin/licensei: bin/licensei-${LICENSEI_VERSION}
 	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
