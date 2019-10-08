@@ -47,27 +47,34 @@ const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectN
 
 func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string, pipelineExternalURLInsecure bool, oidcIssuerURL string) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
-		logger:                      logger,
-		store:                       store,
-		workflowClient:              workflowClient,
-		pipelineExternalURL:         pipelineExternalURL,
-		pipelineExternalURLInsecure: pipelineExternalURLInsecure,
-		oidcIssuerURL:               oidcIssuerURL,
+		logger:         logger,
+		store:          store,
+		workflowClient: workflowClient,
+		config: ClusterCreatorConfig{
+			PipelineExternalURL:         pipelineExternalURL,
+			PipelineExternalURLInsecure: pipelineExternalURLInsecure,
+			OIDCIssuerURL:               oidcIssuerURL,
+		},
 	}
 }
 
 // AzurePKEClusterCreator creates new PKE-on-Azure clusters
 type AzurePKEClusterCreator struct {
-	logger                      logrus.FieldLogger
-	store                       pke.AzurePKEClusterStore
-	workflowClient              client.Client
-	pipelineExternalURL         string
-	pipelineExternalURLInsecure bool
-	oidcIssuerURL               string
-	secrets                     interface {
+	logger         logrus.FieldLogger
+	store          pke.AzurePKEClusterStore
+	workflowClient client.Client
+	config         ClusterCreatorConfig
+	secrets        interface {
 		Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
 		Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
 	}
+}
+
+// ClusterCreatorConfig defines ClusterCreator configuration
+type ClusterCreatorConfig struct {
+	PipelineExternalURL         string
+	PipelineExternalURLInsecure bool
+	OIDCIssuerURL               string
 }
 
 type VirtualNetwork struct {
@@ -256,8 +263,8 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		Location:                    cl.Location,
 		NoProxy:                     strings.Join(cl.HTTPProxy.Exceptions, ","),
 		OrganizationID:              cl.OrganizationID,
-		PipelineExternalURL:         cc.pipelineExternalURL,
-		PipelineExternalURLInsecure: cc.pipelineExternalURLInsecure,
+		PipelineExternalURL:         cc.config.PipelineExternalURL,
+		PipelineExternalURLInsecure: cc.config.PipelineExternalURLInsecure,
 		ResourceGroupName:           cl.ResourceGroup.Name,
 		RouteTableName:              routeTable.Name,
 		SingleNodePool:              len(cl.NodePools) == 1,
@@ -267,7 +274,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 
 	if cl.Kubernetes.OIDC.Enabled {
-		tf.OIDCIssuerURL = cc.oidcIssuerURL
+		tf.OIDCIssuerURL = cc.config.OIDCIssuerURL
 		tf.OIDCClientID = cl.UID
 	}
 
