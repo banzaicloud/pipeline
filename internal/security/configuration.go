@@ -22,15 +22,20 @@ import (
 
 // Config struct holding anchore related configuration
 type Config struct {
-	Enabled     bool   `json:"enabled" mapstructure:"enabled"`
-	Endpoint    string `json:"endpoint" mapstructure:"endpoint"`
-	AdminUser   string `json:"adminUser" mapstructure:"adminUser"`
-	AdminPass   string `json:"adminPass" mapstructure:"adminPass"`
-	AdminSecret string // todo support for secret here?
+	//ApiEnabled drives the "security scan capability"; expected to be true most of the time
+	ApiEnabled bool   `json:"apiEnabled" mapstructure:"apiEnabled"`
+	Enabled    bool   `json:"enabled" mapstructure:"enabled"`
+	Endpoint   string `json:"endpoint" mapstructure:"endpoint"`
+	AdminUser  string `json:"adminUser" mapstructure:"adminUser"`
+	AdminPass  string `json:"adminPass" mapstructure:"adminPass"`
 }
 
 // Validate validates the configuration instance: checks mandatory fields
 func (cfg Config) Validate() error {
+	// the whole security api is disabled!
+	if !cfg.ApiEnabled {
+		return nil
+	}
 
 	if !cfg.Enabled {
 		return nil

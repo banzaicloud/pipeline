@@ -619,7 +619,8 @@ func main() {
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 
-				if anchore.AnchoreEnabled {
+				if conf.Anchore.ApiEnabled {
+
 					fr := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 					fa := anchore.NewFeatureAdapter(fr, logger)
 					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)

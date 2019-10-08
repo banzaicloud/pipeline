@@ -249,6 +249,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
 	viper.SetDefault("auth.dexGrpcCaCert", "")
 
+	v.SetDefault("anchore.apiEnabled", true)
 	v.SetDefault("anchore.enabled", false)
 	v.SetDefault("anchore.endpoint", "")
 	v.SetDefault("anchore.adminuser", "")

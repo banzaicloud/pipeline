@@ -162,6 +162,7 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
 	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
 
+	v.SetDefault("anchore.apiEnabled", true)
 	v.SetDefault("anchore.enabled", false)
 	v.SetDefault("anchore.endpoint", "")
 	v.SetDefault("anchore.adminuser", "")
