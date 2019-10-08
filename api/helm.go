@@ -156,7 +156,7 @@ func ListDeployments(c *gin.Context) {
 	}
 
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	chartsResponse, err := helm.ChartsGet(helmEnv, "", "", "", "")
+	chartsResponse, err := helm.ListCharts(helmEnv, "", "", "", "")
 	if err != nil {
 		log.Error("Error listing charts for deployments: ", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -526,7 +526,7 @@ func HelmReposGet(c *gin.Context) {
 
 	log.Info("Get helm repository")
 
-	response, err := helm.ReposGet(helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name))
+	response, err := helm.ListRepos(helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name))
 	if err != nil {
 		log.Errorf("Error during get helm repo list: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, pkgCommmon.ErrorResponse{
@@ -557,7 +557,7 @@ func HelmReposAdd(c *gin.Context) {
 	}
 
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	_, err = helm.ReposAdd(helmEnv, r)
+	_, err = helm.AddRepo(helmEnv, r)
 	if err != nil {
 		log.Errorf("Error adding helm repo: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -580,7 +580,7 @@ func HelmReposDelete(c *gin.Context) {
 	repoName := c.Param("name")
 	log.Debugf("repoName: %s", repoName)
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	err := helm.ReposDelete(helmEnv, repoName)
+	err := helm.DeleteRepo(helmEnv, repoName)
 	if err != nil {
 		log.Error("Error during get helm repo delete.", err.Error())
 		if err.Error() == helm.ErrRepoNotFound.Error() {
@@ -625,7 +625,7 @@ func HelmReposModify(c *gin.Context) {
 		return
 	}
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	errModify := helm.ReposModify(helmEnv, repoName, newRepo)
+	errModify := helm.ModifyRepo(helmEnv, repoName, newRepo)
 	if errModify != nil {
 		if errModify == helm.ErrRepoNotFound {
 			c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
@@ -657,7 +657,7 @@ func HelmReposUpdate(c *gin.Context) {
 	repoName := c.Param("name")
 	log.Debugf("repoName: %s", repoName)
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	errUpdate := helm.ReposUpdate(helmEnv, repoName)
+	errUpdate := helm.UpdateRepo(helmEnv, repoName)
 	if errUpdate != nil {
 		log.Errorf("Error during helm repo update. %s", errUpdate.Error())
 		c.JSON(http.StatusNotFound, pkgCommmon.ErrorResponse{
@@ -691,7 +691,7 @@ func HelmCharts(c *gin.Context) {
 
 	log.Info(query)
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	response, err := helm.ChartsGet(helmEnv, query.Name, query.Repo, query.Version, query.Keyword)
+	response, err := helm.ListCharts(helmEnv, query.Name, query.Repo, query.Version, query.Keyword)
 	if err != nil {
 		log.Error("Error during get helm repo chart list.", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -720,7 +720,7 @@ func HelmChart(c *gin.Context) {
 	log.Debugln("version:", chartVersion)
 
 	helmEnv := helm.GenerateHelmRepoEnv(auth.GetCurrentOrganization(c.Request).Name)
-	response, err := helm.ChartGet(helmEnv, chartRepo, chartName, chartVersion)
+	response, err := helm.GetChart(helmEnv, chartRepo, chartName, chartVersion)
 	if err != nil {
 		log.Error("Error during get helm chart information.", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
@@ -745,7 +745,7 @@ func HelmChart(c *gin.Context) {
 
 func sendResponseWithRepo(c *gin.Context, helmEnv environment.EnvSettings, repoName string) {
 
-	entries, err := helm.ReposGet(helmEnv)
+	entries, err := helm.ListRepos(helmEnv)
 	if err != nil {
 		log.Errorf("Error during getting helm repo: %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
