@@ -369,9 +369,11 @@ func main() {
 			logrusLogger,
 			gormAzurePKEClusterStore,
 			workflowClient,
-			externalBaseURL,
-			externalURLInsecure,
-			oidcIssuerURL,
+			azurePKEDriver.MakeClusterCreatorConfig(
+				externalBaseURL,
+				externalURLInsecure,
+				oidcIssuerURL,
+			),
 		),
 	}
 	clusterDeleters := api.ClusterDeleters{

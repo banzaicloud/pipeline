@@ -45,16 +45,12 @@ import (
 const pkeVersion = "0.4.14"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
-func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string, pipelineExternalURLInsecure bool, oidcIssuerURL string) AzurePKEClusterCreator {
+func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, config ClusterCreatorConfig) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
 		logger:         logger,
 		store:          store,
 		workflowClient: workflowClient,
-		config: ClusterCreatorConfig{
-			PipelineExternalURL:         pipelineExternalURL,
-			PipelineExternalURLInsecure: pipelineExternalURLInsecure,
-			OIDCIssuerURL:               oidcIssuerURL,
-		},
+		config:         config,
 	}
 }
 
@@ -72,9 +68,18 @@ type AzurePKEClusterCreator struct {
 
 // ClusterCreatorConfig defines ClusterCreator configuration
 type ClusterCreatorConfig struct {
+	OIDCIssuerURL               string
 	PipelineExternalURL         string
 	PipelineExternalURLInsecure bool
-	OIDCIssuerURL               string
+}
+
+// MakeClusterCreatorConfig returns a new ClusterCreatorConfig
+func MakeClusterCreatorConfig(pipelineExternalURL string, pipelineExternalURLInsecure bool, oidcIssuerURL string) ClusterCreatorConfig {
+	return ClusterCreatorConfig{
+		OIDCIssuerURL:               oidcIssuerURL,
+		PipelineExternalURL:         pipelineExternalURL,
+		PipelineExternalURLInsecure: pipelineExternalURLInsecure,
+	}
 }
 
 type VirtualNetwork struct {
