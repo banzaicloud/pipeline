@@ -13,12 +13,12 @@ package anchore
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -31,9 +31,9 @@ type ImagesApiService service
 
 // AddImageOpts Optional parameters for the method 'AddImage'
 type AddImageOpts struct {
-	Force           optional.Bool
-	Autosubscribe   optional.Bool
-	XAnchoreAccount optional.String
+    Force optional.Bool
+    Autosubscribe optional.Bool
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -150,8 +150,8 @@ func (a *ImagesApiService) AddImage(ctx _context.Context, image ImageAnalysisReq
 
 // DeleteImageOpts Optional parameters for the method 'DeleteImage'
 type DeleteImageOpts struct {
-	Force           optional.Bool
-	XAnchoreAccount optional.String
+    Force optional.Bool
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -159,7 +159,7 @@ DeleteImage Delete an image analysis
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param imageDigest
  * @param optional nil or *DeleteImageOpts - Optional Parameters:
- * @param "Force" (optional.Bool) -
+ * @param "Force" (optional.Bool) - 
  * @param "XAnchoreAccount" (optional.String) -  An account name to change the resource scope of the request to that account, if permissions allow (admin only)
 */
 func (a *ImagesApiService) DeleteImage(ctx _context.Context, imageDigest string, localVarOptionals *DeleteImageOpts) (*_nethttp.Response, error) {
@@ -231,8 +231,8 @@ func (a *ImagesApiService) DeleteImage(ctx _context.Context, imageDigest string,
 
 // DeleteImageByImageIdOpts Optional parameters for the method 'DeleteImageByImageId'
 type DeleteImageByImageIdOpts struct {
-	Force           optional.Bool
-	XAnchoreAccount optional.String
+    Force optional.Bool
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -240,7 +240,7 @@ DeleteImageByImageId Delete image by docker imageId
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param imageId
  * @param optional nil or *DeleteImageByImageIdOpts - Optional Parameters:
- * @param "Force" (optional.Bool) -
+ * @param "Force" (optional.Bool) - 
  * @param "XAnchoreAccount" (optional.String) -  An account name to change the resource scope of the request to that account, if permissions allow (admin only)
 */
 func (a *ImagesApiService) DeleteImageByImageId(ctx _context.Context, imageId string, localVarOptionals *DeleteImageByImageIdOpts) (*_nethttp.Response, error) {
@@ -322,7 +322,7 @@ func (a *ImagesApiService) DeleteImageByImageId(ctx _context.Context, imageId st
 
 // GetImageOpts Optional parameters for the method 'GetImage'
 type GetImageOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -429,7 +429,7 @@ func (a *ImagesApiService) GetImage(ctx _context.Context, imageDigest string, lo
 
 // GetImageByImageIdOpts Optional parameters for the method 'GetImageByImageId'
 type GetImageByImageIdOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -536,7 +536,7 @@ func (a *ImagesApiService) GetImageByImageId(ctx _context.Context, imageId strin
 
 // GetImageContentByTypeOpts Optional parameters for the method 'GetImageContentByType'
 type GetImageContentByTypeOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -645,7 +645,7 @@ func (a *ImagesApiService) GetImageContentByType(ctx _context.Context, imageDige
 
 // GetImageContentByTypeFilesOpts Optional parameters for the method 'GetImageContentByTypeFiles'
 type GetImageContentByTypeFilesOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -752,7 +752,7 @@ func (a *ImagesApiService) GetImageContentByTypeFiles(ctx _context.Context, imag
 
 // GetImageContentByTypeImageIdOpts Optional parameters for the method 'GetImageContentByTypeImageId'
 type GetImageContentByTypeImageIdOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -861,7 +861,7 @@ func (a *ImagesApiService) GetImageContentByTypeImageId(ctx _context.Context, im
 
 // GetImageContentByTypeImageIdFilesOpts Optional parameters for the method 'GetImageContentByTypeImageIdFiles'
 type GetImageContentByTypeImageIdFilesOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -968,7 +968,7 @@ func (a *ImagesApiService) GetImageContentByTypeImageIdFiles(ctx _context.Contex
 
 // GetImageContentByTypeImageIdJavapackageOpts Optional parameters for the method 'GetImageContentByTypeImageIdJavapackage'
 type GetImageContentByTypeImageIdJavapackageOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1075,7 +1075,7 @@ func (a *ImagesApiService) GetImageContentByTypeImageIdJavapackage(ctx _context.
 
 // GetImageContentByTypeJavapackageOpts Optional parameters for the method 'GetImageContentByTypeJavapackage'
 type GetImageContentByTypeJavapackageOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1182,7 +1182,7 @@ func (a *ImagesApiService) GetImageContentByTypeJavapackage(ctx _context.Context
 
 // GetImageMetadataByTypeOpts Optional parameters for the method 'GetImageMetadataByType'
 type GetImageMetadataByTypeOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1291,11 +1291,11 @@ func (a *ImagesApiService) GetImageMetadataByType(ctx _context.Context, imageDig
 
 // GetImagePolicyCheckOpts Optional parameters for the method 'GetImagePolicyCheck'
 type GetImagePolicyCheckOpts struct {
-	PolicyId        optional.String
-	Detail          optional.Bool
-	History         optional.Bool
-	Interactive     optional.Bool
-	XAnchoreAccount optional.String
+    PolicyId optional.String
+    Detail optional.Bool
+    History optional.Bool
+    Interactive optional.Bool
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1305,10 +1305,10 @@ Get the policy evaluation for the given image
  * @param imageDigest
  * @param tag
  * @param optional nil or *GetImagePolicyCheckOpts - Optional Parameters:
- * @param "PolicyId" (optional.String) -
- * @param "Detail" (optional.Bool) -
- * @param "History" (optional.Bool) -
- * @param "Interactive" (optional.Bool) -
+ * @param "PolicyId" (optional.String) - 
+ * @param "Detail" (optional.Bool) - 
+ * @param "History" (optional.Bool) - 
+ * @param "Interactive" (optional.Bool) - 
  * @param "XAnchoreAccount" (optional.String) -  An account name to change the resource scope of the request to that account, if permissions allow (admin only)
 @return []map[string]interface{}
 */
@@ -1421,10 +1421,10 @@ func (a *ImagesApiService) GetImagePolicyCheck(ctx _context.Context, imageDigest
 
 // GetImagePolicyCheckByImageIdOpts Optional parameters for the method 'GetImagePolicyCheckByImageId'
 type GetImagePolicyCheckByImageIdOpts struct {
-	PolicyId        optional.String
-	Detail          optional.Bool
-	History         optional.Bool
-	XAnchoreAccount optional.String
+    PolicyId optional.String
+    Detail optional.Bool
+    History optional.Bool
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1434,9 +1434,9 @@ Get the policy evaluation for the given image
  * @param imageId
  * @param tag
  * @param optional nil or *GetImagePolicyCheckByImageIdOpts - Optional Parameters:
- * @param "PolicyId" (optional.String) -
- * @param "Detail" (optional.Bool) -
- * @param "History" (optional.Bool) -
+ * @param "PolicyId" (optional.String) - 
+ * @param "Detail" (optional.Bool) - 
+ * @param "History" (optional.Bool) - 
  * @param "XAnchoreAccount" (optional.String) -  An account name to change the resource scope of the request to that account, if permissions allow (admin only)
 @return []map[string]interface{}
 */
@@ -1546,9 +1546,9 @@ func (a *ImagesApiService) GetImagePolicyCheckByImageId(ctx _context.Context, im
 
 // GetImageVulnerabilitiesByTypeOpts Optional parameters for the method 'GetImageVulnerabilitiesByType'
 type GetImageVulnerabilitiesByTypeOpts struct {
-	ForceRefresh    optional.Bool
-	VendorOnly      optional.Bool
-	XAnchoreAccount optional.String
+    ForceRefresh optional.Bool
+    VendorOnly optional.Bool
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1557,8 +1557,8 @@ GetImageVulnerabilitiesByType Get vulnerabilities by type
  * @param imageDigest
  * @param vtype
  * @param optional nil or *GetImageVulnerabilitiesByTypeOpts - Optional Parameters:
- * @param "ForceRefresh" (optional.Bool) -
- * @param "VendorOnly" (optional.Bool) -
+ * @param "ForceRefresh" (optional.Bool) - 
+ * @param "VendorOnly" (optional.Bool) - 
  * @param "XAnchoreAccount" (optional.String) -  An account name to change the resource scope of the request to that account, if permissions allow (admin only)
 @return VulnerabilityResponse
 */
@@ -1665,7 +1665,7 @@ func (a *ImagesApiService) GetImageVulnerabilitiesByType(ctx _context.Context, i
 
 // GetImageVulnerabilitiesByTypeImageIdOpts Optional parameters for the method 'GetImageVulnerabilitiesByTypeImageId'
 type GetImageVulnerabilitiesByTypeImageIdOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1774,7 +1774,7 @@ func (a *ImagesApiService) GetImageVulnerabilitiesByTypeImageId(ctx _context.Con
 
 // GetImageVulnerabilityTypesOpts Optional parameters for the method 'GetImageVulnerabilityTypes'
 type GetImageVulnerabilityTypesOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1881,7 +1881,7 @@ func (a *ImagesApiService) GetImageVulnerabilityTypes(ctx _context.Context, imag
 
 // GetImageVulnerabilityTypesByImageIdOpts Optional parameters for the method 'GetImageVulnerabilityTypesByImageId'
 type GetImageVulnerabilityTypesByImageIdOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -1988,7 +1988,7 @@ func (a *ImagesApiService) GetImageVulnerabilityTypesByImageId(ctx _context.Cont
 
 // ListImageContentOpts Optional parameters for the method 'ListImageContent'
 type ListImageContentOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -2095,7 +2095,7 @@ func (a *ImagesApiService) ListImageContent(ctx _context.Context, imageDigest st
 
 // ListImageContentByImageidOpts Optional parameters for the method 'ListImageContentByImageid'
 type ListImageContentByImageidOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -2202,7 +2202,7 @@ func (a *ImagesApiService) ListImageContentByImageid(ctx _context.Context, image
 
 // ListImageMetadataOpts Optional parameters for the method 'ListImageMetadata'
 type ListImageMetadataOpts struct {
-	XAnchoreAccount optional.String
+    XAnchoreAccount optional.String
 }
 
 /*
@@ -2309,10 +2309,10 @@ func (a *ImagesApiService) ListImageMetadata(ctx _context.Context, imageDigest s
 
 // ListImagesOpts Optional parameters for the method 'ListImages'
 type ListImagesOpts struct {
-	History         optional.Bool
-	Fulltag         optional.String
-	XAnchoreAccount optional.String
-	ImageToGet      optional.Interface
+    History optional.Bool
+    Fulltag optional.String
+    XAnchoreAccount optional.String
+    ImageToGet optional.Interface
 }
 
 /*
@@ -2323,7 +2323,7 @@ List all images visible to the user
  * @param "History" (optional.Bool) -  Include image history in the response
  * @param "Fulltag" (optional.String) -  Full docker-pull string to filter results by (e.g. docker.io/library/nginx:latest, or myhost.com:5000/testimages:v1.1.1)
  * @param "XAnchoreAccount" (optional.String) -  An account name to change the resource scope of the request to that account, if permissions allow (admin only)
- * @param "ImageToGet" (optional.Interface of ImageFilter) -
+ * @param "ImageToGet" (optional.Interface of ImageFilter) - 
 @return []AnchoreImage
 */
 func (a *ImagesApiService) ListImages(ctx _context.Context, localVarOptionals *ListImagesOpts) ([]AnchoreImage, *_nethttp.Response, error) {

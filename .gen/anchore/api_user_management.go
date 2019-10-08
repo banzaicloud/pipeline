@@ -13,12 +13,12 @@ package anchore
 
 import (
 	_context "context"
-	"fmt"
-	"github.com/antihax/optional"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
+	"fmt"
 	"strings"
+	"github.com/antihax/optional"
 )
 
 // Linger please
@@ -761,7 +761,7 @@ func (a *UserManagementApiService) GetAccountUser(ctx _context.Context, accountn
 
 // ListAccountsOpts Optional parameters for the method 'ListAccounts'
 type ListAccountsOpts struct {
-	State optional.String
+    State optional.String
 }
 
 /*

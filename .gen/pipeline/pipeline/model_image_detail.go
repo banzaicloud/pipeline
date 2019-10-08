@@ -1,7 +1,7 @@
 /*
  * Pipeline API
  *
- * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments.
+ * Pipeline is a feature rich application platform, built for containers on top of Kubernetes to automate the DevOps experience, continuous application development and the lifecycle of deployments. 
  *
  * API version: latest
  * Contact: info@banzaicloud.com
@@ -16,6 +16,7 @@ import (
 
 // ImageDetail - A metadata detail record for a specific image. Multiple detail records may map a single catalog image.
 type ImageDetail struct {
+
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 
 	LastUpdated time.Time `json:"lastUpdated,omitempty"`
