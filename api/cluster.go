@@ -66,7 +66,7 @@ type ClusterAPI struct {
 }
 
 type ClusterCreators struct {
-	PKEOnAzure driver.AzurePKEClusterCreator
+	PKEOnAzure driver.ClusterCreator
 }
 
 type ClusterDeleters struct {

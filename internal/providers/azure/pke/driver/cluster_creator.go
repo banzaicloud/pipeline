@@ -45,8 +45,8 @@ import (
 const pkeVersion = "0.4.14"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
-func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, config ClusterCreatorConfig) AzurePKEClusterCreator {
-	return AzurePKEClusterCreator{
+func MakeClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, config ClusterCreatorConfig) ClusterCreator {
+	return ClusterCreator{
 		logger:         logger,
 		store:          store,
 		workflowClient: workflowClient,
@@ -54,8 +54,8 @@ func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClu
 	}
 }
 
-// AzurePKEClusterCreator creates new PKE-on-Azure clusters
-type AzurePKEClusterCreator struct {
+// ClusterCreator creates new PKE-on-Azure clusters
+type ClusterCreator struct {
 	logger         logrus.FieldLogger
 	store          pke.AzurePKEClusterStore
 	workflowClient client.Client
@@ -147,7 +147,7 @@ type AzurePKEClusterCreationParams struct {
 }
 
 // Create
-func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
+func (cc ClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
 	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return
@@ -388,7 +388,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	return
 }
 
-func (cc AzurePKEClusterCreator) handleError(clusterID uint, err error) error {
+func (cc ClusterCreator) handleError(clusterID uint, err error) error {
 	return handleClusterError(cc.logger, cc.store, pkgCluster.Error, clusterID, err)
 }
 

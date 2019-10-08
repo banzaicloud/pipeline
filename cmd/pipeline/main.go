@@ -365,7 +365,7 @@ func main() {
 
 	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
 	clusterCreators := api.ClusterCreators{
-		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
+		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
 			logrusLogger,
 			gormAzurePKEClusterStore,
 			workflowClient,
