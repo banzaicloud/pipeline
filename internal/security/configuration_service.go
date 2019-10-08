@@ -42,6 +42,10 @@ type configurationService struct {
 
 // NewConfigurationService create a new configuration service instance
 func NewConfigurationService(defaultCfg Config, featureAdapter FeatureAdapter, log common.Logger) ConfigurationService {
+	if !defaultCfg.ApiEnabled {
+		log.Warn("security scan api is not enabled!")
+	}
+
 	return configurationService{
 		defaultConfig:  defaultCfg,
 		featureAdapter: featureAdapter,
@@ -52,19 +56,26 @@ func NewConfigurationService(defaultCfg Config, featureAdapter FeatureAdapter, l
 func (c configurationService) GetConfiguration(ctx context.Context, clusterID uint) (Config, error) {
 	fnLog := c.logger.WithFields(map[string]interface{}{"clusterID": clusterID, "feature": securityScanFeatureName})
 
-	featureEnabled, err := c.featureAdapter.Enabled(ctx, clusterID, securityScanFeatureName)
-	if err != nil {
-		fnLog.Debug("failed to check feature")
+	if !c.defaultConfig.ApiEnabled {
+		c.logger.Warn("security scan api is disabled")
 
-		return Config{}, errors.WrapIf(err, "failed to check whether feature is enable")
+		return Config{}, errors.NewPlain("security scan api is disabled")
+	}
+
+	featureEnabled, err := c.featureAdapter.IsActive(ctx, clusterID, securityScanFeatureName)
+	if err != nil {
+		fnLog.Debug("failed to check if feature is activated")
+
+		return Config{}, errors.WrapIf(err, "failed to check if feature is activated")
 	}
 
 	if !featureEnabled {
-		fnLog.Info("feature not enabled, falling back to the default config")
+		fnLog.Info("feature is not active , falling back to the default config")
 
-		return c.defaultConfig, nil
+		return c.handleDefault()
 	}
 
+	// looking for custom anchore config
 	featureConfig, err := c.featureAdapter.GetFeatureConfig(ctx, clusterID, securityScanFeatureName)
 	if err != nil {
 		fnLog.Debug("failed to retrieve feature config")
@@ -72,18 +83,36 @@ func (c configurationService) GetConfiguration(ctx context.Context, clusterID ui
 		return Config{}, errors.WrapIf(err, "failed to retrieve feature config")
 	}
 
-	if featureConfig == nil {
-		return c.defaultConfig, nil
+	if !featureConfig.Enabled {
+		fnLog.Debug("feature config not enabled, falling back to defaults")
+
+		return c.handleDefault()
 	}
 
 	fnLog.Info("feature enabled, return config from feature")
-	return *featureConfig, nil
+	return featureConfig, nil
 }
 
+func (c configurationService) handleDefault() (Config, error) {
+	if !c.defaultConfig.Enabled {
+		c.logger.Debug("no default configuration found for feature")
+
+		return Config{}, errors.NewPlain("no default configuration found for feature")
+	}
+
+	return c.defaultConfig, nil
+}
+
+//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name FeatureAdapter -inpkg || true"
 // FeatureAdapter decouples feature specifics from the configuration service
 type FeatureAdapter interface {
-	Enabled(ctx context.Context, clusterID uint, featureName string) (bool, error)
-	GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (*Config, error)
+	IsActive(ctx context.Context, clusterID uint, featureName string) (bool, error)
+	GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (Config, error)
+}
+
+type featureAdapter struct {
+	featureRepository clusterfeature.FeatureRepository
+	logger            common.Logger
 }
 
 func NewFeatureAdapter(featureRepo clusterfeature.FeatureRepository, logger common.Logger) FeatureAdapter {
@@ -93,12 +122,7 @@ func NewFeatureAdapter(featureRepo clusterfeature.FeatureRepository, logger comm
 	}
 }
 
-type featureAdapter struct {
-	logger            common.Logger
-	featureRepository clusterfeature.FeatureRepository
-}
-
-func (f featureAdapter) Enabled(ctx context.Context, clusterID uint, featureName string) (bool, error) {
+func (f featureAdapter) IsActive(ctx context.Context, clusterID uint, featureName string) (bool, error) {
 	feature, err := f.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
 		return false, errors.WrapIf(err, "failed to retrieve feature")
@@ -107,7 +131,7 @@ func (f featureAdapter) Enabled(ctx context.Context, clusterID uint, featureName
 	return feature.Status == clusterfeature.FeatureStatusActive, nil
 }
 
-func (f featureAdapter) GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (*Config, error) {
+func (f featureAdapter) GetFeatureConfig(ctx context.Context, clusterID uint, featureName string) (Config, error) {
 
 	fnCtx := map[string]interface{}{"clusterID": clusterID, "feature": featureName}
 	// add method context to the logger
@@ -117,23 +141,23 @@ func (f featureAdapter) GetFeatureConfig(ctx context.Context, clusterID uint, fe
 	if err != nil {
 		f.logger.Debug("failed to retrieve feature config", fnCtx)
 
-		return nil, errors.WrapIf(err, "failed to retrieve feature")
+		return Config{}, errors.WrapIf(err, "failed to retrieve feature")
 	}
 
 	customAnchore, ok := feature.Spec["customAnchore"]
 	if !ok || customAnchore == nil {
 		f.logger.Debug("the feature has no custom anchore config", fnCtx)
 
-		return nil, errors.WrapIf(err, "the feature has no custom anchore config")
+		return Config{}, errors.WrapIf(err, "the feature has no custom anchore config")
 	}
 
 	var retConfig Config
 	if err := mapstructure.Decode(&customAnchore, &retConfig); err != nil {
 		f.logger.Debug("failed to decode custom anchore config", fnCtx)
 
-		return nil, errors.WrapIf(err, "failed to decode custom anchore config")
+		return Config{}, errors.WrapIf(err, "failed to decode custom anchore config")
 	}
 
 	f.logger.Info("feature config retrieved", fnCtx)
-	return &retConfig, nil
+	return retConfig, nil
 }

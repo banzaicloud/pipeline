@@ -217,7 +217,7 @@ func (a anchoreService) createUserSecret(ctx context.Context, orgID uint, cluste
 }
 
 func (a anchoreService) ensureAccount(ctx context.Context, client AnchoreClient, accountName string) error {
-	// ignoreing the error, trying to create an account if this call failss
+	// ignoring the error, trying to create an account if this call failss
 	acc, _ := client.GetAccount(ctx, accountName)
 	if acc != "" {
 		a.logger.Debug("account already exists")
