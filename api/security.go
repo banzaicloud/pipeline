@@ -32,7 +32,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 
+	apiCommon "github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/helm"
+	internalCommon "github.com/banzaicloud/pipeline/internal/common"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -614,5 +616,132 @@ func SecurityScanEnabled(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"enabled": false,
 	})
+	return
+}
+
+// SecurityHandler defines security related handler functions intended to be used for defining routes
+type SecurityHandler interface {
+	WhitelistHandler
+	//PolicyHandler
+}
+
+type WhitelistHandler interface {
+	GetWhiteLists(c *gin.Context)
+	CreateWhiteList(c *gin.Context)
+	DeleteWhiteList(c *gin.Context)
+}
+
+type PolicyHandler interface {
+	GetPolicies(c *gin.Context)
+	CreatePolicy(c *gin.Context)
+	DeletePolicy(c *gin.Context)
+}
+
+type securityHandlers struct {
+	logger           internalCommon.Logger
+	clusterGetter    apiCommon.ClusterGetter
+	whitelistService anchore.WhitelistService
+}
+
+func NewSecurityHandler(
+	clusterGetter apiCommon.ClusterGetter,
+	whitelistService anchore.WhitelistService,
+	logger internalCommon.Logger) SecurityHandler {
+
+	return securityHandlers{
+		clusterGetter:    clusterGetter,
+		whitelistService: whitelistService,
+		logger:           logger,
+	}
+}
+
+func (s securityHandlers) GetWhiteLists(c *gin.Context) {
+
+	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
+	if !ok {
+		// todo handle the response? this case is not consistently handled accross the code
+		return
+	}
+
+	whitelist, err := s.whitelistService.GetWhitelists(c.Request.Context(), cluster.GetID())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error while retrieving whitelists",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	s.successResponse(c, whitelist)
+}
+
+func (s securityHandlers) CreateWhiteList(c *gin.Context) {
+	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
+	if !ok {
+		// todo handle the response? this case is not consistently handled accross the code
+		return
+	}
+
+	var whiteListItem *security.ReleaseWhiteListItem
+	err := c.BindJSON(&whiteListItem)
+	if err != nil {
+		err := errors.Wrap(err, "Error parsing request:")
+		log.Error(err.Error())
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "Error during parsing request!",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	whitelist, err := s.whitelistService.CreateWhitelist(c.Request.Context(), cluster.GetID(), whiteListItem)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error while creating whitelist",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	s.successResponse(c, whitelist)
+}
+
+func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
+
+	whitelisItemtName := c.Param("name")
+	if whitelisItemtName == "" {
+		c.JSON(http.StatusBadRequest, common.ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: "WhiteList name is required!",
+			Error:   "WhiteList name is required!",
+		})
+		return
+	}
+
+	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
+	if !ok {
+		// todo handle the response? this case is not consistently handled across the code
+		return
+	}
+
+	deleted, err := s.whitelistService.DeleteWhitelist(c.Request.Context(), cluster.GetID(), whitelisItemtName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "Error while deleting whitelist",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	// todo set the status to no content (api break?)
+	s.successResponse(c, deleted)
+}
+
+func (i securityHandlers) successResponse(ginCtx *gin.Context, payload interface{}) {
+	ginCtx.JSON(http.StatusOK, payload)
 	return
 }

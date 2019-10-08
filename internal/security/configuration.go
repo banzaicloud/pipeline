@@ -47,7 +47,7 @@ func (cfg Config) Validate() error {
 	}
 
 	if cfg.AdminUser == "" || cfg.AdminPass == "" {
-		return errors.New("Both ausername and password values are mandatory")
+		return errors.New("Both username and password values are mandatory")
 	}
 
 	return nil

@@ -628,11 +628,18 @@ func main() {
 					imgScanSvc := anchore.NewImageScannerService(cfgSvc, secretStore, logger)
 					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
 
+					// todo organize packages (extract security related code from features)
+					featureClusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
+					whitelistService := anchore.NewSecurityResourceService(featureClusterGetter, logger)
+					securityHandler := api.NewSecurityHandler(clusterGetter, whitelistService, logger)
+
 					cRouter.GET("/scanlog", api.GetScanLog)
 					cRouter.GET("/scanlog/:releaseName", api.GetScanLog)
-					cRouter.GET("/whitelists", api.GetWhiteLists)
-					cRouter.POST("/whitelists", api.CreateWhiteList)
-					cRouter.DELETE("/whitelists/:name", api.DeleteWhiteList)
+
+					cRouter.GET("/whitelists", securityHandler.GetWhiteLists)
+					cRouter.POST("/whitelists", securityHandler.CreateWhiteList)
+					cRouter.DELETE("/whitelists/:name", securityHandler.DeleteWhiteList)
+
 					cRouter.GET("/policies", api.GetPolicies)
 					cRouter.GET("/policies/:policyId", api.GetPolicies)
 					cRouter.POST("/policies", api.CreatePolicy)
