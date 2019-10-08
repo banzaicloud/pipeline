@@ -183,7 +183,7 @@ func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 				}
 			}
 		}
-		params := req.ToAzurePKEClusterCreationParams(orgID, userID)
+		params := req.ToClusterCreationParams(orgID, userID)
 		azurePKECluster, err := a.clusterCreators.PKEOnAzure.Create(ctx, params)
 		if err = emperror.Wrap(err, "failed to create cluster from request"); err != nil {
 			a.handleCreationError(c, err)

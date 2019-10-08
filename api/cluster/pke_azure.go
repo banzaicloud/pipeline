@@ -27,7 +27,7 @@ const PKEOnAzure = pke.PKEOnAzure
 
 type CreatePKEOnAzureClusterRequest pipeline.CreatePkeOnAzureClusterRequest
 
-func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organizationID, userID uint) driver.AzurePKEClusterCreationParams {
+func (req CreatePKEOnAzureClusterRequest) ToClusterCreationParams(organizationID, userID uint) driver.ClusterCreationParams {
 	features := make([]intCluster.Feature, len(req.Features))
 	for i, f := range req.Features {
 		features[i] = intCluster.Feature{
@@ -36,7 +36,7 @@ func (req CreatePKEOnAzureClusterRequest) ToAzurePKEClusterCreationParams(organi
 		}
 	}
 
-	return driver.AzurePKEClusterCreationParams{
+	return driver.ClusterCreationParams{
 		Name:           req.Name,
 		OrganizationID: organizationID,
 		CreatedBy:      userID,

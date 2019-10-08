@@ -40,7 +40,7 @@ const (
 	RBAC          = false
 )
 
-func TestToAzurePKEClusterCreationParams(t *testing.T) {
+func TestCreatePKEOnAzureClusterRequest_ToClusterCreationParams(t *testing.T) {
 	var (
 		Azuresubnet = pipeline.PkeOnAzureNodePoolSubnet{
 			Name: "test-subnet",
@@ -86,12 +86,12 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 	var conversionTest = []struct {
 		Name string
 		in   CreatePKEOnAzureClusterRequest
-		out  driver.AzurePKEClusterCreationParams
+		out  driver.ClusterCreationParams
 	}{
 		{
 			Name: "EmptyRequest",
 			in:   CreatePKEOnAzureClusterRequest{},
-			out: driver.AzurePKEClusterCreationParams{
+			out: driver.ClusterCreationParams{
 				OrganizationID: orgID,
 				CreatedBy:      userID,
 				Features:       []intCluster.Feature{},
@@ -119,7 +119,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				},
 				Network: Azurenetwork,
 			},
-			out: driver.AzurePKEClusterCreationParams{
+			out: driver.ClusterCreationParams{
 				CreatedBy: userID,
 				Features:  []intCluster.Feature{},
 				Kubernetes: pke.Kubernetes{
@@ -179,7 +179,7 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 	}
 	for _, tt := range conversionTest {
 		t.Run(tt.Name, func(t *testing.T) {
-			out := tt.in.ToAzurePKEClusterCreationParams(orgID, userID)
+			out := tt.in.ToClusterCreationParams(orgID, userID)
 			assert.Equal(t, tt.out, out)
 		})
 	}

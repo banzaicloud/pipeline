@@ -130,8 +130,8 @@ type Subnet struct {
 	CIDR string
 }
 
-// AzurePKEClusterCreationParams defines parameters for PKE-on-Azure cluster creation
-type AzurePKEClusterCreationParams struct {
+// ClusterCreationParams defines parameters for PKE-on-Azure cluster creation
+type ClusterCreationParams struct {
 	CreatedBy      uint
 	Features       []intCluster.Feature
 	Kubernetes     intPKE.Kubernetes
@@ -147,7 +147,7 @@ type AzurePKEClusterCreationParams struct {
 }
 
 // Create
-func (cc ClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
+func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
 	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return
@@ -158,7 +158,7 @@ func (cc ClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreat
 		return
 	}
 
-	if err = MakeAzurePKEClusterCreationParamsPreparer(conn, cc.logger).Prepare(ctx, &params); err != nil {
+	if err = MakeClusterCreationParamsPreparer(conn, cc.logger).Prepare(ctx, &params); err != nil {
 		return
 	}
 
@@ -392,24 +392,24 @@ func (cc ClusterCreator) handleError(clusterID uint, err error) error {
 	return handleClusterError(cc.logger, cc.store, pkgCluster.Error, clusterID, err)
 }
 
-// AzurePKEClusterCreationParamsPreparer implements AzurePKEClusterCreationParams preparation
-type AzurePKEClusterCreationParamsPreparer struct {
+// ClusterCreationParamsPreparer implements ClusterCreationParams preparation
+type ClusterCreationParamsPreparer struct {
 	connection  *pkgAzure.CloudConnection
 	k8sPreparer intPKE.KubernetesPreparer
 	logger      logrus.FieldLogger
 }
 
-// MakeAzurePKEClusterCreationParamsPreparer returns an instance of AzurePKEClusterCreationParamsPreparer
-func MakeAzurePKEClusterCreationParamsPreparer(connection *pkgAzure.CloudConnection, logger logrus.FieldLogger) AzurePKEClusterCreationParamsPreparer {
-	return AzurePKEClusterCreationParamsPreparer{
+// MakeClusterCreationParamsPreparer returns an instance of ClusterCreationParamsPreparer
+func MakeClusterCreationParamsPreparer(connection *pkgAzure.CloudConnection, logger logrus.FieldLogger) ClusterCreationParamsPreparer {
+	return ClusterCreationParamsPreparer{
 		connection:  connection,
 		k8sPreparer: intPKE.MakeKubernetesPreparer(logger, "Kubernetes"),
 		logger:      logger,
 	}
 }
 
-// Prepare validates and provides defaults for AzurePKEClusterCreationParams fields
-func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, params *AzurePKEClusterCreationParams) error {
+// Prepare validates and provides defaults for ClusterCreationParams fields
+func (p ClusterCreationParamsPreparer) Prepare(ctx context.Context, params *ClusterCreationParams) error {
 	if params.Name == "" {
 		return validationErrorf("Name cannot be empty")
 	}
@@ -453,7 +453,7 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 	return nil
 }
 
-func (p AzurePKEClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *pkgAzure.CloudConnection, clusterName, resourceGroupName string) VirtualNetworkPreparer {
+func (p ClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *pkgAzure.CloudConnection, clusterName, resourceGroupName string) VirtualNetworkPreparer {
 	return VirtualNetworkPreparer{
 		clusterName:       clusterName,
 		connection:        cloudConnection,
@@ -463,7 +463,7 @@ func (p AzurePKEClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *
 	}
 }
 
-func (p AzurePKEClusterCreationParamsPreparer) getNodePoolsPreparer(dataProvider nodePoolsDataProvider) NodePoolsPreparer {
+func (p ClusterCreationParamsPreparer) getNodePoolsPreparer(dataProvider nodePoolsDataProvider) NodePoolsPreparer {
 	return NodePoolsPreparer{
 		logger:       p.logger,
 		namespace:    "NodePools",
