@@ -17,6 +17,7 @@ package audit
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -26,9 +27,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/auth"
+	intCommon "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
@@ -40,7 +41,7 @@ func LogWriter(
 	skipPaths []string,
 	whitelistedHeaders []string,
 	db *gorm.DB,
-	logger logrus.FieldLogger,
+	logger intCommon.Logger,
 ) gin.HandlerFunc {
 	skip := map[string]struct{}{}
 
@@ -63,7 +64,7 @@ func LogWriter(
 
 		if _, err := io.Copy(bodyBuffer, c.Request.Body); err != nil {
 			_ = c.AbortWithError(http.StatusInternalServerError, err)
-			logger.Errorf("audit: failed to copy body: %v", err)
+			logger.Error(fmt.Sprint("audit: failed to copy body: %v", err))
 
 			return
 		}
@@ -98,7 +99,7 @@ func LogWriter(
 						Message: "Error during binding",
 						Error:   err.Error(),
 					})
-					logger.Errorln(err)
+					logger.Error(err.Error())
 
 					return
 				}
@@ -117,7 +118,7 @@ func LogWriter(
 						Message: "Error during binding",
 						Error:   err.Error(),
 					})
-					logger.Errorln(err)
+					logger.Error(err.Error())
 
 					return
 				}
@@ -157,7 +158,7 @@ func LogWriter(
 		headers, err := json.Marshal(filteredHeaders)
 		if err != nil {
 			_ = c.AbortWithError(http.StatusInternalServerError, err)
-			logger.Errorf("audit: failed to marshal headers: %v", err)
+			logger.Error(fmt.Sprintf("audit: failed to marshal headers: %v", err))
 
 			return
 		}
@@ -176,7 +177,7 @@ func LogWriter(
 
 		if err := db.Save(&event).Error; err != nil {
 			_ = c.AbortWithError(http.StatusInternalServerError, err)
-			logger.Errorf("audit: failed to write request to db: %v", err)
+			logger.Error(fmt.Sprintf("audit: failed to write request to db: %v", err))
 
 			return
 		}
@@ -197,7 +198,7 @@ func LogWriter(
 
 		if c.IsAborted() {
 			if marshalled, err := json.Marshal(c.Errors); err != nil {
-				logger.Errorf("audit: failed to marshal c.Errors: %v", err)
+				logger.Error(fmt.Sprintf("audit: failed to marshal c.Errors: %v", err))
 			} else {
 				errors := string(marshalled)
 				responseEvent.Errors = &errors
@@ -205,7 +206,7 @@ func LogWriter(
 		}
 
 		if err := db.Model(&event).Updates(responseEvent).Error; err != nil {
-			logger.Errorf("audit: failed to write response details: %v", err)
+			logger.Error(fmt.Sprintf("audit: failed to write response details: %v", err))
 		}
 	}
 }

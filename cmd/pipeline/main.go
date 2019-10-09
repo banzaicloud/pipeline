@@ -43,10 +43,8 @@ import (
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 	"github.com/sagikazarmark/ocmux"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/api"
 	"github.com/banzaicloud/pipeline/api/ark/backups"
@@ -89,6 +87,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
 	"github.com/banzaicloud/pipeline/internal/clustergroup/deployment"
+	intCommon "github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/dashboard"
 	"github.com/banzaicloud/pipeline/internal/federation"
@@ -437,8 +436,8 @@ func main() {
 	router.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
 	router.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
-		logger.Info("Audit enabled, installing Gin audit middleware")
-		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
+		commonLogger.Info("Audit enabled, installing Gin audit middleware")
+		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, commonLogger))
 	}
 	router.Use(func(c *gin.Context) { // TODO: move to middleware
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
@@ -830,7 +829,7 @@ func main() {
 	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
 
-	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
+	go createInternalAPIRouter(skipPaths, db, basePath, clusterAPI, commonLogger).Run(internalBindAddr) // nolint: errcheck
 
 	bindAddr := viper.GetString("pipeline.bindaddr")
 	if port := viper.GetInt("pipeline.listenport"); port != 0 { // TODO: remove deprecated option
@@ -852,15 +851,15 @@ func main() {
 	}
 }
 
-func createInternalAPIRouter(skipPaths []string, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI, logger logur.Logger, logrusLogger logrus.FieldLogger) *gin.Engine {
+func createInternalAPIRouter(skipPaths []string, db *gorm.DB, basePath string, clusterAPI *api.ClusterAPI, logger intCommon.Logger) *gin.Engine {
 	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
-	internalRouter.Use(ginlog.Middleware(commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{}), skipPaths...))
+	internalRouter.Use(ginlog.Middleware(logger, skipPaths...))
 	internalRouter.Use(gin.Recovery())
 	if viper.GetBool("audit.enabled") {
 		logger.Info("Audit enabled, installing Gin audit middleware to internal router")
-		internalRouter.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
+		internalRouter.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logger))
 	}
 	internalGroup := internalRouter.Group(path.Join(basePath, "api", "v1/", "orgs"))
 	internalGroup.Use(auth.InternalUserHandler)
