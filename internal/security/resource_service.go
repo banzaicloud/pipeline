@@ -37,7 +37,7 @@ type SecurityResourceService interface {
 
 // WhitelistService whitelist management operations
 type WhitelistService interface {
-	GetWhitelists(ctx context.Context, cluster Cluster) (interface{}, error)
+	GetWhitelists(ctx context.Context, cluster Cluster) ([]securityV1Alpha.WhiteListItem, error)
 	CreateWhitelist(ctx context.Context, cluster Cluster, whitelistItem security.ReleaseWhiteListItem) (interface{}, error)
 	DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) error
 }
@@ -58,7 +58,7 @@ func NewSecurityResourceService(logger common.Logger) SecurityResourceService {
 	}
 }
 
-func (s securityResourceService) GetWhitelists(ctx context.Context, cluster Cluster) (interface{}, error) {
+func (s securityResourceService) GetWhitelists(ctx context.Context, cluster Cluster) ([]securityV1Alpha.WhiteListItem, error) {
 	logCtx := map[string]interface{}{"clusterID": cluster.GetID()}
 	s.logger.Info("retrieving whitelist ...", logCtx)
 
@@ -155,6 +155,7 @@ func (wls securityResourceService) assembleWhiteListItem(whitelistItem security.
 		Spec: securityV1Alpha.WhiteListSpec{
 			Creator: whitelistItem.Owner,
 			Reason:  whitelistItem.Reason,
+			Regexp:  whitelistItem.Regexp,
 		},
 	}
 }

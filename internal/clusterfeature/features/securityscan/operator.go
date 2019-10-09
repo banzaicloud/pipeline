@@ -50,7 +50,7 @@ type FeatureOperator struct {
 	helmService      features.HelmService
 	secretStore      features.SecretStore
 	anchoreService   FeatureAnchoreService
-	whiteListService WhiteListService
+	whiteListService FeatureWhiteListService
 	namespaceService NamespaceService
 	logger           common.Logger
 }
@@ -62,6 +62,7 @@ func MakeFeatureOperator(
 	helmService features.HelmService,
 	secretStore features.SecretStore,
 	anchoreService FeatureAnchoreService,
+	featureWhitelistService FeatureWhiteListService,
 	logger common.Logger,
 
 ) FeatureOperator {
@@ -72,7 +73,7 @@ func MakeFeatureOperator(
 		helmService:      helmService,
 		secretStore:      secretStore,
 		anchoreService:   anchoreService,
-		whiteListService: NewWhiteListService(clusterGetter, logger),  // wired service
+		whiteListService: featureWhitelistService,
 		namespaceService: NewNamespacesService(clusterGetter, logger), // wired service
 		logger:           logger,
 	}
@@ -164,7 +165,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		return errors.WrapIf(err, "failed to apply feature")
 	}
 
-	if boundSpec.CustomAnchore.Enabled {
+	if !boundSpec.CustomAnchore.Enabled {
 		if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
 			return errors.WrapIf(err, "failed to deactivate")
 		}

@@ -334,11 +334,13 @@ func main() {
 			anchoreConfigService := anchore.NewConfigurationService(config.Anchore, featureAdapter, logger)
 			anchoreUserService := anchore.MakeAnchoreUserService(anchoreConfigService, secretStore, logger)
 			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, logger)
+			featureWhitelistService := securityscan.NewFeatureWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
 			monitorConfiguration := featureMonitoring.NewFeatureConfiguration()
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
 				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, secretStore),
-				securityscan.MakeFeatureOperator(config.Anchore, clusterGetter, clusterService, helmService, secretStore, featureAnchoreService, logger),
+				securityscan.MakeFeatureOperator(config.Anchore, clusterGetter, clusterService, helmService,
+					secretStore, featureAnchoreService, featureWhitelistService, logger),
 				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, secretStore, logger),
 				featureMonitoring.MakeFeatureOperator(clusterGetter, clusterService, helmService, monitorConfiguration, logger, secretStore),
 			})
