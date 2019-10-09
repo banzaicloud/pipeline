@@ -727,8 +727,7 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 		return
 	}
 
-	deleted, err := s.whitelistService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName)
-	if err != nil {
+	if err := s.whitelistService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName); err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while deleting whitelist",
@@ -737,8 +736,7 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 		return
 	}
 
-	// todo set the status to no content (api break?)
-	s.successResponse(c, deleted)
+	c.Status(http.StatusNoContent)
 }
 
 func (i securityHandlers) successResponse(ginCtx *gin.Context, payload interface{}) {

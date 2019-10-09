@@ -16,10 +16,13 @@ package anchore
 
 import (
 	"context"
+	"fmt"
 
 	"emperror.dev/errors"
+	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	"github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -36,7 +39,7 @@ type SecurityResourceService interface {
 type WhitelistService interface {
 	GetWhitelists(ctx context.Context, cluster Cluster) (interface{}, error)
 	CreateWhitelist(ctx context.Context, cluster Cluster, whitelistItem security.ReleaseWhiteListItem) (interface{}, error)
-	DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) (interface{}, error)
+	DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) error
 }
 
 // PolicyService policy management operations
@@ -56,15 +59,68 @@ func NewSecurityResourceService(logger common.Logger) SecurityResourceService {
 }
 
 func (s securityResourceService) GetWhitelists(ctx context.Context, cluster Cluster) (interface{}, error) {
-	panic("implement me")
+	logCtx := map[string]interface{}{"clusterID": cluster.GetID()}
+	s.logger.Info("retrieving whitelist ...", logCtx)
+
+	wlClient, err := s.getWhiteListsClient(ctx, cluster)
+	if err != nil {
+		s.logger.Debug("failed to create whitelist client", logCtx)
+
+		return nil, err
+	}
+
+	whitelist, err := wlClient.List(metav1.ListOptions{})
+	if err != nil {
+		s.logger.Debug("failed to retrieve whitelist", logCtx)
+
+		return nil, errors.WrapIf(err, "failed to retrieve current whitelist")
+	}
+
+	s.logger.Info("whitelist successfully retrieved", logCtx)
+	return whitelist.Items, nil
 }
 
 func (s securityResourceService) CreateWhitelist(ctx context.Context, cluster Cluster, whitelistItem security.ReleaseWhiteListItem) (interface{}, error) {
-	panic("implement me")
+	logCtx := map[string]interface{}{"clusterID": cluster.GetID(), "whiteListItem": whitelistItem.Name}
+	s.logger.Info("creating whitelist item ...", logCtx)
+
+	wlClient, err := s.getWhiteListsClient(ctx, cluster)
+	if err != nil {
+		s.logger.Debug("failed to create whitelist client", logCtx)
+
+		return nil, err
+	}
+
+	wlItem, err := wlClient.Create(s.assembleWhiteListItem(whitelistItem))
+	if err != nil {
+		s.logger.Debug("failed to create whitelist item", logCtx)
+
+		return nil, errors.WrapIf(err, "failed to create whitelist item")
+	}
+
+	s.logger.Info("whitelist item successfully created", logCtx)
+	return wlItem, nil
 }
 
-func (s securityResourceService) DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) (interface{}, error) {
-	panic("implement me")
+func (s securityResourceService) DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) error {
+	logCtx := map[string]interface{}{"clusterID": cluster.GetID(), "whiteListItem": whitelistItemName}
+	s.logger.Info("creating whitelist item ...", logCtx)
+
+	wlClient, err := s.getWhiteListsClient(ctx, cluster)
+	if err != nil {
+		s.logger.Debug("failed to create whitelist client", logCtx)
+
+		return err
+	}
+	if err := wlClient.Delete(whitelistItemName, metav1.NewDeleteOptions(0)); err != nil {
+		s.logger.Debug("failed to delete whitelist", logCtx)
+
+		return errors.WrapIf(err, "failed to delete whitelist")
+	}
+
+	s.logger.Info("whitelist item successfully deleted", logCtx)
+	return nil
+
 }
 
 func (wls securityResourceService) getWhiteListsClient(ctx context.Context, cluster Cluster) (securityClientV1Alpha.WhiteListInterface, error) {
@@ -85,6 +141,22 @@ func (wls securityResourceService) getWhiteListsClient(ctx context.Context, clus
 	}
 
 	return securityClientSet.Whitelists(), nil
+}
+
+func (wls securityResourceService) assembleWhiteListItem(whitelistItem security.ReleaseWhiteListItem) *securityV1Alpha.WhiteListItem {
+	return &securityV1Alpha.WhiteListItem{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "WhiteListItem",
+			APIVersion: fmt.Sprintf("%v/%v", securityV1Alpha.GroupName, securityV1Alpha.GroupVersion),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: whitelistItem.Name,
+		},
+		Spec: securityV1Alpha.WhiteListSpec{
+			Creator: whitelistItem.Owner,
+			Reason:  whitelistItem.Reason,
+		},
+	}
 }
 
 // Cluster defines operations that can be performed on a k8s cluster
