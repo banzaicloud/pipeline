@@ -28,7 +28,6 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	intClusterDNS "github.com/banzaicloud/pipeline/internal/cluster/dns"
 	intClusterK8s "github.com/banzaicloud/pipeline/internal/cluster/kubernetes"
-	"github.com/banzaicloud/pipeline/internal/cluster/statestore"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/secret"
@@ -296,13 +295,6 @@ func (m *Manager) deleteCluster(ctx context.Context, cluster CommonCluster, forc
 		}
 		logger.Error(err)
 	}
-
-	// clean statestore
-	logger.Info("cleaning cluster's statestore folder")
-	if err := statestore.CleanStateStore(deleteName); err != nil {
-		return emperror.Wrap(err, "cleaning cluster statestore failed")
-	}
-	logger.Info("cluster's statestore folder cleaned")
 
 	logger.Info("cluster deleted successfully")
 

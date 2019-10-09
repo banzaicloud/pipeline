@@ -7,7 +7,6 @@ _state*
 .pipeline
 pipeline
 !pipeline/
-statestore/*
 vault/*
 config/config.toml
 config/dex.yml
