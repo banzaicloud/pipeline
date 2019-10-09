@@ -16,6 +16,7 @@ package tokendriver
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -23,58 +24,53 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/sagikazarmark/kitx/endpoint"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 )
 
 func TestRegisterHTTPHandlers_CreateToken(t *testing.T) {
-	newTokenReq := token.NewTokenRequest{
-		Name:        "token",
-		VirtualUser: "",
-		ExpiresAt:   nil,
-	}
-
 	expectedToken := token.NewToken{
 		ID:    "id",
 		Token: "token",
 	}
 
-	service := new(token.MockService)
-	service.On("CreateToken", mock.Anything, newTokenReq).Return(expectedToken, nil)
-
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
-		MakeEndpoints(service),
+		Endpoints{
+			CreateToken: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return expectedToken, nil
+			},
+		},
 		handler.PathPrefix("/tokens").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-	tsClient := ts.Client()
+	newTokenReq := token.NewTokenRequest{
+		Name:        "token",
+		VirtualUser: "",
+		ExpiresAt:   nil,
+	}
 
 	body, err := json.Marshal(newTokenReq)
 	require.NoError(t, err)
 
-	resp, err := tsClient.Post(ts.URL+"/tokens", "application/json", bytes.NewReader(body))
+	resp, err := ts.Client().Post(ts.URL+"/tokens", "application/json", bytes.NewReader(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	decoder := json.NewDecoder(resp.Body)
-
 	var tokenResp token.NewToken
 
-	err = decoder.Decode(&tokenResp)
+	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedToken, tokenResp)
-
-	service.AssertExpectations(t)
 }
 
 func TestRegisterHTTPHandlers_CreateToken_VirtualUserDenied(t *testing.T) {
@@ -84,30 +80,27 @@ func TestRegisterHTTPHandlers_CreateToken_VirtualUserDenied(t *testing.T) {
 		ExpiresAt:   nil,
 	}
 
-	service := new(token.MockService)
-	service.On("CreateToken", mock.Anything, newTokenReq).Return(token.NewToken{}, CannotCreateVirtualUser)
-
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
-		MakeEndpoints(service),
+		Endpoints{
+			CreateToken: endpoint.BusinessErrorMiddleware(func(_ context.Context, _ interface{}) (interface{}, error) {
+				return token.NewToken{}, CannotCreateVirtualUser
+			}),
+		},
 		handler.PathPrefix("/tokens").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-	tsClient := ts.Client()
-
 	body, err := json.Marshal(newTokenReq)
 	require.NoError(t, err)
 
-	resp, err := tsClient.Post(ts.URL+"/tokens", "application/json", bytes.NewReader(body))
+	resp, err := ts.Client().Post(ts.URL+"/tokens", "application/json", bytes.NewReader(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
-
-	service.AssertExpectations(t)
 }
 
 func TestRegisterHTTPHandlers_ListTokens(t *testing.T) {
@@ -120,36 +113,31 @@ func TestRegisterHTTPHandlers_ListTokens(t *testing.T) {
 		},
 	}
 
-	service := new(token.MockService)
-	service.On("ListTokens", mock.Anything).Return(expectedTokens, nil)
-
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
-		MakeEndpoints(service),
+		Endpoints{
+			ListTokens: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return expectedTokens, nil
+			},
+		},
 		handler.PathPrefix("/tokens").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-	tsClient := ts.Client()
-
-	resp, err := tsClient.Get(ts.URL + "/tokens")
+	resp, err := ts.Client().Get(ts.URL + "/tokens")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	decoder := json.NewDecoder(resp.Body)
-
 	var tokenResp []token.Token
 
-	err = decoder.Decode(&tokenResp)
+	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedTokens, tokenResp)
-
-	service.AssertExpectations(t)
 }
 
 func TestRegisterHTTPHandlers_GetToken(t *testing.T) {
@@ -162,89 +150,78 @@ func TestRegisterHTTPHandlers_GetToken(t *testing.T) {
 		CreatedAt: time.Date(2019, time.September, 30, 14, 37, 00, 00, time.UTC),
 	}
 
-	service := new(token.MockService)
-	service.On("GetToken", mock.Anything, tokenID).Return(expectedToken, nil)
-
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
-		MakeEndpoints(service),
+		Endpoints{
+			GetToken: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return expectedToken, nil
+			},
+		},
 		handler.PathPrefix("/tokens").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-	tsClient := ts.Client()
-
-	resp, err := tsClient.Get(ts.URL + "/tokens/" + tokenID)
+	resp, err := ts.Client().Get(ts.URL + "/tokens/" + tokenID)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	decoder := json.NewDecoder(resp.Body)
-
 	var tokenResp token.Token
 
-	err = decoder.Decode(&tokenResp)
+	err = json.NewDecoder(resp.Body).Decode(&tokenResp)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedToken, tokenResp)
-
-	service.AssertExpectations(t)
 }
 
 func TestRegisterHTTPHandlers_GetToken_NotFound(t *testing.T) {
 	tokenID := "id"
 
-	service := new(token.MockService)
-	service.On("GetToken", mock.Anything, tokenID).Return(token.Token{}, token.NotFoundError{ID: tokenID})
-
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
-		MakeEndpoints(service),
+		Endpoints{
+			GetToken: endpoint.BusinessErrorMiddleware(func(_ context.Context, _ interface{}) (interface{}, error) {
+				return token.Token{}, token.NotFoundError{ID: tokenID}
+			}),
+		},
 		handler.PathPrefix("/tokens").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-	tsClient := ts.Client()
-
-	resp, err := tsClient.Get(ts.URL + "/tokens/" + tokenID)
+	resp, err := ts.Client().Get(ts.URL + "/tokens/" + tokenID)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-
-	service.AssertExpectations(t)
 }
 
 func TestRegisterHTTPHandlers_DeleteToken(t *testing.T) {
 	tokenID := "id"
 
-	service := new(token.MockService)
-	service.On("DeleteToken", mock.Anything, tokenID).Return(nil)
-
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
-		MakeEndpoints(service),
+		Endpoints{
+			DeleteToken: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return nil, nil
+			},
+		},
 		handler.PathPrefix("/tokens").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-	tsClient := ts.Client()
-
 	req, err := http.NewRequest(http.MethodDelete, ts.URL+"/tokens/"+tokenID, nil)
 	require.NoError(t, err)
 
-	resp, err := tsClient.Do(req)
+	resp, err := ts.Client().Do(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-
-	service.AssertExpectations(t)
 }
