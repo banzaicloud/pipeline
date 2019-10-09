@@ -18,7 +18,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/issue"
@@ -27,6 +26,7 @@ import (
 func TestMakeEndpoints_ReportIssue(t *testing.T) {
 	service := new(issue.MockService)
 
+	ctx := context.Background()
 	newIssue := issue.NewIssue{
 		OrganizationName: "example",
 		Title:            "Something went wrong",
@@ -34,11 +34,11 @@ func TestMakeEndpoints_ReportIssue(t *testing.T) {
 		Labels:           []string{"bug"},
 	}
 
-	service.On("ReportIssue", mock.Anything, newIssue).Return(nil)
+	service.On("ReportIssue", ctx, newIssue).Return(nil)
 
 	e := MakeEndpoints(service).ReportIssue
 
-	_, err := e(context.Background(), newIssue)
+	_, err := e(ctx, newIssue)
 	require.NoError(t, err)
 
 	service.AssertExpectations(t)
