@@ -44,7 +44,7 @@ func TestMakeEndpoints_CreateToken(t *testing.T) {
 
 	e := MakeEndpoints(service).CreateToken
 
-	resp, err := e(context.Background(), newTokenReq)
+	resp, err := e(ctx, newTokenReq)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedToken, resp)
@@ -69,7 +69,7 @@ func TestMakeEndpoints_ListTokens(t *testing.T) {
 
 	e := MakeEndpoints(service).ListTokens
 
-	resp, err := e(context.Background(), nil)
+	resp, err := e(ctx, nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, expectedTokens, resp)
@@ -110,7 +110,7 @@ func TestMakeEndpoints_DeleteToken(t *testing.T) {
 
 	e := MakeEndpoints(service).DeleteToken
 
-	_, err := e(context.Background(), deleteTokenRequest{tokenID})
+	_, err := e(ctx, deleteTokenRequest{tokenID})
 	require.NoError(t, err)
 
 	service.AssertExpectations(t)
