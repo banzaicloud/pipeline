@@ -418,7 +418,7 @@ func main() {
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())
-	router.Use(ginlog.Middleware(logrusLogger, skipPaths...))
+	router.Use(ginlog.Middleware(commonLogger, skipPaths...))
 
 	// Add prometheus metric endpoint
 	if viper.GetBool(config.MetricsEnabled) {
@@ -856,7 +856,7 @@ func createInternalAPIRouter(skipPaths []string, db *gorm.DB, basePath string, c
 	// Initialise Gin router for Internal API
 	internalRouter := gin.New()
 	internalRouter.Use(correlationid.Middleware())
-	internalRouter.Use(ginlog.Middleware(logrusLogger, skipPaths...))
+	internalRouter.Use(ginlog.Middleware(commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{}), skipPaths...))
 	internalRouter.Use(gin.Recovery())
 	if viper.GetBool("audit.enabled") {
 		logger.Info("Audit enabled, installing Gin audit middleware to internal router")

@@ -18,15 +18,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
 const correlationIdField = "correlation-id"
 
 // Middleware returns a gin compatible handler.
-func Middleware(logger logrus.FieldLogger, notlogged ...string) gin.HandlerFunc {
+func Middleware(logger common.Logger, notlogged ...string) gin.HandlerFunc {
 	var skip map[string]struct{}
 
 	if length := len(notlogged); length > 0 {
@@ -56,7 +56,7 @@ func Middleware(logger logrus.FieldLogger, notlogged ...string) gin.HandlerFunc 
 				path = path + "?" + raw
 			}
 
-			fields := logrus.Fields{
+			fields := map[string]interface{}{
 				"status":     c.Writer.Status(),
 				"method":     c.Request.Method,
 				"path":       path,
@@ -75,7 +75,7 @@ func Middleware(logger logrus.FieldLogger, notlogged ...string) gin.HandlerFunc 
 				// Append error field if this is an erroneous request.
 				entry.Error(c.Errors.String())
 			} else {
-				entry.Info()
+				entry.Info("")
 			}
 		}
 	}
