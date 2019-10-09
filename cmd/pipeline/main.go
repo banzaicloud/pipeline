@@ -68,6 +68,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokenadapter"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokendriver"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap/capdriver"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
@@ -552,6 +553,7 @@ func main() {
 	v1 := base.Group("api/v1")
 	{
 		v1.Use(auth.Handler)
+		capdriver.RegisterHTTPHandler(mapCapabilities(conf), emperror.MakeContextAware(errorHandler), v1)
 		v1.GET("/functions", api.ListFunctions)
 		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
