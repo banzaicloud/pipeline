@@ -15,6 +15,7 @@
 package notificationdriver
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -22,15 +23,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
 )
 
 func TestMakeHTTPHandler_GetNotifications(t *testing.T) {
-	service := new(notification.MockService)
-
 	notifications := notification.Notifications{
 		Messages: []notification.Notification{
 			{
@@ -41,33 +39,29 @@ func TestMakeHTTPHandler_GetNotifications(t *testing.T) {
 		},
 	}
 
-	service.On("GetNotifications", mock.Anything).Return(notifications, nil)
-
 	handler := mux.NewRouter()
 	RegisterHTTPHandlers(
-		MakeEndpoints(service),
+		Endpoints{
+			GetNotifications: func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				return notifications, nil
+			},
+		},
 		handler.PathPrefix("/notifications").Subrouter(),
 	)
 
 	ts := httptest.NewServer(handler)
 	defer ts.Close()
 
-	tsClient := ts.Client()
-
-	resp, err := tsClient.Get(ts.URL + "/notifications")
+	resp, err := ts.Client().Get(ts.URL + "/notifications")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	decoder := json.NewDecoder(resp.Body)
-
 	var notificationResp notification.Notifications
 
-	err = decoder.Decode(&notificationResp)
+	err = json.NewDecoder(resp.Body).Decode(&notificationResp)
 	require.NoError(t, err)
 
 	assert.Equal(t, notifications, notificationResp)
-
-	service.AssertExpectations(t)
 }

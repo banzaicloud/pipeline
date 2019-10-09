@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/notification"
@@ -28,6 +27,7 @@ import (
 func TestMakeEndpoints_GetNotifications(t *testing.T) {
 	service := new(notification.MockService)
 
+	ctx := context.Background()
 	notifications := notification.Notifications{
 		Messages: []notification.Notification{
 			{
@@ -38,11 +38,11 @@ func TestMakeEndpoints_GetNotifications(t *testing.T) {
 		},
 	}
 
-	service.On("GetNotifications", mock.Anything).Return(notifications, nil)
+	service.On("GetNotifications", ctx).Return(notifications, nil)
 
 	e := MakeEndpoints(service).GetNotifications
 
-	result, err := e(context.Background(), nil)
+	result, err := e(ctx, nil)
 
 	require.NoError(t, err)
 	assert.Equal(t, notifications, result)
