@@ -123,7 +123,7 @@ func (s securityResourceService) DeleteWhitelist(ctx context.Context, cluster Cl
 
 }
 
-func (wls securityResourceService) getWhiteListsClient(ctx context.Context, cluster Cluster) (securityClientV1Alpha.WhiteListInterface, error) {
+func (s securityResourceService) getWhiteListsClient(ctx context.Context, cluster Cluster) (securityClientV1Alpha.WhiteListInterface, error) {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -143,7 +143,7 @@ func (wls securityResourceService) getWhiteListsClient(ctx context.Context, clus
 	return securityClientSet.Whitelists(), nil
 }
 
-func (wls securityResourceService) assembleWhiteListItem(whitelistItem security.ReleaseWhiteListItem) *securityV1Alpha.WhiteListItem {
+func (s securityResourceService) assembleWhiteListItem(whitelistItem security.ReleaseWhiteListItem) *securityV1Alpha.WhiteListItem {
 	return &securityV1Alpha.WhiteListItem{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "WhiteListItem",

@@ -548,7 +548,7 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 
 	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
-		// todo handle the response? this case is not consistently handled accross the code
+		// todo handle the response? this case is not consistently handled across the code
 		return
 	}
 
@@ -578,7 +578,7 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
-		// todo handle the response? this case is not consistently handled accross the code
+		// todo handle the response? this case is not consistently handled across the code
 		return
 	}
 
@@ -638,7 +638,7 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func (i securityHandlers) successResponse(ginCtx *gin.Context, payload interface{}) {
+func (s securityHandlers) successResponse(ginCtx *gin.Context, payload interface{}) {
 	ginCtx.JSON(http.StatusOK, payload)
 	return
 }
