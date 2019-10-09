@@ -23,9 +23,9 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/gofrs/uuid"
-	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
@@ -168,10 +168,11 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 		}
 }
 
-func handleClusterError(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, status string, clusterID uint, err error) error {
+func handleClusterError(ctx context.Context, store pke.AzurePKEClusterStore, status string, clusterID uint, err error) error {
 	if clusterID != 0 && err != nil {
 		if err := store.SetStatus(clusterID, status, err.Error()); err != nil {
-			logger.Errorf("failed to set cluster error status: %s", err.Error())
+			logger := commonadapter.LoggerFromContext(ctx)
+			logger.Error("failed to set cluster error status", map[string]interface{}{"error": err.Error()})
 		}
 	}
 	return err

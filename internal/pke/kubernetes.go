@@ -15,10 +15,11 @@
 package pke
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 const (
@@ -55,34 +56,33 @@ type Network struct {
 // KubernetesPreparer implements Kubernetes preparation
 type KubernetesPreparer struct {
 	criPreparer     CRIPreparer
-	logger          logrus.FieldLogger
 	namespace       string
 	networkPreparer NetworkPreparer
 }
 
 // MakeKubernetesPreparer returns an instance of KubernetesPreparer
-func MakeKubernetesPreparer(logger logrus.FieldLogger, namespace string) KubernetesPreparer {
+func MakeKubernetesPreparer(namespace string) KubernetesPreparer {
 	namespace = strings.TrimSuffix(namespace, ".")
 
 	return KubernetesPreparer{
-		criPreparer:     MakeCRIPreparer(logger, namespace+".CRI"),
-		logger:          logger,
+		criPreparer:     MakeCRIPreparer(namespace + ".CRI"),
 		namespace:       namespace,
-		networkPreparer: MakeNetworkPreparer(logger, namespace+".Network"),
+		networkPreparer: MakeNetworkPreparer(namespace + ".Network"),
 	}
 }
 
 // Prepare validates and provides defaults for Kubernetes fields
-func (p KubernetesPreparer) Prepare(k *Kubernetes) error {
+func (p KubernetesPreparer) Prepare(ctx context.Context, k *Kubernetes) error {
 	if k.Version == "" {
 		// TODO check if we can provide good default
-		p.logger.Errorf("%s.Version must be specified", p.namespace)
+		logger := commonadapter.LoggerFromContext(ctx)
+		logger.Error(fmt.Sprintf("%s.Version must be specified", p.namespace))
 		return validationErrorf("K8s version must be specified")
 	}
-	if err := p.criPreparer.Prepare(&k.CRI); err != nil {
+	if err := p.criPreparer.Prepare(ctx, &k.CRI); err != nil {
 		return err
 	}
-	if err := p.networkPreparer.Prepare(&k.Network); err != nil {
+	if err := p.networkPreparer.Prepare(ctx, &k.Network); err != nil {
 		return err
 	}
 	return nil
@@ -90,55 +90,52 @@ func (p KubernetesPreparer) Prepare(k *Kubernetes) error {
 
 // CRIPreparer implements CRI preparation
 type CRIPreparer struct {
-	logger    logrus.FieldLogger
 	namespace string
 }
 
 // MakeCRIPreparer returns an instance of CRIPreparer
-func MakeCRIPreparer(logger logrus.FieldLogger, namespace string) CRIPreparer {
+func MakeCRIPreparer(namespace string) CRIPreparer {
 	namespace = strings.TrimSuffix(namespace, ".")
 
 	return CRIPreparer{
-		logger:    logger,
 		namespace: namespace,
 	}
 }
 
 // Prepare validates and provides defaults for CRI fields
-func (p CRIPreparer) Prepare(c *CRI) error {
+func (p CRIPreparer) Prepare(ctx context.Context, c *CRI) error {
 	// TODO: implement CRI preparation
 	return nil
 }
 
 // NetworkPreparer implements Network preparation
 type NetworkPreparer struct {
-	logger    logrus.FieldLogger
 	namespace string
 }
 
 // MakeNetworkPreparer returns an instance of NetworkPreparer
-func MakeNetworkPreparer(logger logrus.FieldLogger, namespace string) NetworkPreparer {
+func MakeNetworkPreparer(namespace string) NetworkPreparer {
 	namespace = strings.TrimSuffix(namespace, ".")
 
 	return NetworkPreparer{
-		logger:    logger,
 		namespace: namespace,
 	}
 }
 
 // Prepare validates and provides defaults for Network fields
-func (p NetworkPreparer) Prepare(n *Network) error {
+func (p NetworkPreparer) Prepare(ctx context.Context, n *Network) error {
+	logger := commonadapter.LoggerFromContext(ctx)
 	if n.PodCIDR == "" {
 		n.PodCIDR = DefaultPodCIDR
-		p.logger.Debugf("%s.PodCIDR not specified, defaulting to [%s]", p.namespace, n.PodCIDR)
+		logger.Debug(fmt.Sprintf("%s.PodCIDR not specified, defaulting to [%s]", p.namespace, n.PodCIDR))
 	}
 	if n.ServiceCIDR == "" {
 		n.ServiceCIDR = DefaultServiceCIDR
-		p.logger.Debugf("%s.ServiceCIDR not specified, defaulting to [%s]", p.namespace, n.ServiceCIDR)
+		logger.Debug(fmt.Sprintf("%s.ServiceCIDR not specified, defaulting to [%s]", p.namespace, n.ServiceCIDR))
 	}
 	if n.Provider == "" {
 		n.Provider = DefaultNetwork
-		p.logger.Debugf("%s.Provider not specified, defaulting to [%s]", p.namespace, n.Provider)
+		logger.Debug(fmt.Sprintf("%s.Provider not specified, defaulting to [%s]", p.namespace, n.Provider))
 	}
 	// TODO: ProviderConfig defaults
 	return nil

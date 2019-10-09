@@ -95,3 +95,22 @@ func (l *Logger) WithContext(ctx context.Context) common.Logger {
 func NewNoopLogger() *Logger {
 	return NewLogger(logur.NewNoopLogger())
 }
+
+type contextKey string
+
+// LoggerContextKey is the key by which a common.Logger should be found in the context
+const LoggerContextKey = contextKey("logger")
+
+// LoggerFromContext returns a common.Logger instance from the context, or a no-op logger if there is no logger in the context.
+func LoggerFromContext(ctx context.Context) common.Logger {
+	value := ctx.Value(LoggerContextKey)
+	if logger, ok := value.(common.Logger); ok {
+		return logger.WithContext(ctx)
+	}
+	return NewNoopLogger()
+}
+
+// ContextWithLogger returns a new context with the specified logger
+func ContextWithLogger(ctx context.Context, l common.Logger) context.Context {
+	return context.WithValue(ctx, LoggerContextKey, l)
+}

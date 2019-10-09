@@ -25,12 +25,12 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/cluster"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
@@ -45,9 +45,8 @@ import (
 const pkeVersion = "0.4.14"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
-func MakeClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, config ClusterCreatorConfig) ClusterCreator {
+func MakeClusterCreator(store pke.AzurePKEClusterStore, workflowClient client.Client, config ClusterCreatorConfig) ClusterCreator {
 	return ClusterCreator{
-		logger:         logger,
 		store:          store,
 		workflowClient: workflowClient,
 		config:         config,
@@ -56,7 +55,6 @@ func MakeClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStor
 
 // ClusterCreator creates new PKE-on-Azure clusters
 type ClusterCreator struct {
-	logger         logrus.FieldLogger
 	store          pke.AzurePKEClusterStore
 	workflowClient client.Client
 	config         ClusterCreatorConfig
@@ -148,6 +146,8 @@ type ClusterCreationParams struct {
 
 // Create
 func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
+	logger := commonadapter.LoggerFromContext(ctx)
+
 	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return
@@ -158,7 +158,7 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 		return
 	}
 
-	if err = MakeClusterCreationParamsPreparer(conn, cc.logger).Prepare(ctx, &params); err != nil {
+	if err = MakeClusterCreationParamsPreparer(conn).Prepare(ctx, &params); err != nil {
 		return
 	}
 
@@ -169,7 +169,7 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 
 	sn, err := conn.GetSubnetsClient().Get(ctx, params.ResourceGroup, params.Network.Name, params.NodePools[0].Subnet.Name, "routeTable")
 	if err = errors.WrapIf(err, "failed to get subnet"); err != nil && sn.StatusCode != http.StatusNotFound {
-		_ = cc.handleError(cl.ID, err)
+		_ = cc.handleError(ctx, cl.ID, err)
 		return
 	}
 
@@ -229,7 +229,7 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 		var commonCluster cluster.CommonCluster
 		commonCluster, err = commoncluster.MakeCommonClusterGetter(secret.Store, cc.store).GetByID(cl.ID)
 		if err != nil {
-			_ = cc.handleError(cl.ID, err)
+			_ = cc.handleError(ctx, cl.ID, err)
 			return
 		}
 		nodePoolStatuses := make(map[string]*pkgCluster.NodePoolStatus, len(params.NodePools))
@@ -246,7 +246,7 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 		var labelsMap map[string]map[string]string
 		labelsMap, err = cluster.GetDesiredLabelsForCluster(ctx, commonCluster, nodePoolStatuses, false)
 		if err != nil {
-			_ = cc.handleError(cl.ID, err)
+			_ = cc.handleError(ctx, cl.ID, err)
 			return
 		}
 
@@ -257,7 +257,7 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 
 	sshKeyPair, err := GetOrCreateSSHKeyPair(cl, cc.secrets, cc.store)
 	if err = errors.WrapIf(err, "failed to get or create SSH key pair"); err != nil {
-		_ = cc.handleError(cl.ID, err)
+		_ = cc.handleError(ctx, cl.ID, err)
 		return
 	}
 
@@ -376,35 +376,33 @@ func (cc ClusterCreator) Create(ctx context.Context, params ClusterCreationParam
 
 	wfexec, err := cc.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.CreateClusterWorkflowName, input)
 	if err != nil {
-		_ = cc.handleError(cl.ID, err)
+		_ = cc.handleError(ctx, cl.ID, err)
 		return
 	}
 
 	if err = cc.store.SetActiveWorkflowID(cl.ID, wfexec.ID); err != nil {
-		cc.logger.WithField("clusterID", cl.ID).WithField("workflowID", wfexec.ID).Error("failed to set active workflow ID", err)
+		logger.Error("failed to set active workflow ID", map[string]interface{}{"clusterID": cl.ID, "workflowID": wfexec.ID, "error": err})
 		return
 	}
 
 	return
 }
 
-func (cc ClusterCreator) handleError(clusterID uint, err error) error {
-	return handleClusterError(cc.logger, cc.store, pkgCluster.Error, clusterID, err)
+func (cc ClusterCreator) handleError(ctx context.Context, clusterID uint, err error) error {
+	return handleClusterError(ctx, cc.store, pkgCluster.Error, clusterID, err)
 }
 
 // ClusterCreationParamsPreparer implements ClusterCreationParams preparation
 type ClusterCreationParamsPreparer struct {
 	connection  *pkgAzure.CloudConnection
 	k8sPreparer intPKE.KubernetesPreparer
-	logger      logrus.FieldLogger
 }
 
 // MakeClusterCreationParamsPreparer returns an instance of ClusterCreationParamsPreparer
-func MakeClusterCreationParamsPreparer(connection *pkgAzure.CloudConnection, logger logrus.FieldLogger) ClusterCreationParamsPreparer {
+func MakeClusterCreationParamsPreparer(connection *pkgAzure.CloudConnection) ClusterCreationParamsPreparer {
 	return ClusterCreationParamsPreparer{
 		connection:  connection,
-		k8sPreparer: intPKE.MakeKubernetesPreparer(logger, "Kubernetes"),
-		logger:      logger,
+		k8sPreparer: intPKE.MakeKubernetesPreparer("Kubernetes"),
 	}
 }
 
@@ -426,10 +424,11 @@ func (p ClusterCreationParamsPreparer) Prepare(ctx context.Context, params *Clus
 
 	if params.ResourceGroup == "" {
 		params.ResourceGroup = fmt.Sprintf("%s-rg", params.Name)
-		p.logger.Debugf("ResourceGroup not specified, defaulting to [%s]", params.ResourceGroup)
+		logger := commonadapter.LoggerFromContext(ctx)
+		logger.Debug(fmt.Sprintf("ResourceGroup not specified, defaulting to [%s]", params.ResourceGroup))
 	}
 
-	if err := p.k8sPreparer.Prepare(&params.Kubernetes); err != nil {
+	if err := p.k8sPreparer.Prepare(ctx, &params.Kubernetes); err != nil {
 		return errors.WrapIf(err, "failed to prepare k8s network")
 	}
 
@@ -457,7 +456,6 @@ func (p ClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *pkgAzure
 	return VirtualNetworkPreparer{
 		clusterName:       clusterName,
 		connection:        cloudConnection,
-		logger:            p.logger,
 		namespace:         "Network",
 		resourceGroupName: resourceGroupName,
 	}
@@ -465,7 +463,6 @@ func (p ClusterCreationParamsPreparer) getVNetPreparer(cloudConnection *pkgAzure
 
 func (p ClusterCreationParamsPreparer) getNodePoolsPreparer(dataProvider nodePoolsDataProvider) NodePoolsPreparer {
 	return NodePoolsPreparer{
-		logger:       p.logger,
 		namespace:    "NodePools",
 		dataProvider: dataProvider,
 	}

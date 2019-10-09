@@ -237,21 +237,21 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 
 	wfexec, err := cu.workflowClient.StartWorkflow(ctx, workflowOptions, workflow.UpdateClusterWorkflowName, input)
 	if err := errors.WrapIfWithDetails(err, "failed to start workflow", "workflow", workflow.UpdateClusterWorkflowName); err != nil {
-		_ = cu.handleError(cluster.ID, err)
+		_ = cu.handleError(ctx, cluster.ID, err)
 		return err
 	}
 
 	if err := cu.store.SetActiveWorkflowID(cluster.ID, wfexec.ID); err != nil {
 		err = errors.WrapIfWithDetails(err, "failed to set active workflow ID", "clusterID", cluster.ID, "workflowID", wfexec.ID)
-		_ = cu.handleError(cluster.ID, err)
+		_ = cu.handleError(ctx, cluster.ID, err)
 		return err
 	}
 
 	return nil
 }
 
-func (cu AzurePKEClusterUpdater) handleError(clusterID uint, err error) error {
-	return handleClusterError(cu.logger, cu.store, pkgCluster.Warning, clusterID, err)
+func (cu AzurePKEClusterUpdater) handleError(ctx context.Context, clusterID uint, err error) error {
+	return handleClusterError(ctx, cu.store, pkgCluster.Warning, clusterID, err)
 }
 
 func sortNodePools(incoming []NodePool, existing []pke.NodePool) (toCreate, toUpdate []NodePool, toDelete []pke.NodePool) {

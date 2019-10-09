@@ -365,7 +365,6 @@ func main() {
 	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
-			logrusLogger,
 			gormAzurePKEClusterStore,
 			workflowClient,
 			azurePKEDriver.MakeClusterCreatorConfig(
@@ -418,6 +417,7 @@ func main() {
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	router.Use(correlationid.Middleware())
 	router.Use(ginlog.Middleware(commonLogger, skipPaths...))
+	router.Use(commonadapter.LoggerInContext(commonLogger))
 
 	// Add prometheus metric endpoint
 	if viper.GetBool(config.MetricsEnabled) {

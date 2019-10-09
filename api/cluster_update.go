@@ -41,6 +41,8 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		return
 	}
 
+	ctx := ginutils.Context(context.Background(), c)
+
 	var err error
 	if commonCluster.GetCloud() == pkgCluster.Azure && commonCluster.GetDistribution() == pkgCluster.PKE {
 		var updateRequest *apicluster.UpdatePKEOnAzureClusterRequest
@@ -54,7 +56,7 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 			return
 		}
 		params := updateRequest.ToAzurePKEClusterUpdateParams(commonCluster.GetID(), auth.GetCurrentUser(c.Request).ID)
-		err = a.clusterUpdaters.PKEOnAzure.Update(c, params)
+		err = a.clusterUpdaters.PKEOnAzure.Update(ctx, params)
 	} else {
 
 		// bind request body to UpdateClusterRequest struct
@@ -82,8 +84,6 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		}
 
 		updater := cluster.NewCommonClusterUpdater(updateRequest, commonCluster, updateCtx.UserID, a.workflowClient, a.externalBaseURL, a.externalBaseURLInsecure)
-
-		ctx := ginutils.Context(context.Background(), c)
 
 		err = a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 	}
