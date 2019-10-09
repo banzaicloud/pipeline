@@ -674,7 +674,17 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 		return
 	}
 
-	s.successResponse(c, whitelist)
+	releaseWhitelist := make([]security.ReleaseWhiteListItem, 0)
+	for _, whitelist := range whitelist {
+		whitelistItem := security.ReleaseWhiteListItem{
+			Name:   whitelist.Name,
+			Owner:  whitelist.Spec.Creator,
+			Reason: whitelist.Spec.Reason,
+		}
+		releaseWhitelist = append(releaseWhitelist, whitelistItem)
+	}
+
+	s.successResponse(c, releaseWhitelist)
 }
 
 func (s securityHandlers) CreateWhiteList(c *gin.Context) {
@@ -696,7 +706,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 		return
 	}
 
-	whitelist, err := s.whitelistService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem)
+	_, err := s.whitelistService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -706,7 +716,8 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 		return
 	}
 
-	s.successResponse(c, whitelist)
+	c.Status(http.StatusCreated)
+
 }
 
 func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
