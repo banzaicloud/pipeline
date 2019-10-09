@@ -21,16 +21,25 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-kit/kit/endpoint"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/issue"
 )
 
-func TestMakeHTTPHandler_ReportIssue(t *testing.T) {
-	service := new(issue.MockService)
+func TestRegisterHTTPHandlers_ReportIssue(t *testing.T) {
+	handler := mux.NewRouter()
+	RegisterHTTPHandlers(
+		Endpoints{
+			ReportIssue: endpoint.Nop,
+		},
+		handler.PathPrefix("/issues").Subrouter(),
+	)
+
+	ts := httptest.NewServer(handler)
+	defer ts.Close()
 
 	newIssue := issue.NewIssue{
 		OrganizationName: "example",
@@ -39,27 +48,12 @@ func TestMakeHTTPHandler_ReportIssue(t *testing.T) {
 		Labels:           []string{"bug"},
 	}
 
-	service.On("ReportIssue", mock.Anything, newIssue).Return(nil)
-
-	handler := mux.NewRouter()
-	RegisterHTTPHandlers(
-		MakeEndpoints(service),
-		handler.PathPrefix("/issues").Subrouter(),
-	)
-
-	ts := httptest.NewServer(handler)
-	defer ts.Close()
-
-	tsClient := ts.Client()
-
 	body, err := json.Marshal(newIssue)
 	require.NoError(t, err)
 
-	resp, err := tsClient.Post(ts.URL+"/issues", "application/json", bytes.NewReader(body))
+	resp, err := ts.Client().Post(ts.URL+"/issues", "application/json", bytes.NewReader(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
-
-	service.AssertExpectations(t)
 }
