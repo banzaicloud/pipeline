@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -43,6 +44,7 @@ const (
 )
 
 type FeatureOperator struct {
+	anchoreConfig    anchore.Config
 	clusterGetter    clusterfeatureadapter.ClusterGetter
 	clusterService   clusterfeature.ClusterService
 	helmService      features.HelmService
@@ -54,6 +56,7 @@ type FeatureOperator struct {
 }
 
 func MakeFeatureOperator(
+	anchoreConfig anchore.Config,
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
@@ -63,6 +66,7 @@ func MakeFeatureOperator(
 
 ) FeatureOperator {
 	return FeatureOperator{
+		anchoreConfig:    anchoreConfig,
 		clusterGetter:    clusterGetter,
 		clusterService:   clusterService,
 		helmService:      helmService,
@@ -269,12 +273,8 @@ func (op FeatureOperator) getCustomAnchoreValues(ctx context.Context, customAnch
 
 func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
 
-	cfg, err := op.anchoreService.GetConfiguration(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve anchore configuration")
-	}
 	// default (pipeline hosted) anchore
-	if !cfg.Enabled {
+	if !op.anchoreConfig.Enabled {
 		return nil, errors.NewWithDetails("default anchore is not enabled")
 	}
 
@@ -294,7 +294,7 @@ func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
-	anchoreValues.Host = cfg.Endpoint
+	anchoreValues.Host = op.anchoreConfig.Endpoint
 
 	return &anchoreValues, nil
 }

@@ -24,10 +24,10 @@ import (
 	"strconv"
 	"strings"
 
+	"emperror.dev/errors"
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -93,7 +93,8 @@ func GetScanLog(c *gin.Context) {
 
 	audits, err := securityClientSet.Audits().List(metav1.ListOptions{})
 	if err != nil {
-		err := errors.Wrap(err, "Error during request processing")
+
+		err := errors.WrapIf(err, "Error during request processing")
 		log.Error(err.Error())
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -684,10 +685,9 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 	}
 
 	var whiteListItem *security.ReleaseWhiteListItem
-	err := c.BindJSON(&whiteListItem)
-	if err != nil {
+	if err := c.BindJSON(&whiteListItem); err != nil {
 		err := errors.Wrap(err, "Error parsing request:")
-		log.Error(err.Error())
+
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
@@ -696,7 +696,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 		return
 	}
 
-	whitelist, err := s.whitelistService.CreateWhitelist(c.Request.Context(), cluster.GetID(), whiteListItem)
+	whitelist, err := s.whitelistService.CreateWhitelist(c.Request.Context(), cluster.GetID(), *whiteListItem)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,

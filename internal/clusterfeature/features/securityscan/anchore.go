@@ -23,41 +23,23 @@ import (
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 )
 
-type AnchoreConfig struct {
-	Endpoint string
-	Enabled  bool
-}
-
 // FeatureAnchoreService decouples anchore related operations
 type FeatureAnchoreService interface {
 	GenerateUser(ctx context.Context, orgID uint, clusterID uint) (string, error)
 
 	// Deletes a previously generated user from the anchore
 	DeleteUser(ctx context.Context, orgID uint, clusterID uint) error
-
-	GetConfiguration(ctx context.Context, clusterID uint) (anchore.Config, error)
 }
 
 // anchoreService basic implementer of the FeatureAnchoreService
 type anchoreService struct {
 	anchoreUserService anchore.AnchoreUserService
-	configService      anchore.ConfigurationService
 	logger             common.Logger
 }
 
-func (a anchoreService) GetConfiguration(ctx context.Context, clusterID uint) (anchore.Config, error) {
-	cfg, err := a.configService.GetConfiguration(ctx, clusterID)
-	if err != nil {
-		return anchore.Config{}, errors.WrapIf(err, "failed to get anchore configuration")
-	}
-
-	return cfg, nil
-}
-
-func NewFeatureAnchoreService(anchoreUserService anchore.AnchoreUserService, configService anchore.ConfigurationService, logger common.Logger) FeatureAnchoreService {
+func NewFeatureAnchoreService(anchoreUserService anchore.AnchoreUserService, logger common.Logger) FeatureAnchoreService {
 	return anchoreService{
 		anchoreUserService: anchoreUserService,
-		configService:      configService,
 		logger:             logger,
 	}
 }
