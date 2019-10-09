@@ -27,51 +27,49 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/security"
 )
 
+// SecurityResourceService gathers operations for managing security (anchore) related resources
 type SecurityResourceService interface {
 	WhitelistService
 }
+
+// WhitelistService whitelist management operations
 type WhitelistService interface {
-	GetWhitelists(ctx context.Context, clusterID uint) (interface{}, error)
-	CreateWhitelist(ctx context.Context, clusterID uint, whitelistItem security.ReleaseWhiteListItem) (interface{}, error)
-	DeleteWhitelist(ctx context.Context, clusterID uint, whitelistItemName string) (interface{}, error)
+	GetWhitelists(ctx context.Context, cluster Cluster) (interface{}, error)
+	CreateWhitelist(ctx context.Context, cluster Cluster, whitelistItem security.ReleaseWhiteListItem) (interface{}, error)
+	DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) (interface{}, error)
 }
 
+// PolicyService policy management operations
 type PolicyService interface {
 }
 
 type securityResourceService struct {
-	clusterGetter ClusterGetter
-	logger        common.Logger
+	logger common.Logger
 }
 
-func NewSecurityResourceService(clusterGetter ClusterGetter, logger common.Logger) SecurityResourceService {
+func NewSecurityResourceService(logger common.Logger) SecurityResourceService {
 	_ = scheme.AddToScheme(scheme.Scheme)
 
 	return securityResourceService{
-		clusterGetter: clusterGetter,
-		logger:        logger,
+		logger: logger,
 	}
 }
 
-func (s securityResourceService) GetWhitelists(ctx context.Context, clusterID uint) (interface{}, error) {
+func (s securityResourceService) GetWhitelists(ctx context.Context, cluster Cluster) (interface{}, error) {
 	panic("implement me")
 }
 
-func (s securityResourceService) CreateWhitelist(ctx context.Context, clusterID uint, whitelistItem security.ReleaseWhiteListItem) (interface{}, error) {
+func (s securityResourceService) CreateWhitelist(ctx context.Context, cluster Cluster, whitelistItem security.ReleaseWhiteListItem) (interface{}, error) {
 	panic("implement me")
 }
 
-func (s securityResourceService) DeleteWhitelist(ctx context.Context, clusterID uint, whitelistItemName string) (interface{}, error) {
+func (s securityResourceService) DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) (interface{}, error) {
 	panic("implement me")
 }
 
-func (wls securityResourceService) getWhiteListsClient(ctx context.Context, clusterID uint) (securityClientV1Alpha.WhiteListInterface, error) {
-	cl, err := wls.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get cluster")
-	}
+func (wls securityResourceService) getWhiteListsClient(ctx context.Context, cluster Cluster) (securityClientV1Alpha.WhiteListInterface, error) {
 
-	kubeConfig, err := cl.GetK8sConfig()
+	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get k8s config for the cluster")
 	}
@@ -87,10 +85,6 @@ func (wls securityResourceService) getWhiteListsClient(ctx context.Context, clus
 	}
 
 	return securityClientSet.Whitelists(), nil
-}
-
-type ClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (Cluster, error)
 }
 
 // Cluster defines operations that can be performed on a k8s cluster

@@ -644,14 +644,14 @@ type securityHandlers struct {
 	whitelistService anchore.WhitelistService
 }
 
-func NewSecurityHandler(
+func NewSecurityApiHandlers(
 	clusterGetter apiCommon.ClusterGetter,
-	whitelistService anchore.WhitelistService,
 	logger internalCommon.Logger) SecurityHandler {
 
+	wlSvc := anchore.NewSecurityResourceService(logger)
 	return securityHandlers{
 		clusterGetter:    clusterGetter,
-		whitelistService: whitelistService,
+		whitelistService: wlSvc,
 		logger:           logger,
 	}
 }
@@ -664,7 +664,7 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 		return
 	}
 
-	whitelist, err := s.whitelistService.GetWhitelists(c.Request.Context(), cluster.GetID())
+	whitelist, err := s.whitelistService.GetWhitelists(c.Request.Context(), cluster)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -696,7 +696,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 		return
 	}
 
-	whitelist, err := s.whitelistService.CreateWhitelist(c.Request.Context(), cluster.GetID(), *whiteListItem)
+	whitelist, err := s.whitelistService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -727,7 +727,7 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 		return
 	}
 
-	deleted, err := s.whitelistService.DeleteWhitelist(c.Request.Context(), cluster.GetID(), whitelisItemtName)
+	deleted, err := s.whitelistService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
