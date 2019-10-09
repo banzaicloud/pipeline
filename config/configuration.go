@@ -240,8 +240,6 @@ func init() {
 	if err != nil {
 		log.Fatalf("Error reading config file, %s", err.Error())
 	}
-	viper.SetDefault("statestore.path", fmt.Sprintf("%s/statestore/", pwd))
-
 	viper.SetDefault("auth.secureCookie", true)
 	viper.SetDefault("auth.publicclientid", "banzai-cli")
 	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
@@ -448,12 +446,6 @@ func GetCORS() cors.Config {
 	maxAge := viper.GetInt("cors.MaxAge")
 	config.MaxAge = time.Duration(maxAge) * time.Hour
 	return config
-}
-
-// GetStateStorePath returns the state store path
-func GetStateStorePath(clusterName string) string {
-	stateStorePath := viper.GetString("statestore.path")
-	return filepath.Join(stateStorePath, clusterName)
 }
 
 // GetHelmPath returns local helm path

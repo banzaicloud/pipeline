@@ -70,9 +70,6 @@ configRetrySleep = 15
 AllowAllOrigins = false
 AllowOrigins = ["http://localhost:4200"]
 
-[statestore]
-path = ""
-
 [cicd]
 enabled = false
 url = "http://localhost:8000"

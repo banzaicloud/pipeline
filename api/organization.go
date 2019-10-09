@@ -200,11 +200,11 @@ func (a *OrganizationAPI) DeleteOrganization(c *gin.Context) {
 		})
 	} else {
 
-		log.Infof("Clean org's statestore folder %s", deleteName)
+		log.Infof("Clean org's helm home folder %s", deleteName)
 		if err := cluster.CleanHelmFolder(deleteName); err != nil {
-			log.Errorf("Statestore cleaning failed: %s", err.Error())
+			log.Errorf("Helm home cleaning failed: %s", err.Error())
 		} else {
-			log.Info("Org's statestore folder cleaned")
+			log.Info("Org's helm home folder cleaned")
 		}
 
 		c.Status(http.StatusNoContent)
