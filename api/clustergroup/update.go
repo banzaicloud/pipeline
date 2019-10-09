@@ -15,7 +15,6 @@
 package clustergroup
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -39,7 +38,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId} [put]
 // @Security bearerAuth
 func (n *API) Update(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 	clusterGroupId, ok := ginutils.UintParam(c, "id")
 	if !ok {
 		return

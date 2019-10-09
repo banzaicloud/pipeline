@@ -15,7 +15,6 @@
 package deployment
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
@@ -41,7 +40,7 @@ import (
 // @Security bearerAuth
 func (n *API) Delete(c *gin.Context) {
 
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	name := c.Param("name")
 	// make force true by default until it's not supported by UI

@@ -15,7 +15,6 @@
 package feature
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +41,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features/{featureName} [post]
 // @Security bearerAuth
 func (n *API) Enable(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	var req cgroupIAPI.FeatureRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

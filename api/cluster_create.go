@@ -89,7 +89,7 @@ func (a *ClusterAPI) handleCreationError(ctx *gin.Context, err error) {
 func (a *ClusterAPI) CreateCluster(c *gin.Context) {
 	a.logger.Info("Cluster creation started")
 
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	userID := auth.GetCurrentUser(c.Request).ID

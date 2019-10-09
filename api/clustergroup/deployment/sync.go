@@ -15,7 +15,6 @@
 package deployment
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +41,7 @@ import (
 // @Security bearerAuth
 func (n *API) Sync(c *gin.Context) {
 
-	ctx := gutils.Context(context.Background(), c)
+	ctx := gutils.Context(c)
 
 	name := c.Param("name")
 	n.logger.Infof("sync cluster group deployment: [%s]", name)

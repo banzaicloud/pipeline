@@ -15,7 +15,6 @@
 package clustergroup
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,7 +35,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId} [delete]
 // @Security bearerAuth
 func (n *API) Delete(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	clusterGroupID, ok := ginutils.UintParam(c, "id")
 	if !ok {

@@ -15,7 +15,6 @@
 package clustergroup
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -38,7 +37,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups [post]
 // @Security bearerAuth
 func (n *API) Create(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	var req cgroupIAPI.CreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

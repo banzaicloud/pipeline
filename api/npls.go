@@ -15,7 +15,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 
 	"emperror.dev/emperror"
@@ -128,7 +127,7 @@ func (n *NodepoolManagerAPI) GetNodepoolLabelSets(c *gin.Context) {
 }
 
 func (n *NodepoolManagerAPI) SetNodepoolLabelSets(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	var nodepoolLabelSets npls.NodepoolLabelSets
 	if err := c.BindJSON(&nodepoolLabelSets); err != nil {

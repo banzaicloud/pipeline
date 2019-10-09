@@ -15,7 +15,6 @@
 package clustergroup
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,7 +34,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups [get]
 // @Security bearerAuth
 func (a *API) List(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	orgID := auth.GetCurrentOrganization(c.Request).ID
 	clusterGroups, err := a.clusterGroupManager.GetAllClusterGroups(ctx, orgID)

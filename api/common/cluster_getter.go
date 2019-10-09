@@ -15,7 +15,6 @@
 package common
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -60,7 +59,7 @@ func (g *clusterGetter) GetClusterFromRequest(c *gin.Context) (cluster.CommonClu
 
 	logger := correlationid.Logger(g.logger, c)
 
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 

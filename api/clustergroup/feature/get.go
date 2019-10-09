@@ -15,7 +15,6 @@
 package feature
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -38,7 +37,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/features/{featureName} [get]
 // @Security bearerAuth
 func (n *API) Get(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	clusterGroupID, ok := ginutils.UintParam(c, "id")
 	if !ok {

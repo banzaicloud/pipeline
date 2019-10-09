@@ -15,7 +15,6 @@
 package deployment
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +41,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} [put]
 // @Security bearerAuth
 func (n *API) Upgrade(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	name := c.Param("name")
 

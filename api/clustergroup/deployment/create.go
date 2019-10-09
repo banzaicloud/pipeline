@@ -15,7 +15,6 @@
 package deployment
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -42,7 +41,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments [post]
 // @Security bearerAuth
 func (n *API) Create(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	clusterGroupID, ok := ginutils.UintParam(c, "id")
 	if !ok {

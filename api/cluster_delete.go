@@ -46,7 +46,7 @@ func (a *ClusterAPI) DeleteCluster(c *gin.Context) {
 	// DeleteCluster deletes the underlying model, so we get this data here
 	clusterID, clusterName := commonCluster.GetID(), commonCluster.GetName()
 
-	ctx := ginutils.Context(c.Request.Context(), c)
+	ctx := ginutils.Context(c)
 
 	// delete cluster from cluster group
 	err := a.clusterGroupManager.RemoveClusterFromGroup(ctx, clusterID)

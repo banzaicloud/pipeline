@@ -15,7 +15,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,7 +40,7 @@ func (a *ClusterAPI) UpdateCluster(c *gin.Context) {
 		return
 	}
 
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	var err error
 	if commonCluster.GetCloud() == pkgCluster.Azure && commonCluster.GetDistribution() == pkgCluster.PKE {
@@ -144,7 +143,7 @@ func (a *ClusterAPI) UpdateNodePools(c *gin.Context) {
 	}
 
 	updater := cluster.NewCommonNodepoolUpdater(updateRequest, commonCluster, updateCtx.UserID)
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 	err := a.clusterManager.UpdateCluster(ctx, updateCtx, updater)
 	if err != nil {
 		if isInvalid(err) {

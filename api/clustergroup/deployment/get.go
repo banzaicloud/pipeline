@@ -15,7 +15,6 @@
 package deployment
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +36,7 @@ import (
 // @Router /api/v1/orgs/{orgid}/clustergroups/{clusterGroupId}/deployments/{deploymentName} [get]
 // @Security bearerAuth
 func (n *API) Get(c *gin.Context) {
-	ctx := ginutils.Context(context.Background(), c)
+	ctx := ginutils.Context(c)
 
 	name := c.Param("name")
 	n.logger.Infof("getting details for cluster group deployment: [%s]", name)

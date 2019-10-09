@@ -19,20 +19,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
 // Context returns a new Go context from a Gin context.
-func Context(ctx context.Context, c *gin.Context) context.Context {
+func Context(c *gin.Context) context.Context {
+	ctx := c.Request.Context()
 
 	if cid := c.GetString(correlationid.ContextKey); cid != "" {
 		ctx = pipelineContext.WithCorrelationID(ctx, cid)
 	}
-
-	logger := commonadapter.LoggerFromContext(c.Request.Context())
-	ctx = commonadapter.ContextWithLogger(ctx, logger)
 
 	return ctx
 }
