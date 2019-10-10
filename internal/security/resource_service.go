@@ -33,6 +33,7 @@ import (
 // SecurityResourceService gathers operations for managing security (anchore) related resources
 type SecurityResourceService interface {
 	WhitelistService
+	ScanlogService
 }
 
 // WhitelistService whitelist management operations
@@ -40,6 +41,11 @@ type WhitelistService interface {
 	GetWhitelists(ctx context.Context, cluster Cluster) ([]securityV1Alpha.WhiteListItem, error)
 	CreateWhitelist(ctx context.Context, cluster Cluster, whitelistItem security.ReleaseWhiteListItem) (interface{}, error)
 	DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) error
+}
+
+type ScanlogService interface {
+	ListScanLogs(ctx context.Context, cluster Cluster) (interface{}, error)
+	GetScanLogs(ctx context.Context, cluster Cluster, releaseName string) (interface{}, error)
 }
 
 type securityResourceService struct {
@@ -98,6 +104,66 @@ func (s securityResourceService) CreateWhitelist(ctx context.Context, cluster Cl
 	return wlItem, nil
 }
 
+func (s securityResourceService) ListScanLogs(ctx context.Context, cluster Cluster) (interface{}, error) {
+	logCtx := map[string]interface{}{"clusterID": cluster.GetID()}
+	s.logger.Info("creating whitelist item ...", logCtx)
+
+	auditsClient, err := s.getAuditClient(ctx, cluster)
+	if err != nil {
+		s.logger.Debug("failure while creating whitelist client", logCtx)
+
+		return nil, errors.WrapIf(err, "failed to get audit client")
+	}
+
+	audits, err := auditsClient.List(metav1.ListOptions{})
+	if err != nil {
+		s.logger.Debug("failure while listing audits", logCtx)
+
+		return nil, errors.WrapIf(err, "failed to list audit")
+	}
+
+	scanLogList := make([]securityV1Alpha.AuditSpec, 0)
+	for _, audit := range audits.Items {
+		scanLog := securityV1Alpha.AuditSpec{
+			ReleaseName: audit.Spec.ReleaseName,
+			Resource:    audit.Spec.Resource,
+			Action:      audit.Spec.Action,
+			Images:      audit.Spec.Images,
+			Result:      audit.Spec.Result,
+		}
+		scanLogList = append(scanLogList, scanLog)
+	}
+
+	return scanLogList, nil
+}
+
+func (s securityResourceService) GetScanLogs(ctx context.Context, cluster Cluster, releaseName string) (interface{}, error) {
+	logCtx := map[string]interface{}{"clusterID": cluster.GetID()}
+	s.logger.Info("creating whitelist item ...", logCtx)
+
+	auditsClient, err := s.getAuditClient(ctx, cluster)
+	if err != nil {
+		s.logger.Debug("failure while creating whitelist client", logCtx)
+
+		return nil, errors.WrapIf(err, "failed to get audit client")
+	}
+
+	audit, err := auditsClient.Get(releaseName, metav1.GetOptions{})
+	if err != nil {
+		s.logger.Debug("failure while listing audits", logCtx)
+
+		return nil, errors.WrapIf(err, "failed to list audit")
+	}
+
+	return &securityV1Alpha.AuditSpec{
+		ReleaseName: audit.Spec.ReleaseName,
+		Resource:    audit.Spec.Resource,
+		Action:      audit.Spec.Action,
+		Images:      audit.Spec.Images,
+		Result:      audit.Spec.Result,
+	}, nil
+}
+
 func (s securityResourceService) DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) error {
 	logCtx := map[string]interface{}{"clusterID": cluster.GetID(), "whiteListItem": whitelistItemName}
 	s.logger.Info("creating whitelist item ...", logCtx)
@@ -108,6 +174,7 @@ func (s securityResourceService) DeleteWhitelist(ctx context.Context, cluster Cl
 
 		return err
 	}
+
 	if err := wlClient.Delete(whitelistItemName, metav1.NewDeleteOptions(0)); err != nil {
 		s.logger.Debug("failed to delete whitelist", logCtx)
 
@@ -116,10 +183,27 @@ func (s securityResourceService) DeleteWhitelist(ctx context.Context, cluster Cl
 
 	s.logger.Info("whitelist item successfully deleted", logCtx)
 	return nil
-
 }
 
 func (s securityResourceService) getWhiteListsClient(ctx context.Context, cluster Cluster) (securityClientV1Alpha.WhiteListInterface, error) {
+	securityClientSet, err := s.getClusterClientSet(ctx, cluster)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create security config")
+	}
+
+	return securityClientSet.Whitelists(), nil
+}
+
+func (s securityResourceService) getAuditClient(ctx context.Context, cluster Cluster) (securityClientV1Alpha.AuditInterface, error) {
+	securityClientSet, err := s.getClusterClientSet(ctx, cluster)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to create security config")
+	}
+
+	return securityClientSet.Audits(), nil
+}
+
+func (s securityResourceService) getClusterClientSet(ctx context.Context, cluster Cluster) (*securityClientV1Alpha.SecurityV1Alpha1Client, error) {
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -136,7 +220,7 @@ func (s securityResourceService) getWhiteListsClient(ctx context.Context, cluste
 		return nil, errors.WrapIf(err, "failed to create security config")
 	}
 
-	return securityClientSet.Whitelists(), nil
+	return securityClientSet, nil
 }
 
 func (s securityResourceService) assembleWhiteListItem(whitelistItem security.ReleaseWhiteListItem) *securityV1Alpha.WhiteListItem {

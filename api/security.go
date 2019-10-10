@@ -15,13 +15,9 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"path"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"emperror.dev/errors"
@@ -41,14 +37,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/security"
 )
-
-const policyPath string = "policies"
-
-type activatePolicy struct {
-	Params struct {
-		Active string `json:"active"`
-	} `json:"params"`
-}
 
 func init() {
 	_ = v1alpha1.AddToScheme(scheme.Scheme)
@@ -81,290 +69,6 @@ func getSecurityClient(c *gin.Context) *clientV1alpha1.SecurityV1Alpha1Client {
 		return nil
 	}
 	return securityClientSet
-}
-
-// GetScanLog returns image scan results for all deployments
-func GetScanLog(c *gin.Context) {
-	securityClientSet := getSecurityClient(c)
-	if securityClientSet == nil {
-		return
-	}
-	releaseName := c.Param("releaseName")
-
-	audits, err := securityClientSet.Audits().List(metav1.ListOptions{})
-	if err != nil {
-
-		err := errors.WrapIf(err, "Error during request processing")
-		log.Error(err.Error())
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error getting scanlogs",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	scanLogList := make([]v1alpha1.AuditSpec, 0)
-	for _, audit := range audits.Items {
-		scanLog := v1alpha1.AuditSpec{
-			ReleaseName: audit.Spec.ReleaseName,
-			Resource:    audit.Spec.Resource,
-			Action:      audit.Spec.Action,
-			Images:      audit.Spec.Images,
-			Result:      audit.Spec.Result,
-		}
-		if len(releaseName) == 0 || audit.Spec.ReleaseName == releaseName {
-			scanLogList = append(scanLogList, scanLog)
-		}
-	}
-
-	c.JSON(http.StatusOK, scanLogList)
-
-}
-
-func createResponse(c *gin.Context, response http.Response) {
-	var responsePayload interface{}
-	err := json.NewDecoder(response.Body).Decode(&responsePayload)
-	if err != nil {
-		log.Error("Error parsing response: %v", err.Error())
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error parsing response",
-			Error:   err.Error(),
-		})
-	} else {
-		c.JSON(response.StatusCode, responsePayload)
-	}
-}
-
-// GetPolicies returns image scan results for all deployments
-func GetPolicies(c *gin.Context) {
-
-	endPoint := policyPath
-	policyId := c.Param("policyId")
-	if len(policyId) != 0 {
-		endPoint = path.Join(endPoint, policyId)
-	}
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if !ok {
-		return
-	}
-
-	if !commonCluster.GetSecurityScan() {
-		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
-		return
-	}
-
-	anchoreRequest := anchore.AnchoreRequest{
-		OrgID:     commonCluster.GetOrganizationId(),
-		ClusterID: commonCluster.GetUID(),
-		Method:    http.MethodGet,
-		URL:       endPoint,
-		Body:      nil,
-	}
-
-	response, err := anchore.DoAnchoreRequest(anchoreRequest)
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error",
-			Error:   err.Error(),
-		})
-		return
-	}
-	defer response.Body.Close()
-
-	createResponse(c, *response)
-}
-
-// CreatePolicy returns image scan results for all deployments
-func CreatePolicy(c *gin.Context) {
-
-	var policyBundle *security.PolicyBundle
-	err := c.BindJSON(&policyBundle)
-	if err != nil {
-		err := errors.Wrap(err, "Error parsing request:")
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during parsing request!",
-			Error:   errors.Cause(err).Error(),
-		})
-		return
-	}
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if !ok {
-		return
-	}
-
-	if !commonCluster.GetSecurityScan() {
-		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
-		return
-	}
-
-	anchoreRequest := anchore.AnchoreRequest{
-		OrgID:     commonCluster.GetOrganizationId(),
-		ClusterID: commonCluster.GetUID(),
-		Method:    http.MethodPost,
-		URL:       policyPath,
-		Body:      policyBundle,
-	}
-	response, err := anchore.DoAnchoreRequest(anchoreRequest)
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error",
-			Error:   err.Error(),
-		})
-		return
-	}
-	defer response.Body.Close()
-
-	createResponse(c, *response)
-}
-
-// UpdatePolicies returns image scan results for all deployments
-func UpdatePolicies(c *gin.Context) {
-
-	policyId := c.Param("policyId")
-	if len(policyId) == 0 {
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "policyId is required!",
-			Error:   "policyId is required!",
-		})
-		return
-	}
-
-	var activatePolicy *activatePolicy
-	err := c.BindJSON(&activatePolicy)
-	if err != nil {
-		err := errors.Wrap(err, "Error parsing request:")
-		log.Error(err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during parsing request!",
-			Error:   errors.Cause(err).Error(),
-		})
-		return
-	}
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if !ok {
-		return
-	}
-
-	if !commonCluster.GetSecurityScan() {
-		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
-		return
-	}
-
-	anchoreRequest := anchore.AnchoreRequest{
-		OrgID:     commonCluster.GetOrganizationId(),
-		ClusterID: commonCluster.GetUID(),
-		Method:    http.MethodPut,
-		URL:       path.Join(policyPath, policyId),
-		Body:      nil,
-	}
-
-	if active, _ := strconv.ParseBool(activatePolicy.Params.Active); active {
-		anchoreRequest.Method = http.MethodGet
-		response, err := anchore.DoAnchoreRequest(anchoreRequest)
-		if err != nil {
-			log.Error(err)
-			c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-				Code:    http.StatusInternalServerError,
-				Message: "Error",
-				Error:   err.Error(),
-			})
-			return
-		}
-
-		respBody, _ := ioutil.ReadAll(response.Body)
-		policyBundle := []security.PolicyBundleRecord{}
-		json.Unmarshal(respBody, &policyBundle) // nolint: errcheck
-		policyBundle[0].Active = true
-		anchoreRequest.Method = http.MethodPut
-		anchoreRequest.Body = policyBundle[0]
-	} else {
-		var policyBundle *security.PolicyBundleRecord
-		err := c.BindJSON(&policyBundle)
-		if err != nil {
-			err := errors.Wrap(err, "Error parsing request:")
-			log.Error(err.Error())
-			c.JSON(http.StatusBadRequest, common.ErrorResponse{
-				Code:    http.StatusBadRequest,
-				Message: "Error during parsing request!",
-				Error:   errors.Cause(err).Error(),
-			})
-			return
-		}
-		anchoreRequest.Body = policyBundle
-	}
-
-	response, err := anchore.DoAnchoreRequest(anchoreRequest)
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error",
-			Error:   err.Error(),
-		})
-		return
-	}
-	defer response.Body.Close()
-
-	createResponse(c, *response)
-}
-
-// DeletePolicy returns image scan results for all deployments
-func DeletePolicy(c *gin.Context) {
-
-	policyId := c.Param("policyId")
-	if len(policyId) == 0 {
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "policyId is required!",
-			Error:   "policyId is required!",
-		})
-		return
-	}
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if !ok {
-		return
-	}
-
-	if !commonCluster.GetSecurityScan() {
-		common.ErrorResponseWithStatus(c, http.StatusNotFound, errors.New(anchore.SecurityScanNotEnabledMessage))
-		return
-	}
-
-	anchoreRequest := anchore.AnchoreRequest{
-		OrgID:     commonCluster.GetOrganizationId(),
-		ClusterID: commonCluster.GetUID(),
-		Method:    http.MethodDelete,
-		URL:       path.Join(policyPath, policyId),
-		Body:      nil,
-	}
-	response, err := anchore.DoAnchoreRequest(anchoreRequest)
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Error",
-			Error:   err.Error(),
-		})
-		return
-	}
-	defer response.Body.Close()
-
-	createResponse(c, *response)
-
 }
 
 // GetImageDeployments list deployments by image
@@ -511,12 +215,18 @@ func SecurityScanEnabled(c *gin.Context) {
 // SecurityHandler defines security related handler functions intended to be used for defining routes
 type SecurityHandler interface {
 	WhitelistHandler
+	ScanLogHandler
 }
 
 type WhitelistHandler interface {
 	GetWhiteLists(c *gin.Context)
 	CreateWhiteList(c *gin.Context)
 	DeleteWhiteList(c *gin.Context)
+}
+
+type ScanLogHandler interface {
+	ListScanLogs(c *gin.Context)
+	GetScanLogs(c *gin.Context)
 }
 
 type securityHandlers struct {
@@ -631,6 +341,50 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+func (s securityHandlers) ListScanLogs(c *gin.Context) {
+	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
+	if !ok {
+		s.logger.Warn("failed to retrieve cluster based on the request")
+
+		return
+	}
+
+	scanlogs, err := s.resourceService.ListScanLogs(c.Request.Context(), cluster)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to retrieve scan logs",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, scanlogs)
+}
+
+func (s securityHandlers) GetScanLogs(c *gin.Context) {
+	releaseName := c.Param("releaseName")
+
+	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
+	if !ok {
+		s.logger.Warn("failed to retrieve cluster based on the request")
+
+		return
+	}
+
+	scanlogs, err := s.resourceService.GetScanLogs(c.Request.Context(), cluster, releaseName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to retrieve scan logs",
+			Error:   errors.Cause(err).Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, scanlogs)
 }
 
 func (s securityHandlers) successResponse(ginCtx *gin.Context, payload interface{}) {

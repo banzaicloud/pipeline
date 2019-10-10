@@ -633,8 +633,8 @@ func main() {
 
 					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
 
-					cRouter.GET("/scanlog", api.GetScanLog)
-					cRouter.GET("/scanlog/:releaseName", api.GetScanLog)
+					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
+					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
 
 					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
 					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
