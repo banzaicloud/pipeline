@@ -79,7 +79,6 @@ type CommonCluster interface {
 	SetTTL(time.Duration)
 
 	// Kubernetes
-	DownloadK8sConfig() ([]byte, error)
 	GetAPIEndpoint() (string, error)
 	GetK8sIpv4Cidrs() (*pkgCluster.Ipv4Cidrs, error)
 	GetK8sConfig() ([]byte, error)
