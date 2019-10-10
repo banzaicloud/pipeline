@@ -61,9 +61,6 @@ const (
 	// PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
 	PipelineHeadNodePoolName = "infra.headNodePoolName"
 
-	HeadNodeTaintRetryAttempt      = "infra.headNodeTaintRetryAttempt"
-	HeadNodeTaintRetrySleepSeconds = "infra.headNodeTaintRetrySleepSeconds"
-
 	// PipelineLabelDomain reserved node pool label domains
 	PipelineLabelDomain = "infra.pipelineLabelDomain"
 

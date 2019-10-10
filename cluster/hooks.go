@@ -823,6 +823,9 @@ func addLabelsToNode(client *kubernetes.Clientset, nodeName string, labels map[s
 	return
 }
 
+const headNodeTaintRetryAttempt = 30
+const headNodeTaintRetrySleep = 5 * time.Second
+
 // TaintHeadNodes add taints to the given node in nodepool
 func TaintHeadNodes(commonCluster CommonCluster) error {
 	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
@@ -865,17 +868,14 @@ func TaintHeadNodes(commonCluster CommonCluster) error {
 		return errors.Errorf("Wrong pool name: %v, configured as head node pool", headNodePoolName)
 	}
 
-	retryAttempts := viper.GetInt(pipConfig.HeadNodeTaintRetryAttempt)
-	retrySleepSeconds := viper.GetInt(pipConfig.HeadNodeTaintRetrySleepSeconds)
-
 	nodes, err := getHeadNodes(client, viper.GetString(pipConfig.PipelineHeadNodePoolName))
 	if err != nil {
 		return err
 	}
 
-	for i := 0; i <= retryAttempts && len(nodes.Items) != nodePoolDetails.Count; i++ {
-		log.Infof("Waiting for head pool nodes: %d up out of %d, retry: %d/%d", len(nodes.Items), nodePoolDetails.Count, i, retryAttempts)
-		time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+	for i := 0; i <= headNodeTaintRetryAttempt && len(nodes.Items) != nodePoolDetails.Count; i++ {
+		log.Infof("Waiting for head pool nodes: %d up out of %d, retry: %d/%d", len(nodes.Items), nodePoolDetails.Count, i, headNodeTaintRetryAttempt)
+		time.Sleep(headNodeTaintRetrySleep)
 
 		nodes, err = getHeadNodes(client, headNodePoolName)
 		if err != nil {
