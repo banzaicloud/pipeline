@@ -179,9 +179,6 @@ namespace = "pipeline-system"
 # the node-affinity and toleration as described in docs/infra-node-pool.md
 #headNodePoolName="head"
 
-headNodeTaintRetryAttempt=30
-headNodeTaintRetrySleepSeconds=5
-
 forbiddenLabelDomains=[
 		"k8s.io",
 		"kubernetes.io",
