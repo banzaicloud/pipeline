@@ -57,32 +57,6 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-// pollingKubernetesConfig polls kubeconfig from the cloud
-func pollingKubernetesConfig(cluster CommonCluster) ([]byte, error) {
-
-	if bytes, err := cluster.GetK8sConfig(); err == nil && len(bytes) > 0 {
-		return bytes, nil
-	}
-
-	var err error
-
-	retryCount := viper.GetInt("cloud.configRetryCount")
-	retrySleepTime := viper.GetInt("cloud.configRetrySleep")
-
-	var kubeConfig []byte
-	for i := 0; i < retryCount; i++ {
-		kubeConfig, err = cluster.DownloadK8sConfig()
-		if err != nil {
-			log.Infof("Error getting kubernetes config attempt %d/%d: %s. Waiting %d seconds", i, retryCount, err.Error(), retrySleepTime)
-			time.Sleep(time.Duration(retrySleepTime) * time.Second)
-			continue
-		}
-		break
-	}
-
-	return kubeConfig, err
-}
-
 type imageValues struct {
 	Repository string `json:"repository,omitempty"`
 	Tag        string `json:"tag,omitempty"`
@@ -655,22 +629,6 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 		log.Errorf("Error during retry helm install: %s", err.Error())
 	}
 	return nil
-}
-
-// StoreKubeConfig saves kubeconfig into vault
-func StoreKubeConfig(cluster CommonCluster) error {
-	if cluster.GetConfigSecretId() != "" {
-		log.Info("Config already present in Vault")
-		return nil
-	}
-
-	config, err := pollingKubernetesConfig(cluster)
-	if err != nil {
-		log.Errorf("Error downloading kubeconfig: %s", err.Error())
-		return err
-	}
-
-	return StoreKubernetesConfig(cluster, config)
 }
 
 // SetupPrivileges setups privileges

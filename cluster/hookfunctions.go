@@ -25,10 +25,6 @@ import (
 // HookMap for api hook endpoints
 // nolint: gochecknoglobals
 var HookMap = map[string]PostFunctioner{
-	pkgCluster.StoreKubeConfig: &BasePostFunction{
-		f:            StoreKubeConfig,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.SetupPrivileges: &BasePostFunction{
 		f:            SetupPrivileges,
 		ErrorHandler: ErrorHandler{},
