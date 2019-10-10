@@ -191,10 +191,6 @@ forbiddenLabelDomains=[
 [eks]
 ASGFulfillmentTimeout="10m"
 
-[oke]
-waitAttemptsForNodepoolActive = 60
-sleepSecondsForNodepoolActive = 30
-
 [ark]
 name = "ark"
 namespace = "pipeline-system"

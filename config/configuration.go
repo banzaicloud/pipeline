@@ -86,10 +86,6 @@ const (
 	// AwsCredentialPath is the path in Vault to get AWS credentials from for Pipeline
 	AwsCredentialPath = "aws.credentials.path"
 
-	// Config keys to OKE nodepool wait
-	OKEWaitAttemptsForNodepoolActive = "oke.waitAttemptsForNodepoolActive"
-	OKESleepSecondsForNodepoolActive = "oke.sleepSecondsForNodepoolActive"
-
 	// ARK
 	ARKName                = "ark.name"
 	ARKNamespace           = "ark.namespace"
@@ -278,9 +274,6 @@ func init() {
 	viper.SetDefault(DNSExternalDnsImageVersion, "0.5.15")
 	viper.SetDefault(DNSGcLogLevel, "debug")
 	viper.SetDefault(Route53MaintenanceWndMinute, 15)
-
-	viper.SetDefault(OKEWaitAttemptsForNodepoolActive, 60)
-	viper.SetDefault(OKESleepSecondsForNodepoolActive, 30)
 
 	viper.SetDefault(ARKName, "ark")
 	viper.SetDefault(ARKNamespace, "pipeline-system")
