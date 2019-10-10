@@ -200,9 +200,50 @@ func (m *Manager) createCluster(
 		return err
 	}
 
+	// We only set the status once here, because status setting overwrites modifications made by
+	// the cluster create and the posthook run workflows.
+	// Status setting should be updated everywhere to only change the status fields in the database.
+	// (and/or reload the model between workflow executions which is probably a good idea anyway)
 	err := cluster.SetStatus(pkgCluster.Creating, "running posthooks")
 	if err != nil {
 		return emperror.Wrap(err, "failed to update cluster status")
+	}
+
+	logger.WithField("workflowName", CreateClusterWorkflowName).Info("starting workflow")
+
+	{
+		input := CreateClusterWorkflowInput{
+			ClusterID: cluster.GetID(),
+		}
+
+		workflowOptions := client.StartWorkflowOptions{
+			TaskList:                     "pipeline",
+			ExecutionStartToCloseTimeout: 2 * time.Hour, // TODO: lower timeout
+		}
+
+		exec, err := m.workflowClient.ExecuteWorkflow(ctx, workflowOptions, CreateClusterWorkflowName, input)
+		if err != nil {
+			_ = cluster.SetStatus(pkgCluster.Error, "failed to run setup jobs")
+
+			return emperror.WrapWith(err, "failed to start workflow", "workflowName", CreateClusterWorkflowName)
+		}
+
+		logger.WithFields(logrus.Fields{
+			"workflowName":  CreateClusterWorkflowName,
+			"workflowID":    exec.GetID(),
+			"workflowRunID": exec.GetRunID(),
+		}).Info("workflow started successfully")
+
+		err = exec.Get(ctx, nil)
+		if err != nil {
+			return emperror.Wrap(err, "running setup jobs failed")
+		}
+
+		logger.WithFields(logrus.Fields{
+			"workflowName":  CreateClusterWorkflowName,
+			"workflowID":    exec.GetID(),
+			"workflowRunID": exec.GetRunID(),
+		}).Info("workflow finished successfully")
 	}
 
 	labelsMap, err := GetDesiredLabelsForCluster(ctx, cluster, nil, false)
@@ -222,39 +263,41 @@ func (m *Manager) createCluster(
 
 	logger.WithField("workflowName", RunPostHooksWorkflowName).Info("starting workflow")
 
-	input := RunPostHooksWorkflowInput{
-		ClusterID: cluster.GetID(),
-		PostHooks: BuildWorkflowPostHookFunctions(postHooks, true),
+	{
+		input := RunPostHooksWorkflowInput{
+			ClusterID: cluster.GetID(),
+			PostHooks: BuildWorkflowPostHookFunctions(postHooks, true),
+		}
+
+		workflowOptions := client.StartWorkflowOptions{
+			TaskList:                     "pipeline",
+			ExecutionStartToCloseTimeout: 2 * time.Hour, // TODO: lower timeout
+		}
+
+		exec, err := m.workflowClient.ExecuteWorkflow(ctx, workflowOptions, RunPostHooksWorkflowName, input)
+		if err != nil {
+			_ = cluster.SetStatus(pkgCluster.Error, "failed to run posthooks")
+
+			return emperror.WrapWith(err, "failed to start workflow", "workflowName", RunPostHooksWorkflowName)
+		}
+
+		logger.WithFields(logrus.Fields{
+			"workflowName":  RunPostHooksWorkflowName,
+			"workflowID":    exec.GetID(),
+			"workflowRunID": exec.GetRunID(),
+		}).Info("workflow started successfully")
+
+		err = exec.Get(ctx, nil)
+		if err != nil {
+			return emperror.Wrap(err, "running posthooks failed")
+		}
+
+		logger.WithFields(logrus.Fields{
+			"workflowName":  RunPostHooksWorkflowName,
+			"workflowID":    exec.GetID(),
+			"workflowRunID": exec.GetRunID(),
+		}).Info("workflow finished successfully")
 	}
-
-	workflowOptions := client.StartWorkflowOptions{
-		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 2 * time.Hour, // TODO: lower timeout
-	}
-
-	exec, err := m.workflowClient.ExecuteWorkflow(ctx, workflowOptions, RunPostHooksWorkflowName, input)
-	if err != nil {
-		_ = cluster.SetStatus(pkgCluster.Error, "failed to run posthooks")
-
-		return emperror.WrapWith(err, "failed to start workflow", "workflowName", RunPostHooksWorkflowName)
-	}
-
-	logger.WithFields(logrus.Fields{
-		"workflowName":  RunPostHooksWorkflowName,
-		"workflowID":    exec.GetID(),
-		"workflowRunID": exec.GetRunID(),
-	}).Info("workflow started successfully")
-
-	err = exec.Get(ctx, nil)
-	if err != nil {
-		return emperror.Wrap(err, "running posthooks failed")
-	}
-
-	logger.WithFields(logrus.Fields{
-		"workflowName":  RunPostHooksWorkflowName,
-		"workflowID":    exec.GetID(),
-		"workflowRunID": exec.GetRunID(),
-	}).Info("workflow finished successfully")
 
 	m.events.ClusterCreated(cluster.GetID())
 
