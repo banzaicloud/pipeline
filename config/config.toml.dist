@@ -105,8 +105,6 @@ signingKey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 # audience = "https://pipeline.banzaicloud.com"
 
 [helm]
-retryAttempt = 30
-retrySleepSeconds = 15
 tillerVersion = "v2.14.2"
 path = "./var/cache"
 
