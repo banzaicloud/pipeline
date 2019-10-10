@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/antihax/optional"
 
 	"github.com/banzaicloud/pipeline/.gen/anchore"
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -69,6 +70,15 @@ type anchoreClient struct {
 	logger   common.Logger
 }
 
+func NewAnchoreClient(userName string, password string, endpoint string, logger common.Logger) AnchoreClient {
+	return anchoreClient{
+		userName: userName,
+		password: password,
+		endpoint: endpoint,
+		logger:   logger.WithFields(map[string]interface{}{"anchore-client": ""}),
+	}
+}
+
 func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, policy pipeline.PolicyBundleRecord) error {
 	fnCtx := map[string]interface{}{"policyID": policyID}
 	a.logger.Info("updating policy", fnCtx)
@@ -80,9 +90,9 @@ func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, policy
 
 	_, r, err := a.getRestClient().PoliciesApi.UpdatePolicy(a.authorizedContext(ctx), policyID, toUpdate, &anchore.UpdatePolicyOpts{})
 	if err != nil || r.StatusCode != http.StatusOK {
-		a.logger.Debug("failed to retrieve policy", fnCtx)
+		a.logger.Debug("failed to update policy", fnCtx)
 
-		return errors.WrapIfWithDetails(err, "failed to retrieve policy", fnCtx)
+		return errors.WrapIfWithDetails(err, "failed to update policy", fnCtx)
 	}
 
 	a.logger.Info("policy successfully updated", fnCtx)
@@ -93,7 +103,9 @@ func (a anchoreClient) GetPolicy(ctx context.Context, policyID string) (*pipelin
 	fnCtx := map[string]interface{}{"policyID": policyID}
 	a.logger.Info("retrieving policy", fnCtx)
 
-	policyBundles, r, err := a.getRestClient().PoliciesApi.GetPolicy(a.authorizedContext(ctx), policyID, &anchore.GetPolicyOpts{})
+	policyBundles, r, err := a.getRestClient().PoliciesApi.GetPolicy(a.authorizedContext(ctx), policyID, &anchore.GetPolicyOpts{
+		Detail: optional.NewBool(true),
+	})
 	if err != nil || r.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to retrieve policy", fnCtx)
 
@@ -114,7 +126,11 @@ func (a anchoreClient) GetPolicy(ctx context.Context, policyID string) (*pipelin
 func (a anchoreClient) ListPolicies(ctx context.Context) (interface{}, error) {
 	a.logger.Info("retrieving policies ...")
 
-	policies, r, err := a.getRestClient().PoliciesApi.ListPolicies(a.authorizedContext(ctx), &anchore.ListPoliciesOpts{})
+	policies, r, err := a.getRestClient().PoliciesApi.ListPolicies(a.authorizedContext(ctx),
+		&anchore.ListPoliciesOpts{
+			Detail: optional.NewBool(true),
+		})
+
 	if err != nil || r.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to retrieve policies")
 
@@ -158,18 +174,9 @@ func (a anchoreClient) DeletePolicy(ctx context.Context, policyID string) error 
 		return errors.WrapIfWithDetails(err, "failed to delete policy")
 	}
 
-	a.logger.Info("policy successfully retrieved")
+	a.logger.Info("policy successfully deleted")
 	return nil
 
-}
-
-func NewAnchoreClient(userName string, password string, endpoint string, logger common.Logger) AnchoreClient {
-	return anchoreClient{
-		userName: userName,
-		password: password,
-		endpoint: endpoint,
-		logger:   logger,
-	}
 }
 
 func (a anchoreClient) CreateAccount(ctx context.Context, accountName string, email string) error {

@@ -42,7 +42,7 @@ func NewPolicyService(configService ConfigurationService, store common.SecretSto
 	return policyService{
 		configService: configService,
 		secretStore:   store,
-		logger:        logger,
+		logger:        logger.WithFields(map[string]interface{}{"policy-service": "y"}),
 	}
 }
 

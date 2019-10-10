@@ -153,7 +153,7 @@ func NewPolicyHandler(clusterGetter apiCommon.ClusterGetter, policySvc anchore.P
 	return policyHandler{
 		clusterGetter: clusterGetter,
 		policyService: policySvc,
-		logger:        logger,
+		logger:        logger.WithFields(map[string]interface{}{"policy-handler": "y"}),
 	}
 }
 
@@ -239,14 +239,6 @@ func (p policyHandler) CreatePolicy(c *gin.Context) {
 func (p policyHandler) DeletePolicy(c *gin.Context) {
 
 	policyId := c.Param("policyId")
-	if len(policyId) == 0 {
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "policyId is required!",
-			Error:   "policyId is required!",
-		})
-		return
-	}
 
 	cluster, ok := p.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
@@ -271,14 +263,6 @@ func (p policyHandler) DeletePolicy(c *gin.Context) {
 func (p policyHandler) UpdatePolicy(c *gin.Context) {
 
 	policyId := c.Param("policyId")
-	if len(policyId) == 0 {
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "policyId is required!",
-			Error:   "policyId is required!",
-		})
-		return
-	}
 
 	var policyBundleActivate pipeline.PolicyBundleActivate
 	if err := c.BindJSON(&policyBundleActivate); err != nil {
