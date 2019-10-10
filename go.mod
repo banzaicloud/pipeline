@@ -179,7 +179,7 @@ require (
 	logur.dev/logur v0.15.0
 	sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/kubefed v0.1.0-rc5
-	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
+	sigs.k8s.io/testing_frameworks v0.1.1
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 
