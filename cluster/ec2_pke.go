@@ -45,7 +45,6 @@ import (
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
-	pkgError "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -663,10 +662,6 @@ func (c *EC2ClusterPKE) DeletePKECluster(ctx context.Context, workflowClient cli
 	}
 
 	return nil
-}
-
-func (c *EC2ClusterPKE) DownloadK8sConfig() ([]byte, error) {
-	return nil, pkgError.ErrorFunctionShouldNotBeCalled
 }
 
 func (c *EC2ClusterPKE) GetAPIEndpoint() (string, error) {

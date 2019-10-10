@@ -182,10 +182,6 @@ func (a *AzurePkeCluster) SetTTL(t time.Duration) {
 	// TODO: persist
 }
 
-func (a *AzurePkeCluster) DownloadK8sConfig() ([]byte, error) {
-	return nil, errors.New("AzurePkeCluster.DownloadK8sConfig is not implemented")
-}
-
 func (a *AzurePkeCluster) GetAPIEndpoint() (string, error) {
 	config, err := a.GetK8sConfig()
 	if err != nil {
