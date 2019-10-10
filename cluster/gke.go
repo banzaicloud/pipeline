@@ -29,7 +29,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	googleAuth "golang.org/x/oauth2/google"
 	gkeCompute "google.golang.org/api/compute/v1"
@@ -464,6 +463,9 @@ func (c *GKECluster) DeleteCluster() error {
 
 }
 
+const gkeResourceDeleteMaxAttempts = 12
+const gkeResourceDeleteSleep = 5 * time.Second
+
 // waitForResourcesDelete waits until the Kubernetes destroys all the resources which it had created
 func (c *GKECluster) waitForResourcesDelete() error {
 
@@ -496,16 +498,13 @@ func (c *GKECluster) waitForResourcesDelete() error {
 
 	lb := newLoadBalancerHelper(csv, project, regionName, zone, clusterName)
 
-	maxAttempts := viper.GetInt(pipConfig.GKEResourceDeleteWaitAttempt)
-	sleepSeconds := viper.GetInt(pipConfig.GKEResourceDeleteSleepSeconds)
-
 	checkers := resourceCheckers{
 		newFirewallChecker(csv, project, clusterName),
 		newForwardingRulesChecker(csv, project, regionName, lb),
 		newTargetPoolsChecker(csv, project, clusterName, regionName, zone, lb),
 	}
 
-	err = checkResources(checkers, maxAttempts, sleepSeconds)
+	err = checkResources(checkers, gkeResourceDeleteMaxAttempts, gkeResourceDeleteSleep)
 	if err != nil {
 		return errors.Wrap(err, "Error during checking resources")
 	}
@@ -573,7 +572,7 @@ func (c *GKECluster) getRegionByZone(project string, zone string) (string, error
 }
 
 // checkResources checks all load balancer resources deleted by Kubernetes
-func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) error {
+func checkResources(checkers resourceCheckers, maxAttempts int, sleep time.Duration) error {
 
 	for _, rc := range checkers {
 
@@ -604,7 +603,7 @@ func checkResources(checkers resourceCheckers, maxAttempts, sleepSeconds int) er
 					break
 				} else {
 					log.Warn(err.Error())
-					time.Sleep(time.Second * time.Duration(sleepSeconds))
+					time.Sleep(sleep)
 				}
 				attempt++
 			}

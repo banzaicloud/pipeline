@@ -191,10 +191,6 @@ forbiddenLabelDomains=[
 [eks]
 ASGFulfillmentTimeout="10m"
 
-[gke]
-resourceDeleteWaitAttempt = 12
-resourceDeleteSleepSeconds = 5
-
 [oke]
 waitAttemptsForNodepoolActive = 60
 sleepSecondsForNodepoolActive = 30
