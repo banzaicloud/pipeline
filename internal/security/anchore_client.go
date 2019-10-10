@@ -16,6 +16,7 @@ package anchore
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
@@ -46,10 +47,19 @@ type ImagesClient interface {
 	CheckImage(ctx context.Context, imageDigest string) (interface{}, error)
 }
 
+type PolicyClient interface {
+	GetPolicy(ctx context.Context, policyID string) (*pipeline.PolicyBundleRecord, error)
+	ListPolicies(ctx context.Context) (interface{}, error)
+	CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error)
+	DeletePolicy(ctx context.Context, policyID string) error
+	UpdatePolicy(ctx context.Context, policyID string, policy pipeline.PolicyBundleRecord) error
+}
+
 // AnchoreClient "facade" for supported Anchore operations
 type AnchoreClient interface {
 	UserManagementClient
 	ImagesClient
+	PolicyClient
 }
 
 type anchoreClient struct {
@@ -57,6 +67,100 @@ type anchoreClient struct {
 	password string
 	endpoint string
 	logger   common.Logger
+}
+
+func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, policy pipeline.PolicyBundleRecord) error {
+	fnCtx := map[string]interface{}{"policyID": policyID}
+	a.logger.Info("updating policy", fnCtx)
+
+	var toUpdate anchore.PolicyBundleRecord
+	if err := a.transform(&policy, &toUpdate); err != nil {
+		return errors.WrapIf(err, "failed to transform")
+	}
+
+	_, r, err := a.getRestClient().PoliciesApi.UpdatePolicy(a.authorizedContext(ctx), policyID, toUpdate, &anchore.UpdatePolicyOpts{})
+	if err != nil || r.StatusCode != http.StatusOK {
+		a.logger.Debug("failed to retrieve policy", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to retrieve policy", fnCtx)
+	}
+
+	a.logger.Info("policy successfully updated", fnCtx)
+	return nil
+}
+
+func (a anchoreClient) GetPolicy(ctx context.Context, policyID string) (*pipeline.PolicyBundleRecord, error) {
+	fnCtx := map[string]interface{}{"policyID": policyID}
+	a.logger.Info("retrieving policy", fnCtx)
+
+	policyBundles, r, err := a.getRestClient().PoliciesApi.GetPolicy(a.authorizedContext(ctx), policyID, &anchore.GetPolicyOpts{})
+	if err != nil || r.StatusCode != http.StatusOK {
+		a.logger.Debug("failed to retrieve policy", fnCtx)
+
+		return nil, errors.WrapIfWithDetails(err, "failed to retrieve policy", fnCtx)
+	}
+
+	a.logger.Info("policy successfully retrieved", fnCtx)
+	var bundle pipeline.PolicyBundleRecord
+	if err = a.transform(policyBundles[0], &bundle); err != nil {
+		a.logger.Debug("failed to transform policy", fnCtx)
+
+		return nil, errors.WrapIfWithDetails(err, "failed to transform policy", fnCtx)
+	}
+
+	return &bundle, nil
+}
+
+func (a anchoreClient) ListPolicies(ctx context.Context) (interface{}, error) {
+	a.logger.Info("retrieving policies ...")
+
+	policies, r, err := a.getRestClient().PoliciesApi.ListPolicies(a.authorizedContext(ctx), &anchore.ListPoliciesOpts{})
+	if err != nil || r.StatusCode != http.StatusOK {
+		a.logger.Debug("failed to retrieve policies")
+
+		return nil, errors.WrapIfWithDetails(err, "failed to retrieve policies")
+	}
+
+	a.logger.Info("policies successfully retrieved")
+	return policies, nil
+}
+
+func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error) {
+	fnCtx := map[string]interface{}{"policyID": policy}
+	a.logger.Info("creating policy ...", fnCtx)
+
+	var bundle anchore.PolicyBundle
+	if err := a.transform(policy, &bundle); err != nil {
+		a.logger.Debug("failed to transform policy", fnCtx)
+
+		return nil, errors.WrapIfWithDetails(err, "failed to transform policy")
+	}
+
+	policyBundleReecord, r, err := a.getRestClient().PoliciesApi.AddPolicy(a.authorizedContext(ctx), bundle, &anchore.AddPolicyOpts{})
+	if err != nil || r.StatusCode != http.StatusOK {
+		a.logger.Debug("failed to create policy", fnCtx)
+
+		return nil, errors.WrapIfWithDetails(err, "failed to create policy")
+	}
+
+	a.logger.Info("policy successfully created", fnCtx)
+	return policyBundleReecord, nil
+}
+
+func (a anchoreClient) DeletePolicy(ctx context.Context, policyID string) error {
+	fnCtx := map[string]interface{}{"policyID": policyID}
+	a.logger.Info("deleting policy ...", fnCtx)
+
+	r, err := a.getRestClient().PoliciesApi.DeletePolicy(a.authorizedContext(ctx), policyID, &anchore.DeletePolicyOpts{})
+	if err != nil || r.StatusCode != http.StatusOK {
+		a.logger.Debug("failed to delete policy", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to delete policy")
+	}
+
+	a.logger.Info("policy successfully retrieved")
+	return nil
+
 }
 
 func NewAnchoreClient(userName string, password string, endpoint string, logger common.Logger) AnchoreClient {
@@ -269,4 +373,18 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Pipeline/go",
 	})
+}
+
+// transform quick and dirty solution for transforming anchore types to pipeline types
+func (a anchoreClient) transform(fromType interface{}, toType interface{}) error {
+	anchoreBytes, err := json.Marshal(fromType)
+	if err != nil {
+		return errors.WrapIf(err, "failed to marshal the 'from' type")
+	}
+
+	if err := json.Unmarshal(anchoreBytes, toType); err != nil {
+		return errors.WrapIf(err, "failed to unmarshal to 'toType' type")
+	}
+
+	return nil
 }

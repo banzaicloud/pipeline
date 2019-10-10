@@ -42,10 +42,6 @@ type WhitelistService interface {
 	DeleteWhitelist(ctx context.Context, cluster Cluster, whitelistItemName string) error
 }
 
-// PolicyService policy management operations
-type PolicyService interface {
-}
-
 type securityResourceService struct {
 	logger common.Logger
 }

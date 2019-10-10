@@ -628,6 +628,9 @@ func main() {
 					imgScanSvc := anchore.NewImageScannerService(cfgSvc, secretStore, logger)
 					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
 
+					policySvc := anchore.NewPolicyService(cfgSvc, secretStore, logger)
+					policyHandler := api.NewPolicyHandler(clusterGetter, policySvc, logger)
+
 					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
 
 					cRouter.GET("/scanlog", api.GetScanLog)
@@ -637,11 +640,11 @@ func main() {
 					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
 
-					cRouter.GET("/policies", api.GetPolicies)
-					cRouter.GET("/policies/:policyId", api.GetPolicies)
-					cRouter.POST("/policies", api.CreatePolicy)
-					cRouter.PUT("/policies/:policyId", api.UpdatePolicies)
-					cRouter.DELETE("/policies/:policyId", api.DeletePolicy)
+					cRouter.GET("/policies", policyHandler.ListPolicies)
+					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
+					cRouter.POST("/policies", policyHandler.CreatePolicy)
+					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
+					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
 
 					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
 					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)

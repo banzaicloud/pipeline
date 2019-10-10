@@ -511,7 +511,6 @@ func SecurityScanEnabled(c *gin.Context) {
 // SecurityHandler defines security related handler functions intended to be used for defining routes
 type SecurityHandler interface {
 	WhitelistHandler
-	//PolicyHandler
 }
 
 type WhitelistHandler interface {
@@ -520,16 +519,10 @@ type WhitelistHandler interface {
 	DeleteWhiteList(c *gin.Context)
 }
 
-type PolicyHandler interface {
-	GetPolicies(c *gin.Context)
-	CreatePolicy(c *gin.Context)
-	DeletePolicy(c *gin.Context)
-}
-
 type securityHandlers struct {
-	logger           internalCommon.Logger
-	clusterGetter    apiCommon.ClusterGetter
-	whitelistService anchore.WhitelistService
+	logger          internalCommon.Logger
+	clusterGetter   apiCommon.ClusterGetter
+	resourceService anchore.SecurityResourceService
 }
 
 func NewSecurityApiHandlers(
@@ -538,9 +531,9 @@ func NewSecurityApiHandlers(
 
 	wlSvc := anchore.NewSecurityResourceService(logger)
 	return securityHandlers{
-		clusterGetter:    clusterGetter,
-		whitelistService: wlSvc,
-		logger:           logger,
+		clusterGetter:   clusterGetter,
+		resourceService: wlSvc,
+		logger:          logger,
 	}
 }
 
@@ -548,11 +541,12 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 
 	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
-		// todo handle the response? this case is not consistently handled across the code
+		s.logger.Warn("failed to retrieve cluster based on the request")
+
 		return
 	}
 
-	whitelist, err := s.whitelistService.GetWhitelists(c.Request.Context(), cluster)
+	whitelist, err := s.resourceService.GetWhitelists(c.Request.Context(), cluster)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -578,14 +572,14 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
-		// todo handle the response? this case is not consistently handled across the code
+		s.logger.Warn("failed to retrieve cluster based on the request")
+
 		return
 	}
 
 	var whiteListItem *security.ReleaseWhiteListItem
 	if err := c.BindJSON(&whiteListItem); err != nil {
-		err := errors.Wrap(err, "Error parsing request:")
-
+		err := errors.WrapIf(err, "failed to bind the request body")
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
@@ -594,7 +588,7 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 		return
 	}
 
-	_, err := s.whitelistService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem)
+	_, err := s.resourceService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
@@ -622,11 +616,12 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 
 	cluster, ok := s.clusterGetter.GetClusterFromRequest(c)
 	if !ok {
-		// todo handle the response? this case is not consistently handled across the code
+		s.logger.Warn("failed to retrieve cluster based on the request")
+
 		return
 	}
 
-	if err := s.whitelistService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName); err != nil {
+	if err := s.resourceService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName); err != nil {
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while deleting whitelist",
