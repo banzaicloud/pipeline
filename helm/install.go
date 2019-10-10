@@ -158,18 +158,19 @@ func PreInstall(log logrus.FieldLogger, helmInstall *phelm.Install, kubeConfig [
 	return nil
 }
 
+const helmRetryAttempt = 30
+const helmRetrySleep = 15 * time.Second
+
 // RetryHelmInstall retries for a configurable time/interval
 // Azure AKS sometimes failing because of TLS handshake timeout, there are several issues on GitHub about that:
 // https://github.com/Azure/AKS/issues/112, https://github.com/Azure/AKS/issues/116, https://github.com/Azure/AKS/issues/14
 func RetryHelmInstall(log logrus.FieldLogger, helmInstall *phelm.Install, kubeconfig []byte) error {
-	retryAttempts := viper.GetInt(phelm.HELM_RETRY_ATTEMPT_CONFIG)
-	retrySleepSeconds := viper.GetInt(phelm.HELM_RETRY_SLEEP_SECONDS)
-	for i := 0; i <= retryAttempts; i++ {
-		log.Infof("Waiting %d/%d", i, retryAttempts)
+	for i := 0; i <= helmRetryAttempt; i++ {
+		log.Infof("Waiting %d/%d", i, helmRetryAttempt)
 		err := Install(log, helmInstall, kubeconfig)
 		if err != nil {
 			if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
-				time.Sleep(time.Duration(retrySleepSeconds) * time.Second)
+				time.Sleep(helmRetrySleep)
 				continue
 			}
 

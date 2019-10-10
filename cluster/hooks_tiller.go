@@ -27,6 +27,9 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
+const helmRetryAttempt = 30
+const helmRetrySleep = 15 * time.Second
+
 // WaitingForTillerComeUp waits until till to come up
 func WaitingForTillerComeUp(log logrus.FieldLogger, kubeConfig []byte) error {
 	requiredHelmVersion, err := semver.NewVersion(viper.GetString("helm.tillerVersion"))
@@ -34,19 +37,16 @@ func WaitingForTillerComeUp(log logrus.FieldLogger, kubeConfig []byte) error {
 		return err
 	}
 
-	retryAttempts := viper.GetInt(pkgHelm.HELM_RETRY_ATTEMPT_CONFIG)
-	retrySleepSeconds := viper.GetInt(pkgHelm.HELM_RETRY_SLEEP_SECONDS)
-
 	var backoffConfig = backoff.ConstantBackoffConfig{
-		Delay:      time.Duration(retrySleepSeconds) * time.Second,
-		MaxRetries: retryAttempts,
+		Delay:      helmRetrySleep,
+		MaxRetries: helmRetryAttempt,
 	}
 	var backoffPolicy = backoff.NewConstantBackoffPolicy(backoffConfig)
 
 	i := 0
 
 	err = backoff.Retry(func() error {
-		log.WithField("attempt", fmt.Sprintf("%d/%d", i, retryAttempts)).Info("waiting for tiller to come up")
+		log.WithField("attempt", fmt.Sprintf("%d/%d", i, helmRetryAttempt)).Info("waiting for tiller to come up")
 		i++
 
 		client, err := pkgHelm.NewClient(kubeConfig, log)
