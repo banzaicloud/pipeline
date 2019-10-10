@@ -188,9 +188,6 @@ forbiddenLabelDomains=[
 		"google.com"
 ]
 
-[eks]
-ASGFulfillmentTimeout="10m"
-
 [ark]
 name = "ark"
 namespace = "pipeline-system"

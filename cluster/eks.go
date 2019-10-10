@@ -71,6 +71,7 @@ const mapUsersTemplate = `- userarn: %s
 `
 
 const asgWaitLoopSleepSeconds = 5
+const asgFulfillmentTimeout = 10 * time.Minute
 
 // CreateEKSClusterFromRequest creates ClusterModel struct from the request
 func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId uint, userId uint) (*EKSCluster, error) {
@@ -331,7 +332,7 @@ func (c *EKSCluster) CreateCluster() error {
 	}
 
 	creationContext.ScaleEnabled = c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled
-	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFulfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
+	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
 	actions := []utils.Action{
@@ -882,7 +883,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		}
 	}
 
-	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFulfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
+	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
 	deleteNodePoolAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolsToDelete...)
@@ -926,7 +927,7 @@ func (c *EKSCluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 	defer close(waitChan)
 
 	var caughtErrors []error
-	ASGWaitLoopCount := int(viper.GetDuration(config.EksASGFulfillmentTimeout).Seconds() / asgWaitLoopSleepSeconds)
+	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
 
 	for poolName, nodePool := range request.NodePools {
 
