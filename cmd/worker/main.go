@@ -243,6 +243,11 @@ func main() {
 		setMasterTaintActivity := pkeworkflow.NewSetMasterTaintActivity(clusters)
 		activity.RegisterWithOptions(setMasterTaintActivity.Execute, activity.RegisterOptions{Name: pkeworkflow.SetMasterTaintActivityName})
 
+		workflow.RegisterWithOptions(cluster.CreateClusterWorkflow, workflow.RegisterOptions{Name: cluster.CreateClusterWorkflowName})
+
+		downloadK8sConfigActivity := cluster.NewDownloadK8sConfigActivity(clusterManager)
+		activity.RegisterWithOptions(downloadK8sConfigActivity.Execute, activity.RegisterOptions{Name: cluster.DownloadK8sConfigActivityName})
+
 		workflow.RegisterWithOptions(cluster.RunPostHooksWorkflow, workflow.RegisterOptions{Name: cluster.RunPostHooksWorkflowName})
 
 		runPostHookActivity := cluster.NewRunPostHookActivity(clusterManager)

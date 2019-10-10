@@ -120,7 +120,6 @@ var HookMap = map[string]PostFunctioner{
 // BasePostHookFunctions default posthook functions after cluster create
 // nolint: gochecknoglobals
 var BasePostHookFunctions = []string{
-	pkgCluster.StoreKubeConfig,
 	pkgCluster.SetupPrivileges,
 	pkgCluster.LabelNodesWithNodePoolName,
 	pkgCluster.TaintHeadNodes,
