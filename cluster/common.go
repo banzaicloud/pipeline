@@ -193,9 +193,9 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 		azurePKECluster := azurePKEClusterGetter.GetPKEOnAzureCluster()
 
 		var apiServerAccessPointAddress string
-		if azurePKECluster.ApiServerAccessPoints.Exists("public") {
+		if azurePKECluster.APIServerAccessPoints.Exists("public") {
 			apiServerAccessPointAddress = azurePKECluster.AccessPoints.Get("public").Address
-		} else if azurePKECluster.ApiServerAccessPoints.Exists("private") {
+		} else if azurePKECluster.APIServerAccessPoints.Exists("private") {
 			apiServerAccessPointAddress = azurePKECluster.AccessPoints.Get("private").Address
 		} else {
 			return errors.New("missing api server access point")

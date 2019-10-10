@@ -49,8 +49,8 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	SecurityGroups        []SecurityGroup
 	VirtualNetwork        VirtualNetworkTemplate
 	HTTPProxy             intPKE.HTTPProxy
-	AccessPoints          pke.AzureAccessPoints
-	ApiServerAccessPoints pke.AzureApiServerAccessPoints
+	AccessPoints          pke.AccessPoints
+	APIServerAccessPoints pke.APIServerAccessPoints
 }
 
 type LoadBalancerTemplate struct {
@@ -472,12 +472,12 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		var apiServerPublicAddressProvider, apiServerPrivateAddressProvider IPAddressProvider
 		apiServerCertSansMap := make(map[string]bool)
 
-		if input.ApiServerAccessPoints.Exists("public") && input.AccessPoints.Get("public").Address != "" {
+		if input.APIServerAccessPoints.Exists("public") && input.AccessPoints.Get("public").Address != "" {
 			apiServerPublicAddressProvider = ConstantIPAddressProvider(input.AccessPoints.Get("public").Address)
 			apiServerCertSansMap[input.AccessPoints.Get("public").Address] = true
 		}
 
-		if input.ApiServerAccessPoints.Exists("private") && input.AccessPoints.Get("private").Address != "" {
+		if input.APIServerAccessPoints.Exists("private") && input.AccessPoints.Get("private").Address != "" {
 			apiServerPrivateAddressProvider = ConstantIPAddressProvider(input.AccessPoints.Get("private").Address)
 			apiServerCertSansMap[input.AccessPoints.Get("private").Address] = true
 		}

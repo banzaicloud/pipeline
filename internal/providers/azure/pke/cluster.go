@@ -51,14 +51,14 @@ type NodePool struct {
 	Zones        []string
 }
 
-type AzureAccessPoint struct {
+type AccessPoint struct {
 	Name    string
 	Address string
 }
 
-type AzureAccessPoints []AzureAccessPoint
+type AccessPoints []AccessPoint
 
-func (a AzureAccessPoints) Exists(name string) bool {
+func (a AccessPoints) Exists(name string) bool {
 	for _, ap := range a {
 		if ap.Name == name {
 			return true
@@ -67,7 +67,7 @@ func (a AzureAccessPoints) Exists(name string) bool {
 	return false
 }
 
-func (a AzureAccessPoints) Get(name string) *AzureAccessPoint {
+func (a AccessPoints) Get(name string) *AccessPoint {
 	for i := range a {
 		if a[i].Name == name {
 			return &a[i]
@@ -76,7 +76,7 @@ func (a AzureAccessPoints) Get(name string) *AzureAccessPoint {
 	return nil
 }
 
-func (a AzureAccessPoints) Marshal() (string, error) {
+func (a AccessPoints) Marshal() (string, error) {
 	data, err := json.Marshal(a)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to marshall access point list")
@@ -85,19 +85,19 @@ func (a AzureAccessPoints) Marshal() (string, error) {
 	return string(data), nil
 }
 
-func (a *AzureAccessPoints) Unmarshal(data string) error {
+func (a *AccessPoints) Unmarshal(data string) error {
 	return errors.WrapIf(json.Unmarshal([]byte(data), a), "failed to unmarshal access point list")
 }
 
-type AzureApiServerAccessPoint string
+type APIServerAccessPoint string
 
-func (a AzureApiServerAccessPoint) GetName() string {
+func (a APIServerAccessPoint) GetName() string {
 	return string(a)
 }
 
-type AzureApiServerAccessPoints []AzureApiServerAccessPoint
+type APIServerAccessPoints []APIServerAccessPoint
 
-func (a AzureApiServerAccessPoints) Exists(name string) bool {
+func (a APIServerAccessPoints) Exists(name string) bool {
 	for _, ap := range a {
 		if ap.GetName() == name {
 			return true
@@ -106,7 +106,7 @@ func (a AzureApiServerAccessPoints) Exists(name string) bool {
 	return false
 }
 
-func (a AzureApiServerAccessPoints) Marshal() (string, error) {
+func (a APIServerAccessPoints) Marshal() (string, error) {
 	data, err := json.Marshal(a)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to marshall api server access point list")
@@ -132,8 +132,8 @@ type PKEOnAzureCluster struct {
 	SecurityScan bool
 	TtlMinutes   uint
 
-	AccessPoints          AzureAccessPoints
-	ApiServerAccessPoints AzureApiServerAccessPoints
+	AccessPoints          AccessPoints
+	APIServerAccessPoints APIServerAccessPoints
 }
 
 func (c PKEOnAzureCluster) HasActiveWorkflow() bool {

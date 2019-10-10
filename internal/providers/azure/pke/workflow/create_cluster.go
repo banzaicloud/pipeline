@@ -50,8 +50,8 @@ type CreateClusterWorkflowInput struct {
 	VirtualMachineScaleSetTemplates []VirtualMachineScaleSetTemplate
 	PostHooks                       pkgCluster.PostHooks
 	HTTPProxy                       intPKE.HTTPProxy
-	AccessPoints                    pke.AzureAccessPoints
-	ApiServerAccessPoints           pke.AzureApiServerAccessPoints
+	AccessPoints                    pke.AccessPoints
+	APIServerAccessPoints           pke.APIServerAccessPoints
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -104,7 +104,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		VirtualNetwork:        input.VirtualNetworkTemplate,
 		HTTPProxy:             input.HTTPProxy,
 		AccessPoints:          input.AccessPoints,
-		ApiServerAccessPoints: input.ApiServerAccessPoints,
+		APIServerAccessPoints: input.APIServerAccessPoints,
 	}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {

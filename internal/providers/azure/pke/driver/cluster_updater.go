@@ -239,7 +239,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 
 		Labels:                labels,
 		AccessPoints:          cluster.AccessPoints,
-		ApiServerAccessPoints: cluster.ApiServerAccessPoints,
+		APIServerAccessPoints: cluster.APIServerAccessPoints,
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {

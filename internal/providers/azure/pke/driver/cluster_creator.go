@@ -152,8 +152,8 @@ type AzurePKEClusterCreationParams struct {
 	SecretID              string
 	SSHSecretID           string
 	HTTPProxy             intPKE.HTTPProxy
-	AccessPoints          pke.AzureAccessPoints
-	ApiServerAccessPoints pke.AzureApiServerAccessPoints
+	AccessPoints          pke.AccessPoints
+	APIServerAccessPoints pke.APIServerAccessPoints
 }
 
 // Create
@@ -224,7 +224,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		KubernetesVersion:     params.Kubernetes.Version,
 		HTTPProxy:             params.HTTPProxy,
 		AccessPoints:          params.AccessPoints,
-		ApiServerAccessPoints: params.ApiServerAccessPoints,
+		APIServerAccessPoints: params.APIServerAccessPoints,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
@@ -327,7 +327,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			// use master node's subnet for the internal LB
 			subnetName = masterNodesSubnetName
 
-			if params.ApiServerAccessPoints.Exists("private") {
+			if params.APIServerAccessPoints.Exists("private") {
 				// add master nodes LB backend address pool
 				backendAddressPoolName = pke.GetBackendAddressPoolName()
 			}
@@ -336,7 +336,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 			// backend pool for ensuring outbound connectivity to the Internet through public Standard LB
 			outboundBackendAddressPoolName = pke.GetOutboundBackendAddressPoolName()
 
-			if params.ApiServerAccessPoints.Exists("public") {
+			if params.APIServerAccessPoints.Exists("public") {
 				// if API server is exposed through public end point, set up INAT
 				// through public LB to be able to ssh to master nodes
 				inboundNATPoolName = pke.GetInboundNATPoolName()
@@ -433,7 +433,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		PostHooks:                       postHooks,
 		HTTPProxy:                       cl.HTTPProxy,
 		AccessPoints:                    params.AccessPoints,
-		ApiServerAccessPoints:           params.ApiServerAccessPoints,
+		APIServerAccessPoints:           params.APIServerAccessPoints,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
@@ -496,7 +496,7 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 	}
 
 	if len(params.AccessPoints) == 0 {
-		params.AccessPoints = append(params.AccessPoints, pke.AzureAccessPoint{Name: "public"})
+		params.AccessPoints = append(params.AccessPoints, pke.AccessPoint{Name: "public"})
 		p.logger.Debug("access points not specified, defaulting to public")
 	}
 	if len(params.AccessPoints) > 2 {
@@ -509,15 +509,15 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 		}
 	}
 
-	if params.ApiServerAccessPoints == nil {
-		params.ApiServerAccessPoints = append(params.ApiServerAccessPoints, "public")
+	if params.APIServerAccessPoints == nil {
+		params.APIServerAccessPoints = append(params.APIServerAccessPoints, "public")
 		p.logger.Debug("API server access points not specified, defaulting to public")
 	}
 
-	if len(params.ApiServerAccessPoints) > 2 {
+	if len(params.APIServerAccessPoints) > 2 {
 		return validationErrorf("only private, public or both are allowed as API server access points")
 	}
-	for _, apiServerAp := range params.ApiServerAccessPoints {
+	for _, apiServerAp := range params.APIServerAccessPoints {
 		if !params.AccessPoints.Exists(apiServerAp.GetName()) {
 			return validationError{fmt.Sprintf("no access point is defined for API server access point %s", apiServerAp)}
 		}

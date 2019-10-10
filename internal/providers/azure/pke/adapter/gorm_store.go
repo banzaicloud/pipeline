@@ -219,12 +219,12 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 	cluster.Kubernetes.Version = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
 
-	accessPoints := pke.AzureAccessPoints{}
+	var accessPoints pke.AccessPoints
 	accessPoints.Unmarshal(model.AccessPoints) // nolint: errcheck
 	cluster.AccessPoints = accessPoints
 
 	for _, ap := range unmarshalStringSlice(model.ApiServerAccessPoints) {
-		cluster.ApiServerAccessPoints = append(cluster.ApiServerAccessPoints, pke.AzureApiServerAccessPoint(ap))
+		cluster.APIServerAccessPoints = append(cluster.APIServerAccessPoints, pke.APIServerAccessPoint(ap))
 	}
 
 	cluster.HTTPProxy = model.HTTPProxy.toEntity()
@@ -331,7 +331,7 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 			return c, errors.WrapIf(err, "couldn't marshall cluster access points")
 		}
 		model.AccessPoints = accessPointsJson
-		apiServerAccessPoints, err := params.ApiServerAccessPoints.Marshal()
+		apiServerAccessPoints, err := params.APIServerAccessPoints.Marshal()
 		if err != nil {
 			return c, errors.WrapIf(err, "couldn't marshall api server access points")
 		}
@@ -434,7 +434,7 @@ func (s gormAzurePKEClusterStore) SetStatus(clusterID uint, status, message stri
 	return nil
 }
 
-func (s gormAzurePKEClusterStore) UpdateClusterAccessPoints(clusterID uint, accessPoints pke.AzureAccessPoints) error {
+func (s gormAzurePKEClusterStore) UpdateClusterAccessPoints(clusterID uint, accessPoints pke.AccessPoints) error {
 	if err := validateClusterID(clusterID); err != nil {
 		return errors.WrapIf(err, "invalid cluster ID")
 	}
@@ -446,7 +446,7 @@ func (s gormAzurePKEClusterStore) UpdateClusterAccessPoints(clusterID uint, acce
 		return err
 	}
 
-	clusterAccessPoints := pke.AzureAccessPoints{}
+	var clusterAccessPoints pke.AccessPoints
 	if err := clusterAccessPoints.Unmarshal(model.AccessPoints); err != nil {
 		return errors.WrapIf(err, "could not unmarshal cluster access points")
 	}

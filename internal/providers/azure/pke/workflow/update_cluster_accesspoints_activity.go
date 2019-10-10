@@ -36,14 +36,14 @@ func MakeUpdateClusterAccessPointsActivity(store pke.AzurePKEClusterStore) Updat
 
 type UpdateClusterAccessPointsActivityInput struct {
 	ClusterID    uint
-	AccessPoints pke.AzureAccessPoints
+	AccessPoints pke.AccessPoints
 }
 
 func (a UpdateClusterAccessPointsActivity) Execute(ctx context.Context, input UpdateClusterAccessPointsActivityInput) error {
 	return a.store.UpdateClusterAccessPoints(input.ClusterID, input.AccessPoints)
 }
 
-func updateClusterAccessPoints(ctx workflow.Context, clusterID uint, accessPoints pke.AzureAccessPoints) error {
+func updateClusterAccessPoints(ctx workflow.Context, clusterID uint, accessPoints pke.AccessPoints) error {
 	return workflow.ExecuteActivity(ctx, UpdateClusterAccessPointsActivityName, UpdateClusterAccessPointsActivityInput{
 		ClusterID:    clusterID,
 		AccessPoints: accessPoints,

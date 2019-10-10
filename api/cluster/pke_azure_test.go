@@ -177,8 +177,8 @@ func TestToAzurePKEClusterCreationParams(t *testing.T) {
 				},
 				SecretID:              SecretID,
 				SSHSecretID:           SSHSecretID,
-				AccessPoints:          azurePke.AzureAccessPoints{{Name: "private"}, {Name: "public"}},
-				ApiServerAccessPoints: azurePke.AzureApiServerAccessPoints{"private", "public"},
+				AccessPoints:          azurePke.AccessPoints{{Name: "private"}, {Name: "public"}},
+				APIServerAccessPoints: azurePke.APIServerAccessPoints{"private", "public"},
 			},
 		},
 	}
