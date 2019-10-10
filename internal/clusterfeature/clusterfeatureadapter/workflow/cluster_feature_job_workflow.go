@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 
@@ -117,7 +118,13 @@ func getActivity(workflowInput ClusterFeatureJobWorkflowInput, signalInput Clust
 
 func tryExecuteActivity(ctx workflow.Context, activityName string, activityInput interface{}) (bool, error) {
 	err := workflow.ExecuteActivity(ctx, activityName, activityInput).Get(ctx, nil)
-	return shouldRetry(err), errors.WrapIfWithDetails(err, "activity execution failed", "activityName", activityName, "activityInput", activityInput)
+
+	var isShouldRetryError bool
+	if customError, ok := err.(*cadence.CustomError); ok && customError.Reason() == shouldRetryReason {
+		isShouldRetryError = true
+	}
+
+	return isShouldRetryError, errors.WrapIfWithDetails(err, "activity execution failed", "activityName", activityName, "activityInput", activityInput)
 }
 
 func executeActivity(ctx workflow.Context, activityName string, activityInput interface{}, jobsChannel workflow.Channel, signalInputPtr *ClusterFeatureJobSignalInput) (bool, error) {
@@ -175,14 +182,4 @@ func deleteClusterFeature(ctx workflow.Context, input ClusterFeatureJobWorkflowI
 		FeatureName: input.FeatureName,
 	}
 	return workflow.ExecuteActivity(ctx, ClusterFeatureDeleteActivityName, activityInput).Get(ctx, nil)
-}
-
-func shouldRetry(err error) bool {
-	var sh interface {
-		ShouldRetry() bool
-	}
-	if errors.As(err, &sh) {
-		return sh.ShouldRetry()
-	}
-	return false
 }

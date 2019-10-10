@@ -17,6 +17,8 @@ package workflow
 import (
 	"context"
 
+	"go.uber.org/cadence"
+
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
@@ -43,5 +45,11 @@ func (a ClusterFeatureDeactivateActivity) Execute(ctx context.Context, input Clu
 	if err != nil {
 		return err
 	}
-	return f.Deactivate(ctx, input.ClusterID, input.FeatureSpec)
+
+	err = f.Deactivate(ctx, input.ClusterID, input.FeatureSpec)
+	if ok := shouldRetry(err); ok {
+		return cadence.NewCustomError(shouldRetryReason)
+	}
+
+	return err
 }
