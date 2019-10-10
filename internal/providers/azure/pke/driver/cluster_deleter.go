@@ -33,7 +33,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
-	"github.com/banzaicloud/pipeline/internal/cluster/statestore"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
@@ -146,7 +145,6 @@ func (cd AzurePKEClusterDeleter) Delete(ctx context.Context, cluster pke.PKEOnAz
 			return
 		}
 		cd.kubeProxyCache.Delete(cluster.UID)
-		statestore.CleanStateStore(cluster.Name) // nolint: errcheck
 		cd.events.ClusterDeleted(cluster.OrganizationID, cluster.Name)
 	}()
 
