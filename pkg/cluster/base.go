@@ -72,7 +72,6 @@ const (
 
 // constants for posthooks
 const (
-	StoreKubeConfig                        = "StoreKubeConfig"
 	SetupPrivileges                        = "SetupPrivileges"
 	CreatePipelineNamespacePostHook        = "CreatePipelineNamespacePostHook"
 	InstallHelmPostHook                    = "InstallHelmPostHook"
