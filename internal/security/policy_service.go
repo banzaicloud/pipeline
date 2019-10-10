@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
+//PolicyService policy related operations
 type PolicyService interface {
 	ListPolicies(ctx context.Context, orgID uint, clusterID uint) (interface{}, error)
 	GetPolicy(ctx context.Context, orgID uint, clusterID uint, policyID string) (*pipeline.PolicyBundleRecord, error)
@@ -61,7 +62,7 @@ func (p policyService) ListPolicies(ctx context.Context, orgID uint, clusterID u
 	if err != nil {
 		p.logger.Debug("failure while retrieving policies", fnCtx)
 
-		return nil, errors.WrapIf(err, "failure while retrieving policies")
+		return nil, errors.WrapIf(err, "failed to retrieve policies")
 	}
 
 	p.logger.Info("policies successfully retrieved", fnCtx)
@@ -83,7 +84,7 @@ func (p policyService) GetPolicy(ctx context.Context, orgID uint, clusterID uint
 	if err != nil {
 		p.logger.Debug("failure while retrieving policy", fnCtx)
 
-		return nil, errors.WrapIf(err, "failure while retrieving policy")
+		return nil, errors.WrapIf(err, "failed to retrieve policy")
 	}
 
 	p.logger.Info("policies successfully retrieved", fnCtx)
@@ -103,12 +104,12 @@ func (p policyService) CreatePolicy(ctx context.Context, orgID uint, clusterID u
 
 	policyItem, err := anchoreClient.CreatePolicy(ctx, policy)
 	if err != nil {
-		p.logger.Debug("failure while retrieving policy", fnCtx)
+		p.logger.Debug("failure while creating policy", fnCtx)
 
-		return nil, errors.WrapIf(err, "failure while retrieving policy")
+		return nil, errors.WrapIf(err, "failed to create policy")
 	}
 
-	p.logger.Info("policies successfully retrieved", fnCtx)
+	p.logger.Info("policies successfully created", fnCtx)
 	return policyItem, nil
 }
 
@@ -126,10 +127,10 @@ func (p policyService) DeletePolicy(ctx context.Context, orgID uint, clusterID u
 	if err := anchoreClient.DeletePolicy(ctx, policyID); err != nil {
 		p.logger.Debug("failure while deleting policy", fnCtx)
 
-		return errors.WrapIf(err, "failure while deleting policy")
+		return errors.WrapIf(err, "failed to delete policy")
 	}
 
-	p.logger.Info("policies successfully deleted", fnCtx)
+	p.logger.Info("policy successfully deleted", fnCtx)
 	return nil
 }
 
@@ -146,9 +147,9 @@ func (p policyService) UpdatePolicy(ctx context.Context, orgID uint, clusterID u
 
 	policy, err := anchoreClient.GetPolicy(ctx, policyID)
 	if err != nil {
-		p.logger.Debug("failed to retrieve policy to update", fnCtx)
+		p.logger.Debug("failure while retrieving policy for update", fnCtx)
 
-		return errors.WrapIf(err, "failed to retrieve policy to update")
+		return errors.WrapIf(err, "failed to retrieve policy for update")
 	}
 
 	if activate, _ := strconv.ParseBool(policyActivate.Params.Active); activate {
@@ -158,18 +159,19 @@ func (p policyService) UpdatePolicy(ctx context.Context, orgID uint, clusterID u
 	if err := anchoreClient.UpdatePolicy(ctx, policyID, *policy); err != nil {
 		p.logger.Debug("failure while updating policy", fnCtx)
 
-		return errors.WrapIf(err, "failure while updating policy")
+		return errors.WrapIf(err, "failed to update policy")
 	}
 
-	p.logger.Info("policys successfully updated", fnCtx)
+	p.logger.Info("policy successfully updated", fnCtx)
 	return nil
 }
 
 // getAnchoreClient returns a rest client wrapper instance with the proper configuration
+// todo this method may be extracted to a common place to be reused by other services
 func (p policyService) getAnchoreClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
 	cfg, err := p.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
-		p.logger.Debug("failed to get anchore configuration")
+		p.logger.Debug("failure while getting anchore configuration")
 
 		return nil, errors.Wrap(err, "failed to get anchore configuration")
 	}
