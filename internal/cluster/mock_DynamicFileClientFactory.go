@@ -9,13 +9,13 @@ type MockDynamicFileClientFactory struct {
 	mock.Mock
 }
 
-// CreateClient provides a mock function with given fields: clusterID
-func (_m *MockDynamicFileClientFactory) CreateClient(clusterID string) (DynamicFileClient, error) {
-	ret := _m.Called(clusterID)
+// FromSecret provides a mock function with given fields: secretID
+func (_m *MockDynamicFileClientFactory) FromSecret(secretID string) (DynamicFileClient, error) {
+	ret := _m.Called(secretID)
 
 	var r0 DynamicFileClient
 	if rf, ok := ret.Get(0).(func(string) DynamicFileClient); ok {
-		r0 = rf(clusterID)
+		r0 = rf(secretID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(DynamicFileClient)
@@ -24,7 +24,7 @@ func (_m *MockDynamicFileClientFactory) CreateClient(clusterID string) (DynamicF
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(clusterID)
+		r1 = rf(secretID)
 	} else {
 		r1 = ret.Error(1)
 	}

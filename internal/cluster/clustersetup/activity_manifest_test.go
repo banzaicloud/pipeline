@@ -50,11 +50,15 @@ organizationName: example-organization
 	client.On("Create", ctx, []byte(manifest)).Return(nil)
 
 	clientFactory := new(cluster.MockDynamicFileClientFactory)
-	clientFactory.On("CreateClient", "id:1").Return(client, nil)
+	clientFactory.On("FromSecret", "secret").Return(client, nil)
 
 	activity := NewInitManifestActivity(tpl, clientFactory)
 
-	err = activity.Execute(ctx, InitManifestActivityInput{Cluster: testCluster, Organization: testOrganization})
+	err = activity.Execute(ctx, InitManifestActivityInput{
+		ConfigSecretID: "secret",
+		Cluster:        testCluster,
+		Organization:   testOrganization,
+	})
 	require.NoError(t, err)
 
 	clientFactory.AssertExpectations(t)

@@ -17,7 +17,6 @@ package clustersetup
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"text/template"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
@@ -39,19 +38,29 @@ func NewInitManifestActivity(manifest *template.Template, clientFactory cluster.
 }
 
 type InitManifestActivityInput struct {
+	// Kubernetes cluster config secret ID.
+	ConfigSecretID string
+
+	// Cluster information
 	Cluster      Cluster
 	Organization Organization
 }
 
 func (a InitManifestActivity) Execute(ctx context.Context, input InitManifestActivityInput) error {
-	client, err := a.clientFactory.CreateClient(fmt.Sprintf("id:%d", input.Cluster.ID))
+	var buf bytes.Buffer
+
+	err := a.manifest.Execute(&buf, struct {
+		Cluster      Cluster
+		Organization Organization
+	}{
+		Cluster:      input.Cluster,
+		Organization: input.Organization,
+	})
 	if err != nil {
 		return err
 	}
 
-	var buf bytes.Buffer
-
-	err = a.manifest.Execute(&buf, input)
+	client, err := a.clientFactory.FromSecret(input.ConfigSecretID)
 	if err != nil {
 		return err
 	}
