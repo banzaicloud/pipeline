@@ -16,21 +16,29 @@ package cluster
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/workflow"
+
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 )
 
 const CreateClusterWorkflowName = "create-cluster-legacy"
 
 type CreateClusterWorkflowInput struct {
-	ClusterID uint
+	ClusterID        uint
+	ClusterUID       string
+	ClusterName      string
+	OrganizationID   uint
+	OrganizationName string
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
 	// Download k8s config (where applicable)
+	var configSecretID string
 	{
 		ao := workflow.ActivityOptions{
 			ScheduleToStartTimeout: 10 * time.Minute,
@@ -48,7 +56,33 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			ClusterID: input.ClusterID,
 		}
 
-		err := workflow.ExecuteActivity(ctx, DownloadK8sConfigActivityName, activityInput).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, DownloadK8sConfigActivityName, activityInput).Get(ctx, &configSecretID)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		workflowInput := clustersetup.WorkflowInput{
+			ConfigSecretID: fmt.Sprintf("brn:%d:secret:%s", input.OrganizationID, configSecretID),
+			Cluster: clustersetup.Cluster{
+				ID:   input.ClusterID,
+				UID:  input.ClusterUID,
+				Name: input.ClusterName,
+			},
+			Organization: clustersetup.Organization{
+				ID:   input.OrganizationID,
+				Name: input.OrganizationName,
+			},
+		}
+
+		cwo := workflow.ChildWorkflowOptions{
+			ExecutionStartToCloseTimeout: 30 * time.Minute,
+			TaskStartToCloseTimeout:      40 * time.Minute,
+		}
+		ctx := workflow.WithChildOptions(ctx, cwo)
+
+		err := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -78,18 +112,18 @@ type K8sConfigDownloader interface {
 	DownloadK8sConfig() ([]byte, error)
 }
 
-func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8sConfigActivityInput) error {
+func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8sConfigActivityInput) (string, error) {
 	logger := activity.GetLogger(ctx).Sugar().With("clusterId", input.ClusterID)
 
 	cluster, err := a.manager.GetClusterByIDOnly(ctx, input.ClusterID)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if cluster.GetConfigSecretId() != "" {
 		logger.Info("config is already present in Vault")
 
-		return nil
+		return cluster.GetConfigSecretId(), nil
 	}
 
 	activityInfo := activity.GetInfo(ctx)
@@ -102,7 +136,12 @@ func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8
 		if err == nil && len(config) > 0 {
 			logger.Info("saving existing config")
 
-			return StoreKubernetesConfig(cluster, config)
+			err = StoreKubernetesConfig(cluster, config)
+			if err != nil {
+				return "", err
+			}
+
+			return cluster.GetConfigSecretId(), nil
 		}
 	}
 
@@ -111,13 +150,18 @@ func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8
 
 		config, err := downloader.DownloadK8sConfig()
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		logger.Info("saving config")
 
-		return StoreKubernetesConfig(cluster, config)
+		err = StoreKubernetesConfig(cluster, config)
+		if err != nil {
+			return "", err
+		}
+
+		return cluster.GetConfigSecretId(), nil
 	}
 
-	return nil
+	return cluster.GetConfigSecretId(), nil
 }

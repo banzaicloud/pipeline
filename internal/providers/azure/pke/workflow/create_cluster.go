@@ -22,6 +22,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -106,6 +107,28 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	if err = waitForMasterReadySignal(ctx, 1*time.Hour); err != nil {
 		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
+	}
+
+	{
+		// TODO: fill the remaining fields
+		workflowInput := clustersetup.WorkflowInput{
+			ConfigSecretID: "<missing>",
+			Cluster: clustersetup.Cluster{
+				ID:   input.ClusterID,
+				UID:  "<missing>",
+				Name: input.ClusterName,
+			},
+			Organization: clustersetup.Organization{
+				ID:   input.OrganizationID,
+				Name: "<missing>",
+			},
+		}
+
+		err = workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput).Get(ctx, nil)
+		if err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
 	}
 
 	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{
