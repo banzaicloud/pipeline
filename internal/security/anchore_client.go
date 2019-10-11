@@ -51,12 +51,12 @@ type ImagesClient interface {
 type PolicyClient interface {
 	GetPolicy(ctx context.Context, policyID string) (*pipeline.PolicyBundleRecord, error)
 	ListPolicies(ctx context.Context) ([]pipeline.PolicyBundleRecord, error)
-	CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error)
+	CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (*pipeline.PolicyBundleRecord, error)
 	DeletePolicy(ctx context.Context, policyID string) error
 	UpdatePolicy(ctx context.Context, policyID string, policy pipeline.PolicyBundleRecord) error
 }
 
-// AnchoreClient "facade" for supported Anchore operations
+// AnchoreClient "facade" for supported Anchore operations, decouples anchore specifics from the application
 type AnchoreClient interface {
 	UserManagementClient
 	ImagesClient
@@ -164,11 +164,10 @@ func (a anchoreClient) ListPolicies(ctx context.Context) ([]pipeline.PolicyBundl
 	return retPolicies, nil
 }
 
-func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error) {
+func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (*pipeline.PolicyBundleRecord, error) {
 	fnCtx := map[string]interface{}{"policyID": policy}
 	a.logger.Info("creating policy ...", fnCtx)
 
-	// todo check the transformation here!
 	var bundle anchore.PolicyBundle
 	if err := a.transform(policy, &bundle); err != nil {
 		a.logger.Debug("failed to transform policy", fnCtx)
@@ -183,8 +182,17 @@ func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyB
 		return nil, errors.WrapIfWithDetails(err, "failed to create policy")
 	}
 
+	var pipelineRecord pipeline.PolicyBundleRecord
+	if err = a.transform(policyBundleRecord, &pipelineRecord); err != nil {
+		a.logger.Warn("failed to transform to pipeline policy")
+	}
+	// time values are lost during transformation
+	pipelineRecord.CreatedAt = policyBundleRecord.CreatedAt
+	pipelineRecord.LastUpdated = policyBundleRecord.LastUpdated
+
 	a.logger.Info("policy successfully created", fnCtx)
-	return policyBundleRecord, nil
+
+	return &pipelineRecord, nil
 }
 
 func (a anchoreClient) DeletePolicy(ctx context.Context, policyID string) error {
@@ -406,7 +414,10 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 	})
 }
 
-// transform quick and dirty solution for transforming anchore types to pipeline types
+// transform quick and dirty solution for transformations between anchore types and pipeline types
+// static casting doesn't work recursively, plain json transformation fails due to snake notation and camel case
+// notation differences
+// WARNING: Time values are lost during transformation, possible fix: https://github.com/mitchellh/mapstructure/issues/159
 func (a anchoreClient) transform(fromType interface{}, toType interface{}) error {
 
 	if err := mapstructure.Decode(fromType, toType); err != nil {
