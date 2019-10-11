@@ -19,6 +19,8 @@ import (
 	"context"
 	"text/template"
 
+	"go.uber.org/cadence/activity"
+
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
 
@@ -50,6 +52,8 @@ type InitManifestActivityInput struct {
 }
 
 func (a InitManifestActivity) Execute(ctx context.Context, input InitManifestActivityInput) error {
+	activity.GetLogger(ctx).Sugar().With("clusterId", input.Cluster.ID).Info("installing init manifest")
+
 	var buf bytes.Buffer
 
 	err := a.manifest.Execute(&buf, struct {
