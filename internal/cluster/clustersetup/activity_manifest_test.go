@@ -1,0 +1,62 @@
+// Copyright © 2019 Banzai Cloud
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package clustersetup
+
+import (
+	"context"
+	"testing"
+	"text/template"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/banzaicloud/pipeline/internal/cluster"
+)
+
+func TestInitManifestActivity(t *testing.T) {
+	rawTpl := `clusterID: {{ .Cluster.ID }}
+clusterUID: {{ .Cluster.UID }}
+clusterName: {{ .Cluster.Name }}
+
+organizationID: {{ .Organization.ID }}
+organizationName: {{ .Organization.Name }}
+`
+
+	manifest := `clusterID: 1
+clusterUID: 260e50ee-d817-4b62-85bd-3260f0e019a0
+clusterName: example-cluster
+
+organizationID: 1
+organizationName: example-organization
+`
+
+	ctx := context.Background()
+
+	tpl, err := template.New("").Parse(rawTpl)
+	require.NoError(t, err)
+
+	client := new(cluster.MockDynamicFileClient)
+	client.On("Create", ctx, []byte(manifest)).Return(nil)
+
+	clientFactory := new(cluster.MockDynamicFileClientFactory)
+	clientFactory.On("CreateClient", "id:1").Return(client, nil)
+
+	activity := NewInitManifestActivity(tpl, clientFactory)
+
+	err = activity.Execute(ctx, InitManifestActivityInput{Cluster: testCluster, Organization: testOrganization})
+	require.NoError(t, err)
+
+	clientFactory.AssertExpectations(t)
+	client.AssertExpectations(t)
+}
