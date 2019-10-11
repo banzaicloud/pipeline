@@ -19,10 +19,25 @@ import (
 	"testing"
 	"text/template"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/testsuite"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 )
+
+// nolint: gochecknoglobals
+var testInitManifestActivity = InitManifestActivity{}
+
+func testInitManifestActivityExecute(ctx context.Context, input InitManifestActivityInput) error {
+	return testInitManifestActivity.Execute(ctx, input)
+}
+
+// nolint: gochecknoinit
+func init() {
+	activity.RegisterWithOptions(testInitManifestActivityExecute, activity.RegisterOptions{Name: InitManifestActivityName})
+}
 
 func TestInitManifestActivity(t *testing.T) {
 	rawTpl := `clusterID: {{ .Cluster.ID }}
@@ -41,20 +56,20 @@ organizationID: 1
 organizationName: example-organization
 `
 
-	ctx := context.Background()
-
 	tpl, err := template.New("").Parse(rawTpl)
 	require.NoError(t, err)
 
 	client := new(cluster.MockDynamicFileClient)
-	client.On("Create", ctx, []byte(manifest)).Return(nil)
+	client.On("Create", mock.Anything, []byte(manifest)).Return(nil)
 
 	clientFactory := new(cluster.MockDynamicFileClientFactory)
 	clientFactory.On("FromSecret", "secret").Return(client, nil)
 
-	activity := NewInitManifestActivity(tpl, clientFactory)
+	testInitManifestActivity = NewInitManifestActivity(tpl, clientFactory)
 
-	err = activity.Execute(ctx, InitManifestActivityInput{
+	env := (&testsuite.WorkflowTestSuite{}).NewTestActivityEnvironment()
+
+	_, err = env.ExecuteActivity(InitManifestActivityName, InitManifestActivityInput{
 		ConfigSecretID: "secret",
 		Cluster:        testCluster,
 		Organization:   testOrganization,

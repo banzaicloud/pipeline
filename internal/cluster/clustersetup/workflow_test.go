@@ -19,7 +19,6 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/testsuite"
 	"go.uber.org/cadence/workflow"
 )
@@ -46,10 +45,6 @@ type WorkflowTestSuite struct {
 
 func TestWorkflowTestSuite(t *testing.T) {
 	suite.Run(t, new(WorkflowTestSuite))
-}
-
-func (s *WorkflowTestSuite) SetupSuite() {
-	activity.RegisterWithOptions(InitManifestActivity{}.Execute, activity.RegisterOptions{Name: InitManifestActivityName})
 }
 
 func (s *WorkflowTestSuite) SetupTest() {
@@ -85,7 +80,7 @@ func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 	s.env.OnActivity(
 		InitManifestActivityName,
 		mock.Anything,
-		InitManifestActivityInput{Cluster: testCluster, Organization: testOrganization},
+		InitManifestActivityInput{ConfigSecretID: "secret", Cluster: testCluster, Organization: testOrganization},
 	).Return(nil)
 
 	workflowInput := WorkflowInput{
