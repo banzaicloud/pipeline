@@ -16,6 +16,7 @@ package k8sclient
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -34,6 +35,10 @@ type DynamicFileClientTestSuite struct {
 }
 
 func testDynamicFileClient(t *testing.T) {
+	if os.Getenv("TEST_ASSET_KUBE_APISERVER") == "" || os.Getenv("TEST_ASSET_ETCD") != "" {
+		t.Skip("control plane binaries are missing")
+	}
+
 	suite.Run(t, new(DynamicFileClientTestSuite))
 }
 
