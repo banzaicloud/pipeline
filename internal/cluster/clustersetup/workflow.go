@@ -26,6 +26,7 @@ const WorkflowName = "cluster-setup"
 
 // Workflow orchestrates the post-creation cluster setup flow.
 type Workflow struct {
+	// InstallInit
 	InstallInitManifest bool
 }
 

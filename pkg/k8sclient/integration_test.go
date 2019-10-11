@@ -18,24 +18,12 @@ import (
 	"flag"
 	"regexp"
 	"testing"
-
-	"github.com/stretchr/testify/require"
-	"sigs.k8s.io/testing_frameworks/integration"
 )
-
-var apiURL string
 
 func TestIntegration(t *testing.T) {
 	if m := flag.Lookup("test.run").Value.String(); m == "" || !regexp.MustCompile(m).MatchString(t.Name()) {
 		t.Skip("skipping as execution was not requested explicitly using go test -run")
 	}
 
-	cp := &integration.ControlPlane{}
-	err := cp.Start()
-	require.NoError(t, err)
-	defer cp.Stop()
-
-	apiURL = cp.APIURL().String()
-
-	t.Run("DynamicFileClient_Create", testDynamicFileClientCreate)
+	t.Run("DynamicFileClient", testDynamicFileClient)
 }

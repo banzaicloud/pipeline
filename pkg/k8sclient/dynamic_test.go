@@ -18,32 +18,56 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/testing_frameworks/integration"
 )
 
-func testDynamicFileClientCreate(t *testing.T) {
+type DynamicFileClientTestSuite struct {
+	suite.Suite
+
+	controlPlane *integration.ControlPlane
+
+	client DynamicFileClient
+}
+
+func testDynamicFileClient(t *testing.T) {
+	suite.Run(t, new(DynamicFileClientTestSuite))
+}
+
+func (s *DynamicFileClientTestSuite) SetupSuite() {
+	s.controlPlane = &integration.ControlPlane{}
+
+	err := s.controlPlane.Start()
+	s.Require().NoError(err)
+}
+
+func (s *DynamicFileClientTestSuite) TearDownSuite() {
+	s.controlPlane.Stop()
+}
+
+func (s *DynamicFileClientTestSuite) SetupTest() {
 	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		&clientcmd.ClientConfigLoadingRules{},
-		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: apiURL}},
+		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: s.controlPlane.APIURL().String()}},
 	).ClientConfig()
-	require.NoError(t, err)
+	s.Require().NoError(err)
 
 	runtimeClient, err := client.New(config, client.Options{})
-	require.NoError(t, err)
+	s.Require().NoError(err)
 
-	fileClient := NewDynamicFileClient(runtimeClient)
+	s.client = NewDynamicFileClient(runtimeClient)
+}
 
+func (s *DynamicFileClientTestSuite) Test_Create() {
 	yaml := `apiVersion: v1
 kind: Namespace
 metadata:
   name: test
 `
 
-	err = fileClient.Create(context.Background(), []byte(yaml))
-	if err != nil {
-		t.Fatal(err)
-	}
+	err := s.client.Create(context.Background(), []byte(yaml))
+	s.Require().NoError(err)
 }
