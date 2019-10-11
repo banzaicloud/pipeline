@@ -233,7 +233,7 @@ bin/mockery: bin/gobin
 
 .PHONY: generate-mocks
 generate-mocks: bin/mockery ## Generate mocks
-	MOCKERY=$(abspath bin/mockery) go generate ./...
+	MOCKERY=$(abspath bin/mockery) PATH="$(abspath bin/):$$PATH" go generate -x ./...
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
