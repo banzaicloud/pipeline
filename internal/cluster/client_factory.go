@@ -28,6 +28,6 @@ type DynamicFileClient interface {
 // DynamicFileClientFactory returns a DynamicFileClient for a cluster.
 //go:generate sh -c "which mockery > /dev/null && mockery -name DynamicFileClientFactory -inpkg || true"
 type DynamicFileClientFactory interface {
-	// CreateClient creates a DynamicFileClient for a cluster.
-	CreateClient(clusterID string) (DynamicFileClient, error)
+	// FromSecret creates a DynamicFileClient for a cluster from a secret.
+	FromSecret(secretID string) (DynamicFileClient, error)
 }

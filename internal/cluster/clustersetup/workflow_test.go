@@ -60,17 +60,23 @@ func (s *WorkflowTestSuite) AfterTest(suiteName, testName string) {
 	s.env.AssertExpectations(s.T())
 }
 
-func (s *WorkflowTestSuite) Test_Workflow() {
+func (s *WorkflowTestSuite) Test_Success() {
 	wf := Workflow{}
 	workflow.RegisterWithOptions(wf.Execute, workflow.RegisterOptions{Name: s.T().Name()})
 
-	s.env.ExecuteWorkflow(s.T().Name(), WorkflowInput{Cluster: testCluster, Organization: testOrganization})
+	workflowInput := WorkflowInput{
+		ConfigSecretID: "secret",
+		Cluster:        testCluster,
+		Organization:   testOrganization,
+	}
+
+	s.env.ExecuteWorkflow(s.T().Name(), workflowInput)
 
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }
 
-func (s *WorkflowTestSuite) Test_Workflow_InstallInitManifest() {
+func (s *WorkflowTestSuite) Test_Success_InstallInitManifest() {
 	wf := Workflow{
 		InstallInitManifest: true,
 	}
@@ -82,7 +88,13 @@ func (s *WorkflowTestSuite) Test_Workflow_InstallInitManifest() {
 		InitManifestActivityInput{Cluster: testCluster, Organization: testOrganization},
 	).Return(nil)
 
-	s.env.ExecuteWorkflow(s.T().Name(), WorkflowInput{Cluster: testCluster, Organization: testOrganization})
+	workflowInput := WorkflowInput{
+		ConfigSecretID: "secret",
+		Cluster:        testCluster,
+		Organization:   testOrganization,
+	}
+
+	s.env.ExecuteWorkflow(s.T().Name(), workflowInput)
 
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())

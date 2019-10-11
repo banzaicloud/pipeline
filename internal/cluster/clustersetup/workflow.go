@@ -32,6 +32,10 @@ type Workflow struct {
 
 // WorkflowInput is the input for a cluster setup workflow.
 type WorkflowInput struct {
+	// Kubernetes cluster config secret ID.
+	ConfigSecretID string
+
+	// Cluster information
 	Cluster      Cluster
 	Organization Organization
 }
