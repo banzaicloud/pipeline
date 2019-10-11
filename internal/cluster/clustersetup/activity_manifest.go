@@ -30,7 +30,10 @@ type InitManifestActivity struct {
 }
 
 // NewInitManifestActivity returns a new InitManifestActivity.
-func NewInitManifestActivity(manifest *template.Template, clientFactory cluster.DynamicFileClientFactory) InitManifestActivity {
+func NewInitManifestActivity(
+	manifest *template.Template,
+	clientFactory cluster.DynamicFileClientFactory,
+) InitManifestActivity {
 	return InitManifestActivity{
 		manifest:      manifest,
 		clientFactory: clientFactory,
