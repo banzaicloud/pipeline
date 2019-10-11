@@ -71,8 +71,9 @@ func (w Workflow) Execute(ctx workflow.Context, input WorkflowInput) error {
 	// Install the cluster manifest to the cluster (if configured)
 	if w.InstallInitManifest {
 		activityInput := InitManifestActivityInput{
-			Cluster:      input.Cluster,
-			Organization: input.Organization,
+			ConfigSecretID: input.ConfigSecretID,
+			Cluster:        input.Cluster,
+			Organization:   input.Organization,
 		}
 
 		err := workflow.ExecuteActivity(ctx, InitManifestActivityName, activityInput).Get(ctx, nil)
