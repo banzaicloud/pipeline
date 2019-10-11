@@ -128,32 +128,29 @@ func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID ui
 		return errors.WrapIfWithDetails(err, "failed to check if anchore user exists", fnCtx)
 	}
 
-	secretID := secret.GenerateSecretIDFromName(userName)
+	if exists {
 
-	if !exists {
-		// remove the secret if exists / ignore the error
-		if err := a.secretStore.Delete(ctx, secretID); err != nil {
-			a.logger.Debug("failed to delete credentials secret for nonexistent anchore user", fnCtx)
+		if err := a.deleteUser(ctx, restClient, userName, userName); err != nil {
+			a.logger.Debug("failed to delete anchore user", fnCtx)
+
+			return errors.WrapIfWithDetails(err, "failed to delete anchore user", fnCtx)
 		}
 
-		a.logger.Info("anchore user not found", fnCtx)
-		return nil
+		if err := a.deleteAccount(ctx, restClient, userName); err != nil {
+			a.logger.Debug("failed to delete anchore account", fnCtx)
+
+			return errors.WrapIfWithDetails(err, "failed to delete anchore account", fnCtx)
+		}
 	}
 
-	if err := a.deleteUser(ctx, restClient, userName, userName); err != nil {
-		a.logger.Debug("failed to delete anchore user", fnCtx)
+	// remove the secret if exists / ignore the error
+	if err := a.secretStore.Delete(ctx, secret.GenerateSecretIDFromName(userName)); err != nil {
 
-		return errors.WrapIfWithDetails(err, "failed to delete anchore user", fnCtx)
+		a.logger.Debug("failed to delete credentials for nonexistent anchore user", fnCtx)
 	}
 
-	if err := a.deleteAccount(ctx, restClient, userName); err != nil {
-		a.logger.Debug("failed to delete anchore account", fnCtx)
-
-		return errors.WrapIfWithDetails(err, "failed to delete anchore account", fnCtx)
-	}
-
+	a.logger.Info("anchore user successfully removed")
 	return nil
-
 }
 
 func (a anchoreService) userExists(ctx context.Context, client AnchoreClient, userName string) (bool, error) {

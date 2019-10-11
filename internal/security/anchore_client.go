@@ -343,7 +343,7 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 		return errors.WrapIfWithDetails(err, "failed to delete anchore user", fnCtx)
 	}
 
-	a.logger.Info("deleted anchore account", fnCtx)
+	a.logger.Info("deleted anchore user", fnCtx)
 	return nil
 }
 
