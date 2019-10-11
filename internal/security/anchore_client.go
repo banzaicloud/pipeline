@@ -16,13 +16,13 @@ package anchore
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/antihax/optional"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/.gen/anchore"
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -50,7 +50,7 @@ type ImagesClient interface {
 
 type PolicyClient interface {
 	GetPolicy(ctx context.Context, policyID string) (*pipeline.PolicyBundleRecord, error)
-	ListPolicies(ctx context.Context) (interface{}, error)
+	ListPolicies(ctx context.Context) ([]pipeline.PolicyBundleRecord, error)
 	CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error)
 	DeletePolicy(ctx context.Context, policyID string) error
 	UpdatePolicy(ctx context.Context, policyID string, policy pipeline.PolicyBundleRecord) error
@@ -88,6 +88,9 @@ func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, policy
 		return errors.WrapIf(err, "failed to transform")
 	}
 
+	toUpdate.CreatedAt = policy.CreatedAt
+	toUpdate.LastUpdated = policy.LastUpdated
+
 	_, r, err := a.getRestClient().PoliciesApi.UpdatePolicy(a.authorizedContext(ctx), policyID, toUpdate, &anchore.UpdatePolicyOpts{})
 	if err != nil || r.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to update policy", fnCtx)
@@ -123,7 +126,7 @@ func (a anchoreClient) GetPolicy(ctx context.Context, policyID string) (*pipelin
 	return &bundle, nil
 }
 
-func (a anchoreClient) ListPolicies(ctx context.Context) (interface{}, error) {
+func (a anchoreClient) ListPolicies(ctx context.Context) ([]pipeline.PolicyBundleRecord, error) {
 	a.logger.Info("retrieving policies ...")
 
 	policies, r, err := a.getRestClient().PoliciesApi.ListPolicies(a.authorizedContext(ctx),
@@ -137,14 +140,35 @@ func (a anchoreClient) ListPolicies(ctx context.Context) (interface{}, error) {
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve policies")
 	}
 
+	// transform the result to pipeline model
+	var (
+		retPolicies    = make([]pipeline.PolicyBundleRecord, 0)
+		pipelinePolicy pipeline.PolicyBundleRecord
+	)
+	for _, policy := range policies {
+
+		if err = a.transform(policy, &pipelinePolicy); err != nil {
+			a.logger.Warn("failed to transform to pipeline policy")
+
+			continue
+		}
+
+		// time is lost during transfomation!
+		pipelinePolicy.CreatedAt = policy.CreatedAt
+		pipelinePolicy.LastUpdated = policy.LastUpdated
+
+		retPolicies = append(retPolicies, pipelinePolicy)
+	}
+
 	a.logger.Info("policies successfully retrieved")
-	return policies, nil
+	return retPolicies, nil
 }
 
 func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error) {
 	fnCtx := map[string]interface{}{"policyID": policy}
 	a.logger.Info("creating policy ...", fnCtx)
 
+	// todo check the transformation here!
 	var bundle anchore.PolicyBundle
 	if err := a.transform(policy, &bundle); err != nil {
 		a.logger.Debug("failed to transform policy", fnCtx)
@@ -152,7 +176,7 @@ func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyB
 		return nil, errors.WrapIfWithDetails(err, "failed to transform policy")
 	}
 
-	policyBundleReecord, r, err := a.getRestClient().PoliciesApi.AddPolicy(a.authorizedContext(ctx), bundle, &anchore.AddPolicyOpts{})
+	policyBundleRecord, r, err := a.getRestClient().PoliciesApi.AddPolicy(a.authorizedContext(ctx), bundle, &anchore.AddPolicyOpts{})
 	if err != nil || r.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to create policy", fnCtx)
 
@@ -160,7 +184,7 @@ func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyB
 	}
 
 	a.logger.Info("policy successfully created", fnCtx)
-	return policyBundleReecord, nil
+	return policyBundleRecord, nil
 }
 
 func (a anchoreClient) DeletePolicy(ctx context.Context, policyID string) error {
@@ -384,12 +408,8 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 
 // transform quick and dirty solution for transforming anchore types to pipeline types
 func (a anchoreClient) transform(fromType interface{}, toType interface{}) error {
-	anchoreBytes, err := json.Marshal(fromType)
-	if err != nil {
-		return errors.WrapIf(err, "failed to marshal the 'from' type")
-	}
 
-	if err := json.Unmarshal(anchoreBytes, toType); err != nil {
+	if err := mapstructure.Decode(fromType, toType); err != nil {
 		return errors.WrapIf(err, "failed to unmarshal to 'toType' type")
 	}
 
