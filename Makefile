@@ -189,13 +189,11 @@ test-all: ## Run all tests
 
 .PHONY: test-integration
 test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
-	export TEST_ASSET_KUBE_APISERVER=$(abspath bin/test/kube-apiserver)
-	export TEST_ASSET_ETCD=$(abspath bin/test/etcd)
-	@${MAKE} GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
+	@${MAKE} TEST_ASSET_KUBE_APISERVER=$(abspath bin/test/kube-apiserver) TEST_ASSET_ETCD=$(abspath bin/test/etcd) GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
 
 bin/test/kube-apiserver:
 	@mkdir -p bin/test
-	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-$(shell uname)-x86_64 >
+	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-$(shell uname)-x86_64 > bin/test/kube-apiserver
 	chmod +x bin/test/kube-apiserver
 
 bin/test/etcd:
