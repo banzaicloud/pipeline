@@ -9,6 +9,7 @@ approved = [
 ignored = [
   "github.com/aliyun/aliyun-oss-go-sdk",
   "github.com/ghodss/yaml",
+  "sigs.k8s.io/yaml", # Forked from above
   "github.com/gogo/protobuf",
   "github.com/golang/protobuf",
   "github.com/stretchr/testify",
@@ -19,33 +20,7 @@ ignored = [
   "github.com/davecgh/go-spew", # ISC license
   "github.com/oracle/oci-go-sdk", # UPL-1.0
 
-  # Vanity URLS :\
+  # Unsupported VCS
   "cloud.google.com/go",
-  "contrib.go.opencensus.io/exporter/ocagent",
-  "go.opencensus.io",
-  "go.uber.org/atomic",
-  "go.uber.org/cadence",
-  "go.uber.org/multierr",
-  "go.uber.org/net/metrics",
-  "go.uber.org/thriftrw",
-  "go.uber.org/tools",
-  "go.uber.org/yarpc",
-  "go.uber.org/zap",
   "google.golang.org/api",
-  "google.golang.org/appengine",
-  "google.golang.org/genproto",
-  "google.golang.org/grpc",
-  "honnef.co/go/tools",
-  "vbom.ml/util",
-  "sigs.k8s.io/yaml",
-  "emperror.dev/emperror",
-  "emperror.dev/errors",
-  "emperror.dev/handler/logrus",
-  "emperror.dev/handler/logur",
-  "emperror.dev/handler/stackdriver",
-  "logur.dev/logur",
-  "logur.dev/adapter/logrus",
-  "logur.dev/adapter/zap",
-  "logur.dev/integration/zap",
-  "logur.dev/integration/watermill",
 ]
