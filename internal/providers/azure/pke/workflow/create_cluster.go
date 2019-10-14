@@ -33,7 +33,9 @@ const CreateClusterWorkflowName = "pke-azure-create-cluster"
 type CreateClusterWorkflowInput struct {
 	ClusterID                       uint
 	ClusterName                     string
+	ClusterUID                      string
 	OrganizationID                  uint
+	OrganizationName                string
 	ResourceGroupName               string
 	SecretID                        string
 	OIDCEnabled                     bool
@@ -109,18 +111,29 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		return err
 	}
 
+	var configSecretID string
 	{
-		// TODO: fill the remaining fields
+		activityInput := cluster.DownloadK8sConfigActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		future := workflow.ExecuteActivity(ctx, cluster.DownloadK8sConfigActivityName, activityInput)
+		if err := future.Get(ctx, &configSecretID); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
+	}
+
+	{
 		workflowInput := clustersetup.WorkflowInput{
-			ConfigSecretID: "<missing>",
+			ConfigSecretID: configSecretID,
 			Cluster: clustersetup.Cluster{
 				ID:   input.ClusterID,
-				UID:  "<missing>",
+				UID:  input.ClusterUID,
 				Name: input.ClusterName,
 			},
 			Organization: clustersetup.Organization{
 				ID:   input.OrganizationID,
-				Name: "<missing>",
+				Name: input.OrganizationName,
 			},
 		}
 
