@@ -149,7 +149,7 @@ services:
 #            - ./config/anchore-config.yaml:/config/config.yaml:z
 
 #     ldap:
-#         image: osixia/openldap:1.2.2
+#         image: osixia/openldap:1.3.0
 #         ports:
 #             - 127.0.0.1:389:389
 #         volumes:
@@ -157,8 +157,11 @@ services:
 #         environment:
 #             LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
 #             LDAP_TLS: "false"
+#         depends_on:
+#             - ldap-config
+#
 #     ldap-config:
-#         image: osixia/openldap:1.2.2
+#         image: osixia/openldap:1.3.0
 #         command: cp /tmp/ldap.ldif /ldap-config/
 #         volumes:
 #             - ./config/ldap.ldif:/tmp/ldap.ldif
