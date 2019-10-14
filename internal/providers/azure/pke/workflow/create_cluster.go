@@ -124,8 +124,8 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 			},
 		}
 
-		err = workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput).Get(ctx, nil)
-		if err != nil {
+		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)
+		if err := future.Get(ctx, nil); err != nil {
 			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 			return err
 		}

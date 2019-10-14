@@ -63,7 +63,7 @@ organizationName: example-organization
 	client.On("Create", mock.Anything, []byte(manifest)).Return(nil)
 
 	clientFactory := new(cluster.MockDynamicFileClientFactory)
-	clientFactory.On("FromSecret", "secret").Return(client, nil)
+	clientFactory.On("FromSecret", mock.Anything, "secret").Return(client, nil)
 
 	testInitManifestActivity = NewInitManifestActivity(tpl, clientFactory)
 

@@ -67,13 +67,12 @@ func (a InitManifestActivity) Execute(ctx context.Context, input InitManifestAct
 		return err
 	}
 
-	client, err := a.clientFactory.FromSecret(input.ConfigSecretID)
+	client, err := a.clientFactory.FromSecret(ctx, input.ConfigSecretID)
 	if err != nil {
 		return err
 	}
 
-	err = client.Create(ctx, buf.Bytes())
-	if err != nil {
+	if err := client.Create(ctx, buf.Bytes()); err != nil {
 		return err
 	}
 

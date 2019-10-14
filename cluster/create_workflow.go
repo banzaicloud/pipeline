@@ -82,8 +82,8 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		}
 		ctx := workflow.WithChildOptions(ctx, cwo)
 
-		err := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput).Get(ctx, nil)
-		if err != nil {
+		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)
+		if err := future.Get(ctx, nil); err != nil {
 			return err
 		}
 	}
@@ -120,10 +120,10 @@ func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8
 		return "", err
 	}
 
-	if cluster.GetConfigSecretId() != "" {
+	if secretID := cluster.GetConfigSecretId(); secretID != "" {
 		logger.Info("config is already present in Vault")
 
-		return cluster.GetConfigSecretId(), nil
+		return secretID, nil
 	}
 
 	activityInfo := activity.GetInfo(ctx)
@@ -136,8 +136,7 @@ func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8
 		if err == nil && len(config) > 0 {
 			logger.Info("saving existing config")
 
-			err = StoreKubernetesConfig(cluster, config)
-			if err != nil {
+			if err := StoreKubernetesConfig(cluster, config); err != nil {
 				return "", err
 			}
 
@@ -155,8 +154,7 @@ func (a DownloadK8sConfigActivity) Execute(ctx context.Context, input DownloadK8
 
 		logger.Info("saving config")
 
-		err = StoreKubernetesConfig(cluster, config)
-		if err != nil {
+		if err := StoreKubernetesConfig(cluster, config); err != nil {
 			return "", err
 		}
 

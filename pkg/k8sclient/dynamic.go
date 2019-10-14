@@ -56,8 +56,7 @@ func (c DynamicFileClient) Create(ctx context.Context, file []byte) error {
 	}
 
 	for _, object := range objects {
-		err := c.client.Create(ctx, &object)
-		if err != nil {
+		if err := c.client.Create(ctx, &object); err != nil {
 			return err
 		}
 	}
