@@ -25,9 +25,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name UserExtractor -inpkg -testonly || true"
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name Store -inpkg -testonly || true"
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name Generator -inpkg -testonly || true"
+//go:generate sh -c "which mockery > /dev/null && mockery -name UserExtractor -inpkg -testonly || true"
+//go:generate sh -c "which mockery > /dev/null && mockery -name Store -inpkg -testonly || true"
+//go:generate sh -c "which mockery > /dev/null && mockery -name Generator -inpkg -testonly || true"
 
 func TestService_CreateToken(t *testing.T) {
 	ctx := context.Background()

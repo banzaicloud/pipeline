@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name OIDCOrganizationSyncer -inpkg -testonly || true"
+//go:generate sh -c "which mockery > /dev/null && mockery -name OIDCOrganizationSyncer -inpkg -testonly || true"
 
 func setUpDatabase(t *testing.T) *gorm.DB {
 	db, err := gorm.Open("sqlite3", "file::memory:")

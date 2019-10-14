@@ -23,8 +23,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name OrganizationStore -inpkg -testonly || true"
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name OrganizationEvents -inpkg -testonly || true"
+//go:generate sh -c "which mockery > /dev/null && mockery -name OrganizationStore -inpkg -testonly || true"
+//go:generate sh -c "which mockery > /dev/null && mockery -name OrganizationEvents -inpkg -testonly || true"
 
 func TestOrganizationSyncer_SyncOrganizations(t *testing.T) { // TODO: rewrite this test with an in-memory store
 	store := &MockOrganizationStore{}
