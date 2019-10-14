@@ -57,6 +57,16 @@ type ResourceName struct {
 	ResourceID string
 }
 
+// New returns a new ResourceName.
+func New(organizationID uint, resourceType string, resourceID string) ResourceName {
+	return ResourceName{
+		Scheme:         "brn",
+		OrganizationID: organizationID,
+		ResourceType:   resourceType,
+		ResourceID:     resourceID,
+	}
+}
+
 // String returns the original BRN.
 func (n ResourceName) String() string {
 	orgID := ""
