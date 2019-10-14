@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.uber.org/cadence"
@@ -24,6 +23,7 @@ import (
 	"go.uber.org/cadence/workflow"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
+	"github.com/banzaicloud/pipeline/pkg/brn"
 )
 
 const CreateClusterWorkflowName = "create-cluster-legacy"
@@ -64,7 +64,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 
 	{
 		workflowInput := clustersetup.WorkflowInput{
-			ConfigSecretID: fmt.Sprintf("brn:%d:secret:%s", input.OrganizationID, configSecretID),
+			ConfigSecretID: brn.New(input.OrganizationID, brn.SecretResourceType, configSecretID).String(),
 			Cluster: clustersetup.Cluster{
 				ID:   input.ClusterID,
 				UID:  input.ClusterUID,
