@@ -17,7 +17,10 @@ BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
 export CGO_ENABLED ?= 0
 ifeq (${VERBOSE}, 1)
+ifeq ($(filter -v,${GOARGS}),)
 	GOARGS += -v
+endif
+TEST_FORMAT = short-verbose
 endif
 
 CLOUDINFO_VERSION = 0.7.0
@@ -173,19 +176,30 @@ TEST_PKGS ?= ./...
 TEST_REPORT_NAME ?= results.xml
 .PHONY: test
 test: TEST_REPORT ?= main
+test: TEST_FORMAT ?= short
 test: SHELL = /bin/bash
 test: export CGO_ENABLED = 1
 test: bin/gotestsum ## Run tests
 	@mkdir -p ${BUILD_DIR}/test_results/${TEST_REPORT}
-	bin/gotestsum --no-summary=skipped --junitfile ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} -- $(filter-out -v,${GOARGS})  $(if ${TEST_PKGS},${TEST_PKGS},./...)
+	bin/gotestsum --no-summary=skipped --junitfile ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} --format ${TEST_FORMAT} -- $(filter-out -v,${GOARGS})  $(if ${TEST_PKGS},${TEST_PKGS},./...)
 
 .PHONY: test-all
 test-all: ## Run all tests
 	@${MAKE} GOARGS="${GOARGS} -run .\*" TEST_REPORT=all test
 
 .PHONY: test-integration
-test-integration: ## Run integration tests
-	@${MAKE} GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
+test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
+	@${MAKE} TEST_ASSET_KUBE_APISERVER=$(abspath bin/test/kube-apiserver) TEST_ASSET_ETCD=$(abspath bin/test/etcd) GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
+
+bin/test/kube-apiserver:
+	@mkdir -p bin/test
+	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-$(shell uname)-x86_64 > bin/test/kube-apiserver
+	chmod +x bin/test/kube-apiserver
+
+bin/test/etcd:
+	@mkdir -p bin/test
+	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-$(shell uname)-x86_64 > bin/test/etcd
+	chmod +x bin/test/etcd
 
 bin/migrate: bin/migrate-${MIGRATE_VERSION}
 	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
@@ -217,7 +231,7 @@ bin/mockery: bin/gobin
 
 .PHONY: generate-mocks
 generate-mocks: bin/mockery ## Generate mocks
-	MOCKERY=$(abspath bin/mockery) go generate ./...
+	MOCKERY=$(abspath bin/mockery) PATH="$(abspath bin/):$$PATH" go generate -x ./...
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description

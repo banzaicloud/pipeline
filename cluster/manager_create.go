@@ -25,6 +25,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
+	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
@@ -212,8 +213,17 @@ func (m *Manager) createCluster(
 	logger.WithField("workflowName", CreateClusterWorkflowName).Info("starting workflow")
 
 	{
+		org, err := auth.GetOrganizationById(cluster.GetOrganizationId())
+		if err != nil {
+			return emperror.Wrap(err, "failed to get organization name")
+		}
+
 		input := CreateClusterWorkflowInput{
-			ClusterID: cluster.GetID(),
+			ClusterID:        cluster.GetID(),
+			ClusterUID:       cluster.GetUID(),
+			ClusterName:      cluster.GetName(),
+			OrganizationID:   cluster.GetOrganizationId(),
+			OrganizationName: org.Name,
 		}
 
 		workflowOptions := client.StartWorkflowOptions{

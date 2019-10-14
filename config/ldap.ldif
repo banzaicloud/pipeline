@@ -1,22 +1,27 @@
+# User definitions.
 dn: ou=People,dc=example,dc=org
 objectClass: organizationalUnit
 ou: People
 
-dn: cn=jane,ou=People,dc=example,dc=org
+dn: uid=janedoe,ou=People,dc=example,dc=org
 objectClass: person
 objectClass: inetOrgPerson
-sn: doe
-cn: jane
+cn: Jane Doe
+sn: Doe
+uid: janedoe
 mail: janedoe@example.com
 userpassword: foo
 
-dn: cn=john,ou=People,dc=example,dc=org
+dn: uid=johndoe,ou=People,dc=example,dc=org
 objectClass: person
 objectClass: inetOrgPerson
-sn: doe
-cn: john
+cn: John Doe
+sn: Doe
+uid: johndoe
 mail: johndoe@example.com
 userpassword: bar
+
+# NOTE: search users with: ldapsearch -D "cn=admin,dc=example,dc=org" -w admin -b ou=People,dc=example,dc=org
 
 # Group definitions.
 
@@ -27,10 +32,10 @@ ou: Groups
 dn: cn=scientists:admin,ou=Groups,dc=example,dc=org
 objectClass: groupOfNames
 cn: scientists:admin
-member: cn=jane,ou=People,dc=example,dc=org
+member: uid=janedoe,ou=People,dc=example,dc=org
 
 dn: cn=scientists:users,ou=Groups,dc=example,dc=org
 objectClass: groupOfNames
 cn: scientists:users
-member: cn=jane,ou=People,dc=example,dc=org
-member: cn=john,ou=People,dc=example,dc=org
+member: uid=janedoe,ou=People,dc=example,dc=org
+member: uid=johndoe,ou=People,dc=example,dc=org

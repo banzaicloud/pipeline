@@ -55,6 +55,9 @@ type configuration struct {
 	// Auth configuration
 	Auth authConfig
 
+	// Cluster configuration
+	Cluster clusterConfig
+
 	// Database connection information
 	Database database.Config
 
@@ -135,6 +138,24 @@ func (c authTokenConfig) Validate() error {
 	return nil
 }
 
+// clusterConfig contains cluster configuration.
+type clusterConfig struct {
+	Manifest string
+}
+
+// Validate validates the configuration.
+func (c clusterConfig) Validate() error {
+	if c.Manifest != "" {
+		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0666)
+		if err != nil {
+			return fmt.Errorf("cluster manifest file is not readable: %w", err)
+		}
+		_ = file.Close()
+	}
+
+	return nil
+}
+
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AllowEmptyEnv(true)
@@ -181,6 +202,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Auth configuration
 	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
 	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
+
+	// Cluster configuration
+	v.SetDefault("cluster.manifest", "")
 
 	// Database configuration
 	v.SetDefault("database.dialect", "mysql")

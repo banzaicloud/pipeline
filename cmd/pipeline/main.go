@@ -60,6 +60,7 @@ import (
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/auth/authadapter"
+	"github.com/banzaicloud/pipeline/auth/authdriver"
 	"github.com/banzaicloud/pipeline/auth/authgen"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
@@ -367,12 +368,16 @@ func main() {
 	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
+			azurePKEDriver.ClusterCreatorConfig{
+				OIDCIssuerURL:               oidcIssuerURL,
+				PipelineExternalURL:         externalBaseURL,
+				PipelineExternalURLInsecure: externalURLInsecure,
+			},
 			logrusLogger,
+			authdriver.NewOrganizationGetter(db),
+			secret.Store,
 			gormAzurePKEClusterStore,
 			workflowClient,
-			externalBaseURL,
-			externalURLInsecure,
-			oidcIssuerURL,
 		),
 	}
 	clusterDeleters := api.ClusterDeleters{
