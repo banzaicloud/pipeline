@@ -43,7 +43,7 @@ type ImagesClient interface {
 	// GetImageVulnerabilities gets the vulnerabilities for the given image digest
 	ScanImage(ctx context.Context, image pipeline.ClusterImage) (interface{}, error)
 	// GetImageVulnerabilities gets the vulnerabilities for the given image digest
-	GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error)
+	GetImageVulnerabilities(ctx context.Context, imageDigest string) (pipeline.VulnerabilityResponse, error)
 	// CheckImage cheks rthe image for anchore metadata
 	CheckImage(ctx context.Context, imageDigest string) (interface{}, error)
 }
@@ -208,7 +208,6 @@ func (a anchoreClient) DeletePolicy(ctx context.Context, policyID string) error 
 
 	a.logger.Info("policy successfully deleted")
 	return nil
-
 }
 
 func (a anchoreClient) CreateAccount(ctx context.Context, accountName string, email string) error {
@@ -249,7 +248,6 @@ func (a anchoreClient) CreateUser(ctx context.Context, accountName string, userN
 
 	a.logger.Info("anchore user created", fnCtx)
 	return nil
-
 }
 
 func (a anchoreClient) GetUser(ctx context.Context, userName string) (interface{}, error) {
@@ -329,7 +327,6 @@ func (a anchoreClient) GetAccount(ctx context.Context, accountName string) (stri
 
 	a.logger.Info("retrieved anchore account", fnCtx)
 	return acc.Name, nil
-
 }
 
 func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userName string) error {
@@ -364,7 +361,7 @@ func (a anchoreClient) ScanImage(ctx context.Context, image pipeline.ClusterImag
 	return aImg, nil
 }
 
-func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error) {
+func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest string) (pipeline.VulnerabilityResponse, error) {
 	a.logger.Debug("retrieving image vulnerabilities")
 
 	vulnerabilities, resp, err := a.getRestClient().ImagesApi.GetImageVulnerabilitiesByType(a.authorizedContext(ctx),
@@ -373,11 +370,16 @@ func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest 
 	if err != nil || resp.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to retrieve image vulnerabilities")
 
-		return nil, errors.WrapIf(err, "failed to retrieve vulnerabilities")
+		return pipeline.VulnerabilityResponse{}, errors.WrapIf(err, "failed to retrieve vulnerabilities")
+	}
+
+	var pipelineVulnerabilitiesResponse pipeline.VulnerabilityResponse
+	if err := a.transform(vulnerabilities, &pipelineVulnerabilitiesResponse); err != nil {
+		a.logger.Warn("failed to transform anchore response")
 	}
 
 	a.logger.Debug("successfully retrieved image vulnerabilities")
-	return vulnerabilities, nil
+	return pipelineVulnerabilitiesResponse, nil
 }
 
 func (a anchoreClient) CheckImage(ctx context.Context, imageDigest string) (interface{}, error) {

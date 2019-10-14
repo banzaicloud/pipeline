@@ -90,6 +90,7 @@ func (c configurationService) GetConfiguration(ctx context.Context, clusterID ui
 	}
 
 	fnLog.Info("feature enabled, return config from feature")
+	// todo handle custom anchore (non-admin) users!
 	return featureConfig, nil
 }
 
@@ -151,6 +152,7 @@ func (f featureAdapter) GetFeatureConfig(ctx context.Context, clusterID uint, fe
 		return Config{}, errors.WrapIf(err, "the feature has no custom anchore config")
 	}
 
+	// todo get the custom anchore secret values
 	var retConfig Config
 	if err := mapstructure.Decode(&customAnchore, &retConfig); err != nil {
 		f.logger.Debug("failed to decode custom anchore config", fnCtx)
