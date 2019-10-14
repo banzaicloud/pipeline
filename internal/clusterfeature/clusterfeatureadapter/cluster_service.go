@@ -23,7 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name ClusterGetter -inpkg || true"
+//go:generate sh -c "which mockery > /dev/null && mockery -name ClusterGetter -inpkg || true"
 // ClusterGetter restricts the external dependencies for the repository
 type ClusterGetter interface {
 	GetClusterByIDOnly(ctx context.Context, clusterID uint) (Cluster, error)

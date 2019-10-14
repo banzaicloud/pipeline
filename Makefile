@@ -16,6 +16,7 @@ COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
 export CGO_ENABLED ?= 0
+export PATH := "$(abspath bin/):${PATH}"
 ifeq (${VERBOSE}, 1)
 ifeq ($(filter -v,${GOARGS}),)
 	GOARGS += -v
@@ -221,17 +222,13 @@ bin/mga-${MGA_VERSION}:
 	curl -sfL https://git.io/mgatool | bash -s v${MGA_VERSION}
 	@mv bin/mga $@
 
-.PHONY: generate
-generate: bin/mga ## Generate code
-	MGA=$(abspath bin/mga) go generate ./...
-
 bin/mockery: bin/gobin
 	@mkdir -p bin
 	GOBIN=bin/ bin/gobin github.com/vektra/mockery/cmd/mockery
 
-.PHONY: generate-mocks
-generate-mocks: bin/mockery ## Generate mocks
-	MOCKERY=$(abspath bin/mockery) PATH="$(abspath bin/):$$PATH" go generate -x ./...
+.PHONY: generate
+generate: bin/mga bin/mockery ## Generate code
+	go generate -x ./...
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
