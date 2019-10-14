@@ -26,8 +26,8 @@ type Issue struct {
 }
 
 // Service handles reported issues.
-//go:generate sh -c "which mga > /dev/null && mga gen kit endpoint --outdir issuedriver --with-oc Service || true"
-//go:generate sh -c "which mockery > /dev/null && mockery -name Service -inpkg || true"
+//go:generate mga gen kit endpoint --outdir issuedriver --with-oc Service
+//go:generate mockery -name Service -inpkg
 type Service interface {
 	// ReportIssue accepts a new issue and sends it to an external issue tracker service.
 	ReportIssue(ctx context.Context, newIssue NewIssue) error

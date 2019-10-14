@@ -23,9 +23,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
-//go:generate sh -c "which mockery > /dev/null && mockery -name UserExtractor -inpkg -testonly || true"
-//go:generate sh -c "which mockery > /dev/null && mockery -name Formatter -inpkg -testonly || true"
-//go:generate sh -c "which mockery > /dev/null && mockery -name Reporter -inpkg -testonly || true"
+//go:generate mockery -name UserExtractor -inpkg -testonly
+//go:generate mockery -name Formatter -inpkg -testonly
+//go:generate mockery -name Reporter -inpkg -testonly
 
 func TestService_ReportIssue(t *testing.T) {
 	ctx := context.Background()
