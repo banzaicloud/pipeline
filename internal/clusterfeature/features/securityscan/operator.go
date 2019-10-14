@@ -165,14 +165,6 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		return errors.WrapIf(err, "failed to apply feature")
 	}
 
-	if !boundSpec.CustomAnchore.Enabled {
-		if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
-			return errors.WrapIf(err, "failed to deactivate")
-		}
-
-		op.logger.Debug("custom anchore enabled, skip deleting anchore user")
-	}
-
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
 			"clusterID", clusterID)
@@ -184,6 +176,14 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
 		return errors.WrapIf(err, "failed to set security scan flag to false")
+	}
+
+	if !boundSpec.CustomAnchore.Enabled {
+		if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
+			return errors.WrapIf(err, "failed to deactivate")
+		}
+
+		op.logger.Debug("custom anchore enabled, skip deleting anchore user")
 	}
 
 	return nil
