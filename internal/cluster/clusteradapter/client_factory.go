@@ -40,8 +40,8 @@ func NewDynamicFileClientFactory(secretStore common.SecretStore) DynamicFileClie
 }
 
 // FromSecret creates a DynamicFileClient for a cluster from a secret.
-func (f DynamicFileClientFactory) FromSecret(secretID string) (cluster.DynamicFileClient, error) {
-	values, err := f.secretStore.GetSecretValues(context.Background(), secretID)
+func (f DynamicFileClientFactory) FromSecret(ctx context.Context, secretID string) (cluster.DynamicFileClient, error) {
+	values, err := f.secretStore.GetSecretValues(ctx, secretID)
 	if err != nil {
 		return nil, err
 	}

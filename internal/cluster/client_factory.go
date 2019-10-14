@@ -29,5 +29,5 @@ type DynamicFileClient interface {
 //go:generate sh -c "which mockery > /dev/null && mockery -name DynamicFileClientFactory -inpkg || true"
 type DynamicFileClientFactory interface {
 	// FromSecret creates a DynamicFileClient for a cluster from a secret.
-	FromSecret(secretID string) (DynamicFileClient, error)
+	FromSecret(ctx context.Context, secretID string) (DynamicFileClient, error)
 }
