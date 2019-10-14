@@ -59,7 +59,7 @@ func TestJWTTokenGenerator_GenerateToken(t *testing.T) {
 	assert.Equal(t, expectedSignedToken, signedToken)
 }
 
-//go:generate sh -c "which mockery > /dev/null && mockery -name TokenGenerator -inpkg -testonly || true"
+//go:generate mockery -name TokenGenerator -inpkg -testonly
 
 func TestTokenManager_GenerateToken(t *testing.T) {
 	const sub = "subject"
