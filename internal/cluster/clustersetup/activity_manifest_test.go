@@ -34,7 +34,7 @@ func testInitManifestActivityExecute(ctx context.Context, input InitManifestActi
 	return testInitManifestActivity.Execute(ctx, input)
 }
 
-// nolint: gochecknoinit
+// nolint: gochecknoinits
 func init() {
 	activity.RegisterWithOptions(testInitManifestActivityExecute, activity.RegisterOptions{Name: InitManifestActivityName})
 }
