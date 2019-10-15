@@ -24,7 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 )
 
-//go:generate sh -c "which mockery > /dev/null && mockery -name Authorizer -inpkg -testonly || true"
+//go:generate mockery -name Authorizer -inpkg -testonly
 
 func TestAuthorizationMiddleware_CreateToken(t *testing.T) {
 	ctx := context.Background()

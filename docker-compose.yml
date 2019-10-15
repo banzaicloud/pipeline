@@ -22,7 +22,7 @@ services:
             - IPC_LOCK
         volumes:
             - $HOME:/home/vault
-            - ./scripts/vault.hcl:/vault/config/vault.hcl
+            - ./etc/config/vault.hcl:/vault/config/vault.hcl
 
     vault-unsealer:
         image: banzaicloud/bank-vaults:0.4.15
@@ -33,7 +33,7 @@ services:
         environment:
             VAULT_ADDR: http://vault:8200
         volumes:
-            - ./scripts/vault-config.yml:/vault-config.yml
+            - ./etc/config/vault-config.yml:/vault-config.yml
 
     vault-configurer:
         image: banzaicloud/bank-vaults:0.4.15
@@ -45,7 +45,7 @@ services:
         environment:
             VAULT_ADDR: http://vault:8200
         volumes:
-            - ./scripts/vault-config.yml:/vault-config.yml
+            - ./etc/config/vault-config.yml:/vault-config.yml
 
     vault-token-helper:
         image: alpine
@@ -74,7 +74,7 @@ services:
         command: serve /dex.yml
         restart: on-failure
         volumes:
-            - ./config/dex.yml:/dex.yml
+            - ./etc/config/dex.yml:/dex.yml
 
     cadence:
         image: ubercadence/server:0.7.1-auto-setup

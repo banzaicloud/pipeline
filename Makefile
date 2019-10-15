@@ -2,6 +2,7 @@
 
 SHELL = /bin/bash
 OS = $(shell uname | tr A-Z a-z)
+export PATH := s$(abspath bin/):${PATH}
 
 # Project variables
 PACKAGE = github.com/banzaicloud/pipeline
@@ -16,7 +17,6 @@ COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
 export CGO_ENABLED ?= 0
-export PATH := s$(abspath bin/):${PATH}
 ifeq (${VERBOSE}, 1)
 ifeq ($(filter -v,${GOARGS}),)
 	GOARGS += -v
@@ -38,12 +38,12 @@ GOTESTSUM_VERSION = 0.3.5
 GOBIN_VERSION = 0.0.13
 PROTOTOOL_VERSION = 1.8.0
 PROTOC_GEN_GO_VERSION = 1.3.2
-MGA_VERSION = 0.0.5
+MGA_VERSION = 0.0.8
 
 GOLANG_VERSION = 1.13
 
 .PHONY: up
-up: config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
+up: etc/config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -77,8 +77,8 @@ config/config.toml:
 config/ui/feature-set.json:
 	mv config/ui/feature-set.json{,~} || true && cp config/ui/feature-set.json.dist config/ui/feature-set.json
 
-config/dex.yml:
-	cp config/dex.yml.dist config/dex.yml
+etc/config/dex.yml:
+	cp etc/config/dex.yml.dist etc/config/dex.yml
 
 .PHONY: run
 run: GOTAGS += dev
