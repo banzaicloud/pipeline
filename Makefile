@@ -43,7 +43,7 @@ MGA_VERSION = 0.0.5
 GOLANG_VERSION = 1.13
 
 .PHONY: up
-up: config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
+up: etc/config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -77,8 +77,8 @@ config/config.toml:
 config/ui/feature-set.json:
 	mv config/ui/feature-set.json{,~} || true && cp config/ui/feature-set.json.dist config/ui/feature-set.json
 
-config/dex.yml:
-	cp config/dex.yml.dist config/dex.yml
+etc/config/dex.yml:
+	cp etc/config/dex.yml.dist etc/config/dex.yml
 
 .PHONY: run
 run: GOTAGS += dev
