@@ -162,27 +162,25 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 
 func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetParams(UserDataScript string) compute.VirtualMachineScaleSet {
 	var bapRefs []compute.SubResource
-	if input.ScaleSet.LBBackendAddressPoolIDs != nil {
-		for _, id := range input.ScaleSet.LBBackendAddressPoolIDs {
-			if id != "" {
-				bapRef := compute.SubResource{
-					ID: to.StringPtr(id),
-				}
-				bapRefs = append(bapRefs, bapRef)
+	for _, id := range input.ScaleSet.LBBackendAddressPoolIDs {
+		if id != "" {
+			bapRef := compute.SubResource{
+				ID: to.StringPtr(id),
 			}
+			bapRefs = append(bapRefs, bapRef)
 		}
 	}
+
 	var inpRefs []compute.SubResource
-	if input.ScaleSet.LBInboundNATPoolIDs != nil {
-		for _, id := range input.ScaleSet.LBInboundNATPoolIDs {
-			if id != "" {
-				inpRef := compute.SubResource{
-					ID: to.StringPtr(id),
-				}
-				inpRefs = append(inpRefs, inpRef)
+	for _, id := range input.ScaleSet.LBInboundNATPoolIDs {
+		if id != "" {
+			inpRef := compute.SubResource{
+				ID: to.StringPtr(id),
 			}
+			inpRefs = append(inpRefs, inpRef)
 		}
 	}
+
 	var nsgRef *compute.SubResource
 	if input.ScaleSet.NetworkSecurityGroupID != "" {
 		nsgRef = &compute.SubResource{
