@@ -60,10 +60,10 @@ func (i imageScanHandlers) ScanImages(ginCtx *gin.Context) {
 
 	var images []pipeline.ClusterImage
 	if err := ginCtx.BindJSON(&images); err != nil {
-		err := errors.Wrap(err, "Error parsing request:")
+		err := errors.Wrap(err, "failed to parse the request")
 		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
-			Message: "Error during parsing request!",
+			Message: "failed to parse the request!",
 			Error:   errors.Cause(err).Error(),
 		})
 		return
@@ -71,9 +71,9 @@ func (i imageScanHandlers) ScanImages(ginCtx *gin.Context) {
 
 	imgs, err := i.imgScanService.Scan(ginCtx.Request.Context(), cluster.GetOrganizationId(), cluster.GetID(), images)
 	if err != nil {
-		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during parsing request!",
+		ginCtx.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to send images to scan",
 			Error:   errors.Cause(err).Error(),
 		})
 		return
@@ -119,9 +119,9 @@ func (i imageScanHandlers) GetImageVulnerabilities(ginCtx *gin.Context) {
 		cluster.GetID(), imageDigest)
 
 	if err != nil {
-		ginCtx.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during parsing request!",
+		ginCtx.JSON(http.StatusInternalServerError, common.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to retrieve image vulnerabilities",
 			Error:   errors.Cause(err).Error(),
 		})
 		return
