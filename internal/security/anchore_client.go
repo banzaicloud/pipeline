@@ -146,10 +146,16 @@ func (a anchoreClient) ListPolicies(ctx context.Context) (interface{}, error) {
 	// authenticate the request
 	r, err := a.authenticatedResty().Get(listPoliciesEndpoint)
 
-	if err != nil || r.StatusCode() != http.StatusOK {
+	if err != nil {
 		a.logger.Debug("failed to retrieve policies")
 
-		return nil, errors.WrapIfWithDetails(err, "failed to retrieve policies")
+		return nil, errors.WrapIf(err, "failed to retrieve policies")
+	}
+
+	if r.StatusCode() != http.StatusOK {
+		a.logger.Debug("failed to retrieve policies")
+
+		return nil, errors.NewWithDetails("failed to retrieve policies", "httpStatusCode", r.StatusCode())
 	}
 
 	a.logger.Info("policies successfully retrieved")
@@ -352,10 +358,16 @@ func (a anchoreClient) ScanImage(ctx context.Context, image pipeline.ClusterImag
 		SetBody(body).
 		Post(imagesEndpoint)
 
-	if err != nil || resp.StatusCode() != http.StatusOK {
-		a.logger.Debug("failed to delete anchore user", fnCtx)
+	if err != nil {
+		a.logger.Debug("failed to add image to scan", fnCtx)
 
-		return nil, errors.WrapIfWithDetails(err, "failed to add image", image.ImageDigest)
+		return nil, errors.WrapIfWithDetails(err, "failed to add image to scan", image.ImageDigest)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		a.logger.Debug("image scan call failed", fnCtx)
+
+		return nil, errors.NewWithDetails("image scan call failed", "httpStatus", resp.StatusCode())
 	}
 
 	a.logger.Debug("image added for security scan", map[string]interface{}{"image": image.ImageName})

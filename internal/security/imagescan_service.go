@@ -67,13 +67,13 @@ func (i imageScannerService) Scan(ctx context.Context, orgID uint, clusterID uin
 
 	for _, img := range images {
 		// transform the input image
-		img, err := anchoreClient.ScanImage(ctx, img)
+		scanResult, err := anchoreClient.ScanImage(ctx, img)
 		if err != nil {
 			combinedErr = errors.Append(combinedErr, err)
 			continue
 		}
 
-		retImgs = append(retImgs, img)
+		retImgs = append(retImgs, scanResult)
 	}
 
 	i.logger.Info("images sent for analysis", fnCtx)
