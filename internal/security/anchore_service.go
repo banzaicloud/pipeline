@@ -73,7 +73,7 @@ func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID ui
 	if exists {
 		a.logger.Info("processing existing anchore user", fnCtx)
 
-		err = a.ensureUserCredentials(ctx, restClient, userName)
+		err = a.ensureUserCredentials(ctx, orgID, restClient, userName)
 		if err != nil {
 			a.logger.Debug("failed to ensure user credentials", fnCtx)
 
@@ -166,7 +166,7 @@ func (a anchoreService) userExists(ctx context.Context, client AnchoreClient, us
 }
 
 //  ensureUserCredentials makes sure the user credentials secret is up to date
-func (a anchoreService) ensureUserCredentials(ctx context.Context, client AnchoreClient, userName string) error {
+func (a anchoreService) ensureUserCredentials(ctx context.Context, orgID uint, client AnchoreClient, userName string) error {
 
 	password, err := client.GetUserCredentials(ctx, userName)
 	if err != nil {
@@ -175,7 +175,7 @@ func (a anchoreService) ensureUserCredentials(ctx context.Context, client Anchor
 		return errors.Wrap(err, "failed to get user credentials")
 	}
 
-	_, err = a.storeCredentialsSecret(ctx, userName, password)
+	_, err = a.storeCredentialsSecret(ctx, orgID, userName, password)
 	if err != nil {
 		a.logger.Debug("failed to store user credentials as a secret")
 
@@ -189,7 +189,7 @@ func (a anchoreService) ensureUserCredentials(ctx context.Context, client Anchor
 func (a anchoreService) createUserSecret(ctx context.Context, orgID uint, clusterID uint) (string, error) {
 
 	// a new password gets generated
-	secretID, err := a.storeCredentialsSecret(ctx, getUserName(clusterID), "")
+	secretID, err := a.storeCredentialsSecret(ctx, orgID, getUserName(clusterID), "")
 	if err != nil {
 		a.logger.Debug("failed to store credentials for a new user")
 
@@ -244,7 +244,7 @@ func (a anchoreService) createUser(ctx context.Context, client AnchoreClient, us
 }
 
 // storeCredentialsSecret stores the passed in userName and password asa secret and returns the related secretID
-func (a anchoreService) storeCredentialsSecret(ctx context.Context, userName string, password string) (string, error) {
+func (a anchoreService) storeCredentialsSecret(ctx context.Context, orgID uint, userName string, password string) (string, error) {
 
 	secretRequest := secret.CreateSecretRequest{
 		Name: userName,
@@ -258,7 +258,8 @@ func (a anchoreService) storeCredentialsSecret(ctx context.Context, userName str
 		},
 	}
 
-	secretID, err := a.secretStore.Store(ctx, &secretRequest)
+	// todo remove this global reference
+	secretID, err := secret.Store.Store(orgID, &secretRequest)
 	if err != nil {
 		a.logger.Debug("failed to store user credentials as a secret")
 

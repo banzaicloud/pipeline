@@ -180,10 +180,8 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 	if !boundSpec.CustomAnchore.Enabled {
 		if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
-			return errors.WrapIf(err, "failed to deactivate")
+			return errors.WrapIf(err, "failed to delete anchore user")
 		}
-
-		op.logger.Debug("custom anchore enabled, skip deleting anchore user")
 	}
 
 	return nil

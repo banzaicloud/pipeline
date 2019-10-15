@@ -148,7 +148,7 @@ func (f featureAdapter) GetFeatureConfig(ctx context.Context, clusterID uint, fe
 	if !ok || customAnchore == nil {
 		f.logger.Debug("the feature has no custom anchore config", fnCtx)
 
-		return Config{}, errors.WrapIf(err, "the feature has no custom anchore config")
+		return Config{}, nil
 	}
 
 	// helper to read the custom config
