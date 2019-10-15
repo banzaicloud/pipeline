@@ -19,14 +19,14 @@ import (
 )
 
 // DynamicFileClient interacts with a cluster with file manifests.
-//go:generate sh -c "which mockery > /dev/null && mockery -name DynamicFileClient -inpkg || true"
+//go:generate mockery -name DynamicFileClient -inpkg
 type DynamicFileClient interface {
 	// Create iterates a set of YAML documents and calls client.Create on them.
 	Create(ctx context.Context, file []byte) error
 }
 
 // DynamicFileClientFactory returns a DynamicFileClient.
-//go:generate sh -c "which mockery > /dev/null && mockery -name DynamicFileClientFactory -inpkg || true"
+//go:generate mockery -name DynamicFileClientFactory -inpkg
 type DynamicFileClientFactory interface {
 	// FromSecret creates a DynamicFileClient for a cluster from a secret.
 	FromSecret(ctx context.Context, secretID string) (DynamicFileClient, error)
