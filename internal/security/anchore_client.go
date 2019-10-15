@@ -437,6 +437,8 @@ func (a anchoreClient) transform(fromType interface{}, toType interface{}) error
 	return nil
 }
 
+// authenticatedResty sets up an authenticated resty client (this might be cached probably)
+// WARNING: resty is temporarily used only as the generated client / openAPI spec seems not to be complete.
 func (a anchoreClient) authenticatedResty() *resty.Request {
 	return resty.R().SetBasicAuth(a.userName, a.password).SetHeader("User-Agent", "Pipeline/go")
 }
