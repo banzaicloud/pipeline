@@ -16,13 +16,16 @@ package anchore
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/antihax/optional"
 	"github.com/mitchellh/mapstructure"
+	"gopkg.in/resty.v1"
 
 	"github.com/banzaicloud/pipeline/.gen/anchore"
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -53,7 +56,7 @@ type PolicyClient interface {
 	ListPolicies(ctx context.Context) ([]pipeline.PolicyBundleRecord, error)
 	CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (*pipeline.PolicyBundleRecord, error)
 	DeletePolicy(ctx context.Context, policyID string) error
-	UpdatePolicy(ctx context.Context, policyID string, policy pipeline.PolicyBundleRecord) error
+	UpdatePolicy(ctx context.Context, policyID string, activate bool) error
 }
 
 // AnchoreClient "facade" for supported Anchore operations, decouples anchore specifics from the application
@@ -79,23 +82,43 @@ func NewAnchoreClient(userName string, password string, endpoint string, logger 
 	}
 }
 
-func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, policy pipeline.PolicyBundleRecord) error {
+func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, activate bool) error {
 	fnCtx := map[string]interface{}{"policyID": policyID}
 	a.logger.Info("updating policy", fnCtx)
 
-	var toUpdate anchore.PolicyBundleRecord
-	if err := a.transform(&policy, &toUpdate); err != nil {
-		return errors.WrapIf(err, "failed to transform")
+	//temporary workaround for the policy update to work
+	// at the time of writing the generated model lacks some field(s) that cause de update to fail
+
+	var updatePolicyEndpoint = strings.Join([]string{a.endpoint, "policies", "{policyId}"}, "/")
+
+	// authenticate the request
+	req := resty.R().SetBasicAuth(a.userName, a.password)
+
+	// get the policy to be updated
+	r, err := req.SetPathParams(map[string]string{"policyId": policyID}).Get(updatePolicyEndpoint)
+	if err != nil || r.StatusCode() != http.StatusOK {
+		a.logger.Debug("failed to retrieve policy for update", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to retrieve policy for update", fnCtx)
 	}
 
-	toUpdate.CreatedAt = policy.CreatedAt
-	toUpdate.LastUpdated = policy.LastUpdated
+	// bind the response in order to be able to assemble the update request
+	jsonContent := make([]map[string]interface{}, 0)
+	err = json.Unmarshal(r.Body(), &jsonContent)
+	if err != nil {
+		a.logger.Debug("failed to unmarshal the policy response", fnCtx)
 
-	_, r, err := a.getRestClient().PoliciesApi.UpdatePolicy(a.authorizedContext(ctx), policyID, toUpdate, &anchore.UpdatePolicyOpts{})
-	if err != nil || r.StatusCode != http.StatusOK {
-		a.logger.Debug("failed to update policy", fnCtx)
+		return errors.WrapIfWithDetails(err, "failed to unmarshal the policy response", fnCtx)
+	}
 
-		return errors.WrapIfWithDetails(err, "failed to update policy", fnCtx)
+	// prepare for the update call
+	req.SetQueryParam("active", strconv.FormatBool(activate))
+	req.SetBody(jsonContent[0]) // the first element is the retrieved policy!
+	r, err = req.Put(updatePolicyEndpoint)
+	if err != nil || r.StatusCode() != http.StatusOK {
+		a.logger.Debug("failed to retrieve policy for update", fnCtx)
+
+		return errors.WrapIfWithDetails(err, "failed to retrieve policy for update", fnCtx)
 	}
 
 	a.logger.Info("policy successfully updated", fnCtx)

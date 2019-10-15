@@ -145,18 +145,14 @@ func (p policyService) UpdatePolicy(ctx context.Context, orgID uint, clusterID u
 		return errors.WrapIf(err, "failed to get anchore client")
 	}
 
-	policy, err := anchoreClient.GetPolicy(ctx, policyID)
+	activate, err := strconv.ParseBool(policyActivate.Params.Active)
 	if err != nil {
-		p.logger.Debug("failure while retrieving policy for update", fnCtx)
+		p.logger.Debug("failed to parse activate param", fnCtx)
 
-		return errors.WrapIf(err, "failed to retrieve policy for update")
+		return errors.WrapIf(err, "failed to parse activate param")
 	}
 
-	if activate, _ := strconv.ParseBool(policyActivate.Params.Active); activate {
-		policy.Active = true
-	}
-
-	if err := anchoreClient.UpdatePolicy(ctx, policyID, *policy); err != nil {
+	if err := anchoreClient.UpdatePolicy(ctx, policyID, activate); err != nil {
 		p.logger.Debug("failure while updating policy", fnCtx)
 
 		return errors.WrapIf(err, "failed to update policy")
