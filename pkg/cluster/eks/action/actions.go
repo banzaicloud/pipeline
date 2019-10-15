@@ -67,6 +67,8 @@ type EksClusterCreateUpdateContext struct {
 	ProvidedRoleArn            string
 	APIEndpoint                *string
 	CertificateAuthorityData   *string
+	ClusterUserID              string
+	ClusterRoleID              string
 	ClusterUserArn             string
 	ClusterUserAccessKeyId     string
 	ClusterUserSecretAccessKey string
