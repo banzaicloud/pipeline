@@ -75,3 +75,8 @@ type EC2PKEClusterModelLegacy struct {
 	KubeADM    KubeADM    `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"kubeadm"`
 	CRI        CRI        `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"cri"`
 }
+
+// TableName changes the default table name.
+func (EC2PKEClusterModelLegacy) TableName() string {
+	return "amazon_ec2_clusters"
+}
