@@ -64,8 +64,8 @@ func getCustomAnchoreCredentials(ctx context.Context, secretStore common.SecretS
 	}
 
 	credentials := struct {
-		username string `json:"username"`
-		password string `json:"password"`
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
 	}{}
 
 	if err := mapstructure.Decode(secretValues, &credentials); err != nil {
@@ -74,6 +74,6 @@ func getCustomAnchoreCredentials(ctx context.Context, secretStore common.SecretS
 		return "", "", errors.WrapIf(err, "failed to decode custom anchore user secret")
 	}
 
-	return credentials.username, credentials.password, nil
+	return credentials.Username, credentials.Password, nil
 
 }

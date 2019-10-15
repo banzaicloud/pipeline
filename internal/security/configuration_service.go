@@ -151,13 +151,24 @@ func (f featureAdapter) GetFeatureConfig(ctx context.Context, clusterID uint, fe
 		return Config{}, errors.WrapIf(err, "the feature has no custom anchore config")
 	}
 
-	var retConfig Config
-	if err := mapstructure.Decode(&customAnchore, &retConfig); err != nil {
+	// helper to read the custom config
+	customConfig := struct {
+		Enabled    bool   `mapstructure:"enabled"`
+		UserSecret string `mapstructure:"secretId"`
+		Endpoint   string `mapstructure:"url"`
+	}{}
+
+	if err := mapstructure.Decode(customAnchore, &customConfig); err != nil {
 		f.logger.Debug("failed to decode custom anchore config", fnCtx)
 
 		return Config{}, errors.WrapIf(err, "failed to decode custom anchore config")
 	}
 
 	f.logger.Info("feature config retrieved", fnCtx)
-	return retConfig, nil
+	return Config{
+		ApiEnabled: true,
+		Enabled:    customConfig.Enabled,
+		Endpoint:   customConfig.Endpoint,
+		UserSecret: customConfig.UserSecret,
+	}, nil
 }
