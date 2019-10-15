@@ -546,7 +546,7 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 				return validationErrorf("only private and public access points are allowed")
 			}
 			if !params.AccessPoints.Exists(ap.GetName()) {
-				validationErrorf("no access point defined with the name %q", ap.GetName())
+				return validationErrorf("no access point defined with the name %q", ap.GetName())
 			}
 		}
 	}

@@ -48,11 +48,9 @@ type CollectUpdateClusterProvidersActivityInput struct {
 type CollectUpdateClusterProvidersActivityOutput struct {
 	BackendAddressPoolIDProviders []MapResourceIDByNameProvider
 	InboundNATPoolIDProviders     []MapResourceIDByNameProvider
-	//PublicIPAddressProvider         ConstantIPAddressProvider
-	RouteTableIDProvider    MapResourceIDByNameProvider
-	SecurityGroupIDProvider MapResourceIDByNameProvider
-	SubnetIDProvider        MapResourceIDByNameProvider
-	//ApiServerPrivateAddressProvider ConstantIPAddressProvider
+	RouteTableIDProvider          MapResourceIDByNameProvider
+	SecurityGroupIDProvider       MapResourceIDByNameProvider
+	SubnetIDProvider              MapResourceIDByNameProvider
 }
 
 func (a CollectUpdateClusterProvidersActivity) Execute(ctx context.Context, input CollectUpdateClusterProvidersActivityInput) (output CollectUpdateClusterProvidersActivityOutput, err error) {
