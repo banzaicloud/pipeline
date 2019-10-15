@@ -505,28 +505,49 @@ func (p AzurePKEClusterCreationParamsPreparer) Prepare(ctx context.Context, para
 	if len(params.AccessPoints) == 0 {
 		params.AccessPoints = append(params.AccessPoints, pke.AccessPoint{Name: "public"})
 		p.logger.Debug("access points not specified, defaulting to public")
-	}
-	if len(params.AccessPoints) > 2 {
-		return validationError{"only private, public or both access points are allowed"}
-	}
-
-	for _, ap := range params.AccessPoints {
-		if ap.Name != "private" && ap.Name != "public" {
-			return validationError{"only private or public access points are allowed"}
+	} else {
+		var hadPrivate, hadPublic bool
+		for _, ap := range params.AccessPoints {
+			switch ap.Name {
+			case "private":
+				if hadPrivate {
+					return validationErrorf("only a single private access point is allowed")
+				}
+				hadPrivate = true
+			case "public":
+				if hadPublic {
+					return validationErrorf("only a single public access point is allowed")
+				}
+				hadPublic = true
+			default:
+				return validationErrorf("only private and public access points are allowed")
+			}
 		}
 	}
 
 	if params.APIServerAccessPoints == nil {
 		params.APIServerAccessPoints = append(params.APIServerAccessPoints, "public")
 		p.logger.Debug("API server access points not specified, defaulting to public")
-	}
-
-	if len(params.APIServerAccessPoints) > 2 {
-		return validationErrorf("only private, public or both are allowed as API server access points")
-	}
-	for _, apiServerAp := range params.APIServerAccessPoints {
-		if !params.AccessPoints.Exists(apiServerAp.GetName()) {
-			return validationError{fmt.Sprintf("no access point is defined for API server access point %s", apiServerAp)}
+	} else {
+		var hadPrivate, hadPublic bool
+		for _, ap := range params.APIServerAccessPoints {
+			switch ap {
+			case "private":
+				if hadPrivate {
+					return validationErrorf("only a single private access point is allowed")
+				}
+				hadPrivate = true
+			case "public":
+				if hadPublic {
+					return validationErrorf("only a single public access point is allowed")
+				}
+				hadPublic = true
+			default:
+				return validationErrorf("only private and public access points are allowed")
+			}
+			if !params.AccessPoints.Exists(ap.GetName()) {
+				validationErrorf("no access point defined with the name %q", ap.GetName())
+			}
 		}
 	}
 
