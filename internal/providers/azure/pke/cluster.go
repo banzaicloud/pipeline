@@ -138,6 +138,11 @@ func GetLoadBalancerName(clusterName string) string {
 	return clusterName // LB name must match the value passed to pke install master --kubernetes-cluster-name
 }
 
+func GetInternalLoadBalancerName(clusterName string) string {
+	// internal LB name must match the value passed to `pke install master --kubernetes-cluster-name` with a "-internal" suffix
+	return clusterName + "-internal"
+}
+
 func GetPublicIPAddressName(clusterName string) string {
 	return clusterName + "-pip-in"
 }

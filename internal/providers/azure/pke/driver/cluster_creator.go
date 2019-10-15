@@ -318,10 +318,17 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	var pip workflow.PublicIPAddress
 	loadBalancerTemplates := make([]workflow.LoadBalancerTemplate, len(params.AccessPoints))
 	for i, accessPoint := range params.AccessPoints {
-		var subnetName, publicIPAddressName, outboundBackendAddressPoolName, backendAddressPoolName, inboundNATPoolName, lbName string
+		var (
+			subnetName,
+			publicIPAddressName,
+			outboundBackendAddressPoolName,
+			backendAddressPoolName,
+			inboundNATPoolName,
+			lbName string
+		)
 
 		if accessPoint.Name == "private" {
-			lbName = pke.GetLoadBalancerName(params.Name) + "-internal"
+			lbName = pke.GetInternalLoadBalancerName(params.Name)
 
 			// private access point implemented through internal LB which requires a subnet
 			// use master node's subnet for the internal LB
