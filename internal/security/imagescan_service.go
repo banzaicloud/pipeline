@@ -120,7 +120,7 @@ func (i imageScannerService) GetVulnerabilities(ctx context.Context, orgID uint,
 	return vulnerabilities, nil
 }
 
-// getAnchoreClient returns a rest client wrapper instance with the proper configuration
+// getAnchoreClient returns i rest client wrapper instance with the proper configuration
 func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uint, admin bool) (AnchoreClient, error) {
 	cfg, err := i.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
@@ -133,6 +133,18 @@ func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uin
 		i.logger.Debug("anchore service disabled")
 
 		return nil, errors.NewWithDetails("anchore service disabled", "clusterID", clusterID)
+	}
+
+	if cfg.UserSecret != "" {
+		i.logger.Debug("using custom anchore configuration")
+		username, password, err := getCustomAnchoreCredentials(ctx, i.secretStore, cfg.UserSecret, i.logger)
+		if err != nil {
+			i.logger.Debug("failed to decode secret values")
+
+			return nil, errors.WrapIf(err, "failed to decode custom anchore user secret")
+		}
+
+		return NewAnchoreClient(username, password, cfg.Endpoint, i.logger), nil
 	}
 
 	if admin {

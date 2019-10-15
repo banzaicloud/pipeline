@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/secret"
@@ -50,4 +51,29 @@ func getUserSecret(ctx context.Context, secretStore common.SecretStore, userName
 	}
 
 	return password, nil
+}
+
+func getCustomAnchoreCredentials(ctx context.Context, secretStore common.SecretStore, secretId string, logger common.Logger) (string, string, error) {
+	logger.Debug("using custom anchore configuration")
+
+	secretValues, err := secretStore.GetSecretValues(ctx, secretId)
+	if err != nil {
+		logger.Debug("failed to retrieve secret")
+
+		return "", "", errors.WrapIf(err, "failed to retrieve custom anchore user secret")
+	}
+
+	credentials := struct {
+		username string `json:"username"`
+		password string `json:"password"`
+	}{}
+
+	if err := mapstructure.Decode(secretValues, &credentials); err != nil {
+		logger.Debug("failed to decode secret values")
+
+		return "", "", errors.WrapIf(err, "failed to decode custom anchore user secret")
+	}
+
+	return credentials.username, credentials.password, nil
+
 }

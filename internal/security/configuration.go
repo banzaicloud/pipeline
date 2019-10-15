@@ -28,6 +28,8 @@ type Config struct {
 	Endpoint   string `json:"endpoint" mapstructure:"endpoint"`
 	AdminUser  string `json:"adminUser" mapstructure:"adminUser"`
 	AdminPass  string `json:"adminPass" mapstructure:"adminPass"`
+	// this is populated by the configuration service (custom anchore case!)
+	UserSecret string `json:"secretId" mapstructure:"secretId"`
 }
 
 // Validate validates the configuration instance: checks mandatory fields

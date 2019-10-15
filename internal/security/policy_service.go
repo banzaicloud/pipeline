@@ -2,7 +2,7 @@
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// You may obtain p copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
@@ -162,8 +162,8 @@ func (p policyService) UpdatePolicy(ctx context.Context, orgID uint, clusterID u
 	return nil
 }
 
-// getAnchoreClient returns a rest client wrapper instance with the proper configuration
-// todo this method may be extracted to a common place to be reused by other services
+// getAnchoreClient returns p rest client wrapper instance with the proper configuration
+// todo this method may be extracted to p common place to be reused by other services
 func (p policyService) getAnchoreClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
 	cfg, err := p.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
@@ -176,6 +176,18 @@ func (p policyService) getAnchoreClient(ctx context.Context, clusterID uint) (An
 		p.logger.Debug("anchore service disabled")
 
 		return nil, errors.NewWithDetails("anchore service disabled", "clusterID", clusterID)
+	}
+
+	if cfg.UserSecret != "" {
+		p.logger.Debug("using custom anchore configuration")
+		username, password, err := getCustomAnchoreCredentials(ctx, p.secretStore, cfg.UserSecret, p.logger)
+		if err != nil {
+			p.logger.Debug("failed to decode secret values")
+
+			return nil, errors.WrapIf(err, "failed to decode custom anchore user secret")
+		}
+
+		return NewAnchoreClient(username, password, cfg.Endpoint, p.logger), nil
 	}
 
 	userName := getUserName(clusterID)

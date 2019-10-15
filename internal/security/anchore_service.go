@@ -283,7 +283,21 @@ func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint, ad
 		return nil, errors.NewWithDetails("anchore service disabled", "clusterID", clusterID)
 	}
 
+	if cfg.UserSecret != "" {
+		a.logger.Debug("using custom anchore configuration")
+		username, password, err := getCustomAnchoreCredentials(ctx, a.secretStore, cfg.UserSecret, a.logger)
+		if err != nil {
+			a.logger.Debug("failed to decode secret values")
+
+			return nil, errors.WrapIf(err, "failed to decode custom anchore user secret")
+		}
+
+		return NewAnchoreClient(username, password, cfg.Endpoint, a.logger), nil
+	}
+
 	if admin {
+		a.logger.Debug("creating admin anchore client")
+
 		return NewAnchoreClient(cfg.AdminUser, cfg.AdminPass, cfg.Endpoint, a.logger), nil
 	}
 
@@ -295,6 +309,7 @@ func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint, ad
 		return nil, errors.Wrap(err, "failed to retrieve user secret")
 	}
 
+	a.logger.Debug("creating generated (managed) anchore client")
 	return NewAnchoreClient(userName, password, cfg.Endpoint, a.logger), nil
 }
 
