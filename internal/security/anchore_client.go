@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"emperror.dev/errors"
 	"github.com/antihax/optional"
@@ -46,15 +45,15 @@ type ImagesClient interface {
 	// GetImageVulnerabilities gets the vulnerabilities for the given image digest
 	ScanImage(ctx context.Context, image pipeline.ClusterImage) (interface{}, error)
 	// GetImageVulnerabilities gets the vulnerabilities for the given image digest
-	GetImageVulnerabilities(ctx context.Context, imageDigest string) (pipeline.VulnerabilityResponse, error)
+	GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error)
 	// CheckImage cheks rthe image for anchore metadata
 	CheckImage(ctx context.Context, imageDigest string) (interface{}, error)
 }
 
 type PolicyClient interface {
-	GetPolicy(ctx context.Context, policyID string) (*pipeline.PolicyBundleRecord, error)
-	ListPolicies(ctx context.Context) ([]pipeline.PolicyBundleRecord, error)
-	CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (*pipeline.PolicyBundleRecord, error)
+	GetPolicy(ctx context.Context, policyID string) (interface{}, error)
+	ListPolicies(ctx context.Context) (interface{}, error)
+	CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error)
 	DeletePolicy(ctx context.Context, policyID string) error
 	UpdatePolicy(ctx context.Context, policyID string, activate bool) error
 }
@@ -91,11 +90,8 @@ func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, activa
 
 	var updatePolicyEndpoint = strings.Join([]string{a.endpoint, "policies", "{policyId}"}, "/")
 
-	// authenticate the request
-	req := resty.R().SetBasicAuth(a.userName, a.password)
-
 	// get the policy to be updated
-	r, err := req.SetPathParams(map[string]string{"policyId": policyID}).Get(updatePolicyEndpoint)
+	r, err := a.authenticatedResty().SetPathParams(map[string]string{"policyId": policyID}).Get(updatePolicyEndpoint)
 	if err != nil || r.StatusCode() != http.StatusOK {
 		a.logger.Debug("failed to retrieve policy for update", fnCtx)
 
@@ -111,10 +107,11 @@ func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, activa
 		return errors.WrapIfWithDetails(err, "failed to unmarshal the policy response", fnCtx)
 	}
 
-	// prepare for the update call
-	req.SetQueryParam("active", strconv.FormatBool(activate))
-	req.SetBody(jsonContent[0]) // the first element is the retrieved policy!
-	r, err = req.Put(updatePolicyEndpoint)
+	r, err = a.authenticatedResty().
+		SetQueryParam("active", strconv.FormatBool(activate)).
+		SetBody(jsonContent[0]). // the first element is the retrieved policy!
+		Put(updatePolicyEndpoint)
+
 	if err != nil || r.StatusCode() != http.StatusOK {
 		a.logger.Debug("failed to retrieve policy for update", fnCtx)
 
@@ -125,7 +122,7 @@ func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, activa
 	return nil
 }
 
-func (a anchoreClient) GetPolicy(ctx context.Context, policyID string) (*pipeline.PolicyBundleRecord, error) {
+func (a anchoreClient) GetPolicy(ctx context.Context, policyID string) (interface{}, error) {
 	fnCtx := map[string]interface{}{"policyID": policyID}
 	a.logger.Info("retrieving policy", fnCtx)
 
@@ -138,56 +135,35 @@ func (a anchoreClient) GetPolicy(ctx context.Context, policyID string) (*pipelin
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve policy", fnCtx)
 	}
 
-	a.logger.Info("policy successfully retrieved", fnCtx)
-	var bundle pipeline.PolicyBundleRecord
-	if err = a.transform(policyBundles[0], &bundle); err != nil {
-		a.logger.Debug("failed to transform policy", fnCtx)
-
-		return nil, errors.WrapIfWithDetails(err, "failed to transform policy", fnCtx)
-	}
-
-	return &bundle, nil
+	return &policyBundles, nil
 }
 
-func (a anchoreClient) ListPolicies(ctx context.Context) ([]pipeline.PolicyBundleRecord, error) {
+func (a anchoreClient) ListPolicies(ctx context.Context) (interface{}, error) {
 	a.logger.Info("retrieving policies ...")
 
-	policies, r, err := a.getRestClient().PoliciesApi.ListPolicies(a.authorizedContext(ctx),
-		&anchore.ListPoliciesOpts{
-			Detail: optional.NewBool(true),
-		})
+	var listPoliciesEndpoint = strings.Join([]string{a.endpoint, "policies"}, "/")
 
-	if err != nil || r.StatusCode != http.StatusOK {
+	// authenticate the request
+	r, err := a.authenticatedResty().Get(listPoliciesEndpoint)
+
+	if err != nil || r.StatusCode() != http.StatusOK {
 		a.logger.Debug("failed to retrieve policies")
 
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve policies")
 	}
 
-	// transform the result to pipeline model
-	var (
-		retPolicies    = make([]pipeline.PolicyBundleRecord, 0)
-		pipelinePolicy pipeline.PolicyBundleRecord
-	)
-	for _, policy := range policies {
+	a.logger.Info("policies successfully retrieved")
+	respJson := make([]map[string]interface{}, 0)
+	if err = json.Unmarshal(r.Body(), &respJson); err != nil {
+		a.logger.Debug("failed to unmarshal policy list")
 
-		if err = a.transform(policy, &pipelinePolicy); err != nil {
-			a.logger.Warn("failed to transform to pipeline policy")
-
-			continue
-		}
-
-		// time is lost during transfomation!
-		pipelinePolicy.CreatedAt = policy.CreatedAt
-		pipelinePolicy.LastUpdated = policy.LastUpdated
-
-		retPolicies = append(retPolicies, pipelinePolicy)
+		return nil, errors.WrapIfWithDetails(err, "failed to unmarshal policy list")
 	}
 
-	a.logger.Info("policies successfully retrieved")
-	return retPolicies, nil
+	return respJson, nil
 }
 
-func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (*pipeline.PolicyBundleRecord, error) {
+func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error) {
 	fnCtx := map[string]interface{}{"policyID": policy}
 	a.logger.Info("creating policy ...", fnCtx)
 
@@ -205,17 +181,9 @@ func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyB
 		return nil, errors.WrapIfWithDetails(err, "failed to create policy")
 	}
 
-	var pipelineRecord pipeline.PolicyBundleRecord
-	if err = a.transform(policyBundleRecord, &pipelineRecord); err != nil {
-		a.logger.Warn("failed to transform to pipeline policy")
-	}
-	// time values are lost during transformation
-	pipelineRecord.CreatedAt = policyBundleRecord.CreatedAt
-	pipelineRecord.LastUpdated = policyBundleRecord.LastUpdated
-
 	a.logger.Info("policy successfully created", fnCtx)
 
-	return &pipelineRecord, nil
+	return &policyBundleRecord, nil
 }
 
 func (a anchoreClient) DeletePolicy(ctx context.Context, policyID string) error {
@@ -369,22 +337,32 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 
 // ScanImage registers an image for security scanning
 func (a anchoreClient) ScanImage(ctx context.Context, image pipeline.ClusterImage) (interface{}, error) {
+	fnCtx := map[string]interface{}{"imageName": image.ImageName, "tag": image.ImageTag}
 
-	aImg, resp, err := a.getRestClient().ImagesApi.AddImage(a.authorizedContext(ctx), anchore.ImageAnalysisRequest{
-		Digest:    image.ImageDigest,
-		Tag:       strings.Join([]string{image.ImageName, image.ImageTag}, ":"),
-		CreatedAt: time.Now().UTC(),
-	}, &anchore.AddImageOpts{})
+	body := struct {
+		Tag    string `json:"tag,omitempty"`
+		Digest string `json:"digest,omitempty"`
+	}{
+		Tag: strings.Join([]string{image.ImageName, image.ImageTag}, ":"),
+	}
 
-	if err != nil || resp.StatusCode != http.StatusOK {
+	var imagesEndpoint = strings.Join([]string{a.endpoint, "images"}, "/")
+
+	resp, err := a.authenticatedResty().
+		SetBody(body).
+		Post(imagesEndpoint)
+
+	if err != nil || resp.StatusCode() != http.StatusOK {
+		a.logger.Debug("failed to delete anchore user", fnCtx)
+
 		return nil, errors.WrapIfWithDetails(err, "failed to add image", image.ImageDigest)
 	}
 
-	a.logger.Debug("image added for security scan", map[string]interface{}{"image": aImg})
-	return aImg, nil
+	a.logger.Debug("image added for security scan", map[string]interface{}{"image": image.ImageName})
+	return resp.Body(), nil
 }
 
-func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest string) (pipeline.VulnerabilityResponse, error) {
+func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error) {
 	a.logger.Debug("retrieving image vulnerabilities")
 
 	vulnerabilities, resp, err := a.getRestClient().ImagesApi.GetImageVulnerabilitiesByType(a.authorizedContext(ctx),
@@ -393,16 +371,11 @@ func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest 
 	if err != nil || resp.StatusCode != http.StatusOK {
 		a.logger.Debug("failed to retrieve image vulnerabilities")
 
-		return pipeline.VulnerabilityResponse{}, errors.WrapIf(err, "failed to retrieve vulnerabilities")
-	}
-
-	var pipelineVulnerabilitiesResponse pipeline.VulnerabilityResponse
-	if err := a.transform(vulnerabilities, &pipelineVulnerabilitiesResponse); err != nil {
-		a.logger.Warn("failed to transform anchore response")
+		return nil, errors.WrapIf(err, "failed to retrieve vulnerabilities")
 	}
 
 	a.logger.Debug("successfully retrieved image vulnerabilities")
-	return pipelineVulnerabilitiesResponse, nil
+	return vulnerabilities, nil
 }
 
 func (a anchoreClient) CheckImage(ctx context.Context, imageDigest string) (interface{}, error) {
@@ -450,4 +423,8 @@ func (a anchoreClient) transform(fromType interface{}, toType interface{}) error
 	}
 
 	return nil
+}
+
+func (a anchoreClient) authenticatedResty() *resty.Request {
+	return resty.R().SetBasicAuth(a.userName, a.password).SetHeader("User-Agent", "Pipeline/go")
 }

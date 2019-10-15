@@ -27,7 +27,7 @@ import (
 //PolicyService policy related operations
 type PolicyService interface {
 	ListPolicies(ctx context.Context, orgID uint, clusterID uint) (interface{}, error)
-	GetPolicy(ctx context.Context, orgID uint, clusterID uint, policyID string) (*pipeline.PolicyBundleRecord, error)
+	GetPolicy(ctx context.Context, orgID uint, clusterID uint, policyID string) (interface{}, error)
 	CreatePolicy(ctx context.Context, orgID uint, clusterID uint, policy pipeline.PolicyBundleRecord) (interface{}, error)
 	DeletePolicy(ctx context.Context, orgID uint, clusterID uint, policyID string) error
 	UpdatePolicy(ctx context.Context, orgID uint, clusterID uint, policyID string, policyActivate pipeline.PolicyBundleActivate) error
@@ -69,7 +69,7 @@ func (p policyService) ListPolicies(ctx context.Context, orgID uint, clusterID u
 	return policyList, nil
 }
 
-func (p policyService) GetPolicy(ctx context.Context, orgID uint, clusterID uint, policyID string) (*pipeline.PolicyBundleRecord, error) {
+func (p policyService) GetPolicy(ctx context.Context, orgID uint, clusterID uint, policyID string) (interface{}, error) {
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "policyID": policyID}
 	p.logger.Info("retrieving policy ...", fnCtx)
 
