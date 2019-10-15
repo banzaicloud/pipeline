@@ -15,12 +15,8 @@
 package pke
 
 import (
-	"encoding/json"
-
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
-
-	"emperror.dev/errors"
 )
 
 const PKEOnAzure = "pke-on-azure"
@@ -76,19 +72,6 @@ func (a AccessPoints) Get(name string) *AccessPoint {
 	return nil
 }
 
-func (a AccessPoints) Marshal() (string, error) {
-	data, err := json.Marshal(a)
-	if err != nil {
-		return "", errors.WrapIf(err, "failed to marshall access point list")
-	}
-
-	return string(data), nil
-}
-
-func (a *AccessPoints) Unmarshal(data string) error {
-	return errors.WrapIf(json.Unmarshal([]byte(data), a), "failed to unmarshal access point list")
-}
-
 type APIServerAccessPoint string
 
 func (a APIServerAccessPoint) GetName() string {
@@ -104,15 +87,6 @@ func (a APIServerAccessPoints) Exists(name string) bool {
 		}
 	}
 	return false
-}
-
-func (a APIServerAccessPoints) Marshal() (string, error) {
-	data, err := json.Marshal(a)
-	if err != nil {
-		return "", errors.WrapIf(err, "failed to marshall api server access point list")
-	}
-
-	return string(data), nil
 }
 
 // PKEOnAzureCluster defines fields for PKE-on-Azure clusters

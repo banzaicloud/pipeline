@@ -27,6 +27,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/common"
+	sqljson "github.com/banzaicloud/pipeline/internal/database/sql/json"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/model"
@@ -85,8 +86,8 @@ type gormAzurePKEClusterModel struct {
 	Cluster   cluster.ClusterModel        `gorm:"foreignkey:ClusterID"`
 	NodePools []gormAzurePKENodePoolModel `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID"`
 
-	AccessPoints          string `gorm:"type:text"`
-	ApiServerAccessPoints string `gorm:"type:text"`
+	AccessPoints          accessPointsModel          `gorm:"type:json"`
+	ApiServerAccessPoints apiServerAccessPointsModel `gorm:"type:json"`
 }
 
 func (gormAzurePKEClusterModel) TableName() string {
@@ -100,14 +101,11 @@ type httpProxyModel struct {
 }
 
 func (m *httpProxyModel) Scan(v interface{}) error {
-	if s, ok := v.(string); ok {
-		v = []byte(s)
-	}
-	return json.Unmarshal(v.([]byte), m)
+	return sqljson.Scan(v, m)
 }
 
 func (m httpProxyModel) Value() (driver.Value, error) {
-	return json.Marshal(m)
+	return sqljson.Value(m)
 }
 
 func (m *httpProxyModel) fromEntity(e intPKE.HTTPProxy) {
@@ -144,14 +142,80 @@ func (m httpProxyOptionsModel) toEntity() intPKE.HTTPProxyOptions {
 	}
 }
 
-type recordNotFoundError struct{}
-
-func (recordNotFoundError) Error() string {
-	return "record was not found"
+type accessPointModel struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
 }
 
-func (recordNotFoundError) NotFound() bool {
-	return true
+func (m *accessPointModel) fromEntity(e pke.AccessPoint) {
+	m.Name = e.Name
+	m.Address = e.Address
+}
+
+func (m accessPointModel) toEntity() pke.AccessPoint {
+	return pke.AccessPoint{
+		Name:    m.Name,
+		Address: m.Address,
+	}
+}
+
+type accessPointsModel []accessPointModel
+
+func (m *accessPointsModel) Scan(v interface{}) error {
+	return sqljson.Scan(v, m)
+}
+
+func (m accessPointsModel) Value() (driver.Value, error) {
+	return sqljson.Value(m)
+}
+
+func (m *accessPointsModel) fromEntity(e pke.AccessPoints) {
+	*m = make(accessPointsModel, len(e))
+	for i, ap := range e {
+		(*m)[i].fromEntity(ap)
+	}
+}
+
+func (m accessPointsModel) toEntity() pke.AccessPoints {
+	aps := make(pke.AccessPoints, len(m))
+	for i, apm := range m {
+		aps[i] = apm.toEntity()
+	}
+	return aps
+}
+
+type apiServerAccessPointModel string
+
+func (m *apiServerAccessPointModel) fromEntity(e pke.APIServerAccessPoint) {
+	*m = apiServerAccessPointModel(e)
+}
+func (m apiServerAccessPointModel) toEntity() pke.APIServerAccessPoint {
+	return pke.APIServerAccessPoint(m)
+}
+
+type apiServerAccessPointsModel []apiServerAccessPointModel
+
+func (m *apiServerAccessPointsModel) Scan(v interface{}) error {
+	return sqljson.Scan(v, m)
+}
+
+func (m apiServerAccessPointsModel) Value() (driver.Value, error) {
+	return sqljson.Value(m)
+}
+
+func (m *apiServerAccessPointsModel) fromEntity(e pke.APIServerAccessPoints) {
+	*m = make(apiServerAccessPointsModel, len(e))
+	for i, asap := range e {
+		(*m)[i].fromEntity(asap)
+	}
+}
+
+func (m apiServerAccessPointsModel) toEntity() pke.APIServerAccessPoints {
+	asaps := make(pke.APIServerAccessPoints, len(m))
+	for i, asapm := range m {
+		asaps[i] = asapm.toEntity()
+	}
+	return asaps
 }
 
 func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.ClusterModel) {
@@ -219,15 +283,9 @@ func fillClusterFromAzurePKEClusterModel(cluster *pke.PKEOnAzureCluster, model g
 	cluster.Kubernetes.Version = model.KubernetesVersion
 	cluster.ActiveWorkflowID = model.ActiveWorkflowID
 
-	var accessPoints pke.AccessPoints
-	accessPoints.Unmarshal(model.AccessPoints) // nolint: errcheck
-	cluster.AccessPoints = accessPoints
-
-	for _, ap := range unmarshalStringSlice(model.ApiServerAccessPoints) {
-		cluster.APIServerAccessPoints = append(cluster.APIServerAccessPoints, pke.APIServerAccessPoint(ap))
-	}
-
 	cluster.HTTPProxy = model.HTTPProxy.toEntity()
+	cluster.AccessPoints = model.AccessPoints.toEntity()
+	cluster.APIServerAccessPoints = model.ApiServerAccessPoints.toEntity()
 
 	return nil
 }
@@ -311,6 +369,8 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 	}
 
 	model.HTTPProxy.fromEntity(params.HTTPProxy)
+	model.AccessPoints.fromEntity(params.AccessPoints)
+	model.ApiServerAccessPoints.fromEntity(params.APIServerAccessPoints)
 
 	{
 		// Adapting to legacy format. TODO: Please remove this as soon as possible.
@@ -325,24 +385,15 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 			}
 		}
 	}
-	{
-		accessPointsJson, err := params.AccessPoints.Marshal()
-		if err != nil {
-			return c, errors.WrapIf(err, "couldn't marshall cluster access points")
-		}
-		model.AccessPoints = accessPointsJson
-		apiServerAccessPoints, err := params.APIServerAccessPoints.Marshal()
-		if err != nil {
-			return c, errors.WrapIf(err, "couldn't marshall api server access points")
-		}
-		model.ApiServerAccessPoints = apiServerAccessPoints
-	}
+
 	if err = getError(s.db.Preload("Cluster").Preload("NodePools").Create(&model), "failed to create cluster model"); err != nil {
 		return
 	}
+
 	if err := fillClusterFromAzurePKEClusterModel(&c, model); err != nil {
 		return c, errors.WrapIf(err, "failed to fill cluster from model")
 	}
+
 	return
 }
 
@@ -446,33 +497,20 @@ func (s gormAzurePKEClusterStore) UpdateClusterAccessPoints(clusterID uint, acce
 		return err
 	}
 
-	var clusterAccessPoints pke.AccessPoints
-	if err := clusterAccessPoints.Unmarshal(model.AccessPoints); err != nil {
-		return errors.WrapIf(err, "could not unmarshal cluster access points")
-	}
+	s.log.Debug("access points from db", map[string]interface{}{"accesspoints": model.AccessPoints})
 
-	s.log.Debug("access points from db", map[string]interface{}{"accesspoints": clusterAccessPoints})
-
-	for i := range clusterAccessPoints {
+	for i := range model.AccessPoints {
 		for _, update := range accessPoints {
-			if clusterAccessPoints[i].Name == update.Name {
-				clusterAccessPoints[i].Address = update.Address
+			if model.AccessPoints[i].Name == update.Name {
+				model.AccessPoints[i].fromEntity(update)
 			}
 		}
 	}
 
-	updatedAccessPoints, err := clusterAccessPoints.Marshal()
-	if err != nil {
-		return errors.WrapIf(err, "could not marshal updated access points")
-	}
+	s.log.Debug("updated access points from db", map[string]interface{}{"accesspoints": model.AccessPoints})
 
-	s.log.Debug("updated access points from db", map[string]interface{}{"accesspoints": updatedAccessPoints})
-
-	fields := map[string]interface{}{
-		"AccessPoints": updatedAccessPoints,
-	}
-
-	return getError(s.db.Model(&model).Updates(fields), "failed to update PKE-on-Azure cluster access points model")
+	updates := gormAzurePKEClusterModel{AccessPoints: model.AccessPoints}
+	return getError(s.db.Model(&model).Updates(updates), "failed to update PKE-on-Azure cluster access points model")
 }
 
 func (s gormAzurePKEClusterStore) SetActiveWorkflowID(clusterID uint, workflowID string) error {
@@ -617,4 +655,14 @@ func getError(db *gorm.DB, message string, args ...interface{}) error {
 		err = errors.WrapIff(err, message, args...)
 	}
 	return err
+}
+
+type recordNotFoundError struct{}
+
+func (recordNotFoundError) Error() string {
+	return "record was not found"
+}
+
+func (recordNotFoundError) NotFound() bool {
+	return true
 }
