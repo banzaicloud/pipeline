@@ -18,15 +18,15 @@ import (
 	"fmt"
 	"time"
 
+	"go.uber.org/cadence/workflow"
+	"go.uber.org/zap"
+
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-
-	"go.uber.org/cadence/workflow"
-	"go.uber.org/zap"
 )
 
 const CreateClusterWorkflowName = "pke-azure-create-cluster"

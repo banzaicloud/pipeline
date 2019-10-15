@@ -21,15 +21,12 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-
-	pkgPke "github.com/banzaicloud/pipeline/pkg/cluster/pke"
-
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-
 	"go.uber.org/cadence/workflow"
 
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	intPKEWorkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	pkgPke "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 )
 
 const CreateInfraWorkflowName = "pke-azure-create-infra"

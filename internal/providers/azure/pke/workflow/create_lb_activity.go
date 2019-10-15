@@ -19,12 +19,11 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-10-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
 	"go.uber.org/cadence/activity"
+
+	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 )
 
 // CreateLoadBalancerActivityName is the default registration name of the activity
