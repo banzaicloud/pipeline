@@ -9,7 +9,7 @@ pipeline
 !pipeline/
 vault/*
 config/config.toml
-config/dex.yml
+etc/config/dex.yml
 config/ui/feature-set.json
 config/ui/*~
 *.swp
