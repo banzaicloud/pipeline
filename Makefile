@@ -31,7 +31,7 @@ ANCHORE_VERSION = 156836d
 
 GOLANGCI_VERSION = 1.18.0
 JQ_VERSION = 1.5
-LICENSEI_VERSION = 0.1.1
+LICENSEI_VERSION = 0.2.0
 OPENAPI_GENERATOR_VERSION = v4.1.3
 MIGRATE_VERSION = 4.0.2
 GOTESTSUM_VERSION = 0.3.2
@@ -154,13 +154,13 @@ bin/licensei: bin/licensei-${LICENSEI_VERSION}
 	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
 bin/licensei-${LICENSEI_VERSION}:
 	@mkdir -p bin
-	curl -sfL https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v${LICENSEI_VERSION}
+	curl -sfL https://git.io/licensei | bash -s v${LICENSEI_VERSION}
 	@mv bin/licensei $@
 
 .PHONY: license-check
 license-check: bin/licensei ## Run license check
 	bin/licensei check
-	./scripts/check-header.sh
+	bin/licensei header
 
 .PHONY: license-cache
 license-cache: bin/licensei ## Generate license cache
