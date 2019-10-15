@@ -89,12 +89,15 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.EKS,
 		EKS: model.EKSClusterModel{
-			Version:      request.Properties.CreateClusterEKS.Version,
-			NodePools:    modelNodePools,
-			VpcId:        &request.Properties.CreateClusterEKS.Vpc.VpcId,
-			VpcCidr:      &request.Properties.CreateClusterEKS.Vpc.Cidr,
-			RouteTableId: &request.Properties.CreateClusterEKS.RouteTableId,
-			Subnets:      createSubnetsFromRequest(request.Properties.CreateClusterEKS),
+			Version:            request.Properties.CreateClusterEKS.Version,
+			NodePools:          modelNodePools,
+			VpcId:              &request.Properties.CreateClusterEKS.Vpc.VpcId,
+			VpcCidr:            &request.Properties.CreateClusterEKS.Vpc.Cidr,
+			RouteTableId:       &request.Properties.CreateClusterEKS.RouteTableId,
+			Subnets:            createSubnetsFromRequest(request.Properties.CreateClusterEKS),
+			UserId:             &request.Properties.CreateClusterEKS.IAM.UserID,
+			ClusterRoleId:      &request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
+			NodeInstanceRoleId: &request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
 		},
 		CreatedBy:  userId,
 		TtlMinutes: request.TtlMinutes,
@@ -336,8 +339,9 @@ func (c *EKSCluster) CreateCluster() error {
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
 	actions := []utils.Action{
-		action.NewCreateVPCAndRolesAction(c.log, creationContext, eksStackName),
+		action.NewCreateVPCAction(c.log, creationContext, eksStackName),
 		action.NewCreateSubnetsAction(NewLogurLogger(c.log), creationContext, subnetTemplate),
+		action.NewCreateIAMRolesAction(c.log, creationContext),
 		action.NewCreateClusterUserAccessKeyAction(c.log, creationContext),
 		action.NewPersistClusterUserAccessKeyAction(c.log, creationContext, c.GetOrganizationId()),
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
