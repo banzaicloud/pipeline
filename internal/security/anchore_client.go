@@ -108,14 +108,15 @@ func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, activa
 	}
 
 	r, err = a.authenticatedResty().
+		SetPathParams(map[string]string{"policyId": policyID}).
 		SetQueryParam("active", strconv.FormatBool(activate)).
 		SetBody(jsonContent[0]). // the first element is the retrieved policy!
 		Put(updatePolicyEndpoint)
 
 	if err != nil || r.StatusCode() != http.StatusOK {
-		a.logger.Debug("failed to retrieve policy for update", fnCtx)
+		a.logger.Debug("failed to update policy", fnCtx)
 
-		return errors.WrapIfWithDetails(err, "failed to retrieve policy for update", fnCtx)
+		return errors.WrapIfWithDetails(err, "failed to update for update", fnCtx)
 	}
 
 	a.logger.Info("policy successfully updated", fnCtx)
