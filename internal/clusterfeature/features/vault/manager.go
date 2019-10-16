@@ -29,6 +29,7 @@ import (
 type FeatureManager struct {
 	clusterGetter clusterfeatureadapter.ClusterGetter
 	secretStore   features.SecretStore
+	config        clusterfeature.VaultConfig
 	logger        common.Logger
 }
 
@@ -36,11 +37,13 @@ type FeatureManager struct {
 func MakeFeatureManager(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	secretStore features.SecretStore,
+	config clusterfeature.VaultConfig,
 	logger common.Logger,
 ) FeatureManager {
 	return FeatureManager{
 		clusterGetter: clusterGetter,
 		secretStore:   secretStore,
+		config:        config,
 		logger:        logger,
 	}
 }
@@ -125,6 +128,13 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 	vaultSpec, err := bindFeatureSpec(spec)
 	if err != nil {
 		return err
+	}
+
+	if !m.config.Cp.Enabled && !vaultSpec.CustomVault.Enabled {
+		return clusterfeature.InvalidFeatureSpecError{
+			FeatureName: featureName,
+			Problem:     "Pipeline's Vault configuration is not supported",
+		}
 	}
 
 	if err := vaultSpec.Validate(); err != nil {

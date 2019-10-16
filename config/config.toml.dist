@@ -262,3 +262,9 @@ chartVersion="6.8.3"
 [prometheusPushgateway]
 chart="stable/prometheus-pushgateway"
 chartVersion="1.0.1"
+
+[features.vault]
+enabled=false
+
+[features.vault.cp]
+enabled=false

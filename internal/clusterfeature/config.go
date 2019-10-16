@@ -12,28 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package clusterfeature
 
-import (
-	"github.com/spf13/viper"
+type Config struct {
+	Vault VaultConfig
+}
 
-	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap"
-)
+type VaultConfig struct {
+	Enabled bool
+	Cp      VaultCpConfig
+}
 
-// mapCapabilities maps configuration to capabilities.
-func mapCapabilities(config configuration) cap.Capabilities {
-	return cap.Capabilities{
-		"cicd": cap.Cap{
-			"enabled": viper.GetBool("cicd.enabled"),
-		},
-		"issue": cap.Cap{
-			"enabled": config.Frontend.Issue.Enabled,
-		},
-		"features": cap.Cap{
-			"vault": cap.Cap{
-				"enabled": config.Features.Vault.Enabled,
-				"cpVault": config.Features.Vault.Cp.Enabled,
-			},
-		},
-	}
+type VaultCpConfig struct {
+	Enabled bool
 }

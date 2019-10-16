@@ -374,6 +374,10 @@ func init() {
 	viper.SetDefault(VaultWebhookChartKey, "banzaicloud-stable/vault-secrets-webhook")
 	viper.SetDefault(VaultWebhookChartVersionKey, "0.5.2")
 
+	// feature configs
+	viper.SetDefault("features.vault.enabled", false)
+	viper.SetDefault("features.vault.cp.enabled", false)
+
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file, %s", err)

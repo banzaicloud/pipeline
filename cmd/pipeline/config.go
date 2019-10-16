@@ -18,6 +18,7 @@ import (
 	"os"
 
 	"emperror.dev/errors"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
@@ -42,6 +43,9 @@ type configuration struct {
 
 	// Frontend configuration
 	Frontend frontend.Config
+
+	// Features configuration
+	Features clusterfeature.Config
 }
 
 // Validate validates the configuration.
