@@ -665,15 +665,23 @@ func main() {
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-				endpointManager := endpoints.NewEndpointManager(logger)
-				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-				monitoringConfig := featureMonitoring.NewFeatureConfiguration()
-				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry([]clusterfeature.FeatureManager{
+				featureManagers := []clusterfeature.FeatureManager{
 					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
 					securityscan.MakeFeatureManager(logger),
-					featureVault.MakeFeatureManager(clusterGetter, secretStore, logger),
-					featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger),
-				})
+				}
+
+				if conf.Cluster.Vault.Enabled {
+					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, conf.Cluster.Vault.Managed, logger))
+				}
+
+				if conf.Cluster.Monitor.Enabled {
+					endpointManager := endpoints.NewEndpointManager(logger)
+					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+					monitoringConfig := featureMonitoring.NewFeatureConfiguration()
+					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger))
+				}
+
+				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
 				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
