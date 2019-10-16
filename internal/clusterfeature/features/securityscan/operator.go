@@ -33,9 +33,9 @@ import (
 )
 
 const (
-	securityScanChartVersion = "0.4.0"
+	securityScanChartVersion = "0.4.4"
 	// todo read this from the chart possibly
-	imageValidatorVersion = "0.3.3"
+	imageValidatorVersion = "0.3.6"
 
 	// anchore version
 	securityScanChartName = "banzaicloud-stable/anchore-policy-validator"
