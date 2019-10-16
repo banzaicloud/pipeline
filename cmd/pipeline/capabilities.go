@@ -34,7 +34,9 @@ func mapCapabilities(config configuration) cap.Capabilities {
 				"enabled": config.Cluster.Vault.Enabled,
 				"managed": config.Cluster.Vault.Managed,
 			},
-			"monitor": config.Cluster.Monitor.Enabled,
+			"monitor": cap.Cap{
+				"enabled": config.Cluster.Monitor.Enabled,
+			},
 		},
 	}
 }
