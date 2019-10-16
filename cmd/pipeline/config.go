@@ -18,12 +18,12 @@ import (
 	"os"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/viperx"
