@@ -33,12 +33,6 @@ Resources:
     Properties:
       UserName: !Sub "${ClusterName}"
 
-  ClusterUserAccessKey:
-    Type: AWS::IAM::AccessKey
-    Condition: CreateUser
-    Properties:
-      UserName: !Ref ClusterUser
-
   ClusterRole:
     Type: AWS::IAM::Role
     Condition: CreateClusterRole
