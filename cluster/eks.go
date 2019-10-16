@@ -286,6 +286,7 @@ func (c *EKSCluster) CreateCluster() error {
 
 	// role that controls access to resources for creating an EKS cluster
 	eksStackName := c.generateStackNameForCluster()
+	iamStackName := c.generateStackNameForIAM()
 	sshKeyName := c.generateSSHKeyNameForCluster()
 
 	c.modelCluster.RbacEnabled = true
@@ -341,7 +342,7 @@ func (c *EKSCluster) CreateCluster() error {
 	actions := []utils.Action{
 		action.NewCreateVPCAction(c.log, creationContext, eksStackName),
 		action.NewCreateSubnetsAction(NewLogurLogger(c.log), creationContext, subnetTemplate),
-		action.NewCreateIAMRolesAction(c.log, creationContext),
+		action.NewCreateIAMRolesAction(c.log, creationContext, iamStackName),
 		action.NewCreateClusterUserAccessKeyAction(c.log, creationContext),
 		action.NewPersistClusterUserAccessKeyAction(c.log, creationContext, c.GetOrganizationId()),
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
@@ -467,8 +468,8 @@ func (c *EKSCluster) generateStackNameForCluster() string {
 	return "pipeline-eks-" + c.modelCluster.Name
 }
 
-func (c *EKSCluster) generateIAMRoleNameForCluster() string {
-	return "pipeline-eks-" + c.modelCluster.Name
+func (c *EKSCluster) generateStackNameForIAM() string {
+	return "pipeline-eks-iam-" + c.modelCluster.Name
 }
 
 // Persist saves the cluster model
@@ -551,7 +552,8 @@ func (c *EKSCluster) DeleteCluster() error {
 		action.NewDeleteClusterUserAccessKeySecretAction(c.log, deleteContext, c.GetOrganizationId()),
 		action.NewDeleteOrphanNICsAction(NewLogurLogger(c.log), deleteContext),
 		action.NewDeleteStacksAction(c.log, deleteContext, c.getSubnetStackNamesToDelete(awsSession)...),
-		action.NewDeleteStacksAction(c.log, deleteContext, c.generateStackNameForCluster()),
+		action.NewDeleteStacksAction(c.log, deleteContext, clusterStackName),
+		action.NewDeleteStacksAction(c.log, deleteContext, c.generateStackNameForIAM()),
 	)
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {

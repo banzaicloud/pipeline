@@ -15,8 +15,6 @@
 package action
 
 import (
-	"fmt"
-
 	"emperror.dev/errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -39,10 +37,7 @@ type CreateIAMRolesAction struct {
 }
 
 // NewCreateIAMRolesAction creates a new CreateIAMRolesAction
-func NewCreateIAMRolesAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext) *CreateIAMRolesAction {
-
-	stackName := fmt.Sprintf("pipeline-eks-iam-%s", creationContext.ClusterName)
-
+func NewCreateIAMRolesAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext, stackName string) *CreateIAMRolesAction {
 	return &CreateIAMRolesAction{
 		context:   creationContext,
 		stackName: stackName,
@@ -134,11 +129,6 @@ func (a *CreateIAMRolesAction) ExecuteAction(input interface{}) (interface{}, er
 		}
 	}
 
-	// clusterUserAccessKeyID, clusterUserSecretAccessKey, err = GetClusterUserAccessKeyIdAndSecretVault(a.organizationID, a.context.ClusterName)
-	// if err != nil {
-	// 	return nil, errors.WrapIf(err, "failed to retrieve EKS cluster user access key")
-	// }
-
 	a.log.Infoln("cluster role ARN:", clusterRoleArn)
 	a.context.ClusterRoleArn = clusterRoleArn
 
@@ -150,10 +140,6 @@ func (a *CreateIAMRolesAction) ExecuteAction(input interface{}) (interface{}, er
 
 	a.log.Infoln("cluster user ARN:", clusterUserArn)
 	a.context.ClusterUserArn = clusterUserArn
-
-	// a.log.Infoln("cluster user access key id:", clusterUserAccessKeyID)
-	// a.context.ClusterUserAccessKeyId = clusterUserAccessKeyID
-	// a.context.ClusterUserSecretAccessKey = clusterUserSecretAccessKey
 
 	return nil, nil
 }
