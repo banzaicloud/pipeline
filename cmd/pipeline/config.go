@@ -140,7 +140,12 @@ func (c clusterConfig) Validate() error {
 // clusterVaultConfig contains cluster vault configuration.
 type clusterVaultConfig struct {
 	Enabled bool
-	Managed bool
+	Managed clusterVaultManagedConfig
+}
+
+// clusterVaultManagedConfig contains cluster vault configuration.
+type clusterVaultManagedConfig struct {
+	Enabled bool
 }
 
 // clusterMonitorConfig contains cluster vault configuration.
@@ -193,9 +198,9 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("anchore.adminuser", "")
 	v.SetDefault("anchore.adminpass", "")
 
-	v.SetDefault("cluster.vault.enabled", false)
-	v.SetDefault("cluster.vault.managed", false)
-	v.SetDefault("cluster.monitor.enabled", false)
+	v.SetDefault("cluster.vault.enabled", true)
+	v.SetDefault("cluster.vault.managed.enabled", false)
+	v.SetDefault("cluster.monitor.enabled", true)
 }
 
 func registerAliases(v *viper.Viper) {
