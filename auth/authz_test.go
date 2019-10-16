@@ -209,6 +209,12 @@ func TestRbacEnforcer_Enforce(t *testing.T) {
 		},
 		{
 			role:     RoleMember,
+			path:     "/api/v1/orgs/1/buckets",
+			method:   "HEAD",
+			expected: true,
+		},
+		{
+			role:     RoleMember,
 			path:     "/api/v1/orgs/1/clusters",
 			method:   "POST",
 			expected: false,
