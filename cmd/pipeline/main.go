@@ -619,21 +619,36 @@ func main() {
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 
-				if anchore.AnchoreEnabled {
-					cRouter.GET("/scanlog", api.GetScanLog)
-					cRouter.GET("/scanlog/:releaseName", api.GetScanLog)
-					cRouter.GET("/whitelists", api.GetWhiteLists)
-					cRouter.POST("/whitelists", api.CreateWhiteList)
-					cRouter.DELETE("/whitelists/:name", api.DeleteWhiteList)
-					cRouter.GET("/policies", api.GetPolicies)
-					cRouter.GET("/policies/:policyId", api.GetPolicies)
-					cRouter.POST("/policies", api.CreatePolicy)
-					cRouter.PUT("/policies/:policyId", api.UpdatePolicies)
-					cRouter.DELETE("/policies/:policyId", api.DeletePolicy)
+				if conf.Anchore.ApiEnabled {
 
-					cRouter.POST("/imagescan", api.ScanImages)
-					cRouter.GET("/imagescan/:imagedigest", api.GetScanResult)
-					cRouter.GET("/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+					fr := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
+					fa := anchore.NewFeatureAdapter(fr, logger)
+					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
+					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+					imgScanSvc := anchore.NewImageScannerService(cfgSvc, secretStore, logger)
+					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
+
+					policySvc := anchore.NewPolicyService(cfgSvc, secretStore, logger)
+					policyHandler := api.NewPolicyHandler(clusterGetter, policySvc, logger)
+
+					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
+
+					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
+					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
+
+					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
+					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
+					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
+
+					cRouter.GET("/policies", policyHandler.ListPolicies)
+					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
+					cRouter.POST("/policies", policyHandler.CreatePolicy)
+					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
+					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
+
+					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
+					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)
+					cRouter.GET("/imagescan/:imagedigest/vuln", imageScanHandler.GetImageVulnerabilities)
 				}
 
 			}

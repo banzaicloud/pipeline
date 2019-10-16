@@ -161,6 +161,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect
+	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190820101039-d651a1528133
 	k8s.io/apiextensions-apiserver v0.0.0-20190308081736-3a66ae4d2f93

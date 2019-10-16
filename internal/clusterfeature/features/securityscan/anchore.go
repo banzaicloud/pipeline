@@ -19,55 +19,60 @@ import (
 
 	"emperror.dev/errors"
 
+	"github.com/banzaicloud/pipeline/internal/common"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 )
 
-type AnchoreConfig struct {
-	Endpoint string
-	Enabled  bool
-}
-
-// AnchoreService decouples anchore related operations
-type AnchoreService interface {
-	// GenerateUser generates an anchore user and stores it in the secret store
-	GenerateUser(ctx context.Context, orgID uint, clusterGUID string) (string, error)
+// FeatureAnchoreService decouples anchore related operations
+type FeatureAnchoreService interface {
+	GenerateUser(ctx context.Context, orgID uint, clusterID uint) (string, error)
 
 	// Deletes a previously generated user from the anchore
-	DeleteUser(ctx context.Context, orgID uint, clusterGUID string) error
-
-	AnchoreConfig() AnchoreConfig
+	DeleteUser(ctx context.Context, orgID uint, clusterID uint) error
 }
 
-// anchoreService basic implementer of the AnchoreService
+// anchoreService basic implementer of the FeatureAnchoreService
 type anchoreService struct {
+	anchoreUserService anchore.AnchoreUserService
+	logger             common.Logger
 }
 
-func (a anchoreService) AnchoreConfig() AnchoreConfig {
-	return AnchoreConfig{
-		Endpoint: anchore.AnchoreEndpoint,
-		Enabled:  anchore.AnchoreEnabled,
+func NewFeatureAnchoreService(anchoreUserService anchore.AnchoreUserService, logger common.Logger) FeatureAnchoreService {
+	return anchoreService{
+		anchoreUserService: anchoreUserService,
+		logger:             logger,
 	}
 }
 
-func NewAnchoreService() AnchoreService {
-	return new(anchoreService)
-}
-
-func (a anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterGUID string) (string, error) {
-
-	usr, err := anchore.SetupAnchoreUser(orgID, clusterGUID)
+func (a anchoreService) GenerateUser(ctx context.Context, orgID uint, clusterID uint) (string, error) {
+	userName, err := a.anchoreUserService.EnsureUser(ctx, orgID, clusterID)
 	if err != nil {
+
+		a.logger.Debug("error creating anchore user", map[string]interface{}{"organization": orgID,
+			"clusterGUID": clusterID})
+
 		return "", errors.WrapWithDetails(err, "error creating anchore user", "organization", orgID,
-			"clusterGUID", clusterGUID)
+			"clusterGUID", clusterID)
 	}
 
-	return usr.UserId, nil
+	a.logger.Debug("anchore user ensured", map[string]interface{}{"organization": orgID,
+		"clusterGUID": clusterID})
+
+	return userName, nil
 }
 
-func (a anchoreService) DeleteUser(ctx context.Context, orgID uint, clusterGUID string) error {
-	// todo refactor the original implementation to handle errors?
+func (a anchoreService) DeleteUser(ctx context.Context, orgID uint, clusterID uint) error {
 
-	anchore.RemoveAnchoreUser(orgID, clusterGUID)
+	if err := a.anchoreUserService.RemoveUser(ctx, orgID, clusterID); err != nil {
 
+		a.logger.Debug("error deleting anchore user", map[string]interface{}{"organization": orgID,
+			"clusterID": clusterID})
+
+		return errors.WrapWithDetails(err, "error deleting anchore user", "organization", orgID,
+			"clusterID", clusterID)
+	}
+
+	a.logger.Info("anchore user deleted", map[string]interface{}{"organization": orgID,
+		"clusterID": clusterID})
 	return nil
 }

@@ -58,6 +58,7 @@ func (f FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 
 func (f FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureOutput, error) {
 	out := map[string]interface{}{
+		// todo add "real" anchore version
 		"anchore": map[string]interface{}{
 			"version": securityScanChartVersion,
 		},

@@ -28,6 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
@@ -63,6 +64,9 @@ type configuration struct {
 
 	// Cadence configuration
 	Cadence cadence.Config
+
+	// Anchore default configuration
+	Anchore anchore.Config
 }
 
 // Validate validates the configuration.
@@ -244,6 +248,12 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	viper.RegisterAlias("auth.oidcIssuerInsecure", "auth.dexInsecure")
 	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
 	viper.SetDefault("auth.dexGrpcCaCert", "")
+
+	v.SetDefault("anchore.apiEnabled", true)
+	v.SetDefault("anchore.enabled", false)
+	v.SetDefault("anchore.endpoint", "")
+	v.SetDefault("anchore.adminuser", "")
+	v.SetDefault("anchore.adminpass", "")
 }
 
 func registerAliases(v *viper.Viper) {
