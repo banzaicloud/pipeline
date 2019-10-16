@@ -377,6 +377,7 @@ func init() {
 	// feature configs
 	viper.SetDefault("features.vault.enabled", false)
 	viper.SetDefault("features.vault.cp.enabled", false)
+	viper.SetDefault("features.monitoring.enabled", false)
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

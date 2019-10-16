@@ -15,7 +15,8 @@
 package clusterfeature
 
 type Config struct {
-	Vault VaultConfig
+	Vault      VaultConfig
+	Monitoring MonitoringConfig
 }
 
 type VaultConfig struct {
@@ -24,5 +25,9 @@ type VaultConfig struct {
 }
 
 type VaultCpConfig struct {
+	Enabled bool
+}
+
+type MonitoringConfig struct {
 	Enabled bool
 }

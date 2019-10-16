@@ -268,3 +268,6 @@ enabled=false
 
 [features.vault.cp]
 enabled=false
+
+[features.monitoring]
+enabled=true

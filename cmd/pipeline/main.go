@@ -650,18 +650,21 @@ func main() {
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-				endpointManager := endpoints.NewEndpointManager(logger)
-				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-				monitoringConfig := featureMonitoring.NewFeatureConfiguration()
 
 				featureManagers := []clusterfeature.FeatureManager{
 					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
 					securityscan.MakeFeatureManager(logger),
-					featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger),
 				}
 
 				if conf.Features.Vault.Enabled {
 					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, conf.Features.Vault, logger))
+				}
+
+				if conf.Features.Monitoring.Enabled {
+					endpointManager := endpoints.NewEndpointManager(logger)
+					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+					monitoringConfig := featureMonitoring.NewFeatureConfiguration()
+					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger))
 				}
 
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)

@@ -34,6 +34,9 @@ func mapCapabilities(config configuration) cap.Capabilities {
 				"enabled": config.Features.Vault.Enabled,
 				"cpVault": config.Features.Vault.Cp.Enabled,
 			},
+			"monitoring": cap.Cap{
+				"enabled": config.Features.Monitoring.Enabled,
+			},
 		},
 	}
 }
