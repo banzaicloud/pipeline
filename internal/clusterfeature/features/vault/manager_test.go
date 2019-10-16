@@ -33,7 +33,7 @@ import (
 )
 
 func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil)
+	mng := MakeFeatureManager(nil, nil, clusterfeature.VaultConfig{}, nil)
 
 	assert.Equal(t, "vault", mng.Name())
 }
@@ -70,7 +70,12 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-	mng := MakeFeatureManager(clusterGetter, secretStore, nil)
+	mng := MakeFeatureManager(clusterGetter, secretStore, clusterfeature.VaultConfig{
+		Enabled: true,
+		Cp: clusterfeature.VaultCpConfig{
+			Enabled: true,
+		},
+	}, nil)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
 	vm, err := newVaultManager(vaultFeatureSpec{}, orgID, clusterID, "TODOTOKEN")
@@ -145,15 +150,15 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 }
 
 func TestFeatureManager_ValidateSpec(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil)
-
 	cases := map[string]struct {
-		Spec  clusterfeature.FeatureSpec
-		Error interface{}
+		Spec   clusterfeature.FeatureSpec
+		config clusterfeature.VaultConfig
+		Error  interface{}
 	}{
 		"empty spec": {
-			Spec:  clusterfeature.FeatureSpec{},
-			Error: false,
+			Spec:   clusterfeature.FeatureSpec{},
+			config: clusterfeature.VaultConfig{Enabled: true, Cp: clusterfeature.VaultCpConfig{Enabled: true}},
+			Error:  false,
 		},
 		"valid spec": {
 			Spec: obj{
@@ -165,7 +170,8 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					"serviceAccounts": []string{"default"},
 				},
 			},
-			Error: false,
+			config: clusterfeature.VaultConfig{Enabled: true, Cp: clusterfeature.VaultCpConfig{Enabled: true}},
+			Error:  false,
 		},
 		"both service account and namespaces are '*'": {
 			Spec: obj{
@@ -174,7 +180,21 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					"serviceAccounts": []string{"*"},
 				},
 			},
-			Error: true,
+			config: clusterfeature.VaultConfig{Enabled: true, Cp: clusterfeature.VaultCpConfig{Enabled: true}},
+			Error:  true,
+		},
+		"disable CP Vault": {
+			Spec: obj{
+				"customVault": obj{
+					"enabled": false,
+				},
+				"settings": obj{
+					"namespaces":      []string{"default"},
+					"serviceAccounts": []string{"default"},
+				},
+			},
+			config: clusterfeature.VaultConfig{Enabled: true, Cp: clusterfeature.VaultCpConfig{Enabled: false}},
+			Error:  true,
 		},
 	}
 
@@ -182,6 +202,7 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 
+			mng := MakeFeatureManager(nil, nil, tc.config, nil)
 			err := mng.ValidateSpec(ctx, tc.Spec)
 			switch tc.Error {
 			case true:
