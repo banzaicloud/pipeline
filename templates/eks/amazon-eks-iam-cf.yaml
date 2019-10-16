@@ -126,4 +126,4 @@ Outputs:
 
   ClusterUserArn:
     Description: Cluster user's ARN
-    Value: !If [ CreateUser, !GetAtt ClusterUser.Arn, !Ref UserId ]
+    Value: !If [ CreateUser, !GetAtt ClusterUser.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:user/${UserId}" ]
