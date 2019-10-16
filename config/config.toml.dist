@@ -110,11 +110,13 @@ signingKey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 # manifest = ""
 
 [cluster.vault]
+enabled = true
+
+[cluster.vault.managed]
 enabled = false
-managed = false
 
 [cluster.monitor]
-enabled = false
+enabled = true
 
 [helm]
 tillerVersion = "v2.14.2"

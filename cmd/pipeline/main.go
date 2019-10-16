@@ -670,7 +670,7 @@ func main() {
 				}
 
 				if conf.Cluster.Vault.Enabled {
-					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, conf.Cluster.Vault.Managed, logger))
+					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, conf.Cluster.Vault.Managed.Enabled, logger))
 				}
 
 				if conf.Cluster.Monitor.Enabled {
