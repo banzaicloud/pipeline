@@ -46,6 +46,9 @@ type configuration struct {
 
 	// Anchore default configuration
 	Anchore anchore.Config
+
+	// Cluster configuration
+	Cluster clusterConfig
 }
 
 // Validate validates the configuration.
@@ -123,6 +126,28 @@ func (c authTokenConfig) Validate() error {
 	return nil
 }
 
+// clusterConfig contains cluster configuration.
+type clusterConfig struct {
+	Vault   clusterVaultConfig
+	Monitor clusterMonitorConfig
+}
+
+// Validate validates the configuration.
+func (c clusterConfig) Validate() error {
+	return nil
+}
+
+// clusterVaultConfig contains cluster vault configuration.
+type clusterVaultConfig struct {
+	Enabled bool
+	Managed bool
+}
+
+// clusterMonitorConfig contains cluster vault configuration.
+type clusterMonitorConfig struct {
+	Enabled bool
+}
+
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// Application constants
@@ -167,6 +192,10 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("anchore.endpoint", "")
 	v.SetDefault("anchore.adminuser", "")
 	v.SetDefault("anchore.adminpass", "")
+
+	v.SetDefault("cluster.vault.enabled", false)
+	v.SetDefault("cluster.vault.managed", false)
+	v.SetDefault("cluster.monitor.enabled", false)
 }
 
 func registerAliases(v *viper.Viper) {
