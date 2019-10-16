@@ -109,6 +109,13 @@ signingKey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 # It accepts a file path with valid YAML templates inside.
 # manifest = ""
 
+[cluster.vault]
+enabled = false
+managed = false
+
+[cluster.monitor]
+enabled = false
+
 [helm]
 tillerVersion = "v2.14.2"
 path = "./var/cache"
