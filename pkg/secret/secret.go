@@ -28,8 +28,7 @@ type FieldMeta struct {
 
 // Meta describes how a secret is built up and how it should be sourced
 type Meta struct {
-	Fields   []FieldMeta    `json:"fields"`
-	Sourcing SourcingMethod `json:"sourcing"`
+	Fields []FieldMeta `json:"fields"`
 }
 
 // Alibaba keys
@@ -195,7 +194,6 @@ var DefaultRules = map[string]Meta{
 			{Name: AlibabaAccessKeyId, Required: true, Description: "Your Alibaba Cloud access key id"},
 			{Name: AlibabaSecretAccessKey, Required: true, Description: "Your Alibaba Cloud secret access key id"},
 		},
-		Sourcing: EnvVar,
 	},
 	cluster.Amazon: {
 		Fields: []FieldMeta{
@@ -203,7 +201,6 @@ var DefaultRules = map[string]Meta{
 			{Name: AwsAccessKeyId, Required: true, Description: "Your Amazon Cloud access key id"},
 			{Name: AwsSecretAccessKey, Required: true, Description: "Your Amazon Cloud secret access key id"},
 		},
-		Sourcing: EnvVar,
 	},
 	cluster.Azure: {
 		Fields: []FieldMeta{
@@ -212,7 +209,6 @@ var DefaultRules = map[string]Meta{
 			{Name: AzureTenantID, Required: true, Description: "Your tenant id"},
 			{Name: AzureSubscriptionID, Required: true, Description: "Your subscription id"},
 		},
-		Sourcing: EnvVar,
 	},
 	cluster.Google: {
 		Fields: []FieldMeta{
@@ -227,13 +223,11 @@ var DefaultRules = map[string]Meta{
 			{Name: AuthX509Url, Required: true, Description: "OAuth2 provider ceritficate URL"},
 			{Name: ClientX509Url, Required: true, Description: "OAuth2 client ceritficate URL"},
 		},
-		Sourcing: EnvVar,
 	},
 	cluster.Kubernetes: {
 		Fields: []FieldMeta{
 			{Name: K8SConfig, Required: true},
 		},
-		Sourcing: Volume,
 	},
 	cluster.Oracle: {
 		Fields: []FieldMeta{
@@ -253,7 +247,6 @@ var DefaultRules = map[string]Meta{
 			{Name: PublicKeyFingerprint, Required: true},
 			{Name: PrivateKeyData, Required: true},
 		},
-		Sourcing: Volume,
 	},
 	TLSSecretType: {
 		Fields: []FieldMeta{
@@ -268,7 +261,6 @@ var DefaultRules = map[string]Meta{
 			{Name: PeerKey, Required: false},
 			{Name: PeerCert, Required: false},
 		},
-		Sourcing: Volume,
 	},
 	PKESecretType: {
 		Fields: []FieldMeta{
@@ -287,24 +279,20 @@ var DefaultRules = map[string]Meta{
 			{Name: SAPub, Required: false},
 			{Name: SAKey, Required: false},
 		},
-		Sourcing: Volume,
 	},
 	GenericSecret: {
-		Fields:   []FieldMeta{},
-		Sourcing: EnvVar,
+		Fields: []FieldMeta{},
 	},
 	FnSecretType: {
 		Fields: []FieldMeta{
 			{Name: MasterToken, Required: true},
 		},
-		Sourcing: EnvVar,
 	},
 	PasswordSecretType: {
 		Fields: []FieldMeta{
 			{Name: Username, Required: true, Description: "Your username"},
 			{Name: Password, Required: false, Description: "Your password"},
 		},
-		Sourcing: EnvVar,
 	},
 	HtpasswdSecretType: {
 		Fields: []FieldMeta{
@@ -312,7 +300,6 @@ var DefaultRules = map[string]Meta{
 			{Name: Password, Required: false, Opaque: true, Description: "Your password"},
 			{Name: HtpasswdFile, Required: false},
 		},
-		Sourcing: Volume,
 	},
 	CloudFlareSecretType: {
 		Fields: []FieldMeta{
