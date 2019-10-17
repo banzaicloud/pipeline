@@ -41,12 +41,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -839,7 +839,7 @@ func (c *EC2ClusterPKE) GetCAHash() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	crt := secret.Values[pkgSecret.KubernetesCACert]
+	crt := secret.Values[secrettype.KubernetesCACert]
 	block, _ := pem.Decode([]byte(crt))
 	if block == nil {
 		return "", errors.New("failed to parse certificate")

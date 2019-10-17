@@ -15,8 +15,8 @@
 package secret
 
 import (
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // OCIVerify for validation OCI credentials
@@ -34,12 +34,12 @@ func CreateOCISecret(values map[string]string) *OCIVerify {
 // CreateOCICredential creates an 'oci.Credential' instance from secret's values
 func CreateOCICredential(values map[string]string) *oci.Credential {
 	return &oci.Credential{
-		UserOCID:          values[pkgSecret.OracleUserOCID],
-		TenancyOCID:       values[pkgSecret.OracleTenancyOCID],
-		APIKey:            values[pkgSecret.OracleAPIKey],
-		APIKeyFingerprint: values[pkgSecret.OracleAPIKeyFingerprint],
-		Region:            values[pkgSecret.OracleRegion],
-		CompartmentOCID:   values[pkgSecret.OracleCompartmentOCID],
+		UserOCID:          values[secrettype.OracleUserOCID],
+		TenancyOCID:       values[secrettype.OracleTenancyOCID],
+		APIKey:            values[secrettype.OracleAPIKey],
+		APIKeyFingerprint: values[secrettype.OracleAPIKeyFingerprint],
+		Region:            values[secrettype.OracleRegion],
+		CompartmentOCID:   values[secrettype.OracleCompartmentOCID],
 	}
 }
 

@@ -24,11 +24,11 @@ import (
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -67,14 +67,14 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
 		req := &secret.CreateSecretRequest{
 			Name: loggingParam.GenTLSForLogging.GenTLSSecretName,
-			Type: pkgSecret.TLSSecretType,
+			Type: secrettype.TLSSecretType,
 			Tags: []string{
 				clusterUidTag,
 				secret.TagBanzaiReadonly,
 				releaseTag,
 			},
 			Values: map[string]string{
-				pkgSecret.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
+				secrettype.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
 			},
 		}
 		_, err := secret.Store.GetOrCreate(cluster.GetOrganizationId(), req)
@@ -83,7 +83,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		}
 		_, err = InstallSecrets(cluster,
 			&secret.ListSecretsQuery{
-				Type: pkgSecret.TLSSecretType,
+				Type: secrettype.TLSSecretType,
 				Tags: []string{
 					clusterUidTag,
 					releaseTag,
@@ -241,7 +241,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		genericSecretName := fmt.Sprintf("logging-generic-%d", cluster.GetID())
 		req := &secret.CreateSecretRequest{
 			Name: genericSecretName,
-			Type: pkgSecret.GenericSecret,
+			Type: secrettype.GenericSecret,
 			Tags: []string{
 				clusterUidTag,
 				secret.TagBanzaiReadonly,
@@ -258,7 +258,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 
 		_, err = InstallSecrets(cluster,
 			&secret.ListSecretsQuery{
-				Type: pkgSecret.GenericSecret,
+				Type: secrettype.GenericSecret,
 				Tags: []string{
 					clusterUidTag,
 					releaseTag,

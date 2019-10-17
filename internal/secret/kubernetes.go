@@ -23,7 +23,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -54,11 +54,11 @@ func CreateKubeSecret(req KubeSecretRequest) (v1.Secret, error) {
 		StringData: map[string]string{},
 	}
 
-	secretMeta := secretTypes.DefaultRules[req.Type]
+	secretMeta := secrettype.DefaultRules[req.Type]
 	opaqueMap := make(map[string]bool, len(secretMeta.Fields))
 
 	// Generic secret fields are never opaque
-	if req.Type != secretTypes.GenericSecret {
+	if req.Type != secrettype.GenericSecret {
 		for _, field := range secretMeta.Fields {
 			opaqueMap[field.Name] = field.Opaque
 		}
@@ -137,7 +137,7 @@ func (s KubeSecretStore) Get(organizationID uint, k8sSecretID string) ([]byte, e
 	if err != nil {
 		return nil, emperror.Wrap(err, "failed to get k8s config from secret store")
 	}
-	k8sConfig, err := base64.StdEncoding.DecodeString(sir.GetValue(secretTypes.K8SConfig))
+	k8sConfig, err := base64.StdEncoding.DecodeString(sir.GetValue(secrettype.K8SConfig))
 	if err != nil {
 		return nil, emperror.Wrap(err, "can't decode Kubernetes config")
 	}

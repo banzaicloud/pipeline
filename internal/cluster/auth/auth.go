@@ -28,7 +28,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/.gen/dex"
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -148,7 +148,7 @@ func (a *dexClusterAuthService) RegisterCluster(ctx context.Context, clusterName
 
 	// save the secret to the secret store
 	secretRequest := clustersecret.SecretCreateRequest{
-		Type: pkgSecret.GenericSecret,
+		Type: secrettype.GenericSecret,
 		Name: authSecretName,
 		Values: map[string]string{
 			clientIDKey:     clientID,
@@ -201,7 +201,7 @@ func (a *dexClusterAuthService) GetClusterConfig(ctx context.Context, clusterID 
 		return nil, emperror.Wrapf(err, "failed to get dex client for cluster: %d", clusterID)
 	}
 
-	configData, err := base64.StdEncoding.DecodeString(secret.Values[pkgSecret.K8SConfig])
+	configData, err := base64.StdEncoding.DecodeString(secret.Values[secrettype.K8SConfig])
 	if err != nil {
 		return nil, emperror.Wrapf(err, "failed to base64 decode kubeconfig: %d", clusterID)
 	}

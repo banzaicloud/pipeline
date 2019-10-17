@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"testing"
 
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -76,7 +76,7 @@ func TestBlockingTags(t *testing.T) {
 var (
 	requestReadOnly = secret.CreateSecretRequest{
 		Name: "readonly",
-		Type: pkgSecret.Password,
+		Type: secrettype.Password,
 		Values: map[string]string{
 			"key": "value",
 		},
@@ -89,7 +89,7 @@ var (
 
 	requestForbidden = secret.CreateSecretRequest{
 		Name: "forbidden",
-		Type: pkgSecret.Password,
+		Type: secrettype.Password,
 		Values: map[string]string{
 			"key": "value",
 		},

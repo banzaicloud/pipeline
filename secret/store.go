@@ -39,7 +39,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
 
@@ -151,7 +151,7 @@ func GenerateSecretID(request *CreateSecretRequest) string {
 
 // Validate SecretRequest
 func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
-	fields, ok := secretTypes.DefaultRules[r.Type]
+	fields, ok := secrettype.DefaultRules[r.Type]
 
 	if !ok {
 		return errors.Errorf("wrong secret type: %s", r.Type)
@@ -172,22 +172,22 @@ func (r *CreateSecretRequest) Validate(verifier verify.Verifier) error {
 
 // ValidateAsNew validates a create secret request as it was a new secret.
 func (r *CreateSecretRequest) ValidateAsNew(verifier verify.Verifier) error {
-	fields, ok := secretTypes.DefaultRules[r.Type]
+	fields, ok := secrettype.DefaultRules[r.Type]
 
 	if !ok {
 		return errors.Errorf("wrong secret type: %s", r.Type)
 	}
 
 	switch r.Type {
-	case secretTypes.TLSSecretType:
+	case secrettype.TLSSecretType:
 		if len(r.Values) < 3 { // Assume secret generation
-			if _, ok := r.Values[secretTypes.TLSHosts]; !ok {
-				return errors.Errorf("missing key: %s", secretTypes.TLSHosts)
+			if _, ok := r.Values[secrettype.TLSHosts]; !ok {
+				return errors.Errorf("missing key: %s", secrettype.TLSHosts)
 			}
 		}
 
 		if len(r.Values) >= 3 { // We expect keys for server TLS (at least)
-			for _, field := range []string{secretTypes.CACert, secretTypes.ServerKey, secretTypes.ServerCert} {
+			for _, field := range []string{secrettype.CACert, secrettype.ServerKey, secrettype.ServerCert} {
 				if _, ok := r.Values[field]; !ok {
 					return errors.Errorf("missing key: %s", field)
 				}
@@ -195,7 +195,7 @@ func (r *CreateSecretRequest) ValidateAsNew(verifier verify.Verifier) error {
 		}
 
 		if len(r.Values) > 3 { // We expect keys for mutual TLS
-			for _, field := range []string{secretTypes.ClientKey, secretTypes.ClientCert} {
+			for _, field := range []string{secrettype.ClientKey, secrettype.ClientCert} {
 				if _, ok := r.Values[field]; !ok {
 					return errors.Errorf("missing key: %s", field)
 				}
@@ -265,7 +265,7 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 	}
 
 	// if type is distribution, unmount all pki engines
-	if secret.Type == secretTypes.PKESecretType {
+	if secret.Type == secrettype.PKESecretType {
 		clusterID := getClusterIDFromTags(secret.Tags)
 		basePath := clusterPKIPath(organizationID, clusterID)
 
@@ -275,19 +275,19 @@ func (ss *secretStore) Delete(organizationID uint, secretID string) error {
 			log.Warnf("failed to unmount %s: %s", path, err)
 		}
 
-		path = fmt.Sprintf("%s/%s", basePath, secretTypes.KubernetesCACommonName)
+		path = fmt.Sprintf("%s/%s", basePath, secrettype.KubernetesCACommonName)
 		err = ss.Client.Vault().Sys().Unmount(path)
 		if err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
 		}
 
-		path = fmt.Sprintf("%s/%s", basePath, secretTypes.EtcdCACommonName)
+		path = fmt.Sprintf("%s/%s", basePath, secrettype.EtcdCACommonName)
 		err = ss.Client.Vault().Sys().Unmount(path)
 		if err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
 		}
 
-		path = fmt.Sprintf("%s/%s", basePath, secretTypes.KubernetesFrontProxyCACommonName)
+		path = fmt.Sprintf("%s/%s", basePath, secrettype.KubernetesFrontProxyCACommonName)
 		err = ss.Client.Vault().Sys().Unmount(path)
 		if err != nil {
 			log.Warnf("failed to unmount %s: %s", path, err)
@@ -523,7 +523,7 @@ func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemR
 				return nil, err
 			}
 
-			if (query.Type == secretTypes.AllSecrets || sir.Type == query.Type) && hasTags(sir.Tags, query.Tags) {
+			if (query.Type == secrettype.AllSecrets || sir.Type == query.Type) && hasTags(sir.Tags, query.Tags) {
 				responseItems = append(responseItems, sir)
 			}
 		}
@@ -584,7 +584,7 @@ func IsCASError(err error) bool {
 
 func isTLSSecretGenerationNeeded(cr *CreateSecretRequest) bool {
 	for k, v := range cr.Values {
-		if k != secretTypes.TLSHosts && k != secretTypes.TLSValidity && v != "" {
+		if k != secrettype.TLSHosts && k != secrettype.TLSValidity && v != "" {
 			return false
 		}
 	}
@@ -592,15 +592,15 @@ func isTLSSecretGenerationNeeded(cr *CreateSecretRequest) bool {
 }
 
 func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *CreateSecretRequest) error {
-	if value.Type == secretTypes.TLSSecretType && isTLSSecretGenerationNeeded(value) {
+	if value.Type == secrettype.TLSSecretType && isTLSSecretGenerationNeeded(value) {
 		// If we are not storing a full TLS secret instead of it's a request to generate one
 
-		validity := value.Values[secretTypes.TLSValidity]
+		validity := value.Values[secrettype.TLSValidity]
 		if validity == "" {
 			validity = viper.GetString("tls.validity")
 		}
 
-		cc, err := tls.GenerateTLS(value.Values[secretTypes.TLSHosts], validity)
+		cc, err := tls.GenerateTLS(value.Values[secrettype.TLSHosts], validity)
 		if err != nil {
 			return errors.Wrap(err, "Error during generating TLS secret")
 		}
@@ -610,14 +610,14 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 			return errors.Wrap(err, "Error during decoding TLS secret")
 		}
 
-	} else if value.Type == secretTypes.PasswordSecretType {
+	} else if value.Type == secrettype.PasswordSecretType {
 		// Generate a password if needed (if password is in method,length)
 
-		if value.Values[secretTypes.Password] == "" {
-			value.Values[secretTypes.Password] = DefaultPasswordFormat
+		if value.Values[secrettype.Password] == "" {
+			value.Values[secrettype.Password] = DefaultPasswordFormat
 		}
 
-		methodAndLength := strings.Split(value.Values[secretTypes.Password], ",")
+		methodAndLength := strings.Split(value.Values[secrettype.Password], ",")
 		if len(methodAndLength) == 2 {
 			length, err := strconv.Atoi(methodAndLength[1])
 			if err != nil {
@@ -627,32 +627,32 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 			if err != nil {
 				return err
 			}
-			value.Values[secretTypes.Password] = password
+			value.Values[secrettype.Password] = password
 		}
 
-	} else if value.Type == secretTypes.HtpasswdSecretType {
+	} else if value.Type == secrettype.HtpasswdSecretType {
 		// Generate a password if needed otherwise store the htaccess file if provided
 
-		if _, ok := value.Values[secretTypes.HtpasswdFile]; !ok {
+		if _, ok := value.Values[secrettype.HtpasswdFile]; !ok {
 
-			username := value.Values[secretTypes.Username]
-			if value.Values[secretTypes.Password] == "" {
+			username := value.Values[secrettype.Username]
+			if value.Values[secrettype.Password] == "" {
 				password, err := RandomString("randAlphaNum", 12)
 				if err != nil {
 					return err
 				}
-				value.Values[secretTypes.Password] = password
+				value.Values[secrettype.Password] = password
 			}
 
-			passwordHash, err := bcrypt.GenerateFromPassword([]byte(value.Values[secretTypes.Password]), bcrypt.DefaultCost)
+			passwordHash, err := bcrypt.GenerateFromPassword([]byte(value.Values[secrettype.Password]), bcrypt.DefaultCost)
 			if err != nil {
 				return err
 			}
 
-			value.Values[secretTypes.HtpasswdFile] = fmt.Sprintf("%s:%s", username, string(passwordHash))
+			value.Values[secrettype.HtpasswdFile] = fmt.Sprintf("%s:%s", username, string(passwordHash))
 		}
 
-	} else if value.Type == secretTypes.PKESecretType {
+	} else if value.Type == secrettype.PKESecretType {
 		clusterID := getClusterIDFromTags(value.Tags)
 		if clusterID == "" {
 			return errors.New("clusterID is missing from the tags")
@@ -702,7 +702,7 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 		ca := rootCA.Data["certificate"].(string)
 
 		// Generate the intermediate CAs
-		kubernetesCA, err := ss.generateIntermediateCert(clusterID, basePath, secretTypes.KubernetesCACommonName)
+		kubernetesCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.KubernetesCACommonName)
 		if err != nil {
 			// Unmount the pki backend first
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
@@ -711,7 +711,7 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 			return err
 		}
 
-		etcdCA, err := ss.generateIntermediateCert(clusterID, basePath, secretTypes.EtcdCACommonName)
+		etcdCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.EtcdCACommonName)
 		if err != nil {
 			// Unmount the pki backend first
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
@@ -720,7 +720,7 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 			return err
 		}
 
-		frontProxyCA, err := ss.generateIntermediateCert(clusterID, basePath, secretTypes.KubernetesFrontProxyCACommonName)
+		frontProxyCA, err := ss.generateIntermediateCert(clusterID, basePath, secrettype.KubernetesFrontProxyCACommonName)
 		if err != nil {
 			// Unmount the pki backend first
 			if err := ss.Client.Vault().Sys().Unmount(path); err != nil {
@@ -743,16 +743,16 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 		}
 		encryptionSecret := base64.StdEncoding.EncodeToString(rnd)
 
-		value.Values[secretTypes.KubernetesCAKey] = kubernetesCA.Key
-		value.Values[secretTypes.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
-		value.Values[secretTypes.KubernetesCASigningCert] = kubernetesCA.Cert
-		value.Values[secretTypes.EtcdCAKey] = etcdCA.Key
-		value.Values[secretTypes.EtcdCACert] = etcdCA.Cert + "\n" + ca
-		value.Values[secretTypes.FrontProxyCAKey] = frontProxyCA.Key
-		value.Values[secretTypes.FrontProxyCACert] = frontProxyCA.Cert + "\n" + ca
-		value.Values[secretTypes.SAPub] = saPub
-		value.Values[secretTypes.SAKey] = saPriv
-		value.Values[secretTypes.EncryptionSecret] = encryptionSecret
+		value.Values[secrettype.KubernetesCAKey] = kubernetesCA.Key
+		value.Values[secrettype.KubernetesCACert] = kubernetesCA.Cert + "\n" + ca
+		value.Values[secrettype.KubernetesCASigningCert] = kubernetesCA.Cert
+		value.Values[secrettype.EtcdCAKey] = etcdCA.Key
+		value.Values[secrettype.EtcdCACert] = etcdCA.Cert + "\n" + ca
+		value.Values[secrettype.FrontProxyCAKey] = frontProxyCA.Key
+		value.Values[secrettype.FrontProxyCACert] = frontProxyCA.Cert + "\n" + ca
+		value.Values[secrettype.SAPub] = saPub
+		value.Values[secrettype.SAKey] = saPriv
+		value.Values[secrettype.EncryptionSecret] = encryptionSecret
 	}
 
 	return nil

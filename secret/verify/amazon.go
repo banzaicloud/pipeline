@@ -21,7 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/sirupsen/logrus"
 
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
 const (
@@ -81,8 +81,8 @@ func CreateEC2Client(credentials *credentials.Credentials, region string) (*ec2.
 // CreateAWSCredentials create a 'Credentials' instance from secret's values
 func CreateAWSCredentials(values map[string]string) *credentials.Credentials {
 	return credentials.NewStaticCredentials(
-		values[pkgSecret.AwsAccessKeyId],
-		values[pkgSecret.AwsSecretAccessKey],
+		values[secrettype.AwsAccessKeyId],
+		values[secrettype.AwsSecretAccessKey],
 		"",
 	)
 }

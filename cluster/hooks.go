@@ -45,6 +45,7 @@ import (
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -53,7 +54,6 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -740,10 +740,10 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		},
 		Aws: &dns.ExternalDnsAwsSettings{
 			Credentials: &dns.ExternalDnsAwsCredentials{
-				SecretKey: route53Secret.Values[pkgSecret.AwsSecretAccessKey],
-				AccessKey: route53Secret.Values[pkgSecret.AwsAccessKeyId],
+				SecretKey: route53Secret.Values[secrettype.AwsSecretAccessKey],
+				AccessKey: route53Secret.Values[secrettype.AwsAccessKeyId],
 			},
-			Region: route53Secret.Values[pkgSecret.AwsRegion],
+			Region: route53Secret.Values[secrettype.AwsRegion],
 		},
 		DomainFilters: []string{domain},
 		Policy:        "sync",

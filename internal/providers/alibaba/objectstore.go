@@ -25,10 +25,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	alibabaObjectstore "github.com/banzaicloud/pipeline/pkg/providers/alibaba/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -91,8 +91,8 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (a
 	}
 
 	credentials := alibabaObjectstore.Credentials{
-		AccessKeyID:     secret.Values[pkgSecret.AlibabaAccessKeyId],
-		SecretAccessKey: secret.Values[pkgSecret.AlibabaSecretAccessKey],
+		AccessKeyID:     secret.Values[secrettype.AlibabaAccessKeyId],
+		SecretAccessKey: secret.Values[secrettype.AlibabaSecretAccessKey],
 	}
 
 	config := alibabaObjectstore.Config{

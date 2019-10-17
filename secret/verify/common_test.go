@@ -18,9 +18,9 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	oracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 func TestNewVerifier(t *testing.T) {
@@ -101,35 +101,35 @@ const (
 // nolint: gochecknoglobals
 var (
 	awsCredentialsMap = map[string]string{
-		pkgSecret.AwsAccessKeyId:     testAwsAccessKeyId,
-		pkgSecret.AwsSecretAccessKey: testAwsSecretAccessKey,
+		secrettype.AwsAccessKeyId:     testAwsAccessKeyId,
+		secrettype.AwsSecretAccessKey: testAwsSecretAccessKey,
 	}
 
 	aksCredentialsMap = map[string]string{
-		pkgSecret.AzureClientID:       testAzureClientID,
-		pkgSecret.AzureClientSecret:   testAzureClientSecret,
-		pkgSecret.AzureTenantID:       testAzureTenantID,
-		pkgSecret.AzureSubscriptionID: testAzureSubscriptionID,
+		secrettype.AzureClientID:       testAzureClientID,
+		secrettype.AzureClientSecret:   testAzureClientSecret,
+		secrettype.AzureTenantID:       testAzureTenantID,
+		secrettype.AzureSubscriptionID: testAzureSubscriptionID,
 	}
 
 	gkeCredentialsMap = map[string]string{
-		pkgSecret.Type:          testType,
-		pkgSecret.ProjectId:     testProjectId,
-		pkgSecret.PrivateKeyId:  testPrivateKeyId,
-		pkgSecret.PrivateKey:    testPrivateKey,
-		pkgSecret.ClientEmail:   testClientEmail,
-		pkgSecret.ClientId:      testClientId,
-		pkgSecret.AuthUri:       testAuthUri,
-		pkgSecret.TokenUri:      testTokenUri,
-		pkgSecret.AuthX509Url:   testAuthX509Url,
-		pkgSecret.ClientX509Url: testClientX509Url,
+		secrettype.Type:          testType,
+		secrettype.ProjectId:     testProjectId,
+		secrettype.PrivateKeyId:  testPrivateKeyId,
+		secrettype.PrivateKey:    testPrivateKey,
+		secrettype.ClientEmail:   testClientEmail,
+		secrettype.ClientId:      testClientId,
+		secrettype.AuthUri:       testAuthUri,
+		secrettype.TokenUri:      testTokenUri,
+		secrettype.AuthX509Url:   testAuthX509Url,
+		secrettype.ClientX509Url: testClientX509Url,
 	}
 
 	OCICredentialMap = map[string]string{
-		pkgSecret.OracleUserOCID:          testUserOCID,
-		pkgSecret.OracleTenancyOCID:       testTenancyOCID,
-		pkgSecret.OracleAPIKey:            testAPIKey,
-		pkgSecret.OracleAPIKeyFingerprint: testAPIKeyFringerprint,
-		pkgSecret.OracleRegion:            testRegion,
+		secrettype.OracleUserOCID:          testUserOCID,
+		secrettype.OracleTenancyOCID:       testTenancyOCID,
+		secrettype.OracleAPIKey:            testAPIKey,
+		secrettype.OracleAPIKeyFingerprint: testAPIKeyFringerprint,
+		secrettype.OracleRegion:            testRegion,
 	}
 )
