@@ -33,9 +33,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -702,7 +702,7 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 	var accessKeyId string
 
 	if route53Secret != nil {
-		if route53SecretAwsAccessKeyId, ok := route53Secret.Values[secretTypes.AwsAccessKeyId]; ok {
+		if route53SecretAwsAccessKeyId, ok := route53Secret.Values[secrettype.AwsAccessKeyId]; ok {
 			if _, ok := userAccessKeyMap[route53SecretAwsAccessKeyId]; ok {
 				createNewAccessKey = false // the access key in Amazon and Vault matches, no need to create a new onw
 				accessKeyId = route53SecretAwsAccessKeyId
@@ -735,7 +735,7 @@ func (dns *awsRoute53) setupAmazonAccess(iamUser string, ctx *context) error {
 	}
 
 	if route53Secret != nil {
-		if route53SecretAwsAccessKeyId, ok := route53Secret.Values[secretTypes.AwsAccessKeyId]; ok {
+		if route53SecretAwsAccessKeyId, ok := route53Secret.Values[secrettype.AwsAccessKeyId]; ok {
 			if userAccessKey, ok := userAccessKeyMap[route53SecretAwsAccessKeyId]; ok {
 				if err := dns.deleteAmazonAccessKey(userAccessKey.UserName, userAccessKey.AccessKeyId); err != nil {
 					return err
@@ -795,9 +795,9 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 			secret.TagBanzaiReadonly,
 		},
 		Values: map[string]string{
-			secretTypes.AwsAccessKeyId:     awsAccessKeyId,
-			secretTypes.AwsSecretAccessKey: awsSecretAccessKey,
-			secretTypes.AwsRegion:          dns.region,
+			secrettype.AwsAccessKeyId:     awsAccessKeyId,
+			secrettype.AwsSecretAccessKey: awsSecretAccessKey,
+			secrettype.AwsRegion:          dns.region,
 		},
 	}
 

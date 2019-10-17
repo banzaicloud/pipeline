@@ -19,7 +19,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 
-	"github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
 // ServicePrincipal represents Azure service principal data
@@ -39,11 +39,11 @@ type Credentials struct {
 func NewCredentials(values map[string]string) *Credentials {
 	return &Credentials{
 		ServicePrincipal: ServicePrincipal{
-			ClientID:     values[secret.AzureClientID],
-			ClientSecret: values[secret.AzureClientSecret],
-			TenantID:     values[secret.AzureTenantID],
+			ClientID:     values[secrettype.AzureClientID],
+			ClientSecret: values[secrettype.AzureClientSecret],
+			TenantID:     values[secrettype.AzureTenantID],
 		},
-		SubscriptionID: values[secret.AzureSubscriptionID],
+		SubscriptionID: values[secrettype.AzureSubscriptionID],
 	}
 }
 

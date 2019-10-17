@@ -20,9 +20,9 @@ import (
 	"github.com/heptio/ark/pkg/cloudprovider"
 
 	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	googleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/google/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 type objectStore struct {
@@ -37,16 +37,16 @@ func NewObjectStore(ctx providers.ObjectStoreContext) (cloudprovider.ObjectStore
 	}
 
 	credentials := googleObjectstore.Credentials{
-		Type:                   ctx.Secret.Values[pkgSecret.Type],
-		ProjectID:              ctx.Secret.Values[pkgSecret.ProjectId],
-		PrivateKeyID:           ctx.Secret.Values[pkgSecret.PrivateKeyId],
-		PrivateKey:             ctx.Secret.Values[pkgSecret.PrivateKey],
-		ClientEmail:            ctx.Secret.Values[pkgSecret.ClientEmail],
-		ClientID:               ctx.Secret.Values[pkgSecret.ClientId],
-		AuthURI:                ctx.Secret.Values[pkgSecret.AuthUri],
-		TokenURI:               ctx.Secret.Values[pkgSecret.TokenUri],
-		AuthProviderX50CertURL: ctx.Secret.Values[pkgSecret.AuthX509Url],
-		ClientX509CertURL:      ctx.Secret.Values[pkgSecret.ClientX509Url],
+		Type:                   ctx.Secret.Values[secrettype.Type],
+		ProjectID:              ctx.Secret.Values[secrettype.ProjectId],
+		PrivateKeyID:           ctx.Secret.Values[secrettype.PrivateKeyId],
+		PrivateKey:             ctx.Secret.Values[secrettype.PrivateKey],
+		ClientEmail:            ctx.Secret.Values[secrettype.ClientEmail],
+		ClientID:               ctx.Secret.Values[secrettype.ClientId],
+		AuthURI:                ctx.Secret.Values[secrettype.AuthUri],
+		TokenURI:               ctx.Secret.Values[secrettype.TokenUri],
+		AuthProviderX50CertURL: ctx.Secret.Values[secrettype.AuthX509Url],
+		ClientX509CertURL:      ctx.Secret.Values[secrettype.ClientX509Url],
 	}
 
 	os, err := googleObjectstore.New(config, credentials)

@@ -20,7 +20,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -48,7 +48,7 @@ type GenerateCertificatesActivityInput struct {
 func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input GenerateCertificatesActivityInput) error {
 	req := clustersecret.SecretCreateRequest{
 		Name:   "ca",
-		Type:   pkgSecret.PKESecretType,
+		Type:   secrettype.PKESecretType,
 		Values: map[string]string{}, // Implicitly generate the necessary certificates
 		Tags: []string{
 			secret.TagBanzaiReadonly,

@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -42,7 +42,7 @@ func TestSecretStore_GetSecretValues(t *testing.T) {
 	secretStoreResponse := "secretid"
 	createSecretRequest := secret.CreateSecretRequest{
 		Name:   "somesecertname",
-		Type:   pkgSecret.GenericSecret,
+		Type:   secrettype.GenericSecret,
 		Values: map[string]string{"key": "value"},
 	}
 

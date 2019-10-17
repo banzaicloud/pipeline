@@ -28,7 +28,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -59,7 +59,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 				tokenSecretID: {
 					ID:      tokenSecretID,
 					Name:    fmt.Sprintf("vault-token-%d-cluster", clusterID),
-					Type:    pkgSecret.GenericSecret,
+					Type:    secrettype.GenericSecret,
 					Values:  map[string]string{"token": "token"},
 					Tags:    []string{secret.TagBanzaiReadonly},
 					Version: 1,

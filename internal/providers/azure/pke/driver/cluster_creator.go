@@ -35,10 +35,10 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -224,7 +224,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		return
 	}
 
-	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
+	tenantID := sir.GetValue(secrettype.AzureTenantID)
 
 	postHooks := make(pkgCluster.PostHooks, len(params.Features))
 	for _, f := range params.Features {

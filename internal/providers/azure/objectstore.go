@@ -20,6 +20,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 
 	"emperror.dev/emperror"
@@ -32,7 +33,6 @@ import (
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -397,7 +397,7 @@ func (s *ObjectStore) createStorageAccountAndResourceGroup() error {
 func (s *ObjectStore) ListBuckets() ([]*objectstore.BucketInfo, error) {
 	logger := s.logger.WithFields(logrus.Fields{
 		"organization":    s.org.ID,
-		"subscription_id": s.secret.GetValue(pkgSecret.AzureSubscriptionID),
+		"subscription_id": s.secret.GetValue(secrettype.AzureSubscriptionID),
 	})
 
 	logger.Info("getting all resource groups for subscription")

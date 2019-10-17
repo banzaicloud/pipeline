@@ -28,8 +28,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -181,7 +181,7 @@ func (op FeatureOperator) installPrometheusSecret(ctx context.Context, clusterID
 		SourceSecretName: prometheusSecretName,
 		Namespace:        pipelineSystemNamespace,
 		Spec: map[string]pkgCluster.InstallSecretRequestSpecItem{
-			"auth": {Source: pkgSecret.HtpasswdFile},
+			"auth": {Source: secrettype.HtpasswdFile},
 		},
 		Update: true,
 	}
@@ -241,8 +241,8 @@ func (op FeatureOperator) installPrometheusOperator(
 		if err != nil {
 			return errors.WrapIf(err, "failed to get Grafana secret")
 		}
-		grafanaUser = grafanaSecret[pkgSecret.Username]
-		grafanaPass = grafanaSecret[pkgSecret.Password]
+		grafanaUser = grafanaSecret[secrettype.Username]
+		grafanaPass = grafanaSecret[secrettype.Password]
 	}
 
 	headNodeAffinity := GetHeadNodeAffinity(cluster, op.config)
@@ -355,10 +355,10 @@ func (op FeatureOperator) generateGrafanaSecret(
 
 	grafanaSecretRequest := secret.CreateSecretRequest{
 		Name: getGrafanaSecretName(cluster.GetID()),
-		Type: pkgSecret.PasswordSecretType,
+		Type: secrettype.PasswordSecretType,
 		Values: map[string]string{
-			pkgSecret.Username: username,
-			pkgSecret.Password: password,
+			secrettype.Username: username,
+			secrettype.Password: password,
 		},
 		Tags: []string{
 			clusterNameSecretTag,
@@ -407,10 +407,10 @@ func (op FeatureOperator) generatePrometheusSecret(ctx context.Context, cluster 
 
 	prometheusSecretRequest := &secret.CreateSecretRequest{
 		Name: prometheusSecretName,
-		Type: pkgSecret.HtpasswdSecretType,
+		Type: secrettype.HtpasswdSecretType,
 		Values: map[string]string{
-			pkgSecret.Username: prometheusSecretUserName,
-			pkgSecret.Password: prometheusAdminPass,
+			secrettype.Username: prometheusSecretUserName,
+			secrettype.Password: prometheusAdminPass,
 		},
 		Tags: []string{
 			clusterNameSecretTag,

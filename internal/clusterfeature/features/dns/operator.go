@@ -31,7 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	secret2 "github.com/banzaicloud/pipeline/secret"
 )
 
@@ -405,7 +405,7 @@ func (op FeatureOperator) createCustomDNSChartValuesGoogle(
 	// set google project
 	if options == nil || options.GoogleProject == "" {
 		options = &providerOptions{
-			GoogleProject: secretValues[secret.ProjectId],
+			GoogleProject: secretValues[secrettype.ProjectId],
 		}
 	}
 

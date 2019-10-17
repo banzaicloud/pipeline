@@ -24,12 +24,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
-
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 var _ utils.RevocableAction = (*CreateClusterUserAccessKeyAction)(nil)
@@ -120,8 +119,8 @@ func GetClusterUserAccessKeyIdAndSecretVault(organizationID uint, userName strin
 	if err != nil {
 		return "", "", errors.WrapWithDetails(err, "failed to get secret from Vault", "secret", secretName)
 	}
-	clusterUserAccessKeyId := secretItem.GetValue(pkgSecret.AwsAccessKeyId)
-	clusterUserSecretAccessKey := secretItem.GetValue(pkgSecret.AwsSecretAccessKey)
+	clusterUserAccessKeyId := secretItem.GetValue(secrettype.AwsAccessKeyId)
+	clusterUserSecretAccessKey := secretItem.GetValue(secrettype.AwsSecretAccessKey)
 
 	return clusterUserAccessKeyId, clusterUserSecretAccessKey, nil
 }
@@ -135,8 +134,8 @@ func (a *PersistClusterUserAccessKeyAction) ExecuteAction(input interface{}) (ou
 		Name: secretName,
 		Type: cluster.Amazon,
 		Values: map[string]string{
-			pkgSecret.AwsAccessKeyId:     a.context.ClusterUserAccessKeyId,
-			pkgSecret.AwsSecretAccessKey: a.context.ClusterUserSecretAccessKey,
+			secrettype.AwsAccessKeyId:     a.context.ClusterUserAccessKeyId,
+			secrettype.AwsSecretAccessKey: a.context.ClusterUserSecretAccessKey,
 		},
 		Tags: []string{
 			fmt.Sprintf("eksClusterUserAccessKey:%s", a.context.ClusterName),

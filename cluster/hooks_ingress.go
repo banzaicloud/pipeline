@@ -31,8 +31,8 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -100,11 +100,11 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 
 		defaultCertSecretRequest := &secret.CreateSecretRequest{
 			Name: DefaultCertSecretName,
-			Type: pkgSecret.TLSSecretType,
+			Type: secrettype.TLSSecretType,
 			Values: map[string]string{
-				pkgSecret.CACert:     string(rootCA),
-				pkgSecret.ServerCert: string(cert),
-				pkgSecret.ServerKey:  string(key),
+				secrettype.CACert:     string(rootCA),
+				secrettype.ServerCert: string(cert),
+				secrettype.ServerKey:  string(key),
 			},
 			Tags: []string{
 				secret.TagBanzaiReadonly,
@@ -128,8 +128,8 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 		Traefik: traefikValues{
 			SSL: sslTraefikValues{
 				Enabled:     true,
-				DefaultCert: base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[pkgSecret.ServerCert])),
-				DefaultKey:  base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[pkgSecret.ServerKey])),
+				DefaultCert: base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerCert])),
+				DefaultKey:  base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerKey])),
 			},
 			Affinity:    GetHeadNodeAffinity(cluster),
 			Tolerations: GetHeadNodeTolerations(),
