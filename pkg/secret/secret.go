@@ -14,10 +14,6 @@
 
 package secret
 
-import (
-	"github.com/banzaicloud/pipeline/pkg/cluster"
-)
-
 // FieldMeta describes how a secret field should be validated
 type FieldMeta struct {
 	Name        string `json:"name"`
@@ -30,6 +26,17 @@ type FieldMeta struct {
 type Meta struct {
 	Fields []FieldMeta `json:"fields"`
 }
+
+// Cloud constants
+const (
+	Alibaba    = "alibaba"
+	Amazon     = "amazon"
+	Azure      = "azure"
+	Google     = "google"
+	Dummy      = "dummy"
+	Kubernetes = "kubernetes"
+	Oracle     = "oracle"
+)
 
 // Alibaba keys
 const (
@@ -188,21 +195,21 @@ const (
 // DefaultRules key matching for types
 // nolint: gochecknoglobals
 var DefaultRules = map[string]Meta{
-	cluster.Alibaba: {
+	Alibaba: {
 		Fields: []FieldMeta{
 			{Name: AlibabaRegion, Required: false, Description: "Alibaba Cloud region"},
 			{Name: AlibabaAccessKeyId, Required: true, Description: "Your Alibaba Cloud access key id"},
 			{Name: AlibabaSecretAccessKey, Required: true, Description: "Your Alibaba Cloud secret access key id"},
 		},
 	},
-	cluster.Amazon: {
+	Amazon: {
 		Fields: []FieldMeta{
 			{Name: AwsRegion, Required: false, Description: "Amazon Cloud region"},
 			{Name: AwsAccessKeyId, Required: true, Description: "Your Amazon Cloud access key id"},
 			{Name: AwsSecretAccessKey, Required: true, Description: "Your Amazon Cloud secret access key id"},
 		},
 	},
-	cluster.Azure: {
+	Azure: {
 		Fields: []FieldMeta{
 			{Name: AzureClientID, Required: true, Description: "Your application client id"},
 			{Name: AzureClientSecret, Required: true, Description: "Your client secret id"},
@@ -210,7 +217,7 @@ var DefaultRules = map[string]Meta{
 			{Name: AzureSubscriptionID, Required: true, Description: "Your subscription id"},
 		},
 	},
-	cluster.Google: {
+	Google: {
 		Fields: []FieldMeta{
 			{Name: Type, Required: true, Description: "service_account"},
 			{Name: ProjectId, Required: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://beta.banzaicloud.io/docs/cloud-provider-credentials/google/gke_auth_credentials/#method-2-command-line"},
@@ -224,12 +231,12 @@ var DefaultRules = map[string]Meta{
 			{Name: ClientX509Url, Required: true, Description: "OAuth2 client ceritficate URL"},
 		},
 	},
-	cluster.Kubernetes: {
+	Kubernetes: {
 		Fields: []FieldMeta{
 			{Name: K8SConfig, Required: true},
 		},
 	},
-	cluster.Oracle: {
+	Oracle: {
 		Fields: []FieldMeta{
 			{Name: OracleUserOCID, Required: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://beta.banzaicloud.io/docs/cloud-provider-credentials/oracle/oke_auth_credentials/#generate-api-token"},
 			{Name: OracleTenancyOCID, Required: true, Description: "Your tenancy OCID"},
