@@ -56,7 +56,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 		Tags: []string{
 			clusterNameSecretTag,
 			clusterUidSecretTag,
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 			"app:grafana",
 		},
@@ -95,7 +95,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 		Tags: []string{
 			clusterNameSecretTag,
 			clusterUidSecretTag,
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 		},
 	}

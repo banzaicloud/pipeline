@@ -21,6 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster/clustersecret"
 	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/secret"
 )
 
 const GenerateCertificatesActivityName = "pke-generate-certificates-activity"
@@ -50,8 +51,8 @@ func (a *GenerateCertificatesActivity) Execute(ctx context.Context, input Genera
 		Type:   pkgSecret.PKESecretType,
 		Values: map[string]string{}, // Implicitly generate the necessary certificates
 		Tags: []string{
-			pkgSecret.TagBanzaiReadonly,
-			pkgSecret.TagBanzaiHidden,
+			secret.TagBanzaiReadonly,
+			secret.TagBanzaiHidden,
 		},
 	}
 

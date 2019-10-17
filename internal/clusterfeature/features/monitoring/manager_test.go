@@ -58,7 +58,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 					Name:    getGrafanaSecretName(clusterID),
 					Type:    pkgSecret.Password,
 					Values:  map[string]string{pkgSecret.Username: "admin", pkgSecret.Password: "pass"},
-					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Tags:    []string{secret.TagBanzaiReadonly},
 					Version: 1,
 				},
 				prometheusSecretID: {
@@ -66,7 +66,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 					Name:    getPrometheusSecretName(clusterID),
 					Type:    pkgSecret.Password,
 					Values:  map[string]string{pkgSecret.Username: "admin", pkgSecret.Password: "pass"},
-					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Tags:    []string{secret.TagBanzaiReadonly},
 					Version: 1,
 				},
 			},

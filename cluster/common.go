@@ -195,8 +195,8 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 			pkgSecret.K8SConfig: encodedConfig,
 		},
 		Tags: []string{
-			pkgSecret.TagKubeConfig,
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagKubeConfig,
+			secret.TagBanzaiReadonly,
 			clusterUidTag,
 		},
 	}

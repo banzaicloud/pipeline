@@ -81,7 +81,7 @@ var (
 			"key": "value",
 		},
 		Tags: []string{
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagBanzaiReadonly,
 		},
 		Version:   &version,
 		UpdatedBy: "banzaiuser",
@@ -93,7 +93,7 @@ var (
 		Values: map[string]string{
 			"key": "value",
 		},
-		Tags:      pkgSecret.ForbiddenTags,
+		Tags:      secret.ForbiddenTags,
 		Version:   &version,
 		UpdatedBy: "banzaiuser",
 	}

@@ -16,8 +16,6 @@ package secret
 
 import (
 	"fmt"
-
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // restrictedSecretStore checks whether the user can access a certain secret.
@@ -90,7 +88,7 @@ func (s *restrictedSecretStore) checkForbiddenTags(organizationID uint, secretID
 
 func (s *restrictedSecretStore) isSecretReadOnly(secretItem *SecretItemResponse) error {
 	for _, tag := range secretItem.Tags {
-		if tag == secretTypes.TagBanzaiReadonly {
+		if tag == TagBanzaiReadonly {
 			return ReadOnlyError{
 				SecretID: secretItem.ID,
 			}
@@ -122,7 +120,7 @@ func (f ForbiddenError) Error() string {
 // HasForbiddenTag is looking for forbidden tags
 func HasForbiddenTag(tags []string) error {
 	for _, tag := range tags {
-		for _, forbiddenTag := range secretTypes.ForbiddenTags {
+		for _, forbiddenTag := range ForbiddenTags {
 			if tag == forbiddenTag {
 				return ForbiddenError{
 					ForbiddenTag: tag,

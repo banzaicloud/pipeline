@@ -61,7 +61,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 					Name:    fmt.Sprintf("vault-token-%d-cluster", clusterID),
 					Type:    pkgSecret.GenericSecret,
 					Values:  map[string]string{"token": "token"},
-					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Tags:    []string{secret.TagBanzaiReadonly},
 					Version: 1,
 				},
 			},

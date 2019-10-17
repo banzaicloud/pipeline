@@ -140,7 +140,7 @@ func (a *PersistClusterUserAccessKeyAction) ExecuteAction(input interface{}) (ou
 		},
 		Tags: []string{
 			fmt.Sprintf("eksClusterUserAccessKey:%s", a.context.ClusterName),
-			pkgSecret.TagBanzaiHidden,
+			secret.TagBanzaiHidden,
 		},
 	}
 

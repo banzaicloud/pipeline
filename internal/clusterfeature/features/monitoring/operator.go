@@ -363,7 +363,7 @@ func (op FeatureOperator) generateGrafanaSecret(
 		Tags: []string{
 			clusterNameSecretTag,
 			clusterUidSecretTag,
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 			grafanaSecretTag,
 		},
@@ -415,7 +415,7 @@ func (op FeatureOperator) generatePrometheusSecret(ctx context.Context, cluster 
 		Tags: []string{
 			clusterNameSecretTag,
 			clusterUidSecretTag,
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 		},
 	}

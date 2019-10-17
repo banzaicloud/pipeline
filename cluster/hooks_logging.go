@@ -70,7 +70,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			Type: pkgSecret.TLSSecretType,
 			Tags: []string{
 				clusterUidTag,
-				pkgSecret.TagBanzaiReadonly,
+				secret.TagBanzaiReadonly,
 				releaseTag,
 			},
 			Values: map[string]string{
@@ -244,7 +244,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			Type: pkgSecret.GenericSecret,
 			Tags: []string{
 				clusterUidTag,
-				pkgSecret.TagBanzaiReadonly,
+				secret.TagBanzaiReadonly,
 				releaseTag,
 			},
 			Values: map[string]string{
