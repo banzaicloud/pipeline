@@ -133,7 +133,7 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 	if !m.isManagedEnabled && !vaultSpec.CustomVault.Enabled {
 		return clusterfeature.InvalidFeatureSpecError{
 			FeatureName: featureName,
-			Problem:     "Pipeline's Vault configuration is not supported",
+			Problem:     "Pipeline's managed Vault service is not available, configure a custom Vault instance",
 		}
 	}
 
