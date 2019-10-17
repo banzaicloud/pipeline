@@ -161,19 +161,6 @@ const (
 	VaultToken = "token"
 )
 
-// Internal usage
-const (
-	TagKubeConfig     = "KubeConfig"
-	TagBanzaiHidden   = "banzai:hidden"
-	TagBanzaiReadonly = "banzai:readonly"
-)
-
-// ForbiddenTags are not supported in secret creation
-// nolint: gochecknoglobals
-var ForbiddenTags = []string{
-	TagKubeConfig,
-}
-
 const (
 	// GenericSecret represents generic secret types, without schema
 	GenericSecret = "generic"
