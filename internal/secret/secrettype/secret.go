@@ -167,6 +167,12 @@ const (
 	VaultToken = "token"
 )
 
+// Slack keys
+const (
+	SlackApiUrl  = "apiUrl"
+	SlackChannel = "channel"
+)
+
 const (
 	// GenericSecret represents generic secret types, without schema
 	GenericSecret = "generic"
@@ -190,6 +196,8 @@ const (
 	DigitalOceanSecretType = "digitalocean"
 	// VaultSecretType as marks secrets as of type "vault"
 	VaultSecretType = "vault"
+	// SlackSecretType as marks secrets as of type "slack"
+	SlackSecretType = "slack"
 )
 
 // DefaultRules key matching for types
@@ -322,6 +330,12 @@ var DefaultRules = map[string]Meta{
 	VaultSecretType: {
 		Fields: []FieldMeta{
 			{Name: VaultToken, Required: true, Opaque: true, Description: "Token for Vault"},
+		},
+	},
+	SlackSecretType: {
+		Fields: []FieldMeta{
+			{Name: SlackApiUrl, Required: true, Opaque: true, Description: "Slack url to send alerts"},
+			{Name: SlackChannel, Required: true, Opaque: true, Description: "Channel name for the alerts"},
 		},
 	},
 }
