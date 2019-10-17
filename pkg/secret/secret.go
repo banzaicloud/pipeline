@@ -345,14 +345,6 @@ var DefaultRules = map[string]Meta{
 	},
 }
 
-// ListSecretsQuery represent a secret listing filter
-type ListSecretsQuery struct {
-	Type   string   `form:"type" json:"type"`
-	IDs    []string `form:"ids" json:"ids"`
-	Tags   []string `form:"tags" json:"tags"`
-	Values bool     `form:"values" json:"values"`
-}
-
 // InstallSecretsToClusterRequest describes an InstallSecretToCluster request
 type InstallSecretsToClusterRequest struct {
 	Namespace string           `json:"namespace" binding:"required"`
