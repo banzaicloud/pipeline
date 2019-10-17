@@ -427,7 +427,7 @@ func (op FeatureOperator) generatePrometheusSecret(ctx context.Context, cluster 
 	return prometheusSecretName, nil
 }
 
-func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest pkgCluster.InstallSecretRequest) (*pkgSecret.K8SSourceMeta, error) {
+func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest pkgCluster.InstallSecretRequest) (*secret.K8SSourceMeta, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to get cluster", "clusterID", clusterID)

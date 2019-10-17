@@ -32,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/pkg/secret"
+	secret2 "github.com/banzaicloud/pipeline/secret"
 )
 
 // FeatureOperator implements the DNS feature operator
@@ -451,7 +452,7 @@ func makeInstallSecretRequest(secretDataKey string, secretValue string) cluster.
 
 // installSecret installs a secret to the cluster identified by the provided clusterID
 // secrets to be installed are expected to be contained in the request's value field
-func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest cluster.InstallSecretRequest) (*secret.K8SSourceMeta, error) {
+func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest cluster.InstallSecretRequest) (*secret2.K8SSourceMeta, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to get cluster", "clusterID", clusterID)
