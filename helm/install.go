@@ -266,32 +266,39 @@ func EnsureDirectories(env helmEnv.EnvSettings) error {
 }
 
 func ensureDefaultRepos(env helmEnv.EnvSettings) error {
-
-	stableRepositoryURL := viper.GetString("helm.stableRepositoryURL")
-	banzaiRepositoryURL := viper.GetString("helm.banzaiRepositoryURL")
+	var repos = []struct {
+		name string
+		url  string
+	}{
+		{
+			name: phelm.StableRepository,
+			url:  viper.GetString(config.HelmStableRepositoryKey),
+		},
+		{
+			name: phelm.BanzaiRepository,
+			url:  viper.GetString(config.HelmBanzaiRepositoryKey),
+		},
+		{
+			name: phelm.LokiRepository,
+			url:  viper.GetString(config.HelmLokiRepositoryKey),
+		},
+	}
 
 	log.Infof("Setting up default helm repos.")
 
-	_, err := ReposAdd(
-		env,
-		&repo.Entry{
-			Name:  phelm.StableRepository,
-			URL:   stableRepositoryURL,
-			Cache: env.Home.CacheIndex(phelm.StableRepository),
-		})
-	if err != nil {
-		return errors.Wrapf(err, "cannot init repo: %s", phelm.StableRepository)
+	for _, r := range repos {
+		_, err := ReposAdd(
+			env,
+			&repo.Entry{
+				Name:  r.name,
+				URL:   r.url,
+				Cache: env.Home.CacheIndex(r.name),
+			})
+		if err != nil {
+			return errors.Wrapf(err, "cannot init repo: %s", r.name)
+		}
 	}
-	_, err = ReposAdd(
-		env,
-		&repo.Entry{
-			Name:  phelm.BanzaiRepository,
-			URL:   banzaiRepositoryURL,
-			Cache: env.Home.CacheIndex(phelm.BanzaiRepository),
-		})
-	if err != nil {
-		return errors.Wrapf(err, "cannot init repo: %s", phelm.BanzaiRepository)
-	}
+
 	return nil
 }
 
