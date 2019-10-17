@@ -124,6 +124,10 @@ func NewFeatureAdapter(featureRepo clusterfeature.FeatureRepository, logger comm
 
 func (f featureAdapter) IsActive(ctx context.Context, clusterID uint, featureName string) (bool, error) {
 	feature, err := f.featureRepository.GetFeature(ctx, clusterID, featureName)
+	if clusterfeature.IsFeatureNotFoundError(err) {
+		return false, nil
+	}
+
 	if err != nil {
 		return false, errors.WrapIf(err, "failed to retrieve feature")
 	}
