@@ -559,7 +559,6 @@ func main() {
 	{
 		v1.Use(auth.Handler)
 		capdriver.RegisterHTTPHandler(mapCapabilities(conf), emperror.MakeContextAware(errorHandler), v1)
-		v1.GET("/functions", api.ListFunctions)
 		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
