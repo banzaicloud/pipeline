@@ -173,6 +173,13 @@ const (
 	SlackChannel = "channel"
 )
 
+// PagerDuty keys
+const (
+	PagerDutyUrl        = "url"
+	PagerDutyServiceKey = "serviceKey"
+	PagerDutyRoutingKey = "routingKey"
+)
+
 const (
 	// GenericSecret represents generic secret types, without schema
 	GenericSecret = "generic"
@@ -198,6 +205,8 @@ const (
 	VaultSecretType = "vault"
 	// SlackSecretType as marks secrets as of type "slack"
 	SlackSecretType = "slack"
+	// PagerDutySecretType as marks secrets as of type "pagerduty"
+	PagerDutySecretType = "pagerduty"
 )
 
 // DefaultRules key matching for types
@@ -336,6 +345,13 @@ var DefaultRules = map[string]Meta{
 		Fields: []FieldMeta{
 			{Name: SlackApiUrl, Required: true, Opaque: true, Description: "Slack url to send alerts"},
 			{Name: SlackChannel, Required: true, Opaque: true, Description: "Channel name for the alerts"},
+		},
+	},
+	PagerDutySecretType: {
+		Fields: []FieldMeta{
+			{Name: PagerDutyUrl, Required: true, Opaque: true, Description: "PagerDuty service endpoint"},
+			{Name: PagerDutyRoutingKey, Required: true, Opaque: true, Description: "The PagerDuty integration key (when using PagerDuty integration type 'Events API v2')."},
+			{Name: PagerDutyServiceKey, Required: true, Opaque: true, Description: "The PagerDuty integration key (when using PagerDuty integration type Prometheus)"},
 		},
 	},
 }
