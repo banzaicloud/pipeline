@@ -190,9 +190,9 @@ type EKSClusterModel struct {
 	Subnets      []*EKSSubnetModel       `gorm:"foreignkey:ClusterID"`
 
 	// IAM settings
-	UserId             *string
-	ClusterRoleId      *string
-	NodeInstanceRoleId *string
+	DefaultUser        bool
+	ClusterRoleId      string
+	NodeInstanceRoleId string
 }
 
 // AKSClusterModel describes the aks cluster model

@@ -61,7 +61,8 @@ type NodePool struct {
 type ClusterIAM struct {
 	ClusterRoleID      string `json:"clusterRoleId,omitempty" yaml:"clusterRoleId,omitempty"`
 	NodeInstanceRoleID string `json:"nodeInstanceRoleId,omitempty" yaml:"nodeInstanceRoleId,omitempty"`
-	UserID             string `json:"userId,omitempty" yaml:"userId,omitempty"`
+	// marks if the userid associated with the clusters aws secret has to be used in kubeconfig (bypasses user creation)
+	DefaultUser bool `json:"defaultUser,omitempty" yaml:"defaultUser,omitempty"`
 }
 
 // ClusterVPC describes the VPC for creating an EKS cluster
