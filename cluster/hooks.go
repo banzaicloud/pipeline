@@ -717,7 +717,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 	}
 	_, err = InstallSecrets(
 		commonCluster,
-		&pkgSecret.ListSecretsQuery{
+		&secret.ListSecretsQuery{
 			Type: pkgCluster.Amazon,
 			IDs:  []string{route53Secret.ID},
 		},

@@ -82,7 +82,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			return errors.Errorf("failed generate TLS secrets to logging operator: %s", err)
 		}
 		_, err = InstallSecrets(cluster,
-			&pkgSecret.ListSecretsQuery{
+			&secret.ListSecretsQuery{
 				Type: pkgSecret.TLSSecretType,
 				Tags: []string{
 					clusterUidTag,
@@ -138,7 +138,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 	log.Infof("logging-hook secret type: %s", logSecret.Type)
 	switch logSecret.Type {
 	case pkgCluster.Amazon:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &secret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "install amazon secret failed")
 		}
@@ -172,7 +172,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			return emperror.Wrap(err, "install s3-output failed")
 		}
 	case pkgCluster.Google:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &secret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "install google secret failed")
 		}
@@ -191,7 +191,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			return emperror.Wrap(err, "install gcs-output failed")
 		}
 	case pkgCluster.Alibaba:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &secret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "could not install alibaba logging secret")
 		}
@@ -257,7 +257,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		}
 
 		_, err = InstallSecrets(cluster,
-			&pkgSecret.ListSecretsQuery{
+			&secret.ListSecretsQuery{
 				Type: pkgSecret.GenericSecret,
 				Tags: []string{
 					clusterUidTag,

@@ -147,7 +147,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, &secretTypes.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
+				if items, err := secret.Store.List(orgId, &secret.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					// Clear CreatedAt times, we don't know them

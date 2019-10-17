@@ -692,7 +692,7 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 		t.Fatalf("Expected %v, got %v", expected, state)
 	}
 
-	secrets, err := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
+	secrets, err := secret.Store.List(testOrgId, &secret.ListSecretsQuery{
 		Type:   cluster.Amazon,
 		Tags:   []string{secretTypes.TagBanzaiHidden},
 		Values: true,
@@ -1151,7 +1151,7 @@ func Test_nameServerMatch(t *testing.T) {
 }
 
 func cleanupVaultTestSecrets() {
-	secrets, _ := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
+	secrets, _ := secret.Store.List(testOrgId, &secret.ListSecretsQuery{
 		Type:   cluster.Amazon,
 		Tags:   []string{secretTypes.TagBanzaiHidden},
 		Values: true,
