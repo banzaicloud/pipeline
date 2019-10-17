@@ -791,8 +791,8 @@ func (dns *awsRoute53) storeRoute53Secret(updateSecret *secret.SecretItemRespons
 		Name: IAMUserAccessKeySecretName,
 		Type: cluster.Amazon,
 		Tags: []string{
-			secretTypes.TagBanzaiHidden,
-			secretTypes.TagBanzaiReadonly,
+			secret.TagBanzaiHidden,
+			secret.TagBanzaiReadonly,
 		},
 		Values: map[string]string{
 			secretTypes.AwsAccessKeyId:     awsAccessKeyId,

@@ -107,7 +107,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 				pkgSecret.ServerKey:  string(key),
 			},
 			Tags: []string{
-				pkgSecret.TagBanzaiReadonly,
+				secret.TagBanzaiReadonly,
 			},
 		}
 

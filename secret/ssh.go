@@ -60,7 +60,7 @@ func StoreSSHKeyPair(key *SSHKeyPair, organizationID uint, clusterID uint, clust
 	createSecretRequest.Tags = []string{
 		"cluster:" + clusterName,
 		clusterUidTag,
-		secretTypes.TagBanzaiReadonly,
+		TagBanzaiReadonly,
 	}
 
 	createSecretRequest.Values = map[string]string{
