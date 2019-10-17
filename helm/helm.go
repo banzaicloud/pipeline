@@ -1009,7 +1009,7 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 						if v.Version == chartVersion || chartVersion == "" {
 
 							var ver *ChartVersion
-							ver, err = getChartVersion(v)
+							ver, err = getChartVersion(v, repository.URL)
 							if err != nil {
 								return
 							}
@@ -1018,7 +1018,7 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 							return
 						} else if chartVersion == versionAll {
 							var ver *ChartVersion
-							ver, err = getChartVersion(v)
+							ver, err = getChartVersion(v, repository.URL)
 							if err != nil {
 								log.Warnf("error during getting chart[%s - %s]: %s", v.Name, v.Version, err.Error())
 							} else {
@@ -1038,10 +1038,15 @@ func ChartGet(env helm_env.EnvSettings, chartRepo, chartName, chartVersion strin
 	return
 }
 
-func getChartVersion(v *repo.ChartVersion) (*ChartVersion, error) {
+func getChartVersion(v *repo.ChartVersion, repoUrl string) (*ChartVersion, error) {
 	log.Infof("get chart[%s - %s]", v.Name, v.Version)
 
 	chartSource := v.URLs[0]
+	if !strings.HasPrefix(chartSource, "http") {
+		// append with repo url to avoid unsupported protocol scheme errors
+		chartSource = fmt.Sprintf("%s/%s", repoUrl, chartSource)
+	}
+
 	log.Debugf("chartSource: %s", chartSource)
 	reader, err := DownloadFile(chartSource)
 	if err != nil {
