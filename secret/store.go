@@ -129,14 +129,6 @@ func (s *SecretItemResponse) ValidateSecretType(validType string) error {
 	return nil
 }
 
-// AllowedFilteredSecretTypesResponse for API response for AllowedSecretTypes/:type
-type AllowedFilteredSecretTypesResponse struct {
-	Keys secretTypes.Meta `json:"meta"`
-}
-
-// AllowedSecretTypesResponse for API response for AllowedSecretTypes
-type AllowedSecretTypesResponse map[string]secretTypes.Meta
-
 func newVaultSecretStore() *secretStore {
 	role := "pipeline"
 	client, err := vault.NewClient(role)
