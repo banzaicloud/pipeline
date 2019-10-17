@@ -331,19 +331,3 @@ var DefaultRules = map[string]Meta{
 		},
 	},
 }
-
-// SourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
-type SourcingMethod string
-
-const (
-	// EnvVar means the secret has to be sources an an env var
-	EnvVar SourcingMethod = "env"
-	// Volume means the secret has to be mounted an a volume
-	Volume SourcingMethod = "volume"
-)
-
-// K8SSourceMeta describes which and how installed Secret should be sourced into a Pod in K8S
-type K8SSourceMeta struct {
-	Name     string         `json:"name"`
-	Sourcing SourcingMethod `json:"sourcing"`
-}
