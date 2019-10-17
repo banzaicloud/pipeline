@@ -225,6 +225,7 @@ func TestFeatureService_Activate(t *testing.T) {
 		"mySpecKey": "mySpecValue",
 	}
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			repository.Clear()
 			dispatcher.ApplyError = tc.ApplyError
@@ -301,6 +302,7 @@ func TestFeatureService_Deactivate(t *testing.T) {
 		},
 	}
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			repository.Restore(snapshot)
 			dispatcher.DeactivateError = tc.DeactivateError
@@ -381,6 +383,7 @@ func TestFeatureService_Update(t *testing.T) {
 		"someSpecKey": "someSpecValue",
 	}
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			repository.Restore(snapshot)
 			dispatcher.ApplyError = tc.ApplyError
