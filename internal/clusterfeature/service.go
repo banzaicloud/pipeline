@@ -73,18 +73,25 @@ func (s FeatureService) Details(ctx context.Context, clusterID uint, featureName
 
 	// TODO: check cluster ID?
 
-	logger.Debug("retrieving feature from repository")
-	feature, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
-	if err != nil {
-		const msg = "failed to retrieve feature from repository"
-		logger.Debug(msg)
-		return feature, errors.WrapIf(err, msg)
-	}
-
 	logger.Debug("retrieving feature manager")
 	featureManager, err := s.featureManagerRegistry.GetFeatureManager(featureName)
 	if err != nil {
 		const msg = "failed to retrieve feature manager"
+		logger.Debug(msg)
+		return Feature{}, errors.WrapIf(err, msg)
+	}
+
+	logger.Debug("retrieving feature from repository")
+	feature, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
+	if err != nil {
+		if IsFeatureNotFoundError(err) {
+			return Feature{
+				Name:   featureName,
+				Status: FeatureStatusInactive,
+			}, nil
+		}
+
+		const msg = "failed to retrieve feature from repository"
 		logger.Debug(msg)
 		return feature, errors.WrapIf(err, msg)
 	}

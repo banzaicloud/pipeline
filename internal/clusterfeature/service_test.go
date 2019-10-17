@@ -102,38 +102,80 @@ func TestFeatureService_List(t *testing.T) {
 
 func TestFeatureService_Details(t *testing.T) {
 	clusterID := uint(1)
-	featureName := "myFeature"
-	expectedFeature := Feature{
-		Name: featureName,
-		Spec: FeatureSpec{
-			"mySpecKey": "mySpecValue",
-		},
-		Output: FeatureOutput{
-			"myOutputKey": "myOutputValue",
-		},
-		Status: FeatureStatusActive,
-	}
 	registry := MakeFeatureManagerRegistry([]FeatureManager{
 		&dummyFeatureManager{
-			TheName: expectedFeature.Name,
-			Output:  expectedFeature.Output,
+			TheName: "myActiveFeature",
+			Output: FeatureOutput{
+				"myOutputKey": "myOutputValue",
+			},
+		},
+		&dummyFeatureManager{
+			TheName: "myInactiveFeature",
+			Output: FeatureOutput{
+				"myOutputKey": "myOutputValue",
+			},
 		},
 	})
 	repository := NewInMemoryFeatureRepository(map[uint][]Feature{
 		clusterID: {
 			{
-				Name:   expectedFeature.Name,
-				Spec:   expectedFeature.Spec,
-				Status: expectedFeature.Status,
+				Name: "myActiveFeature",
+				Spec: FeatureSpec{
+					"mySpecKey": "mySpecValue",
+				},
+				Status: FeatureStatusActive,
 			},
 		},
 	})
 	logger := commonadapter.NewNoopLogger()
 	service := MakeFeatureService(nil, registry, repository, logger)
 
-	feature, err := service.Details(context.Background(), clusterID, featureName)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedFeature, feature)
+	cases := map[string]struct {
+		FeatureName string
+		Result      Feature
+		Error       error
+	}{
+		"active feature": {
+			FeatureName: "myActiveFeature",
+			Result: Feature{
+				Name: "myActiveFeature",
+				Spec: FeatureSpec{
+					"mySpecKey": "mySpecValue",
+				},
+				Output: FeatureOutput{
+					"myOutputKey": "myOutputValue",
+				},
+				Status: FeatureStatusActive,
+			},
+		},
+		"inactive feature": {
+			FeatureName: "myInactiveFeature",
+			Result: Feature{
+				Name:   "myInactiveFeature",
+				Status: FeatureStatusInactive,
+			},
+		},
+		"unknown feature": {
+			FeatureName: "myUnknownFeature",
+			Error: UnknownFeatureError{
+				FeatureName: "myUnknownFeature",
+			},
+		},
+	}
+	for name, tc := range cases {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			feature, err := service.Details(context.Background(), clusterID, tc.FeatureName)
+			switch tc.Error {
+			case nil:
+				require.NoError(t, err)
+				assert.Equal(t, tc.Result, feature)
+			default:
+				assert.Error(t, err)
+				assert.Equal(t, tc.Error, errors.Cause(err))
+			}
+		})
+	}
 }
 
 func TestFeatureService_Activate(t *testing.T) {
