@@ -45,7 +45,7 @@ type FeatureService struct {
 	logger                     common.Logger
 }
 
-// List lists the activated features and their details.
+// List returns non-inactive features and their status.
 func (s FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID})
 	logger.Info("listing features")
@@ -55,21 +55,10 @@ func (s FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, er
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve features", "clusterId", clusterID)
 	}
 
-	for i, f := range features {
-
-		featureManager, err := s.featureManagerRegistry.GetFeatureManager(f.Name)
-		if err != nil {
-
-			return nil, err
-		}
-
-		output, err := featureManager.GetOutput(ctx, clusterID, f.Spec)
-		if err != nil {
-
-			return nil, err
-		}
-
-		features[i].Output = merge(f.Output, output)
+	// only keep feature name and status
+	for i := range features {
+		features[i].Spec = nil
+		features[i].Output = nil
 	}
 
 	logger.Info("features successfully listed")
