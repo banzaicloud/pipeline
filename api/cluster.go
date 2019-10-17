@@ -44,7 +44,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -446,6 +445,12 @@ nodesloop:
 	return nodePoolCounts, nil
 }
 
+// InstallSecretsToClusterRequest describes an InstallSecretToCluster request
+type InstallSecretsToClusterRequest struct {
+	Namespace string                  `json:"namespace" binding:"required"`
+	Query     secret.ListSecretsQuery `json:"query" binding:"required"`
+}
+
 // InstallSecretsToCluster add all secrets from a repo to a cluster's namespace combined into one global secret named as the repo
 func InstallSecretsToCluster(c *gin.Context) {
 	commonCluster, ok := getClusterFromRequest(c)
@@ -453,7 +458,7 @@ func InstallSecretsToCluster(c *gin.Context) {
 		return
 	}
 
-	var request pkgSecret.InstallSecretsToClusterRequest
+	var request InstallSecretsToClusterRequest
 	if err := c.BindJSON(&request); err != nil {
 		log.Errorf("Error parsing request: %s", err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
@@ -521,7 +526,7 @@ func ListClusterSecrets(c *gin.Context) {
 
 	log.Info("Start filtering secrets")
 
-	var query pkgSecret.ListSecretsQuery
+	var query secret.ListSecretsQuery
 	err := c.BindQuery(&query)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{

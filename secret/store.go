@@ -235,7 +235,7 @@ func (ss *secretStore) DeleteByClusterUID(orgID uint, clusterUID string) error {
 
 	clusterUIDTag := clusterUIDTag(clusterUID)
 	secrets, err := Store.List(orgID,
-		&secretTypes.ListSecretsQuery{
+		&ListSecretsQuery{
 			Tags: []string{clusterUIDTag},
 		})
 
@@ -480,7 +480,7 @@ func (ss *secretStore) GetByName(organizationID uint, name string) (*SecretItemR
 	return secret, nil
 }
 
-func (ss *secretStore) getSecretIDs(orgid uint, query *secretTypes.ListSecretsQuery) ([]string, error) {
+func (ss *secretStore) getSecretIDs(orgid uint, query *ListSecretsQuery) ([]string, error) {
 	if len(query.IDs) > 0 {
 		return query.IDs, nil
 	}
@@ -505,7 +505,7 @@ func (ss *secretStore) getSecretIDs(orgid uint, query *secretTypes.ListSecretsQu
 }
 
 // List secret secret/orgs/:orgid:/ scope
-func (ss *secretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
+func (ss *secretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemResponse, error) {
 
 	log.Debugf("Searching for secrets [orgid: %d, query: %#v]", orgid, query)
 

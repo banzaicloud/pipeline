@@ -26,7 +26,7 @@ type restrictedSecretStore struct {
 	*secretStore
 }
 
-func (s *restrictedSecretStore) List(orgid uint, query *secretTypes.ListSecretsQuery) ([]*SecretItemResponse, error) {
+func (s *restrictedSecretStore) List(orgid uint, query *ListSecretsQuery) ([]*SecretItemResponse, error) {
 	responseItems, err := s.secretStore.List(orgid, query)
 	if err != nil {
 		return nil, err

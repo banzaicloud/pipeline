@@ -345,12 +345,6 @@ var DefaultRules = map[string]Meta{
 	},
 }
 
-// InstallSecretsToClusterRequest describes an InstallSecretToCluster request
-type InstallSecretsToClusterRequest struct {
-	Namespace string           `json:"namespace" binding:"required"`
-	Query     ListSecretsQuery `json:"query" binding:"required"`
-}
-
 // SourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
 type SourcingMethod string
 

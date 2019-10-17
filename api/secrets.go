@@ -299,7 +299,7 @@ func ListSecrets(c *gin.Context) {
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
-	var query secretTypes.ListSecretsQuery
+	var query secret.ListSecretsQuery
 	err := c.BindQuery(&query)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{

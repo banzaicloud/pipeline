@@ -32,7 +32,7 @@ import (
 
 // InstallSecrets installs or updates secrets that matches the query under the name into namespace of a Kubernetes cluster.
 // It returns the list of installed secret names and meta about how to mount them.
-func InstallSecrets(cc CommonCluster, query *secretTypes.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
+func InstallSecrets(cc CommonCluster, query *secret.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
 
 	kubeConfig, err := cc.GetK8sConfig()
 	if err != nil {
@@ -44,7 +44,7 @@ func InstallSecrets(cc CommonCluster, query *secretTypes.ListSecretsQuery, names
 }
 
 // InstallSecretsByK8SConfig is the same as InstallSecrets but use this if you already have a K8S config at hand.
-func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secretTypes.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
+func InstallSecretsByK8SConfig(kubeConfig []byte, orgID uint, query *secret.ListSecretsQuery, namespace string) ([]secretTypes.K8SSourceMeta, error) {
 
 	// Values are always needed in this case
 	query.Values = true
