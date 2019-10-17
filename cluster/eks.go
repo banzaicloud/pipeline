@@ -95,9 +95,9 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 			VpcCidr:            &request.Properties.CreateClusterEKS.Vpc.Cidr,
 			RouteTableId:       &request.Properties.CreateClusterEKS.RouteTableId,
 			Subnets:            createSubnetsFromRequest(request.Properties.CreateClusterEKS),
-			UserId:             &request.Properties.CreateClusterEKS.IAM.UserID,
-			ClusterRoleId:      &request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
-			NodeInstanceRoleId: &request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
+			DefaultUser:        request.Properties.CreateClusterEKS.IAM.DefaultUser,
+			ClusterRoleId:      request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
+			NodeInstanceRoleId: request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
 		},
 		CreatedBy:  userId,
 		TtlMinutes: request.TtlMinutes,
@@ -339,17 +339,35 @@ func (c *EKSCluster) CreateCluster() error {
 	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
+	// IAM parameters
+	creationContext.DefaultUser = c.modelCluster.EKS.DefaultUser
+	creationContext.ClusterRoleID = c.modelCluster.EKS.ClusterRoleId
+	creationContext.NodeInstanceRoleID = c.modelCluster.EKS.NodeInstanceRoleId
+
 	actions := []utils.Action{
 		action.NewCreateVPCAction(c.log, creationContext, eksStackName),
 		action.NewCreateSubnetsAction(NewLogurLogger(c.log), creationContext, subnetTemplate),
 		action.NewCreateIAMRolesAction(c.log, creationContext, iamStackName),
-		action.NewCreateClusterUserAccessKeyAction(c.log, creationContext),
-		action.NewPersistClusterUserAccessKeyAction(c.log, creationContext, c.GetOrganizationId()),
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName, c.GetOrganizationId()),
 		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
 		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, subnetMapping, headNodePoolName, c.modelCluster.EKS.NodePools...),
 	}
+
+	if creationContext.DefaultUser {
+		values, err := awsCred.Get()
+		if err != nil {
+			return errors.WrapIf(err, "failed to extract EKS cluster secret values")
+		}
+
+		creationContext.ClusterUserAccessKeyId = values.AccessKeyID
+		creationContext.ClusterUserSecretAccessKey = values.SecretAccessKey
+
+	} else {
+		actions = append(actions, action.NewCreateClusterUserAccessKeyAction(c.log, creationContext))
+	}
+
+	actions = append(actions, action.NewPersistClusterUserAccessKeyAction(c.log, creationContext, c.GetOrganizationId()))
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
@@ -548,13 +566,17 @@ func (c *EKSCluster) DeleteCluster() error {
 		deleteNodePoolsAction,
 		action.NewDeleteClusterAction(c.log, deleteContext),
 		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.generateSSHKeyNameForCluster()),
-		action.NewDeleteClusterUserAccessKeyAction(c.log, deleteContext),
 		action.NewDeleteClusterUserAccessKeySecretAction(c.log, deleteContext, c.GetOrganizationId()),
 		action.NewDeleteOrphanNICsAction(NewLogurLogger(c.log), deleteContext),
 		action.NewDeleteStacksAction(c.log, deleteContext, c.getSubnetStackNamesToDelete(awsSession)...),
 		action.NewDeleteStacksAction(c.log, deleteContext, clusterStackName),
 		action.NewDeleteStacksAction(c.log, deleteContext, c.generateStackNameForIAM()),
 	)
+
+	if !c.modelCluster.EKS.DefaultUser {
+		actions = append(actions, action.NewDeleteClusterUserAccessKeyAction(c.log, deleteContext))
+	}
+
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		return err
@@ -792,7 +814,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		subnets,
 		c.generateSSHKeyNameForCluster(),
 		aws.String(vpcId),
-		aws.String(nodeInstanceRoleId),
+		nodeInstanceRoleId,
 		clusterUserArn,
 		clusterUserAccessKeyId,
 		clusterUserSecretAccessKey,

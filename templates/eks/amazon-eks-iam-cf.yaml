@@ -112,7 +112,7 @@ Outputs:
 
   NodeInstanceRoleId:
     Description: The NodeInstanceRole ID
-    Value: !If [ CreateNodeInstanceRole, !Ref NodeInstanceRole, NodeInstanceRoleId ] 
+    Value: !If [ CreateNodeInstanceRole, !Ref NodeInstanceRole, !Sub "${NodeInstanceRoleId}" ] 
 
   NodeInstanceRoleArn:
     Description: The NodeInstanceRole ARN

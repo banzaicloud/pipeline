@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
 
@@ -60,6 +61,18 @@ func (a *CreateIAMRolesAction) ExecuteAction(input interface{}) (interface{}, er
 		return nil, errors.WrapIf(err, "failed to get CloudFormation template for IAM")
 	}
 
+	var clusterUserID string
+
+	if a.context.DefaultUser {
+		iamSrv := iam.New(a.context.Session)
+		currentUser, err := iamSrv.GetUser(&iam.GetUserInput{})
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get current user (defined by secret) for IAM")
+		}
+
+		clusterUserID = aws.StringValue(currentUser.User.UserName)
+	}
+
 	stackParams := []*cloudformation.Parameter{
 		{
 			ParameterKey:   aws.String("ClusterName"),
@@ -67,20 +80,16 @@ func (a *CreateIAMRolesAction) ExecuteAction(input interface{}) (interface{}, er
 		},
 		{
 			ParameterKey:   aws.String("UserId"),
-			ParameterValue: aws.String(a.context.ClusterUserID),
+			ParameterValue: aws.String(clusterUserID),
 		},
 		{
 			ParameterKey:   aws.String("ClusterRoleId"),
 			ParameterValue: aws.String(a.context.ClusterRoleID),
 		},
-	}
-
-	if a.context.NodeInstanceRoleID != nil {
-		stackParams = append(stackParams,
-			&cloudformation.Parameter{
-				ParameterKey:   aws.String("NodeInstanceRoleId"),
-				ParameterValue: a.context.NodeInstanceRoleID,
-			})
+		{
+			ParameterKey:   aws.String("NodeInstanceRoleId"),
+			ParameterValue: aws.String(a.context.NodeInstanceRoleID),
+		},
 	}
 
 	cloudformationSrv := cloudformation.New(a.context.Session)
@@ -133,7 +142,7 @@ func (a *CreateIAMRolesAction) ExecuteAction(input interface{}) (interface{}, er
 	a.context.ClusterRoleArn = clusterRoleArn
 
 	a.log.Infoln("nodeInstanceRole ID:", nodeInstanceRoleId)
-	a.context.NodeInstanceRoleID = &nodeInstanceRoleId
+	a.context.NodeInstanceRoleID = nodeInstanceRoleId
 
 	a.log.Infoln("nodeInstanceRole ARN:", nodeInstanceRoleArn)
 	a.context.NodeInstanceRoleArn = nodeInstanceRoleArn

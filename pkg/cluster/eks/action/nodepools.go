@@ -286,7 +286,7 @@ func (a *CreateUpdateNodePoolStackAction) createUpdateNodePool(nodePool *model.A
 			},
 			{
 				ParameterKey:   aws.String("NodeInstanceRoleId"),
-				ParameterValue: a.context.NodeInstanceRoleID,
+				ParameterValue: aws.String(a.context.NodeInstanceRoleID),
 			},
 			{
 				ParameterKey:   aws.String("ClusterAutoscalerEnabled"),
