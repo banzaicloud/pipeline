@@ -180,7 +180,7 @@ func (p policyService) getAnchoreClient(ctx context.Context, clusterID uint) (An
 
 	if cfg.UserSecret != "" {
 		p.logger.Debug("using custom anchore configuration")
-		username, password, err := getCustomAnchoreCredentials(ctx, p.secretStore, cfg.UserSecret, p.logger)
+		username, password, err := GetCustomAnchoreCredentials(ctx, p.secretStore, cfg.UserSecret, p.logger)
 		if err != nil {
 			p.logger.Debug("failed to decode secret values")
 
@@ -190,8 +190,8 @@ func (p policyService) getAnchoreClient(ctx context.Context, clusterID uint) (An
 		return NewAnchoreClient(username, password, cfg.Endpoint, p.logger), nil
 	}
 
-	userName := getUserName(clusterID)
-	password, err := getUserSecret(ctx, p.secretStore, userName, p.logger)
+	userName := GetUserName(clusterID)
+	password, err := GetUserSecret(ctx, p.secretStore, userName, p.logger)
 	if err != nil {
 		p.logger.Debug("failed to get user secret")
 

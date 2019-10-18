@@ -137,7 +137,7 @@ func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uin
 
 	if cfg.UserSecret != "" {
 		i.logger.Debug("using custom anchore configuration")
-		username, password, err := getCustomAnchoreCredentials(ctx, i.secretStore, cfg.UserSecret, i.logger)
+		username, password, err := GetCustomAnchoreCredentials(ctx, i.secretStore, cfg.UserSecret, i.logger)
 		if err != nil {
 			i.logger.Debug("failed to decode secret values")
 
@@ -151,8 +151,8 @@ func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uin
 		return NewAnchoreClient(cfg.AdminUser, cfg.AdminPass, cfg.Endpoint, i.logger), nil
 	}
 
-	userName := getUserName(clusterID)
-	password, err := getUserSecret(ctx, i.secretStore, userName, i.logger)
+	userName := GetUserName(clusterID)
+	password, err := GetUserSecret(ctx, i.secretStore, userName, i.logger)
 	if err != nil {
 		i.logger.Debug("failed to get user secret")
 
