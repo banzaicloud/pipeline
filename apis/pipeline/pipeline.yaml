@@ -1216,13 +1216,13 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError'
+                                $ref: '#/components/schemas/ClientError'
                 '409':
                     description: "secret already exists in the cluster"
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError'
+                                $ref: '#/components/schemas/ClientError'
 
         patch:
             security:
@@ -1287,7 +1287,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError'
+                                $ref: '#/components/schemas/ClientError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/scanlog':
         get:
@@ -6915,17 +6915,6 @@ components:
             required: true
 
     schemas:
-        BaseError:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 400
-                message:
-                    type: string
-                error:
-                    type: string
-
         ClientError:
             type: object
             properties:

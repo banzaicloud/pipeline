@@ -1181,7 +1181,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError'
+                $ref: '#/components/schemas/ClientError'
           description: secret not found
       security:
       - bearerAuth: []
@@ -1245,13 +1245,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError'
+                $ref: '#/components/schemas/ClientError'
           description: secret not found
         409:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError'
+                $ref: '#/components/schemas/ClientError'
           description: secret already exists in the cluster
       security:
       - bearerAuth: []
@@ -7735,16 +7735,6 @@ components:
       description: Feature properties
       required: true
   schemas:
-    BaseError:
-      properties:
-        code:
-          example: 400
-          type: integer
-        message:
-          type: string
-        error:
-          type: string
-      type: object
     ClientError:
       properties:
         code:
