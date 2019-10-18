@@ -107,16 +107,22 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 		}
 
 		modifyResponse := func(resp *http.Response) error {
-			// handle individual error codes here
-			if resp.StatusCode == http.StatusUnauthorized {
-				return errors.NewWithDetails("authorization faild (Anchore)", "orgID", orgIDStr, "clusterID", clusterIDStr)
+			// handle individual error codes here if required
+			if resp.StatusCode != http.StatusOK {
+				msg := fmt.Sprintf("error received from Anchore ( StatusCode: %d, Status: %s )", resp.StatusCode, resp.Status)
+				return errors.NewWithDetails(msg, "orgID", orgIDStr, "clusterID", clusterIDStr)
 			}
 			return nil
 		}
 
+		errorHandler := func(rw http.ResponseWriter, req *http.Request, err error) {
+			rw.WriteHeader(http.StatusInternalServerError)
+			rw.Write([]byte(err.Error()))
+		}
 		proxy := &httputil.ReverseProxy{
 			Director:       director,
 			ModifyResponse: modifyResponse,
+			ErrorHandler:   errorHandler,
 		}
 
 		proxy.ServeHTTP(c.Writer, c.Request)
