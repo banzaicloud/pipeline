@@ -633,6 +633,8 @@ func main() {
 
 					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
 
+					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, secretStore, logger)
+
 					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
 					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
 
@@ -640,7 +642,7 @@ func main() {
 					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
 
-					cRouter.GET("/policies", policyHandler.ListPolicies)
+					cRouter.GET("/policies", anchoreProxy.Proxy())
 					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
 					cRouter.POST("/policies", policyHandler.CreatePolicy)
 					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
