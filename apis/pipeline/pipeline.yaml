@@ -914,60 +914,6 @@ paths:
                 500:
                     $ref: '#/components/responses/InternalServerError'
 
-
-    '/api/v1/orgs/{orgId}/clusters/{id}/helminit':
-        post:
-            security:
-                -
-                    bearerAuth: []
-            tags:
-                - clusters
-            summary: Initialize Helm
-            operationId: HelmInit
-            description: Initialize helm in the cluster
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization identification
-                    schema:
-                        type: integer
-                -
-                    name: id
-                    in: path
-                    required: true
-                    description: Selected cluster identification (number)
-                    schema:
-                        type: integer
-            responses:
-                '201':
-                    description: "Helm initialized int the cluster"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/HelmInitResponse'
-                '400':
-                    description: "Error during getting endpoints"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-                '404':
-                    description: "Cluster not found"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClusterNotFound'
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/HelmInitRequest'
-
     '/api/v1/orgs/{orgId}/clusters/{id}/secrets':
         get:
             security:
@@ -8111,43 +8057,6 @@ components:
                     type: object
                     description: current values of the deployment
                     example: { "metrics": { "enabled": "true" } }
-
-        HelmInitResponse:
-            type: object
-            properties:
-                status:
-                    type: integer
-                    example: 201
-                message:
-                    type: string
-                    example: "helm initialising"
-
-        HelmInitRequest:
-            type: object
-            required:
-                - namespace
-                - service_account
-            properties:
-                kube_context:
-                    type: string
-                namespace:
-                    type: string
-                upgrade:
-                    type: boolean
-                force_upgrade:
-                    type: boolean
-                service_account:
-                    type: string
-                canary_image:
-                    type: boolean
-                tiller_image:
-                    type: string
-                history_max:
-                    type: integer
-            example:
-                namespace: "kube-system"
-                service_account: "tiller"
-                tiller_image: "gcr.io/kubernetes-helm/tiller:v2.7.2"
 
         HelmReposListResponse:
             type: array
