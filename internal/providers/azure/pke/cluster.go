@@ -61,7 +61,6 @@ type PKEOnAzureCluster struct {
 
 	Monitoring   bool
 	Logging      bool
-	ServiceMesh  bool
 	SecurityScan bool
 	TtlMinutes   uint
 }
