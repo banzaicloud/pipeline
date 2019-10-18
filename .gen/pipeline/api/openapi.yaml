@@ -7523,9 +7523,15 @@ paths:
         404:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 404
+                    message: Not found
+                    error: resource not found
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Not Found
+                $ref: '#/components/schemas/CommonError'
+          description: Not found
       security:
       - bearerAuth: []
       summary: Create Cluster Group
@@ -7668,9 +7674,15 @@ paths:
         404:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 404
+                    message: Not found
+                    error: resource not found
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Not Found
+                $ref: '#/components/schemas/CommonError'
+          description: Not found
       security:
       - bearerAuth: []
       summary: Update Cluster Group
@@ -7781,9 +7793,15 @@ paths:
         404:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 404
+                    message: Not found
+                    error: resource not found
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Not Found
+                $ref: '#/components/schemas/CommonError'
+          description: Not found
       security:
       - bearerAuth: []
       summary: Create Cluster Group Deployment
@@ -7978,9 +7996,15 @@ paths:
         404:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 404
+                    message: Not found
+                    error: resource not found
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Not Found
+                $ref: '#/components/schemas/CommonError'
+          description: Not found
       security:
       - bearerAuth: []
       summary: Update Cluster Group Deployment
@@ -8258,9 +8282,15 @@ paths:
         404:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 404
+                    message: Not found
+                    error: resource not found
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Not Found
+                $ref: '#/components/schemas/CommonError'
+          description: Not found
       security:
       - bearerAuth: []
       summary: Enable Feature of Cluster Group
@@ -8317,9 +8347,15 @@ paths:
         404:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 404
+                    message: Not found
+                    error: resource not found
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Not Found
+                $ref: '#/components/schemas/CommonError'
+          description: Not found
       security:
       - bearerAuth: []
       summary: Update Feature of Cluster Group
@@ -8779,6 +8815,18 @@ components:
           schema:
             $ref: '#/components/schemas/CommonError'
       description: Unauthorized
+    NotFound:
+      content:
+        application/json:
+          examples:
+            InvalidToken:
+              value:
+                code: 404
+                message: Not found
+                error: resource not found
+          schema:
+            $ref: '#/components/schemas/CommonError'
+      description: Not found
     InternalServerError:
       content:
         application/json:
