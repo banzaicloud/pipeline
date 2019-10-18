@@ -1025,69 +1025,6 @@ paths:
       summary: List cluser nodes
       tags:
       - clusters
-  /api/v1/orgs/{orgId}/clusters/{id}/helminit:
-    post:
-      description: Initialize helm in the cluster
-      operationId: HelmInit
-      parameters:
-      - description: Organization identification
-        explode: false
-        in: path
-        name: orgId
-        required: true
-        schema:
-          type: integer
-        style: simple
-      - description: Selected cluster identification (number)
-        explode: false
-        in: path
-        name: id
-        required: true
-        schema:
-          type: integer
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/HelmInitRequest'
-        required: true
-      responses:
-        201:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HelmInitResponse'
-          description: Helm initialized int the cluster
-        400:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClientError'
-          description: Error during getting endpoints
-        401:
-          content:
-            application/json:
-              examples:
-                InvalidToken:
-                  value:
-                    code: 401
-                    message: Invalid token
-                    error: token contains an invalid number of segments
-              schema:
-                $ref: '#/components/schemas/CommonError'
-          description: Unauthorized
-        404:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClusterNotFound'
-          description: Cluster not found
-      security:
-      - bearerAuth: []
-      summary: Initialize Helm
-      tags:
-      - clusters
   /api/v1/orgs/{orgId}/clusters/{id}/secrets:
     get:
       description: List secrets which belongs to cluster
@@ -10655,44 +10592,6 @@ components:
             metrics:
               enabled: "true"
           type: object
-      type: object
-    HelmInitResponse:
-      example:
-        message: helm initialising
-        status: 201
-      properties:
-        status:
-          example: 201
-          type: integer
-        message:
-          example: helm initialising
-          type: string
-      type: object
-    HelmInitRequest:
-      example:
-        namespace: kube-system
-        service_account: tiller
-        tiller_image: gcr.io/kubernetes-helm/tiller:v2.7.2
-      properties:
-        kube_context:
-          type: string
-        namespace:
-          type: string
-        upgrade:
-          type: boolean
-        force_upgrade:
-          type: boolean
-        service_account:
-          type: string
-        canary_image:
-          type: boolean
-        tiller_image:
-          type: string
-        history_max:
-          type: integer
-      required:
-      - namespace
-      - service_account
       type: object
     HelmReposListResponse:
       items:
