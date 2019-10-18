@@ -57,7 +57,6 @@ type ClusterModel struct {
 	OidcEnabled    bool `gorm:"default:false;not null"`
 	Monitoring     bool
 	Logging        bool
-	ServiceMesh    bool
 	SecurityScan   bool
 	StatusMessage  string             `sql:"type:text;"`
 	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`

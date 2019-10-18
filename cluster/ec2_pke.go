@@ -115,20 +115,6 @@ func (c *EC2ClusterPKE) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
 }
 
-func (c *EC2ClusterPKE) GetServiceMesh() bool {
-	return c.model.Cluster.ServiceMesh
-}
-
-func (c *EC2ClusterPKE) SetServiceMesh(m bool) {
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"service_mesh": m}).Error
-	if err != nil {
-		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
-	} else {
-		c.model.Cluster.ServiceMesh = m
-	}
-
-}
-
 func (c *EC2ClusterPKE) GetID() uint {
 	return c.model.Cluster.ID
 }
@@ -739,7 +725,6 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		ResourceID:        c.model.Cluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
-		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.model.Kubernetes.Version,

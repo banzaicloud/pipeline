@@ -201,7 +201,6 @@ func (d *DashboardAPI) getClusterDashboardInfo(logger *logrus.Entry, commonClust
 
 	clusterInfo.Logging = clusterStatus.Logging
 	clusterInfo.Monitoring = clusterStatus.Monitoring
-	clusterInfo.ServiceMesh = clusterStatus.ServiceMesh
 	clusterInfo.SecurityScan = clusterStatus.SecurityScan
 
 	endPoint, err := commonCluster.GetAPIEndpoint()

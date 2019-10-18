@@ -173,7 +173,6 @@ func fillClusterFromClusterModel(cl *pke.PKEOnAzureCluster, model cluster.Cluste
 	cl.Kubernetes.OIDC.Enabled = model.OidcEnabled
 	cl.Monitoring = model.Monitoring
 	cl.Logging = model.Logging
-	cl.ServiceMesh = model.ServiceMesh
 	cl.SecurityScan = model.SecurityScan
 	cl.TtlMinutes = model.TtlMinutes
 }
@@ -309,8 +308,6 @@ func (s gormAzurePKEClusterStore) Create(params pke.CreateParams) (c pke.PKEOnAz
 				model.Cluster.Monitoring = true
 			case "InstallAnchoreImageValidator":
 				model.Cluster.SecurityScan = true
-			case "InstallServiceMesh":
-				model.Cluster.ServiceMesh = true
 			}
 		}
 	}
@@ -482,7 +479,6 @@ func (s gormAzurePKEClusterStore) SetFeature(clusterID uint, feature string, sta
 		"SecurityScan": true,
 		"Logging":      true,
 		"Monitoring":   true,
-		"ServiceMesh":  true,
 	}
 
 	if !features[feature] {

@@ -504,7 +504,6 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        c.modelCluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
-		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
@@ -1048,16 +1047,6 @@ func (c *AKSCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *AKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// GetServiceMesh returns true if service mesh is enabled on the cluster
-func (c *AKSCluster) GetServiceMesh() bool {
-	return c.modelCluster.ServiceMesh
-}
-
-// SetServiceMesh sets service mesh flag on the cluster
-func (c *AKSCluster) SetServiceMesh(m bool) {
-	c.modelCluster.ServiceMesh = m
 }
 
 // GetTTL retrieves the TTL of the cluster

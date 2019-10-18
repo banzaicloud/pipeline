@@ -100,8 +100,6 @@ type CommonCluster interface {
 	SetLogging(l bool)
 	GetMonitoring() bool
 	SetMonitoring(m bool)
-	GetServiceMesh() bool
-	SetServiceMesh(m bool)
 
 	SetStatus(status, statusMessage string) error
 }

@@ -259,7 +259,6 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 		ResourceID:    a.model.ID,
 		Logging:       a.GetLogging(),
 		Monitoring:    a.GetMonitoring(),
-		ServiceMesh:   a.GetServiceMesh(),
 		SecurityScan:  a.GetSecurityScan(),
 		Version:       a.model.Kubernetes.Version,
 		NodePools:     nodePools,
@@ -313,16 +312,6 @@ func (a *AzurePkeCluster) GetMonitoring() bool {
 func (a *AzurePkeCluster) SetMonitoring(m bool) {
 	a.model.Monitoring = m
 	a.store.SetFeature(a.model.ID, "Monitoring", m) // nolint: errcheck
-}
-
-func (a *AzurePkeCluster) GetServiceMesh() bool {
-	return a.model.ServiceMesh
-}
-
-func (a *AzurePkeCluster) SetServiceMesh(m bool) {
-	a.model.ServiceMesh = m
-	a.store.SetFeature(a.model.ID, "ServiceMesh", m) // nolint: errcheck
-
 }
 
 func (a *AzurePkeCluster) SetStatus(status string, statusMessage string) error {

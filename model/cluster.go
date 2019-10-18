@@ -69,7 +69,6 @@ type ClusterModel struct {
 	RbacEnabled    bool
 	Monitoring     bool
 	Logging        bool
-	ServiceMesh    bool
 	ScaleOptions   ScaleOptions `gorm:"foreignkey:ClusterID"`
 	SecurityScan   bool
 	StatusMessage  string                 `sql:"type:text;"`
