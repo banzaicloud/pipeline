@@ -12117,6 +12117,19 @@ components:
           description: The AZ to create the subnet into.
           type: string
       type: object
+    EKSIam:
+      properties:
+        clusterRoleId:
+          description: The identifier of existing IAM role to be used for creating
+            the EKS cluster. If not provided a new IAM role is created for the cluster
+            (requires IAM Write Access).
+          type: string
+        nodeInstanceRoleId:
+          description: The identifier of existing IAM role to be used for creating
+            the EKS nodes. If not provided a new IAM role is created for the nodes
+            (requires IAM Write Access).
+          type: string
+      type: object
     GetClusterBootstrapResponse:
       example:
         masterAddress: 8.9.10.11:443
@@ -13383,6 +13396,8 @@ components:
           items:
             $ref: '#/components/schemas/EKSSubnet'
           type: array
+        iam:
+          $ref: '#/components/schemas/EKSIam'
       required:
       - nodePools
     CreateACKProperties_ack:

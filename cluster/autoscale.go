@@ -28,9 +28,9 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 const cloudProviderAzure = "azure"
@@ -235,10 +235,10 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 		},
 		Rbac: rbac{Create: true},
 		Azure: azureInfo{
-			ClientID:       clusterSecret.Values[pkgSecret.AzureClientID],
-			ClientSecret:   clusterSecret.Values[pkgSecret.AzureClientSecret],
-			SubscriptionID: clusterSecret.Values[pkgSecret.AzureSubscriptionID],
-			TenantID:       clusterSecret.Values[pkgSecret.AzureTenantID],
+			ClientID:       clusterSecret.Values[secrettype.AzureClientID],
+			ClientSecret:   clusterSecret.Values[secrettype.AzureClientSecret],
+			SubscriptionID: clusterSecret.Values[secrettype.AzureSubscriptionID],
+			TenantID:       clusterSecret.Values[secrettype.AzureTenantID],
 			ClusterName:    cluster.GetName(),
 		},
 		Affinity:    GetHeadNodeAffinity(cluster),

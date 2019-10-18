@@ -24,7 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -50,17 +50,17 @@ func TestFeatureOperator_Apply(t *testing.T) {
 				grafanaSecretID: {
 					ID:      grafanaSecretID,
 					Name:    getGrafanaSecretName(clusterID),
-					Type:    pkgSecret.Password,
-					Values:  map[string]string{pkgSecret.Username: "admin", pkgSecret.Password: "pass"},
-					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Type:    secrettype.Password,
+					Values:  map[string]string{secrettype.Username: "admin", secrettype.Password: "pass"},
+					Tags:    []string{secret.TagBanzaiReadonly},
 					Version: 1,
 				},
 				prometheusSecretID: {
 					ID:      prometheusSecretID,
 					Name:    getPrometheusSecretName(clusterID),
-					Type:    pkgSecret.Password,
-					Values:  map[string]string{pkgSecret.Username: "admin", pkgSecret.Password: "pass"},
-					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Type:    secrettype.Password,
+					Values:  map[string]string{secrettype.Username: "admin", secrettype.Password: "pass"},
+					Tags:    []string{secret.TagBanzaiReadonly},
 					Version: 1,
 				},
 			},

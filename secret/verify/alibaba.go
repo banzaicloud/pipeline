@@ -24,7 +24,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
 const (
@@ -70,7 +70,7 @@ func createAlibabaECSClient(auth *credentials.AccessKeyCredential, regionID stri
 
 func CreateAlibabaCredentials(values map[string]string) *credentials.AccessKeyCredential {
 	return credentials.NewAccessKeyCredential(
-		values[pkgSecret.AlibabaAccessKeyId],
-		values[pkgSecret.AlibabaSecretAccessKey],
+		values[secrettype.AlibabaAccessKeyId],
+		values[secrettype.AlibabaSecretAccessKey],
 	)
 }

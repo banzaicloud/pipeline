@@ -188,6 +188,11 @@ type EKSClusterModel struct {
 	VpcCidr      *string                 `gorm:"size:18"`
 	RouteTableId *string                 `gorm:"size:32"`
 	Subnets      []*EKSSubnetModel       `gorm:"foreignkey:ClusterID"`
+
+	// IAM settings
+	DefaultUser        bool
+	ClusterRoleId      string
+	NodeInstanceRoleId string
 }
 
 // AKSClusterModel describes the aks cluster model

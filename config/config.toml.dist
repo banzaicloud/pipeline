@@ -125,6 +125,7 @@ path = "./var/cache"
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
 banzaiRepositoryURL = "https://kubernetes-charts.banzaicloud.com"
+lokiRepositoryURL = "https://grafana.github.io/loki/charts"
 
 [monitor]
 enabled = false

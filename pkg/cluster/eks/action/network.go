@@ -55,32 +55,32 @@ func getSubnetStackTags(clusterName string) []*cloudformation.Tag {
 
 // --
 
-var _ utils.RevocableAction = (*CreateVPCAndRolesAction)(nil)
+var _ utils.RevocableAction = (*CreateVPCAction)(nil)
 
-// CreateVPCAndRolesAction describes the properties of a VPC creation
-type CreateVPCAndRolesAction struct {
+// CreateVPCAction describes the properties of a VPC creation
+type CreateVPCAction struct {
 	context   *EksClusterCreateUpdateContext
 	stackName string
 	log       logrus.FieldLogger
 }
 
-// NewCreateVPCAndRolesAction creates a new CreateVPCAndRolesAction
-func NewCreateVPCAndRolesAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext, stackName string) *CreateVPCAndRolesAction {
-	return &CreateVPCAndRolesAction{
+// NewCreateVPCAction creates a new CreateVPCAction
+func NewCreateVPCAction(log logrus.FieldLogger, creationContext *EksClusterCreateUpdateContext, stackName string) *CreateVPCAction {
+	return &CreateVPCAction{
 		context:   creationContext,
 		stackName: stackName,
 		log:       log,
 	}
 }
 
-// GetName returns the name of this CreateVPCAndRolesAction
-func (a *CreateVPCAndRolesAction) GetName() string {
-	return "CreateVPCAndRolesAction"
+// GetName returns the name of this CreateVPCAction
+func (a *CreateVPCAction) GetName() string {
+	return "CreateVPCAction"
 }
 
-// ExecuteAction executes this CreateVPCAndRolesAction
-func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{}, error) {
-	a.log.Infoln("EXECUTE CreateVPCAndRolesAction, stack name:", a.stackName)
+// ExecuteAction executes this CreateVPCAction
+func (a *CreateVPCAction) ExecuteAction(input interface{}) (interface{}, error) {
+	a.log.Infoln("EXECUTE CreateVPCAction, stack name:", a.stackName)
 
 	a.log.Infoln("getting CloudFormation template for creating VPC for EKS cluster")
 	templateBody, err := eks.GetVPCTemplate()
@@ -159,9 +159,9 @@ func (a *CreateVPCAndRolesAction) ExecuteAction(input interface{}) (interface{},
 	return nil, nil
 }
 
-// UndoAction rolls back this CreateVPCAndRolesAction
-func (a *CreateVPCAndRolesAction) UndoAction() (err error) {
-	a.log.Infoln("EXECUTE UNDO CreateVPCAndRolesAction, deleting stack:", a.stackName)
+// UndoAction rolls back this CreateVPCAction
+func (a *CreateVPCAction) UndoAction() (err error) {
+	a.log.Infoln("EXECUTE UNDO CreateVPCAction, deleting stack:", a.stackName)
 	cloudformationSrv := cloudformation.New(a.context.Session)
 	deleteStackInput := &cloudformation.DeleteStackInput{
 		ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),

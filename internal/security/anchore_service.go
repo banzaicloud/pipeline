@@ -20,7 +20,6 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -254,7 +253,7 @@ func (a anchoreService) storeCredentialsSecret(ctx context.Context, orgID uint, 
 			"password": password,
 		},
 		Tags: []string{
-			secretTypes.TagBanzaiHidden,
+			secret.TagBanzaiHidden,
 		},
 	}
 

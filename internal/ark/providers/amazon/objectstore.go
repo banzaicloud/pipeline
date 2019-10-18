@@ -20,9 +20,9 @@ import (
 	"github.com/heptio/ark/pkg/cloudprovider"
 
 	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/objectstore"
 	amazonObjectstore "github.com/banzaicloud/pipeline/pkg/providers/amazon/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 type objectStore struct {
@@ -37,8 +37,8 @@ func NewObjectStore(ctx providers.ObjectStoreContext) (cloudprovider.ObjectStore
 	}
 
 	credentials := amazonObjectstore.Credentials{
-		AccessKeyID:     ctx.Secret.Values[pkgSecret.AwsAccessKeyId],
-		SecretAccessKey: ctx.Secret.Values[pkgSecret.AwsSecretAccessKey],
+		AccessKeyID:     ctx.Secret.Values[secrettype.AwsAccessKeyId],
+		SecretAccessKey: ctx.Secret.Values[secrettype.AwsSecretAccessKey],
 	}
 
 	os, err := amazonObjectstore.New(config, credentials)

@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package secret
-
-import (
-	"github.com/banzaicloud/pipeline/pkg/cluster"
-)
+package secrettype
 
 // FieldMeta describes how a secret field should be validated
 type FieldMeta struct {
@@ -28,9 +24,19 @@ type FieldMeta struct {
 
 // Meta describes how a secret is built up and how it should be sourced
 type Meta struct {
-	Fields   []FieldMeta    `json:"fields"`
-	Sourcing SourcingMethod `json:"sourcing"`
+	Fields []FieldMeta `json:"fields"`
 }
+
+// Cloud constants
+const (
+	Alibaba    = "alibaba"
+	Amazon     = "amazon"
+	Azure      = "azure"
+	Google     = "google"
+	Dummy      = "dummy"
+	Kubernetes = "kubernetes"
+	Oracle     = "oracle"
+)
 
 // Alibaba keys
 const (
@@ -161,19 +167,6 @@ const (
 	VaultToken = "token"
 )
 
-// Internal usage
-const (
-	TagKubeConfig     = "KubeConfig"
-	TagBanzaiHidden   = "banzai:hidden"
-	TagBanzaiReadonly = "banzai:readonly"
-)
-
-// ForbiddenTags are not supported in secret creation
-// nolint: gochecknoglobals
-var ForbiddenTags = []string{
-	TagKubeConfig,
-}
-
 const (
 	// GenericSecret represents generic secret types, without schema
 	GenericSecret = "generic"
@@ -202,32 +195,29 @@ const (
 // DefaultRules key matching for types
 // nolint: gochecknoglobals
 var DefaultRules = map[string]Meta{
-	cluster.Alibaba: {
+	Alibaba: {
 		Fields: []FieldMeta{
 			{Name: AlibabaRegion, Required: false, Description: "Alibaba Cloud region"},
 			{Name: AlibabaAccessKeyId, Required: true, Description: "Your Alibaba Cloud access key id"},
 			{Name: AlibabaSecretAccessKey, Required: true, Description: "Your Alibaba Cloud secret access key id"},
 		},
-		Sourcing: EnvVar,
 	},
-	cluster.Amazon: {
+	Amazon: {
 		Fields: []FieldMeta{
 			{Name: AwsRegion, Required: false, Description: "Amazon Cloud region"},
 			{Name: AwsAccessKeyId, Required: true, Description: "Your Amazon Cloud access key id"},
 			{Name: AwsSecretAccessKey, Required: true, Description: "Your Amazon Cloud secret access key id"},
 		},
-		Sourcing: EnvVar,
 	},
-	cluster.Azure: {
+	Azure: {
 		Fields: []FieldMeta{
 			{Name: AzureClientID, Required: true, Description: "Your application client id"},
 			{Name: AzureClientSecret, Required: true, Description: "Your client secret id"},
 			{Name: AzureTenantID, Required: true, Description: "Your tenant id"},
 			{Name: AzureSubscriptionID, Required: true, Description: "Your subscription id"},
 		},
-		Sourcing: EnvVar,
 	},
-	cluster.Google: {
+	Google: {
 		Fields: []FieldMeta{
 			{Name: Type, Required: true, Description: "service_account"},
 			{Name: ProjectId, Required: true, Description: "Google Could Project Id. Find more about, Google Cloud secret fields here: https://beta.banzaicloud.io/docs/cloud-provider-credentials/google/gke_auth_credentials/#method-2-command-line"},
@@ -240,15 +230,13 @@ var DefaultRules = map[string]Meta{
 			{Name: AuthX509Url, Required: true, Description: "OAuth2 provider ceritficate URL"},
 			{Name: ClientX509Url, Required: true, Description: "OAuth2 client ceritficate URL"},
 		},
-		Sourcing: EnvVar,
 	},
-	cluster.Kubernetes: {
+	Kubernetes: {
 		Fields: []FieldMeta{
 			{Name: K8SConfig, Required: true},
 		},
-		Sourcing: Volume,
 	},
-	cluster.Oracle: {
+	Oracle: {
 		Fields: []FieldMeta{
 			{Name: OracleUserOCID, Required: true, Description: "Your Oracle user OCID. Find more about, generating public key and fingerprint here: https://beta.banzaicloud.io/docs/cloud-provider-credentials/oracle/oke_auth_credentials/#generate-api-token"},
 			{Name: OracleTenancyOCID, Required: true, Description: "Your tenancy OCID"},
@@ -266,7 +254,6 @@ var DefaultRules = map[string]Meta{
 			{Name: PublicKeyFingerprint, Required: true},
 			{Name: PrivateKeyData, Required: true},
 		},
-		Sourcing: Volume,
 	},
 	TLSSecretType: {
 		Fields: []FieldMeta{
@@ -281,7 +268,6 @@ var DefaultRules = map[string]Meta{
 			{Name: PeerKey, Required: false},
 			{Name: PeerCert, Required: false},
 		},
-		Sourcing: Volume,
 	},
 	PKESecretType: {
 		Fields: []FieldMeta{
@@ -300,24 +286,20 @@ var DefaultRules = map[string]Meta{
 			{Name: SAPub, Required: false},
 			{Name: SAKey, Required: false},
 		},
-		Sourcing: Volume,
 	},
 	GenericSecret: {
-		Fields:   []FieldMeta{},
-		Sourcing: EnvVar,
+		Fields: []FieldMeta{},
 	},
 	FnSecretType: {
 		Fields: []FieldMeta{
 			{Name: MasterToken, Required: true},
 		},
-		Sourcing: EnvVar,
 	},
 	PasswordSecretType: {
 		Fields: []FieldMeta{
 			{Name: Username, Required: true, Description: "Your username"},
 			{Name: Password, Required: false, Description: "Your password"},
 		},
-		Sourcing: EnvVar,
 	},
 	HtpasswdSecretType: {
 		Fields: []FieldMeta{
@@ -325,7 +307,6 @@ var DefaultRules = map[string]Meta{
 			{Name: Password, Required: false, Opaque: true, Description: "Your password"},
 			{Name: HtpasswdFile, Required: false},
 		},
-		Sourcing: Volume,
 	},
 	CloudFlareSecretType: {
 		Fields: []FieldMeta{
@@ -343,34 +324,4 @@ var DefaultRules = map[string]Meta{
 			{Name: VaultToken, Required: true, Opaque: true, Description: "Token for Vault"},
 		},
 	},
-}
-
-// ListSecretsQuery represent a secret listing filter
-type ListSecretsQuery struct {
-	Type   string   `form:"type" json:"type"`
-	IDs    []string `form:"ids" json:"ids"`
-	Tags   []string `form:"tags" json:"tags"`
-	Values bool     `form:"values" json:"values"`
-}
-
-// InstallSecretsToClusterRequest describes an InstallSecretToCluster request
-type InstallSecretsToClusterRequest struct {
-	Namespace string           `json:"namespace" binding:"required"`
-	Query     ListSecretsQuery `json:"query" binding:"required"`
-}
-
-// SourcingMethod describes how an installed Secret should be sourced into a Pod in K8S
-type SourcingMethod string
-
-const (
-	// EnvVar means the secret has to be sources an an env var
-	EnvVar SourcingMethod = "env"
-	// Volume means the secret has to be mounted an a volume
-	Volume SourcingMethod = "volume"
-)
-
-// K8SSourceMeta describes which and how installed Secret should be sourced into a Pod in K8S
-type K8SSourceMeta struct {
-	Name     string         `json:"name"`
-	Sourcing SourcingMethod `json:"sourcing"`
 }

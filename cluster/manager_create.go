@@ -26,8 +26,8 @@ import (
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -113,7 +113,7 @@ func (m *Manager) CreateCluster(ctx context.Context, creationCtx CreationContext
 			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, pkgCluster.Amazon) == nil {
 				c.model.Cluster.SecretID = secretID
 			}
-			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, secretTypes.SSHSecretType) == nil {
+			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, secrettype.SSHSecretType) == nil {
 				c.model.Cluster.SSHSecretID = secretID
 			}
 			if m.secrets.ValidateSecretType(creationCtx.OrganizationID, secretID, pkgCluster.Kubernetes) == nil {

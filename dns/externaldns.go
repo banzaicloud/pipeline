@@ -24,7 +24,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns/route53"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -92,9 +92,9 @@ func newExternalDnsServiceClientInstance() {
 	}
 
 	awsCredentials := cast.ToStringMapString(secret.Data["data"])
-	region := awsCredentials[secretTypes.AwsRegion]
-	awsSecretId := awsCredentials[secretTypes.AwsAccessKeyId]
-	awsSecretKey := awsCredentials[secretTypes.AwsSecretAccessKey]
+	region := awsCredentials[secrettype.AwsRegion]
+	awsSecretId := awsCredentials[secrettype.AwsAccessKeyId]
+	awsSecretKey := awsCredentials[secrettype.AwsSecretAccessKey]
 
 	if len(region) == 0 || len(awsSecretId) == 0 || len(awsSecretKey) == 0 {
 		log.Infoln("No AWS credentials for Route53 provided in Vault")
