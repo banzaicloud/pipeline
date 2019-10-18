@@ -70,6 +70,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokenadapter"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokendriver"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap/capdriver"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype/secrettypedriver"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
@@ -824,8 +826,45 @@ func main() {
 			v1.Any("/tokens/*path", handler)
 		}
 
-		v1.GET("/allowed/secrets", api.ListAllowedSecretTypes)
-		v1.GET("/allowed/secrets/:type", api.ListAllowedSecretTypes)
+		{
+			logger := commonLogger.WithFields(map[string]interface{}{"module": "secret"})
+			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "secret"))
+
+			router := mux.NewRouter()
+			router.Use(ocmux.Middleware())
+
+			service := secrettype.NewTypeService()
+			endpoints := secrettypedriver.TraceEndpoints(secrettypedriver.MakeEndpoints(
+				service,
+				kitxendpoint.Chain(endpointMiddleware...),
+				appkit.EndpointLogger(logger),
+			))
+
+			secrettypedriver.RegisterHTTPHandlers(
+				endpoints,
+				router.PathPrefix("/secret-types").Subrouter(),
+				kitxhttp.ServerOptions(httpServerOptions),
+				kithttp.ServerErrorHandler(errorHandler),
+			)
+
+			handler := gin.WrapH(http.StripPrefix(path.Join(basePath, "api/v1"), router))
+			v1.Any("/secret-types", handler)
+			v1.Any("/secret-types/*path", handler)
+
+			// Compatibility routes
+			{
+				secrettypedriver.RegisterHTTPHandlers(
+					endpoints,
+					router.PathPrefix("/secrets").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(errorHandler),
+				)
+
+				handler := gin.WrapH(http.StripPrefix(path.Join(basePath, "api/v1/allowed"), router))
+				v1.GET("/allowed/secrets", handler)
+				v1.GET("/allowed/secrets/*path", handler)
+			}
+		}
 
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
 		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"))

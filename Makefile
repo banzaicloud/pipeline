@@ -244,7 +244,7 @@ generate-openapi: validate-openapi ## Generate go server based on openapi descri
 	-g go-server \
 	-o /local/.gen/pipeline
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
-	rm .gen/pipeline/Dockerfile .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
+	rm .gen/pipeline/Dockerfile .gen/pipeline/README.md .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
 	mv .gen/pipeline/go .gen/pipeline/pipeline
 
 define generate_openapi_client

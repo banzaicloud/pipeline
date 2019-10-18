@@ -2728,6 +2728,66 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 500:
                     $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/secret-types':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - secrets
+            summary: List secret types
+            operationId: ListSecretTypes
+            description: List secret types definitions
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                example:
+                                    tls:
+                                        fields:
+                                            -
+                                                name: hosts
+                                                required: true
+                                            -
+                                                name: validity
+                                                required: false
+                                additionalProperties:
+                                    $ref: '#/components/schemas/SecretTypeResponse'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
+
+    '/api/v1/secret-types/{type}':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - secrets
+            summary: Get a specific secret type
+            operationId: GetSecretType
+            description: Get a specific secret type and describe it's fields
+            parameters:
+                -
+                    name: type
+                    in: path
+                    required: true
+                    description:  Secret type
+                    schema:
+                        type: string
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SecretTypeResponse'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
+                404:
+                    $ref: '#/components/responses/NotFound'
+
     '/api/v1/allowed/secrets':
         get:
             security:
@@ -2736,6 +2796,7 @@ paths:
             tags:
                 - secrets
             summary: List allowed secret types
+            deprecated: true
             operationId: AllowedSecretsTypes
             description: List allowed secret types and their required keys
             responses:
@@ -2768,6 +2829,7 @@ paths:
             tags:
                 - secrets
             summary: List required keys
+            deprecated: true
             operationId: AllowedSecretsTypesKeys
             description: List required keys in the given secret type
             parameters:
@@ -8775,6 +8837,21 @@ components:
                 error:
                     type: string
                     example: "Organization not found"
+
+        SecretTypeResponse:
+            type: object
+            properties:
+                fields:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+                            required:
+                                type: boolean
+                            description:
+                                type: string
 
         AllowedSecretTypeResponse:
             type: object

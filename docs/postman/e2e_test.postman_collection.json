@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "be0fa0aa-7704-4f76-b9b0-a0570bd670b7",
+		"_postman_id": "8dfdefcb-60f3-43ba-bf9b-dcf551e7166c",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -7409,9 +7409,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										}
 									]
 								}
@@ -7438,9 +7438,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										},
 										{
 											"key": "secretIdVault",
@@ -7495,9 +7495,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										},
 										{
 											"key": "secretIdVault",
@@ -7568,9 +7568,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										}
 									]
 								}
@@ -7597,9 +7597,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										},
 										{
 											"key": "secretIdSlack",
@@ -7654,9 +7654,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										},
 										{
 											"key": "secretIdSlack",
@@ -7727,9 +7727,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										}
 									]
 								}
@@ -7756,9 +7756,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										},
 										{
 											"key": "secretIdPagerDuty",
@@ -7813,9 +7813,9 @@
 									],
 									"variable": [
 										{
-											"description": "Organization identifier",
 											"key": "orgId",
-											"value": "{{orgId}}"
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
 										},
 										{
 											"key": "secretIdPagerDuty",
@@ -7904,29 +7904,19 @@
 					"response": []
 				},
 				{
-					"name": "List allowed secret types and required keys",
+					"name": "List secret types",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/allowed/secrets",
+							"raw": "{{url}}/api/v1/secret-types",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
 								"v1",
-								"orgs",
-								":orgId",
-								"allowed",
-								"secrets"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
+								"secret-types"
 							]
 						}
 					},
