@@ -230,7 +230,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during listing clusters
         401:
           content:
@@ -336,7 +336,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting cluster bootstrap
       security:
       - bearerAuth: []
@@ -384,7 +384,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during deleting cluster
         401:
           content:
@@ -440,7 +440,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting cluster details
         401:
           content:
@@ -526,7 +526,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during updating cluster
         401:
           content:
@@ -577,7 +577,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting cluster details
         401:
           content:
@@ -663,7 +663,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting config file
         401:
           content:
@@ -714,7 +714,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting config file
         401:
           content:
@@ -766,7 +766,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting API endpoint
         401:
           content:
@@ -859,7 +859,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting endpoints
         401:
           content:
@@ -916,7 +916,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting endpoints
         401:
           content:
@@ -979,7 +979,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting endpoints
         401:
           content:
@@ -1040,7 +1040,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during listing secrets
         401:
           content:
@@ -1104,7 +1104,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting endpoints
         401:
           content:
@@ -1169,7 +1169,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: invalid request
         401:
           content:
@@ -1233,7 +1233,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: invalid request
         401:
           content:
@@ -1451,7 +1451,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Policy not found to delete
         500:
           content:
@@ -1587,7 +1587,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting endpoints
         401:
           content:
@@ -1635,7 +1635,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error adding Helm repo
         401:
           content:
@@ -1686,7 +1686,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: error deleting Helm repos
         401:
           content:
@@ -1742,7 +1742,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: repo modification failed
         401:
           content:
@@ -1793,7 +1793,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: repo modification failed
         401:
           content:
@@ -1859,7 +1859,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: error parsing request
         401:
           content:
@@ -1925,7 +1925,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: error parsing request
         401:
           content:
@@ -1984,7 +1984,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting endpoints
         401:
           content:
@@ -2080,7 +2080,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during creating deployment
         404:
           content:
@@ -2237,7 +2237,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during delete deployment
         401:
           content:
@@ -2303,7 +2303,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -2415,7 +2415,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during creating deployment
         404:
           content:
@@ -2476,7 +2476,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -2535,7 +2535,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -2596,7 +2596,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during creating deployment
         404:
           content:
@@ -2648,7 +2648,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -2706,7 +2706,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during creating deployment
         404:
           content:
@@ -2878,7 +2878,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during listing secrets
         401:
           content:
@@ -2928,7 +2928,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during adding secrets
         401:
           content:
@@ -3003,7 +3003,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during listing secret types
         401:
           content:
@@ -3044,7 +3044,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during deleting secrets
         401:
           content:
@@ -3094,7 +3094,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting secret
         401:
           content:
@@ -3164,7 +3164,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during updating secrets
         401:
           content:
@@ -3223,7 +3223,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting secret
         401:
           content:
@@ -3335,7 +3335,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -3399,7 +3399,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -3448,7 +3448,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting organization
         401:
           content:
@@ -3484,7 +3484,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during listing organizations
         401:
           content:
@@ -3678,7 +3678,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during listing resource groups
         401:
           content:
@@ -3720,7 +3720,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during listing resource groups
         401:
           content:
@@ -3769,7 +3769,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during listing resource groups
         401:
           content:
@@ -3840,7 +3840,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -3896,7 +3896,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error while creating storage bucket
         500:
           content:
@@ -4001,7 +4001,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error while deleting storage bucket
         404:
           description: Object store bucket not found
@@ -4274,7 +4274,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -4365,7 +4365,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -4458,7 +4458,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -4511,7 +4511,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting cluster details
         401:
           content:
@@ -4570,7 +4570,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting cluster details
         401:
           content:
@@ -5096,7 +5096,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during deleting namespace
         401:
           content:
@@ -5205,7 +5205,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5256,7 +5256,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5368,7 +5368,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5416,7 +5416,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5467,7 +5467,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5517,7 +5517,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5556,7 +5556,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5593,7 +5593,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5632,7 +5632,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5677,7 +5677,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5733,7 +5733,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5780,7 +5780,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5839,7 +5839,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5897,7 +5897,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -5960,7 +5960,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6020,7 +6020,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6071,7 +6071,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6127,7 +6127,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6186,7 +6186,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6244,7 +6244,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6295,7 +6295,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6351,7 +6351,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6398,7 +6398,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6457,7 +6457,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6515,7 +6515,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -6574,7 +6574,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during processing request
         401:
           content:
@@ -7578,7 +7578,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -7643,7 +7643,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Bad request
         401:
           content:
@@ -7700,7 +7700,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_400'
+                $ref: '#/components/schemas/ClientError'
           description: Error during getting nodepool labels
         401:
           content:
@@ -7735,6 +7735,40 @@ components:
       description: Feature properties
       required: true
   schemas:
+    BaseError:
+      properties:
+        code:
+          example: 400
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+      type: object
+    ClientError:
+      properties:
+        code:
+          example: 400
+          type: integer
+        message:
+          example: Error during process
+          type: string
+        error:
+          example: Error during process
+          type: string
+      type: object
+    BaseError_500:
+      properties:
+        code:
+          example: 500
+          type: integer
+        message:
+          example: Error during process
+          type: string
+        error:
+          example: Error during process
+          type: string
+      type: object
     VersionResponse:
       description: Pipeline build and deployment info
       example:
@@ -8656,40 +8690,6 @@ components:
           type: string
         error:
           example: Invalid version
-          type: string
-      type: object
-    BaseError:
-      properties:
-        code:
-          example: 400
-          type: integer
-        message:
-          type: string
-        error:
-          type: string
-      type: object
-    BaseError_400:
-      properties:
-        code:
-          example: 400
-          type: integer
-        message:
-          example: Error during process
-          type: string
-        error:
-          example: Error during process
-          type: string
-      type: object
-    BaseError_500:
-      properties:
-        code:
-          example: 500
-          type: integer
-        message:
-          example: Error during process
-          type: string
-        error:
-          example: Error during process
           type: string
       type: object
     HelmNotFound:
@@ -12129,6 +12129,11 @@ components:
             the EKS nodes. If not provided a new IAM role is created for the nodes
             (requires IAM Write Access).
           type: string
+        defaultUser:
+          default: false
+          description: Marks if the userid associated with the clusters AWS secret
+            has to be used in kubeconfig (bypasses IAM user creation).
+          type: boolean
       type: object
     GetClusterBootstrapResponse:
       example:

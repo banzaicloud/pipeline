@@ -325,7 +325,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -369,7 +369,7 @@ paths:
                         content:
                             application/json:
                                 schema:
-                                    $ref: '#/components/schemas/BaseError_400'
+                                    $ref: '#/components/schemas/ClientError'
     '/api/v1/orgs/{orgId}/clusters/{id}':
         get:
             security:
@@ -407,7 +407,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -453,7 +453,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -520,7 +520,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -611,7 +611,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -698,7 +698,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -749,7 +749,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -801,7 +801,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -893,7 +893,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -950,7 +950,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1008,7 +1008,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1075,7 +1075,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1132,7 +1132,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1204,7 +1204,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "unauthorized"
                     content:
@@ -1275,7 +1275,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "unauthorized"
                     content:
@@ -1572,7 +1572,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_400"
+                                $ref: "#/components/schemas/ClientError"
                 500:
                     description: Internal Error
                     content:
@@ -1611,7 +1611,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1654,7 +1654,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1711,7 +1711,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1767,7 +1767,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1818,7 +1818,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1884,7 +1884,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -1951,7 +1951,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -2010,7 +2010,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -2071,7 +2071,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '404':
                     description: "Cluster not found"
                     content:
@@ -2258,7 +2258,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -2327,7 +2327,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '404':
                     description: "Cluster not found"
                     content:
@@ -2425,7 +2425,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -2490,7 +2490,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -2548,7 +2548,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -2607,7 +2607,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '404':
                     description: "Cluster not found"
                     content:
@@ -2660,7 +2660,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '404':
                     description: "Cluster not found"
                     content:
@@ -2711,7 +2711,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -2883,7 +2883,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -2932,7 +2932,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3012,7 +3012,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3057,7 +3057,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3125,7 +3125,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3182,7 +3182,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3230,7 +3230,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3345,7 +3345,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3403,7 +3403,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3453,7 +3453,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3491,7 +3491,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -3694,7 +3694,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -3737,7 +3737,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -3785,7 +3785,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -3846,7 +3846,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -3894,7 +3894,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '500':
                     description: Internal server error
                     content:
@@ -3987,7 +3987,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '404':
                     description: Object store bucket not found
                 '500':
@@ -4210,7 +4210,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -4290,7 +4290,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -4372,7 +4372,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -4426,7 +4426,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -4484,7 +4484,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -5007,7 +5007,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: Unauthorized
                     content:
@@ -5090,7 +5090,7 @@ paths:
                     content: { application/json: { schema: { $ref: '#/components/schemas/EnableARKResponse' } } }
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5124,7 +5124,7 @@ paths:
                                 $ref: '#/components/schemas/DisableARKResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5192,7 +5192,7 @@ paths:
                                 $ref: '#/components/schemas/CreateBackupBucketResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5224,7 +5224,7 @@ paths:
                                 $ref: '#/components/schemas/ListBackupBucketsResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5252,7 +5252,7 @@ paths:
                                 $ref: '#/components/schemas/GetBackupBucketResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5279,7 +5279,7 @@ paths:
                                 $ref: '#/components/schemas/DeleteBackupBucketResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5302,7 +5302,7 @@ paths:
                     description: Backup buckets synced successfully
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5326,7 +5326,7 @@ paths:
                                 $ref: '#/components/schemas/ListBackupsResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5349,7 +5349,7 @@ paths:
                     description: Backups synced successfully
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5374,7 +5374,7 @@ paths:
                                 $ref: '#/components/schemas/CreateBackupResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5407,7 +5407,7 @@ paths:
                                 $ref: '#/components/schemas/ListBackupsResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5431,7 +5431,7 @@ paths:
                     description: Backups synced successfully
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5460,7 +5460,7 @@ paths:
                                 $ref: '#/components/schemas/GetBackupResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5488,7 +5488,7 @@ paths:
                                 $ref: '#/components/schemas/DeleteBackupResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5523,7 +5523,7 @@ paths:
                                     time="2018-09-10T00:23:33Z" level=info msg="Not including resource"
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5553,7 +5553,7 @@ paths:
                                 format: file
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5581,7 +5581,7 @@ paths:
                                 $ref: '#/components/schemas/CreateScheduleResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5611,7 +5611,7 @@ paths:
                     content: { application/json: { schema: { $ref: '#/components/schemas/ListSchedulesResponse' } } }
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5640,7 +5640,7 @@ paths:
                                 $ref: '#/components/schemas/ScheduleResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5668,7 +5668,7 @@ paths:
                                 $ref: '#/components/schemas/DeleteScheduleResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5696,7 +5696,7 @@ paths:
                                 $ref: '#/components/schemas/CreateRestoreResponse'
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5726,7 +5726,7 @@ paths:
                     content: { application/json: { schema: { $ref: '#/components/schemas/ListRestoresResponse' } } }
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5750,7 +5750,7 @@ paths:
                     description: Restores synced successfully
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5775,7 +5775,7 @@ paths:
                     content: { application/json: { schema: { $ref: '#/components/schemas/GetRestoreResponse' } } }
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5800,7 +5800,7 @@ paths:
                     content: { application/json: { schema: { $ref: '#/components/schemas/DeleteRestoreResponse' } } }
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -5825,7 +5825,7 @@ paths:
                     content: { application/json: { schema: { $ref: '#/components/schemas/GetRestoreResultsResponse' } } }
                 '400':
                     description: Error during processing request
-                    content: { application/json: { schema: { $ref: '#/components/schemas/BaseError_400' } } }
+                    content: { application/json: { schema: { $ref: '#/components/schemas/ClientError' } } }
                 '401':
                     description: Unauthorized
                     content: { application/json: { schema: { $ref: '#/components/schemas/Unauthorized' } } }
@@ -6692,7 +6692,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_400"
+                                $ref: "#/components/schemas/ClientError"
                 "401":
                     description: Unauthorized
                     content:
@@ -6816,7 +6816,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_400"
+                                $ref: "#/components/schemas/ClientError"
                 "401":
                     description: Unauthorized
                     content:
@@ -6877,7 +6877,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_400'
+                                $ref: '#/components/schemas/ClientError'
                 '401':
                     description: "Unauthorized"
                     content:
@@ -6926,7 +6926,7 @@ components:
                 error:
                     type: string
 
-        BaseError_400:
+        ClientError:
             type: object
             properties:
                 code:
