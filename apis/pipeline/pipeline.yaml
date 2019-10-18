@@ -1397,11 +1397,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/PolicyBundleRecord"
                 500:
-                    description: Internal Error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId}':
         get:
@@ -1446,11 +1442,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/PolicyBundleList"
                 500:
-                    description: Internal Error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
+                    $ref: '#/components/responses/InternalServerError'
         put:
             tags:
                 - policies
@@ -1492,11 +1484,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/PolicyBundleList"
                 500:
-                    description: Internal Error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
+                    $ref: '#/components/responses/InternalServerError'
         delete:
             tags:
                 - policies
@@ -1534,12 +1522,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ClientError"
                 500:
-                    description: Internal Error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
-
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/helm/repos':
         get:
@@ -6573,35 +6556,44 @@ components:
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/ClientError'
+                        $ref: '#/components/schemas/CommonError'
+                    examples:
+                        InvalidToken:
+                            value:
+                                code: 401
+                                message: "Invalid token"
+                                error: "token contains an invalid number of segments"
 
         InternalServerError:
             description: Internal server error
             content:
                 application/json:
                     schema:
-                        $ref: '#/components/schemas/ServerError'
+                        $ref: '#/components/schemas/CommonError'
+                    examples:
+                        SomethingWentWrong:
+                            value:
+                                code: 500
+                                message: Something went wrong
+                                error: Something went wrong
 
     schemas:
+        CommonError:
+            type: object
+            properties:
+                code:
+                    type: integer
+                message:
+                    type: string
+                error:
+                    type: string
+
         ClientError:
             type: object
             properties:
                 code:
                     type: integer
                     example: 400
-                message:
-                    type: string
-                    example: "Error during process"
-                error:
-                    type: string
-                    example: "Error during process"
-
-        ServerError:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 500
                 message:
                     type: string
                     example: "Error during process"

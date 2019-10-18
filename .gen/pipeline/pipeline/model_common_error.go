@@ -10,7 +10,7 @@
 
 package pipeline
 
-type ServerError struct {
+type CommonError struct {
 
 	Code int32 `json:"code,omitempty"`
 
