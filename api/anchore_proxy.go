@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/banzaicloud/pipeline/internal/common"
@@ -105,8 +106,11 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 			}
 		}
 
-		modifyResponse := func(*http.Response) error {
-			// todo implement me
+		modifyResponse := func(resp *http.Response) error {
+			// handle individual error codes here
+			if resp.StatusCode == http.StatusUnauthorized {
+				return errors.NewWithDetails("authorization faild (Anchore)", "orgID", orgIDStr, "clusterID", clusterIDStr)
+			}
 			return nil
 		}
 
@@ -114,6 +118,7 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 			Director:       director,
 			ModifyResponse: modifyResponse,
 		}
+
 		proxy.ServeHTTP(c.Writer, c.Request)
 	}
 }
@@ -122,11 +127,11 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 func (ap AnchoreProxy) getProxyPath(sourcePath string, orgID string, clusterID string) string {
 	prefixToTrim := fmt.Sprintf("%s/api/v1/orgs/%s/clusters/%s/", ap.basePath, orgID, clusterID)
 
-	return ap.adaptImageScanResourcePath(strings.TrimPrefix(sourcePath, prefixToTrim))
+	return ap.adaptToAnchoreResourcePath(strings.TrimPrefix(sourcePath, prefixToTrim))
 }
 
-// adaptImageScanResourcePath adapts the pipeline resources to the anchore ones
-func (ap AnchoreProxy) adaptImageScanResourcePath(proxyPath string) string {
+// adaptToAnchoreResourcePath adapts the pipeline resources to the anchore ones
+func (ap AnchoreProxy) adaptToAnchoreResourcePath(proxyPath string) string {
 
 	// pipeline resource -> anchore resource
 	pathaDaptors := map[string]string{
