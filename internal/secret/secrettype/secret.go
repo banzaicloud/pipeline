@@ -174,7 +174,6 @@ const (
 
 // PagerDuty keys
 const (
-	PagerDutyUrl            = "url"
 	PagerDutyIntegrationKey = "integrationKey"
 )
 
@@ -346,7 +345,6 @@ var DefaultRules = map[string]Meta{
 	},
 	PagerDutySecretType: {
 		Fields: []FieldMeta{
-			{Name: PagerDutyUrl, Required: true, Opaque: true, Description: "PagerDuty service endpoint"},
 			{Name: PagerDutyIntegrationKey, Required: true, Opaque: true, Description: "The PagerDuty integration key"},
 		},
 	},
