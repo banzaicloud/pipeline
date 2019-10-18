@@ -54,38 +54,6 @@ func TestIsValidSecretType(t *testing.T) {
 
 }
 
-func TestListAllowedSecretTypes(t *testing.T) {
-
-	cases := []struct {
-		name             string
-		secretType       string
-		expectedResponse interface{}
-		error
-	}{
-		{name: "List all allowed secret types", secretType: "", expectedResponse: allAllowedTypes, error: nil},
-		{name: "List aws required keys", secretType: clusterTypes.Amazon, expectedResponse: awsRequiredKeys, error: nil},
-		{name: "List aks required keys", secretType: clusterTypes.Azure, expectedResponse: aksRequiredKeys, error: nil},
-		{name: "List gke required keys", secretType: clusterTypes.Google, expectedResponse: gkeRequiredKeys, error: nil},
-		{name: "List oci required keys", secretType: clusterTypes.Oracle, expectedResponse: OCIRequiredKeys, error: nil},
-		{name: "Invalid secret type", secretType: invalidSecretType, expectedResponse: nil, error: api.ErrNotSupportedSecretType},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if response, err := api.GetAllowedTypes(tc.secretType); err != nil {
-				if !reflect.DeepEqual(tc.error, err) {
-					t.Errorf("Error during listing allowed types: %s", err.Error())
-				}
-			} else {
-				if !reflect.DeepEqual(tc.expectedResponse, response) {
-					t.Errorf("Expected response: %v, but got: %v", tc.expectedResponse, response)
-				}
-			}
-		})
-	}
-
-}
-
 func TestAddSecret(t *testing.T) {
 
 	cases := []struct {
@@ -447,17 +415,4 @@ var (
 			Version: 1,
 		},
 	}
-)
-
-// nolint: gochecknoglobals
-var (
-	allAllowedTypes = secrettype.DefaultRules
-
-	awsRequiredKeys = secrettype.DefaultRules[clusterTypes.Amazon]
-
-	aksRequiredKeys = secrettype.DefaultRules[clusterTypes.Azure]
-
-	gkeRequiredKeys = secrettype.DefaultRules[clusterTypes.Google]
-
-	OCIRequiredKeys = secrettype.DefaultRules[clusterTypes.Oracle]
 )

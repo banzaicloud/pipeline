@@ -10,11 +10,7 @@
 
 package pipeline
 
-type AllowedSecretTypeResponseFields struct {
+type SecretTypeResponse struct {
 
-	Name string `json:"name,omitempty"`
-
-	Required bool `json:"required,omitempty"`
-
-	Description string `json:"description,omitempty"`
+	Fields []SecretTypeResponseFields `json:"fields,omitempty"`
 }

@@ -3271,8 +3271,95 @@ paths:
       summary: Add secrets
       tags:
       - secrets
+  /api/v1/secret-types:
+    get:
+      description: List secret types definitions
+      operationId: ListSecretTypes
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  $ref: '#/components/schemas/SecretTypeResponse'
+                example:
+                  tls:
+                    fields:
+                    - name: hosts
+                      required: true
+                    - name: validity
+                      required: false
+                type: object
+          description: Success
+        401:
+          content:
+            application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Unauthorized
+      security:
+      - bearerAuth: []
+      summary: List secret types
+      tags:
+      - secrets
+  /api/v1/secret-types/{type}:
+    get:
+      description: Get a specific secret type and describe it's fields
+      operationId: GetSecretType
+      parameters:
+      - description: Secret type
+        explode: false
+        in: path
+        name: type
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecretTypeResponse'
+          description: Success
+        401:
+          content:
+            application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 404
+                    message: Not found
+                    error: resource not found
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Not found
+      security:
+      - bearerAuth: []
+      summary: Get a specific secret type
+      tags:
+      - secrets
   /api/v1/allowed/secrets:
     get:
+      deprecated: true
       description: List allowed secret types and their required keys
       operationId: AllowedSecretsTypes
       responses:
@@ -3311,6 +3398,7 @@ paths:
       - secrets
   /api/v1/allowed/secrets/{type}:
     get:
+      deprecated: true
       description: List required keys in the given secret type
       operationId: AllowedSecretsTypesKeys
       parameters:
@@ -11347,6 +11435,21 @@ components:
           example: Organization not found
           type: string
       type: object
+    SecretTypeResponse:
+      example:
+        fields:
+        - name: name
+          description: description
+          required: true
+        - name: name
+          description: description
+          required: true
+      properties:
+        fields:
+          items:
+            $ref: '#/components/schemas/SecretTypeResponse_fields'
+          type: array
+      type: object
     AllowedSecretTypeResponse:
       example:
         fields:
@@ -11360,7 +11463,7 @@ components:
       properties:
         fields:
           items:
-            $ref: '#/components/schemas/AllowedSecretTypeResponse_fields'
+            $ref: '#/components/schemas/SecretTypeResponse_fields'
           type: array
         sourcing:
           enum:
@@ -15124,7 +15227,7 @@ components:
           items:
             type: string
           type: array
-    AllowedSecretTypeResponse_fields:
+    SecretTypeResponse_fields:
       example:
         name: name
         description: description

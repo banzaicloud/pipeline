@@ -531,39 +531,6 @@ func DeleteSecretTag(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// ListAllowedSecretTypes returns the allowed secret types and the required keys
-func ListAllowedSecretTypes(c *gin.Context) {
-
-	log.Info("Start listing allowed types and required keys")
-
-	secretType := c.Param("type")
-	log.Infof("Secret type: %s", secretType)
-
-	if response, err := GetAllowedTypes(secretType); err != nil {
-		log.Errorf("Error during listing allowed types: %s", err.Error())
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error during listing allowed types",
-			Error:   err.Error(),
-		})
-	} else {
-		c.JSON(http.StatusOK, response)
-	}
-}
-
-// GetAllowedTypes filters the allowed secret types if necessary
-func GetAllowedTypes(secretType string) (interface{}, error) {
-	if len(secretType) == 0 {
-		log.Info("List all types and keys")
-		return secrettype.DefaultRules, nil
-	} else if err := IsValidSecretType(secretType); err != nil {
-		return nil, err
-	} else {
-		log.Info("Valid secret type. List filtered secret types")
-		return secrettype.DefaultRules[secretType], nil
-	}
-}
-
 // IsValidSecretType checks the given secret type is supported
 func IsValidSecretType(secretType string) error {
 	if len(secretType) != 0 {
