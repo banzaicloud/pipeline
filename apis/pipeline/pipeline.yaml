@@ -513,12 +513,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
         head:
             security:
@@ -882,12 +878,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/nodes':
         get:
@@ -939,12 +931,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
 
     '/api/v1/orgs/{orgId}/clusters/{id}/helminit':
@@ -1064,12 +1052,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
         post:
             security:
                 -
@@ -2408,12 +2392,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources':
         get:
@@ -2473,12 +2453,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images':
         get:
@@ -2531,12 +2507,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/hpa':
         put:
@@ -2694,12 +2666,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     /api/v1/tokens:
         get:
@@ -2722,12 +2690,8 @@ paths:
                                     $ref: '#/components/schemas/TokenListResponseItem'
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
         post:
             security:
                 -
@@ -2752,12 +2716,8 @@ paths:
                                 $ref: '#/components/schemas/TokenCreateResponse'
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     /api/v1/tokens/{tokenId}:
         delete:
@@ -2783,12 +2743,8 @@ paths:
                     description: Token deleted successfully
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/secrets':
         get:
@@ -2895,12 +2851,8 @@ paths:
                                 $ref: '#/components/schemas/ClientError'
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
     '/api/v1/allowed/secrets':
         get:
             security:
@@ -3014,12 +2966,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretsNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
         put:
             security:
                 -
@@ -3084,12 +3032,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Conflict'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
         delete:
             security:
                 -
@@ -3175,12 +3119,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretsNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/secrets/{secretId}/tags':
         get:
@@ -3222,12 +3162,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretsNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/secrets/{secretId}/tags/{tag}':
         put:
@@ -3282,12 +3218,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretsNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
         delete:
             security:
                 -
@@ -3336,12 +3268,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretsNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}':
         get:
@@ -3425,12 +3353,8 @@ paths:
 
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
     '/api':
         get:
             tags:
@@ -3761,12 +3685,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
         post:
             security:
                 -
@@ -3803,12 +3723,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
             requestBody:
                 required: true
                 content:
@@ -3898,12 +3814,8 @@ paths:
                                 $ref: '#/components/schemas/ClientError'
                 '404':
                     description: Object store bucket not found
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
         head:
             security:
                 -
@@ -4121,12 +4033,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/networks/{networkId}/subnets':
         get:
@@ -4199,12 +4107,8 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: VPC network not found
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/networks/{networkId}/routeTables':
         get:
@@ -4277,12 +4181,8 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: VPC network not found
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
 
     '/api/v1/orgs/{orgId}/clusters/{id}/images':
@@ -4426,12 +4326,8 @@ paths:
                                 $ref: '#/components/schemas/AnchoreImageList'
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}':
         get:
@@ -4474,12 +4370,8 @@ paths:
                                 $ref: '#/components/schemas/AnchoreImage'
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}/vuln':
         get:
@@ -4522,12 +4414,8 @@ paths:
                                 $ref: '#/components/schemas/VulnerabilityResponse'
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/leader':
         get:
@@ -4568,12 +4456,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/LeaderNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
         post:
             security:
@@ -4625,12 +4509,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PostLeaderElectionResponse'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
         delete:
             security:
@@ -4666,12 +4546,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/LeaderNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/ready':
         get:
@@ -4712,12 +4588,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
         post:
             security:
@@ -4764,12 +4636,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/commands':
         get:
@@ -4811,12 +4679,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}':
         delete:
@@ -4868,12 +4732,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
 
     '/api/v1/orgs/{orgId}/google/projects':
@@ -4910,12 +4770,9 @@ paths:
                                 $ref: '#/components/schemas/ListProjectsResponse'
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
+
     '/api/v1/orgs/{orgId}/clusters/{id}/backupservice/enable':
         post:
             security:
@@ -6421,12 +6278,8 @@ paths:
                                 #oneOf:
                                 #    - $ref: "#/components/schemas/OrganizationNotFound"
                                 #    - $ref: "#/components/schemas/ClusterNotFound"
-                "500":
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
     "/api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}":
         get:
@@ -6478,12 +6331,8 @@ paths:
                                 #    - $ref: "#/components/schemas/OrganizationNotFound"
                                 #    - $ref: "#/components/schemas/ClusterNotFound"
                                 #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                "500":
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
         post:
             operationId: ActivateClusterFeature
@@ -6542,12 +6391,8 @@ paths:
                                 #    - $ref: "#/components/schemas/OrganizationNotFound"
                                 #    - $ref: "#/components/schemas/ClusterNotFound"
                                 #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                "500":
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
         delete:
             operationId: DeactivateClusterFeature
@@ -6594,12 +6439,8 @@ paths:
                                 #    - $ref: "#/components/schemas/OrganizationNotFound"
                                 #    - $ref: "#/components/schemas/ClusterNotFound"
                                 #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                "500":
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
         put:
             operationId: UpdateClusterFeature
@@ -6658,12 +6499,9 @@ paths:
                                 #    - $ref: "#/components/schemas/OrganizationNotFound"
                                 #    - $ref: "#/components/schemas/ClusterNotFound"
                                 #    - $ref: "#/components/schemas/ClusterFeatureNotFound"
-                "500":
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ServerError"
+                500:
+                    $ref: '#/components/responses/InternalServerError'
+
     '/api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels':
         get:
             security:
@@ -6710,13 +6548,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClusterNotFound'
-                '500':
-                    description: Internal server error
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ServerError'
-
+                500:
+                    $ref: '#/components/responses/InternalServerError'
 
 components:
     securitySchemes:
@@ -6741,6 +6574,13 @@ components:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/ClientError'
+
+        InternalServerError:
+            description: Internal server error
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ServerError'
 
     schemas:
         ClientError:
