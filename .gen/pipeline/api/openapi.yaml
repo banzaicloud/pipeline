@@ -235,8 +235,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -296,8 +302,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -389,8 +401,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -401,8 +419,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -445,8 +469,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -531,8 +561,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -582,8 +618,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -876,8 +918,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -933,8 +981,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -1057,8 +1111,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -1410,9 +1470,15 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
-          description: Internal Error
+                $ref: '#/components/schemas/CommonError'
+          description: Internal server error
       summary: Add a new policy
       tags:
       - policies
@@ -1456,9 +1522,15 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
-          description: Internal Error
+                $ref: '#/components/schemas/CommonError'
+          description: Internal server error
       summary: Delete policy
       tags:
       - policies
@@ -1508,9 +1580,15 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
-          description: Internal Error
+                $ref: '#/components/schemas/CommonError'
+          description: Internal server error
       summary: Get specific policy
       tags:
       - policies
@@ -1557,9 +1635,15 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
-          description: Internal Error
+                $ref: '#/components/schemas/CommonError'
+          description: Internal server error
       summary: Update policy
       tags:
       - policies
@@ -2314,8 +2398,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2487,8 +2577,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2546,8 +2642,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2659,8 +2761,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2735,14 +2843,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2768,14 +2888,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2802,14 +2934,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2883,8 +3027,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -2933,14 +3083,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2971,8 +3133,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -3008,8 +3176,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -3049,8 +3223,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -3099,8 +3279,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -3111,8 +3297,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3169,8 +3361,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -3187,8 +3385,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3228,8 +3432,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -3240,8 +3450,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3279,8 +3495,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -3291,8 +3513,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3340,8 +3568,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -3352,8 +3586,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3404,8 +3644,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -3416,8 +3662,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3453,8 +3705,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -3489,8 +3747,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -3505,14 +3769,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3851,8 +4127,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3901,8 +4183,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4008,8 +4296,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4103,8 +4397,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         400:
           description: Error while checking object store bucket status
@@ -4285,8 +4585,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4370,16 +4676,28 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           description: VPC network not found
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4463,16 +4781,28 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           description: VPC network not found
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4516,8 +4846,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -4575,8 +4911,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -4626,14 +4968,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4679,14 +5033,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4732,14 +5098,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4772,8 +5150,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -4784,8 +5168,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4821,8 +5211,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -4833,8 +5229,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4876,8 +5278,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -4894,8 +5302,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4932,8 +5346,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -4944,8 +5364,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4988,8 +5414,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -5000,8 +5432,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -5040,8 +5478,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -5052,8 +5496,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -5101,8 +5551,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -5113,8 +5569,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -5153,14 +5615,26 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7407,8 +7881,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -7419,8 +7899,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7461,8 +7947,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -7473,8 +7965,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7518,8 +8016,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -7530,8 +8034,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7583,8 +8093,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -7595,8 +8111,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7648,8 +8170,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -7660,8 +8188,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7705,8 +8239,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/ClientError'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -7717,8 +8257,14 @@ paths:
         500:
           content:
             application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
               schema:
-                $ref: '#/components/schemas/ServerError'
+                $ref: '#/components/schemas/CommonError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7738,32 +8284,41 @@ components:
     Unauthorized:
       content:
         application/json:
+          examples:
+            InvalidToken:
+              value:
+                code: 401
+                message: Invalid token
+                error: token contains an invalid number of segments
           schema:
-            $ref: '#/components/schemas/ClientError'
+            $ref: '#/components/schemas/CommonError'
       description: Unauthorized
     InternalServerError:
       content:
         application/json:
+          examples:
+            SomethingWentWrong:
+              value:
+                code: 500
+                message: Something went wrong
+                error: Something went wrong
           schema:
-            $ref: '#/components/schemas/ServerError'
+            $ref: '#/components/schemas/CommonError'
       description: Internal server error
   schemas:
+    CommonError:
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+      type: object
     ClientError:
       properties:
         code:
           example: 400
-          type: integer
-        message:
-          example: Error during process
-          type: string
-        error:
-          example: Error during process
-          type: string
-      type: object
-    ServerError:
-      properties:
-        code:
-          example: 500
           type: integer
         message:
           example: Error during process
