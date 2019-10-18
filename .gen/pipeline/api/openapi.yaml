@@ -11387,7 +11387,6 @@ components:
         createdAt: 2018-07-03T14:23:19+02:00
         spot: false
         name: myClusterName
-        servicemesh: false
         logging: false
         totalSummary:
           memory:
@@ -11441,9 +11440,6 @@ components:
           example: false
           type: boolean
         monitoring:
-          example: false
-          type: boolean
-        servicemesh:
           example: false
           type: boolean
         securityscan:
@@ -12035,16 +12031,10 @@ components:
         InstallLogging:
           $ref: '#/components/schemas/LoggingPostHook_InstallLogging'
       type: object
-    ServiceMeshPostHook:
-      properties:
-        InstallServiceMesh:
-          $ref: '#/components/schemas/ServiceMeshPostHook_InstallServiceMesh'
-      type: object
     PostHooks:
       oneOf:
       - $ref: '#/components/schemas/LoggingPostHook'
       - $ref: '#/components/schemas/BasePostHook'
-      - $ref: '#/components/schemas/ServiceMeshPostHook'
     ReRunPostHook:
       example:
         InstallLogging:
@@ -15210,19 +15200,6 @@ components:
       - bucketName
       - secretId
       - tls
-    ServiceMeshPostHook_InstallServiceMesh:
-      properties:
-        mtls:
-          example: false
-          type: boolean
-        autoSidecarInjectNamespaces:
-          example: default
-          items:
-            type: string
-          type: array
-        bypassEgressTraffic:
-          example: false
-          type: boolean
     PolicyRule_params:
       example:
         name: name
