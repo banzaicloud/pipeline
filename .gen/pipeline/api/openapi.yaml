@@ -7773,11 +7773,15 @@ paths:
         207:
           content:
             application/json:
+              examples:
+                PartialFailure:
+                  value:
+                    code: 207
+                    message: Partial failure
+                    error: there was as least one failure on one of the target clusters
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Partial failure, meaning that Multi-cluster deployment has
-            been created successfully, however there was as least one failure on one
-            of the target clusters
+                $ref: '#/components/schemas/CommonError'
+          description: Partial failure
         400:
           content:
             application/json:
@@ -7856,10 +7860,15 @@ paths:
         207:
           content:
             application/json:
+              examples:
+                PartialFailure:
+                  value:
+                    code: 207
+                    message: Partial failure
+                    error: there was as least one failure on one of the target clusters
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Partial failure, meaning that there was as least one failure
-            on one of the target clusters
+                $ref: '#/components/schemas/CommonError'
+          description: Partial failure
         400:
           content:
             application/json:
@@ -7976,11 +7985,15 @@ paths:
         207:
           content:
             application/json:
+              examples:
+                PartialFailure:
+                  value:
+                    code: 207
+                    message: Partial failure
+                    error: there was as least one failure on one of the target clusters
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Partial failure, meaning that Multi-cluster deployment has
-            been update successfully, however there was as least one failure on one
-            of the target clusters
+                $ref: '#/components/schemas/CommonError'
+          description: Partial failure
         400:
           content:
             application/json:
@@ -8051,10 +8064,15 @@ paths:
         207:
           content:
             application/json:
+              examples:
+                PartialFailure:
+                  value:
+                    code: 207
+                    message: Partial failure
+                    error: there was as least one failure on one of the target clusters
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Partial failure, meaning that there was as least one failure
-            on one of the target clusters
+                $ref: '#/components/schemas/CommonError'
+          description: Partial failure
         400:
           content:
             application/json:
@@ -8791,6 +8809,18 @@ components:
       description: Feature properties
       required: true
   responses:
+    PartialFailure:
+      content:
+        application/json:
+          examples:
+            PartialFailure:
+              value:
+                code: 207
+                message: Partial failure
+                error: there was as least one failure on one of the target clusters
+          schema:
+            $ref: '#/components/schemas/CommonError'
+      description: Partial failure
     BadRequest:
       content:
         application/json:
@@ -14138,15 +14168,6 @@ components:
           type: integer
         name:
           example: cluster_group_name
-          type: string
-      type: object
-    common.ErrorResponse:
-      properties:
-        code:
-          type: integer
-        error:
-          type: string
-        message:
           type: string
       type: object
     deployment.ClusterGroupDeployment:
