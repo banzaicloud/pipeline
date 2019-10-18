@@ -33,8 +33,9 @@ type CreateClusterEKS struct {
 	// Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet
 	// (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as
 	// the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
-	Subnets []*Subnet  `json:"subnets,omitempty" yaml:"subnets,omitempty"`
-	IAM     ClusterIAM `json:"iam,omitempty" yaml:"iam,omitempty"`
+	Subnets  []*Subnet  `json:"subnets,omitempty" yaml:"subnets,omitempty"`
+	IAM      ClusterIAM `json:"iam,omitempty" yaml:"iam,omitempty"`
+	LogTypes []string   `json:"logTypes,omitempty" yaml:"logTypes,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request

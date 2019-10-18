@@ -68,13 +68,13 @@ type EksClusterCreateUpdateContext struct {
 	APIEndpoint                *string
 	CertificateAuthorityData   *string
 	DefaultUser                bool
-	ClusterUserID              string
 	ClusterRoleID              string
 	ClusterUserArn             string
 	ClusterUserAccessKeyId     string
 	ClusterUserSecretAccessKey string
 	RouteTableID               *string
 	ScaleEnabled               bool
+	LogTypes                   []string
 }
 
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext
@@ -90,7 +90,8 @@ func NewEksClusterCreationContext(session *session.Session, clusterName, sshKeyN
 
 // NewEksClusterUpdateContext creates a new EksClusterCreateUpdateContext
 func NewEksClusterUpdateContext(session *session.Session, clusterName string,
-	securityGroupID *string, nodeSecurityGroupID *string, subnets []*EksSubnet, sshKeyName string, vpcID *string, nodeInstanceRoleId string, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string) *EksClusterCreateUpdateContext {
+	securityGroupID *string, nodeSecurityGroupID *string, subnets []*EksSubnet, sshKeyName string, vpcID *string,
+	nodeInstanceRoleId string, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string) *EksClusterCreateUpdateContext {
 	return &EksClusterCreateUpdateContext{
 		EksClusterContext: EksClusterContext{
 			Session:     session,

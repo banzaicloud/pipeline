@@ -14471,6 +14471,13 @@ components:
         version:
           example: "1.10"
           type: string
+        logTypes:
+          example:
+          - api
+          - scheduler
+          items:
+            type: string
+          type: array
         nodePools:
           additionalProperties:
             $ref: '#/components/schemas/EKSNodePool'
