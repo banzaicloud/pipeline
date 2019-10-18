@@ -614,7 +614,6 @@ func main() {
 				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
 				cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
-				cRouter.POST("/helminit", api.InitHelmOnCluster)
 
 				cRouter.GET("/images", api.ListImages)
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)

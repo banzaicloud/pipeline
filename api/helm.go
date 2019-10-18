@@ -24,7 +24,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	k8sHelm "k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -34,7 +33,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/helm"
-	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
@@ -104,7 +102,7 @@ func CreateDeployment(c *gin.Context) {
 		installOptions...,
 	)
 	if err != nil {
-		//TODO distinguish error codes
+		// TODO distinguish error codes
 		log.Errorf("Error during create deployment. %s", err.Error())
 		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
 			Code:    http.StatusBadRequest,
@@ -310,60 +308,6 @@ func GetDeploymentResources(c *gin.Context) {
 
 }
 
-// InitHelmOnCluster installs Helm on AKS cluster and configure the Helm client
-func InitHelmOnCluster(c *gin.Context) {
-	log := correlationid.Logger(log, c)
-	log.Info("Start helm install")
-
-	commonCluster, ok := getClusterFromRequest(c)
-	if ok != true {
-		return
-	}
-
-	kubeConfig, err := commonCluster.GetK8sConfig()
-	if err != nil {
-		log.Errorf("Error during getting kubeconfig: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error getting kubeconfig",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log = log.WithFields(logrus.Fields{"cluster": commonCluster.GetName(), "clusterID": commonCluster.GetID()})
-
-	// bind request body to struct
-	var helmInstall pkgHelm.Install
-	if err := c.BindJSON(&helmInstall); err != nil {
-		// bind failed
-		log.Errorf("Required field is empty: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error parsing request",
-			Error:   err.Error(),
-		})
-		return
-	}
-	err = helm.Install(log, &helmInstall, kubeConfig)
-	if err != nil {
-		log.Errorf("Unable to install chart: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommmon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "Error installing helm",
-			Error:   err.Error(),
-		})
-		return
-	}
-	message := "helm initialising"
-	c.JSON(http.StatusCreated, pkgHelm.InstallResponse{
-		Status:  http.StatusCreated,
-		Message: message,
-	})
-	log.Info(message)
-	return
-}
-
 // GetTillerStatus checks if tiller ready to accept deployments
 func GetTillerStatus(c *gin.Context) {
 	name := c.Param("name")
@@ -391,7 +335,7 @@ func GetTillerStatus(c *gin.Context) {
 	return
 }
 
-//UpgradeDeployment - Upgrades helm deployment, if --reuse-value is specified reuses the last release's value.
+// UpgradeDeployment - Upgrades helm deployment, if --reuse-value is specified reuses the last release's value.
 func UpgradeDeployment(c *gin.Context) {
 	name := c.Param("name")
 	log.Infof("Upgrading deployment: %s", name)
@@ -435,7 +379,7 @@ func UpgradeDeployment(c *gin.Context) {
 	return
 }
 
-//DeleteDeployment deletes a Helm deployment
+// DeleteDeployment deletes a Helm deployment
 func DeleteDeployment(c *gin.Context) {
 	name := c.Param("name")
 	log.Infof("Delete deployment: %s", name)
@@ -521,7 +465,7 @@ func parseCreateUpdateDeploymentRequest(c *gin.Context, commonCluster cluster.Co
 	return pdr, nil
 }
 
-//HelmReposGet listing helm repositories in the cluster
+// HelmReposGet listing helm repositories in the cluster
 func HelmReposGet(c *gin.Context) {
 
 	log.Info("Get helm repository")
@@ -540,7 +484,7 @@ func HelmReposGet(c *gin.Context) {
 	return
 }
 
-//HelmReposAdd add a new helm repository
+// HelmReposAdd add a new helm repository
 func HelmReposAdd(c *gin.Context) {
 	log.Info("Add helm repository")
 
@@ -573,7 +517,7 @@ func HelmReposAdd(c *gin.Context) {
 	return
 }
 
-//HelmReposDelete delete the helm repository
+// HelmReposDelete delete the helm repository
 func HelmReposDelete(c *gin.Context) {
 	log.Info("Delete helm repository")
 
@@ -606,7 +550,7 @@ func HelmReposDelete(c *gin.Context) {
 	return
 }
 
-//HelmReposModify modify the helm repository
+// HelmReposModify modify the helm repository
 func HelmReposModify(c *gin.Context) {
 	log.Info("modify helm repository")
 
@@ -673,7 +617,7 @@ func HelmReposUpdate(c *gin.Context) {
 	return
 }
 
-//HelmCharts get available helm chart's list
+// HelmCharts get available helm chart's list
 func HelmCharts(c *gin.Context) {
 	log.Info("Get helm repository charts")
 
@@ -705,7 +649,7 @@ func HelmCharts(c *gin.Context) {
 	return
 }
 
-//HelmChart get helm chart details
+// HelmChart get helm chart details
 func HelmChart(c *gin.Context) {
 	log.Info("Get helm chart")
 
@@ -806,7 +750,7 @@ func ListHelmReleases(c *gin.Context, response *rls.ListReleasesResponse, optpar
 				supportedCharts := optparam.(map[string]repo.ChartVersions)
 				body.Supported = supportedCharts[chartName] != nil
 			}
-			//Add WhiteListed flag if present
+			// Add WhiteListed flag if present
 			if _, ok := releaseWhitelist[r.Name]; ok {
 				body.WhiteListed = ok
 			}
