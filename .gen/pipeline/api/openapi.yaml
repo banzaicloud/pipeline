@@ -3541,8 +3541,14 @@ paths:
         409:
           content:
             application/json:
+              examples:
+                SecretAlreadyExists:
+                  value:
+                    code: 409
+                    message: Secret with this name already exists
+                    error: check-and-set parameter did not match the current version
               schema:
-                $ref: '#/components/schemas/Conflict'
+                $ref: '#/components/schemas/CommonError'
           description: Conflict
         500:
           content:
@@ -7463,9 +7469,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: List Cluster Groups of an Organization
@@ -7499,9 +7511,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
         404:
           content:
             application/json:
@@ -7544,9 +7562,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Delete Cluster Group
@@ -7582,9 +7606,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Get Cluster Group
@@ -7626,9 +7656,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
         404:
           content:
             application/json:
@@ -7672,9 +7708,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Get All Deployments of a Cluster Group
@@ -7727,9 +7769,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
         404:
           content:
             application/json:
@@ -7797,9 +7845,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Delete Cluster Group Deployment
@@ -7843,9 +7897,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Get Cluster Group Deployment
@@ -7906,9 +7966,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
         404:
           content:
             application/json:
@@ -7968,9 +8034,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Synchronize Cluster Group Deployment
@@ -8017,9 +8089,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Get All Features of Cluster Group
@@ -8063,9 +8141,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Disable Feature of Cluster Group
@@ -8109,9 +8193,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
       security:
       - bearerAuth: []
       summary: Get Feature of Cluster Group
@@ -8156,9 +8246,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
         404:
           content:
             application/json:
@@ -8209,9 +8305,15 @@ paths:
         400:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 400
+                    message: Invalid request
+                    error: failed to parse request
               schema:
-                $ref: '#/components/schemas/common.ErrorResponse'
-          description: Bad Request
+                $ref: '#/components/schemas/CommonError'
+          description: Bad request
         404:
           content:
             application/json:
@@ -8653,6 +8755,18 @@ components:
       description: Feature properties
       required: true
   responses:
+    BadRequest:
+      content:
+        application/json:
+          examples:
+            InvalidToken:
+              value:
+                code: 400
+                message: Invalid request
+                error: failed to parse request
+          schema:
+            $ref: '#/components/schemas/CommonError'
+      description: Bad request
     Unauthorized:
       content:
         application/json:
@@ -9863,18 +9977,6 @@ components:
         id:
           example: 1
           type: integer
-      type: object
-    Conflict:
-      properties:
-        code:
-          example: 409
-          type: integer
-        message:
-          example: Secret with this name already exists
-          type: string
-        error:
-          example: check-and-set parameter did not match the current version
-          type: string
       type: object
     ListEndpointsResponse:
       example:
