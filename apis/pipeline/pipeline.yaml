@@ -5403,12 +5403,8 @@ paths:
                                 $ref: "#/components/schemas/api.CreateResponse"
                 400:
                     $ref: "#/components/responses/BadRequest"
-                "404":
-                    description: Not Found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                404:
+                    $ref: "#/components/responses/NotFound"
             security:
                 - bearerAuth: []
             summary: Create Cluster Group
@@ -5506,12 +5502,8 @@ paths:
                                 $ref: "#/components/schemas/api.UpdateResponse"
                 400:
                     $ref: "#/components/responses/BadRequest"
-                "404":
-                    description: Not Found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                404:
+                    $ref: "#/components/responses/NotFound"
             security:
                 - bearerAuth: []
             summary: Update Cluster Group
@@ -5591,12 +5583,8 @@ paths:
                                 $ref: "#/components/schemas/common.ErrorResponse"
                 400:
                     $ref: "#/components/responses/BadRequest"
-                "404":
-                    description: Not Found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                404:
+                    $ref: "#/components/responses/NotFound"
             security:
                 - bearerAuth: []
             summary: Create Cluster Group Deployment
@@ -5737,12 +5725,8 @@ paths:
                                 $ref: "#/components/schemas/common.ErrorResponse"
                 400:
                     $ref: "#/components/responses/BadRequest"
-                "404":
-                    description: Not Found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                404:
+                    $ref: "#/components/responses/NotFound"
             security:
                 - bearerAuth: []
             summary: Update Cluster Group Deployment
@@ -5936,12 +5920,8 @@ paths:
                                 type: string
                 400:
                     $ref: "#/components/responses/BadRequest"
-                "404":
-                    description: Not Found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                404:
+                    $ref: "#/components/responses/NotFound"
             security:
                 - bearerAuth: []
             summary: Enable Feature of Cluster Group
@@ -5979,12 +5959,8 @@ paths:
                                 type: string
                 400:
                     $ref: "#/components/responses/BadRequest"
-                "404":
-                    description: Not Found
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                404:
+                    $ref: "#/components/responses/NotFound"
             security:
                 - bearerAuth: []
             summary: Update Feature of Cluster Group
@@ -6348,6 +6324,19 @@ components:
                                 code: 401
                                 message: "Invalid token"
                                 error: "token contains an invalid number of segments"
+
+        NotFound:
+            description: Not found
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/CommonError'
+                    examples:
+                        InvalidToken:
+                            value:
+                                code: 404
+                                message: "Not found"
+                                error: "resource not found"
 
         InternalServerError:
             description: Internal server error
