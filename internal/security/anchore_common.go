@@ -29,12 +29,11 @@ const (
 	anchoreUserNameTpl = "%v-anchore-user"
 )
 
-func getUserName(clusterID uint) string {
+func GetUserName(clusterID uint) string {
 	return fmt.Sprintf(anchoreUserNameTpl, clusterID)
 }
 
-// createUserSecret creates a new password type secret, and returns the newly generated password string
-func getUserSecret(ctx context.Context, secretStore common.SecretStore, userName string, logger common.Logger) (string, error) {
+func GetUserSecret(ctx context.Context, secretStore common.SecretStore, userName string, logger common.Logger) (string, error) {
 
 	values, err := secretStore.GetSecretValues(ctx, secret.GenerateSecretIDFromName(userName))
 	if err != nil {
@@ -53,7 +52,7 @@ func getUserSecret(ctx context.Context, secretStore common.SecretStore, userName
 	return password, nil
 }
 
-func getCustomAnchoreCredentials(ctx context.Context, secretStore common.SecretStore, secretId string, logger common.Logger) (string, string, error) {
+func GetCustomAnchoreCredentials(ctx context.Context, secretStore common.SecretStore, secretId string, logger common.Logger) (string, string, error) {
 	logger.Debug("using custom anchore configuration")
 
 	secretValues, err := secretStore.GetSecretValues(ctx, secretId)

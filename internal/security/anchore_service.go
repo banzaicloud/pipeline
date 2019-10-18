@@ -60,7 +60,7 @@ func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID ui
 		return "", errors.WrapIfWithDetails(err, "failed to set up anchore client for cluster", fnCtx)
 	}
 
-	userName := getUserName(clusterID)
+	userName := GetUserName(clusterID)
 
 	exists, err := a.userExists(ctx, restClient, userName)
 	if err != nil {
@@ -118,7 +118,7 @@ func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID ui
 		return errors.WrapIfWithDetails(err, "failed to set up anchore client for cluster", fnCtx)
 	}
 
-	userName := getUserName(clusterID)
+	userName := GetUserName(clusterID)
 
 	exists, err := a.userExists(ctx, restClient, userName)
 	if err != nil {
@@ -188,7 +188,7 @@ func (a anchoreService) ensureUserCredentials(ctx context.Context, orgID uint, c
 func (a anchoreService) createUserSecret(ctx context.Context, orgID uint, clusterID uint) (string, error) {
 
 	// a new password gets generated
-	secretID, err := a.storeCredentialsSecret(ctx, orgID, getUserName(clusterID), "")
+	secretID, err := a.storeCredentialsSecret(ctx, orgID, GetUserName(clusterID), "")
 	if err != nil {
 		a.logger.Debug("failed to store credentials for a new user")
 
@@ -285,7 +285,7 @@ func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint, ad
 
 	if cfg.UserSecret != "" {
 		a.logger.Debug("using custom anchore configuration")
-		username, password, err := getCustomAnchoreCredentials(ctx, a.secretStore, cfg.UserSecret, a.logger)
+		username, password, err := GetCustomAnchoreCredentials(ctx, a.secretStore, cfg.UserSecret, a.logger)
 		if err != nil {
 			a.logger.Debug("failed to decode secret values")
 
@@ -301,8 +301,8 @@ func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint, ad
 		return NewAnchoreClient(cfg.AdminUser, cfg.AdminPass, cfg.Endpoint, a.logger), nil
 	}
 
-	userName := getUserName(clusterID)
-	password, err := getUserSecret(ctx, a.secretStore, userName, a.logger)
+	userName := GetUserName(clusterID)
+	password, err := GetUserSecret(ctx, a.secretStore, userName, a.logger)
 	if err != nil {
 		a.logger.Debug("failed to retrieve user secret")
 
