@@ -642,15 +642,19 @@ func main() {
 					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
 
+					cRouter.POST("/policies", anchoreProxy.Proxy())
 					cRouter.GET("/policies", anchoreProxy.Proxy())
-					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
-					cRouter.POST("/policies", policyHandler.CreatePolicy)
-					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
-					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
+					cRouter.GET("/policies/:policyId", anchoreProxy.Proxy())
+					cRouter.DELETE("/policies/:policyId", anchoreProxy.Proxy())
 
+					// todo - proxy this too
+					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
+
+					// todo - proxy this too - consider this: cRouter.Any("/imagescan/*path", anchoreProxy.Proxy())
 					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
-					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)
-					cRouter.GET("/imagescan/:imagedigest/vuln", imageScanHandler.GetImageVulnerabilities)
+
+					cRouter.GET("/imagescan/:imagedigest", anchoreProxy.Proxy())
+					cRouter.GET("/imagescan/:imagedigest/vuln", anchoreProxy.Proxy())
 				}
 
 			}
