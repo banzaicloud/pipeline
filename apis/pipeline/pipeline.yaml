@@ -6915,6 +6915,43 @@ components:
             required: true
 
     schemas:
+        BaseError:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    example: 400
+                message:
+                    type: string
+                error:
+                    type: string
+
+        BaseError_400:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    example: 400
+                message:
+                    type: string
+                    example: "Error during process"
+                error:
+                    type: string
+                    example: "Error during process"
+
+        BaseError_500:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    example: 500
+                message:
+                    type: string
+                    example: "Error during process"
+                error:
+                    type: string
+                    example: "Error during process"
+
         VersionResponse:
             description: Pipeline build and deployment info
             type: object
@@ -7900,43 +7937,6 @@ components:
                 error:
                     type: string
                     example: Invalid version
-
-        BaseError:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 400
-                message:
-                    type: string
-                error:
-                    type: string
-
-        BaseError_400:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 400
-                message:
-                    type: string
-                    example: "Error during process"
-                error:
-                    type: string
-                    example: "Error during process"
-
-        BaseError_500:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 500
-                message:
-                    type: string
-                    example: "Error during process"
-                error:
-                    type: string
-                    example: "Error during process"
 
         HelmNotFound:
             oneOf:
