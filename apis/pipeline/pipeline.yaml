@@ -2901,12 +2901,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '409':
+                409:
                     description: Conflict
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Conflict'
+                                $ref: '#/components/schemas/CommonError'
+                            examples:
+                                SecretAlreadyExists:
+                                    value:
+                                        code: 409
+                                        message: "Secret with this name already exists"
+                                        error: "check-and-set parameter did not match the current version"
                 500:
                     $ref: '#/components/responses/InternalServerError'
         delete:
@@ -5365,12 +5371,8 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/api.ClusterGroup"
                                 type: array
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: List Cluster Groups of an Organization
@@ -5399,12 +5401,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/api.CreateResponse"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
                 "404":
                     description: Not Found
                     content:
@@ -5440,12 +5438,8 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Delete Cluster Group
@@ -5474,12 +5468,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/api.ClusterGroup"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Get Cluster Group
@@ -5514,12 +5504,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/api.UpdateResponse"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
                 "404":
                     description: Not Found
                     content:
@@ -5556,12 +5542,8 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/deployment.ListDeploymentResponse"
                                 type: array
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Get All Deployments of a Cluster Group
@@ -5607,12 +5589,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/common.ErrorResponse"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
                 "404":
                     description: Not Found
                     content:
@@ -5668,12 +5646,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/common.ErrorResponse"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Delete Cluster Group Deployment
@@ -5708,12 +5682,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.DeploymentInfo"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Get Cluster Group Deployment
@@ -5765,12 +5735,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/common.ErrorResponse"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
                 "404":
                     description: Not Found
                     content:
@@ -5820,12 +5786,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/common.ErrorResponse"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Synchronize Cluster Group Deployment
@@ -5863,12 +5825,8 @@ paths:
                                 items:
                                     $ref: "#/components/schemas/api.FeatureResponse"
                                 type: array
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Get All Features of Cluster Group
@@ -5903,12 +5861,8 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Disable Feature of Cluster Group
@@ -5943,12 +5897,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/api.FeatureResponse"
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
             security:
                 - bearerAuth: []
             summary: Get Feature of Cluster Group
@@ -5984,12 +5934,8 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
                 "404":
                     description: Not Found
                     content:
@@ -6031,12 +5977,8 @@ paths:
                         application/json:
                             schema:
                                 type: string
-                "400":
-                    description: Bad Request
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                400:
+                    $ref: "#/components/responses/BadRequest"
                 "404":
                     description: Not Found
                     content:
@@ -6381,6 +6323,19 @@ components:
             required: true
 
     responses:
+        BadRequest:
+            description: Bad request
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/CommonError'
+                    examples:
+                        InvalidToken:
+                            value:
+                                code: 400
+                                message: "Invalid request"
+                                error: "failed to parse request"
+
         Unauthorized:
             description: Unauthorized
             content:
@@ -7697,19 +7652,6 @@ components:
                 id:
                     type: integer
                     example: 1
-
-        Conflict:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    example: 409
-                message:
-                    type: string
-                    example: "Secret with this name already exists"
-                error:
-                    type: string
-                    example: "check-and-set parameter did not match the current version"
 
         ListEndpointsResponse:
             type: object
