@@ -710,8 +710,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -761,8 +767,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -813,8 +825,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -906,8 +924,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -969,8 +993,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1038,8 +1068,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1099,8 +1135,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1169,8 +1211,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1234,9 +1282,15 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: unauthorized
+                $ref: '#/components/schemas/CommonError'
+          description: Unauthorized
         404:
           content:
             application/json:
@@ -1298,9 +1352,15 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: unauthorized
+                $ref: '#/components/schemas/CommonError'
+          description: Unauthorized
         404:
           content:
             application/json:
@@ -1676,8 +1736,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1724,8 +1790,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1775,8 +1847,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1831,8 +1909,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1882,8 +1966,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -1948,8 +2038,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -2014,8 +2110,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -2073,8 +2175,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -2157,8 +2265,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         400:
           content:
@@ -2326,8 +2440,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -2392,8 +2512,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
@@ -2498,8 +2624,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         400:
           content:
@@ -2571,8 +2703,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
@@ -2636,8 +2774,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
@@ -2691,8 +2835,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         400:
           content:
@@ -2755,8 +2905,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
@@ -2807,8 +2963,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         400:
           content:
@@ -3374,8 +3536,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
-          description: Unauthorized
+                $ref: '#/components/schemas/ClientError'
+          description: Not found
         409:
           content:
             application/json:
@@ -3886,8 +4048,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -3909,8 +4077,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -3959,8 +4133,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -4001,8 +4181,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -4050,8 +4236,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -4121,8 +4313,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
@@ -4171,8 +4369,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         400:
           content:
@@ -4282,8 +4486,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         400:
           content:
@@ -4579,8 +4789,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         500:
           content:
@@ -5684,8 +5900,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -5735,8 +5957,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -5847,8 +6075,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -5895,8 +6129,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -5946,8 +6186,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -5996,8 +6242,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6035,8 +6287,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -6072,8 +6330,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6111,8 +6375,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -6156,8 +6426,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6212,8 +6488,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6259,8 +6541,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6318,8 +6606,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6376,8 +6670,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6439,8 +6739,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6499,8 +6805,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6550,8 +6862,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6606,8 +6924,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6665,8 +6989,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6723,8 +7053,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6774,8 +7110,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6830,8 +7172,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6877,8 +7225,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6936,8 +7290,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -6994,8 +7354,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -7053,8 +7419,14 @@ paths:
         401:
           content:
             application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/CommonError'
           description: Unauthorized
         404:
           content:
@@ -9491,18 +9863,6 @@ components:
         id:
           example: 1
           type: integer
-      type: object
-    Unauthorized:
-      properties:
-        code:
-          example: 401
-          type: integer
-        message:
-          example: Invalid token
-          type: string
-        error:
-          example: token contains an invalid number of segments
-          type: string
       type: object
     Conflict:
       properties:
