@@ -55,21 +55,25 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 
 		clusterID, err := strconv.ParseUint(clusterIDStr, 0, 64)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
 		}
 
 		config, err := ap.configService.GetConfiguration(c.Request.Context(), uint(clusterID))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
+			return
+		}
 
 		backendURL, err := url.Parse(config.Endpoint)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
 		}
 
 		username, password, err := ap.processCredentials(c.Request.Context(), config, uint(clusterID))
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
+			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
 		}
 
