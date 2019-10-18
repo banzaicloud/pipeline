@@ -247,13 +247,6 @@ generate-openapi: validate-openapi ## Generate go server based on openapi descri
 	rm .gen/pipeline/Dockerfile .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
 	mv .gen/pipeline/go .gen/pipeline/pipeline
 
-ifeq (${OS}, darwin)
-	shasum -a 256 ${OPENAPI_DESCRIPTOR} > .gen/pipeline/SHA256SUMS
-endif
-ifeq (${OS}, linux)
-	sha256sum ${OPENAPI_DESCRIPTOR} > .gen/pipeline/SHA256SUMS
-endif
-
 define generate_openapi_client
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ${3}; else rm -rf ${3}; fi
 	docker run --rm -v $${PWD}:/local openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION} generate \
