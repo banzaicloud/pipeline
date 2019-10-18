@@ -6586,8 +6586,6 @@ components:
                         #         $ref: '#/components/schemas/LoggingPostHook'
                         #     -
                         #         $ref: '#/components/schemas/BasePostHook'
-                        #     -
-                        #         $ref: '#/components/schemas/ServiceMeshPostHook'
                     example:
                         InstallLogging:
                             bucketName: "mybucketname"
@@ -8837,9 +8835,6 @@ components:
                 monitoring:
                     type: boolean
                     example: false
-                servicemesh:
-                    type: boolean
-                    example: false
                 securityscan:
                     type: boolean
                     example: false
@@ -9370,32 +9365,12 @@ components:
                         tls:
                             $ref: '#/components/schemas/GenTLSForLogging'
 
-        ServiceMeshPostHook:
-            type: object
-            properties:
-                InstallServiceMesh:
-                    type: object
-                    properties:
-                        mtls:
-                            type: boolean
-                            example: false
-                        autoSidecarInjectNamespaces:
-                            type: array
-                            items:
-                                type: string
-                            example: "default"
-                        bypassEgressTraffic:
-                            type: boolean
-                            example: false
-
         PostHooks:
             oneOf:
                 -
                     $ref: '#/components/schemas/LoggingPostHook'
                 -
                     $ref: '#/components/schemas/BasePostHook'
-                -
-                    $ref: '#/components/schemas/ServiceMeshPostHook'
 
         ReRunPostHook:
             type: object
