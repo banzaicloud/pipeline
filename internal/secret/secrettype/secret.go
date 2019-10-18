@@ -167,6 +167,16 @@ const (
 	VaultToken = "token"
 )
 
+// Slack keys
+const (
+	SlackApiUrl = "apiUrl"
+)
+
+// PagerDuty keys
+const (
+	PagerDutyIntegrationKey = "integrationKey"
+)
+
 const (
 	// GenericSecret represents generic secret types, without schema
 	GenericSecret = "generic"
@@ -190,6 +200,10 @@ const (
 	DigitalOceanSecretType = "digitalocean"
 	// VaultSecretType as marks secrets as of type "vault"
 	VaultSecretType = "vault"
+	// SlackSecretType as marks secrets as of type "slack"
+	SlackSecretType = "slack"
+	// PagerDutySecretType as marks secrets as of type "pagerduty"
+	PagerDutySecretType = "pagerduty"
 )
 
 // DefaultRules key matching for types
@@ -322,6 +336,16 @@ var DefaultRules = map[string]Meta{
 	VaultSecretType: {
 		Fields: []FieldMeta{
 			{Name: VaultToken, Required: true, Opaque: true, Description: "Token for Vault"},
+		},
+	},
+	SlackSecretType: {
+		Fields: []FieldMeta{
+			{Name: SlackApiUrl, Required: true, Opaque: true, Description: "Slack URL to send alerts to"},
+		},
+	},
+	PagerDutySecretType: {
+		Fields: []FieldMeta{
+			{Name: PagerDutyIntegrationKey, Required: true, Opaque: true, Description: "The PagerDuty integration key"},
 		},
 	},
 }
