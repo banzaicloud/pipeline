@@ -7741,6 +7741,12 @@ components:
           schema:
             $ref: '#/components/schemas/ClientError'
       description: Unauthorized
+    InternalServerError:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ServerError'
+      description: Internal server error
   schemas:
     ClientError:
       properties:
