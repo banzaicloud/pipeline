@@ -29,5 +29,14 @@ func mapCapabilities(config configuration) cap.Capabilities {
 		"issue": cap.Cap{
 			"enabled": config.Frontend.Issue.Enabled,
 		},
+		"features": cap.Cap{
+			"vault": cap.Cap{
+				"enabled": config.Cluster.Vault.Enabled,
+				"managed": config.Cluster.Vault.Managed.Enabled,
+			},
+			"monitor": cap.Cap{
+				"enabled": config.Cluster.Monitor.Enabled,
+			},
+		},
 	}
 }

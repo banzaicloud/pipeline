@@ -25,10 +25,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	googleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/google/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -99,16 +99,16 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, location string) 
 	}
 
 	credentials := googleObjectstore.Credentials{
-		Type:                   secret.Values[pkgSecret.Type],
-		ProjectID:              secret.Values[pkgSecret.ProjectId],
-		PrivateKeyID:           secret.Values[pkgSecret.PrivateKeyId],
-		PrivateKey:             secret.Values[pkgSecret.PrivateKey],
-		ClientEmail:            secret.Values[pkgSecret.ClientEmail],
-		ClientID:               secret.Values[pkgSecret.ClientId],
-		AuthURI:                secret.Values[pkgSecret.AuthUri],
-		TokenURI:               secret.Values[pkgSecret.TokenUri],
-		AuthProviderX50CertURL: secret.Values[pkgSecret.AuthX509Url],
-		ClientX509CertURL:      secret.Values[pkgSecret.ClientX509Url],
+		Type:                   secret.Values[secrettype.Type],
+		ProjectID:              secret.Values[secrettype.ProjectId],
+		PrivateKeyID:           secret.Values[secrettype.PrivateKeyId],
+		PrivateKey:             secret.Values[secrettype.PrivateKey],
+		ClientEmail:            secret.Values[secrettype.ClientEmail],
+		ClientID:               secret.Values[secrettype.ClientId],
+		AuthURI:                secret.Values[secrettype.AuthUri],
+		TokenURI:               secret.Values[secrettype.TokenUri],
+		AuthProviderX50CertURL: secret.Values[secrettype.AuthX509Url],
+		ClientX509CertURL:      secret.Values[secrettype.ClientX509Url],
 	}
 
 	ostore, err := googleObjectstore.New(config, credentials)

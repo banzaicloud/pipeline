@@ -29,9 +29,9 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/providers"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -136,8 +136,8 @@ func AddSecrets(c *gin.Context) {
 	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).Login
 
 	// Check if the received value is base64 encoded if not encode it.
-	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {
-		createSecretRequest.Values[secretTypes.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secretTypes.K8SConfig])
+	if createSecretRequest.Values[secrettype.K8SConfig] != "" {
+		createSecretRequest.Values[secrettype.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secrettype.K8SConfig])
 	}
 
 	log.Info("Binding request succeeded")
@@ -237,8 +237,8 @@ func UpdateSecrets(c *gin.Context) {
 	createSecretRequest.UpdatedBy = auth.GetCurrentUser(c.Request).Login
 
 	// Check if the received value is base64 encoded if not encode it.
-	if createSecretRequest.Values[secretTypes.K8SConfig] != "" {
-		createSecretRequest.Values[secretTypes.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secretTypes.K8SConfig])
+	if createSecretRequest.Values[secrettype.K8SConfig] != "" {
+		createSecretRequest.Values[secrettype.K8SConfig] = utils.EncodeStringToBase64(createSecretRequest.Values[secrettype.K8SConfig])
 	}
 
 	log.Info("Binding request succeeded")
@@ -299,7 +299,7 @@ func ListSecrets(c *gin.Context) {
 
 	organizationID := auth.GetCurrentOrganization(c.Request).ID
 
-	var query secretTypes.ListSecretsQuery
+	var query secret.ListSecretsQuery
 	err := c.BindQuery(&query)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
@@ -555,19 +555,19 @@ func ListAllowedSecretTypes(c *gin.Context) {
 func GetAllowedTypes(secretType string) (interface{}, error) {
 	if len(secretType) == 0 {
 		log.Info("List all types and keys")
-		return secretTypes.DefaultRules, nil
+		return secrettype.DefaultRules, nil
 	} else if err := IsValidSecretType(secretType); err != nil {
 		return nil, err
 	} else {
 		log.Info("Valid secret type. List filtered secret types")
-		return secretTypes.DefaultRules[secretType], nil
+		return secrettype.DefaultRules[secretType], nil
 	}
 }
 
 // IsValidSecretType checks the given secret type is supported
 func IsValidSecretType(secretType string) error {
 	if len(secretType) != 0 {
-		if _, ok := secretTypes.DefaultRules[secretType]; !ok {
+		if _, ok := secrettype.DefaultRules[secretType]; !ok {
 			return ErrNotSupportedSecretType
 		}
 	}

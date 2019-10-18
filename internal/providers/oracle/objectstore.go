@@ -25,10 +25,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	oracleObjectstore "github.com/banzaicloud/pipeline/pkg/providers/oracle/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -90,15 +90,15 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, location string) 
 	}
 
 	credentials := oracleObjectstore.Credentials{
-		UserOCID:          secret.Values[pkgSecret.OracleUserOCID],
-		APIKey:            secret.Values[pkgSecret.OracleAPIKey],
-		APIKeyFingerprint: secret.Values[pkgSecret.OracleAPIKeyFingerprint],
-		CompartmentOCID:   secret.Values[pkgSecret.OracleCompartmentOCID],
-		TenancyOCID:       secret.Values[pkgSecret.OracleTenancyOCID],
+		UserOCID:          secret.Values[secrettype.OracleUserOCID],
+		APIKey:            secret.Values[secrettype.OracleAPIKey],
+		APIKeyFingerprint: secret.Values[secrettype.OracleAPIKeyFingerprint],
+		CompartmentOCID:   secret.Values[secrettype.OracleCompartmentOCID],
+		TenancyOCID:       secret.Values[secrettype.OracleTenancyOCID],
 	}
 
 	config := oracleObjectstore.Config{
-		Region: secret.Values[pkgSecret.OracleRegion],
+		Region: secret.Values[secrettype.OracleRegion],
 	}
 	if location != "" {
 		config.Region = location
@@ -146,7 +146,7 @@ func (o *ObjectStore) CreateBucket(bucketName string) error {
 
 	bucket.Name = bucketName
 	bucket.Organization = *o.org
-	bucket.CompartmentID = o.secret.Values[pkgSecret.OracleCompartmentOCID]
+	bucket.CompartmentID = o.secret.Values[secrettype.OracleCompartmentOCID]
 	bucket.Location = o.location
 	bucket.SecretRef = o.secret.ID
 	bucket.Status = providers.BucketCreating
@@ -333,7 +333,7 @@ func (o *ObjectStore) newBucketSearchCriteria(bucketName string) *ObjectStoreBuc
 	return &ObjectStoreBucketModel{
 		OrgID:         o.org.ID,
 		Name:          bucketName,
-		CompartmentID: o.secret.Values[pkgSecret.OracleCompartmentOCID],
+		CompartmentID: o.secret.Values[secrettype.OracleCompartmentOCID],
 		Location:      o.location,
 	}
 }

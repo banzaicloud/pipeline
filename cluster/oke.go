@@ -22,6 +22,7 @@ import (
 	"github.com/oracle/oci-go-sdk/containerengine"
 	"github.com/pkg/errors"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -31,7 +32,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/network"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -651,11 +651,11 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 		return "", errors.Wrap(err, "error getting secret")
 	}
 
-	if s.Values[pkgSecret.OracleUserOCID] == "" {
+	if s.Values[secrettype.OracleUserOCID] == "" {
 		return "", errors.New("empty user OCID")
 	}
 
-	return s.Values[pkgSecret.OracleUserOCID], nil
+	return s.Values[secrettype.OracleUserOCID], nil
 
 }
 

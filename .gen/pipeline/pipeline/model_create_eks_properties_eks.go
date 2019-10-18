@@ -23,4 +23,6 @@ type CreateEksPropertiesEks struct {
 
 	// Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
 	Subnets []EksSubnet `json:"subnets,omitempty"`
+
+	Iam EksIam `json:"iam,omitempty"`
 }

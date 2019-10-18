@@ -28,12 +28,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil)
+	mng := MakeFeatureManager(nil, nil, true, nil)
 
 	assert.Equal(t, "vault", mng.Name())
 }
@@ -59,9 +59,9 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 				tokenSecretID: {
 					ID:      tokenSecretID,
 					Name:    fmt.Sprintf("vault-token-%d-cluster", clusterID),
-					Type:    pkgSecret.GenericSecret,
+					Type:    secrettype.GenericSecret,
 					Values:  map[string]string{"token": "token"},
-					Tags:    []string{pkgSecret.TagBanzaiReadonly},
+					Tags:    []string{secret.TagBanzaiReadonly},
 					Version: 1,
 				},
 			},
@@ -70,7 +70,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-	mng := MakeFeatureManager(clusterGetter, secretStore, nil)
+	mng := MakeFeatureManager(clusterGetter, secretStore, true, nil)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
 	vm, err := newVaultManager(vaultFeatureSpec{}, orgID, clusterID, "TODOTOKEN")
@@ -145,15 +145,15 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 }
 
 func TestFeatureManager_ValidateSpec(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil)
-
 	cases := map[string]struct {
-		Spec  clusterfeature.FeatureSpec
-		Error interface{}
+		Spec             clusterfeature.FeatureSpec
+		IsManagedEnabled bool
+		Error            interface{}
 	}{
 		"empty spec": {
-			Spec:  clusterfeature.FeatureSpec{},
-			Error: false,
+			Spec:             clusterfeature.FeatureSpec{},
+			IsManagedEnabled: true,
+			Error:            false,
 		},
 		"valid spec": {
 			Spec: obj{
@@ -165,7 +165,8 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					"serviceAccounts": []string{"default"},
 				},
 			},
-			Error: false,
+			IsManagedEnabled: true,
+			Error:            false,
 		},
 		"both service account and namespaces are '*'": {
 			Spec: obj{
@@ -174,7 +175,21 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					"serviceAccounts": []string{"*"},
 				},
 			},
-			Error: true,
+			IsManagedEnabled: true,
+			Error:            true,
+		},
+		"disable CP Vault": {
+			Spec: obj{
+				"customVault": obj{
+					"enabled": false,
+				},
+				"settings": obj{
+					"namespaces":      []string{"default"},
+					"serviceAccounts": []string{"default"},
+				},
+			},
+			IsManagedEnabled: false,
+			Error:            true,
 		},
 	}
 
@@ -182,6 +197,7 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 
+			mng := MakeFeatureManager(nil, nil, tc.IsManagedEnabled, nil)
 			err := mng.ValidateSpec(ctx, tc.Spec)
 			switch tc.Error {
 			case true:

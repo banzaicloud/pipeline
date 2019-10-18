@@ -28,8 +28,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/cluster"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -692,9 +692,9 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 		t.Fatalf("Expected %v, got %v", expected, state)
 	}
 
-	secrets, err := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
+	secrets, err := secret.Store.List(testOrgId, &secret.ListSecretsQuery{
 		Type:   cluster.Amazon,
-		Tags:   []string{secretTypes.TagBanzaiHidden},
+		Tags:   []string{secret.TagBanzaiHidden},
 		Values: true,
 	})
 
@@ -712,8 +712,8 @@ func TestAwsRoute53_RegisterDomain(t *testing.T) {
 	defer func() { _ = secret.Store.Delete(testOrgId, secretItem.ID) }()
 
 	if secretItem.Name == IAMUserAccessKeySecretName {
-		if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
-			secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
+		if secretItem.Values[secrettype.AwsAccessKeyId] == testAccessKeyId &&
+			secretItem.Values[secrettype.AwsSecretAccessKey] == testAccessSecretKey {
 			route53SecretCount++
 		}
 	}
@@ -1151,16 +1151,16 @@ func Test_nameServerMatch(t *testing.T) {
 }
 
 func cleanupVaultTestSecrets() {
-	secrets, _ := secret.Store.List(testOrgId, &secretTypes.ListSecretsQuery{
+	secrets, _ := secret.Store.List(testOrgId, &secret.ListSecretsQuery{
 		Type:   cluster.Amazon,
-		Tags:   []string{secretTypes.TagBanzaiHidden},
+		Tags:   []string{secret.TagBanzaiHidden},
 		Values: true,
 	})
 
 	for _, secretItem := range secrets {
 		if secretItem.Name == IAMUserAccessKeySecretName {
-			if secretItem.Values[secretTypes.AwsAccessKeyId] == testAccessKeyId &&
-				secretItem.Values[secretTypes.AwsSecretAccessKey] == testAccessSecretKey {
+			if secretItem.Values[secrettype.AwsAccessKeyId] == testAccessKeyId &&
+				secretItem.Values[secrettype.AwsSecretAccessKey] == testAccessSecretKey {
 
 				_ = secret.Store.Delete(testOrgId, secretItem.ID)
 			}

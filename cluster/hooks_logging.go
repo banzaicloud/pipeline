@@ -24,11 +24,11 @@ import (
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/providers"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -67,14 +67,14 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		clusterUidTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
 		req := &secret.CreateSecretRequest{
 			Name: loggingParam.GenTLSForLogging.GenTLSSecretName,
-			Type: pkgSecret.TLSSecretType,
+			Type: secrettype.TLSSecretType,
 			Tags: []string{
 				clusterUidTag,
-				pkgSecret.TagBanzaiReadonly,
+				secret.TagBanzaiReadonly,
 				releaseTag,
 			},
 			Values: map[string]string{
-				pkgSecret.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
+				secrettype.TLSHosts: loggingParam.GenTLSForLogging.TLSHost,
 			},
 		}
 		_, err := secret.Store.GetOrCreate(cluster.GetOrganizationId(), req)
@@ -82,8 +82,8 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			return errors.Errorf("failed generate TLS secrets to logging operator: %s", err)
 		}
 		_, err = InstallSecrets(cluster,
-			&pkgSecret.ListSecretsQuery{
-				Type: pkgSecret.TLSSecretType,
+			&secret.ListSecretsQuery{
+				Type: secrettype.TLSSecretType,
 				Tags: []string{
 					clusterUidTag,
 					releaseTag,
@@ -138,7 +138,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 	log.Infof("logging-hook secret type: %s", logSecret.Type)
 	switch logSecret.Type {
 	case pkgCluster.Amazon:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &secret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "install amazon secret failed")
 		}
@@ -172,7 +172,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			return emperror.Wrap(err, "install s3-output failed")
 		}
 	case pkgCluster.Google:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &secret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "install google secret failed")
 		}
@@ -191,7 +191,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 			return emperror.Wrap(err, "install gcs-output failed")
 		}
 	case pkgCluster.Alibaba:
-		installedSecretValues, err := InstallSecrets(cluster, &pkgSecret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
+		installedSecretValues, err := InstallSecrets(cluster, &secret.ListSecretsQuery{IDs: []string{loggingParam.SecretId}}, loggingParam.GenTLSForLogging.Namespace)
 		if err != nil {
 			return emperror.Wrap(err, "could not install alibaba logging secret")
 		}
@@ -241,10 +241,10 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		genericSecretName := fmt.Sprintf("logging-generic-%d", cluster.GetID())
 		req := &secret.CreateSecretRequest{
 			Name: genericSecretName,
-			Type: pkgSecret.GenericSecret,
+			Type: secrettype.GenericSecret,
 			Tags: []string{
 				clusterUidTag,
-				pkgSecret.TagBanzaiReadonly,
+				secret.TagBanzaiReadonly,
 				releaseTag,
 			},
 			Values: map[string]string{
@@ -257,8 +257,8 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 		}
 
 		_, err = InstallSecrets(cluster,
-			&pkgSecret.ListSecretsQuery{
-				Type: pkgSecret.GenericSecret,
+			&secret.ListSecretsQuery{
+				Type: secrettype.GenericSecret,
 				Tags: []string{
 					clusterUidTag,
 					releaseTag,

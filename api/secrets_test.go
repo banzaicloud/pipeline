@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/api"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	clusterTypes "github.com/banzaicloud/pipeline/pkg/cluster"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -147,7 +147,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, &secretTypes.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
+				if items, err := secret.Store.List(orgId, &secret.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					// Clear CreatedAt times, we don't know them
@@ -362,7 +362,7 @@ var (
 
 func toHiddenValues(secretType string) map[string]string {
 	values := map[string]string{}
-	for _, field := range secretTypes.DefaultRules[secretType].Fields {
+	for _, field := range secrettype.DefaultRules[secretType].Fields {
 		values[field.Name] = "<hidden>"
 	}
 	return values
@@ -451,13 +451,13 @@ var (
 
 // nolint: gochecknoglobals
 var (
-	allAllowedTypes = secretTypes.DefaultRules
+	allAllowedTypes = secrettype.DefaultRules
 
-	awsRequiredKeys = secretTypes.DefaultRules[clusterTypes.Amazon]
+	awsRequiredKeys = secrettype.DefaultRules[clusterTypes.Amazon]
 
-	aksRequiredKeys = secretTypes.DefaultRules[clusterTypes.Azure]
+	aksRequiredKeys = secrettype.DefaultRules[clusterTypes.Azure]
 
-	gkeRequiredKeys = secretTypes.DefaultRules[clusterTypes.Google]
+	gkeRequiredKeys = secrettype.DefaultRules[clusterTypes.Google]
 
-	OCIRequiredKeys = secretTypes.DefaultRules[clusterTypes.Oracle]
+	OCIRequiredKeys = secrettype.DefaultRules[clusterTypes.Oracle]
 )

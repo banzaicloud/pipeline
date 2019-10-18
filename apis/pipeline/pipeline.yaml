@@ -7463,8 +7463,9 @@ components:
                                 minItems: 2
                             description: Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as
                                 the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
-
-
+                        iam:
+                            type: object
+                            $ref: '#/components/schemas/EKSIam'
 
         CreateACKProperties:
             type: object
@@ -10686,6 +10687,21 @@ components:
                 availabilityZone:
                     type: string
                     description: The AZ to create the subnet into.
+
+        EKSIam:
+            type: object
+            properties:
+                clusterRoleId:
+                    type: string
+                    description: The identifier of existing IAM role to be used for creating the EKS cluster. If not provided a new IAM role is created for the cluster (requires IAM Write Access).
+                nodeInstanceRoleId:
+                    type: string
+                    description: The identifier of existing IAM role to be used for creating the EKS nodes. If not provided a new IAM role is created for the nodes (requires IAM Write Access).
+                defaultUser:
+                    type: boolean
+                    default: false
+                    description: Marks if the userid associated with the clusters AWS secret has to be used in kubeconfig (bypasses IAM user creation).
+
         GetClusterBootstrapResponse:
             type: object
             properties:

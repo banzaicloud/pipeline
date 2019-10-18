@@ -28,7 +28,7 @@ import (
 	"google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/serviceusage/v1"
 
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
 const (
@@ -150,16 +150,16 @@ type ServiceAccount struct {
 // CreateServiceAccount creates a new 'ServiceAccount' instance
 func CreateServiceAccount(values map[string]string) *ServiceAccount {
 	return &ServiceAccount{
-		Type:                   values[pkgSecret.Type],
-		ProjectId:              values[pkgSecret.ProjectId],
-		PrivateKeyId:           values[pkgSecret.PrivateKeyId],
-		PrivateKey:             values[pkgSecret.PrivateKey],
-		ClientEmail:            values[pkgSecret.ClientEmail],
-		ClientId:               values[pkgSecret.ClientId],
-		AuthUri:                values[pkgSecret.AuthUri],
-		TokenUri:               values[pkgSecret.TokenUri],
-		AuthProviderX50CertUrl: values[pkgSecret.AuthX509Url],
-		ClientX509CertUrl:      values[pkgSecret.ClientX509Url],
+		Type:                   values[secrettype.Type],
+		ProjectId:              values[secrettype.ProjectId],
+		PrivateKeyId:           values[secrettype.PrivateKeyId],
+		PrivateKey:             values[secrettype.PrivateKey],
+		ClientEmail:            values[secrettype.ClientEmail],
+		ClientId:               values[secrettype.ClientId],
+		AuthUri:                values[secrettype.AuthUri],
+		TokenUri:               values[secrettype.TokenUri],
+		AuthProviderX50CertUrl: values[secrettype.AuthX509Url],
+		ClientX509CertUrl:      values[secrettype.ClientX509Url],
 	}
 }
 

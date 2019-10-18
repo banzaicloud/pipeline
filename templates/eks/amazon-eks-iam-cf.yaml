@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EKS IAM'
+
+Parameters:
+  ClusterName:
+    Type: String
+    Description: The name of the EKS cluster.
+
+  UserId:
+    Type: String
+    Description: The user ID provided to set as cluster admin.
+    Default: ""
+
+  ClusterRoleId:
+    Type: String
+    Description: The role ID provided to set for the EKS cluster.
+    Default: ""
+
+  NodeInstanceRoleId:
+    Type: String
+    Description: The role ID provided to set for the EKS nodes.
+    Default: ""
+
+Conditions:
+  CreateUser: !Equals [ !Ref UserId, "" ]
+  CreateClusterRole: !Equals [ !Ref ClusterRoleId, "" ]
+  CreateNodeInstanceRole: !Equals [ !Ref NodeInstanceRoleId, "" ]
+
+Resources:
+  ClusterUser:
+    Type: AWS::IAM::User
+    Condition: CreateUser
+    Properties:
+      UserName: !Sub "${ClusterName}"
+
+  ClusterRole:
+    Type: AWS::IAM::Role
+    Condition: CreateClusterRole
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - eks.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+      MaxSessionDuration: 3600
+
+  NodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Policies:
+        -
+          PolicyName: NodePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            -
+              Effect: "Allow"
+              Action:
+              - ec2:Describe*
+              - ecr:GetAuthorizationToken
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:GetRepositoryPolicy
+              - ecr:DescribeRepositories
+              - ecr:ListImages
+              - ecr:BatchGetImage
+              - s3:ListBucket
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+              - autoscaling:DescribeAutoScalingGroups
+              - autoscaling:UpdateAutoScalingGroup
+              - autoscaling:DescribeAutoScalingInstances
+              - autoscaling:DescribeTags
+              - autoscaling:DescribeLaunchConfigurations
+              - autoscaling:SetDesiredCapacity
+              - autoscaling:TerminateInstanceInAutoScalingGroup
+              - autoscaling:PutLifecycleHook
+              - autoscaling:RecordLifecycleActionHeartbeat
+              - autoscaling:DescribeLifecycleHooks
+              - autoscaling:CompleteLifecycleAction
+              - autoscaling:DeleteLifecycleHook
+              - autoscaling:DetachInstances
+              Resource: "*"
+
+Outputs:
+  ClusterRoleArn:
+    Description: The ClusterRole ARN
+    Value: !If [ CreateClusterRole, !GetAtt ClusterRole.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:role/${ClusterRoleId}" ]
+
+  NodeInstanceRoleId:
+    Description: The NodeInstanceRole ID
+    Value: !If [ CreateNodeInstanceRole, !Ref NodeInstanceRole, !Sub "${NodeInstanceRoleId}" ] 
+
+  NodeInstanceRoleArn:
+    Description: The NodeInstanceRole ARN
+    Value: !If [ CreateNodeInstanceRole, !GetAtt NodeInstanceRole.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:role/${NodeInstanceRoleId}" ] 
+
+  ClusterUserArn:
+    Description: Cluster user's ARN
+    Value: !If [ CreateUser, !GetAtt ClusterUser.Arn, !Sub "arn:aws:iam::${AWS::AccountId}:user/${UserId}" ]

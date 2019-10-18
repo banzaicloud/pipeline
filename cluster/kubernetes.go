@@ -28,11 +28,11 @@ import (
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -133,7 +133,7 @@ func (c *KubeCluster) DownloadK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(pkgSecret.K8SConfig))
+	c.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(secrettype.K8SConfig))
 	return c.k8sConfig, err
 }
 
@@ -246,7 +246,7 @@ func (c *KubeCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(pkgSecret.K8SConfig))
+	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(secrettype.K8SConfig))
 	if err != nil {
 		return "", err
 	}

@@ -25,7 +25,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
 // SSHKeyPair struct to store SSH key data
@@ -41,11 +41,11 @@ type SSHKeyPair struct {
 // in the given secret
 func NewSSHKeyPair(s *SecretItemResponse) *SSHKeyPair {
 	return &SSHKeyPair{
-		User:                 s.Values[secretTypes.User],
-		Identifier:           s.Values[secretTypes.Identifier],
-		PublicKeyData:        s.Values[secretTypes.PublicKeyData],
-		PublicKeyFingerprint: s.Values[secretTypes.PublicKeyFingerprint],
-		PrivateKeyData:       s.Values[secretTypes.PrivateKeyData],
+		User:                 s.Values[secrettype.User],
+		Identifier:           s.Values[secrettype.Identifier],
+		PublicKeyData:        s.Values[secrettype.PublicKeyData],
+		PublicKeyFingerprint: s.Values[secrettype.PublicKeyFingerprint],
+		PrivateKeyData:       s.Values[secrettype.PrivateKeyData],
 	}
 }
 
@@ -53,22 +53,22 @@ func NewSSHKeyPair(s *SecretItemResponse) *SSHKeyPair {
 func StoreSSHKeyPair(key *SSHKeyPair, organizationID uint, clusterID uint, clusterName string, clusterUID string) (secretID string, err error) {
 	log.Info("Store SSH Key to Bank Vaults")
 	var createSecretRequest CreateSecretRequest
-	createSecretRequest.Type = secretTypes.SSHSecretType
+	createSecretRequest.Type = secrettype.SSHSecretType
 	createSecretRequest.Name = fmt.Sprint("ssh-cluster-", clusterID)
 
 	clusterUidTag := fmt.Sprintf("clusterUID:%s", clusterUID)
 	createSecretRequest.Tags = []string{
 		"cluster:" + clusterName,
 		clusterUidTag,
-		secretTypes.TagBanzaiReadonly,
+		TagBanzaiReadonly,
 	}
 
 	createSecretRequest.Values = map[string]string{
-		secretTypes.User:                 key.User,
-		secretTypes.Identifier:           key.Identifier,
-		secretTypes.PublicKeyData:        key.PublicKeyData,
-		secretTypes.PublicKeyFingerprint: key.PublicKeyFingerprint,
-		secretTypes.PrivateKeyData:       key.PrivateKeyData,
+		secrettype.User:                 key.User,
+		secrettype.Identifier:           key.Identifier,
+		secrettype.PublicKeyData:        key.PublicKeyData,
+		secrettype.PublicKeyFingerprint: key.PublicKeyFingerprint,
+		secrettype.PrivateKeyData:       key.PrivateKeyData,
 	}
 
 	secretID, err = Store.Store(organizationID, &createSecretRequest)

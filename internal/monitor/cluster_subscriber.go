@@ -38,7 +38,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	pipCluster "github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/dns"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pipSecret "github.com/banzaicloud/pipeline/secret"
 )
 
@@ -148,8 +148,8 @@ func (s *clusterSubscriber) Init() {
 				clusterName: c.GetName(),
 				endpoint:    endPoint,
 				basicAuthConfig: &basicAuthConfig{
-					username:     string(basicAuthSecret.Values[pkgSecret.Username]),
-					password:     string(basicAuthSecret.Values[pkgSecret.Password]),
+					username:     string(basicAuthSecret.Values[secrettype.Username]),
+					password:     string(basicAuthSecret.Values[secrettype.Password]),
 					passwordFile: fmt.Sprintf("%s_%s_basic_auth.conf", org.Name, c.GetName()),
 				},
 				tlsConfig: &scrapeTLSConfig{
@@ -157,10 +157,10 @@ func (s *clusterSubscriber) Init() {
 				},
 			}
 
-			prometheusSecret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[pkgSecret.Password])
+			prometheusSecret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[secrettype.Password])
 
 			prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
-			prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
+			prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[secrettype.CACert])
 		}
 
 	}
@@ -232,7 +232,7 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 		clusterName: c.GetName(),
 		endpoint:    endPoint,
 		basicAuthConfig: &basicAuthConfig{
-			username:     basicAuthSecret.Values[pkgSecret.Username],
+			username:     basicAuthSecret.Values[secrettype.Username],
 			passwordFile: fmt.Sprintf("%s_%s_basic_auth.conf", org.Name, c.GetName()),
 		},
 		tlsConfig: &scrapeTLSConfig{
@@ -247,9 +247,9 @@ func (s *clusterSubscriber) AddClusterToPrometheusConfig(clusterID uint) {
 	}
 
 	prometheusConfig.ScrapeConfigs = append(prometheusConfig.ScrapeConfigs, s.getScrapeConfigForCluster(params))
-	prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[pkgSecret.CACert])
+	prometheusSecret.StringData[params.tlsConfig.caCertFileName] = string(tlsSecret.Values[secrettype.CACert])
 
-	prometheusSecret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[pkgSecret.Password])
+	prometheusSecret.StringData[params.basicAuthConfig.passwordFile] = string(basicAuthSecret.Values[secrettype.Password])
 
 	err = s.save(prometheusConfig, prometheusSecret)
 	if err != nil {

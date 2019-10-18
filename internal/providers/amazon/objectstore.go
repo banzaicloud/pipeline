@@ -25,10 +25,10 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	commonObjectstore "github.com/banzaicloud/pipeline/pkg/objectstore"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	amazonObjectstore "github.com/banzaicloud/pipeline/pkg/providers/amazon/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -90,8 +90,8 @@ func getProviderObjectStore(secret *secret.SecretItemResponse, region string) (a
 	}
 
 	credentials := amazonObjectstore.Credentials{
-		AccessKeyID:     secret.Values[pkgSecret.AwsAccessKeyId],
-		SecretAccessKey: secret.Values[pkgSecret.AwsSecretAccessKey],
+		AccessKeyID:     secret.Values[secrettype.AwsAccessKeyId],
+		SecretAccessKey: secret.Values[secrettype.AwsSecretAccessKey],
 	}
 
 	config := amazonObjectstore.Config{

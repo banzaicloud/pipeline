@@ -26,8 +26,8 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -48,15 +48,15 @@ func InstallMonitoring(cluster CommonCluster) error {
 
 	grafanaSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-grafana", cluster.GetID()),
-		Type: pkgSecret.PasswordSecretType,
+		Type: secrettype.PasswordSecretType,
 		Values: map[string]string{
-			pkgSecret.Username: grafanaAdminUsername,
-			pkgSecret.Password: grafanaAdminPass,
+			secrettype.Username: grafanaAdminUsername,
+			secrettype.Password: grafanaAdminPass,
 		},
 		Tags: []string{
 			clusterNameSecretTag,
 			clusterUidSecretTag,
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 			"app:grafana",
 		},
@@ -87,15 +87,15 @@ func InstallMonitoring(cluster CommonCluster) error {
 
 	prometheusSecretRequest := &secret.CreateSecretRequest{
 		Name: prometheusSecretName,
-		Type: pkgSecret.HtpasswdSecretType,
+		Type: secrettype.HtpasswdSecretType,
 		Values: map[string]string{
-			pkgSecret.Username: "prometheus",
-			pkgSecret.Password: prometheusAdminPass,
+			secrettype.Username: "prometheus",
+			secrettype.Password: prometheusAdminPass,
 		},
 		Tags: []string{
 			clusterNameSecretTag,
 			clusterUidSecretTag,
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 		},
 	}
@@ -111,7 +111,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 		SourceSecretName: prometheusSecretName,
 		Namespace:        monitoringNamespace,
 		Spec: map[string]InstallSecretRequestSpecItem{
-			"auth": {Source: pkgSecret.HtpasswdFile},
+			"auth": {Source: secrettype.HtpasswdFile},
 		},
 		Update: true,
 	}

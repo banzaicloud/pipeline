@@ -23,8 +23,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 // DynamicFileClientFactory returns a DynamicFileClient.
@@ -47,7 +47,7 @@ func (f DynamicFileClientFactory) FromSecret(ctx context.Context, secretID strin
 	}
 
 	// TODO: better secret parsing?
-	kubeConfig, err := base64.StdEncoding.DecodeString(values[secret.K8SConfig])
+	kubeConfig, err := base64.StdEncoding.DecodeString(values[secrettype.K8SConfig])
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot decode Kubernetes config")
 	}
