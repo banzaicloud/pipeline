@@ -236,7 +236,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -297,7 +297,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -390,7 +390,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -446,7 +446,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -532,7 +532,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -583,7 +583,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -2736,7 +2736,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -2769,7 +2769,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -2803,7 +2803,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -2884,7 +2884,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -2934,7 +2934,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -2972,7 +2972,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -3009,7 +3009,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -3050,7 +3050,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -3100,7 +3100,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -3170,7 +3170,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -3229,7 +3229,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -3280,7 +3280,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -3341,7 +3341,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -3405,7 +3405,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -3454,7 +3454,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -3490,7 +3490,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
       security:
       - bearerAuth: []
@@ -3506,7 +3506,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -4104,7 +4104,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         400:
           description: Error while checking object store bucket status
@@ -4371,7 +4371,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           description: VPC network not found
@@ -4464,7 +4464,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           description: VPC network not found
@@ -4517,7 +4517,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -4576,7 +4576,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -4627,7 +4627,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -4680,7 +4680,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -4733,7 +4733,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -4773,7 +4773,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -4822,7 +4822,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -4877,7 +4877,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -4933,7 +4933,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -4989,7 +4989,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -5041,7 +5041,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -5102,7 +5102,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -5154,7 +5154,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         500:
           content:
@@ -7408,7 +7408,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -7462,7 +7462,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -7519,7 +7519,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -7584,7 +7584,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -7649,7 +7649,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -7706,7 +7706,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ClientError'
           description: Unauthorized
         404:
           content:
@@ -7734,6 +7734,13 @@ components:
             $ref: '#/components/schemas/api.FeatureRequest'
       description: Feature properties
       required: true
+  responses:
+    Unauthorized:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientError'
+      description: Unauthorized
   schemas:
     ClientError:
       properties:

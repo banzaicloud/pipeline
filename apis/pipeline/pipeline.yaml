@@ -258,12 +258,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/CreateClusterResponse_400'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
             requestBody:
                 required: true
                 content:
@@ -326,12 +322,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
     '/api/v1/orgs/{orgId}/clusters/{id}/bootstrap':
             get:
                 security:
@@ -408,12 +400,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Cluster not found
                     content:
@@ -454,12 +442,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Cluster not found
                     content:
@@ -521,12 +505,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Cluster not found
                     content:
@@ -612,12 +592,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Cluster not found
                     content:
@@ -2744,12 +2720,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/TokenListResponseItem'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -2778,12 +2750,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/TokenCreateResponse'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -2813,12 +2781,8 @@ paths:
             responses:
                 '204':
                     description: Token deleted successfully
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -2884,12 +2848,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
         post:
             security:
                 -
@@ -2933,12 +2893,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -2974,12 +2930,8 @@ paths:
                                         sourcing: volume
                                 additionalProperties:
                                     $ref: '#/components/schemas/AllowedSecretTypeResponse'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
 
     '/api/v1/allowed/secrets/{type}':
         get:
@@ -3013,12 +2965,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
 
     '/api/v1/orgs/{orgId}/secrets/{secretId}':
         get:
@@ -3058,12 +3006,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Secret not found
                     content:
@@ -3126,12 +3070,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Unauthorized
                     content:
@@ -3183,12 +3123,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Secrets not found
                     content:
@@ -3231,12 +3167,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Secret not found
                     content:
@@ -3282,12 +3214,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/SecretTags'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Secret not found
                     content:
@@ -3346,12 +3274,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Secret not found
                     content:
@@ -3404,12 +3328,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Secret not found
                     content:
@@ -3454,12 +3374,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Organization not found
                     content:
@@ -3492,12 +3408,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
 
         put:
             security:
@@ -3511,12 +3423,8 @@ paths:
                 '200':
                     description: "Organizations synchronized successfully"
 
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -4138,12 +4046,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/BucketInfo'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '400':
                     description: Error while checking object store bucket status
                 '404':
@@ -4291,12 +4195,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: VPC network not found
                 '500':
@@ -4373,12 +4273,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: VPC network not found
                 '500':
@@ -4427,12 +4323,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Cluster not found
                     content:
@@ -4485,12 +4377,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Cluster not found
                     content:
@@ -4536,12 +4424,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/AnchoreImageList'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -4588,12 +4472,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/AnchoreImage'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -4640,12 +4520,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/VulnerabilityResponse'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -4684,12 +4560,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetLeaderElectionResponse'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: No leader found
                     content:
@@ -4739,12 +4611,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PostLeaderElectionResponse'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: No such PKE cluster found
                     content:
@@ -4790,12 +4658,8 @@ paths:
             responses:
                 '200':
                     description: Leader deletion successful
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: No leader found
                     content:
@@ -4840,12 +4704,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/PKEClusterReadinessResponse'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: No such PKE cluster found
                     content:
@@ -4896,12 +4756,8 @@ paths:
                             schema:
                                 type: object
                                 example: {}
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: No such PKE cluster found
                     content:
@@ -4947,12 +4803,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetPKECommandsResponse'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: No such PKE cluster found
                     content:
@@ -5008,12 +4860,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: Cluster not found
                     content:
@@ -5060,12 +4908,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListProjectsResponse'
-                '401':
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     description: Internal server error
                     content:
@@ -6565,12 +6409,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ClusterFeatureList"
-                "401":
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Unauthorized"
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 "404":
                     description: Not found
                     content:
@@ -6625,12 +6465,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ClusterFeatureDetails"
-                "401":
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Unauthorized"
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 "404":
                     description: Not found
                     content:
@@ -6693,12 +6529,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ClientError"
-                "401":
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Unauthorized"
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 "404":
                     description: Not found
                     content:
@@ -6749,12 +6581,8 @@ paths:
             responses:
                 "204":
                     description: No Content
-                "401":
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Unauthorized"
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 "404":
                     description: Not found
                     content:
@@ -6817,12 +6645,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ClientError"
-                "401":
-                    description: Unauthorized
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Unauthorized"
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 "404":
                     description: Not found
                     content:
@@ -6878,12 +6702,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ClientError'
-                '401':
-                    description: "Unauthorized"
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Unauthorized'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
                 '404':
                     description: "Cluster not found"
                     content:
@@ -6913,6 +6733,14 @@ components:
                         $ref: "#/components/schemas/api.FeatureRequest"
             description: Feature properties
             required: true
+
+    responses:
+        Unauthorized:
+            description: Unauthorized
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ClientError'
 
     schemas:
         ClientError:
