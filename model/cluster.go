@@ -183,6 +183,8 @@ type EKSClusterModel struct {
 	ClusterID uint `gorm:"unique_index:idx_eks_clusters_cluster_id"`
 
 	Version      string
+	LogTypes     []string                `gorm:"-"`
+	LogTypesRaw  []byte                  `gorm:"column:log_types"`
 	NodePools    []*AmazonNodePoolsModel `gorm:"foreignkey:ClusterID"`
 	VpcId        *string                 `gorm:"size:32"`
 	VpcCidr      *string                 `gorm:"size:18"`
@@ -193,6 +195,18 @@ type EKSClusterModel struct {
 	DefaultUser        bool
 	ClusterRoleId      string
 	NodeInstanceRoleId string
+}
+
+func (cs *EKSClusterModel) BeforeSave() (err error) {
+	cs.LogTypesRaw, err = json.Marshal(cs.LogTypes)
+	return
+}
+
+func (cs *EKSClusterModel) AfterFind() error {
+	if len(cs.LogTypesRaw) != 0 {
+		return json.Unmarshal(cs.LogTypesRaw, &cs.LogTypes)
+	}
+	return nil
 }
 
 // AKSClusterModel describes the aks cluster model

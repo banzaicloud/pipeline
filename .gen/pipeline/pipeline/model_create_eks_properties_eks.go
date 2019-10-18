@@ -14,6 +14,8 @@ type CreateEksPropertiesEks struct {
 
 	Version string `json:"version,omitempty"`
 
+	LogTypes []string `json:"logTypes,omitempty"`
+
 	NodePools map[string]EksNodePool `json:"nodePools"`
 
 	Vpc EksVpc `json:"vpc,omitempty"`

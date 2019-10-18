@@ -65,11 +65,19 @@ func (a *CreateEksClusterAction) ExecuteAction(input interface{}) (output interf
 
 	roleArn := a.context.ClusterRoleArn
 
+	logging := eks.Logging{
+		ClusterLogging: []*eks.LogSetup{{
+			Enabled: aws.Bool(true),
+			Types:   aws.StringSlice(a.context.LogTypes),
+		}},
+	}
+
 	createClusterInput := &eks.CreateClusterInput{
 		ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
 		Name:               aws.String(a.context.ClusterName),
 		ResourcesVpcConfig: vpcConfigRequest,
 		RoleArn:            &roleArn,
+		Logging:            &logging,
 	}
 
 	// set Kubernetes version only if provided, otherwise the cloud provider default one will be used

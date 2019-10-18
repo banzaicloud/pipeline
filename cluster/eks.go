@@ -90,6 +90,7 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		Distribution:   pkgCluster.EKS,
 		EKS: model.EKSClusterModel{
 			Version:            request.Properties.CreateClusterEKS.Version,
+			LogTypes:           request.Properties.CreateClusterEKS.LogTypes,
 			NodePools:          modelNodePools,
 			VpcId:              &request.Properties.CreateClusterEKS.Vpc.VpcId,
 			VpcCidr:            &request.Properties.CreateClusterEKS.Vpc.Cidr,
@@ -343,6 +344,8 @@ func (c *EKSCluster) CreateCluster() error {
 	creationContext.DefaultUser = c.modelCluster.EKS.DefaultUser
 	creationContext.ClusterRoleID = c.modelCluster.EKS.ClusterRoleId
 	creationContext.NodeInstanceRoleID = c.modelCluster.EKS.NodeInstanceRoleId
+
+	creationContext.LogTypes = c.modelCluster.EKS.LogTypes
 
 	actions := []utils.Action{
 		action.NewCreateVPCAction(c.log, creationContext, eksStackName),

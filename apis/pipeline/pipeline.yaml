@@ -6897,6 +6897,12 @@ components:
                         version:
                             type: string
                             example: "1.10"
+                        logTypes:
+                            type: array
+                            items:
+                                type: string
+                            example: ["api", "scheduler"]
+                            description: Id of the RouteTable of the VPC to be used by subnets. This is used only when subnets are created into existing VPC.
                         nodePools:
                             type: object
                             additionalProperties:
