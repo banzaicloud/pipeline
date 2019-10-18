@@ -197,14 +197,14 @@ type EKSClusterModel struct {
 	NodeInstanceRoleId string
 }
 
-func (cs *EKSClusterModel) BeforeSave() (err error) {
-	cs.LogTypesRaw, err = json.Marshal(cs.LogTypes)
+func (cm *EKSClusterModel) BeforeSave() (err error) {
+	cm.LogTypesRaw, err = json.Marshal(cm.LogTypes)
 	return
 }
 
-func (cs *EKSClusterModel) AfterFind() error {
-	if len(cs.LogTypesRaw) != 0 {
-		return json.Unmarshal(cs.LogTypesRaw, &cs.LogTypes)
+func (cm *EKSClusterModel) AfterFind() error {
+	if len(cm.LogTypesRaw) != 0 {
+		return json.Unmarshal(cm.LogTypesRaw, &cm.LogTypes)
 	}
 	return nil
 }
@@ -247,28 +247,26 @@ type KubernetesClusterModel struct {
 	MetadataRaw []byte            `gorm:"meta_data"`
 }
 
+// BeforeSave converts the metadata into a json string in case of Kubernetes
+func (cs *KubernetesClusterModel) BeforeSave() (err error) {
+	cs.MetadataRaw, err = json.Marshal(cs.Metadata)
+	return
+}
+
+// AfterFind converts the metadata json string to a map in case of Kubernetes
+func (cs *KubernetesClusterModel) AfterFind() error {
+	if len(cs.MetadataRaw) != 0 {
+		return json.Unmarshal(cs.MetadataRaw, &cs.Metadata)
+	}
+	return nil
+}
+
 func (cs *ClusterModel) BeforeCreate() (err error) {
 	if cs.UID == "" {
 		cs.UID = uuid.Must(uuid.NewV4()).String()
 	}
 
 	return
-}
-
-// BeforeSave converts the metadata into a json string in case of Kubernetes
-func (cs *ClusterModel) BeforeSave() error {
-	log.Info("Before save convert meta data")
-
-	if cs.Cloud == pkgCluster.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
-		out, err := json.Marshal(cs.Kubernetes.Metadata)
-		if err != nil {
-			log.Errorf("Error during convert map to json: %s", err.Error())
-			return err
-		}
-		cs.Kubernetes.MetadataRaw = out
-	}
-
-	return nil
 }
 
 // AfterFind converts metadata json string into map in case of Kubernetes and sets NodeInstanceType and/or Location field(s)
@@ -282,16 +280,6 @@ func (cs *ClusterModel) AfterFind() error {
 	if cs.Distribution == "acsk" {
 		// we renamed acsk distribution to ack
 		cs.Distribution = pkgCluster.ACK
-	}
-
-	if cs.Cloud == pkgCluster.Kubernetes && cs.Kubernetes.MetadataRaw != nil && len(cs.Kubernetes.MetadataRaw) != 0 {
-		var result map[string]string
-		err := json.Unmarshal(cs.Kubernetes.MetadataRaw, &result)
-		if err != nil {
-			log.Errorf("Error during convert json to map: %s", err.Error())
-			return err
-		}
-		cs.Kubernetes.Metadata = result
 	}
 
 	return nil
@@ -403,12 +391,12 @@ func (KubernetesClusterModel) TableName() string {
 }
 
 // AfterUpdate removes marked node pool(s)
-func (a *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
-	log.WithField("clusterId", a.ClusterID).Debug("remove node pools marked for deletion")
+func (cm *EKSClusterModel) AfterUpdate(tx *gorm.DB) error {
+	log.WithField("clusterId", cm.ClusterID).Debug("remove node pools marked for deletion")
 
-	for _, nodePoolModel := range a.NodePools {
+	for _, nodePoolModel := range cm.NodePools {
 		if nodePoolModel.Delete {
-			err := tx.Model(a).Association("NodePools").Delete(nodePoolModel).Error
+			err := tx.Model(cm).Association("NodePools").Delete(nodePoolModel).Error
 			if err != nil {
 				return err
 			}
