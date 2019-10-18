@@ -341,7 +341,7 @@ var DefaultRules = map[string]Meta{
 	},
 	SlackSecretType: {
 		Fields: []FieldMeta{
-			{Name: SlackApiUrl, Required: true, Opaque: true, Description: "Slack url to send alerts"},
+			{Name: SlackApiUrl, Required: true, Opaque: true, Description: "Slack URL to send alerts to"},
 		},
 	},
 	PagerDutySecretType: {
