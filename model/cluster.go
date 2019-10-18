@@ -16,6 +16,7 @@ package model
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -194,20 +195,19 @@ type EKSClusterModel struct {
 	ClusterRoleId      string
 	NodeInstanceRoleId string
 
-	LogTypes    []string `gorm:"-"`
-	LogTypesRaw []byte   `gorm:"column:log_types"`
+	LogTypes EKSLogTypes `sql:"type:json"`
 }
 
-func (cm *EKSClusterModel) BeforeSave() (err error) {
-	cm.LogTypesRaw, err = json.Marshal(cm.LogTypes)
-	return
+type EKSLogTypes []string
+
+// Value implements the driver.Valuer interface
+func (elt EKSLogTypes) Value() (driver.Value, error) {
+	return json.Marshal(elt)
 }
 
-func (cm *EKSClusterModel) AfterFind() error {
-	if len(cm.LogTypesRaw) != 0 {
-		return json.Unmarshal(cm.LogTypesRaw, &cm.LogTypes)
-	}
-	return nil
+// Scan implements the sql.Scanner interface
+func (elt *EKSLogTypes) Scan(src interface{}) error {
+	return json.Unmarshal(src.([]byte), elt)
 }
 
 // AKSClusterModel describes the aks cluster model

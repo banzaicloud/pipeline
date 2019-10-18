@@ -1,2 +1,2 @@
 ALTER TABLE `amazon_eks_clusters`
-ADD COLUMN `log_types` varbinary(255);
+ADD COLUMN `log_types` json;
