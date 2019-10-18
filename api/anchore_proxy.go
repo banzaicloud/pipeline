@@ -67,7 +67,7 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 
 		config, err := ap.configService.GetConfiguration(c.Request.Context(), uint(clusterID))
 		if err != nil {
-			ap.logger.Warn("failed to retrieve anchore configuraiton", fnCtx)
+			ap.logger.Warn("failed to retrieve anchore configuration", fnCtx)
 
 			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
@@ -117,8 +117,11 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 
 		errorHandler := func(rw http.ResponseWriter, req *http.Request, err error) {
 			rw.WriteHeader(http.StatusInternalServerError)
-			rw.Write([]byte(err.Error()))
+			if _, err := rw.Write([]byte(err.Error())); err != nil {
+				ap.logger.Error("failed to write error response ebody")
+			}
 		}
+
 		proxy := &httputil.ReverseProxy{
 			Director:       director,
 			ModifyResponse: modifyResponse,
