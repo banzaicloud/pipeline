@@ -39,9 +39,10 @@ type FeatureStatus = string
 
 // Feature status constants
 const (
-	FeatureStatusPending FeatureStatus = "PENDING"
-	FeatureStatusActive  FeatureStatus = "ACTIVE"
-	FeatureStatusError   FeatureStatus = "ERROR"
+	FeatureStatusInactive FeatureStatus = "INACTIVE"
+	FeatureStatusPending  FeatureStatus = "PENDING"
+	FeatureStatusActive   FeatureStatus = "ACTIVE"
+	FeatureStatusError    FeatureStatus = "ERROR"
 )
 
 // FeatureManagerRegistry contains feature managers.

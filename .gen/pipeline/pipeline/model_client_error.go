@@ -10,11 +10,11 @@
 
 package pipeline
 
-type CommonErrorResponse struct {
+type ClientError struct {
 
 	Code int32 `json:"code,omitempty"`
 
-	Error string `json:"error,omitempty"`
-
 	Message string `json:"message,omitempty"`
+
+	Error string `json:"error,omitempty"`
 }
