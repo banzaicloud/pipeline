@@ -7552,7 +7552,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-slack-secret-{{$randomInt}}\",\n\t\"type\": \"slack\",\n\t\"values\": {\n\t\t\"apiUrl\": \"\",\n\t\t\"channel\": \"\"\n\t}\n}\n"
+									"raw": "{\n\t\"name\": \"my-slack-secret-{{$randomInt}}\",\n\t\"type\": \"slack\",\n\t\"values\": {\n\t\t\"apiUrl\": \"\"\n\t}\n}\n"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets",
@@ -7711,7 +7711,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"name\": \"my-pagerduty-secret-{{$randomInt}}\",\n\t\"type\": \"pagerduty\",\n\t\"values\": {\n\t\t\"url\": \"\",\n\t\t\"serviceKey\": \"\",\n\t\t\"routingKey\": \"\"\n\t}\n}\n"
+									"raw": "{\n\t\"name\": \"my-pagerduty-secret-{{$randomInt}}\",\n\t\"type\": \"pagerduty\",\n\t\"values\": {\n\t\t\"url\": \"\",\n\t\t\"integrationKey\": \"\"\n\t}\n}\n"
 								},
 								"url": {
 									"raw": "{{url}}/api/v1/orgs/:orgId/secrets",
