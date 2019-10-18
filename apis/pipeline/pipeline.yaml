@@ -5573,14 +5573,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.CreateUpdateDeploymentResponse"
-                "207":
-                    description: Partial failure, meaning that Multi-cluster deployment has been
-                        created successfully, however there was as least one failure on one
-                        of the target clusters
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                207:
+                    $ref: "#/components/responses/PartialFailure"
                 400:
                     $ref: "#/components/responses/BadRequest"
                 404:
@@ -5627,13 +5621,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.TargetClusterStatus"
-                "207":
-                    description: Partial failure, meaning that there was as least one failure on one
-                        of the target clusters
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                207:
+                    $ref: "#/components/responses/PartialFailure"
                 400:
                     $ref: "#/components/responses/BadRequest"
             security:
@@ -5715,14 +5704,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.CreateUpdateDeploymentResponse"
-                "207":
-                    description: Partial failure, meaning that Multi-cluster deployment has been
-                        update successfully, however there was as least one failure on one
-                        of the target clusters
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                207:
+                    $ref: "#/components/responses/PartialFailure"
                 400:
                     $ref: "#/components/responses/BadRequest"
                 404:
@@ -5763,13 +5746,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/deployment.TargetClusterStatus"
-                "207":
-                    description: Partial failure, meaning that there was as least one failure on one
-                        of the target clusters
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/common.ErrorResponse"
+                207:
+                    $ref: "#/components/responses/PartialFailure"
                 400:
                     $ref: "#/components/responses/BadRequest"
             security:
@@ -6299,6 +6277,19 @@ components:
             required: true
 
     responses:
+        PartialFailure:
+            description: Partial failure
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/CommonError'
+                    examples:
+                        PartialFailure:
+                            value:
+                                code: 207
+                                message: "Partial failure"
+                                error: "there was as least one failure on one of the target clusters"
+
         BadRequest:
             description: Bad request
             content:
@@ -10731,15 +10722,7 @@ components:
                     example: cluster_group_name
                     type: string
             type: object
-        common.ErrorResponse:
-            properties:
-                code:
-                    type: integer
-                error:
-                    type: string
-                message:
-                    type: string
-            type: object
+
         deployment.ClusterGroupDeployment:
             properties:
                 atomic:
