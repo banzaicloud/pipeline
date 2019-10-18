@@ -538,7 +538,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
         head:
             security:
@@ -911,7 +911,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/nodes':
         get:
@@ -968,7 +968,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
 
     '/api/v1/orgs/{orgId}/clusters/{id}/helminit':
@@ -1093,7 +1093,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
         post:
             security:
                 -
@@ -1441,7 +1441,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
 
     '/api/v1/orgs/{orgId}/clusters/{id}/policies/{policyId}':
         get:
@@ -1490,7 +1490,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
         put:
             tags:
                 - policies
@@ -1536,7 +1536,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
         delete:
             tags:
                 - policies
@@ -1578,7 +1578,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
 
 
     '/api/v1/orgs/{orgId}/helm/repos':
@@ -2437,7 +2437,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/resources':
         get:
@@ -2502,7 +2502,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/deployments/{name}/images':
         get:
@@ -2560,7 +2560,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/hpa':
         put:
@@ -2723,7 +2723,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     /api/v1/tokens:
         get:
@@ -2755,7 +2755,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
         post:
             security:
                 -
@@ -2789,7 +2789,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     /api/v1/tokens/{tokenId}:
         delete:
@@ -2824,7 +2824,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/secrets':
         get:
@@ -2944,7 +2944,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
     '/api/v1/allowed/secrets':
         get:
             security:
@@ -3075,7 +3075,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
         put:
             security:
                 -
@@ -3149,7 +3149,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
         delete:
             security:
                 -
@@ -3248,7 +3248,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/secrets/{secretId}/tags':
         get:
@@ -3299,7 +3299,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/secrets/{secretId}/tags/{tag}':
         put:
@@ -3363,7 +3363,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
         delete:
             security:
                 -
@@ -3421,7 +3421,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}':
         get:
@@ -3522,7 +3522,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
     '/api':
         get:
             tags:
@@ -3858,7 +3858,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
         post:
             security:
                 -
@@ -3900,7 +3900,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
             requestBody:
                 required: true
                 content:
@@ -3995,7 +3995,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
         head:
             security:
                 -
@@ -4222,7 +4222,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/networks/{networkId}/subnets':
         get:
@@ -4304,7 +4304,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/networks/{networkId}/routeTables':
         get:
@@ -4386,7 +4386,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
 
     '/api/v1/orgs/{orgId}/clusters/{id}/images':
@@ -4547,7 +4547,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}':
         get:
@@ -4599,7 +4599,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/imagescan/{imageDigest}/vuln':
         get:
@@ -4651,7 +4651,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/leader':
         get:
@@ -4701,7 +4701,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
         post:
             security:
@@ -4762,7 +4762,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
         delete:
             security:
@@ -4807,7 +4807,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/ready':
         get:
@@ -4857,7 +4857,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
         post:
             security:
@@ -4913,7 +4913,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/pke/commands':
         get:
@@ -4964,7 +4964,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
     '/api/v1/orgs/{orgId}/clusters/{id}/namespaces/{namespace}':
         delete:
@@ -5025,7 +5025,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
 
     '/api/v1/orgs/{orgId}/google/projects':
@@ -5071,7 +5071,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
     '/api/v1/orgs/{orgId}/clusters/{id}/backupservice/enable':
         post:
             security:
@@ -6586,7 +6586,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
 
     "/api/v1/orgs/{orgId}/clusters/{id}/features/{featureName}":
         get:
@@ -6647,7 +6647,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
 
         post:
             operationId: ActivateClusterFeature
@@ -6715,7 +6715,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
 
         delete:
             operationId: DeactivateClusterFeature
@@ -6771,7 +6771,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
 
         put:
             operationId: UpdateClusterFeature
@@ -6839,7 +6839,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/BaseError_500"
+                                $ref: "#/components/schemas/ServerError"
     '/api/v1/orgs/{orgId}/clusters/{id}/nodepools/labels':
         get:
             security:
@@ -6895,7 +6895,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/BaseError_500'
+                                $ref: '#/components/schemas/ServerError'
 
 
 components:
@@ -6939,7 +6939,7 @@ components:
                     type: string
                     example: "Error during process"
 
-        BaseError_500:
+        ServerError:
             type: object
             properties:
                 code:

@@ -10,7 +10,7 @@
 
 package pipeline
 
-type BaseError500 struct {
+type ServerError struct {
 
 	Code int32 `json:"code,omitempty"`
 

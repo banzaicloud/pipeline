@@ -402,7 +402,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -877,7 +877,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -934,7 +934,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -1058,7 +1058,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -1411,7 +1411,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal Error
       summary: Add a new policy
       tags:
@@ -1457,7 +1457,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal Error
       summary: Delete policy
       tags:
@@ -1509,7 +1509,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal Error
       summary: Get specific policy
       tags:
@@ -1558,7 +1558,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal Error
       summary: Update policy
       tags:
@@ -2315,7 +2315,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2488,7 +2488,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2547,7 +2547,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2660,7 +2660,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2742,7 +2742,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2775,7 +2775,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2809,7 +2809,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -2940,7 +2940,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3112,7 +3112,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3188,7 +3188,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3241,7 +3241,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3292,7 +3292,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3353,7 +3353,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3417,7 +3417,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3512,7 +3512,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3852,7 +3852,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -3902,7 +3902,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4009,7 +4009,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4286,7 +4286,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4379,7 +4379,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4472,7 +4472,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4633,7 +4633,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4686,7 +4686,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4739,7 +4739,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4785,7 +4785,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4834,7 +4834,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4895,7 +4895,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -4945,7 +4945,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -5001,7 +5001,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -5053,7 +5053,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -5114,7 +5114,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -5160,7 +5160,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7420,7 +7420,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7474,7 +7474,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7531,7 +7531,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7596,7 +7596,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7661,7 +7661,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7718,7 +7718,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseError_500'
+                $ref: '#/components/schemas/ServerError'
           description: Internal server error
       security:
       - bearerAuth: []
@@ -7757,7 +7757,7 @@ components:
           example: Error during process
           type: string
       type: object
-    BaseError_500:
+    ServerError:
       properties:
         code:
           example: 500
