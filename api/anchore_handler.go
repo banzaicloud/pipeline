@@ -28,10 +28,6 @@ import (
 )
 
 type PolicyHandler interface {
-	ListPolicies(c *gin.Context)
-	GetPolicy(c *gin.Context)
-	CreatePolicy(c *gin.Context)
-	DeletePolicy(c *gin.Context)
 	UpdatePolicy(c *gin.Context)
 }
 
@@ -47,109 +43,6 @@ func NewPolicyHandler(clusterGetter apiCommon.ClusterGetter, policySvc anchore.P
 		policyService: policySvc,
 		logger:        logger.WithFields(map[string]interface{}{"policy-handler": "y"}),
 	}
-}
-
-func (p policyHandler) ListPolicies(c *gin.Context) {
-
-	cluster, ok := p.clusterGetter.GetClusterFromRequest(c)
-	if !ok {
-		p.logger.Warn("failed to retrieve cluster based on the request")
-
-		return
-	}
-
-	resp, err := p.policyService.ListPolicies(c.Request.Context(), cluster.GetOrganizationId(), cluster.GetID())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "failed to list policies",
-			Error:   errors.Cause(err).Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, resp)
-}
-
-func (p policyHandler) GetPolicy(c *gin.Context) {
-	policyId := c.Param("policyId")
-
-	cluster, ok := p.clusterGetter.GetClusterFromRequest(c)
-	if !ok {
-		p.logger.Warn("failed to retrieve cluster based on the request")
-
-		return
-	}
-
-	resp, err := p.policyService.GetPolicy(c.Request.Context(), cluster.GetOrganizationId(), cluster.GetID(), policyId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "failed to get policy",
-			Error:   errors.Cause(err).Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, resp)
-
-}
-
-func (p policyHandler) CreatePolicy(c *gin.Context) {
-
-	var policyBundle pipeline.PolicyBundleRecord
-	if err := c.BindJSON(&policyBundle); err != nil {
-		err := errors.WrapIf(err, "Error parsing request:")
-		c.JSON(http.StatusBadRequest, common.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "failed to bind the request",
-			Error:   errors.Cause(err).Error(),
-		})
-		return
-	}
-
-	cluster, ok := p.clusterGetter.GetClusterFromRequest(c)
-	if !ok {
-		p.logger.Warn("failed to retrieve cluster based on the request")
-
-		return
-	}
-
-	resp, err := p.policyService.CreatePolicy(c.Request.Context(), cluster.GetOrganizationId(), cluster.GetID(), policyBundle)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "failed to get image meta info",
-			Error:   errors.Cause(err).Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, resp)
-}
-
-func (p policyHandler) DeletePolicy(c *gin.Context) {
-
-	policyId := c.Param("policyId")
-
-	cluster, ok := p.clusterGetter.GetClusterFromRequest(c)
-	if !ok {
-		p.logger.Warn("failed to retrieve cluster based on the request")
-
-		return
-	}
-
-	if err := p.policyService.DeletePolicy(c.Request.Context(), cluster.GetOrganizationId(), cluster.GetID(), policyId); err != nil {
-		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "failed to delete policy",
-			Error:   errors.Cause(err).Error(),
-		})
-		return
-	}
-
-	c.Status(http.StatusNoContent)
-
 }
 
 func (p policyHandler) UpdatePolicy(c *gin.Context) {
