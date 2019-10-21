@@ -2,7 +2,7 @@
 
 SHELL = /bin/bash
 OS = $(shell uname | tr A-Z a-z)
-export PATH := s$(abspath bin/):${PATH}
+export PATH := $(abspath bin/):${PATH}
 
 # Project variables
 PACKAGE = github.com/banzaicloud/pipeline
