@@ -41,15 +41,6 @@ type UserManagementClient interface {
 	GetUserCredentials(ctx context.Context, userName string) (string, error)
 }
 
-type ImagesClient interface {
-	// GetImageVulnerabilities gets the vulnerabilities for the given image digest
-	ScanImage(ctx context.Context, image pipeline.ClusterImage) (interface{}, error)
-	// GetImageVulnerabilities gets the vulnerabilities for the given image digest
-	GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error)
-	// CheckImage cheks rthe image for anchore metadata
-	CheckImage(ctx context.Context, imageDigest string) (interface{}, error)
-}
-
 type PolicyClient interface {
 	GetPolicy(ctx context.Context, policyID string) (interface{}, error)
 	ListPolicies(ctx context.Context) (interface{}, error)
@@ -61,7 +52,6 @@ type PolicyClient interface {
 // AnchoreClient "facade" for supported Anchore operations, decouples anchore specifics from the application
 type AnchoreClient interface {
 	UserManagementClient
-	ImagesClient
 	PolicyClient
 }
 
@@ -340,70 +330,6 @@ func (a anchoreClient) DeleteUser(ctx context.Context, accountName string, userN
 
 	a.logger.Info("deleted anchore user", fnCtx)
 	return nil
-}
-
-// ScanImage registers an image for security scanning
-func (a anchoreClient) ScanImage(ctx context.Context, image pipeline.ClusterImage) (interface{}, error) {
-	fnCtx := map[string]interface{}{"imageName": image.ImageName, "tag": image.ImageTag}
-
-	body := struct {
-		Tag    string `json:"tag,omitempty"`
-		Digest string `json:"digest,omitempty"`
-	}{
-		Tag: strings.Join([]string{image.ImageName, image.ImageTag}, ":"),
-	}
-
-	var imagesEndpoint = strings.Join([]string{a.endpoint, "images"}, "/")
-
-	resp, err := a.authenticatedResty().
-		SetBody(body).
-		Post(imagesEndpoint)
-
-	if err != nil {
-		a.logger.Debug("failed to add image to scan", fnCtx)
-
-		return nil, errors.WrapIfWithDetails(err, "failed to add image to scan", image.ImageDigest)
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		a.logger.Debug("image scan call failed", fnCtx)
-
-		return nil, errors.NewWithDetails("image scan call failed", "httpStatus", resp.StatusCode())
-	}
-
-	a.logger.Debug("image added for security scan", map[string]interface{}{"image": image.ImageName})
-	return resp.Body(), nil
-}
-
-func (a anchoreClient) GetImageVulnerabilities(ctx context.Context, imageDigest string) (interface{}, error) {
-	a.logger.Debug("retrieving image vulnerabilities")
-
-	vulnerabilities, resp, err := a.getRestClient().ImagesApi.GetImageVulnerabilitiesByType(a.authorizedContext(ctx),
-		imageDigest, "all", &anchore.GetImageVulnerabilitiesByTypeOpts{})
-
-	if err != nil || resp.StatusCode != http.StatusOK {
-		a.logger.Debug("failed to retrieve image vulnerabilities")
-
-		return nil, errors.WrapIf(err, "failed to retrieve vulnerabilities")
-	}
-
-	a.logger.Debug("successfully retrieved image vulnerabilities")
-	return vulnerabilities, nil
-}
-
-func (a anchoreClient) CheckImage(ctx context.Context, imageDigest string) (interface{}, error) {
-	a.logger.Debug("retrieving image metadata", map[string]interface{}{"imageDigest": imageDigest})
-
-	imageMeta, resp, err := a.getRestClient().ImagesApi.GetImage(a.authorizedContext(ctx), imageDigest, &anchore.GetImageOpts{})
-
-	if err != nil || resp.StatusCode != http.StatusOK {
-		a.logger.Debug("failure while retrieving image metadata", map[string]interface{}{"imageDigest": imageDigest})
-
-		return nil, errors.WrapIf(err, "failure while retrieving image metadata")
-	}
-
-	a.logger.Debug("successfully retrieved image metadata", map[string]interface{}{"imageDigest": imageDigest})
-	return imageMeta, nil
 }
 
 func (a anchoreClient) authorizedContext(ctx context.Context) context.Context {
