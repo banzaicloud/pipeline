@@ -30,6 +30,8 @@ import (
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 )
 
+const pipelineUserAgent = "Pipeline/go"
+
 type AnchoreProxy struct {
 	basePath      string
 	configService anchore.ConfigurationService
@@ -92,7 +94,8 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 		director := func(r *http.Request) {
 
 			r.Host = backendURL.Host // this is a must!
-			r.Header.Set("User-Agent", "Pipeline/go")
+
+			r.Header.Set("User-Agent", pipelineUserAgent)
 			r.SetBasicAuth(username, password)
 
 			r.URL.Scheme = backendURL.Scheme
@@ -118,7 +121,7 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 		errorHandler := func(rw http.ResponseWriter, req *http.Request, err error) {
 			rw.WriteHeader(http.StatusInternalServerError)
 			if _, err := rw.Write([]byte(err.Error())); err != nil {
-				ap.logger.Error("failed to write error response ebody")
+				ap.logger.Error("failed to write error response body")
 			}
 		}
 
