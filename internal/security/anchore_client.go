@@ -22,12 +22,9 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/antihax/optional"
-	"github.com/mitchellh/mapstructure"
 	"gopkg.in/resty.v1"
 
 	"github.com/banzaicloud/pipeline/.gen/anchore"
-	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
@@ -42,10 +39,6 @@ type UserManagementClient interface {
 }
 
 type PolicyClient interface {
-	GetPolicy(ctx context.Context, policyID string) (interface{}, error)
-	ListPolicies(ctx context.Context) (interface{}, error)
-	CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error)
-	DeletePolicy(ctx context.Context, policyID string) error
 	UpdatePolicy(ctx context.Context, policyID string, activate bool) error
 }
 
@@ -110,91 +103,6 @@ func (a anchoreClient) UpdatePolicy(ctx context.Context, policyID string, activa
 	}
 
 	a.logger.Info("policy successfully updated", fnCtx)
-	return nil
-}
-
-func (a anchoreClient) GetPolicy(ctx context.Context, policyID string) (interface{}, error) {
-	fnCtx := map[string]interface{}{"policyID": policyID}
-	a.logger.Info("retrieving policy", fnCtx)
-
-	policyBundles, r, err := a.getRestClient().PoliciesApi.GetPolicy(a.authorizedContext(ctx), policyID, &anchore.GetPolicyOpts{
-		Detail: optional.NewBool(true),
-	})
-	if err != nil || r.StatusCode != http.StatusOK {
-		a.logger.Debug("failed to retrieve policy", fnCtx)
-
-		return nil, errors.WrapIfWithDetails(err, "failed to retrieve policy", fnCtx)
-	}
-
-	return &policyBundles, nil
-}
-
-func (a anchoreClient) ListPolicies(ctx context.Context) (interface{}, error) {
-	a.logger.Info("retrieving policies ...")
-
-	var listPoliciesEndpoint = strings.Join([]string{a.endpoint, "policies"}, "/")
-
-	// authenticate the request
-	r, err := a.authenticatedResty().Get(listPoliciesEndpoint)
-
-	if err != nil {
-		a.logger.Debug("failed to retrieve policies")
-
-		return nil, errors.WrapIf(err, "failed to retrieve policies")
-	}
-
-	if r.StatusCode() != http.StatusOK {
-		a.logger.Debug("failed to retrieve policies")
-
-		return nil, errors.NewWithDetails("failed to retrieve policies", "httpStatusCode", r.StatusCode())
-	}
-
-	a.logger.Info("policies successfully retrieved")
-	respJson := make([]map[string]interface{}, 0)
-	if err = json.Unmarshal(r.Body(), &respJson); err != nil {
-		a.logger.Debug("failed to unmarshal policy list")
-
-		return nil, errors.WrapIfWithDetails(err, "failed to unmarshal policy list")
-	}
-
-	return respJson, nil
-}
-
-func (a anchoreClient) CreatePolicy(ctx context.Context, policy pipeline.PolicyBundleRecord) (interface{}, error) {
-	fnCtx := map[string]interface{}{"policyID": policy}
-	a.logger.Info("creating policy ...", fnCtx)
-
-	var bundle anchore.PolicyBundle
-	if err := a.transform(policy, &bundle); err != nil {
-		a.logger.Debug("failed to transform policy", fnCtx)
-
-		return nil, errors.WrapIfWithDetails(err, "failed to transform policy")
-	}
-
-	policyBundleRecord, r, err := a.getRestClient().PoliciesApi.AddPolicy(a.authorizedContext(ctx), bundle, &anchore.AddPolicyOpts{})
-	if err != nil || r.StatusCode != http.StatusOK {
-		a.logger.Debug("failed to create policy", fnCtx)
-
-		return nil, errors.WrapIfWithDetails(err, "failed to create policy")
-	}
-
-	a.logger.Info("policy successfully created", fnCtx)
-
-	return &policyBundleRecord, nil
-}
-
-func (a anchoreClient) DeletePolicy(ctx context.Context, policyID string) error {
-	fnCtx := map[string]interface{}{"policyID": policyID}
-	a.logger.Info("deleting policy ...", fnCtx)
-
-	r, err := a.getRestClient().PoliciesApi.DeletePolicy(a.authorizedContext(ctx), policyID, &anchore.DeletePolicyOpts{})
-	if err != nil || r.StatusCode != http.StatusOK {
-		a.logger.Debug("failed to delete policy", fnCtx)
-
-		return errors.WrapIfWithDetails(err, "failed to delete policy")
-	}
-
-	a.logger.Info("policy successfully deleted")
 	return nil
 }
 
@@ -349,19 +257,6 @@ func (a anchoreClient) getRestClient() *anchore.APIClient {
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Pipeline/go",
 	})
-}
-
-// transform quick and dirty solution for transformations between anchore types and pipeline types
-// static casting doesn't work recursively, plain json transformation fails due to snake notation and camel case
-// notation differences
-// WARNING: Time values are lost during transformation, possible fix: https://github.com/mitchellh/mapstructure/issues/159
-func (a anchoreClient) transform(fromType interface{}, toType interface{}) error {
-
-	if err := mapstructure.Decode(fromType, toType); err != nil {
-		return errors.WrapIf(err, "failed to unmarshal to 'toType' type")
-	}
-
-	return nil
 }
 
 // authenticatedResty sets up an authenticated resty client (this might be cached probably)
