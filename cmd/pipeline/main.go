@@ -625,8 +625,6 @@ func main() {
 					fa := anchore.NewFeatureAdapter(fr, logger)
 					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
 					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-					imgScanSvc := anchore.NewImageScannerService(cfgSvc, secretStore, logger)
-					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
 
 					policySvc := anchore.NewPolicyService(cfgSvc, secretStore, logger)
 					policyHandler := api.NewPolicyHandler(clusterGetter, policySvc, logger)
@@ -650,9 +648,7 @@ func main() {
 					// todo - proxy this too
 					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
 
-					// todo - proxy this too - consider this: cRouter.Any("/imagescan/*path", anchoreProxy.Proxy())
-					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
-
+					cRouter.POST("/imagescan", anchoreProxy.Proxy())
 					cRouter.GET("/imagescan/:imagedigest", anchoreProxy.Proxy())
 					cRouter.GET("/imagescan/:imagedigest/vuln", anchoreProxy.Proxy())
 				}
