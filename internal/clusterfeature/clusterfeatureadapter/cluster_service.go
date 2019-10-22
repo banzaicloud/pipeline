@@ -21,6 +21,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 //go:generate mockery -name ClusterGetter -inpkg
@@ -63,31 +64,29 @@ func (a clusterGetterAdapter) GetClusterByIDOnly(ctx context.Context, clusterID 
 
 // ClusterService is an adapter providing access to the core cluster layer.
 type ClusterService struct {
-	clusterGetter ClusterGetter
+	clusterStatuser ClusterStatuser
+}
+
+// ClusterStatuser supports getting a cluster's status
+type ClusterStatuser interface {
+	GetClusterStatus(ctx context.Context, clusterID uint) (string, error)
 }
 
 // NewClusterService returns a new ClusterService instance.
-func NewClusterService(getter ClusterGetter) ClusterService {
+func NewClusterService(clusterStatuser ClusterStatuser) ClusterService {
 	return ClusterService{
-		clusterGetter: getter,
+		clusterStatuser: clusterStatuser,
 	}
 }
 
-// CheckClusterReady returns true is the cluster is ready to be accessed
+// CheckClusterReady returns true if the cluster is ready to be accessed
 func (s ClusterService) CheckClusterReady(ctx context.Context, clusterID uint) error {
-	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	status, err := s.clusterStatuser.GetClusterStatus(ctx, clusterID)
 	if err != nil {
-
-		return errors.WrapIfWithDetails(err, "failed to retrieve cluster", "clusterId", clusterID)
+		return errors.WrapIfWithDetails(err, "failed to get cluster status", "clusterId", clusterID)
 	}
 
-	isReady, err := c.IsReady()
-	if err != nil {
-
-		return errors.WrapIfWithDetails(err, "failed to check cluster", "clusterId", clusterID)
-	}
-
-	if !isReady {
+	if status != pkgCluster.Running {
 		return clusterfeature.ClusterIsNotReadyError{
 			ClusterID: clusterID,
 		}

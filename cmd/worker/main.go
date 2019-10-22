@@ -334,7 +334,7 @@ func main() {
 			kubernetesService := kubernetes.NewKubernetesService(helmadapter.NewClusterService(clusterManager), logger)
 
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
-			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
+			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 
 			customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
