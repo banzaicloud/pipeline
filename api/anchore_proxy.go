@@ -36,99 +36,48 @@ type AnchoreProxy struct {
 	basePath      string
 	configService anchore.ConfigurationService
 	secretStore   common.SecretStore
+	errorHandler  common.ErrorHandler
 	logger        common.Logger
 }
 
-func NewAnchoreProxy(basePath string, configurationService anchore.ConfigurationService, secretStore common.SecretStore, logger common.Logger) AnchoreProxy {
+func NewAnchoreProxy(basePath string, configurationService anchore.ConfigurationService, secretStore common.SecretStore,
+	errorHandler common.ErrorHandler, logger common.Logger) AnchoreProxy {
 
 	return AnchoreProxy{
 		basePath:      basePath,
 		configService: configurationService,
 		secretStore:   secretStore,
+		errorHandler:  errorHandler,
 		logger:        logger,
 	}
 }
 
 func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
-
 	return func(c *gin.Context) {
+		ap.logger.Info("proxying to anchore")
 
-		orgIDStr := c.Param("orgid")
-		clusterIDStr := c.Param("id")
-		fnCtx := map[string]interface{}{"orgiD": orgIDStr, "clusterID": clusterIDStr}
-
-		ap.logger.Debug("proxying to anchore", fnCtx)
-
-		clusterID, err := strconv.ParseUint(clusterIDStr, 0, 64)
+		orgID, err := ap.idFromPath(c, "orgid")
 		if err != nil {
-			ap.logger.Warn("failed to parse the cluster id", fnCtx)
+			ap.errorHandler.Handle(c.Request.Context(), err)
 
 			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
 		}
 
-		config, err := ap.configService.GetConfiguration(c.Request.Context(), uint(clusterID))
+		clusterID, err := ap.idFromPath(c, "id")
 		if err != nil {
-			ap.logger.Warn("failed to retrieve anchore configuration", fnCtx)
+			ap.errorHandler.Handle(c.Request.Context(), err)
 
 			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
 		}
 
-		backendURL, err := url.Parse(config.Endpoint)
+		proxy, err := ap.buildReverseProxy(c.Request.Context(), orgID, clusterID)
 		if err != nil {
-			ap.logger.Warn("failed to parse the backend URL", fnCtx)
+			ap.errorHandler.Handle(c.Request.Context(), err)
 
 			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
 			return
-		}
-
-		username, password, err := ap.processCredentials(c.Request.Context(), config, uint(clusterID))
-		if err != nil {
-			ap.logger.Warn("failed to process anchore credentials", fnCtx)
-
-			c.JSON(http.StatusInternalServerError, c.AbortWithError(http.StatusInternalServerError, err))
-			return
-		}
-
-		director := func(r *http.Request) {
-
-			r.Host = backendURL.Host // this is a must!
-
-			r.Header.Set("User-Agent", pipelineUserAgent)
-			r.SetBasicAuth(username, password)
-
-			r.URL.Scheme = backendURL.Scheme
-			r.URL.Host = backendURL.Host
-			r.URL.Path = strings.Join([]string{backendURL.Path, ap.getProxyPath(r.URL.Path, orgIDStr, clusterIDStr)}, "/")
-
-			if backendURL.RawQuery == "" || r.URL.RawQuery == "" {
-				r.URL.RawQuery = backendURL.RawQuery + r.URL.RawQuery
-			} else {
-				r.URL.RawQuery = backendURL.RawQuery + "&" + r.URL.RawQuery
-			}
-		}
-
-		modifyResponse := func(resp *http.Response) error {
-			// handle individual error codes here if required
-			if resp.StatusCode != http.StatusOK {
-				msg := fmt.Sprintf("error received from Anchore ( StatusCode: %d, Status: %s )", resp.StatusCode, resp.Status)
-				return errors.NewWithDetails(msg, "orgID", orgIDStr, "clusterID", clusterIDStr)
-			}
-			return nil
-		}
-
-		errorHandler := func(rw http.ResponseWriter, req *http.Request, err error) {
-			rw.WriteHeader(http.StatusInternalServerError)
-			if _, err := rw.Write([]byte(err.Error())); err != nil {
-				ap.logger.Error("failed to write error response body")
-			}
-		}
-
-		proxy := &httputil.ReverseProxy{
-			Director:       director,
-			ModifyResponse: modifyResponse,
-			ErrorHandler:   errorHandler,
 		}
 
 		proxy.ServeHTTP(c.Writer, c.Request)
@@ -136,8 +85,8 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 }
 
 // getProxyPath processes the path the request is proxied to
-func (ap AnchoreProxy) getProxyPath(sourcePath string, orgID string, clusterID string) string {
-	prefixToTrim := fmt.Sprintf("%s/api/v1/orgs/%s/clusters/%s/", ap.basePath, orgID, clusterID)
+func (ap AnchoreProxy) getProxyPath(sourcePath string, orgID uint, clusterID uint) string {
+	prefixToTrim := fmt.Sprintf("%s/api/v1/orgs/%d/clusters/%d/", ap.basePath, orgID, clusterID)
 
 	return ap.adaptToAnchoreResourcePath(strings.TrimPrefix(sourcePath, prefixToTrim))
 }
@@ -172,4 +121,91 @@ func (ap AnchoreProxy) processCredentials(ctx context.Context, config anchore.Co
 	password, err := anchore.GetUserSecret(ctx, ap.secretStore, username, ap.logger)
 
 	return username, password, err
+}
+
+func (ap AnchoreProxy) buildProxyDirector(ctx context.Context, orgID uint, clusterID uint) (func(req *http.Request), error) {
+	fnCtx := map[string]interface{}{"orgiD": orgID, "clusterID": clusterID}
+	config, err := ap.configService.GetConfiguration(ctx, clusterID)
+	if err != nil {
+		ap.logger.Warn("failed to retrieve anchore configuration", fnCtx)
+
+		return nil, errors.WrapIf(err, "failed to retrieve anchore configuration")
+	}
+
+	backendURL, err := url.Parse(config.Endpoint)
+	if err != nil {
+		ap.logger.Warn("failed to parse the backend URL", fnCtx)
+
+		return nil, errors.WrapIf(err, "failed to parse the backend URL")
+	}
+
+	username, password, err := ap.processCredentials(ctx, config, uint(clusterID))
+	if err != nil {
+		ap.logger.Warn("failed to process anchore credentials", fnCtx)
+
+		return nil, errors.WrapIf(err, "failed to process anchore credentials")
+	}
+
+	return func(r *http.Request) {
+		r.Host = backendURL.Host // this is a must!
+		r.Header.Set("User-Agent", pipelineUserAgent)
+		r.SetBasicAuth(username, password)
+
+		r.URL.Scheme = backendURL.Scheme
+		r.URL.Host = backendURL.Host
+		r.URL.Path = strings.Join([]string{backendURL.Path, ap.getProxyPath(r.URL.Path, orgID, clusterID)}, "/")
+
+		if backendURL.RawQuery == "" || r.URL.RawQuery == "" {
+			r.URL.RawQuery = backendURL.RawQuery + r.URL.RawQuery
+		} else {
+			r.URL.RawQuery = backendURL.RawQuery + "&" + r.URL.RawQuery
+		}
+	}, nil
+}
+
+func (ap AnchoreProxy) buildProxyModifyResponseFunc(ctx context.Context) (func(*http.Response) error, error) {
+	return func(resp *http.Response) error {
+		// handle individual error codes here if required
+		if resp.StatusCode != http.StatusOK {
+			return errors.Errorf("error received from Anchore ( StatusCode: %d, Status: %s )", resp.StatusCode, resp.Status)
+		}
+		return nil
+	}, nil
+}
+
+func (ap AnchoreProxy) buildReverseProxy(ctx context.Context, orgID uint, clusterID uint) (*httputil.ReverseProxy, error) {
+	director, err := ap.buildProxyDirector(ctx, orgID, clusterID)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to build reverse proxy")
+	}
+
+	modifyResponse, err := ap.buildProxyModifyResponseFunc(ctx)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to build reverse proxy")
+	}
+
+	errorHandler := func(rw http.ResponseWriter, req *http.Request, err error) {
+		rw.WriteHeader(http.StatusInternalServerError)
+		if _, err := rw.Write([]byte(err.Error())); err != nil {
+			ap.logger.Error("failed to write error response body")
+		}
+	}
+
+	proxy := &httputil.ReverseProxy{
+		Director:       director,
+		ModifyResponse: modifyResponse,
+		ErrorHandler:   errorHandler,
+	}
+
+	return proxy, nil
+}
+
+func (ap AnchoreProxy) idFromPath(c *gin.Context, paramKey string) (uint, error) {
+	id, err := strconv.ParseUint(c.Param(paramKey), 0, 64)
+	if err != nil {
+
+		return 0, errors.WrapIf(err, "failed to get id from request path")
+	}
+
+	return uint(id), nil
 }
