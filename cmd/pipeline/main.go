@@ -631,7 +631,8 @@ func main() {
 
 					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
 
-					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, secretStore, logger)
+					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, secretStore, emperror.MakeContextAware(errorHandler), logger)
+					proxyHandler := anchoreProxy.Proxy()
 
 					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
 					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
@@ -640,17 +641,17 @@ func main() {
 					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
 					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
 
-					cRouter.POST("/policies", anchoreProxy.Proxy())
-					cRouter.GET("/policies", anchoreProxy.Proxy())
-					cRouter.GET("/policies/:policyId", anchoreProxy.Proxy())
-					cRouter.DELETE("/policies/:policyId", anchoreProxy.Proxy())
+					cRouter.POST("/policies", proxyHandler)
+					cRouter.GET("/policies", proxyHandler)
+					cRouter.GET("/policies/:policyId", proxyHandler)
+					cRouter.DELETE("/policies/:policyId", proxyHandler)
 
 					// todo - proxy this too
 					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
 
-					cRouter.POST("/imagescan", anchoreProxy.Proxy())
-					cRouter.GET("/imagescan/:imagedigest", anchoreProxy.Proxy())
-					cRouter.GET("/imagescan/:imagedigest/vuln", anchoreProxy.Proxy())
+					cRouter.POST("/imagescan", proxyHandler)
+					cRouter.GET("/imagescan/:imagedigest", proxyHandler)
+					cRouter.GET("/imagescan/:imagedigest/vuln", proxyHandler)
 				}
 
 			}
