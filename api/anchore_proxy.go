@@ -96,13 +96,14 @@ func (ap AnchoreProxy) adaptToAnchoreResourcePath(proxyPath string) string {
 
 	// pipeline resource -> anchore resource
 	pathaDaptors := map[string]string{
+		"anchore":   "", // remove the "technical" resource element
 		"imagescan": "images",
 	}
 
-	adaptedPath := proxyPath
+	var adaptedPath = proxyPath
 	for pipelineResource, anchorResource := range pathaDaptors {
 		if strings.Contains(proxyPath, pipelineResource) {
-			adaptedPath = strings.Replace(proxyPath, pipelineResource, anchorResource, 1)
+			adaptedPath = strings.Replace(adaptedPath, pipelineResource, anchorResource, 1)
 		}
 	}
 
