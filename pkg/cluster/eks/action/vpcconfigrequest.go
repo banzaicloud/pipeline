@@ -87,8 +87,10 @@ func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (inter
 	}
 
 	return &eks.VpcConfigRequest{
-		SecurityGroupIds: []*string{a.context.SecurityGroupID},
-		SubnetIds:        subnetIds,
+		SecurityGroupIds:      []*string{a.context.SecurityGroupID},
+		SubnetIds:             subnetIds,
+		EndpointPrivateAccess: aws.Bool(a.context.EndpointPrivateAccess),
+		EndpointPublicAccess:  aws.Bool(a.context.EndpointPublicAccess),
 	}, nil
 }
 

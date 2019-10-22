@@ -27,4 +27,7 @@ type CreateEksPropertiesEks struct {
 	Subnets []EksSubnet `json:"subnets,omitempty"`
 
 	Iam EksIam `json:"iam,omitempty"`
+
+	// List of access point references for the API server; currently, public and private are the only valid values
+	ApiServerAccessPoints []string `json:"apiServerAccessPoints,omitempty"`
 }

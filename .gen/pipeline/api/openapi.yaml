@@ -14470,6 +14470,17 @@ components:
           type: array
         iam:
           $ref: '#/components/schemas/EKSIam'
+        apiServerAccessPoints:
+          default:
+          - public
+          description: List of access point references for the API server; currently,
+            public and private are the only valid values
+          items:
+            enum:
+            - private
+            - public
+            type: string
+          type: array
       required:
       - nodePools
     CreateACKProperties_ack:
