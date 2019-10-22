@@ -111,14 +111,14 @@ func (ap AnchoreProxy) adaptToAnchoreResourcePath(proxyPath string) string {
 }
 
 // processCredentials depending on the configuration get the appropriate credentials for accessing anchore
-func (ap AnchoreProxy) processCredentials(ctx context.Context, config anchore.Config, clusterID uint) (string, string, error) {
+func (ap AnchoreProxy) processCredentials(ctx context.Context, config anchore.Config, clusterID uint, orgID uint) (string, string, error) {
 
 	if config.UserSecret != "" { // custom anchore
 		return anchore.GetCustomAnchoreCredentials(ctx, ap.secretStore, config.UserSecret, ap.logger)
 	}
 
 	// managed anchore, generated user
-	username := anchore.GetUserName(clusterID)
+	username := anchore.GetUserName(orgID, clusterID)
 	password, err := anchore.GetUserSecret(ctx, ap.secretStore, username, ap.logger)
 
 	return username, password, err
@@ -140,7 +140,7 @@ func (ap AnchoreProxy) buildProxyDirector(ctx context.Context, orgID uint, clust
 		return nil, errors.WrapIf(err, "failed to parse the backend URL")
 	}
 
-	username, password, err := ap.processCredentials(ctx, config, uint(clusterID))
+	username, password, err := ap.processCredentials(ctx, config, clusterID, orgID)
 	if err != nil {
 		ap.logger.Warn("failed to process anchore credentials", fnCtx)
 

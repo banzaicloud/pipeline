@@ -26,11 +26,11 @@ import (
 )
 
 const (
-	anchoreUserNameTpl = "%v-anchore-user"
+	anchoreUserNameTpl = "%v-%v-anchore-user"
 )
 
-func GetUserName(clusterID uint) string {
-	return fmt.Sprintf(anchoreUserNameTpl, clusterID)
+func GetUserName(orgID uint, clusterID uint) string {
+	return fmt.Sprintf(anchoreUserNameTpl, orgID, clusterID)
 }
 
 func GetUserSecret(ctx context.Context, secretStore common.SecretStore, userName string, logger common.Logger) (string, error) {
