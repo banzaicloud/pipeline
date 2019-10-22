@@ -3450,50 +3450,6 @@ paths:
                 401:
                     $ref: '#/components/responses/Unauthorized'
 
-    '/api/v1/orgs/{orgId}/azure/resourcegroups/{name}':
-        delete:
-            security:
-                -
-                    bearerAuth: []
-            tags:
-                - info
-            summary: Delete resource group
-            operationId: DeleteResourceGroup
-            description: Delete resource group
-            parameters:
-                -
-                    name: orgId
-                    in: path
-                    required: true
-                    description: Organization identification
-                    schema:
-                        type: integer
-                -
-                    name: name
-                    in: path
-                    required: true
-                    description: Resource group name
-                    schema:
-                        type: integer
-                -
-                    name: secretId
-                    in: header
-                    required: true
-                    description: Secret identifier
-                    schema:
-                        type: string
-            responses:
-                '202':
-                    description: "Azure resource group deleted"
-                '400':
-                    description: Error during listing resource groups
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ClientError'
-                401:
-                    $ref: '#/components/responses/Unauthorized'
-
     '/api/v1/orgs/{orgId}/buckets':
         get:
             security:
