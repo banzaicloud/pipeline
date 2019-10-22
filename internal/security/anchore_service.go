@@ -53,14 +53,14 @@ func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID ui
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID}
 	a.logger.Info("ensuring anchore user", fnCtx)
 
-	restClient, err := a.getAnchoreClient(ctx, clusterID, true)
+	restClient, err := a.getAnchoreClient(ctx, orgID, clusterID, true)
 	if err != nil {
 		a.logger.Debug("failed to set up anchore client for cluster", fnCtx)
 
 		return "", errors.WrapIfWithDetails(err, "failed to set up anchore client for cluster", fnCtx)
 	}
 
-	userName := GetUserName(clusterID)
+	userName := GetUserName(orgID, clusterID)
 
 	exists, err := a.userExists(ctx, restClient, userName)
 	if err != nil {
@@ -111,14 +111,14 @@ func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID ui
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID}
 	a.logger.Info("ensuring anchore user", fnCtx)
 
-	restClient, err := a.getAnchoreClient(ctx, clusterID, true)
+	restClient, err := a.getAnchoreClient(ctx, orgID, clusterID, true)
 	if err != nil {
 		a.logger.Debug("failed to set up anchore client for cluster")
 
 		return errors.WrapIfWithDetails(err, "failed to set up anchore client for cluster", fnCtx)
 	}
 
-	userName := GetUserName(clusterID)
+	userName := GetUserName(orgID, clusterID)
 
 	exists, err := a.userExists(ctx, restClient, userName)
 	if err != nil {
@@ -188,7 +188,7 @@ func (a anchoreService) ensureUserCredentials(ctx context.Context, orgID uint, c
 func (a anchoreService) createUserSecret(ctx context.Context, orgID uint, clusterID uint) (string, error) {
 
 	// a new password gets generated
-	secretID, err := a.storeCredentialsSecret(ctx, orgID, GetUserName(clusterID), "")
+	secretID, err := a.storeCredentialsSecret(ctx, orgID, GetUserName(orgID, clusterID), "")
 	if err != nil {
 		a.logger.Debug("failed to store credentials for a new user")
 
@@ -269,7 +269,7 @@ func (a anchoreService) storeCredentialsSecret(ctx context.Context, orgID uint, 
 }
 
 // getAnchoreClient returns a rest client wrapper instance with the proper configuration
-func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint, admin bool) (AnchoreClient, error) {
+func (a anchoreService) getAnchoreClient(ctx context.Context, orgID uint, clusterID uint, admin bool) (AnchoreClient, error) {
 	cfg, err := a.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
 		a.logger.Debug("failed to get anchore configuration")
@@ -301,7 +301,7 @@ func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint, ad
 		return NewAnchoreClient(cfg.AdminUser, cfg.AdminPass, cfg.Endpoint, a.logger), nil
 	}
 
-	userName := GetUserName(clusterID)
+	userName := GetUserName(orgID, clusterID)
 	password, err := GetUserSecret(ctx, a.secretStore, userName, a.logger)
 	if err != nil {
 		a.logger.Debug("failed to retrieve user secret")
