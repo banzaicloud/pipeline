@@ -1090,16 +1090,6 @@ func CreateOrUpdateResourceGroup(orgID uint, secretID string, resourceGroupName,
 	return emperror.Wrap(err, "failed to create or update resource group")
 }
 
-// DeleteResourceGroup creates or updates a resource group
-func DeleteResourceGroup(orgID uint, secretID string, resourceGroupName string) error {
-	cc, err := getDefaultCloudConnection(orgID, secretID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
-	}
-	_, err = cc.GetGroupsClient().Delete(context.TODO(), resourceGroupName) // TODO should we wait for it?
-	return emperror.Wrap(err, "failed to delete resource group")
-}
-
 // GetAKSNodePools returns AKS node pools from a common cluster.
 func GetAKSNodePools(cluster CommonCluster) ([]*model.AKSNodePoolModel, error) {
 	akscluster, ok := cluster.(*AKSCluster)

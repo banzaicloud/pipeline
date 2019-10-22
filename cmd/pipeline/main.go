@@ -772,7 +772,6 @@ func main() {
 
 			orgs.GET("/:orgid/azure/resourcegroups", api.GetResourceGroups)
 			orgs.POST("/:orgid/azure/resourcegroups", api.AddResourceGroups)
-			orgs.DELETE("/:orgid/azure/resourcegroups/:name", api.DeleteResourceGroups)
 
 			orgs.GET("/:orgid/google/projects", api.GetProjects)
 
