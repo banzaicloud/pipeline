@@ -634,12 +634,9 @@ func main() {
 					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, secretStore, emperror.MakeContextAware(errorHandler), logger)
 					proxyHandler := anchoreProxy.Proxy()
 
-					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
-					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
-
-					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
-					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
-					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
+					cRouter.POST("/imagescan", proxyHandler)
+					cRouter.GET("/imagescan/:imagedigest", proxyHandler)
+					cRouter.GET("/imagescan/:imagedigest/vuln", proxyHandler)
 
 					cRouter.POST("/policies", proxyHandler)
 					cRouter.GET("/policies", proxyHandler)
@@ -649,9 +646,17 @@ func main() {
 					// todo - proxy this too
 					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
 
-					cRouter.POST("/imagescan", proxyHandler)
-					cRouter.GET("/imagescan/:imagedigest", proxyHandler)
-					cRouter.GET("/imagescan/:imagedigest/vuln", proxyHandler)
+					// forthcoming endpoint for all requests proxied to Anchore
+					cRouter.Any("/anchore/*path", proxyHandler)
+
+					// these are cluster resources
+					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
+					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
+
+					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
+					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
+					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
+
 				}
 
 			}
