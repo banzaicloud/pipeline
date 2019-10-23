@@ -24,8 +24,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/api/middleware"
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/ratelimit"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/spotguide"
@@ -182,7 +182,7 @@ func NewSpotguideAPI(logger logrus.FieldLogger, errorHandler emperror.Handler, s
 
 func (s *SpotguideAPI) Install(spotguides *gin.RouterGroup) {
 	spotguides.GET("", s.GetSpotguides)
-	spotguides.PUT("", middleware.NewRateLimiterByOrgID(SyncSpotguidesRateLimit), s.SyncSpotguides)
+	spotguides.PUT("", ratelimit.NewRateLimiterByOrgID(SyncSpotguidesRateLimit), s.SyncSpotguides)
 	spotguides.POST("", s.LaunchSpotguide)
 	// Spotguide name may contain '/'s so we have to use :owner/:name
 	spotguides.GET("/:owner/:name", s.GetSpotguide)
