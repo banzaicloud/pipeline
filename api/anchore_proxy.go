@@ -125,26 +125,19 @@ func (ap AnchoreProxy) processCredentials(ctx context.Context, config anchore.Co
 }
 
 func (ap AnchoreProxy) buildProxyDirector(ctx context.Context, orgID uint, clusterID uint) (func(req *http.Request), error) {
-	fnCtx := map[string]interface{}{"orgiD": orgID, "clusterID": clusterID}
 	config, err := ap.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
-		ap.logger.Warn("failed to retrieve anchore configuration", fnCtx)
-
-		return nil, errors.WrapIf(err, "failed to retrieve anchore configuration")
+		return nil, errors.WithMessage(err, "failed to retrieve anchore configuration")
 	}
 
 	backendURL, err := url.Parse(config.Endpoint)
 	if err != nil {
-		ap.logger.Warn("failed to parse the backend URL", fnCtx)
-
-		return nil, errors.WrapIf(err, "failed to parse the backend URL")
+		return nil, errors.WrapWithDetails(err, "failed to parse the backend URL", "clusterId", clusterID)
 	}
 
 	username, password, err := ap.processCredentials(ctx, config, clusterID, orgID)
 	if err != nil {
-		ap.logger.Warn("failed to process anchore credentials", fnCtx)
-
-		return nil, errors.WrapIf(err, "failed to process anchore credentials")
+		return nil, errors.WithMessage(err, "failed to process anchore credentials")
 	}
 
 	return func(r *http.Request) {
@@ -177,19 +170,17 @@ func (ap AnchoreProxy) buildProxyModifyResponseFunc(ctx context.Context) (func(*
 func (ap AnchoreProxy) buildReverseProxy(ctx context.Context, orgID uint, clusterID uint) (*httputil.ReverseProxy, error) {
 	director, err := ap.buildProxyDirector(ctx, orgID, clusterID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to build reverse proxy")
+		return nil, errors.WithMessage(err, "failed to build reverse proxy")
 	}
 
 	modifyResponse, err := ap.buildProxyModifyResponseFunc(ctx)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to build reverse proxy")
+		return nil, errors.WithMessage(err, "failed to build reverse proxy")
 	}
 
 	errorHandler := func(rw http.ResponseWriter, req *http.Request, err error) {
-		rw.WriteHeader(http.StatusInternalServerError)
-		if _, err := rw.Write([]byte(err.Error())); err != nil {
-			ap.logger.Error("failed to write error response body")
-		}
+		rw.WriteHeader(http.StatusBadGateway)
+		ap.errorHandler.Handle(req.Context(), err)
 	}
 
 	proxy := &httputil.ReverseProxy{
@@ -205,7 +196,7 @@ func (ap AnchoreProxy) idFromPath(c *gin.Context, paramKey string) (uint, error)
 	id, err := strconv.ParseUint(c.Param(paramKey), 0, 64)
 	if err != nil {
 
-		return 0, errors.WrapIf(err, "failed to get id from request path")
+		return 0, errors.Wrap(err, "failed to get id from request path")
 	}
 
 	return uint(id), nil
