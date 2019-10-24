@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pipeline.fullname" . }}
+  labels:
+    app: {{ include "pipeline.name" . }}
+    chart: {{ include "pipeline.chart" . }}
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  config.yaml: |
+{{ toYaml .Values.configuration | indent 4 }}

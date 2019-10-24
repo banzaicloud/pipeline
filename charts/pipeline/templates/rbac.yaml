@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: {{ include "pipeline.name" . }}
+    chart: {{ template "pipeline.chart" . }}
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  name: pipeline
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{ include "pipeline.fullname" . }}-configmap-secret-updater"
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["update", "get"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "{{ include "pipeline.fullname" . }}-rbac"
+subjects:
+  - kind: ServiceAccount
+    name: pipeline
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: "{{ include "pipeline.fullname" . }}-configmap-secret-updater"
+  apiGroup: rbac.authorization.k8s.io

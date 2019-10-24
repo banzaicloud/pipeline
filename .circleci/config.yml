@@ -2,6 +2,11 @@ version: 2.1
 
 orbs:
   docker: circleci/docker@0.5.13
+  helm: banzaicloud/helm@0.0.4
+
+helm-repositories: &helm_repositories
+    - run: helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com/branch/master
+    - run: helm repo add rimusz https://charts.rimusz.net
 
 jobs:
     build:
@@ -332,3 +337,22 @@ workflows:
                             only: /^[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc)\.[0-9]+)?$/
                         branches:
                             ignore: /.*/
+
+    helm-chart:
+        jobs:
+            -   helm/lint-chart:
+                    chart-path: charts/pipeline
+                    add-extra-repositories: *helm_repositories
+                    filters:
+                        tags:
+                            ignore: /.*/
+
+            -   helm/publish-chart:
+                    context: helm
+                    chart-path: charts/pipeline
+                    add-extra-repositories: *helm_repositories
+                    filters:
+                        branches:
+                            ignore: /.*/
+                        tags:
+                            only: /chart\/pipeline\/\d+.\d+.\d+/
