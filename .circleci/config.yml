@@ -293,6 +293,20 @@ jobs:
                     image: <<parameters.image>>
                     tag: latest
 
+    tag-cleanup:
+        resource_class: small
+        docker:
+            -
+                image: cimg/go:1.13
+        steps:
+            - checkout
+            -
+                run:
+                    name: Remove old tags
+                    command: |
+                      scripts/tag_cleanup.sh
+
+
 workflows:
     ci:
         jobs:
@@ -339,13 +353,15 @@ workflows:
 
     helm-chart:
         jobs:
-            -   helm/lint-chart:
+            -
+                helm/lint-chart:
                     add-extra-repositories: *helm_repositories
                     filters:
                         tags:
                             ignore: /.*/
 
-            -   helm/publish-chart:
+            -
+                helm/publish-chart:
                     context: helm
                     add-extra-repositories: *helm_repositories
                     filters:
@@ -353,3 +369,15 @@ workflows:
                             ignore: /.*/
                         tags:
                             only: /chart\/pipeline\/\d+.\d+.\d+/
+
+    ttag-cleanup:
+        triggers:
+            -
+                schedule:
+                    cron: "0 0 * * 0"  # every sunday midnight
+                    filters:
+                        branches:
+                            only:
+                                - master
+        jobs:
+            - tag-cleanup
