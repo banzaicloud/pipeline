@@ -5,7 +5,6 @@ orbs:
   helm: banzaicloud/helm@0.0.5
 
 helm-repositories: &helm_repositories
-    - run: helm repo add banzaicloud-stable http://kubernetes-charts.banzaicloud.com/branch/master
     - run: helm repo add rimusz https://charts.rimusz.net
 
 jobs:
