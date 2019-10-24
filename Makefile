@@ -308,6 +308,10 @@ proto: bin/prototool bin/protoc-gen-go _download-protos ## Generate client and s
 list: ## List all make targets
 	@$(MAKE) -pRrn : -f $(MAKEFILE_LIST) 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | egrep -v -e '^[^[:alnum:]]' -e '^$@$$' | sort
 
+.PHONY: snapshot
+snapshot: ## Snapshot release
+	@scripts/snapshot.sh
+
 .PHONY: help
 .DEFAULT_GOAL := help
 help:

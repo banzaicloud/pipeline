@@ -7,6 +7,17 @@ orbs:
 helm-repositories: &helm_repositories
     - run: helm repo add rimusz https://charts.rimusz.net
 
+parameters:
+    snapshot:
+        type: boolean
+        default: false
+    snapshot_version:
+        type: string
+        default: "snapshot"
+    gitref:
+        type: string
+        default: ""
+
 jobs:
     build:
         resource_class: large
@@ -293,8 +304,35 @@ jobs:
                     image: <<parameters.image>>
                     tag: latest
 
+    snapshot-release:
+        executor:
+            name: docker/machine
+            dlc: true
+        environment:
+            CIRCLE_SHA1: << pipeline.parameters.gitref >>
+            IMAGE: banzaicloud/pipeline
+        steps:
+            -
+                checkout
+            -
+                run:
+                    name: Create version tag
+                    command: |
+                        git tag << pipeline.parameters.snapshot_version >>
+            -
+                docker/check
+            -
+                docker/build:
+                    image: $IMAGE
+                    tag: <<pipeline.parameters.snapshot_version>>
+            -
+                docker/push:
+                    image: $IMAGE
+                    tag: <<pipeline.parameters.snapshot_version>>
+
 workflows:
     ci:
+        unless: << pipeline.parameters.snapshot >>
         jobs:
             -
                 build
@@ -338,14 +376,17 @@ workflows:
                             ignore: /.*/
 
     helm-chart:
+        unless: << pipeline.parameters.snapshot >>
         jobs:
-            -   helm/lint-chart:
+            -
+                helm/lint-chart:
                     add-extra-repositories: *helm_repositories
                     filters:
                         tags:
                             ignore: /.*/
 
-            -   helm/publish-chart:
+            -
+                helm/publish-chart:
                     context: helm
                     add-extra-repositories: *helm_repositories
                     filters:
@@ -353,3 +394,9 @@ workflows:
                             ignore: /.*/
                         tags:
                             only: /chart\/pipeline\/\d+.\d+.\d+/
+
+    snapshot:
+        when: << pipeline.parameters.snapshot >>
+        jobs:
+            - snapshot-release:
+                    context: dockerhub
