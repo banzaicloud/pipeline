@@ -1,6 +1,6 @@
 name: pipeline
 home: https://banzaicloud.com
-version: 0.3.19
+version: 0.3.20
 description: A Helm chart for Banzai Cloud Pipeline, a solution-oriented application platform which allows enterprises to develop, deploy and securely scale container-based applications in multi- and hybrid-cloud environments.
 keywords:
   - pipeline
@@ -8,7 +8,7 @@ keywords:
   - banzaicloud
   - cloud
 
-appVersion: 0.27.2
+appVersion: 0.31.0
 
 maintainers:
 - name: Banzai Cloud
