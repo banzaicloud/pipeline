@@ -19,48 +19,9 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
-
-//go:generate mockery -name ClusterGetter -inpkg
-// ClusterGetter restricts the external dependencies for the repository
-type ClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (Cluster, error)
-}
-
-// Cluster defines operations that can be performed on a k8s cluster
-type Cluster interface {
-	GetK8sConfig() ([]byte, error)
-	GetName() string
-	GetOrganizationId() uint
-	GetUID() string
-	GetID() uint
-	IsReady() (bool, error)
-	NodePoolExists(nodePoolName string) bool
-	RbacEnabled() bool
-}
-
-// MakeClusterGetter creates a ClusterGetter using a common cluster getter
-func MakeClusterGetter(clusterGetter CommonClusterGetter) ClusterGetter {
-	return clusterGetterAdapter{
-		ccGetter: clusterGetter,
-	}
-}
-
-// CommonClusterGetter defines cluster getter methods that return a CommonCluster
-type CommonClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
-}
-
-type clusterGetterAdapter struct {
-	ccGetter CommonClusterGetter
-}
-
-func (a clusterGetterAdapter) GetClusterByIDOnly(ctx context.Context, clusterID uint) (Cluster, error) {
-	return a.ccGetter.GetClusterByIDOnly(ctx, clusterID)
-}
 
 // ClusterService is an adapter providing access to the core cluster layer.
 type ClusterService struct {
