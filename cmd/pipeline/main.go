@@ -674,7 +674,7 @@ func main() {
 					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, conf.Cluster.Vault.Managed.Enabled, logger))
 				}
 
-				if conf.Cluster.Monitor.Enabled {
+				if conf.Cluster.Monitoring.Enabled {
 					endpointManager := endpoints.NewEndpointManager(logger)
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 					monitoringConfig := featureMonitoring.NewFeatureConfiguration()
