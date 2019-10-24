@@ -30,16 +30,19 @@ type PolicyService interface {
 }
 
 type policyService struct {
-	configService ConfigurationService
-	secretStore   common.SecretStore
-	logger        common.Logger
+	configService   ConfigurationService
+	userNameService UserNameService
+	secretStore     common.SecretStore
+	logger          common.Logger
 }
 
-func NewPolicyService(configService ConfigurationService, store common.SecretStore, logger common.Logger) PolicyService {
+func NewPolicyService(configService ConfigurationService, userNameService UserNameService, store common.SecretStore,
+	logger common.Logger) PolicyService {
 	return policyService{
-		configService: configService,
-		secretStore:   store,
-		logger:        logger.WithFields(map[string]interface{}{"policy-service": "y"}),
+		configService:   configService,
+		userNameService: userNameService,
+		secretStore:     store,
+		logger:          logger.WithFields(map[string]interface{}{"policy-service": "y"}),
 	}
 }
 
@@ -99,7 +102,13 @@ func (p policyService) getAnchoreClient(ctx context.Context, orgID uint, cluster
 		return NewAnchoreClient(username, password, cfg.Endpoint, p.logger), nil
 	}
 
-	userName := GetUserName(orgID, clusterID)
+	userName, err := p.userNameService.Generate(ctx, orgID, clusterID)
+	if err != nil {
+		p.logger.Debug("failed to generate anchore username")
+
+		return nil, errors.Wrap(err, "failed to generate anchore username")
+	}
+
 	password, err := GetUserSecret(ctx, p.secretStore, userName, p.logger)
 	if err != nil {
 		p.logger.Debug("failed to get user secret")

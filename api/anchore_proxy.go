@@ -33,22 +33,24 @@ import (
 const pipelineUserAgent = "Pipeline/go"
 
 type AnchoreProxy struct {
-	basePath      string
-	configService anchore.ConfigurationService
-	secretStore   common.SecretStore
-	errorHandler  common.ErrorHandler
-	logger        common.Logger
+	basePath        string
+	configService   anchore.ConfigurationService
+	userNameService anchore.UserNameService
+	secretStore     common.SecretStore
+	errorHandler    common.ErrorHandler
+	logger          common.Logger
 }
 
-func NewAnchoreProxy(basePath string, configurationService anchore.ConfigurationService, secretStore common.SecretStore,
-	errorHandler common.ErrorHandler, logger common.Logger) AnchoreProxy {
+func NewAnchoreProxy(basePath string, configurationService anchore.ConfigurationService, userNameService anchore.UserNameService,
+	secretStore common.SecretStore, errorHandler common.ErrorHandler, logger common.Logger) AnchoreProxy {
 
 	return AnchoreProxy{
-		basePath:      basePath,
-		configService: configurationService,
-		secretStore:   secretStore,
-		errorHandler:  errorHandler,
-		logger:        logger,
+		basePath:        basePath,
+		configService:   configurationService,
+		userNameService: userNameService,
+		secretStore:     secretStore,
+		errorHandler:    errorHandler,
+		logger:          logger,
 	}
 }
 
@@ -118,7 +120,10 @@ func (ap AnchoreProxy) processCredentials(ctx context.Context, config anchore.Co
 	}
 
 	// managed anchore, generated user
-	username := anchore.GetUserName(orgID, clusterID)
+	username, err := ap.userNameService.Generate(ctx, orgID, clusterID)
+	if err != nil {
+		return "", "", errors.WrapIf(err, "failed to process credentials")
+	}
 	password, err := anchore.GetUserSecret(ctx, ap.secretStore, username, ap.logger)
 
 	return username, password, err

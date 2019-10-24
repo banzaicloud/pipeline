@@ -115,6 +115,7 @@ import (
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
+	"github.com/banzaicloud/pipeline/internal/security/clusteradapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -626,12 +627,16 @@ func main() {
 					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
 					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
-					policySvc := anchore.NewPolicyService(cfgSvc, secretStore, logger)
+					getter := clusteradapter.MakeClusterGetter(clusterManager)
+					clusterService := clusteradapter.NewClusterService(getter)
+					usernameService := anchore.NewAnchoreUsernameService(clusterService)
+
+					policySvc := anchore.NewPolicyService(cfgSvc, usernameService, secretStore, logger)
 					policyHandler := api.NewPolicyHandler(clusterGetter, policySvc, logger)
 
 					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
 
-					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, secretStore, emperror.MakeContextAware(errorHandler), logger)
+					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, usernameService, secretStore, emperror.MakeContextAware(errorHandler), logger)
 					proxyHandler := anchoreProxy.Proxy()
 
 					cRouter.POST("/imagescan", proxyHandler)
