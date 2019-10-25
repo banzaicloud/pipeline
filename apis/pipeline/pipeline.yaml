@@ -9973,6 +9973,16 @@ components:
                         - analyzed
                         - analysis_failed
 
+        ImageScanData:
+            description: image reference for anchore security scan
+            properties:
+                tag:
+                    description: image reference in <image_name>:<image_tag> format
+                    type: string
+                digest:
+                    type: string
+            type: object
+
         Vulnerability:
             type: object
             properties:

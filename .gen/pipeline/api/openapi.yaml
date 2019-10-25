@@ -14540,8 +14540,8 @@ components:
         apiServerAccessPoints:
           default:
           - public
-          description: List of access point references for the API server; currently,
-            public and private are the only valid values
+          description: List of access point types for the API server; public and private
+            are the only valid values
           items:
             enum:
             - private
