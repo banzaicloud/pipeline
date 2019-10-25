@@ -128,8 +128,8 @@ func (c authTokenConfig) Validate() error {
 
 // clusterConfig contains cluster configuration.
 type clusterConfig struct {
-	Vault   clusterVaultConfig
-	Monitor clusterMonitorConfig
+	Vault      clusterVaultConfig
+	Monitoring clusterMonitorConfig
 }
 
 // Validate validates the configuration.
@@ -200,7 +200,7 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	v.SetDefault("cluster.vault.enabled", true)
 	v.SetDefault("cluster.vault.managed.enabled", false)
-	v.SetDefault("cluster.monitor.enabled", true)
+	v.SetDefault("cluster.monitoring.enabled", true)
 }
 
 func registerAliases(v *viper.Viper) {
