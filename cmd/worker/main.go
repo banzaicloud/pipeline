@@ -336,8 +336,7 @@ func main() {
 			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 
-			getter := securityClusterAdapter.MakeClusterGetter(clusterManager)
-			securityClusterService := securityClusterAdapter.NewClusterService(getter)
+			securityClusterService := securityClusterAdapter.NewClusterService(clusterManager)
 			usernameService := anchore.NewAnchoreUsernameService(securityClusterService)
 
 			featureAdapter := anchore.NewFeatureAdapter(featureRepository, logger)

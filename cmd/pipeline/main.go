@@ -649,8 +649,7 @@ func main() {
 					fa := anchore.NewFeatureAdapter(fr, logger)
 					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
 
-					getter := clusteradapter.MakeClusterGetter(clusterManager)
-					clusterService := clusteradapter.NewClusterService(getter)
+					clusterService := clusteradapter.NewClusterService(clusterManager)
 					usernameService := anchore.NewAnchoreUsernameService(clusterService)
 
 					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
