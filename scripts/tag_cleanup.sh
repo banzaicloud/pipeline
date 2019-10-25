@@ -23,7 +23,7 @@ for tag in "${tags[@]}"; do
 done
 
 if [ "${#delete[@]}" -gt 0 ]; then
-    git push --delete origin ${delete[@]}
+    #git push --delete origin ${delete[@]}
 else
     echo 'Nothing to remove.'
 fi
