@@ -195,17 +195,24 @@ type EKSClusterModel struct {
 	NodeInstanceRoleId string
 
 	LogTypes EKSLogTypes `sql:"type:json"`
+
+	APIServerAccessPoints EKSAPIServerAccessPoints `sql:"type:json"`
 }
 
-type EKSLogTypes []string
+type EKSLogTypes = JSONStringArray
+
+type EKSAPIServerAccessPoints = JSONStringArray
+
+// JSONStringArray is a special type, that represents a JSON array of strings in SQL databases
+type JSONStringArray []string
 
 // Value implements the driver.Valuer interface
-func (elt EKSLogTypes) Value() (driver.Value, error) {
+func (elt JSONStringArray) Value() (driver.Value, error) {
 	return json.Marshal(elt)
 }
 
 // Scan implements the sql.Scanner interface
-func (elt *EKSLogTypes) Scan(src interface{}) error {
+func (elt *JSONStringArray) Scan(src interface{}) error {
 	return json.Unmarshal(src.([]byte), elt)
 }
 

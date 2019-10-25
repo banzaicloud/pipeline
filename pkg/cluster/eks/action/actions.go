@@ -75,6 +75,8 @@ type EksClusterCreateUpdateContext struct {
 	RouteTableID               *string
 	ScaleEnabled               bool
 	LogTypes                   []string
+	EndpointPrivateAccess      bool
+	EndpointPublicAccess       bool
 }
 
 // NewEksClusterCreationContext creates a new EksClusterCreateUpdateContext

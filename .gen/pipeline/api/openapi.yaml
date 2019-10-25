@@ -5775,6 +5775,64 @@ paths:
       summary: Delete namespace from a cluster
       tags:
       - clusters
+  /api/v1/orgs/{orgId}/cloud/google/projects:
+    get:
+      description: Retrieves projects visible by the user represented by the secretid
+        header from the google cloud
+      operationId: ListProjects
+      parameters:
+      - description: Organization identification
+        explode: false
+        in: path
+        name: orgId
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - description: Secret identification.
+        explode: true
+        in: query
+        name: secretId
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProjectsResponse'
+          description: List of projects visible for the user
+        401:
+          content:
+            application/json:
+              examples:
+                InvalidToken:
+                  value:
+                    code: 401
+                    message: Invalid token
+                    error: token contains an invalid number of segments
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Unauthorized
+        500:
+          content:
+            application/json:
+              examples:
+                SomethingWentWrong:
+                  value:
+                    code: 500
+                    message: Something went wrong
+                    error: Something went wrong
+              schema:
+                $ref: '#/components/schemas/CommonError'
+          description: Internal server error
+      security:
+      - bearerAuth: []
+      summary: Retrieves projects visible for the user identified by the secret id
+      tags:
+      - google
   /api/v1/orgs/{orgId}/google/projects:
     get:
       description: Retrieves projects visible by the user represented by the secretid
@@ -14470,6 +14528,17 @@ components:
           type: array
         iam:
           $ref: '#/components/schemas/EKSIam'
+        apiServerAccessPoints:
+          default:
+          - public
+          description: List of access point references for the API server; currently,
+            public and private are the only valid values
+          items:
+            enum:
+            - private
+            - public
+            type: string
+          type: array
       required:
       - nodePools
     CreateACKProperties_ack:

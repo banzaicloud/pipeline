@@ -89,16 +89,17 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.EKS,
 		EKS: model.EKSClusterModel{
-			Version:            request.Properties.CreateClusterEKS.Version,
-			LogTypes:           request.Properties.CreateClusterEKS.LogTypes,
-			NodePools:          modelNodePools,
-			VpcId:              &request.Properties.CreateClusterEKS.Vpc.VpcId,
-			VpcCidr:            &request.Properties.CreateClusterEKS.Vpc.Cidr,
-			RouteTableId:       &request.Properties.CreateClusterEKS.RouteTableId,
-			Subnets:            createSubnetsFromRequest(request.Properties.CreateClusterEKS),
-			DefaultUser:        request.Properties.CreateClusterEKS.IAM.DefaultUser,
-			ClusterRoleId:      request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
-			NodeInstanceRoleId: request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
+			Version:               request.Properties.CreateClusterEKS.Version,
+			LogTypes:              request.Properties.CreateClusterEKS.LogTypes,
+			NodePools:             modelNodePools,
+			VpcId:                 &request.Properties.CreateClusterEKS.Vpc.VpcId,
+			VpcCidr:               &request.Properties.CreateClusterEKS.Vpc.Cidr,
+			RouteTableId:          &request.Properties.CreateClusterEKS.RouteTableId,
+			Subnets:               createSubnetsFromRequest(request.Properties.CreateClusterEKS),
+			DefaultUser:           request.Properties.CreateClusterEKS.IAM.DefaultUser,
+			ClusterRoleId:         request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
+			NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
+			APIServerAccessPoints: createAPIServerAccesPointsFromRequest(request),
 		},
 		CreatedBy:  userId,
 		TtlMinutes: request.TtlMinutes,
@@ -110,6 +111,13 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	cluster.SubnetMapping = createSubnetMappingFromRequest(request.Properties.CreateClusterEKS)
 
 	return &cluster, nil
+}
+
+func createAPIServerAccesPointsFromRequest(request *pkgCluster.CreateClusterRequest) []string {
+	if len(request.Properties.CreateClusterEKS.APIServerAccessPoints) != 0 {
+		return request.Properties.CreateClusterEKS.APIServerAccessPoints
+	}
+	return []string{"public"}
 }
 
 func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*model.AmazonNodePoolsModel {
@@ -346,6 +354,15 @@ func (c *EKSCluster) CreateCluster() error {
 	creationContext.NodeInstanceRoleID = c.modelCluster.EKS.NodeInstanceRoleId
 
 	creationContext.LogTypes = c.modelCluster.EKS.LogTypes
+
+	for _, mode := range c.modelCluster.EKS.APIServerAccessPoints {
+		switch mode {
+		case "public":
+			creationContext.EndpointPublicAccess = true
+		case "private":
+			creationContext.EndpointPrivateAccess = true
+		}
+	}
 
 	actions := []utils.Action{
 		action.NewCreateVPCAction(c.log, creationContext, eksStackName),
