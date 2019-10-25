@@ -466,7 +466,9 @@ func main() {
 
 	// Frontend service
 	{
-		app, err := frontend.NewApp(
+		err := frontend.RegisterApp(
+			// router.PathPrefix("/frontend").Subrouter(),
+			router, // TODO: remove after compatibility routes are removed
 			conf.Frontend,
 			db,
 			buildInfo,
@@ -476,15 +478,14 @@ func main() {
 		)
 		emperror.Panic(err)
 
-		handler := gin.WrapH(http.StripPrefix(basePath, app))
-
 		// TODO: refactor authentication middleware
-		base.Any("frontend/notifications", handler)
-		base.GET("notifications", handler) // Compatibility routes
+		base.Any("frontend/notifications", gin.WrapH(router))
+		base.GET("notifications", gin.WrapH(router)) // Compatibility routes
 
+		// TODO: return 422 unprocessable entity instead of 404
 		if conf.Frontend.Issue.Enabled {
-			base.Any("frontend/issues", auth.Handler, handler)
-			base.POST("issues", auth.Handler, handler) // Compatibility routes
+			base.Any("frontend/issues", auth.Handler, gin.WrapH(router))
+			base.POST("issues", auth.Handler, gin.WrapH(router)) // Compatibility routes
 		}
 	}
 
