@@ -4544,6 +4544,42 @@ paths:
                 500:
                     $ref: '#/components/responses/InternalServerError'
 
+    '/api/v1/orgs/{orgId}/cloud/google/projects':
+        get:
+            security:
+                - bearerAuth: []
+            tags:
+                - google
+            summary: Retrieves projects visible for the user identified by the secret id
+            operationId: ListProjects
+            description: Retrieves projects visible by the user represented by the secretid header from the google cloud
+            parameters:
+                -
+                    name: orgId
+                    in: path
+                    required: true
+                    description: Organization identification
+                    schema:
+                        type: integer
+                -
+                    name: secretId
+                    in: query
+                    required: true
+                    description: Secret identification.
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: "List of projects visible for the user"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListProjectsResponse'
+                401:
+                    $ref: '#/components/responses/Unauthorized'
+                500:
+                    $ref: '#/components/responses/InternalServerError'
+
 
     '/api/v1/orgs/{orgId}/google/projects':
         get:
