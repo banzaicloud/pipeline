@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"go.uber.org/cadence"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 
@@ -55,7 +54,7 @@ type ClusterFeatureJobSignalInput struct {
 func ClusterFeatureJobWorkflow(ctx workflow.Context, input ClusterFeatureJobWorkflowInput) error {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		ScheduleToStartTimeout: 15 * time.Minute,
-		StartToCloseTimeout:    15 * time.Minute,
+		StartToCloseTimeout:    3 * time.Hour,
 		WaitForCancellation:    true,
 	})
 
@@ -68,17 +67,11 @@ func ClusterFeatureJobWorkflow(ctx workflow.Context, input ClusterFeatureJobWork
 		return err
 	}
 
-	for {
-		if err := executeJob(ctx, input, signalInput, jobsChannel); err != nil {
-			if err := setClusterFeatureStatus(ctx, input, clusterfeature.FeatureStatusError); err != nil {
-				workflow.GetLogger(ctx).Error("failed to set cluster feature status", zap.Error(err))
-			}
-			return err
+	if err := executeJobs(ctx, input, &signalInput, jobsChannel); err != nil {
+		if err := setClusterFeatureStatus(ctx, input, clusterfeature.FeatureStatusError); err != nil {
+			workflow.GetLogger(ctx).Error("failed to set cluster feature status", zap.Error(err))
 		}
-
-		if !jobsChannel.ReceiveAsync(&signalInput) {
-			break
-		}
+		return err
 	}
 
 	switch op := signalInput.Operation; op {
@@ -101,70 +94,60 @@ func getActivity(workflowInput ClusterFeatureJobWorkflowInput, signalInput Clust
 	switch op := signalInput.Operation; op {
 	case OperationApply:
 		return ClusterFeatureApplyActivityName, ClusterFeatureApplyActivityInput{
-			ClusterID:   workflowInput.ClusterID,
-			FeatureName: workflowInput.FeatureName,
-			FeatureSpec: signalInput.FeatureSpec,
+			ClusterID:     workflowInput.ClusterID,
+			FeatureName:   workflowInput.FeatureName,
+			FeatureSpec:   signalInput.FeatureSpec,
+			RetryInterval: signalInput.RetryInterval,
 		}, nil
 	case OperationDeactivate:
 		return ClusterFeatureDeactivateActivityName, ClusterFeatureDeactivateActivityInput{
-			ClusterID:   workflowInput.ClusterID,
-			FeatureName: workflowInput.FeatureName,
-			FeatureSpec: signalInput.FeatureSpec,
+			ClusterID:     workflowInput.ClusterID,
+			FeatureName:   workflowInput.FeatureName,
+			FeatureSpec:   signalInput.FeatureSpec,
+			RetryInterval: signalInput.RetryInterval,
 		}, nil
 	default:
 		return "", nil, errors.NewWithDetails("unsupported operation", "operation", op)
 	}
 }
 
-func tryExecuteActivity(ctx workflow.Context, activityName string, activityInput interface{}) (bool, error) {
-	err := workflow.ExecuteActivity(ctx, activityName, activityInput).Get(ctx, nil)
-
-	var isShouldRetryError bool
-	if customError, ok := err.(*cadence.CustomError); ok && customError.Reason() == shouldRetryReason {
-		isShouldRetryError = true
-	}
-
-	return isShouldRetryError, errors.WrapIfWithDetails(err, "activity execution failed", "activityName", activityName, "activityInput", activityInput)
-}
-
-func executeActivity(ctx workflow.Context, activityName string, activityInput interface{}, jobsChannel workflow.Channel, signalInputPtr *ClusterFeatureJobSignalInput) (bool, error) {
+func executeJobs(ctx workflow.Context, workflowInput ClusterFeatureJobWorkflowInput, signalInputPtr *ClusterFeatureJobSignalInput, jobsChannel workflow.Channel) error {
 	for {
-		retry, err := tryExecuteActivity(ctx, activityName, activityInput)
-		if retry {
-			again := false
-
-			// wait for retry and listen for new jobs
-			workflow.NewSelector(ctx).AddFuture(workflow.NewTimer(ctx, signalInputPtr.RetryInterval), func(f workflow.Future) {
-				again = true
-			}).AddReceive(jobsChannel, func(c workflow.Channel, more bool) {
-				c.Receive(ctx, signalInputPtr)
-			}).Select(ctx)
-
-			if again {
-				continue
-			}
-
-			return true, nil
-		}
-
-		return false, err
-	}
-}
-
-func executeJob(ctx workflow.Context, workflowInput ClusterFeatureJobWorkflowInput, signalInput ClusterFeatureJobSignalInput, jobsChannel workflow.Channel) error {
-	for {
-		activityName, activityInput, err := getActivity(workflowInput, signalInput)
+		activityName, activityInput, err := getActivity(workflowInput, *signalInputPtr)
 		if err != nil {
 			return err
 		}
 
-		newJob, err := executeActivity(ctx, activityName, activityInput, jobsChannel, &signalInput)
-		if newJob {
-			continue
-		}
+		{
+			activityCtx, cancelActivity := workflow.WithCancel(ctx)
 
-		return err
+			activityFuture := workflow.ExecuteActivity(activityCtx, activityName, activityInput)
+
+			selector := workflow.NewSelector(ctx)
+
+			selector.AddFuture(activityFuture, func(f workflow.Future) {})
+
+			selector.AddReceive(jobsChannel, func(c workflow.Channel, more bool) {
+				cancelActivity()
+			})
+
+			selector.Select(ctx)
+
+			err := activityFuture.Get(ctx, nil)
+
+			if !getLatestValue(jobsChannel, signalInputPtr) {
+				return err
+			}
+		}
 	}
+}
+
+func getLatestValue(ch workflow.Channel, valuePtr interface{}) bool {
+	received := false
+	for ch.ReceiveAsync(valuePtr) {
+		received = true
+	}
+	return received
 }
 
 func setClusterFeatureStatus(ctx workflow.Context, input ClusterFeatureJobWorkflowInput, status string) error {
