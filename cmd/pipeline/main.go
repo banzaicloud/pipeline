@@ -425,40 +425,40 @@ func main() {
 	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, logrusLogger, errorHandler)
 
 	// Initialise Gin router
-	router := gin.New()
+	engine := gin.New()
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
-	router.Use(correlationid.Middleware())
-	router.Use(ginlog.Middleware(logrusLogger, skipPaths...))
+	engine.Use(correlationid.Middleware())
+	engine.Use(ginlog.Middleware(logrusLogger, skipPaths...))
 
 	// Add prometheus metric endpoint
 	if viper.GetBool(config.MetricsEnabled) {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
 		p.SetListenAddress(viper.GetString(config.MetricsAddress) + ":" + viper.GetString(config.MetricsPort))
-		p.Use(router, "/metrics")
+		p.Use(engine, "/metrics")
 	}
 
-	router.Use(gin.Recovery())
+	engine.Use(gin.Recovery())
 	drainModeMetric := prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "pipeline",
 		Name:      "drain_mode",
 		Help:      "read only mode is on/off",
 	})
 	prometheus.MustRegister(drainModeMetric)
-	router.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
-	router.Use(cors.New(config.GetCORS()))
+	engine.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
+	engine.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		logger.Info("Audit enabled, installing Gin audit middleware")
-		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
+		engine.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
 	}
-	router.Use(func(c *gin.Context) { // TODO: move to middleware
+	engine.Use(func(c *gin.Context) { // TODO: move to middleware
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
 
-	router.GET("/", api.RedirectRoot)
+	engine.GET("/", api.RedirectRoot)
 
-	base := router.Group(basePath)
+	base := engine.Group(basePath)
 
 	// Frontend service
 	{
@@ -486,7 +486,7 @@ func main() {
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
-	auth.Install(router)
+	auth.Install(engine)
 	auth.StartTokenStoreGC(tokenStore)
 
 	enforcer := auth.NewRbacEnforcer(organizationStore, commonLogger)
@@ -756,7 +756,7 @@ func main() {
 			)
 			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))
 
-			clusterAuthAPI.RegisterRoutes(cRouter, router)
+			clusterAuthAPI.RegisterRoutes(cRouter, engine)
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
@@ -931,7 +931,7 @@ func main() {
 		)
 	}
 
-	base.GET("api", api.MetaHandler(router, basePath+"/api"))
+	base.GET("api", api.MetaHandler(engine, basePath+"/api"))
 
 	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
@@ -951,10 +951,10 @@ func main() {
 	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
 	if certFile != "" && keyFile != "" {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
-		_ = router.RunTLS(bindAddr, certFile, keyFile)
+		_ = engine.RunTLS(bindAddr, certFile, keyFile)
 	} else {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "http://" + bindAddr})
-		_ = router.Run(bindAddr)
+		_ = engine.Run(bindAddr)
 	}
 }
 
