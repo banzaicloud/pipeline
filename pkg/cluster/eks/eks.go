@@ -36,6 +36,10 @@ type CreateClusterEKS struct {
 	Subnets  []*Subnet  `json:"subnets,omitempty" yaml:"subnets,omitempty"`
 	IAM      ClusterIAM `json:"iam,omitempty" yaml:"iam,omitempty"`
 	LogTypes []string   `json:"logTypes,omitempty" yaml:"logTypes,omitempty"`
+
+	// List of access point references for the API server; currently, public and private are the only valid values.
+	// Default: ["public"]
+	APIServerAccessPoints []string `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request

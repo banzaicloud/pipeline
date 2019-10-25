@@ -6920,7 +6920,13 @@ components:
                         iam:
                             type: object
                             $ref: '#/components/schemas/EKSIam'
-
+                        apiServerAccessPoints:
+                            type: array
+                            items:
+                              type: string
+                              enum: [private, public]
+                            default: ["public"]
+                            description: List of access point types for the API server; public and private are the only valid values
         CreateACKProperties:
             type: object
             required:
