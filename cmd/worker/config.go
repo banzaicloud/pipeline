@@ -15,20 +15,21 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
@@ -64,9 +65,6 @@ type configuration struct {
 
 	// Cadence configuration
 	Cadence cadence.Config
-
-	// Anchore default configuration
-	Anchore anchore.Config
 }
 
 // Validate validates the configuration.
@@ -144,7 +142,8 @@ func (c authTokenConfig) Validate() error {
 
 // clusterConfig contains cluster configuration.
 type clusterConfig struct {
-	Manifest string
+	Manifest     string
+	SecurityScan clusterSecurityScanConfig
 }
 
 // Validate validates the configuration.
@@ -155,6 +154,53 @@ func (c clusterConfig) Validate() error {
 			return fmt.Errorf("cluster manifest file is not readable: %w", err)
 		}
 		_ = file.Close()
+	}
+
+	if c.SecurityScan.Enabled {
+		if err := c.SecurityScan.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// clusterSecurityScanConfig contains cluster security scan configuration.
+type clusterSecurityScanConfig struct {
+	Enabled bool
+	Anchore clusterSecurityScanAnchoreConfig
+}
+
+func (c clusterSecurityScanConfig) Validate() error {
+	if c.Anchore.Enabled {
+		if err := c.Anchore.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// clusterSecurityScanAnchoreConfig contains cluster security scan anchore configuration.
+type clusterSecurityScanAnchoreConfig struct {
+	Enabled bool
+
+	anchore.Config `mapstructure:",squash"`
+}
+
+func (c clusterSecurityScanAnchoreConfig) Validate() error {
+	if c.Enabled {
+		if _, err := url.Parse(c.Endpoint); err != nil {
+			return errors.Wrap(err, "anchore endpoint must be a valid URL")
+		}
+
+		if c.User == "" {
+			return errors.New("anchore user is required")
+		}
+
+		if c.Password == "" {
+			return errors.New("anchore password is required")
+		}
 	}
 
 	return nil
@@ -249,11 +295,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
 	viper.SetDefault("auth.dexGrpcCaCert", "")
 
-	v.SetDefault("anchore.apiEnabled", true)
-	v.SetDefault("anchore.enabled", false)
-	v.SetDefault("anchore.endpoint", "")
-	v.SetDefault("anchore.adminuser", "")
-	v.SetDefault("anchore.adminpass", "")
+	v.SetDefault("cluster.securityScan.anchore.enabled", false)
+	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
+	v.SetDefault("cluster.securityScan.anchore.user", "")
+	v.SetDefault("cluster.securityScan.anchore.password", "")
 }
 
 func registerAliases(v *viper.Viper) {

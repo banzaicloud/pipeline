@@ -200,7 +200,7 @@ func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
 // SecurityScanEnabled checks if security scan is enabled in pipeline
 func SecurityScanEnabled(c *gin.Context) {
 
-	if viper.GetBool("anchore.enabled") {
+	if viper.GetBool("cluster.securityScan.anchore.enabled") {
 		c.JSON(http.StatusOK, gin.H{
 			"enabled": true,
 		})

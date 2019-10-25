@@ -37,6 +37,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	conf "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
+	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
 	"github.com/banzaicloud/pipeline/internal/cluster/clusteradapter"
@@ -51,6 +52,7 @@ import (
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
 	featureVault "github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -68,7 +70,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
-	securityClusterAdapter "github.com/banzaicloud/pipeline/internal/security/clusteradapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
@@ -336,20 +337,42 @@ func main() {
 			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 
-			securityClusterService := securityClusterAdapter.NewClusterService(clusterManager)
-			usernameService := anchore.NewAnchoreUsernameService(securityClusterService)
+			customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
+				featureRepository,
+				commonSecretStore,
+				logger,
+			)
+			configProvider := anchore2.ConfigProviderChain{customAnchoreConfigProvider}
 
-			featureAdapter := anchore.NewFeatureAdapter(featureRepository, logger)
-			anchoreConfigService := anchore.NewConfigurationService(config.Anchore, featureAdapter, logger)
-			anchoreUserService := anchore.MakeAnchoreUserService(anchoreConfigService, usernameService, commonSecretStore, logger)
+			if config.Cluster.SecurityScan.Anchore.Enabled {
+				configProvider = append(configProvider, anchore2.StaticConfigProvider{
+					Config: config.Cluster.SecurityScan.Anchore.Config,
+				})
+			}
+
+			anchoreUserService := anchore.MakeAnchoreUserService(
+				configProvider,
+				securityscanadapter.NewUserNameGenerator(securityscanadapter.NewClusterService(clusterManager)),
+				commonSecretStore,
+				logger,
+			)
 			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, logger)
 			featureWhitelistService := securityscan.NewFeatureWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
 			monitorConfiguration := featureMonitoring.NewFeatureConfiguration()
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
 				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, commonSecretStore),
-				securityscan.MakeFeatureOperator(config.Anchore, clusterGetter, clusterService, helmService,
-					commonSecretStore, featureAnchoreService, featureWhitelistService, logger),
+				securityscan.MakeFeatureOperator(
+					config.Cluster.SecurityScan.Anchore.Enabled,
+					config.Cluster.SecurityScan.Anchore.Endpoint,
+					clusterGetter,
+					clusterService,
+					helmService,
+					commonSecretStore,
+					featureAnchoreService,
+					featureWhitelistService,
+					logger,
+				),
 				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, commonSecretStore, logger),
 				featureMonitoring.MakeFeatureOperator(clusterGetter, clusterService, helmService, monitorConfiguration, logger, commonSecretStore),
 			})

@@ -22,15 +22,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/securityscan"
 )
 
 // TODO: replace mock with in-memory implementation?
 //go:generate mockery -dir $PWD/internal/common -name SecretStore -testonly -output $PWD/internal/clusterfeature/features/securityscan -outpkg securityscan
 
-func TestAnchoreConfigProvider_GetConfiguration_CustomAnchore(t *testing.T) {
+func TestCustomAnchoreConfigProvider_GetConfiguration(t *testing.T) {
 	featureRepository := clusterfeature.NewInMemoryFeatureRepository(map[uint][]clusterfeature.Feature{
 		1: {
 			{
@@ -57,14 +57,14 @@ func TestAnchoreConfigProvider_GetConfiguration_CustomAnchore(t *testing.T) {
 		nil,
 	)
 
-	configProvider := NewAnchoreConfigProvider(nil, featureRepository, secretStore, common.NewNoopLogger())
+	configProvider := NewCustomAnchoreConfigProvider(featureRepository, secretStore, common.NewNoopLogger())
 
 	config, err := configProvider.GetConfiguration(context.Background(), 1)
 	require.NoError(t, err)
 
 	assert.Equal(
 		t,
-		securityscan.AnchoreConfig{
+		anchore.Config{
 			Endpoint: "https://anchore.example.com",
 			User:     "user",
 			Password: "password",
@@ -75,7 +75,7 @@ func TestAnchoreConfigProvider_GetConfiguration_CustomAnchore(t *testing.T) {
 	secretStore.AssertExpectations(t)
 }
 
-func TestAnchoreConfigProvider_GetConfiguration_GlobalAnchore(t *testing.T) {
+func TestCustomAnchoreConfigProvider_GetConfiguration_NoConfig(t *testing.T) {
 	featureRepository := clusterfeature.NewInMemoryFeatureRepository(map[uint][]clusterfeature.Feature{
 		1: {
 			{
@@ -89,40 +89,12 @@ func TestAnchoreConfigProvider_GetConfiguration_GlobalAnchore(t *testing.T) {
 
 	secretStore := new(SecretStore)
 
-	globalConfig := securityscan.AnchoreConfig{
-		Endpoint: "https://anchore.example.com",
-		User:     "user",
-		Password: "password",
-	}
-
-	configProvider := NewAnchoreConfigProvider(&globalConfig, featureRepository, secretStore, common.NewNoopLogger())
-
-	config, err := configProvider.GetConfiguration(context.Background(), 1)
-	require.NoError(t, err)
-
-	assert.Equal(t, globalConfig, config)
-
-	secretStore.AssertExpectations(t)
-}
-
-func TestAnchoreConfigProvider_GetConfiguration_NoAnchore(t *testing.T) {
-	featureRepository := clusterfeature.NewInMemoryFeatureRepository(map[uint][]clusterfeature.Feature{
-		1: {
-			{
-				Name:   "securityscan",
-				Spec:   map[string]interface{}{},
-				Output: nil,
-				Status: clusterfeature.FeatureStatusActive,
-			},
-		},
-	})
-
-	secretStore := new(SecretStore)
-
-	configProvider := NewAnchoreConfigProvider(nil, featureRepository, secretStore, common.NewNoopLogger())
+	configProvider := NewCustomAnchoreConfigProvider(featureRepository, secretStore, common.NewNoopLogger())
 
 	_, err := configProvider.GetConfiguration(context.Background(), 1)
 	require.Error(t, err)
+
+	assert.Equal(t, anchore.ErrConfigNotFound, err)
 
 	secretStore.AssertExpectations(t)
 }

@@ -45,12 +45,6 @@ logging = false
 
 autoMigrateEnabled = true
 
-[anchore]
-enabled = true
-adminUser = "admin"
-adminPass = "xxxxxx"
-endPoint = "http://exampe.com"
-
 [cloudinfo]
 endPointUrl = "https://alpha.dev.banzaicloud.com/cloudinfo/api/v1"
 

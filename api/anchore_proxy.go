@@ -25,31 +25,33 @@ import (
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
 
+	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/common"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
 )
 
 const pipelineUserAgent = "Pipeline/go"
 
 type AnchoreProxy struct {
-	basePath        string
-	configService   anchore.ConfigurationService
-	userNameService anchore.UserNameService
-	secretStore     common.SecretStore
-	errorHandler    common.ErrorHandler
-	logger          common.Logger
+	basePath       string
+	configProvider anchore.ConfigProvider
+
+	errorHandler common.ErrorHandler
+	logger       common.Logger
 }
 
-func NewAnchoreProxy(basePath string, configurationService anchore.ConfigurationService, userNameService anchore.UserNameService,
-	secretStore common.SecretStore, errorHandler common.ErrorHandler, logger common.Logger) AnchoreProxy {
+func NewAnchoreProxy(
+	basePath string,
+	configProvider anchore.ConfigProvider,
 
+	errorHandler common.ErrorHandler,
+	logger common.Logger,
+) AnchoreProxy {
 	return AnchoreProxy{
-		basePath:        basePath,
-		configService:   configurationService,
-		userNameService: userNameService,
-		secretStore:     secretStore,
-		errorHandler:    errorHandler,
-		logger:          logger,
+		basePath:       basePath,
+		configProvider: configProvider,
+
+		errorHandler: errorHandler,
+		logger:       logger,
 	}
 }
 
@@ -87,26 +89,9 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 	}
 }
 
-// processCredentials depending on the configuration get the appropriate credentials for accessing anchore
-func (ap AnchoreProxy) processCredentials(ctx context.Context, config anchore.Config, clusterID uint, orgID uint) (string, string, error) {
-
-	if config.UserSecret != "" { // custom anchore
-		return anchore.GetCustomAnchoreCredentials(ctx, ap.secretStore, config.UserSecret, ap.logger)
-	}
-
-	// managed anchore, generated user
-	username, err := ap.userNameService.Generate(ctx, orgID, clusterID)
-	if err != nil {
-		return "", "", errors.WrapIf(err, "failed to process credentials")
-	}
-	password, err := anchore.GetUserSecret(ctx, ap.secretStore, username, ap.logger)
-
-	return username, password, err
-}
-
 func (ap AnchoreProxy) buildProxyDirector(ctx context.Context, proxyPath string, orgID uint, clusterID uint) (func(req *http.Request), error) {
 	fnCtx := map[string]interface{}{"orgiD": orgID, "clusterID": clusterID}
-	config, err := ap.configService.GetConfiguration(ctx, clusterID)
+	config, err := ap.configProvider.GetConfiguration(ctx, clusterID)
 	if err != nil {
 		ap.logger.Warn("failed to retrieve anchore configuration", fnCtx)
 
@@ -120,17 +105,10 @@ func (ap AnchoreProxy) buildProxyDirector(ctx context.Context, proxyPath string,
 		return nil, errors.WrapIf(err, "failed to parse the backend URL")
 	}
 
-	username, password, err := ap.processCredentials(ctx, config, clusterID, orgID)
-	if err != nil {
-		ap.logger.Warn("failed to process anchore credentials", fnCtx)
-
-		return nil, errors.WrapIf(err, "failed to process anchore credentials")
-	}
-
 	return func(r *http.Request) {
 		r.Host = backendURL.Host // this is a must!
 		r.Header.Set("User-Agent", pipelineUserAgent)
-		r.SetBasicAuth(username, password)
+		r.SetBasicAuth(config.User, config.Password)
 
 		r.URL.Scheme = backendURL.Scheme
 		r.URL.Host = backendURL.Host

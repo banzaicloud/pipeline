@@ -20,6 +20,7 @@ import (
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
+	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
@@ -38,19 +39,16 @@ type ImageScanner interface {
 }
 
 type imageScannerService struct {
-	configService   ConfigurationService
-	userNameService UserNameService
-	secretStore     common.SecretStore
-	logger          common.Logger
+	configProvider anchore.ConfigProvider
+
+	logger common.Logger
 }
 
-func NewImageScannerService(configService ConfigurationService, userNameService UserNameService,
-	secretStore common.SecretStore, logger common.Logger) ImageScanner {
+func NewImageScannerService(configProvider anchore.ConfigProvider, logger common.Logger) ImageScanner {
 	return imageScannerService{
-		configService:   configService,
-		userNameService: userNameService,
-		secretStore:     secretStore,
-		logger:          logger,
+		configProvider: configProvider,
+
+		logger: logger,
 	}
 }
 
@@ -63,7 +61,7 @@ func (i imageScannerService) Scan(ctx context.Context, orgID uint, clusterID uin
 		retImgs     = make([]interface{}, 0)
 	)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, orgID, clusterID, false)
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
 	if err != nil {
 		return err, nil
 	}
@@ -87,7 +85,7 @@ func (i imageScannerService) GetImageInfo(ctx context.Context, orgID uint, clust
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "imageDigest": imageDigest}
 	i.logger.Info("getting scan results", fnCtx)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, orgID, clusterID, false)
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +105,7 @@ func (i imageScannerService) GetVulnerabilities(ctx context.Context, orgID uint,
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "imageDigest": imageDigest}
 	i.logger.Info("retrieving image vulnerabilities", fnCtx)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, orgID, clusterID, false)
+	anchoreClient, err := i.getAnchoreClient(ctx, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -124,49 +122,11 @@ func (i imageScannerService) GetVulnerabilities(ctx context.Context, orgID uint,
 }
 
 // getAnchoreClient returns i rest client wrapper instance with the proper configuration
-func (i imageScannerService) getAnchoreClient(ctx context.Context, orgID uint, clusterID uint, admin bool) (AnchoreClient, error) {
-	cfg, err := i.configService.GetConfiguration(ctx, clusterID)
+func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
+	config, err := i.configProvider.GetConfiguration(ctx, clusterID)
 	if err != nil {
-		i.logger.Debug("failed to get anchore configuration")
-
-		return nil, errors.Wrap(err, "failed to get anchore configuration")
+		return nil, err
 	}
 
-	if !cfg.Enabled {
-		i.logger.Debug("anchore service disabled")
-
-		return nil, errors.NewWithDetails("anchore service disabled", "clusterID", clusterID)
-	}
-
-	if cfg.UserSecret != "" {
-		i.logger.Debug("using custom anchore configuration")
-		username, password, err := GetCustomAnchoreCredentials(ctx, i.secretStore, cfg.UserSecret, i.logger)
-		if err != nil {
-			i.logger.Debug("failed to decode secret values")
-
-			return nil, errors.WrapIf(err, "failed to decode custom anchore user secret")
-		}
-
-		return NewAnchoreClient(username, password, cfg.Endpoint, i.logger), nil
-	}
-
-	if admin {
-		return NewAnchoreClient(cfg.AdminUser, cfg.AdminPass, cfg.Endpoint, i.logger), nil
-	}
-
-	userName, err := i.userNameService.Generate(ctx, orgID, clusterID)
-	if err != nil {
-		i.logger.Debug("failed to generate anchore username")
-
-		return nil, errors.Wrap(err, "failed to generate anchore username")
-	}
-
-	password, err := GetUserSecret(ctx, i.secretStore, userName, i.logger)
-	if err != nil {
-		i.logger.Debug("failed to get user secret")
-
-		return nil, errors.Wrap(err, "failed to get anchore configuration")
-	}
-
-	return NewAnchoreClient(userName, password, cfg.Endpoint, i.logger), nil
+	return NewAnchoreClient(config.User, config.Password, config.Endpoint, i.logger), nil
 }

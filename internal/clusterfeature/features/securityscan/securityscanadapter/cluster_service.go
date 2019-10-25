@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package clusteradapter
+package securityscanadapter
 
 import (
 	"context"
-
-	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/cluster"
 )
@@ -27,26 +25,21 @@ type CommonClusterGetter interface {
 	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
 }
 
-// ClusterService is an adapter providing access to the core cluster layer.
-type ClusterService interface {
-	GetClusterUUID(ctx context.Context, orgID uint, clusterID uint) (string, error)
-}
-
-type AnchoreClusterService struct {
+type clusterService struct {
 	clusterGetter CommonClusterGetter
 }
 
 // NewClusterService returns a new ClusterService instance.
 func NewClusterService(getter CommonClusterGetter) ClusterService {
-	return AnchoreClusterService{
+	return clusterService{
 		clusterGetter: getter,
 	}
 }
 
-func (cs AnchoreClusterService) GetClusterUUID(ctx context.Context, orgID uint, clusterID uint) (string, error) {
-	c, err := cs.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+func (s clusterService) GetClusterUID(ctx context.Context, clusterID uint) (string, error) {
+	c, err := s.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-		return "", errors.WrapIf(err, "failed to retrieve cluster UUID")
+		return "", err
 	}
 
 	return c.GetUID(), nil

@@ -19,6 +19,7 @@ import (
 
 	"emperror.dev/errors"
 
+	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/secret"
 )
@@ -35,18 +36,31 @@ type AnchoreUserService interface {
 
 // anchoreService component struct implementing anchore account related operations
 type anchoreService struct {
-	configService   ConfigurationService
+	configProvider  anchore.ConfigProvider
 	userNameService UserNameService
 	secretStore     common.SecretStore
-	logger          common.Logger
+
+	logger common.Logger
 }
 
-func MakeAnchoreUserService(cfgService ConfigurationService, userNameService UserNameService, secretStore common.SecretStore, logger common.Logger) AnchoreUserService {
+// UserNameService defines operations for generating unique names using cluster data
+type UserNameService interface {
+	GenerateUsername(ctx context.Context, clusterID uint) (string, error)
+}
+
+func MakeAnchoreUserService(
+	configProvider anchore.ConfigProvider,
+	userNameService UserNameService,
+	secretStore common.SecretStore,
+
+	logger common.Logger,
+) AnchoreUserService {
 	return anchoreService{
-		configService:   cfgService,
+		configProvider:  configProvider,
 		userNameService: userNameService,
 		secretStore:     secretStore,
-		logger:          logger,
+
+		logger: logger,
 	}
 }
 
@@ -55,14 +69,14 @@ func (a anchoreService) EnsureUser(ctx context.Context, orgID uint, clusterID ui
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID}
 	a.logger.Info("ensuring anchore user", fnCtx)
 
-	restClient, err := a.getAnchoreClient(ctx, orgID, clusterID, true)
+	restClient, err := a.getAnchoreClient(ctx, clusterID)
 	if err != nil {
 		a.logger.Debug("failed to set up anchore client for cluster", fnCtx)
 
 		return "", errors.WrapIfWithDetails(err, "failed to set up anchore client for cluster", fnCtx)
 	}
 
-	userName, err := a.userNameService.Generate(ctx, orgID, clusterID)
+	userName, err := a.userNameService.GenerateUsername(ctx, clusterID)
 	if err != nil {
 		a.logger.Debug("failed to generate anchore username")
 
@@ -118,14 +132,14 @@ func (a anchoreService) RemoveUser(ctx context.Context, orgID uint, clusterID ui
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID}
 	a.logger.Info("ensuring anchore user", fnCtx)
 
-	restClient, err := a.getAnchoreClient(ctx, orgID, clusterID, true)
+	restClient, err := a.getAnchoreClient(ctx, clusterID)
 	if err != nil {
 		a.logger.Debug("failed to set up anchore client for cluster")
 
 		return errors.WrapIfWithDetails(err, "failed to set up anchore client for cluster", fnCtx)
 	}
 
-	userName, err := a.userNameService.Generate(ctx, orgID, clusterID)
+	userName, err := a.userNameService.GenerateUsername(ctx, clusterID)
 	if err != nil {
 		a.logger.Debug("failed to generate anchore username")
 
@@ -199,7 +213,7 @@ func (a anchoreService) ensureUserCredentials(ctx context.Context, orgID uint, c
 // createUserSecret creates a new password type secret, and returns the newly generated password string
 func (a anchoreService) createUserSecret(ctx context.Context, orgID uint, clusterID uint) (string, error) {
 
-	userName, err := a.userNameService.Generate(ctx, orgID, clusterID)
+	userName, err := a.userNameService.GenerateUsername(ctx, clusterID)
 	if err != nil {
 		a.logger.Debug("failed to generate anchore username")
 
@@ -288,54 +302,13 @@ func (a anchoreService) storeCredentialsSecret(ctx context.Context, orgID uint, 
 }
 
 // getAnchoreClient returns a rest client wrapper instance with the proper configuration
-func (a anchoreService) getAnchoreClient(ctx context.Context, orgID uint, clusterID uint, admin bool) (AnchoreClient, error) {
-	cfg, err := a.configService.GetConfiguration(ctx, clusterID)
+func (a anchoreService) getAnchoreClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
+	config, err := a.configProvider.GetConfiguration(ctx, clusterID)
 	if err != nil {
-		a.logger.Debug("failed to get anchore configuration")
-
-		return nil, errors.Wrap(err, "failed to get anchore configuration")
+		return nil, err
 	}
 
-	if !cfg.Enabled {
-		a.logger.Debug("anchore service disabled")
-
-		return nil, errors.NewWithDetails("anchore service disabled", "clusterID", clusterID)
-	}
-
-	if cfg.UserSecret != "" {
-		a.logger.Debug("using custom anchore configuration")
-		username, password, err := GetCustomAnchoreCredentials(ctx, a.secretStore, cfg.UserSecret, a.logger)
-		if err != nil {
-			a.logger.Debug("failed to decode secret values")
-
-			return nil, errors.WrapIf(err, "failed to decode custom anchore user secret")
-		}
-
-		return NewAnchoreClient(username, password, cfg.Endpoint, a.logger), nil
-	}
-
-	if admin {
-		a.logger.Debug("creating admin anchore client")
-
-		return NewAnchoreClient(cfg.AdminUser, cfg.AdminPass, cfg.Endpoint, a.logger), nil
-	}
-
-	userName, err := a.userNameService.Generate(ctx, orgID, clusterID)
-	if err != nil {
-		a.logger.Debug("failed to generate anchore username")
-
-		return nil, errors.Wrap(err, "failed to generate anchore username")
-	}
-
-	password, err := GetUserSecret(ctx, a.secretStore, userName, a.logger)
-	if err != nil {
-		a.logger.Debug("failed to retrieve user secret")
-
-		return nil, errors.Wrap(err, "failed to retrieve user secret")
-	}
-
-	a.logger.Debug("creating generated (managed) anchore client")
-	return NewAnchoreClient(userName, password, cfg.Endpoint, a.logger), nil
+	return NewAnchoreClient(config.User, config.Password, config.Endpoint, a.logger), nil
 }
 
 func (a anchoreService) deleteAccount(ctx context.Context, client AnchoreClient, accountName string) error {
