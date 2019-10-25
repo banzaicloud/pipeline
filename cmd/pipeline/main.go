@@ -427,6 +427,10 @@ func main() {
 	// Initialise Gin router
 	engine := gin.New()
 
+	router := mux.NewRouter()
+	router.Use(ocmux.Middleware())
+	router = router.PathPrefix(basePath).Subrouter()
+
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
 	engine.Use(correlationid.Middleware())
