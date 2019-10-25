@@ -12,15 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package features
+package securityscan
 
 import (
-	"github.com/banzaicloud/pipeline/internal/common"
+	"context"
 )
 
-// Logger is the fundamental interface for all log operations.
-type Logger = common.Logger
+// AnchoreConfig holds configuration required for connecting the Anchore API.
+type AnchoreConfig struct {
+	Endpoint string
+	User     string
+	Password string
+}
 
-// SecretStore is a common interface for various parts of the application
-// to read secrets from the platform's secret store.
-type SecretStore = common.SecretStore
+// AnchoreConfigProvider returns Anchore configuration for a cluster.
+type AnchoreConfigProvider interface {
+	// GetConfiguration returns Anchore configuration for a cluster.
+	GetConfiguration(ctx context.Context, clusterID uint) (AnchoreConfig, error)
+}
