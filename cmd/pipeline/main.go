@@ -327,7 +327,7 @@ func main() {
 	}
 
 	clusterManager := cluster.NewManager(clusters, secretValidator, clusterEvents, statusChangeDurationMetric, clusterTotalMetric, workflowClient, logrusLogger, errorHandler)
-	clusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
+	commonClusterGetter := common.NewClusterGetter(clusterManager, logrusLogger, errorHandler)
 
 	clusterTTLController := cluster.NewTTLController(clusterManager, clusterEventBus, logrusLogger.WithField("subsystem", "ttl-controller"), errorHandler)
 	defer clusterTTLController.Stop()
@@ -420,9 +420,9 @@ func main() {
 		),
 	}
 
-	clusterAPI := api.NewClusterAPI(clusterManager, clusterGetter, workflowClient, cloudInfoClient, clusterGroupManager, logrusLogger, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
+	clusterAPI := api.NewClusterAPI(clusterManager, commonClusterGetter, workflowClient, cloudInfoClient, clusterGroupManager, logrusLogger, errorHandler, externalBaseURL, externalURLInsecure, clusterCreators, clusterDeleters, clusterUpdaters)
 
-	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, logrusLogger, errorHandler)
+	nplsApi := api.NewNodepoolManagerAPI(commonClusterGetter, logrusLogger, errorHandler)
 
 	// Initialise Gin router
 	engine := gin.New()
@@ -655,12 +655,12 @@ func main() {
 
 					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 					imgScanSvc := anchore.NewImageScannerService(cfgSvc, usernameService, secretStore, logger)
-					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
+					imageScanHandler := api.NewImageScanHandler(commonClusterGetter, imgScanSvc, logger)
 
 					policySvc := anchore.NewPolicyService(cfgSvc, usernameService, secretStore, logger)
-					policyHandler := api.NewPolicyHandler(clusterGetter, policySvc, logger)
+					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
 
-					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
+					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, logger)
 
 					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, usernameService, secretStore, emperror.MakeContextAware(errorHandler), logger)
 					proxyHandler := anchoreProxy.Proxy()
@@ -744,7 +744,7 @@ func main() {
 			cRouter.GET("/nodepools/labels", nplsApi.GetNodepoolLabelSets)
 			cRouter.POST("/nodepools/labels", nplsApi.SetNodepoolLabelSets)
 
-			namespaceAPI := namespace.NewAPI(clusterGetter, errorHandler)
+			namespaceAPI := namespace.NewAPI(commonClusterGetter, errorHandler)
 			namespaceAPI.RegisterRoutes(cRouter.Group("/namespaces/:namespace"))
 
 			pkeGroup := cRouter.Group("/pke")
@@ -753,7 +753,7 @@ func main() {
 			emperror.Panic(errors.WrapIf(err, "failed to create Vault leader repository"))
 
 			pkeAPI := pke.NewAPI(
-				clusterGetter,
+				commonClusterGetter,
 				errorHandler,
 				auth.NewClusterTokenGenerator(tokenManager, tokenStore),
 				externalBaseURL,
@@ -771,7 +771,7 @@ func main() {
 			pipelineExternalURL.Path = "/auth/dex/cluster/callback"
 
 			clusterAuthAPI, err := api.NewClusterAuthAPI(
-				clusterGetter,
+				commonClusterGetter,
 				clusterAuthService,
 				conf.Auth.Token.SigningKey,
 				oidcIssuerURL,
