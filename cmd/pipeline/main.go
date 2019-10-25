@@ -71,6 +71,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokenadapter"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokendriver"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap/capdriver"
+	googleproject "github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
+	googleprojectdriver "github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project/projectdriver"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype/secrettypedriver"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
@@ -114,6 +116,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/watermill"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
+	"github.com/banzaicloud/pipeline/internal/providers/google"
+	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
@@ -213,6 +217,8 @@ func main() {
 
 	// Used internally to make sure every event/command bus uses the same one
 	eventMarshaler := cqrs.JSONMarshaler{GenerateName: cqrs.StructName}
+
+	secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
 	organizationStore := authadapter.NewGormOrganizationStore(db)
 
@@ -564,6 +570,17 @@ func main() {
 		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
+
+		endpointMiddleware := []endpoint.Middleware{
+			correlation.Middleware(),
+		}
+
+		httpServerOptions := []kithttp.ServerOption{
+			kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+			kithttp.ServerErrorEncoder(kitxhttp.ProblemErrorEncoder),
+			kithttp.ServerBefore(correlation.HTTPToContext()),
+		}
+
 		orgs := v1.Group("/orgs")
 		{
 			orgs.Use(api.OrganizationMiddleware)
@@ -773,23 +790,48 @@ func main() {
 			orgs.GET("/:orgid/azure/resourcegroups", api.GetResourceGroups)
 			orgs.POST("/:orgid/azure/resourcegroups", api.AddResourceGroups)
 
-			orgs.GET("/:orgid/google/projects", api.GetProjects)
+			{
+				secretStore := googleadapter.NewSecretStore(secretStore)
+				clientFactory := google.NewClientFactory(secretStore)
+
+				service := googleproject.NewService(clientFactory)
+				endpoints := googleprojectdriver.TraceEndpoints(googleprojectdriver.MakeEndpoints(
+					service,
+					kitxendpoint.Chain(endpointMiddleware...),
+					appkit.EndpointLogger(commonLogger),
+				))
+
+				router := mux.NewRouter()
+				router.Use(ocmux.Middleware())
+
+				googleprojectdriver.RegisterHTTPHandlers(
+					endpoints,
+					router.PathPrefix("/api/v1/orgs/{orgId}/cloud/google/projects").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+				)
+
+				orgs.Any("/:orgid/cloud/google/projects", gin.WrapH(http.StripPrefix(basePath, router)))
+
+				// Compatibility routes
+				compatRouter := mux.NewRouter()
+				compatRouter.Use(ocmux.Middleware())
+
+				googleprojectdriver.RegisterHTTPHandlers(
+					endpoints,
+					compatRouter.PathPrefix("/api/v1/orgs/{orgId}/google/projects").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+				)
+
+				orgs.Any("/:orgid/google/projects", gin.WrapH(http.StripPrefix(basePath, compatRouter)))
+			}
 
 			orgs.GET("/:orgid", organizationAPI.GetOrganizations)
 			orgs.DELETE("/:orgid", organizationAPI.DeleteOrganization)
 		}
 		v1.GET("/orgs", organizationAPI.GetOrganizations)
 		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
-
-		endpointMiddleware := []endpoint.Middleware{
-			correlation.Middleware(),
-		}
-
-		httpServerOptions := []kithttp.ServerOption{
-			kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-			kithttp.ServerErrorEncoder(kitxhttp.ProblemErrorEncoder),
-			kithttp.ServerBefore(correlation.HTTPToContext()),
-		}
 
 		{
 			logger := commonLogger.WithFields(map[string]interface{}{"module": "auth"})
