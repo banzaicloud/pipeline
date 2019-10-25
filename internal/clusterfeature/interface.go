@@ -39,9 +39,10 @@ type FeatureStatus = string
 
 // Feature status constants
 const (
-	FeatureStatusPending FeatureStatus = "PENDING"
-	FeatureStatusActive  FeatureStatus = "ACTIVE"
-	FeatureStatusError   FeatureStatus = "ERROR"
+	FeatureStatusInactive FeatureStatus = "INACTIVE"
+	FeatureStatusPending  FeatureStatus = "PENDING"
+	FeatureStatusActive   FeatureStatus = "ACTIVE"
+	FeatureStatusError    FeatureStatus = "ERROR"
 )
 
 // FeatureManagerRegistry contains feature managers.
@@ -163,7 +164,7 @@ type FeatureOperator interface {
 	Name() string
 }
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name ClusterService -inpkg || true"
+//go:generate mockery -name ClusterService -inpkg
 // ClusterService provides a thin access layer to clusters.
 type ClusterService interface {
 	// CheckClusterReady checks whether the cluster is ready for features (eg.: exists and it's running). If the cluster is not ready, a ClusterIsNotReadyError should be returned.

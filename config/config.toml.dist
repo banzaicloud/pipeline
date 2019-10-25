@@ -104,6 +104,20 @@ signingKey = "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 # issuer = "https://banzaicloud.com/"
 # audience = "https://pipeline.banzaicloud.com"
 
+[cluster]
+# An initial Kubernetes manifest to be installed on clusters.
+# It accepts a file path with valid YAML templates inside.
+# manifest = ""
+
+[cluster.vault]
+enabled = true
+
+[cluster.vault.managed]
+enabled = false
+
+[cluster.monitor]
+enabled = true
+
 [helm]
 tillerVersion = "v2.14.2"
 path = "./var/cache"
@@ -111,6 +125,7 @@ path = "./var/cache"
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
 banzaiRepositoryURL = "https://kubernetes-charts.banzaicloud.com"
+lokiRepositoryURL = "https://grafana.github.io/loki/charts"
 
 [monitor]
 enabled = false

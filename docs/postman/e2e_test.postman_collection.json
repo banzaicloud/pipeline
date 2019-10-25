@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "30bebb01-8887-4fa9-9350-8b4e32099f5d",
+		"_postman_id": "8dfdefcb-60f3-43ba-bf9b-dcf551e7166c",
 		"name": "End2End TEST Organizations",
 		"description": "Collection for K8S Cluster CRUD operations through the Banzai Cloud Pipeline API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -74,6 +74,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -364,6 +365,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -611,6 +613,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2852,7 +2855,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Cluster Groups",
@@ -3246,6 +3250,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -3687,6 +3692,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -4072,7 +4078,8 @@
 						]
 					}
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Spotguides",
@@ -4213,7 +4220,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Deployments",
@@ -4487,7 +4495,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Deployment",
@@ -4971,7 +4980,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Secrets",
@@ -5234,6 +5244,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -5494,6 +5505,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -5754,6 +5766,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -6014,6 +6027,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -6274,6 +6288,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -6498,6 +6513,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -6723,6 +6739,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -6948,6 +6965,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -7173,6 +7191,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -7331,6 +7350,484 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Vault",
+					"item": [
+						{
+							"name": "Add secret Vault",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ede97a8-3c22-48d7-a9e7-063075ff33b6",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"",
+											"    pm.environment.set(\"timestampHeader\", new Date());",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"    pm.environment.set(\"secretIdVault\", dataJSON.id);",
+											"    tests[\"Secret ID: \" + dataJSON.id] = true;",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    console.warn(responseBody);",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"my-vault-secret-{{$randomInt}}\",\n\t\"type\": \"vault\",\n\t\"values\": {\n\t\t\"token\": \"\"\n\t}\n}\n"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get secret Vault",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdVault",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets",
+										":secretIdVault"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "secretIdVault",
+											"value": "{{secretIdVault}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete secret Vault",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f5d0d35a-59fb-4be2-a13f-e4ac1c0fea04",
+										"exec": [
+											"if (responseCode.code === 204) {",
+											"    tests[\"Response Code 204\"] = responseCode.code == 204;",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    console.warn(responseBody);",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdVault",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets",
+										":secretIdVault"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "secretIdVault",
+											"value": "{{secretIdVault}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Slack",
+					"item": [
+						{
+							"name": "Add secret Slack",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ede97a8-3c22-48d7-a9e7-063075ff33b6",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"",
+											"    pm.environment.set(\"timestampHeader\", new Date());",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"    pm.environment.set(\"secretIdSlack\", dataJSON.id);",
+											"    tests[\"Secret ID: \" + dataJSON.id] = true;",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    console.warn(responseBody);",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"my-slack-secret-{{$randomInt}}\",\n\t\"type\": \"slack\",\n\t\"values\": {\n\t\t\"apiUrl\": \"\"\n\t}\n}\n"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get secret Slack",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdSlack",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets",
+										":secretIdSlack"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "secretIdSlack",
+											"value": "{{secretIdSlack}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete secret Slack",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f5d0d35a-59fb-4be2-a13f-e4ac1c0fea04",
+										"exec": [
+											"if (responseCode.code === 204) {",
+											"    tests[\"Response Code 204\"] = responseCode.code == 204;",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    console.warn(responseBody);",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdSlack",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets",
+										":secretIdSlack"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "secretIdSlack",
+											"value": "{{secretIdSlack}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "PagerDuty",
+					"item": [
+						{
+							"name": "Add secret PagerDuty",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5ede97a8-3c22-48d7-a9e7-063075ff33b6",
+										"exec": [
+											"if (responseCode.code === 201) {",
+											"    tests[\"Response Code 201\"] = responseCode.code == 201;",
+											"",
+											"    pm.environment.set(\"timestampHeader\", new Date());",
+											"    var dataJSON = JSON.parse(responseBody);",
+											"    pm.environment.set(\"secretIdPagerDuty\", dataJSON.id);",
+											"    tests[\"Secret ID: \" + dataJSON.id] = true;",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    console.warn(responseBody);",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\": \"my-pagerduty-secret-{{$randomInt}}\",\n\t\"type\": \"pagerduty\",\n\t\"values\": {\n\t\t\"integrationKey\": \"\"\n\t}\n}\n"
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get secret PagerDuty",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdPagerDuty",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets",
+										":secretIdPagerDuty"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "secretIdPagerDuty",
+											"value": "{{secretIdPagerDuty}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete secret PagerDuty",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f5d0d35a-59fb-4be2-a13f-e4ac1c0fea04",
+										"exec": [
+											"if (responseCode.code === 204) {",
+											"    tests[\"Response Code 204\"] = responseCode.code == 204;",
+											"} else {",
+											"    console.warn(\"Unknown  statusCode! -> \"+ responseCode.code );",
+											"    tests[\"Unknown statusCode! -> \" + responseCode.code ] = false",
+											"    console.warn(responseBody);",
+											"    postman.setNextRequest(null);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{url}}/api/v1/orgs/:orgId/secrets/:secretIdPagerDuty",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"orgs",
+										":orgId",
+										"secrets",
+										":secretIdPagerDuty"
+									],
+									"variable": [
+										{
+											"key": "orgId",
+											"value": "{{orgId}}",
+											"description": "Organization identifier"
+										},
+										{
+											"key": "secretIdPagerDuty",
+											"value": "{{secretIdPagerDuty}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -7407,35 +7904,26 @@
 					"response": []
 				},
 				{
-					"name": "List allowed secret types and required keys",
+					"name": "List secret types",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/api/v1/orgs/:orgId/allowed/secrets",
+							"raw": "{{url}}/api/v1/secret-types",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"api",
 								"v1",
-								"orgs",
-								":orgId",
-								"allowed",
-								"secrets"
-							],
-							"variable": [
-								{
-									"key": "orgId",
-									"value": "{{orgId}}",
-									"description": "Organization identifier"
-								}
+								"secret-types"
 							]
 						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Organization",
@@ -7615,7 +8103,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Auth",
@@ -7670,7 +8159,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "User",
@@ -7735,7 +8225,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "ObjectStore",
@@ -8513,7 +9004,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Helm",
@@ -8787,7 +9279,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Resource groups",
@@ -8940,7 +9433,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Hpa",
@@ -9149,7 +9643,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Security",
@@ -9751,7 +10246,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Internal",
@@ -9888,7 +10384,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Images",
@@ -9977,7 +10474,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Nodepool labels",
@@ -10120,7 +10618,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Get API Endpoints",
@@ -10215,5 +10714,6 @@
 				]
 			}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

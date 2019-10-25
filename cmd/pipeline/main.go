@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/base32"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -60,19 +59,24 @@ import (
 	"github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/auth/authadapter"
+	"github.com/banzaicloud/pipeline/auth/authdriver"
 	"github.com/banzaicloud/pipeline/auth/authgen"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokenadapter"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token/tokendriver"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/cap/capdriver"
+	googleproject "github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project"
+	googleprojectdriver "github.com/banzaicloud/pipeline/internal/app/pipeline/cloud/google/project/projectdriver"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/secrettype/secrettypedriver"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	arkEvents "github.com/banzaicloud/pipeline/internal/ark/events"
 	arkSync "github.com/banzaicloud/pipeline/internal/ark/sync"
-	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intClusterAuth "github.com/banzaicloud/pipeline/internal/cluster/auth"
@@ -111,6 +115,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/watermill"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
+	"github.com/banzaicloud/pipeline/internal/providers/google"
+	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
@@ -210,6 +216,8 @@ func main() {
 
 	// Used internally to make sure every event/command bus uses the same one
 	eventMarshaler := cqrs.JSONMarshaler{GenerateName: cqrs.StructName}
+
+	secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 
 	organizationStore := authadapter.NewGormOrganizationStore(db)
 
@@ -367,12 +375,16 @@ func main() {
 	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
+			azurePKEDriver.ClusterCreatorConfig{
+				OIDCIssuerURL:               oidcIssuerURL,
+				PipelineExternalURL:         externalBaseURL,
+				PipelineExternalURLInsecure: externalURLInsecure,
+			},
 			logrusLogger,
+			authdriver.NewOrganizationGetter(db),
+			secret.Store,
 			gormAzurePKEClusterStore,
 			workflowClient,
-			externalBaseURL,
-			externalURLInsecure,
-			oidcIssuerURL,
 		),
 	}
 	clusterDeleters := api.ClusterDeleters{
@@ -412,44 +424,50 @@ func main() {
 	nplsApi := api.NewNodepoolManagerAPI(clusterGetter, logrusLogger, errorHandler)
 
 	// Initialise Gin router
-	router := gin.New()
+	engine := gin.New()
+
+	router := mux.NewRouter()
+	router.Use(ocmux.Middleware())
+	router = router.PathPrefix(basePath).Subrouter()
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
-	router.Use(correlationid.Middleware())
-	router.Use(ginlog.Middleware(logrusLogger, skipPaths...))
+	engine.Use(correlationid.Middleware())
+	engine.Use(ginlog.Middleware(logrusLogger, skipPaths...))
 
 	// Add prometheus metric endpoint
 	if viper.GetBool(config.MetricsEnabled) {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
 		p.SetListenAddress(viper.GetString(config.MetricsAddress) + ":" + viper.GetString(config.MetricsPort))
-		p.Use(router, "/metrics")
+		p.Use(engine, "/metrics")
 	}
 
-	router.Use(gin.Recovery())
+	engine.Use(gin.Recovery())
 	drainModeMetric := prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace: "pipeline",
 		Name:      "drain_mode",
 		Help:      "read only mode is on/off",
 	})
 	prometheus.MustRegister(drainModeMetric)
-	router.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
-	router.Use(cors.New(config.GetCORS()))
+	engine.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
+	engine.Use(cors.New(config.GetCORS()))
 	if viper.GetBool("audit.enabled") {
 		logger.Info("Audit enabled, installing Gin audit middleware")
-		router.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
+		engine.Use(audit.LogWriter(skipPaths, viper.GetStringSlice("audit.headers"), db, logrusLogger))
 	}
-	router.Use(func(c *gin.Context) { // TODO: move to middleware
+	engine.Use(func(c *gin.Context) { // TODO: move to middleware
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
 
-	router.GET("/", api.RedirectRoot)
+	engine.GET("/", api.RedirectRoot)
 
-	base := router.Group(basePath)
+	base := engine.Group(basePath)
 
 	// Frontend service
 	{
-		app, err := frontend.NewApp(
+		err := frontend.RegisterApp(
+			// router.PathPrefix("/frontend").Subrouter(),
+			router, // TODO: remove after compatibility routes are removed
 			conf.Frontend,
 			db,
 			buildInfo,
@@ -459,21 +477,20 @@ func main() {
 		)
 		emperror.Panic(err)
 
-		handler := gin.WrapH(http.StripPrefix(basePath, app))
-
 		// TODO: refactor authentication middleware
-		base.Any("frontend/notifications", handler)
-		base.GET("notifications", handler) // Compatibility routes
+		base.Any("frontend/notifications", gin.WrapH(router))
+		base.GET("notifications", gin.WrapH(router)) // Compatibility routes
 
+		// TODO: return 422 unprocessable entity instead of 404
 		if conf.Frontend.Issue.Enabled {
-			base.Any("frontend/issues", auth.Handler, handler)
-			base.POST("issues", auth.Handler, handler) // Compatibility routes
+			base.Any("frontend/issues", auth.Handler, gin.WrapH(router))
+			base.POST("issues", auth.Handler, gin.WrapH(router)) // Compatibility routes
 		}
 	}
 
 	base.GET("version", gin.WrapH(buildinfo.Handler(buildInfo)))
 
-	auth.Install(router)
+	auth.Install(engine)
 	auth.StartTokenStoreGC(tokenStore)
 
 	enforcer := auth.NewRbacEnforcer(organizationStore, commonLogger)
@@ -551,14 +568,26 @@ func main() {
 	}
 
 	v1 := base.Group("api/v1")
+	apiRouter := router.PathPrefix("/api/v1").Subrouter()
 	{
 		v1.Use(auth.Handler)
 		capdriver.RegisterHTTPHandler(mapCapabilities(conf), emperror.MakeContextAware(errorHandler), v1)
-		v1.GET("/functions", api.ListFunctions)
 		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
+
+		endpointMiddleware := []endpoint.Middleware{
+			correlation.Middleware(),
+		}
+
+		httpServerOptions := []kithttp.ServerOption{
+			kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+			kithttp.ServerErrorEncoder(kitxhttp.ProblemErrorEncoder),
+			kithttp.ServerBefore(correlation.HTTPToContext()),
+		}
+
 		orgs := v1.Group("/orgs")
+		orgRouter := apiRouter.PathPrefix("/orgs/{orgId}").Subrouter()
 		{
 			orgs.Use(api.OrganizationMiddleware)
 			orgs.Use(authorizationMiddleware)
@@ -608,27 +637,41 @@ func main() {
 				cRouter.DELETE("/deployments/:name", api.DeleteDeployment)
 				cRouter.PUT("/deployments/:name", api.UpgradeDeployment)
 				cRouter.HEAD("/deployments/:name", api.HelmDeploymentStatus)
-				cRouter.POST("/helminit", api.InitHelmOnCluster)
 
 				cRouter.GET("/images", api.ListImages)
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
 
-				if anchore.AnchoreEnabled {
-					cRouter.GET("/scanlog", api.GetScanLog)
-					cRouter.GET("/scanlog/:releaseName", api.GetScanLog)
-					cRouter.GET("/whitelists", api.GetWhiteLists)
-					cRouter.POST("/whitelists", api.CreateWhiteList)
-					cRouter.DELETE("/whitelists/:name", api.DeleteWhiteList)
-					cRouter.GET("/policies", api.GetPolicies)
-					cRouter.GET("/policies/:policyId", api.GetPolicies)
-					cRouter.POST("/policies", api.CreatePolicy)
-					cRouter.PUT("/policies/:policyId", api.UpdatePolicies)
-					cRouter.DELETE("/policies/:policyId", api.DeletePolicy)
+				if conf.Anchore.ApiEnabled {
 
-					cRouter.POST("/imagescan", api.ScanImages)
-					cRouter.GET("/imagescan/:imagedigest", api.GetScanResult)
-					cRouter.GET("/imagescan/:imagedigest/vuln", api.GetImageVulnerabilities)
+					fr := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
+					fa := anchore.NewFeatureAdapter(fr, logger)
+					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
+					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
+					imgScanSvc := anchore.NewImageScannerService(cfgSvc, secretStore, logger)
+					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
+
+					policySvc := anchore.NewPolicyService(cfgSvc, secretStore, logger)
+					policyHandler := api.NewPolicyHandler(clusterGetter, policySvc, logger)
+
+					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
+
+					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
+					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
+
+					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
+					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
+					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
+
+					cRouter.GET("/policies", policyHandler.ListPolicies)
+					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
+					cRouter.POST("/policies", policyHandler.CreatePolicy)
+					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
+					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
+
+					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
+					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)
+					cRouter.GET("/imagescan/:imagedigest/vuln", imageScanHandler.GetImageVulnerabilities)
 				}
 
 			}
@@ -645,15 +688,23 @@ func main() {
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-				endpointManager := endpoints.NewEndpointManager(logger)
-				helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-				monitoringConfig := featureMonitoring.NewFeatureConfiguration()
-				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry([]clusterfeature.FeatureManager{
+				featureManagers := []clusterfeature.FeatureManager{
 					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
 					securityscan.MakeFeatureManager(logger),
-					featureVault.MakeFeatureManager(clusterGetter, secretStore, logger),
-					featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger),
-				})
+				}
+
+				if conf.Cluster.Vault.Enabled {
+					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, conf.Cluster.Vault.Managed.Enabled, logger))
+				}
+
+				if conf.Cluster.Monitoring.Enabled {
+					endpointManager := endpoints.NewEndpointManager(logger)
+					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
+					monitoringConfig := featureMonitoring.NewFeatureConfiguration()
+					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger))
+				}
+
+				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
 				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
 				endpoints := clusterfeaturedriver.MakeEndpoints(service)
@@ -711,7 +762,7 @@ func main() {
 			)
 			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))
 
-			clusterAuthAPI.RegisterRoutes(cRouter, router)
+			clusterAuthAPI.RegisterRoutes(cRouter, engine)
 
 			orgs.GET("/:orgid/helm/repos", api.HelmReposGet)
 			orgs.POST("/:orgid/helm/repos", api.HelmReposAdd)
@@ -744,9 +795,36 @@ func main() {
 
 			orgs.GET("/:orgid/azure/resourcegroups", api.GetResourceGroups)
 			orgs.POST("/:orgid/azure/resourcegroups", api.AddResourceGroups)
-			orgs.DELETE("/:orgid/azure/resourcegroups/:name", api.DeleteResourceGroups)
 
-			orgs.GET("/:orgid/google/projects", api.GetProjects)
+			{
+				secretStore := googleadapter.NewSecretStore(secretStore)
+				clientFactory := google.NewClientFactory(secretStore)
+
+				service := googleproject.NewService(clientFactory)
+				endpoints := googleprojectdriver.TraceEndpoints(googleprojectdriver.MakeEndpoints(
+					service,
+					kitxendpoint.Chain(endpointMiddleware...),
+					appkit.EndpointLogger(commonLogger),
+				))
+
+				googleprojectdriver.RegisterHTTPHandlers(
+					endpoints,
+					orgRouter.PathPrefix("/cloud/google/projects").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+				)
+
+				orgs.Any("/:orgid/cloud/google/projects", gin.WrapH(router))
+
+				googleprojectdriver.RegisterHTTPHandlers(
+					endpoints,
+					orgRouter.PathPrefix("/google/projects").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+				)
+
+				orgs.Any("/:orgid/google/projects", gin.WrapH(router))
+			}
 
 			orgs.GET("/:orgid", organizationAPI.GetOrganizations)
 			orgs.DELETE("/:orgid", organizationAPI.DeleteOrganization)
@@ -754,22 +832,9 @@ func main() {
 		v1.GET("/orgs", organizationAPI.GetOrganizations)
 		v1.PUT("/orgs", organizationAPI.SyncOrganizations)
 
-		endpointMiddleware := []endpoint.Middleware{
-			correlation.Middleware(),
-		}
-
-		httpServerOptions := []kithttp.ServerOption{
-			kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
-			kithttp.ServerErrorEncoder(kitxhttp.ProblemErrorEncoder),
-			kithttp.ServerBefore(correlation.HTTPToContext()),
-		}
-
 		{
 			logger := commonLogger.WithFields(map[string]interface{}{"module": "auth"})
 			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "auth"))
-
-			router := mux.NewRouter()
-			router.Use(ocmux.Middleware())
 
 			service := token.NewService(
 				auth.UserExtractor{},
@@ -786,19 +851,49 @@ func main() {
 
 			tokendriver.RegisterHTTPHandlers(
 				endpoints,
-				router.PathPrefix("/api/v1/tokens").Subrouter(),
+				apiRouter.PathPrefix("/tokens").Subrouter(),
 				kitxhttp.ServerOptions(httpServerOptions),
 				kithttp.ServerErrorHandler(errorHandler),
 			)
 
-			handler := gin.WrapH(http.StripPrefix(basePath, router))
-
-			v1.Any("/tokens", handler)
-			v1.Any("/tokens/*path", handler)
+			v1.Any("/tokens", gin.WrapH(router))
+			v1.Any("/tokens/*path", gin.WrapH(router))
 		}
 
-		v1.GET("/allowed/secrets", api.ListAllowedSecretTypes)
-		v1.GET("/allowed/secrets/:type", api.ListAllowedSecretTypes)
+		{
+			logger := commonLogger.WithFields(map[string]interface{}{"module": "secret"})
+			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "secret"))
+
+			service := secrettype.NewTypeService()
+			endpoints := secrettypedriver.TraceEndpoints(secrettypedriver.MakeEndpoints(
+				service,
+				kitxendpoint.Chain(endpointMiddleware...),
+				appkit.EndpointLogger(logger),
+			))
+
+			secrettypedriver.RegisterHTTPHandlers(
+				endpoints,
+				apiRouter.PathPrefix("/secret-types").Subrouter(),
+				kitxhttp.ServerOptions(httpServerOptions),
+				kithttp.ServerErrorHandler(errorHandler),
+			)
+
+			v1.Any("/secret-types", gin.WrapH(router))
+			v1.Any("/secret-types/*path", gin.WrapH(router))
+
+			// Compatibility routes
+			{
+				secrettypedriver.RegisterHTTPHandlers(
+					endpoints,
+					apiRouter.PathPrefix("/allowed/secrets").Subrouter(),
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(errorHandler),
+				)
+
+				v1.GET("/allowed/secrets", gin.WrapH(router))
+				v1.GET("/allowed/secrets/*path", gin.WrapH(router))
+			}
+		}
 
 		backups.AddRoutes(orgs.Group("/:orgid/clusters/:id/backups"))
 		backupservice.AddRoutes(orgs.Group("/:orgid/clusters/:id/backupservice"))
@@ -825,7 +920,7 @@ func main() {
 		)
 	}
 
-	base.GET("api", api.MetaHandler(router, basePath+"/api"))
+	base.GET("api", api.MetaHandler(engine, basePath+"/api"))
 
 	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
@@ -845,10 +940,10 @@ func main() {
 	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
 	if certFile != "" && keyFile != "" {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
-		_ = router.RunTLS(bindAddr, certFile, keyFile)
+		_ = engine.RunTLS(bindAddr, certFile, keyFile)
 	} else {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "http://" + bindAddr})
-		_ = router.Run(bindAddr)
+		_ = engine.Run(bindAddr)
 	}
 }
 

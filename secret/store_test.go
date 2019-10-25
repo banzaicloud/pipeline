@@ -18,8 +18,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -32,7 +32,7 @@ func TestGetValue(t *testing.T) {
 		searchedKey   string
 		expectedValue string
 	}{
-		{name: "gke project id", secretItem: secretItem1, searchedKey: pkgSecret.ProjectId, expectedValue: gkeProjectId},
+		{name: "gke project id", secretItem: secretItem1, searchedKey: secrettype.ProjectId, expectedValue: gkeProjectId},
 		{name: "non", secretItem: secretItem1, searchedKey: secretProjectId2, expectedValue: ""},
 	}
 
@@ -130,8 +130,8 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Amazon,
 		Values: map[string]string{
-			pkgSecret.AwsAccessKeyId:     AwsAccessKeyId,
-			pkgSecret.AwsSecretAccessKey: AwsSecretAccessKey,
+			secrettype.AwsAccessKeyId:     AwsAccessKeyId,
+			secrettype.AwsSecretAccessKey: AwsSecretAccessKey,
 		},
 	}
 
@@ -139,7 +139,7 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Amazon,
 		Values: map[string]string{
-			pkgSecret.AwsSecretAccessKey: AwsSecretAccessKey,
+			secrettype.AwsSecretAccessKey: AwsSecretAccessKey,
 		},
 	}
 
@@ -147,10 +147,10 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Azure,
 		Values: map[string]string{
-			pkgSecret.AzureClientID:       AzureClientID,
-			pkgSecret.AzureClientSecret:   AzureClientSecret,
-			pkgSecret.AzureTenantID:       AzureTenantID,
-			pkgSecret.AzureSubscriptionID: AzureSubscriptionID,
+			secrettype.AzureClientID:       AzureClientID,
+			secrettype.AzureClientSecret:   AzureClientSecret,
+			secrettype.AzureTenantID:       AzureTenantID,
+			secrettype.AzureSubscriptionID: AzureSubscriptionID,
 		},
 	}
 
@@ -158,8 +158,8 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Azure,
 		Values: map[string]string{
-			pkgSecret.AzureClientID:       AzureClientID,
-			pkgSecret.AzureSubscriptionID: AzureSubscriptionID,
+			secrettype.AzureClientID:       AzureClientID,
+			secrettype.AzureSubscriptionID: AzureSubscriptionID,
 		},
 	}
 
@@ -167,16 +167,16 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Google,
 		Values: map[string]string{
-			pkgSecret.Type:          gkeType,
-			pkgSecret.ProjectId:     gkeProjectId,
-			pkgSecret.PrivateKeyId:  gkePrivateKeyId,
-			pkgSecret.PrivateKey:    gkePrivateKey,
-			pkgSecret.ClientEmail:   gkeClientEmail,
-			pkgSecret.ClientId:      gkeClientId,
-			pkgSecret.AuthUri:       gkeAuthUri,
-			pkgSecret.TokenUri:      gkeTokenUri,
-			pkgSecret.AuthX509Url:   gkeAuthCert,
-			pkgSecret.ClientX509Url: gkeClientCert,
+			secrettype.Type:          gkeType,
+			secrettype.ProjectId:     gkeProjectId,
+			secrettype.PrivateKeyId:  gkePrivateKeyId,
+			secrettype.PrivateKey:    gkePrivateKey,
+			secrettype.ClientEmail:   gkeClientEmail,
+			secrettype.ClientId:      gkeClientId,
+			secrettype.AuthUri:       gkeAuthUri,
+			secrettype.TokenUri:      gkeTokenUri,
+			secrettype.AuthX509Url:   gkeAuthCert,
+			secrettype.ClientX509Url: gkeClientCert,
 		},
 	}
 
@@ -184,38 +184,38 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Google,
 		Values: map[string]string{
-			pkgSecret.Type:          gkeType,
-			pkgSecret.ProjectId:     gkeProjectId,
-			pkgSecret.PrivateKeyId:  gkePrivateKeyId,
-			pkgSecret.PrivateKey:    gkePrivateKey,
-			pkgSecret.ClientId:      gkeClientId,
-			pkgSecret.AuthUri:       gkeAuthUri,
-			pkgSecret.TokenUri:      gkeTokenUri,
-			pkgSecret.AuthX509Url:   gkeAuthCert,
-			pkgSecret.ClientX509Url: gkeClientCert,
+			secrettype.Type:          gkeType,
+			secrettype.ProjectId:     gkeProjectId,
+			secrettype.PrivateKeyId:  gkePrivateKeyId,
+			secrettype.PrivateKey:    gkePrivateKey,
+			secrettype.ClientId:      gkeClientId,
+			secrettype.AuthUri:       gkeAuthUri,
+			secrettype.TokenUri:      gkeTokenUri,
+			secrettype.AuthX509Url:   gkeAuthCert,
+			secrettype.ClientX509Url: gkeClientCert,
 		},
 	}
 
 	sshCreateSecretFull = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: pkgSecret.SSHSecretType,
+		Type: secrettype.SSHSecretType,
 		Values: map[string]string{
-			pkgSecret.User:                 SshUser,
-			pkgSecret.Identifier:           SshIdentifier,
-			pkgSecret.PublicKeyData:        SshPublicKeyData,
-			pkgSecret.PublicKeyFingerprint: SshPublicKeyFingerprint,
-			pkgSecret.PrivateKeyData:       SshPrivateKeyData,
+			secrettype.User:                 SshUser,
+			secrettype.Identifier:           SshIdentifier,
+			secrettype.PublicKeyData:        SshPublicKeyData,
+			secrettype.PublicKeyFingerprint: SshPublicKeyFingerprint,
+			secrettype.PrivateKeyData:       SshPrivateKeyData,
 		},
 	}
 
 	sshMissingKey = secret.CreateSecretRequest{
 		Name: secretDesc,
-		Type: pkgSecret.SSHSecretType,
+		Type: secrettype.SSHSecretType,
 		Values: map[string]string{
-			pkgSecret.User:                 SshUser,
-			pkgSecret.Identifier:           SshIdentifier,
-			pkgSecret.PublicKeyData:        SshPublicKeyData,
-			pkgSecret.PublicKeyFingerprint: SshPublicKeyFingerprint,
+			secrettype.User:                 SshUser,
+			secrettype.Identifier:           SshIdentifier,
+			secrettype.PublicKeyData:        SshPublicKeyData,
+			secrettype.PublicKeyFingerprint: SshPublicKeyFingerprint,
 		},
 	}
 
@@ -223,12 +223,12 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Oracle,
 		Values: map[string]string{
-			pkgSecret.OracleUserOCID:          pkgSecret.OracleUserOCID,
-			pkgSecret.OracleTenancyOCID:       pkgSecret.OracleTenancyOCID,
-			pkgSecret.OracleAPIKey:            pkgSecret.OracleAPIKey,
-			pkgSecret.OracleAPIKeyFingerprint: pkgSecret.OracleAPIKeyFingerprint,
-			pkgSecret.OracleRegion:            pkgSecret.OracleRegion,
-			pkgSecret.OracleCompartmentOCID:   pkgSecret.OracleCompartmentOCID,
+			secrettype.OracleUserOCID:          secrettype.OracleUserOCID,
+			secrettype.OracleTenancyOCID:       secrettype.OracleTenancyOCID,
+			secrettype.OracleAPIKey:            secrettype.OracleAPIKey,
+			secrettype.OracleAPIKeyFingerprint: secrettype.OracleAPIKeyFingerprint,
+			secrettype.OracleRegion:            secrettype.OracleRegion,
+			secrettype.OracleCompartmentOCID:   secrettype.OracleCompartmentOCID,
 		},
 	}
 
@@ -236,11 +236,11 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Oracle,
 		Values: map[string]string{
-			pkgSecret.OracleUserOCID:          pkgSecret.OracleUserOCID,
-			pkgSecret.OracleTenancyOCID:       pkgSecret.OracleTenancyOCID,
-			pkgSecret.OracleAPIKey:            pkgSecret.OracleAPIKey,
-			pkgSecret.OracleAPIKeyFingerprint: pkgSecret.OracleAPIKeyFingerprint,
-			pkgSecret.OracleRegion:            pkgSecret.OracleRegion,
+			secrettype.OracleUserOCID:          secrettype.OracleUserOCID,
+			secrettype.OracleTenancyOCID:       secrettype.OracleTenancyOCID,
+			secrettype.OracleAPIKey:            secrettype.OracleAPIKey,
+			secrettype.OracleAPIKeyFingerprint: secrettype.OracleAPIKeyFingerprint,
+			secrettype.OracleRegion:            secrettype.OracleRegion,
 		},
 	}
 )
@@ -252,7 +252,7 @@ var (
 		Name: secretDesc,
 		Type: pkgCluster.Google,
 		Values: map[string]string{
-			pkgSecret.ProjectId: gkeProjectId,
+			secrettype.ProjectId: gkeProjectId,
 		},
 	}
 )

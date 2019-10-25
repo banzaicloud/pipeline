@@ -22,6 +22,7 @@ import (
 	"github.com/oracle/oci-go-sdk/containerengine"
 	"github.com/pkg/errors"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -31,7 +32,6 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/network"
 	"github.com/banzaicloud/pipeline/pkg/providers/oracle/oci"
 	secretOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/secret"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -249,7 +249,6 @@ func (o *OKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        o.GetID(),
 		Logging:           o.GetLogging(),
 		Monitoring:        o.GetMonitoring(),
-		ServiceMesh:       o.GetServiceMesh(),
 		SecurityScan:      o.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(o.modelCluster.CreatedAt, o.modelCluster.CreatedBy),
 		NodePools:         nodePools,
@@ -628,16 +627,6 @@ func (o *OKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&o.modelCluster.ScaleOptions, scaleOptions)
 }
 
-// GetServiceMesh returns true if service mesh is enabled on the cluster
-func (o *OKECluster) GetServiceMesh() bool {
-	return o.modelCluster.ServiceMesh
-}
-
-// SetServiceMesh sets service mesh flag on the cluster
-func (o *OKECluster) SetServiceMesh(m bool) {
-	o.modelCluster.ServiceMesh = m
-}
-
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user
 func (o *OKECluster) NeedAdminRights() bool {
 	return true
@@ -651,11 +640,11 @@ func (o *OKECluster) GetKubernetesUserName() (string, error) {
 		return "", errors.Wrap(err, "error getting secret")
 	}
 
-	if s.Values[pkgSecret.OracleUserOCID] == "" {
+	if s.Values[secrettype.OracleUserOCID] == "" {
 		return "", errors.New("empty user OCID")
 	}
 
-	return s.Values[pkgSecret.OracleUserOCID], nil
+	return s.Values[secrettype.OracleUserOCID], nil
 
 }
 

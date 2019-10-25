@@ -20,7 +20,7 @@ import (
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name HelmService -inpkg || true"
+//go:generate mockery -name HelmService -inpkg
 // HelmService provides an interface for using Helm on a specific cluster.
 type HelmService interface {
 	ApplyDeployment(

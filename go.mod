@@ -21,8 +21,8 @@ require (
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.15.0+incompatible
 	github.com/ThreeDotsLabs/watermill v1.0.0-rc.3
-	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20190408123700-6ae3b7a159fd
-	github.com/aliyun/aliyun-oss-go-sdk v0.0.0-20180615125516-36bf7aa2f916
+	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20191023062623-524ecb019aa6
+	github.com/aliyun/aliyun-oss-go-sdk v2.0.3+incompatible
 	github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 // indirect
 	github.com/antihax/optional v0.0.0-20180407024304-ca021399b1a6
 	github.com/aokoli/goutils v1.0.1
@@ -123,9 +123,7 @@ require (
 	github.com/sagikazarmark/kitx v0.3.0
 	github.com/sagikazarmark/ocmux v0.2.0
 	github.com/samuel/go-thrift v0.0.0-20160419172024-e9042807f4f5 // indirect
-	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
-	github.com/smartystreets/goconvey v0.0.0-20190306220146-200a235640ff // indirect
 	github.com/spf13/cast v1.3.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
@@ -160,7 +158,7 @@ require (
 	google.golang.org/grpc v1.23.1
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
-	gopkg.in/ini.v1 v1.42.0 // indirect
+	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190820101039-d651a1528133
 	k8s.io/apiextensions-apiserver v0.0.0-20190308081736-3a66ae4d2f93
@@ -179,12 +177,13 @@ require (
 	logur.dev/logur v0.15.0
 	sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/kubefed v0.1.0-rc5
-	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
+	sigs.k8s.io/testing_frameworks v0.1.1
 	vbom.ml/util v0.0.0-20170409195630-256737ac55c4 // indirect
 )
 
 replace (
 	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20151001171628-53dd39833a08
+	github.com/baiyubin/aliyun-sts-go-sdk => github.com/banzaicloud/aliyun-sts-go-sdk v0.0.0-20191023142834-57827dd1486a
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 	github.com/kubernetes-sigs/kubefed => github.com/kubernetes-sigs/kubefed v0.1.0-rc5
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3

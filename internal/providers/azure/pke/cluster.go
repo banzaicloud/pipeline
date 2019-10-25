@@ -57,10 +57,10 @@ type PKEOnAzureCluster struct {
 	VirtualNetwork   VirtualNetwork
 	Kubernetes       intPKE.Kubernetes
 	ActiveWorkflowID string
+	HTTPProxy        intPKE.HTTPProxy
 
 	Monitoring   bool
 	Logging      bool
-	ServiceMesh  bool
 	SecurityScan bool
 	TtlMinutes   uint
 }

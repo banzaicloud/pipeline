@@ -25,6 +25,7 @@ import (
 const (
 	StableRepository = "stable"
 	BanzaiRepository = "banzaicloud-stable"
+	LokiRepository   = "loki"
 	HelmPostFix      = "helm"
 )
 

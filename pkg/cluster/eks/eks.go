@@ -33,7 +33,13 @@ type CreateClusterEKS struct {
 	// Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet
 	// (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as
 	// the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
-	Subnets []*Subnet `json:"subnets,omitempty" yaml:"subnets,omitempty"`
+	Subnets  []*Subnet  `json:"subnets,omitempty" yaml:"subnets,omitempty"`
+	IAM      ClusterIAM `json:"iam,omitempty" yaml:"iam,omitempty"`
+	LogTypes []string   `json:"logTypes,omitempty" yaml:"logTypes,omitempty"`
+
+	// List of access point references for the API server; currently, public and private are the only valid values.
+	// Default: ["public"]
+	APIServerAccessPoints []string `json:"apiServerAccessPoints,omitempty" yaml:"apiServerAccessPoints,omitempty"`
 }
 
 // UpdateClusterAmazonEKS describes Amazon EKS's node fields of an UpdateCluster request
@@ -54,6 +60,14 @@ type NodePool struct {
 	// Subnet for worker nodes of this node pool. If not specified than worker nodes
 	// are launched in the same subnet in one of the subnets from the list of subnets of the EKS cluster
 	Subnet *Subnet `json:"subnet,omitempty" yaml:"subnet,omitempty"`
+}
+
+// ClusterIAM describes the IAM config for creating an EKS cluster
+type ClusterIAM struct {
+	ClusterRoleID      string `json:"clusterRoleId,omitempty" yaml:"clusterRoleId,omitempty"`
+	NodeInstanceRoleID string `json:"nodeInstanceRoleId,omitempty" yaml:"nodeInstanceRoleId,omitempty"`
+	// marks if the userid associated with the clusters aws secret has to be used in kubeconfig (bypasses user creation)
+	DefaultUser bool `json:"defaultUser,omitempty" yaml:"defaultUser,omitempty"`
 }
 
 // ClusterVPC describes the VPC for creating an EKS cluster

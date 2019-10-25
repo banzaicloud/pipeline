@@ -25,8 +25,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	route53model "github.com/banzaicloud/pipeline/dns/route53/model"
+	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/ark"
-	"github.com/banzaicloud/pipeline/internal/audit"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/providers"

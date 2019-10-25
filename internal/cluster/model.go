@@ -17,15 +17,18 @@ package cluster
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+
+	"github.com/banzaicloud/pipeline/model"
 )
 
 // Migrate executes the table migrations for the cluster module.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		&ClusterModel{},
+		&LegacyClusterModel{},
 		&StatusHistoryModel{},
 	}
 
@@ -39,4 +42,40 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}).Info("migrating model tables")
 
 	return db.AutoMigrate(tables...).Error
+}
+
+// LegacyClusterModel is here for migration reasons.
+type LegacyClusterModel struct {
+	ID  uint   `gorm:"primary_key"`
+	UID string `gorm:"unique_index:idx_clusters_uid"`
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `gorm:"unique_index:idx_clusters_unique_id" sql:"index"`
+	StartedAt *time.Time
+	CreatedBy uint
+
+	Name           string `gorm:"unique_index:idx_clusters_unique_id"`
+	Location       string
+	Cloud          string
+	Distribution   string
+	OrganizationID uint `gorm:"unique_index:idx_clusters_unique_id"`
+	SecretID       string
+	ConfigSecretID string
+	SSHSecretID    string
+	Status         string
+	RbacEnabled    bool
+	OidcEnabled    bool `gorm:"default:false;not null"`
+	Monitoring     bool
+	Logging        bool
+	ServiceMesh    bool
+	SecurityScan   bool
+	StatusMessage  string             `sql:"type:text;"`
+	ScaleOptions   model.ScaleOptions `gorm:"foreignkey:ClusterID"`
+	TtlMinutes     uint               `gorm:"default:0"`
+}
+
+// TableName changes the default table name.
+func (LegacyClusterModel) TableName() string {
+	return clustersTableName
 }

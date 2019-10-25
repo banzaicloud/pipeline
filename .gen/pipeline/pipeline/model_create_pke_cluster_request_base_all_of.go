@@ -13,4 +13,6 @@ package pipeline
 type CreatePkeClusterRequestBaseAllOf struct {
 
 	Kubernetes CreatePkeClusterKubernetes `json:"kubernetes"`
+
+	Proxy PkeClusterHttpProxy `json:"proxy,omitempty"`
 }

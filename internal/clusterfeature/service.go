@@ -45,7 +45,7 @@ type FeatureService struct {
 	logger                     common.Logger
 }
 
-// List lists the activated features and their details.
+// List returns non-inactive features and their status.
 func (s FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, error) {
 	logger := s.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID})
 	logger.Info("listing features")
@@ -55,21 +55,10 @@ func (s FeatureService) List(ctx context.Context, clusterID uint) ([]Feature, er
 		return nil, errors.WrapIfWithDetails(err, "failed to retrieve features", "clusterId", clusterID)
 	}
 
-	for i, f := range features {
-
-		featureManager, err := s.featureManagerRegistry.GetFeatureManager(f.Name)
-		if err != nil {
-
-			return nil, err
-		}
-
-		output, err := featureManager.GetOutput(ctx, clusterID, f.Spec)
-		if err != nil {
-
-			return nil, err
-		}
-
-		features[i].Output = merge(f.Output, output)
+	// only keep feature name and status
+	for i := range features {
+		features[i].Spec = nil
+		features[i].Output = nil
 	}
 
 	logger.Info("features successfully listed")
@@ -84,18 +73,25 @@ func (s FeatureService) Details(ctx context.Context, clusterID uint, featureName
 
 	// TODO: check cluster ID?
 
+	logger.Debug("retrieving feature manager")
+	featureManager, err := s.featureManagerRegistry.GetFeatureManager(featureName)
+	if err != nil {
+		const msg = "failed to retrieve feature manager"
+		logger.Debug(msg)
+		return Feature{}, errors.WrapIf(err, msg)
+	}
+
 	logger.Debug("retrieving feature from repository")
 	feature, err := s.featureRepository.GetFeature(ctx, clusterID, featureName)
 	if err != nil {
-		const msg = "failed to retrieve feature from repository"
-		logger.Debug(msg)
-		return feature, errors.WrapIf(err, msg)
-	}
+		if IsFeatureNotFoundError(err) {
+			return Feature{
+				Name:   featureName,
+				Status: FeatureStatusInactive,
+			}, nil
+		}
 
-	logger.Debug("retieving feature manager")
-	featureManager, err := s.featureManagerRegistry.GetFeatureManager(featureName)
-	if err != nil {
-		const msg = "failed to retieve feature manager"
+		const msg = "failed to retrieve feature from repository"
 		logger.Debug(msg)
 		return feature, errors.WrapIf(err, msg)
 	}

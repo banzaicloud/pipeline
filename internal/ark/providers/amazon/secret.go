@@ -17,7 +17,7 @@ package amazon
 import (
 	"github.com/pelletier/go-toml"
 
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -35,8 +35,8 @@ func GetSecret(secret *secret.SecretItemResponse) (string, error) {
 
 	a := secretContents{
 		Credentials: credentials{
-			KeyID: secret.Values[pkgSecret.AwsAccessKeyId],
-			Key:   secret.Values[pkgSecret.AwsSecretAccessKey],
+			KeyID: secret.Values[secrettype.AwsAccessKeyId],
+			Key:   secret.Values[secrettype.AwsSecretAccessKey],
 		},
 	}
 

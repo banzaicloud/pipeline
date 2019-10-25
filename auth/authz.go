@@ -16,6 +16,7 @@ package auth
 
 import (
 	"context"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -109,7 +110,7 @@ func (e RbacEnforcer) Enforce(org *Organization, user *User, path, method string
 		return true, nil
 	case RoleMember:
 		// Members can only read organization resources
-		if ok, err := regexp.MatchString(`^/api/v1/orgs(?:/.*)?$`, path); err != nil || (ok && method != "GET") {
+		if ok, err := regexp.MatchString(`^/api/v1/orgs(?:/.*)?$`, path); err != nil || (ok && method != http.MethodGet && method != http.MethodHead) {
 			return false, nil
 		}
 

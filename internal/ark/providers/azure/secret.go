@@ -19,9 +19,9 @@ import (
 
 	"emperror.dev/emperror"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/providers/azure"
 	azureObjectstore "github.com/banzaicloud/pipeline/pkg/providers/azure/objectstore"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -71,9 +71,9 @@ func GetSecretForCluster(secret *secret.SecretItemResponse, clusterName, locatio
 // getSecret gets formatted secret for ARK
 func getSecret(secret *secret.SecretItemResponse) Secret {
 	return Secret{
-		ClientID:       secret.Values[pkgSecret.AzureClientID],
-		ClientSecret:   secret.Values[pkgSecret.AzureClientSecret],
-		SubscriptionID: secret.Values[pkgSecret.AzureSubscriptionID],
-		TenantID:       secret.Values[pkgSecret.AzureTenantID],
+		ClientID:       secret.Values[secrettype.AzureClientID],
+		ClientSecret:   secret.Values[secrettype.AzureClientSecret],
+		SubscriptionID: secret.Values[secrettype.AzureSubscriptionID],
+		TenantID:       secret.Values[secrettype.AzureTenantID],
 	}
 }

@@ -25,9 +25,9 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -51,9 +51,9 @@ func TestFeatureOperator_Apply(t *testing.T) {
 					Name: route53.IAMUserAccessKeySecretName,
 					Type: pkgCluster.Amazon,
 					Values: map[string]string{
-						pkgSecret.AwsRegion:          "us-west-2",
-						pkgSecret.AwsAccessKeyId:     "my-access-key-id",
-						pkgSecret.AwsSecretAccessKey: "my-access-key-secret",
+						secrettype.AwsRegion:          "us-west-2",
+						secrettype.AwsAccessKeyId:     "my-access-key-id",
+						secrettype.AwsSecretAccessKey: "my-access-key-secret",
 					},
 				},
 				providerSecretID: {
@@ -61,9 +61,9 @@ func TestFeatureOperator_Apply(t *testing.T) {
 					Name: providerSecretName,
 					Type: pkgCluster.Amazon,
 					Values: map[string]string{
-						pkgSecret.AwsRegion:          "moon-21",
-						pkgSecret.AwsAccessKeyId:     "an-access-key-id",
-						pkgSecret.AwsSecretAccessKey: "an-access-key-secret",
+						secrettype.AwsRegion:          "moon-21",
+						secrettype.AwsAccessKeyId:     "an-access-key-id",
+						secrettype.AwsSecretAccessKey: "an-access-key-secret",
 					},
 				},
 			},

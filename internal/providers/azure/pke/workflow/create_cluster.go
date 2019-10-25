@@ -22,6 +22,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/internal/cluster/clustersetup"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
@@ -32,7 +34,9 @@ const CreateClusterWorkflowName = "pke-azure-create-cluster"
 type CreateClusterWorkflowInput struct {
 	ClusterID                       uint
 	ClusterName                     string
+	ClusterUID                      string
 	OrganizationID                  uint
+	OrganizationName                string
 	ResourceGroupName               string
 	SecretID                        string
 	OIDCEnabled                     bool
@@ -44,6 +48,7 @@ type CreateClusterWorkflowInput struct {
 	SecurityGroups                  []SecurityGroup
 	VirtualMachineScaleSetTemplates []VirtualMachineScaleSetTemplate
 	PostHooks                       pkgCluster.PostHooks
+	HTTPProxy                       intPKE.HTTPProxy
 }
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
@@ -94,6 +99,7 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 		ScaleSets:         input.VirtualMachineScaleSetTemplates,
 		SecurityGroups:    input.SecurityGroups,
 		VirtualNetwork:    input.VirtualNetworkTemplate,
+		HTTPProxy:         input.HTTPProxy,
 	}
 	err := workflow.ExecuteChildWorkflow(ctx, CreateInfraWorkflowName, infraInput).Get(ctx, nil)
 	if err != nil {
@@ -106,6 +112,39 @@ func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInpu
 	if err = waitForMasterReadySignal(ctx, 1*time.Hour); err != nil {
 		_ = setClusterErrorStatus(ctx, input.ClusterID, err)
 		return err
+	}
+
+	var configSecretID string
+	{
+		activityInput := cluster.DownloadK8sConfigActivityInput{
+			ClusterID: input.ClusterID,
+		}
+		future := workflow.ExecuteActivity(ctx, cluster.DownloadK8sConfigActivityName, activityInput)
+		if err := future.Get(ctx, &configSecretID); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
+	}
+
+	{
+		workflowInput := clustersetup.WorkflowInput{
+			ConfigSecretID: configSecretID,
+			Cluster: clustersetup.Cluster{
+				ID:   input.ClusterID,
+				UID:  input.ClusterUID,
+				Name: input.ClusterName,
+			},
+			Organization: clustersetup.Organization{
+				ID:   input.OrganizationID,
+				Name: input.OrganizationName,
+			},
+		}
+
+		future := workflow.ExecuteChildWorkflow(ctx, clustersetup.WorkflowName, workflowInput)
+		if err := future.Get(ctx, nil); err != nil {
+			_ = setClusterErrorStatus(ctx, input.ClusterID, err)
+			return err
+		}
 	}
 
 	postHookWorkflowInput := cluster.RunPostHooksWorkflowInput{

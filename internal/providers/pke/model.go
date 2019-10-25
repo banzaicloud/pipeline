@@ -22,6 +22,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
+	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/pkg/providers/amazon"
 )
 
@@ -36,7 +37,7 @@ type Model struct {
 // Migrate executes the table migrations for the provider.
 func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	tables := []interface{}{
-		EC2PKEClusterModel{},
+		EC2PKEClusterModelLegacy{},
 		CRI{},
 		KubeADM{},
 		Kubernetes{},
@@ -56,4 +57,26 @@ func Migrate(db *gorm.DB, logger logrus.FieldLogger) error {
 	}).Info("migrating provider tables")
 
 	return db.AutoMigrate(tables...).Error
+}
+
+// EC2PKEClusterModelLegacy has to be deleted after dex_enabled is gone.
+type EC2PKEClusterModelLegacy struct {
+	ID                 uint                 `gorm:"primary_key"`
+	Cluster            cluster.ClusterModel `gorm:"foreignkey:ClusterID"`
+	ClusterID          uint
+	MasterInstanceType string
+	MasterImage        string
+	CurrentWorkflowID  string
+	DexEnabled         bool `gorm:"default:false;not null"`
+
+	Network    Network    `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"network"`
+	NodePools  NodePools  `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"nodepools"`
+	Kubernetes Kubernetes `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"kubernetes"`
+	KubeADM    KubeADM    `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"kubeadm"`
+	CRI        CRI        `gorm:"foreignkey:ClusterID;association_foreignkey:ClusterID" yaml:"cri"`
+}
+
+// TableName changes the default table name.
+func (EC2PKEClusterModelLegacy) TableName() string {
+	return "amazon_ec2_clusters"
 }

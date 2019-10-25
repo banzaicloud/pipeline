@@ -26,9 +26,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -213,7 +213,7 @@ func (a *AzurePkeCluster) GetK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "can't get config from Vault")
 	}
-	configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pkgSecret.K8SConfig))
+	configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(secrettype.K8SConfig))
 	if err != nil {
 		return nil, errors.Wrap(err, "can't decode Kubernetes config")
 	}
@@ -259,7 +259,6 @@ func (a *AzurePkeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, err
 		ResourceID:    a.model.ID,
 		Logging:       a.GetLogging(),
 		Monitoring:    a.GetMonitoring(),
-		ServiceMesh:   a.GetServiceMesh(),
 		SecurityScan:  a.GetSecurityScan(),
 		Version:       a.model.Kubernetes.Version,
 		NodePools:     nodePools,
@@ -315,16 +314,6 @@ func (a *AzurePkeCluster) SetMonitoring(m bool) {
 	a.store.SetFeature(a.model.ID, "Monitoring", m) // nolint: errcheck
 }
 
-func (a *AzurePkeCluster) GetServiceMesh() bool {
-	return a.model.ServiceMesh
-}
-
-func (a *AzurePkeCluster) SetServiceMesh(m bool) {
-	a.model.ServiceMesh = m
-	a.store.SetFeature(a.model.ID, "ServiceMesh", m) // nolint: errcheck
-
-}
-
 func (a *AzurePkeCluster) SetStatus(status string, statusMessage string) error {
 	return a.store.SetStatus(a.model.ID, status, statusMessage)
 }
@@ -350,7 +339,7 @@ func (a *AzurePkeCluster) GetCAHash() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	crt := secret.Values[pkgSecret.KubernetesCACert]
+	crt := secret.Values[secrettype.KubernetesCACert]
 	block, _ := pem.Decode([]byte(crt))
 	if block == nil {
 		return "", errors.New("failed to parse certificate")

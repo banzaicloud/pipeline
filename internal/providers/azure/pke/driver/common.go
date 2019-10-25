@@ -49,6 +49,7 @@ type nodePoolTemplateFactory struct {
 	VirtualNetworkName          string
 	OIDCClientID                string
 	OIDCIssuerURL               string
+	NoProxy                     string
 }
 
 func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMachineScaleSetTemplate, workflow.SubnetTemplate, []workflow.RoleAssignmentTemplate) {
@@ -148,6 +149,9 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 				"TenantID":              f.TenantID,
 				"VnetName":              f.VirtualNetworkName,
 				"VnetResourceGroupName": f.ResourceGroupName,
+				"HttpProxy":             "<not yet set>",
+				"HttpsProxy":            "<not yet set>",
+				"NoProxy":               f.NoProxy,
 			},
 			UserDataScriptTemplate: userDataScriptTemplate,
 			Zones:                  np.Zones,

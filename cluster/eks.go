@@ -89,12 +89,17 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 		SecretId:       request.SecretId,
 		Distribution:   pkgCluster.EKS,
 		EKS: model.EKSClusterModel{
-			Version:      request.Properties.CreateClusterEKS.Version,
-			NodePools:    modelNodePools,
-			VpcId:        &request.Properties.CreateClusterEKS.Vpc.VpcId,
-			VpcCidr:      &request.Properties.CreateClusterEKS.Vpc.Cidr,
-			RouteTableId: &request.Properties.CreateClusterEKS.RouteTableId,
-			Subnets:      createSubnetsFromRequest(request.Properties.CreateClusterEKS),
+			Version:               request.Properties.CreateClusterEKS.Version,
+			LogTypes:              request.Properties.CreateClusterEKS.LogTypes,
+			NodePools:             modelNodePools,
+			VpcId:                 &request.Properties.CreateClusterEKS.Vpc.VpcId,
+			VpcCidr:               &request.Properties.CreateClusterEKS.Vpc.Cidr,
+			RouteTableId:          &request.Properties.CreateClusterEKS.RouteTableId,
+			Subnets:               createSubnetsFromRequest(request.Properties.CreateClusterEKS),
+			DefaultUser:           request.Properties.CreateClusterEKS.IAM.DefaultUser,
+			ClusterRoleId:         request.Properties.CreateClusterEKS.IAM.ClusterRoleID,
+			NodeInstanceRoleId:    request.Properties.CreateClusterEKS.IAM.NodeInstanceRoleID,
+			APIServerAccessPoints: createAPIServerAccesPointsFromRequest(request),
 		},
 		CreatedBy:  userId,
 		TtlMinutes: request.TtlMinutes,
@@ -106,6 +111,13 @@ func CreateEKSClusterFromRequest(request *pkgCluster.CreateClusterRequest, orgId
 	cluster.SubnetMapping = createSubnetMappingFromRequest(request.Properties.CreateClusterEKS)
 
 	return &cluster, nil
+}
+
+func createAPIServerAccesPointsFromRequest(request *pkgCluster.CreateClusterRequest) []string {
+	if len(request.Properties.CreateClusterEKS.APIServerAccessPoints) != 0 {
+		return request.Properties.CreateClusterEKS.APIServerAccessPoints
+	}
+	return []string{"public"}
 }
 
 func createNodePoolsFromRequest(nodePools map[string]*pkgEks.NodePool, userId uint) []*model.AmazonNodePoolsModel {
@@ -283,6 +295,7 @@ func (c *EKSCluster) CreateCluster() error {
 
 	// role that controls access to resources for creating an EKS cluster
 	eksStackName := c.generateStackNameForCluster()
+	iamStackName := c.generateStackNameForIAM()
 	sshKeyName := c.generateSSHKeyNameForCluster()
 
 	c.modelCluster.RbacEnabled = true
@@ -335,16 +348,46 @@ func (c *EKSCluster) CreateCluster() error {
 	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
 	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
+	// IAM parameters
+	creationContext.DefaultUser = c.modelCluster.EKS.DefaultUser
+	creationContext.ClusterRoleID = c.modelCluster.EKS.ClusterRoleId
+	creationContext.NodeInstanceRoleID = c.modelCluster.EKS.NodeInstanceRoleId
+
+	creationContext.LogTypes = c.modelCluster.EKS.LogTypes
+
+	for _, mode := range c.modelCluster.EKS.APIServerAccessPoints {
+		switch mode {
+		case "public":
+			creationContext.EndpointPublicAccess = true
+		case "private":
+			creationContext.EndpointPrivateAccess = true
+		}
+	}
+
 	actions := []utils.Action{
-		action.NewCreateVPCAndRolesAction(c.log, creationContext, eksStackName),
+		action.NewCreateVPCAction(c.log, creationContext, eksStackName),
 		action.NewCreateSubnetsAction(NewLogurLogger(c.log), creationContext, subnetTemplate),
-		action.NewCreateClusterUserAccessKeyAction(c.log, creationContext),
-		action.NewPersistClusterUserAccessKeyAction(c.log, creationContext, c.GetOrganizationId()),
+		action.NewCreateIAMRolesAction(c.log, creationContext, iamStackName),
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName, c.GetOrganizationId()),
 		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
 		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, subnetMapping, headNodePoolName, c.modelCluster.EKS.NodePools...),
 	}
+
+	if creationContext.DefaultUser {
+		values, err := awsCred.Get()
+		if err != nil {
+			return errors.WrapIf(err, "failed to extract EKS cluster secret values")
+		}
+
+		creationContext.ClusterUserAccessKeyId = values.AccessKeyID
+		creationContext.ClusterUserSecretAccessKey = values.SecretAccessKey
+
+	} else {
+		actions = append(actions, action.NewCreateClusterUserAccessKeyAction(c.log, creationContext))
+	}
+
+	actions = append(actions, action.NewPersistClusterUserAccessKeyAction(c.log, creationContext, c.GetOrganizationId()))
 
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
@@ -463,8 +506,8 @@ func (c *EKSCluster) generateStackNameForCluster() string {
 	return "pipeline-eks-" + c.modelCluster.Name
 }
 
-func (c *EKSCluster) generateIAMRoleNameForCluster() string {
-	return "pipeline-eks-" + c.modelCluster.Name
+func (c *EKSCluster) generateStackNameForIAM() string {
+	return "pipeline-eks-iam-" + c.modelCluster.Name
 }
 
 // Persist saves the cluster model
@@ -543,12 +586,17 @@ func (c *EKSCluster) DeleteCluster() error {
 		deleteNodePoolsAction,
 		action.NewDeleteClusterAction(c.log, deleteContext),
 		action.NewDeleteSSHKeyAction(c.log, deleteContext, c.generateSSHKeyNameForCluster()),
-		action.NewDeleteClusterUserAccessKeyAction(c.log, deleteContext),
 		action.NewDeleteClusterUserAccessKeySecretAction(c.log, deleteContext, c.GetOrganizationId()),
 		action.NewDeleteOrphanNICsAction(NewLogurLogger(c.log), deleteContext),
 		action.NewDeleteStacksAction(c.log, deleteContext, c.getSubnetStackNamesToDelete(awsSession)...),
-		action.NewDeleteStacksAction(c.log, deleteContext, c.generateStackNameForCluster()),
+		action.NewDeleteStacksAction(c.log, deleteContext, clusterStackName),
+		action.NewDeleteStacksAction(c.log, deleteContext, c.generateStackNameForIAM()),
 	)
+
+	if !c.modelCluster.EKS.DefaultUser {
+		actions = append(actions, action.NewDeleteClusterUserAccessKeyAction(c.log, deleteContext))
+	}
+
 	_, err = utils.NewActionExecutor(c.log).ExecuteActions(actions, nil, false)
 	if err != nil {
 		return err
@@ -786,7 +834,7 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		subnets,
 		c.generateSSHKeyNameForCluster(),
 		aws.String(vpcId),
-		aws.String(nodeInstanceRoleId),
+		nodeInstanceRoleId,
 		clusterUserArn,
 		clusterUserAccessKeyId,
 		clusterUserSecretAccessKey,
@@ -1129,7 +1177,6 @@ func (c *EKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        c.modelCluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
-		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.modelCluster.EKS.Version,
@@ -1560,16 +1607,6 @@ func (c *EKSCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *EKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// GetServiceMesh returns true if service mesh is enabled on the cluster
-func (c *EKSCluster) GetServiceMesh() bool {
-	return c.modelCluster.ServiceMesh
-}
-
-// SetServiceMesh sets service mesh flag on the cluster
-func (c *EKSCluster) SetServiceMesh(m bool) {
-	c.modelCluster.ServiceMesh = m
 }
 
 // GetTTL retrieves the TTL of the cluster

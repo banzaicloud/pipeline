@@ -27,4 +27,6 @@ type CreatePkeClusterRequestBase struct {
 	Type string `json:"type"`
 
 	Kubernetes CreatePkeClusterKubernetes `json:"kubernetes"`
+
+	Proxy PkeClusterHttpProxy `json:"proxy,omitempty"`
 }

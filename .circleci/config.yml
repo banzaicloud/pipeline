@@ -2,6 +2,10 @@ version: 2.1
 
 orbs:
   docker: circleci/docker@0.5.13
+  helm: banzaicloud/helm@0.0.5
+
+helm-repositories: &helm_repositories
+    - run: helm repo add rimusz https://charts.rimusz.net
 
 jobs:
     build:
@@ -13,7 +17,7 @@ jobs:
                     GOFLAG: -mod=readonly
                     GOCACHE: "/tmp/go/cache"
             -
-                image: mysql:5.7
+                image: mysql:5.7.27
                 command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
                 environment:
                     MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
@@ -332,3 +336,20 @@ workflows:
                             only: /^[0-9]+\.[0-9]+\.[0-9]+(?:-(?:dev|rc)\.[0-9]+)?$/
                         branches:
                             ignore: /.*/
+
+    helm-chart:
+        jobs:
+            -   helm/lint-chart:
+                    add-extra-repositories: *helm_repositories
+                    filters:
+                        tags:
+                            ignore: /.*/
+
+            -   helm/publish-chart:
+                    context: helm
+                    add-extra-repositories: *helm_repositories
+                    filters:
+                        branches:
+                            ignore: /.*/
+                        tags:
+                            only: /chart\/pipeline\/\d+.\d+.\d+/

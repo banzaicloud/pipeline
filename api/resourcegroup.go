@@ -91,33 +91,6 @@ func AddResourceGroups(c *gin.Context) {
 
 }
 
-// DeleteResourceGroups deletes resource group by name
-func DeleteResourceGroups(c *gin.Context) {
-
-	orgID := auth.GetCurrentOrganization(c.Request).ID
-	secretId := getSecretIdFromHeader(c)
-	name := c.Param("name")
-
-	log := log.WithFields(logrus.Fields{"secret": secretId, "org": orgID, "bucketName": name})
-
-	log.Info("Start deleting resource group")
-
-	if err := cluster.DeleteResourceGroup(orgID, secretId, name); err != nil {
-		log.Errorf("error during deleting resource group: %s", err.Error())
-		c.JSON(http.StatusBadRequest, pkgCommon.ErrorResponse{
-			Code:    http.StatusBadRequest,
-			Message: "error during deleting resource group",
-			Error:   err.Error(),
-		})
-		return
-	}
-
-	log.Info("resource group deleted successfully")
-
-	c.Status(http.StatusAccepted)
-
-}
-
 func getSecretIdFromHeader(c *gin.Context) string {
 	return c.GetHeader(secretIdKey)
 }

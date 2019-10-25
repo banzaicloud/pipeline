@@ -504,7 +504,6 @@ func (c *AKSCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        c.modelCluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
-		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nodePools,
@@ -1050,16 +1049,6 @@ func (c *AKSCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
 }
 
-// GetServiceMesh returns true if service mesh is enabled on the cluster
-func (c *AKSCluster) GetServiceMesh() bool {
-	return c.modelCluster.ServiceMesh
-}
-
-// SetServiceMesh sets service mesh flag on the cluster
-func (c *AKSCluster) SetServiceMesh(m bool) {
-	c.modelCluster.ServiceMesh = m
-}
-
 // GetTTL retrieves the TTL of the cluster
 func (c *AKSCluster) GetTTL() time.Duration {
 	return time.Duration(c.modelCluster.TtlMinutes) * time.Minute
@@ -1099,16 +1088,6 @@ func CreateOrUpdateResourceGroup(orgID uint, secretID string, resourceGroupName,
 		Location: &location,
 	}) // TODO should we wait for it?
 	return emperror.Wrap(err, "failed to create or update resource group")
-}
-
-// DeleteResourceGroup creates or updates a resource group
-func DeleteResourceGroup(orgID uint, secretID string, resourceGroupName string) error {
-	cc, err := getDefaultCloudConnection(orgID, secretID)
-	if err != nil {
-		return emperror.Wrap(err, "failed to get cloud connection")
-	}
-	_, err = cc.GetGroupsClient().Delete(context.TODO(), resourceGroupName) // TODO should we wait for it?
-	return emperror.Wrap(err, "failed to delete resource group")
 }
 
 // GetAKSNodePools returns AKS node pools from a common cluster.

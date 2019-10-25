@@ -25,7 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name FeatureService -inpkg -testonly || true"
+//go:generate mockery -name FeatureService -inpkg -testonly
 
 func TestMakeListEndpoint(t *testing.T) {
 	featureService := &MockFeatureService{}

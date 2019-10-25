@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/banzaicloud/pipeline/api"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	clusterTypes "github.com/banzaicloud/pipeline/pkg/cluster"
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -48,38 +48,6 @@ func TestIsValidSecretType(t *testing.T) {
 			err := api.IsValidSecretType(tc.secretType)
 			if !reflect.DeepEqual(tc.error, err) {
 				t.Errorf("Expected error: %s, but got: %s", tc.error.Error(), err.Error())
-			}
-		})
-	}
-
-}
-
-func TestListAllowedSecretTypes(t *testing.T) {
-
-	cases := []struct {
-		name             string
-		secretType       string
-		expectedResponse interface{}
-		error
-	}{
-		{name: "List all allowed secret types", secretType: "", expectedResponse: allAllowedTypes, error: nil},
-		{name: "List aws required keys", secretType: clusterTypes.Amazon, expectedResponse: awsRequiredKeys, error: nil},
-		{name: "List aks required keys", secretType: clusterTypes.Azure, expectedResponse: aksRequiredKeys, error: nil},
-		{name: "List gke required keys", secretType: clusterTypes.Google, expectedResponse: gkeRequiredKeys, error: nil},
-		{name: "List oci required keys", secretType: clusterTypes.Oracle, expectedResponse: OCIRequiredKeys, error: nil},
-		{name: "Invalid secret type", secretType: invalidSecretType, expectedResponse: nil, error: api.ErrNotSupportedSecretType},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if response, err := api.GetAllowedTypes(tc.secretType); err != nil {
-				if !reflect.DeepEqual(tc.error, err) {
-					t.Errorf("Error during listing allowed types: %s", err.Error())
-				}
-			} else {
-				if !reflect.DeepEqual(tc.expectedResponse, response) {
-					t.Errorf("Expected response: %v, but got: %v", tc.expectedResponse, response)
-				}
 			}
 		})
 	}
@@ -147,7 +115,7 @@ func TestListSecrets(t *testing.T) {
 			if err := api.IsValidSecretType(tc.secretType); err != nil {
 				t.Errorf("Error during validate secret type: %s", err)
 			} else {
-				if items, err := secret.Store.List(orgId, &secretTypes.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
+				if items, err := secret.Store.List(orgId, &secret.ListSecretsQuery{Type: tc.secretType, Tags: tc.tag}); err != nil {
 					t.Errorf("Error during listing secrets")
 				} else {
 					// Clear CreatedAt times, we don't know them
@@ -362,7 +330,7 @@ var (
 
 func toHiddenValues(secretType string) map[string]string {
 	values := map[string]string{}
-	for _, field := range secretTypes.DefaultRules[secretType].Fields {
+	for _, field := range secrettype.DefaultRules[secretType].Fields {
 		values[field.Name] = "<hidden>"
 	}
 	return values
@@ -447,17 +415,4 @@ var (
 			Version: 1,
 		},
 	}
-)
-
-// nolint: gochecknoglobals
-var (
-	allAllowedTypes = secretTypes.DefaultRules
-
-	awsRequiredKeys = secretTypes.DefaultRules[clusterTypes.Amazon]
-
-	aksRequiredKeys = secretTypes.DefaultRules[clusterTypes.Azure]
-
-	gkeRequiredKeys = secretTypes.DefaultRules[clusterTypes.Google]
-
-	OCIRequiredKeys = secretTypes.DefaultRules[clusterTypes.Oracle]
 )

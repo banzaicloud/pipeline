@@ -15,10 +15,15 @@
 package workflow
 
 import (
+	"net"
+	"strconv"
 	"time"
 
 	"emperror.dev/errors"
 	"go.uber.org/cadence/workflow"
+
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
+	intPKEWorkflow "github.com/banzaicloud/pipeline/internal/pke/workflow"
 )
 
 const CreateInfraWorkflowName = "pke-azure-create-infra"
@@ -37,6 +42,7 @@ type CreateAzureInfrastructureWorkflowInput struct {
 	ScaleSets       []VirtualMachineScaleSetTemplate
 	SecurityGroups  []SecurityGroup
 	VirtualNetwork  VirtualNetworkTemplate
+	HTTPProxy       intPKE.HTTPProxy
 }
 
 type LoadBalancerTemplate struct {
@@ -364,6 +370,22 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 		}
 	}
 
+	var httpProxy intPKEWorkflow.HTTPProxy
+	{
+		activityInput := intPKEWorkflow.AssembleHTTPProxySettingsActivityInput{
+			OrganizationID:     input.OrganizationID,
+			HTTPProxyHostPort:  getHostPort(input.HTTPProxy.HTTP),
+			HTTPProxySecretID:  input.HTTPProxy.HTTP.SecretID,
+			HTTPSProxyHostPort: getHostPort(input.HTTPProxy.HTTPS),
+			HTTPSProxySecretID: input.HTTPProxy.HTTPS.SecretID,
+		}
+		var output intPKEWorkflow.AssembleHTTPProxySettingsActivityOutput
+		if err := workflow.ExecuteActivity(ctx, intPKEWorkflow.AssembleHTTPProxySettingsActivityName, activityInput).Get(ctx, &output); err != nil {
+			return err
+		}
+		httpProxy = output.Settings
+	}
+
 	// Create scale sets
 	createVMSSActivityOutputs := make(map[string]CreateVMSSActivityOutput)
 	{
@@ -383,6 +405,7 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 				ClusterName:       input.ClusterName,
 				ResourceGroupName: input.ResourceGroupName,
 				ScaleSet:          vmssTemplate.Render(bapIDProvider, inpIDProvider, pipIDProvider, nsgIDProvider, subnetIDProvider),
+				HTTPProxy:         httpProxy,
 			}
 			futures[i] = workflow.ExecuteActivity(ctx, CreateVMSSActivityName, activityInput)
 		}
@@ -431,4 +454,14 @@ func CreateInfrastructureWorkflow(ctx workflow.Context, input CreateAzureInfrast
 	}
 
 	return nil
+}
+
+func getHostPort(o intPKE.HTTPProxyOptions) string {
+	if o.Host == "" {
+		return ""
+	}
+	if o.Port == 0 {
+		return o.Host
+	}
+	return net.JoinHostPort(o.Host, strconv.FormatUint(uint64(o.Port), 10))
 }

@@ -24,11 +24,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/common"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name ReadWriteOrganizationalSecretStore -inpkg -testonly || true"
+//go:generate mockery -name ReadWriteOrganizationalSecretStore -inpkg -testonly
 
 func TestSecretStore_GetSecretValues(t *testing.T) {
 	organizationID := uint(1)
@@ -42,7 +42,7 @@ func TestSecretStore_GetSecretValues(t *testing.T) {
 	secretStoreResponse := "secretid"
 	createSecretRequest := secret.CreateSecretRequest{
 		Name:   "somesecertname",
-		Type:   pkgSecret.GenericSecret,
+		Type:   secrettype.GenericSecret,
 		Values: map[string]string{"key": "value"},
 	}
 

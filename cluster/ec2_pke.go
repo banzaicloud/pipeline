@@ -41,12 +41,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgEC2 "github.com/banzaicloud/pipeline/pkg/providers/amazon/ec2"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -113,20 +113,6 @@ func (c *EC2ClusterPKE) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *EC2ClusterPKE) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
-}
-
-func (c *EC2ClusterPKE) GetServiceMesh() bool {
-	return c.model.Cluster.ServiceMesh
-}
-
-func (c *EC2ClusterPKE) SetServiceMesh(m bool) {
-	err := c.db.Model(&c.model.Cluster).Updates(map[string]interface{}{"service_mesh": m}).Error
-	if err != nil {
-		c.log.WithField("clusterID", c.model.ClusterID).WithError(err).Error("can't save cluster monitoring attribute")
-	} else {
-		c.model.Cluster.ServiceMesh = m
-	}
-
 }
 
 func (c *EC2ClusterPKE) GetID() uint {
@@ -739,7 +725,6 @@ func (c *EC2ClusterPKE) GetStatus() (*pkgCluster.GetClusterStatusResponse, error
 		ResourceID:        c.model.Cluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
-		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		NodePools:         nodePools,
 		Version:           c.model.Kubernetes.Version,
@@ -839,7 +824,7 @@ func (c *EC2ClusterPKE) GetCAHash() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	crt := secret.Values[pkgSecret.KubernetesCACert]
+	crt := secret.Values[secrettype.KubernetesCACert]
 	block, _ := pem.Decode([]byte(crt))
 	if block == nil {
 		return "", errors.New("failed to parse certificate")

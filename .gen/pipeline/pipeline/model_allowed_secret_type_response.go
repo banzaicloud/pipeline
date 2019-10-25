@@ -12,7 +12,7 @@ package pipeline
 
 type AllowedSecretTypeResponse struct {
 
-	Fields []AllowedSecretTypeResponseFields `json:"fields,omitempty"`
+	Fields []SecretTypeResponseFields `json:"fields,omitempty"`
 
 	Sourcing string `json:"sourcing,omitempty"`
 }

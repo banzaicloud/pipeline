@@ -75,60 +75,11 @@ func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (inter
 	if !found {
 		return nil, errors.New("unable to find NodeSecurityGroup resource")
 	}
-	nodeInstanceProfileResource, found := stackResourceMap["NodeInstanceRole"]
-	if !found {
-		return nil, errors.New("unable to find NodeInstanceRole resource")
-	}
 
 	a.log.Infof("Stack resources: %v", stackResources)
 
 	a.context.SecurityGroupID = securityGroupResource.PhysicalResourceId
-	a.context.NodeInstanceRoleID = nodeInstanceProfileResource.PhysicalResourceId
 	a.context.NodeSecurityGroupID = nodeSecurityGroup.PhysicalResourceId
-
-	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
-	describeStacksOutput, err := cloudformationSrv.DescribeStacks(describeStacksInput)
-	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get stack details", "stack", a.stackName)
-	}
-
-	var clusterRoleArn, nodeInstanceRoleArn, clusterUserArn, clusterUserAccessKeyId, clusterUserSecretAccessKey string
-	var vpcId *string
-
-	for _, output := range describeStacksOutput.Stacks[0].Outputs {
-		switch aws.StringValue(output.OutputKey) {
-		case "ClusterRoleArn":
-			clusterRoleArn = aws.StringValue(output.OutputValue)
-		case "NodeInstanceRoleArn":
-			nodeInstanceRoleArn = aws.StringValue(output.OutputValue)
-		case "ClusterUserArn":
-			clusterUserArn = aws.StringValue(output.OutputValue)
-		case "VpcId":
-			vpcId = output.OutputValue
-		}
-	}
-
-	clusterUserAccessKeyId, clusterUserSecretAccessKey, err = GetClusterUserAccessKeyIdAndSecretVault(a.organizationID, a.context.ClusterName)
-
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to retrieve EKS cluster user access key")
-	}
-
-	a.log.Infoln("cluster VPC:", aws.StringValue(vpcId))
-	a.context.VpcID = vpcId
-
-	a.log.Infoln("cluster role ARN:", clusterRoleArn)
-	a.context.ClusterRoleArn = clusterRoleArn
-
-	a.log.Infoln("nodeInstanceRoleArn role ARN:", nodeInstanceRoleArn)
-	a.context.NodeInstanceRoleArn = nodeInstanceRoleArn
-
-	a.log.Infoln("cluster user ARN:", clusterUserArn)
-	a.context.ClusterUserArn = clusterUserArn
-
-	a.log.Infoln("cluster user access key id:", clusterUserAccessKeyId)
-	a.context.ClusterUserAccessKeyId = clusterUserAccessKeyId
-	a.context.ClusterUserSecretAccessKey = clusterUserSecretAccessKey
 
 	var subnetIds []*string
 	for i := range a.context.Subnets {
@@ -136,8 +87,10 @@ func (a *GenerateVPCConfigRequestAction) ExecuteAction(input interface{}) (inter
 	}
 
 	return &eks.VpcConfigRequest{
-		SecurityGroupIds: []*string{a.context.SecurityGroupID},
-		SubnetIds:        subnetIds,
+		SecurityGroupIds:      []*string{a.context.SecurityGroupID},
+		SubnetIds:             subnetIds,
+		EndpointPrivateAccess: aws.Bool(a.context.EndpointPrivateAccess),
+		EndpointPublicAccess:  aws.Bool(a.context.EndpointPublicAccess),
 	}, nil
 }
 

@@ -15,9 +15,10 @@
 package pke
 
 import (
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
@@ -36,6 +37,7 @@ type CreateParams struct {
 	VirtualNetworkName string
 	NodePools          []NodePool
 	Features           []intCluster.Feature
+	HTTPProxy          intPKE.HTTPProxy
 }
 
 // AzurePKEClusterStore defines behaviors of PKEOnAzureCluster persistent storage
@@ -55,14 +57,9 @@ type AzurePKEClusterStore interface {
 
 // IsNotFound returns true if the error is about a resource not being found
 func IsNotFound(err error) bool {
-	// Check the root cause error.
-	err = errors.Cause(err)
-
-	if e, ok := err.(interface {
+	var notFoundErr interface {
 		NotFound() bool
-	}); ok {
-		return e.NotFound()
 	}
 
-	return false
+	return errors.As(err, &notFoundErr) && notFoundErr.NotFound()
 }

@@ -26,6 +26,7 @@ import (
 )
 
 const (
+	eksIAMTemplateName      = "amazon-eks-iam-cf.yaml"
 	eksVPCTemplateName      = "amazon-eks-vpc-cf.yaml"
 	eksSubnetTemplateName   = "amazon-eks-subnet-cf.yaml"
 	eksNodePoolTemplateName = "amazon-eks-nodepool-cf.yaml"
@@ -80,4 +81,9 @@ func GetNodePoolTemplate() (string, error) {
 // GetSubnetTemplate returns the CloudFormation template for creating a Subnet
 func GetSubnetTemplate() (string, error) {
 	return getEksCloudFormationTemplate(eksSubnetTemplateName)
+}
+
+// GetIAMTemplate returns the CloudFormation template for creating IAM roles for the EKS cluster
+func GetIAMTemplate() (string, error) {
+	return getEksCloudFormationTemplate(eksIAMTemplateName)
 }

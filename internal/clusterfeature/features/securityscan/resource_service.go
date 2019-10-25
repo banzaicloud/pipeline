@@ -16,81 +16,62 @@ package securityscan
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
-	securityV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
-	securityClientV1Alpha "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
+	"github.com/banzaicloud/pipeline/pkg/security"
 )
 
-// WhiteListService handles whitelist creation and removal
-type WhiteListService interface {
+// FeatureWhiteListService handles whitelist creation and removal
+type FeatureWhiteListService interface {
 	// EnsureReleaseWhiteList makes sure that the passed whitelist is applied to the cluster
 	EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error
 }
 
-type whiteListService struct {
-	clusterGetter clusterfeatureadapter.ClusterGetter
-	logger        common.Logger
+type featureWhiteListService struct {
+	clusterGetter    clusterfeatureadapter.ClusterGetter
+	whiteListService anchore.WhitelistService
+	logger           common.Logger
 }
 
-func NewWhiteListService(clusterGetter clusterfeatureadapter.ClusterGetter, logger common.Logger) WhiteListService {
+func NewFeatureWhitelistService(clusterGetter clusterfeatureadapter.ClusterGetter, whiteListService anchore.WhitelistService, logger common.Logger) FeatureWhiteListService {
 	_ = v1alpha1.AddToScheme(scheme.Scheme)
 
-	return &whiteListService{
-		clusterGetter: clusterGetter,
-		logger:        logger,
+	return &featureWhiteListService{
+		clusterGetter:    clusterGetter,
+		whiteListService: whiteListService,
+		logger:           logger,
 	}
 }
 
-func (wls *whiteListService) getWhiteListsClient(ctx context.Context, clusterID uint) (securityClientV1Alpha.WhiteListInterface, error) {
-	cl, err := wls.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+func (wls *featureWhiteListService) EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error {
+	logCtx := map[string]interface{}{"clusterID": clusterID}
+	cluster, err := wls.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get cluster")
+		wls.logger.Debug("failed to get the cluster", logCtx)
+
+		return errors.WrapIf(err, "failed to get cluster")
 	}
 
-	kubeConfig, err := cl.GetK8sConfig()
+	installedItems, err := wls.whiteListService.GetWhitelists(ctx, cluster)
 	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get k8s config for the cluster")
-	}
+		wls.logger.Debug("failed to retrieve whitelist", logCtx)
 
-	config, err := k8sclient.NewClientConfig(kubeConfig)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create k8s client config")
-	}
-
-	securityClientSet, err := securityClientV1Alpha.SecurityConfig(config)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to create security config")
-	}
-
-	return securityClientSet.Whitelists(), nil
-}
-
-func (wls *whiteListService) EnsureReleaseWhiteList(ctx context.Context, clusterID uint, items []releaseSpec) error {
-
-	wlClient, err := wls.getWhiteListsClient(ctx, clusterID)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get security client")
-	}
-
-	installedItems, err := wlClient.List(metav1.ListOptions{})
-	if err != nil {
-		return errors.WrapIf(err, "failed to retrieve current whitelist")
+		return errors.WrapIf(err, "failed to retrieve whitelist")
 	}
 
 	installedItemsMap := make(map[string]v1alpha1.WhiteListItem)
-	for _, installedItem := range installedItems.Items {
+	for _, installedItem := range installedItems {
 		installedItemsMap[installedItem.Name] = installedItem
 	}
 
@@ -114,55 +95,45 @@ func (wls *whiteListService) EnsureReleaseWhiteList(ctx context.Context, cluster
 		toBeRemoved = append(toBeRemoved, itemName)
 	}
 
-	if err := wls.runWithBackoff(func() error { return wls.removeItems(ctx, wlClient, toBeRemoved) }); err != nil {
+	if err := wls.runWithBackoff(func() error { return wls.removeItems(ctx, cluster, toBeRemoved) }); err != nil {
 		return errors.WrapIf(err, "failed to remove whitelist items")
 	}
 
-	if err := wls.runWithBackoff(func() error { return wls.installItems(ctx, wlClient, toBeAdded) }); err != nil {
+	if err := wls.runWithBackoff(func() error { return wls.installItems(ctx, cluster, toBeAdded) }); err != nil {
 		return errors.WrapIf(err, "failed to install whitelist items")
 	}
 
 	return nil
 }
 
-func (wls *whiteListService) removeItems(ctx context.Context, whitelistCli securityClientV1Alpha.WhiteListInterface, itemNames []string) error {
+func (wls *featureWhiteListService) removeItems(ctx context.Context, cluster clusterfeatureadapter.Cluster, itemNames []string) error {
 	var collectedErrors error
 	for _, itemName := range itemNames {
-		if err := whitelistCli.Delete(itemName, &metav1.DeleteOptions{}); err != nil {
+		if err := wls.whiteListService.DeleteWhitelist(ctx, cluster, itemName); err != nil {
 			collectedErrors = errors.Append(collectedErrors, errors.WrapIff(err, "failed to remove whitelist item %s", itemName))
 		}
 	}
 	return collectedErrors
 }
 
-func (wls *whiteListService) installItems(ctx context.Context, whitelistCli securityClientV1Alpha.WhiteListInterface, items []releaseSpec) error {
+func (wls *featureWhiteListService) installItems(ctx context.Context, cluster clusterfeatureadapter.Cluster, items []releaseSpec) error {
 	var collectedErrors error
 	for _, item := range items {
-		if _, err := whitelistCli.Create(wls.assembleWhiteListItem(item)); err != nil {
+		wlItem := security.ReleaseWhiteListItem{
+			Name:   item.Name,
+			Owner:  "pipeline",
+			Reason: item.Reason,
+			Regexp: item.Regexp,
+		}
+
+		if _, err := wls.whiteListService.CreateWhitelist(ctx, cluster, wlItem); err != nil {
 			collectedErrors = errors.Append(collectedErrors, errors.WrapIff(err, "failed to add whitelist item %s", item.Name))
 		}
 	}
 	return collectedErrors
 }
 
-func (wls *whiteListService) assembleWhiteListItem(releaseItem releaseSpec) *securityV1Alpha.WhiteListItem {
-	return &securityV1Alpha.WhiteListItem{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "WhiteListItem",
-			APIVersion: fmt.Sprintf("%v/%v", securityV1Alpha.GroupName, securityV1Alpha.GroupVersion),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: releaseItem.Name,
-		},
-		Spec: securityV1Alpha.WhiteListSpec{
-			Creator: "pipeline",
-			Reason:  releaseItem.Reason,
-			Regexp:  releaseItem.Regexp,
-		},
-	}
-}
-
-func (wls *whiteListService) runWithBackoff(f func() error) error {
+func (wls *featureWhiteListService) runWithBackoff(f func() error) error {
 	// it may take some time until the WhiteListItem CRD is created, thus the first attempt to create
 	// a whitelist cr may fail. Retry the whitelist creation in case of failure
 	var backoffConfig = backoff.ConstantBackoffConfig{

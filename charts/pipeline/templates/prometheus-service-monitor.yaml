@@ -1,0 +1,59 @@
+{{- if .Values.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "pipeline.fullname" . }}
+  labels:
+    app: {{ include "pipeline.name" . }}
+    chart: {{ template "pipeline.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- if .Values.metrics.serviceMonitor.additionalLabels }}
+{{ toYaml .Values.metrics.serviceMonitor.additionalLabels | indent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - interval: 30s
+    port: metrics
+    {{- if .Values.metrics.serviceMonitor.relabellings }}
+    metricRelabelings:
+{{ toYaml .Values.metrics.serviceMonitor.relabellings | indent 4 }}
+    {{- end }}
+  jobLabel: {{ include "pipeline.name" . }}
+  namespaceSelector:
+    matchNames:
+    - "{{ .Release.Namespace }}"
+  selector:
+    matchLabels:
+      app: {{ template "pipeline.name" . }}
+      release: "{{ .Release.Name }}"
+      component: "monitor"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  name: {{ include "pipeline.fullname" . }}-monitor
+  labels:
+    app: {{ include "pipeline.name" . }}
+    chart: {{ template "pipeline.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: "monitor"
+spec:
+  clusterIP: None
+  ports:
+  - name: metrics
+    port: {{ .Values.configuration.metrics.port }}
+    protocol: TCP
+    targetPort: {{ .Values.configuration.metrics.port }}
+  selector:
+    app: {{ include "pipeline.name" . }}
+    release: "{{ .Release.Name }}"
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+
+{{- end }}

@@ -136,7 +136,7 @@ services:
 #            - ./.docker/volumes/anchore-db:/var/lib/postgresql/data/pgdata/:z
 #
 #    anchore-engine:
-#        image: docker.io/anchore/anchore-engine:v0.3.2
+#        image: docker.io/anchore/anchore-engine:v0.5.1
 #        depends_on:
 #            - anchore-db
 #        environment:
@@ -146,7 +146,7 @@ services:
 #            - "8228:8228"
 #            - "8338:8338"
 #        volumes:
-#            - ./config/anchore-config.yaml:/config/config.yaml:z
+#            - ./etc/config/anchore.yaml:/config/config.yaml:z
 
 #     ldap:
 #         image: osixia/openldap:1.3.0
@@ -164,7 +164,7 @@ services:
 #         image: osixia/openldap:1.3.0
 #         command: cp /tmp/ldap.ldif /ldap-config/
 #         volumes:
-#             - ./config/ldap.ldif:/tmp/ldap.ldif
+#             - ./etc/config/ldap.ldif:/tmp/ldap.ldif
 #             - ldap-config:/ldap-config
 
 # volumes:

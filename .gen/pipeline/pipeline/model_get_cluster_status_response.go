@@ -34,8 +34,6 @@ type GetClusterStatusResponse struct {
 
 	Monitoring bool `json:"monitoring,omitempty"`
 
-	Servicemesh bool `json:"servicemesh,omitempty"`
-
 	Securityscan bool `json:"securityscan,omitempty"`
 
 	CreatedAt string `json:"createdAt,omitempty"`

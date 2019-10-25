@@ -19,8 +19,8 @@ import (
 
 	"emperror.dev/errors"
 
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	"github.com/banzaicloud/pipeline/pkg/secret"
 )
 
 type kubernetesConfigVerifier struct {
@@ -51,6 +51,6 @@ func (v *kubernetesConfigVerifier) VerifySecret() error {
 // is valid by trying to execute simple operation (get api server version) using it
 func CreateKubeConfigSecretVerifier(values map[string]string) *kubernetesConfigVerifier {
 	return &kubernetesConfigVerifier{
-		kubeConfigStr: values[secret.K8SConfig],
+		kubeConfigStr: values[secrettype.K8SConfig],
 	}
 }

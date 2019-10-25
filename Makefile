@@ -2,6 +2,7 @@
 
 SHELL = /bin/bash
 OS = $(shell uname | tr A-Z a-z)
+export PATH := $(abspath bin/):${PATH}
 
 # Project variables
 PACKAGE = github.com/banzaicloud/pipeline
@@ -17,7 +18,10 @@ BUILD_DATE ?= $(shell date +%FT%T%z)
 LDFLAGS += -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE}
 export CGO_ENABLED ?= 0
 ifeq (${VERBOSE}, 1)
+ifeq ($(filter -v,${GOARGS}),)
 	GOARGS += -v
+endif
+TEST_FORMAT = short-verbose
 endif
 
 CLOUDINFO_VERSION = 0.7.0
@@ -25,21 +29,21 @@ DEX_VERSION = 2.19.0
 # TODO: use an exact version
 ANCHORE_VERSION = 156836d
 
-GOLANGCI_VERSION = 1.18.0
+GOLANGCI_VERSION = 1.20.0
 JQ_VERSION = 1.5
-LICENSEI_VERSION = 0.1.1
+LICENSEI_VERSION = 0.2.0
 OPENAPI_GENERATOR_VERSION = v4.1.3
 MIGRATE_VERSION = 4.0.2
-GOTESTSUM_VERSION = 0.3.2
+GOTESTSUM_VERSION = 0.3.5
 GOBIN_VERSION = 0.0.13
 PROTOTOOL_VERSION = 1.8.0
 PROTOC_GEN_GO_VERSION = 1.3.2
-MGA_VERSION = 0.0.5
+MGA_VERSION = 0.0.10
 
 GOLANG_VERSION = 1.13
 
 .PHONY: up
-up: config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
+up: etc/config/dex.yml config/ui/feature-set.json start config/config.toml ## Set up the development environment
 
 .PHONY: down
 down: clean ## Destroy the development environment
@@ -73,8 +77,8 @@ config/config.toml:
 config/ui/feature-set.json:
 	mv config/ui/feature-set.json{,~} || true && cp config/ui/feature-set.json.dist config/ui/feature-set.json
 
-config/dex.yml:
-	cp config/dex.yml.dist config/dex.yml
+etc/config/dex.yml:
+	cp etc/config/dex.yml.dist etc/config/dex.yml
 
 .PHONY: run
 run: GOTAGS += dev
@@ -150,13 +154,13 @@ bin/licensei: bin/licensei-${LICENSEI_VERSION}
 	@ln -sf licensei-${LICENSEI_VERSION} bin/licensei
 bin/licensei-${LICENSEI_VERSION}:
 	@mkdir -p bin
-	curl -sfL https://raw.githubusercontent.com/goph/licensei/master/install.sh | bash -s v${LICENSEI_VERSION}
+	curl -sfL https://git.io/licensei | bash -s v${LICENSEI_VERSION}
 	@mv bin/licensei $@
 
 .PHONY: license-check
 license-check: bin/licensei ## Run license check
 	bin/licensei check
-	./scripts/check-header.sh
+	bin/licensei header
 
 .PHONY: license-cache
 license-cache: bin/licensei ## Generate license cache
@@ -173,19 +177,30 @@ TEST_PKGS ?= ./...
 TEST_REPORT_NAME ?= results.xml
 .PHONY: test
 test: TEST_REPORT ?= main
+test: TEST_FORMAT ?= short
 test: SHELL = /bin/bash
 test: export CGO_ENABLED = 1
 test: bin/gotestsum ## Run tests
 	@mkdir -p ${BUILD_DIR}/test_results/${TEST_REPORT}
-	bin/gotestsum --no-summary=skipped --junitfile ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} -- $(filter-out -v,${GOARGS})  $(if ${TEST_PKGS},${TEST_PKGS},./...)
+	bin/gotestsum --no-summary=skipped --junitfile ${BUILD_DIR}/test_results/${TEST_REPORT}/${TEST_REPORT_NAME} --format ${TEST_FORMAT} -- $(filter-out -v,${GOARGS})  $(if ${TEST_PKGS},${TEST_PKGS},./...)
 
 .PHONY: test-all
 test-all: ## Run all tests
 	@${MAKE} GOARGS="${GOARGS} -run .\*" TEST_REPORT=all test
 
 .PHONY: test-integration
-test-integration: ## Run integration tests
-	@${MAKE} GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
+test-integration: bin/test/kube-apiserver bin/test/etcd ## Run integration tests
+	@${MAKE} TEST_ASSET_KUBE_APISERVER=$(abspath bin/test/kube-apiserver) TEST_ASSET_ETCD=$(abspath bin/test/etcd) GOARGS="${GOARGS} -run ^TestIntegration\$$\$$" TEST_REPORT=integration test
+
+bin/test/kube-apiserver:
+	@mkdir -p bin/test
+	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/kube-apiserver-$(shell uname)-x86_64 > bin/test/kube-apiserver
+	chmod +x bin/test/kube-apiserver
+
+bin/test/etcd:
+	@mkdir -p bin/test
+	curl -L https://storage.googleapis.com/k8s-c10s-test-binaries/etcd-$(shell uname)-x86_64 > bin/test/etcd
+	chmod +x bin/test/etcd
 
 bin/migrate: bin/migrate-${MIGRATE_VERSION}
 	@ln -sf migrate-${MIGRATE_VERSION} bin/migrate
@@ -207,17 +222,13 @@ bin/mga-${MGA_VERSION}:
 	curl -sfL https://git.io/mgatool | bash -s v${MGA_VERSION}
 	@mv bin/mga $@
 
-.PHONY: generate
-generate: bin/mga ## Generate code
-	MGA=$(abspath bin/mga) go generate ./...
-
 bin/mockery: bin/gobin
 	@mkdir -p bin
 	GOBIN=bin/ bin/gobin github.com/vektra/mockery/cmd/mockery
 
-.PHONY: generate-mocks
-generate-mocks: bin/mockery ## Generate mocks
-	MOCKERY=$(abspath bin/mockery) go generate ./...
+.PHONY: generate
+generate: bin/mga bin/mockery ## Generate code
+	go generate -x ./...
 
 .PHONY: validate-openapi
 validate-openapi: ## Validate the openapi description
@@ -233,15 +244,8 @@ generate-openapi: validate-openapi ## Generate go server based on openapi descri
 	-g go-server \
 	-o /local/.gen/pipeline
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo chown -R $(shell id -u):$(shell id -g) .gen/pipeline/; fi
-	rm .gen/pipeline/Dockerfile .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
+	rm .gen/pipeline/Dockerfile .gen/pipeline/README.md .gen/pipeline/main.go .gen/pipeline/go/api_* .gen/pipeline/go/logger.go .gen/pipeline/go/routers.go
 	mv .gen/pipeline/go .gen/pipeline/pipeline
-
-ifeq (${OS}, darwin)
-	shasum -a 256 ${OPENAPI_DESCRIPTOR} > .gen/pipeline/SHA256SUMS
-endif
-ifeq (${OS}, linux)
-	sha256sum ${OPENAPI_DESCRIPTOR} > .gen/pipeline/SHA256SUMS
-endif
 
 define generate_openapi_client
 	@ if [[ "$$OSTYPE" == "linux-gnu" ]]; then sudo rm -rf ${3}; else rm -rf ${3}; fi

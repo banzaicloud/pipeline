@@ -1,0 +1,29 @@
+{{- if .Values.ingress.enabled -}}
+{{- $serviceName := include "pipeline.fullname" . -}}
+{{- $servicePort := .Values.service.externalPort -}}
+apiVersion: extensions/v1beta1
+kind: Ingress	
+metadata:	
+  name: {{ include "pipeline.fullname" . }}
+  labels:
+    app: {{ include "pipeline.name" . }}
+    chart: {{ include "pipeline.chart" . }}
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+{{- with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  rules:
+  {{- range .Values.ingress.hosts }}
+  {{- $url := splitList "/" . }}
+    - host: {{ first $url }}
+      http:
+        paths:
+          - path: /{{ rest $url | join "/" }}
+            backend:
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePort }}
+  {{- end}}
+{{- end }}

@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
@@ -42,6 +43,12 @@ type configuration struct {
 
 	// Frontend configuration
 	Frontend frontend.Config
+
+	// Anchore default configuration
+	Anchore anchore.Config
+
+	// Cluster configuration
+	Cluster clusterConfig
 }
 
 // Validate validates the configuration.
@@ -55,6 +62,10 @@ func (c configuration) Validate() error {
 	}
 
 	if err := c.Frontend.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Anchore.Validate(); err != nil {
 		return err
 	}
 
@@ -115,6 +126,33 @@ func (c authTokenConfig) Validate() error {
 	return nil
 }
 
+// clusterConfig contains cluster configuration.
+type clusterConfig struct {
+	Vault      clusterVaultConfig
+	Monitoring clusterMonitorConfig
+}
+
+// Validate validates the configuration.
+func (c clusterConfig) Validate() error {
+	return nil
+}
+
+// clusterVaultConfig contains cluster vault configuration.
+type clusterVaultConfig struct {
+	Enabled bool
+	Managed clusterVaultManagedConfig
+}
+
+// clusterVaultManagedConfig contains cluster vault configuration.
+type clusterVaultManagedConfig struct {
+	Enabled bool
+}
+
+// clusterMonitorConfig contains cluster vault configuration.
+type clusterMonitorConfig struct {
+	Enabled bool
+}
+
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// Application constants
@@ -153,6 +191,16 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.RegisterAlias("frontend.issue.github.token", "github.token")
 	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
 	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
+
+	v.SetDefault("anchore.apiEnabled", true)
+	v.SetDefault("anchore.enabled", false)
+	v.SetDefault("anchore.endpoint", "")
+	v.SetDefault("anchore.adminuser", "")
+	v.SetDefault("anchore.adminpass", "")
+
+	v.SetDefault("cluster.vault.enabled", true)
+	v.SetDefault("cluster.vault.managed.enabled", false)
+	v.SetDefault("cluster.monitoring.enabled", true)
 }
 
 func registerAliases(v *viper.Viper) {

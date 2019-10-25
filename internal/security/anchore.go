@@ -29,7 +29,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	secretTypes "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -217,7 +216,7 @@ func SetupAnchoreUser(orgId uint, clusterId string) (*User, error) {
 				"password": "",
 			},
 			Tags: []string{
-				secretTypes.TagBanzaiHidden,
+				secret.TagBanzaiHidden,
 			},
 		}
 		secretId, err := secret.Store.CreateOrUpdate(orgId, &secretRequest)

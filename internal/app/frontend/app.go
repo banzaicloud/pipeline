@@ -16,7 +16,6 @@ package frontend
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"emperror.dev/emperror"
@@ -29,7 +28,6 @@ import (
 	"github.com/sagikazarmark/kitx/correlation"
 	kitxendpoint "github.com/sagikazarmark/kitx/endpoint"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
-	"github.com/sagikazarmark/ocmux"
 	"golang.org/x/oauth2"
 
 	"github.com/banzaicloud/pipeline/internal/app/frontend/issue"
@@ -42,17 +40,16 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 )
 
-// NewApp returns a new HTTP application.
-func NewApp(
+// RegisterApp returns a new HTTP application.
+func RegisterApp(
+	router *mux.Router,
 	config Config,
 	db *gorm.DB,
 	buildInfo buildinfo.BuildInfo,
 	userExtractor issue.UserExtractor,
 	logger Logger,
 	errorHandler emperror.Handler,
-) (http.Handler, error) {
-	router := mux.NewRouter()
-	router.Use(ocmux.Middleware())
+) error {
 	frontend := router.PathPrefix("/frontend").Subrouter()
 
 	endpointMiddleware := []endpoint.Middleware{
@@ -118,7 +115,7 @@ func NewApp(
 			reporter = issueadapter.NewGitHubReporter(github.NewClient(httpClient), config.Owner, config.Repository)
 
 		default:
-			return nil, errors.NewWithDetails("unknown issue driver", "driver", config.Issue.Driver)
+			return errors.NewWithDetails("unknown issue driver", "driver", config.Issue.Driver)
 		}
 
 		service := issue.NewService(
@@ -150,5 +147,5 @@ func NewApp(
 		)
 	}
 
-	return router, nil
+	return nil
 }

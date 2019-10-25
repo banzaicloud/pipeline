@@ -28,11 +28,11 @@ import (
 	storageUtil "k8s.io/kubernetes/pkg/apis/storage/util"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -133,7 +133,7 @@ func (c *KubeCluster) DownloadK8sConfig() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(pkgSecret.K8SConfig))
+	c.k8sConfig, err = base64.StdEncoding.DecodeString(s.GetValue(secrettype.K8SConfig))
 	return c.k8sConfig, err
 }
 
@@ -172,7 +172,6 @@ func (c *KubeCluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) 
 		ResourceID:        c.modelCluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
-		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		CreatorBaseFields: *NewCreatorBaseFields(c.modelCluster.CreatedAt, c.modelCluster.CreatedBy),
 		NodePools:         nil,
@@ -246,7 +245,7 @@ func (c *KubeCluster) GetAPIEndpoint() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(pkgSecret.K8SConfig))
+	config, err := base64.StdEncoding.DecodeString(secretItem.GetValue(secrettype.K8SConfig))
 	if err != nil {
 		return "", err
 	}
@@ -375,16 +374,6 @@ func (c *KubeCluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *KubeCluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.modelCluster.ScaleOptions, scaleOptions)
-}
-
-// GetServiceMesh returns true if service mesh is enabled on the cluster
-func (c *KubeCluster) GetServiceMesh() bool {
-	return c.modelCluster.ServiceMesh
-}
-
-// SetServiceMesh sets service mesh flag on the cluster
-func (c *KubeCluster) SetServiceMesh(m bool) {
-	c.modelCluster.ServiceMesh = m
 }
 
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user

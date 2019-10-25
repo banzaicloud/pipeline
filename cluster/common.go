@@ -31,12 +31,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	modelOracle "github.com/banzaicloud/pipeline/pkg/providers/oracle/model"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/utils"
 )
@@ -100,8 +100,6 @@ type CommonCluster interface {
 	SetLogging(l bool)
 	GetMonitoring() bool
 	SetMonitoring(m bool)
-	GetServiceMesh() bool
-	SetServiceMesh(m bool)
 
 	SetStatus(status, statusMessage string) error
 }
@@ -149,7 +147,7 @@ func (c *CommonClusterBase) getSshSecret(cluster CommonCluster) (*secret.SecretI
 		}
 		c.sshSecret = s
 
-		err = c.sshSecret.ValidateSecretType(pkgSecret.SSHSecretType)
+		err = c.sshSecret.ValidateSecretType(secrettype.SSHSecretType)
 		if err != nil {
 			return nil, emperror.With(err, "cluster", cluster.GetName())
 		}
@@ -169,7 +167,7 @@ func (c *CommonClusterBase) getConfig(cluster CommonCluster) ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "can't get config from Vault")
 		}
-		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(pkgSecret.K8SConfig))
+		configStr, err := base64.StdEncoding.DecodeString(configSecret.GetValue(secrettype.K8SConfig))
 		if err != nil {
 			return nil, errors.Wrap(err, "can't decode Kubernetes config")
 		}
@@ -190,13 +188,13 @@ func StoreKubernetesConfig(cluster CommonCluster, config []byte) error {
 
 	createSecretRequest := secret.CreateSecretRequest{
 		Name: fmt.Sprintf("cluster-%d-config", cluster.GetID()),
-		Type: pkgSecret.K8SConfig,
+		Type: secrettype.K8SConfig,
 		Values: map[string]string{
-			pkgSecret.K8SConfig: encodedConfig,
+			secrettype.K8SConfig: encodedConfig,
 		},
 		Tags: []string{
-			pkgSecret.TagKubeConfig,
-			pkgSecret.TagBanzaiReadonly,
+			secret.TagKubeConfig,
+			secret.TagBanzaiReadonly,
 			clusterUidTag,
 		},
 	}

@@ -82,7 +82,6 @@ func (a *ClusterAPI) GetCluster(c *gin.Context) {
 
 		Logging:      clusterStatus.Logging,
 		Monitoring:   clusterStatus.Monitoring,
-		ServiceMesh:  clusterStatus.ServiceMesh,
 		SecurityScan: clusterStatus.SecurityScan,
 		ScaleOptions: commonCluster.GetScaleOptions(),
 		TtlMinutes:   clusterStatus.TtlMinutes,
@@ -249,7 +248,6 @@ type GetClusterResponse struct {
 
 	Logging      bool                     `json:"logging"`
 	Monitoring   bool                     `json:"monitoring"`
-	ServiceMesh  bool                     `json:"servicemesh"`
 	SecurityScan bool                     `json:"securityscan"`
 	ScaleOptions *pkgCluster.ScaleOptions `json:"scaleOptions,omitempty" yaml:"scaleOptions,omitempty"`
 	TtlMinutes   uint                     `json:"ttlMinutes,omitempty" yaml:"ttlMinutes,omitempty"`

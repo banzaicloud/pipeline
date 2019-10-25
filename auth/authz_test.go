@@ -24,7 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
-//go:generate sh -c "test -x \"${MOCKERY}\" && ${MOCKERY} -name RoleSource -inpkg -testonly || true"
+//go:generate mockery -name RoleSource -inpkg -testonly
 
 func TestRbacEnforcer_Enforce_NoOrgIsAllowed(t *testing.T) {
 	enforcer := NewRbacEnforcer(nil, commonadapter.NewNoopLogger())
@@ -205,6 +205,12 @@ func TestRbacEnforcer_Enforce(t *testing.T) {
 			role:     RoleMember,
 			path:     "/",
 			method:   "POST",
+			expected: true,
+		},
+		{
+			role:     RoleMember,
+			path:     "/api/v1/orgs/1/buckets",
+			method:   "HEAD",
 			expected: true,
 		},
 		{

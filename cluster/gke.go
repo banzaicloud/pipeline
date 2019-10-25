@@ -47,13 +47,13 @@ import (
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/model"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgClusterGoogle "github.com/banzaicloud/pipeline/pkg/cluster/gke"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	pkgProviderGoogle "github.com/banzaicloud/pipeline/pkg/providers/google"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/secret/verify"
 	"github.com/banzaicloud/pipeline/utils"
@@ -222,7 +222,7 @@ func (c *GKECluster) GetGoogleCluster() (*gke.Cluster, error) {
 
 	cc := googleCluster{
 		Name:      c.model.Cluster.Name,
-		ProjectID: secretItem.GetValue(pkgSecret.ProjectId),
+		ProjectID: secretItem.GetValue(secrettype.ProjectId),
 		Zone:      c.model.Cluster.Location,
 	}
 	cluster, err := getClusterGoogle(svc, cc)
@@ -258,7 +258,7 @@ func (c *GKECluster) CreateCluster() error {
 
 	if c.model.ProjectId == "" {
 		// if there's no projectId saved with the cluster take it from the secret
-		c.model.ProjectId = secretItem.GetValue(pkgSecret.ProjectId)
+		c.model.ProjectId = secretItem.GetValue(secrettype.ProjectId)
 	}
 
 	// set region
@@ -414,7 +414,6 @@ func (c *GKECluster) GetStatus() (*pkgCluster.GetClusterStatusResponse, error) {
 		ResourceID:        c.model.Cluster.ID,
 		Logging:           c.GetLogging(),
 		Monitoring:        c.GetMonitoring(),
-		ServiceMesh:       c.GetServiceMesh(),
 		SecurityScan:      c.GetSecurityScan(),
 		Version:           c.model.MasterVersion,
 		NodePools:         nodePools,
@@ -444,7 +443,7 @@ func (c *GKECluster) DeleteCluster() error {
 		if err != nil {
 			return err
 		}
-		c.model.ProjectId = secretItem.GetValue(pkgSecret.ProjectId)
+		c.model.ProjectId = secretItem.GetValue(secrettype.ProjectId)
 	}
 
 	gkec := googleCluster{
@@ -636,7 +635,7 @@ func (c *GKECluster) UpdateNodePools(request *pkgCluster.UpdateNodePoolsRequest,
 		return emperror.Wrap(err, "Unable to retrieve secret")
 	}
 
-	projectId := secretItem.GetValue(pkgSecret.ProjectId)
+	projectId := secretItem.GetValue(secrettype.ProjectId)
 
 	// Update node pools
 	for poolName, nodePool := range request.NodePools {
@@ -692,7 +691,7 @@ func (c *GKECluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 		return err
 	}
 
-	projectId := secretItem.GetValue(pkgSecret.ProjectId)
+	projectId := secretItem.GetValue(secrettype.ProjectId)
 
 	cc := googleCluster{
 		Name:          c.model.Cluster.Name,
@@ -1190,7 +1189,7 @@ func (c *GKECluster) getGoogleKubernetesConfig() ([]byte, error) {
 	c.log.Infof("Get gke cluster with name %s", c.model.Cluster.Name)
 	cl, err := getClusterGoogle(svc, googleCluster{
 		Name:      c.model.Cluster.Name,
-		ProjectID: secretItem.GetValue(pkgSecret.ProjectId),
+		ProjectID: secretItem.GetValue(secrettype.ProjectId),
 		Zone:      c.model.Cluster.Location,
 	})
 
@@ -1698,7 +1697,7 @@ func (c *GKECluster) GetProjectId() (string, error) {
 		return "", err
 	}
 
-	return s.GetValue(pkgSecret.ProjectId), nil
+	return s.GetValue(secrettype.ProjectId), nil
 }
 
 // SetStatus sets the cluster's status
@@ -1774,7 +1773,7 @@ func (c *GKECluster) IsReady() (bool, error) {
 	}
 
 	c.log.Debug("Get gke cluster")
-	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(pkgSecret.ProjectId), c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
+	cl, err := svc.Projects.Zones.Clusters.Get(secretItem.GetValue(secrettype.ProjectId), c.model.Cluster.Location, c.model.Cluster.Name).Context(context.Background()).Do()
 	if err != nil {
 		apiError := getBanzaiErrorFromError(err)
 		return false, errors.New(apiError.Message)
@@ -2057,16 +2056,6 @@ func (c *GKECluster) GetScaleOptions() *pkgCluster.ScaleOptions {
 // SetScaleOptions sets scale options for the cluster
 func (c *GKECluster) SetScaleOptions(scaleOptions *pkgCluster.ScaleOptions) {
 	updateScaleOptions(&c.model.Cluster.ScaleOptions, scaleOptions)
-}
-
-// GetServiceMesh returns true if service mesh is enabled on the cluster
-func (c *GKECluster) GetServiceMesh() bool {
-	return c.model.Cluster.ServiceMesh
-}
-
-// SetServiceMesh sets service mesh flag on the cluster
-func (c *GKECluster) SetServiceMesh(m bool) {
-	c.model.Cluster.ServiceMesh = m
 }
 
 // NeedAdminRights returns true if rbac is enabled and need to create a cluster role binding to user

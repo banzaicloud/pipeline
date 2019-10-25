@@ -28,44 +28,52 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 const (
-	securityScanChartVersion = "0.4.0"
+	securityScanChartVersion = "0.4.4"
 	// todo read this from the chart possibly
-	imageValidatorVersion = "0.3.3"
+	imageValidatorVersion = "0.3.6"
+
+	// anchore version
 	securityScanChartName = "banzaicloud-stable/anchore-policy-validator"
 	securityScanNamespace = "pipeline-system"
 	securityScanRelease   = "anchore"
 )
 
 type FeatureOperator struct {
+	anchoreConfig    anchore.Config
 	clusterGetter    clusterfeatureadapter.ClusterGetter
 	clusterService   clusterfeature.ClusterService
 	helmService      features.HelmService
 	secretStore      features.SecretStore
-	anchoreService   AnchoreService
-	whiteListService WhiteListService
+	anchoreService   FeatureAnchoreService
+	whiteListService FeatureWhiteListService
 	namespaceService NamespaceService
 	logger           common.Logger
 }
 
 func MakeFeatureOperator(
+	anchoreConfig anchore.Config,
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
 	secretStore features.SecretStore,
+	anchoreService FeatureAnchoreService,
+	featureWhitelistService FeatureWhiteListService,
 	logger common.Logger,
 
 ) FeatureOperator {
 	return FeatureOperator{
+		anchoreConfig:    anchoreConfig,
 		clusterGetter:    clusterGetter,
 		clusterService:   clusterService,
 		helmService:      helmService,
 		secretStore:      secretStore,
-		anchoreService:   NewAnchoreService(),                         //wired service
-		whiteListService: NewWhiteListService(clusterGetter, logger),  // wired service
+		anchoreService:   anchoreService,
+		whiteListService: featureWhitelistService,
 		namespaceService: NewNamespacesService(clusterGetter, logger), // wired service
 		logger:           logger,
 	}
@@ -150,18 +158,16 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		return errors.WrapIf(err, "failed to get cluster by ID")
 	}
 
-	if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), cl.GetUID()); err != nil {
-		return errors.WrapIf(err, "failed to deactivate")
+	boundSpec, err := bindFeatureSpec(spec)
+	if err != nil {
+		op.logger.Debug("failed to bind the spec")
+
+		return errors.WrapIf(err, "failed to apply feature")
 	}
 
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, securityScanRelease); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to uninstall feature", "feature", FeatureName,
 			"clusterID", clusterID)
-	}
-
-	boundSpec, err := bindFeatureSpec(spec)
-	if err != nil {
-		return errors.WrapIf(err, "failed to apply feature")
 	}
 
 	if err := op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"}); err != nil {
@@ -170,6 +176,12 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
 		return errors.WrapIf(err, "failed to set security scan flag to false")
+	}
+
+	if !boundSpec.CustomAnchore.Enabled {
+		if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
+			return errors.WrapIf(err, "failed to delete anchore user")
+		}
 	}
 
 	return nil
@@ -192,12 +204,12 @@ func (op FeatureOperator) createAnchoreUserForCluster(ctx context.Context, clust
 		return "", errors.WrapIf(err, "error retrieving cluster")
 	}
 
-	usr, err := op.anchoreService.GenerateUser(ctx, cl.GetOrganizationId(), cl.GetUID())
+	userName, err := op.anchoreService.GenerateUser(ctx, cl.GetOrganizationId(), clusterID)
 	if err != nil {
 		return "", errors.WrapIf(err, "error creating anchore user")
 	}
 
-	return usr, nil
+	return userName, nil
 }
 
 func (op FeatureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*SecurityScanChartValues, error) {
@@ -259,8 +271,9 @@ func (op FeatureOperator) getCustomAnchoreValues(ctx context.Context, customAnch
 }
 
 func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID uint) (*AnchoreValues, error) {
+
 	// default (pipeline hosted) anchore
-	if !op.anchoreService.AnchoreConfig().Enabled {
+	if !op.anchoreConfig.Enabled {
 		return nil, errors.NewWithDetails("default anchore is not enabled")
 	}
 
@@ -280,7 +293,7 @@ func (op FeatureOperator) getDefaultAnchoreValues(ctx context.Context, clusterID
 		return nil, errors.WrapIf(err, "failed to extract anchore secret values")
 	}
 
-	anchoreValues.Host = op.anchoreService.AnchoreConfig().Endpoint
+	anchoreValues.Host = op.anchoreConfig.Endpoint
 
 	return &anchoreValues, nil
 }

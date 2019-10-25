@@ -124,4 +124,5 @@ type ReleaseWhiteListItem struct {
 	Name   string `json:"name" binding:"required"`
 	Owner  string `json:"owner" binding:"required"`
 	Reason string `json:"reason"`
+	Regexp string `json:"regexp,omitempty"`
 }

@@ -14,6 +14,8 @@ type CreateEksPropertiesEks struct {
 
 	Version string `json:"version,omitempty"`
 
+	LogTypes []string `json:"logTypes,omitempty"`
+
 	NodePools map[string]EksNodePool `json:"nodePools"`
 
 	Vpc EksVpc `json:"vpc,omitempty"`
@@ -23,4 +25,9 @@ type CreateEksPropertiesEks struct {
 
 	// Subnets for EKS master and worker nodes. All worker nodes will be launched in the same subnet (the first subnet in the list - which may not coincide with first subnet in the cluster create request payload as the deserialization may change the order) unless a subnet is specified for the workers that belong to a node pool at node pool level.
 	Subnets []EksSubnet `json:"subnets,omitempty"`
+
+	Iam EksIam `json:"iam,omitempty"`
+
+	// List of access point references for the API server; currently, public and private are the only valid values
+	ApiServerAccessPoints []string `json:"apiServerAccessPoints,omitempty"`
 }

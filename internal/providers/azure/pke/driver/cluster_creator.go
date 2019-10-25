@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -28,45 +29,65 @@ import (
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	intPKE "github.com/banzaicloud/pipeline/internal/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
+	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgPKE "github.com/banzaicloud/pipeline/pkg/cluster/pke"
 	pkgAzure "github.com/banzaicloud/pipeline/pkg/providers/azure"
-	pkgSecret "github.com/banzaicloud/pipeline/pkg/secret"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
 const pkeVersion = "0.4.14"
 const MasterNodeTaint = pkgPKE.TaintKeyMaster + ":" + string(corev1.TaintEffectNoSchedule)
 
-func MakeAzurePKEClusterCreator(logger logrus.FieldLogger, store pke.AzurePKEClusterStore, workflowClient client.Client, pipelineExternalURL string, pipelineExternalURLInsecure bool, oidcIssuerURL string) AzurePKEClusterCreator {
+func MakeAzurePKEClusterCreator(
+	config ClusterCreatorConfig,
+	logger logrus.FieldLogger,
+	organizations OrganizationStore,
+	secrets ClusterCreatorSecretStore,
+	store pke.AzurePKEClusterStore,
+	workflowClient client.Client,
+) AzurePKEClusterCreator {
 	return AzurePKEClusterCreator{
-		logger:                      logger,
-		store:                       store,
-		workflowClient:              workflowClient,
-		pipelineExternalURL:         pipelineExternalURL,
-		pipelineExternalURLInsecure: pipelineExternalURLInsecure,
-		oidcIssuerURL:               oidcIssuerURL,
+		config:         config,
+		logger:         logger,
+		organizations:  organizations,
+		secrets:        secrets,
+		store:          store,
+		workflowClient: workflowClient,
 	}
 }
 
 // AzurePKEClusterCreator creates new PKE-on-Azure clusters
 type AzurePKEClusterCreator struct {
-	logger                      logrus.FieldLogger
-	store                       pke.AzurePKEClusterStore
-	workflowClient              client.Client
-	pipelineExternalURL         string
-	pipelineExternalURLInsecure bool
-	oidcIssuerURL               string
-	secrets                     interface {
-		Get(organizationID uint, secretID string) (*secret.SecretItemResponse, error)
-		Store(organizationID uint, request *secret.CreateSecretRequest) (string, error)
-	}
+	config         ClusterCreatorConfig
+	logger         logrus.FieldLogger
+	organizations  OrganizationStore
+	secrets        ClusterCreatorSecretStore
+	store          pke.AzurePKEClusterStore
+	workflowClient client.Client
+}
+
+type OrganizationStore interface {
+	Get(ctx context.Context, id uint) (auth.Organization, error)
+}
+
+type ClusterCreatorSecretStore interface {
+	secretStore
+
+	GetByName(organizationID uint, secretName string) (*secret.SecretItemResponse, error)
+}
+
+type ClusterCreatorConfig struct {
+	OIDCIssuerURL               string
+	PipelineExternalURL         string
+	PipelineExternalURLInsecure bool
 }
 
 type VirtualNetwork struct {
@@ -130,11 +151,12 @@ type AzurePKEClusterCreationParams struct {
 	ScaleOptions   pkgCluster.ScaleOptions
 	SecretID       string
 	SSHSecretID    string
+	HTTPProxy      intPKE.HTTPProxy
 }
 
 // Create
 func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClusterCreationParams) (cl pke.PKEOnAzureCluster, err error) {
-	sir, err := secret.Store.Get(params.OrganizationID, params.SecretID)
+	sir, err := cc.secrets.Get(params.OrganizationID, params.SecretID)
 	if err = errors.WrapIf(err, "failed to get secret"); err != nil {
 		return
 	}
@@ -198,13 +220,14 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		NodePools:          nodePools,
 		VirtualNetworkName: params.Network.Name,
 		KubernetesVersion:  params.Kubernetes.Version,
+		HTTPProxy:          params.HTTPProxy,
 	}
 	cl, err = cc.store.Create(createParams)
 	if err != nil {
 		return
 	}
 
-	tenantID := sir.GetValue(pkgSecret.AzureTenantID)
+	tenantID := sir.GetValue(secrettype.AzureTenantID)
 
 	postHooks := make(pkgCluster.PostHooks, len(params.Features))
 	for _, f := range params.Features {
@@ -212,7 +235,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 	{
 		var commonCluster cluster.CommonCluster
-		commonCluster, err = commoncluster.MakeCommonClusterGetter(secret.Store, cc.store).GetByID(cl.ID)
+		commonCluster, err = commoncluster.MakeCommonClusterGetter(cc.secrets, cc.store).GetByID(cl.ID)
 		if err != nil {
 			_ = cc.handleError(cl.ID, err)
 			return
@@ -251,9 +274,10 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		ClusterName:                 cl.Name,
 		KubernetesVersion:           cl.Kubernetes.Version,
 		Location:                    cl.Location,
+		NoProxy:                     strings.Join(cl.HTTPProxy.Exceptions, ","),
 		OrganizationID:              cl.OrganizationID,
-		PipelineExternalURL:         cc.pipelineExternalURL,
-		PipelineExternalURLInsecure: cc.pipelineExternalURLInsecure,
+		PipelineExternalURL:         cc.config.PipelineExternalURL,
+		PipelineExternalURLInsecure: cc.config.PipelineExternalURLInsecure,
 		ResourceGroupName:           cl.ResourceGroup.Name,
 		RouteTableName:              routeTable.Name,
 		SingleNodePool:              len(cl.NodePools) == 1,
@@ -263,7 +287,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 	}
 
 	if cl.Kubernetes.OIDC.Enabled {
-		tf.OIDCIssuerURL = cc.oidcIssuerURL
+		tf.OIDCIssuerURL = cc.config.OIDCIssuerURL
 		tf.OIDCClientID = cl.UID
 	}
 
@@ -282,10 +306,17 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		subnetTemplates = append(subnetTemplates, s)
 	}
 
+	org, err := cc.organizations.Get(ctx, params.OrganizationID)
+	if err != nil {
+		return cl, errors.WrapIf(err, "failed to get organization")
+	}
+
 	input := workflow.CreateClusterWorkflowInput{
 		ClusterID:         cl.ID,
-		ClusterName:       params.Name,
-		OrganizationID:    params.OrganizationID,
+		ClusterName:       cl.Name,
+		ClusterUID:        cl.UID,
+		OrganizationID:    org.ID,
+		OrganizationName:  org.Name,
 		ResourceGroupName: params.ResourceGroup,
 		SecretID:          params.SecretID,
 		OIDCEnabled:       cl.Kubernetes.OIDC.Enabled,
@@ -351,6 +382,7 @@ func (cc AzurePKEClusterCreator) Create(ctx context.Context, params AzurePKEClus
 		},
 		VirtualMachineScaleSetTemplates: vmssTemplates,
 		PostHooks:                       postHooks,
+		HTTPProxy:                       cl.HTTPProxy,
 	}
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
@@ -482,6 +514,9 @@ export PRIVATE_IP=$(hostname -I | cut -d" " -f 1)
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
+export HTTP_PROXY="{{ .HttpProxy }}"
+export HTTPS_PROXY="{{ .HttpsProxy }}"
+export NO_PROXY="{{ .NoProxy }}"
 
 pke install master --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \
@@ -512,6 +547,9 @@ const workerUserDataScriptTemplate = `#!/bin/sh
 until curl -v https://banzaicloud.com/downloads/pke/pke-{{ .PKEVersion }} -o /usr/local/bin/pke; do sleep 10; done
 chmod +x /usr/local/bin/pke
 export PATH=$PATH:/usr/local/bin/
+export HTTP_PROXY="{{ .HttpProxy }}"
+export HTTPS_PROXY="{{ .HttpsProxy }}"
+export NO_PROXY="{{ .NoProxy }}"
 
 pke install worker --pipeline-url="{{ .PipelineURL }}" \
 --pipeline-insecure="{{ .PipelineURLInsecure }}" \

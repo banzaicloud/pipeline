@@ -99,7 +99,6 @@ type ClusterInfo struct {
 	MemoryUsagePercent  float64             `json:"memoryUsagePercent"`
 	Logging             bool                `json:"logging"`
 	Monitoring          bool                `json:"monitoring"`
-	ServiceMesh         bool                `json:"servicemesh"`
 	SecurityScan        bool                `json:"securityscan"`
 }
 

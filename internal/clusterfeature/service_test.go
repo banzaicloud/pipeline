@@ -20,94 +20,162 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 )
 
 func TestFeatureService_List(t *testing.T) {
 	clusterID := uint(1)
-	expectedFeatures := []Feature{
-		{
-			Name: "myActiveFeature",
-			Spec: FeatureSpec{
-				"someSpecKey": "someSpecValue",
+	repository := NewInMemoryFeatureRepository(map[uint][]Feature{
+		clusterID: {
+			{
+				Name: "myActiveFeature",
+				Spec: FeatureSpec{
+					"someSpecKey": "someSpecValue",
+				},
+				Status: FeatureStatusActive,
 			},
+			{
+				Name: "myPendingFeature",
+				Spec: FeatureSpec{
+					"mySpecKey": "mySpecValue",
+				},
+				Status: FeatureStatusPending,
+			},
+			{
+				Name: "myErrorFeature",
+				Spec: FeatureSpec{
+					"mySpecKey": "mySpecValue",
+				},
+				Status: FeatureStatusError,
+			},
+		},
+	})
+	registry := MakeFeatureManagerRegistry([]FeatureManager{
+		&dummyFeatureManager{
+			TheName: "myInactiveFeature",
 			Output: FeatureOutput{
 				"someOutputKey": "someOutputValue",
 			},
+		},
+		&dummyFeatureManager{
+			TheName: "myPendingFeature",
+			Output: FeatureOutput{
+				"someOutputKey": "someOutputValue",
+			},
+		},
+		&dummyFeatureManager{
+			TheName: "myActiveFeature",
+			Output: FeatureOutput{
+				"someOutputKey": "someOutputValue",
+			},
+		},
+		&dummyFeatureManager{
+			TheName: "myErrorFeature",
+			Output: FeatureOutput{
+				"someOutputKey": "someOutputValue",
+			},
+		},
+	})
+	expected := []Feature{
+		{
+			Name:   "myActiveFeature",
 			Status: FeatureStatusActive,
 		},
 		{
-			Name: "myPendingFeature",
-			Spec: FeatureSpec{
-				"mySpecKey": "mySpecValue",
-			},
-			Output: FeatureOutput{
-				"myOutputKey": "myOutputValue",
-			},
+			Name:   "myPendingFeature",
 			Status: FeatureStatusPending,
 		},
+		{
+			Name:   "myErrorFeature",
+			Status: FeatureStatusError,
+		},
 	}
-	featureManagers := make([]FeatureManager, len(expectedFeatures))
-	storedFeatures := make([]Feature, len(expectedFeatures))
-	for i, f := range expectedFeatures {
-		featureManagers[i] = &dummyFeatureManager{
-			TheName: f.Name,
-			Output:  f.Output,
-		}
-
-		storedFeatures[i] = Feature{
-			Name:   f.Name,
-			Spec:   f.Spec,
-			Status: f.Status,
-		}
-	}
-	registry := MakeFeatureManagerRegistry(featureManagers)
-	repository := NewInMemoryFeatureRepository(map[uint][]Feature{
-		clusterID: storedFeatures,
-	})
 	logger := commonadapter.NewNoopLogger()
 	service := MakeFeatureService(nil, registry, repository, logger)
 
 	features, err := service.List(context.Background(), clusterID)
-	assert.NoError(t, err)
-	assert.ElementsMatch(t, expectedFeatures, features)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, expected, features)
 }
 
 func TestFeatureService_Details(t *testing.T) {
 	clusterID := uint(1)
-	featureName := "myFeature"
-	expectedFeature := Feature{
-		Name: featureName,
-		Spec: FeatureSpec{
-			"mySpecKey": "mySpecValue",
-		},
-		Output: FeatureOutput{
-			"myOutputKey": "myOutputValue",
-		},
-		Status: FeatureStatusActive,
-	}
 	registry := MakeFeatureManagerRegistry([]FeatureManager{
 		&dummyFeatureManager{
-			TheName: expectedFeature.Name,
-			Output:  expectedFeature.Output,
+			TheName: "myActiveFeature",
+			Output: FeatureOutput{
+				"myOutputKey": "myOutputValue",
+			},
+		},
+		&dummyFeatureManager{
+			TheName: "myInactiveFeature",
+			Output: FeatureOutput{
+				"myOutputKey": "myOutputValue",
+			},
 		},
 	})
 	repository := NewInMemoryFeatureRepository(map[uint][]Feature{
 		clusterID: {
 			{
-				Name:   expectedFeature.Name,
-				Spec:   expectedFeature.Spec,
-				Status: expectedFeature.Status,
+				Name: "myActiveFeature",
+				Spec: FeatureSpec{
+					"mySpecKey": "mySpecValue",
+				},
+				Status: FeatureStatusActive,
 			},
 		},
 	})
 	logger := commonadapter.NewNoopLogger()
 	service := MakeFeatureService(nil, registry, repository, logger)
 
-	feature, err := service.Details(context.Background(), clusterID, featureName)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedFeature, feature)
+	cases := map[string]struct {
+		FeatureName string
+		Result      Feature
+		Error       error
+	}{
+		"active feature": {
+			FeatureName: "myActiveFeature",
+			Result: Feature{
+				Name: "myActiveFeature",
+				Spec: FeatureSpec{
+					"mySpecKey": "mySpecValue",
+				},
+				Output: FeatureOutput{
+					"myOutputKey": "myOutputValue",
+				},
+				Status: FeatureStatusActive,
+			},
+		},
+		"inactive feature": {
+			FeatureName: "myInactiveFeature",
+			Result: Feature{
+				Name:   "myInactiveFeature",
+				Status: FeatureStatusInactive,
+			},
+		},
+		"unknown feature": {
+			FeatureName: "myUnknownFeature",
+			Error: UnknownFeatureError{
+				FeatureName: "myUnknownFeature",
+			},
+		},
+	}
+	for name, tc := range cases {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			feature, err := service.Details(context.Background(), clusterID, tc.FeatureName)
+			switch tc.Error {
+			case nil:
+				require.NoError(t, err)
+				assert.Equal(t, tc.Result, feature)
+			default:
+				assert.Error(t, err)
+				assert.Equal(t, tc.Error, errors.Cause(err))
+			}
+		})
+	}
 }
 
 func TestFeatureService_Activate(t *testing.T) {
@@ -157,6 +225,7 @@ func TestFeatureService_Activate(t *testing.T) {
 		"mySpecKey": "mySpecValue",
 	}
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			repository.Clear()
 			dispatcher.ApplyError = tc.ApplyError
@@ -233,6 +302,7 @@ func TestFeatureService_Deactivate(t *testing.T) {
 		},
 	}
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			repository.Restore(snapshot)
 			dispatcher.DeactivateError = tc.DeactivateError
@@ -313,6 +383,7 @@ func TestFeatureService_Update(t *testing.T) {
 		"someSpecKey": "someSpecValue",
 	}
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			repository.Restore(snapshot)
 			dispatcher.ApplyError = tc.ApplyError

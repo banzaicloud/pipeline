@@ -81,7 +81,6 @@ const (
 	InstallHorizontalPodAutoscalerPostHook = "InstallHorizontalPodAutoscalerPostHook"
 	InstallMonitoring                      = "InstallMonitoring"
 	InstallLogging                         = "InstallLogging"
-	InstallServiceMesh                     = "InstallServiceMesh"
 	RegisterDomainPostHook                 = "RegisterDomainPostHook"
 	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
 	TaintHeadNodes                         = "TaintHeadNodes"
@@ -196,7 +195,6 @@ type GetClusterStatusResponse struct {
 	Spot          bool                       `json:"spot,omitempty"`
 	Logging       bool                       `json:"logging"`
 	Monitoring    bool                       `json:"monitoring"`
-	ServiceMesh   bool                       `json:"servicemesh"`
 	SecurityScan  bool                       `json:"securityscan"`
 	Version       string                     `json:"version,omitempty"`
 	ResourceID    uint                       `json:"id"`
