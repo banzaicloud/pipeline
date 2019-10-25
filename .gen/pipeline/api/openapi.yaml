@@ -13083,6 +13083,15 @@ components:
           - analysis_failed
           type: string
       type: object
+    ImageScanData:
+      description: image reference for anchore security scan
+      properties:
+        tag:
+          description: image reference in <image_name>:<image_tag> format
+          type: string
+        digest:
+          type: string
+      type: object
     Vulnerability:
       example:
         severity: severity
