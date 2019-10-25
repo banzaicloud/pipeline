@@ -649,49 +649,6 @@ func main() {
 				cRouter.GET("/images", api.ListImages)
 				cRouter.GET("/images/:imageDigest/deployments", api.GetImageDeployments)
 				cRouter.GET("/deployments/:name/images", api.GetDeploymentImages)
-
-				if conf.Anchore.ApiEnabled {
-
-					fr := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
-					fa := anchore.NewFeatureAdapter(fr, logger)
-					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
-
-					clusterService := clusteradapter.NewClusterService(clusterManager)
-					usernameService := anchore.NewAnchoreUsernameService(clusterService)
-
-					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-					imgScanSvc := anchore.NewImageScannerService(cfgSvc, usernameService, secretStore, logger)
-					imageScanHandler := api.NewImageScanHandler(commonClusterGetter, imgScanSvc, logger)
-
-					policySvc := anchore.NewPolicyService(cfgSvc, usernameService, secretStore, logger)
-					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
-
-					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, logger)
-
-					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, usernameService, secretStore, emperror.MakeContextAware(errorHandler), logger)
-					proxyHandler := anchoreProxy.Proxy()
-					// forthcoming endpoint for all requests proxied to Anchore
-					cRouter.Any("/anchore/*proxyPath", proxyHandler)
-
-					// these are cluster resources
-					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
-					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
-
-					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
-					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
-					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
-
-					cRouter.GET("/policies", policyHandler.ListPolicies)
-					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
-					cRouter.POST("/policies", policyHandler.CreatePolicy)
-					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
-					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
-
-					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
-					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)
-					cRouter.GET("/imagescan/:imagedigest/vuln", imageScanHandler.GetImageVulnerabilities)
-				}
-
 			}
 
 			clusterSecretStore := clustersecret.NewStore(
@@ -720,6 +677,46 @@ func main() {
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 					monitoringConfig := featureMonitoring.NewFeatureConfiguration()
 					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger))
+				}
+
+				if conf.Anchore.ApiEnabled {
+					fa := anchore.NewFeatureAdapter(featureRepository, logger)
+					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
+
+					clusterService := clusteradapter.NewClusterService(clusterManager)
+					usernameService := anchore.NewAnchoreUsernameService(clusterService)
+
+					imgScanSvc := anchore.NewImageScannerService(cfgSvc, usernameService, secretStore, logger)
+					imageScanHandler := api.NewImageScanHandler(commonClusterGetter, imgScanSvc, logger)
+
+					policySvc := anchore.NewPolicyService(cfgSvc, usernameService, secretStore, logger)
+					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
+
+					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, logger)
+
+					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, usernameService, secretStore, emperror.MakeContextAware(errorHandler), logger)
+					proxyHandler := anchoreProxy.Proxy()
+
+					// forthcoming endpoint for all requests proxied to Anchore
+					cRouter.Any("/anchore/*proxyPath", proxyHandler)
+
+					// these are cluster resources
+					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
+					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
+
+					cRouter.GET("/whitelists", securityApiHandler.GetWhiteLists)
+					cRouter.POST("/whitelists", securityApiHandler.CreateWhiteList)
+					cRouter.DELETE("/whitelists/:name", securityApiHandler.DeleteWhiteList)
+
+					cRouter.GET("/policies", policyHandler.ListPolicies)
+					cRouter.GET("/policies/:policyId", policyHandler.GetPolicy)
+					cRouter.POST("/policies", policyHandler.CreatePolicy)
+					cRouter.PUT("/policies/:policyId", policyHandler.UpdatePolicy)
+					cRouter.DELETE("/policies/:policyId", policyHandler.DeletePolicy)
+
+					cRouter.POST("/imagescan", imageScanHandler.ScanImages)
+					cRouter.GET("/imagescan/:imagedigest", imageScanHandler.GetScanResult)
+					cRouter.GET("/imagescan/:imagedigest/vuln", imageScanHandler.GetImageVulnerabilities)
 				}
 
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
