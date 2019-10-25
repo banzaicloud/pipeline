@@ -662,6 +662,10 @@ func main() {
 
 					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
 
+					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, usernameService, secretStore, emperror.MakeContextAware(errorHandler), logger)
+					proxyHandler := anchoreProxy.Proxy()
+					// forthcoming endpoint for all requests proxied to Anchore
+					cRouter.Any("/anchore/*path", proxyHandler)
 					// these are cluster resources
 					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
 					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
