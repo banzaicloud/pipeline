@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/base32"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -865,9 +864,6 @@ func main() {
 			logger := commonLogger.WithFields(map[string]interface{}{"module": "secret"})
 			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "secret"))
 
-			router := mux.NewRouter()
-			router.Use(ocmux.Middleware())
-
 			service := secrettype.NewTypeService()
 			endpoints := secrettypedriver.TraceEndpoints(secrettypedriver.MakeEndpoints(
 				service,
@@ -877,27 +873,25 @@ func main() {
 
 			secrettypedriver.RegisterHTTPHandlers(
 				endpoints,
-				router.PathPrefix("/secret-types").Subrouter(),
+				apiRouter.PathPrefix("/secret-types").Subrouter(),
 				kitxhttp.ServerOptions(httpServerOptions),
 				kithttp.ServerErrorHandler(errorHandler),
 			)
 
-			handler := gin.WrapH(http.StripPrefix(path.Join(basePath, "api/v1"), router))
-			v1.Any("/secret-types", handler)
-			v1.Any("/secret-types/*path", handler)
+			v1.Any("/secret-types", gin.WrapH(router))
+			v1.Any("/secret-types/*path", gin.WrapH(router))
 
 			// Compatibility routes
 			{
 				secrettypedriver.RegisterHTTPHandlers(
 					endpoints,
-					router.PathPrefix("/secrets").Subrouter(),
+					apiRouter.PathPrefix("/allowed/secrets").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 					kithttp.ServerErrorHandler(errorHandler),
 				)
 
-				handler := gin.WrapH(http.StripPrefix(path.Join(basePath, "api/v1/allowed"), router))
-				v1.GET("/allowed/secrets", handler)
-				v1.GET("/allowed/secrets/*path", handler)
+				v1.GET("/allowed/secrets", gin.WrapH(router))
+				v1.GET("/allowed/secrets/*path", gin.WrapH(router))
 			}
 		}
 
