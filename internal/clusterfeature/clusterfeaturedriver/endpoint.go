@@ -18,64 +18,21 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
-	kitoc "github.com/go-kit/kit/tracing/opencensus"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
-
-// FeatureService manages features on Kubernetes clusters.
-type FeatureService interface {
-	// List lists the activated features and their details.
-	List(ctx context.Context, clusterID uint) ([]clusterfeature.Feature, error)
-
-	// Details returns the details of an activated feature.
-	Details(ctx context.Context, clusterID uint, featureName string) (clusterfeature.Feature, error)
-
-	// Activate activates a feature.
-	Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error
-
-	// Deactivate deactivates a feature.
-	Deactivate(ctx context.Context, clusterID uint, featureName string) error
-
-	// Update updates a feature.
-	Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error
-}
-
-// Endpoints collects all of the endpoints that compose the cluster feature service.
-// It's meant to be used as a helper struct, to collect all of the endpoints into a
-// single parameter.
-type Endpoints struct {
-	List       endpoint.Endpoint
-	Details    endpoint.Endpoint
-	Activate   endpoint.Endpoint
-	Deactivate endpoint.Endpoint
-	Update     endpoint.Endpoint
-}
-
-// MakeEndpoints returns an Endpoints struct where each endpoint invokes
-// the corresponding method on the provided service.
-func MakeEndpoints(s FeatureService) Endpoints {
-	return Endpoints{
-		List:       kitoc.TraceEndpoint("clusterfeature.List")(MakeListEndpoint(s)),
-		Details:    kitoc.TraceEndpoint("clusterfeature.Details")(MakeDetailsEndpoint(s)),
-		Activate:   kitoc.TraceEndpoint("clusterfeature.Activate")(MakeActivateEndpoint(s)),
-		Deactivate: kitoc.TraceEndpoint("clusterfeature.Deactivate")(MakeDeactivateEndpoint(s)),
-		Update:     kitoc.TraceEndpoint("clusterfeature.Update")(MakeUpdateEndpoint(s)),
-	}
-}
 
 type ListClusterFeaturesRequest struct {
 	ClusterID uint
 }
 
 // MakeListEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeListEndpoint(s FeatureService) endpoint.Endpoint {
+func MakeListEndpoint(service clusterfeature.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ListClusterFeaturesRequest)
-		result, err := s.List(ctx, req.ClusterID)
+		result, err := service.List(ctx, req.ClusterID)
 		if err != nil {
-
 			return nil, err
 		}
 
@@ -89,12 +46,11 @@ type ClusterFeatureDetailsRequest struct {
 }
 
 // MakeDetailsEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeDetailsEndpoint(s FeatureService) endpoint.Endpoint {
+func MakeDetailsEndpoint(service clusterfeature.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ClusterFeatureDetailsRequest)
-		result, err := s.Details(ctx, req.ClusterID, req.FeatureName)
+		result, err := service.Details(ctx, req.ClusterID, req.FeatureName)
 		if err != nil {
-
 			return nil, err
 		}
 
@@ -109,10 +65,10 @@ type ActivateClusterFeatureRequest struct {
 }
 
 // MakeActivateEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeActivateEndpoint(s FeatureService) endpoint.Endpoint {
+func MakeActivateEndpoint(service clusterfeature.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ActivateClusterFeatureRequest)
-		err := s.Activate(ctx, req.ClusterID, req.FeatureName, req.Spec)
+		err := service.Activate(ctx, req.ClusterID, req.FeatureName, req.Spec)
 		return nil, err
 	}
 }
@@ -123,10 +79,10 @@ type DeactivateClusterFeatureRequest struct {
 }
 
 // MakeDeactivateEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeDeactivateEndpoint(s FeatureService) endpoint.Endpoint {
+func MakeDeactivateEndpoint(service clusterfeature.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(DeactivateClusterFeatureRequest)
-		err := s.Deactivate(ctx, req.ClusterID, req.FeatureName)
+		err := service.Deactivate(ctx, req.ClusterID, req.FeatureName)
 		return nil, err
 	}
 }
@@ -138,10 +94,10 @@ type UpdateClusterFeatureRequest struct {
 }
 
 // MakeUpdateEndpoint returns an endpoint for the matching method of the underlying service.
-func MakeUpdateEndpoint(s FeatureService) endpoint.Endpoint {
+func MakeUpdateEndpoint(service clusterfeature.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(UpdateClusterFeatureRequest)
-		err := s.Update(ctx, req.ClusterID, req.FeatureName, req.Spec)
+		err := service.Update(ctx, req.ClusterID, req.FeatureName, req.Spec)
 		return nil, err
 	}
 }
@@ -162,5 +118,4 @@ func transformList(features []clusterfeature.Feature) map[string]pipeline.Cluste
 	}
 
 	return featureDetails
-
 }

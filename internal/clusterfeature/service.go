@@ -22,6 +22,26 @@ import (
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
+// Service manages features on Kubernetes clusters.
+//go:generate mga gen kit endpoint --outdir clusterfeaturedriver --with-oc Service
+//go:generate mockery -name Service -inpkg
+type Service interface {
+	// List lists the activated features and their details.
+	List(ctx context.Context, clusterID uint) ([]Feature, error)
+
+	// Details returns the details of an activated feature.
+	Details(ctx context.Context, clusterID uint, featureName string) (Feature, error)
+
+	// Activate activates a feature.
+	Activate(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error
+
+	// Deactivate deactivates a feature.
+	Deactivate(ctx context.Context, clusterID uint, featureName string) error
+
+	// Update updates a feature.
+	Update(ctx context.Context, clusterID uint, featureName string, spec map[string]interface{}) error
+}
+
 // MakeFeatureService returns a new FeatureService instance.
 func MakeFeatureService(
 	featureOperationDispatcher FeatureOperationDispatcher,

@@ -605,6 +605,7 @@ func main() {
 
 			// cluster API
 			cRouter := orgs.Group("/:orgid/clusters/:id")
+			clusterRouter := orgRouter.PathPrefix("/clusters/{clusterId}").Subrouter()
 			{
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 
@@ -718,16 +719,22 @@ func main() {
 				featureManagerRegistry := clusterfeature.MakeFeatureManagerRegistry(featureManagers)
 				featureOperationDispatcher := clusterfeatureadapter.MakeCadenceFeatureOperationDispatcher(workflowClient, logger)
 				service := clusterfeature.MakeFeatureService(featureOperationDispatcher, featureManagerRegistry, featureRepository, logger)
-				endpoints := clusterfeaturedriver.MakeEndpoints(service)
-				handlers := clusterfeaturedriver.MakeHTTPHandlers(endpoints, errorHandler)
+				endpoints := clusterfeaturedriver.MakeEndpoints(
+					service,
+					kitxendpoint.Chain(endpointMiddleware...),
+					appkit.EndpointLogger(commonLogger),
+				)
 
-				router := cRouter.Group("/features")
+				clusterfeaturedriver.RegisterHTTPHandlers(
+					endpoints,
+					clusterRouter.PathPrefix("/features").Subrouter(),
+					errorHandler,
+					kitxhttp.ServerOptions(httpServerOptions),
+					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
+				)
 
-				router.GET("", ginutils.HTTPHandlerToGinHandlerFunc(handlers.List))
-				router.GET("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Details))
-				router.DELETE("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Deactivate))
-				router.POST("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Activate))
-				router.PUT("/:featureName", ginutils.HTTPHandlerToGinHandlerFunc(handlers.Update))
+				cRouter.Any("/features", gin.WrapH(router))
+				cRouter.Any("/features/:featureName", gin.WrapH(router))
 			}
 
 			// ClusterGroupAPI

@@ -25,10 +25,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
-//go:generate mockery -name FeatureService -inpkg -testonly
-
-func TestMakeListEndpoint(t *testing.T) {
-	featureService := &MockFeatureService{}
+func TestMakeEndpoints_List(t *testing.T) {
+	service := new(clusterfeature.MockService)
 
 	ctx := context.Background()
 	clusterID := uint(1)
@@ -46,9 +44,9 @@ func TestMakeListEndpoint(t *testing.T) {
 		},
 	}
 
-	featureService.On("List", ctx, clusterID).Return(clusterFeatureList, nil)
+	service.On("List", ctx, clusterID).Return(clusterFeatureList, nil)
 
-	e := MakeListEndpoint(featureService)
+	e := MakeEndpoints(service).List
 
 	req := ListClusterFeaturesRequest{
 		ClusterID: clusterID,
@@ -69,11 +67,11 @@ func TestMakeListEndpoint(t *testing.T) {
 		},
 	}, result)
 
-	featureService.AssertExpectations(t)
+	service.AssertExpectations(t)
 }
 
-func TestMakeDetailsEndpoint(t *testing.T) {
-	featureService := &MockFeatureService{}
+func TestMakeEndpoints_Details(t *testing.T) {
+	service := new(clusterfeature.MockService)
 
 	ctx := context.Background()
 	clusterID := uint(1)
@@ -90,9 +88,9 @@ func TestMakeDetailsEndpoint(t *testing.T) {
 		Status: "ACTIVE",
 	}
 
-	featureService.On("Details", ctx, clusterID, featureName).Return(clusterFeatureDetails, nil)
+	service.On("Details", ctx, clusterID, featureName).Return(clusterFeatureDetails, nil)
 
-	e := MakeDetailsEndpoint(featureService)
+	e := MakeEndpoints(service).Details
 
 	req := ClusterFeatureDetailsRequest{
 		ClusterID:   clusterID,
@@ -112,11 +110,11 @@ func TestMakeDetailsEndpoint(t *testing.T) {
 		Status: "ACTIVE",
 	}, result)
 
-	featureService.AssertExpectations(t)
+	service.AssertExpectations(t)
 }
 
-func TestMakeActivateEndpoint(t *testing.T) {
-	featureService := &MockFeatureService{}
+func TestMakeEndpoints_Activate(t *testing.T) {
+	service := new(clusterfeature.MockService)
 
 	ctx := context.Background()
 	clusterID := uint(1)
@@ -125,9 +123,9 @@ func TestMakeActivateEndpoint(t *testing.T) {
 		"hello": "world",
 	}
 
-	featureService.On("Activate", ctx, clusterID, featureName, spec).Return(nil)
+	service.On("Activate", ctx, clusterID, featureName, spec).Return(nil)
 
-	e := MakeActivateEndpoint(featureService)
+	e := MakeEndpoints(service).Activate
 
 	req := ActivateClusterFeatureRequest{
 		ClusterID:   clusterID,
@@ -140,19 +138,19 @@ func TestMakeActivateEndpoint(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, result)
 
-	featureService.AssertExpectations(t)
+	service.AssertExpectations(t)
 }
 
-func TestMakeDeactivateEndpoint(t *testing.T) {
-	featureService := &MockFeatureService{}
+func TestMakeEndpoints_Deactivate(t *testing.T) {
+	mockService := new(clusterfeature.MockService)
 
 	ctx := context.Background()
 	clusterID := uint(1)
 	featureName := "example"
 
-	featureService.On("Deactivate", ctx, clusterID, featureName).Return(nil)
+	mockService.On("Deactivate", ctx, clusterID, featureName).Return(nil)
 
-	e := MakeDeactivateEndpoint(featureService)
+	e := MakeEndpoints(mockService).Deactivate
 
 	req := DeactivateClusterFeatureRequest{
 		ClusterID:   clusterID,
@@ -164,11 +162,11 @@ func TestMakeDeactivateEndpoint(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, result)
 
-	featureService.AssertExpectations(t)
+	mockService.AssertExpectations(t)
 }
 
-func TestMakeUpdateEndpoint(t *testing.T) {
-	featureService := &MockFeatureService{}
+func TestMakeEndpoints_Update(t *testing.T) {
+	service := new(clusterfeature.MockService)
 
 	ctx := context.Background()
 	clusterID := uint(1)
@@ -177,9 +175,9 @@ func TestMakeUpdateEndpoint(t *testing.T) {
 		"hello": "world",
 	}
 
-	featureService.On("Update", ctx, clusterID, featureName, spec).Return(nil)
+	service.On("Update", ctx, clusterID, featureName, spec).Return(nil)
 
-	e := MakeUpdateEndpoint(featureService)
+	e := MakeEndpoints(service).Update
 
 	req := UpdateClusterFeatureRequest{
 		ClusterID:   clusterID,
@@ -192,5 +190,5 @@ func TestMakeUpdateEndpoint(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, result)
 
-	featureService.AssertExpectations(t)
+	service.AssertExpectations(t)
 }

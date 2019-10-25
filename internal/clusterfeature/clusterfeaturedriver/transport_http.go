@@ -21,7 +21,8 @@ import (
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
-	httptransport "github.com/go-kit/kit/transport/http"
+	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/gorilla/mux"
 	"github.com/moogar0880/problems"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
@@ -29,57 +30,48 @@ import (
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 )
 
-// Endpoints collects all of the HTTP handlers that compose the cluster feature service.
-// It's meant to be used as a helper struct, to collect all of the handlers into a
-// single parameter.
-type HTTPHandlers struct {
-	List       http.Handler
-	Details    http.Handler
-	Activate   http.Handler
-	Deactivate http.Handler
-	Update     http.Handler
-}
+// RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
+func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, errorHandler emperror.Handler, options ...kithttp.ServerOption) {
+	options = append(
+		options,
+		kithttp.ServerErrorEncoder(encodeHTTPError),
+		kithttp.ServerErrorHandler(emperror.MakeContextAware(errorFilter(errorHandler))),
+	)
 
-// MakeHTTPHandlers returns an HTTP Handlers struct where each handler invokes
-// the corresponding method on the provided service.
-func MakeHTTPHandlers(endpoints Endpoints, errorHandler emperror.Handler) HTTPHandlers {
-	options := []httptransport.ServerOption{
-		httptransport.ServerErrorEncoder(encodeHTTPError),
-		httptransport.ServerErrorHandler(emperror.MakeContextAware(errorFilter(errorHandler))),
-	}
+	router.Methods(http.MethodGet).Path("").Handler(kithttp.NewServer(
+		endpoints.List,
+		decodeListClusterFeaturesRequest,
+		encodeListClusterFeaturesResponse,
+		options...,
+	))
 
-	return HTTPHandlers{
-		List: httptransport.NewServer(
-			endpoints.List,
-			decodeListClusterFeaturesRequest,
-			encodeListClusterFeaturesResponse,
-			options...,
-		),
-		Details: httptransport.NewServer(
-			endpoints.Details,
-			decodeClusterFeatureDetailsRequest,
-			encodeClusterFeatureDetailsResponse,
-			options...,
-		),
-		Activate: httptransport.NewServer(
-			endpoints.Activate,
-			decodeActivateClusterFeatureRequest,
-			encodeActivateClusterFeatureResponse,
-			options...,
-		),
-		Deactivate: httptransport.NewServer(
-			endpoints.Deactivate,
-			decodeDeactivateClusterFeatureRequest,
-			encodeDeactivateClusterFeatureResponse,
-			options...,
-		),
-		Update: httptransport.NewServer(
-			endpoints.Update,
-			decodeUpdateClusterFeatureRequest,
-			encodeUpdateClusterFeatureResponse,
-			options...,
-		),
-	}
+	router.Methods(http.MethodGet).Path("/{featureName}").Handler(kithttp.NewServer(
+		endpoints.Details,
+		decodeClusterFeatureDetailsRequest,
+		encodeClusterFeatureDetailsResponse,
+		options...,
+	))
+
+	router.Methods(http.MethodPost).Path("/{featureName}").Handler(kithttp.NewServer(
+		endpoints.Activate,
+		decodeActivateClusterFeatureRequest,
+		encodeActivateClusterFeatureResponse,
+		options...,
+	))
+
+	router.Methods(http.MethodPut).Path("/{featureName}").Handler(kithttp.NewServer(
+		endpoints.Update,
+		decodeUpdateClusterFeatureRequest,
+		encodeUpdateClusterFeatureResponse,
+		options...,
+	))
+
+	router.Methods(http.MethodDelete).Path("/{featureName}").Handler(kithttp.NewServer(
+		endpoints.Deactivate,
+		decodeDeactivateClusterFeatureRequest,
+		encodeDeactivateClusterFeatureResponse,
+		options...,
+	))
 }
 
 func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
