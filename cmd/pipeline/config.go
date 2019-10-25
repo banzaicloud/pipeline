@@ -157,11 +157,11 @@ type clusterMonitorConfig struct {
 // clusterSecurityScanConfig contains cluster security scan configuration.
 type clusterSecurityScanConfig struct {
 	Enabled bool
-	Managed clusterSecurityScanManagedConfig
+	Anchore clusterSecurityScanAnchoreConfig
 }
 
-// clusterSecurityScanManagedConfig contains cluster security scan configuration.
-type clusterSecurityScanManagedConfig struct {
+// clusterSecurityScanAnchoreConfig contains cluster security scan anchore configuration.
+type clusterSecurityScanAnchoreConfig struct {
 	Enabled bool
 
 	// Anchore settings
@@ -170,7 +170,7 @@ type clusterSecurityScanManagedConfig struct {
 	Password string
 }
 
-func (c clusterSecurityScanManagedConfig) Validate() error {
+func (c clusterSecurityScanAnchoreConfig) Validate() error {
 	if c.Enabled {
 		if c.Endpoint == "" {
 			return errors.New("anchore endpoint is required")
@@ -237,10 +237,10 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster.vault.managed.enabled", false)
 	v.SetDefault("cluster.monitoring.enabled", true)
 	v.SetDefault("cluster.securityScan.enabled", true)
-	v.SetDefault("cluster.securityScan.managed.enabled", false)
-	v.SetDefault("cluster.securityScan.endpoint", "")
-	v.SetDefault("cluster.securityScan.user", "")
-	v.SetDefault("cluster.securityScan.password", "")
+	v.SetDefault("cluster.securityScan.anchore.enabled", false)
+	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
+	v.SetDefault("cluster.securityScan.anchore.user", "")
+	v.SetDefault("cluster.securityScan.anchore.password", "")
 }
 
 func registerAliases(v *viper.Viper) {

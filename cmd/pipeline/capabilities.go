@@ -39,7 +39,7 @@ func mapCapabilities(config configuration) cap.Capabilities {
 			},
 			"securityScan": cap.Cap{
 				"enabled": config.Cluster.SecurityScan.Enabled,
-				"managed": config.Cluster.SecurityScan.Managed.Enabled,
+				"managed": config.Cluster.SecurityScan.Anchore.Enabled,
 			},
 		},
 	}
