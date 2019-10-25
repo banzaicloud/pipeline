@@ -128,8 +128,9 @@ func (c authTokenConfig) Validate() error {
 
 // clusterConfig contains cluster configuration.
 type clusterConfig struct {
-	Vault      clusterVaultConfig
-	Monitoring clusterMonitorConfig
+	Vault        clusterVaultConfig
+	Monitoring   clusterMonitorConfig
+	SecurityScan clusterSecurityScanConfig
 }
 
 // Validate validates the configuration.
@@ -151,6 +152,40 @@ type clusterVaultManagedConfig struct {
 // clusterMonitorConfig contains cluster vault configuration.
 type clusterMonitorConfig struct {
 	Enabled bool
+}
+
+// clusterSecurityScanConfig contains cluster security scan configuration.
+type clusterSecurityScanConfig struct {
+	Enabled bool
+	Managed clusterSecurityScanManagedConfig
+}
+
+// clusterSecurityScanManagedConfig contains cluster security scan configuration.
+type clusterSecurityScanManagedConfig struct {
+	Enabled bool
+
+	// Anchore settings
+	Endpoint string
+	User     string
+	Password string
+}
+
+func (c clusterSecurityScanManagedConfig) Validate() error {
+	if c.Enabled {
+		if c.Endpoint == "" {
+			return errors.New("anchore endpoint is required")
+		}
+
+		if c.User == "" {
+			return errors.New("anchore user is required")
+		}
+
+		if c.Password == "" {
+			return errors.New("anchore password is required")
+		}
+	}
+
+	return nil
 }
 
 // configure configures some defaults in the Viper instance.
@@ -201,6 +236,11 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster.vault.enabled", true)
 	v.SetDefault("cluster.vault.managed.enabled", false)
 	v.SetDefault("cluster.monitoring.enabled", true)
+	v.SetDefault("cluster.securityScan.enabled", true)
+	v.SetDefault("cluster.securityScan.managed.enabled", false)
+	v.SetDefault("cluster.securityScan.endpoint", "")
+	v.SetDefault("cluster.securityScan.user", "")
+	v.SetDefault("cluster.securityScan.password", "")
 }
 
 func registerAliases(v *viper.Viper) {

@@ -118,6 +118,15 @@ enabled = false
 [cluster.monitor]
 enabled = true
 
+# [cluster.securityScan]
+# enabled = true
+
+# [cluster.securityScan.managed]
+# enabled = false
+# endpoint = ""
+# user = ""
+# password = ""
+
 [helm]
 tillerVersion = "v2.14.2"
 path = "./var/cache"
