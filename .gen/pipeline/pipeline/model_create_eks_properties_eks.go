@@ -28,6 +28,6 @@ type CreateEksPropertiesEks struct {
 
 	Iam EksIam `json:"iam,omitempty"`
 
-	// List of access point references for the API server; currently, public and private are the only valid values
+	// List of access point types for the API server; public and private are the only valid values
 	ApiServerAccessPoints []string `json:"apiServerAccessPoints,omitempty"`
 }

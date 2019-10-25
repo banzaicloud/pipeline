@@ -118,6 +118,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
+	"github.com/banzaicloud/pipeline/internal/security/clusteradapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -648,15 +649,25 @@ func main() {
 					fr := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 					fa := anchore.NewFeatureAdapter(fr, logger)
 					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
+
+					clusterService := clusteradapter.NewClusterService(clusterManager)
+					usernameService := anchore.NewAnchoreUsernameService(clusterService)
+
 					secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-					imgScanSvc := anchore.NewImageScannerService(cfgSvc, secretStore, logger)
+					imgScanSvc := anchore.NewImageScannerService(cfgSvc, usernameService, secretStore, logger)
 					imageScanHandler := api.NewImageScanHandler(clusterGetter, imgScanSvc, logger)
 
-					policySvc := anchore.NewPolicyService(cfgSvc, secretStore, logger)
+					policySvc := anchore.NewPolicyService(cfgSvc, usernameService, secretStore, logger)
 					policyHandler := api.NewPolicyHandler(clusterGetter, policySvc, logger)
 
 					securityApiHandler := api.NewSecurityApiHandlers(clusterGetter, logger)
 
+					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, usernameService, secretStore, emperror.MakeContextAware(errorHandler), logger)
+					proxyHandler := anchoreProxy.Proxy()
+					// forthcoming endpoint for all requests proxied to Anchore
+					cRouter.Any("/anchore/*proxyPath", proxyHandler)
+
+					// these are cluster resources
 					cRouter.GET("/scanlog", securityApiHandler.ListScanLogs)
 					cRouter.GET("/scanlog/:releaseName", securityApiHandler.GetScanLogs)
 

@@ -26,15 +26,10 @@ import (
 )
 
 const (
-	anchoreUserNameTpl = "%v-anchore-user"
+	anchoreUserUIDNameTpl = "%v-anchore-user"
 )
 
-func getUserName(clusterID uint) string {
-	return fmt.Sprintf(anchoreUserNameTpl, clusterID)
-}
-
-// createUserSecret creates a new password type secret, and returns the newly generated password string
-func getUserSecret(ctx context.Context, secretStore common.SecretStore, userName string, logger common.Logger) (string, error) {
+func GetUserSecret(ctx context.Context, secretStore common.SecretStore, userName string, logger common.Logger) (string, error) {
 
 	values, err := secretStore.GetSecretValues(ctx, secret.GenerateSecretIDFromName(userName))
 	if err != nil {
@@ -53,7 +48,7 @@ func getUserSecret(ctx context.Context, secretStore common.SecretStore, userName
 	return password, nil
 }
 
-func getCustomAnchoreCredentials(ctx context.Context, secretStore common.SecretStore, secretId string, logger common.Logger) (string, string, error) {
+func GetCustomAnchoreCredentials(ctx context.Context, secretStore common.SecretStore, secretId string, logger common.Logger) (string, string, error) {
 	logger.Debug("using custom anchore configuration")
 
 	secretValues, err := secretStore.GetSecretValues(ctx, secretId)
@@ -75,5 +70,31 @@ func getCustomAnchoreCredentials(ctx context.Context, secretStore common.SecretS
 	}
 
 	return credentials.Username, credentials.Password, nil
+}
 
+// UserNameService defines operations for generating unique names using cluster data
+type UserNameService interface {
+	Generate(ctx context.Context, orgID uint, clusterID uint) (string, error)
+}
+
+type ClusterService interface {
+	GetClusterUUID(context.Context, uint, uint) (string, error)
+}
+
+type AnchoreUserNameService struct {
+	clusterService ClusterService
+}
+
+func NewAnchoreUsernameService(clusterService ClusterService) UserNameService {
+	return AnchoreUserNameService{clusterService: clusterService}
+}
+
+// generates a unique username using the cluster's UUID
+func (un AnchoreUserNameService) Generate(ctx context.Context, orgID uint, clusterID uint) (string, error) {
+	uuid, err := un.clusterService.GetClusterUUID(ctx, orgID, clusterID)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to generate username")
+	}
+
+	return fmt.Sprintf(anchoreUserUIDNameTpl, uuid), nil
 }
