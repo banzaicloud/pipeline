@@ -92,12 +92,12 @@ spec:
           value: "true"
         {{- end }}
         # Anchore configuration
-        {{- if .Values.configuration.anchore.enabled }}
-        - name: PIPELINE_ANCHORE_ADMINPASS
+        {{- if .Values.configuration.cluster.securityScan.anchore.enabled }}
+        - name: PIPELINE_CLUSTER_SECURITYSCAN_ANCHORE_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.configuration.anchore.secretName }}
-              key: {{ .Values.configuration.anchore.secretKey }}
+              name: {{ .Values.configuration.cluster.securityScan.anchore.secretName }}
+              key: {{ .Values.configuration.cluster.securityScan.anchore.secretKey }}
         {{ end }}
         # Additional environment variables
         {{ range $key, $value := .Values.env }}
