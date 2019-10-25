@@ -136,7 +136,7 @@ func (c *pkeCreator) Create(ctx context.Context) error {
 
 	workflowOptions := client.StartWorkflowOptions{
 		TaskList:                     "pipeline",
-		ExecutionStartToCloseTimeout: 40 * time.Minute, // TODO: lower timeout
+		ExecutionStartToCloseTimeout: 2 * 60 * time.Minute, // TODO: lower timeout
 	}
 	exec, err := c.workflowClient.ExecuteWorkflow(ctx, workflowOptions, pkeworkflow.CreateClusterWorkflowName, input)
 	if err != nil {
