@@ -837,9 +837,6 @@ func main() {
 			logger := commonLogger.WithFields(map[string]interface{}{"module": "auth"})
 			errorHandler := emperror.MakeContextAware(emperror.WithDetails(errorHandler, "module", "auth"))
 
-			router := mux.NewRouter()
-			router.Use(ocmux.Middleware())
-
 			service := token.NewService(
 				auth.UserExtractor{},
 				tokenadapter.NewBankVaultsStore(tokenStore),
@@ -855,15 +852,13 @@ func main() {
 
 			tokendriver.RegisterHTTPHandlers(
 				endpoints,
-				router.PathPrefix("/api/v1/tokens").Subrouter(),
+				apiRouter.PathPrefix("/tokens").Subrouter(),
 				kitxhttp.ServerOptions(httpServerOptions),
 				kithttp.ServerErrorHandler(errorHandler),
 			)
 
-			handler := gin.WrapH(http.StripPrefix(basePath, router))
-
-			v1.Any("/tokens", handler)
-			v1.Any("/tokens/*path", handler)
+			v1.Any("/tokens", gin.WrapH(router))
+			v1.Any("/tokens/*path", gin.WrapH(router))
 		}
 
 		{
