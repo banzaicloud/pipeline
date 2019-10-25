@@ -108,12 +108,13 @@ configuration:
   cloudinfo:
     endPointUrl: ""
 
-  anchore:
-    enabled: false
-    username: admin
-    serviceEndpoint: ""
-    secretName: ""
-    secretKey: adminPassword
+  cluster:
+    securityScan:
+      anchore:
+        enabled: false
+        user: admin
+        secretName: ""
+        secretKey: adminPassword
 
   logging:
     logformat: text
