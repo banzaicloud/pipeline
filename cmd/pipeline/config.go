@@ -15,6 +15,7 @@
 package main
 
 import (
+	"net/url"
 	"os"
 
 	"emperror.dev/errors"
@@ -172,8 +173,8 @@ type clusterSecurityScanAnchoreConfig struct {
 
 func (c clusterSecurityScanAnchoreConfig) Validate() error {
 	if c.Enabled {
-		if c.Endpoint == "" {
-			return errors.New("anchore endpoint is required")
+		if _, err := url.Parse(c.Endpoint); err != nil {
+			return errors.Wrap(err, "anchore endpoint must be a valid URL")
 		}
 
 		if c.User == "" {
