@@ -23,6 +23,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/antihax/optional"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
@@ -169,11 +170,17 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		}
 	}
 
-	toUpdateVMSSChanges := make([]workflow.VirtualMachineScaleSetChanges, len(nodePoolsToUpdate))
-	for i, np := range nodePoolsToUpdate {
-		toUpdateVMSSChanges[i] = workflow.VirtualMachineScaleSetChanges{
-			Name:          pke.GetVMSSName(cluster.Name, np.Name),
-			InstanceCount: uint(np.Count),
+	toUpdateVMSSChanges := make([]workflow.VirtualMachineScaleSetChanges, 0, len(nodePoolsToUpdate))
+	for _, np := range nodePoolsToUpdate {
+		var changes workflow.VirtualMachineScaleSetChanges
+
+		if !np.Autoscaling {
+			changes.InstanceCount = optional.NewUint(uint(np.Count))
+		}
+
+		if changes != (workflow.VirtualMachineScaleSetChanges{}) {
+			changes.Name = pke.GetVMSSName(cluster.Name, np.Name)
+			toUpdateVMSSChanges = append(toUpdateVMSSChanges, changes)
 		}
 
 		err := cu.store.SetNodePoolSizes(params.ClusterID, np.Name, uint(np.Min), uint(np.Max), uint(np.Count), np.Autoscaling)

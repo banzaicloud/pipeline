@@ -21,6 +21,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/antihax/optional"
 	"go.uber.org/cadence/activity"
 )
 
@@ -43,7 +44,7 @@ type UpdateVMSSActivityInput struct {
 
 type VirtualMachineScaleSetChanges struct {
 	Name          string
-	InstanceCount uint
+	InstanceCount optional.Uint
 }
 
 // MakeUpdateVMSSActivity returns a new UpdateVMSSActivity
@@ -92,10 +93,13 @@ func (a UpdateVMSSActivity) Execute(ctx context.Context, input UpdateVMSSActivit
 		return
 	}
 
+	sku := compute.Sku{}
+	if input.Changes.InstanceCount.IsSet() {
+		sku.Capacity = to.Int64Ptr(int64(input.Changes.InstanceCount.Value()))
+	}
+
 	future, err := client.Update(ctx, input.ResourceGroupName, input.Changes.Name, compute.VirtualMachineScaleSetUpdate{
-		Sku: &compute.Sku{
-			Capacity: to.Int64Ptr(int64(input.Changes.InstanceCount)),
-		},
+		Sku: &sku,
 	})
 	if err = errors.WrapIfWithDetails(err, "sending request to update virtual machine scale set failed", keyvals...); err != nil {
 		if resp := future.Response(); resp != nil && resp.StatusCode == http.StatusNotFound {
