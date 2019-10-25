@@ -68,6 +68,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow/pkeworkflowadapter"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
+	securityClusterAdapter "github.com/banzaicloud/pipeline/internal/security/clusteradapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide"
@@ -335,9 +336,13 @@ func main() {
 			clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 
+			getter := securityClusterAdapter.MakeClusterGetter(clusterManager)
+			securityClusterService := securityClusterAdapter.NewClusterService(getter)
+			usernameService := anchore.NewAnchoreUsernameService(securityClusterService)
+
 			featureAdapter := anchore.NewFeatureAdapter(featureRepository, logger)
 			anchoreConfigService := anchore.NewConfigurationService(config.Anchore, featureAdapter, logger)
-			anchoreUserService := anchore.MakeAnchoreUserService(anchoreConfigService, commonSecretStore, logger)
+			anchoreUserService := anchore.MakeAnchoreUserService(anchoreConfigService, usernameService, commonSecretStore, logger)
 			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, logger)
 			featureWhitelistService := securityscan.NewFeatureWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 

@@ -38,16 +38,19 @@ type ImageScanner interface {
 }
 
 type imageScannerService struct {
-	configService ConfigurationService
-	secretStore   common.SecretStore
-	logger        common.Logger
+	configService   ConfigurationService
+	userNameService UserNameService
+	secretStore     common.SecretStore
+	logger          common.Logger
 }
 
-func NewImageScannerService(configService ConfigurationService, secretStore common.SecretStore, logger common.Logger) ImageScanner {
+func NewImageScannerService(configService ConfigurationService, userNameService UserNameService,
+	secretStore common.SecretStore, logger common.Logger) ImageScanner {
 	return imageScannerService{
-		configService: configService,
-		secretStore:   secretStore,
-		logger:        logger,
+		configService:   configService,
+		userNameService: userNameService,
+		secretStore:     secretStore,
+		logger:          logger,
 	}
 }
 
@@ -60,7 +63,7 @@ func (i imageScannerService) Scan(ctx context.Context, orgID uint, clusterID uin
 		retImgs     = make([]interface{}, 0)
 	)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, clusterID, false)
+	anchoreClient, err := i.getAnchoreClient(ctx, orgID, clusterID, false)
 	if err != nil {
 		return err, nil
 	}
@@ -84,7 +87,7 @@ func (i imageScannerService) GetImageInfo(ctx context.Context, orgID uint, clust
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "imageDigest": imageDigest}
 	i.logger.Info("getting scan results", fnCtx)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, clusterID, false)
+	anchoreClient, err := i.getAnchoreClient(ctx, orgID, clusterID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +107,7 @@ func (i imageScannerService) GetVulnerabilities(ctx context.Context, orgID uint,
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "imageDigest": imageDigest}
 	i.logger.Info("retrieving image vulnerabilities", fnCtx)
 
-	anchoreClient, err := i.getAnchoreClient(ctx, clusterID, false)
+	anchoreClient, err := i.getAnchoreClient(ctx, orgID, clusterID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +124,7 @@ func (i imageScannerService) GetVulnerabilities(ctx context.Context, orgID uint,
 }
 
 // getAnchoreClient returns i rest client wrapper instance with the proper configuration
-func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uint, admin bool) (AnchoreClient, error) {
+func (i imageScannerService) getAnchoreClient(ctx context.Context, orgID uint, clusterID uint, admin bool) (AnchoreClient, error) {
 	cfg, err := i.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
 		i.logger.Debug("failed to get anchore configuration")
@@ -137,7 +140,7 @@ func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uin
 
 	if cfg.UserSecret != "" {
 		i.logger.Debug("using custom anchore configuration")
-		username, password, err := getCustomAnchoreCredentials(ctx, i.secretStore, cfg.UserSecret, i.logger)
+		username, password, err := GetCustomAnchoreCredentials(ctx, i.secretStore, cfg.UserSecret, i.logger)
 		if err != nil {
 			i.logger.Debug("failed to decode secret values")
 
@@ -151,8 +154,14 @@ func (i imageScannerService) getAnchoreClient(ctx context.Context, clusterID uin
 		return NewAnchoreClient(cfg.AdminUser, cfg.AdminPass, cfg.Endpoint, i.logger), nil
 	}
 
-	userName := getUserName(clusterID)
-	password, err := getUserSecret(ctx, i.secretStore, userName, i.logger)
+	userName, err := i.userNameService.Generate(ctx, orgID, clusterID)
+	if err != nil {
+		i.logger.Debug("failed to generate anchore username")
+
+		return nil, errors.Wrap(err, "failed to generate anchore username")
+	}
+
+	password, err := GetUserSecret(ctx, i.secretStore, userName, i.logger)
 	if err != nil {
 		i.logger.Debug("failed to get user secret")
 

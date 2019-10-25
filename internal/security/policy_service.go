@@ -34,16 +34,19 @@ type PolicyService interface {
 }
 
 type policyService struct {
-	configService ConfigurationService
-	secretStore   common.SecretStore
-	logger        common.Logger
+	configService   ConfigurationService
+	userNameService UserNameService
+	secretStore     common.SecretStore
+	logger          common.Logger
 }
 
-func NewPolicyService(configService ConfigurationService, store common.SecretStore, logger common.Logger) PolicyService {
+func NewPolicyService(configService ConfigurationService, userNameService UserNameService, store common.SecretStore,
+	logger common.Logger) PolicyService {
 	return policyService{
-		configService: configService,
-		secretStore:   store,
-		logger:        logger.WithFields(map[string]interface{}{"policy-service": "y"}),
+		configService:   configService,
+		userNameService: userNameService,
+		secretStore:     store,
+		logger:          logger.WithFields(map[string]interface{}{"policy-service": "y"}),
 	}
 }
 
@@ -51,7 +54,7 @@ func (p policyService) ListPolicies(ctx context.Context, orgID uint, clusterID u
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID}
 	p.logger.Info("retrieving policies ...", fnCtx)
 
-	anchoreClient, err := p.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := p.getAnchoreClient(ctx, orgID, clusterID)
 	if err != nil {
 		p.logger.Debug("failed to get anchore client", fnCtx)
 
@@ -73,7 +76,7 @@ func (p policyService) GetPolicy(ctx context.Context, orgID uint, clusterID uint
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "policyID": policyID}
 	p.logger.Info("retrieving policy ...", fnCtx)
 
-	anchoreClient, err := p.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := p.getAnchoreClient(ctx, orgID, clusterID)
 	if err != nil {
 		p.logger.Debug("failed to get anchore client", fnCtx)
 
@@ -95,7 +98,7 @@ func (p policyService) CreatePolicy(ctx context.Context, orgID uint, clusterID u
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "policy": policy}
 	p.logger.Info("creating policy ...", fnCtx)
 
-	anchoreClient, err := p.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := p.getAnchoreClient(ctx, orgID, clusterID)
 	if err != nil {
 		p.logger.Debug("failed to get anchore client", fnCtx)
 
@@ -117,7 +120,7 @@ func (p policyService) DeletePolicy(ctx context.Context, orgID uint, clusterID u
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "policyID": policyID}
 	p.logger.Info("deleting policy ...", fnCtx)
 
-	anchoreClient, err := p.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := p.getAnchoreClient(ctx, orgID, clusterID)
 	if err != nil {
 		p.logger.Debug("failed to get anchore client", fnCtx)
 
@@ -138,7 +141,7 @@ func (p policyService) UpdatePolicy(ctx context.Context, orgID uint, clusterID u
 	fnCtx := map[string]interface{}{"orgID": orgID, "clusterID": clusterID, "policyID": policyID}
 	p.logger.Info("updating policy ...", fnCtx)
 
-	anchoreClient, err := p.getAnchoreClient(ctx, clusterID)
+	anchoreClient, err := p.getAnchoreClient(ctx, orgID, clusterID)
 	if err != nil {
 		p.logger.Debug("failed to get anchore client", fnCtx)
 
@@ -164,7 +167,7 @@ func (p policyService) UpdatePolicy(ctx context.Context, orgID uint, clusterID u
 
 // getAnchoreClient returns p rest client wrapper instance with the proper configuration
 // todo this method may be extracted to p common place to be reused by other services
-func (p policyService) getAnchoreClient(ctx context.Context, clusterID uint) (AnchoreClient, error) {
+func (p policyService) getAnchoreClient(ctx context.Context, orgID uint, clusterID uint) (AnchoreClient, error) {
 	cfg, err := p.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
 		p.logger.Debug("failure while getting anchore configuration")
@@ -180,7 +183,7 @@ func (p policyService) getAnchoreClient(ctx context.Context, clusterID uint) (An
 
 	if cfg.UserSecret != "" {
 		p.logger.Debug("using custom anchore configuration")
-		username, password, err := getCustomAnchoreCredentials(ctx, p.secretStore, cfg.UserSecret, p.logger)
+		username, password, err := GetCustomAnchoreCredentials(ctx, p.secretStore, cfg.UserSecret, p.logger)
 		if err != nil {
 			p.logger.Debug("failed to decode secret values")
 
@@ -190,8 +193,14 @@ func (p policyService) getAnchoreClient(ctx context.Context, clusterID uint) (An
 		return NewAnchoreClient(username, password, cfg.Endpoint, p.logger), nil
 	}
 
-	userName := getUserName(clusterID)
-	password, err := getUserSecret(ctx, p.secretStore, userName, p.logger)
+	userName, err := p.userNameService.Generate(ctx, orgID, clusterID)
+	if err != nil {
+		p.logger.Debug("failed to generate anchore username")
+
+		return nil, errors.Wrap(err, "failed to generate anchore username")
+	}
+
+	password, err := GetUserSecret(ctx, p.secretStore, userName, p.logger)
 	if err != nil {
 		p.logger.Debug("failed to get user secret")
 
