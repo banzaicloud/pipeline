@@ -569,6 +569,7 @@ func main() {
 	}
 
 	v1 := base.Group("api/v1")
+	apiRouter := router.PathPrefix("/api/v1").Subrouter()
 	{
 		v1.Use(auth.Handler)
 		capdriver.RegisterHTTPHandler(mapCapabilities(conf), emperror.MakeContextAware(errorHandler), v1)
@@ -587,6 +588,7 @@ func main() {
 		}
 
 		orgs := v1.Group("/orgs")
+		orgRouter := apiRouter.PathPrefix("/orgs/{orgId}").Subrouter()
 		{
 			orgs.Use(api.OrganizationMiddleware)
 			orgs.Use(authorizationMiddleware)
@@ -806,30 +808,23 @@ func main() {
 					appkit.EndpointLogger(commonLogger),
 				))
 
-				router := mux.NewRouter()
-				router.Use(ocmux.Middleware())
-
 				googleprojectdriver.RegisterHTTPHandlers(
 					endpoints,
-					router.PathPrefix("/api/v1/orgs/{orgId}/cloud/google/projects").Subrouter(),
+					orgRouter.PathPrefix("/cloud/google/projects").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 				)
 
-				orgs.Any("/:orgid/cloud/google/projects", gin.WrapH(http.StripPrefix(basePath, router)))
-
-				// Compatibility routes
-				compatRouter := mux.NewRouter()
-				compatRouter.Use(ocmux.Middleware())
+				orgs.Any("/:orgid/cloud/google/projects", gin.WrapH(router))
 
 				googleprojectdriver.RegisterHTTPHandlers(
 					endpoints,
-					compatRouter.PathPrefix("/api/v1/orgs/{orgId}/google/projects").Subrouter(),
+					orgRouter.PathPrefix("/google/projects").Subrouter(),
 					kitxhttp.ServerOptions(httpServerOptions),
 					kithttp.ServerErrorHandler(emperror.MakeContextAware(errorHandler)),
 				)
 
-				orgs.Any("/:orgid/google/projects", gin.WrapH(http.StripPrefix(basePath, compatRouter)))
+				orgs.Any("/:orgid/google/projects", gin.WrapH(router))
 			}
 
 			orgs.GET("/:orgid", organizationAPI.GetOrganizations)
