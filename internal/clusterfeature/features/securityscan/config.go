@@ -19,31 +19,83 @@ import (
 
 	"emperror.dev/errors"
 
+	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
+	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	"github.com/banzaicloud/pipeline/internal/securityscan"
 )
 
-// AnchoreConfigProvider returns Anchore configuration for a cluster.
-type AnchoreConfigProvider struct {
-	config            *securityscan.AnchoreConfig
+// UserNameGenerator generates an Anchore username for a cluster.
+type UserNameGenerator interface {
+	// GenerateUsername generates an Anchore username for a cluster.
+	GenerateUsername(ctx context.Context, clusterID uint) (string, error)
+}
+
+// UserSecretStore stores Anchore user secrets.
+type UserSecretStore interface {
+	// GetPasswordForUser returns the password for a user.
+	GetPasswordForUser(ctx context.Context, userName string) (string, error)
+}
+
+// ClusterAnchoreConfigProvider returns static configuration.
+type ClusterAnchoreConfigProvider struct {
+	endpoint          string
+	userNameGenerator UserNameGenerator
+	userSecretStore   UserSecretStore
+}
+
+// NewClusterAnchoreConfigProvider returns a new ClusterAnchoreConfigProvider.
+func NewClusterAnchoreConfigProvider(
+	endpoint string,
+	userNameGenerator UserNameGenerator,
+	userSecretStore UserSecretStore,
+) ClusterAnchoreConfigProvider {
+	return ClusterAnchoreConfigProvider{
+		endpoint:          endpoint,
+		userNameGenerator: userNameGenerator,
+		userSecretStore:   userSecretStore,
+	}
+}
+
+func (p ClusterAnchoreConfigProvider) GetConfiguration(ctx context.Context, clusterID uint) (anchore.Config, error) {
+	userName, err := p.userNameGenerator.GenerateUsername(ctx, clusterID)
+	if err != nil {
+		return anchore.Config{}, err
+	}
+
+	password, err := p.userSecretStore.GetPasswordForUser(ctx, userName)
+	if err != nil {
+		if errors.As(err, &common.SecretNotFoundError{}) {
+			return anchore.Config{}, anchore.ErrConfigNotFound
+		}
+
+		return anchore.Config{}, err
+	}
+
+	return anchore.Config{
+		Endpoint: p.endpoint,
+		User:     userName,
+		Password: password,
+	}, nil
+}
+
+// CustomAnchoreConfigProvider returns custom Anchore configuration for a cluster.
+type CustomAnchoreConfigProvider struct {
 	featureRepository clusterfeature.FeatureRepository
 	secretStore       features.SecretStore
 
 	logger features.Logger
 }
 
-// NewAnchoreConfigProvider returns a new AnchoreConfigProvider.
-func NewAnchoreConfigProvider(
-	config *securityscan.AnchoreConfig,
+// NewCustomAnchoreConfigProvider returns a new ConfigProvider.
+func NewCustomAnchoreConfigProvider(
 	featureRepository clusterfeature.FeatureRepository,
 	secretStore features.SecretStore,
 
 	logger features.Logger,
-) AnchoreConfigProvider {
-	return AnchoreConfigProvider{
-		config:            config,
+) CustomAnchoreConfigProvider {
+	return CustomAnchoreConfigProvider{
 		featureRepository: featureRepository,
 		secretStore:       secretStore,
 
@@ -52,35 +104,31 @@ func NewAnchoreConfigProvider(
 }
 
 // GetConfiguration returns Anchore configuration for a cluster.
-func (p AnchoreConfigProvider) GetConfiguration(ctx context.Context, clusterID uint) (securityscan.AnchoreConfig, error) {
+func (p CustomAnchoreConfigProvider) GetConfiguration(ctx context.Context, clusterID uint) (anchore.Config, error) {
 	logger := p.logger.WithContext(ctx).WithFields(map[string]interface{}{"clusterId": clusterID})
 
 	feature, err := p.featureRepository.GetFeature(ctx, clusterID, FeatureName)
 	if err != nil {
-		return securityscan.AnchoreConfig{}, err
+		return anchore.Config{}, err
 	}
 
 	spec, err := bindFeatureSpec(feature.Spec)
 	if err != nil {
-		return securityscan.AnchoreConfig{}, err
+		return anchore.Config{}, err
 	}
 
 	if !spec.CustomAnchore.Enabled {
 		logger.Debug("no custom anchore config found for cluster")
 
-		if p.config == nil {
-			return securityscan.AnchoreConfig{}, errors.New("no custom or global anchore config found")
-		}
-
-		return *p.config, nil
+		return anchore.Config{}, anchore.ErrConfigNotFound
 	}
 
 	secret, err := p.secretStore.GetSecretValues(ctx, spec.CustomAnchore.SecretID)
 	if err != nil {
-		return securityscan.AnchoreConfig{}, err
+		return anchore.Config{}, err
 	}
 
-	return securityscan.AnchoreConfig{
+	return anchore.Config{
 		Endpoint: spec.CustomAnchore.Url,
 		User:     secret[secrettype.Username],
 		Password: secret[secrettype.Password],

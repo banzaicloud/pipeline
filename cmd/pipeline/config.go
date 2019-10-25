@@ -23,10 +23,10 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
@@ -45,9 +45,6 @@ type configuration struct {
 	// Frontend configuration
 	Frontend frontend.Config
 
-	// Anchore default configuration
-	Anchore anchore.Config
-
 	// Cluster configuration
 	Cluster clusterConfig
 }
@@ -63,10 +60,6 @@ func (c configuration) Validate() error {
 	}
 
 	if err := c.Frontend.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Anchore.Validate(); err != nil {
 		return err
 	}
 
@@ -136,6 +129,12 @@ type clusterConfig struct {
 
 // Validate validates the configuration.
 func (c clusterConfig) Validate() error {
+	if c.SecurityScan.Enabled {
+		if err := c.SecurityScan.Validate(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -161,14 +160,21 @@ type clusterSecurityScanConfig struct {
 	Anchore clusterSecurityScanAnchoreConfig
 }
 
+func (c clusterSecurityScanConfig) Validate() error {
+	if c.Anchore.Enabled {
+		if err := c.Anchore.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // clusterSecurityScanAnchoreConfig contains cluster security scan anchore configuration.
 type clusterSecurityScanAnchoreConfig struct {
 	Enabled bool
 
-	// Anchore settings
-	Endpoint string
-	User     string
-	Password string
+	anchore.Config `mapstructure:",squash"`
 }
 
 func (c clusterSecurityScanAnchoreConfig) Validate() error {
@@ -227,12 +233,6 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.RegisterAlias("frontend.issue.github.token", "github.token")
 	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
 	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
-
-	v.SetDefault("anchore.apiEnabled", true)
-	v.SetDefault("anchore.enabled", false)
-	v.SetDefault("anchore.endpoint", "")
-	v.SetDefault("anchore.adminuser", "")
-	v.SetDefault("anchore.adminpass", "")
 
 	v.SetDefault("cluster.vault.enabled", true)
 	v.SetDefault("cluster.vault.managed.enabled", false)

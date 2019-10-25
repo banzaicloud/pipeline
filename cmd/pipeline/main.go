@@ -64,6 +64,7 @@ import (
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
+	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/api/middleware/audit"
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
@@ -90,6 +91,7 @@ import (
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
 	featureVault "github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 	"github.com/banzaicloud/pipeline/internal/clustergroup"
 	cgroupAdapter "github.com/banzaicloud/pipeline/internal/clustergroup/adapter"
@@ -118,7 +120,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
-	"github.com/banzaicloud/pipeline/internal/security/clusteradapter"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -673,22 +674,32 @@ func main() {
 					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger))
 				}
 
-				if conf.Anchore.ApiEnabled {
-					fa := anchore.NewFeatureAdapter(featureRepository, logger)
-					cfgSvc := anchore.NewConfigurationService(conf.Anchore, fa, logger)
+				if conf.Cluster.SecurityScan.Enabled {
+					customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
+						featureRepository,
+						secretStore,
+						logger,
+					)
 
-					clusterService := clusteradapter.NewClusterService(clusterManager)
-					usernameService := anchore.NewAnchoreUsernameService(clusterService)
+					configProvider := anchore2.ConfigProviderChain{customAnchoreConfigProvider}
 
-					imgScanSvc := anchore.NewImageScannerService(cfgSvc, usernameService, secretStore, logger)
+					if conf.Cluster.SecurityScan.Anchore.Enabled {
+						configProvider = append(configProvider, securityscan.NewClusterAnchoreConfigProvider(
+							conf.Cluster.SecurityScan.Anchore.Endpoint,
+							securityscanadapter.NewUserNameGenerator(securityscanadapter.NewClusterService(clusterManager)),
+							securityscanadapter.NewUserSecretStore(secretStore),
+						))
+					}
+
+					imgScanSvc := anchore.NewImageScannerService(configProvider, logger)
 					imageScanHandler := api.NewImageScanHandler(commonClusterGetter, imgScanSvc, logger)
 
-					policySvc := anchore.NewPolicyService(cfgSvc, usernameService, secretStore, logger)
+					policySvc := anchore.NewPolicyService(configProvider, logger)
 					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
 
 					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, logger)
 
-					anchoreProxy := api.NewAnchoreProxy(basePath, cfgSvc, usernameService, secretStore, emperror.MakeContextAware(errorHandler), logger)
+					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, emperror.MakeContextAware(errorHandler), logger)
 					proxyHandler := anchoreProxy.Proxy()
 
 					// forthcoming endpoint for all requests proxied to Anchore

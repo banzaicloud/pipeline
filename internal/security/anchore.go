@@ -51,10 +51,10 @@ type AnchoreError struct {
 }
 
 func init() {
-	AnchoreEndpoint = viper.GetString("anchore.endPoint")
-	AnchoreEnabled = viper.GetBool("anchore.enabled")
-	AnchoreAdminUser = viper.GetString("anchore.adminUser")
-	AnchoreAdminPass = viper.GetString("anchore.adminPass")
+	AnchoreEndpoint = viper.GetString("cluster.securityScan.anchore.endpoint")
+	AnchoreEnabled = viper.GetBool("cluster.securityScan.anchore.enabled")
+	AnchoreAdminUser = viper.GetString("cluster.securityScan.anchore.user")
+	AnchoreAdminPass = viper.GetString("cluster.securityScan.anchore.password")
 	logger = Logger()
 }
 
