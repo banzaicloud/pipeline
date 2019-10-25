@@ -157,9 +157,8 @@ type CreateClusterWorkflowInput struct {
 
 func CreateClusterWorkflow(ctx workflow.Context, input CreateClusterWorkflowInput) error {
 	ao := workflow.ActivityOptions{
-		ScheduleToStartTimeout: 5 * time.Minute,
-		StartToCloseTimeout:    10 * time.Minute,
-		ScheduleToCloseTimeout: 15 * time.Minute,
+		ScheduleToStartTimeout: 10 * time.Minute,
+		StartToCloseTimeout:    20 * time.Minute,
 		WaitForCancellation:    true,
 	}
 
