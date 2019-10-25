@@ -16,7 +16,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -74,7 +73,9 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 			return
 		}
 
-		proxy, err := ap.buildReverseProxy(c.Request.Context(), orgID, clusterID)
+		proxyPath := c.Param("proxyPath")
+
+		proxy, err := ap.buildReverseProxy(c.Request.Context(), proxyPath, orgID, clusterID)
 		if err != nil {
 			ap.errorHandler.Handle(c.Request.Context(), err)
 
@@ -84,32 +85,6 @@ func (ap AnchoreProxy) Proxy() gin.HandlerFunc {
 
 		proxy.ServeHTTP(c.Writer, c.Request)
 	}
-}
-
-// getProxyPath processes the path the request is proxied to
-func (ap AnchoreProxy) getProxyPath(sourcePath string, orgID uint, clusterID uint) string {
-	prefixToTrim := fmt.Sprintf("%s/api/v1/orgs/%d/clusters/%d/", ap.basePath, orgID, clusterID)
-
-	return ap.adaptToAnchoreResourcePath(strings.TrimPrefix(sourcePath, prefixToTrim))
-}
-
-// adaptToAnchoreResourcePath adapts the pipeline resources to the anchore ones
-func (ap AnchoreProxy) adaptToAnchoreResourcePath(proxyPath string) string {
-
-	// pipeline resource -> anchore resource
-	pathaDaptors := map[string]string{
-		"anchore":   "", // remove the "technical" resource element
-		"imagescan": "images",
-	}
-
-	var adaptedPath = proxyPath
-	for pipelineResource, anchorResource := range pathaDaptors {
-		if strings.Contains(proxyPath, pipelineResource) {
-			adaptedPath = strings.Replace(adaptedPath, pipelineResource, anchorResource, 1)
-		}
-	}
-
-	return adaptedPath
 }
 
 // processCredentials depending on the configuration get the appropriate credentials for accessing anchore
@@ -129,7 +104,7 @@ func (ap AnchoreProxy) processCredentials(ctx context.Context, config anchore.Co
 	return username, password, err
 }
 
-func (ap AnchoreProxy) buildProxyDirector(ctx context.Context, orgID uint, clusterID uint) (func(req *http.Request), error) {
+func (ap AnchoreProxy) buildProxyDirector(ctx context.Context, proxyPath string, orgID uint, clusterID uint) (func(req *http.Request), error) {
 	fnCtx := map[string]interface{}{"orgiD": orgID, "clusterID": clusterID}
 	config, err := ap.configService.GetConfiguration(ctx, clusterID)
 	if err != nil {
@@ -159,7 +134,7 @@ func (ap AnchoreProxy) buildProxyDirector(ctx context.Context, orgID uint, clust
 
 		r.URL.Scheme = backendURL.Scheme
 		r.URL.Host = backendURL.Host
-		r.URL.Path = strings.Join([]string{backendURL.Path, ap.getProxyPath(r.URL.Path, orgID, clusterID)}, "/")
+		r.URL.Path = strings.Join([]string{backendURL.Path, proxyPath}, "")
 
 		if backendURL.RawQuery == "" || r.URL.RawQuery == "" {
 			r.URL.RawQuery = backendURL.RawQuery + r.URL.RawQuery
@@ -179,8 +154,8 @@ func (ap AnchoreProxy) buildProxyModifyResponseFunc(ctx context.Context) (func(*
 	}, nil
 }
 
-func (ap AnchoreProxy) buildReverseProxy(ctx context.Context, orgID uint, clusterID uint) (*httputil.ReverseProxy, error) {
-	director, err := ap.buildProxyDirector(ctx, orgID, clusterID)
+func (ap AnchoreProxy) buildReverseProxy(ctx context.Context, proxyPath string, orgID uint, clusterID uint) (*httputil.ReverseProxy, error) {
+	director, err := ap.buildProxyDirector(ctx, proxyPath, orgID, clusterID)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to build reverse proxy")
 	}
