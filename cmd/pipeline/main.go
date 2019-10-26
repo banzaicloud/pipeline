@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/base32"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -429,7 +430,6 @@ func main() {
 
 	router := mux.NewRouter()
 	router.Use(ocmux.Middleware())
-	router = router.PathPrefix(basePath).Subrouter()
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
 	skipPaths := viper.GetStringSlice("audit.skippaths")
@@ -460,9 +460,11 @@ func main() {
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
 
-	engine.GET("/", api.RedirectRoot)
+	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(viper.GetString("pipeline.uipath"), http.StatusTemporaryRedirect))
+	engine.GET("/", gin.WrapH(router))
 
 	base := engine.Group(basePath)
+	router = router.PathPrefix(basePath).Subrouter()
 
 	// Frontend service
 	{
