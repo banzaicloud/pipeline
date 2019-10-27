@@ -22,10 +22,10 @@ import (
 	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/moogar0880/problems"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
 
 	"github.com/banzaicloud/pipeline/internal/app/pipeline/auth/token"
+	"github.com/banzaicloud/pipeline/pkg/problems"
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.

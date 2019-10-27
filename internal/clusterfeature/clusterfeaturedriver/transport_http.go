@@ -23,11 +23,11 @@ import (
 	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/moogar0880/problems"
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
+	"github.com/banzaicloud/pipeline/pkg/problems"
 )
 
 // RegisterHTTPHandlers mounts all of the service endpoints into an http.Handler.
@@ -75,7 +75,7 @@ func RegisterHTTPHandlers(endpoints Endpoints, router *mux.Router, errorHandler 
 }
 
 func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
-	var problem *problems.DefaultProblem
+	var problem problems.StatusProblem
 
 	switch {
 	case isNotFoundError(err):
@@ -88,7 +88,7 @@ func encodeHTTPError(_ context.Context, err error, w http.ResponseWriter) {
 	}
 
 	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.Status)
+	w.WriteHeader(problem.ProblemStatus())
 
 	_ = json.NewEncoder(w).Encode(problem)
 }

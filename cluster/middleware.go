@@ -22,11 +22,11 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/gin-gonic/gin"
-	"github.com/moogar0880/problems"
 
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
+	"github.com/banzaicloud/pipeline/pkg/problems"
 )
 
 type notSupportedQueryError struct {
