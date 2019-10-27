@@ -18,9 +18,38 @@ import (
 	"github.com/moogar0880/problems"
 )
 
-// Problem describes an RFC-7807 problem.
-type Problem struct {
-	problems.DefaultProblem
+const (
+	// ProblemMediaType is the default media type for a DefaultProblem response
+	ProblemMediaType = problems.ProblemMediaType
+
+	// ProblemMediaTypeXML is the XML variant on the DefaultProblem Media type
+	ProblemMediaTypeXML = problems.ProblemMediaTypeXML
+
+	// DefaultURL is the default url to use for problem types
+	DefaultURL = problems.DefaultURL
+)
+
+// Problem is the interface describing an HTTP API problem. These "problem
+// details" are designed to encompass a way to carry machine- readable details
+// of errors in a HTTP response to avoid the need to define new error response
+// formats for HTTP APIs.
+type Problem = problems.Problem
+
+// StatusProblem is the interface describing a problem with an associated
+// Status code.
+type StatusProblem = problems.StatusProblem
+
+// ValidateProblem ensures that the provided Problem implementation meets the
+// Problem description requirements. Which means that the Type is a valid uri,
+// and that the Title be a non-empty string. Should the provided Problem be in
+// violation of either of these requirements, an error is returned.
+func ValidateProblem(p Problem) error {
+	return problems.ValidateProblem(p)
+}
+
+// DefaultProblem describes an RFC-7807 problem.
+type DefaultProblem struct {
+	*problems.DefaultProblem
 
 	// Legacy banzai error response fields
 	Code    int    `json:"code"`
@@ -29,11 +58,11 @@ type Problem struct {
 }
 
 // NewDetailedProblem returns a problem with details and legacy banzai fields filled.
-func NewDetailedProblem(status int, details string) Problem {
+func NewDetailedProblem(status int, details string) *DefaultProblem {
 	detailedProblem := problems.NewDetailedProblem(status, details)
 
-	return Problem{
-		DefaultProblem: *detailedProblem,
+	return &DefaultProblem{
+		DefaultProblem: detailedProblem,
 		Code:           detailedProblem.Status,
 		Message:        detailedProblem.Detail,
 		Error:          detailedProblem.Detail,
