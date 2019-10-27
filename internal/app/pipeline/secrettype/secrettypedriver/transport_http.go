@@ -57,16 +57,18 @@ func decodeGetSecretTypeHTTPRequest(_ context.Context, r *http.Request) (interfa
 }
 
 func errorEncoder(_ context.Context, w http.ResponseWriter, e error) error {
-	problem := problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
+	var problem problems.StatusProblem
 
 	switch {
 	case errors.Is(e, secrettype.ErrNotSupportedSecretType):
-		problem.Status = http.StatusNotFound
-		problem.Detail = e.Error()
+		problem = problems.NewDetailedProblem(http.StatusNotFound, e.Error())
+
+	default:
+		problem = problems.NewDetailedProblem(http.StatusInternalServerError, "something went wrong")
 	}
 
 	w.Header().Set("Content-Type", problems.ProblemMediaType)
-	w.WriteHeader(problem.Status)
+	w.WriteHeader(problem.ProblemStatus())
 
 	err := json.NewEncoder(w).Encode(problem)
 	if err != nil {
