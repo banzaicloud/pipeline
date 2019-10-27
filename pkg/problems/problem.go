@@ -59,12 +59,26 @@ type DefaultProblem struct {
 
 // NewDetailedProblem returns a problem with details and legacy banzai fields filled.
 func NewDetailedProblem(status int, details string) *DefaultProblem {
-	detailedProblem := problems.NewDetailedProblem(status, details)
+	problem := problems.NewDetailedProblem(status, details)
 
 	return &DefaultProblem{
-		DefaultProblem: detailedProblem,
-		Code:           detailedProblem.Status,
-		Message:        detailedProblem.Detail,
-		Error:          detailedProblem.Detail,
+		DefaultProblem: problem,
+		Code:           problem.Status,
+		Message:        problem.Detail,
+		Error:          problem.Detail,
+	}
+}
+
+// NewStatusProblem will generate a default problem for the provided HTTP status
+// code. The Problem's Status field will be set to match the status argument,
+// and the Title will be set to the default Go status text for that code.
+func NewStatusProblem(status int) *DefaultProblem {
+	problem := problems.NewStatusProblem(status)
+
+	return &DefaultProblem{
+		DefaultProblem: problem,
+		Code:           problem.Status,
+		Message:        problem.Title,
+		Error:          problem.Detail,
 	}
 }

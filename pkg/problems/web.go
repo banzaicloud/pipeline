@@ -16,27 +16,18 @@ package problems
 
 import (
 	"net/http"
-	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/moogar0880/problems"
 )
 
-func TestNewDetailedProblem(t *testing.T) {
-	const status = http.StatusBadRequest
-	const detail = "invalid request"
-
-	problem := NewDetailedProblem(status, detail)
-
-	assert.Equal(t, status, problem.Code)
-	assert.Equal(t, detail, problem.Message)
-	assert.Equal(t, detail, problem.Error, detail)
+// ProblemHandler returns an http.HandlerFunc which writes a provided problem
+// to an http.ResponseWriter as JSON
+func ProblemHandler(p Problem) http.HandlerFunc {
+	return problems.ProblemHandler(p)
 }
 
-func TestNewStatusProblem(t *testing.T) {
-	const status = http.StatusBadRequest
-
-	problem := NewStatusProblem(status)
-
-	assert.Equal(t, status, problem.Code)
-	assert.Equal(t, http.StatusText(status), problem.Message)
+// StatusProblemHandler returns an http.HandlerFunc which writes a provided
+// problem to an http.ResponseWriter as JSON with the status code
+func StatusProblemHandler(p StatusProblem) http.HandlerFunc {
+	return problems.StatusProblemHandler(p)
 }
