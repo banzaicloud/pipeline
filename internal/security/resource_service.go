@@ -224,11 +224,5 @@ func (s securityResourceService) assembleWhiteListItem(whitelistItem security.Re
 // Cluster defines operations that can be performed on a k8s cluster
 type Cluster interface {
 	GetK8sConfig() ([]byte, error)
-	GetName() string
-	GetOrganizationId() uint
-	GetUID() string
 	GetID() uint
-	IsReady() (bool, error)
-	NodePoolExists(nodePoolName string) bool
-	RbacEnabled() bool
 }

@@ -14,10 +14,12 @@
 
 package workflow
 
-import "errors"
+import (
+	"context"
+	"errors"
+	"time"
 
-const (
-	shouldRetryReason = "should retry activity"
+	"go.uber.org/cadence/activity"
 )
 
 func shouldRetry(err error) bool {
@@ -28,4 +30,28 @@ func shouldRetry(err error) bool {
 		return sh.ShouldRetry()
 	}
 	return false
+}
+
+func startHeartbeat(ctx context.Context, interval time.Duration) *time.Ticker {
+	heartbeat := time.NewTicker(interval)
+
+	go func() {
+		for {
+			activity.RecordHeartbeat(ctx)
+
+			if _, closed := <-heartbeat.C; closed {
+				return
+			}
+		}
+	}()
+
+	return heartbeat
+}
+
+func wait(ctx context.Context, duration time.Duration) error {
+	select {
+	case <-time.NewTimer(duration).C:
+	case <-ctx.Done():
+	}
+	return ctx.Err()
 }

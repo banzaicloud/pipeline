@@ -24,6 +24,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -38,7 +39,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 	orgID := uint(13)
 
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{},
+		Clusters: map[uint]dummyCluster{},
 	}
 	clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
@@ -56,15 +57,15 @@ func TestFeatureOperator_Apply(t *testing.T) {
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
-		Cluster clusterfeatureadapter.Cluster
+		Cluster dummyCluster
 		Error   interface{}
 	}{
 		"cluster not ready": {
 			Spec: clusterfeature.FeatureSpec{},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: false,
-				ID:    clusterID,
+				OrgID:  orgID,
+				Status: pkgCluster.Creating,
+				ID:     clusterID,
 			},
 			Error: clusterfeature.ClusterIsNotReadyError{
 				ClusterID: clusterID,
@@ -81,9 +82,9 @@ func TestFeatureOperator_Apply(t *testing.T) {
 				},
 			},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: true,
-				ID:    clusterID,
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
+				ID:     clusterID,
 			},
 			Error: false,
 		},
@@ -111,10 +112,10 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	clusterID := uint(42)
 
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{
-			clusterID: dummyCluster{
-				Ready: true,
-				ID:    clusterID,
+		Clusters: map[uint]dummyCluster{
+			clusterID: {
+				Status: pkgCluster.Running,
+				ID:     clusterID,
 			},
 		},
 	}

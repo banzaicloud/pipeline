@@ -40,8 +40,7 @@ type DeleteAzureInfrastructureWorkflowInput struct {
 func DeleteInfrastructureWorkflow(ctx workflow.Context, input DeleteAzureInfrastructureWorkflowInput) error {
 	ao := workflow.ActivityOptions{
 		ScheduleToStartTimeout: 5 * time.Minute,
-		StartToCloseTimeout:    10 * time.Minute,
-		ScheduleToCloseTimeout: 15 * time.Minute,
+		StartToCloseTimeout:    20 * time.Minute,
 		WaitForCancellation:    true,
 	}
 
