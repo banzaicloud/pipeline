@@ -178,9 +178,9 @@ func (nss *namespaceService) LabelNamespaces(ctx context.Context, clusterID uint
 		nss.logger.Debug("label namespace", map[string]interface{}{"namespace": namespace})
 		ns, err := namespacesCli.Get(namespace, metav1.GetOptions{})
 		if err != nil {
-			nss.logger.Debug("failed to retrieve namespace", map[string]interface{}{"namespace": namespace})
-			// todo should we report error if an invalid namespace is passed in? if so uncomment the line below
-			//combinedErr = errors.Append(combinedErr, errors.WrapIff(err, "failed to get namespace %s", ns))
+			// notice the error and let the operation succeed
+			nss.logger.Warn("failed to retrieve namespace", map[string]interface{}{"namespace": namespace})
+
 			continue
 		}
 
