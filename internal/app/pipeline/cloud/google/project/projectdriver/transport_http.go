@@ -22,8 +22,9 @@ import (
 	"emperror.dev/errors"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/moogar0880/problems"
 	kitxhttp "github.com/sagikazarmark/kitx/transport/http"
+
+	"github.com/banzaicloud/pipeline/pkg/problems"
 )
 
 const secretIDParam = "secretId"
