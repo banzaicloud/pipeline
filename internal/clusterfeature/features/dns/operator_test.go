@@ -70,7 +70,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 		},
 	}
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{},
+		Clusters: map[uint]dummyCluster{},
 	}
 	clusterService := clusterfeatureadapter.NewClusterService(clusterGetter)
 	helmService := dummyHelmService{}
@@ -84,7 +84,7 @@ func TestFeatureOperator_Apply(t *testing.T) {
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
-		Cluster clusterfeatureadapter.Cluster
+		Cluster dummyCluster
 		Error   interface{}
 	}{
 		"auto DNS, cluster ready": {
@@ -94,8 +94,8 @@ func TestFeatureOperator_Apply(t *testing.T) {
 				},
 			},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: true,
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
 			},
 		},
 		"auto DNS, cluster not ready": {
@@ -105,8 +105,8 @@ func TestFeatureOperator_Apply(t *testing.T) {
 				},
 			},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: false,
+				OrgID:  orgID,
+				Status: pkgCluster.Creating,
 			},
 			Error: clusterfeature.ClusterIsNotReadyError{
 				ClusterID: clusterID,
@@ -130,8 +130,8 @@ func TestFeatureOperator_Apply(t *testing.T) {
 				},
 			},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: true,
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
 			},
 		},
 		"custom DNS, cluster ready, with BRN": {
@@ -157,8 +157,8 @@ func TestFeatureOperator_Apply(t *testing.T) {
 				},
 			},
 			Cluster: dummyCluster{
-				OrgID: orgID,
-				Ready: true,
+				OrgID:  orgID,
+				Status: pkgCluster.Running,
 			},
 		},
 	}
@@ -185,9 +185,9 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	clusterID := uint(42)
 
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{
-			clusterID: dummyCluster{
-				Ready: true,
+		Clusters: map[uint]dummyCluster{
+			clusterID: {
+				Status: pkgCluster.Running,
 			},
 		},
 	}

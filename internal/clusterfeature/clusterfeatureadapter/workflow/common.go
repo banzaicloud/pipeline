@@ -22,10 +22,6 @@ import (
 	"go.uber.org/cadence/activity"
 )
 
-const (
-	shouldRetryReason = "should retry activity"
-)
-
 func shouldRetry(err error) bool {
 	var sh interface {
 		ShouldRetry() bool
