@@ -34,7 +34,8 @@ import (
 	intClusterGroup "github.com/banzaicloud/pipeline/internal/clustergroup"
 	"github.com/banzaicloud/pipeline/internal/global"
 	eksdriver "github.com/banzaicloud/pipeline/internal/providers/amazon/eks/driver"
-	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
+	azureDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
+	vsphereDriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/secret/restricted"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -66,17 +67,18 @@ type ClusterAPI struct {
 }
 
 type ClusterCreators struct {
-	PKEOnAzure driver.ClusterCreator
-	EKSAmazon  eksdriver.EksClusterCreator
+	PKEOnAzure   azureDriver.ClusterCreator
+	EKSAmazon    eksdriver.EksClusterCreator
+	PKEOnVsphere vsphereDriver.VspherePKEClusterCreator
 }
 
 type ClusterDeleters struct {
-	PKEOnAzure driver.ClusterDeleter
+	PKEOnAzure azureDriver.ClusterDeleter
 	EKSAmazon  eksdriver.EKSClusterDeleter
 }
 
 type ClusterUpdaters struct {
-	PKEOnAzure driver.ClusterUpdater
+	PKEOnAzure azureDriver.ClusterUpdater
 	EKSAmazon  eksdriver.EksClusterUpdater
 }
 

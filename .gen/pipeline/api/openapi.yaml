@@ -18680,13 +18680,57 @@ components:
       - name
       - roles
       type: object
+    CreatePKEOnVsphereClusterRequest:
+      allOf:
+      - $ref: '#/components/schemas/CreatePKEClusterRequestBase'
+      - $ref: '#/components/schemas/CreatePKEOnVsphereClusterRequest_allOf'
+    PKEOnVsphereNodePool:
+      properties:
+        name:
+          type: string
+        roles:
+          items:
+            enum:
+            - master
+            - system
+            - worker
+            type: string
+          type: array
+        labels:
+          additionalProperties:
+            type: string
+          type: object
+        count:
+          minimum: 1
+          type: integer
+        vcpu:
+          description: Number of VCPUs to attach to each node.
+          example: 2
+          type: integer
+        ramMB:
+          description: MiBs of RAM to attach to each node.
+          example: 2048
+          type: integer
+        template:
+          description: Name of VM template available on vSphere to clone as the base
+            of nodes.
+          example: '[{"simple":{"value":"centos-7-pke-201910021808","summary":"Name
+            of template to use when it''s unambigious."}},{"absolute":{"value":"/Datacenter/vm/centos-7-pke-201910021808"}}]'
+          type: string
+        adminUsername:
+          description: Name of admin user to deploy the generated SSH public key for.
+            No key will be deployed if omitted.
+          example: root
+          type: string
+      required:
+      - name
+      - ramMB
+      - roles
+      - vcpu
+      type: object
     CreateClusterRequestV2:
-      discriminator:
-        mapping:
-          pke-on-azure: '#/components/schemas/CreatePKEOnAzureClusterRequest'
-        propertyName: type
-      oneOf:
-      - $ref: '#/components/schemas/CreatePKEOnAzureClusterRequest'
+      allOf:
+      - $ref: '#/components/schemas/CreateClusterRequestBase'
     NodePool:
       oneOf:
       - $ref: '#/components/schemas/EksNodePool'
@@ -22775,6 +22819,29 @@ components:
             does not need to be specified.
           example: 10.0.0.0/24
           type: string
+    CreatePKEOnVsphereClusterRequest_allOf:
+      properties:
+        folder:
+          description: Folder to create nodes in.
+          example: '[{"simple":{"value":"my-folder","summary":"The name of the folder
+            anywhere in the hierarchy when it''s unambigious."}},{"absolute":{"value":"/Datacenter/vm/my-folder","summary":"Absolute
+            path to the folder. Most vSphere installations use paths prefixed with
+            /Datacenter/vm/."}}]'
+          type: string
+        datastore:
+          description: Name of datastore or datastore cluster to place VM disks on.
+          example: Datastore-cluster
+          type: string
+        resourcePool:
+          description: Virtual machines will be created in this resource pool.
+          example: my-resource-pool
+          type: string
+        nodepools:
+          items:
+            $ref: '#/components/schemas/PKEOnVsphereNodePool'
+          type: array
+      required:
+      - resourceGroup
     EksNodePool_allOf:
       properties:
         autoscaling:

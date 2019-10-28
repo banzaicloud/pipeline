@@ -57,6 +57,7 @@ const (
 	Dummy      = "dummy"
 	Kubernetes = "kubernetes"
 	Oracle     = "oracle"
+	Vsphere    = "vsphere"
 )
 
 // Distribution constants

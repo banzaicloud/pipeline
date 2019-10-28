@@ -113,6 +113,8 @@ import (
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
 	"github.com/banzaicloud/pipeline/internal/providers/google"
 	"github.com/banzaicloud/pipeline/internal/providers/google/googleadapter"
+	vspherePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
+	vspherePKEDriver "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 	"github.com/banzaicloud/pipeline/pkg/cloudinfo"
 	"github.com/banzaicloud/pipeline/pkg/ctxutil"
@@ -397,6 +399,7 @@ func main() {
 	}))
 
 	azurePKEClusterStore := azurePKEAdapter.NewClusterStore(db, commonLogger)
+	gormVspherePKEClusterStore := vspherePKEAdapter.NewGORMVspherePKEClusterStore(db)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{
@@ -418,6 +421,18 @@ func main() {
 			secretValidator,
 			statusChangeDurationMetric,
 			clusterTotalMetric,
+		),
+		PKEOnVsphere: vspherePKEDriver.MakeVspherePKEClusterCreator(
+			vspherePKEDriver.ClusterCreatorConfig{
+				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
+				PipelineExternalURL:         externalBaseURL,
+				PipelineExternalURLInsecure: externalURLInsecure,
+			},
+			logrusLogger,
+			authdriver.NewOrganizationGetter(db),
+			secret.Store,
+			gormVspherePKEClusterStore,
+			workflowClient,
 		),
 	}
 	clusterDeleters := api.ClusterDeleters{

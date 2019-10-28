@@ -34,6 +34,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	pkeAzureAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver/commoncluster"
+	vsphereadapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/adapter"
+	pkeVsphereAdapter "github.com/banzaicloud/pipeline/internal/providers/vsphere/pke/driver/commoncluster"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
@@ -303,12 +305,16 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 
 	db := global.DB()
 
-	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
+	if modelCluster.Distribution == pkgCluster.PKE {
 		logger := commonadapter.NewLogger(logrusadapter.New(log))
-		logger.Debug("azure adapter stuff")
-		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewClusterStore(db, logger)).GetByID(modelCluster.ID)
-	} else if modelCluster.Distribution == pkgCluster.PKE {
-		return createCommonClusterWithDistributionFromModel(modelCluster)
+		switch modelCluster.Cloud {
+		case pkgCluster.Azure:
+			return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewClusterStore(db, logger)).GetByID(modelCluster.ID)
+		case pkgCluster.Vsphere:
+			return pkeVsphereAdapter.MakeCommonClusterGetter(secret.Store, vsphereadapter.NewGORMVspherePKEClusterStore(db)).GetByID(modelCluster.ID)
+		default:
+			return createCommonClusterWithDistributionFromModel(modelCluster)
+		}
 	}
 
 	switch modelCluster.Cloud {
