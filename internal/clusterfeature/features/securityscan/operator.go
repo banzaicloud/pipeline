@@ -174,7 +174,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 	if err := op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"}); err != nil {
 
-		// if the operation fails due some reason (eg. inexistent namespaces) we notice that and let the deactivation succeed
+		// if the operation fails for some reason (eg. non-existent namespaces) we notice that and let the deactivation succeed
 		op.logger.Warn("failed to delete namespace labels", map[string]interface{}{"clusterID": clusterID})
 		return nil
 
