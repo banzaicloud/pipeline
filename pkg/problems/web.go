@@ -1,4 +1,4 @@
-// Copyright © 2018 Banzai Cloud
+// Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package problems
 
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-
-	"github.com/banzaicloud/pipeline/auth"
+	"github.com/moogar0880/problems"
 )
 
-// RedirectRoot sets redirect
-func RedirectRoot(c *gin.Context) {
-	currentUser := auth.Auth.GetCurrentUser(c.Request)
-	if currentUser != nil {
-		c.Redirect(http.StatusTemporaryRedirect, viper.GetString("pipeline.uipath"))
-	} else {
-		c.Redirect(http.StatusTemporaryRedirect, viper.GetString("pipeline.uipath"))
-	}
-	return
+// ProblemHandler returns an http.HandlerFunc which writes a provided problem
+// to an http.ResponseWriter as JSON
+func ProblemHandler(p Problem) http.HandlerFunc {
+	return problems.ProblemHandler(p)
+}
+
+// StatusProblemHandler returns an http.HandlerFunc which writes a provided
+// problem to an http.ResponseWriter as JSON with the status code
+func StatusProblemHandler(p StatusProblem) http.HandlerFunc {
+	return problems.StatusProblemHandler(p)
 }
