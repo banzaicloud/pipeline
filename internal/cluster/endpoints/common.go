@@ -20,4 +20,5 @@ import (
 
 type EndpointService interface {
 	List(kubeConfig []byte, releaseName string) ([]*pkgHelm.EndpointItem, error)
+	GetServiceUrl(kubeConfig []byte, serviceName string, namespace string) (string, error)
 }

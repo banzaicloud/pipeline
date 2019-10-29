@@ -78,6 +78,20 @@ func (m *EndpointManager) List(kubeConfig []byte, releaseName string) ([]*pkgHel
 	return m.getLoadBalancersWithIngressPaths(serviceList, ingressList), nil
 }
 
+func (m *EndpointManager) GetServiceUrl(kubeConfig []byte, serviceName string, namespace string) (string, error) {
+	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to create K8S client")
+	}
+
+	service, err := client.CoreV1().Services(namespace).Get(serviceName, metav1.GetOptions{})
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to list services")
+	}
+
+	return fmt.Sprintf("%s:%d", service.Spec.ClusterIP, service.Spec.Ports[0].Port), nil
+}
+
 func deploymentHasOwnLoadBalancer(serviceList *v1.ServiceList, releaseName string) bool {
 	if releaseName == "" {
 		return false
