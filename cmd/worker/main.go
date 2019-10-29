@@ -377,7 +377,7 @@ func main() {
 					logger,
 				),
 				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, commonSecretStore, logger),
-				featureMonitoring.MakeFeatureOperator(clusterGetter, clusterService, helmService, monitorConfiguration, logger, commonSecretStore),
+				featureMonitoring.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, monitorConfiguration, logger, commonSecretStore),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)
