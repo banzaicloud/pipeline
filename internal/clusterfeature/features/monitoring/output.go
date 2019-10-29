@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+
 	"github.com/banzaicloud/pipeline/internal/cluster/endpoints"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"

@@ -24,10 +24,10 @@ func newAlertmanagerOutputHelper(
 ) outputAlertmanager {
 	return outputAlertmanager{
 		baseOutput: baseOutput{
-			ingress:              spec.Alertmanager.Ingress.baseIngressSpec,
-			secretID:             spec.Alertmanager.Ingress.SecretId,
-			enabled:              spec.Alertmanager.Enabled,
-			k8sConfig:            kubeConfig,
+			ingress:   spec.Alertmanager.Ingress.baseIngressSpec,
+			secretID:  spec.Alertmanager.Ingress.SecretId,
+			enabled:   spec.Alertmanager.Enabled,
+			k8sConfig: kubeConfig,
 		},
 	}
 }
