@@ -14,40 +14,40 @@
 
 package monitoring
 
-type outputPrometheus struct {
+type outputPushgateway struct {
 	baseOutput
 }
 
-func newPrometheusOutputHelper(
+func newPushgatewayOutputHelper(
 	kubeConfig []byte,
 	spec featureSpec,
-) outputPrometheus {
-	return outputPrometheus{
+) outputPushgateway {
+	return outputPushgateway{
 		baseOutput: baseOutput{
-			ingress:   spec.Prometheus.Ingress.baseIngressSpec,
-			secretID:  spec.Prometheus.Ingress.SecretId,
-			enabled:   spec.Prometheus.Enabled,
+			ingress:   spec.Pushgateway.Ingress.baseIngressSpec,
+			secretID:  spec.Pushgateway.Ingress.SecretId,
+			enabled:   spec.Pushgateway.Enabled,
 			k8sConfig: kubeConfig,
 		},
 	}
 }
 
-func (outputPrometheus) getOutputType() string {
-	return "Prometheus"
+func (outputPushgateway) getOutputType() string {
+	return "Pushgateway"
 }
 
-func (outputPrometheus) getTopLevelDeploymentKey() string {
-	return "prometheus"
+func (outputPushgateway) getTopLevelDeploymentKey() string {
+	return ""
 }
 
-func (outputPrometheus) getDeploymentValueParentKey() string {
-	return "prometheusSpec"
+func (outputPushgateway) getDeploymentValueParentKey() string {
+	return ""
 }
 
-func (outputPrometheus) getGeneratedSecretName(clusterID uint) string {
-	return getPrometheusSecretName(clusterID)
+func (outputPushgateway) getGeneratedSecretName(clusterID uint) string {
+	return getPushgatewaySecretName(clusterID)
 }
 
-func (outputPrometheus) getServiceName() string {
-	return "monitor-prometheus-operato-prometheus"
+func (outputPushgateway) getServiceName() string {
+	return "pushgateway-prometheus-pushgateway"
 }

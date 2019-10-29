@@ -107,11 +107,12 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 	}
 
 	chartVersion := m.config.operator.chartVersion
+	pipelineSystemNamespace := m.config.pipelineSystemNamespace
 	out := clusterfeature.FeatureOutput{
-		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(boundSpec), endpoints, operatorValues),
-		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(boundSpec), endpoints, operatorValues),
-		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(boundSpec), endpoints, operatorValues),
-		"pushgateway":  m.getPushgatewayOutput(ctx, pushgatewayValues),
+		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(kubeConfig, boundSpec), endpoints, pipelineSystemNamespace, prometheusOperatorReleaseName, operatorValues),
+		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(kubeConfig, boundSpec), endpoints, pipelineSystemNamespace, prometheusOperatorReleaseName, operatorValues),
+		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(kubeConfig, boundSpec), endpoints, pipelineSystemNamespace, prometheusOperatorReleaseName, operatorValues),
+		"pushgateway":  m.getComponentOutput(ctx, clusterID, newPushgatewayOutputHelper(kubeConfig, boundSpec), endpoints, pipelineSystemNamespace, prometheusPushgatewayReleaseName, pushgatewayValues),
 		"prometheusOperator": map[string]interface{}{
 			"version": chartVersion,
 		},
@@ -150,6 +151,8 @@ func (m FeatureManager) getComponentOutput(
 	clusterID uint,
 	helper outputHelper,
 	endpoints []*pkgHelm.EndpointItem,
+	pipelineSystemNamespace string,
+	releaseName string,
 	deploymentValues map[string]interface{},
 ) map[string]interface{} {
 	var out = make(map[string]interface{})
@@ -161,22 +164,11 @@ func (m FeatureManager) getComponentOutput(
 	}
 
 	writeSecretID(ctx, o, clusterID, out)
-	writeUrl(o, endpoints, out)
+	writeUrl(o, endpoints, releaseName, out)
 	writeVersion(o, deploymentValues, out)
+	if err := writeServiceUrl(o, m.endpointsService, pipelineSystemNamespace, out); err != nil {
+		m.logger.Warn(fmt.Sprintf("failed to get service url: %s", err.Error()))
+	}
 
 	return out
-}
-
-func (FeatureManager) getPushgatewayOutput(
-	ctx context.Context,
-	deploymentValues map[string]interface{},
-) map[string]interface{} {
-	var output = make(map[string]interface{})
-	if deploymentValues != nil {
-		// set Pushgateway version
-		if image, ok := deploymentValues["image"].(map[string]interface{}); ok {
-			output["version"] = image["tag"]
-		}
-	}
-	return output
 }
