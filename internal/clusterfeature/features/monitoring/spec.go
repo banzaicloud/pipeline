@@ -64,6 +64,7 @@ type baseIngressSpec struct {
 }
 
 type exportersSpec struct {
+	Enabled          bool
 	NodeExporter     bool `json:"nodeExporter" mapstructure:"nodeExporter"`
 	KubeStateMetrics bool `json:"kubeStateMetrics" mapstructure:"kubeStateMetrics"`
 }
@@ -111,6 +112,18 @@ func (s featureSpec) Validate() error {
 	// Pushgateway validation
 	if err := s.Pushgateway.Validate(); err != nil {
 		return err
+	}
+
+	if !s.Exporters.Enabled {
+		return cannotDisabledError{fieldName: "exporters"}
+	}
+
+	if !s.Exporters.KubeStateMetrics {
+		return cannotDisabledError{fieldName: "kubeStateMetrics"}
+	}
+
+	if !s.Exporters.NodeExporter {
+		return cannotDisabledError{fieldName: "nodeExporter"}
 	}
 
 	return nil
