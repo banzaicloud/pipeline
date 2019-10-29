@@ -83,7 +83,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	spec := obj{
 		"grafana": obj{
 			"enabled": true,
-			"public": obj{
+			"ingress": obj{
 				"enabled": true,
 				"path":    "/grafana",
 			},
@@ -91,13 +91,13 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 		},
 		"alertmanager": obj{
 			"enabled": true,
-			"public": obj{
+			"ingress": obj{
 				"enabled": false,
 			},
 		},
 		"prometheus": obj{
 			"enabled": true,
-			"public": obj{
+			"ingress": obj{
 				"enabled": true,
 				"path":    "/prometheus",
 			},
@@ -110,16 +110,20 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 
 	assert.Equal(t, clusterfeature.FeatureOutput{
 		"grafana": obj{
-			"url": grafanaURL,
+			"serviceUrl": serviceUrl,
+			"url":        grafanaURL,
 		},
 		"prometheus": obj{
-			"url": prometheusURL,
+			"serviceUrl": serviceUrl,
+			"url":        prometheusURL,
 		},
 		"prometheusOperator": obj{
 			"version": config.operator.chartVersion,
 		},
-		"alertmanager": obj{},
-		"pushgateway":  obj{},
+		"alertmanager": obj{
+			"serviceUrl": serviceUrl,
+		},
+		"pushgateway": obj{},
 	}, output)
 }
 
@@ -133,23 +137,32 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 	}{
 		"empty spec": {
 			Spec:  clusterfeature.FeatureSpec{},
-			Error: false,
+			Error: true,
 		},
 		"valid spec": {
 			Spec: obj{
 				"grafana": obj{
 					"enabled": true,
-					"public": obj{
+					"ingress": obj{
 						"enabled": true,
 						"path":    grafanaPath,
 					},
 				},
 				"prometheus": obj{
 					"enabled": true,
-					"public": obj{
+					"storage": obj{
+						"size":      100,
+						"retention": "10m",
+					},
+					"ingress": obj{
 						"enabled": true,
 						"path":    prometheusPath,
 					},
+				},
+				"exporters": obj{
+					"enabled":          true,
+					"nodeExporter":     true,
+					"kubeStateMetrics": true,
 				},
 			},
 			Error: false,
@@ -158,23 +171,137 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 			Spec: obj{
 				"grafana": obj{
 					"enabled": true,
-					"public": obj{
+					"ingress": obj{
 						"enabled": true,
 						"path":    "",
 					},
 				},
+				"prometheus": obj{
+					"enabled": true,
+					"storage": obj{
+						"size":      100,
+						"retention": "10m",
+					},
+					"ingress": obj{
+						"enabled": true,
+						"path":    prometheusPath,
+					},
+				},
+				"exporters": obj{
+					"enabled":          true,
+					"nodeExporter":     true,
+					"kubeStateMetrics": true,
+				},
 			},
 			Error: true,
 		},
-		"invalid domain": {
+		"Grafana invalid domain": {
 			Spec: obj{
 				"grafana": obj{
 					"enabled": true,
-					"public": obj{
+					"ingress": obj{
+						"enabled": true,
+						"domain":  "2342#@",
+						"path":    grafanaPath,
+					},
+				},
+				"prometheus": obj{
+					"enabled": true,
+					"storage": obj{
+						"size":      100,
+						"retention": "10m",
+					},
+					"ingress": obj{
+						"enabled": true,
+						"path":    prometheusPath,
+					},
+				},
+				"exporters": obj{
+					"enabled":          true,
+					"nodeExporter":     true,
+					"kubeStateMetrics": true,
+				},
+			},
+			Error: true,
+		},
+		"disabled exporters": {
+			Spec: obj{
+				"grafana": obj{
+					"enabled": true,
+					"ingress": obj{
 						"enabled": true,
 						"path":    grafanaPath,
-						"domain":  "23445@#",
 					},
+				},
+				"prometheus": obj{
+					"enabled": true,
+					"storage": obj{
+						"size":      100,
+						"retention": "10m",
+					},
+					"ingress": obj{
+						"enabled": true,
+						"path":    prometheusPath,
+					},
+				},
+				"exporters": obj{
+					"enabled": false,
+				},
+			},
+			Error: true,
+		},
+		"disabled nodeExporter": {
+			Spec: obj{
+				"grafana": obj{
+					"enabled": true,
+					"ingress": obj{
+						"enabled": true,
+						"path":    grafanaPath,
+					},
+				},
+				"prometheus": obj{
+					"enabled": true,
+					"storage": obj{
+						"size":      100,
+						"retention": "10m",
+					},
+					"ingress": obj{
+						"enabled": true,
+						"path":    prometheusPath,
+					},
+				},
+				"exporters": obj{
+					"enabled":          true,
+					"nodeExporter":     false,
+					"kubeStateMetrics": true,
+				},
+			},
+			Error: true,
+		},
+		"disabled kubeStateMetrics": {
+			Spec: obj{
+				"grafana": obj{
+					"enabled": true,
+					"ingress": obj{
+						"enabled": true,
+						"path":    grafanaPath,
+					},
+				},
+				"prometheus": obj{
+					"enabled": true,
+					"storage": obj{
+						"size":      100,
+						"retention": "10m",
+					},
+					"ingress": obj{
+						"enabled": true,
+						"path":    prometheusPath,
+					},
+				},
+				"exporters": obj{
+					"enabled":          true,
+					"nodeExporter":     true,
+					"kubeStateMetrics": false,
 				},
 			},
 			Error: true,

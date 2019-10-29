@@ -30,7 +30,7 @@ import (
 )
 
 func TestFeatureOperator_Name(t *testing.T) {
-	op := MakeFeatureOperator(nil, nil, nil, NewFeatureConfiguration(), nil, nil)
+	op := MakeFeatureOperator(nil, nil, nil, nil, NewFeatureConfiguration(), nil, nil)
 
 	assert.Equal(t, "monitoring", op.Name())
 }
@@ -70,7 +70,8 @@ func TestFeatureOperator_Apply(t *testing.T) {
 
 	logger := commonadapter.NewNoopLogger()
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, Configuration{}, logger, secretStore)
+	kubernetesService := dummyKubernetesService{}
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Configuration{}, logger, secretStore)
 
 	cases := map[string]struct {
 		Spec    clusterfeature.FeatureSpec
@@ -154,7 +155,8 @@ func TestFeatureOperator_Deactivate(t *testing.T) {
 	}
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	logger := commonadapter.NewNoopLogger()
-	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, Configuration{}, logger, secretStore)
+	kubernetesService := dummyKubernetesService{}
+	op := MakeFeatureOperator(clusterGetter, clusterService, helmService, &kubernetesService, Configuration{}, logger, secretStore)
 
 	ctx := context.Background()
 
