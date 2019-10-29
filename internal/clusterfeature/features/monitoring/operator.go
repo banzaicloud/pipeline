@@ -102,22 +102,63 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		}
 	}
 
-	if boundSpec.Prometheus.Enabled {
-		// get Prometheus secret from spec or generate
-		prometheusSecretName, err := op.getPrometheusSecret(ctx, cluster, boundSpec, logger)
-		if err != nil {
-			return errors.WrapIf(err, "failed to get Prometheus secret")
-		}
+	baseSecretInfoer := baseSecretInfoer{
+		clusterID: clusterID,
+	}
 
-		// install Prometheus secret
-		if err := op.installPrometheusSecret(ctx, clusterID, prometheusSecretName); err != nil {
-			return errors.WrapIfWithDetails(err, "failed to install Prometheus secret to cluster", "clusterID", clusterID)
+	// Prometheus
+	var prometheusSecretName string
+	if boundSpec.Prometheus.Enabled && boundSpec.Prometheus.Ingress.Enabled {
+		// get Prometheus secret from spec or generate
+		var manager = secretManager{
+			operator: op,
+			cluster:  cluster,
+			tags:     []string{prometheusSecretTag},
+			infoer:   prometheusSecretInfoer{baseSecretInfoer: baseSecretInfoer},
+		}
+		prometheusSecretName, err = generateAndInstallSecret(ctx, boundSpec.Prometheus.Ingress, manager, logger)
+		if err != nil {
+			return errors.WrapIf(err, "failed to setup Prometheus ingress")
 		}
 	}
 
-	// install Prometheus Pushgateway
-	if err := op.installPrometheusPushGateway(ctx, cluster, logger); err != nil {
-		return errors.WrapIf(err, "failed to install Prometheus Pushgateway")
+	// Alertmanager
+	var alertmanagerSecretName string
+	if boundSpec.Alertmanager.Enabled && boundSpec.Alertmanager.Ingress.Enabled {
+		// get Alertmanager secret from spec or generate
+		var manager = secretManager{
+			operator: op,
+			cluster:  cluster,
+			tags:     []string{alertmanagerSecretTag},
+			infoer:   alertmanagerSecretInfoer{baseSecretInfoer: baseSecretInfoer},
+		}
+		alertmanagerSecretName, err = generateAndInstallSecret(ctx, boundSpec.Alertmanager.Ingress, manager, logger)
+		if err != nil {
+			return errors.WrapIf(err, "failed to setup Alertmanager ingress")
+		}
+	}
+
+	// Pushgateway
+	var pushgatewaySecretName string
+	if boundSpec.Pushgateway.Enabled {
+		if boundSpec.Pushgateway.Ingress.Enabled {
+			var manager = secretManager{
+				operator: op,
+				cluster:  cluster,
+				tags:     []string{pushgatewaySecretTag},
+				infoer:   pushgatewaySecretInfoer{baseSecretInfoer: baseSecretInfoer},
+			}
+
+			pushgatewaySecretName, err = generateAndInstallSecret(ctx, boundSpec.Pushgateway.Ingress, manager, logger)
+			if err != nil {
+				return errors.WrapIf(err, "failed to setup Pushgateway ingress")
+			}
+		}
+
+		// install Prometheus Pushgateway
+		if err := op.installPrometheusPushGateway(ctx, cluster, boundSpec.Pushgateway, pushgatewaySecretName, logger); err != nil {
+			return errors.WrapIf(err, "failed to install Prometheus Pushgateway")
+		}
 	}
 
 	// install Prometheus Operator
@@ -169,25 +210,6 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	// delete prometheus pushgateway deployment
 	if err := op.helmService.DeleteDeployment(ctx, clusterID, prometheusPushgatewayReleaseName); err != nil {
 		return errors.WrapIfWithDetails(err, "failed to delete deployment", "release", prometheusPushgatewayReleaseName)
-	}
-
-	return nil
-}
-
-func (op FeatureOperator) installPrometheusSecret(ctx context.Context, clusterID uint, prometheusSecretName string) error {
-	pipelineSystemNamespace := op.config.pipelineSystemNamespace
-
-	installPromSecretRequest := pkgCluster.InstallSecretRequest{
-		SourceSecretName: prometheusSecretName,
-		Namespace:        pipelineSystemNamespace,
-		Spec: map[string]pkgCluster.InstallSecretRequestSpecItem{
-			"auth": {Source: secrettype.HtpasswdFile},
-		},
-		Update: true,
-	}
-
-	if _, err := op.installSecret(ctx, clusterID, prometheusSecretName, installPromSecretRequest); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to install Prometheus secret to cluster", "clusterID", clusterID)
 	}
 
 	return nil
@@ -393,40 +415,6 @@ func (op FeatureOperator) deletePrometheusSecret(ctx context.Context, clusterID 
 	return op.secretStore.Delete(ctx, secretID)
 }
 
-func (op FeatureOperator) generatePrometheusSecret(ctx context.Context, cluster clusterfeatureadapter.Cluster) (string, error) {
-
-	clusterNameSecretTag := getClusterNameSecretTag(cluster.GetName())
-	clusterUidSecretTag := getClusterUIDSecretTag(cluster.GetUID())
-	releaseSecretTag := getReleaseSecretTag()
-	prometheusSecretName := getPrometheusSecretName(cluster.GetID())
-
-	prometheusAdminPass, err := secret.RandomString("randAlphaNum", 12)
-	if err != nil {
-		return "", errors.WrapIf(err, "Prometheus password generation failed")
-	}
-
-	prometheusSecretRequest := &secret.CreateSecretRequest{
-		Name: prometheusSecretName,
-		Type: secrettype.HtpasswdSecretType,
-		Values: map[string]string{
-			secrettype.Username: prometheusSecretUserName,
-			secrettype.Password: prometheusAdminPass,
-		},
-		Tags: []string{
-			clusterNameSecretTag,
-			clusterUidSecretTag,
-			secret.TagBanzaiReadonly,
-			releaseSecretTag,
-		},
-	}
-	_, err = secret.Store.CreateOrUpdate(cluster.GetOrganizationId(), prometheusSecretRequest)
-	if err != nil {
-		return "", errors.WrapIf(err, "failed to store Prometheus secret")
-	}
-
-	return prometheusSecretName, nil
-}
-
 func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest pkgCluster.InstallSecretRequest) (*secret.K8SSourceMeta, error) {
 	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
@@ -466,39 +454,6 @@ func (op FeatureOperator) getGrafanaSecret(
 	}
 
 	return secretID, nil
-}
-
-func (op FeatureOperator) getPrometheusSecret(
-	ctx context.Context,
-	cluster clusterfeatureadapter.Cluster,
-	spec featureSpec,
-	logger common.Logger,
-) (string, error) {
-	var secretName string
-	if spec.Prometheus.SecretId == "" {
-		// generate Prometheus secret
-		var prometheusSecretName = getPrometheusSecretName(cluster.GetID())
-		existingSecretID, err := op.secretStore.GetIDByName(ctx, prometheusSecretName)
-		if existingSecretID != "" {
-			logger.Debug("Prometheus secret already exists")
-			return prometheusSecretName, nil
-		} else if isSecretNotFoundError(err) {
-			// generate and store Prometheus secret
-			secretName, err = op.generatePrometheusSecret(ctx, cluster)
-			if err != nil {
-				return "", errors.WrapIf(err, "failed to generate Prometheus secret")
-			}
-		} else {
-			return "", errors.WrapIf(err, "error during getting Prometheus secret")
-		}
-	} else {
-		var err error
-		secretName, err = op.secretStore.GetNameByID(ctx, spec.Prometheus.SecretId)
-		if err != nil {
-			return "", errors.WrapIfWithDetails(err, "failed to get Prometheus secret", "secretID", spec.Prometheus.SecretId)
-		}
-	}
-	return secretName, nil
 }
 
 func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
