@@ -21,6 +21,7 @@ import (
 
 	"emperror.dev/errors"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/storage/v1beta1"
 
 	"github.com/banzaicloud/pipeline/auth"
 	pkgCluster "github.com/banzaicloud/pipeline/cluster"
@@ -35,12 +36,13 @@ import (
 
 // FeatureOperator implements the Monitoring feature operator
 type FeatureOperator struct {
-	clusterGetter  clusterfeatureadapter.ClusterGetter
-	clusterService clusterfeature.ClusterService
-	helmService    features.HelmService
-	config         Configuration
-	logger         common.Logger
-	secretStore    features.SecretStore
+	clusterGetter     clusterfeatureadapter.ClusterGetter
+	clusterService    clusterfeature.ClusterService
+	helmService       features.HelmService
+	kubernetesService features.KubernetesService
+	config            Configuration
+	logger            common.Logger
+	secretStore       features.SecretStore
 }
 
 // MakeFeatureOperator returns a Monitoring feature operator
@@ -48,17 +50,19 @@ func MakeFeatureOperator(
 	clusterGetter clusterfeatureadapter.ClusterGetter,
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
+	kubernetesService features.KubernetesService,
 	config Configuration,
 	logger common.Logger,
 	secretStore features.SecretStore,
 ) FeatureOperator {
 	return FeatureOperator{
-		clusterGetter:  clusterGetter,
-		clusterService: clusterService,
-		helmService:    helmService,
-		config:         config,
-		logger:         logger,
-		secretStore:    secretStore,
+		clusterGetter:     clusterGetter,
+		clusterService:    clusterService,
+		helmService:       helmService,
+		kubernetesService: kubernetesService,
+		config:            config,
+		logger:            logger,
+		secretStore:       secretStore,
 	}
 }
 
@@ -577,4 +581,21 @@ func GetHeadNodeTolerations(config Configuration) []v1.Toleration {
 			Value:    headNodePoolName,
 		},
 	}
+}
+
+func (op FeatureOperator) getDefaultStorageClassName(ctx context.Context, clusterID uint) (string, error) {
+	var storageClass v1beta1.StorageClassList
+	if err := op.kubernetesService.List(ctx, clusterID, &storageClass); err != nil {
+		return "", errors.WrapIf(err, "failed to list storage classes")
+	}
+
+	var defaultStorageClassName string
+	for _, sc := range storageClass.Items {
+		for key, value := range sc.Annotations {
+			if key == "storageclass.kubernetes.io/is-default-class" && value == "true" {
+				defaultStorageClassName = sc.ObjectMeta.Name
+			}
+		}
+	}
+	return defaultStorageClassName, nil
 }
