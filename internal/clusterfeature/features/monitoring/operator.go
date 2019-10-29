@@ -309,11 +309,14 @@ func (op FeatureOperator) installPrometheusOperator(
 	// create chart values
 	pipelineSystemNamespace := op.config.pipelineSystemNamespace
 	var chartValues = &prometheusOperatorValues{
-		Grafana:          valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass),
-		Alertmanager:     alertmanagerValues,
-		Prometheus:       valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName),
-		KubeStateMetrics: valuesManager.generateKubeStateMetricsChartValues(),
-		NodeExporter:     valuesManager.generateNodeExporterChartValues(),
+		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass),
+		Alertmanager: alertmanagerValues,
+		Prometheus:   valuesManager.generatePrometheusChartValues(ctx, spec.Prometheus, prometheusSecretName),
+	}
+
+	if spec.Exporters.Enabled {
+		chartValues.KubeStateMetrics = valuesManager.generateKubeStateMetricsChartValues(spec.Exporters.KubeStateMetrics)
+		chartValues.NodeExporter = valuesManager.generateNodeExporterChartValues(spec.Exporters.NodeExporter)
 	}
 
 	valuesBytes, err := json.Marshal(chartValues)
@@ -696,19 +699,23 @@ func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, s
 	return nil
 }
 
-func (m chartValuesManager) generateKubeStateMetricsChartValues() kubeStateMetricsValues {
-	return kubeStateMetricsValues{
-		Enabled: true,
-		SpecValues: SpecValues{
+func (m chartValuesManager) generateKubeStateMetricsChartValues(enabled bool) kubeStateMetricsValues {
+	var result = kubeStateMetricsValues{
+		Enabled: enabled,
+	}
+	if enabled {
+		result.SpecValues = SpecValues{
 			affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
 			tolerationValues: tolerationValues{Tolerations: m.tolerations},
-		},
+		}
 	}
+
+	return result
 }
 
-func (m chartValuesManager) generateNodeExporterChartValues() nodeExporterValues {
+func (m chartValuesManager) generateNodeExporterChartValues(enabled bool) nodeExporterValues {
 	return nodeExporterValues{
-		Enabled: true,
+		Enabled: enabled,
 	}
 }
 
