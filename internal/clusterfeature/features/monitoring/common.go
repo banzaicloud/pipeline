@@ -48,6 +48,14 @@ func getPrometheusSecretName(clusterID uint) string {
 	return fmt.Sprintf("cluster-%d-prometheus", clusterID)
 }
 
+func getAlertmanagerSecretName(clusterID uint) string {
+	return fmt.Sprintf("cluster-%d-alertmanager", clusterID)
+}
+
+func getPushgatewaySecretName(clusterID uint) string {
+	return fmt.Sprintf("cluster-%d-pushgateway", clusterID)
+}
+
 func getGrafanaSecretName(clusterID uint) string {
 	return fmt.Sprintf("cluster-%d-grafana", clusterID)
 }

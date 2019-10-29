@@ -19,13 +19,15 @@ type outputGrafana struct {
 }
 
 func newGrafanaOutputHelper(
+	k8sConfig []byte,
 	spec featureSpec,
 ) outputGrafana {
 	return outputGrafana{
 		baseOutput: baseOutput{
-			secretID: spec.Grafana.SecretId,
-			enabled:  spec.Grafana.Enabled,
-			ingress:  spec.Grafana.Public,
+			ingress:   spec.Grafana.Ingress,
+			secretID:  spec.Grafana.SecretId,
+			enabled:   spec.Grafana.Enabled,
+			k8sConfig: k8sConfig,
 		},
 	}
 }
@@ -44,4 +46,8 @@ func (outputGrafana) getDeploymentValueParentKey() string {
 
 func (outputGrafana) getGeneratedSecretName(clusterID uint) string {
 	return getGrafanaSecretName(clusterID)
+}
+
+func (outputGrafana) getServiceName() string {
+	return "monitor-grafana"
 }
