@@ -129,3 +129,14 @@ func (s *KubernetesService) newClientForCluster(ctx context.Context, clusterID u
 
 	return kubeClient, nil
 }
+
+// List lists Objects a specific cluster.
+func (s *KubernetesService) List(ctx context.Context, clusterID uint, obj runtime.Object) error {
+
+	kubeClient, err := s.newClientForCluster(ctx, clusterID)
+	if err != nil {
+		return errors.WrapIf(err, "failed to create Kubernetes client")
+	}
+
+	return kubeClient.List(ctx, &client.ListOptions{}, obj)
+}
