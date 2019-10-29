@@ -81,6 +81,7 @@ type pushgatewaySpec struct {
 }
 
 type pagerDutySpec struct {
+	Enabled         bool   `json:"enabled" mapstructure:"enabled"`
 	Url             string `json:"url" mapstructure:"url"`
 	SecretId        string `json:"secretId" mapstructure:"secretId"`
 	IntegrationType string `json:"integrationType" mapstructure:"integrationType"`
@@ -88,6 +89,7 @@ type pagerDutySpec struct {
 }
 
 type slackSpec struct {
+	Enabled      bool   `json:"enabled" mapstructure:"enabled"`
 	SecretId     string `json:"secretId" mapstructure:"secretId"`
 	Channel      string `json:"channel" mapstructure:"channel"`
 	SendResolved bool   `json:"sendResolved" mapstructure:"sendResolved"`
@@ -205,10 +207,12 @@ func (s alertmanagerSpec) Validate() error {
 		var hasProvider bool
 		// validate Slack notification provider
 		if slackProv, ok := s.Provider[alertmanagerProviderSlack]; ok {
-			hasProvider = true
 			var slack slackSpec
 			if err := mapstructure.Decode(slackProv, &slack); err != nil {
 				return errors.WrapIf(err, "failed to bind Slack config")
+			}
+			if slack.Enabled {
+				hasProvider = true
 			}
 			if err := slack.Validate(); err != nil {
 				return errors.WrapIf(err, "error during validating Slack")
@@ -217,10 +221,12 @@ func (s alertmanagerSpec) Validate() error {
 
 		// validate PagerDuty notification provider
 		if pagerDutyProv, ok := s.Provider[alertmanagerProviderPagerDuty]; ok {
-			hasProvider = true
 			var pd pagerDutySpec
 			if err := mapstructure.Decode(pagerDutyProv, &pd); err != nil {
 				return errors.WrapIf(err, "failed to bind PagerDuty config")
+			}
+			if pd.Enabled {
+				hasProvider = true
 			}
 			if err := pd.Validate(); err != nil {
 				return errors.WrapIf(err, "error during validating PagerDuty")
@@ -237,32 +243,36 @@ func (s alertmanagerSpec) Validate() error {
 }
 
 func (s slackSpec) Validate() error {
-	if s.SecretId == "" {
-		return requiredFieldError{fieldName: "secretId"}
-	}
+	if s.Enabled {
+		if s.SecretId == "" {
+			return requiredFieldError{fieldName: "secretId"}
+		}
 
-	if s.Channel == "" {
-		return requiredFieldError{fieldName: "channel"}
+		if s.Channel == "" {
+			return requiredFieldError{fieldName: "channel"}
+		}
 	}
 
 	return nil
 }
 
 func (s pagerDutySpec) Validate() error {
-	if s.SecretId == "" {
-		return requiredFieldError{fieldName: "secretId"}
-	}
+	if s.Enabled {
+		if s.SecretId == "" {
+			return requiredFieldError{fieldName: "secretId"}
+		}
 
-	if s.Url == "" {
-		return requiredFieldError{fieldName: "url"}
-	}
+		if s.Url == "" {
+			return requiredFieldError{fieldName: "url"}
+		}
 
-	if s.IntegrationType == "" {
-		return requiredFieldError{fieldName: "integrationType"}
-	}
+		if s.IntegrationType == "" {
+			return requiredFieldError{fieldName: "integrationType"}
+		}
 
-	if s.IntegrationType != pagerDutyIntegrationEventApiV2 && s.IntegrationType != pagerDutyIntegrationPrometheus {
-		return errors.New(fmt.Sprintf("integration type should be only just: %s or %s", pagerDutyIntegrationEventApiV2, pagerDutyIntegrationPrometheus))
+		if s.IntegrationType != pagerDutyIntegrationEventApiV2 && s.IntegrationType != pagerDutyIntegrationPrometheus {
+			return errors.New(fmt.Sprintf("integration type should be only just: %s or %s", pagerDutyIntegrationEventApiV2, pagerDutyIntegrationPrometheus))
+		}
 	}
 
 	return nil
