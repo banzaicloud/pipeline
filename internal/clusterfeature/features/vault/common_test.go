@@ -169,3 +169,7 @@ func (s *dummyKubernetesService) EnsureObject(ctx context.Context, clusterID uin
 
 	return nil
 }
+
+func (s *dummyKubernetesService) List(ctx context.Context, clusterID uint, o runtime.Object) error {
+	return nil
+}
