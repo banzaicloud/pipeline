@@ -491,40 +491,47 @@ func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Contex
 }
 
 func (op FeatureOperator) generateSlackConfig(ctx context.Context, config slackSpec) ([]slackConfigValues, error) {
-	slackSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretId)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get Slack secret")
+	if config.Enabled {
+		slackSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretId)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get Slack secret")
+		}
+
+		return []slackConfigValues{
+			{
+				ApiUrl:       slackSecret[secrettype.SlackApiUrl],
+				Channel:      config.Channel,
+				SendResolved: config.SendResolved,
+			},
+		}, nil
 	}
 
-	return []slackConfigValues{
-		{
-			ApiUrl:       slackSecret[secrettype.SlackApiUrl],
-			Channel:      config.Channel,
-			SendResolved: config.SendResolved,
-		},
-	}, nil
-
+	return nil, nil
 }
 
 func (op FeatureOperator) generatePagerdutyConfig(ctx context.Context, config pagerDutySpec) ([]pagerdutyConfigValues, error) {
-	pdSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretId)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get PagerDuty secret")
+	if config.Enabled {
+		pdSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretId)
+		if err != nil {
+			return nil, errors.WrapIf(err, "failed to get PagerDuty secret")
+		}
+
+		var pdConfig = pagerdutyConfigValues{
+			Url:          config.Url,
+			SendResolved: config.SendResolved,
+		}
+
+		var integrationKey = pdSecret[secrettype.PagerDutyIntegrationKey]
+		if config.IntegrationType == pagerDutyIntegrationEventApiV2 {
+			pdConfig.RoutingKey = integrationKey
+		} else {
+			pdConfig.ServiceKey = integrationKey
+		}
+
+		return []pagerdutyConfigValues{pdConfig}, nil
 	}
 
-	var pdConfig = pagerdutyConfigValues{
-		Url:          config.Url,
-		SendResolved: config.SendResolved,
-	}
-
-	var integrationKey = pdSecret[secrettype.PagerDutyIntegrationKey]
-	if config.IntegrationType == pagerDutyIntegrationEventApiV2 {
-		pdConfig.RoutingKey = integrationKey
-	} else {
-		pdConfig.ServiceKey = integrationKey
-	}
-
-	return []pagerdutyConfigValues{pdConfig}, nil
+	return nil, nil
 }
 
 func isSecretNotFoundError(err error) bool {
