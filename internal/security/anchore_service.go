@@ -193,14 +193,16 @@ func (a anchoreService) userExists(ctx context.Context, client AnchoreClient, us
 //  ensureUserCredentials makes sure the user credentials secret is up to date
 func (a anchoreService) ensureUserCredentials(ctx context.Context, orgID uint, client AnchoreClient, userName string) error {
 
-	password, err := client.GetUserCredentials(ctx, userName)
+	// check the user at anchore
+	_, err := client.GetUserCredentials(ctx, userName)
 	if err != nil {
 		a.logger.Debug("failed to get user credentials")
 
 		return errors.Wrap(err, "failed to get user credentials")
 	}
 
-	_, err = a.storeCredentialsSecret(ctx, orgID, userName, password)
+	// check the user in vault
+	_, err = a.secretStore.GetIDByName(ctx, userName)
 	if err != nil {
 		a.logger.Debug("failed to store user credentials as a secret")
 

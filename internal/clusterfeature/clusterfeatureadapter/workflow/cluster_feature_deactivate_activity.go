@@ -16,8 +16,7 @@ package workflow
 
 import (
 	"context"
-
-	"go.uber.org/cadence"
+	"time"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
@@ -25,9 +24,10 @@ import (
 const ClusterFeatureDeactivateActivityName = "cluster-feature-deactivate"
 
 type ClusterFeatureDeactivateActivityInput struct {
-	ClusterID   uint
-	FeatureName string
-	FeatureSpec clusterfeature.FeatureSpec
+	ClusterID     uint
+	FeatureName   string
+	FeatureSpec   clusterfeature.FeatureSpec
+	RetryInterval time.Duration
 }
 
 type ClusterFeatureDeactivateActivity struct {
@@ -46,10 +46,22 @@ func (a ClusterFeatureDeactivateActivity) Execute(ctx context.Context, input Clu
 		return err
 	}
 
-	err = f.Deactivate(ctx, input.ClusterID, input.FeatureSpec)
-	if ok := shouldRetry(err); ok {
-		return cadence.NewCustomError(shouldRetryReason)
-	}
+	heartbeat := startHeartbeat(ctx, 10*time.Second)
+	defer heartbeat.Stop()
 
-	return err
+	for {
+		if err := f.Deactivate(ctx, input.ClusterID, input.FeatureSpec); err != nil {
+			if shouldRetry(err) {
+				if err := wait(ctx, input.RetryInterval); err != nil {
+					return err
+				}
+
+				continue
+			}
+
+			return err
+		}
+
+		return nil
+	}
 }

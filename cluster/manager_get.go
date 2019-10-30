@@ -17,8 +17,7 @@ package cluster
 import (
 	"context"
 
-	"emperror.dev/emperror"
-	"github.com/pkg/errors"
+	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/banzaicloud/pipeline/model"
@@ -76,12 +75,12 @@ func (m *Manager) GetClusterByID(ctx context.Context, organizationID uint, clust
 
 	clusterModel, err := m.clusters.FindOneByID(organizationID, clusterID)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get cluster from database")
+		return nil, errors.WrapIf(err, "could not get cluster from database")
 	}
 
 	cluster, err := GetCommonClusterFromModel(clusterModel)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get cluster from model")
+		return nil, errors.WrapIf(err, "could not get cluster from model")
 	}
 
 	return cluster, nil
@@ -97,12 +96,12 @@ func (m *Manager) GetClusterByIDOnly(ctx context.Context, clusterID uint) (Commo
 
 	clusterModel, err := m.clusters.FindOneByID(0, clusterID)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get cluster from database")
+		return nil, errors.WrapIf(err, "could not get cluster from database")
 	}
 
 	cluster, err := GetCommonClusterFromModel(clusterModel)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get cluster from model")
+		return nil, errors.WrapIf(err, "could not get cluster from model")
 	}
 
 	return cluster, nil
@@ -119,12 +118,12 @@ func (m *Manager) GetClusterByName(ctx context.Context, organizationID uint, clu
 
 	clusterModel, err := m.clusters.FindOneByName(organizationID, clusterName)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get cluster from database")
+		return nil, errors.WrapIf(err, "could not get cluster from database")
 	}
 
 	cluster, err := GetCommonClusterFromModel(clusterModel)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not get cluster from model")
+		return nil, errors.WrapIf(err, "could not get cluster from model")
 	}
 
 	return cluster, nil
@@ -141,7 +140,7 @@ func (m *Manager) GetClustersBySecretID(ctx context.Context, organizationID uint
 
 	clusterModels, err := m.clusters.FindBySecret(organizationID, secretID)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get cluster from database")
+		return nil, errors.WrapIf(err, "could not get cluster from database")
 	}
 
 	return m.getClustersFromModels(clusterModels, logger), nil
@@ -168,4 +167,13 @@ func (m *Manager) getClustersFromModels(clusterModels []*model.ClusterModel, log
 	}
 
 	return clusters
+}
+
+// GetClusterStatus returns the status of the cluster with the specified ID
+func (m *Manager) GetClusterStatus(ctx context.Context, clusterID uint) (string, error) {
+	cm, err := m.clusters.FindOneByID(0, clusterID)
+	if err != nil {
+		return "", errors.WrapIf(err, "failed to get cluster model by ID")
+	}
+	return cm.Status, nil
 }

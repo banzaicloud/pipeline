@@ -16,8 +16,7 @@ package workflow
 
 import (
 	"context"
-
-	"go.uber.org/cadence"
+	"time"
 
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
@@ -25,9 +24,10 @@ import (
 const ClusterFeatureApplyActivityName = "cluster-feature-apply"
 
 type ClusterFeatureApplyActivityInput struct {
-	ClusterID   uint
-	FeatureName string
-	FeatureSpec clusterfeature.FeatureSpec
+	ClusterID     uint
+	FeatureName   string
+	FeatureSpec   clusterfeature.FeatureSpec
+	RetryInterval time.Duration
 }
 
 type ClusterFeatureApplyActivity struct {
@@ -46,10 +46,22 @@ func (a ClusterFeatureApplyActivity) Execute(ctx context.Context, input ClusterF
 		return err
 	}
 
-	err = f.Apply(ctx, input.ClusterID, input.FeatureSpec)
-	if ok := shouldRetry(err); ok {
-		return cadence.NewCustomError(shouldRetryReason)
-	}
+	heartbeat := startHeartbeat(ctx, 10*time.Second)
+	defer heartbeat.Stop()
 
-	return err
+	for {
+		if err := f.Apply(ctx, input.ClusterID, input.FeatureSpec); err != nil {
+			if shouldRetry(err) {
+				if err := wait(ctx, input.RetryInterval); err != nil {
+					return err
+				}
+
+				continue
+			}
+
+			return err
+		}
+
+		return nil
+	}
 }

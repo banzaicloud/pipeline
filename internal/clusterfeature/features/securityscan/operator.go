@@ -173,7 +173,11 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 	}
 
 	if err := op.namespaceService.RemoveLabels(ctx, clusterID, boundSpec.WebhookConfig.Namespaces, []string{"scan"}); err != nil {
-		return errors.WrapIf(err, "failed to delete namespace labels")
+
+		// if the operation fails for some reason (eg. non-existent namespaces) we notice that and let the deactivation succeed
+		op.logger.Warn("failed to delete namespace labels", map[string]interface{}{"clusterID": clusterID})
+		return nil
+
 	}
 
 	if err := op.setSecurityScan(ctx, clusterID, false); err != nil {
@@ -182,7 +186,9 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 
 	if !boundSpec.CustomAnchore.Enabled {
 		if err = op.anchoreService.DeleteUser(ctx, cl.GetOrganizationId(), clusterID); err != nil {
-			return errors.WrapIf(err, "failed to delete anchore user")
+			// deactivation succeeds even in case the generated anchore user is not deleted!
+			op.logger.Warn("failed to delete the anchore user generated for the cluster", map[string]interface{}{"clusterID": clusterID})
+			return nil
 		}
 	}
 

@@ -75,7 +75,7 @@ func (s *HelmService) InstallDeployment(
 		return err
 	}
 
-	foundRelease, err := s.findRelease(releaseName, cluster)
+	foundRelease, err := findRelease(releaseName, cluster.KubeConfig)
 	if err != nil {
 		return errors.WithDetails(err, "chart", chartName)
 	}
@@ -146,7 +146,7 @@ func (s *HelmService) UpdateDeployment(
 		return err
 	}
 
-	foundRelease, err := s.findRelease(releaseName, cluster)
+	foundRelease, err := findRelease(releaseName, cluster.KubeConfig)
 	if err != nil {
 		return errors.WithDetails(err, "chart", chartName)
 	}
@@ -196,7 +196,7 @@ func (s *HelmService) ApplyDeployment(
 		return err
 	}
 
-	foundRelease, err := s.findRelease(releaseName, cluster)
+	foundRelease, err := findRelease(releaseName, cluster.KubeConfig)
 	if err != nil {
 		return errors.WithDetails(err, "chart", chartName)
 	}
@@ -296,7 +296,7 @@ func (s *HelmService) DeleteDeployment(ctx context.Context, clusterID uint, rele
 		return err
 	}
 
-	foundRelease, err := s.findRelease(releaseName, cluster)
+	foundRelease, err := findRelease(releaseName, cluster.KubeConfig)
 	if err != nil {
 		return err
 	}
@@ -329,8 +329,8 @@ func (s *HelmService) GetDeployment(ctx context.Context, clusterID uint, release
 	return helm.GetDeployment(releaseName, cluster.KubeConfig)
 }
 
-func (s *HelmService) findRelease(releaseName string, cluster *Cluster) (*release.Release, error) {
-	deployments, err := helm.ListDeployments(&releaseName, "", cluster.KubeConfig)
+func findRelease(releaseName string, k8sConfig []byte) (*release.Release, error) {
+	deployments, err := helm.ListDeployments(&releaseName, "", k8sConfig)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to fetch deployments", "release", releaseName)
 	}

@@ -230,19 +230,22 @@ type ScanLogHandler interface {
 }
 
 type securityHandlers struct {
-	logger          internalCommon.Logger
 	clusterGetter   apiCommon.ClusterGetter
 	resourceService anchore.SecurityResourceService
+	errorHandler    internalCommon.ErrorHandler
+	logger          internalCommon.Logger
 }
 
 func NewSecurityApiHandlers(
 	clusterGetter apiCommon.ClusterGetter,
+	errorHandler internalCommon.ErrorHandler,
 	logger internalCommon.Logger) SecurityHandler {
 
 	wlSvc := anchore.NewSecurityResourceService(logger)
 	return securityHandlers{
 		clusterGetter:   clusterGetter,
 		resourceService: wlSvc,
+		errorHandler:    errorHandler,
 		logger:          logger,
 	}
 }
@@ -258,6 +261,8 @@ func (s securityHandlers) GetWhiteLists(c *gin.Context) {
 
 	whitelist, err := s.resourceService.GetWhitelists(c.Request.Context(), cluster)
 	if err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while retrieving whitelists",
@@ -289,7 +294,8 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 
 	var whiteListItem *security.ReleaseWhiteListItem
 	if err := c.BindJSON(&whiteListItem); err != nil {
-		err := errors.WrapIf(err, "failed to bind the request body")
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusBadRequest, common.ErrorResponse{
 			Code:    http.StatusBadRequest,
 			Message: "Error during parsing request!",
@@ -298,8 +304,9 @@ func (s securityHandlers) CreateWhiteList(c *gin.Context) {
 		return
 	}
 
-	_, err := s.resourceService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem)
-	if err != nil {
+	if _, err := s.resourceService.CreateWhitelist(c.Request.Context(), cluster, *whiteListItem); err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while creating whitelist",
@@ -332,6 +339,8 @@ func (s securityHandlers) DeleteWhiteList(c *gin.Context) {
 	}
 
 	if err := s.resourceService.DeleteWhitelist(c.Request.Context(), cluster, whitelisItemtName); err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "Error while deleting whitelist",
@@ -353,9 +362,11 @@ func (s securityHandlers) ListScanLogs(c *gin.Context) {
 
 	scanlogs, err := s.resourceService.ListScanLogs(c.Request.Context(), cluster)
 	if err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
-			Message: "failed to retrieve scan logs",
+			Message: "failed to list scan logs",
 			Error:   errors.Cause(err).Error(),
 		})
 		return
@@ -376,6 +387,8 @@ func (s securityHandlers) GetScanLogs(c *gin.Context) {
 
 	scanlogs, err := s.resourceService.GetScanLogs(c.Request.Context(), cluster, releaseName)
 	if err != nil {
+		s.errorHandler.Handle(c.Request.Context(), err)
+
 		c.JSON(http.StatusInternalServerError, common.ErrorResponse{
 			Code:    http.StatusInternalServerError,
 			Message: "failed to retrieve scan logs",

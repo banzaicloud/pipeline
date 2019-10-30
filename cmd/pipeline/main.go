@@ -703,9 +703,10 @@ func main() {
 					policySvc := anchore.NewPolicyService(configProvider, logger)
 					policyHandler := api.NewPolicyHandler(commonClusterGetter, policySvc, logger)
 
-					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, logger)
+					secErrorHandler := emperror.MakeContextAware(errorHandler)
+					securityApiHandler := api.NewSecurityApiHandlers(commonClusterGetter, secErrorHandler, logger)
 
-					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, emperror.MakeContextAware(errorHandler), logger)
+					anchoreProxy := api.NewAnchoreProxy(basePath, configProvider, secErrorHandler, logger)
 					proxyHandler := anchoreProxy.Proxy()
 
 					// forthcoming endpoint for all requests proxied to Anchore

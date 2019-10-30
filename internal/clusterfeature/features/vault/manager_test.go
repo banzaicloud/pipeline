@@ -26,7 +26,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
@@ -44,8 +43,8 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	clusterName := "the-cluster"
 
 	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]clusterfeatureadapter.Cluster{
-			clusterID: dummyCluster{
+		Clusters: map[uint]dummyCluster{
+			clusterID: {
 				Name:  clusterName,
 				OrgID: orgID,
 				ID:    clusterID,
