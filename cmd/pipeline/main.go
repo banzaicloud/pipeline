@@ -376,7 +376,7 @@ func main() {
 	}
 	cloudInfoClient := cloudinfo.NewClient(cloudInfoEndPoint, logrusLogger)
 
-	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
+	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{

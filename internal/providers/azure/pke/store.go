@@ -23,21 +23,23 @@ import (
 )
 
 type CreateParams struct {
-	Name               string
-	OrganizationID     uint
-	CreatedBy          uint
-	Location           string
-	SecretID           string
-	SSHSecretID        string
-	RBAC               bool
-	OIDC               bool
-	KubernetesVersion  string
-	ScaleOptions       pkgCluster.ScaleOptions
-	ResourceGroupName  string
-	VirtualNetworkName string
-	NodePools          []NodePool
-	Features           []intCluster.Feature
-	HTTPProxy          intPKE.HTTPProxy
+	Name                  string
+	OrganizationID        uint
+	CreatedBy             uint
+	Location              string
+	SecretID              string
+	SSHSecretID           string
+	RBAC                  bool
+	OIDC                  bool
+	KubernetesVersion     string
+	ScaleOptions          pkgCluster.ScaleOptions
+	ResourceGroupName     string
+	VirtualNetworkName    string
+	NodePools             []NodePool
+	Features              []intCluster.Feature
+	HTTPProxy             intPKE.HTTPProxy
+	AccessPoints          AccessPoints
+	APIServerAccessPoints APIServerAccessPoints
 }
 
 // AzurePKEClusterStore defines behaviors of PKEOnAzureCluster persistent storage
@@ -53,6 +55,7 @@ type AzurePKEClusterStore interface {
 	SetSSHSecretID(clusterID uint, sshSecretID string) error
 	SetFeature(clusterID uint, feature string, state bool) error
 	SetNodePoolSizes(clusterID uint, nodePoolName string, min, max, desiredCount uint, autoscaling bool) error
+	UpdateClusterAccessPoints(clusterID uint, accessPoints AccessPoints) error
 }
 
 // IsNotFound returns true if the error is about a resource not being found

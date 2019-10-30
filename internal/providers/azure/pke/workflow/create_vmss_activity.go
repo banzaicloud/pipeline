@@ -65,7 +65,7 @@ type VirtualMachineScaleSet struct {
 	InstanceCount           int64
 	InstanceType            string
 	LBBackendAddressPoolIDs []string
-	LBInboundNATPoolID      string
+	LBInboundNATPoolIDs     []string
 	Location                string
 	Name                    string
 	NetworkSecurityGroupID  string
@@ -162,24 +162,25 @@ func (a CreateVMSSActivity) Execute(ctx context.Context, input CreateVMSSActivit
 
 func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetParams(UserDataScript string) compute.VirtualMachineScaleSet {
 	var bapRefs []compute.SubResource
-	if input.ScaleSet.LBBackendAddressPoolIDs != nil {
-		for _, id := range input.ScaleSet.LBBackendAddressPoolIDs {
-			if id != "" {
-				bapRef := compute.SubResource{
-					ID: to.StringPtr(id),
-				}
-				bapRefs = append(bapRefs, bapRef)
+	for _, id := range input.ScaleSet.LBBackendAddressPoolIDs {
+		if id != "" {
+			bapRef := compute.SubResource{
+				ID: to.StringPtr(id),
 			}
+			bapRefs = append(bapRefs, bapRef)
 		}
 	}
-	var inpRefs *[]compute.SubResource
-	if input.ScaleSet.LBInboundNATPoolID != "" {
-		inpRefs = &[]compute.SubResource{
-			{
-				ID: to.StringPtr(input.ScaleSet.LBInboundNATPoolID),
-			},
+
+	var inpRefs []compute.SubResource
+	for _, id := range input.ScaleSet.LBInboundNATPoolIDs {
+		if id != "" {
+			inpRef := compute.SubResource{
+				ID: to.StringPtr(id),
+			}
+			inpRefs = append(inpRefs, inpRef)
 		}
 	}
+
 	var nsgRef *compute.SubResource
 	if input.ScaleSet.NetworkSecurityGroupID != "" {
 		nsgRef = &compute.SubResource{
@@ -218,7 +219,7 @@ func (input CreateVMSSActivityInput) getCreateOrUpdateVirtualMachineScaleSetPara
 										VirtualMachineScaleSetIPConfigurationProperties: &compute.VirtualMachineScaleSetIPConfigurationProperties{
 											Primary:                         to.BoolPtr(true),
 											LoadBalancerBackendAddressPools: &bapRefs,
-											LoadBalancerInboundNatPools:     inpRefs,
+											LoadBalancerInboundNatPools:     &inpRefs,
 											Subnet: &compute.APIEntityReference{
 												ID: to.StringPtr(input.ScaleSet.SubnetID),
 											},

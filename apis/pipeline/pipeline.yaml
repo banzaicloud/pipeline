@@ -1332,7 +1332,7 @@ paths:
                     in: path
                     schema:
                         type: string
-                    required: True
+                    required: true
                 -
                     name: detail
                     in: query
@@ -1375,7 +1375,7 @@ paths:
                     in: path
                     schema:
                         type: string
-                    required: True
+                    required: true
             requestBody:
                 required: true
                 content:
@@ -6798,6 +6798,18 @@ components:
                             example: "my-resource-group-1"
                         network:
                             $ref: '#/components/schemas/PKEOnAzureClusterNetwork'
+                        accessPoints:
+                            type: array
+                            items:
+                                type: string
+                                enum: [private, public]
+                            description: List of access points (i.e. load balancers, floating IPs) to be created for the cluster. Access points are implemented using cloud provider specific resources.
+                        apiServerAccessPoints:
+                            type: array
+                            items:
+                                type: string
+                                enum: [private, public]
+                            description: List of access point references for the API server; currently, public and private are the only valid values
                         nodepools:
                             type: array
                             items:

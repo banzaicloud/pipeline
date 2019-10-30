@@ -65,11 +65,14 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 
 	k8sMasterMode := "default"
 
+	nodeRole := pkgPKE.RoleWorker
+
 	if np.hasRole(pkgPKE.RoleMaster) {
 		bapn = pke.GetBackendAddressPoolName()
 		inpn = pke.GetInboundNATPoolName()
 
 		azureRoleName = "Owner"
+		nodeRole = pkgPKE.RoleMaster
 
 		nsgn = f.ClusterName + "-master-nsg"
 
@@ -143,7 +146,8 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 				"PKEVersion":            pkeVersion,
 				"KubernetesVersion":     f.KubernetesVersion,
 				"KubernetesMasterMode":  k8sMasterMode,
-				"PublicAddress":         "<not yet set>",
+				"ApiServerAddress":      "<not yet set>",
+				"ApiServerCertSans":     "<not yet set>",
 				"RouteTableName":        f.RouteTableName,
 				"SubnetName":            np.Subnet.Name,
 				"TenantID":              f.TenantID,
@@ -155,6 +159,7 @@ func (f nodePoolTemplateFactory) getTemplates(np NodePool) (workflow.VirtualMach
 			},
 			UserDataScriptTemplate: userDataScriptTemplate,
 			Zones:                  np.Zones,
+			Role:                   nodeRole,
 		}, workflow.SubnetTemplate{
 			Name:           np.Subnet.Name,
 			CIDR:           np.Subnet.CIDR,

@@ -14488,6 +14488,25 @@ components:
           type: string
         network:
           $ref: '#/components/schemas/PKEOnAzureClusterNetwork'
+        accessPoints:
+          description: List of access points (i.e. load balancers, floating IPs) to
+            be created for the cluster. Access points are implemented using cloud
+            provider specific resources.
+          items:
+            enum:
+            - private
+            - public
+            type: string
+          type: array
+        apiServerAccessPoints:
+          description: List of access point references for the API server; currently,
+            public and private are the only valid values
+          items:
+            enum:
+            - private
+            - public
+            type: string
+          type: array
         nodepools:
           items:
             $ref: '#/components/schemas/PKEOnAzureNodePool'

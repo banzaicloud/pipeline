@@ -226,7 +226,6 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		ClusterID:           cluster.ID,
 		ClusterName:         cluster.Name,
 		ResourceGroupName:   cluster.ResourceGroup.Name,
-		LoadBalancerName:    pke.GetLoadBalancerName(cluster.Name),
 		PublicIPAddressName: pke.GetPublicIPAddressName(cluster.Name),
 		RouteTableName:      routeTableName,
 		VirtualNetworkName:  cluster.VirtualNetwork.Name,
@@ -238,7 +237,9 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		VMSSToDelete:    toDeleteVMSSNames,
 		VMSSToUpdate:    toUpdateVMSSChanges,
 
-		Labels: labels,
+		Labels:                labels,
+		AccessPoints:          cluster.AccessPoints,
+		APIServerAccessPoints: cluster.APIServerAccessPoints,
 	}
 
 	if err := cu.store.SetStatus(cluster.ID, pkgCluster.Updating, pkgCluster.UpdatingMessage); err != nil {

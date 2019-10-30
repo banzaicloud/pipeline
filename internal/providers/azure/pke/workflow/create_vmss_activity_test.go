@@ -43,7 +43,7 @@ func TestGetCreateOrUpdateVirtualMachineScaleSetParams(t *testing.T) {
 				InstanceCount:           int64(42),
 				InstanceType:            "Standard_B2s",
 				LBBackendAddressPoolIDs: []string{"/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/loadBalancers/test-lb/backendAddressPools/test-bap"},
-				LBInboundNATPoolID:      "/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/loadBalancers/test-lb/inboundNatPools/test-inp",
+				LBInboundNATPoolIDs:     []string{"/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/loadBalancers/test-lb/inboundNatPools/test-inp"},
 				Location:                "test-location",
 				Name:                    "test-vmss",
 				NetworkSecurityGroupID:  "/subscriptions/test-subscription/resourceGroups/test-rg/providers/Microsoft.Network/networkSecurityGroups/test-nsg",

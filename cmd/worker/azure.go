@@ -95,4 +95,7 @@ func registerAzureWorkflows(secretStore pkeworkflow.SecretStore, tokenGenerator 
 
 	collectUpdateClusterProvidersActivity := azurepkeworkflow.MakeCollectUpdateClusterProvidersActivity(azureClientFactory)
 	activity.RegisterWithOptions(collectUpdateClusterProvidersActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.CollectUpdateClusterProvidersActivityName})
+
+	updateClusterAccessPointsActivity := azurepkeworkflow.MakeUpdateClusterAccessPointsActivity(store)
+	activity.RegisterWithOptions(updateClusterAccessPointsActivity.Execute, activity.RegisterOptions{Name: azurepkeworkflow.UpdateClusterAccessPointsActivityName})
 }

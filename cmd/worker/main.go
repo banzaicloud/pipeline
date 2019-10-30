@@ -262,7 +262,7 @@ func main() {
 		// Register amazon specific workflows and activities
 		registerAwsWorkflows(clusters, tokenGenerator)
 
-		azurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db)
+		azurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonadapter.NewLogger(logger))
 
 		{
 			passwordSecrets := intpkeworkflowadapter.NewPasswordSecretStore(commonSecretStore)
