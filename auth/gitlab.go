@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"time"
 
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
 )
@@ -32,7 +32,7 @@ func NewGitlabClient(accessToken string) (*gitlab.Client, error) {
 	gitlabURL := viper.GetString("gitlab.baseURL")
 	err := gitlabClient.SetBaseURL(gitlabURL)
 	if err != nil {
-		return nil, emperror.With(err, "gitlabBaseURL", gitlabURL)
+		return nil, errors.WrapWithDetails(err, "gitlabBaseURL", gitlabURL)
 	}
 
 	return gitlabClient, nil
