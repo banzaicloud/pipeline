@@ -19,17 +19,9 @@ import (
 	"time"
 
 	"emperror.dev/emperror"
-	"github.com/mitchellh/mapstructure"
-	"github.com/qor/auth"
-	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
 )
-
-type gitlabUserMeta struct {
-	Username  string
-	AvatarURL string
-}
 
 func NewGitlabClient(accessToken string) (*gitlab.Client, error) {
 	httpClient := &http.Client{
@@ -44,31 +36,4 @@ func NewGitlabClient(accessToken string) (*gitlab.Client, error) {
 	}
 
 	return gitlabClient, nil
-}
-
-func getGitlabUserMeta(schema *auth.Schema) (*gitlabUserMeta, error) {
-	gitlabClient, err := NewGitlabClient("")
-	if err != nil {
-		return nil, err
-	}
-
-	var dexClaims struct {
-		FederatedClaims map[string]string
-	}
-
-	if err := mapstructure.Decode(schema.RawInfo, &dexClaims); err != nil {
-		return nil, nil
-	}
-
-	gitlabUserID := cast.ToInt64(dexClaims.FederatedClaims["user_id"])
-
-	gitlabUser, _, err := gitlabClient.Users.GetUser(int(gitlabUserID), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &gitlabUserMeta{
-		Username:  gitlabUser.Username,
-		AvatarURL: gitlabUser.AvatarURL,
-	}, nil
 }
