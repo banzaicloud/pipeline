@@ -54,12 +54,13 @@ type OIDCConfig struct {
 }
 
 type IDTokenClaims struct {
-	Subject         string            `json:"sub"`
-	Name            string            `json:"name"`
-	Email           string            `json:"email"`
-	Verified        bool              `json:"email_verified"`
-	Groups          []string          `json:"groups"`
-	FederatedClaims map[string]string `json:"federated_claims"`
+	Subject           string            `json:"sub"`
+	Name              string            `json:"name"`
+	PreferredUsername string            `json:"preferred_username"`
+	Email             string            `json:"email"`
+	Verified          bool              `json:"email_verified"`
+	Groups            []string          `json:"groups"`
+	FederatedClaims   map[string]string `json:"federated_claims"`
 }
 
 func newOIDCProvider(config *OIDCConfig, refreshTokenStore RefreshTokenStore) *OIDCProvider {
