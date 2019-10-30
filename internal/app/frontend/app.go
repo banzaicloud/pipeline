@@ -50,8 +50,6 @@ func RegisterApp(
 	logger Logger,
 	errorHandler emperror.Handler,
 ) error {
-	frontend := router.PathPrefix("/frontend").Subrouter()
-
 	endpointMiddleware := []endpoint.Middleware{
 		correlation.Middleware(),
 	}
@@ -74,14 +72,6 @@ func RegisterApp(
 			appkit.EndpointLogger(logger),
 		))
 
-		notificationdriver.RegisterHTTPHandlers(
-			endpoints,
-			frontend.PathPrefix("/notifications").Subrouter(),
-			kitxhttp.ServerOptions(httpServerOptions),
-			kithttp.ServerErrorHandler(errorHandler),
-		)
-
-		// Compatibility routes
 		notificationdriver.RegisterHTTPHandlers(
 			endpoints,
 			router.PathPrefix("/notifications").Subrouter(),
@@ -131,14 +121,6 @@ func RegisterApp(
 			appkit.EndpointLogger(logger),
 		))
 
-		issuedriver.RegisterHTTPHandlers(
-			endpoints,
-			frontend.PathPrefix("/issues").Subrouter(),
-			kitxhttp.ServerOptions(httpServerOptions),
-			kithttp.ServerErrorHandler(errorHandler),
-		)
-
-		// Compatibility routes
 		issuedriver.RegisterHTTPHandlers(
 			endpoints,
 			router.PathPrefix("/issues").Subrouter(),
