@@ -23,7 +23,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/antihax/optional"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
@@ -175,7 +174,7 @@ func (cu AzurePKEClusterUpdater) Update(ctx context.Context, params AzurePKEClus
 		var changes workflow.VirtualMachineScaleSetChanges
 
 		if !np.Autoscaling {
-			changes.InstanceCount = optional.NewUint(uint(np.Count))
+			changes.InstanceCount = workflow.NewUint(uint(np.Count))
 		}
 
 		if changes != (workflow.VirtualMachineScaleSetChanges{}) {

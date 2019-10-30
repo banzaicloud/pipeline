@@ -47,6 +47,7 @@ Resources:
           - Fn::GetAZs: !Ref 'AWS::Region'
       CidrBlock: !Ref SubnetBlock
       VpcId: !Ref VpcId
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: !Sub "${AWS::StackName}"
