@@ -21,7 +21,6 @@ import (
 	"emperror.dev/errors"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/antihax/optional"
 	"go.uber.org/cadence/activity"
 )
 
@@ -44,7 +43,19 @@ type UpdateVMSSActivityInput struct {
 
 type VirtualMachineScaleSetChanges struct {
 	Name          string
-	InstanceCount optional.Uint
+	InstanceCount OptionalUint
+}
+
+type OptionalUint struct {
+	IsSet bool
+	Value uint
+}
+
+func NewUint(v uint) OptionalUint {
+	return OptionalUint{
+		IsSet: true,
+		Value: v,
+	}
 }
 
 // MakeUpdateVMSSActivity returns a new UpdateVMSSActivity
@@ -94,8 +105,8 @@ func (a UpdateVMSSActivity) Execute(ctx context.Context, input UpdateVMSSActivit
 	}
 
 	sku := compute.Sku{}
-	if input.Changes.InstanceCount.IsSet() {
-		sku.Capacity = to.Int64Ptr(int64(input.Changes.InstanceCount.Value()))
+	if input.Changes.InstanceCount.IsSet {
+		sku.Capacity = to.Int64Ptr(int64(input.Changes.InstanceCount.Value))
 	}
 
 	future, err := client.Update(ctx, input.ResourceGroupName, input.Changes.Name, compute.VirtualMachineScaleSetUpdate{
