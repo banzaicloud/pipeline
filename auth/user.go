@@ -16,10 +16,13 @@ package auth
 
 import (
 	"context"
+	"crypto/md5"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"emperror.dev/emperror"
@@ -234,31 +237,21 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		return nil, "", err
 	}
 
-	// Until https://github.com/dexidp/dex/issues/1076 gets resolved we need to use a manual
-	// GitHub API query to get the user login and image to retain compatibility for now
-
-	switch schema.Provider {
-	case ProviderDexGithub:
-		githubUserMeta, err := getGithubUserMeta(schema)
-		if err != nil {
-			return nil, "", emperror.Wrap(err, "failed to query github login name")
-		}
-		currentUser.Login = githubUserMeta.Login
-		currentUser.Image = githubUserMeta.AvatarURL
-
-	case ProviderDexGitlab:
-
-		gitlabUserMeta, err := getGitlabUserMeta(schema)
-		if err != nil {
-			return nil, "", emperror.Wrap(err, "failed to query gitlab login name")
-		}
-		currentUser.Login = gitlabUserMeta.Username
-		currentUser.Image = gitlabUserMeta.AvatarURL
-
-	default:
-		// Login will be derived from the email for new users coming from an other provider than GitHub and GitLab
+	// According to the OIDC Core spec this might not always be unique,
+	// but we will always use providers that are either known to provide unique usernames here,
+	// or providers that we require to do that (eg. LDAP).
+	currentUser.Login = schema.RawInfo.(*IDTokenClaims).PreferredUsername
+	if currentUser.Login == "" {
+		// When the provider does not include the preferred_username claim in the ID token,
+		// fallback to generating one from the email address.
 		currentUser.Login = emailToLoginName(schema.Email)
 	}
+
+	h := md5.New()
+	_, _ = io.WriteString(h, strings.ToLower(currentUser.Email))
+
+	// TODO: leave this to the UI?
+	currentUser.Image = fmt.Sprintf("https://www.gravatar.com/avatar/%x?d=mp&s=200", h.Sum(nil))
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	if viper.GetBool("cicd.enabled") && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
