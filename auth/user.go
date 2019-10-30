@@ -247,11 +247,8 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 		currentUser.Login = emailToLoginName(schema.Email)
 	}
 
-	h := md5.New()
-	_, _ = io.WriteString(h, strings.ToLower(currentUser.Email))
-
 	// TODO: leave this to the UI?
-	currentUser.Image = fmt.Sprintf("https://www.gravatar.com/avatar/%x?d=mp&s=200", h.Sum(nil))
+	currentUser.Image = checkGravatarImage(currentUser.Email)
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
 	if viper.GetBool("cicd.enabled") && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
@@ -269,6 +266,32 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	err = bus.orgSyncer.SyncOrganizations(authCtx.Request.Context(), *currentUser, schema.RawInfo.(*IDTokenClaims))
 
 	return currentUser, fmt.Sprint(bus.db.NewScope(currentUser).PrimaryKeyValue()), err
+}
+
+func checkGravatarImage(email string) string {
+	h := md5.New()
+	_, _ = io.WriteString(h, strings.ToLower(email))
+
+	imageUrl := fmt.Sprintf("https://www.gravatar.com/avatar/%x?s=200", h.Sum(nil))
+
+	imageReq, err := http.NewRequest(http.MethodHead, imageUrl, nil)
+	if err != nil {
+		return ""
+	}
+
+	query := imageReq.URL.Query()
+	query.Set("d", "404")
+
+	resp, err := http.DefaultClient.Do(imageReq)
+	if err != nil {
+		return ""
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	return imageUrl
 }
 
 // Update updates the user's group mmeberships from the OIDC ID token at every login
