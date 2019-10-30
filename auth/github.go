@@ -15,21 +15,11 @@
 package auth
 
 import (
-	"context"
 	"time"
 
 	"github.com/google/go-github/github"
-	"github.com/mitchellh/mapstructure"
-	"github.com/qor/auth"
-	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
-
-type githubUserMeta struct {
-	Login     string
-	AvatarURL string
-}
 
 func NewGithubClient(accessToken string) *github.Client {
 	httpClient := oauth2.NewClient(
@@ -39,28 +29,4 @@ func NewGithubClient(accessToken string) *github.Client {
 	httpClient.Timeout = time.Second * 10
 
 	return github.NewClient(httpClient)
-}
-
-func getGithubUserMeta(schema *auth.Schema) (*githubUserMeta, error) {
-	githubClient := NewGithubClient(viper.GetString("github.token"))
-
-	var dexClaims struct {
-		FederatedClaims map[string]string
-	}
-
-	if err := mapstructure.Decode(schema.RawInfo, &dexClaims); err != nil {
-		return nil, nil
-	}
-
-	githubUserID := cast.ToInt64(dexClaims.FederatedClaims["user_id"])
-
-	githubUser, _, err := githubClient.Users.GetByID(context.Background(), githubUserID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &githubUserMeta{
-		Login:     *githubUser.Login,
-		AvatarURL: githubUser.GetAvatarURL(),
-	}, nil
 }
