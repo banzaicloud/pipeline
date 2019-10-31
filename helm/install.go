@@ -37,6 +37,7 @@ import (
 	"k8s.io/helm/pkg/repo"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	phelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -190,7 +191,7 @@ func CreateEnvSettings(helmRepoHome string) helmEnv.EnvSettings {
 
 // GenerateHelmRepoEnv Generate helm path based on orgName
 func GenerateHelmRepoEnv(orgName string) (env helmEnv.EnvSettings) {
-	var helmPath = config.GetHelmPath(orgName)
+	var helmPath = global.GetHelmPath(orgName)
 	env = CreateEnvSettings(fmt.Sprintf("%s/%s", helmPath, phelm.HelmPostFix))
 
 	// check local helm

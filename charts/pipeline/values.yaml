@@ -158,7 +158,7 @@ configuration:
 
   # Pipeline Helm related configuration
   helm:
-   path: "/cache/helm"
+   home: "/cache/helm"
 
    #helm repo URLs
    stableRepositoryURL: "https://kubernetes-charts.storage.googleapis.com"
