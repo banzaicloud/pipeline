@@ -363,7 +363,7 @@ func init() {
 	viper.SetDefault(HollowtreesAlertsEndpoint, "/api/v1/alerts")
 
 	viper.SetDefault(PrometheusOperatorChartKey, "stable/prometheus-operator")
-	viper.SetDefault(PrometheusOperatorVersionKey, "6.8.3")
+	viper.SetDefault(PrometheusOperatorVersionKey, "7.2.0")
 
 	viper.SetDefault(PrometheusPushgatewayChartKey, "stable/prometheus-pushgateway")
 	viper.SetDefault(PrometheusPushgatewayVersionKey, "1.0.1")
