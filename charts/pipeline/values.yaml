@@ -116,18 +116,11 @@ configuration:
         secretName: ""
         secretKey: adminPassword
 
-  cloud:
-    configRetryCount: 30
-    configRetrySleep: 15
-
   # CORS configuration
   cors:
     AllowAllOrigins: false
     AllowOrigins: []
     AllowOriginsRegexp: ".*"
-
-  statestore:
-    path: ""
 
   # CICD
   cicd:
@@ -196,15 +189,6 @@ configuration:
   infra:
     namespace: pipeline-system
 
-    # Name of the node pool reserved for infra deployments
-    # If you set this property Pipeline will place a taint on all nodes in this node pool and Tiller will be deployed with
-    # a node selector and toleration matching nodes from this node pool. Make sure all Infra deployments are setup with
-    # the node-affinity and toleration as described in docs/infra-node-pool.md
-    #headNodePoolName="head"
-
-    headNodeTaintRetryAttempt: 30
-    headNodeTaintRetrySleepSeconds: 5
-
     forbiddenLabelDomains:
       - k8s.io
       - kubernetes.io
@@ -216,17 +200,6 @@ configuration:
       - agentpool
       - storageprofile
       - storagetier
-
-  eks:
-    ASGFulfillmentTimeout: 10m
-
-  gke:
-    resourceDeleteWaitAttempt: 12
-    resourceDeleteSleepSeconds: 5
-
-  oke:
-    waitAttemptsForNodepoolActive: 60
-    sleepSecondsForNodepoolActive: 30
 
   ark:
     name: ark
