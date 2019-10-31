@@ -160,9 +160,13 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					},
 				},
 				"exporters": obj{
-					"enabled":          true,
-					"nodeExporter":     true,
-					"kubeStateMetrics": true,
+					"enabled": true,
+					"nodeExporter": obj{
+						"enabled": true,
+					},
+					"kubeStateMetrics": obj{
+						"enabled": true,
+					},
 				},
 			},
 			Error: false,
@@ -188,9 +192,13 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					},
 				},
 				"exporters": obj{
-					"enabled":          true,
-					"nodeExporter":     true,
-					"kubeStateMetrics": true,
+					"enabled": true,
+					"nodeExporter": obj{
+						"enabled": true,
+					},
+					"kubeStateMetrics": obj{
+						"enabled": true,
+					},
 				},
 			},
 			Error: true,
@@ -217,9 +225,13 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					},
 				},
 				"exporters": obj{
-					"enabled":          true,
-					"nodeExporter":     true,
-					"kubeStateMetrics": true,
+					"enabled": true,
+					"nodeExporter": obj{
+						"enabled": true,
+					},
+					"kubeStateMetrics": obj{
+						"enabled": true,
+					},
 				},
 			},
 			Error: true,
@@ -271,9 +283,13 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					},
 				},
 				"exporters": obj{
-					"enabled":          true,
-					"nodeExporter":     false,
-					"kubeStateMetrics": true,
+					"enabled": true,
+					"nodeExporter": obj{
+						"enabled": false,
+					},
+					"kubeStateMetrics": obj{
+						"enabled": true,
+					},
 				},
 			},
 			Error: true,
@@ -299,9 +315,13 @@ func TestFeatureManager_ValidateSpec(t *testing.T) {
 					},
 				},
 				"exporters": obj{
-					"enabled":          true,
-					"nodeExporter":     true,
-					"kubeStateMetrics": false,
+					"enabled": true,
+					"nodeExporter": obj{
+						"enabled": true,
+					},
+					"kubeStateMetrics": obj{
+						"enabled": false,
+					},
 				},
 			},
 			Error: true,
