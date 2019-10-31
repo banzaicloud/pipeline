@@ -143,7 +143,7 @@ func main() {
 	}
 
 	// Configure error handler
-	errorHandler, err := errorhandler.New(config.ErrorHandler, logger)
+	errorHandler, err := errorhandler.New(config.Errors, logger)
 	if err != nil {
 		logger.Error(err.Error())
 
