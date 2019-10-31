@@ -160,6 +160,9 @@ func main() {
 	err := viper.Unmarshal(&conf)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
+	err = viper.Unmarshal(&global.Config)
+	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
+
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(conf.Log)
 

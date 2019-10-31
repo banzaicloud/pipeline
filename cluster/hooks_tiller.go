@@ -21,8 +21,8 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
@@ -32,7 +32,7 @@ const helmRetrySleep = 15 * time.Second
 
 // WaitingForTillerComeUp waits until till to come up
 func WaitingForTillerComeUp(log logrus.FieldLogger, kubeConfig []byte) error {
-	requiredHelmVersion, err := semver.NewVersion(viper.GetString("helm.tillerVersion"))
+	requiredHelmVersion, err := semver.NewVersion(global.Config.Helm.Tiller.Version)
 	if err != nil {
 		return err
 	}
