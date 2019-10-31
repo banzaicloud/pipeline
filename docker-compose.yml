@@ -57,7 +57,7 @@ services:
             - $HOME:/root
 
     ui:
-        image: banzaicloud/pipeline-web:0.7.0
+        image: banzaicloud/pipeline-web:0.19.0
         environment:
             TAG: local
 
