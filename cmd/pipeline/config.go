@@ -132,13 +132,9 @@ func (c authTokenConfig) Validate() error {
 
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
-	// Application constants
-	v.Set("appName", appName)
-	v.Set("appVersion", version)
-
 	// ErrorHandler configuration
-	v.RegisterAlias("errorHandler.serviceName", "appName")
-	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
+	v.Set("errorHandler.serviceName", appName)
+	v.Set("errorHandler.serviceVersion", version)
 
 	// Auth configuration
 	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")

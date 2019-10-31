@@ -169,18 +169,14 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	v.AutomaticEnv()
 
-	// Application constants
-	v.Set("appName", appName)
-	v.Set("appVersion", version)
-
 	// Global configuration
 	v.SetDefault("environment", "production")
 	v.SetDefault("debug", false)
 	v.SetDefault("shutdownTimeout", 15*time.Second)
 
 	// ErrorHandler configuration
-	v.RegisterAlias("errorHandler.serviceName", "appName")
-	v.RegisterAlias("errorHandler.serviceVersion", "appVersion")
+	v.Set("errorHandler.serviceName", appName)
+	v.Set("errorHandler.serviceVersion", version)
 
 	// Pipeline configuration
 	v.SetDefault("pipeline.basePath", "")
