@@ -401,6 +401,8 @@ func (c *EKSCluster) CreateCluster() error {
 		return errors.WrapIf(err, "failed to base64 decode EKS K8S certificate authority data")
 	}
 
+	c.modelCluster.EKS.NodeInstanceRoleId = creationContext.NodeInstanceRoleID
+
 	// persist the id of the newly created subnets
 	for _, subnet := range creationContext.Subnets {
 		for _, subnetModel := range c.modelCluster.EKS.Subnets {
@@ -784,12 +786,12 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 			nodeSecurityGroupId = aws.StringValue(output.OutputValue)
 		case "VpcId":
 			vpcId = aws.StringValue(output.OutputValue)
-		case "NodeInstanceRoleId":
-			nodeInstanceRoleId = aws.StringValue(output.OutputValue)
 		case "ClusterUserArn":
 			clusterUserArn = aws.StringValue(output.OutputValue)
 		}
 	}
+
+	nodeInstanceRoleId = c.modelCluster.EKS.NodeInstanceRoleId
 
 	clusterUserAccessKeyId, clusterUserSecretAccessKey, err = action.GetClusterUserAccessKeyIdAndSecretVault(c.GetOrganizationId(), c.GetName())
 	if err != nil {
