@@ -164,9 +164,9 @@ func (m FeatureManager) getComponentOutput(
 	}
 
 	writeSecretID(ctx, o, clusterID, out)
-	writeUrl(o, endpoints, releaseName, out)
+	writeURL(o, endpoints, releaseName, out)
 	writeVersion(o, deploymentValues, out)
-	if err := writeServiceUrl(o, m.endpointsService, pipelineSystemNamespace, out); err != nil {
+	if err := writeServiceURL(o, m.endpointsService, pipelineSystemNamespace, out); err != nil {
 		m.logger.Warn(fmt.Sprintf("failed to get service url: %s", err.Error()))
 	}
 

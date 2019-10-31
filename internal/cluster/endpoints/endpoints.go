@@ -78,7 +78,7 @@ func (m *EndpointManager) List(kubeConfig []byte, releaseName string) ([]*pkgHel
 	return m.getLoadBalancersWithIngressPaths(serviceList, ingressList), nil
 }
 
-func (m *EndpointManager) GetServiceUrl(kubeConfig []byte, serviceName string, namespace string) (string, error) {
+func (m *EndpointManager) GetServiceURL(kubeConfig []byte, serviceName string, namespace string) (string, error) {
 	client, err := k8sclient.NewClientFromKubeConfig(kubeConfig)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to create K8S client")

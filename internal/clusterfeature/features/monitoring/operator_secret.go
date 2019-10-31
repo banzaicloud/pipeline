@@ -41,12 +41,12 @@ type secretComponentInfoer interface {
 
 func (m secretManager) generateHTPasswordSecret(ctx context.Context) error {
 	clusterNameSecretTag := getClusterNameSecretTag(m.cluster.GetName())
-	clusterUidSecretTag := getClusterUIDSecretTag(m.cluster.GetUID())
+	clusterUIDSecretTag := getClusterUIDSecretTag(m.cluster.GetUID())
 	releaseSecretTag := getReleaseSecretTag()
 
 	var secretTags = []string{
 		clusterNameSecretTag,
-		clusterUidSecretTag,
+		clusterUIDSecretTag,
 		releaseSecretTag,
 		secret.TagBanzaiReadonly,
 		featureSecretTag,
@@ -82,7 +82,7 @@ func (m secretManager) getComponentSecret(
 	logger common.Logger,
 ) (string, error) {
 	var secretName string
-	if ingress.SecretId == "" {
+	if ingress.SecretID == "" {
 		// get secret by name, this necessary in case of feature update
 		var secretName = m.infoer.generatedSecretName()
 		existingSecretID, err := m.operator.secretStore.GetIDByName(ctx, secretName)
@@ -100,10 +100,10 @@ func (m secretManager) getComponentSecret(
 		}
 	} else {
 		var err error
-		secretName, err = m.operator.secretStore.GetNameByID(ctx, ingress.SecretId)
+		secretName, err = m.operator.secretStore.GetNameByID(ctx, ingress.SecretID)
 		if err != nil {
 			return "", errors.WrapIfWithDetails(err, "failed to get secret",
-				"secretID", ingress.SecretId, "component", m.infoer.name())
+				"secretID", ingress.SecretID, "component", m.infoer.name())
 		}
 	}
 	return secretName, nil

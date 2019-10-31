@@ -207,7 +207,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		}
 	}
 
-	if boundSpec.Prometheus.Ingress.SecretId == "" {
+	if boundSpec.Prometheus.Ingress.SecretID == "" {
 		// Prometheus secret generated in activation flow, delete it
 		if err := op.deletePrometheusSecret(ctx, clusterID); err != nil && !isSecretNotFoundError(err) {
 			return errors.WrapIf(err, "failed to delete Prometheus secret")
@@ -346,7 +346,7 @@ func (op FeatureOperator) generateGrafanaSecret(
 ) (string, error) {
 
 	clusterNameSecretTag := getClusterNameSecretTag(cluster.GetName())
-	clusterUidSecretTag := getClusterUIDSecretTag(cluster.GetUID())
+	clusterUIDSecretTag := getClusterUIDSecretTag(cluster.GetUID())
 	releaseSecretTag := getReleaseSecretTag()
 
 	// Generating Grafana credentials
@@ -365,7 +365,7 @@ func (op FeatureOperator) generateGrafanaSecret(
 		},
 		Tags: []string{
 			clusterNameSecretTag,
-			clusterUidSecretTag,
+			clusterUIDSecretTag,
 			secret.TagBanzaiReadonly,
 			releaseSecretTag,
 			grafanaSecretTag,
@@ -492,7 +492,7 @@ func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Contex
 
 func (op FeatureOperator) generateSlackConfig(ctx context.Context, config slackSpec) ([]slackConfigValues, error) {
 	if config.Enabled {
-		slackSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretId)
+		slackSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretID)
 		if err != nil {
 			return nil, errors.WrapIf(err, "failed to get Slack secret")
 		}
@@ -511,13 +511,13 @@ func (op FeatureOperator) generateSlackConfig(ctx context.Context, config slackS
 
 func (op FeatureOperator) generatePagerdutyConfig(ctx context.Context, config pagerDutySpec) ([]pagerdutyConfigValues, error) {
 	if config.Enabled {
-		pdSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretId)
+		pdSecret, err := op.secretStore.GetSecretValues(ctx, config.SecretID)
 		if err != nil {
 			return nil, errors.WrapIf(err, "failed to get PagerDuty secret")
 		}
 
 		var pdConfig = pagerdutyConfigValues{
-			Url:          config.Url,
+			Url:          config.URL,
 			SendResolved: config.SendResolved,
 		}
 

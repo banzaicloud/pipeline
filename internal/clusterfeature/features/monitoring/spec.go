@@ -54,7 +54,7 @@ type storageSpec struct {
 
 type ingressSpecWithSecret struct {
 	baseIngressSpec `mapstructure:",squash"`
-	SecretId        string `json:"secretId" mapstructure:"secretId"`
+	SecretID        string `json:"secretId" mapstructure:"secretId"`
 }
 
 type baseIngressSpec struct {
@@ -86,15 +86,15 @@ type pushgatewaySpec struct {
 
 type pagerDutySpec struct {
 	Enabled         bool   `json:"enabled" mapstructure:"enabled"`
-	Url             string `json:"url" mapstructure:"url"`
-	SecretId        string `json:"secretId" mapstructure:"secretId"`
+	URL             string `json:"url" mapstructure:"url"`
+	SecretID        string `json:"secretId" mapstructure:"secretId"`
 	IntegrationType string `json:"integrationType" mapstructure:"integrationType"`
 	SendResolved    bool   `json:"sendResolved" mapstructure:"sendResolved"`
 }
 
 type slackSpec struct {
 	Enabled      bool   `json:"enabled" mapstructure:"enabled"`
-	SecretId     string `json:"secretId" mapstructure:"secretId"`
+	SecretID     string `json:"secretId" mapstructure:"secretId"`
 	Channel      string `json:"channel" mapstructure:"channel"`
 	SendResolved bool   `json:"sendResolved" mapstructure:"sendResolved"`
 }
@@ -121,15 +121,15 @@ func (s featureSpec) Validate() error {
 	}
 
 	if !s.Exporters.Enabled {
-		return cannotDisabledError{fieldName: "exporters"}
+		return canNotDisabledError{fieldName: "exporters"}
 	}
 
 	if !s.Exporters.KubeStateMetrics.Enabled {
-		return cannotDisabledError{fieldName: "kubeStateMetrics"}
+		return canNotDisabledError{fieldName: "kubeStateMetrics"}
 	}
 
 	if !s.Exporters.NodeExporter.Enabled {
-		return cannotDisabledError{fieldName: "nodeExporter"}
+		return canNotDisabledError{fieldName: "nodeExporter"}
 	}
 
 	return nil
@@ -138,7 +138,7 @@ func (s featureSpec) Validate() error {
 func (s prometheusSpec) Validate() error {
 	if !s.Enabled {
 		// Prometheus cannot be disabled
-		return cannotDisabledError{fieldName: "prometheus"}
+		return canNotDisabledError{fieldName: "prometheus"}
 	}
 
 	// ingress validation
@@ -177,7 +177,7 @@ func (s baseIngressSpec) Validate(ingressType string) error {
 
 func (s storageSpec) Validate() error {
 	if s.Size < 0 {
-		return errors.New("storage size must be a positive number")
+		return errors.New("storage size must be a non-negative number")
 	}
 
 	if s.Retention == "" {
@@ -248,7 +248,7 @@ func (s alertmanagerSpec) Validate() error {
 
 func (s slackSpec) Validate() error {
 	if s.Enabled {
-		if s.SecretId == "" {
+		if s.SecretID == "" {
 			return requiredFieldError{fieldName: "secretId"}
 		}
 
@@ -262,11 +262,11 @@ func (s slackSpec) Validate() error {
 
 func (s pagerDutySpec) Validate() error {
 	if s.Enabled {
-		if s.SecretId == "" {
+		if s.SecretID == "" {
 			return requiredFieldError{fieldName: "secretId"}
 		}
 
-		if s.Url == "" {
+		if s.URL == "" {
 			return requiredFieldError{fieldName: "url"}
 		}
 

@@ -25,7 +25,7 @@ func newPrometheusOutputHelper(
 	return outputPrometheus{
 		baseOutput: baseOutput{
 			ingress:   spec.Prometheus.Ingress.baseIngressSpec,
-			secretID:  spec.Prometheus.Ingress.SecretId,
+			secretID:  spec.Prometheus.Ingress.SecretID,
 			enabled:   spec.Prometheus.Enabled,
 			k8sConfig: kubeConfig,
 		},

@@ -24,7 +24,7 @@ type invalidIngressHostError struct {
 	hostType string
 }
 
-type cannotDisabledError struct {
+type canNotDisabledError struct {
 	fieldName string
 }
 
@@ -36,6 +36,6 @@ func (e requiredFieldError) Error() string {
 	return fmt.Sprintf("%q cannot be empty", e.fieldName)
 }
 
-func (e cannotDisabledError) Error() string {
+func (e canNotDisabledError) Error() string {
 	return fmt.Sprintf("%s cannot be disabled", e.fieldName)
 }
