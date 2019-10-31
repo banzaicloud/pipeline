@@ -236,4 +236,11 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
 	v.SetDefault("cluster.securityScan.anchore.user", "")
 	v.SetDefault("cluster.securityScan.anchore.password", "")
+
+	// Helm configuration
+	v.SetDefault("helm.tiller.version", "v2.14.2")
+	v.SetDefault("helm.home", "./var/cache")
+	v.SetDefault("helm.repositories.stable", "https://kubernetes-charts.storage.googleapis.com")
+	v.SetDefault("helm.repositories.banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
+	v.SetDefault("helm.repositories.loki", "https://grafana.github.io/loki/charts")
 }
