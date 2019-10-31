@@ -4131,6 +4131,8 @@ paths:
           content:
             application/json:
               schema:
+                additionalProperties:
+                  type: object
                 example:
                   cicd:
                     enabled: false
@@ -4145,9 +4147,7 @@ paths:
                       managed: false
                   issue:
                     enabled: false
-                items:
-                  type: object
-                type: array
+                type: object
           description: capabilities successfully returned
       summary: Lists configured Pipeline capabilities
       tags:
