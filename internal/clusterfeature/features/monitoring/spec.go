@@ -64,9 +64,13 @@ type baseIngressSpec struct {
 }
 
 type exportersSpec struct {
-	Enabled          bool
-	NodeExporter     bool `json:"nodeExporter" mapstructure:"nodeExporter"`
-	KubeStateMetrics bool `json:"kubeStateMetrics" mapstructure:"kubeStateMetrics"`
+	Enabled          bool             `json:"enabled" mapstructure:"enabled"`
+	NodeExporter     exporterBaseSpec `json:"nodeExporter" mapstructure:"nodeExporter"`
+	KubeStateMetrics exporterBaseSpec `json:"kubeStateMetrics" mapstructure:"kubeStateMetrics"`
+}
+
+type exporterBaseSpec struct {
+	Enabled bool `json:"enabled" mapstructure:"enabled"`
 }
 
 type alertmanagerSpec struct {
@@ -120,11 +124,11 @@ func (s featureSpec) Validate() error {
 		return cannotDisabledError{fieldName: "exporters"}
 	}
 
-	if !s.Exporters.KubeStateMetrics {
+	if !s.Exporters.KubeStateMetrics.Enabled {
 		return cannotDisabledError{fieldName: "kubeStateMetrics"}
 	}
 
-	if !s.Exporters.NodeExporter {
+	if !s.Exporters.NodeExporter.Enabled {
 		return cannotDisabledError{fieldName: "nodeExporter"}
 	}
 

@@ -706,11 +706,11 @@ func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, s
 	return nil
 }
 
-func (m chartValuesManager) generateKubeStateMetricsChartValues(enabled bool) kubeStateMetricsValues {
+func (m chartValuesManager) generateKubeStateMetricsChartValues(spec exporterBaseSpec) kubeStateMetricsValues {
 	var result = kubeStateMetricsValues{
-		Enabled: enabled,
+		Enabled: spec.Enabled,
 	}
-	if enabled {
+	if spec.Enabled {
 		result.SpecValues = SpecValues{
 			affinityValues:   affinityValues{Affinity: m.headNodeAffinity},
 			tolerationValues: tolerationValues{Tolerations: m.tolerations},
@@ -720,9 +720,9 @@ func (m chartValuesManager) generateKubeStateMetricsChartValues(enabled bool) ku
 	return result
 }
 
-func (m chartValuesManager) generateNodeExporterChartValues(enabled bool) nodeExporterValues {
+func (m chartValuesManager) generateNodeExporterChartValues(spec exporterBaseSpec) nodeExporterValues {
 	return nodeExporterValues{
-		Enabled: enabled,
+		Enabled: spec.Enabled,
 	}
 }
 
