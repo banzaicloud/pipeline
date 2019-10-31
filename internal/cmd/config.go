@@ -147,6 +147,11 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("errors.stackdriver.enabled", false)
 	v.SetDefault("errors.stackdriver.projectId", false)
 
+	// Cadence configuration
+	v.SetDefault("cadence.host", "")
+	v.SetDefault("cadence.port", 7933)
+	v.SetDefault("cadence.domain", "pipeline")
+
 	// Cluster configuration
 	v.SetDefault("cluster.manifest", "")
 	v.SetDefault("cluster.namespace", "pipeline-system")

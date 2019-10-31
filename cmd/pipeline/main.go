@@ -46,6 +46,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	zaplog "logur.dev/integration/zap"
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/api"
@@ -107,6 +108,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/monitor"
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
+	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -330,7 +332,7 @@ func main() {
 
 	oidcIssuerURL := viper.GetString(config.OIDCIssuerURL)
 
-	workflowClient, err := config.CadenceClient()
+	workflowClient, err := cadence.NewClient(conf.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 	if err != nil {
 		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 	}

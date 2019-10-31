@@ -22,6 +22,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/cmd"
+	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/viperx"
@@ -38,6 +39,9 @@ type configuration struct {
 
 	// Auth configuration
 	Auth authConfig
+
+	// Cadence configuration
+	Cadence cadence.Config
 
 	// Frontend configuration
 	Frontend frontend.Config
@@ -57,6 +61,10 @@ func (c configuration) Validate() error {
 	}
 
 	if err := c.Auth.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Cadence.Validate(); err != nil {
 		return err
 	}
 

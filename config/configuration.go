@@ -318,10 +318,6 @@ func init() {
 		"google.com",
 	})
 
-	// Cadence config
-	viper.SetDefault("cadence.port", 7933)
-	viper.SetDefault("cadence.domain", "pipeline")
-
 	// Prometheus service defaults
 	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")
 	viper.SetDefault(PrometheusServiceContext, "prometheus")
