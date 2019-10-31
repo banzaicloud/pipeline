@@ -158,7 +158,7 @@ configuration:
 
   # Pipeline Helm related configuration
   helm:
-   home: "/cache/helm"
+    home: "/cache/helm"
 
   # Pipeline federated monitoring configurations
   monitor:
