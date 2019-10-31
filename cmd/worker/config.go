@@ -177,16 +177,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("environment", "production")
 	v.SetDefault("debug", false)
 	v.SetDefault("shutdownTimeout", 15*time.Second)
-	if _, ok := os.LookupEnv("NO_COLOR"); ok {
-		v.SetDefault("no_color", true)
-	}
-
-	// Log configuration
-	v.SetDefault("logging.logformat", "text")
-	v.SetDefault("logging.loglevel", "debug")
-	v.RegisterAlias("log.format", "logging.logformat") // TODO: deprecate the above
-	v.RegisterAlias("log.level", "logging.loglevel")
-	v.RegisterAlias("log.noColor", "no_color")
 
 	// ErrorHandler configuration
 	v.RegisterAlias("errorHandler.serviceName", "appName")

@@ -134,6 +134,15 @@ func (c ClusterSecurityScanAnchoreConfig) Validate() error {
 
 // Configure configures some defaults in the Viper instance.
 func Configure(v *viper.Viper, _ *pflag.FlagSet) {
+	// Log configuration
+	if _, ok := os.LookupEnv("NO_COLOR"); ok {
+		v.SetDefault("no_color", true)
+	}
+
+	v.SetDefault("log.format", "logfmt")
+	v.SetDefault("log.level", "debug")
+	v.RegisterAlias("log.noColor", "no_color")
+
 	// Cluster configuration
 	v.SetDefault("cluster.manifest", "")
 	v.SetDefault("cluster.namespace", "pipeline-system")

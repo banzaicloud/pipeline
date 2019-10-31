@@ -1,4 +1,9 @@
-# This is the example configuration for pipeline
+# This is the example configuration for Pipeline
+
+# Pipeline logging configuration
+log:
+    format: "text"
+    level: "debug"
 
 pipeline:
     # Pipeline configs
@@ -47,10 +52,6 @@ database:
 
 cloudinfo:
     endPointUrl: "https://alpha.dev.banzaicloud.com/cloudinfo/api/v1"
-
-logging:
-    logformat: "text"
-    loglevel: "debug"
 
 errorHandler:
     stackdriver:
