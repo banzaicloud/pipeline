@@ -186,10 +186,6 @@ const (
 	PrometheusOperatorVersionKey    = "prometheusOperator.chartVersion"
 	PrometheusPushgatewayChartKey   = "prometheusPushgateway.chart"
 	PrometheusPushgatewayVersionKey = "prometheusPushgateway.chartVersion"
-
-	HelmStableRepositoryKey = "helm.stableRepositoryURL"
-	HelmBanzaiRepositoryKey = "helm.banzaiRepositoryURL"
-	HelmLokiRepositoryKey   = "helm.lokiRepositoryURL"
 )
 
 // Init initializes the configurations
@@ -215,9 +211,9 @@ func init() {
 
 	viper.SetDefault("helm.tiller.version", "v2.14.2")
 	viper.SetDefault("helm.home", "./var/cache")
-	viper.SetDefault(HelmStableRepositoryKey, "https://kubernetes-charts.storage.googleapis.com")
-	viper.SetDefault(HelmBanzaiRepositoryKey, "https://kubernetes-charts.banzaicloud.com")
-	viper.SetDefault(HelmLokiRepositoryKey, "https://grafana.github.io/loki/charts")
+	viper.SetDefault("helm.repositories.stable", "https://kubernetes-charts.storage.googleapis.com")
+	viper.SetDefault("helm.repositories.banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
+	viper.SetDefault("helm.repositories.loki", "https://grafana.github.io/loki/charts")
 
 	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
 

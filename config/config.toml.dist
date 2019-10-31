@@ -124,10 +124,10 @@ enabled = true
 [helm]
 # home = "./var/cache"
 
-#helm repo URLs
-stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"
-banzaiRepositoryURL = "https://kubernetes-charts.banzaicloud.com"
-lokiRepositoryURL = "https://grafana.github.io/loki/charts"
+# [helm.repositories]
+# stable = "https://kubernetes-charts.storage.googleapis.com"
+# banzaicloud-stable = "https://kubernetes-charts.banzaicloud.com"
+# loki = "https://grafana.github.io/loki/charts"
 
 # [helm.tiller]
 # version = "v2.14.2"

@@ -30,6 +30,8 @@ type Configuration struct {
 		}
 
 		Home string
+
+		Repositories map[string]string
 	}
 }
 

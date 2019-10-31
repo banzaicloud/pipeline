@@ -160,10 +160,6 @@ configuration:
   helm:
    home: "/cache/helm"
 
-   #helm repo URLs
-   stableRepositoryURL: "https://kubernetes-charts.storage.googleapis.com"
-   banzaiRepositoryURL: "https://kubernetes-charts.banzaicloud.com"
-
   # Pipeline federated monitoring configurations
   monitor:
    enabled: false
