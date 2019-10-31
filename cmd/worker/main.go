@@ -34,6 +34,7 @@ import (
 	"logur.dev/logur"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/auth/authdriver"
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/dns"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
@@ -49,6 +50,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
@@ -344,6 +346,8 @@ func main() {
 				logger.Info("External DNS service functionality is not enabled")
 			}
 
+			orgGetter := authdriver.NewOrganizationGetter(db)
+
 			logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 			featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 			helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
@@ -351,7 +355,12 @@ func main() {
 
 			clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
 			clusterService := clusterfeatureadapter.NewClusterService(clusterManager)
-			orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
+			orgDomainService := dnsadapter.NewOrgDomainService(
+				config.Cluster.DNS.BaseDomain,
+				dnsSvc,
+				dnsadapter.NewClusterOrgGetter(clusterManager, orgGetter),
+				logger,
+			)
 
 			customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
 				featureRepository,
@@ -376,7 +385,15 @@ func main() {
 			featureWhitelistService := securityscan.NewFeatureWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
-				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, commonSecretStore),
+				featureDns.MakeFeatureOperator(
+					clusterGetter,
+					clusterService,
+					helmService,
+					logger,
+					orgDomainService,
+					commonSecretStore,
+					config.Cluster.DNS.Config,
+				),
 				securityscan.MakeFeatureOperator(
 					config.Cluster.SecurityScan.Anchore.Enabled,
 					config.Cluster.SecurityScan.Anchore.Endpoint,

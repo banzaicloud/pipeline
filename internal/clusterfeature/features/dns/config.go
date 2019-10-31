@@ -44,11 +44,24 @@ func (c Config) Validate() error {
 }
 
 type ChartsConfig struct {
-	ExternalDNS ChartConfig
+	ExternalDNS ExternalDNSChartConfig
 }
 
-type ChartConfig struct {
+type ChartConfigBase struct {
 	Chart   string
 	Version string
-	Values  map[string]interface{}
+}
+
+type ExternalDNSChartConfig struct {
+	ChartConfigBase
+	Values ExternalDNSChartValuesConfig
+}
+
+type ExternalDNSChartValuesConfig struct {
+	Image ExternalDNSChartValuesImageConfig
+}
+
+type ExternalDNSChartValuesImageConfig struct {
+	Repository string
+	Tag        string
 }
