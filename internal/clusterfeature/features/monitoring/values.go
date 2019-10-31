@@ -62,17 +62,19 @@ type alertmanagerValues struct {
 }
 
 type configValues struct {
-	Global configGlobalValues `json:"global"`
+	Receivers []receiverItemValues `json:"receivers"`
+	Route     routeValues          `json:"route"`
 }
 
-type configGlobalValues struct {
-	Receivers []receiverItemValues `json:"receivers"`
+type routeValues struct {
+	Receiver string        `json:"receiver"`
+	Routes   []interface{} `json:"routes"`
 }
 
 type receiverItemValues struct {
 	Name             string                  `json:"name"`
-	SlackConfigs     []slackConfigValues     `json:"slack_configs"`
-	PagerdutyConfigs []pagerdutyConfigValues `json:"pagerduty_config"`
+	SlackConfigs     []slackConfigValues     `json:"slack_configs,omitempty"`
+	PagerdutyConfigs []pagerdutyConfigValues `json:"pagerduty_config,omitempty"`
 }
 
 type slackConfigValues struct {

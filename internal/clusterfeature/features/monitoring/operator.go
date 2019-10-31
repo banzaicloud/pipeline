@@ -477,17 +477,27 @@ func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Contex
 		}
 	}
 
-	return &configValues{
-		Global: configGlobalValues{
-			Receivers: []receiverItemValues{
-				{
-					Name:             alertManagerProviderConfigName,
-					SlackConfigs:     slackConfigs,
-					PagerdutyConfigs: pageDutyConfigs,
-				},
+	var result = &configValues{
+		Receivers: []receiverItemValues{
+			{
+				Name: alertManagerProviderConfigName,
 			},
 		},
-	}, nil
+		Route: routeValues{
+			Receiver: alertManagerProviderConfigName,
+			Routes:   []interface{}{},
+		},
+	}
+
+	if slackConfigs != nil {
+		result.Receivers[0].SlackConfigs = slackConfigs
+	}
+
+	if pageDutyConfigs != nil {
+		result.Receivers[0].PagerdutyConfigs = pageDutyConfigs
+	}
+
+	return result, nil
 }
 
 func (op FeatureOperator) generateSlackConfig(ctx context.Context, config slackSpec) ([]slackConfigValues, error) {
