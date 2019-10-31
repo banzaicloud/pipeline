@@ -119,7 +119,7 @@ func main() {
 	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
-	err = viper.Unmarshal(&global.Config)
+	err = v.Unmarshal(&global.Config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
 	// Create logger (first thing after configuration loading)
