@@ -143,6 +143,10 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("log.level", "debug")
 	v.RegisterAlias("log.noColor", "no_color")
 
+	// ErrorHandler configuration
+	v.SetDefault("errors.stackdriver.enabled", false)
+	v.SetDefault("errors.stackdriver.projectId", false)
+
 	// Cluster configuration
 	v.SetDefault("cluster.manifest", "")
 	v.SetDefault("cluster.namespace", "pipeline-system")

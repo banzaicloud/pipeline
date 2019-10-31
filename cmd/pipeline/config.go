@@ -33,8 +33,8 @@ type configuration struct {
 	// Log configuration
 	Log log.Config
 
-	// ErrorHandler configuration
-	ErrorHandler errorhandler.Config
+	// Error handling configuration
+	Errors errorhandler.Config
 
 	// Auth configuration
 	Auth authConfig
@@ -48,7 +48,7 @@ type configuration struct {
 
 // Validate validates the configuration.
 func (c configuration) Validate() error {
-	if err := c.ErrorHandler.Validate(); err != nil {
+	if err := c.Errors.Validate(); err != nil {
 		return err
 	}
 
@@ -133,8 +133,8 @@ func (c authTokenConfig) Validate() error {
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// ErrorHandler configuration
-	v.Set("errorHandler.serviceName", appName)
-	v.Set("errorHandler.serviceVersion", version)
+	v.Set("errors.serviceName", appName)
+	v.Set("errors.serviceVersion", version)
 
 	// Auth configuration
 	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")

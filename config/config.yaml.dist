@@ -5,6 +5,12 @@ log:
     format: "text"
     level: "debug"
 
+# Pipeline error handling configuration
+errors:
+    stackdriver:
+        enabled: false
+        projectId: ""
+
 pipeline:
     # Pipeline configs
     bindaddr: "127.0.0.1:9090"
@@ -52,11 +58,6 @@ database:
 
 cloudinfo:
     endPointUrl: "https://alpha.dev.banzaicloud.com/cloudinfo/api/v1"
-
-errorHandler:
-    stackdriver:
-        enabled: false
-        projectId: ""
 
 cors:
     AllowAllOrigins: false

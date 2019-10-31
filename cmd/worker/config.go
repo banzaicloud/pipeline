@@ -47,8 +47,8 @@ type configuration struct {
 	// Log configuration
 	Log log.Config
 
-	// ErrorHandler configuration
-	ErrorHandler errorhandler.Config
+	// Error handling configuration
+	Errors errorhandler.Config
 
 	// Pipeline configuration
 	Pipeline PipelineConfig
@@ -72,7 +72,7 @@ func (c configuration) Validate() error {
 		return errors.New("environment is required")
 	}
 
-	if err := c.ErrorHandler.Validate(); err != nil {
+	if err := c.Errors.Validate(); err != nil {
 		return err
 	}
 
@@ -175,8 +175,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("shutdownTimeout", 15*time.Second)
 
 	// ErrorHandler configuration
-	v.Set("errorHandler.serviceName", appName)
-	v.Set("errorHandler.serviceVersion", version)
+	v.Set("errors.serviceName", appName)
+	v.Set("errors.serviceVersion", version)
 
 	// Pipeline configuration
 	v.SetDefault("pipeline.basePath", "")
