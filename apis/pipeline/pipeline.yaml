@@ -3363,7 +3363,44 @@ paths:
                     description: "Modifiying current user's settings succeeded"
                 401:
                     $ref: '#/components/responses/Unauthorized'
-
+                    
+    '/api/v1/capabilities':
+        get:
+            tags:
+                - pipeline
+            summary: Lists configured Pipeline capabilities
+            operationId: ListCapabilities
+            description: Retrieve Pipeline capabilities
+            responses:
+                '200':
+                    description: "capabilities successfully returned"
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                items:
+                                    type: object
+                                example: {
+                                    "cicd": {
+                                        "enabled": false
+                                    },
+                                    "features": {
+                                        "monitoring": {
+                                            "enabled": true
+                                        },
+                                        "securityScan": {
+                                            "enabled": true,
+                                            "managed": true
+                                        },
+                                        "vault": {
+                                            "enabled": true,
+                                            "managed": false
+                                        }
+                                    },
+                                    "issue": {
+                                        "enabled": false
+                                    }
+                                }
     '/api/v1/orgs/{orgId}/azure/resourcegroups':
         get:
             security:
