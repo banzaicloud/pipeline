@@ -11523,7 +11523,7 @@ components:
         instanceType:
           example: m4.xlarge
           type: string
-        spot_price:
+        spotPrice:
           example: "0.2"
           type: string
         autoscaling:
