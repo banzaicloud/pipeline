@@ -44,7 +44,7 @@ pipeline:
     image: golang:1.10
     commands:
     - mkdir $HOME/config
-    - cp config/config.toml.dist $HOME/config/config.toml
+    - cp config/config.yaml.dist $HOME/config/config.yaml
     - make test
     environment:
       VAULT_ADDR: http://vault:8200

@@ -31,10 +31,10 @@ func TestConfigure(t *testing.T) {
 
 	configure(v, p)
 
-	file, err := os.Open("../../config/config.toml.dist")
+	file, err := os.Open("../../config/config.yaml.dist")
 	require.NoError(t, err)
 
-	v.SetConfigType("toml")
+	v.SetConfigType("yaml")
 
 	err = v.ReadConfig(file)
 	require.NoError(t, err)

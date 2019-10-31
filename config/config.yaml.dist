@@ -1,0 +1,276 @@
+# This is the example configuration for pipeline
+
+pipeline:
+    # Pipeline configs
+    bindaddr: "127.0.0.1:9090"
+    externalURLInsecure: false
+
+    # Bind address for Internal API
+    internalBindaddr: "127.0.0.1:9091"
+
+    # Url basepath
+    # Default is "/pipeline" in the development environment to allow using the UI locally
+    basepath: "/pipeline"
+
+    # Base URL where the end users can reach this pipeline instance
+    externalURL: "https://example.com/pipeline"
+
+    # Use to redirect url after login
+    uipath: "http://localhost:4200/ui"
+    signupRedirectPath: "http://localhost:4200/ui"
+
+    # Deny connecting to API servers other than ones listening on globally routable IPv4 addresses
+    forceGlobal: false
+
+    # An UUID that identifies the specific installation (deployment) of the platform.
+    # If a good UUID is not available, do not generate one automatically, because no UUID is better than one that always changes.
+    # uuid: ""
+
+database:
+    # dialect: "postgres"
+    dialect: "mysql"
+    host: "localhost"
+    # port: 5432
+    port: 3306
+    # tls: "disable"
+    tls : "false"
+    user: "sparky"
+    role: ""
+    password: "sparky123"
+    dbname: "pipeline"
+    cicddbname: "cicd"
+
+    # Turn this to true to see all queries in the log
+    logging: false
+
+    autoMigrateEnabled: true
+
+cloudinfo:
+    endPointUrl: "https://alpha.dev.banzaicloud.com/cloudinfo/api/v1"
+
+logging:
+    logformat: "text"
+    loglevel: "debug"
+
+errorHandler:
+    stackdriver:
+        enabled: false
+        projectId: ""
+
+cors:
+    AllowAllOrigins: false
+    AllowOrigins: ["http://localhost:4200"]
+
+cicd:
+    enabled: false
+    url: "http://localhost:8000"
+    scm: "github"
+
+github:
+    token: "YourPersonalAccessToken"
+
+gitlab:
+    baseURL: "https://gitlab.com/"
+
+auth:
+    # Dex settings
+    publicclientid: "banzai-cli"
+    clientid: "pipeline"
+    clientsecret: "ZXhhbXBsZS1hcHAtc2VjcmV0"
+    dexURL: "http://127.0.0.1:5556/dex"
+    dexInsecure: false
+    dexGrpcAddress: "127.0.0.1:5557"
+
+    secureCookie: false
+
+    # Domain field for cookies
+    cookieDomain: ""
+    setCookieDomain: false
+
+#    role:
+#        default: "admin"
+#        binding:
+#            admin: ".*"
+#            member: ""
+
+    token:
+        signingKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
+#        issuer: "https://banzaicloud.com/"
+#        audience: "https://pipeline.banzaicloud.com"
+
+#cluster:
+#    # An initial Kubernetes manifest to be installed on clusters.
+#    # It accepts a file path with valid YAML templates inside.
+#    manifest: ""
+#
+#    vault:
+#        enabled: true
+#        managed:
+#            enabled: false
+#
+#    monitoring:
+#        enabled: true
+#
+#    securityScan:
+#        enabled: true
+#        anchore:
+#            enabled: false
+#            endpoint: ""
+#            user: ""
+#            password: ""
+
+#helm:
+#    home: "./var/cache"
+#    tiller:
+#        version: "v2.14.2"
+#    repositories:
+#        stable: "https://kubernetes-charts.storage.googleapis.com"
+#        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
+#        loki: "https://grafana.github.io/loki/charts"
+
+monitor:
+    enabled: false
+    configMap: ''
+    configMapPrometheusKey: ''
+    certSecret: ''
+    mountPath: ''
+    grafanaAdminUsername: admin
+
+loggingOperator:
+    chartVersion: ''
+    imageTag: 0.1.2
+
+servicemesh:
+    istioOperatorChartVersion: 0.0.14
+    grafanaDashboardLocation: https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards
+    istioOperatorChartName: istio-operator
+    istioPilotImage: 'banzaicloud/istio-pilot:1.1.8-bzc.1'
+    istioMixerImage: 'banzaicloud/istio-mixer:1.1.8-bzc.1'
+
+backyards:
+    chartVersion: 0.1.4
+    chartName: backyards
+    imageRepository: banzaicloud/backyards
+    imageTag: 0.1.3
+    webImageTag: web-0.1.3
+
+canary:
+    chartVersion: 0.1.2
+    chartName: canary-operator
+    imageRepository: banzaicloud/canary-operator
+    imageTag: 0.1.0
+
+# DNS service settings
+dns:
+    # base domain under which organisation level subdomains will be registered
+    domain: "example.org"
+
+    # Kubernetes namespace which the secret for interacting with external DNS server (Route53) is created into
+    secretNamespace: "default"
+
+    # The interval in minutes at which the garbage collector runs to clean up unused organisation level domains
+    gcIntervalMinute: 1
+
+    gcLogLevel: "debug"
+
+# AWS Route53 config
+route53:
+    # The window before the next AWS Route53 billing period starts when unused organisation level domains (which are older than 12hrs)
+    # are cleaned up
+    maintenanceWindowMinute: 15
+
+# Pipeline infra environment related settings
+infra:
+    namespace: "pipeline-system"
+
+    # Name of the node pool reserved for infra deployments
+    # If you set this property Pipeline will place a taint on all nodes in this node pool and Tiller will be deployed with
+    # a node selector and toleration matching nodes from this node pool. Make sure all Infra deployments are setup with
+    # the node-affinity and toleration as described in docs/infra-node-pool.md
+    #headNodePoolName: "head"
+
+    forbiddenLabelDomains: [
+        "k8s.io",
+        "kubernetes.io",
+        "google.com"
+    ]
+
+ark:
+    name: "ark"
+    namespace: "pipeline-system"
+    chart: "banzaicloud-stable/ark"
+    chartVersion: "1.2.2"
+    image: "banzaicloud/ark"
+    imageTag: "v0.9.11"
+    pullPolicy: "IfNotPresent"
+    syncEnabled: true
+    logLevel: "info"
+    bucketSyncInterval: "10m"
+    restoreSyncInterval: "20s"
+    backupSyncInterval: "20s"
+    restoreWaitTimeout: "5m"
+
+spotguide:
+    allowPrereleases: false
+    allowPrivateRepos: false
+    syncInterval: "5m"
+    sharedLibraryGitHubOrganization: "spotguides"
+
+metrics:
+    enabled: false
+    address: "127.0.0.1"
+    port: "9900"
+
+    # if true, some metrics have unique labels
+    debug: true
+
+frontend:
+    issue:
+        enabled: false
+        driver: "github"
+
+        github:
+            owner: "banzaicloud"
+            repository: "pipeline-issues"
+
+spotmetrics:
+    enabled: false
+    collectionInterval: "30s"
+
+cert:
+    source: "file"
+    path: "config/certs"
+
+#nodepools:
+#    labelSetOperatorChartVersion: "0.0.2"
+
+cadence:
+    host: "127.0.0.1"
+    port: 7933
+    domain: "pipeline"
+    createNonexistentDomain: true
+    workflowExecutionRetentionPeriodInDays: 3
+
+amazon:
+    # default Amazon region to initialize client
+    defaultApiRegion: "us-west-1"
+
+alibaba:
+    # default Alibaba region to initialize client
+    defaultApiRegion: "eu-central-1"
+
+autoscale:
+    clusterAutoscalerChartVersion: "0.12.3"
+    hpaOperatorChartVersion: "0.0.10"
+
+vaultWebhook:
+    chart: "banzaicloud-stable/vault-secrets-webhook"
+    chartVersion: "0.5.2"
+
+prometheusOperator:
+    chart: "stable/prometheus-operator"
+    chartVersion: "6.8.3"
+
+prometheusPushgateway:
+    chart: "stable/prometheus-pushgateway"
+    chartVersion: "1.0.1"

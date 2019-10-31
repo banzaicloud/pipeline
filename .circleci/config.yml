@@ -95,7 +95,7 @@ jobs:
                 run:
                     name: Run tests
                     command: |
-                        make config/config.toml
+                        make config/config.yaml
                         PIPELINE_CONFIG_DIR=$PWD/config GOARGS="-p=2" make test
                     environment:
                         VAULT_ADDR: http://localhost:8200
@@ -105,7 +105,7 @@ jobs:
                 run:
                     name: Run integration tests
                     command: |
-                        make config/config.toml
+                        make config/config.yaml
                         PIPELINE_CONFIG_DIR=$PWD/config make GOARGS="-p=2" test-integration
                     environment:
                         VAULT_ADDR: http://localhost:8200

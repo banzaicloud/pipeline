@@ -41,10 +41,10 @@ which removes everything.
 
 ### Configuration
 
-Create a `config/config.toml` and `config/dex.yml` config file based on their `config/*.dist` counterparts with:
+Create a `config/config.yaml` and `config/dex.yml` config file based on their `config/*.dist` counterparts with:
 
 ```bash
-$ make config/config.toml config/dex.yml
+$ make config/config.yaml config/dex.yml
 ```
 
 **Note:** If you followed the quick start guide this file should already exist.
@@ -106,7 +106,7 @@ If you happen to get an error similar to this on the first run:
 Error 1146: Table 'pipeline.amazon_eks_profiles' doesn't exist
 ```
 
-You should set `autoMigrateEnabled = true` in the database section in the `config/config.toml` file.
+You should set `autoMigrateEnabled = true` in the database section in the `config/config.yaml` file.
 
 You should now be able to log in on the Pipeline UI: http://localhost:4200/ui
 
@@ -192,7 +192,7 @@ If you want to launch PKE clusters, you will need to ensure that the pke-tool ru
 In a development environment you can do this for example with the following [ngrok](https://ngrok.com/) command: `ngrok http 9090`.
 
 You will also need to adjust the `pipeline.externalURL` configuration value.
-In the `pipeline` section of `config/config.toml` you can add the value like below:
+In the `pipeline` section of `config/config.yaml` you can add the value like below:
 
 ```yaml
 # Base URL where the end users can reach this pipeline instance

@@ -9,6 +9,7 @@ pipeline
 !pipeline/
 vault/*
 config/config.toml
+config/config.yaml
 etc/config/dex.yml
 config/ui/feature-set.json
 config/ui/*~
