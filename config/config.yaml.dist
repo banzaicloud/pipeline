@@ -269,7 +269,7 @@ vaultWebhook:
 
 prometheusOperator:
     chart: "stable/prometheus-operator"
-    chartVersion: "6.8.3"
+    chartVersion: "7.2.0"
 
 prometheusPushgateway:
     chart: "stable/prometheus-pushgateway"
