@@ -121,16 +121,16 @@ enabled = true
 # user = ""
 # password = ""
 
-[helm]
+# [helm]
 # home = "./var/cache"
+
+# [helm.tiller]
+# version = "v2.14.2"
 
 # [helm.repositories]
 # stable = "https://kubernetes-charts.storage.googleapis.com"
 # banzaicloud-stable = "https://kubernetes-charts.banzaicloud.com"
 # loki = "https://grafana.github.io/loki/charts"
-
-# [helm.tiller]
-# version = "v2.14.2"
 
 [monitor]
 enabled = false
