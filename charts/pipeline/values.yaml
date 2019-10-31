@@ -236,11 +236,6 @@ configuration:
       key: ""
       cert: ""
 
-  cadence:
-    host: "cadence"
-    port: 7933
-    domain: pipeline
-
 ##
 ## Vault connector settings
 ##

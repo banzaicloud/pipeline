@@ -15,7 +15,7 @@
 package cadence
 
 import (
-	"emperror.dev/emperror"
+	"emperror.dev/errors"
 	"go.uber.org/cadence/client"
 	"go.uber.org/zap"
 )
@@ -24,7 +24,7 @@ import (
 func NewClient(config Config, logger *zap.Logger) (client.Client, error) {
 	serviceClient, err := newServiceClient("cadence-client", config, logger)
 	if err != nil {
-		return nil, emperror.Wrap(err, "could not create cadence client")
+		return nil, errors.WithMessage(err, "could not create cadence client")
 	}
 
 	return client.NewClient(
