@@ -3363,7 +3363,7 @@ paths:
                     description: "Modifiying current user's settings succeeded"
                 401:
                     $ref: '#/components/responses/Unauthorized'
-                    
+
     '/api/v1/capabilities':
         get:
             tags:
@@ -3378,7 +3378,7 @@ paths:
                         application/json:
                             schema:
                                 type: object
-                                items:
+                                additionalProperties:
                                     type: object
                                 example: {
                                     "cicd": {
