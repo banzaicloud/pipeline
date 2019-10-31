@@ -30,7 +30,7 @@ const (
 	urlKey        = "url"
 	secretIDKey   = "secretId"
 	versionKey    = "version"
-	serviceUrlKey = "serviceUrl"
+	serviceURLKey = "serviceUrl"
 )
 
 type baseOutput struct {
@@ -86,7 +86,7 @@ func writeVersion(m outputManager, deploymentValues map[string]interface{}, outp
 	}
 }
 
-func writeUrl(m outputManager, endpoints []*pkgHelm.EndpointItem, releaseName string, output map[string]interface{}) {
+func writeURL(m outputManager, endpoints []*pkgHelm.EndpointItem, releaseName string, output map[string]interface{}) {
 	if m.isEnabled() {
 		ingress := m.getIngress()
 		if ingress.Enabled && endpoints != nil {
@@ -95,13 +95,13 @@ func writeUrl(m outputManager, endpoints []*pkgHelm.EndpointItem, releaseName st
 	}
 }
 
-func writeServiceUrl(m outputManager, service endpoints.EndpointService, pipelineSystemNamespace string, output map[string]interface{}) error {
+func writeServiceURL(m outputManager, service endpoints.EndpointService, pipelineSystemNamespace string, output map[string]interface{}) error {
 	if m.isEnabled() {
-		url, err := service.GetServiceUrl(m.getK8SConfig(), m.getServiceName(), pipelineSystemNamespace)
+		url, err := service.GetServiceURL(m.getK8SConfig(), m.getServiceName(), pipelineSystemNamespace)
 		if err != nil {
 			return errors.WrapIf(err, "failed to get service")
 		}
-		output[serviceUrlKey] = url
+		output[serviceURLKey] = url
 	}
 
 	return nil

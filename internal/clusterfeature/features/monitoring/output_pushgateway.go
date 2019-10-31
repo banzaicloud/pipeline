@@ -25,7 +25,7 @@ func newPushgatewayOutputHelper(
 	return outputPushgateway{
 		baseOutput: baseOutput{
 			ingress:   spec.Pushgateway.Ingress.baseIngressSpec,
-			secretID:  spec.Pushgateway.Ingress.SecretId,
+			secretID:  spec.Pushgateway.Ingress.SecretID,
 			enabled:   spec.Pushgateway.Enabled,
 			k8sConfig: kubeConfig,
 		},

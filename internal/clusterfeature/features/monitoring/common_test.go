@@ -147,7 +147,7 @@ func (dummyEndpointService) List(kubeConfig []byte, releaseName string) ([]*helm
 	}, nil
 }
 
-func (dummyEndpointService) GetServiceUrl(kubeConfig []byte, serviceName string, namespace string) (string, error) {
+func (dummyEndpointService) GetServiceURL(kubeConfig []byte, serviceName string, namespace string) (string, error) {
 	return "dummyServiceUrl:9090", nil
 }
 
@@ -180,7 +180,6 @@ type dummyKubernetesService struct {
 
 // GetKubeConfig gets a kube config for a specific cluster.
 func (s *dummyKubernetesService) GetKubeConfig(ctx context.Context, clusterID uint) (*k8srest.Config, error) {
-
 	return &k8srest.Config{
 		Host:            "https://127.0.0.1:6443",
 		TLSClientConfig: k8srest.TLSClientConfig{CAData: []byte("BLABLA")},
@@ -194,7 +193,6 @@ func (s *dummyKubernetesService) GetObject(ctx context.Context, clusterID uint, 
 
 // DeleteObject deletes an Object from a specific cluster.
 func (s *dummyKubernetesService) DeleteObject(ctx context.Context, clusterID uint, o runtime.Object) error {
-
 	return nil
 }
 
