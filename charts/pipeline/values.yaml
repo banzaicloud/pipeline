@@ -232,11 +232,6 @@ configuration:
     # if true, some metrics have unique labels
     debug: true
 
-  issue:
-    type: "github"
-    githubOwner: "kelly-slater"
-    githubRepository: "the-pipeline-issues"
-
   spotmetrics:
     enabled: false
     collectionInterval: 30s
