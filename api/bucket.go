@@ -24,10 +24,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
@@ -112,9 +111,9 @@ func ListBuckets(c *gin.Context) {
 
 	switch cloudType {
 	case pkgProviders.Amazon:
-		objectStoreCtx.Location = viper.GetString(pipConfig.AmazonInitializeRegionKey)
+		objectStoreCtx.Location = global.Config.Cloud.Amazon.DefaultRegion
 	case pkgProviders.Alibaba:
-		objectStoreCtx.Location = viper.GetString(pipConfig.AlibabaInitializeRegionKey)
+		objectStoreCtx.Location = global.Config.Cloud.Alibaba.DefaultRegion
 	}
 
 	objectStore, err := providers.NewObjectStore(objectStoreCtx, logger)

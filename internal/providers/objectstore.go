@@ -16,10 +16,10 @@ package providers
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/objectstore"
 	"github.com/banzaicloud/pipeline/internal/providers/alibaba"
 	"github.com/banzaicloud/pipeline/internal/providers/amazon"
@@ -78,11 +78,11 @@ func GetBucketLocation(provider string, secret *secret.SecretItemResponse, bucke
 
 	switch provider {
 	case providers.Alibaba:
-		defaultRegion := viper.GetString(config.AlibabaInitializeRegionKey)
+		defaultRegion := global.Config.Cloud.Alibaba.DefaultRegion
 		return alibaba.GetBucketLocation(secret, bucketName, defaultRegion, orgID, log)
 
 	case providers.Amazon:
-		defaultRegion := viper.GetString(config.AmazonInitializeRegionKey)
+		defaultRegion := global.Config.Cloud.Amazon.DefaultRegion
 		return amazon.GetBucketRegion(secret, bucketName, defaultRegion, orgID, log)
 
 	default:

@@ -164,10 +164,6 @@ const (
 	PrometheusServiceContext = "prometheus.serviceContext"
 	PrometheusLocalPort      = "prometheus.localPort"
 
-	// Default regions config keys to initialize clients
-	AmazonInitializeRegionKey  = "amazon.defaultApiRegion"
-	AlibabaInitializeRegionKey = "alibaba.defaultApiRegion"
-
 	FederationChartVersion = "federation.chartVersion"
 	FederationChartName    = "federation.chartName"
 	FederationImageTag     = "federation.imageTag"
@@ -325,9 +321,6 @@ func init() {
 	// Cadence config
 	viper.SetDefault("cadence.port", 7933)
 	viper.SetDefault("cadence.domain", "pipeline")
-
-	viper.SetDefault(AmazonInitializeRegionKey, "us-west-1")
-	viper.SetDefault(AlibabaInitializeRegionKey, "eu-central-1")
 
 	// Prometheus service defaults
 	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")

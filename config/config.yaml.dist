@@ -274,13 +274,14 @@ cadence:
     createNonexistentDomain: true
     workflowExecutionRetentionPeriodInDays: 3
 
-amazon:
-    # default Amazon region to initialize client
-    defaultApiRegion: "us-west-1"
+cloud:
+    amazon:
+        # Default Amazon region
+        defaultRegion: "us-west-1"
 
-alibaba:
-    # default Alibaba region to initialize client
-    defaultApiRegion: "eu-central-1"
+    alibaba:
+        # Default Alibaba region
+        defaultRegion: "eu-central-1"
 
 autoscale:
     clusterAutoscalerChartVersion: "0.12.3"
