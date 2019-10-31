@@ -714,11 +714,13 @@ func main() {
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
-				orgDomainService := featureDns.NewOrgDomainService(clusterGetter, dnsSvc, logger)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 				featureManagers := []clusterfeature.FeatureManager{
-					featureDns.MakeFeatureManager(clusterGetter, logger, orgDomainService),
 					securityscan.MakeFeatureManager(logger),
+				}
+
+				if config.Cluster.DNS.Enabled {
+					featureManagers = append(featureManagers, featureDns.MakeFeatureManager(config.Cluster.DNS.Config))
 				}
 
 				if config.Cluster.Vault.Enabled {

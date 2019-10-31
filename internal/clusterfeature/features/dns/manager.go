@@ -16,66 +16,43 @@ package dns
 
 import (
 	"context"
-	"fmt"
 
 	"emperror.dev/errors"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
-	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
-	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/pkg/opaque"
 )
 
 // FeatureManager implements the DNS feature manager
 type FeatureManager struct {
-	clusterGetter    clusterfeatureadapter.ClusterGetter
-	logger           common.Logger
-	orgDomainService OrgDomainService
+	config Config
 }
 
 // MakeFeatureManager returns a DNS feature manager
-func MakeFeatureManager(
-	clusterGetter clusterfeatureadapter.ClusterGetter,
-	logger common.Logger,
-	orgDomainService OrgDomainService,
-) FeatureManager {
+func MakeFeatureManager(config Config) FeatureManager {
 	return FeatureManager{
-		clusterGetter:    clusterGetter,
-		logger:           logger,
-		orgDomainService: orgDomainService,
+		config: config,
 	}
 }
 
 // Name returns the feature's name
-func (m FeatureManager) Name() string {
+func (FeatureManager) Name() string {
 	return FeatureName
 }
 
 // GetOutput returns the DNS feature's output
 func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, _ clusterfeature.FeatureSpec) (clusterfeature.FeatureOutput, error) {
-	domain, _, _ := m.orgDomainService.GetDomain(ctx, clusterID)
-
-	c, err := m.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to get cluster for output generation")
-	}
-
-	clusterDomain := fmt.Sprintf("%s.%s", c.GetName(), domain)
-
-	out := map[string]interface{}{
-		"autoDns": map[string]interface{}{
-			"zone":          domain,
-			"clusterDomain": clusterDomain,
+	return map[string]interface{}{
+		"externalDns": map[string]interface{}{
+			"version": m.config.Charts.ExternalDNS.Version,
 		},
-	}
-
-	return out, nil
+	}, nil
 }
 
 // ValidateSpec validates a DNS feature specification
-func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.FeatureSpec) error {
+func (FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.FeatureSpec) error {
 	dnsSpec, err := bindFeatureSpec(spec)
 	if err != nil {
 		return clusterfeature.InvalidFeatureSpecError{
@@ -95,14 +72,14 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 }
 
 // PrepareSpec makes certain preparations to the spec before it's sent to be applied
-func (m FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
+func (FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
 	orgID, ok := auth.GetCurrentOrganizationID(ctx)
 	if !ok {
 		return nil, errors.New("organization ID missing from context")
 	}
 
 	xform := mapStringXform(map[string]opaque.Transformation{
-		"customDns": mapStringXform(map[string]opaque.Transformation{
+		"externalDns": mapStringXform(map[string]opaque.Transformation{
 			"provider": mapStringXform(map[string]opaque.Transformation{
 				"secretId": secretBRNXform(orgID),
 			}),

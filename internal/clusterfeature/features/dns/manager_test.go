@@ -20,179 +20,122 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 )
 
 func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil)
+	mng := MakeFeatureManager(Config{})
 
 	assert.Equal(t, "dns", mng.Name())
 }
 
 func TestFeatureManager_GetOutput(t *testing.T) {
 	clusterID := uint(42)
-	clusterName := "the-cluster"
+	version := "1.2.3"
 
-	clusterGetter := dummyClusterGetter{
-		Clusters: map[uint]dummyCluster{
-			clusterID: {
-				Name: clusterName,
+	mng := MakeFeatureManager(Config{
+		Charts: ChartsConfig{
+			ExternalDNS: ExternalDNSChartConfig{
+				ChartConfigBase: ChartConfigBase{
+					Version: version,
+				},
 			},
 		},
-	}
-	orgDomainService := dummyOrgDomainService{
-		Domain: "the.domain",
-		OrgID:  13,
-	}
-	mng := MakeFeatureManager(clusterGetter, nil, orgDomainService)
+	})
 
-	ctx := context.Background()
-
-	output, err := mng.GetOutput(ctx, clusterID, nil)
+	output, err := mng.GetOutput(context.Background(), clusterID, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, clusterfeature.FeatureOutput{
-		"autoDns": map[string]interface{}{
-			"clusterDomain": "the-cluster.the.domain",
-			"zone":          orgDomainService.Domain,
+		"externalDns": map[string]interface{}{
+			"version": version,
 		},
 	}, output)
 }
 
-func TestFeatureManager_ValidateSpec(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil)
+func TestFeatureManager_ValidateSpec_ValidSpec(t *testing.T) {
+	mng := MakeFeatureManager(Config{})
 
-	cases := map[string]struct {
-		Spec  clusterfeature.FeatureSpec
-		Error interface{}
-	}{
-		"empty spec": {
-			Spec:  clusterfeature.FeatureSpec{},
-			Error: true,
-		},
-		"both disabled": {
-			Spec: clusterfeature.FeatureSpec{
-				"autoDns": obj{
-					"enabled": false,
-				},
-				"customDns": obj{
-					"enabled": false,
-				},
+	spec := clusterfeature.FeatureSpec{
+		"clusterDomain": "cluster.org.my.domain",
+		"externalDns": obj{
+			"domainFilters": arr{
+				"",
 			},
-			Error: true,
-		},
-		"both enabled": {
-			Spec: clusterfeature.FeatureSpec{
-				"autoDns": obj{
-					"enabled": true,
-				},
-				"customDns": obj{
-					"enabled": true,
-				},
+			"policy": "sync*|upsert-only",
+			"provider": obj{
+				"name":     "route53",
+				"secretID": "0123456789abcdef",
 			},
-			Error: true,
-		},
-		"autoDns only": {
-			Spec: clusterfeature.FeatureSpec{
-				"autoDns": obj{
-					"enabled": true,
-				},
+			"sources": arr{
+				"ingress",
 			},
-			Error: false,
-		},
-		"autoDns enabled, customDns disabled": {
-			Spec: clusterfeature.FeatureSpec{
-				"autoDns": obj{
-					"enabled": true,
-				},
-				"customDns": obj{
-					"enabled": false,
-				},
-			},
-		},
-		"customDns only": {
-			Spec: clusterfeature.FeatureSpec{
-				"customDns": obj{
-					"enabled": true,
-					"domainFilters": arr{
-						"",
-					},
-					"provider": obj{
-						"name":     "route53",
-						"secretId": "0123456789abcdef",
-					},
-				},
-			},
+			"txtOwnerId": "my-owner-id",
 		},
 	}
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			ctx := context.Background()
 
-			err := mng.ValidateSpec(ctx, tc.Spec)
-			switch tc.Error {
-			case true:
-				assert.True(t, clusterfeature.IsInputValidationError(err))
-			case false, nil:
-				assert.NoError(t, err)
-			default:
-				assert.Equal(t, tc.Error, errors.Cause(err))
-			}
-		})
-	}
+	err := mng.ValidateSpec(context.Background(), spec)
+	require.NoError(t, err)
+}
+func TestFeatureManager_ValidateSpec_InvalidSpec(t *testing.T) {
+	mng := MakeFeatureManager(Config{})
+
+	err := mng.ValidateSpec(context.Background(), clusterfeature.FeatureSpec{})
+	require.Error(t, err)
+
+	var e clusterfeature.InvalidFeatureSpecError
+	assert.True(t, errors.As(err, &e))
 }
 
 func TestFeatureManager_PrepareSpec(t *testing.T) {
 	orgID := uint(42)
 
-	mng := MakeFeatureManager(nil, nil, nil)
+	mng := MakeFeatureManager(Config{})
 
 	cases := map[string]struct {
 		SpecIn  clusterfeature.FeatureSpec
 		SpecOut clusterfeature.FeatureSpec
 	}{
-		"auto DNS enabled": {
+		"provider with secret": {
 			SpecIn: clusterfeature.FeatureSpec{
-				"autoDns": obj{
-					"enabled": true,
+				"externalDns": obj{
+					"provider": obj{
+						"secretId":         "0123456789abcdef",
+						"some-other-field": "some-value",
+					},
 				},
 			},
 			SpecOut: clusterfeature.FeatureSpec{
-				"autoDns": obj{
-					"enabled": true,
+				"externalDns": obj{
+					"provider": obj{
+						"secretId":         "brn:42:secret:0123456789abcdef",
+						"some-other-field": "some-value",
+					},
 				},
 			},
 		},
-		"custom DNS enabled": {
+		"provider without secret": {
 			SpecIn: clusterfeature.FeatureSpec{
-				"customDns": obj{
-					"enabled": true,
-					"domainFilters": arr{
-						"",
-					},
+				"externalDns": obj{
 					"provider": obj{
-						"name":     "route53",
-						"secretId": "0123456789abcdef",
+						"some-other-field": "some-value",
 					},
 				},
 			},
 			SpecOut: clusterfeature.FeatureSpec{
-				"customDns": obj{
-					"enabled": true,
-					"domainFilters": arr{
-						"",
-					},
+				"externalDns": obj{
 					"provider": obj{
-						"name":     "route53",
-						"secretId": "brn:42:secret:0123456789abcdef",
+						"some-other-field": "some-value",
 					},
 				},
 			},
 		},
 	}
 	for name, tc := range cases {
+		tc := tc
 		t.Run(name, func(t *testing.T) {
 			ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
