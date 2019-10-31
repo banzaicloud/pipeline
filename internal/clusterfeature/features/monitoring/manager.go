@@ -34,7 +34,7 @@ type FeatureManager struct {
 	secretStore      features.SecretStore
 	endpointsService endpoints.EndpointService
 	helmService      features.HelmService
-	config           Configuration
+	config           Config
 	logger           common.Logger
 }
 
@@ -43,7 +43,7 @@ func MakeFeatureManager(
 	secretStore features.SecretStore,
 	endpointsService endpoints.EndpointService,
 	helmService features.HelmService,
-	config Configuration,
+	config Config,
 	logger common.Logger,
 ) FeatureManager {
 	return FeatureManager{
@@ -106,15 +106,13 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 		pushgatewayValues = pushgatewayDeployment.Values
 	}
 
-	chartVersion := m.config.operator.chartVersion
-	pipelineSystemNamespace := m.config.pipelineSystemNamespace
 	out := clusterfeature.FeatureOutput{
-		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(kubeConfig, boundSpec), endpoints, pipelineSystemNamespace, prometheusOperatorReleaseName, operatorValues),
-		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(kubeConfig, boundSpec), endpoints, pipelineSystemNamespace, prometheusOperatorReleaseName, operatorValues),
-		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(kubeConfig, boundSpec), endpoints, pipelineSystemNamespace, prometheusOperatorReleaseName, operatorValues),
-		"pushgateway":  m.getComponentOutput(ctx, clusterID, newPushgatewayOutputHelper(kubeConfig, boundSpec), endpoints, pipelineSystemNamespace, prometheusPushgatewayReleaseName, pushgatewayValues),
+		"grafana":      m.getComponentOutput(ctx, clusterID, newGrafanaOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
+		"prometheus":   m.getComponentOutput(ctx, clusterID, newPrometheusOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
+		"alertmanager": m.getComponentOutput(ctx, clusterID, newAlertmanagerOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusOperatorReleaseName, operatorValues),
+		"pushgateway":  m.getComponentOutput(ctx, clusterID, newPushgatewayOutputHelper(kubeConfig, boundSpec), endpoints, m.config.Namespace, prometheusPushgatewayReleaseName, pushgatewayValues),
 		"prometheusOperator": map[string]interface{}{
-			"version": chartVersion,
+			"version": m.config.Charts.Operator.Version,
 		},
 	}
 

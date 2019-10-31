@@ -160,6 +160,9 @@ func main() {
 	err := viper.Unmarshal(&conf)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
+	err = conf.Process()
+	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
+
 	err = viper.Unmarshal(&global.Config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
@@ -676,8 +679,14 @@ func main() {
 				if conf.Cluster.Monitoring.Enabled {
 					endpointManager := endpoints.NewEndpointManager(logger)
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
-					monitoringConfig := featureMonitoring.NewFeatureConfiguration()
-					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(clusterGetter, secretStore, endpointManager, helmService, monitoringConfig, logger))
+					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(
+						clusterGetter,
+						secretStore,
+						endpointManager,
+						helmService,
+						conf.Cluster.Monitoring.Config,
+						logger,
+					))
 				}
 
 				if conf.Cluster.SecurityScan.Enabled {

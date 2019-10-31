@@ -181,11 +181,6 @@ const (
 
 	VaultWebhookChartKey        = "vaultWebhook.chart"
 	VaultWebhookChartVersionKey = "vaultWebhook.chartVersion"
-
-	PrometheusOperatorChartKey      = "prometheusOperator.chart"
-	PrometheusOperatorVersionKey    = "prometheusOperator.chartVersion"
-	PrometheusPushgatewayChartKey   = "prometheusPushgateway.chart"
-	PrometheusPushgatewayVersionKey = "prometheusPushgateway.chartVersion"
 )
 
 // Init initializes the configurations
@@ -361,12 +356,6 @@ func init() {
 
 	viper.SetDefault(HollowtreesExternalURL, "/hollowtrees-alerts")
 	viper.SetDefault(HollowtreesAlertsEndpoint, "/api/v1/alerts")
-
-	viper.SetDefault(PrometheusOperatorChartKey, "stable/prometheus-operator")
-	viper.SetDefault(PrometheusOperatorVersionKey, "7.2.0")
-
-	viper.SetDefault(PrometheusPushgatewayChartKey, "stable/prometheus-pushgateway")
-	viper.SetDefault(PrometheusPushgatewayVersionKey, "1.0.1")
 
 	// enable the domainHook by default
 	viper.SetDefault(DomainHookEnabled, true)
