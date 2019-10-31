@@ -28,9 +28,6 @@ import (
 )
 
 const (
-	// local helm path
-	helmPath = "helm.path"
-
 	// DNSBaseDomain configuration key for the base domain setting
 	DNSBaseDomain = "dns.domain"
 
@@ -217,10 +214,10 @@ func init() {
 	viper.SetDefault("cicd.scm", "github")
 
 	viper.SetDefault("helm.tiller.version", "v2.14.2")
+	viper.SetDefault("helm.home", "./var/cache")
 	viper.SetDefault(HelmStableRepositoryKey, "https://kubernetes-charts.storage.googleapis.com")
 	viper.SetDefault(HelmBanzaiRepositoryKey, "https://kubernetes-charts.banzaicloud.com")
 	viper.SetDefault(HelmLokiRepositoryKey, "https://grafana.github.io/loki/charts")
-	viper.SetDefault(helmPath, "./orgs")
 
 	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
 
@@ -427,9 +424,4 @@ func GetCORS() cors.Config {
 	maxAge := viper.GetInt("cors.MaxAge")
 	config.MaxAge = time.Duration(maxAge) * time.Hour
 	return config
-}
-
-// GetHelmPath returns local helm path
-func GetHelmPath(organizationName string) string {
-	return fmt.Sprintf("%s/%s", viper.GetString(helmPath), organizationName)
 }

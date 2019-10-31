@@ -122,7 +122,7 @@ enabled = true
 # password = ""
 
 [helm]
-path = "./var/cache"
+# home = "./var/cache"
 
 #helm repo URLs
 stableRepositoryURL = "https://kubernetes-charts.storage.googleapis.com"

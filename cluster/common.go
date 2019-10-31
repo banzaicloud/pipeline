@@ -31,6 +31,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
@@ -613,7 +614,7 @@ func getNodePoolsFromUpdateRequest(updateRequest *pkgCluster.UpdateClusterReques
 
 // CleanHelmFolder deletes helm path
 func CleanHelmFolder(organizationName string) error {
-	helmPath := config.GetHelmPath(organizationName)
+	helmPath := global.GetHelmPath(organizationName)
 	return os.RemoveAll(helmPath)
 }
 

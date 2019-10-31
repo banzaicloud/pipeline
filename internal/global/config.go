@@ -14,6 +14,10 @@
 
 package global
 
+import (
+	"path/filepath"
+)
+
 // Config is a global config instance.
 // nolint: gochecknoglobals
 var Config Configuration
@@ -24,5 +28,12 @@ type Configuration struct {
 		Tiller struct {
 			Version string
 		}
+
+		Home string
 	}
+}
+
+// GetHelmPath returns local helm path
+func GetHelmPath(organizationName string) string {
+	return filepath.Join(Config.Helm.Home, organizationName)
 }
