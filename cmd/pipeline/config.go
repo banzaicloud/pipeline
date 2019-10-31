@@ -44,6 +44,10 @@ type configuration struct {
 
 	// Cluster configuration
 	Cluster cmd.ClusterConfig
+
+	Github struct {
+		Token string
+	}
 }
 
 // Validate validates the configuration.
@@ -71,6 +75,10 @@ func (c configuration) Validate() error {
 func (c *configuration) Process() error {
 	if err := c.Cluster.Process(); err != nil {
 		return err
+	}
+
+	if c.Frontend.Issue.Github.Token == "" {
+		c.Frontend.Issue.Github.Token = c.Github.Token
 	}
 
 	return nil
@@ -153,7 +161,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("frontend.issue.driver", "github")
 	v.SetDefault("frontend.issue.labels", []string{"community"})
 
-	v.RegisterAlias("frontend.issue.github.token", "github.token")
+	v.SetDefault("frontend.issue.github.token", "")
 	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
 	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
 }
@@ -163,11 +171,4 @@ func registerAliases(v *viper.Viper) {
 	viperx.RegisterAlias(v, "auth.tokensigningkey", "auth.token.signingKey")
 	viperx.RegisterAlias(v, "auth.jwtissuer", "auth.token.issuer")
 	viperx.RegisterAlias(v, "auth.jwtaudience", "auth.token.audience")
-
-	// Frontend configuration
-	viperx.RegisterAlias(v, "issue.type", "frontend.issue.driver")
-	viperx.RegisterAlias(v, "issue.githubLabels", "frontend.issue.labels")
-
-	viperx.RegisterAlias(v, "issue.githubOwner", "frontend.issue.github.owner")
-	viperx.RegisterAlias(v, "issue.githubRepository", "frontend.issue.github.repository")
 }
