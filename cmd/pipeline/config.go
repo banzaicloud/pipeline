@@ -15,8 +15,6 @@
 package main
 
 import (
-	"os"
-
 	"emperror.dev/errors"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -137,17 +135,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Application constants
 	v.Set("appName", appName)
 	v.Set("appVersion", version)
-
-	if _, ok := os.LookupEnv("NO_COLOR"); ok {
-		v.SetDefault("no_color", true)
-	}
-
-	// Log configuration
-	v.SetDefault("logging.logformat", "text")
-	v.SetDefault("logging.loglevel", "debug")
-	v.RegisterAlias("log.format", "logging.logformat") // TODO: deprecate the above
-	v.RegisterAlias("log.level", "logging.loglevel")
-	v.RegisterAlias("log.noColor", "no_color")
 
 	// ErrorHandler configuration
 	v.RegisterAlias("errorHandler.serviceName", "appName")

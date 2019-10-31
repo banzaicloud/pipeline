@@ -19,8 +19,8 @@ import (
 
 	runtime "github.com/banzaicloud/logrus-runtime-formatter"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
 
@@ -39,8 +39,8 @@ func Logger() *logrus.Logger {
 
 func newLogger() *logrus.Logger {
 	logger := log.NewLogrusLogger(log.Config{
-		Level:  viper.GetString("logging.loglevel"),
-		Format: viper.GetString("logging.logformat"),
+		Level:  global.Config.Log.Level,
+		Format: global.Config.Log.Format,
 	})
 
 	logger.Formatter = &runtime.Formatter{ChildFormatter: logger.Formatter}

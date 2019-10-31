@@ -39,8 +39,8 @@ func Logger() *logrus.Logger {
 
 func newLogger() *logrus.Logger {
 	logger := log.NewLogrusLogger(log.Config{
-		Level:  viper.GetString("logging.loglevel"),
-		Format: viper.GetString("logging.logformat"),
+		Level:  viper.GetString("log.level"),
+		Format: viper.GetString("log.format"),
 	})
 
 	logger.Formatter = &runtime.Formatter{ChildFormatter: logger.Formatter}

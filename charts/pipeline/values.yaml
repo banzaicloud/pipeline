@@ -116,10 +116,6 @@ configuration:
         secretName: ""
         secretKey: adminPassword
 
-  logging:
-    logformat: text
-    loglevel: debug
-
   cloud:
     configRetryCount: 30
     configRetrySleep: 15

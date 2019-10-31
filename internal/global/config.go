@@ -16,6 +16,8 @@ package global
 
 import (
 	"path/filepath"
+
+	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
 
 // Config is a global config instance.
@@ -24,6 +26,8 @@ var Config Configuration
 
 // Configuration exposes various config options used globally.
 type Configuration struct {
+	Log log.Config
+
 	Helm struct {
 		Tiller struct {
 			Version string

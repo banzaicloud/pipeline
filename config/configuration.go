@@ -192,12 +192,6 @@ func init() {
 	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
 	viper.SetConfigName("config")
 
-	// Deprecated
-	// Do not use these from the global Viper instance.
-	// Use the configure methods in the binary packages.
-	viper.SetDefault("logging.loglevel", "debug")
-	viper.SetDefault("logging.logformat", "text")
-
 	// Set defaults TODO expand defaults
 	viper.SetDefault("cicd.enabled", false)
 	viper.SetDefault("cicd.url", "http://localhost:8000")
