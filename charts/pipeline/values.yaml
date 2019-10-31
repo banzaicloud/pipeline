@@ -177,14 +177,6 @@ configuration:
     # are cleaned up
     maintenanceWindowMinute: 15
 
-  # Default Amazon region to initialize client
-  amazon:
-    defaultApiRegion: us-west-1
-
-  # Default Alibaba region to initialize client
-  alibaba:
-    defaultApiRegion: eu-central-1
-
   # Pipeline infra environment related settings
   infra:
     namespace: pipeline-system

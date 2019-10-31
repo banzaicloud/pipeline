@@ -243,4 +243,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("helm.repositories.stable", "https://kubernetes-charts.storage.googleapis.com")
 	v.SetDefault("helm.repositories.banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
 	v.SetDefault("helm.repositories.loki", "https://grafana.github.io/loki/charts")
+
+	// Cloud configuration
+	v.SetDefault("cloud.amazon.defaultRegion", "us-west-1")
+	v.SetDefault("cloud.alibaba.defaultRegion", "eu-central-1")
 }

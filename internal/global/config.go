@@ -37,6 +37,16 @@ type Configuration struct {
 
 		Repositories map[string]string
 	}
+
+	Cloud struct {
+		Amazon struct {
+			DefaultRegion string
+		}
+
+		Alibaba struct {
+			DefaultRegion string
+		}
+	}
 }
 
 // GetHelmPath returns local helm path
