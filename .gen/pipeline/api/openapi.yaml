@@ -4122,6 +4122,36 @@ paths:
       summary: Update current user's settings
       tags:
       - users
+  /api/v1/capabilities:
+    get:
+      description: Retrieve Pipeline capabilities
+      operationId: ListCapabilities
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                example:
+                  cicd:
+                    enabled: false
+                  features:
+                    monitoring:
+                      enabled: true
+                    securityScan:
+                      enabled: true
+                      managed: true
+                    vault:
+                      enabled: true
+                      managed: false
+                  issue:
+                    enabled: false
+                items:
+                  type: object
+                type: array
+          description: capabilities successfully returned
+      summary: Lists configured Pipeline capabilities
+      tags:
+      - pipeline
   /api/v1/orgs/{orgId}/azure/resourcegroups:
     get:
       description: Get all resource groups
