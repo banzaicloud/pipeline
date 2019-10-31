@@ -198,12 +198,6 @@ func init() {
 	viper.SetDefault("cicd.insecure", false)
 	viper.SetDefault("cicd.scm", "github")
 
-	viper.SetDefault("helm.tiller.version", "v2.14.2")
-	viper.SetDefault("helm.home", "./var/cache")
-	viper.SetDefault("helm.repositories.stable", "https://kubernetes-charts.storage.googleapis.com")
-	viper.SetDefault("helm.repositories.banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
-	viper.SetDefault("helm.repositories.loki", "https://grafana.github.io/loki/charts")
-
 	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
 
 	pwd, err := os.Getwd()
