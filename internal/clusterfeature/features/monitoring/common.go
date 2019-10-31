@@ -28,7 +28,7 @@ const (
 	pushgatewaySecretTag             = "app:pushgateway"
 	featureSecretTag                 = "feature:monitoring"
 	generatedSecretUsername          = "admin"
-	alertManagerProviderConfigName   = "pipeline-monitoring-feature-providers"
+	alertManagerProviderConfigName   = "default-receiver"
 
 	ingressTypeGrafana      = "Grafana"
 	ingressTypePrometheus   = "Prometheus"
