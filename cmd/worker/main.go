@@ -116,6 +116,9 @@ func main() {
 	err = v.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
+	err = config.Process()
+	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
+
 	err = viper.Unmarshal(&global.Config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
@@ -362,7 +365,6 @@ func main() {
 			featureAnchoreService := securityscan.NewFeatureAnchoreService(anchoreUserService, logger)
 			featureWhitelistService := securityscan.NewFeatureWhitelistService(clusterGetter, anchore.NewSecurityResourceService(logger), logger)
 
-			monitorConfiguration := featureMonitoring.NewFeatureConfiguration()
 			featureOperatorRegistry := clusterfeature.MakeFeatureOperatorRegistry([]clusterfeature.FeatureOperator{
 				featureDns.MakeFeatureOperator(clusterGetter, clusterService, helmService, logger, orgDomainService, commonSecretStore),
 				securityscan.MakeFeatureOperator(
@@ -377,7 +379,15 @@ func main() {
 					logger,
 				),
 				featureVault.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, commonSecretStore, logger),
-				featureMonitoring.MakeFeatureOperator(clusterGetter, clusterService, helmService, kubernetesService, monitorConfiguration, logger, commonSecretStore),
+				featureMonitoring.MakeFeatureOperator(
+					clusterGetter,
+					clusterService,
+					helmService,
+					kubernetesService,
+					config.Cluster.Monitoring.Config,
+					logger,
+					commonSecretStore,
+				),
 			})
 
 			registerClusterFeatureWorkflows(featureOperatorRegistry, featureRepository)

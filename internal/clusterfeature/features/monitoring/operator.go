@@ -31,7 +31,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -41,7 +40,7 @@ type FeatureOperator struct {
 	clusterService    clusterfeature.ClusterService
 	helmService       features.HelmService
 	kubernetesService features.KubernetesService
-	config            Configuration
+	config            Config
 	logger            common.Logger
 	secretStore       features.SecretStore
 }
@@ -59,7 +58,7 @@ func MakeFeatureOperator(
 	clusterService clusterfeature.ClusterService,
 	helmService features.HelmService,
 	kubernetesService features.KubernetesService,
-	config Configuration,
+	config Config,
 	logger common.Logger,
 	secretStore features.SecretStore,
 ) FeatureOperator {
@@ -234,18 +233,13 @@ func (op FeatureOperator) installPrometheusPushGateway(
 	secretName string,
 	logger common.Logger,
 ) error {
-	headNodeAffinity := GetHeadNodeAffinity(cluster, op.config)
-	tolerations := GetHeadNodeTolerations(op.config)
-
 	var annotations map[string]interface{}
 	if spec.Ingress.Enabled {
 		annotations = generateAnnotations(secretName)
 	}
 
-	pipelineSystemNamespace := op.config.pipelineSystemNamespace
+	pipelineSystemNamespace := op.config.Namespace
 	var chartValues = &prometheusPushgatewayValues{
-		affinityValues:   affinityValues{Affinity: headNodeAffinity},
-		tolerationValues: tolerationValues{Tolerations: tolerations},
 		Ingress: ingressValues{
 			Enabled: spec.Ingress.Enabled,
 			Hosts:   []string{spec.Ingress.Domain},
@@ -260,17 +254,14 @@ func (op FeatureOperator) installPrometheusPushGateway(
 		return errors.WrapIf(err, "failed to decode chartValues")
 	}
 
-	chartName := op.config.pushgateway.chartName
-	chartVersion := op.config.pushgateway.chartVersion
-
 	return op.helmService.ApplyDeployment(
 		ctx,
 		cluster.GetID(),
 		pipelineSystemNamespace,
-		chartName,
+		op.config.Charts.Pushgateway.Chart,
 		prometheusPushgatewayReleaseName,
 		valuesBytes,
-		chartVersion,
+		op.config.Charts.Pushgateway.Version,
 	)
 }
 
@@ -295,10 +286,8 @@ func (op FeatureOperator) installPrometheusOperator(
 	}
 
 	var valuesManager = chartValuesManager{
-		operator:         op,
-		clusterID:        cluster.GetID(),
-		headNodeAffinity: GetHeadNodeAffinity(cluster, op.config),
-		tolerations:      GetHeadNodeTolerations(op.config),
+		operator:  op,
+		clusterID: cluster.GetID(),
 	}
 
 	alertmanagerValues, err := valuesManager.generateAlertmanagerChartValues(ctx, spec.Alertmanager, alertmanagerSecretName)
@@ -307,7 +296,6 @@ func (op FeatureOperator) installPrometheusOperator(
 	}
 
 	// create chart values
-	pipelineSystemNamespace := op.config.pipelineSystemNamespace
 	var chartValues = &prometheusOperatorValues{
 		Grafana:      valuesManager.generateGrafanaChartValues(spec.Grafana, grafanaUser, grafanaPass),
 		Alertmanager: alertmanagerValues,
@@ -325,17 +313,14 @@ func (op FeatureOperator) installPrometheusOperator(
 		return errors.WrapIf(err, "failed to decode chartValues")
 	}
 
-	chartName := op.config.operator.chartName
-	chartVersion := op.config.operator.chartVersion
-
 	return op.helmService.ApplyDeployment(
 		ctx,
 		cluster.GetID(),
-		pipelineSystemNamespace,
-		chartName,
+		op.config.Namespace,
+		op.config.Charts.Operator.Chart,
 		prometheusOperatorReleaseName,
 		valuesBytes,
-		chartVersion,
+		op.config.Charts.Operator.Version,
 	)
 }
 
@@ -350,7 +335,7 @@ func (op FeatureOperator) generateGrafanaSecret(
 	releaseSecretTag := getReleaseSecretTag()
 
 	// Generating Grafana credentials
-	username := op.config.grafanaAdminUsername
+	username := op.config.Grafana.AdminUser
 	password, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
 		return "", errors.WrapIf(err, "failed to generate Grafana admin user password")
@@ -550,52 +535,6 @@ func isSecretNotFoundError(err error) bool {
 		return true
 	}
 	return false
-}
-
-func GetHeadNodeAffinity(cluster interface {
-	NodePoolExists(nodePoolName string) bool
-}, config Configuration) v1.Affinity {
-	headNodePoolName := config.headNodepoolName
-	if headNodePoolName == "" {
-		return v1.Affinity{}
-	}
-	if !cluster.NodePoolExists(headNodePoolName) {
-		return v1.Affinity{}
-	}
-	return v1.Affinity{
-		NodeAffinity: &v1.NodeAffinity{
-			PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
-				{
-					Weight: 100,
-					Preference: v1.NodeSelectorTerm{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      pkgCommon.LabelKey,
-								Operator: v1.NodeSelectorOpIn,
-								Values: []string{
-									headNodePoolName,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func GetHeadNodeTolerations(config Configuration) []v1.Toleration {
-	headNodePoolName := config.headNodepoolName
-	if headNodePoolName == "" {
-		return []v1.Toleration{}
-	}
-	return []v1.Toleration{
-		{
-			Key:      pkgCommon.NodePoolNameTaintKey,
-			Operator: v1.TolerationOpEqual,
-			Value:    headNodePoolName,
-		},
-	}
 }
 
 func (m chartValuesManager) generateGrafanaChartValues(

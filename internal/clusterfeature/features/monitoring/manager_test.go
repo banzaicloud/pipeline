@@ -29,7 +29,7 @@ import (
 )
 
 func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(nil, nil, nil, nil, NewFeatureConfiguration(), nil)
+	mng := MakeFeatureManager(nil, nil, nil, nil, Config{}, nil)
 
 	assert.Equal(t, "monitoring", mng.Name())
 }
@@ -72,11 +72,19 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 		},
 	}
 
+	config := Config{
+		Grafana: GrafanaConfig{AdminUser: "admin"},
+		Charts: ChartsConfig{
+			Operator: ChartConfig{
+				Version: "1.0.0",
+			},
+		},
+	}
+
 	secretStore := commonadapter.NewSecretStore(orgSecretStore, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 	helmService := dummyHelmService{}
 	endpointService := dummyEndpointService{}
 	logger := commonadapter.NewNoopLogger()
-	config := NewFeatureConfiguration()
 	mng := MakeFeatureManager(clusterGetter, secretStore, endpointService, helmService, config, logger)
 	ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
@@ -118,7 +126,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 			"url":        prometheusURL,
 		},
 		"prometheusOperator": obj{
-			"version": config.operator.chartVersion,
+			"version": config.Charts.Operator.Version,
 		},
 		"alertmanager": obj{
 			"serviceUrl": serviceUrl,
@@ -128,8 +136,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 }
 
 func TestFeatureManager_ValidateSpec(t *testing.T) {
-	config := NewFeatureConfiguration()
-	mng := MakeFeatureManager(nil, nil, nil, nil, config, nil)
+	mng := MakeFeatureManager(nil, nil, nil, nil, Config{}, nil)
 
 	cases := map[string]struct {
 		Spec  clusterfeature.FeatureSpec

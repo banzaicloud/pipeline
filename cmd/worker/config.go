@@ -16,7 +16,6 @@ package main
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -25,7 +24,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/internal/anchore"
+	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
@@ -58,7 +57,7 @@ type configuration struct {
 	Auth authConfig
 
 	// Cluster configuration
-	Cluster clusterConfig
+	Cluster cmd.ClusterConfig
 
 	// Database connection information
 	Database database.Config
@@ -85,11 +84,24 @@ func (c configuration) Validate() error {
 		return err
 	}
 
+	if err := c.Cluster.Validate(); err != nil {
+		return err
+	}
+
 	if err := c.Database.Validate(); err != nil {
 		return err
 	}
 
 	if err := c.Cadence.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Process post-processes the configuration after loading (before validation).
+func (c *configuration) Process() error {
+	if err := c.Cluster.Process(); err != nil {
 		return err
 	}
 
@@ -140,72 +152,6 @@ func (c authTokenConfig) Validate() error {
 	return nil
 }
 
-// clusterConfig contains cluster configuration.
-type clusterConfig struct {
-	Manifest     string
-	SecurityScan clusterSecurityScanConfig
-}
-
-// Validate validates the configuration.
-func (c clusterConfig) Validate() error {
-	if c.Manifest != "" {
-		file, err := os.OpenFile(c.Manifest, os.O_RDONLY, 0666)
-		if err != nil {
-			return fmt.Errorf("cluster manifest file is not readable: %w", err)
-		}
-		_ = file.Close()
-	}
-
-	if c.SecurityScan.Enabled {
-		if err := c.SecurityScan.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// clusterSecurityScanConfig contains cluster security scan configuration.
-type clusterSecurityScanConfig struct {
-	Enabled bool
-	Anchore clusterSecurityScanAnchoreConfig
-}
-
-func (c clusterSecurityScanConfig) Validate() error {
-	if c.Anchore.Enabled {
-		if err := c.Anchore.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// clusterSecurityScanAnchoreConfig contains cluster security scan anchore configuration.
-type clusterSecurityScanAnchoreConfig struct {
-	Enabled bool
-
-	anchore.Config `mapstructure:",squash"`
-}
-
-func (c clusterSecurityScanAnchoreConfig) Validate() error {
-	if c.Enabled {
-		if _, err := url.Parse(c.Endpoint); err != nil {
-			return errors.Wrap(err, "anchore endpoint must be a valid URL")
-		}
-
-		if c.User == "" {
-			return errors.New("anchore user is required")
-		}
-
-		if c.Password == "" {
-			return errors.New("anchore password is required")
-		}
-	}
-
-	return nil
-}
-
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.AllowEmptyEnv(true)
@@ -249,12 +195,12 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Pipeline configuration
 	v.SetDefault("pipeline.basePath", "")
 
+	// Load common configuration
+	cmd.Configure(v, p)
+
 	// Auth configuration
 	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
 	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
-
-	// Cluster configuration
-	v.SetDefault("cluster.manifest", "")
 
 	// Database configuration
 	v.SetDefault("database.dialect", "mysql")
@@ -294,11 +240,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	viper.RegisterAlias("auth.oidcIssuerInsecure", "auth.dexInsecure")
 	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
 	viper.SetDefault("auth.dexGrpcCaCert", "")
-
-	v.SetDefault("cluster.securityScan.anchore.enabled", false)
-	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
-	v.SetDefault("cluster.securityScan.anchore.user", "")
-	v.SetDefault("cluster.securityScan.anchore.password", "")
 }
 
 func registerAliases(v *viper.Viper) {

@@ -33,7 +33,7 @@ database:
     # port: 5432
     port: 3306
     # tls: "disable"
-    tls : "false"
+    tls: "false"
     user: "sparky"
     role: ""
     password: "sparky123"
@@ -87,11 +87,11 @@ auth:
     cookieDomain: ""
     setCookieDomain: false
 
-#    role:
-#        default: "admin"
-#        binding:
-#            admin: ".*"
-#            member: ""
+    #    role:
+    #        default: "admin"
+    #        binding:
+    #            admin: ".*"
+    #            member: ""
 
     token:
         signingKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
@@ -103,6 +103,9 @@ auth:
 #    # It accepts a file path with valid YAML templates inside.
 #    manifest: ""
 #
+#    # Namespace to install components to
+#    namespace: "pipeline-system"
+#
 #    vault:
 #        enabled: true
 #        managed:
@@ -110,6 +113,65 @@ auth:
 #
 #    monitoring:
 #        enabled: true
+#        namespace: ""
+#
+#        charts:
+#            operator:
+#                chart: "stable/prometheus-operator"
+#                version: "7.2.0"
+#                values:
+#                    prometheusOperator:
+#                        image:
+#                            repository: quay.io/coreos/prometheus-operator
+#                            tag: v0.32.0
+#                    prometheus:
+#                        prometheusSpec:
+#                            image:
+#                                repository: quay.io/prometheus/prometheus
+#                                tag: v2.12.0
+#                        ingress:
+#                            annotations:
+#                                traefik.frontend.rule.type: PathPrefix
+#                                traefik.ingress.kubernetes.io/ssl-redirect: "true"
+#                    alertmanager:
+#                        alertmanagerSpec:
+#                            image:
+#                                repository: quay.io/prometheus/alertmanager
+#                                tag: v0.19.0
+#                        ingress:
+#                            annotations:
+#                                traefik.frontend.rule.type: PathPrefix
+#                                traefik.ingress.kubernetes.io/ssl-redirect: "true"
+#                    grafana:
+#                        image:
+#                            repository: grafana/grafana
+#                            tag: 6.4.2
+#                        ingress:
+#                            annotations:
+#                                traefik.frontend.rule.type: PathPrefixStrip
+#                                traefik.ingress.kubernetes.io/redirect-permanent: "true"
+#                                traefik.ingress.kubernetes.io/redirect-regex: ^http://(.*)
+#                                traefik.ingress.kubernetes.io/redirect-replacement: https://$1\
+#                    kube-state-metrics:
+#                        image:
+#                            repository: quay.io/coreos/kube-state-metrics
+#                            tag: v1.8.0
+#                    prometheus-node-exporter:
+#                        image:
+#                            repository: quay.io/prometheus/node-exporter
+#                            tag: v0.18.0
+#
+#            pushgateway:
+#                chart: "stable/prometheus-pushgateway"
+#                version: "1.0.1"
+#                values:
+#                    image:
+#                        repository: prom/pushgateway
+#                        tag: v1.0.0
+#                    ingress:
+#                        annotations:
+#                            traefik.frontend.rule.type: PathPrefix
+#                            traefik.ingress.kubernetes.io/ssl-redirect: "true"
 #
 #    securityScan:
 #        enabled: true
@@ -266,11 +328,3 @@ autoscale:
 vaultWebhook:
     chart: "banzaicloud-stable/vault-secrets-webhook"
     chartVersion: "0.5.2"
-
-prometheusOperator:
-    chart: "stable/prometheus-operator"
-    chartVersion: "7.2.0"
-
-prometheusPushgateway:
-    chart: "stable/prometheus-pushgateway"
-    chartVersion: "1.0.1"

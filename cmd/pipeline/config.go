@@ -15,7 +15,6 @@
 package main
 
 import (
-	"net/url"
 	"os"
 
 	"emperror.dev/errors"
@@ -23,8 +22,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
+	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/pkg/viperx"
@@ -46,7 +45,7 @@ type configuration struct {
 	Frontend frontend.Config
 
 	// Cluster configuration
-	Cluster clusterConfig
+	Cluster cmd.ClusterConfig
 }
 
 // Validate validates the configuration.
@@ -60,6 +59,19 @@ func (c configuration) Validate() error {
 	}
 
 	if err := c.Frontend.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Cluster.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Process post-processes the configuration after loading (before validation).
+func (c *configuration) Process() error {
+	if err := c.Cluster.Process(); err != nil {
 		return err
 	}
 
@@ -120,83 +132,8 @@ func (c authTokenConfig) Validate() error {
 	return nil
 }
 
-// clusterConfig contains cluster configuration.
-type clusterConfig struct {
-	Vault        clusterVaultConfig
-	Monitoring   clusterMonitorConfig
-	SecurityScan clusterSecurityScanConfig
-}
-
-// Validate validates the configuration.
-func (c clusterConfig) Validate() error {
-	if c.SecurityScan.Enabled {
-		if err := c.SecurityScan.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// clusterVaultConfig contains cluster vault configuration.
-type clusterVaultConfig struct {
-	Enabled bool
-	Managed clusterVaultManagedConfig
-}
-
-// clusterVaultManagedConfig contains cluster vault configuration.
-type clusterVaultManagedConfig struct {
-	Enabled bool
-}
-
-// clusterMonitorConfig contains cluster vault configuration.
-type clusterMonitorConfig struct {
-	Enabled bool
-}
-
-// clusterSecurityScanConfig contains cluster security scan configuration.
-type clusterSecurityScanConfig struct {
-	Enabled bool
-	Anchore clusterSecurityScanAnchoreConfig
-}
-
-func (c clusterSecurityScanConfig) Validate() error {
-	if c.Anchore.Enabled {
-		if err := c.Anchore.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// clusterSecurityScanAnchoreConfig contains cluster security scan anchore configuration.
-type clusterSecurityScanAnchoreConfig struct {
-	Enabled bool
-
-	anchore.Config `mapstructure:",squash"`
-}
-
-func (c clusterSecurityScanAnchoreConfig) Validate() error {
-	if c.Enabled {
-		if _, err := url.Parse(c.Endpoint); err != nil {
-			return errors.Wrap(err, "anchore endpoint must be a valid URL")
-		}
-
-		if c.User == "" {
-			return errors.New("anchore user is required")
-		}
-
-		if c.Password == "" {
-			return errors.New("anchore password is required")
-		}
-	}
-
-	return nil
-}
-
 // configure configures some defaults in the Viper instance.
-func configure(v *viper.Viper, _ *pflag.FlagSet) {
+func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Application constants
 	v.Set("appName", appName)
 	v.Set("appVersion", version)
@@ -226,6 +163,9 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 		auth.RoleMember: "",
 	})
 
+	// Load common configuration
+	cmd.Configure(v, p)
+
 	v.SetDefault("frontend.issue.enabled", false)
 	v.SetDefault("frontend.issue.driver", "github")
 	v.SetDefault("frontend.issue.labels", []string{"community"})
@@ -233,15 +173,6 @@ func configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.RegisterAlias("frontend.issue.github.token", "github.token")
 	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
 	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
-
-	v.SetDefault("cluster.vault.enabled", true)
-	v.SetDefault("cluster.vault.managed.enabled", false)
-	v.SetDefault("cluster.monitoring.enabled", true)
-	v.SetDefault("cluster.securityScan.enabled", true)
-	v.SetDefault("cluster.securityScan.anchore.enabled", false)
-	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
-	v.SetDefault("cluster.securityScan.anchore.user", "")
-	v.SetDefault("cluster.securityScan.anchore.password", "")
 }
 
 func registerAliases(v *viper.Viper) {

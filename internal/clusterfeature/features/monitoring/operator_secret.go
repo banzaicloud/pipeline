@@ -110,11 +110,9 @@ func (m secretManager) getComponentSecret(
 }
 
 func (m secretManager) installSecret(ctx context.Context, clusterID uint, secretName string) error {
-	pipelineSystemNamespace := m.operator.config.pipelineSystemNamespace
-
 	installSecretRequest := pkgCluster.InstallSecretRequest{
 		SourceSecretName: secretName,
-		Namespace:        pipelineSystemNamespace,
+		Namespace:        m.operator.config.Namespace,
 		Spec: map[string]pkgCluster.InstallSecretRequestSpecItem{
 			"auth": {Source: secrettype.HtpasswdFile},
 		},
