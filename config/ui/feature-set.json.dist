@@ -1,74 +1,99 @@
 {
-  "createIssue": {
-    "enabled": true
-  },
-  "menuSpotguides": {
-    "enabled": true
-  },
-  "menuCICD": {
-    "enabled": true
-  },
-  "menuStorage": {
-    "enabled": true
-  },
-  "menuFederation": {
-    "enabled": true
-  },
-  "menuServiceMesh": {
-    "enabled": true
-  },
-  "menuDisasterRecovery": {
-    "enabled": true
-  },
-  "menuSecurityScan": {
-    "enabled": true
-  },
-  "menuAuthProviders": {
-    "enabled": true
-  },
-  "menuRegistry": {
-    "enabled": true
-  },
-  "menuGroupApplication": {
-    "enabled": true
-  },
-  "menuGroupInfrastructure": {
-    "enabled": true
-  },
-  "menuGroupSecurity": {
-    "enabled": true
-  },
-  "menuGroupIntegration": {
-    "enabled": true
-  },
-  "notConfiguredProviders": {
-    "enabled": true
-  },
-  "monitoring": {
-    "enabled": true
-  },
-  "logging": {
-    "enabled": true
-  },
-  "advancedNetwork": {
-    "enabled": true
-  },
-  "nodePoolLabeling": {
-    "enabled": true
-  },
-  "horizontalPodAutoscaler": {
-    "enabled": true
-  },
-  "onDemandNodeAffinity": {
-    "enabled": true
-  },
-  "azurePKE": {
-    "enabled": true
-  },
-  "controlPlaneBanner": {
-    "enabled": true
-  },
-  "multiClusterDeployment": {
-    "enabled": true
-  }
+    "issue": {
+        "enabled": true
+    },
+    "spotguides": {
+        "enabled": true
+    },
+    "cicd": {
+        "enabled": true
+    },
+    "storage": {
+        "enabled": true
+    },
+    "federation": {
+        "enabled": true
+    },
+    "serviceMesh": {
+        "enabled": true
+    },
+    "disasterRecovery": {
+        "enabled": true
+    },
+    "securityScan": {
+        "enabled": true
+    },
+    "authProviders": {
+        "enabled": true
+    },
+    "registry": {
+        "enabled": true
+    },
+    "menuGroup": {
+        "application": {
+            "enabled": true
+        },
+        "infrastructure": {
+            "enabled": true
+        },
+        "security": {
+            "enabled": true
+        },
+        "integration": {
+            "enabled": true
+        }
+    },
+    "nodePoolLabeling": {
+        "enabled": true
+    },
+    "horizontalPodAutoscaler": {
+        "enabled": true
+    },
+    "onDemandNodeAffinity": {
+        "enabled": true
+    },
+    "controlPlaneBanner": {
+        "enabled": true
+    },
+    "multiClusterDeployment": {
+        "enabled": true
+    },
+    "clusterAddonList": {
+        "enabled": true
+    },
+    "applicationAccessTokens": {
+        "enabled": false
+    },
+    "features": {
+        "monitoring": {
+            "enabled": true
+        },
+        "securityScan": {
+            "enabled": true
+        },
+        "vault": {
+            "enabled": true
+        },
+        "logging": {
+            "enabled": true
+        },
+        "backup": {
+            "enabled": true
+        },
+        "dns": {
+            "enabled": true
+        },
+        "storageClass": {
+            "enabled": true
+        },
+        "containerRegistry": {
+            "enabled": true
+        },
+        "expiration": {
+            "enabled": true
+        },
+        "advancedNetwork": {
+            "enabled": true
+        }
+    }
 }
