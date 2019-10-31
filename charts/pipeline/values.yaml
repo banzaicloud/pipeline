@@ -158,9 +158,6 @@ configuration:
 
   # Pipeline Helm related configuration
   helm:
-   retryAttemp: 30
-   retrySleepSeconds: 15
-   tillerVersion: "v2.14.2"
    path: "/cache/helm"
 
    #helm repo URLs

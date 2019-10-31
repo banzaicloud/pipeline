@@ -44,6 +44,7 @@ import (
 	"github.com/banzaicloud/pipeline/helm"
 	arkAPI "github.com/banzaicloud/pipeline/internal/ark/api"
 	arkPosthook "github.com/banzaicloud/pipeline/internal/ark/posthook"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/hollowtrees"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
@@ -560,7 +561,7 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 	helmInstall := &pkgHelm.Install{
 		Namespace:      "kube-system",
 		ServiceAccount: "tiller",
-		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", viper.GetString("helm.tillerVersion")),
+		ImageSpec:      fmt.Sprintf("gcr.io/kubernetes-helm/tiller:%s", global.Config.Helm.Tiller.Version),
 		Upgrade:        true,
 		ForceUpgrade:   true,
 	}
