@@ -361,7 +361,7 @@ func main() {
 				db,
 				dnsBaseDomain,
 				viper.GetString(config.ControlPlaneNamespace),
-				viper.GetString(config.PipelineSystemNamespace),
+				global.Config.Cluster.Namespace,
 				viper.GetString(config.MonitorConfigMap),
 				viper.GetString(config.MonitorConfigMapPrometheusKey),
 				viper.GetString(config.MonitorCertSecret),
@@ -413,8 +413,7 @@ func main() {
 
 	cgroupAdapter := cgroupAdapter.NewClusterGetter(clusterManager)
 	clusterGroupManager := clustergroup.NewManager(cgroupAdapter, clustergroup.NewClusterGroupRepository(db, logrusLogger), logrusLogger, errorHandler)
-	infraNamespace := viper.GetString(config.PipelineSystemNamespace)
-	federationHandler := federation.NewFederationHandler(cgroupAdapter, infraNamespace, logrusLogger, errorHandler)
+	federationHandler := federation.NewFederationHandler(cgroupAdapter, global.Config.Cluster.Namespace, logrusLogger, errorHandler)
 	deploymentManager := deployment.NewCGDeploymentManager(db, cgroupAdapter, logrusLogger, errorHandler)
 	serviceMeshFeatureHandler := cgFeatureIstio.NewServiceMeshFeatureHandler(cgroupAdapter, logrusLogger, errorHandler)
 	clusterGroupManager.RegisterFeatureHandler(federation.FeatureName, federationHandler)

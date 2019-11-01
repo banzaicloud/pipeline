@@ -39,7 +39,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -53,7 +52,7 @@ import (
 	rls "k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/helm/pkg/repo"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/pkg/k8sclient"
@@ -451,7 +450,7 @@ func updateSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName s
 	if err != nil {
 		return emperror.Wrap(err, "failed to get kubernetes client from kubeconfig")
 	}
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	cm, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
 	if err != nil {
 		if apiErrors.IsNotFound(err) {
@@ -487,7 +486,7 @@ func cleanupSpotConfigMap(kubeConfig []byte, odPcts map[string]int, releaseName 
 	if err != nil {
 		return emperror.Wrap(err, "failed to get kubernetes client from kubeconfig")
 	}
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	cm, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).Get(common.SpotConfigMapKey, metav1.GetOptions{})
 	if err != nil {
 		return emperror.Wrap(err, "failed to retrieve spot configmap")

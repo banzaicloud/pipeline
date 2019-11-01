@@ -28,14 +28,8 @@ import (
 )
 
 const (
-	// PipelineSystemNamespace pipeline infra namespace key
-	PipelineSystemNamespace = "infra.namespace"
-
 	// PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
 	PipelineHeadNodePoolName = "infra.headNodePoolName"
-
-	// PipelineLabelDomain reserved node pool label domains
-	PipelineLabelDomain = "infra.pipelineLabelDomain"
 
 	// PipelineExternalURLInsecure specifies whether the external URL of the Pipeline is insecure
 	// as uses self-signed CA cert
@@ -43,9 +37,6 @@ const (
 
 	// PipelineUUID is an UUID that identifies the specific installation (deployment) of the platform
 	PipelineUUID = "pipeline.uuid"
-
-	// ForbiddenLabelDomains reserved node pool label domains
-	ForbiddenLabelDomains = "infra.forbiddenLabelDomains"
 
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
@@ -214,7 +205,6 @@ func init() {
 	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")
 
-	viper.SetDefault(PipelineSystemNamespace, "pipeline-system")
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
 
 	viper.SetDefault("cert.source", "file")
@@ -242,13 +232,6 @@ func init() {
 	viper.SetDefault(CanaryOperatorImageTag, "0.1.0")
 
 	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.2")
-
-	viper.SetDefault(PipelineLabelDomain, "banzaicloud.io")
-	viper.SetDefault(ForbiddenLabelDomains, []string{
-		"k8s.io",
-		"kubernetes.io",
-		"google.com",
-	})
 
 	// Prometheus service defaults
 	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")

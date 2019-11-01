@@ -34,7 +34,16 @@ type Configuration struct {
 	}
 
 	Cluster struct {
+		Namespace string
+
+		Labels struct {
+			Domain           string
+			ForbiddenDomains []string
+		}
+
 		Vault struct {
+			Namespace string
+
 			Charts struct {
 				Webhook struct {
 					Chart   string
@@ -66,6 +75,7 @@ type Configuration struct {
 
 		DNS struct {
 			Enabled        bool
+			Namespace      string
 			BaseDomain     string
 			ProviderSecret string
 

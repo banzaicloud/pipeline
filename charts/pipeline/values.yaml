@@ -111,6 +111,19 @@ configuration:
     endPointUrl: ""
 
   cluster:
+    labels:
+      forbiddenDomains:
+        - k8s.io
+        - kubernetes.io
+        - google.com
+        - coreos.com
+        - oraclecloud.com
+        - node.info
+        - azure.com
+        - agentpool
+        - storageprofile
+        - storagetier
+
     securityScan:
       anchore:
         enabled: false
@@ -158,22 +171,6 @@ configuration:
    certSecret: prometheus-federation-secrets
    mountPath: /etc/prometheus/secrets
    grafanaAdminUsername: admin
-
-  # Pipeline infra environment related settings
-  infra:
-    namespace: pipeline-system
-
-    forbiddenLabelDomains:
-      - k8s.io
-      - kubernetes.io
-      - google.com
-      - coreos.com
-      - oraclecloud.com
-      - node.info
-      - azure.com
-      - agentpool
-      - storageprofile
-      - storagetier
 
   ark:
     name: ark

@@ -36,6 +36,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	pkgCommmon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/pkg/hpa"
@@ -163,7 +164,7 @@ func PutHpaResource(c *gin.Context) {
 
 func runPrometheusQuery(config *rest.Config, client *kubernetes.Clientset, query string) (model.Value, error) {
 	prometheusEndpointPort := viper.GetInt(pipConfig.PrometheusLocalPort)
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
 	promethuesPodLabels := labels.Set{"app": "prometheus", "component": "server"}
 
