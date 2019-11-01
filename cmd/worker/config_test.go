@@ -42,6 +42,9 @@ func TestConfigure(t *testing.T) {
 	err = v.Unmarshal(&config)
 	require.NoError(t, err)
 
+	err = config.Process()
+	require.NoError(t, err)
+
 	err = config.Validate()
 	require.NoError(t, err)
 }
