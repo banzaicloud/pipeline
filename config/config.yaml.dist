@@ -304,14 +304,14 @@ cadence:
     createNonexistentDomain: true
     workflowExecutionRetentionPeriodInDays: 3
 
-cloud:
-    amazon:
-        # Default Amazon region
-        defaultRegion: "us-west-1"
-
-    alibaba:
-        # Default Alibaba region
-        defaultRegion: "eu-central-1"
+#cloud:
+#    amazon:
+#        # Default Amazon region
+#        defaultRegion: "us-west-1"
+#
+#    alibaba:
+#        # Default Alibaba region
+#        defaultRegion: "eu-central-1"
 
 cloudinfo:
     endpoint: "https://beta.banzaicloud.io/cloudinfo/api/v1"
