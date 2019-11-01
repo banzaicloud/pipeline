@@ -62,6 +62,10 @@ type configuration struct {
 		Enabled            bool
 		CollectionInterval time.Duration
 	}
+
+	Cloudinfo struct {
+		Endpoint string
+	}
 }
 
 // Validate validates the configuration.
@@ -88,6 +92,10 @@ func (c configuration) Validate() error {
 
 	if err := c.Cluster.Validate(); err != nil {
 		return err
+	}
+
+	if c.Cloudinfo.Endpoint == "" {
+		return errors.New("cloudinfo endpoint is required")
 	}
 
 	return nil

@@ -130,6 +130,10 @@ type Configuration struct {
 		}
 	}
 
+	Cloudinfo struct {
+		Endpoint string
+	}
+
 	Hooks struct {
 		DomainHookDisabled bool
 	}

@@ -63,9 +63,6 @@ database:
 
     autoMigrateEnabled: true
 
-cloudinfo:
-    endPointUrl: "https://alpha.dev.banzaicloud.com/cloudinfo/api/v1"
-
 cors:
     AllowAllOrigins: false
     AllowOrigins: ["http://localhost:4200"]
@@ -315,6 +312,9 @@ cloud:
     alibaba:
         # Default Alibaba region
         defaultRegion: "eu-central-1"
+
+cloudinfo:
+    endpoint: "https://beta.banzaicloud.io/cloudinfo/api/v1"
 
 autoscale:
     clusterAutoscalerChartVersion: "0.12.3"
