@@ -122,12 +122,23 @@ auth:
 #    namespace: "pipeline-system"
 #
 #    labels:
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
 #        domain: banzaicloud.io
 #        forbiddenDomains: [
 #            "k8s.io",
 #            "kubernetes.io",
 #            "google.com"
 #        ]
+#
+#        charts:
+#            nodepoolLabelOperator:
+#                chart: "banzaicloud-stable/nodepool-labels-operator"
+#                version: "0.0.3"
+#
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/nodepool-labels-operator for details
+#                values: {}
 #
 #    vault:
 #        enabled: true
@@ -293,9 +304,6 @@ ark:
 cert:
     source: "file"
     path: "config/certs"
-
-#nodepools:
-#    labelSetOperatorChartVersion: "0.0.2"
 
 cadence:
     host: "127.0.0.1"

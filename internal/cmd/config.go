@@ -214,6 +214,9 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		"kubernetes.io",
 		"google.com",
 	})
+	v.SetDefault("cluster.labels.charts.nodepoolLabelOperator.chart", "banzaicloud-stable/nodepool-labels-operator")
+	v.SetDefault("cluster.labels.charts.nodepoolLabelOperator.version", "0.0.3")
+	v.SetDefault("cluster.labels.charts.nodepoolLabelOperator.values", map[string]interface{}{})
 
 	v.SetDefault("cluster.vault.enabled", true)
 	v.SetDefault("cluster.vault.namespace", "")
