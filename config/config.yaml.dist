@@ -1,22 +1,22 @@
 # This is the example configuration for Pipeline
 
 # Pipeline logging configuration
-log:
-    format: "text"
-    level: "debug"
+#log:
+#    format: "text"
+#    level: "debug"
 
 # Pipeline error handling configuration
-errors:
-    stackdriver:
-        enabled: false
-        projectId: ""
+#errors:
+#    stackdriver:
+#        enabled: false
+#        projectId: ""
 
-telemetry:
-    enabled: false
-    addr: "127.0.0.1:9900"
-
-    # if true, some metrics have unique labels
-    debug: true
+#telemetry:
+#    enabled: false
+#    addr: "127.0.0.1:9900"
+#
+#    # if true, some metrics have unique labels
+#    debug: true
 
 pipeline:
     # Pipeline configs
