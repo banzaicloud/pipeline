@@ -95,9 +95,6 @@ const (
 	CanaryOperatorImageRepository = "canary.imageRepository"
 	CanaryOperatorImageTag        = "canary.imageTag"
 
-	// NodePool LabelSet Operator
-	NodePoolLabelSetOperatorChartVersion = "nodepools.labelSetOperatorChartVersion"
-
 	// Prometheus svc name, context & local port of Prometheus deploy if monitoring is enabled on cluster
 	PrometheusServiceName    = "prometheus.serviceName"
 	PrometheusServiceContext = "prometheus.serviceContext"
@@ -214,8 +211,6 @@ func init() {
 	viper.SetDefault(CanaryOperatorChartVersion, "0.1.2")
 	viper.SetDefault(CanaryOperatorImageRepository, "banzaicloud/canary-operator")
 	viper.SetDefault(CanaryOperatorImageTag, "0.1.0")
-
-	viper.SetDefault(NodePoolLabelSetOperatorChartVersion, "0.0.2")
 
 	// Prometheus service defaults
 	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")

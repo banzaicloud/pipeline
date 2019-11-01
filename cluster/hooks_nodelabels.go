@@ -17,16 +17,11 @@ package cluster
 import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
-	"github.com/banzaicloud/pipeline/pkg/helm"
 )
-
-const nodePoolLabelsOperatorName = "/nodepool-labels-operator"
 
 type nodePoolLabelSetOperatorConfig struct {
 	Tolerations   []v1.Toleration `json:"tolerations,omitempty"`
@@ -46,14 +41,14 @@ type labelerConfig struct {
 
 // InstallNodePoolLabelSetOperator deploys node pool label set operator.
 func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
-	pipelineSystemNamespace := global.Config.Cluster.Namespace
+	pipelineSystemNamespace := global.Config.Cluster.Labels.Namespace
 	reservedNodeLabelDomains := global.Config.Cluster.Labels.ForbiddenDomains
 
 	headNodeAffinity := GetHeadNodeAffinity(cluster)
 	headNodeTolerations := GetHeadNodeTolerations()
 
-	chartName := helm.BanzaiRepository + nodePoolLabelsOperatorName
-	chartVersion := viper.GetString(config.NodePoolLabelSetOperatorChartVersion)
+	chartName := global.Config.Cluster.Labels.Charts.NodepoolLabelOperator.Chart
+	chartVersion := global.Config.Cluster.Labels.Charts.NodepoolLabelOperator.Version
 
 	config := nodePoolLabelSetOperatorConfig{
 		Tolerations: headNodeTolerations,
