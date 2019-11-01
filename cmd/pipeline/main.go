@@ -373,8 +373,12 @@ func main() {
 		}
 	}
 
-	if viper.GetBool(config.SpotMetricsEnabled) {
-		go monitor.NewSpotMetricsExporter(context.Background(), clusterManager, logrusLogger.WithField("subsystem", "spot-metrics-exporter")).Run(viper.GetDuration(config.SpotMetricsCollectionInterval))
+	if conf.SpotMetrics.Enabled {
+		go monitor.NewSpotMetricsExporter(
+			context.Background(),
+			clusterManager,
+			logrusLogger.WithField("subsystem", "spot-metrics-exporter"),
+		).Run(conf.SpotMetrics.CollectionInterval)
 	}
 
 	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)

@@ -270,9 +270,9 @@ ark:
 #    syncInterval: "5m"
 #    sharedLibraryGitHubOrganization: "spotguides"
 
-spotmetrics:
-    enabled: false
-    collectionInterval: "30s"
+#spotmetrics:
+#    enabled: false
+#    collectionInterval: "30s"
 
 cert:
     source: "file"

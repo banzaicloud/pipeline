@@ -191,10 +191,6 @@ configuration:
     clusterAutoscalerChartVersion: 0.12.3
     hpaOperatorChartVersion: 0.0.10
 
-  spotmetrics:
-    enabled: false
-    collectionInterval: 30s
-
   # CA source for automated self sing cert generator
   cert:
     source: file
