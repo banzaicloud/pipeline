@@ -167,8 +167,8 @@ monitor:
     grafanaAdminUsername: admin
 
 loggingOperator:
-    chartVersion: ''
-    imageTag: 0.1.2
+    chartVersion: 0.3.3
+    imageTag: 1.0.0
 
 servicemesh:
     istioOperatorChartVersion: 0.0.14

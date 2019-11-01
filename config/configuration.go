@@ -261,8 +261,8 @@ func init() {
 	viper.SetDefault(MonitorGrafanaAdminUserNameKey, "admin")
 
 	// empty string means the latest version of the chart will be installed
-	viper.SetDefault(LoggingOperatorChartVersion, "")
-	viper.SetDefault(LoggingOperatorImageTag, "0.0.5")
+	viper.SetDefault(LoggingOperatorChartVersion, "0.3.3")
+	viper.SetDefault(LoggingOperatorImageTag, "1.0.0")
 
 	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")
