@@ -41,7 +41,7 @@ import (
 
 	"github.com/banzaicloud/pipeline/.gen/pipeline/pipeline"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/secret"
 	"github.com/banzaicloud/pipeline/spotguide/scm"
 )
@@ -196,7 +196,7 @@ func (s *SpotguideManager) isSpotguideReleaseAllowed(release scm.RepositoryRelea
 		}
 	}
 
-	return supported && (!prerelease || viper.GetBool(config.SpotguideAllowPrereleases))
+	return supported && (!prerelease || global.Config.Spotguide.AllowPrereleases)
 }
 
 func ScheduleScrapingSharedSpotguides(workflowClient cadenceClient.Client) error {
@@ -205,7 +205,7 @@ func ScheduleScrapingSharedSpotguides(workflowClient cadenceClient.Client) error
 		WorkflowIDReusePolicy:        cadenceClient.WorkflowIDReusePolicyAllowDuplicate,
 		TaskList:                     "pipeline",
 		ExecutionStartToCloseTimeout: 15 * time.Minute,
-		CronSchedule:                 "@every " + viper.GetDuration(config.SpotguideSyncInterval).String(),
+		CronSchedule:                 "@every " + global.Config.Spotguide.SyncInterval.String(),
 	}
 	_, err := workflowClient.StartWorkflow(context.Background(), workflowOptions, ScrapeSharedSpotguidesWorkflowName)
 	return err
@@ -218,7 +218,11 @@ func (s *SpotguideManager) scrapeSharedSpotguides() error {
 	}
 
 	if s.sharedLibraryOrganization == nil {
-		s.sharedLibraryOrganization, err = EnsureSharedSpotguideOrganization(s.db, viper.GetString("cicd.scm"), viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+		s.sharedLibraryOrganization, err = EnsureSharedSpotguideOrganization(
+			s.db,
+			viper.GetString("cicd.scm"),
+			global.Config.Spotguide.SharedLibraryGitHubOrganization,
+		)
 		if err != nil {
 			return emperror.Wrap(err, "failed to query shared spotguide organization")
 		}
@@ -244,7 +248,7 @@ func (s *SpotguideManager) ScrapeSpotguides(orgID uint, userID uint) error {
 
 func (s *SpotguideManager) scrapeSpotguides(org *auth.Organization, scm scm.SCM) error {
 
-	allowPrivate := viper.GetBool(config.SpotguideAllowPrivateRepos)
+	allowPrivate := global.Config.Spotguide.AllowPrivateRepos
 
 	allRepositories, err := scm.ListRepositoriesByTopic(org.Name, SpotguideGithubTopic, allowPrivate)
 

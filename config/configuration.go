@@ -92,12 +92,6 @@ const (
 	OIDCIssuerURL      = "auth.oidcIssuerURL"
 	OIDCIssuerInsecure = "auth.oidcIssuerInsecure"
 
-	// Spotguides constants
-	SpotguideAllowPrereleases                = "spotguide.allowPrereleases"
-	SpotguideAllowPrivateRepos               = "spotguide.allowPrivateRepos"
-	SpotguideSyncInterval                    = "spotguide.syncInterval"
-	SpotguideSharedLibraryGitHubOrganization = "spotguide.sharedLibraryGitHubOrganization"
-
 	// full endpoint url of CloudInfo for ex: https://alpha.dev.banzaicloud.com/cloudinfo/api/v1
 	CloudInfoEndPoint = "cloudinfo.endpointUrl"
 
@@ -222,11 +216,6 @@ func init() {
 
 	viper.SetDefault(PipelineSystemNamespace, "pipeline-system")
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
-
-	viper.SetDefault(SpotguideAllowPrereleases, false)
-	viper.SetDefault(SpotguideAllowPrivateRepos, false)
-	viper.SetDefault(SpotguideSyncInterval, 15*time.Minute)
-	viper.SetDefault(SpotguideSharedLibraryGitHubOrganization, "spotguides")
 
 	viper.SetDefault("cert.source", "file")
 	viper.SetDefault("cert.path", "config/certs")
