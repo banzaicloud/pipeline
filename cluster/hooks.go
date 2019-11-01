@@ -183,7 +183,7 @@ func installDeployment(cluster CommonCluster, namespace string, deploymentName s
 
 func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 
-	k8sDashboardNameSpace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	k8sDashboardNameSpace := global.Config.Cluster.Namespace
 	k8sDashboardReleaseName := "dashboard"
 	var valuesJson []byte
 
@@ -357,7 +357,7 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	promServiceName := viper.GetString(pipConfig.PrometheusServiceName)
-	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	infraNamespace := global.Config.Cluster.Namespace
 	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
 	chartVersion := viper.GetString(pipConfig.AutoscaleHpaOperatorChartVersion)
 
@@ -402,7 +402,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 
 // InstallPVCOperatorPostHook installs the PVC operator
 func InstallPVCOperatorPostHook(cluster CommonCluster) error {
-	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	infraNamespace := global.Config.Cluster.Namespace
 
 	values := map[string]interface{}{
 		"affinity":    GetHeadNodeAffinity(cluster),
@@ -444,7 +444,7 @@ func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHo
 	}
 	anchorePassword := anchoreUserSecret.Values["password"]
 
-	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	infraNamespace := global.Config.Cluster.Namespace
 
 	values := map[string]interface{}{
 		"externalAnchore": map[string]string{
@@ -547,7 +547,7 @@ func CreatePipelineNamespacePostHook(cluster CommonCluster) error {
 		return err
 	}
 
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 	err = k8sutil.EnsureNamespaceWithLabelWithRetry(client, pipelineSystemNamespace, map[string]string{"scan": "noscan"})
 	if err != nil {
 		return err
@@ -676,7 +676,7 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		return err
 	}
 
-	route53SecretNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	route53SecretNamespace := global.Config.Cluster.Namespace
 
 	orgId := commonCluster.GetOrganizationId()
 
@@ -963,7 +963,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 		return nil
 	}
 
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	kubeConfig, err := cluster.GetK8sConfig()
 	if err != nil {
@@ -1008,7 +1008,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 		return nil
 	}
 
-	pipelineSystemNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	values := map[string]interface{}{
 		"tolerations": []v1.Toleration{

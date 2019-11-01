@@ -33,7 +33,7 @@ import (
 
 // InstallMonitoring installs monitoring tools (Prometheus, Grafana) to a cluster.
 func InstallMonitoring(cluster CommonCluster) error {
-	monitoringNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	monitoringNamespace := global.Config.Cluster.Namespace
 
 	clusterNameSecretTag := fmt.Sprintf("cluster:%s", cluster.GetName())
 	clusterUidSecretTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())

@@ -21,11 +21,11 @@ import (
 	prometheus "github.com/banzaicloud/prometheus-config"
 	"github.com/prometheus/common/model"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	yamlv2 "gopkg.in/yaml.v2"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/k8sutil"
 	"github.com/banzaicloud/pipeline/utils"
 )
@@ -36,7 +36,7 @@ const (
 )
 
 func RemovePrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface) error {
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	currPromConfStr, err := k8sutil.GetConfigMapEntry(client, pipelineSystemNamespace, config.MonitorReleaseName+promCmName, promConfigEntry)
 	if err != nil {
@@ -76,7 +76,7 @@ func RemovePrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface
 }
 
 func AddPrometheusTargets(log logrus.FieldLogger, client kubernetes.Interface) error {
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	currPromConfStr, err := k8sutil.GetConfigMapEntry(client, pipelineSystemNamespace, config.MonitorReleaseName+promCmName, promConfigEntry)
 	if err != nil {

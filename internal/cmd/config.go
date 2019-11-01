@@ -208,6 +208,13 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster.manifest", "")
 	v.SetDefault("cluster.namespace", "pipeline-system")
 
+	viper.SetDefault("cluster.labels.domain", "banzaicloud.io")
+	viper.SetDefault("cluster.labels.forbiddenDomains", []string{
+		"k8s.io",
+		"kubernetes.io",
+		"google.com",
+	})
+
 	v.SetDefault("cluster.vault.enabled", true)
 	v.SetDefault("cluster.vault.namespace", "")
 	v.SetDefault("cluster.vault.managed.enabled", false)

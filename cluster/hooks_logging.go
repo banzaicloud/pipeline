@@ -20,9 +20,7 @@ import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -48,7 +46,7 @@ func InstallLogging(cluster CommonCluster, param pkgCluster.PostHookParam) error
 	// if !checkIfTLSRelatedValuesArePresent(&loggingParam.GenTLSForLogging) {
 	// 	return errors.Errorf("TLS related parameter is missing from request!")
 	// }
-	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	namespace := global.Config.Cluster.Namespace
 	loggingParam.GenTLSForLogging.TLSEnabled = true
 	// Set TLS default values (default True)
 	if loggingParam.SecretId == "" {

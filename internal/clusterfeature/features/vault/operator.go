@@ -20,14 +20,12 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/spf13/viper"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8srest "k8s.io/client-go/rest"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
@@ -125,7 +123,7 @@ func (op FeatureOperator) configureClusterTokenReviewer(
 	logger common.Logger,
 	clusterID uint) (string, error) {
 	// Prepare cluster first with the proper token reviewer SA
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
 	serviceAccount := corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      vaultTokenReviewer,
@@ -255,7 +253,7 @@ func (op FeatureOperator) installOrUpdateWebhook(
 	spec vaultFeatureSpec,
 ) error {
 	// create chart values
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
 	var chartValues = &webhookValues{
 		Env: map[string]string{
 			vaultAddressEnvKey: spec.getVaultAddress(),
@@ -369,7 +367,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, spec c
 		logger.Info("policy deleted successfully")
 
 		// delete kubernetes service account
-		pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+		pipelineSystemNamespace := global.Config.Cluster.Vault.Namespace
 		if err := op.kubernetesService.DeleteObject(ctx, clusterID, &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: vaultTokenReviewer, Namespace: pipelineSystemNamespace}}); err != nil {
 			return errors.WrapIf(err, fmt.Sprintf("failed to delete kubernetes service account"))
 		}

@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/config"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/common"
@@ -134,12 +135,12 @@ func getDesiredNodePoolLabels(logger logrus.FieldLogger, clusterStatus *pkgClust
 }
 
 func IsReservedDomainKey(labelKey string) bool {
-	pipelineLabelDomain := viper.GetString(pipConfig.PipelineLabelDomain)
+	pipelineLabelDomain := global.Config.Cluster.Labels.Domain
 	if strings.Contains(labelKey, pipelineLabelDomain) {
 		return true
 	}
 
-	reservedNodeLabelDomains := viper.GetStringSlice(pipConfig.ForbiddenLabelDomains)
+	reservedNodeLabelDomains := global.Config.Cluster.Labels.ForbiddenDomains
 	for _, reservedDomain := range reservedNodeLabelDomains {
 		if strings.Contains(labelKey, reservedDomain) {
 			return true
@@ -161,7 +162,7 @@ func getOnDemandLabel(nodePool *pkgCluster.NodePoolStatus) string {
 // DeployNodePoolLabelsSet deploys NodePoolLabelSet resources for each node pool.
 func DeployNodePoolLabelsSet(cluster CommonCluster, nodePoolLabels map[string]map[string]string) error {
 
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	k8sConfig, err := cluster.GetK8sConfig()
 	if err != nil {

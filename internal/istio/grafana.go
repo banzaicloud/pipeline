@@ -29,6 +29,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
 
@@ -41,7 +42,7 @@ const (
 )
 
 func DeleteGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) error {
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	cms, err := client.CoreV1().ConfigMaps(pipelineSystemNamespace).List(metav1.ListOptions{
 		LabelSelector: createdByLabel + "=pipeline," + appLabel + "=grafana",
@@ -62,7 +63,7 @@ func DeleteGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface
 }
 
 func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) error {
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
 
 	for _, dashboard := range []string{"galley", "istio-mesh", "istio-performance", "istio-service", "istio-workload", "mixer", "pilot"} {
 		dashboardJson, err := getDashboardJson(log, dashboard)

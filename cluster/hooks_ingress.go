@@ -24,11 +24,9 @@ import (
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -141,7 +139,7 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 		return emperror.Wrap(err, "converting ingress config to json failed")
 	}
 
-	namespace := viper.GetString(pipConfig.PipelineSystemNamespace)
+	namespace := global.Config.Cluster.Namespace
 
 	return installDeployment(cluster, namespace, pkgHelm.BanzaiRepository+"/pipeline-cluster-ingress", "ingress", ingressValuesJson, "", false)
 }

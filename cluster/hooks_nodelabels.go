@@ -21,7 +21,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/config"
-	pipConfig "github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 	"github.com/banzaicloud/pipeline/pkg/helm"
 )
@@ -46,8 +46,8 @@ type labelerConfig struct {
 
 // InstallNodePoolLabelSetOperator deploys node pool label set operator.
 func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
-	pipelineSystemNamespace := viper.GetString(config.PipelineSystemNamespace)
-	reservedNodeLabelDomains := viper.GetStringSlice(pipConfig.ForbiddenLabelDomains)
+	pipelineSystemNamespace := global.Config.Cluster.Namespace
+	reservedNodeLabelDomains := global.Config.Cluster.Labels.ForbiddenDomains
 
 	headNodeAffinity := GetHeadNodeAffinity(cluster)
 	headNodeTolerations := GetHeadNodeTolerations()

@@ -124,6 +124,14 @@ auth:
 #    # Namespace to install components to
 #    namespace: "pipeline-system"
 #
+#    labels:
+#        domain: banzaicloud.io
+#        forbiddenDomains: [
+#            "k8s.io",
+#            "kubernetes.io",
+#            "google.com"
+#        ]
+#
 #    vault:
 #        enabled: true
 #
@@ -240,22 +248,6 @@ canary:
     chartName: canary-operator
     imageRepository: banzaicloud/canary-operator
     imageTag: 0.1.0
-
-# Pipeline infra environment related settings
-infra:
-    namespace: "pipeline-system"
-
-    # Name of the node pool reserved for infra deployments
-    # If you set this property Pipeline will place a taint on all nodes in this node pool and Tiller will be deployed with
-    # a node selector and toleration matching nodes from this node pool. Make sure all Infra deployments are setup with
-    # the node-affinity and toleration as described in docs/infra-node-pool.md
-    #headNodePoolName: "head"
-
-    forbiddenLabelDomains: [
-        "k8s.io",
-        "kubernetes.io",
-        "google.com"
-    ]
 
 ark:
     name: "ark"
