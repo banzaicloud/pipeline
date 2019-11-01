@@ -12,30 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dns
+package vault
 
 import (
 	"emperror.dev/errors"
-
-	"github.com/banzaicloud/pipeline/pkg/validation"
 )
 
-// Config contains configuration for the dns feature.
+// Config contains configuration for the vault feature.
 type Config struct {
-	Namespace  string
-	BaseDomain string
-	Charts     ChartsConfig
+	Namespace string
+	Managed   ManagedConfig
+	Charts    ChartsConfig
+}
+
+// ManagedConfig contains cluster managed vault configuration.
+type ManagedConfig struct {
+	Enabled bool
 }
 
 func (c Config) Validate() error {
 	if c.Namespace == "" {
-		return errors.New("dns namespace is required")
-	}
-
-	if c.BaseDomain != "" {
-		if err := validation.ValidateSubdomain(c.BaseDomain); err != nil {
-			return errors.WithMessage(err, "invalid dns base domain")
-		}
+		return errors.New("logging namespace is required")
 	}
 
 	// TODO: validate chart config: image and tag are not empty!
@@ -44,7 +41,7 @@ func (c Config) Validate() error {
 }
 
 type ChartsConfig struct {
-	ExternalDNS ChartConfig
+	Webhook ChartConfig
 }
 
 type ChartConfig struct {

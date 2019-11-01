@@ -32,6 +32,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // FeatureOperator implements the Vault feature operator
@@ -279,8 +280,8 @@ func (op FeatureOperator) installOrUpdateWebhook(
 		return errors.WrapIf(err, "failed to decode chartValues")
 	}
 
-	chartName := getChartName()
-	chartVersion := getChartVersion()
+	chartName := global.Config.Cluster.Vault.Charts.Webhook.Chart
+	chartVersion := global.Config.Cluster.Vault.Charts.Webhook.Version
 
 	return op.helmService.ApplyDeployment(
 		ctx,
@@ -291,14 +292,6 @@ func (op FeatureOperator) installOrUpdateWebhook(
 		valuesBytes,
 		chartVersion,
 	)
-}
-
-func getChartName() string {
-	return viper.GetString(config.VaultWebhookChartKey)
-}
-
-func getChartVersion() string {
-	return viper.GetString(config.VaultWebhookChartVersionKey)
 }
 
 // Deactivate deactivates the cluster feature

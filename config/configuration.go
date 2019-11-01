@@ -136,9 +136,6 @@ const (
 	HollowtreesTokenSigningKey = "hollowtrees.tokenSigningKey"
 	HollowtreesExternalURL     = "hollowtrees.externalURL"
 	HollowtreesAlertsEndpoint  = "hollowtrees.alertsEndpoint"
-
-	VaultWebhookChartKey        = "vaultWebhook.chart"
-	VaultWebhookChartVersionKey = "vaultWebhook.chartVersion"
 )
 
 // Init initializes the configurations
@@ -276,9 +273,6 @@ func init() {
 
 	viper.SetDefault(HollowtreesExternalURL, "/hollowtrees-alerts")
 	viper.SetDefault(HollowtreesAlertsEndpoint, "/api/v1/alerts")
-
-	viper.SetDefault(VaultWebhookChartKey, "banzaicloud-stable/vault-secrets-webhook")
-	viper.SetDefault(VaultWebhookChartVersionKey, "0.5.2")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
