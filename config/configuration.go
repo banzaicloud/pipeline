@@ -57,9 +57,6 @@ const (
 	ARKBackupSyncInterval  = "ark.backupSyncInterval"
 	ARKRestoreWaitTimeout  = "ark.restoreWaitTimeout"
 
-	AutoscaleClusterAutoscalerChartVersion = "autoscale.clusterAutoscalerChartVersion"
-	AutoscaleHpaOperatorChartVersion       = "autoscale.hpaOperatorChartVersion"
-
 	// Database
 	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
 
@@ -184,9 +181,6 @@ func init() {
 	viper.SetDefault(ARKRestoreSyncInterval, "20s")
 	viper.SetDefault(ARKBackupSyncInterval, "20s")
 	viper.SetDefault(ARKRestoreWaitTimeout, "5m")
-
-	viper.SetDefault(AutoscaleClusterAutoscalerChartVersion, "0.12.3")
-	viper.SetDefault(AutoscaleHpaOperatorChartVersion, "0.0.10")
 
 	viper.SetDefault(MonitorEnabled, false)
 	viper.SetDefault(MonitorConfigMap, "")
