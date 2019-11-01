@@ -32,7 +32,7 @@ type ManagedConfig struct {
 
 func (c Config) Validate() error {
 	if c.Namespace == "" {
-		return errors.New("logging namespace is required")
+		return errors.New("vault namespace is required")
 	}
 
 	// TODO: validate chart config: image and tag are not empty!
