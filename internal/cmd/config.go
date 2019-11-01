@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 )
 
 // ClusterConfig contains cluster configuration.
@@ -59,6 +60,12 @@ func (c ClusterConfig) Validate() error {
 		return errors.New("cluster namespace is required")
 	}
 
+	if c.Vault.Enabled {
+		if err := c.Vault.Validate(); err != nil {
+			return err
+		}
+	}
+
 	if c.Monitoring.Enabled {
 		if err := c.Monitoring.Validate(); err != nil {
 			return err
@@ -88,6 +95,10 @@ func (c ClusterConfig) Validate() error {
 
 // Process post-processes the configuration after loading (before validation).
 func (c *ClusterConfig) Process() error {
+	if c.Vault.Namespace == "" {
+		c.Vault.Namespace = c.Namespace
+	}
+
 	if c.Monitoring.Namespace == "" {
 		c.Monitoring.Namespace = c.Namespace
 	}
@@ -106,12 +117,8 @@ func (c *ClusterConfig) Process() error {
 // ClusterVaultConfig contains cluster vault configuration.
 type ClusterVaultConfig struct {
 	Enabled bool
-	Managed ClusterVaultManagedConfig
-}
 
-// ClusterVaultManagedConfig contains cluster vault configuration.
-type ClusterVaultManagedConfig struct {
-	Enabled bool
+	vault.Config `mapstructure:",squash"`
 }
 
 // ClusterMonitoringConfig contains cluster monitoring configuration.
@@ -199,6 +206,18 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// Cluster configuration
 	v.SetDefault("cluster.manifest", "")
 	v.SetDefault("cluster.namespace", "pipeline-system")
+
+	v.SetDefault("cluster.vault.enabled", true)
+	v.SetDefault("cluster.vault.namespace", "")
+	v.SetDefault("cluster.vault.managed.enabled", false)
+	v.SetDefault("cluster.vault.charts.webhook.chart", "banzaicloud-stable/vault-secrets-webhook")
+	v.SetDefault("cluster.vault.charts.webhook.version", "0.5.2")
+	v.SetDefault("cluster.vault.charts.webhook.values", map[string]interface{}{
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/vault-secrets-webhook",
+			"tag":        "0.5.1",
+		},
+	})
 
 	v.SetDefault("cluster.monitoring.enabled", true)
 	v.SetDefault("cluster.monitoring.namespace", "")

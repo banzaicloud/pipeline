@@ -23,6 +23,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // FeatureManager implements the Vault feature manager
@@ -87,7 +88,7 @@ func (m FeatureManager) GetOutput(ctx context.Context, clusterID uint, spec clus
 
 	defer vaultManager.close()
 
-	chartVersion := getChartVersion()
+	chartVersion := global.Config.Cluster.Vault.Charts.Webhook.Version
 
 	vaultOutput, err := getVaultOutput(*vaultManager, orgID, clusterID)
 	if err != nil {

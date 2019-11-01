@@ -33,6 +33,21 @@ type Configuration struct {
 	}
 
 	Cluster struct {
+		Vault struct {
+			Charts struct {
+				Webhook struct {
+					Chart   string
+					Version string
+					Values  struct {
+						Image struct {
+							Repository string
+							Tag        string
+						}
+					}
+				}
+			}
+		}
+
 		Logging struct {
 			Charts struct {
 				Operator struct {

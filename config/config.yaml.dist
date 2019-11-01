@@ -117,8 +117,20 @@ auth:
 #
 #    vault:
 #        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
 #        managed:
 #            enabled: false
+#
+#        charts:
+#            webhook:
+#                chart: "banzaicloud-stable/vault-secrets-webhook"
+#                version: "0.5.2"
+#
+#                # See https://github.com/banzaicloud/bank-vaults/tree/master/charts/vault-secrets-webhook for details
+#                values: {}
 #
 #    monitoring:
 #        enabled: true
@@ -296,7 +308,3 @@ cloud:
 autoscale:
     clusterAutoscalerChartVersion: "0.12.3"
     hpaOperatorChartVersion: "0.0.10"
-
-vaultWebhook:
-    chart: "banzaicloud-stable/vault-secrets-webhook"
-    chartVersion: "0.5.2"

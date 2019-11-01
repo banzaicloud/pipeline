@@ -20,13 +20,12 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret"
 )
@@ -103,7 +102,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 			}`, 13),
 				},
 				"webhook": map[string]interface{}{
-					"version": viper.GetString(config.VaultWebhookChartVersionKey),
+					"version": global.Config.Cluster.Vault.Charts.Webhook.Version,
 				},
 			},
 		},
@@ -126,7 +125,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 					"version":        vVersion,
 				},
 				"webhook": map[string]interface{}{
-					"version": viper.GetString(config.VaultWebhookChartVersionKey),
+					"version": global.Config.Cluster.Vault.Charts.Webhook.Version,
 				},
 			},
 		},
