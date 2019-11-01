@@ -63,6 +63,13 @@ database:
 
     autoMigrateEnabled: true
 
+cadence:
+    host: "127.0.0.1"
+#    port: 7933
+#    domain: "pipeline"
+#    createNonexistentDomain: true
+#    workflowExecutionRetentionPeriodInDays: 3
+
 cors:
     AllowAllOrigins: false
     AllowOrigins: ["http://localhost:4200"]
@@ -304,13 +311,6 @@ ark:
 cert:
     source: "file"
     path: "config/certs"
-
-cadence:
-    host: "127.0.0.1"
-    port: 7933
-    domain: "pipeline"
-    createNonexistentDomain: true
-    workflowExecutionRetentionPeriodInDays: 3
 
 #cloud:
 #    amazon:
