@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/spf13/pflag"
@@ -343,4 +344,10 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	// Temporary hook flags
 	v.SetDefault("hooks.domainHookDisabled", false)
+
+	// Spotguide config
+	viper.SetDefault("spotguide.allowPrereleases", false)
+	viper.SetDefault("spotguide.allowPrivateRepos", false)
+	viper.SetDefault("spotguide.syncInterval", 5*time.Minute)
+	viper.SetDefault("spotguide.sharedLibraryGitHubOrganization", "spotguides")
 }

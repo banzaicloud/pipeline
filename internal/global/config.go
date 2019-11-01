@@ -16,6 +16,7 @@ package global
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
@@ -105,6 +106,13 @@ type Configuration struct {
 
 	Hooks struct {
 		DomainHookDisabled bool
+	}
+
+	Spotguide struct {
+		AllowPrereleases                bool
+		AllowPrivateRepos               bool
+		SyncInterval                    time.Duration
+		SharedLibraryGitHubOrganization string
 	}
 }
 

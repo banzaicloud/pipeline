@@ -549,13 +549,17 @@ func main() {
 		scmFactory, err := scm.NewSCMFactory(scmProvider, scmToken, scmTokenStore)
 		emperror.Panic(errors.WrapIf(err, "failed to create SCMFactory"))
 
-		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(config.DB(), scmProvider, viper.GetString(config.SpotguideSharedLibraryGitHubOrganization))
+		sharedSpotguideOrg, err := spotguide.EnsureSharedSpotguideOrganization(
+			db,
+			scmProvider,
+			global.Config.Spotguide.SharedLibraryGitHubOrganization,
+		)
 		if err != nil {
 			errorHandler.Handle(errors.WrapIf(err, "failed to create shared Spotguide organization"))
 		}
 
 		spotguideManager := spotguide.NewSpotguideManager(
-			config.DB(),
+			db,
 			version,
 			scmFactory,
 			sharedSpotguideOrg,

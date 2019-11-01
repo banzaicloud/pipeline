@@ -263,11 +263,11 @@ ark:
     backupSyncInterval: "20s"
     restoreWaitTimeout: "5m"
 
-spotguide:
-    allowPrereleases: false
-    allowPrivateRepos: false
-    syncInterval: "5m"
-    sharedLibraryGitHubOrganization: "spotguides"
+#spotguide:
+#    allowPrereleases: false
+#    allowPrivateRepos: false
+#    syncInterval: "5m"
+#    sharedLibraryGitHubOrganization: "spotguides"
 
 frontend:
     issue:

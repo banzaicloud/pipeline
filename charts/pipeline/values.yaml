@@ -194,12 +194,6 @@ configuration:
     clusterAutoscalerChartVersion: 0.12.3
     hpaOperatorChartVersion: 0.0.10
 
-  spotguide:
-    allowPrereleases: false
-    allowPrivateRepos: false
-    syncInterval: 5m
-    sharedLibraryGitHubOrganization: spotguides
-
   spotmetrics:
     enabled: false
     collectionInterval: 30s
