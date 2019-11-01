@@ -37,6 +37,9 @@ type configuration struct {
 	// Error handling configuration
 	Errors errorhandler.Config
 
+	// Telemetry configuration
+	Telemetry telemetryConfig
+
 	// Auth configuration
 	Auth authConfig
 
@@ -57,6 +60,10 @@ type configuration struct {
 // Validate validates the configuration.
 func (c configuration) Validate() error {
 	if err := c.Errors.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Telemetry.Validate(); err != nil {
 		return err
 	}
 
@@ -87,6 +94,26 @@ func (c *configuration) Process() error {
 
 	if c.Frontend.Issue.Github.Token == "" {
 		c.Frontend.Issue.Github.Token = c.Github.Token
+	}
+
+	return nil
+}
+
+// telemetryConfig contains telemetry configuration.
+type telemetryConfig struct {
+	Enabled bool
+	Addr    string
+	Debug   bool
+}
+
+// Validate validates the configuration.
+func (c telemetryConfig) Validate() error {
+	if !c.Enabled {
+		return nil
+	}
+
+	if c.Addr == "" {
+		return errors.New("telemetry http server address is required")
 	}
 
 	return nil
@@ -151,6 +178,13 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// ErrorHandler configuration
 	v.Set("errors.serviceName", appName)
 	v.Set("errors.serviceVersion", version)
+
+	// Telemetry configuration
+	v.SetDefault("telemetry.enabled", false)
+	p.String("telemetry-addr", "127.0.0.1:9900", "Telemetry HTTP server address")
+	_ = v.BindPFlag("telemetry.addr", p.Lookup("telemetry-addr"))
+	v.SetDefault("telemetry.addr", "127.0.0.1:9900")
+	v.SetDefault("telemetry.debug", true)
 
 	// Auth configuration
 	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")

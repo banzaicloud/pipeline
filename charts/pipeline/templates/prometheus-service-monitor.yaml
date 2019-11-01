@@ -33,7 +33,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
   name: {{ include "pipeline.fullname" . }}-monitor
   labels:
     app: {{ include "pipeline.name" . }}
@@ -45,15 +44,12 @@ spec:
   clusterIP: None
   ports:
   - name: metrics
-    port: {{ .Values.configuration.metrics.port }}
+    port: {{ .Values.metrics.port }}
     protocol: TCP
-    targetPort: {{ .Values.configuration.metrics.port }}
+    targetPort: metrics
   selector:
     app: {{ include "pipeline.name" . }}
     release: "{{ .Release.Name }}"
   sessionAffinity: None
   type: ClusterIP
-status:
-  loadBalancer: {}
-
 {{- end }}

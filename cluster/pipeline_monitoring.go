@@ -18,11 +18,11 @@ import (
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 type pipelineMetrics struct {
@@ -108,7 +108,7 @@ func (p *pipelineMetrics) setClusterMetrics(resultTotalCluster <-chan scrapeResu
 			"orgName":     "",
 			"clusterName": "",
 		}
-		if viper.GetBool(config.MetricsDebug) {
+		if global.Config.Telemetry.Debug {
 			labels["orgName"] = scr.orgName
 			labels["clusterName"] = scr.clusterName
 		}

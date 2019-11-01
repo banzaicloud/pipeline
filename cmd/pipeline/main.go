@@ -447,9 +447,9 @@ func main() {
 	engine.Use(ginlog.Middleware(logrusLogger, skipPaths...))
 
 	// Add prometheus metric endpoint
-	if viper.GetBool(config.MetricsEnabled) {
+	if conf.Telemetry.Enabled {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
-		p.SetListenAddress(viper.GetString(config.MetricsAddress) + ":" + viper.GetString(config.MetricsPort))
+		p.SetListenAddress(conf.Telemetry.Addr)
 		p.Use(engine, "/metrics")
 	}
 

@@ -111,12 +111,6 @@ const (
 	// Monitor constants
 	MonitorReleaseName = "monitor"
 
-	// Metrics
-	MetricsEnabled = "metrics.enabled"
-	MetricsPort    = "metrics.port"
-	MetricsAddress = "metrics.address"
-	MetricsDebug   = "metrics.debug"
-
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 
 	SetCookieDomain    = "auth.setCookieDomain"
@@ -218,10 +212,6 @@ func init() {
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(PipelineUUID, "")
-	viper.SetDefault(MetricsEnabled, false)
-	viper.SetDefault(MetricsPort, "9900")
-	viper.SetDefault(MetricsAddress, "127.0.0.1")
-	viper.SetDefault(MetricsDebug, true)
 	viper.SetDefault("database.dialect", "mysql")
 	viper.SetDefault("database.port", 3306)
 	viper.SetDefault("database.host", "localhost")

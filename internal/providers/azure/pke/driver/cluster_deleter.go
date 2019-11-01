@@ -24,15 +24,14 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"go.uber.org/cadence"
 	"go.uber.org/cadence/client"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke/workflow"
 	intSecret "github.com/banzaicloud/pipeline/internal/secret"
@@ -209,7 +208,7 @@ func (cd AzurePKEClusterDeleter) getClusterStatusChangeDurationTimer(cluster pke
 		LocationName: cluster.Location,
 		Status:       pkgCluster.Deleting,
 	}
-	if viper.GetBool(config.MetricsDebug) {
+	if global.Config.Telemetry.Debug {
 		org, err := auth.GetOrganizationById(cluster.OrganizationID)
 		if err != nil {
 			return nil, errors.WrapIf(err, "Error during getting organization.")
