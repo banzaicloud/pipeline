@@ -107,6 +107,15 @@ auth:
 #        issuer: "https://banzaicloud.com/"
 #        audience: "https://pipeline.banzaicloud.com"
 
+#frontend:
+#    issue:
+#        enabled: false
+#        driver: "github"
+#
+#        github:
+#            owner: "banzaicloud"
+#            repository: "pipeline-issues"
+
 #cluster:
 #    # An initial Kubernetes manifest to be installed on clusters.
 #    # It accepts a file path with valid YAML templates inside.
@@ -268,15 +277,6 @@ ark:
 #    allowPrivateRepos: false
 #    syncInterval: "5m"
 #    sharedLibraryGitHubOrganization: "spotguides"
-
-frontend:
-    issue:
-        enabled: false
-        driver: "github"
-
-        github:
-            owner: "banzaicloud"
-            repository: "pipeline-issues"
 
 spotmetrics:
     enabled: false
