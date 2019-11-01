@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/anchore"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 )
 
@@ -38,6 +39,7 @@ type ClusterConfig struct {
 	// Features
 	Vault        ClusterVaultConfig
 	Monitoring   ClusterMonitoringConfig
+	Logging      ClusterLoggingConfig
 	SecurityScan ClusterSecurityScanConfig
 }
 
@@ -55,6 +57,18 @@ func (c ClusterConfig) Validate() error {
 		return errors.New("cluster namespace is required")
 	}
 
+	if c.Monitoring.Enabled {
+		if err := c.Monitoring.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if c.Logging.Enabled {
+		if err := c.Logging.Validate(); err != nil {
+			return err
+		}
+	}
+
 	if c.SecurityScan.Enabled {
 		if err := c.SecurityScan.Validate(); err != nil {
 			return err
@@ -68,6 +82,10 @@ func (c ClusterConfig) Validate() error {
 func (c *ClusterConfig) Process() error {
 	if c.Monitoring.Namespace == "" {
 		c.Monitoring.Namespace = c.Namespace
+	}
+
+	if c.Logging.Namespace == "" {
+		c.Logging.Namespace = c.Namespace
 	}
 
 	return nil
@@ -89,6 +107,13 @@ type ClusterMonitoringConfig struct {
 	Enabled bool
 
 	monitoring.Config `mapstructure:",squash"`
+}
+
+// ClusterLoggingConfig contains cluster monitoring configuration.
+type ClusterLoggingConfig struct {
+	Enabled bool
+
+	logging.Config `mapstructure:",squash"`
 }
 
 // ClusterSecurityScanConfig contains cluster security scan configuration.
@@ -158,6 +183,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	v.SetDefault("cluster.monitoring.enabled", true)
 	v.SetDefault("cluster.monitoring.namespace", "")
+	v.SetDefault("cluster.monitoring.grafana.adminUser", "admin")
 	v.SetDefault("cluster.monitoring.charts.operator.chart", "stable/prometheus-operator")
 	v.SetDefault("cluster.monitoring.charts.operator.version", "7.2.0")
 	v.SetDefault("cluster.monitoring.charts.operator.values", map[string]interface{}{
@@ -234,6 +260,17 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 				"traefik.frontend.rule.type":                 "PathPrefix",
 				"traefik.ingress.kubernetes.io/ssl-redirect": "true",
 			},
+		},
+	})
+
+	v.SetDefault("cluster.logging.enabled", true)
+	v.SetDefault("cluster.logging.namespace", "")
+	v.SetDefault("cluster.logging.charts.operator.chart", "banzaicloud-stable/logging-operator")
+	v.SetDefault("cluster.logging.charts.operator.version", "0.3.3")
+	v.SetDefault("cluster.logging.charts.operator.values", map[string]interface{}{
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/logging-operator",
+			"tag":        "1.0.0",
 		},
 	})
 

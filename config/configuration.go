@@ -117,11 +117,6 @@ const (
 	OIDCIssuerURL      = "auth.oidcIssuerURL"
 	OIDCIssuerInsecure = "auth.oidcIssuerInsecure"
 
-	// Logging operator constants
-	LoggingReleaseName          = "logging-operator"
-	LoggingOperatorChartVersion = "loggingOperator.chartVersion"
-	LoggingOperatorImageTag     = "loggingOperator.imageTag"
-
 	// Spotguides constants
 	SpotguideAllowPrereleases                = "spotguide.allowPrereleases"
 	SpotguideAllowPrivateRepos               = "spotguide.allowPrivateRepos"
@@ -259,10 +254,6 @@ func init() {
 	viper.SetDefault(MonitorCertSecret, "")
 	viper.SetDefault(MonitorCertMountPath, "")
 	viper.SetDefault(MonitorGrafanaAdminUserNameKey, "admin")
-
-	// empty string means the latest version of the chart will be installed
-	viper.SetDefault(LoggingOperatorChartVersion, "0.3.3")
-	viper.SetDefault(LoggingOperatorImageTag, "1.0.0")
 
 	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")

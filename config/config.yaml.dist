@@ -107,47 +107,64 @@ auth:
 #        issuer: "https://banzaicloud.com/"
 #        audience: "https://pipeline.banzaicloud.com"
 
-#cluster:
-#    # An initial Kubernetes manifest to be installed on clusters.
-#    # It accepts a file path with valid YAML templates inside.
-#    manifest: ""
-#
-#    # Namespace to install components to
-#    namespace: "pipeline-system"
-#
-#    vault:
-#        enabled: true
-#        managed:
-#            enabled: false
-#
-#    monitoring:
-#        enabled: true
-#
-#        # Inherited from cluster.namespace
-#        namespace: ""
-#
-#        charts:
-#            operator:
-#                chart: "stable/prometheus-operator"
-#                version: "7.2.0"
-#
-#                # See https://github.com/helm/charts/tree/master/stable/prometheus-operator for details
-#                values: {}
-#
-#            pushgateway:
-#                chart: "stable/prometheus-pushgateway"
-#                version: "1.0.1"
-#
-#                # See https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway for details
-#                values: {}
-#
-#    securityScan:
-#        enabled: true
-#        anchore:
-#            enabled: false
-#            endpoint: ""
-#            user: ""
-#            password: ""
+cluster:
+    # An initial Kubernetes manifest to be installed on clusters.
+    # It accepts a file path with valid YAML templates inside.
+    manifest: ""
+
+    # Namespace to install components to
+    namespace: "pipeline-system"
+
+    vault:
+        enabled: true
+        managed:
+            enabled: false
+
+    monitoring:
+        enabled: true
+
+        # Inherited from cluster.namespace when empty
+        namespace: ""
+
+        grafana:
+            adminUser: admin
+
+        charts:
+            operator:
+                chart: "stable/prometheus-operator"
+                version: "7.2.0"
+
+                # See https://github.com/helm/charts/tree/master/stable/prometheus-operator for details
+                values: {}
+
+            pushgateway:
+                chart: "stable/prometheus-pushgateway"
+                version: "1.0.1"
+
+                # See https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway for details
+                values: {}
+
+    logging:
+        enabled: true
+
+        # Inherited from cluster.namespace when empty
+        namespace: ""
+
+        charts:
+            operator:
+                chart: "banzaicloud-stable/logging-operator"
+                version: "0.3.3"
+
+                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
+                values: {}
+
+    securityScan:
+        enabled: true
+        anchore:
+            enabled: false
+            endpoint: ""
+            user: ""
+            password: ""
 
 #helm:
 #    home: "./var/cache"
@@ -165,10 +182,6 @@ monitor:
     certSecret: ''
     mountPath: ''
     grafanaAdminUsername: admin
-
-loggingOperator:
-    chartVersion: 0.3.3
-    imageTag: 1.0.0
 
 servicemesh:
     istioOperatorChartVersion: 0.0.14

@@ -159,10 +159,6 @@ configuration:
    mountPath: /etc/prometheus/secrets
    grafanaAdminUsername: admin
 
-  loggingOperator:
-    chartVersion: 0.3.3
-    imageTag: 1.0.0
-
   # DNS service settings
   dns:
     # base domain under which organisation level subdomains will be registered

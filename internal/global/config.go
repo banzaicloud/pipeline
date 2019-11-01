@@ -32,6 +32,23 @@ type Configuration struct {
 		Debug bool
 	}
 
+	Cluster struct {
+		Logging struct {
+			Charts struct {
+				Operator struct {
+					Chart   string
+					Version string
+					Values  struct {
+						Image struct {
+							Repository string
+							Tag        string
+						}
+					}
+				}
+			}
+		}
+	}
+
 	Helm struct {
 		Tiller struct {
 			Version string
