@@ -28,6 +28,10 @@ var Config Configuration
 type Configuration struct {
 	Log log.Config
 
+	Telemetry struct {
+		Debug bool
+	}
+
 	Helm struct {
 		Tiller struct {
 			Version string

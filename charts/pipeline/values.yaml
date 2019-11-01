@@ -85,6 +85,8 @@ deploymentAnnotations: {}
 
 ## Pipeline metrics, rules and alerting configuration
 metrics:
+  enabled: false
+  port: 9900
   serviceMonitor:
     enabled: false
     additionalLabels: {}
@@ -217,12 +219,6 @@ configuration:
     allowPrivateRepos: false
     syncInterval: 5m
     sharedLibraryGitHubOrganization: spotguides
-
-  metrics:
-    enabled: false
-    port: 9900
-    # if true, some metrics have unique labels
-    debug: true
 
   spotmetrics:
     enabled: false

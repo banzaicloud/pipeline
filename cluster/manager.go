@@ -24,12 +24,11 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster/metrics"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pipelineContext "github.com/banzaicloud/pipeline/internal/platform/context"
 	"github.com/banzaicloud/pipeline/model"
 )
@@ -145,7 +144,7 @@ func (m *Manager) getClusterStatusChangeMetricTimer(provider, location, status s
 		LocationName: location,
 		Status:       status,
 	}
-	if viper.GetBool(config.MetricsDebug) {
+	if global.Config.Telemetry.Debug {
 		org, err := auth.GetOrganizationById(orgId)
 		if err != nil {
 			return nil, emperror.Wrap(err, "Error during getting organization. ")

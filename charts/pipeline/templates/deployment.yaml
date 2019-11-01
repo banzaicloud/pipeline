@@ -53,7 +53,10 @@ spec:
       - name: pipeline
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args: ["/pipeline", "--telemetry-addr=0.0.0.0:9900"]
         env:
+        - name: PIPELINE_TELEMETRY_ENABLED
+          value: {{ .Values.metrics.enabled | quote }}
         - name: PIPELINE_CONFIG_DIR
           value: /config
         # Kubernetes environment variables
@@ -140,8 +143,9 @@ spec:
         {{ end }}
 
         ports:
-        {{- if .Values.configuration.metrics.enabled }}
-        - containerPort: {{ .Values.configuration.metrics.port }}
+        {{- if .Values.metrics.enabled }}
+        - name: metrics
+          containerPort: 9900
         {{- end }}
         - containerPort: {{ .Values.service.internalPort }}
         livenessProbe:
