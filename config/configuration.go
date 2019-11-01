@@ -76,9 +76,6 @@ const (
 	OIDCIssuerURL      = "auth.oidcIssuerURL"
 	OIDCIssuerInsecure = "auth.oidcIssuerInsecure"
 
-	// full endpoint url of CloudInfo for ex: https://alpha.dev.banzaicloud.com/cloudinfo/api/v1
-	CloudInfoEndPoint = "cloudinfo.endpointUrl"
-
 	IstioOperatorChartVersion     = "servicemesh.istioOperatorChartVersion"
 	IstioGrafanaDashboardLocation = "servicemesh.grafanaDashboardLocation"
 	IstioOperatorChartName        = "servicemesh.istioOperatorChartName"

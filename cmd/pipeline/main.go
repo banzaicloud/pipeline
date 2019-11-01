@@ -384,12 +384,7 @@ func main() {
 		).Run(conf.SpotMetrics.CollectionInterval)
 	}
 
-	cloudInfoEndPoint := viper.GetString(config.CloudInfoEndPoint)
-	if cloudInfoEndPoint == "" {
-		errorHandler.Handle(errors.New("missing CloudInfo endpoint"))
-		return
-	}
-	cloudInfoClient := cloudinfo.NewClient(cloudInfoEndPoint, logrusLogger)
+	cloudInfoClient := cloudinfo.NewClient(conf.Cloudinfo.Endpoint, logrusLogger)
 
 	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{

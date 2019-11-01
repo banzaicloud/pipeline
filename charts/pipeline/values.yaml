@@ -107,9 +107,6 @@ configuration:
     signupRedirectPath: /ui/
   pipelineExternalBaseURL: https://localhost/pipeline
 
-  cloudinfo:
-    endPointUrl: ""
-
   cluster:
     labels:
       forbiddenDomains:
