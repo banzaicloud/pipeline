@@ -333,6 +333,14 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 
+	v.SetDefault("cluster.autoscale.namespace", "")
+	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.chart", "banzaicloud-stable/cluster-autoscaler")
+	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.version", "0.12.3")
+	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.values", map[string]interface{}{})
+	v.SetDefault("cluster.autoscale.charts.hpaOperator.chart", "banzaicloud-stable/hpa-operator")
+	v.SetDefault("cluster.autoscale.charts.hpaOperator.version", "0.0.14")
+	v.SetDefault("cluster.autoscale.charts.hpaOperator.values", map[string]interface{}{})
+
 	v.SetDefault("cluster.securityScan.anchore.enabled", false)
 	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
 	v.SetDefault("cluster.securityScan.anchore.user", "")

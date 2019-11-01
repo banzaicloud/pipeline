@@ -27,6 +27,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
@@ -35,7 +36,6 @@ import (
 
 const cloudProviderAzure = "azure"
 const cloudProviderAws = "aws"
-const autoScalerChart = "banzaicloud-stable/cluster-autoscaler"
 const expanderStrategy = "least-waste"
 const logLevel = "5"
 const AzureVirtualMachineScaleSet = "vmss"
@@ -314,7 +314,7 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 			// delete
 			err := helm.DeleteDeployment(releaseName, kubeConfig)
 			if err != nil {
-				log.Errorf("DeleteDeployment '%s' failed due to: %s", autoScalerChart, err.Error())
+				log.Errorf("DeleteDeployment '%s' failed due to: %s", global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart, err.Error())
 				return err
 			}
 		} else {
@@ -337,7 +337,7 @@ func DeployClusterAutoscaler(cluster CommonCluster) error {
 func isAutoscalerDeployedAlready(releaseName string, kubeConfig []byte) bool {
 	deployments, err := helm.ListDeployments(&releaseName, "", kubeConfig)
 	if err != nil {
-		log.Errorf("ListDeployments for '%s' failed due to: %s", autoScalerChart, err.Error())
+		log.Errorf("ListDeployments for '%s' failed due to: %s", global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart, err.Error())
 		return false
 	}
 	for _, release := range deployments.GetReleases() {
@@ -381,22 +381,23 @@ func deployAutoscalerChart(cluster CommonCluster, nodeGroups []nodeGroup, kubeCo
 		return err
 	}
 
-	chartVersion := viper.GetString(config.AutoscaleClusterAutoscalerChartVersion)
+	chartName := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Chart
+	chartVersion := global.Config.Cluster.Autoscale.Charts.ClusterAutoscaler.Version
 
 	switch action {
 	case install:
-		_, err = helm.CreateDeployment(autoScalerChart, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.ValueOverrides(yamlValues))
+		_, err = helm.CreateDeployment(chartName, chartVersion, nil, helm.SystemNamespace, releaseName, false, nil, kubeConfig, helm.GenerateHelmRepoEnv(org.Name), k8sHelm.ValueOverrides(yamlValues))
 	case upgrade:
-		_, err = helm.UpgradeDeployment(releaseName, autoScalerChart, chartVersion, nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
+		_, err = helm.UpgradeDeployment(releaseName, chartName, chartVersion, nil, yamlValues, false, kubeConfig, helm.GenerateHelmRepoEnv(org.Name))
 	default:
 		return err
 	}
 
 	if err != nil {
-		log.Errorf("%s of chart '%s' failed due to: %s", action, autoScalerChart, err.Error())
+		log.Errorf("%s of chart '%s' failed due to: %s", action, chartName, err.Error())
 		return err
 	}
 
-	log.Infof("'%s' %sed", autoScalerChart, action)
+	log.Infof("'%s' %sed", chartName, action)
 	return nil
 }

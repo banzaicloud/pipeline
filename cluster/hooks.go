@@ -357,9 +357,10 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	promServiceName := viper.GetString(pipConfig.PrometheusServiceName)
-	infraNamespace := global.Config.Cluster.Namespace
+	infraNamespace := global.Config.Cluster.Autoscale.Namespace
 	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
-	chartVersion := viper.GetString(pipConfig.AutoscaleHpaOperatorChartVersion)
+	chartName := global.Config.Cluster.Autoscale.Charts.HPAOperator.Chart
+	chartVersion := global.Config.Cluster.Autoscale.Charts.HPAOperator.Version
 
 	values := map[string]interface{}{
 		"affinity":    GetHeadNodeAffinity(cluster),
@@ -396,7 +397,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 		return err
 	}
 
-	return installDeployment(cluster, infraNamespace, pkgHelm.BanzaiRepository+"/hpa-operator",
+	return installDeployment(cluster, infraNamespace, chartName,
 		"hpa-operator", valuesOverride, chartVersion, false)
 }
 

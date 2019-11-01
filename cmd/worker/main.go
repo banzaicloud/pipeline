@@ -122,6 +122,9 @@ func main() {
 	err = v.Unmarshal(&global.Config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal global configuration"))
 
+	err = global.Config.Process()
+	emperror.Panic(errors.WithMessage(err, "failed to process global configuration"))
+
 	// Create logger (first thing after configuration loading)
 	logger := log.NewLogger(config.Log)
 

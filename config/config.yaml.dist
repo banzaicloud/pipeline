@@ -211,6 +211,25 @@ auth:
 #            endpoint: ""
 #            user: ""
 #            password: ""
+#
+#    autoscale:
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        charts:
+#            clusterAutoscaler:
+#                chart: "banzaicloud-stable/cluster-autoscaler"
+#                version: "0.12.3"
+#
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/cluster-autoscaler for details
+#                values: {}
+#
+#            hpaOperator:
+#                chart: "banzaicloud-stable/hpa-operator"
+#                version: "0.0.14"
+#
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/hpa-operator for details
+#                values: {}
 
 #helm:
 #    home: "./var/cache"
