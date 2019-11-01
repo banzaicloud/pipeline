@@ -87,6 +87,10 @@ type Configuration struct {
 			DefaultRegion string
 		}
 	}
+
+	Hooks struct {
+		DomainHookDisabled bool
+	}
 }
 
 // GetHelmPath returns local helm path

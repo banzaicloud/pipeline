@@ -665,9 +665,7 @@ func SetupPrivileges(cluster CommonCluster) error {
 // RegisterDomainPostHook registers a subdomain using the name of the current organization
 // in external Dns service. It ensures that only one domain is registered per organization.
 func RegisterDomainPostHook(commonCluster CommonCluster) error {
-
-	domainHookEnabled := viper.GetBool(pipConfig.DomainHookEnabled)
-	if !domainHookEnabled {
+	if global.Config.Hooks.DomainHookDisabled {
 		log.Info("domain hook disabled, exiting ...")
 
 		return nil
