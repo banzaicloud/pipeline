@@ -321,4 +321,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// Cloud configuration
 	v.SetDefault("cloud.amazon.defaultRegion", "us-west-1")
 	v.SetDefault("cloud.alibaba.defaultRegion", "eu-central-1")
+
+	// Temporary hook flags
+	v.SetDefault("hooks.domainHookDisabled", false)
 }

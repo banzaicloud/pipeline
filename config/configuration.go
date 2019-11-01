@@ -133,8 +133,6 @@ const (
 	FederationImageTag     = "federation.imageTag"
 	FederationImageRepo    = "federation.imageRepo"
 
-	DomainHookEnabled = "hooks.domainHookEnabled"
-
 	HollowtreesTokenSigningKey = "hollowtrees.tokenSigningKey"
 	HollowtreesExternalURL     = "hollowtrees.externalURL"
 	HollowtreesAlertsEndpoint  = "hollowtrees.alertsEndpoint"
@@ -278,9 +276,6 @@ func init() {
 
 	viper.SetDefault(HollowtreesExternalURL, "/hollowtrees-alerts")
 	viper.SetDefault(HollowtreesAlertsEndpoint, "/api/v1/alerts")
-
-	// enable the domainHook by default
-	viper.SetDefault(DomainHookEnabled, true)
 
 	viper.SetDefault(VaultWebhookChartKey, "banzaicloud-stable/vault-secrets-webhook")
 	viper.SetDefault(VaultWebhookChartVersionKey, "0.5.2")
