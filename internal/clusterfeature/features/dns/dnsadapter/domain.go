@@ -82,6 +82,7 @@ type ClusterOrgGetter interface {
 func NewClusterOrgGetter(clusterGetter ClusterGetter, orgGetter OrgGetter) ClusterOrgGetterImpl {
 	return ClusterOrgGetterImpl{
 		clusterGetter: clusterGetter,
+		orgGetter:     orgGetter,
 	}
 }
 
