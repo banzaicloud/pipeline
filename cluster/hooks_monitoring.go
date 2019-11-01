@@ -129,7 +129,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 
 	var host string
 
-	if global.AutoDNSEnabled {
+	if global.Config.Cluster.DNS.BaseDomain != "" {
 		baseDomain, err := dns.GetBaseDomain()
 		if err != nil {
 			return emperror.Wrap(err, "failed to get base domain")

@@ -737,7 +737,8 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		},
 		Sources: []string{"service", "ingress"},
 		Image: &dns.ExternalDnsImageSettings{
-			Tag: viper.GetString(pipConfig.DNSExternalDnsImageVersion),
+			Repository: global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Repository,
+			Tag:        global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Tag,
 		},
 		Aws: &dns.ExternalDnsAwsSettings{
 			Credentials: &dns.ExternalDnsAwsCredentials{
@@ -757,9 +758,9 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 	if err != nil {
 		return emperror.Wrap(err, "Json Convert Failed")
 	}
-	chartVersion := viper.GetString(pipConfig.DNSExternalDnsChartVersion)
-	chartName := viper.GetString(pipConfig.DNSExternalDnsChartName)
-	releaseName := viper.GetString(pipConfig.DNSExternalDnsReleaseName)
+	chartVersion := global.Config.Cluster.DNS.Charts.ExternalDNS.Version
+	chartName := global.Config.Cluster.DNS.Charts.ExternalDNS.Chart
+	const releaseName = "dns"
 
 	return installDeployment(commonCluster, route53SecretNamespace, chartName, releaseName, values, chartVersion, false)
 }

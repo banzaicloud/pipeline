@@ -16,10 +16,6 @@ package dns
 
 import (
 	"time"
-
-	"github.com/spf13/viper"
-
-	pipConfig "github.com/banzaicloud/pipeline/config"
 )
 
 // garbageCollector is the interface for domain garbage collector implementations.
@@ -44,9 +40,7 @@ func (gc *garbageCollectorImpl) start() error {
 
 	go func() {
 		for range gc.ticker.C {
-			if viper.GetString(pipConfig.DNSGcLogLevel) == "debug" {
-				log.Debug("DNS garbage collector running")
-			}
+			log.Debug("DNS garbage collector running")
 			gc.dnsServiceClient.Cleanup()
 		}
 	}()

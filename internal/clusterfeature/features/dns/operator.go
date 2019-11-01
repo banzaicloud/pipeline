@@ -20,17 +20,16 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
 	"github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	secret2 "github.com/banzaicloud/pipeline/secret"
 )
@@ -299,7 +298,8 @@ func getDefaultValues(cl clusterfeatureadapter.Cluster) *ExternalDnsChartValues 
 		},
 		Sources: []string{"service", "ingress"},
 		Image: &ExternalDnsImageSettings{
-			Tag: viper.GetString(config.DNSExternalDnsImageVersion),
+			Repository: global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Repository,
+			Tag:        global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Tag,
 		},
 		Policy:      "sync",
 		TxtOwnerId:  cl.GetUID(),

@@ -527,19 +527,12 @@ func main() {
 	userAPI := api.NewUserAPI(db, scmTokenStore, logrusLogger, errorHandler)
 	networkAPI := api.NewNetworkAPI(logrusLogger)
 
-	switch viper.GetString(config.DNSBaseDomain) {
-	case "", "example.com", "example.org":
-		global.AutoDNSEnabled = false
-	default:
-		global.AutoDNSEnabled = true
-	}
-
 	var spotguideAPI *api.SpotguideAPI
 
 	if viper.GetBool("cicd.enabled") {
 
 		spotguidePlatformData := spotguide.PlatformData{
-			AutoDNSEnabled: global.AutoDNSEnabled,
+			AutoDNSEnabled: global.Config.Cluster.DNS.BaseDomain != "",
 		}
 
 		scmProvider := viper.GetString("cicd.scm")

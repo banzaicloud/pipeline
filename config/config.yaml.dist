@@ -107,64 +107,81 @@ auth:
 #        issuer: "https://banzaicloud.com/"
 #        audience: "https://pipeline.banzaicloud.com"
 
-cluster:
-    # An initial Kubernetes manifest to be installed on clusters.
-    # It accepts a file path with valid YAML templates inside.
-    manifest: ""
-
-    # Namespace to install components to
-    namespace: "pipeline-system"
-
-    vault:
-        enabled: true
-        managed:
-            enabled: false
-
-    monitoring:
-        enabled: true
-
-        # Inherited from cluster.namespace when empty
-        namespace: ""
-
-        grafana:
-            adminUser: admin
-
-        charts:
-            operator:
-                chart: "stable/prometheus-operator"
-                version: "7.2.0"
-
-                # See https://github.com/helm/charts/tree/master/stable/prometheus-operator for details
-                values: {}
-
-            pushgateway:
-                chart: "stable/prometheus-pushgateway"
-                version: "1.0.1"
-
-                # See https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway for details
-                values: {}
-
-    logging:
-        enabled: true
-
-        # Inherited from cluster.namespace when empty
-        namespace: ""
-
-        charts:
-            operator:
-                chart: "banzaicloud-stable/logging-operator"
-                version: "0.3.3"
-
-                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
-                values: {}
-
-    securityScan:
-        enabled: true
-        anchore:
-            enabled: false
-            endpoint: ""
-            user: ""
-            password: ""
+#cluster:
+#    # An initial Kubernetes manifest to be installed on clusters.
+#    # It accepts a file path with valid YAML templates inside.
+#    manifest: ""
+#
+#    # Namespace to install components to
+#    namespace: "pipeline-system"
+#
+#    vault:
+#        enabled: true
+#        managed:
+#            enabled: false
+#
+#    monitoring:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        grafana:
+#            adminUser: admin
+#
+#        charts:
+#            operator:
+#                chart: "stable/prometheus-operator"
+#                version: "7.2.0"
+#
+#                # See https://github.com/helm/charts/tree/master/stable/prometheus-operator for details
+#                values: {}
+#
+#            pushgateway:
+#                chart: "stable/prometheus-pushgateway"
+#                version: "1.0.1"
+#
+#                # See https://github.com/helm/charts/tree/master/stable/prometheus-pushgateway for details
+#                values: {}
+#
+#    logging:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        charts:
+#            operator:
+#                chart: "banzaicloud-stable/logging-operator"
+#                version: "0.3.3"
+#
+#                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
+#                values: {}
+#
+#    dns:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        # Base domain used for Pipeline DNS provider
+#        baseDomain: ""
+#
+#        charts:
+#            externalDns:
+#                chart: "stable/external-dns"
+#                version: "2.2.3"
+#
+#                # See https://github.com/helm/charts/tree/master/stable/external-dns for details
+#                values: {}
+#
+#    securityScan:
+#        enabled: true
+#        anchore:
+#            enabled: false
+#            endpoint: ""
+#            user: ""
+#            password: ""
 
 #helm:
 #    home: "./var/cache"
@@ -202,25 +219,6 @@ canary:
     chartName: canary-operator
     imageRepository: banzaicloud/canary-operator
     imageTag: 0.1.0
-
-# DNS service settings
-dns:
-    # base domain under which organisation level subdomains will be registered
-    domain: "example.org"
-
-    # Kubernetes namespace which the secret for interacting with external DNS server (Route53) is created into
-    secretNamespace: "default"
-
-    # The interval in minutes at which the garbage collector runs to clean up unused organisation level domains
-    gcIntervalMinute: 1
-
-    gcLogLevel: "debug"
-
-# AWS Route53 config
-route53:
-    # The window before the next AWS Route53 billing period starts when unused organisation level domains (which are older than 12hrs)
-    # are cleaned up
-    maintenanceWindowMinute: 15
 
 # Pipeline infra environment related settings
 infra:

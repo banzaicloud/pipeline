@@ -47,6 +47,25 @@ type Configuration struct {
 				}
 			}
 		}
+
+		DNS struct {
+			Enabled        bool
+			BaseDomain     string
+			ProviderSecret string
+
+			Charts struct {
+				ExternalDNS struct {
+					Chart   string
+					Version string
+					Values  struct {
+						Image struct {
+							Repository string
+							Tag        string
+						}
+					}
+				}
+			}
+		}
 	}
 
 	Helm struct {

@@ -159,22 +159,6 @@ configuration:
    mountPath: /etc/prometheus/secrets
    grafanaAdminUsername: admin
 
-  # DNS service settings
-  dns:
-    # base domain under which organisation level subdomains will be registered
-    domain: ""
-    # Kubernetes namespace which the secret for interacting with external DNS server (Route53) is created into
-    secretNamespace: default
-    # The interval in minutes at which the garbage collector runs to clean up unused organisation level domains
-    gcIntervalMinute: 1
-    gcLogLevel: debug
-
-  # AWS Route53 config
-  route53:
-    # The window before the next AWS Route53 billing period starts when unused organisation level domains (which are older than 12hrs)
-    # are cleaned up
-    maintenanceWindowMinute: 15
-
   # Pipeline infra environment related settings
   infra:
     namespace: pipeline-system

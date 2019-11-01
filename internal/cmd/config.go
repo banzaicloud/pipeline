@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/internal/anchore"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/logging"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 )
@@ -40,6 +41,7 @@ type ClusterConfig struct {
 	Vault        ClusterVaultConfig
 	Monitoring   ClusterMonitoringConfig
 	Logging      ClusterLoggingConfig
+	DNS          ClusterDNSConfig
 	SecurityScan ClusterSecurityScanConfig
 }
 
@@ -69,6 +71,12 @@ func (c ClusterConfig) Validate() error {
 		}
 	}
 
+	if c.DNS.Enabled {
+		if err := c.DNS.Validate(); err != nil {
+			return err
+		}
+	}
+
 	if c.SecurityScan.Enabled {
 		if err := c.SecurityScan.Validate(); err != nil {
 			return err
@@ -86,6 +94,10 @@ func (c *ClusterConfig) Process() error {
 
 	if c.Logging.Namespace == "" {
 		c.Logging.Namespace = c.Namespace
+	}
+
+	if c.DNS.Namespace == "" {
+		c.DNS.Namespace = c.Namespace
 	}
 
 	return nil
@@ -109,11 +121,18 @@ type ClusterMonitoringConfig struct {
 	monitoring.Config `mapstructure:",squash"`
 }
 
-// ClusterLoggingConfig contains cluster monitoring configuration.
+// ClusterLoggingConfig contains cluster logging configuration.
 type ClusterLoggingConfig struct {
 	Enabled bool
 
 	logging.Config `mapstructure:",squash"`
+}
+
+// ClusterDNSConfig contains cluster DNS configuration.
+type ClusterDNSConfig struct {
+	Enabled bool
+
+	dns.Config `mapstructure:",squash"`
 }
 
 // ClusterSecurityScanConfig contains cluster security scan configuration.
@@ -271,6 +290,19 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/logging-operator",
 			"tag":        "1.0.0",
+		},
+	})
+
+	v.SetDefault("cluster.dns.enabled", true)
+	v.SetDefault("cluster.dns.namespace", "")
+	v.SetDefault("cluster.dns.baseDomain", "")
+	v.SetDefault("cluster.dns.providerSecret", "secret/data/banzaicloud/aws")
+	v.SetDefault("cluster.dns.charts.externalDns.chart", "stable/external-dns")
+	v.SetDefault("cluster.dns.charts.externalDns.version", "2.2.3")
+	v.SetDefault("cluster.dns.charts.externalDns.values", map[string]interface{}{
+		"image": map[string]interface{}{
+			"repository": "bitnami/external-dns",
+			"tag":        "0.5.15",
 		},
 	})
 

@@ -157,13 +157,6 @@ func main() {
 
 	logger.Info("starting application", buildInfo.Fields())
 
-	switch v.GetString(conf.DNSBaseDomain) {
-	case "", "example.com", "example.org":
-		global.AutoDNSEnabled = false
-	default:
-		global.AutoDNSEnabled = true
-	}
-
 	var group run.Group
 
 	// Configure Cadence worker

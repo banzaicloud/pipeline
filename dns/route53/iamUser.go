@@ -23,10 +23,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 )
 
@@ -35,7 +34,7 @@ import (
 func (dns *awsRoute53) createIAMUser(userName *string) (*iam.User, error) {
 	log := loggerWithFields(logrus.Fields{"userName": aws.StringValue(userName)})
 
-	path := fmt.Sprintf("/%s/", viper.GetString(config.DNSBaseDomain))
+	path := fmt.Sprintf("/%s/", global.Config.Cluster.DNS.BaseDomain)
 
 	userInput := &iam.CreateUserInput{
 		UserName: userName,
@@ -115,7 +114,7 @@ func (dns *awsRoute53) deleteAmazonAccessKey(userName, accessKeyId *string) erro
 }
 
 func getIAMUserName(org *auth.Organization) string {
-	return fmt.Sprintf(iamUserNameTemplate, getHashedControlPlaneHostName(viper.GetString(config.DNSBaseDomain)), org.Name)
+	return fmt.Sprintf(iamUserNameTemplate, getHashedControlPlaneHostName(global.Config.Cluster.DNS.BaseDomain), org.Name)
 }
 
 func getHashedControlPlaneHostName(hostName string) string {

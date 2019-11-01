@@ -21,9 +21,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/amazon"
 )
 
@@ -38,7 +37,7 @@ func (dns *awsRoute53) createHostedZoneRoute53Policy(orgId uint, hostedZoneId st
 		return nil, err
 	}
 
-	policyName := fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, getHashedControlPlaneHostName(viper.GetString(config.DNSBaseDomain)), org.Name)
+	policyName := fmt.Sprintf(hostedZoneAccessPolicyNameTemplate, getHashedControlPlaneHostName(global.Config.Cluster.DNS.BaseDomain), org.Name)
 	policyDocument := aws.String(fmt.Sprintf(
 		`{
 		"Version": "2012-10-17",
