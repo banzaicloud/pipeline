@@ -27,6 +27,7 @@ import (
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
@@ -35,8 +36,8 @@ func (m *FederationReconciler) ReconcileExternalDNSController(desiredState Desir
 	defer m.logger.Debug("finished reconciling ExternalDNS controller")
 
 	infraNamespace := viper.GetString(pipConfig.PipelineSystemNamespace)
-	chartName := viper.GetString(pipConfig.DNSExternalDnsChartName)
-	releaseName := viper.GetString(pipConfig.DNSExternalDnsReleaseName)
+	chartName := global.Config.Cluster.DNS.Charts.ExternalDNS.Chart
+	const releaseName = "dns"
 
 	err := m.ensureCRDSourceForExtDNS(m.Host, infraNamespace, chartName, releaseName, desiredState)
 	if err != nil {

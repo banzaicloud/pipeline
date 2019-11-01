@@ -40,6 +40,10 @@ func mapCapabilities(config configuration) cap.Capabilities {
 			"logging": cap.Cap{
 				"enabled": config.Cluster.Logging.Enabled,
 			},
+			"dns": cap.Cap{
+				"enabled":    config.Cluster.DNS.Enabled,
+				"baseDomain": config.Cluster.DNS.BaseDomain,
+			},
 			"securityScan": cap.Cap{
 				"enabled": config.Cluster.SecurityScan.Enabled,
 				"managed": config.Cluster.SecurityScan.Anchore.Enabled,

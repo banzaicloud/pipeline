@@ -29,7 +29,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 	"github.com/jinzhu/now"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/config"
@@ -590,9 +589,9 @@ func (dns *awsRoute53) cleanup(wg *sync.WaitGroup, domainState *domainState) {
 
 		tillEndOfMonth := now.EndOfMonth().Sub(crtTime)
 
-		maintenanceWindowMinute := viper.GetInt64(config.Route53MaintenanceWndMinute)
+		const maintenanceWindowMinute = 15 * time.Minute
 
-		if tillEndOfMonth <= time.Duration(maintenanceWindowMinute)*time.Minute {
+		if tillEndOfMonth <= maintenanceWindowMinute {
 			// if we are maintenanceWindowMinute minutes before the next billing period clean up the hosted zone
 
 			// if the window is not long enough there will be few hosted zones slipping over into next billing period)

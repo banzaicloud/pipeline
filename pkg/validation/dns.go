@@ -12,8 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package global
+package validation
 
-// AutoDNSEnabled tells the rest of the platform whether auto DNS registration is enabled.
-// nolint: gochecknoglobals
-var AutoDNSEnabled bool
+import (
+	"emperror.dev/errors"
+	"k8s.io/apimachinery/pkg/util/validation"
+)
+
+// ValidateSubdomain verifies if the provided subdomain string complies with DNS-1123
+func ValidateSubdomain(subdomain string) error {
+	violations := validation.IsDNS1123Subdomain(subdomain)
+
+	if len(violations) > 0 {
+		errs := make([]error, 0, len(violations))
+
+		for _, violation := range violations {
+			errs = append(errs, errors.NewWithDetails(violation, "subdomain", subdomain))
+		}
+
+		return errors.Combine(errs...)
+	}
+
+	return nil
+}

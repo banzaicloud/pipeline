@@ -28,28 +28,6 @@ import (
 )
 
 const (
-	// DNSBaseDomain configuration key for the base domain setting
-	DNSBaseDomain = "dns.domain"
-
-	// DNSGcIntervalMinute configuration key for the interval setting at which the DNS garbage collector runs
-	DNSGcIntervalMinute = "dns.gcIntervalMinute"
-
-	// DNSGcLogLevel configuration key for the DNS garbage collector logging level default value: "debug"
-	DNSGcLogLevel = "dns.gcLogLevel"
-
-	// DNSExternalDnsChartVersion set the external-dns chart version default value: "2.2.3"
-	DNSExternalDnsChartVersion = "dns.externalDnsChartVersion"
-
-	// DNSExternalDnsImageVersion set the external-dns image version
-	DNSExternalDnsImageVersion = "dns.externalDnsImageVersion"
-
-	DNSExternalDnsReleaseName = "dns.externalDnsReleaseName"
-	DNSExternalDnsChartName   = "dns.externalDnsChartName"
-
-	// Route53MaintenanceWndMinute configuration key for the maintenance window for Route53.
-	// This is the maintenance window before the next AWS Route53 pricing period starts
-	Route53MaintenanceWndMinute = "route53.maintenanceWindowMinute"
-
 	// PipelineSystemNamespace pipeline infra namespace key
 	PipelineSystemNamespace = "infra.namespace"
 
@@ -72,9 +50,6 @@ const (
 	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"
-
-	// AwsCredentialPath is the path in Vault to get AWS credentials from for Pipeline
-	AwsCredentialPath = "aws.credentials.path"
 
 	// ARK
 	ARKName                = "ark.name"
@@ -183,8 +158,6 @@ func init() {
 	viper.SetDefault("cicd.insecure", false)
 	viper.SetDefault("cicd.scm", "github")
 
-	viper.SetDefault(AwsCredentialPath, "secret/data/banzaicloud/aws")
-
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("Error reading config file, %s", err.Error())
@@ -221,12 +194,6 @@ func init() {
 	viper.SetDefault("audit.headers", []string{"secretId"})
 	viper.SetDefault("audit.skippaths", []string{"/auth/dex/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
-	viper.SetDefault(DNSBaseDomain, "example.org")
-	viper.SetDefault(DNSGcIntervalMinute, 1)
-	viper.SetDefault(DNSExternalDnsChartVersion, "2.2.3")
-	viper.SetDefault(DNSExternalDnsImageVersion, "0.5.15")
-	viper.SetDefault(DNSGcLogLevel, "debug")
-	viper.SetDefault(Route53MaintenanceWndMinute, 15)
 
 	viper.SetDefault(ARKName, "ark")
 	viper.SetDefault(ARKNamespace, "pipeline-system")
@@ -308,9 +275,6 @@ func init() {
 	viper.SetDefault(FederationChartName, "kubefed-charts/kubefed")
 	viper.SetDefault(FederationImageTag, "v0.1.0-rc5-bzc.1")
 	viper.SetDefault(FederationImageRepo, "banzaicloud")
-
-	viper.SetDefault(DNSExternalDnsReleaseName, "dns")
-	viper.SetDefault(DNSExternalDnsChartName, "stable/external-dns")
 
 	viper.SetDefault(HollowtreesExternalURL, "/hollowtrees-alerts")
 	viper.SetDefault(HollowtreesAlertsEndpoint, "/api/v1/alerts")
