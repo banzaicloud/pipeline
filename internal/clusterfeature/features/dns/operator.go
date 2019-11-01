@@ -105,15 +105,15 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return errors.WrapIf(err, "spec validation failed")
 	}
 
-	chartValues, err := op.getChartValues(ctx, clusterID, boundSpec)
-	if err != nil {
-		return errors.WrapIf(err, "failed to get chart values")
-	}
-
 	if boundSpec.ExternalDNS.Provider.Name == dnsBanzai {
 		if err := op.orgDomainService.EnsureOrgDomain(ctx, clusterID); err != nil {
 			return errors.WrapIf(err, "failed to ensure org domain")
 		}
+	}
+
+	chartValues, err := op.getChartValues(ctx, clusterID, boundSpec)
+	if err != nil {
+		return errors.WrapIf(err, "failed to get chart values")
 	}
 
 	if err = op.helmService.ApplyDeployment(
