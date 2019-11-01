@@ -211,10 +211,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindEnv("github.token")
 	_ = v.BindEnv("gitlab.token")
 	v.SetDefault("cicd.scm", "github")
-	v.SetDefault("spotguide.syncInterval", 15*time.Minute)
-	v.SetDefault("spotguide.allowPrereleases", false)
-	v.SetDefault("spotguide.allowPrivateRepos", false)
-	v.SetDefault("spotguide.sharedLibraryGitHubOrganization", "spotguides")
 
 	// OIDC configuration
 	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
