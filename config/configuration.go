@@ -56,9 +56,6 @@ func init() {
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(PipelineUUID, "")
-	viper.SetDefault("audit.enabled", true)
-	viper.SetDefault("audit.headers", []string{"secretId"})
-	viper.SetDefault("audit.skippaths", []string{"/auth/dex/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
 
 	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
