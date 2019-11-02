@@ -104,12 +104,6 @@ func init() {
 	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
 	viper.SetConfigName("config")
 
-	// Set defaults TODO expand defaults
-	viper.SetDefault("cicd.enabled", false)
-	viper.SetDefault("cicd.url", "http://localhost:8000")
-	viper.SetDefault("cicd.insecure", false)
-	viper.SetDefault("cicd.scm", "github")
-
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("Error reading config file, %s", err.Error())
@@ -158,8 +152,6 @@ func init() {
 	viper.SetDefault(ControlPlaneNamespace, "default")
 
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
-
-	viper.SetDefault("gitlab.baseURL", "https://gitlab.com/")
 
 	viper.SetDefault(IstioOperatorChartVersion, "0.0.14")
 	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "etc", "dashboards", "istio"))

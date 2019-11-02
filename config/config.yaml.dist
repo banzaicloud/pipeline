@@ -74,17 +74,6 @@ cors:
     AllowAllOrigins: false
     AllowOrigins: ["http://localhost:4200"]
 
-cicd:
-    enabled: false
-    url: "http://localhost:8000"
-    scm: "github"
-
-github:
-    token: "YourPersonalAccessToken"
-
-gitlab:
-    baseURL: "https://gitlab.com/"
-
 auth:
     # Dex settings
     publicclientid: "banzai-cli"
@@ -309,6 +298,19 @@ canary:
     chartName: canary-operator
     imageRepository: banzaicloud/canary-operator
     imageTag: 0.1.0
+
+#cicd:
+#    enabled: false
+#    url: "http://localhost:8000"
+#    insecure: false
+#    scm: "github"
+#
+#github:
+#    token: "YourPersonalAccessToken"
+#
+#gitlab:
+#    url: "https://gitlab.com/"
+#    token: "YourPersonalAccessToken"
 
 #spotguide:
 #    allowPrereleases: false

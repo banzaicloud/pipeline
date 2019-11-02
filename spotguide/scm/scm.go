@@ -22,11 +22,11 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/google/go-github/github"
-	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 
 	"github.com/banzaicloud/pipeline/auth"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 const InitialCommitMessage = "initial Banzai Cloud Pipeline commit"
@@ -135,7 +135,7 @@ func (f GitLabSCMFactory) newClient(accessToken string) (*gitlab.Client, error) 
 	}
 	gitlabClient := gitlab.NewClient(httpClient, accessToken)
 
-	gitlabURL := viper.GetString("gitlab.baseURL")
+	gitlabURL := global.Config.Gitlab.URL
 	err := gitlabClient.SetBaseURL(gitlabURL)
 	if err != nil {
 		return nil, errors.WrapWithDetails(err, "gitlabBaseURL", gitlabURL)

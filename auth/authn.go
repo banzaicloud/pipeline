@@ -40,6 +40,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
 
@@ -399,7 +400,7 @@ func (h *banzaiDeregisterHandler) handler(context *auth.Context) {
 		return
 	}
 
-	if viper.GetBool("cicd.enabled") {
+	if global.Config.CICD.Enabled {
 		cicdUser := CICDUser{Login: user.Login}
 		// We need to pass cicdUser as well as the where clause, because Delete() filters by primary
 		// key by default: http://doc.gorm.io/crud.html#delete but here we need to delete by the Login

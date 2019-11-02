@@ -207,11 +207,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("cadence.createNonexistentDomain", false)
 	v.SetDefault("cadence.workflowExecutionRetentionPeriodInDays", 3)
 
-	// Spotguide configuration
-	_ = v.BindEnv("github.token")
-	_ = v.BindEnv("gitlab.token")
-	v.SetDefault("cicd.scm", "github")
-
 	// OIDC configuration
 	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
 	viper.RegisterAlias("auth.oidcIssuerURL", "auth.dexURL")

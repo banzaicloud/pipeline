@@ -35,7 +35,6 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
 	cadenceClient "go.uber.org/cadence/client"
 	"gopkg.in/yaml.v2"
 
@@ -220,7 +219,7 @@ func (s *SpotguideManager) scrapeSharedSpotguides() error {
 	if s.sharedLibraryOrganization == nil {
 		s.sharedLibraryOrganization, err = EnsureSharedSpotguideOrganization(
 			s.db,
-			viper.GetString("cicd.scm"),
+			global.Config.CICD.SCM,
 			global.Config.Spotguide.SharedLibraryGitHubOrganization,
 		)
 		if err != nil {

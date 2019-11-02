@@ -34,10 +34,10 @@ import (
 	"github.com/qor/auth"
 	"github.com/qor/auth/auth_identity"
 	"github.com/qor/qor/utils"
-	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 
 	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 const (
@@ -174,13 +174,13 @@ func SetCurrentOrganizationID(ctx context.Context, orgID uint) context.Context {
 
 // NewCICDClient creates an authenticated CICD client for the user specified by the JWT in the HTTP request
 func NewCICDClient(apiToken string) cicd.Client {
-	cicdURL := viper.GetString("cicd.url")
+	cicdURL := global.Config.CICD.URL
 	config := new(oauth2.Config)
 	httpClient := http.Client{
 		Timeout: time.Second * 10,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: viper.GetBool("cicd.insecure"),
+				InsecureSkipVerify: global.Config.CICD.Insecure,
 			},
 		},
 	}
@@ -251,7 +251,7 @@ func (bus BanzaiUserStorer) Save(schema *auth.Schema, authCtx *auth.Context) (us
 	currentUser.Image = checkGravatarImage(currentUser.Email)
 
 	// TODO we should call the Drone API instead and insert the token later on manually by the user
-	if viper.GetBool("cicd.enabled") && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
+	if global.Config.CICD.Enabled && (schema.Provider == ProviderDexGithub || schema.Provider == ProviderDexGitlab) {
 		err = bus.createUserInCICDDB(currentUser)
 		if err != nil {
 			return nil, "", emperror.Wrap(err, "failed to create user in CICD database")
