@@ -21,7 +21,6 @@ import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	apiextv1b1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -33,8 +32,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
-	pConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 type OperatorImage struct {
@@ -278,8 +277,8 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 		federatedIngress = "Disabled"
 	}
 
-	fedImageTag := viper.GetString(pConfig.FederationImageTag)
-	fedImageRepo := viper.GetString(pConfig.FederationImageRepo)
+	fedImageTag := global.Config.Cluster.Federation.Charts.Kubefed.Values.ControllerManager.Tag
+	fedImageRepo := global.Config.Cluster.Federation.Charts.Kubefed.Values.ControllerManager.Repository
 	values := map[string]interface{}{
 		"global": map[string]interface{}{
 			"scope": scope,
@@ -318,11 +317,10 @@ func (m *FederationReconciler) installFederationController(c cluster.CommonClust
 	err = InstallOrUpgradeDeployment(
 		c,
 		m.Configuration.TargetNamespace,
-		// pkgHelm.BanzaiRepository+"/"+
-		viper.GetString(pConfig.FederationChartName),
+		global.Config.Cluster.Federation.Charts.Kubefed.Chart,
 		federationReleaseName,
 		valuesOverride,
-		viper.GetString(pConfig.FederationChartVersion),
+		global.Config.Cluster.Federation.Charts.Kubefed.Version,
 		true,
 		true,
 	)

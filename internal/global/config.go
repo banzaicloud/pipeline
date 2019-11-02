@@ -207,6 +207,21 @@ type Configuration struct {
 				}
 			}
 		}
+
+		Federation struct {
+			Charts struct {
+				Kubefed struct {
+					Chart   string
+					Version string
+					Values  struct {
+						ControllerManager struct {
+							Repository string
+							Tag        string
+						}
+					}
+				}
+			}
+		}
 	}
 
 	Helm struct {

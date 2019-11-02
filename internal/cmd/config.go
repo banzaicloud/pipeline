@@ -410,6 +410,15 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 
+	v.SetDefault("cluster.federation.charts.kubefed.chart", "kubefed-charts/kubefed")
+	v.SetDefault("cluster.federation.charts.kubefed.version", "0.1.0-rc5")
+	v.SetDefault("cluster.federation.charts.kubefed.values", map[string]interface{}{
+		"controllermanager": map[string]interface{}{
+			"repository": "banzaicloud",
+			"tag":        "v0.1.0-rc5-bzc.1",
+		},
+	})
+
 	// Helm configuration
 	v.SetDefault("helm.tiller.version", "v2.14.2")
 	v.SetDefault("helm.home", "./var/cache")

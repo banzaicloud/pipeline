@@ -292,6 +292,15 @@ auth:
 #                version: "0.1.2"
 #
 #                values: {}
+#
+#    federation:
+#        charts:
+#            kubefed:
+#                chart: "kubefed-charts/kubefed"
+#                version: "0.1.0-rc5"
+#
+#                # See https://github.com/kubernetes-sigs/kubefed/tree/master/charts/kubefed for details
+#                values: {}
 
 #helm:
 #    home: "./var/cache"

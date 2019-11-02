@@ -59,11 +59,6 @@ const (
 	PrometheusServiceName    = "prometheus.serviceName"
 	PrometheusServiceContext = "prometheus.serviceContext"
 	PrometheusLocalPort      = "prometheus.localPort"
-
-	FederationChartVersion = "federation.chartVersion"
-	FederationChartName    = "federation.chartName"
-	FederationImageTag     = "federation.imageTag"
-	FederationImageRepo    = "federation.imageRepo"
 )
 
 // Init initializes the configurations
@@ -122,11 +117,6 @@ func init() {
 	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")
 	viper.SetDefault(PrometheusServiceContext, "prometheus")
 	viper.SetDefault(PrometheusLocalPort, 9090)
-
-	viper.SetDefault(FederationChartVersion, "0.1.0-rc5")
-	viper.SetDefault(FederationChartName, "kubefed-charts/kubefed")
-	viper.SetDefault(FederationImageTag, "v0.1.0-rc5-bzc.1")
-	viper.SetDefault(FederationImageRepo, "banzaicloud")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {
