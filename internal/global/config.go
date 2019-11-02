@@ -58,6 +58,12 @@ type Configuration struct {
 		APICa   string
 	}
 
+	Kubernetes struct {
+		Client struct {
+			ForceGlobal bool
+		}
+	}
+
 	Cluster struct {
 		Namespace string
 

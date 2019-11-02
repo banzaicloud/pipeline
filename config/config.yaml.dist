@@ -37,9 +37,6 @@ pipeline:
     uipath: "http://localhost:4200/ui"
     signupRedirectPath: "http://localhost:4200/ui"
 
-    # Deny connecting to API servers other than ones listening on globally routable IPv4 addresses
-    forceGlobal: false
-
     # An UUID that identifies the specific installation (deployment) of the platform.
     # If a good UUID is not available, do not generate one automatically, because no UUID is better than one that always changes.
     # uuid: ""
@@ -102,6 +99,12 @@ auth:
 dex:
     apiAddr: "127.0.0.1:5557"
     # apiCa: ""
+
+#kubernetes:
+#    client:
+#        # Deny connecting to API servers other than ones listening on globally routable IPv4 addresses
+#        # This will be refactored according to https://github.com/banzaicloud/pipeline/issues/2263
+#        forceGlobal: false
 
 #frontend:
 #    issue:

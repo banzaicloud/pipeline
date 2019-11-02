@@ -280,6 +280,9 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("dex.apiAddr", "")
 	v.SetDefault("dex.apiCa", "")
 
+	// Kubernetes configuration
+	v.SetDefault("kubernetes.client.forceGlobal", false)
+
 	// Database config
 	v.SetDefault("database.dialect", "mysql")
 	v.SetDefault("database.host", "")

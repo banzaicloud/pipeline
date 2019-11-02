@@ -21,14 +21,15 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // NewClient creates a new Kubernetes client from config.
 func NewClientFromConfig(config *rest.Config) (*kubernetes.Clientset, error) {
-	if viper.GetBool("pipeline.forceGlobal") {
+	if global.Config.Kubernetes.Client.ForceGlobal {
 		config.Dial = blockerDial(config.Dial)
 	}
 	client, err := kubernetes.NewForConfig(config)
