@@ -64,10 +64,6 @@ const (
 	FederationChartName    = "federation.chartName"
 	FederationImageTag     = "federation.imageTag"
 	FederationImageRepo    = "federation.imageRepo"
-
-	HollowtreesTokenSigningKey = "hollowtrees.tokenSigningKey"
-	HollowtreesExternalURL     = "hollowtrees.externalURL"
-	HollowtreesAlertsEndpoint  = "hollowtrees.alertsEndpoint"
 )
 
 // Init initializes the configurations
@@ -131,9 +127,6 @@ func init() {
 	viper.SetDefault(FederationChartName, "kubefed-charts/kubefed")
 	viper.SetDefault(FederationImageTag, "v0.1.0-rc5-bzc.1")
 	viper.SetDefault(FederationImageRepo, "banzaicloud")
-
-	viper.SetDefault(HollowtreesExternalURL, "/hollowtrees-alerts")
-	viper.SetDefault(HollowtreesAlertsEndpoint, "/api/v1/alerts")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

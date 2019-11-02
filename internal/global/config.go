@@ -239,6 +239,11 @@ type Configuration struct {
 		Endpoint string
 	}
 
+	Hollowtrees struct {
+		Endpoint   string
+		SigningKey string
+	}
+
 	Hooks struct {
 		DomainHookDisabled bool
 	}

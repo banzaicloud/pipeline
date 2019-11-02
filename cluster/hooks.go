@@ -1024,14 +1024,14 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 
 	scaleOptions := cluster.GetScaleOptions()
 	if scaleOptions != nil && scaleOptions.Enabled == true {
-		tokenSigningKey := viper.GetString(pipConfig.HollowtreesTokenSigningKey)
+		tokenSigningKey := global.Config.Hollowtrees.SigningKey
 		if tokenSigningKey == "" {
 			err := errors.New("no Hollowtrees token signkey specified")
 			errorHandler.Handle(err)
 			return err
 		}
 
-		generator := hollowtrees.NewTokenGenerator(viper.GetString("auth.jwtissuer"), viper.GetString("auth.jwtaudience"), viper.GetString(pipConfig.HollowtreesTokenSigningKey))
+		generator := hollowtrees.NewTokenGenerator(viper.GetString("auth.jwtissuer"), viper.GetString("auth.jwtaudience"), global.Config.Hollowtrees.SigningKey)
 		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
 		if err != nil {
 			err = emperror.Wrap(err, "could not generate JWT token for instance termination handler")
@@ -1041,7 +1041,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 
 		values["hollowtreesNotifier"] = map[string]interface{}{
 			"enabled":        true,
-			"URL":            viper.GetString(pipConfig.HollowtreesExternalURL) + viper.GetString(pipConfig.HollowtreesAlertsEndpoint),
+			"URL":            global.Config.Hollowtrees.Endpoint,
 			"organizationID": cluster.GetOrganizationId(),
 			"clusterID":      cluster.GetID(),
 			"clusterName":    cluster.GetName(),

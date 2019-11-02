@@ -424,6 +424,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("distribution.eks.templateLocation", "./templates/eks")
 
 	v.SetDefault("cloudinfo.endpoint", "")
+	v.SetDefault("hollowtrees.endpoint", "")
+	v.SetDefault("hollowtrees.signingKey", "")
 
 	// Temporary hook flags
 	v.SetDefault("hooks.domainHookDisabled", false)
