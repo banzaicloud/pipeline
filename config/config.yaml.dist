@@ -400,3 +400,6 @@ cicd:
 #secret:
 #    tls:
 #        defaultValidity: 8760h # 1 year
+
+hooks:
+    domainHookDisabled: true
