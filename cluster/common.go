@@ -28,7 +28,6 @@ import (
 	logrusadapter "logur.dev/adapter/logrus"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -319,7 +318,7 @@ func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster,
 	db := global.DB()
 
 	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
-		logger := commonadapter.NewLogger(logrusadapter.New(config.Logger()))
+		logger := commonadapter.NewLogger(logrusadapter.New(log))
 		logger.Debug("azure adapter stuff")
 		return pkeAzureAdapter.MakeCommonClusterGetter(secret.Store, adapter.NewGORMAzurePKEClusterStore(db, logger)).GetByID(modelCluster.ID)
 	} else if modelCluster.Distribution == pkgCluster.PKE {

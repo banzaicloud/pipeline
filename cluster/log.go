@@ -19,14 +19,18 @@ import (
 	logrusadapter "logur.dev/adapter/logrus"
 	"logur.dev/logur"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // nolint: gochecknoglobals
-var log logrus.FieldLogger
+var log *logrus.Logger
 
 func init() {
-	log = config.Logger()
+	log = global.LogrusLogger()
+
+	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+		log = l
+	})
 }
 
 func NewLogurLogger(fl logrus.FieldLogger) logur.Logger {

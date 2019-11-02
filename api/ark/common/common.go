@@ -23,7 +23,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 	"github.com/banzaicloud/pipeline/secret"
@@ -33,9 +33,12 @@ import (
 // nolint: gochecknoglobals
 var Log logrus.FieldLogger
 
-// init initializes the fieldlogger
 func init() {
-	Log = config.Logger()
+	Log = global.LogrusLogger()
+
+	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+		Log = l
+	})
 }
 
 // ErrorResponse aborts the http request with a JSON error response with a status code and error
