@@ -126,6 +126,14 @@ type ClusterVaultConfig struct {
 type ClusterMonitoringConfig struct {
 	Enabled bool
 
+	Monitor struct {
+		Enabled                bool
+		ConfigMap              string
+		ConfigMapPrometheusKey string
+		CertSecret             string
+		MountPath              string
+	}
+
 	monitoring.Config `mapstructure:",squash"`
 }
 
@@ -236,6 +244,11 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster.monitoring.enabled", true)
 	v.SetDefault("cluster.monitoring.namespace", "")
 	v.SetDefault("cluster.monitoring.grafana.adminUser", "admin")
+	v.SetDefault("cluster.monitoring.monitor.enabled", false)
+	v.SetDefault("cluster.monitoring.monitor.configMap", "")
+	v.SetDefault("cluster.monitoring.monitor.configMapPrometheusKey", "prometheus.yml")
+	v.SetDefault("cluster.monitoring.monitor.certSecret", "")
+	v.SetDefault("cluster.monitoring.monitor.mountPath", "")
 	v.SetDefault("cluster.monitoring.charts.operator.chart", "stable/prometheus-operator")
 	v.SetDefault("cluster.monitoring.charts.operator.version", "7.2.0")
 	v.SetDefault("cluster.monitoring.charts.operator.values", map[string]interface{}{

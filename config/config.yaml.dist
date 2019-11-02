@@ -168,6 +168,14 @@ auth:
 #        grafana:
 #            adminUser: admin
 #
+#        # Cluster monitoring configuration
+#        monitor:
+#            enabled: false
+#            configMap: ""
+#            configMapPrometheusKey: "prometheus.yml"
+#            certSecret: ""
+#            mountPath: ""
+#
 #        charts:
 #            operator:
 #                chart: "stable/prometheus-operator"
@@ -317,14 +325,6 @@ auth:
 #        stable: "https://kubernetes-charts.storage.googleapis.com"
 #        banzaicloud-stable: "https://kubernetes-charts.banzaicloud.com"
 #        loki: "https://grafana.github.io/loki/charts"
-
-monitor:
-    enabled: false
-    configMap: ''
-    configMapPrometheusKey: ''
-    certSecret: ''
-    mountPath: ''
-    grafanaAdminUsername: admin
 
 #cloud:
 #    amazon:

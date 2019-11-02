@@ -222,8 +222,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
 	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
 
-	viper.SetDefault("spotmetrics.enabled", false)
-	viper.SetDefault("spotmetrics.collectionInterval", 30*time.Second)
+	v.SetDefault("spotmetrics.enabled", false)
+	v.SetDefault("spotmetrics.collectionInterval", 30*time.Second)
 }
 
 func registerAliases(v *viper.Viper) {

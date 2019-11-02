@@ -39,14 +39,6 @@ const (
 	// Database
 	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
 
-	// Monitor config path
-	MonitorEnabled                 = "monitor.enabled"
-	MonitorConfigMap               = "monitor.configMap"              // Prometheus config map
-	MonitorConfigMapPrometheusKey  = "monitor.configMapPrometheusKey" // Prometheus config key in the prometheus config map
-	MonitorCertSecret              = "monitor.certSecret"             // Kubernetes secret for kubernetes cluster certs
-	MonitorCertMountPath           = "monitor.mountPath"              // Mount path for the kubernetes cert secret
-	MonitorGrafanaAdminUserNameKey = "monitor.grafanaAdminUsername"   // Username for Grafana in case of generated secret
-
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 
 	SetCookieDomain    = "auth.setCookieDomain"
@@ -95,13 +87,6 @@ func init() {
 	viper.SetDefault("audit.headers", []string{"secretId"})
 	viper.SetDefault("audit.skippaths", []string{"/auth/dex/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
-
-	viper.SetDefault(MonitorEnabled, false)
-	viper.SetDefault(MonitorConfigMap, "")
-	viper.SetDefault(MonitorConfigMapPrometheusKey, "prometheus.yml")
-	viper.SetDefault(MonitorCertSecret, "")
-	viper.SetDefault(MonitorCertMountPath, "")
-	viper.SetDefault(MonitorGrafanaAdminUserNameKey, "admin")
 
 	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")

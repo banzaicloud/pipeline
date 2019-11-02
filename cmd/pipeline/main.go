@@ -354,7 +354,7 @@ func main() {
 	err = clusterTTLController.Start()
 	emperror.Panic(err)
 
-	if viper.GetBool(config.MonitorEnabled) {
+	if conf.Cluster.Monitoring.Monitor.Enabled {
 		client, err := k8sclient.NewInClusterClient()
 		if err != nil {
 			errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
@@ -371,10 +371,10 @@ func main() {
 				dnsBaseDomain,
 				viper.GetString(config.ControlPlaneNamespace),
 				global.Config.Cluster.Namespace,
-				viper.GetString(config.MonitorConfigMap),
-				viper.GetString(config.MonitorConfigMapPrometheusKey),
-				viper.GetString(config.MonitorCertSecret),
-				viper.GetString(config.MonitorCertMountPath),
+				conf.Cluster.Monitoring.Monitor.ConfigMap,
+				conf.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
+				conf.Cluster.Monitoring.Monitor.CertSecret,
+				conf.Cluster.Monitoring.Monitor.MountPath,
 				errorHandler,
 			)
 			monitorClusterSubscriber.Init()
