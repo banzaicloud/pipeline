@@ -37,7 +37,6 @@ import (
 	"github.com/qor/session"
 	"github.com/qor/session/gorilla"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -117,20 +116,22 @@ func (c cookieExtractor) ExtractToken(r *http.Request) (string, error) {
 }
 
 type redirector struct {
+	uiUrl              string
+	signupRedirectPath string
 }
 
-func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action string) {
+func (r redirector) Redirect(w http.ResponseWriter, req *http.Request, action string) {
 	var url string
 	if req.Context().Value(SignUp) != nil {
-		url = viper.GetString("pipeline.signupRedirectPath")
+		url = r.signupRedirectPath
 	} else {
-		url = viper.GetString("pipeline.uipath")
+		url = r.uiUrl
 	}
 	http.Redirect(w, req, url, http.StatusSeeOther)
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
+func Init(db *gorm.DB, cdb *gorm.DB, config Config, uiUrl string, signupRedirectPath string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
 	CookieDomain = config.Cookie.Domain
 
 	signingKey := config.Token.SigningKey
@@ -164,8 +165,11 @@ func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore,
 
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:                db,
-		Redirector:        redirector{},
+		DB: db,
+		Redirector: redirector{
+			uiUrl:              uiUrl,
+			signupRedirectPath: signupRedirectPath,
+		},
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},
 		ViewPaths:         []string{"views"},

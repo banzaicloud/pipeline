@@ -90,6 +90,11 @@ type configuration struct {
 		Headers   []string
 		SkipPaths []string
 	}
+
+	UI struct {
+		URL                string
+		SignupRedirectPath string
+	}
 }
 
 // Validate validates the configuration.
@@ -208,4 +213,7 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("audit.enabled", true)
 	v.SetDefault("audit.headers", []string{"secretId"})
 	v.SetDefault("audit.skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
+
+	v.SetDefault("pipeline.ui.url", "/ui")
+	v.SetDefault("pipeline.ui.signupRedirectPath", "/ui")
 }

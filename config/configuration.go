@@ -47,9 +47,7 @@ func init() {
 	viper.SetDefault(PipelineExternalURLInsecure, false)
 	viper.SetDefault("pipeline.certfile", "")
 	viper.SetDefault("pipeline.keyfile", "")
-	viper.SetDefault("pipeline.uipath", "/ui")
 	viper.SetDefault("pipeline.basepath", "")
-	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(PipelineUUID, "")
 
 	// Find and read the config file

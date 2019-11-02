@@ -33,13 +33,15 @@ pipeline:
     # Base URL where the end users can reach this pipeline instance
     externalURL: "https://example.com/pipeline"
 
-    # Use to redirect url after login
-    uipath: "http://localhost:4200/ui"
-    signupRedirectPath: "http://localhost:4200/ui"
-
     # An UUID that identifies the specific installation (deployment) of the platform.
     # If a good UUID is not available, do not generate one automatically, because no UUID is better than one that always changes.
     # uuid: ""
+
+ui:
+    url: "http://localhost:4200/ui"
+
+    # Original: pipeline.signupRedirectPath
+    signupRedirectUrl: "http://localhost:4200/ui"
 
 database:
     # dialect: "postgres"
