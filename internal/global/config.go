@@ -317,6 +317,12 @@ type Configuration struct {
 		SyncInterval                    time.Duration
 		SharedLibraryGitHubOrganization string
 	}
+
+	Secret struct {
+		TLS struct {
+			DefaultValidity time.Duration
+		}
+	}
 }
 
 func (c Configuration) Validate() error {

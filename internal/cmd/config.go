@@ -568,4 +568,6 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("spotguide.allowPrivateRepos", false)
 	v.SetDefault("spotguide.syncInterval", 5*time.Minute)
 	v.SetDefault("spotguide.sharedLibraryGitHubOrganization", "spotguides")
+
+	v.SetDefault("secret.tls.defaultValidity", "8760h") // 1 year
 }
