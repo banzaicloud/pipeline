@@ -1442,7 +1442,7 @@ func (c *GKECluster) AddDefaultsToUpdate(r *pkgCluster.UpdateClusterRequest) {
 			if i == len(c.model.NodePools) {
 				// node pool not found in db; set count to default value
 				nodePoolData.Count = pkgCommon.DefaultNodeMinCount
-				log.Warnf("Node count for node pool %s set to default value: ", name, nodePoolData.Count)
+				log.Warnf("Node count for node pool %s set to default value: %d", name, nodePoolData.Count)
 			}
 		}
 	}
