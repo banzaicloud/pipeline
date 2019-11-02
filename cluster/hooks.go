@@ -356,9 +356,9 @@ func metricsServerIsInstalled(cluster CommonCluster) bool {
 
 // InstallHorizontalPodAutoscalerPostHook
 func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
-	promServiceName := viper.GetString(pipConfig.PrometheusServiceName)
+	promServiceName := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceName
 	infraNamespace := global.Config.Cluster.Autoscale.Namespace
-	serviceContext := viper.GetString(pipConfig.PrometheusServiceContext)
+	serviceContext := global.Config.Cluster.Autoscale.HPA.Prometheus.ServiceContext
 	chartName := global.Config.Cluster.Autoscale.Charts.HPAOperator.Chart
 	chartVersion := global.Config.Cluster.Autoscale.Charts.HPAOperator.Version
 
