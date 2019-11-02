@@ -14,36 +14,7 @@
 
 package config
 
-import (
-	"fmt"
-	"log"
-	"strings"
-
-	"github.com/spf13/viper"
-)
-
 const (
 	// PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
 	PipelineHeadNodePoolName = "infra.headNodePoolName"
 )
-
-// Init initializes the configurations
-func init() {
-
-	viper.AddConfigPath("$HOME/config")
-	viper.AddConfigPath("./")
-	viper.AddConfigPath("./config")
-	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
-	viper.SetConfigName("config")
-
-	// Find and read the config file
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file, %s", err)
-	}
-	// Confirm which config file is used
-	fmt.Printf("Using config: %s\n", viper.ConfigFileUsed())
-	viper.SetEnvPrefix("pipeline")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
-	viper.AllowEmptyEnv(true)
-}
