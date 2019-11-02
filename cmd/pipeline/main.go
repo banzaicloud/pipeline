@@ -491,6 +491,8 @@ func main() {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "Authorization", "secretId", "Banzai-Cloud-Pipeline-UUID")
 	corsConfig.AllowCredentials = true
+	corsConfig.AllowMethods = []string{"PUT", "DELETE", "GET", "POST", "OPTIONS", "PATCH"}
+	corsConfig.ExposeHeaders = []string{"Content-Length"}
 
 	corsConfig.AllowAllOrigins = config.CORS.AllowAllOrigins
 	if !corsConfig.AllowAllOrigins {
