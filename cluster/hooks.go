@@ -948,7 +948,7 @@ func RestoreFromBackup(cluster CommonCluster, param pkgCluster.PostHookParam) er
 		return err
 	}
 
-	return arkPosthook.RestoreFromBackup(params, cluster, pipConfig.DB(), log, errorHandler, global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout)
+	return arkPosthook.RestoreFromBackup(params, cluster, global.DB(), log, errorHandler, global.Config.Cluster.DisasterRecovery.Ark.RestoreWaitTimeout)
 }
 
 // InitSpotConfig creates a ConfigMap to store spot related config and installs the scheduler and the spot webhook charts

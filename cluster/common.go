@@ -316,7 +316,7 @@ func getScaleOptionsFromModel(scaleOptions model.ScaleOptions) *pkgCluster.Scale
 // GetCommonClusterFromModel extracts CommonCluster from a ClusterModel
 func GetCommonClusterFromModel(modelCluster *model.ClusterModel) (CommonCluster, error) {
 
-	db := config.DB()
+	db := global.DB()
 
 	if modelCluster.Distribution == pkgCluster.PKE && modelCluster.Cloud == pkgCluster.Azure {
 		logger := commonadapter.NewLogger(logrusadapter.New(config.Logger()))

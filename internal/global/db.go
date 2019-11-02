@@ -1,4 +1,3 @@
-// +build automigrate
 // Copyright © 2019 Banzai Cloud
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package global
 
 import (
-	"io/ioutil"
+	"sync"
 
-	"github.com/banzaicloud/pipeline/internal/common/commonadapter"
-	"github.com/banzaicloud/pipeline/internal/global"
-
-	"github.com/sirupsen/logrus"
+	"github.com/jinzhu/gorm"
 )
 
-func main() {
-	db := global.DB()
+// nolint: gochecknoglobals
+var db *gorm.DB
 
-	logger := logrus.New()
-	logger.SetOutput(ioutil.Discard)
+// nolint: gochecknoglobals
+var dbMu sync.Mutex
 
-	err := Migrate(db, logger, commonadapter.NewNoopLogger())
-	if err != nil {
-		panic(err)
-	}
+// DB returns an initialized DB instance.
+func DB() *gorm.DB {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+
+	return db
+}
+
+// SetDB configures a DB instance.
+func SetDB(d *gorm.DB) {
+	dbMu.Lock()
+	defer dbMu.Unlock()
+
+	db = d
 }

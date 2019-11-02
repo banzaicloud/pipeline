@@ -36,9 +36,6 @@ const (
 	// PipelineUUID is an UUID that identifies the specific installation (deployment) of the platform
 	PipelineUUID = "pipeline.uuid"
 
-	// Database
-	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
-
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 )
 
@@ -59,15 +56,6 @@ func init() {
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(PipelineUUID, "")
-	viper.SetDefault("database.dialect", "mysql")
-	viper.SetDefault("database.port", 3306)
-	viper.SetDefault("database.host", "localhost")
-	viper.SetDefault("database.tls", "")
-	viper.SetDefault("database.user", "kellyslater")
-	viper.SetDefault("database.password", "pipemaster123!")
-	viper.SetDefault("database.dbname", "pipeline")
-	viper.SetDefault("database.logging", false)
-	viper.SetDefault(DBAutoMigrateEnabled, false)
 	viper.SetDefault("audit.enabled", true)
 	viper.SetDefault("audit.headers", []string{"secretId"})
 	viper.SetDefault("audit.skippaths", []string{"/auth/dex/callback", "/pipeline/api"})

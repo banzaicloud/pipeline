@@ -163,21 +163,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Load common configuration
 	cmd.Configure(v, p)
 
-	// Database configuration
-	v.SetDefault("database.dialect", "mysql")
-	_ = v.BindEnv("database.host")
-	v.SetDefault("database.port", 3306)
-	v.SetDefault("database.tls", "")
-	_ = v.BindEnv("database.user")
-	_ = v.BindEnv("database.password")
-	v.RegisterAlias("database.pass", "database.password") // TODO: deprecate password
-	_ = v.BindEnv("database.dbname")
-	v.RegisterAlias("database.name", "database.dbname") // TODO: deprecate dbname
-	v.SetDefault("database.params", map[string]string{
-		"charset": "utf8mb4",
-	})
-	v.RegisterAlias("database.enableLog", "database.logging")
-
 	// Cadence configuration
 	v.SetDefault("cadence.createNonexistentDomain", false)
 	v.SetDefault("cadence.workflowExecutionRetentionPeriodInDays", 3)

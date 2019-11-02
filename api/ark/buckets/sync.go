@@ -22,8 +22,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark/sync"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
@@ -33,7 +33,7 @@ func Sync(c *gin.Context) {
 	logger.Info("syncing backups from buckets")
 
 	org := auth.GetCurrentOrganization(c.Request)
-	bucketsSyncSvc := sync.NewBucketsSyncService(org, config.DB(), logger)
+	bucketsSyncSvc := sync.NewBucketsSyncService(org, global.DB(), logger)
 	err := bucketsSyncSvc.SyncBackupsFromBuckets()
 	if err != nil {
 		err = emperror.WrapWith(err, "could not sync backups from buckets", "orgName", org.Name)

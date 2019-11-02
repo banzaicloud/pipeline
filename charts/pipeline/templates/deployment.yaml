@@ -71,7 +71,7 @@ spec:
           value: {{ include "pipeline.database.port" . | quote }}
         - name: PIPELINE_DATABASE_TLS
           value: {{ include "pipeline.database.tls" . | quote }}
-        - name: PIPELINE_DATABASE_DBNAME
+        - name: PIPELINE_DATABASE_NAME
           value: {{ include "pipeline.database.name" . }}
         - name: PIPELINE_DATABASE_USER
           value: {{ include "pipeline.database.username" . }}
@@ -82,6 +82,22 @@ spec:
             secretKeyRef:
               name: {{ include "pipeline.database.secretName" .}}
               key: {{ include "pipeline.database.secretKey" .}}
+
+        - name: PIPELINE_CICD_DATABASE_HOST
+          value: {{ include "pipeline.database.host" . }}
+        - name: PIPELINE_CICD_DATABASE_PORT
+          value: {{ include "pipeline.database.port" . | quote }}
+        - name: PIPELINE_CICD_DATABASE_TLS
+          value: {{ include "pipeline.database.tls" . | quote }}
+        - name: PIPELINE_CICD_DATABASE_USER
+          value: {{ include "pipeline.database.username" . }}
+        - name : PIPELINE_CICD_DATABASE_DIALECT
+          value: {{ include "pipeline.database.driver" . }}
+        - name: PIPELINE_CICD_DATABASE_PASSWORD
+          valueFrom:
+              secretKeyRef:
+                  name: {{ include "pipeline.database.secretName" .}}
+                  key: {{ include "pipeline.database.secretKey" .}}
 
         # Authentication configuration
         - name: PIPELINE_AUTH_OIDC_CLIENTID
