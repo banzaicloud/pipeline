@@ -151,7 +151,7 @@ func main() {
 
 	err = global.Config.Validate()
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(err.Error(), map[string]interface{}{"config": "global"})
 
 		os.Exit(3)
 	}

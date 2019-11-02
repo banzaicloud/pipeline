@@ -145,6 +145,7 @@ func main() {
 
 	configure(v, p)
 
+	p.String("config", "", "Configuration file")
 	p.Bool("version", false, "Show version information")
 
 	_ = p.Parse(os.Args[1:])
@@ -155,8 +156,18 @@ func main() {
 		os.Exit(0)
 	}
 
+	if c, _ := p.GetString("config"); c != "" {
+		v.SetConfigFile(c)
+	}
+
+	err := v.ReadInConfig()
+	_, configFileNotFound := err.(viper.ConfigFileNotFoundError)
+	if !configFileNotFound {
+		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
+	}
+
 	var conf configuration
-	err := viper.Unmarshal(&conf)
+	err = viper.Unmarshal(&conf)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
 	err = conf.Process()
@@ -184,6 +195,10 @@ func main() {
 	log.SetStandardLogger(logger)
 	log.SetK8sLogger(logger)
 
+	if configFileNotFound {
+		logger.Warn("configuration file not found")
+	}
+
 	err = conf.Validate()
 	if err != nil {
 		logger.Error(err.Error())
@@ -193,7 +208,7 @@ func main() {
 
 	err = global.Config.Validate()
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(err.Error(), map[string]interface{}{"config": "global"})
 
 		os.Exit(3)
 	}
