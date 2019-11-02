@@ -22,13 +22,11 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCommon "github.com/banzaicloud/pipeline/pkg/common"
 )
@@ -97,7 +95,7 @@ func AddGrafanaDashboards(log logrus.FieldLogger, client kubernetes.Interface) e
 }
 
 func getDashboardJson(log logrus.FieldLogger, name string) (string, error) {
-	templatePath := viper.GetString(config.IstioGrafanaDashboardLocation) + "/" + name + "-dashboard.json"
+	templatePath := global.Config.Cluster.Backyards.Istio.GrafanaDashboardLocation + "/" + name + "-dashboard.json"
 	log.Infof("Getting Istio dashboard from %s", templatePath)
 	u, err := url.Parse(templatePath)
 	if err != nil {

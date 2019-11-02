@@ -61,25 +61,6 @@ const (
 	OIDCIssuerURL      = "auth.oidcIssuerURL"
 	OIDCIssuerInsecure = "auth.oidcIssuerInsecure"
 
-	IstioOperatorChartVersion     = "servicemesh.istioOperatorChartVersion"
-	IstioGrafanaDashboardLocation = "servicemesh.grafanaDashboardLocation"
-	IstioOperatorChartName        = "servicemesh.istioOperatorChartName"
-	IstioOperatorImageRepository  = "servicemesh.istioOperatorRepository"
-	IstioOperatorImageTag         = "servicemesh.istioOperatorImageTag"
-	IstioPilotImage               = "servicemesh.istioPilotImage"
-	IstioMixerImage               = "servicemesh.istioMixerImage"
-
-	BackyardsChartVersion    = "backyards.chartVersion"
-	BackyardsChartName       = "backyards.chartName"
-	BackyardsImageRepository = "backyards.imageRepository"
-	BackyardsImageTag        = "backyards.imageTag"
-	BackyardsWebImageTag     = "backyards.webImageTag"
-
-	CanaryOperatorChartVersion    = "canary.chartVersion"
-	CanaryOperatorChartName       = "canary.chartName"
-	CanaryOperatorImageRepository = "canary.imageRepository"
-	CanaryOperatorImageTag        = "canary.imageTag"
-
 	// Prometheus svc name, context & local port of Prometheus deploy if monitoring is enabled on cluster
 	PrometheusServiceName    = "prometheus.serviceName"
 	PrometheusServiceContext = "prometheus.serviceContext"
@@ -152,25 +133,6 @@ func init() {
 	viper.SetDefault(ControlPlaneNamespace, "default")
 
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
-
-	viper.SetDefault(IstioOperatorChartVersion, "0.0.14")
-	viper.SetDefault(IstioGrafanaDashboardLocation, filepath.Join(pwd, "etc", "dashboards", "istio"))
-	viper.SetDefault(IstioOperatorChartName, "istio-operator")
-	viper.SetDefault(IstioOperatorImageRepository, "")
-	viper.SetDefault(IstioOperatorImageTag, "")
-	viper.SetDefault(IstioPilotImage, "banzaicloud/istio-pilot:1.1.8-bzc.1")
-	viper.SetDefault(IstioMixerImage, "banzaicloud/istio-mixer:1.1.8-bzc.1")
-
-	viper.SetDefault(BackyardsChartVersion, "0.1.4")
-	viper.SetDefault(BackyardsChartName, "backyards")
-	viper.SetDefault(BackyardsImageRepository, "banzaicloud/backyards")
-	viper.SetDefault(BackyardsImageTag, "0.1.3")
-	viper.SetDefault(BackyardsWebImageTag, "web-0.1.3")
-
-	viper.SetDefault(CanaryOperatorChartName, "canary-operator")
-	viper.SetDefault(CanaryOperatorChartVersion, "0.1.2")
-	viper.SetDefault(CanaryOperatorImageRepository, "banzaicloud/canary-operator")
-	viper.SetDefault(CanaryOperatorImageTag, "0.1.0")
 
 	// Prometheus service defaults
 	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")

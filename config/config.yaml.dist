@@ -261,6 +261,37 @@ auth:
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/ark for details
 #                values: {}
+#
+#    backyards:
+#        enabled: true
+#
+#        istio:
+#            # TODO: improve this
+#            # See https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards
+#            grafanaDashboardLocation: ./etc/dashboards/istio
+#
+#            pilotImage: "banzaicloud/istio-pilot:1.1.8-bzc.1"
+#            mixerImage: "banzaicloud/istio-mixer:1.1.8-bzc.1"
+#
+#        charts:
+#            istioOperator:
+#                chart: "banzaicloud-stable/istio-operator"
+#                version: "0.0.14"
+#
+#                # See https://github.com/banzaicloud/istio-operator/tree/release-1.3/deploy/charts/istio-operator for details
+#                values: {}
+#
+#            backyards:
+#                chart: "banzaicloud-stable/backyards"
+#                version: "0.1.4"
+#
+#                values: {}
+#
+#            canaryOperator:
+#                chart: "banzaicloud-stable/canary-operator"
+#                version: "0.1.2"
+#
+#                values: {}
 
 #helm:
 #    home: "./var/cache"
@@ -278,26 +309,6 @@ monitor:
     certSecret: ''
     mountPath: ''
     grafanaAdminUsername: admin
-
-servicemesh:
-    istioOperatorChartVersion: 0.0.14
-    grafanaDashboardLocation: https://raw.githubusercontent.com/banzaicloud/banzai-charts/master/istio/deps/grafana/dashboards
-    istioOperatorChartName: istio-operator
-    istioPilotImage: 'banzaicloud/istio-pilot:1.1.8-bzc.1'
-    istioMixerImage: 'banzaicloud/istio-mixer:1.1.8-bzc.1'
-
-backyards:
-    chartVersion: 0.1.4
-    chartName: backyards
-    imageRepository: banzaicloud/backyards
-    imageTag: 0.1.3
-    webImageTag: web-0.1.3
-
-canary:
-    chartVersion: 0.1.2
-    chartName: canary-operator
-    imageRepository: banzaicloud/canary-operator
-    imageTag: 0.1.0
 
 #cicd:
 #    enabled: false
