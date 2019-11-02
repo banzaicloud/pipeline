@@ -128,7 +128,7 @@ jobs:
             -
                 run:
                     name: Test MySQL database auto migrations
-                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go
+                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/config.go ./cmd/pipeline/migrate.go ./cmd/pipeline/vars.go
                     environment:
                         PIPELINE_DATABASE_HOST: 127.0.0.1
                         PIPELINE_DATABASE_USER: root
@@ -173,7 +173,7 @@ jobs:
             -
                 run:
                     name: Test PostgreSQL database auto migrations
-                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/migrate.go
+                    command: go run -tags automigrate ./cmd/pipeline/automigrate.go ./cmd/pipeline/config.go ./cmd/pipeline/migrate.go ./cmd/pipeline/vars.go
                     environment:
                         PIPELINE_DATABASE_DIALECT: postgres
                         PIPELINE_DATABASE_HOST: 127.0.0.1
