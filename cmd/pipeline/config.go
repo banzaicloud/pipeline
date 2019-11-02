@@ -54,6 +54,10 @@ type configuration struct {
 	// Cluster configuration
 	Cluster cmd.ClusterConfig
 
+	Cloudinfo struct {
+		Endpoint string
+	}
+
 	Github struct {
 		Token string
 	}
@@ -61,10 +65,6 @@ type configuration struct {
 	SpotMetrics struct {
 		Enabled            bool
 		CollectionInterval time.Duration
-	}
-
-	Cloudinfo struct {
-		Endpoint string
 	}
 }
 
