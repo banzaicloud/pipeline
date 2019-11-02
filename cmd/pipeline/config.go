@@ -27,7 +27,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
@@ -136,7 +135,7 @@ func (c telemetryConfig) Validate() error {
 
 // authConfig contains auth configuration.
 type authConfig struct {
-	Token authTokenConfig
+	Token cmd.AuthTokenConfig
 	Role  authRoleConfig
 }
 
@@ -168,26 +167,6 @@ func (c authRoleConfig) Validate() error {
 	return nil
 }
 
-// authTokenConfig contains auth configuration.
-type authTokenConfig struct {
-	SigningKey string
-	Issuer     string
-	Audience   string
-}
-
-// Validate validates the configuration.
-func (c authTokenConfig) Validate() error {
-	if c.SigningKey == "" {
-		return errors.New("auth token signing key is required")
-	}
-
-	if len(c.SigningKey) < 32 {
-		return errors.New("auth token signing key must be at least 32 characters")
-	}
-
-	return nil
-}
-
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// ErrorHandler configuration
@@ -201,18 +180,15 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("telemetry.addr", "127.0.0.1:9900")
 	v.SetDefault("telemetry.debug", true)
 
-	// Auth configuration
-	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
-	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
+	// Load common configuration
+	cmd.Configure(v, p)
 
+	// Auth configuration
 	v.SetDefault("auth.role.default", auth.RoleAdmin)
 	v.SetDefault("auth.role.binding", map[string]string{
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
 	})
-
-	// Load common configuration
-	cmd.Configure(v, p)
 
 	v.SetDefault("frontend.issue.enabled", false)
 	v.SetDefault("frontend.issue.driver", "github")
@@ -224,11 +200,4 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	v.SetDefault("spotmetrics.enabled", false)
 	v.SetDefault("spotmetrics.collectionInterval", 30*time.Second)
-}
-
-func registerAliases(v *viper.Viper) {
-	// Auth configuration
-	viperx.RegisterAlias(v, "auth.tokensigningkey", "auth.token.signingKey")
-	viperx.RegisterAlias(v, "auth.jwtissuer", "auth.token.issuer")
-	viperx.RegisterAlias(v, "auth.jwtaudience", "auth.token.audience")
 }

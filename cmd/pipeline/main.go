@@ -155,8 +155,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	registerAliases(v)
-
 	var conf configuration
 	err := viper.Unmarshal(&conf)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))

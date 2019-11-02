@@ -34,6 +34,13 @@ type Configuration struct {
 		Debug bool
 	}
 
+	Auth struct {
+		Token struct {
+			Issuer   string
+			Audience string
+		}
+	}
+
 	Cluster struct {
 		Namespace string
 

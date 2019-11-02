@@ -31,6 +31,34 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/vault"
 )
 
+// AuthTokenConfig contains auth configuration.
+type AuthTokenConfig struct {
+	SigningKey string
+	Issuer     string
+	Audience   string
+}
+
+// Validate validates the configuration.
+func (c AuthTokenConfig) Validate() error {
+	if c.SigningKey == "" {
+		return errors.New("auth token signing key is required")
+	}
+
+	if len(c.SigningKey) < 32 {
+		return errors.New("auth token signing key must be at least 32 characters")
+	}
+
+	if c.Issuer == "" {
+		return errors.New("auth token issuer is required")
+	}
+
+	if c.Audience == "" {
+		return errors.New("auth token issuer is required")
+	}
+
+	return nil
+}
+
 // ClusterConfig contains cluster configuration.
 type ClusterConfig struct {
 	// Initial manifest
@@ -206,6 +234,11 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// ErrorHandler configuration
 	v.SetDefault("errors.stackdriver.enabled", false)
 	v.SetDefault("errors.stackdriver.projectId", false)
+
+	// Auth configuration
+	v.SetDefault("auth.token.signingKey", "")
+	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
+	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
 
 	// Cadence configuration
 	v.SetDefault("cadence.host", "")
