@@ -388,3 +388,7 @@ cicd:
 #spotmetrics:
 #    enabled: false
 #    collectionInterval: "30s"
+
+#secret:
+#    tls:
+#        defaultValidity: 8760h # 1 year

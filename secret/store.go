@@ -35,10 +35,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"k8s.io/apimachinery/pkg/util/validation"
 
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	"github.com/banzaicloud/pipeline/secret/verify"
 )
@@ -597,7 +597,7 @@ func (ss *secretStore) generateValuesIfNeeded(organizationID uint, value *Create
 
 		validity := value.Values[secrettype.TLSValidity]
 		if validity == "" {
-			validity = viper.GetString("tls.validity")
+			validity = global.Config.Secret.TLS.DefaultValidity.String()
 		}
 
 		cc, err := tls.GenerateTLS(value.Values[secrettype.TLSHosts], validity)

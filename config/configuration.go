@@ -56,7 +56,6 @@ func init() {
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(PipelineUUID, "")
-	viper.SetDefault("tls.validity", "8760h") // 1 year
 
 	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")
