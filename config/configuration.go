@@ -17,8 +17,6 @@ package config
 import (
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -37,10 +35,6 @@ const (
 
 	// PipelineUUID is an UUID that identifies the specific installation (deployment) of the platform
 	PipelineUUID = "pipeline.uuid"
-
-	// EksTemplateLocation is the configuration key the location to get EKS Cloud Formation templates from
-	// the location to get EKS Cloud Formation templates from
-	EksTemplateLocation = "eks.templateLocation"
 
 	// Database
 	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
@@ -85,10 +79,6 @@ func init() {
 	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
 	viper.SetConfigName("config")
 
-	pwd, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Error reading config file, %s", err.Error())
-	}
 	viper.SetDefault("auth.secureCookie", true)
 	viper.SetDefault("auth.publicclientid", "banzai-cli")
 	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
@@ -131,8 +121,6 @@ func init() {
 
 	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")
-
-	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
 
 	// Prometheus service defaults
 	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")

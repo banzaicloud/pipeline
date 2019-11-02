@@ -342,5 +342,10 @@ monitor:
 #        # Default Alibaba region
 #        defaultRegion: "eu-central-1"
 
+#distribution:
+#    eks:
+#        # EKS Cloud Formation template location
+#        templateLocation: ./templates/eks
+
 cloudinfo:
     endpoint: "https://beta.banzaicloud.io/cloudinfo/api/v1"

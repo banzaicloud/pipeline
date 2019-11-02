@@ -229,6 +229,12 @@ type Configuration struct {
 		}
 	}
 
+	Distribution struct {
+		EKS struct {
+			TemplateLocation string
+		}
+	}
+
 	Cloudinfo struct {
 		Endpoint string
 	}
