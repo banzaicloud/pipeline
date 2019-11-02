@@ -27,8 +27,8 @@ import (
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/secret"
 )
 
@@ -51,11 +51,14 @@ type AnchoreError struct {
 }
 
 func init() {
-	AnchoreEndpoint = viper.GetString("cluster.securityScan.anchore.endpoint")
-	AnchoreEnabled = viper.GetBool("cluster.securityScan.anchore.enabled")
-	AnchoreAdminUser = viper.GetString("cluster.securityScan.anchore.user")
-	AnchoreAdminPass = viper.GetString("cluster.securityScan.anchore.password")
 	logger = Logger()
+}
+
+func Init() {
+	AnchoreEndpoint = global.Config.Cluster.SecurityScan.Anchore.Endpoint
+	AnchoreEnabled = global.Config.Cluster.SecurityScan.Anchore.Enabled
+	AnchoreAdminUser = global.Config.Cluster.SecurityScan.Anchore.User
+	AnchoreAdminPass = global.Config.Cluster.SecurityScan.Anchore.Password
 }
 
 type User struct {

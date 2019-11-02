@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
 
@@ -147,6 +148,14 @@ type Configuration struct {
 						}
 					}
 				}
+			}
+		}
+
+		SecurityScan struct{
+			Anchore struct{
+				Enabled bool
+
+				anchore.Config `mapstructure:",squash"`
 			}
 		}
 
