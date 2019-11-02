@@ -20,7 +20,6 @@ import (
 
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/dns"
@@ -41,7 +40,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 	releaseSecretTag := fmt.Sprintf("release:%s", MonitorReleaseName)
 
 	// Generating Grafana credentials
-	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
+	grafanaAdminUsername := global.Config.Cluster.Monitoring.Grafana.AdminUser
 	grafanaAdminPass, err := secret.RandomString("randAlphaNum", 12)
 	if err != nil {
 		return emperror.Wrap(err, "failed to generate Grafana admin user password")
