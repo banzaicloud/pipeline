@@ -310,6 +310,23 @@ monitor:
     mountPath: ''
     grafanaAdminUsername: admin
 
+#cloud:
+#    amazon:
+#        # Default Amazon region
+#        defaultRegion: "us-west-1"
+#
+#    alibaba:
+#        # Default Alibaba region
+#        defaultRegion: "eu-central-1"
+
+#distribution:
+#    eks:
+#        # EKS Cloud Formation template location
+#        templateLocation: ./templates/eks
+
+cloudinfo:
+    endpoint: "https://beta.banzaicloud.io/cloudinfo/api/v1"
+
 #cicd:
 #    enabled: false
 #    url: "http://localhost:8000"
@@ -332,20 +349,3 @@ monitor:
 #spotmetrics:
 #    enabled: false
 #    collectionInterval: "30s"
-
-#cloud:
-#    amazon:
-#        # Default Amazon region
-#        defaultRegion: "us-west-1"
-#
-#    alibaba:
-#        # Default Alibaba region
-#        defaultRegion: "eu-central-1"
-
-#distribution:
-#    eks:
-#        # EKS Cloud Formation template location
-#        templateLocation: ./templates/eks
-
-cloudinfo:
-    endpoint: "https://beta.banzaicloud.io/cloudinfo/api/v1"
