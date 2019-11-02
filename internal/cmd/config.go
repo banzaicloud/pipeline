@@ -369,6 +369,47 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 
+	v.SetDefault("cluster.backyards.enabled", true)
+	v.SetDefault("cluster.backyards.istio.grafanaDashboardLocation", "./etc/dashboards/istio")
+	v.SetDefault("cluster.backyards.istio.pilotImage", "banzaicloud/istio-pilot:1.1.8-bzc.1")
+	v.SetDefault("cluster.backyards.istio.mixerImage", "banzaicloud/istio-mixer:1.1.8-bzc.1")
+	v.SetDefault("cluster.backyards.charts.istioOperator.chart", "banzaicloud-stable/istio-operator")
+	v.SetDefault("cluster.backyards.charts.istioOperator.version", "0.0.14")
+	v.SetDefault("cluster.backyards.charts.istioOperator.values", map[string]interface{}{
+		"operator": map[string]interface{}{
+			"image": map[string]interface{}{
+				"repository": "",
+				"tag":        "",
+			},
+		},
+	})
+	v.SetDefault("cluster.backyards.charts.backyards.chart", "banzaicloud-stable/backyards")
+	v.SetDefault("cluster.backyards.charts.backyards.version", "0.1.4")
+	v.SetDefault("cluster.backyards.charts.backyards.values", map[string]interface{}{
+		"application": map[string]interface{}{
+			"image": map[string]interface{}{
+				"repository": "banzaicloud/backyards",
+				"tag":        "0.1.3",
+			},
+		},
+		"web": map[string]interface{}{
+			"image": map[string]interface{}{
+				"repository": "banzaicloud/backyards",
+				"tag":        "web-0.1.3",
+			},
+		},
+	})
+	v.SetDefault("cluster.backyards.charts.canaryOperator.chart", "banzaicloud-stable/canary-operator")
+	v.SetDefault("cluster.backyards.charts.canaryOperator.version", "0.1.2")
+	v.SetDefault("cluster.backyards.charts.canaryOperator.values", map[string]interface{}{
+		"operator": map[string]interface{}{
+			"image": map[string]interface{}{
+				"repository": "banzaicloud/canary-operator",
+				"tag":        "0.1.0",
+			},
+		},
+	})
+
 	// Helm configuration
 	v.SetDefault("helm.tiller.version", "v2.14.2")
 	v.SetDefault("helm.home", "./var/cache")

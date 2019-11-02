@@ -151,6 +151,62 @@ type Configuration struct {
 				}
 			}
 		}
+
+		Backyards struct {
+			Istio struct {
+				GrafanaDashboardLocation string
+				PilotImage               string
+				MixerImage               string
+			}
+
+			Charts struct {
+				IstioOperator struct {
+					Chart   string
+					Version string
+					Values  struct {
+						Operator struct {
+							Image struct {
+								Repository string
+								Tag        string
+							}
+						}
+					}
+				}
+
+				Backyards struct {
+					Chart   string
+					Version string
+					Values  struct {
+						Application struct {
+							Image struct {
+								Repository string
+								Tag        string
+							}
+						}
+
+						Web struct {
+							Image struct {
+								Repository string
+								Tag        string
+							}
+						}
+					}
+				}
+
+				CanaryOperator struct {
+					Chart   string
+					Version string
+					Values  struct {
+						Operator struct {
+							Image struct {
+								Repository string
+								Tag        string
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	Helm struct {
