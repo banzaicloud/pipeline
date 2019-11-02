@@ -34,11 +34,11 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"go.uber.org/cadence/client"
 
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
+	"github.com/banzaicloud/pipeline/internal/global"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
 	"github.com/banzaicloud/pipeline/internal/providers/pke/pkeworkflow"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -965,15 +965,13 @@ func (c *EC2ClusterPKE) GetBootstrapCommand(nodePoolName, url string, urlInsecur
 		)
 
 		if c.model.Cluster.OidcEnabled {
-			// TODO this should be configurable as well
-			oidcIssuerURL := viper.GetString(pipConfig.OIDCIssuerURL)
 			oidcClientID := c.GetUID()
 
 			command = fmt.Sprintf("%s "+
 				"--kubernetes-oidc-issuer-url=%q "+
 				"--kubernetes-oidc-client-id=%q",
 				command,
-				oidcIssuerURL,
+				global.Config.Auth.OIDC.Issuer, // TODO this should be configurable as well
 				oidcClientID,
 			)
 		}

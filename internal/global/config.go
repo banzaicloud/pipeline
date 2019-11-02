@@ -35,10 +35,27 @@ type Configuration struct {
 	}
 
 	Auth struct {
+		OIDC struct {
+			Issuer       string
+			Insecure     bool
+			ClientID     string
+			ClientSecret string
+		}
+
+		Cookie struct {
+			Secure    bool
+			SetDomain bool
+		}
+
 		Token struct {
 			Issuer   string
 			Audience string
 		}
+	}
+
+	Dex struct {
+		APIAddr string
+		APICa   string
 	}
 
 	Cluster struct {
@@ -303,6 +320,18 @@ type Configuration struct {
 }
 
 func (c Configuration) Validate() error {
+	if c.Auth.OIDC.Issuer == "" {
+		return errors.New("auth oidc issuer is required")
+	}
+
+	if c.Auth.OIDC.ClientID == "" {
+		return errors.New("auth oidc client ID is required")
+	}
+
+	if c.Auth.OIDC.ClientSecret == "" {
+		return errors.New("auth oidc client secret is required")
+	}
+
 	if c.CICD.Enabled {
 		if c.CICD.URL == "" {
 			return errors.New("cicd url is required")

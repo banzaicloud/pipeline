@@ -181,12 +181,4 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Cadence configuration
 	v.SetDefault("cadence.createNonexistentDomain", false)
 	v.SetDefault("cadence.workflowExecutionRetentionPeriodInDays", 3)
-
-	// OIDC configuration
-	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
-	viper.RegisterAlias("auth.oidcIssuerURL", "auth.dexURL")
-	viper.SetDefault("auth.dexInsecure", false)
-	viper.RegisterAlias("auth.oidcIssuerInsecure", "auth.dexInsecure")
-	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
-	viper.SetDefault("auth.dexGrpcCaCert", "")
 }

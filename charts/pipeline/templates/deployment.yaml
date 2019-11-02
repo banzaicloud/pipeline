@@ -84,17 +84,17 @@ spec:
               key: {{ include "pipeline.database.secretKey" .}}
 
         # Authentication configuration
-        - name: PIPELINE_AUTH_CLIENTID
+        - name: PIPELINE_AUTH_OIDC_CLIENTID
           valueFrom:
             secretKeyRef:
               name: {{ include "pipeline.fullname" . }}
               key: githubClientId
-        - name: PIPELINE_AUTH_CLIENTSECRET
+        - name: PIPELINE_AUTH_OIDC_CLIENTSECRET
           valueFrom:
             secretKeyRef:
               name: {{ include "pipeline.fullname" . }}
               key: githubClientSecret
-        - name: PIPELINE_AUTH_TOKENSIGNINGKEY
+        - name: PIPELINE_AUTH_TOKEN_SIGNINGKEY
           valueFrom:
             secretKeyRef:
               name: {{ include "pipeline.fullname" . }}

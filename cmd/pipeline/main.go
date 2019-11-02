@@ -271,7 +271,7 @@ func main() {
 		base32.StdEncoding.EncodeToString([]byte(conf.Auth.Token.SigningKey)),
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
-	auth.Init(cicdDB, conf.Auth.Token.SigningKey, tokenStore, tokenManager, organizationSyncer)
+	auth.Init(db, cicdDB, conf.Auth, tokenStore, tokenManager, organizationSyncer)
 
 	if viper.GetBool(config.DBAutoMigrateEnabled) {
 		logger.Info("running automatic schema migrations")
@@ -337,8 +337,6 @@ func main() {
 
 	externalURLInsecure := viper.GetBool(config.PipelineExternalURLInsecure)
 
-	oidcIssuerURL := viper.GetString(config.OIDCIssuerURL)
-
 	workflowClient, err := cadence.NewClient(conf.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 	if err != nil {
 		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
@@ -394,7 +392,7 @@ func main() {
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{
-				OIDCIssuerURL:               oidcIssuerURL,
+				OIDCIssuerURL:               conf.Auth.OIDC.Issuer,
 				PipelineExternalURL:         externalBaseURL,
 				PipelineExternalURLInsecure: externalURLInsecure,
 			},
@@ -801,8 +799,8 @@ func main() {
 				commonClusterGetter,
 				clusterAuthService,
 				conf.Auth.Token.SigningKey,
-				oidcIssuerURL,
-				viper.GetBool(config.OIDCIssuerInsecure),
+				conf.Auth.OIDC.Issuer,
+				conf.Auth.OIDC.Insecure,
 				pipelineExternalURL.String(),
 			)
 			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))

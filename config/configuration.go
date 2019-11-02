@@ -40,10 +40,6 @@ const (
 	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
 
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
-
-	SetCookieDomain    = "auth.setCookieDomain"
-	OIDCIssuerURL      = "auth.oidcIssuerURL"
-	OIDCIssuerInsecure = "auth.oidcIssuerInsecure"
 )
 
 // Init initializes the configurations
@@ -54,16 +50,6 @@ func init() {
 	viper.AddConfigPath("./config")
 	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
 	viper.SetConfigName("config")
-
-	viper.SetDefault("auth.secureCookie", true)
-	viper.SetDefault("auth.publicclientid", "banzai-cli")
-	viper.SetDefault("auth.dexURL", "http://127.0.0.1:5556/dex")
-	viper.RegisterAlias(OIDCIssuerURL, "auth.dexURL")
-	viper.SetDefault("auth.dexInsecure", false)
-	viper.RegisterAlias(OIDCIssuerInsecure, "auth.dexInsecure")
-	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
-	viper.SetDefault("auth.dexGrpcCaCert", "")
-	viper.SetDefault(SetCookieDomain, false)
 
 	viper.SetDefault("pipeline.bindaddr", "127.0.0.1:9090")
 	viper.SetDefault(PipelineExternalURLInsecure, false)

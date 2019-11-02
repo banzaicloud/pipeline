@@ -55,7 +55,7 @@ OAuth2 based authentication requires a GitHub/Google OAuth2 application, this ca
 [GitHub](./github-app.md), [GitLab](./gitlab.md) or the [Google](./google-app.md) tutorial.
 Please set the `token` in the `[github]` section, the `baseURL` in the `[gitlab]` section in `config.yml`, and the `clientId` and the `clientSecret` in `dex.yml`'s `connectors:` section.
 
-> If you are not using HTTPS set auth.secureCookie = false, otherwise you won't be able to login via HTTP and you might be getting 401 errors, locally you should set it to `false`.
+> If you are not using HTTPS set auth.cookie.secure = false, otherwise you won't be able to login via HTTP and you might be getting 401 errors, locally you should set it to `false`.
 
 ### Environment
 

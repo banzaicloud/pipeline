@@ -130,9 +130,10 @@ func (redirector) Redirect(w http.ResponseWriter, req *http.Request, action stri
 }
 
 // Init initializes the auth
-func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
-	CookieDomain = viper.GetString("auth.cookieDomain")
+func Init(db *gorm.DB, cdb *gorm.DB, config Config, tokenStore bauth.TokenStore, tokenManager TokenManager, orgSyncer OIDCOrganizationSyncer) {
+	CookieDomain = config.Cookie.Domain
 
+	signingKey := config.Token.SigningKey
 	signingKeyBytes := []byte(signingKey)
 	signingKeyBase32 = base32.StdEncoding.EncodeToString(signingKeyBytes)
 
@@ -142,14 +143,14 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 	cookieStore := sessions.NewCookieStore(cookieAuthenticationKey, cookieEncryptionKey)
 	cookieStore.Options.MaxAge = SessionCookieMaxAge
 	cookieStore.Options.HttpOnly = SessionCookieHTTPOnly
-	cookieStore.Options.Secure = viper.GetBool("auth.secureCookie")
-	if viper.GetBool(config.SetCookieDomain) && CookieDomain != "" {
+	cookieStore.Options.Secure = config.Cookie.Secure
+	if config.Cookie.SetDomain && CookieDomain != "" {
 		cookieStore.Options.Domain = CookieDomain
 	}
 
 	SessionManager = gorilla.New(PipelineSessionCookie, cookieStore)
 
-	cicdDB = db
+	cicdDB = cdb
 
 	sessionStorer := &BanzaiSessionStorer{
 		SessionStorer: auth.SessionStorer{
@@ -163,7 +164,7 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 
 	// Initialize Auth with configuration
 	Auth = auth.New(&auth.Config{
-		DB:                config.DB(),
+		DB:                db,
 		Redirector:        redirector{},
 		AuthIdentityModel: AuthIdentity{},
 		UserModel:         User{},
@@ -171,7 +172,7 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 		SessionStorer:     sessionStorer,
 		UserStorer: BanzaiUserStorer{
 			signingKeyBase32: signingKeyBase32,
-			db:               config.DB(),
+			db:               db,
 			cicdDB:           cicdDB,
 			orgSyncer:        orgSyncer,
 		},
@@ -181,12 +182,12 @@ func Init(db *gorm.DB, signingKey string, tokenStore bauth.TokenStore, tokenMana
 		DeregisterHandler: NewBanzaiDeregisterHandler(tokenStore),
 	})
 
-	oidcProvider = newOIDCProvider(&OIDCConfig{
-		PublicClientID:     viper.GetString("auth.publicclientid"),
-		ClientID:           viper.GetString("auth.clientid"),
-		ClientSecret:       viper.GetString("auth.clientsecret"),
-		IssuerURL:          viper.GetString(config.OIDCIssuerURL),
-		InsecureSkipVerify: viper.GetBool(config.OIDCIssuerInsecure),
+	oidcProvider = newOIDCProvider(&OIDCProviderConfig{
+		PublicClientID:     config.CLI.ClientID,
+		ClientID:           config.OIDC.ClientID,
+		ClientSecret:       config.OIDC.ClientSecret,
+		IssuerURL:          config.OIDC.Issuer,
+		InsecureSkipVerify: config.OIDC.Insecure,
 	}, NewRefreshTokenStore(tokenStore))
 	Auth.RegisterProvider(oidcProvider)
 
