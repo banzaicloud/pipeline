@@ -29,6 +29,7 @@ import (
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/global"
+	"github.com/banzaicloud/pipeline/internal/global/ingresscert"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 	"github.com/banzaicloud/pipeline/secret"
@@ -59,7 +60,7 @@ const DefaultCertSecretName = "default-ingress-cert"
 func InstallIngressControllerPostHook(cluster CommonCluster) error {
 	defaultCertSecret, err := secret.Store.GetByName(cluster.GetOrganizationId(), DefaultCertSecretName)
 	if err == secret.ErrSecretNotExists {
-		certGenerator := global.GetCertGenerator()
+		certGenerator := ingresscert.GetCertGenerator()
 
 		orgID := cluster.GetOrganizationId()
 		organization, err := auth.GetOrganizationById(orgID)
