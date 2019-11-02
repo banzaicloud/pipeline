@@ -1031,7 +1031,11 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 			return err
 		}
 
-		generator := hollowtrees.NewTokenGenerator(viper.GetString("auth.jwtissuer"), viper.GetString("auth.jwtaudience"), global.Config.Hollowtrees.SigningKey)
+		generator := hollowtrees.NewTokenGenerator(
+			global.Config.Auth.Token.Issuer,
+			global.Config.Auth.Token.Audience,
+			global.Config.Hollowtrees.SigningKey,
+		)
 		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
 		if err != nil {
 			err = emperror.Wrap(err, "could not generate JWT token for instance termination handler")

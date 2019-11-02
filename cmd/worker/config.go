@@ -29,7 +29,6 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	"github.com/banzaicloud/pipeline/pkg/viperx"
 )
 
 // configuration holds any kind of configuration that comes from the outside world and
@@ -120,33 +119,13 @@ func (c PipelineConfig) Validate() error {
 
 // authConfig contains auth configuration.
 type authConfig struct {
-	Token authTokenConfig
+	Token cmd.AuthTokenConfig
 }
 
 // Validate validates the configuration.
 func (c authConfig) Validate() error {
 	if err := c.Token.Validate(); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-// authTokenConfig contains auth configuration.
-type authTokenConfig struct {
-	SigningKey string
-	Issuer     string
-	Audience   string
-}
-
-// Validate validates the configuration.
-func (c authTokenConfig) Validate() error {
-	if c.SigningKey == "" {
-		return errors.New("auth token signing key is required")
-	}
-
-	if len(c.SigningKey) < 32 {
-		return errors.New("auth token signing key must be at least 32 characters")
 	}
 
 	return nil
@@ -184,10 +163,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// Load common configuration
 	cmd.Configure(v, p)
 
-	// Auth configuration
-	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
-	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
-
 	// Database configuration
 	v.SetDefault("database.dialect", "mysql")
 	_ = v.BindEnv("database.host")
@@ -214,11 +189,4 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	viper.RegisterAlias("auth.oidcIssuerInsecure", "auth.dexInsecure")
 	viper.SetDefault("auth.dexGrpcAddress", "127.0.0.1:5557")
 	viper.SetDefault("auth.dexGrpcCaCert", "")
-}
-
-func registerAliases(v *viper.Viper) {
-	// Auth configuration
-	viperx.RegisterAlias(v, "auth.tokensigningkey", "auth.token.signingKey")
-	viperx.RegisterAlias(v, "auth.jwtissuer", "auth.token.issuer")
-	viperx.RegisterAlias(v, "auth.jwtaudience", "auth.token.audience")
 }

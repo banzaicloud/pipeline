@@ -110,8 +110,6 @@ func main() {
 		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
 	}
 
-	registerAliases(v)
-
 	var config configuration
 	err = v.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))

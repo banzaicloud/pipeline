@@ -161,13 +161,12 @@ configuration:
     dexurl: http://dex:5556/dex
     clientid: ""
     clientsecret: ""
-    jwtissueer: https://banzaicloud.com/
-    jwtaudience: https://pipeline.banzaicloud.com
     secureCookie: true
     # Domain field for cookies
     cookieDomain: ""
     setCookieDomain: false
-    whitelistEnabled: false
+    token:
+      signingKey: ""
   # Database handling
   database:
     autoMigrateEnabled: false
