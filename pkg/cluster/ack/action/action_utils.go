@@ -583,7 +583,7 @@ func collectClusterDeleteFailureLogs(clusterID string, csClient *cs.Client) ([]s
 
 // pipelineTags returns resource tags based on the pipeline uuid if available
 func pipelineTags(cluster, np string) string {
-	value := global.PipelineUUID()
+	value := global.Config.Pipeline.UUID
 
 	tags := map[string]string{
 		global.ManagedByPipelineTag: global.ManagedByPipelineValue,

@@ -15,6 +15,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -41,6 +44,14 @@ type configuration struct {
 
 	// Telemetry configuration
 	Telemetry telemetryConfig
+
+	Pipeline struct {
+		Addr         string
+		InternalAddr string
+		BasePath     string
+		CertFile     string
+		KeyFile      string
+	}
 
 	// Auth configuration
 	Auth auth.Config
@@ -107,6 +118,13 @@ func (c configuration) Validate() error {
 		return err
 	}
 
+	if c.Pipeline.Addr == "" {
+		return errors.New("pipeline address is required")
+	}
+	if c.Pipeline.InternalAddr == "" {
+		return errors.New("pipeline internal address is required")
+	}
+
 	if err := c.Auth.Validate(); err != nil {
 		return err
 	}
@@ -171,6 +189,24 @@ func (c telemetryConfig) Validate() error {
 
 // configure configures some defaults in the Viper instance.
 func configure(v *viper.Viper, p *pflag.FlagSet) {
+	v.AllowEmptyEnv(true)
+	v.AddConfigPath(".")
+	v.AddConfigPath("./config")
+	v.AddConfigPath(fmt.Sprintf("$%s_CONFIG_DIR/", strings.ToUpper(envPrefix)))
+	p.Init(friendlyAppName, pflag.ExitOnError)
+	pflag.Usage = func() {
+		_, _ = fmt.Fprintf(os.Stderr, "Usage of %s:\n", friendlyAppName)
+		pflag.PrintDefaults()
+	}
+	_ = v.BindPFlags(p)
+
+	v.SetEnvPrefix(envPrefix)
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	v.AutomaticEnv()
+
+	// Load common configuration
+	cmd.Configure(v, p)
+
 	// ErrorHandler configuration
 	v.Set("errors.serviceName", appName)
 	v.Set("errors.serviceVersion", version)
@@ -182,8 +218,14 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetDefault("telemetry.addr", "127.0.0.1:9900")
 	v.SetDefault("telemetry.debug", true)
 
-	// Load common configuration
-	cmd.Configure(v, p)
+	// Pipeline configuration
+	p.String("addr", "127.0.0.1:9090", "Pipeline HTTP server address")
+	_ = v.BindPFlag("pipeline.addr", p.Lookup("addr"))
+	v.SetDefault("pipeline.addr", "127.0.0.1:9090")
+	v.SetDefault("pipeline.internalAddr", "127.0.0.1:9091")
+	v.SetDefault("pipeline.basePath", "")
+	v.SetDefault("pipeline.certFile", "")
+	v.SetDefault("pipeline.keyFile", "")
 
 	// Auth configuration
 	v.SetDefault("auth.role.default", auth.RoleAdmin)

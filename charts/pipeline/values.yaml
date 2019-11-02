@@ -96,16 +96,7 @@ metrics:
 configuration:
   # Pipeline configs
   pipeline:
-    bindaddr: 127.0.0.1:9090
-    internalBindAddr: 127.0.0.1:9091
-    # Url basepath
-    # Default is "/pipeline" in the development environment to allow using the UI locally
-    basepath: /pipeline
-
-    # Use to redirect url after login
-    uipath: /ui/
-    signupRedirectPath: /ui/
-  pipelineExternalBaseURL: https://localhost/pipeline
+    basePath: /pipeline
 
   cluster:
     ingress:

@@ -14,20 +14,8 @@
 
 package global
 
-import (
-	"github.com/spf13/viper"
-
-	"github.com/banzaicloud/pipeline/config"
-)
-
 const (
 	ManagedByPipelineTag     = "banzaicloud-pipeline-managed"
 	ManagedByPipelineValue   = "true"
 	ManagedByPipelineUUIDTag = "banzaicloud-pipeline-uuid"
 )
-
-// PipelineUUID returns an UUID that identifies the specific installation (deployment) of the platform.
-// If UUID is not available, empty string is returned instead of generating a random one, because no UUID is better than one that always changes.
-func PipelineUUID() string {
-	return viper.GetString(config.PipelineUUID)
-}

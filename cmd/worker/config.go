@@ -49,9 +49,6 @@ type configuration struct {
 	// Error handling configuration
 	Errors errorhandler.Config
 
-	// Pipeline configuration
-	Pipeline PipelineConfig
-
 	// Auth configuration
 	Auth authConfig
 
@@ -72,10 +69,6 @@ func (c configuration) Validate() error {
 	}
 
 	if err := c.Errors.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Pipeline.Validate(); err != nil {
 		return err
 	}
 
@@ -104,16 +97,6 @@ func (c *configuration) Process() error {
 		return err
 	}
 
-	return nil
-}
-
-// PipelineConfig contains application specific config.
-type PipelineConfig struct {
-	BasePath string
-}
-
-// Validate validates the configuration.
-func (c PipelineConfig) Validate() error {
 	return nil
 }
 
@@ -148,6 +131,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	v.AutomaticEnv()
 
+	// Load common configuration
+	cmd.Configure(v, p)
+
 	// Global configuration
 	v.SetDefault("environment", "production")
 	v.SetDefault("debug", false)
@@ -156,12 +142,6 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	// ErrorHandler configuration
 	v.Set("errors.serviceName", appName)
 	v.Set("errors.serviceVersion", version)
-
-	// Pipeline configuration
-	v.SetDefault("pipeline.basePath", "")
-
-	// Load common configuration
-	cmd.Configure(v, p)
 
 	// Cadence configuration
 	v.SetDefault("cadence.createNonexistentDomain", false)

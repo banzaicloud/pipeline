@@ -260,6 +260,11 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("errors.stackdriver.enabled", false)
 	v.SetDefault("errors.stackdriver.projectId", false)
 
+	// Pipeline configuration
+	v.SetDefault("pipeline.uuid", "")
+	v.SetDefault("pipeline.external.url", "")
+	v.SetDefault("pipeline.external.insecure", false)
+
 	// Auth configuration
 	v.SetDefault("auth.oidc.issuer", "")
 	v.SetDefault("auth.oidc.insecure", false)

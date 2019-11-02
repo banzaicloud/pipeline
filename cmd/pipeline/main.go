@@ -23,7 +23,6 @@ import (
 	"os"
 	"path"
 	"regexp"
-	"strings"
 
 	"emperror.dev/emperror"
 	"emperror.dev/errors"
@@ -221,7 +220,7 @@ func main() {
 
 	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{})
 
-	basePath := viper.GetString("pipeline.basepath")
+	basePath := conf.Pipeline.BasePath
 
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
@@ -333,15 +332,15 @@ func main() {
 	}
 	prometheus.MustRegister(statusChangeDurationMetric, clusterTotalMetric)
 
-	externalBaseURL := viper.GetString("pipeline.externalURL")
+	externalBaseURL := global.Config.Pipeline.External.URL
 	if externalBaseURL == "" {
-		externalBaseURL = "http://" + viper.GetString("pipeline.bindaddr")
+		externalBaseURL = "http://" + conf.Pipeline.Addr
 		logger.Warn("no pipeline.external_url set, falling back to bind address", map[string]interface{}{
 			"fallback": externalBaseURL,
 		})
 	}
 
-	externalURLInsecure := viper.GetBool(config.PipelineExternalURLInsecure)
+	externalURLInsecure := global.Config.Pipeline.External.Insecure
 
 	workflowClient, err := cadence.NewClient(conf.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 	if err != nil {
@@ -469,7 +468,7 @@ func main() {
 		Help:      "read only mode is on/off",
 	})
 	prometheus.MustRegister(drainModeMetric)
-	engine.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
+	engine.Use(ginternal.NewDrainModeMiddleware(conf.Pipeline.BasePath, drainModeMetric, errorHandler).Middleware)
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "Authorization", "secretId", "Banzai-Cloud-Pipeline-UUID")
@@ -989,22 +988,13 @@ func main() {
 
 	base.GET("api", api.MetaHandler(engine, basePath+"/api"))
 
-	internalBindAddr := viper.GetString("pipeline.internalBindAddr")
+	internalBindAddr := conf.Pipeline.InternalAddr
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
 
 	go createInternalAPIRouter(conf, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
 
-	bindAddr := viper.GetString("pipeline.bindaddr")
-	if port := viper.GetInt("pipeline.listenport"); port != 0 { // TODO: remove deprecated option
-		host := strings.Split(bindAddr, ":")[0]
-		bindAddr = fmt.Sprintf("%s:%d", host, port)
-		logger.Warn(fmt.Sprintf(
-			"pipeline.listenport=%d setting is deprecated! Falling back to pipeline.bindaddr=%s",
-			port,
-			bindAddr,
-		))
-	}
-	certFile, keyFile := viper.GetString("pipeline.certfile"), viper.GetString("pipeline.keyfile")
+	bindAddr := conf.Pipeline.Addr
+	certFile, keyFile := conf.Pipeline.CertFile, conf.Pipeline.KeyFile
 	if certFile != "" && keyFile != "" {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
 		_ = engine.RunTLS(bindAddr, certFile, keyFile)

@@ -19,23 +19,26 @@
 #    debug: true
 
 pipeline:
-    # Pipeline configs
-    bindaddr: "127.0.0.1:9090"
-    externalURLInsecure: false
-
-    # Bind address for Internal API
-    internalBindaddr: "127.0.0.1:9091"
-
-    # Url basepath
-    # Default is "/pipeline" in the development environment to allow using the UI locally
-    basepath: "/pipeline"
-
-    # Base URL where the end users can reach this pipeline instance
-    externalURL: "https://example.com/pipeline"
-
     # An UUID that identifies the specific installation (deployment) of the platform.
     # If a good UUID is not available, do not generate one automatically, because no UUID is better than one that always changes.
     # uuid: ""
+
+    addr: "127.0.0.1:9090"
+
+    # Bind address for Internal API
+    internalAddr: "127.0.0.1:9091"
+
+    # URL base path
+    # Default is "/pipeline" in the development environment to allow using the UI locally
+    basePath: "/pipeline"
+
+    certFile: ""
+    keyFile: ""
+
+    external:
+        # Base URL where the end users can reach this pipeline instance
+        url: "https://example.com/pipeline"
+        insecure: false
 
 ui:
     url: "http://localhost:4200/ui"

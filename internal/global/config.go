@@ -34,6 +34,14 @@ type Configuration struct {
 		Debug bool
 	}
 
+	Pipeline struct {
+		UUID     string
+		External struct {
+			URL      string
+			Insecure bool
+		}
+	}
+
 	Auth struct {
 		OIDC struct {
 			Issuer       string

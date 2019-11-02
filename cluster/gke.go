@@ -891,7 +891,7 @@ func generateClusterCreateRequest(cc googleCluster) *gke.CreateClusterRequest {
 
 // pipelineTags returns resource tags based on the pipeline uuid if available
 func pipelineTags() map[string]string {
-	value := global.PipelineUUID()
+	value := global.Config.Pipeline.UUID
 
 	tags := map[string]string{
 		global.ManagedByPipelineTag: global.ManagedByPipelineValue,

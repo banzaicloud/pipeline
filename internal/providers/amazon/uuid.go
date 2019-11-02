@@ -30,7 +30,7 @@ func PipelineTags() []*cloudformation.Tag {
 		},
 	}
 
-	value := global.PipelineUUID()
+	value := global.Config.Pipeline.UUID
 	if value != "" {
 		tags = append(tags, &cloudformation.Tag{
 			Key:   aws.String(global.ManagedByPipelineUUIDTag),
