@@ -129,6 +129,14 @@ configuration:
         - storageprofile
         - storagetier
 
+    monitoring:
+      # Pipeline federated monitoring configurations
+      monitor:
+        enabled: false
+        configMap: prometheus-federation
+        certSecret: prometheus-federation-secrets
+        mountPath: /etc/prometheus/secrets
+
     securityScan:
       anchore:
         enabled: false
@@ -167,14 +175,6 @@ configuration:
   # Pipeline Helm related configuration
   helm:
     home: "/cache/helm"
-
-  # Pipeline federated monitoring configurations
-  monitor:
-   enabled: false
-   configMap: prometheus-federation
-   certSecret: prometheus-federation-secrets
-   mountPath: /etc/prometheus/secrets
-   grafanaAdminUsername: admin
 
 ##
 ## Vault connector settings
