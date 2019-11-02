@@ -55,7 +55,7 @@ func Connect(c Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.LogMode(c.EnableLog)
+	db.LogMode(c.QueryLog)
 
 	return db, nil
 }
