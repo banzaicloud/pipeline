@@ -128,6 +128,12 @@ auth:
 #    # Namespace to install components to
 #    namespace: "pipeline-system"
 #
+#    ingress:
+#        # Certificate CA for signing default ingress certs
+#        cert:
+#            source: "file"
+#            path: "config/certs"
+#
 #    labels:
 #        # Inherited from cluster.namespace when empty
 #        namespace: ""
@@ -307,10 +313,6 @@ ark:
 #spotmetrics:
 #    enabled: false
 #    collectionInterval: "30s"
-
-cert:
-    source: "file"
-    path: "config/certs"
 
 #cloud:
 #    amazon:
