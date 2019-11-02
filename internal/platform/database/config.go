@@ -30,7 +30,7 @@ type Config struct {
 
 	Params map[string]string
 
-	EnableLog bool
+	QueryLog bool
 }
 
 // Validate checks that the configuration is valid.
