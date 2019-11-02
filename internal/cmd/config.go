@@ -281,6 +281,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("dex.apiCa", "")
 
 	// Kubernetes configuration
+	_ = v.BindEnv("kubernetes.namespace", "KUBERNETES_NAMESPACE")
+	v.SetDefault("kubernetes.namespace", "default")
 	v.SetDefault("kubernetes.client.forceGlobal", false)
 
 	// Database config
