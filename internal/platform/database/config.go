@@ -18,13 +18,13 @@ import "github.com/pkg/errors"
 
 // Config holds information necessary for connecting to a database.
 type Config struct {
-	Dialect string
-	Host    string
-	Port    int
-	User    string
-	Pass    string
-	Name    string
-	TLS     string
+	Dialect  string
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Name     string
+	TLS      string
 
 	Role string
 

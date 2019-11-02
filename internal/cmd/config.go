@@ -533,6 +533,17 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cicd.url", "http://localhost:8000")
 	v.SetDefault("cicd.insecure", false)
 	v.SetDefault("cicd.scm", "github")
+	v.SetDefault("cicd.database.dialect", "mysql")
+	v.SetDefault("cicd.database.host", "")
+	v.SetDefault("cicd.database.port", 3306)
+	v.SetDefault("cicd.database.tls", "")
+	v.SetDefault("cicd.database.user", "")
+	v.SetDefault("cicd.database.password", "")
+	v.SetDefault("cicd.database.name", "")
+	v.SetDefault("cicd.database.params", map[string]string{
+		"charset": "utf8mb4",
+	})
+	v.SetDefault("cicd.database.queryLog", false)
 
 	// Auth provider (Gitlab/Github) settings
 	v.SetDefault("github.token", "")

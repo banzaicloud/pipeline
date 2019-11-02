@@ -56,7 +56,6 @@ database:
     role: ""
     password: "sparky123"
     dbname: "pipeline"
-    cicddbname: "cicd"
 
     # Turn this to true to see all queries in the log
     logging: false
@@ -351,15 +350,31 @@ hollowtrees:
     endpoint: "/hollowtrees-alerts/api/v1/alerts"
     signingKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 
-#cicd:
+cicd:
 #    enabled: false
 #    url: "http://localhost:8000"
 #    insecure: false
 #    scm: "github"
-#
+
+    database:
+        # dialect: "postgres"
+        dialect: "mysql"
+        host: "localhost"
+        # port: 5432
+        port: 3306
+        # tls: "disable"
+        tls: "false"
+        user: "sparky"
+        role: ""
+        password: "sparky123"
+        name: "cicd"
+
+        # Turn this to true to see all queries in the log
+        queryLog: false
+
 #github:
 #    token: "YourPersonalAccessToken"
-#
+
 #gitlab:
 #    url: "https://gitlab.com/"
 #    token: "YourPersonalAccessToken"

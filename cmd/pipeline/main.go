@@ -109,6 +109,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/platform/appkit"
 	"github.com/banzaicloud/pipeline/internal/platform/buildinfo"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	ginternal "github.com/banzaicloud/pipeline/internal/platform/gin"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
@@ -210,8 +211,10 @@ func main() {
 
 	// Connect to database
 	db := config.DB()
-	cicdDB, err := config.CICDDB()
-	emperror.Panic(err)
+
+	// TODO: make this optional when CICD is disabled
+	cicdDB, err := database.Connect(conf.CICD.Database)
+	emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
 
 	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{})
 

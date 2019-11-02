@@ -25,6 +25,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
 	"github.com/banzaicloud/pipeline/internal/cmd"
 	"github.com/banzaicloud/pipeline/internal/platform/cadence"
+	"github.com/banzaicloud/pipeline/internal/platform/database"
 	"github.com/banzaicloud/pipeline/internal/platform/errorhandler"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
 )
@@ -55,6 +56,11 @@ type configuration struct {
 
 	Cloudinfo struct {
 		Endpoint string
+	}
+
+	CICD struct {
+		Enabled  bool
+		Database database.Config
 	}
 
 	Github struct {
@@ -96,6 +102,12 @@ func (c configuration) Validate() error {
 	if c.Cloudinfo.Endpoint == "" {
 		return errors.New("cloudinfo endpoint is required")
 	}
+
+	// if c.CICD.Enabled {
+	if err := c.CICD.Database.Validate(); err != nil {
+		return err
+	}
+	// }
 
 	return nil
 }

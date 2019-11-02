@@ -66,7 +66,6 @@ func init() {
 	viper.SetDefault("database.user", "kellyslater")
 	viper.SetDefault("database.password", "pipemaster123!")
 	viper.SetDefault("database.dbname", "pipeline")
-	viper.SetDefault("database.cicddbname", "cicd")
 	viper.SetDefault("database.logging", false)
 	viper.SetDefault(DBAutoMigrateEnabled, false)
 	viper.SetDefault("audit.enabled", true)
