@@ -208,8 +208,11 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster.manifest", "")
 	v.SetDefault("cluster.namespace", "pipeline-system")
 
-	viper.SetDefault("cluster.labels.domain", "banzaicloud.io")
-	viper.SetDefault("cluster.labels.forbiddenDomains", []string{
+	v.SetDefault("cluster.ingress.cert.source", "file")
+	v.SetDefault("cluster.ingress.cert.path", "config/certs")
+
+	v.SetDefault("cluster.labels.domain", "banzaicloud.io")
+	v.SetDefault("cluster.labels.forbiddenDomains", []string{
 		"k8s.io",
 		"kubernetes.io",
 		"google.com",
@@ -366,8 +369,8 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("hooks.domainHookDisabled", false)
 
 	// Spotguide config
-	viper.SetDefault("spotguide.allowPrereleases", false)
-	viper.SetDefault("spotguide.allowPrivateRepos", false)
-	viper.SetDefault("spotguide.syncInterval", 5*time.Minute)
-	viper.SetDefault("spotguide.sharedLibraryGitHubOrganization", "spotguides")
+	v.SetDefault("spotguide.allowPrereleases", false)
+	v.SetDefault("spotguide.allowPrivateRepos", false)
+	v.SetDefault("spotguide.syncInterval", 5*time.Minute)
+	v.SetDefault("spotguide.sharedLibraryGitHubOrganization", "spotguides")
 }

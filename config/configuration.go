@@ -188,9 +188,6 @@ func init() {
 
 	viper.SetDefault(EksTemplateLocation, filepath.Join(pwd, "templates", "eks"))
 
-	viper.SetDefault("cert.source", "file")
-	viper.SetDefault("cert.path", "config/certs")
-
 	viper.SetDefault("gitlab.baseURL", "https://gitlab.com/")
 
 	viper.SetDefault(IstioOperatorChartVersion, "0.0.14")

@@ -182,9 +182,9 @@ spec:
         - name: pipeline-tls
           mountPath: /tls
       {{ end }}
-      {{- if eq .Values.configuration.cert.source "file" }}
+      {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
         - name: sign-ca
-          mountPath: {{ .Values.configuration.cert.path }}
+          mountPath: {{ .Values.configuration.cluster.ingress.cert.path }}
       {{ end }}
       volumes:
       - name: config-volume
@@ -209,7 +209,7 @@ spec:
         secret:
           secretName: {{ include "pipeline.fullname" . }}-tls
       {{ end }}
-      {{- if eq .Values.configuration.cert.source "file" }}
+      {{- if eq .Values.configuration.cluster.ingress.cert.source "file" }}
       - name: sign-ca
         secret:
           secretName: {{ include "pipeline.fullname" . }}-sign-ca

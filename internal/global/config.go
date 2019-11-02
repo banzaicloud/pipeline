@@ -36,6 +36,13 @@ type Configuration struct {
 	Cluster struct {
 		Namespace string
 
+		Ingress struct {
+			Cert struct {
+				Source string
+				Path   string
+			}
+		}
+
 		Labels struct {
 			Namespace string
 
