@@ -78,6 +78,12 @@ type configuration struct {
 		Enabled            bool
 		CollectionInterval time.Duration
 	}
+
+	Audit struct {
+		Enabled   bool
+		Headers   []string
+		SkipPaths []string
+	}
 }
 
 // Validate validates the configuration.
@@ -188,4 +194,8 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	v.SetDefault("spotmetrics.enabled", false)
 	v.SetDefault("spotmetrics.collectionInterval", 30*time.Second)
+
+	v.SetDefault("audit.enabled", true)
+	v.SetDefault("audit.headers", []string{"secretId"})
+	v.SetDefault("audit.skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
 }
