@@ -23,7 +23,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
@@ -31,13 +30,15 @@ import (
 	"github.com/banzaicloud/pipeline/secret"
 )
 
+const MonitorReleaseName = "monitor"
+
 // InstallMonitoring installs monitoring tools (Prometheus, Grafana) to a cluster.
 func InstallMonitoring(cluster CommonCluster) error {
 	monitoringNamespace := global.Config.Cluster.Namespace
 
 	clusterNameSecretTag := fmt.Sprintf("cluster:%s", cluster.GetName())
 	clusterUidSecretTag := fmt.Sprintf("clusterUID:%s", cluster.GetUID())
-	releaseSecretTag := fmt.Sprintf("release:%s", pipConfig.MonitorReleaseName)
+	releaseSecretTag := fmt.Sprintf("release:%s", MonitorReleaseName)
 
 	// Generating Grafana credentials
 	grafanaAdminUsername := viper.GetString("monitor.grafanaAdminUsername")
@@ -194,7 +195,7 @@ func InstallMonitoring(cluster CommonCluster) error {
 		cluster,
 		monitoringNamespace,
 		pkgHelm.BanzaiRepository+"/pipeline-cluster-monitor",
-		pipConfig.MonitorReleaseName,
+		MonitorReleaseName,
 		valuesJSON,
 		"",
 		false,
