@@ -70,8 +70,8 @@ cadence:
 #    workflowExecutionRetentionPeriodInDays: 3
 
 cors:
-    AllowAllOrigins: false
-    AllowOrigins: ["http://localhost:4200"]
+    allowAllOrigins: false
+    allowOrigins: ["http://localhost:4200"]
 
 auth:
     oidc:

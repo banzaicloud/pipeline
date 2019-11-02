@@ -144,12 +144,6 @@ configuration:
         secretName: ""
         secretKey: adminPassword
 
-  # CORS configuration
-  cors:
-    AllowAllOrigins: false
-    AllowOrigins: []
-    AllowOriginsRegexp: ".*"
-
   cicd:
     url: http://cicd:8000
 
