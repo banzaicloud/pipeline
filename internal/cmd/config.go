@@ -385,6 +385,17 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	// Temporary hook flags
 	v.SetDefault("hooks.domainHookDisabled", false)
 
+	// CICD config
+	v.SetDefault("cicd.enabled", false)
+	v.SetDefault("cicd.url", "http://localhost:8000")
+	v.SetDefault("cicd.insecure", false)
+	v.SetDefault("cicd.scm", "github")
+
+	// Auth provider (Gitlab/Github) settings
+	v.SetDefault("github.token", "")
+	v.SetDefault("gitlab.url", "https://gitlab.com/")
+	v.SetDefault("gitlab.token", "")
+
 	// Spotguide config
 	v.SetDefault("spotguide.allowPrereleases", false)
 	v.SetDefault("spotguide.allowPrivateRepos", false)

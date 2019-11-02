@@ -142,13 +142,12 @@ configuration:
     AllowOrigins: []
     AllowOriginsRegexp: ".*"
 
-  # CICD
   cicd:
-    enabled: false
     url: http://cicd:8000
-  # Github
+
   github:
     token: ""
+
   # Authentication
   auth:
     dexurl: http://dex:5556/dex

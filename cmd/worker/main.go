@@ -145,6 +145,13 @@ func main() {
 		os.Exit(3)
 	}
 
+	err = global.Config.Validate()
+	if err != nil {
+		logger.Error(err.Error())
+
+		os.Exit(3)
+	}
+
 	// Configure error handler
 	errorHandler, err := errorhandler.New(config.Errors, logger)
 	if err != nil {
@@ -205,13 +212,13 @@ func main() {
 		clusterAuthService, err := intClusterAuth.NewDexClusterAuthService(clusterSecretStore)
 		emperror.Panic(errors.Wrap(err, "failed to create DexClusterAuthService"))
 
-		scmProvider := v.GetString("cicd.scm")
+		scmProvider := global.Config.CICD.SCM
 		var scmToken string
 		switch scmProvider {
 		case "github":
-			scmToken = v.GetString("github.token")
+			scmToken = global.Config.Github.Token
 		case "gitlab":
-			scmToken = v.GetString("gitlab.token")
+			scmToken = global.Config.Gitlab.Token
 		default:
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}

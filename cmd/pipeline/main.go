@@ -189,6 +189,13 @@ func main() {
 		os.Exit(3)
 	}
 
+	err = global.Config.Validate()
+	if err != nil {
+		logger.Error(err.Error())
+
+		os.Exit(3)
+	}
+
 	errorHandler, err := errorhandler.New(conf.Errors, logger)
 	if err != nil {
 		logger.Error(err.Error())
@@ -520,7 +527,7 @@ func main() {
 		dcGroup.GET("", dashboardAPI.GetClusterDashboard)
 	}
 
-	scmTokenStore := auth.NewSCMTokenStore(tokenStore, viper.GetBool("cicd.enabled"))
+	scmTokenStore := auth.NewSCMTokenStore(tokenStore, global.Config.CICD.Enabled)
 
 	domainAPI := api.NewDomainAPI(clusterManager, logrusLogger, errorHandler)
 	organizationAPI := api.NewOrganizationAPI(organizationSyncer, auth.NewRefreshTokenStore(tokenStore))
@@ -529,19 +536,18 @@ func main() {
 
 	var spotguideAPI *api.SpotguideAPI
 
-	if viper.GetBool("cicd.enabled") {
-
+	if global.Config.CICD.Enabled {
 		spotguidePlatformData := spotguide.PlatformData{
 			AutoDNSEnabled: global.Config.Cluster.DNS.BaseDomain != "",
 		}
 
-		scmProvider := viper.GetString("cicd.scm")
+		scmProvider := global.Config.CICD.SCM
 		var scmToken string
 		switch scmProvider {
 		case "github":
-			scmToken = viper.GetString("github.token")
+			scmToken = global.Config.Github.Token
 		case "gitlab":
-			scmToken = viper.GetString("gitlab.token")
+			scmToken = global.Config.Gitlab.Token
 		default:
 			emperror.Panic(fmt.Errorf("Unknown SCM provider configured: %s", scmProvider))
 		}
@@ -602,7 +608,7 @@ func main() {
 			orgs.Use(api.OrganizationMiddleware)
 			orgs.Use(authorizationMiddleware)
 
-			if viper.GetBool("cicd.enabled") {
+			if global.Config.CICD.Enabled {
 				spotguides := orgs.Group("/:orgid/spotguides")
 				spotguideAPI.Install(spotguides)
 			}

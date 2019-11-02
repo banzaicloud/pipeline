@@ -15,6 +15,7 @@
 package global
 
 import (
+	"errors"
 	"path/filepath"
 	"time"
 
@@ -180,12 +181,57 @@ type Configuration struct {
 		DomainHookDisabled bool
 	}
 
+	CICD struct {
+		Enabled  bool
+		URL      string
+		Insecure bool
+		SCM      string
+	}
+
+	Github struct {
+		Token string
+	}
+
+	Gitlab struct {
+		URL   string
+		Token string
+	}
+
 	Spotguide struct {
 		AllowPrereleases                bool
 		AllowPrivateRepos               bool
 		SyncInterval                    time.Duration
 		SharedLibraryGitHubOrganization string
 	}
+}
+
+func (c Configuration) Validate() error {
+	if c.CICD.Enabled {
+		if c.CICD.URL == "" {
+			return errors.New("cicd url is required")
+		}
+
+		switch c.CICD.SCM {
+		case "github":
+			if c.Github.Token == "" {
+				return errors.New("github token is required")
+			}
+
+		case "gitlab":
+			if c.Gitlab.URL == "" {
+				return errors.New("gitlab url is required")
+			}
+
+			if c.Gitlab.Token == "" {
+				return errors.New("gitlab token is required")
+			}
+
+		default:
+			return errors.New("cicd scm is required")
+		}
+	}
+
+	return nil
 }
 
 func (c *Configuration) Process() error {
