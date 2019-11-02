@@ -61,7 +61,7 @@ func NewDBConfig() database.Config {
 		TLS:      viper.GetString("database.tls"),
 		Role:     viper.GetString("database.role"),
 		User:     viper.GetString("database.user"),
-		Pass:     viper.GetString("database.password"),
+		Password: viper.GetString("database.password"),
 		Name:     viper.GetString("database.dbname"),
 		QueryLog: viper.GetBool("database.logging"),
 	}
