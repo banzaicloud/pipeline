@@ -17,7 +17,7 @@ package verify
 import (
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // Note: this should be FieldLogger instead.
@@ -26,5 +26,9 @@ import (
 var log *logrus.Logger
 
 func init() {
-	log = config.Logger()
+	log = global.LogrusLogger()
+
+	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+		log = l
+	})
 }

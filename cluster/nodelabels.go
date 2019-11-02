@@ -26,7 +26,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/config"
 	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -43,7 +42,7 @@ const labelFormatRegexp = "[^-A-Za-z0-9_.]"
 // noReturnIfNoUserLabels = true, means if there are no labels specified in NodePoolStatus, no labels are returned for that node pool
 // is not returned, to avoid overriding user specified labels.
 func GetDesiredLabelsForCluster(ctx context.Context, cluster CommonCluster, nodePools map[string]*pkgCluster.NodePoolStatus, noReturnIfNoUserLabels bool) (map[string]map[string]string, error) {
-	logger := pipelineContext.LoggerWithCorrelationID(ctx, config.Logger()).WithFields(logrus.Fields{
+	logger := pipelineContext.LoggerWithCorrelationID(ctx, log).WithFields(logrus.Fields{
 		"organization": cluster.GetOrganizationId(),
 		"cluster":      cluster.GetID(),
 	})

@@ -38,7 +38,6 @@ import (
 	"github.com/qor/session/gorilla"
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgAuth "github.com/banzaicloud/pipeline/pkg/auth"
 )
@@ -75,8 +74,6 @@ const (
 // Init authorization
 // nolint: gochecknoglobals
 var (
-	log *logrus.Logger
-
 	cicdDB *gorm.DB
 
 	Auth *auth.Auth
@@ -95,9 +92,15 @@ var (
 	oidcProvider *OIDCProvider
 )
 
-// Simple init for logging
+// nolint: gochecknoglobals
+var log logrus.FieldLogger
+
 func init() {
-	log = config.Logger()
+	log = global.LogrusLogger()
+
+	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+		log = l
+	})
 }
 
 // CICDClaims struct to store the cicd claim related things

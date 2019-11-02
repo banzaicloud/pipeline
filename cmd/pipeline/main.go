@@ -64,7 +64,6 @@ import (
 	"github.com/banzaicloud/pipeline/auth/authdriver"
 	"github.com/banzaicloud/pipeline/auth/authgen"
 	"github.com/banzaicloud/pipeline/cluster"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	anchore2 "github.com/banzaicloud/pipeline/internal/anchore"
 	"github.com/banzaicloud/pipeline/internal/app/frontend"
@@ -173,7 +172,11 @@ func main() {
 	logger := log.NewLogger(conf.Log)
 
 	// Legacy logger instance
-	logrusLogger := config.Logger()
+	logrusLogger := log.NewLogrusLogger(log.Config{
+		Level:  conf.Log.Level,
+		Format: conf.Log.Format,
+	})
+	global.SetLogrusLogger(logrusLogger)
 
 	// Provide some basic context to all log lines
 	logger = log.WithFields(logger, map[string]interface{}{"application": appName})

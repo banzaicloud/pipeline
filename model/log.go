@@ -17,12 +17,16 @@ package model
 import (
 	"github.com/sirupsen/logrus"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 )
 
 // nolint: gochecknoglobals
 var log logrus.FieldLogger
 
 func init() {
-	log = config.Logger()
+	log = global.LogrusLogger()
+
+	global.SubscribeLogrusLogger(func(l *logrus.Logger) {
+		log = l
+	})
 }
