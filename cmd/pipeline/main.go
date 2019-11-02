@@ -116,7 +116,6 @@ import (
 	ginlog "github.com/banzaicloud/pipeline/internal/platform/gin/log"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 	"github.com/banzaicloud/pipeline/internal/platform/log"
-	platformlog "github.com/banzaicloud/pipeline/internal/platform/log"
 	"github.com/banzaicloud/pipeline/internal/platform/watermill"
 	azurePKEAdapter "github.com/banzaicloud/pipeline/internal/providers/azure/pke/adapter"
 	azurePKEDriver "github.com/banzaicloud/pipeline/internal/providers/azure/pke/driver"
@@ -945,20 +944,17 @@ func main() {
 		backups.AddOrgRoutes(orgs.Group("/:orgid/backups"), clusterManager)
 	}
 
-	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), config.DB(), logrusLogger)
-	if viper.GetBool(config.ARKSyncEnabled) {
+	arkEvents.NewClusterEventHandler(arkEvents.NewClusterEvents(clusterEventBus), db, logrusLogger)
+	if global.Config.Cluster.DisasterRecovery.Ark.SyncEnabled {
 		go arkSync.RunSyncServices(
 			context.Background(),
-			config.DB(),
+			db,
 			arkClusterManager.New(clusterManager),
-			platformlog.NewLogrusLogger(platformlog.Config{
-				Level:  viper.GetString(config.ARKLogLevel),
-				Format: viper.GetString(conf.Log.Format),
-			}).WithField("subsystem", "ark"),
+			logrusLogger.WithField("subsystem", "ark"),
 			errorHandler,
-			viper.GetDuration(config.ARKBucketSyncInterval),
-			viper.GetDuration(config.ARKRestoreSyncInterval),
-			viper.GetDuration(config.ARKBackupSyncInterval),
+			global.Config.Cluster.DisasterRecovery.Ark.BucketSyncInterval,
+			global.Config.Cluster.DisasterRecovery.Ark.RestoreSyncInterval,
+			global.Config.Cluster.DisasterRecovery.Ark.BackupSyncInterval,
 		)
 	}
 

@@ -352,6 +352,23 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster.securityScan.anchore.user", "")
 	v.SetDefault("cluster.securityScan.anchore.password", "")
 
+	v.SetDefault("cluster.disasterRecovery.enabled", true)
+	v.SetDefault("cluster.disasterRecovery.namespace", "")
+	v.SetDefault("cluster.disasterRecovery.ark.syncEnabled", true)
+	v.SetDefault("cluster.disasterRecovery.ark.bucketSyncInterval", "10m")
+	v.SetDefault("cluster.disasterRecovery.ark.restoreSyncInterval", "20s")
+	v.SetDefault("cluster.disasterRecovery.ark.backupSyncInterval", "20s")
+	v.SetDefault("cluster.disasterRecovery.ark.restoreWaitTimeout", "5m")
+	v.SetDefault("cluster.disasterRecovery.charts.ark.chart", "banzaicloud-stable/ark")
+	v.SetDefault("cluster.disasterRecovery.charts.ark.version", "1.2.2")
+	v.SetDefault("cluster.disasterRecovery.charts.ark.values", map[string]interface{}{
+		"image": map[string]interface{}{
+			"repository": "banzaicloud/ark",
+			"tag":        "v0.9.11",
+			"pullPolicy": "IfNotPresent",
+		},
+	})
+
 	// Helm configuration
 	v.SetDefault("helm.tiller.version", "v2.14.2")
 	v.SetDefault("helm.home", "./var/cache")

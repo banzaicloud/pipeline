@@ -251,6 +251,27 @@ auth:
 #
 #                # See https://github.com/banzaicloud/banzai-charts/tree/master/hpa-operator for details
 #                values: {}
+#
+#    disasterRecovery:
+#        enabled: true
+#
+#        # Inherited from cluster.namespace when empty
+#        namespace: ""
+#
+#        ark:
+#            syncEnabled: true
+#            bucketSyncInterval: "10m"
+#            restoreSyncInterval: "20s"
+#            backupSyncInterval: "20s"
+#            restoreWaitTimeout: "5m"
+#
+#        charts:
+#            ark:
+#                chart: "banzaicloud-stable/ark"
+#                version: "1.2.2"
+#
+#                # See https://github.com/banzaicloud/banzai-charts/tree/master/ark for details
+#                values: {}
 
 #helm:
 #    home: "./var/cache"
@@ -288,21 +309,6 @@ canary:
     chartName: canary-operator
     imageRepository: banzaicloud/canary-operator
     imageTag: 0.1.0
-
-ark:
-    name: "ark"
-    namespace: "pipeline-system"
-    chart: "banzaicloud-stable/ark"
-    chartVersion: "1.2.2"
-    image: "banzaicloud/ark"
-    imageTag: "v0.9.11"
-    pullPolicy: "IfNotPresent"
-    syncEnabled: true
-    logLevel: "info"
-    bucketSyncInterval: "10m"
-    restoreSyncInterval: "20s"
-    backupSyncInterval: "20s"
-    restoreWaitTimeout: "5m"
 
 #spotguide:
 #    allowPrereleases: false
