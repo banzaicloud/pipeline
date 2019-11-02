@@ -25,13 +25,6 @@ import (
 const (
 	// PipelineHeadNodePoolName name of our Head node pool for Pipeline Infra deployments
 	PipelineHeadNodePoolName = "infra.headNodePoolName"
-
-	// PipelineExternalURLInsecure specifies whether the external URL of the Pipeline is insecure
-	// as uses self-signed CA cert
-	PipelineExternalURLInsecure = "pipeline.externalURLInsecure"
-
-	// PipelineUUID is an UUID that identifies the specific installation (deployment) of the platform
-	PipelineUUID = "pipeline.uuid"
 )
 
 // Init initializes the configurations
@@ -42,13 +35,6 @@ func init() {
 	viper.AddConfigPath("./config")
 	viper.AddConfigPath("$PIPELINE_CONFIG_DIR/")
 	viper.SetConfigName("config")
-
-	viper.SetDefault("pipeline.bindaddr", "127.0.0.1:9090")
-	viper.SetDefault(PipelineExternalURLInsecure, false)
-	viper.SetDefault("pipeline.certfile", "")
-	viper.SetDefault("pipeline.keyfile", "")
-	viper.SetDefault("pipeline.basepath", "")
-	viper.SetDefault(PipelineUUID, "")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

@@ -25,7 +25,7 @@ func PipelineTags() map[string]*string {
 		global.ManagedByPipelineTag: &managedValue,
 	}
 
-	value := global.PipelineUUID()
+	value := global.Config.Pipeline.UUID
 	if value != "" {
 		tags[global.ManagedByPipelineUUIDTag] = &value
 	}

@@ -40,7 +40,7 @@ func Handler(buildInfo BuildInfo) http.Handler {
 				Os:           buildInfo.Os,
 				Arch:         buildInfo.Arch,
 				Compiler:     buildInfo.Compiler,
-				InstanceUuid: global.PipelineUUID(),
+				InstanceUuid: global.Config.Pipeline.UUID,
 			}
 
 			body, err = json.Marshal(data)

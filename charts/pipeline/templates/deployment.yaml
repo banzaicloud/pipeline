@@ -53,7 +53,7 @@ spec:
       - name: pipeline
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        args: ["/pipeline", "--telemetry-addr=0.0.0.0:9900"]
+        args: ["/pipeline", "--addr=0.0.0.0:{{ .Values.service.internalPort }}", "--telemetry-addr=0.0.0.0:9900"]
         env:
         - name: PIPELINE_TELEMETRY_ENABLED
           value: {{ .Values.metrics.enabled | quote }}
@@ -132,15 +132,13 @@ spec:
         {{- end }}
 
         # Pipeline service and TLS
-        - name: PIPELINE_PIPELINE_BINDADDR
-          value: ":{{ .Values.service.internalPort }}"
         {{- if .Values.service.tls }}
         - name: PIPELINE_PIPELINE_CERTFILE
           value: /tls/server.crt
         - name: PIPELINE_PIPELINE_KEYFILE
           value: /tls/server.key
         - name: PIPELINECTL_API_URL
-          value: https://127.0.0.1:{{ .Values.service.internalPort }}
+          value: "https://127.0.0.1:{{ .Values.service.internalPort }}"
         - name: PIPELINECTL_API_VERIFY
           value: "false"
         {{ end }}
@@ -166,7 +164,7 @@ spec:
         - containerPort: {{ .Values.service.internalPort }}
         livenessProbe:
           httpGet:
-            path: {{ .Values.configuration.pipelineBasepath }}/api
+            path: {{ .Values.configuration.pipeline.basePath }}/api
             port: {{ .Values.service.internalPort }}
           {{- if .Values.service.tls }}
             scheme: HTTPS
@@ -174,7 +172,7 @@ spec:
           initialDelaySeconds: 15
         readinessProbe:
           httpGet:
-            path: {{ .Values.configuration.pipelineBasepath }}/api
+            path: {{ .Values.configuration.pipeline.basePath }}/api
             port: {{ .Values.service.internalPort }}
           {{- if .Values.service.tls }}
             scheme: HTTPS
