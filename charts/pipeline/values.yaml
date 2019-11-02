@@ -177,21 +177,6 @@ configuration:
    mountPath: /etc/prometheus/secrets
    grafanaAdminUsername: admin
 
-  ark:
-    name: ark
-    namespace: pipeline-infra
-    chart: banzaicloud-stable/ark
-    chartVersion: 1.2.2
-    image: banzaicloud/ark
-    imageTag: v0.9.6
-    pullPolicy: IfNotPresent
-    syncEnabled: true
-    logLevel: info
-    bucketSyncInterval: 10m
-    restoreSyncInterval: 20s
-    backupSyncInterval: 20s
-    restoreWaitTimeout: 5m
-
 ##
 ## Vault connector settings
 ##

@@ -42,21 +42,6 @@ const (
 	// the location to get EKS Cloud Formation templates from
 	EksTemplateLocation = "eks.templateLocation"
 
-	// ARK
-	ARKName                = "ark.name"
-	ARKNamespace           = "ark.namespace"
-	ARKChart               = "ark.chart"
-	ARKChartVersion        = "ark.chartVersion"
-	ARKImage               = "ark.image"
-	ARKImageTag            = "ark.imageTag"
-	ARKPullPolicy          = "ark.pullPolicy"
-	ARKSyncEnabled         = "ark.syncEnabled"
-	ARKLogLevel            = "ark.logLevel"
-	ARKBucketSyncInterval  = "ark.bucketSyncInterval"
-	ARKRestoreSyncInterval = "ark.restoreSyncInterval"
-	ARKBackupSyncInterval  = "ark.backupSyncInterval"
-	ARKRestoreWaitTimeout  = "ark.restoreWaitTimeout"
-
 	// Database
 	DBAutoMigrateEnabled = "database.autoMigrateEnabled"
 
@@ -161,20 +146,6 @@ func init() {
 	viper.SetDefault("audit.headers", []string{"secretId"})
 	viper.SetDefault("audit.skippaths", []string{"/auth/dex/callback", "/pipeline/api"})
 	viper.SetDefault("tls.validity", "8760h") // 1 year
-
-	viper.SetDefault(ARKName, "ark")
-	viper.SetDefault(ARKNamespace, "pipeline-system")
-	viper.SetDefault(ARKChart, "banzaicloud-stable/ark")
-	viper.SetDefault(ARKChartVersion, "1.2.2")
-	viper.SetDefault(ARKImage, "banzaicloud/ark")
-	viper.SetDefault(ARKImageTag, "v0.9.11")
-	viper.SetDefault(ARKPullPolicy, "IfNotPresent")
-	viper.SetDefault(ARKSyncEnabled, true)
-	viper.SetDefault(ARKLogLevel, "info")
-	viper.SetDefault(ARKBucketSyncInterval, "10m")
-	viper.SetDefault(ARKRestoreSyncInterval, "20s")
-	viper.SetDefault(ARKBackupSyncInterval, "20s")
-	viper.SetDefault(ARKRestoreWaitTimeout, "5m")
 
 	viper.SetDefault(MonitorEnabled, false)
 	viper.SetDefault(MonitorConfigMap, "")

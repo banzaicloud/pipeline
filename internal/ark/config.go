@@ -15,12 +15,10 @@
 package ark
 
 import (
-	"github.com/spf13/viper"
-
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/amazon"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/azure"
 	"github.com/banzaicloud/pipeline/internal/ark/providers/google"
+	"github.com/banzaicloud/pipeline/internal/global"
 	pkgErrors "github.com/banzaicloud/pipeline/pkg/errors"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 	"github.com/banzaicloud/pipeline/secret"
@@ -132,10 +130,10 @@ type azureBucketConfig struct {
 func GetChartConfig() ChartConfig {
 
 	return ChartConfig{
-		Name:      viper.GetString(config.ARKName),
-		Namespace: viper.GetString(config.ARKNamespace),
-		Chart:     viper.GetString(config.ARKChart),
-		Version:   viper.GetString(config.ARKChartVersion),
+		Name:      "ark",
+		Namespace: global.Config.Cluster.DisasterRecovery.Namespace,
+		Chart:     global.Config.Cluster.DisasterRecovery.Charts.Ark.Chart,
+		Version:   global.Config.Cluster.DisasterRecovery.Charts.Ark.Version,
 	}
 }
 
@@ -168,9 +166,9 @@ func (req ConfigRequest) Get() (values ValueOverrides, err error) {
 		},
 		Credentials: cred,
 		Image: image{
-			Repository: viper.GetString(config.ARKImage),
-			Tag:        viper.GetString(config.ARKImageTag),
-			PullPolicy: viper.GetString(config.ARKPullPolicy),
+			Repository: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Repository,
+			Tag:        global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.Tag,
+			PullPolicy: global.Config.Cluster.DisasterRecovery.Charts.Ark.Values.Image.PullPolicy,
 		},
 	}, nil
 }

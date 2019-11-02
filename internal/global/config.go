@@ -124,6 +124,32 @@ type Configuration struct {
 				}
 			}
 		}
+
+		DisasterRecovery struct {
+			Namespace string
+
+			Ark struct {
+				SyncEnabled         bool
+				BucketSyncInterval  time.Duration
+				RestoreSyncInterval time.Duration
+				BackupSyncInterval  time.Duration
+				RestoreWaitTimeout  time.Duration
+			}
+
+			Charts struct {
+				Ark struct {
+					Chart   string
+					Version string
+					Values  struct {
+						Image struct {
+							Repository string
+							Tag        string
+							PullPolicy string
+						}
+					}
+				}
+			}
+		}
 	}
 
 	Helm struct {
@@ -177,6 +203,10 @@ func (c *Configuration) Process() error {
 
 	if c.Cluster.Autoscale.Namespace == "" {
 		c.Cluster.Autoscale.Namespace = c.Cluster.Namespace
+	}
+
+	if c.Cluster.DisasterRecovery.Namespace == "" {
+		c.Cluster.DisasterRecovery.Namespace = c.Cluster.Namespace
 	}
 
 	return nil
