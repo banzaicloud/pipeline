@@ -42,7 +42,7 @@ type configuration struct {
 	Telemetry telemetryConfig
 
 	// Auth configuration
-	Auth authConfig
+	Auth auth.Config
 
 	// Cadence configuration
 	Cadence cadence.Config
@@ -128,40 +128,6 @@ func (c telemetryConfig) Validate() error {
 
 	if c.Addr == "" {
 		return errors.New("telemetry http server address is required")
-	}
-
-	return nil
-}
-
-// authConfig contains auth configuration.
-type authConfig struct {
-	Token cmd.AuthTokenConfig
-	Role  authRoleConfig
-}
-
-// Validate validates the configuration.
-func (c authConfig) Validate() error {
-	if err := c.Token.Validate(); err != nil {
-		return err
-	}
-
-	if err := c.Role.Validate(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// authRoleConfig contains role based authorization configuration.
-type authRoleConfig struct {
-	Default string
-	Binding map[string]string
-}
-
-// Validate validates the configuration.
-func (c authRoleConfig) Validate() error {
-	if c.Default == "" {
-		return errors.New("auth role default is required")
 	}
 
 	return nil

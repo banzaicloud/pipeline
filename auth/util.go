@@ -19,9 +19,8 @@ import (
 
 	"github.com/gin-gonic/gin/render"
 	"github.com/jinzhu/gorm"
-	"github.com/spf13/viper"
 
-	"github.com/banzaicloud/pipeline/config"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/pkg/common"
 )
 
@@ -37,11 +36,11 @@ func SetCookie(w http.ResponseWriter, r *http.Request, name, value string) {
 		Value:    value,
 		Path:     "/",
 		HttpOnly: SessionCookieHTTPOnly,
-		Secure:   viper.GetBool("auth.secureCookie"),
+		Secure:   global.Config.Auth.Cookie.Secure,
 		MaxAge:   SessionCookieMaxAge,
 	}
 
-	if viper.GetBool(config.SetCookieDomain) {
+	if global.Config.Auth.Cookie.SetDomain {
 		cookie.Domain = cookieDomain
 	}
 

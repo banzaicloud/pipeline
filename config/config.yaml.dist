@@ -75,30 +75,34 @@ cors:
     AllowOrigins: ["http://localhost:4200"]
 
 auth:
-    # Dex settings
-    publicclientid: "banzai-cli"
-    clientid: "pipeline"
-    clientsecret: "ZXhhbXBsZS1hcHAtc2VjcmV0"
-    dexURL: "http://127.0.0.1:5556/dex"
-    dexInsecure: false
-    dexGrpcAddress: "127.0.0.1:5557"
+    oidc:
+        issuer: "http://127.0.0.1:5556/dex"
+#        insecure: false
+        clientId: "pipeline"
+        clientSecret: "ZXhhbXBsZS1hcHAtc2VjcmV0"
 
-    secureCookie: false
+#    cli:
+#        clientId: "banzai-cli"
 
-    # Domain field for cookies
-    cookieDomain: ""
-    setCookieDomain: false
+    cookie:
+        secure: false
+#        domain: ""
+#        setDomain: false
 
-    #    role:
-    #        default: "admin"
-    #        binding:
-    #            admin: ".*"
-    #            member: ""
+#        role:
+#            default: "admin"
+#            binding:
+#                admin: ".*"
+#                member: ""
 
     token:
         signingKey: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 #        issuer: "https://banzaicloud.com/"
 #        audience: "https://pipeline.banzaicloud.com"
+
+dex:
+    apiAddr: "127.0.0.1:5557"
+    # apiCa: ""
 
 #frontend:
 #    issue:

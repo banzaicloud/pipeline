@@ -158,15 +158,14 @@ configuration:
 
   # Authentication
   auth:
-    dexurl: http://dex:5556/dex
-    clientid: ""
-    clientsecret: ""
-    secureCookie: true
-    # Domain field for cookies
-    cookieDomain: ""
-    setCookieDomain: false
+    oidc:
+      issuer: http://dex:5556/dex
+      clientId: ""
+      clientSecret: ""
+
     token:
       signingKey: ""
+
   # Database handling
   database:
     autoMigrateEnabled: false

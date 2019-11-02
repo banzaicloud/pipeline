@@ -34,15 +34,15 @@ import (
 
 // OIDCProvider provide login with OIDC auth method
 type OIDCProvider struct {
-	*OIDCConfig
+	*OIDCProviderConfig
 	provider *oidc.Provider
 	verifier *oidc.IDTokenVerifier
 }
 
 type AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
 
-// OIDCConfig holds the oidc configuration parameters
-type OIDCConfig struct {
+// OIDCProviderConfig holds the oidc configuration parameters
+type OIDCProviderConfig struct {
 	PublicClientID     string
 	ClientID           string
 	ClientSecret       string
@@ -63,12 +63,12 @@ type IDTokenClaims struct {
 	FederatedClaims   map[string]string `json:"federated_claims"`
 }
 
-func newOIDCProvider(config *OIDCConfig, refreshTokenStore RefreshTokenStore) *OIDCProvider {
+func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenStore) *OIDCProvider {
 	if config == nil {
-		config = &OIDCConfig{}
+		config = &OIDCProviderConfig{}
 	}
 
-	provider := &OIDCProvider{OIDCConfig: config}
+	provider := &OIDCProvider{OIDCProviderConfig: config}
 
 	if config.ClientID == "" {
 		panic(errors.New("OIDC's ClientID can't be blank"))
@@ -296,7 +296,7 @@ func (provider OIDCProvider) ConfigAuth(*auth.Auth) {
 // OAuthConfig return oauth config based on configuration
 func (provider OIDCProvider) OAuthConfig(context *auth.Context) *oauth2.Config {
 	var (
-		config = provider.OIDCConfig
+		config = provider.OIDCProviderConfig
 		req    = context.Request
 		scheme = req.URL.Scheme
 	)

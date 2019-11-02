@@ -61,21 +61,21 @@ spec:
               name: {{ include "pipeline.database.secretName" .}}
               key: {{ include "pipeline.database.secretKey" .}}
         # Authentication configuration
-        - name: PIPELINE_AUTH_CLIENTID
+        - name: PIPELINE_AUTH_OIDC_CLIENTID
           valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: githubClientId
-        - name: PIPELINE_AUTH_CLIENTSECRET
+              secretKeyRef:
+                  name: {{ include "pipeline.fullname" . }}
+                  key: githubClientId
+        - name: PIPELINE_AUTH_OIDC_CLIENTSECRET
           valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: githubClientSecret
-        - name: PIPELINE_AUTH_TOKENSIGNINGKEY
+              secretKeyRef:
+                  name: {{ include "pipeline.fullname" . }}
+                  key: githubClientSecret
+        - name: PIPELINE_AUTH_TOKEN_SIGNINGKEY
           valueFrom:
-            secretKeyRef:
-              name: {{ include "pipeline.fullname" . }}
-              key: tokenSigningKey
+              secretKeyRef:
+                  name: {{ include "pipeline.fullname" . }}
+                  key: tokenSigningKey
         - name: PIPELINE_GITHUB_TOKEN
           valueFrom:
             secretKeyRef:
