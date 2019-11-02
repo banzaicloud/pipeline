@@ -46,8 +46,6 @@ const (
 	MonitorCertSecret              = "monitor.certSecret"             // Kubernetes secret for kubernetes cluster certs
 	MonitorCertMountPath           = "monitor.mountPath"              // Mount path for the kubernetes cert secret
 	MonitorGrafanaAdminUserNameKey = "monitor.grafanaAdminUsername"   // Username for Grafana in case of generated secret
-	// Monitor constants
-	MonitorReleaseName = "monitor"
 
 	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 
