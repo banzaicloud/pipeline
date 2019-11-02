@@ -210,7 +210,9 @@ func main() {
 	logger.Info("starting application", buildInfo.Fields())
 
 	// Connect to database
-	db := config.DB()
+	db, err := database.Connect(conf.Database.Config)
+	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
+	global.SetDB(db)
 
 	// TODO: make this optional when CICD is disabled
 	cicdDB, err := database.Connect(conf.CICD.Database)
@@ -276,7 +278,7 @@ func main() {
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
 	auth.Init(db, cicdDB, conf.Auth, tokenStore, tokenManager, organizationSyncer)
 
-	if viper.GetBool(config.DBAutoMigrateEnabled) {
+	if conf.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")
 
 		err = Migrate(db, logrusLogger, commonLogger)

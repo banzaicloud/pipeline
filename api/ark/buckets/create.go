@@ -24,9 +24,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark"
 	"github.com/banzaicloud/pipeline/internal/ark/api"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	"github.com/banzaicloud/pipeline/pkg/providers"
 )
@@ -59,7 +59,7 @@ func Create(c *gin.Context) {
 		request.Location = location
 	}
 
-	bs := ark.BucketsServiceFactory(org, config.DB(), logger)
+	bs := ark.BucketsServiceFactory(org, global.DB(), logger)
 
 	_, err := bs.GetByRequest(api.FindBucketRequest{
 		Cloud:      request.Cloud,

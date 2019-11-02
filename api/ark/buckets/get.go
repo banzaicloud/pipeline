@@ -22,8 +22,8 @@ import (
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/ark"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 	ginutils "github.com/banzaicloud/pipeline/internal/platform/gin/utils"
 )
@@ -41,7 +41,7 @@ func Get(c *gin.Context) {
 	logger.Info("getting bucket")
 
 	org := auth.GetCurrentOrganization(c.Request)
-	bs := ark.BucketsServiceFactory(org, config.DB(), logger)
+	bs := ark.BucketsServiceFactory(org, global.DB(), logger)
 	bucket, err := bs.GetByID(bucketID)
 	if err != nil {
 		err = emperror.Wrap(err, "could not get bucket")

@@ -177,6 +177,7 @@ func main() {
 		if err != nil {
 			emperror.Panic(err)
 		}
+		global.SetDB(db)
 
 		clusterManager := cluster.NewManager(
 			intCluster.NewClusters(db),

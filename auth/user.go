@@ -36,7 +36,6 @@ import (
 	"github.com/qor/qor/utils"
 	"golang.org/x/oauth2"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
 
@@ -344,7 +343,7 @@ func synchronizeCICDRepos(login string) {
 
 // GetOrganizationById returns an organization from database by ID
 func GetOrganizationById(orgID uint) (*Organization, error) {
-	db := config.DB()
+	db := global.DB()
 	var org Organization
 	err := db.Find(&org, Organization{ID: orgID}).Error
 	return &org, err
@@ -352,7 +351,7 @@ func GetOrganizationById(orgID uint) (*Organization, error) {
 
 // GetUserById returns user
 func GetUserById(userId uint) (*User, error) {
-	db := config.DB()
+	db := global.DB()
 	var user User
 	err := db.Find(&user, User{ID: userId}).Error
 	return &user, err

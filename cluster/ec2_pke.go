@@ -36,7 +36,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.uber.org/cadence/client"
 
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/global"
 	internalPke "github.com/banzaicloud/pipeline/internal/providers/pke"
@@ -203,7 +202,7 @@ func (c *EC2ClusterPKE) SaveConfigSecretId(configSecretId string) error {
 }
 
 func (c *EC2ClusterPKE) GetConfigSecretId() string {
-	clusters := cluster.NewClusters(pipConfig.DB()) // TODO get it from non-global context
+	clusters := cluster.NewClusters(global.DB()) // TODO get it from non-global context
 	id, err := clusters.GetConfigSecretIDByClusterID(c.GetOrganizationId(), c.GetID())
 	if err == nil {
 		c.model.Cluster.ConfigSecretID = id
@@ -1071,7 +1070,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 		log: log.WithField("cluster", request.Name).WithField("organization", orgId),
 	}
 
-	c.db = pipConfig.DB()
+	c.db = global.DB()
 
 	var (
 		network    = createEC2PKENetworkFromRequest(request.Properties.CreateClusterPKE.Network, userId)
@@ -1113,7 +1112,7 @@ func CreateEC2ClusterPKEFromRequest(request *pkgCluster.CreateClusterRequest, or
 func CreateEC2ClusterPKEFromModel(modelCluster *model.ClusterModel) (*EC2ClusterPKE, error) {
 	log := log.WithField("cluster", modelCluster.Name).WithField("organization", modelCluster.OrganizationId)
 
-	db := pipConfig.DB()
+	db := global.DB()
 
 	m := internalPke.EC2PKEClusterModel{
 		ClusterID: modelCluster.ID,

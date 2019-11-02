@@ -166,10 +166,6 @@ configuration:
     token:
       signingKey: ""
 
-  # Database handling
-  database:
-    autoMigrateEnabled: false
-
   # Pipeline Helm related configuration
   helm:
     home: "/cache/helm"

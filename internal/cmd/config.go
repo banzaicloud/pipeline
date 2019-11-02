@@ -280,6 +280,19 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("dex.apiAddr", "")
 	v.SetDefault("dex.apiCa", "")
 
+	// Database config
+	v.SetDefault("database.dialect", "mysql")
+	v.SetDefault("database.host", "")
+	v.SetDefault("database.port", 3306)
+	v.SetDefault("database.tls", "")
+	v.SetDefault("database.user", "")
+	v.SetDefault("database.password", "")
+	v.SetDefault("database.name", "pipeline")
+	v.SetDefault("database.params", map[string]string{
+		"charset": "utf8mb4",
+	})
+	v.SetDefault("database.queryLog", false)
+
 	// Cadence configuration
 	v.SetDefault("cadence.host", "")
 	v.SetDefault("cadence.port", 7933)
@@ -539,7 +552,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cicd.database.tls", "")
 	v.SetDefault("cicd.database.user", "")
 	v.SetDefault("cicd.database.password", "")
-	v.SetDefault("cicd.database.name", "")
+	v.SetDefault("cicd.database.name", "cicd")
 	v.SetDefault("cicd.database.params", map[string]string{
 		"charset": "utf8mb4",
 	})

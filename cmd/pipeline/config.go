@@ -45,6 +45,13 @@ type configuration struct {
 	// Auth configuration
 	Auth auth.Config
 
+	// Database configuration
+	Database struct {
+		database.Config `mapstructure:",squash"`
+
+		AutoMigrate bool
+	}
+
 	// Cadence configuration
 	Cadence cadence.Config
 
@@ -167,6 +174,9 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
 	})
+
+	// Database config
+	v.SetDefault("database.autoMigrate", false)
 
 	v.SetDefault("frontend.issue.enabled", false)
 	v.SetDefault("frontend.issue.driver", "github")

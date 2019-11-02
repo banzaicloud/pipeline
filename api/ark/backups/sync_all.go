@@ -22,9 +22,9 @@ import (
 
 	"github.com/banzaicloud/pipeline/api/ark/common"
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	arkClusterManager "github.com/banzaicloud/pipeline/internal/ark/clustermanager"
 	"github.com/banzaicloud/pipeline/internal/ark/sync"
+	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/platform/gin/correlationid"
 )
 
@@ -34,7 +34,7 @@ func (b *orgBackups) Sync(c *gin.Context) {
 	logger.Info("syncing backups")
 
 	org := auth.GetCurrentOrganization(c.Request)
-	err := sync.NewBackupsSyncService(org, config.DB(), logger).SyncBackups(arkClusterManager.New(b.clusterManager))
+	err := sync.NewBackupsSyncService(org, global.DB(), logger).SyncBackups(arkClusterManager.New(b.clusterManager))
 	if err != nil {
 		err = emperror.WrapWith(err, "could not sync org backups", "orgName", org.Name)
 		common.ErrorHandler.Handle(err)

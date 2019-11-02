@@ -20,7 +20,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	intCluster "github.com/banzaicloud/pipeline/internal/cluster"
 	"github.com/banzaicloud/pipeline/internal/global"
 )
@@ -49,7 +48,7 @@ func NewExporter() *pipelineMetrics {
 		},
 			[]string{"provider", "location", "status", "orgName", "clusterName"},
 		),
-		clusters: intCluster.NewClusters(config.DB()),
+		clusters: intCluster.NewClusters(global.DB()),
 	}
 	return &p
 }

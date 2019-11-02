@@ -55,12 +55,12 @@ database:
     user: "sparky"
     role: ""
     password: "sparky123"
-    dbname: "pipeline"
+    name: "pipeline"
 
     # Turn this to true to see all queries in the log
-    logging: false
+    queryLog: false
 
-    autoMigrateEnabled: true
+    autoMigrate: true
 
 cadence:
     host: "127.0.0.1"
