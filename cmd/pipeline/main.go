@@ -166,11 +166,11 @@ func main() {
 		emperror.Panic(errors.Wrap(err, "failed to read configuration"))
 	}
 
-	var conf configuration
-	err = viper.Unmarshal(&conf)
+	var config configuration
+	err = viper.Unmarshal(&config)
 	emperror.Panic(errors.Wrap(err, "failed to unmarshal configuration"))
 
-	err = conf.Process()
+	err = config.Process()
 	emperror.Panic(errors.WithMessage(err, "failed to process configuration"))
 
 	err = viper.Unmarshal(&global.Config)
@@ -180,12 +180,12 @@ func main() {
 	emperror.Panic(errors.WithMessage(err, "failed to process global configuration"))
 
 	// Create logger (first thing after configuration loading)
-	logger := log.NewLogger(conf.Log)
+	logger := log.NewLogger(config.Log)
 
 	// Legacy logger instance
 	logrusLogger := log.NewLogrusLogger(log.Config{
-		Level:  conf.Log.Level,
-		Format: conf.Log.Format,
+		Level:  config.Log.Level,
+		Format: config.Log.Format,
 	})
 	global.SetLogrusLogger(logrusLogger)
 
@@ -199,7 +199,7 @@ func main() {
 		logger.Warn("configuration file not found")
 	}
 
-	err = conf.Validate()
+	err = config.Validate()
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -213,7 +213,7 @@ func main() {
 		os.Exit(3)
 	}
 
-	errorHandler, err := errorhandler.New(conf.Errors, logger)
+	errorHandler, err := errorhandler.New(config.Errors, logger)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -228,12 +228,12 @@ func main() {
 	logger.Info("starting application", buildInfo.Fields())
 
 	// Connect to database
-	db, err := database.Connect(conf.Database.Config)
+	db, err := database.Connect(config.Database.Config)
 	emperror.Panic(errors.WithMessage(err, "failed to initialize db"))
 	global.SetDB(db)
 
 	// TODO: make this optional when CICD is disabled
-	cicdDB, err := database.Connect(conf.CICD.Database)
+	cicdDB, err := database.Connect(config.CICD.Database)
 	emperror.Panic(errors.WithMessage(err, "failed to initialize CICD db"))
 
 	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{})
@@ -271,7 +271,7 @@ func main() {
 		)
 		eventDispatcher := authgen.NewOrganizationEventDispatcher(eventBus)
 
-		roleBinder, err := auth.NewRoleBinder(conf.Auth.Role.Default, conf.Auth.Role.Binding)
+		roleBinder, err := auth.NewRoleBinder(config.Auth.Role.Default, config.Auth.Role.Binding)
 		emperror.Panic(err)
 
 		organizationSyncer = auth.NewOIDCOrganizationSyncer(
@@ -287,14 +287,14 @@ func main() {
 	// Initialize auth
 	tokenStore := bauth.NewVaultTokenStore("pipeline")
 	tokenGenerator := pkgAuth.NewJWTTokenGenerator(
-		conf.Auth.Token.Issuer,
-		conf.Auth.Token.Audience,
-		base32.StdEncoding.EncodeToString([]byte(conf.Auth.Token.SigningKey)),
+		config.Auth.Token.Issuer,
+		config.Auth.Token.Audience,
+		base32.StdEncoding.EncodeToString([]byte(config.Auth.Token.SigningKey)),
 	)
 	tokenManager := pkgAuth.NewTokenManager(tokenGenerator, tokenStore)
-	auth.Init(db, cicdDB, conf.Auth, conf.UI.URL, conf.UI.SignupRedirectPath, tokenStore, tokenManager, organizationSyncer)
+	auth.Init(db, cicdDB, config.Auth, config.UI.URL, config.UI.SignupRedirectPath, tokenStore, tokenManager, organizationSyncer)
 
-	if conf.Database.AutoMigrate {
+	if config.Database.AutoMigrate {
 		logger.Info("running automatic schema migrations")
 
 		err = Migrate(db, logrusLogger, commonLogger)
@@ -352,7 +352,7 @@ func main() {
 
 	externalBaseURL := global.Config.Pipeline.External.URL
 	if externalBaseURL == "" {
-		externalBaseURL = "http://" + conf.Pipeline.Addr
+		externalBaseURL = "http://" + config.Pipeline.Addr
 		logger.Warn("no pipeline.external_url set, falling back to bind address", map[string]interface{}{
 			"fallback": externalBaseURL,
 		})
@@ -360,7 +360,7 @@ func main() {
 
 	externalURLInsecure := global.Config.Pipeline.External.Insecure
 
-	workflowClient, err := cadence.NewClient(conf.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
+	workflowClient, err := cadence.NewClient(config.Cadence, zaplog.New(logur.WithFields(logger, map[string]interface{}{"component": "cadence-client"})))
 	if err != nil {
 		errorHandler.Handle(errors.WrapIf(err, "Failed to configure Cadence client"))
 	}
@@ -373,7 +373,7 @@ func main() {
 	err = clusterTTLController.Start()
 	emperror.Panic(err)
 
-	if conf.Cluster.Monitoring.Monitor.Enabled {
+	if config.Cluster.Monitoring.Monitor.Enabled {
 		client, err := k8sclient.NewInClusterClient()
 		if err != nil {
 			errorHandler.Handle(errors.WrapIf(err, "failed to enable monitoring"))
@@ -390,10 +390,10 @@ func main() {
 				dnsBaseDomain,
 				global.Config.Kubernetes.Namespace,
 				global.Config.Cluster.Namespace,
-				conf.Cluster.Monitoring.Monitor.ConfigMap,
-				conf.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
-				conf.Cluster.Monitoring.Monitor.CertSecret,
-				conf.Cluster.Monitoring.Monitor.MountPath,
+				config.Cluster.Monitoring.Monitor.ConfigMap,
+				config.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
+				config.Cluster.Monitoring.Monitor.CertSecret,
+				config.Cluster.Monitoring.Monitor.MountPath,
 				errorHandler,
 			)
 			monitorClusterSubscriber.Init()
@@ -401,21 +401,21 @@ func main() {
 		}
 	}
 
-	if conf.SpotMetrics.Enabled {
+	if config.SpotMetrics.Enabled {
 		go monitor.NewSpotMetricsExporter(
 			context.Background(),
 			clusterManager,
 			logrusLogger.WithField("subsystem", "spot-metrics-exporter"),
-		).Run(conf.SpotMetrics.CollectionInterval)
+		).Run(config.SpotMetrics.CollectionInterval)
 	}
 
-	cloudInfoClient := cloudinfo.NewClient(conf.Cloudinfo.Endpoint, logrusLogger)
+	cloudInfoClient := cloudinfo.NewClient(config.Cloudinfo.Endpoint, logrusLogger)
 
 	gormAzurePKEClusterStore := azurePKEAdapter.NewGORMAzurePKEClusterStore(db, commonLogger)
 	clusterCreators := api.ClusterCreators{
 		PKEOnAzure: azurePKEDriver.MakeAzurePKEClusterCreator(
 			azurePKEDriver.ClusterCreatorConfig{
-				OIDCIssuerURL:               conf.Auth.OIDC.Issuer,
+				OIDCIssuerURL:               config.Auth.OIDC.Issuer,
 				PipelineExternalURL:         externalBaseURL,
 				PipelineExternalURLInsecure: externalURLInsecure,
 			},
@@ -468,14 +468,14 @@ func main() {
 	router.Use(ocmux.Middleware())
 
 	// These two paths can contain sensitive information, so it is advised not to log them out.
-	skipPaths := conf.Audit.SkipPaths
+	skipPaths := config.Audit.SkipPaths
 	engine.Use(correlationid.Middleware())
 	engine.Use(ginlog.Middleware(logrusLogger, skipPaths...))
 
 	// Add prometheus metric endpoint
-	if conf.Telemetry.Enabled {
+	if config.Telemetry.Enabled {
 		p := ginprometheus.NewPrometheus("pipeline", []string{})
-		p.SetListenAddress(conf.Telemetry.Addr)
+		p.SetListenAddress(config.Telemetry.Addr)
 		p.Use(engine, "/metrics")
 	}
 
@@ -486,15 +486,15 @@ func main() {
 		Help:      "read only mode is on/off",
 	})
 	prometheus.MustRegister(drainModeMetric)
-	engine.Use(ginternal.NewDrainModeMiddleware(conf.Pipeline.BasePath, drainModeMetric, errorHandler).Middleware)
+	engine.Use(ginternal.NewDrainModeMiddleware(config.Pipeline.BasePath, drainModeMetric, errorHandler).Middleware)
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "Authorization", "secretId", "Banzai-Cloud-Pipeline-UUID")
 	corsConfig.AllowCredentials = true
 
-	corsConfig.AllowAllOrigins = conf.CORS.AllowAllOrigins
+	corsConfig.AllowAllOrigins = config.CORS.AllowAllOrigins
 	if !corsConfig.AllowAllOrigins {
-		allowOriginsRegexp := conf.CORS.AllowOriginsRegexp
+		allowOriginsRegexp := config.CORS.AllowOriginsRegexp
 		if allowOriginsRegexp != "" {
 			originsRegexp, err := regexp.Compile(fmt.Sprintf("^(%s)$", allowOriginsRegexp))
 			if err == nil {
@@ -502,25 +502,25 @@ func main() {
 					return originsRegexp.Match([]byte(origin))
 				}
 			}
-		} else if allowOrigins := conf.CORS.AllowOrigins; len(allowOrigins) > 0 {
+		} else if allowOrigins := config.CORS.AllowOrigins; len(allowOrigins) > 0 {
 			corsConfig.AllowOrigins = allowOrigins
 		}
 	}
 
 	engine.Use(cors.New(corsConfig))
 
-	if conf.Audit.Enabled {
+	if config.Audit.Enabled {
 		logger.Info("Audit enabled, installing Gin audit middleware")
-		engine.Use(audit.LogWriter(skipPaths, conf.Audit.Headers, db, logrusLogger))
+		engine.Use(audit.LogWriter(skipPaths, config.Audit.Headers, db, logrusLogger))
 	}
 	engine.Use(func(c *gin.Context) { // TODO: move to middleware
 		c.Request = c.Request.WithContext(ctxutil.WithParams(c.Request.Context(), ginutils.ParamsToMap(c.Params)))
 	})
 
-	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(conf.UI.URL, http.StatusTemporaryRedirect))
+	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(config.UI.URL, http.StatusTemporaryRedirect))
 	engine.GET("/", gin.WrapH(router))
 
-	basePath := conf.Pipeline.BasePath
+	basePath := config.Pipeline.BasePath
 
 	base := engine.Group(basePath)
 	router = router.PathPrefix(basePath).Subrouter()
@@ -529,7 +529,7 @@ func main() {
 	{
 		err := frontend.RegisterApp(
 			router.PathPrefix("/frontend").Subrouter(),
-			conf.Frontend,
+			config.Frontend,
 			db,
 			buildInfo,
 			auth.UserExtractor{},
@@ -542,7 +542,7 @@ func main() {
 		base.Any("frontend/notifications", gin.WrapH(router))
 
 		// TODO: return 422 unprocessable entity instead of 404
-		if conf.Frontend.Issue.Enabled {
+		if config.Frontend.Issue.Enabled {
 			base.Any("frontend/issues", auth.Handler, gin.WrapH(router))
 		}
 	}
@@ -629,7 +629,7 @@ func main() {
 		apiRouter.MethodNotAllowedHandler = problems.StatusProblemHandler(problems.NewStatusProblem(http.StatusMethodNotAllowed))
 
 		v1.Use(auth.Handler)
-		capdriver.RegisterHTTPHandler(mapCapabilities(conf), emperror.MakeContextAware(errorHandler), v1)
+		capdriver.RegisterHTTPHandler(mapCapabilities(config), emperror.MakeContextAware(errorHandler), v1)
 		v1.GET("/securityscan", api.SecurityScanEnabled)
 		v1.GET("/me", userAPI.GetCurrentUser)
 		v1.PATCH("/me", userAPI.UpdateCurrentUser)
@@ -719,11 +719,11 @@ func main() {
 					securityscan.MakeFeatureManager(logger),
 				}
 
-				if conf.Cluster.Vault.Enabled {
-					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, conf.Cluster.Vault.Managed.Enabled, logger))
+				if config.Cluster.Vault.Enabled {
+					featureManagers = append(featureManagers, featureVault.MakeFeatureManager(clusterGetter, secretStore, config.Cluster.Vault.Managed.Enabled, logger))
 				}
 
-				if conf.Cluster.Monitoring.Enabled {
+				if config.Cluster.Monitoring.Enabled {
 					endpointManager := endpoints.NewEndpointManager(logger)
 					helmService := helm.NewHelmService(helmadapter.NewClusterService(clusterManager), logger)
 					featureManagers = append(featureManagers, featureMonitoring.MakeFeatureManager(
@@ -731,12 +731,12 @@ func main() {
 						secretStore,
 						endpointManager,
 						helmService,
-						conf.Cluster.Monitoring.Config,
+						config.Cluster.Monitoring.Config,
 						logger,
 					))
 				}
 
-				if conf.Cluster.SecurityScan.Enabled {
+				if config.Cluster.SecurityScan.Enabled {
 					customAnchoreConfigProvider := securityscan.NewCustomAnchoreConfigProvider(
 						featureRepository,
 						secretStore,
@@ -745,9 +745,9 @@ func main() {
 
 					configProvider := anchore2.ConfigProviderChain{customAnchoreConfigProvider}
 
-					if conf.Cluster.SecurityScan.Anchore.Enabled {
+					if config.Cluster.SecurityScan.Anchore.Enabled {
 						configProvider = append(configProvider, securityscan.NewClusterAnchoreConfigProvider(
-							conf.Cluster.SecurityScan.Anchore.Endpoint,
+							config.Cluster.SecurityScan.Anchore.Endpoint,
 							securityscanadapter.NewUserNameGenerator(securityscanadapter.NewClusterService(clusterManager)),
 							securityscanadapter.NewUserSecretStore(secretStore),
 						))
@@ -844,9 +844,9 @@ func main() {
 			clusterAuthAPI, err := api.NewClusterAuthAPI(
 				commonClusterGetter,
 				clusterAuthService,
-				conf.Auth.Token.SigningKey,
-				conf.Auth.OIDC.Issuer,
-				conf.Auth.OIDC.Insecure,
+				config.Auth.Token.SigningKey,
+				config.Auth.OIDC.Issuer,
+				config.Auth.OIDC.Insecure,
 				pipelineExternalURL.String(),
 			)
 			emperror.Panic(errors.WrapIf(err, "failed to create ClusterAuthAPI"))
@@ -1008,13 +1008,13 @@ func main() {
 
 	base.GET("api", api.MetaHandler(engine, basePath+"/api"))
 
-	internalBindAddr := conf.Pipeline.InternalAddr
+	internalBindAddr := config.Pipeline.InternalAddr
 	logger.Info("Pipeline internal API listening", map[string]interface{}{"address": "http://" + internalBindAddr})
 
-	go createInternalAPIRouter(conf, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
+	go createInternalAPIRouter(config, db, basePath, clusterAPI, logger, logrusLogger).Run(internalBindAddr) // nolint: errcheck
 
-	bindAddr := conf.Pipeline.Addr
-	certFile, keyFile := conf.Pipeline.CertFile, conf.Pipeline.KeyFile
+	bindAddr := config.Pipeline.Addr
+	certFile, keyFile := config.Pipeline.CertFile, config.Pipeline.KeyFile
 	if certFile != "" && keyFile != "" {
 		logger.Info("Pipeline API listening", map[string]interface{}{"address": "https://" + bindAddr})
 		_ = engine.RunTLS(bindAddr, certFile, keyFile)
