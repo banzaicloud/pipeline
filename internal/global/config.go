@@ -116,6 +116,12 @@ type Configuration struct {
 			}
 		}
 
+		Monitoring struct {
+			Grafana struct {
+				AdminUser string
+			}
+		}
+
 		Logging struct {
 			Charts struct {
 				Operator struct {
@@ -151,8 +157,8 @@ type Configuration struct {
 			}
 		}
 
-		SecurityScan struct{
-			Anchore struct{
+		SecurityScan struct {
+			Anchore struct {
 				Enabled bool
 
 				anchore.Config `mapstructure:",squash"`
