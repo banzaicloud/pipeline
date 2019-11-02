@@ -101,6 +101,9 @@ dex:
     # apiCa: ""
 
 #kubernetes:
+#    # Namespace where Pipeline currently runs
+#    namespace: "default"
+#
 #    client:
 #        # Deny connecting to API servers other than ones listening on globally routable IPv4 addresses
 #        # This will be refactored according to https://github.com/banzaicloud/pipeline/issues/2263

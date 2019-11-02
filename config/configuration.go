@@ -32,8 +32,6 @@ const (
 
 	// PipelineUUID is an UUID that identifies the specific installation (deployment) of the platform
 	PipelineUUID = "pipeline.uuid"
-
-	ControlPlaneNamespace = "infra.control-plane-namespace" // Namespace where the pipeline and prometheus runs
 )
 
 // Init initializes the configurations
@@ -53,9 +51,6 @@ func init() {
 	viper.SetDefault("pipeline.basepath", "")
 	viper.SetDefault("pipeline.signupRedirectPath", "/ui")
 	viper.SetDefault(PipelineUUID, "")
-
-	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
-	viper.SetDefault(ControlPlaneNamespace, "default")
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

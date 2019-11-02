@@ -59,6 +59,8 @@ type Configuration struct {
 	}
 
 	Kubernetes struct {
+		Namespace string
+
 		Client struct {
 			ForceGlobal bool
 		}

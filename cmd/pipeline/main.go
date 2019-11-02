@@ -371,7 +371,7 @@ func main() {
 				clusterManager,
 				db,
 				dnsBaseDomain,
-				viper.GetString(config.ControlPlaneNamespace),
+				global.Config.Kubernetes.Namespace,
 				global.Config.Cluster.Namespace,
 				conf.Cluster.Monitoring.Monitor.ConfigMap,
 				conf.Cluster.Monitoring.Monitor.ConfigMapPrometheusKey,
