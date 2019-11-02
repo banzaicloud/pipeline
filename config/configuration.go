@@ -54,11 +54,6 @@ const (
 	SetCookieDomain    = "auth.setCookieDomain"
 	OIDCIssuerURL      = "auth.oidcIssuerURL"
 	OIDCIssuerInsecure = "auth.oidcIssuerInsecure"
-
-	// Prometheus svc name, context & local port of Prometheus deploy if monitoring is enabled on cluster
-	PrometheusServiceName    = "prometheus.serviceName"
-	PrometheusServiceContext = "prometheus.serviceContext"
-	PrometheusLocalPort      = "prometheus.localPort"
 )
 
 // Init initializes the configurations
@@ -112,11 +107,6 @@ func init() {
 
 	_ = viper.BindEnv(ControlPlaneNamespace, "KUBERNETES_NAMESPACE")
 	viper.SetDefault(ControlPlaneNamespace, "default")
-
-	// Prometheus service defaults
-	viper.SetDefault(PrometheusServiceName, "monitor-prometheus-server")
-	viper.SetDefault(PrometheusServiceContext, "prometheus")
-	viper.SetDefault(PrometheusLocalPort, 9090)
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil {

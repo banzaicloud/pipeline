@@ -113,6 +113,14 @@ type Configuration struct {
 		Autoscale struct {
 			Namespace string
 
+			HPA struct {
+				Prometheus struct {
+					ServiceName    string
+					ServiceContext string
+					LocalPort      int
+				}
+			}
+
 			Charts struct {
 				ClusterAutoscaler struct {
 					Chart   string

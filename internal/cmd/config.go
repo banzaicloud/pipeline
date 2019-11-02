@@ -340,6 +340,9 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	})
 
 	v.SetDefault("cluster.autoscale.namespace", "")
+	v.SetDefault("cluster.autoscale.hpa.prometheus.serviceName", "monitor-prometheus-server")
+	v.SetDefault("cluster.autoscale.hpa.prometheus.serviceContext", "prometheus")
+	v.SetDefault("cluster.autoscale.hpa.prometheus.localPort", 9090)
 	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.chart", "banzaicloud-stable/cluster-autoscaler")
 	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.version", "0.12.3")
 	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.values", map[string]interface{}{})

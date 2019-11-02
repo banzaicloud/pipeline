@@ -226,6 +226,13 @@ auth:
 #        # Inherited from cluster.namespace when empty
 #        namespace: ""
 #
+#        hpa:
+#            # TODO: this should use monitoring feature (if installed)
+#            prometheus:
+#                serviceName: monitor-prometheus-server
+#                serviceContext: prometheus
+#                localPort: 9090
+#
 #        charts:
 #            clusterAutoscaler:
 #                chart: "banzaicloud-stable/cluster-autoscaler"
