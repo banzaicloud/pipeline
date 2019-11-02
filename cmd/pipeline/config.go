@@ -55,6 +55,12 @@ type configuration struct {
 	// Cadence configuration
 	Cadence cadence.Config
 
+	CORS struct {
+		AllowAllOrigins    bool
+		AllowOrigins       []string
+		AllowOriginsRegexp string
+	}
+
 	// Frontend configuration
 	Frontend frontend.Config
 
@@ -183,6 +189,10 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 
 	// Database config
 	v.SetDefault("database.autoMigrate", false)
+
+	v.SetDefault("cors.allowAllOrigins", true)
+	v.SetDefault("cors.allowOrigins", []string{})
+	v.SetDefault("cors.allowOriginsRegexp", "")
 
 	v.SetDefault("frontend.issue.enabled", false)
 	v.SetDefault("frontend.issue.driver", "github")

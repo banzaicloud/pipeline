@@ -22,6 +22,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 
 	"emperror.dev/emperror"
@@ -469,7 +470,28 @@ func main() {
 	})
 	prometheus.MustRegister(drainModeMetric)
 	engine.Use(ginternal.NewDrainModeMiddleware(drainModeMetric, errorHandler).Middleware)
-	engine.Use(cors.New(config.GetCORS()))
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "Authorization", "secretId", "Banzai-Cloud-Pipeline-UUID")
+	corsConfig.AllowCredentials = true
+
+	corsConfig.AllowAllOrigins = conf.CORS.AllowAllOrigins
+	if !corsConfig.AllowAllOrigins {
+		allowOriginsRegexp := conf.CORS.AllowOriginsRegexp
+		if allowOriginsRegexp != "" {
+			originsRegexp, err := regexp.Compile(fmt.Sprintf("^(%s)$", allowOriginsRegexp))
+			if err == nil {
+				corsConfig.AllowOriginFunc = func(origin string) bool {
+					return originsRegexp.Match([]byte(origin))
+				}
+			}
+		} else if allowOrigins := conf.CORS.AllowOrigins; len(allowOrigins) > 0 {
+			corsConfig.AllowOrigins = allowOrigins
+		}
+	}
+
+	engine.Use(cors.New(corsConfig))
+
 	if conf.Audit.Enabled {
 		logger.Info("Audit enabled, installing Gin audit middleware")
 		engine.Use(audit.LogWriter(skipPaths, conf.Audit.Headers, db, logrusLogger))

@@ -17,11 +17,8 @@ package config
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
-	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/spf13/viper"
 )
 
@@ -70,40 +67,4 @@ func init() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 	viper.AllowEmptyEnv(true)
-}
-
-// GetCORS gets CORS related config
-func GetCORS() cors.Config {
-	viper.SetDefault("cors.AllowAllOrigins", true)
-	viper.SetDefault("cors.AllowOrigins", []string{})
-	viper.SetDefault("cors.AllowOriginsRegexp", "")
-	viper.SetDefault("cors.AllowMethods", []string{"PUT", "DELETE", "GET", "POST", "OPTIONS", "PATCH"})
-	viper.SetDefault("cors.AllowHeaders", []string{"Origin", "Authorization", "Content-Type", "secretId", "Banzai-Cloud-Pipeline-UUID"})
-	viper.SetDefault("cors.ExposeHeaders", []string{"Content-Length"})
-	viper.SetDefault("cors.AllowCredentials", true)
-	viper.SetDefault("cors.MaxAge", 12)
-
-	config := cors.DefaultConfig()
-	config.AllowAllOrigins = viper.GetBool("cors.AllowAllOrigins")
-	if !config.AllowAllOrigins {
-		allowOriginsRegexp := viper.GetString("cors.AllowOriginsRegexp")
-		if allowOriginsRegexp != "" {
-			originsRegexp, err := regexp.Compile(fmt.Sprintf("^(%s)$", allowOriginsRegexp))
-			if err == nil {
-				config.AllowOriginFunc = func(origin string) bool {
-					return originsRegexp.Match([]byte(origin))
-				}
-			}
-		} else if allowOrigins := viper.GetStringSlice("cors.AllowOrigins"); len(allowOrigins) > 0 {
-			config.AllowOrigins = allowOrigins
-		}
-	}
-
-	config.AllowMethods = viper.GetStringSlice("cors.AllowMethods")
-	config.AllowHeaders = viper.GetStringSlice("cors.AllowHeaders")
-	config.ExposeHeaders = viper.GetStringSlice("cors.ExposeHeaders")
-	config.AllowCredentials = viper.GetBool("cors.AllowCredentials")
-	maxAge := viper.GetInt("cors.MaxAge")
-	config.MaxAge = time.Duration(maxAge) * time.Hour
-	return config
 }
