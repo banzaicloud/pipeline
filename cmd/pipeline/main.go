@@ -220,8 +220,6 @@ func main() {
 
 	commonLogger := commonadapter.NewContextAwareLogger(logger, appkit.ContextExtractor{})
 
-	basePath := conf.Pipeline.BasePath
-
 	publisher, subscriber := watermill.NewPubSub(logger)
 	defer publisher.Close()
 	defer subscriber.Close()
@@ -296,6 +294,8 @@ func main() {
 	if dnsSvc == nil {
 		logger.Info("external dns service functionality is not enabled")
 	}
+
+	anchore.Init()
 
 	prometheus.MustRegister(cluster.NewExporter())
 
@@ -501,6 +501,8 @@ func main() {
 
 	router.Path("/").Methods(http.MethodGet).Handler(http.RedirectHandler(conf.UI.URL, http.StatusTemporaryRedirect))
 	engine.GET("/", gin.WrapH(router))
+
+	basePath := conf.Pipeline.BasePath
 
 	base := engine.Group(basePath)
 	router = router.PathPrefix(basePath).Subrouter()

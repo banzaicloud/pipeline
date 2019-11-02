@@ -24,13 +24,13 @@ import (
 	"github.com/banzaicloud/anchore-image-validator/pkg/apis/security/v1alpha1"
 	clientV1alpha1 "github.com/banzaicloud/anchore-image-validator/pkg/clientset/v1alpha1"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 
 	apiCommon "github.com/banzaicloud/pipeline/api/common"
 	"github.com/banzaicloud/pipeline/helm"
 	internalCommon "github.com/banzaicloud/pipeline/internal/common"
+	"github.com/banzaicloud/pipeline/internal/global"
 	anchore "github.com/banzaicloud/pipeline/internal/security"
 	"github.com/banzaicloud/pipeline/pkg/common"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -199,8 +199,7 @@ func GetReleaseScanLog(c *gin.Context) (map[string]bool, bool) {
 
 // SecurityScanEnabled checks if security scan is enabled in pipeline
 func SecurityScanEnabled(c *gin.Context) {
-
-	if viper.GetBool("cluster.securityScan.anchore.enabled") {
+	if global.Config.Cluster.SecurityScan.Anchore.Enabled {
 		c.JSON(http.StatusOK, gin.H{
 			"enabled": true,
 		})
