@@ -1024,7 +1024,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 
 	scaleOptions := cluster.GetScaleOptions()
 	if scaleOptions != nil && scaleOptions.Enabled == true {
-		tokenSigningKey := global.Config.Hollowtrees.SigningKey
+		tokenSigningKey := global.Config.Hollowtrees.TokenSigningKey
 		if tokenSigningKey == "" {
 			err := errors.New("no Hollowtrees token signkey specified")
 			errorHandler.Handle(err)
@@ -1034,7 +1034,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 		generator := hollowtrees.NewTokenGenerator(
 			global.Config.Auth.Token.Issuer,
 			global.Config.Auth.Token.Audience,
-			global.Config.Hollowtrees.SigningKey,
+			global.Config.Hollowtrees.TokenSigningKey,
 		)
 		_, token, err := generator.Generate(cluster.GetID(), cluster.GetOrganizationId(), nil)
 		if err != nil {
@@ -1045,7 +1045,7 @@ func DeployInstanceTerminationHandler(cluster CommonCluster) error {
 
 		values["hollowtreesNotifier"] = map[string]interface{}{
 			"enabled":        true,
-			"URL":            global.Config.Hollowtrees.Endpoint,
+			"URL":            global.Config.Hollowtrees.Endpoint + "/alerts",
 			"organizationID": cluster.GetOrganizationId(),
 			"clusterID":      cluster.GetID(),
 			"clusterName":    cluster.GetName(),
