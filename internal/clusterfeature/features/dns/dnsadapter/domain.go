@@ -18,11 +18,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/banzaicloud/pipeline/auth"
-
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/cluster"
+	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/common"
 )
 
@@ -79,7 +77,7 @@ type ClusterOrgGetter interface {
 }
 
 // NewClusterOrgGetter returns a new ClusterOrgGetter implementation
-func NewClusterOrgGetter(clusterGetter ClusterGetter, orgGetter OrgGetter) ClusterOrgGetterImpl {
+func NewClusterOrgGetter(clusterGetter CommonClusterGetter, orgGetter OrgGetter) ClusterOrgGetterImpl {
 	return ClusterOrgGetterImpl{
 		clusterGetter: clusterGetter,
 		orgGetter:     orgGetter,
@@ -94,13 +92,8 @@ type DNSServiceClient interface {
 
 // ClusterOrgGetterImpl implements a ClusterOrgGetter
 type ClusterOrgGetterImpl struct {
-	clusterGetter ClusterGetter
+	clusterGetter CommonClusterGetter
 	orgGetter     OrgGetter
-}
-
-// ClusterGetter can be used to get a cluster by its ID
-type ClusterGetter interface {
-	GetClusterByIDOnly(ctx context.Context, clusterID uint) (cluster.CommonCluster, error)
 }
 
 // OrgGetter can be used to get an organization by its ID

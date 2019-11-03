@@ -125,7 +125,7 @@ func TestSourcesSpec_Validate_Empty(t *testing.T) {
 
 func TestTXTOwnerIDSpec_Validate_Empty(t *testing.T) {
 	err := txtOwnerIDSpec("").Validate()
-	require.Error(t, err)
+	require.NoError(t, err)
 }
 
 func TestTXTPrefixSpec_Validate_Empty(t *testing.T) {

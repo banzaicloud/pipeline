@@ -131,11 +131,6 @@ func (sourcesSpec) Validate() error {
 type txtOwnerIDSpec string
 
 func (s txtOwnerIDSpec) Validate() error {
-	if s == "" {
-		return requiredStringFieldError{
-			fieldName: "txtOwnerId",
-		}
-	}
 	return nil
 }
 
