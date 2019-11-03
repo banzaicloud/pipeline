@@ -546,7 +546,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 
 	v.SetDefault("cloudinfo.endpoint", "")
 	v.SetDefault("hollowtrees.endpoint", "")
-	v.SetDefault("hollowtrees.signingKey", "")
+	v.SetDefault("hollowtrees.tokenSigningKey", "")
 
 	// Temporary hook flags
 	v.SetDefault("hooks.domainHookDisabled", false)

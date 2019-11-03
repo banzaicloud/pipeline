@@ -318,8 +318,8 @@ type Configuration struct {
 	}
 
 	Hollowtrees struct {
-		Endpoint   string
-		SigningKey string
+		Endpoint        string
+		TokenSigningKey string
 	}
 
 	Hooks struct {
