@@ -28,6 +28,8 @@ import (
 
 // FeatureManager implements the Vault feature manager
 type FeatureManager struct {
+	clusterfeature.PassthroughFeatureSpecPreparer
+
 	clusterGetter    clusterfeatureadapter.ClusterGetter
 	secretStore      features.SecretStore
 	isManagedEnabled bool
@@ -146,9 +148,4 @@ func (m FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Fe
 	}
 
 	return nil
-}
-
-// PrepareSpec makes certain preparations to the spec before it's sent to be applied
-func (m FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
-	return spec, nil
 }

@@ -19,7 +19,6 @@ import (
 
 	"emperror.dev/errors"
 
-	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/pkg/brn"
 	"github.com/banzaicloud/pipeline/pkg/opaque"
@@ -27,13 +26,27 @@ import (
 
 // FeatureManager implements the DNS feature manager
 type FeatureManager struct {
-	config Config
+	clusterOrgIDGetter ClusterOrgIDGetter
+	clusterUIDGetter   ClusterUIDGetter
+	config             Config
 }
 
-// MakeFeatureManager returns a DNS feature manager
-func MakeFeatureManager(config Config) FeatureManager {
+// ClusterOrgIDGetter can be used to get the ID of the organization a cluster belongs to
+type ClusterOrgIDGetter interface {
+	GetClusterOrgID(ctx context.Context, clusterID uint) (uint, error)
+}
+
+// ClusterUIDGetter can be used to get the UID of a cluster
+type ClusterUIDGetter interface {
+	GetClusterUID(ctx context.Context, clusterID uint) (string, error)
+}
+
+// NewFeatureManager returns a DNS feature manager
+func NewFeatureManager(clusterOrgIDGetter ClusterOrgIDGetter, clusterUIDGetter ClusterUIDGetter, config Config) FeatureManager {
 	return FeatureManager{
-		config: config,
+		clusterOrgIDGetter: clusterOrgIDGetter,
+		clusterUIDGetter:   clusterUIDGetter,
+		config:             config,
 	}
 }
 
@@ -72,21 +85,25 @@ func (FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Feat
 }
 
 // PrepareSpec makes certain preparations to the spec before it's sent to be applied
-func (FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
-	orgID, ok := auth.GetCurrentOrganizationID(ctx)
-	if !ok {
-		return nil, errors.New("organization ID missing from context")
-	}
-
+func (m FeatureManager) PrepareSpec(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
+	defaulters := mapStringXform(map[string]opaque.Transformation{
+		"externalDns": mapStringDefaulter(map[string]opaque.Transformation{
+			"txtOwnerId": txtOwnerIDDefaulterXform(func() (string, error) {
+				return m.clusterUIDGetter.GetClusterUID(ctx, clusterID)
+			}),
+		}),
+	})
 	xform := mapStringXform(map[string]opaque.Transformation{
 		"externalDns": mapStringXform(map[string]opaque.Transformation{
 			"provider": mapStringXform(map[string]opaque.Transformation{
-				"secretId": secretBRNXform(orgID),
+				"secretId": secretBRNXform(func() (uint, error) {
+					return m.clusterOrgIDGetter.GetClusterOrgID(ctx, clusterID)
+				}),
 			}),
 		}),
 	})
 
-	res, err := xform.Transform(spec)
+	res, err := opaque.Compose(defaulters, xform).Transform(spec)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to transform spec")
 	}
@@ -116,9 +133,14 @@ func mapStringXform(transformations map[string]opaque.Transformation) opaque.Tra
 	})
 }
 
-func secretBRNXform(orgID uint) opaque.Transformation {
+func secretBRNXform(getOrgID func() (uint, error)) opaque.Transformation {
 	return opaque.TransformationFunc(func(secretObj interface{}) (interface{}, error) {
 		if secretStr, ok := secretObj.(string); ok {
+			orgID, err := getOrgID()
+			if err != nil {
+				return secretObj, errors.WrapIf(err, "failed to get org ID")
+			}
+
 			secretBRN := brn.ResourceName{
 				Scheme:         brn.Scheme,
 				OrganizationID: orgID,
@@ -128,5 +150,37 @@ func secretBRNXform(orgID uint) opaque.Transformation {
 			return secretBRN.String(), nil
 		}
 		return secretObj, nil
+	})
+}
+
+func mapStringDefaulter(trasformations map[string]opaque.Transformation) opaque.Transformation {
+	return opaque.TransformationFunc(func(o interface{}) (interface{}, error) {
+		if m, ok := o.(map[string]interface{}); ok {
+			n := make(map[string]interface{}, len(m))
+			for k, v := range m {
+				n[k] = v
+			}
+
+			var errs error
+			for k, t := range trasformations {
+				v, err := t.Transform(n[k])
+				errs = errors.Append(errs, err)
+				n[k] = v
+			}
+
+			return n, errs
+		}
+		return o, nil
+	})
+}
+
+func txtOwnerIDDefaulterXform(getClusterUID func() (string, error)) opaque.Transformation {
+	return opaque.TransformationFunc(func(txtOwnerIDObj interface{}) (interface{}, error) {
+		if txtOwnerIDStr, ok := txtOwnerIDObj.(string); ok && txtOwnerIDStr != "" {
+			return txtOwnerIDStr, nil
+		}
+
+		uid, err := getClusterUID()
+		return uid, errors.WrapIf(err, "failed to get cluster UID")
 	})
 }

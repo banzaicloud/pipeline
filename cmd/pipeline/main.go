@@ -90,6 +90,7 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeaturedriver"
 	featureDns "github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/dnsadapter"
 	featureMonitoring "github.com/banzaicloud/pipeline/internal/clusterfeature/features/monitoring"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/securityscan/securityscanadapter"
@@ -714,13 +715,14 @@ func main() {
 				logger := commonadapter.NewLogger(logger) // TODO: make this a context aware logger
 				featureRepository := clusterfeatureadapter.NewGormFeatureRepository(db, logger)
 				clusterGetter := clusterfeatureadapter.MakeClusterGetter(clusterManager)
+				clusterPropertyGetter := dnsadapter.NewClusterPropertyGetter(clusterManager)
 				secretStore := commonadapter.NewSecretStore(secret.Store, commonadapter.OrgIDContextExtractorFunc(auth.GetCurrentOrganizationID))
 				featureManagers := []clusterfeature.FeatureManager{
 					securityscan.MakeFeatureManager(logger),
 				}
 
 				if config.Cluster.DNS.Enabled {
-					featureManagers = append(featureManagers, featureDns.MakeFeatureManager(config.Cluster.DNS.Config))
+					featureManagers = append(featureManagers, featureDns.NewFeatureManager(clusterPropertyGetter, clusterPropertyGetter, config.Cluster.DNS.Config))
 				}
 
 				if config.Cluster.Vault.Enabled {

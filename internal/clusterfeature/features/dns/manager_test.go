@@ -27,7 +27,7 @@ import (
 )
 
 func TestFeatureManager_Name(t *testing.T) {
-	mng := MakeFeatureManager(Config{})
+	mng := NewFeatureManager(nil, nil, Config{})
 
 	assert.Equal(t, "dns", mng.Name())
 }
@@ -36,7 +36,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 	clusterID := uint(42)
 	version := "1.2.3"
 
-	mng := MakeFeatureManager(Config{
+	mng := NewFeatureManager(nil, nil, Config{
 		Charts: ChartsConfig{
 			ExternalDNS: ExternalDNSChartConfig{
 				ChartConfigBase: ChartConfigBase{
@@ -57,7 +57,7 @@ func TestFeatureManager_GetOutput(t *testing.T) {
 }
 
 func TestFeatureManager_ValidateSpec_ValidSpec(t *testing.T) {
-	mng := MakeFeatureManager(Config{})
+	mng := NewFeatureManager(nil, nil, Config{})
 
 	spec := clusterfeature.FeatureSpec{
 		"clusterDomain": "cluster.org.my.domain",
@@ -81,7 +81,7 @@ func TestFeatureManager_ValidateSpec_ValidSpec(t *testing.T) {
 	require.NoError(t, err)
 }
 func TestFeatureManager_ValidateSpec_InvalidSpec(t *testing.T) {
-	mng := MakeFeatureManager(Config{})
+	mng := NewFeatureManager(nil, nil, Config{})
 
 	err := mng.ValidateSpec(context.Background(), clusterfeature.FeatureSpec{})
 	require.Error(t, err)
@@ -92,14 +92,28 @@ func TestFeatureManager_ValidateSpec_InvalidSpec(t *testing.T) {
 
 func TestFeatureManager_PrepareSpec(t *testing.T) {
 	orgID := uint(42)
+	clusterID := uint(13)
+	clusterUID := "ca951029-208d-4cb1-87fe-6e7369d32949"
 
-	mng := MakeFeatureManager(Config{})
+	mng := NewFeatureManager(
+		dummyClusterOrgIDGetter{
+			Mapping: map[uint]uint{
+				clusterID: orgID,
+			},
+		},
+		dummyClusterUIDGetter{
+			Mapping: map[uint]string{
+				clusterID: clusterUID,
+			},
+		},
+		Config{},
+	)
 
 	cases := map[string]struct {
 		SpecIn  clusterfeature.FeatureSpec
 		SpecOut clusterfeature.FeatureSpec
 	}{
-		"provider with secret": {
+		"provider with secret, without txtOwnerID": {
 			SpecIn: clusterfeature.FeatureSpec{
 				"externalDns": obj{
 					"provider": obj{
@@ -114,15 +128,17 @@ func TestFeatureManager_PrepareSpec(t *testing.T) {
 						"secretId":         "brn:42:secret:0123456789abcdef",
 						"some-other-field": "some-value",
 					},
+					"txtOwnerId": clusterUID,
 				},
 			},
 		},
-		"provider without secret": {
+		"provider without secret, with txtOwnerID": {
 			SpecIn: clusterfeature.FeatureSpec{
 				"externalDns": obj{
 					"provider": obj{
 						"some-other-field": "some-value",
 					},
+					"txtOwnerId": "my-owner-id",
 				},
 			},
 			SpecOut: clusterfeature.FeatureSpec{
@@ -130,6 +146,7 @@ func TestFeatureManager_PrepareSpec(t *testing.T) {
 					"provider": obj{
 						"some-other-field": "some-value",
 					},
+					"txtOwnerId": "my-owner-id",
 				},
 			},
 		},
@@ -139,9 +156,31 @@ func TestFeatureManager_PrepareSpec(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ctx := auth.SetCurrentOrganizationID(context.Background(), orgID)
 
-			specOut, err := mng.PrepareSpec(ctx, tc.SpecIn)
+			specOut, err := mng.PrepareSpec(ctx, clusterID, tc.SpecIn)
 			assert.NoError(t, err)
 			assert.Equal(t, tc.SpecOut, specOut)
 		})
 	}
+}
+
+type dummyClusterOrgIDGetter struct {
+	Mapping map[uint]uint
+}
+
+func (d dummyClusterOrgIDGetter) GetClusterOrgID(_ context.Context, clusterID uint) (uint, error) {
+	if orgID, ok := d.Mapping[clusterID]; ok {
+		return orgID, nil
+	}
+	return 0, errors.New("cluster not found")
+}
+
+type dummyClusterUIDGetter struct {
+	Mapping map[uint]string
+}
+
+func (d dummyClusterUIDGetter) GetClusterUID(_ context.Context, clusterID uint) (string, error) {
+	if uid, ok := d.Mapping[clusterID]; ok {
+		return uid, nil
+	}
+	return "", errors.New("cluster not found")
 }

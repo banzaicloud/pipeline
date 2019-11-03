@@ -153,7 +153,7 @@ func (s FeatureService) Activate(ctx context.Context, clusterID uint, featureNam
 	}
 
 	logger.Debug("preparing feature specification")
-	preparedSpec, err := featureManager.PrepareSpec(ctx, spec)
+	preparedSpec, err := featureManager.PrepareSpec(ctx, clusterID, spec)
 	if err != nil {
 		const msg = "failed to prepare feature specification"
 		logger.Debug(msg)
@@ -246,7 +246,7 @@ func (s FeatureService) Update(ctx context.Context, clusterID uint, featureName 
 	}
 
 	logger.Debug("preparing feature specification")
-	preparedSpec, err := featureManager.PrepareSpec(ctx, spec)
+	preparedSpec, err := featureManager.PrepareSpec(ctx, clusterID, spec)
 	if err != nil {
 		const msg = "failed to prepare feature specification"
 		logger.Debug(msg)
