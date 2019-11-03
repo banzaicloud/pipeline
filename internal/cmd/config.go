@@ -459,6 +459,7 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	v.SetDefault("cluster.autoscale.charts.hpaOperator.version", "0.0.14")
 	v.SetDefault("cluster.autoscale.charts.hpaOperator.values", map[string]interface{}{})
 
+	v.SetDefault("cluster.securityScan.enabled", true)
 	v.SetDefault("cluster.securityScan.anchore.enabled", false)
 	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
 	v.SetDefault("cluster.securityScan.anchore.user", "")
