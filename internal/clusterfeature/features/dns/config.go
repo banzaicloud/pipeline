@@ -53,8 +53,8 @@ type ChartConfigBase struct {
 }
 
 type ExternalDNSChartConfig struct {
-	ChartConfigBase
-	Values ExternalDNSChartValuesConfig
+	ChartConfigBase `mapstructure:",squash"`
+	Values          ExternalDNSChartValuesConfig
 }
 
 type ExternalDNSChartValuesConfig struct {
