@@ -149,24 +149,9 @@ func InstallMonitoring(cluster CommonCluster) error {
 			"adminUser":     grafanaAdminUsername,
 			"adminPassword": grafanaAdminPass,
 			"ingress":       map[string][]string{"hosts": {host}},
-			"affinity":      GetHeadNodeAffinity(cluster),
-			"tolerations":   GetHeadNodeTolerations(),
 		},
 		"prometheus": map[string]interface{}{
-			"alertmanager": map[string]interface{}{
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
-			},
-			"kubeStateMetrics": map[string]interface{}{
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
-			},
-			"nodeExporter": map[string]interface{}{
-				"tolerations": GetHeadNodeTolerations(),
-			},
 			"server": map[string]interface{}{
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
 				"ingress": map[string]interface{}{
 					"enabled": true,
 					"annotations": map[string]string{
@@ -177,10 +162,6 @@ func InstallMonitoring(cluster CommonCluster) error {
 						host + "/prometheus",
 					},
 				},
-			},
-			"pushgateway": map[string]interface{}{
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
 			},
 		},
 	}
