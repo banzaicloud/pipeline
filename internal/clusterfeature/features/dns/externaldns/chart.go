@@ -14,10 +14,6 @@
 
 package externaldns
 
-import (
-	v1 "k8s.io/api/core/v1"
-)
-
 const (
 	ChartVersion = "2.3.3"
 	ChartName    = "stable/external-dns"
@@ -39,8 +35,6 @@ type ChartValues struct {
 	DomainFilters []string          `json:"domainFilters,omitempty"`
 	Policy        string            `json:"policy,omitempty"`
 	TXTOwnerID    string            `json:"txtOwnerId,omitempty"`
-	Affinity      *v1.Affinity      `json:"affinity,omitempty"`
-	Tolerations   []v1.Toleration   `json:"tolerations,omitempty"`
 	ExtraArgs     map[string]string `json:"extraArgs,omitempty"`
 	TXTPrefix     string            `json:"txtPrefix,omitempty"`
 	Azure         *AzureSettings    `json:"azure,omitempty"`
