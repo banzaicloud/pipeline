@@ -841,10 +841,7 @@ func InitSpotConfig(cluster CommonCluster) error {
 		return emperror.Wrap(err, "failed to initialize spot ConfigMap")
 	}
 
-	values := map[string]interface{}{
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
-	}
+	values := map[string]interface{}{}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
 		return emperror.Wrap(err, "failed to marshal yaml values")
