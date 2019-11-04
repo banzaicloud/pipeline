@@ -564,7 +564,11 @@ func (m chartValuesManager) generateGrafanaChartValues(
 		}
 	}
 
-	return nil
+	return &grafanaValues{
+		baseValues: baseValues{
+			Enabled: false,
+		},
+	}
 }
 
 func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context, spec alertmanagerSpec, secretName string) (*alertmanagerValues, error) {
