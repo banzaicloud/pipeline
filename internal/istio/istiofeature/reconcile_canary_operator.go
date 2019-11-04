@@ -17,7 +17,6 @@ package istiofeature
 import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/cluster"
 	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
@@ -73,14 +72,10 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 	}
 
 	type Values struct {
-		Affinity    corev1.Affinity     `json:"affinity,omitempty"`
-		Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
-		Operator    operator            `json:"operator,omitempty"`
+		Operator operator `json:"operator,omitempty"`
 	}
 
 	values := Values{
-		Affinity:    cluster.GetHeadNodeAffinity(c),
-		Tolerations: cluster.GetHeadNodeTolerations(),
 		Operator: operator{
 			Image: imageChartValue{},
 			Prometheus: prometheusChartValue{
