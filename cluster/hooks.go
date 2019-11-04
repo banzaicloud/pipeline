@@ -397,10 +397,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 func InstallPVCOperatorPostHook(cluster CommonCluster) error {
 	infraNamespace := global.Config.Cluster.Namespace
 
-	values := map[string]interface{}{
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
-	}
+	values := map[string]interface{}{}
 	valuesOverride, err := yaml.Marshal(values)
 	if err != nil {
 		return err
