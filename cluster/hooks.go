@@ -707,7 +707,6 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 
 	log.Info("route53 secret successfully installed into cluster.")
 
-	hnAffinity := GetHeadNodeAffinity(commonCluster)
 	externalDnsValues := dns.ExternalDnsChartValues{
 		Rbac: &dns.ExternalDnsRbacSettings{
 			Create: commonCluster.RbacEnabled() == true,
@@ -727,8 +726,6 @@ func RegisterDomainPostHook(commonCluster CommonCluster) error {
 		DomainFilters: []string{domain},
 		Policy:        "sync",
 		TxtOwnerId:    commonCluster.GetUID(),
-		Affinity:      &hnAffinity,
-		Tolerations:   GetHeadNodeTolerations(),
 	}
 
 	values, err := yaml.Marshal(externalDnsValues)
