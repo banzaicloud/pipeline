@@ -33,14 +33,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/internal/cloudinfo"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/model"
@@ -346,7 +344,6 @@ func (c *EKSCluster) CreateCluster() error {
 
 	creationContext.ScaleEnabled = c.GetScaleOptions() != nil && c.GetScaleOptions().Enabled
 	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
-	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
 	// IAM parameters
 	creationContext.DefaultUser = c.modelCluster.EKS.DefaultUser
@@ -371,7 +368,7 @@ func (c *EKSCluster) CreateCluster() error {
 		action.NewUploadSSHKeyAction(c.log, creationContext, sshSecret),
 		action.NewGenerateVPCConfigRequestAction(c.log, creationContext, eksStackName, c.GetOrganizationId()),
 		action.NewCreateEksClusterAction(c.log, creationContext, c.modelCluster.EKS.Version),
-		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, subnetMapping, headNodePoolName, c.modelCluster.EKS.NodePools...),
+		action.NewCreateUpdateNodePoolStackAction(c.log, true, creationContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, subnetMapping, c.modelCluster.EKS.NodePools...),
 	}
 
 	if creationContext.DefaultUser {
@@ -934,11 +931,10 @@ func (c *EKSCluster) UpdateCluster(updateRequest *pkgCluster.UpdateClusterReques
 	}
 
 	ASGWaitLoopCount := int(asgFulfillmentTimeout.Seconds() / asgWaitLoopSleepSeconds)
-	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 
 	deleteNodePoolAction := action.NewDeleteStacksAction(c.log, deleteContext, nodePoolsToDelete...)
-	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, subnetMapping, headNodePoolName, nodePoolsToCreate...)
-	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, false, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, nil, headNodePoolName, nodePoolsToUpdate...)
+	createNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, true, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, subnetMapping, nodePoolsToCreate...)
+	updateNodePoolAction := action.NewCreateUpdateNodePoolStackAction(c.log, false, createUpdateContext, ASGWaitLoopCount, asgWaitLoopSleepSeconds*time.Second, nodePoolTemplate, nil, nodePoolsToUpdate...)
 
 	actions = append(actions, createNodePoolAction, updateNodePoolAction, deleteNodePoolAction)
 
