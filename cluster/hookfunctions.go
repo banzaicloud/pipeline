@@ -69,10 +69,6 @@ var HookMap = map[string]PostFunctioner{
 		f:            LabelNodesWithNodePoolName,
 		ErrorHandler: ErrorHandler{},
 	},
-	pkgCluster.TaintHeadNodes: &BasePostFunction{
-		f:            TaintHeadNodes,
-		ErrorHandler: ErrorHandler{},
-	},
 	pkgCluster.InstallPVCOperator: &BasePostFunction{
 		f:            InstallPVCOperatorPostHook,
 		ErrorHandler: ErrorHandler{},
@@ -113,7 +109,6 @@ var HookMap = map[string]PostFunctioner{
 var BasePostHookFunctions = []string{
 	pkgCluster.SetupPrivileges,
 	pkgCluster.LabelNodesWithNodePoolName,
-	pkgCluster.TaintHeadNodes,
 	pkgCluster.CreatePipelineNamespacePostHook,
 	pkgCluster.InstallHelmPostHook,
 	pkgCluster.InstallNodePoolLabelSetOperator,
