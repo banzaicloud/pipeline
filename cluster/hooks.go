@@ -442,8 +442,6 @@ func InstallAnchoreImageValidator(cluster CommonCluster, param pkgCluster.PostHo
 			"anchoreUser": anchoreUserName,
 			"anchorePass": anchorePassword,
 		},
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
 	}
 	marshalledValues, err := yaml.Marshal(values)
 	if err != nil {
