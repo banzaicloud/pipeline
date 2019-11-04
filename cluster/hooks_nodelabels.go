@@ -17,16 +17,13 @@ package cluster
 import (
 	"emperror.dev/emperror"
 	"github.com/ghodss/yaml"
-	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/internal/global"
 	pkgCluster "github.com/banzaicloud/pipeline/pkg/cluster"
 )
 
 type nodePoolLabelSetOperatorConfig struct {
-	Tolerations   []v1.Toleration `json:"tolerations,omitempty"`
-	Affinity      v1.Affinity     `json:"affinity,omitempty"`
-	Configuration configuration   `json:"configuration,omitempty"`
+	Configuration configuration `json:"configuration,omitempty"`
 }
 
 type configuration struct {
@@ -44,15 +41,10 @@ func InstallNodePoolLabelSetOperator(cluster CommonCluster) error {
 	pipelineSystemNamespace := global.Config.Cluster.Labels.Namespace
 	reservedNodeLabelDomains := global.Config.Cluster.Labels.ForbiddenDomains
 
-	headNodeAffinity := GetHeadNodeAffinity(cluster)
-	headNodeTolerations := GetHeadNodeTolerations()
-
 	chartName := global.Config.Cluster.Labels.Charts.NodepoolLabelOperator.Chart
 	chartVersion := global.Config.Cluster.Labels.Charts.NodepoolLabelOperator.Version
 
 	config := nodePoolLabelSetOperatorConfig{
-		Tolerations: headNodeTolerations,
-		Affinity:    headNodeAffinity,
 		Configuration: configuration{
 			Labeler: labelerConfig{
 				ForbiddenLabelDomains: reservedNodeLabelDomains,
