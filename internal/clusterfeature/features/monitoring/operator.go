@@ -603,7 +603,11 @@ func (m chartValuesManager) generateAlertmanagerChartValues(ctx context.Context,
 		}, nil
 	}
 
-	return nil, nil
+	return &alertmanagerValues{
+		baseValues: baseValues{
+			Enabled: false,
+		},
+	}, nil
 }
 
 func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, spec prometheusSpec, secretName string) *prometheusValues {
