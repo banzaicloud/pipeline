@@ -19,7 +19,6 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sHelm "k8s.io/helm/pkg/helm"
 
@@ -80,8 +79,6 @@ type autoscalingInfo struct {
 	AutoDiscovery     autoDiscovery     `json:"autoDiscovery"`
 	SslCertPath       *string           `json:"sslCertPath,omitempty"`
 	SslCertHostPath   *string           `json:"sslCertHostPath,omitempty"`
-	Affinity          v1.Affinity       `json:"affinity,omitempty"`
-	Tolerations       []v1.Toleration   `json:"tolerations,omitempty"`
 }
 
 func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
@@ -183,8 +180,6 @@ func createAutoscalingForEks(cluster CommonCluster, groups []nodeGroup) *autosca
 			ClusterName: cluster.GetName(),
 		},
 		SslCertPath: &eksCertPath,
-		Affinity:    GetHeadNodeAffinity(cluster),
-		Tolerations: GetHeadNodeTolerations(),
 	}
 }
 
@@ -238,8 +233,6 @@ func createAutoscalingForAzure(cluster CommonCluster, groups []nodeGroup, vmType
 			TenantID:       clusterSecret.Values[secrettype.AzureTenantID],
 			ClusterName:    cluster.GetName(),
 		},
-		Affinity:    GetHeadNodeAffinity(cluster),
-		Tolerations: GetHeadNodeTolerations(),
 	}
 
 	switch cluster.GetDistribution() {
