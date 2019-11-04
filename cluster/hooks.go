@@ -280,8 +280,6 @@ func InstallKubernetesDashboardPostHook(cluster CommonCluster) error {
 				"create": false,
 				"name":   serviceAccount.Name,
 			},
-			"affinity":    GetHeadNodeAffinity(cluster),
-			"tolerations": GetHeadNodeTolerations(),
 		}
 
 		valuesJson, err = yaml.Marshal(values)
