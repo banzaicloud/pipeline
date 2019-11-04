@@ -361,14 +361,10 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 	chartVersion := global.Config.Cluster.Autoscale.Charts.HPAOperator.Version
 
 	values := map[string]interface{}{
-		"affinity":    GetHeadNodeAffinity(cluster),
-		"tolerations": GetHeadNodeTolerations(),
 		"kube-metrics-adapter": map[string]interface{}{
 			"prometheus": map[string]interface{}{
 				"url": fmt.Sprintf("http://%s.%s.svc/%s", promServiceName, infraNamespace, serviceContext),
 			},
-			"affinity":    GetHeadNodeAffinity(cluster),
-			"tolerations": GetHeadNodeTolerations(),
 		},
 	}
 
@@ -381,9 +377,7 @@ func InstallHorizontalPodAutoscalerPostHook(cluster CommonCluster) error {
 				"enabled": true,
 			}
 			values["metrics-server"] = map[string]interface{}{
-				"rbac":        map[string]interface{}{"create": true},
-				"affinity":    GetHeadNodeAffinity(cluster),
-				"tolerations": GetHeadNodeTolerations(),
+				"rbac": map[string]interface{}{"create": true},
 			}
 		} else {
 			log.Infof("Metrics Server is already installed")
