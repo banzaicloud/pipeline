@@ -652,7 +652,11 @@ func (m chartValuesManager) generatePrometheusChartValues(ctx context.Context, s
 		}
 	}
 
-	return nil
+	return &prometheusValues{
+		baseValues: baseValues{
+			Enabled: false,
+		},
+	}
 }
 
 func (m chartValuesManager) generateKubeStateMetricsChartValues(spec exporterBaseSpec) kubeStateMetricsValues {
