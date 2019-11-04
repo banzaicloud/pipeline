@@ -83,7 +83,6 @@ const (
 	InstallLogging                         = "InstallLogging"
 	RegisterDomainPostHook                 = "RegisterDomainPostHook"
 	LabelNodesWithNodePoolName             = "LabelNodesWithNodePoolName"
-	TaintHeadNodes                         = "TaintHeadNodes"
 	InstallPVCOperator                     = "InstallPVCOperator"
 	InstallAnchoreImageValidator           = "InstallAnchoreImageValidator"
 	RestoreFromBackup                      = "RestoreFromBackup"
