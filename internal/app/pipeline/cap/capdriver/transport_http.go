@@ -26,6 +26,8 @@ import (
 // NewHTTPHandler creates a new HTTP handler.
 func NewHTTPHandler(c cap.Capabilities, errorHandler cap.ErrorHandler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
 		err := json.NewEncoder(w).Encode(c)
 		if err != nil {
 			errorHandler.Handle(r.Context(), err)
