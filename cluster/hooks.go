@@ -603,17 +603,8 @@ func InstallHelmPostHook(cluster CommonCluster) error {
 				},
 			},
 		}
-	} else {
-		headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-		if headNodePoolName != "" {
-			if cluster.NodePoolExists(headNodePoolName) {
-				helmInstall.Tolerations = GetHeadNodeTolerations()                   // add toleration for system node
-				helmInstall.NodeAffinity = GetHeadNodeAffinity(cluster).NodeAffinity // try to schedule to system node
-			} else {
-				log.Warnf("head node pool %q not found, tiller deployment is not targeted to any node pool.", headNodePoolName)
-			}
-		}
 	}
+
 	kubeconfig, err := cluster.GetK8sConfig()
 	if err != nil {
 		return err
