@@ -24,7 +24,6 @@ import (
 	"github.com/banzaicloud/bank-vaults/pkg/sdk/tls"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/dns"
@@ -40,9 +39,7 @@ type ingressControllerValues struct {
 }
 
 type traefikValues struct {
-	SSL         sslTraefikValues `json:"ssl"`
-	Affinity    v1.Affinity      `json:"affinity"`
-	Tolerations []v1.Toleration  `json:"tolerations"`
+	SSL sslTraefikValues `json:"ssl"`
 }
 
 type sslTraefikValues struct {
@@ -135,8 +132,6 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 				DefaultCert: base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerCert])),
 				DefaultKey:  base64.StdEncoding.EncodeToString([]byte(defaultCertSecret.Values[secrettype.ServerKey])),
 			},
-			Affinity:    GetHeadNodeAffinity(cluster),
-			Tolerations: GetHeadNodeTolerations(),
 		},
 	}
 
