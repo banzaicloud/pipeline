@@ -19,13 +19,11 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sHelm "k8s.io/helm/pkg/helm"
 
 	"github.com/banzaicloud/pipeline/auth"
-	"github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/helm"
 	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/providers/azure/pke"
@@ -89,7 +87,6 @@ type autoscalingInfo struct {
 func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 	var nodeGroups []nodeGroup
 
-	headNodePoolName := viper.GetString(config.PipelineHeadNodePoolName)
 	scaleOptions := cluster.GetScaleOptions()
 	scaleEnabled := scaleOptions != nil && scaleOptions.Enabled
 
@@ -102,7 +99,7 @@ func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 
 		for _, nodePool := range nodePools {
 			// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools (except head) on Amazon
-			if nodePool.Autoscaling && (nodePool.Name == headNodePoolName || !scaleEnabled) {
+			if nodePool.Autoscaling && !scaleEnabled {
 				nodeGroups = append(nodeGroups, nodeGroup{
 					Name:    cluster.GetName() + ".node." + nodePool.Name,
 					MinSize: nodePool.NodeMinCount,
@@ -117,7 +114,7 @@ func getAmazonNodeGroups(cluster CommonCluster) ([]nodeGroup, error) {
 		}
 		nodePools := pke.GetNodePools()
 		for _, nodePool := range nodePools {
-			if nodePool.Autoscaling && (nodePool.Name == headNodePoolName || !scaleEnabled) {
+			if nodePool.Autoscaling && !scaleEnabled {
 				nodeGroups = append(nodeGroups, nodeGroup{
 					Name:    cluster.GetName() + ".node." + nodePool.Name,
 					MinSize: nodePool.MinCount,
