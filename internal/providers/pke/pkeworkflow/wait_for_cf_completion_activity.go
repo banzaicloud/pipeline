@@ -53,7 +53,7 @@ func (a *WaitCFCompletionActivity) Execute(ctx context.Context, input WaitCFComp
 
 	err = cfClient.WaitUntilStackCreateCompleteWithContext(ctx, describeStacksInput)
 	if err != nil {
-		return nil, emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, input.StackID, cfClient), "error waiting Cloud Formation template")
+		return nil, emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, "", input.StackID, cfClient), "error waiting Cloud Formation template")
 	}
 
 	output, err := cfClient.DescribeStacks(describeStacksInput)

@@ -122,8 +122,9 @@ func (a *CreateVPCAction) ExecuteAction(input interface{}) (interface{}, error) 
 
 	cloudformationSrv := cloudformation.New(a.context.Session)
 
+	clientRequestToken := uuid.Must(uuid.NewV4()).String()
 	createStackInput := &cloudformation.CreateStackInput{
-		ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
+		ClientRequestToken: aws.String(clientRequestToken),
 		DisableRollback:    aws.Bool(true),
 		Capabilities: []*string{
 			aws.String(cloudformation.CapabilityCapabilityIam),
@@ -143,7 +144,7 @@ func (a *CreateVPCAction) ExecuteAction(input interface{}) (interface{}, error) 
 	describeStacksInput := &cloudformation.DescribeStacksInput{StackName: aws.String(a.stackName)}
 	err = cloudformationSrv.WaitUntilStackCreateComplete(describeStacksInput)
 	if err != nil {
-		return nil, pkgCloudformation.NewAwsStackFailure(err, a.stackName, cloudformationSrv)
+		return nil, pkgCloudformation.NewAwsStackFailure(err, a.stackName, clientRequestToken, cloudformationSrv)
 	}
 
 	// TODO: fix ineffassign
@@ -305,8 +306,9 @@ func (a *CreateSubnetsAction) createSubnet(cidr, az string, output chan struct {
 
 	a.log.Debug("creating subnet", map[string]interface{}{"cidr": cidr, "availabilityZone": az})
 
+	clientRequestToken := uuid.Must(uuid.NewV4()).String()
 	createStackInput := &cloudformation.CreateStackInput{
-		ClientRequestToken: aws.String(uuid.Must(uuid.NewV4()).String()),
+		ClientRequestToken: aws.String(clientRequestToken),
 		DisableRollback:    aws.Bool(true),
 		StackName:          aws.String(stackName),
 		Capabilities:       []*string{aws.String(cloudformation.CapabilityCapabilityIam)},
@@ -331,7 +333,7 @@ func (a *CreateSubnetsAction) createSubnet(cidr, az string, output chan struct {
 		output <- struct {
 			*EksSubnet
 			error
-		}{nil, errors.WrapIff(pkgCloudformation.NewAwsStackFailure(err, stackName, cloudformationSrv), "failed to create subnet with cidr %q", cidr)}
+		}{nil, errors.WrapIff(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cloudformationSrv), "failed to create subnet with cidr %q", cidr)}
 		return
 	}
 
