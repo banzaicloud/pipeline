@@ -16,7 +16,7 @@ package monitoring
 
 import (
 	"fmt"
-	"time"
+	"regexp"
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
@@ -184,8 +184,13 @@ func (s storageSpec) Validate() error {
 		return requiredFieldError{fieldName: "retention"}
 	}
 
-	if _, err := time.ParseDuration(s.Retention); err != nil {
-		return errors.WrapIf(err, "failed to parse retention")
+	match, err := regexp.MatchString("[0-9]+(ms|s|m|h|d|w|y)", s.Retention)
+	if err != nil {
+		return errors.WrapIf(err, "failed to check retention")
+	}
+
+	if !match {
+		return errors.WrapIf(err, "invalid retention")
 	}
 
 	return nil
