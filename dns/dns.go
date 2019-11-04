@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"emperror.dev/emperror"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/banzaicloud/pipeline/internal/global"
@@ -33,8 +32,6 @@ type ExternalDnsChartValues struct {
 	DomainFilters []string                      `json:"domainFilters,omitempty" yaml:"domainFilters,omitempty"`
 	Policy        string                        `json:"policy,omitempty" yaml:"policy,omitempty"`
 	TxtOwnerId    string                        `json:"txtOwnerId,omitempty" yaml:"txtOwnerId,omitempty"`
-	Affinity      *v1.Affinity                  `json:"affinity,omitempty" yaml:"affinity,omitempty"`
-	Tolerations   []v1.Toleration               `json:"tolerations,omitempty" yaml:"tolerations,omitempty"`
 	ExtraArgs     map[string]string             `json:"extraArgs,omitempty" yaml:"extraArgs,omitempty"`
 	TxtPrefix     string                        `json:"txtPrefix,omitempty" yaml:"txtPrefix,omitempty"`
 	Crd           *ExternalDnsCrdSourceSettings `json:"crd,omitempty" yaml:"crd,omitempty"`
