@@ -20,7 +20,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/mitchellh/mapstructure"
-	v1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/auth"
 	"github.com/banzaicloud/pipeline/cluster"
@@ -170,12 +169,7 @@ func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, sp
 		Policy:        string(spec.ExternalDNS.Policy),
 		TXTOwnerID:    string(spec.ExternalDNS.TXTOwnerID),
 		TXTPrefix:     string(spec.ExternalDNS.TXTPrefix),
-		Tolerations:   cluster.GetHeadNodeTolerations(),
 		Provider:      getProviderNameForChart(spec.ExternalDNS.Provider.Name),
-	}
-
-	if headNodeAffinity := cluster.GetHeadNodeAffinity(cl); headNodeAffinity != (v1.Affinity{}) {
-		chartValues.Affinity = &headNodeAffinity
 	}
 
 	if spec.ExternalDNS.Provider.Name == dnsBanzai {
