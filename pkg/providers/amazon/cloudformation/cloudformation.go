@@ -79,12 +79,12 @@ func (e awsStackFailedError) Cause() error {
 	return e.awsStackError
 }
 
-func NewAwsStackFailure(awsStackError error, stackName string, cloudformationSrv *cloudformation.CloudFormation) error {
+func NewAwsStackFailure(awsStackError error, stackName, clientRequestToken string, cloudformationSrv *cloudformation.CloudFormation) error {
 	if awsStackError == nil {
 		return nil
 	}
 
-	failedStackEvents, err := collectFailedStackEvents(stackName, cloudformationSrv)
+	failedStackEvents, err := collectFailedStackEvents(stackName, clientRequestToken, cloudformationSrv)
 	if err != nil {
 		return errors.Append(awsStackError, errors.WrapIf(err, "could not retrieve stack events with 'FAILED' state"))
 	}
@@ -107,7 +107,7 @@ func NewAwsStackFailure(awsStackError error, stackName string, cloudformationSrv
 	return awsStackError
 }
 
-func collectFailedStackEvents(stackName string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
+func collectFailedStackEvents(stackName, clientRequestToken string, cloudformationSrv *cloudformation.CloudFormation) ([]*cloudformation.StackEvent, error) {
 	var failedStackEvents []*cloudformation.StackEvent
 
 	describeStackEventsInput := &cloudformation.DescribeStackEventsInput{StackName: aws.String(stackName)}
@@ -115,7 +115,11 @@ func collectFailedStackEvents(stackName string, cloudformationSrv *cloudformatio
 		func(page *cloudformation.DescribeStackEventsOutput, lastPage bool) bool {
 
 			for _, event := range page.StackEvents {
-				if strings.HasSuffix(*event.ResourceStatus, "FAILED") {
+				if clientRequestToken != "" && aws.StringValue(event.ClientRequestToken) != clientRequestToken {
+					continue
+				}
+
+				if strings.HasSuffix(aws.StringValue(event.ResourceStatus), "FAILED") {
 					failedStackEvents = append(failedStackEvents, event)
 				}
 			}

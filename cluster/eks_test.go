@@ -114,7 +114,7 @@ func TestGetNodePoolsForSubnet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			nodePools := getNodePoolsForSubnet(subnetMapping, tc.subnet)
+			nodePools := getNodePoolsForSubnetToBeRemoved(subnetMapping, tc.subnet)
 
 			if tc.expectedNodePools == nil && nodePools != nil {
 				t.Errorf("Expected: %v, got: %v", tc.expectedNodePools, nodePools)

@@ -179,6 +179,8 @@ type EKSClusterModel struct {
 	LogTypes EKSLogTypes `sql:"type:json"`
 
 	APIServerAccessPoints EKSAPIServerAccessPoints `sql:"type:json"`
+
+	CurrentWorkflowID string
 }
 
 type EKSLogTypes = JSONStringArray

@@ -107,9 +107,9 @@ func (c *KubeCluster) Persist() error {
 	return emperror.Wrap(c.modelCluster.Save(), "failed to persist cluster")
 }
 
-// createDefaultStorageClass creates a default storage class as some clusters are not created with
+// CreateDefaultStorageClass creates a default storage class as some clusters are not created with
 // any storage classes or with default one
-func createDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode, parameters map[string]string) error {
+func CreateDefaultStorageClass(kubernetesClient *kubernetes.Clientset, provisioner string, volumeBindingMode storagev1.VolumeBindingMode, parameters map[string]string) error {
 	defaultStorageClass := storagev1.StorageClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "default",

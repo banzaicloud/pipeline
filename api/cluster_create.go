@@ -252,6 +252,7 @@ func (a *ClusterAPI) createCluster(
 	switch c := commonCluster.(type) {
 	case *cluster.EKSCluster:
 		c.CloudInfoClient = a.cloudInfoClient
+		c.WorkflowClient = a.workflowClient
 	}
 
 	creator := cluster.NewClusterCreator(createClusterRequest, commonCluster, a.workflowClient)

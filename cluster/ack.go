@@ -458,7 +458,7 @@ func (c *ACKCluster) CreateCluster() error {
 	}
 
 	// create default storage class
-	err = createDefaultStorageClass(kubeClient, "alicloud/disk", storagev1.VolumeBindingWaitForFirstConsumer, map[string]string{"type": "cloud_efficiency"})
+	err = CreateDefaultStorageClass(kubeClient, "alicloud/disk", storagev1.VolumeBindingWaitForFirstConsumer, map[string]string{"type": "cloud_efficiency"})
 	if err != nil {
 		return emperror.With(err, "cluster", c.modelCluster.Name)
 	}

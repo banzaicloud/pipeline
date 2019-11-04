@@ -19,8 +19,10 @@ import (
 	"fmt"
 
 	"emperror.dev/emperror"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 
 	pkgCloudformation "github.com/banzaicloud/pipeline/pkg/providers/amazon/cloudformation"
@@ -58,11 +60,13 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 	}
 
 	cfClient := cloudformation.New(client)
+	clientRequestToken := uuid.Must(uuid.NewV4()).String()
 
 	clusterName := c.GetName()
 	stackName := "pke-vpc-" + clusterName
 	stackInput := &cloudformation.DeleteStackInput{
-		StackName: &stackName,
+		ClientRequestToken: aws.String(clientRequestToken),
+		StackName:          &stackName,
 	}
 
 	_, err = cfClient.DeleteStack(stackInput)
@@ -75,5 +79,5 @@ func (a *DeleteVPCActivity) Execute(ctx context.Context, input DeleteVPCActivity
 
 	err = cfClient.WaitUntilStackDeleteCompleteWithContext(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName})
 
-	return emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, cfClient), "waiting for termination")
+	return emperror.Wrap(pkgCloudformation.NewAwsStackFailure(err, stackName, clientRequestToken, cfClient), "waiting for termination")
 }
