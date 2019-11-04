@@ -27,7 +27,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,7 +37,6 @@ import (
 	pkgHelmRelease "k8s.io/helm/pkg/proto/hapi/release"
 
 	"github.com/banzaicloud/pipeline/auth"
-	pipConfig "github.com/banzaicloud/pipeline/config"
 	"github.com/banzaicloud/pipeline/dns"
 	"github.com/banzaicloud/pipeline/dns/route53"
 	"github.com/banzaicloud/pipeline/helm"
@@ -75,52 +73,6 @@ func castToPostHookParam(data *pkgCluster.PostHookParam, output interface{}) (er
 	err = json.Unmarshal(bytes, &output)
 
 	return
-}
-
-func GetHeadNodeAffinity(cluster interface {
-	NodePoolExists(nodePoolName string) bool
-}) v1.Affinity {
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-	if len(headNodePoolName) == 0 {
-		return v1.Affinity{}
-	}
-	if !cluster.NodePoolExists(headNodePoolName) {
-		return v1.Affinity{}
-	}
-	return v1.Affinity{
-		NodeAffinity: &v1.NodeAffinity{
-			PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
-				{
-					Weight: 100,
-					Preference: v1.NodeSelectorTerm{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      pkgCommon.LabelKey,
-								Operator: v1.NodeSelectorOpIn,
-								Values: []string{
-									headNodePoolName,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func GetHeadNodeTolerations() []v1.Toleration {
-	headNodePoolName := viper.GetString(pipConfig.PipelineHeadNodePoolName)
-	if len(headNodePoolName) == 0 {
-		return []v1.Toleration{}
-	}
-	return []v1.Toleration{
-		{
-			Key:      pkgCommon.NodePoolNameTaintKey,
-			Operator: v1.TolerationOpEqual,
-			Value:    headNodePoolName,
-		},
-	}
 }
 
 func installDeployment(cluster CommonCluster, namespace string, deploymentName string, releaseName string, values []byte, chartVersion string, wait bool) error {
