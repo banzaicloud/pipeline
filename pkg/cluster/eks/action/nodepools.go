@@ -50,7 +50,6 @@ type CreateUpdateNodePoolStackAction struct {
 	log              logrus.FieldLogger
 	waitAttempts     int
 	waitInterval     time.Duration
-	headNodePoolName string
 	nodePoolTemplate string
 	subnetMapping    map[string][]*EksSubnet
 }
@@ -64,7 +63,6 @@ func NewCreateUpdateNodePoolStackAction(
 	waitInterval time.Duration,
 	nodePoolTemplate string,
 	subnetMapping map[string][]*EksSubnet,
-	headNodePoolName string,
 	nodePools ...*model.AmazonNodePoolsModel) *CreateUpdateNodePoolStackAction {
 	return &CreateUpdateNodePoolStackAction{
 		context:          creationContext,
@@ -73,7 +71,6 @@ func NewCreateUpdateNodePoolStackAction(
 		log:              log,
 		waitAttempts:     waitAttempts,
 		waitInterval:     waitInterval,
-		headNodePoolName: headNodePoolName,
 		nodePoolTemplate: nodePoolTemplate,
 		subnetMapping:    subnetMapping,
 	}
@@ -199,10 +196,8 @@ func (a *CreateUpdateNodePoolStackAction) createUpdateNodePool(nodePool *model.A
 
 	// if ScaleOptions is enabled on cluster, ClusterAutoscaler is disabled on all node pools, except head
 	if a.context.ScaleEnabled {
-		if nodePool.Name != a.headNodePoolName {
-			clusterAutoscalerEnabled = false
-			terminationDetachEnabled = true
-		}
+		clusterAutoscalerEnabled = false
+		terminationDetachEnabled = true
 	}
 
 	waitOnCreateUpdate := true
