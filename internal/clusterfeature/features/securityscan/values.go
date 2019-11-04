@@ -14,12 +14,8 @@
 
 package securityscan
 
-import v1 "k8s.io/api/core/v1"
-
 type SecurityScanChartValues struct {
-	Anchore     AnchoreValues   `json:"externalAnchore"`
-	Affinity    *v1.Affinity    `json:"affinity,omitempty"`
-	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+	Anchore AnchoreValues `json:"externalAnchore"`
 }
 
 // AnchoreValues struct used to build chart values and to extract anchore data from secret values
