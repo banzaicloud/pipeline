@@ -228,6 +228,9 @@ dex:
 #        # Base domain used for Pipeline DNS provider
 #        baseDomain: ""
 #
+#        # Vault secret path (API v1) of the credentials to be used for Banzai DNS
+#        providerSecret: "secret/data/banzaicloud/aws"
+#
 #        charts:
 #            externalDns:
 #                chart: "stable/external-dns"
