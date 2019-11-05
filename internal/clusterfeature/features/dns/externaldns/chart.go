@@ -19,8 +19,6 @@ import (
 )
 
 const (
-	ReleaseName = "dns"
-
 	AzureSecretName  = "azure-config-file"
 	GoogleSecretName = "google-config-file"
 

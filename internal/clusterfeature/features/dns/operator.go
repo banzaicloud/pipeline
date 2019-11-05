@@ -33,6 +33,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
+const ReleaseName = "dns"
+
 // FeatureOperator implements the DNS feature operator
 type FeatureOperator struct {
 	clusterGetter    clusterfeatureadapter.ClusterGetter
@@ -121,7 +123,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		clusterID,
 		op.config.Namespace,
 		op.config.Charts.ExternalDNS.Chart,
-		externaldns.ReleaseName,
+		ReleaseName,
 		chartValues,
 		op.config.Charts.ExternalDNS.Version,
 	); err != nil {
@@ -142,7 +144,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, _ clus
 		return err
 	}
 
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, externaldns.ReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, ReleaseName); err != nil {
 		return errors.WrapIf(err, "failed to delete deployment")
 	}
 
