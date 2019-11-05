@@ -19,10 +19,7 @@ import (
 )
 
 const (
-	ChartVersion = "2.3.3"
-	ChartName    = "stable/external-dns"
-	Namespace    = "pipeline-system"
-	ReleaseName  = "dns"
+	ReleaseName = "dns"
 
 	AzureSecretName  = "azure-config-file"
 	GoogleSecretName = "google-config-file"
