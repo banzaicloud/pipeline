@@ -209,7 +209,7 @@ func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, sp
 			return nil, errors.WrapIf(err, "failed to decode secret values")
 		}
 
-		secretName, err := installSecret(cl, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
+		secretName, err := installSecret(cl, op.config.Namespace, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
@@ -224,7 +224,7 @@ func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, sp
 			spec.ExternalDNS.Provider.Options.GoogleProject = secretValues[secrettype.ProjectId]
 		}
 
-		secretName, err := installSecret(cl, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
+		secretName, err := installSecret(cl, op.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
@@ -260,6 +260,7 @@ func installSecret(
 		GetK8sConfig() ([]byte, error)
 		GetOrganizationId() uint
 	},
+	namespace string,
 	secretName string,
 	secretDataKey string,
 	secretValue interface{},
@@ -271,7 +272,7 @@ func installSecret(
 
 	req := cluster.InstallSecretRequest{
 		// Note: leave the Source field empty as the secret needs to be transformed
-		Namespace: externaldns.Namespace,
+		Namespace: namespace,
 		Update:    true,
 		Spec: map[string]cluster.InstallSecretRequestSpecItem{
 			secretDataKey: {
