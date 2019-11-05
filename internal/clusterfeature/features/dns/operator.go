@@ -190,12 +190,16 @@ func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, sp
 	switch spec.ExternalDNS.Provider.Name {
 	case dnsBanzai, dnsRoute53:
 		chartValues.AWS = &externaldns.AWSSettings{
-			Region:          secretValues[secrettype.AwsRegion],
-			BatchChangeSize: spec.ExternalDNS.Provider.Options.BatchChangeSize,
+			Region: secretValues[secrettype.AwsRegion],
 			Credentials: &externaldns.AWSCredentials{
 				AccessKey: secretValues[secrettype.AwsAccessKeyId],
 				SecretKey: secretValues[secrettype.AwsSecretAccessKey],
 			},
+		}
+
+		if options := spec.ExternalDNS.Provider.Options; options != nil {
+			chartValues.AWS.BatchChangeSize = options.BatchChangeSize
+			chartValues.AWS.Region = options.Region
 		}
 
 	case dnsAzure:
@@ -222,18 +226,18 @@ func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, sp
 		}
 
 	case dnsGoogle:
-		if spec.ExternalDNS.Provider.Options.GoogleProject == "" {
-			spec.ExternalDNS.Provider.Options.GoogleProject = secretValues[secrettype.ProjectId]
-		}
-
 		secretName, err := installSecret(cl, op.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
 
 		chartValues.Google = &externaldns.GoogleSettings{
-			Project:              spec.ExternalDNS.Provider.Options.GoogleProject,
+			Project:              secretValues[secrettype.ProjectId],
 			ServiceAccountSecret: secretName,
+		}
+
+		if options := spec.ExternalDNS.Provider.Options; options != nil {
+			chartValues.Google.Project = options.GoogleProject
 		}
 
 	default:
