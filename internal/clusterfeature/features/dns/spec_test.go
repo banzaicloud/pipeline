@@ -27,7 +27,7 @@ func TestClusterDomainSpec_Validate_Empty(t *testing.T) {
 
 func TestDomainFiltersSpec_Validate_Empty(t *testing.T) {
 	err := domainFiltersSpec(nil).Validate()
-	require.Error(t, err)
+	require.NoError(t, err)
 }
 
 func TestProviderSpec_Validate(t *testing.T) {

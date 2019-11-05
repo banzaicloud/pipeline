@@ -57,9 +57,6 @@ func (s externalDNSSpec) Validate() error {
 type domainFiltersSpec []string
 
 func (s domainFiltersSpec) Validate() error {
-	if len(s) == 0 {
-		return errors.New("domain filters must be provided")
-	}
 	return nil
 }
 
