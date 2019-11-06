@@ -20,7 +20,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 func (m *MeshReconciler) ReconcileIstioOperator(desiredState DesiredState) error {
@@ -91,7 +90,7 @@ func (m *MeshReconciler) installIstioOperator(c cluster.CommonCluster) error {
 	err = installOrUpgradeDeployment(
 		c,
 		istioOperatorNamespace,
-		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.istioOperator.chartName,
+		m.Configuration.internalConfig.istioOperator.chartName,
 		istioOperatorReleaseName,
 		valuesOverride,
 		m.Configuration.internalConfig.istioOperator.chartVersion,

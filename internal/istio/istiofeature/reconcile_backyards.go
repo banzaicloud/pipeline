@@ -27,7 +27,6 @@ import (
 
 	"github.com/banzaicloud/pipeline/cluster"
 	"github.com/banzaicloud/pipeline/pkg/backoff"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 type monitoringConfig struct {
@@ -220,7 +219,7 @@ func (m *MeshReconciler) installBackyards(c cluster.CommonCluster, monitoring mo
 	err = installOrUpgradeDeployment(
 		c,
 		backyardsNamespace,
-		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.backyards.chartName,
+		m.Configuration.internalConfig.backyards.chartName,
 		backyardsReleaseName,
 		valuesOverride,
 		m.Configuration.internalConfig.backyards.chartVersion,
