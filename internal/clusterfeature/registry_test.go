@@ -78,6 +78,8 @@ func TestFeatureOperatorRegistry_GetFeatureOperator_UnknownFeature(t *testing.T)
 }
 
 type dummyFeatureManager struct {
+	PassthroughFeatureSpecPreparer
+
 	TheName         string
 	Output          FeatureOutput
 	ValidationError error
@@ -93,10 +95,6 @@ func (d dummyFeatureManager) GetOutput(ctx context.Context, clusterID uint, spec
 
 func (d dummyFeatureManager) ValidateSpec(ctx context.Context, spec FeatureSpec) error {
 	return d.ValidationError
-}
-
-func (d dummyFeatureManager) PrepareSpec(ctx context.Context, spec FeatureSpec) (FeatureSpec, error) {
-	return spec, nil
 }
 
 type dummyFeatureOperator struct {

@@ -30,6 +30,8 @@ import (
 
 // FeatureManager implements the Monitoring feature manager
 type FeatureManager struct {
+	clusterfeature.PassthroughFeatureSpecPreparer
+
 	clusterGetter    clusterfeatureadapter.ClusterGetter
 	secretStore      features.SecretStore
 	endpointsService endpoints.EndpointService
@@ -137,11 +139,6 @@ func (FeatureManager) ValidateSpec(ctx context.Context, spec clusterfeature.Feat
 	}
 
 	return nil
-}
-
-// PrepareSpec makes certain preparations to the spec before it's sent to be applied
-func (FeatureManager) PrepareSpec(ctx context.Context, spec clusterfeature.FeatureSpec) (clusterfeature.FeatureSpec, error) {
-	return spec, nil
 }
 
 func (m FeatureManager) getComponentOutput(

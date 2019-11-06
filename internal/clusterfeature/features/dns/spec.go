@@ -24,45 +24,46 @@ import (
 )
 
 type dnsFeatureSpec struct {
-	AutoDNS   autoDNSSpec   `json:"autoDns" mapstructure:"autoDns"`
-	CustomDNS customDNSSpec `json:"customDns" mapstructure:"customDns"`
+	ClusterDomain clusterDomainSpec `json:"clusterDomain" mapstructure:"clusterDomain"`
+	ExternalDNS   externalDNSSpec   `json:"externalDns" mapstructure:"externalDns"`
 }
 
 func (s dnsFeatureSpec) Validate() error {
-	if s.AutoDNS.Enabled == s.CustomDNS.Enabled {
-		return errors.New("exactly one of autoDns and customDns components must be enabled")
+	return errors.Combine(s.ClusterDomain.Validate(), s.ExternalDNS.Validate())
+}
+
+type clusterDomainSpec string
+
+func (s clusterDomainSpec) Validate() error {
+	if s == "" {
+		return requiredStringFieldError{fieldName: "clusterDomain"}
 	}
-
-	return errors.Combine(s.AutoDNS.Validate(), s.CustomDNS.Validate())
-}
-
-type autoDNSSpec struct {
-	Enabled bool `json:"enabled"`
-}
-
-func (autoDNSSpec) Validate() error {
 	return nil
 }
 
-type customDNSSpec struct {
-	Enabled       bool         `json:"enabled" mapstructure:"enabled"`
-	DomainFilters []string     `json:"domainFilters" mapstructure:"domainFilters"`
-	ClusterDomain string       `json:"clusterDomain" mapstructure:"clusterDomain"`
-	Provider      providerSpec `json:"provider" mapstructure:"provider"`
+type externalDNSSpec struct {
+	DomainFilters domainFiltersSpec `json:"domainFilters" mapstructure:"domainFilters"`
+	Policy        policySpec        `json:"policy" mapstructure:"policy"`
+	Provider      providerSpec      `json:"provider" mapstructure:"provider"`
+	Sources       sourcesSpec       `json:"sources" mapstructure:"sources"`
+	TXTOwnerID    txtOwnerIDSpec    `json:"txtOwnerId" mapstructure:"txtOwnerId"`
+	TXTPrefix     txtPrefixSpec     `json:"txtPrefix" mapstructure:"txtPrefix"`
 }
 
-func (s customDNSSpec) Validate() error {
-	if !s.Enabled {
-		return nil
-	}
+func (s externalDNSSpec) Validate() error {
+	return errors.Combine(s.DomainFilters.Validate(), s.Policy.Validate(), s.Provider.Validate(), s.Sources.Validate(), s.TXTOwnerID.Validate())
+}
 
-	var errs error
+type domainFiltersSpec []string
 
-	if len(s.DomainFilters) < 1 {
-		errs = errors.Append(errs, errors.New("domain filters must be provided"))
-	}
+func (s domainFiltersSpec) Validate() error {
+	return nil
+}
 
-	return errors.Combine(errs, s.Provider.Validate())
+type policySpec string
+
+func (policySpec) Validate() error {
+	return nil
 }
 
 type providerSpec struct {
@@ -75,18 +76,22 @@ func (s providerSpec) Validate() error {
 	var errs error
 
 	if s.Name == "" {
-		errs = errors.Append(errs, errors.New("DNS provider name must be provided"))
+		errs = errors.Append(errs, requiredStringFieldError{fieldName: "name"})
 	}
 
-	if s.SecretID == "" {
-		errs = errors.Append(errs, errors.New("secret ID with DNS provider credentials must be provided"))
+	if s.Name == dnsBanzai {
+		if s.SecretID != "" {
+			errs = errors.Append(errs, errors.Errorf("secret ID cannot be specified for provider %q", dnsBanzai))
+		}
+	} else {
+		if s.SecretID == "" {
+			errs = errors.Append(errs, errors.New("secret ID with DNS provider credentials must be provided"))
+		}
 	}
 
 	return errors.Combine(errs, s.Options.Validate(s.Name))
 }
 
-// providerOptions placeholder struct for additional provider specific configuration
-// extrend it with the required fields here as appropriate
 type providerOptions struct {
 	DNSMasked          bool   `json:"dnsMasked" mapstructure:"dnsMasked"`
 	AzureResourceGroup string `json:"resourceGroup,omitempty" mapstructure:"resourceGroup"`
@@ -98,14 +103,14 @@ type providerOptions struct {
 func (o *providerOptions) Validate(provider string) error {
 	switch provider {
 	case dnsAzure:
-		if o == nil || len(o.AzureResourceGroup) == 0 {
-			return &EmptyOptionFieldError{
+		if o == nil || o.AzureResourceGroup == "" {
+			return requiredStringFieldError{
 				fieldName: "resourceGroup",
 			}
 		}
 	case dnsGoogle:
-		if o == nil || len(o.GoogleProject) == 0 {
-			return &EmptyOptionFieldError{
+		if o == nil || o.GoogleProject == "" {
+			return requiredStringFieldError{
 				fieldName: "project",
 			}
 		}
@@ -114,22 +119,36 @@ func (o *providerOptions) Validate(provider string) error {
 	return nil
 }
 
+type sourcesSpec []string
+
+func (sourcesSpec) Validate() error {
+	return nil
+}
+
+type txtOwnerIDSpec string
+
+func (s txtOwnerIDSpec) Validate() error {
+	return nil
+}
+
+type txtPrefixSpec string
+
+func (txtPrefixSpec) Validate() error {
+	return nil
+}
+
 func bindFeatureSpec(spec clusterfeature.FeatureSpec) (dnsFeatureSpec, error) {
 	var boundSpec dnsFeatureSpec
 	if err := mapstructure.Decode(spec, &boundSpec); err != nil {
-		return boundSpec, clusterfeature.InvalidFeatureSpecError{
-			FeatureName: FeatureName,
-			Problem:     errors.WrapIf(err, "failed to bind feature spec").Error(),
-		}
+		return boundSpec, errors.WrapIf(err, "failed to bind feature spec")
 	}
 	return boundSpec, nil
 }
 
-// EmptyOptionFieldError is returned when resource group field is empty in case of Azure provider.
-type EmptyOptionFieldError struct {
+type requiredStringFieldError struct {
 	fieldName string
 }
 
-func (e *EmptyOptionFieldError) Error() string {
-	return fmt.Sprintf("%s cannot be empty", e.fieldName)
+func (e requiredStringFieldError) Error() string {
+	return fmt.Sprintf("%s must be specified and cannot be empty", e.fieldName)
 }

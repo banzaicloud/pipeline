@@ -28,11 +28,12 @@ import (
 	"github.com/banzaicloud/pipeline/internal/clusterfeature"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/clusterfeatureadapter"
 	"github.com/banzaicloud/pipeline/internal/clusterfeature/features"
+	"github.com/banzaicloud/pipeline/internal/clusterfeature/features/dns/externaldns"
 	"github.com/banzaicloud/pipeline/internal/common"
-	"github.com/banzaicloud/pipeline/internal/global"
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
-	secret2 "github.com/banzaicloud/pipeline/secret"
 )
+
+const ReleaseName = "dns"
 
 // FeatureOperator implements the DNS feature operator
 type FeatureOperator struct {
@@ -42,6 +43,14 @@ type FeatureOperator struct {
 	logger           common.Logger
 	orgDomainService OrgDomainService
 	secretStore      features.SecretStore
+	config           Config
+}
+
+// OrgDomainService interface for abstracting DNS provider related operations
+// intended to be used in conjunction with the autoDNS feature in pipeline
+type OrgDomainService interface {
+	// EnsureClusterDomain checks for the org related hosted zone, triggers the creation of it if required
+	EnsureOrgDomain(ctx context.Context, clusterID uint) error
 }
 
 // MakeFeatureOperator returns a DNS feature operator
@@ -52,6 +61,7 @@ func MakeFeatureOperator(
 	logger common.Logger,
 	orgDomainService OrgDomainService,
 	secretStore features.SecretStore,
+	config Config,
 ) FeatureOperator {
 	return FeatureOperator{
 		clusterGetter:    clusterGetter,
@@ -60,25 +70,16 @@ func MakeFeatureOperator(
 		logger:           logger,
 		orgDomainService: orgDomainService,
 		secretStore:      secretStore,
+		config:           config,
 	}
 }
 
 const (
-	externalDNSChartVersion = "2.3.3"
-	externalDNSChartName    = "stable/external-dns"
-	externalDNSNamespace    = "pipeline-system"
-	externalDNSRelease      = "dns"
-
-	externalDNSAzureSecret  = "azure-config-file"
-	externalDNSGoogleSecret = "google-config-file"
-
-	externalDNSAzureSecretDataKey  = "azure.json"
-	externalDNSGoogleSecretDataKey = "credentials.json"
-
 	// supported DNS provider names
 	dnsRoute53 = "route53"
 	dnsAzure   = "azure"
 	dnsGoogle  = "google"
+	dnsBanzai  = "banzaicloud-dns"
 )
 
 // Name returns the name of the DNS feature
@@ -90,7 +91,6 @@ func (op FeatureOperator) Name() string {
 func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec clusterfeature.FeatureSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-
 		return err
 	}
 
@@ -98,61 +98,36 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		return err
 	}
 
-	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": FeatureName})
-
 	boundSpec, err := bindFeatureSpec(spec)
 	if err != nil {
-
-		return err
+		return errors.WrapIf(err, "failed to bind feature spec")
 	}
 
-	dnsChartValues := &ExternalDnsChartValues{}
+	if err := boundSpec.Validate(); err != nil {
+		return errors.WrapIf(err, "spec validation failed")
+	}
 
-	switch {
-	case boundSpec.AutoDNS.Enabled:
-		dnsChartValues, err = op.processAutoDNSFeatureValues(ctx, clusterID, boundSpec.AutoDNS)
-		if err != nil {
-			logger.Debug("failed to process autoDNS values")
-
-			return errors.WrapIf(err, "failed to process autoDNS values")
-		}
-
+	if boundSpec.ExternalDNS.Provider.Name == dnsBanzai {
 		if err := op.orgDomainService.EnsureOrgDomain(ctx, clusterID); err != nil {
-			logger.Debug("failed to enable autoDNS")
-
-			return errors.WrapIf(err, "failed to register org hosted zone")
-		}
-
-		d, _, _ := op.orgDomainService.GetDomain(ctx, clusterID)
-
-		dnsChartValues.DomainFilters = []string{d}
-
-	case boundSpec.CustomDNS.Enabled:
-		dnsChartValues, err = op.processCustomDNSFeatureValues(ctx, clusterID, boundSpec.CustomDNS)
-		if err != nil {
-			logger.Debug("failed to process customDNS values")
-
-			return errors.WrapIf(err, "failed to process customDNS values")
+			return errors.WrapIf(err, "failed to ensure org domain")
 		}
 	}
 
-	valuesBytes, err := json.Marshal(dnsChartValues)
+	chartValues, err := op.getChartValues(ctx, clusterID, boundSpec)
 	if err != nil {
-		logger.Debug("failed to marshal values")
-
-		return errors.WrapIf(err, "failed to decode values")
+		return errors.WrapIf(err, "failed to get chart values")
 	}
 
 	if err = op.helmService.ApplyDeployment(
 		ctx,
 		clusterID,
-		externalDNSNamespace,
-		externalDNSChartName,
-		externalDNSRelease,
-		valuesBytes,
-		externalDNSChartVersion,
+		op.config.Namespace,
+		op.config.Charts.ExternalDNS.Chart,
+		ReleaseName,
+		chartValues,
+		op.config.Charts.ExternalDNS.Version,
 	); err != nil {
-		return errors.WrapIf(err, "failed to deploy feature")
+		return errors.WrapIf(err, "failed to apply deployment")
 	}
 
 	return nil
@@ -162,7 +137,6 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, _ clusterfeature.FeatureSpec) error {
 	ctx, err := op.ensureOrgIDInContext(ctx, clusterID)
 	if err != nil {
-
 		return err
 	}
 
@@ -170,300 +144,155 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, _ clus
 		return err
 	}
 
-	logger := op.logger.WithContext(ctx).WithFields(map[string]interface{}{"cluster": clusterID, "feature": FeatureName})
-
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, externalDNSRelease); err != nil {
-		logger.Info("failed to delete feature deployment")
-
-		return errors.WrapIf(err, "failed to uninstall feature")
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, ReleaseName); err != nil {
+		return errors.WrapIf(err, "failed to delete deployment")
 	}
 
 	return nil
 }
 
-func (op FeatureOperator) processAutoDNSFeatureValues(ctx context.Context, clusterID uint, autoDNS autoDNSSpec) (*ExternalDnsChartValues, error) {
-
-	// this is only supported for route53
-
-	values, err := op.getDefaultValues(ctx, clusterID)
+func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, spec dnsFeatureSpec) ([]byte, error) {
+	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
 	if err != nil {
-
-		return nil, errors.WrapIf(err, "failed to process default values")
+		return nil, errors.WrapIf(err, "failed to get cluster")
 	}
 
-	route53Secret, err := op.secretStore.GetSecretValues(ctx, route53.IAMUserAccessKeySecretID)
-	if err != nil {
+	chartValues := externaldns.ChartValues{
+		Sources: spec.ExternalDNS.Sources,
+		RBAC: &externaldns.RBACSettings{
+			Create: cl.RbacEnabled(),
+		},
+		Image: &externaldns.ImageSettings{
+			Repository: op.config.Charts.ExternalDNS.Values.Image.Repository,
+			Tag:        op.config.Charts.ExternalDNS.Values.Image.Tag,
+		},
+		DomainFilters: spec.ExternalDNS.DomainFilters,
+		Policy:        string(spec.ExternalDNS.Policy),
+		TXTOwnerID:    string(spec.ExternalDNS.TXTOwnerID),
+		TXTPrefix:     string(spec.ExternalDNS.TXTPrefix),
+		Tolerations:   cluster.GetHeadNodeTolerations(),
+		Provider:      getProviderNameForChart(spec.ExternalDNS.Provider.Name),
+	}
 
+	if headNodeAffinity := cluster.GetHeadNodeAffinity(cl); headNodeAffinity != (v1.Affinity{}) {
+		chartValues.Affinity = &headNodeAffinity
+	}
+
+	if spec.ExternalDNS.Provider.Name == dnsBanzai {
+		spec.ExternalDNS.Provider.SecretID = route53.IAMUserAccessKeySecretID
+	}
+
+	secretValues, err := op.secretStore.GetSecretValues(ctx, spec.ExternalDNS.Provider.SecretID)
+	if err != nil {
 		return nil, errors.WrapIf(err, "failed to get secret")
 	}
 
-	// parse secrets - aws only for the time being
-	var creds awsCredentials
-	if err := mapstructure.Decode(route53Secret, &creds); err != nil {
+	switch spec.ExternalDNS.Provider.Name {
+	case dnsBanzai, dnsRoute53:
+		chartValues.AWS = &externaldns.AWSSettings{
+			Region: secretValues[secrettype.AwsRegion],
+			Credentials: &externaldns.AWSCredentials{
+				AccessKey: secretValues[secrettype.AwsAccessKeyId],
+				SecretKey: secretValues[secrettype.AwsSecretAccessKey],
+			},
+		}
 
-		return nil, errors.WrapIf(err, "failed to bind feature spec credentials")
-	}
-
-	// set secret values
-	providerSettings := &ExternalDnsAwsSettings{
-		Region: creds.Region,
-	}
-
-	providerSettings.Credentials = &ExternalDnsAwsCredentials{
-		AccessKey: creds.AccessKeyID,
-		SecretKey: creds.SecretAccessKey,
-	}
-
-	values.Aws = providerSettings
-	values.Provider = "aws"
-
-	return values, nil
-}
-
-func (op FeatureOperator) processCustomDNSFeatureValues(ctx context.Context, clusterID uint, customDNS customDNSSpec) (*ExternalDnsChartValues, error) {
-
-	secretValues, err := op.secretStore.GetSecretValues(ctx, customDNS.Provider.SecretID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to process feature spec secrets")
-	}
-
-	values, err := op.getDefaultValues(ctx, clusterID)
-	if err != nil {
-		return nil, errors.WrapIf(err, "failed to process default values")
-	}
-
-	switch provider := customDNS.Provider.Name; provider {
-	case dnsRoute53:
-		if err := op.createCustomDNSChartValuesAmazon(secretValues, customDNS.Provider.Options, values); err != nil {
-			return nil, errors.Wrap(err, "failed to create Amazon custom DNS chart values")
+		if options := spec.ExternalDNS.Provider.Options; options != nil {
+			chartValues.AWS.BatchChangeSize = options.BatchChangeSize
+			chartValues.AWS.Region = options.Region
 		}
 
 	case dnsAzure:
-		if err := op.createCustomDNSChartValuesAzure(
-			ctx,
-			clusterID,
-			customDNS.Provider.Options,
-			secretValues,
-			values,
-		); err != nil {
-			return nil, errors.Wrap(err, "failed to create Azure custom DNS chart values")
+		type azureSecret struct {
+			ClientID       string `json:"aadClientId" mapstructure:"AZURE_CLIENT_ID"`
+			ClientSecret   string `json:"aadClientSecret" mapstructure:"AZURE_CLIENT_SECRET"`
+			TenantID       string `json:"tenantId" mapstructure:"AZURE_TENANT_ID"`
+			SubscriptionID string `json:"subscriptionId" mapstructure:"AZURE_SUBSCRIPTION_ID"`
+		}
+
+		var secret azureSecret
+		if err := mapstructure.Decode(secretValues, &secret); err != nil {
+			return nil, errors.WrapIf(err, "failed to decode secret values")
+		}
+
+		secretName, err := installSecret(cl, op.config.Namespace, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
+		if err != nil {
+			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
+		}
+
+		chartValues.Azure = &externaldns.AzureSettings{
+			SecretName:    secretName,
+			ResourceGroup: spec.ExternalDNS.Provider.Options.AzureResourceGroup,
 		}
 
 	case dnsGoogle:
-		if err := op.createCustomDNSChartValuesGoogle(
-			ctx,
-			clusterID,
-			customDNS.Provider.Options,
-			secretValues,
-			values,
-		); err != nil {
-			return nil, errors.Wrap(err, "failed to create Google custom DNS chart values")
+		secretName, err := installSecret(cl, op.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
+		if err != nil {
+			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
+		}
+
+		chartValues.Google = &externaldns.GoogleSettings{
+			Project:              secretValues[secrettype.ProjectId],
+			ServiceAccountSecret: secretName,
+		}
+
+		if options := spec.ExternalDNS.Provider.Options; options != nil {
+			chartValues.Google.Project = options.GoogleProject
 		}
 
 	default:
-
-		return nil, errors.New("DNS provider must be set")
 	}
 
-	values.DomainFilters = customDNS.DomainFilters
-	values.Provider = getProviderNameForChart(customDNS.Provider.Name)
+	rawValues, err := json.Marshal(chartValues)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to marshal chart values")
+	}
 
-	return values, nil
+	return rawValues, nil
 }
 
 func getProviderNameForChart(p string) string {
 	switch p {
-	case dnsRoute53:
+	case dnsBanzai, dnsRoute53:
 		return "aws"
 	default:
 		return p
 	}
 }
 
-func (op FeatureOperator) getDefaultValues(ctx context.Context, clusterID uint) (*ExternalDnsChartValues, error) {
-
-	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+// installSecret installs a secret to the specified cluster
+func installSecret(
+	cl interface {
+		GetK8sConfig() ([]byte, error)
+		GetOrganizationId() uint
+	},
+	namespace string,
+	secretName string,
+	secretDataKey string,
+	secretValue interface{},
+) (string, error) {
+	raw, err := json.Marshal(secretValue)
 	if err != nil {
-
-		return nil, errors.WrapIf(err, "failed to get cluster")
+		return "", errors.Wrap(err, "failed to marshal secret values")
 	}
 
-	return getDefaultValues(cl), nil
-}
-
-func getDefaultValues(cl clusterfeatureadapter.Cluster) *ExternalDnsChartValues {
-	externalDNSValues := ExternalDnsChartValues{
-		Rbac: &ExternalDnsRbacSettings{
-			Create: cl.RbacEnabled(),
-		},
-		Sources: []string{"service", "ingress"},
-		Image: &ExternalDnsImageSettings{
-			Repository: global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Repository,
-			Tag:        global.Config.Cluster.DNS.Charts.ExternalDNS.Values.Image.Tag,
-		},
-		Policy:      "sync",
-		TxtOwnerId:  cl.GetUID(),
-		Tolerations: cluster.GetHeadNodeTolerations(),
-	}
-
-	if headNodeAffinity := cluster.GetHeadNodeAffinity(cl); headNodeAffinity != (v1.Affinity{}) {
-		externalDNSValues.Affinity = &headNodeAffinity
-	}
-
-	return &externalDNSValues
-}
-
-type awsCredentials struct {
-	AccessKeyID     string `mapstructure:"AWS_ACCESS_KEY_ID"`
-	SecretAccessKey string `mapstructure:"AWS_SECRET_ACCESS_KEY"`
-	Region          string `mapstructure:"AWS_REGION"`
-}
-
-func (op FeatureOperator) createCustomDNSChartValuesAmazon(secretValues map[string]string, options *providerOptions, values *ExternalDnsChartValues) error {
-	var creds awsCredentials
-	if err := mapstructure.Decode(secretValues, &creds); err != nil {
-		return errors.WrapIf(err, "failed to bind feature spec credentials")
-	}
-
-	// set secret values
-	providerSettings := &ExternalDnsAwsSettings{
-		Region:          options.Region,
-		BatchChangeSize: options.BatchChangeSize,
-		Credentials: &ExternalDnsAwsCredentials{
-			AccessKey: creds.AccessKeyID,
-			SecretKey: creds.SecretAccessKey,
-		},
-	}
-
-	values.Aws = providerSettings
-
-	return nil
-}
-
-func (op FeatureOperator) createCustomDNSChartValuesAzure(
-	ctx context.Context,
-	clusterID uint,
-	options *providerOptions,
-	secretValues map[string]string,
-	values *ExternalDnsChartValues,
-) error {
-	type azureCredentials struct {
-		ClientID       string `json:"aadClientId" mapstructure:"AZURE_CLIENT_ID"`
-		ClientSecret   string `json:"aadClientSecret" mapstructure:"AZURE_CLIENT_SECRET"`
-		TenantID       string `json:"tenantId" mapstructure:"AZURE_TENANT_ID"`
-		SubscriptionID string `json:"subscriptionId" mapstructure:"AZURE_SUBSCRIPTION_ID"`
-	}
-
-	// get parse secret values into a struct
-	var azCreds azureCredentials
-	if err := mapstructure.Decode(secretValues, &azCreds); err != nil {
-		return errors.WrapIf(err, "failed to bind feature spec credentials")
-	}
-
-	if err := options.Validate(dnsAzure); err != nil {
-		return errors.Wrap(err, "error during options validation")
-	}
-
-	kubeSecretVal, err := json.Marshal(
-		// inline composite struct for adding  extra fields
-		struct {
-			*azureCredentials
-			ResourceGroup string `json:"resourceGroup"`
-		}{
-			&azCreds,
-			options.AzureResourceGroup,
-		},
-	)
-	if err != nil {
-		return errors.WrapIf(err, "failed to marshal secret values")
-	}
-
-	req := makeInstallSecretRequest(externalDNSAzureSecretDataKey, string(kubeSecretVal))
-
-	k8sSec, err := op.installSecret(ctx, clusterID, externalDNSAzureSecret, req)
-	if err != nil {
-		return errors.WrapIf(err, "failed to install secret to the cluster")
-	}
-
-	azureSettings := &ExternalDnsAzureSettings{
-		SecretName:    k8sSec.Name,
-		ResourceGroup: options.AzureResourceGroup,
-	}
-	values.Azure = azureSettings
-	values.TxtPrefix = "txt-"
-
-	return nil
-}
-
-func (op FeatureOperator) createCustomDNSChartValuesGoogle(
-	ctx context.Context,
-	clusterID uint,
-	options *providerOptions,
-	secretValues map[string]string,
-	values *ExternalDnsChartValues,
-) error {
-	// set google project
-	if options == nil || options.GoogleProject == "" {
-		options = &providerOptions{
-			GoogleProject: secretValues[secrettype.ProjectId],
-		}
-	}
-
-	if err := options.Validate(dnsGoogle); err != nil {
-		return errors.Wrap(err, "error during options validation")
-	}
-
-	// create kubernetes secret values
-	kubeSecretVal, err := json.Marshal(secretValues)
-	if err != nil {
-		return errors.WrapIf(err, "failed to marshal secret values")
-	}
-
-	req := makeInstallSecretRequest(externalDNSGoogleSecretDataKey, string(kubeSecretVal))
-
-	k8sSec, err := op.installSecret(ctx, clusterID, externalDNSGoogleSecret, req)
-	if err != nil {
-		return errors.WrapIf(err, "failed to install secret to the cluster")
-	}
-
-	providerSettings := &ExternalDnsGoogleSettings{
-		Project:              options.GoogleProject,
-		ServiceAccountSecret: k8sSec.Name,
-	}
-
-	values.Google = providerSettings
-	values.TxtPrefix = "txt-"
-
-	return nil
-}
-
-func makeInstallSecretRequest(secretDataKey string, secretValue string) cluster.InstallSecretRequest {
-	return cluster.InstallSecretRequest{
+	req := cluster.InstallSecretRequest{
 		// Note: leave the Source field empty as the secret needs to be transformed
-		Namespace: externalDNSNamespace,
+		Namespace: namespace,
 		Update:    true,
 		Spec: map[string]cluster.InstallSecretRequestSpecItem{
 			secretDataKey: {
-				Value: secretValue,
+				Value: string(raw),
 			},
 		},
 	}
-}
 
-// installSecret installs a secret to the cluster identified by the provided clusterID
-// secrets to be installed are expected to be contained in the request's value field
-func (op FeatureOperator) installSecret(ctx context.Context, clusterID uint, secretName string, secretRequest cluster.InstallSecretRequest) (*secret2.K8SSourceMeta, error) {
-	cl, err := op.clusterGetter.GetClusterByIDOnly(ctx, clusterID)
+	k8sSec, err := cluster.InstallSecret(cl, secretName, req)
 	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to get cluster", "clusterID", clusterID)
+		return "", errors.WrapIf(err, "failed to install secret to cluster")
 	}
 
-	k8sSec, err := cluster.InstallSecret(cl, secretName, secretRequest)
-	if err != nil {
-		return nil, errors.WrapIfWithDetails(err, "failed to install secret to the cluster", "clusterID", clusterID)
-	}
-
-	return k8sSec, nil
+	return k8sSec.Name, nil
 }
 
 func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID uint) (context.Context, error) {
