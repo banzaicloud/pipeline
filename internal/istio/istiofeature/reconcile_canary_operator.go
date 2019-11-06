@@ -20,7 +20,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/banzaicloud/pipeline/cluster"
-	pkgHelm "github.com/banzaicloud/pipeline/pkg/helm"
 )
 
 func (m *MeshReconciler) ReconcileCanaryOperator(desiredState DesiredState) error {
@@ -104,7 +103,7 @@ func (m *MeshReconciler) installCanaryOperator(c cluster.CommonCluster, promethe
 	err = installOrUpgradeDeployment(
 		c,
 		canaryOperatorNamespace,
-		pkgHelm.BanzaiRepository+"/"+m.Configuration.internalConfig.canary.chartName,
+		m.Configuration.internalConfig.canary.chartName,
 		canaryOperatorReleaseName,
 		valuesOverride,
 		m.Configuration.internalConfig.canary.chartVersion,
