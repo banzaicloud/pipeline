@@ -33,11 +33,16 @@ func (c Config) Validate() error {
 		return errors.WrapIf(err, "error during validation logging operator config")
 	}
 
+	if err := c.Charts.Loki.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation loki chart config")
+	}
+
 	return nil
 }
 
 type ChartsConfig struct {
 	Operator ChartConfig
+	Loki     ChartConfig
 }
 
 type ChartConfig struct {

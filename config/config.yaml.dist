@@ -219,6 +219,13 @@ dex:
 #                # See https://github.com/banzaicloud/logging-operator/tree/master/charts/logging-operator for details
 #                values: {}
 #
+#            loki:
+#                chart: "loki/loki"
+#                version: "0.17.1"
+#
+#                # See https://github.com/grafana/loki/tree/master/production/helm/loki for details
+#                values: {}
+#
 #    dns:
 #        enabled: true
 #
