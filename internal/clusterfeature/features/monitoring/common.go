@@ -29,6 +29,7 @@ const (
 	featureSecretTag                 = "feature:monitoring"
 	generatedSecretUsername          = "admin"
 	alertManagerProviderConfigName   = "default-receiver"
+	alertManagerNullReceiverName     = "null"
 
 	ingressTypeGrafana      = "Grafana"
 	ingressTypePrometheus   = "Prometheus"
