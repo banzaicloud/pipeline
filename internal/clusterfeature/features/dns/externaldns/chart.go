@@ -15,11 +15,6 @@
 package externaldns
 
 const (
-	ChartVersion = "2.3.3"
-	ChartName    = "stable/external-dns"
-	Namespace    = "pipeline-system"
-	ReleaseName  = "dns"
-
 	AzureSecretName  = "azure-config-file"
 	GoogleSecretName = "google-config-file"
 

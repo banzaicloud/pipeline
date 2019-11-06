@@ -65,28 +65,33 @@ func InstallIngressControllerPostHook(cluster CommonCluster) error {
 			return emperror.WrapWith(err, "failed to get organization", "organizationId", orgID)
 		}
 
-		baseDomain, err := dns.GetBaseDomain()
-		if err != nil {
-			return emperror.Wrap(err, "failed to get base domain")
-		}
-
-		orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.Name, baseDomain))
-		err = dns.ValidateSubdomain(orgDomainName)
-		if err != nil {
-			return emperror.Wrap(err, "invalid domain for TLS cert")
-		}
-
-		wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
-		err = dns.ValidateWildcardSubdomain(wildcardOrgDomainName)
-		if err != nil {
-			return emperror.Wrap(err, "invalid wildcard domain for TLS cert")
-		}
+		baseDomain := strings.ToLower(global.Config.Cluster.DNS.BaseDomain)
 
 		certRequest := tls.ServerCertificateRequest{
 			Subject: pkix.Name{
-				CommonName: wildcardOrgDomainName,
+				CommonName: "banzaicloud.io",
 			},
-			DNSNames: []string{orgDomainName, wildcardOrgDomainName},
+		}
+
+		if baseDomain != "" {
+			orgDomainName := strings.ToLower(fmt.Sprintf("%s.%s", organization.Name, baseDomain))
+			err = dns.ValidateSubdomain(orgDomainName)
+			if err != nil {
+				return emperror.Wrap(err, "invalid domain for TLS cert")
+			}
+
+			wildcardOrgDomainName := fmt.Sprintf("*.%s", orgDomainName)
+			err = dns.ValidateWildcardSubdomain(wildcardOrgDomainName)
+			if err != nil {
+				return emperror.Wrap(err, "invalid wildcard domain for TLS cert")
+			}
+
+			certRequest = tls.ServerCertificateRequest{
+				Subject: pkix.Name{
+					CommonName: wildcardOrgDomainName,
+				},
+				DNSNames: []string{orgDomainName, wildcardOrgDomainName},
+			}
 		}
 
 		rootCA, cert, key, err := certGenerator.GenerateServerCertificate(certRequest)

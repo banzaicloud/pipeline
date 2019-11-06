@@ -213,15 +213,11 @@ func (s alertmanagerSpec) Validate() error {
 			return err
 		}
 
-		var hasProvider bool
 		// validate Slack notification provider
 		if slackProv, ok := s.Provider[alertmanagerProviderSlack]; ok {
 			var slack slackSpec
 			if err := mapstructure.Decode(slackProv, &slack); err != nil {
 				return errors.WrapIf(err, "failed to bind Slack config")
-			}
-			if slack.Enabled {
-				hasProvider = true
 			}
 			if err := slack.Validate(); err != nil {
 				return errors.WrapIf(err, "error during validating Slack")
@@ -234,18 +230,10 @@ func (s alertmanagerSpec) Validate() error {
 			if err := mapstructure.Decode(pagerDutyProv, &pd); err != nil {
 				return errors.WrapIf(err, "failed to bind PagerDuty config")
 			}
-			if pd.Enabled {
-				hasProvider = true
-			}
 			if err := pd.Validate(); err != nil {
 				return errors.WrapIf(err, "error during validating PagerDuty")
 			}
 		}
-
-		if !hasProvider {
-			return errors.New("at least one notification provider required")
-		}
-
 	}
 
 	return nil

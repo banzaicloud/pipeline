@@ -54,6 +54,7 @@ Resources:
 
   NodeInstanceRole:
     Type: AWS::IAM::Role
+    Condition: CreateNodeInstanceRole
     Properties:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'

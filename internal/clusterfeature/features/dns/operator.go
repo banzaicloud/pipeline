@@ -32,6 +32,8 @@ import (
 	"github.com/banzaicloud/pipeline/internal/secret/secrettype"
 )
 
+const ReleaseName = "dns"
+
 // FeatureOperator implements the DNS feature operator
 type FeatureOperator struct {
 	clusterGetter    clusterfeatureadapter.ClusterGetter
@@ -120,7 +122,7 @@ func (op FeatureOperator) Apply(ctx context.Context, clusterID uint, spec cluste
 		clusterID,
 		op.config.Namespace,
 		op.config.Charts.ExternalDNS.Chart,
-		externaldns.ReleaseName,
+		ReleaseName,
 		chartValues,
 		op.config.Charts.ExternalDNS.Version,
 	); err != nil {
@@ -141,7 +143,7 @@ func (op FeatureOperator) Deactivate(ctx context.Context, clusterID uint, _ clus
 		return err
 	}
 
-	if err := op.helmService.DeleteDeployment(ctx, clusterID, externaldns.ReleaseName); err != nil {
+	if err := op.helmService.DeleteDeployment(ctx, clusterID, ReleaseName); err != nil {
 		return errors.WrapIf(err, "failed to delete deployment")
 	}
 
@@ -182,12 +184,16 @@ func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, sp
 	switch spec.ExternalDNS.Provider.Name {
 	case dnsBanzai, dnsRoute53:
 		chartValues.AWS = &externaldns.AWSSettings{
-			Region:          secretValues[secrettype.AwsRegion],
-			BatchChangeSize: spec.ExternalDNS.Provider.Options.BatchChangeSize,
+			Region: secretValues[secrettype.AwsRegion],
 			Credentials: &externaldns.AWSCredentials{
 				AccessKey: secretValues[secrettype.AwsAccessKeyId],
 				SecretKey: secretValues[secrettype.AwsSecretAccessKey],
 			},
+		}
+
+		if options := spec.ExternalDNS.Provider.Options; options != nil {
+			chartValues.AWS.BatchChangeSize = options.BatchChangeSize
+			chartValues.AWS.Region = options.Region
 		}
 
 	case dnsAzure:
@@ -203,7 +209,7 @@ func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, sp
 			return nil, errors.WrapIf(err, "failed to decode secret values")
 		}
 
-		secretName, err := installSecret(cl, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
+		secretName, err := installSecret(cl, op.config.Namespace, externaldns.AzureSecretName, externaldns.AzureSecretDataKey, secret)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
@@ -214,18 +220,18 @@ func (op FeatureOperator) getChartValues(ctx context.Context, clusterID uint, sp
 		}
 
 	case dnsGoogle:
-		if spec.ExternalDNS.Provider.Options.GoogleProject == "" {
-			spec.ExternalDNS.Provider.Options.GoogleProject = secretValues[secrettype.ProjectId]
-		}
-
-		secretName, err := installSecret(cl, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
+		secretName, err := installSecret(cl, op.config.Namespace, externaldns.GoogleSecretName, externaldns.GoogleSecretDataKey, secretValues)
 		if err != nil {
 			return nil, errors.WrapIfWithDetails(err, "failed to install secret to cluster", "clusterId", clusterID)
 		}
 
 		chartValues.Google = &externaldns.GoogleSettings{
-			Project:              spec.ExternalDNS.Provider.Options.GoogleProject,
+			Project:              secretValues[secrettype.ProjectId],
 			ServiceAccountSecret: secretName,
+		}
+
+		if options := spec.ExternalDNS.Provider.Options; options != nil {
+			chartValues.Google.Project = options.GoogleProject
 		}
 
 	default:
@@ -254,6 +260,7 @@ func installSecret(
 		GetK8sConfig() ([]byte, error)
 		GetOrganizationId() uint
 	},
+	namespace string,
 	secretName string,
 	secretDataKey string,
 	secretValue interface{},
@@ -265,7 +272,7 @@ func installSecret(
 
 	req := cluster.InstallSecretRequest{
 		// Note: leave the Source field empty as the secret needs to be transformed
-		Namespace: externaldns.Namespace,
+		Namespace: namespace,
 		Update:    true,
 		Spec: map[string]cluster.InstallSecretRequestSpecItem{
 			secretDataKey: {
