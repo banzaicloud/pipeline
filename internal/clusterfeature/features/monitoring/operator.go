@@ -435,6 +435,7 @@ func (op FeatureOperator) ensureOrgIDInContext(ctx context.Context, clusterID ui
 
 func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Context, spec map[string]interface{}) (*configValues, error) {
 	var err error
+	var hasProvider bool
 
 	// generate Slack configs
 	var slackConfigs []slackConfigValues
@@ -443,9 +444,12 @@ func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Contex
 		if err := mapstructure.Decode(slackProv, &slack); err != nil {
 			return nil, errors.WrapIf(err, "failed to bind Slack config")
 		}
-		slackConfigs, err = op.generateSlackConfig(ctx, slack)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to generate Slack config")
+		if slack.Enabled {
+			hasProvider = true
+			slackConfigs, err = op.generateSlackConfig(ctx, slack)
+			if err != nil {
+				return nil, errors.WrapIf(err, "failed to generate Slack config")
+			}
 		}
 	}
 
@@ -456,20 +460,27 @@ func (op FeatureOperator) generateAlertManagerProvidersConfig(ctx context.Contex
 		if err := mapstructure.Decode(pdProv, &pd); err != nil {
 			return nil, errors.WrapIf(err, "failed to bind PagerDuty config")
 		}
-		pageDutyConfigs, err = op.generatePagerdutyConfig(ctx, pd)
-		if err != nil {
-			return nil, errors.WrapIf(err, "failed to generate PagerDuty config")
+		if pd.Enabled {
+			hasProvider = true
+			pageDutyConfigs, err = op.generatePagerdutyConfig(ctx, pd)
+			if err != nil {
+				return nil, errors.WrapIf(err, "failed to generate PagerDuty config")
+			}
 		}
 	}
 
+	var receiverName = alertManagerNullReceiverName
+	if hasProvider {
+		receiverName = alertManagerProviderConfigName
+	}
 	var result = &configValues{
 		Receivers: []receiverItemValues{
 			{
-				Name: alertManagerProviderConfigName,
+				Name: receiverName,
 			},
 		},
 		Route: routeValues{
-			Receiver: alertManagerProviderConfigName,
+			Receiver: receiverName,
 			Routes:   []interface{}{},
 		},
 	}
