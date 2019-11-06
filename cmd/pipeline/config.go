@@ -201,61 +201,63 @@ func configure(v *viper.Viper, p *pflag.FlagSet) {
 	_ = v.BindPFlags(p)
 
 	v.SetEnvPrefix(envPrefix)
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	v.SetEnvKeyReplacer(strings.NewReplacer("::", "_", ".", "_", "-", "_"))
 	v.AutomaticEnv()
+
+	v.SetKeyDelimiter("::")
 
 	// Load common configuration
 	cmd.Configure(v, p)
 
 	// ErrorHandler configuration
-	v.Set("errors.serviceName", appName)
-	v.Set("errors.serviceVersion", version)
+	v.Set("errors::serviceName", appName)
+	v.Set("errors::serviceVersion", version)
 
 	// Telemetry configuration
-	v.SetDefault("telemetry.enabled", false)
+	v.SetDefault("telemetry::enabled", false)
 	p.String("telemetry-addr", "127.0.0.1:9900", "Telemetry HTTP server address")
-	_ = v.BindPFlag("telemetry.addr", p.Lookup("telemetry-addr"))
-	v.SetDefault("telemetry.addr", "127.0.0.1:9900")
-	v.SetDefault("telemetry.debug", true)
+	_ = v.BindPFlag("telemetry::addr", p.Lookup("telemetry-addr"))
+	v.SetDefault("telemetry::addr", "127.0.0.1:9900")
+	v.SetDefault("telemetry::debug", true)
 
 	// Pipeline configuration
 	p.String("addr", "127.0.0.1:9090", "Pipeline HTTP server address")
-	_ = v.BindPFlag("pipeline.addr", p.Lookup("addr"))
-	v.SetDefault("pipeline.addr", "127.0.0.1:9090")
-	v.SetDefault("pipeline.internalAddr", "127.0.0.1:9091")
-	v.SetDefault("pipeline.basePath", "")
-	v.SetDefault("pipeline.certFile", "")
-	v.SetDefault("pipeline.keyFile", "")
+	_ = v.BindPFlag("pipeline::addr", p.Lookup("addr"))
+	v.SetDefault("pipeline::addr", "127.0.0.1:9090")
+	v.SetDefault("pipeline::internalAddr", "127.0.0.1:9091")
+	v.SetDefault("pipeline::basePath", "")
+	v.SetDefault("pipeline::certFile", "")
+	v.SetDefault("pipeline::keyFile", "")
 
 	// Auth configuration
-	v.SetDefault("auth.role.default", auth.RoleAdmin)
-	v.SetDefault("auth.role.binding", map[string]string{
+	v.SetDefault("auth::role::default", auth.RoleAdmin)
+	v.SetDefault("auth::role::binding", map[string]string{
 		auth.RoleAdmin:  ".*",
 		auth.RoleMember: "",
 	})
 
 	// Database config
-	v.SetDefault("database.autoMigrate", false)
+	v.SetDefault("database::autoMigrate", false)
 
-	v.SetDefault("cors.allowAllOrigins", true)
-	v.SetDefault("cors.allowOrigins", []string{})
-	v.SetDefault("cors.allowOriginsRegexp", "")
+	v.SetDefault("cors::allowAllOrigins", true)
+	v.SetDefault("cors::allowOrigins", []string{})
+	v.SetDefault("cors::allowOriginsRegexp", "")
 
-	v.SetDefault("frontend.issue.enabled", false)
-	v.SetDefault("frontend.issue.driver", "github")
-	v.SetDefault("frontend.issue.labels", []string{"community"})
+	v.SetDefault("frontend::issue::enabled", false)
+	v.SetDefault("frontend::issue::driver", "github")
+	v.SetDefault("frontend::issue::labels", []string{"community"})
 
-	v.SetDefault("frontend.issue.github.token", "")
-	v.SetDefault("frontend.issue.github.owner", "banzaicloud")
-	v.SetDefault("frontend.issue.github.repository", "pipeline-issues")
+	v.SetDefault("frontend::issue::github::token", "")
+	v.SetDefault("frontend::issue::github::owner", "banzaicloud")
+	v.SetDefault("frontend::issue::github::repository", "pipeline-issues")
 
-	v.SetDefault("spotmetrics.enabled", false)
-	v.SetDefault("spotmetrics.collectionInterval", 30*time.Second)
+	v.SetDefault("spotmetrics::enabled", false)
+	v.SetDefault("spotmetrics::collectionInterval", 30*time.Second)
 
-	v.SetDefault("audit.enabled", true)
-	v.SetDefault("audit.headers", []string{"secretId"})
-	v.SetDefault("audit.skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
+	v.SetDefault("audit::enabled", true)
+	v.SetDefault("audit::headers", []string{"secretId"})
+	v.SetDefault("audit::skipPaths", []string{"/auth/dex/callback", "/pipeline/api"})
 
-	v.SetDefault("pipeline.ui.url", "/ui")
-	v.SetDefault("pipeline.ui.signupRedirectPath", "/ui")
+	v.SetDefault("pipeline::ui::url", "/ui")
+	v.SetDefault("pipeline::ui::signupRedirectPath", "/ui")
 }

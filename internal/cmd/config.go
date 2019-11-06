@@ -252,102 +252,102 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		v.SetDefault("no_color", true)
 	}
 
-	v.SetDefault("log.format", "logfmt")
-	v.SetDefault("log.level", "debug")
-	v.RegisterAlias("log.noColor", "no_color")
+	v.SetDefault("log::format", "logfmt")
+	v.SetDefault("log::level", "debug")
+	v.RegisterAlias("log::noColor", "no_color")
 
 	// ErrorHandler configuration
-	v.SetDefault("errors.stackdriver.enabled", false)
-	v.SetDefault("errors.stackdriver.projectId", false)
+	v.SetDefault("errors::stackdriver::enabled", false)
+	v.SetDefault("errors::stackdriver::projectId", false)
 
 	// Pipeline configuration
-	v.SetDefault("pipeline.uuid", "")
-	v.SetDefault("pipeline.external.url", "")
-	v.SetDefault("pipeline.external.insecure", false)
+	v.SetDefault("pipeline::uuid", "")
+	v.SetDefault("pipeline::external::url", "")
+	v.SetDefault("pipeline::external::insecure", false)
 
 	// Auth configuration
-	v.SetDefault("auth.oidc.issuer", "")
-	v.SetDefault("auth.oidc.insecure", false)
-	v.SetDefault("auth.oidc.clientId", "")
-	v.SetDefault("auth.oidc.clientSecret", "")
+	v.SetDefault("auth::oidc::issuer", "")
+	v.SetDefault("auth::oidc::insecure", false)
+	v.SetDefault("auth::oidc::clientId", "")
+	v.SetDefault("auth::oidc::clientSecret", "")
 
-	v.SetDefault("auth.cli.clientId", "banzai-cli")
+	v.SetDefault("auth::cli::clientId", "banzai-cli")
 
-	v.SetDefault("auth.cookie.secure", true)
-	v.SetDefault("auth.cookie.domain", "")
-	v.SetDefault("auth.cookie.setDomain", false)
+	v.SetDefault("auth::cookie::secure", true)
+	v.SetDefault("auth::cookie::domain", "")
+	v.SetDefault("auth::cookie::setDomain", false)
 
-	v.SetDefault("auth.token.signingKey", "")
-	v.SetDefault("auth.token.issuer", "https://banzaicloud.com/")
-	v.SetDefault("auth.token.audience", "https://pipeline.banzaicloud.com")
+	v.SetDefault("auth::token::signingKey", "")
+	v.SetDefault("auth::token::issuer", "https://banzaicloud.com/")
+	v.SetDefault("auth::token::audience", "https://pipeline.banzaicloud.com")
 
 	// Dex configuration
-	v.SetDefault("dex.apiAddr", "")
-	v.SetDefault("dex.apiCa", "")
+	v.SetDefault("dex::apiAddr", "")
+	v.SetDefault("dex::apiCa", "")
 
 	// Kubernetes configuration
-	_ = v.BindEnv("kubernetes.namespace", "KUBERNETES_NAMESPACE")
-	v.SetDefault("kubernetes.namespace", "default")
-	v.SetDefault("kubernetes.client.forceGlobal", false)
+	_ = v.BindEnv("kubernetes::namespace", "KUBERNETES_NAMESPACE")
+	v.SetDefault("kubernetes::namespace", "default")
+	v.SetDefault("kubernetes::client::forceGlobal", false)
 
 	// Database config
-	v.SetDefault("database.dialect", "mysql")
-	v.SetDefault("database.host", "")
-	v.SetDefault("database.port", 3306)
-	v.SetDefault("database.tls", "")
-	v.SetDefault("database.user", "")
-	v.SetDefault("database.password", "")
-	v.SetDefault("database.name", "pipeline")
-	v.SetDefault("database.params", map[string]string{
+	v.SetDefault("database::dialect", "mysql")
+	v.SetDefault("database::host", "")
+	v.SetDefault("database::port", 3306)
+	v.SetDefault("database::tls", "")
+	v.SetDefault("database::user", "")
+	v.SetDefault("database::password", "")
+	v.SetDefault("database::name", "pipeline")
+	v.SetDefault("database::params", map[string]string{
 		"charset": "utf8mb4",
 	})
-	v.SetDefault("database.queryLog", false)
+	v.SetDefault("database::queryLog", false)
 
 	// Cadence configuration
-	v.SetDefault("cadence.host", "")
-	v.SetDefault("cadence.port", 7933)
-	v.SetDefault("cadence.domain", "pipeline")
+	v.SetDefault("cadence::host", "")
+	v.SetDefault("cadence::port", 7933)
+	v.SetDefault("cadence::domain", "pipeline")
 
 	// Cluster configuration
-	v.SetDefault("cluster.manifest", "")
-	v.SetDefault("cluster.namespace", "pipeline-system")
+	v.SetDefault("cluster::manifest", "")
+	v.SetDefault("cluster::namespace", "pipeline-system")
 
-	v.SetDefault("cluster.ingress.cert.source", "file")
-	v.SetDefault("cluster.ingress.cert.path", "config/certs")
+	v.SetDefault("cluster::ingress::cert::source", "file")
+	v.SetDefault("cluster::ingress::cert::path", "config/certs")
 
-	v.SetDefault("cluster.labels.domain", "banzaicloud.io")
-	v.SetDefault("cluster.labels.forbiddenDomains", []string{
+	v.SetDefault("cluster::labels::domain", "banzaicloud.io")
+	v.SetDefault("cluster::labels::forbiddenDomains", []string{
 		"k8s.io",
 		"kubernetes.io",
 		"google.com",
 	})
-	v.SetDefault("cluster.labels.charts.nodepoolLabelOperator.chart", "banzaicloud-stable/nodepool-labels-operator")
-	v.SetDefault("cluster.labels.charts.nodepoolLabelOperator.version", "0.0.3")
-	v.SetDefault("cluster.labels.charts.nodepoolLabelOperator.values", map[string]interface{}{})
+	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::chart", "banzaicloud-stable/nodepool-labels-operator")
+	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::version", "0.0.3")
+	v.SetDefault("cluster::labels::charts::nodepoolLabelOperator::values", map[string]interface{}{})
 
-	v.SetDefault("cluster.vault.enabled", true)
-	v.SetDefault("cluster.vault.namespace", "")
-	v.SetDefault("cluster.vault.managed.enabled", false)
-	v.SetDefault("cluster.vault.charts.webhook.chart", "banzaicloud-stable/vault-secrets-webhook")
-	v.SetDefault("cluster.vault.charts.webhook.version", "0.5.2")
-	v.SetDefault("cluster.vault.charts.webhook.values", map[string]interface{}{
+	v.SetDefault("cluster::vault::enabled", true)
+	v.SetDefault("cluster::vault::namespace", "")
+	v.SetDefault("cluster::vault::managed::enabled", false)
+	v.SetDefault("cluster::vault::charts::webhook::chart", "banzaicloud-stable/vault-secrets-webhook")
+	v.SetDefault("cluster::vault::charts::webhook::version", "0.5.2")
+	v.SetDefault("cluster::vault::charts::webhook::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/vault-secrets-webhook",
 			"tag":        "0.5.1",
 		},
 	})
 
-	v.SetDefault("cluster.monitoring.enabled", true)
-	v.SetDefault("cluster.monitoring.namespace", "")
-	v.SetDefault("cluster.monitoring.grafana.adminUser", "admin")
-	v.SetDefault("cluster.monitoring.monitor.enabled", false)
-	v.SetDefault("cluster.monitoring.monitor.configMap", "")
-	v.SetDefault("cluster.monitoring.monitor.configMapPrometheusKey", "prometheus.yml")
-	v.SetDefault("cluster.monitoring.monitor.certSecret", "")
-	v.SetDefault("cluster.monitoring.monitor.mountPath", "")
-	v.SetDefault("cluster.monitoring.charts.operator.chart", "stable/prometheus-operator")
-	v.SetDefault("cluster.monitoring.charts.operator.version", "7.2.0")
-	v.SetDefault("cluster.monitoring.charts.operator.values", map[string]interface{}{
+	v.SetDefault("cluster::monitoring::enabled", true)
+	v.SetDefault("cluster::monitoring::namespace", "")
+	v.SetDefault("cluster::monitoring::grafana::adminUser", "admin")
+	v.SetDefault("cluster::monitoring::monitor::enabled", false)
+	v.SetDefault("cluster::monitoring::monitor::configMap", "")
+	v.SetDefault("cluster::monitoring::monitor::configMapPrometheusKey", "prometheus.yml")
+	v.SetDefault("cluster::monitoring::monitor::certSecret", "")
+	v.SetDefault("cluster::monitoring::monitor::mountPath", "")
+	v.SetDefault("cluster::monitoring::charts::operator::chart", "stable/prometheus-operator")
+	v.SetDefault("cluster::monitoring::charts::operator::version", "7.2.0")
+	v.SetDefault("cluster::monitoring::charts::operator::values", map[string]interface{}{
 		"prometheusOperator": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "quay.io/coreos/prometheus-operator",
@@ -409,9 +409,9 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			},
 		},
 	})
-	v.SetDefault("cluster.monitoring.charts.pushgateway.chart", "stable/prometheus-pushgateway")
-	v.SetDefault("cluster.monitoring.charts.pushgateway.version", "1.0.1")
-	v.SetDefault("cluster.monitoring.charts.pushgateway.values", map[string]interface{}{
+	v.SetDefault("cluster::monitoring::charts::pushgateway::chart", "stable/prometheus-pushgateway")
+	v.SetDefault("cluster::monitoring::charts::pushgateway::version", "1.0.1")
+	v.SetDefault("cluster::monitoring::charts::pushgateway::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "prom/pushgateway",
 			"tag":        "v1.0.0",
@@ -424,57 +424,57 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 
-	v.SetDefault("cluster.logging.enabled", true)
-	v.SetDefault("cluster.logging.namespace", "")
-	v.SetDefault("cluster.logging.charts.operator.chart", "banzaicloud-stable/logging-operator")
-	v.SetDefault("cluster.logging.charts.operator.version", "0.3.3")
-	v.SetDefault("cluster.logging.charts.operator.values", map[string]interface{}{
+	v.SetDefault("cluster::logging::enabled", true)
+	v.SetDefault("cluster::logging::namespace", "")
+	v.SetDefault("cluster::logging::charts::operator::chart", "banzaicloud-stable/logging-operator")
+	v.SetDefault("cluster::logging::charts::operator::version", "0.3.3")
+	v.SetDefault("cluster::logging::charts::operator::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/logging-operator",
 			"tag":        "1.0.0",
 		},
 	})
 
-	v.SetDefault("cluster.dns.enabled", true)
-	v.SetDefault("cluster.dns.namespace", "")
-	v.SetDefault("cluster.dns.baseDomain", "")
-	v.SetDefault("cluster.dns.providerSecret", "secret/data/banzaicloud/aws")
-	v.SetDefault("cluster.dns.charts.externalDns.chart", "stable/external-dns")
-	v.SetDefault("cluster.dns.charts.externalDns.version", "2.2.3")
-	v.SetDefault("cluster.dns.charts.externalDns.values", map[string]interface{}{
+	v.SetDefault("cluster::dns::enabled", true)
+	v.SetDefault("cluster::dns::namespace", "")
+	v.SetDefault("cluster::dns::baseDomain", "")
+	v.SetDefault("cluster::dns::providerSecret", "secret/data/banzaicloud/aws")
+	v.SetDefault("cluster::dns::charts::externalDns::chart", "stable/external-dns")
+	v.SetDefault("cluster::dns::charts::externalDns::version", "2.2.3")
+	v.SetDefault("cluster::dns::charts::externalDns::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "bitnami/external-dns",
 			"tag":        "0.5.15",
 		},
 	})
 
-	v.SetDefault("cluster.autoscale.namespace", "")
-	v.SetDefault("cluster.autoscale.hpa.prometheus.serviceName", "monitor-prometheus-server")
-	v.SetDefault("cluster.autoscale.hpa.prometheus.serviceContext", "prometheus")
-	v.SetDefault("cluster.autoscale.hpa.prometheus.localPort", 9090)
-	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.chart", "banzaicloud-stable/cluster-autoscaler")
-	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.version", "0.12.3")
-	v.SetDefault("cluster.autoscale.charts.clusterAutoscaler.values", map[string]interface{}{})
-	v.SetDefault("cluster.autoscale.charts.hpaOperator.chart", "banzaicloud-stable/hpa-operator")
-	v.SetDefault("cluster.autoscale.charts.hpaOperator.version", "0.0.14")
-	v.SetDefault("cluster.autoscale.charts.hpaOperator.values", map[string]interface{}{})
+	v.SetDefault("cluster::autoscale::namespace", "")
+	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceName", "monitor-prometheus-server")
+	v.SetDefault("cluster::autoscale::hpa::prometheus::serviceContext", "prometheus")
+	v.SetDefault("cluster::autoscale::hpa::prometheus::localPort", 9090)
+	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::chart", "banzaicloud-stable/cluster-autoscaler")
+	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::version", "0.12.3")
+	v.SetDefault("cluster::autoscale::charts::clusterAutoscaler::values", map[string]interface{}{})
+	v.SetDefault("cluster::autoscale::charts::hpaOperator::chart", "banzaicloud-stable/hpa-operator")
+	v.SetDefault("cluster::autoscale::charts::hpaOperator::version", "0.0.14")
+	v.SetDefault("cluster::autoscale::charts::hpaOperator::values", map[string]interface{}{})
 
-	v.SetDefault("cluster.securityScan.enabled", true)
-	v.SetDefault("cluster.securityScan.anchore.enabled", false)
-	v.SetDefault("cluster.securityScan.anchore.endpoint", "")
-	v.SetDefault("cluster.securityScan.anchore.user", "")
-	v.SetDefault("cluster.securityScan.anchore.password", "")
+	v.SetDefault("cluster::securityScan::enabled", true)
+	v.SetDefault("cluster::securityScan::anchore::enabled", false)
+	v.SetDefault("cluster::securityScan::anchore::endpoint", "")
+	v.SetDefault("cluster::securityScan::anchore::user", "")
+	v.SetDefault("cluster::securityScan::anchore::password", "")
 
-	v.SetDefault("cluster.disasterRecovery.enabled", true)
-	v.SetDefault("cluster.disasterRecovery.namespace", "")
-	v.SetDefault("cluster.disasterRecovery.ark.syncEnabled", true)
-	v.SetDefault("cluster.disasterRecovery.ark.bucketSyncInterval", "10m")
-	v.SetDefault("cluster.disasterRecovery.ark.restoreSyncInterval", "20s")
-	v.SetDefault("cluster.disasterRecovery.ark.backupSyncInterval", "20s")
-	v.SetDefault("cluster.disasterRecovery.ark.restoreWaitTimeout", "5m")
-	v.SetDefault("cluster.disasterRecovery.charts.ark.chart", "banzaicloud-stable/ark")
-	v.SetDefault("cluster.disasterRecovery.charts.ark.version", "1.2.2")
-	v.SetDefault("cluster.disasterRecovery.charts.ark.values", map[string]interface{}{
+	v.SetDefault("cluster::disasterRecovery::enabled", true)
+	v.SetDefault("cluster::disasterRecovery::namespace", "")
+	v.SetDefault("cluster::disasterRecovery::ark::syncEnabled", true)
+	v.SetDefault("cluster::disasterRecovery::ark::bucketSyncInterval", "10m")
+	v.SetDefault("cluster::disasterRecovery::ark::restoreSyncInterval", "20s")
+	v.SetDefault("cluster::disasterRecovery::ark::backupSyncInterval", "20s")
+	v.SetDefault("cluster::disasterRecovery::ark::restoreWaitTimeout", "5m")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::chart", "banzaicloud-stable/ark")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::version", "1.2.2")
+	v.SetDefault("cluster::disasterRecovery::charts::ark::values", map[string]interface{}{
 		"image": map[string]interface{}{
 			"repository": "banzaicloud/ark",
 			"tag":        "v0.9.11",
@@ -482,13 +482,13 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 
-	v.SetDefault("cluster.backyards.enabled", true)
-	v.SetDefault("cluster.backyards.istio.grafanaDashboardLocation", "./etc/dashboards/istio")
-	v.SetDefault("cluster.backyards.istio.pilotImage", "banzaicloud/istio-pilot:1.1.8-bzc.1")
-	v.SetDefault("cluster.backyards.istio.mixerImage", "banzaicloud/istio-mixer:1.1.8-bzc.1")
-	v.SetDefault("cluster.backyards.charts.istioOperator.chart", "banzaicloud-stable/istio-operator")
-	v.SetDefault("cluster.backyards.charts.istioOperator.version", "0.0.14")
-	v.SetDefault("cluster.backyards.charts.istioOperator.values", map[string]interface{}{
+	v.SetDefault("cluster::backyards::enabled", true)
+	v.SetDefault("cluster::backyards::istio::grafanaDashboardLocation", "./etc/dashboards/istio")
+	v.SetDefault("cluster::backyards::istio::pilotImage", "banzaicloud/istio-pilot:1.1.8-bzc.1")
+	v.SetDefault("cluster::backyards::istio::mixerImage", "banzaicloud/istio-mixer:1.1.8-bzc.1")
+	v.SetDefault("cluster::backyards::charts::istioOperator::chart", "banzaicloud-stable/istio-operator")
+	v.SetDefault("cluster::backyards::charts::istioOperator::version", "0.0.14")
+	v.SetDefault("cluster::backyards::charts::istioOperator::values", map[string]interface{}{
 		"operator": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "",
@@ -496,9 +496,9 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			},
 		},
 	})
-	v.SetDefault("cluster.backyards.charts.backyards.chart", "banzaicloud-stable/backyards")
-	v.SetDefault("cluster.backyards.charts.backyards.version", "0.1.4")
-	v.SetDefault("cluster.backyards.charts.backyards.values", map[string]interface{}{
+	v.SetDefault("cluster::backyards::charts::backyards::chart", "banzaicloud-stable/backyards")
+	v.SetDefault("cluster::backyards::charts::backyards::version", "0.1.4")
+	v.SetDefault("cluster::backyards::charts::backyards::values", map[string]interface{}{
 		"application": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/backyards",
@@ -512,9 +512,9 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			},
 		},
 	})
-	v.SetDefault("cluster.backyards.charts.canaryOperator.chart", "banzaicloud-stable/canary-operator")
-	v.SetDefault("cluster.backyards.charts.canaryOperator.version", "0.1.2")
-	v.SetDefault("cluster.backyards.charts.canaryOperator.values", map[string]interface{}{
+	v.SetDefault("cluster::backyards::charts::canaryOperator::chart", "banzaicloud-stable/canary-operator")
+	v.SetDefault("cluster::backyards::charts::canaryOperator::version", "0.1.2")
+	v.SetDefault("cluster::backyards::charts::canaryOperator::values", map[string]interface{}{
 		"operator": map[string]interface{}{
 			"image": map[string]interface{}{
 				"repository": "banzaicloud/canary-operator",
@@ -523,9 +523,9 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 		},
 	})
 
-	v.SetDefault("cluster.federation.charts.kubefed.chart", "kubefed-charts/kubefed")
-	v.SetDefault("cluster.federation.charts.kubefed.version", "0.1.0-rc5")
-	v.SetDefault("cluster.federation.charts.kubefed.values", map[string]interface{}{
+	v.SetDefault("cluster::federation::charts::kubefed::chart", "kubefed-charts/kubefed")
+	v.SetDefault("cluster::federation::charts::kubefed::version", "0.1.0-rc5")
+	v.SetDefault("cluster::federation::charts::kubefed::values", map[string]interface{}{
 		"controllermanager": map[string]interface{}{
 			"repository": "banzaicloud",
 			"tag":        "v0.1.0-rc5-bzc.1",
@@ -533,52 +533,52 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 	})
 
 	// Helm configuration
-	v.SetDefault("helm.tiller.version", "v2.14.2")
-	v.SetDefault("helm.home", "./var/cache")
-	v.SetDefault("helm.repositories.stable", "https://kubernetes-charts.storage.googleapis.com")
-	v.SetDefault("helm.repositories.banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
-	v.SetDefault("helm.repositories.loki", "https://grafana.github.io/loki/charts")
+	v.SetDefault("helm::tiller::version", "v2.14.2")
+	v.SetDefault("helm::home", "./var/cache")
+	v.SetDefault("helm::repositories::stable", "https://kubernetes-charts.storage.googleapis.com")
+	v.SetDefault("helm::repositories::banzaicloud-stable", "https://kubernetes-charts.banzaicloud.com")
+	v.SetDefault("helm::repositories::loki", "https://grafana.github.io/loki/charts")
 
 	// Cloud configuration
-	v.SetDefault("cloud.amazon.defaultRegion", "us-west-1")
-	v.SetDefault("cloud.alibaba.defaultRegion", "eu-central-1")
+	v.SetDefault("cloud::amazon::defaultRegion", "us-west-1")
+	v.SetDefault("cloud::alibaba::defaultRegion", "eu-central-1")
 
-	v.SetDefault("distribution.eks.templateLocation", "./templates/eks")
+	v.SetDefault("distribution::eks::templateLocation", "./templates/eks")
 
-	v.SetDefault("cloudinfo.endpoint", "")
-	v.SetDefault("hollowtrees.endpoint", "")
-	v.SetDefault("hollowtrees.tokenSigningKey", "")
+	v.SetDefault("cloudinfo::endpoint", "")
+	v.SetDefault("hollowtrees::endpoint", "")
+	v.SetDefault("hollowtrees::tokenSigningKey", "")
 
 	// Temporary hook flags
-	v.SetDefault("hooks.domainHookDisabled", false)
+	v.SetDefault("hooks::domainHookDisabled", false)
 
 	// CICD config
-	v.SetDefault("cicd.enabled", false)
-	v.SetDefault("cicd.url", "http://localhost:8000")
-	v.SetDefault("cicd.insecure", false)
-	v.SetDefault("cicd.scm", "github")
-	v.SetDefault("cicd.database.dialect", "mysql")
-	v.SetDefault("cicd.database.host", "")
-	v.SetDefault("cicd.database.port", 3306)
-	v.SetDefault("cicd.database.tls", "")
-	v.SetDefault("cicd.database.user", "")
-	v.SetDefault("cicd.database.password", "")
-	v.SetDefault("cicd.database.name", "cicd")
-	v.SetDefault("cicd.database.params", map[string]string{
+	v.SetDefault("cicd::enabled", false)
+	v.SetDefault("cicd::url", "http://localhost:8000")
+	v.SetDefault("cicd::insecure", false)
+	v.SetDefault("cicd::scm", "github")
+	v.SetDefault("cicd::database::dialect", "mysql")
+	v.SetDefault("cicd::database::host", "")
+	v.SetDefault("cicd::database::port", 3306)
+	v.SetDefault("cicd::database::tls", "")
+	v.SetDefault("cicd::database::user", "")
+	v.SetDefault("cicd::database::password", "")
+	v.SetDefault("cicd::database::name", "cicd")
+	v.SetDefault("cicd::database::params", map[string]string{
 		"charset": "utf8mb4",
 	})
-	v.SetDefault("cicd.database.queryLog", false)
+	v.SetDefault("cicd::database::queryLog", false)
 
 	// Auth provider (Gitlab/Github) settings
-	v.SetDefault("github.token", "")
-	v.SetDefault("gitlab.url", "https://gitlab.com/")
-	v.SetDefault("gitlab.token", "")
+	v.SetDefault("github::token", "")
+	v.SetDefault("gitlab::url", "https://gitlab.com/")
+	v.SetDefault("gitlab::token", "")
 
 	// Spotguide config
-	v.SetDefault("spotguide.allowPrereleases", false)
-	v.SetDefault("spotguide.allowPrivateRepos", false)
-	v.SetDefault("spotguide.syncInterval", 5*time.Minute)
-	v.SetDefault("spotguide.sharedLibraryGitHubOrganization", "spotguides")
+	v.SetDefault("spotguide::allowPrereleases", false)
+	v.SetDefault("spotguide::allowPrivateRepos", false)
+	v.SetDefault("spotguide::syncInterval", 5*time.Minute)
+	v.SetDefault("spotguide::sharedLibraryGitHubOrganization", "spotguides")
 
-	v.SetDefault("secret.tls.defaultValidity", "8760h") // 1 year
+	v.SetDefault("secret::tls::defaultValidity", "8760h") // 1 year
 }
