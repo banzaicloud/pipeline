@@ -39,7 +39,6 @@ require (
 	github.com/banzaicloud/nodepool-labels-operator v0.0.0-20190823114332-76c873e3a8cb
 	github.com/banzaicloud/prometheus-config v0.0.0-20181214142820-fc6ae4756a29
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
-	github.com/cactus/go-statsd-client v3.1.1+incompatible // indirect
 	github.com/cenkalti/backoff v2.1.1+incompatible // indirect
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
@@ -131,7 +130,6 @@ require (
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/technosophos/moniker v0.0.0-20180509230615-a5dbd03a2245
-	github.com/uber-common/bark v1.2.1
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber-go/mapdecode v1.0.0 // indirect
 	github.com/uber-go/tally v3.3.7+incompatible // indirect
@@ -159,7 +157,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20150902115704-41f357289737 // indirect
 	gopkg.in/resty.v1 v1.12.0
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.4
 	k8s.io/api v0.0.0-20190820101039-d651a1528133
 	k8s.io/apiextensions-apiserver v0.0.0-20190308081736-3a66ae4d2f93
 	k8s.io/apimachinery v0.0.0-20190823012420-8ca64af22337
@@ -187,6 +185,7 @@ replace (
 	github.com/jinzhu/gorm => github.com/jinzhu/gorm v1.9.1
 	github.com/kubernetes-sigs/kubefed => github.com/kubernetes-sigs/kubefed v0.1.0-rc5
 	github.com/qor/auth => github.com/banzaicloud/auth v0.1.3
+	github.com/spf13/viper => github.com/spf13/viper v1.5.1-0.20191106115438-0a1bcd76350b
 
 	// https://github.com/ugorji/go/issues/303#issuecomment-513581953
 	github.com/ugorji/go => github.com/ugorji/go/codec v1.1.7
