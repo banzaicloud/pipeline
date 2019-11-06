@@ -434,6 +434,14 @@ func Configure(v *viper.Viper, _ *pflag.FlagSet) {
 			"tag":        "1.0.0",
 		},
 	})
+	v.SetDefault("cluster::logging::charts::loki::chart", "loki/loki")
+	v.SetDefault("cluster::logging::charts::loki::version", "0.17.1")
+	v.SetDefault("cluster::logging::charts::loki::values", map[string]interface{}{
+		"image": map[string]interface{}{
+			"repository": "grafana/loki",
+			"tag":        "v0.4.0",
+		},
+	})
 
 	v.SetDefault("cluster::dns::enabled", true)
 	v.SetDefault("cluster::dns::namespace", "")
