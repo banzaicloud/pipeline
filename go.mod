@@ -91,6 +91,7 @@ require (
 	github.com/lib/pq v0.0.0-20181016162627-9eb73efc1fcc // indirect
 	github.com/mattn/go-sqlite3 v0.0.0-20160907162043-3fb7a0e792ed // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
+	github.com/mitchellh/copystructure v1.0.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moogar0880/problems v0.1.1
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect

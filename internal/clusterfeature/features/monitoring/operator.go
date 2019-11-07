@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/api/storage/v1beta1"
@@ -248,10 +249,13 @@ func (op FeatureOperator) installPrometheusPushGateway(
 		Annotations: annotations,
 	}
 
-	valuesBytes, err := json.Marshal(chartValues)
+	pushgatewayConfigValues, err := copystructure.Copy(op.config.Charts.Pushgateway.Values)
 	if err != nil {
-		logger.Debug("failed to marshal chartValues")
-		return errors.WrapIf(err, "failed to decode chartValues")
+		return errors.WrapIf(err, "failed to copy pushgateway values")
+	}
+	valuesBytes, err := mergeOperatorValuesWithConfig(*chartValues, pushgatewayConfigValues)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge pushgateway values with config")
 	}
 
 	return op.helmService.ApplyDeployment(
@@ -307,10 +311,13 @@ func (op FeatureOperator) installPrometheusOperator(
 		chartValues.NodeExporter = valuesManager.generateNodeExporterChartValues(spec.Exporters.NodeExporter)
 	}
 
-	valuesBytes, err := json.Marshal(chartValues)
+	operatorConfigValues, err := copystructure.Copy(op.config.Charts.Operator.Values)
 	if err != nil {
-		logger.Debug("failed to marshal chartValues")
-		return errors.WrapIf(err, "failed to decode chartValues")
+		return errors.WrapIf(err, "failed to copy operator values")
+	}
+	valuesBytes, err := mergeOperatorValuesWithConfig(*chartValues, operatorConfigValues)
+	if err != nil {
+		return errors.WrapIf(err, "failed to merge operator values with config")
 	}
 
 	return op.helmService.ApplyDeployment(
@@ -322,6 +329,21 @@ func (op FeatureOperator) installPrometheusOperator(
 		valuesBytes,
 		op.config.Charts.Operator.Version,
 	)
+}
+
+func mergeOperatorValuesWithConfig(chartValues interface{}, configValues interface{}) ([]byte, error) {
+	valuesBytes, err := json.Marshal(chartValues)
+	if err != nil {
+		return nil, errors.WrapIf(err, "failed to decode chartValues")
+	}
+
+	var out map[string]interface{}
+	if err := json.Unmarshal(valuesBytes, &out); err != nil {
+		return nil, errors.WrapIf(err, "failed to unmarshal operator values")
+	}
+
+	result, err := merge(configValues, out)
+	return json.Marshal(result)
 }
 
 func (op FeatureOperator) generateGrafanaSecret(
