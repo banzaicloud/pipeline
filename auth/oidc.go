@@ -35,8 +35,9 @@ import (
 // OIDCProvider provide login with OIDC auth method
 type OIDCProvider struct {
 	*OIDCProviderConfig
-	provider *oidc.Provider
-	verifier *oidc.IDTokenVerifier
+	httpClient *http.Client
+	provider   *oidc.Provider
+	verifier   *oidc.IDTokenVerifier
 }
 
 type AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
@@ -86,7 +87,7 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 		config.Scopes = []string{oidc.ScopeOpenID, "profile", "email", "groups", "federated:id", oidc.ScopeOfflineAccess}
 	}
 
-	httpClient := http.Client{
+	provider.httpClient = &http.Client{
 		Timeout: time.Second * 10,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -94,7 +95,8 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 			},
 		},
 	}
-	ctx := oidc.ClientContext(gocontext.Background(), &httpClient)
+
+	ctx := oidc.ClientContext(gocontext.Background(), provider.httpClient)
 	oidcProvider, err := oidc.NewProvider(ctx, provider.IssuerURL)
 	if err != nil {
 		panic(fmt.Errorf("Failed to query provider %q: %s", provider.IssuerURL, err.Error()))
@@ -119,7 +121,7 @@ func newOIDCProvider(config *OIDCProviderConfig, refreshTokenStore RefreshTokenS
 			)
 
 			verifier := provider.verifier
-			ctx := oidc.ClientContext(req.Context(), &httpClient)
+			ctx := oidc.ClientContext(req.Context(), provider.httpClient)
 			oauth2Config := provider.OAuthConfig(context)
 
 			switch req.Method {
@@ -331,7 +333,10 @@ func (provider OIDCProvider) Login(context *auth.Context) {
 // RedeemRefreshToken plays an OAuth redeem refresh token flow
 // https://www.oauth.com/oauth2-servers/access-tokens/refreshing-access-tokens/
 func (provider OIDCProvider) RedeemRefreshToken(context *auth.Context, refreshToken string) (*IDTokenClaims, *oauth2.Token, error) {
-	token, err := provider.OAuthConfig(context).TokenSource(gocontext.Background(), &oauth2.Token{RefreshToken: refreshToken}).Token()
+
+	ctx := oidc.ClientContext(gocontext.Background(), provider.httpClient)
+
+	token, err := provider.OAuthConfig(context).TokenSource(ctx, &oauth2.Token{RefreshToken: refreshToken}).Token()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -342,7 +347,7 @@ func (provider OIDCProvider) RedeemRefreshToken(context *auth.Context, refreshTo
 	}
 
 	var claims IDTokenClaims
-	idToken, err := provider.verifier.Verify(gocontext.Background(), rawIDToken)
+	idToken, err := provider.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to verify ID token: %s", err.Error())
 	}
