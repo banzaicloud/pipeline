@@ -29,17 +29,36 @@ func (c Config) Validate() error {
 		return errors.New("logging namespace is required")
 	}
 
-	// TODO: validate chart config: image and tag are not empty!
+	if err := c.Charts.Operator.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation logging operator config")
+	}
+
+	if err := c.Charts.Loki.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation loki chart config")
+	}
 
 	return nil
 }
 
 type ChartsConfig struct {
 	Operator ChartConfig
+	Loki     ChartConfig
 }
 
 type ChartConfig struct {
 	Chart   string
 	Version string
 	Values  map[string]interface{}
+}
+
+func (c ChartConfig) Validate() error {
+	if c.Chart == "" {
+		return errors.New("chart is required")
+	}
+
+	if c.Version == "" {
+		return errors.New("chart version is required")
+	}
+
+	return nil
 }

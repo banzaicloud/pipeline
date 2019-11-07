@@ -15,7 +15,7 @@
 package monitoring
 
 import (
-	"errors"
+	"emperror.dev/errors"
 )
 
 // Config contains configuration for the monitoring feature.
@@ -34,7 +34,13 @@ func (c Config) Validate() error {
 		return err
 	}
 
-	// TODO: validate chart config: image and tag are not empty!
+	if err := c.Charts.Operator.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation Prometheus operator config")
+	}
+
+	if err := c.Charts.Pushgateway.Validate(); err != nil {
+		return errors.WrapIf(err, "error during validation Pushgateway config")
+	}
 
 	return nil
 }
@@ -60,4 +66,16 @@ type ChartConfig struct {
 	Chart   string
 	Version string
 	Values  map[string]interface{}
+}
+
+func (c ChartConfig) Validate() error {
+	if c.Chart == "" {
+		return errors.New("chart is required")
+	}
+
+	if c.Version == "" {
+		return errors.New("chart version is required")
+	}
+
+	return nil
 }
